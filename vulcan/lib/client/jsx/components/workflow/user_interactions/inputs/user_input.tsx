@@ -21,7 +21,7 @@ import {
   InputValidator
 } from './input_types';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
-import ScatterPlotly from './scatter_plotly';
+import {ScatterPlotly, BarPlotly} from './visualizations';
 import NotEmptyValidator from './validators/not_empty_validator';
 import {
   AllInnerValuesNotEmptyValidator,
@@ -51,6 +51,7 @@ configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInpu
 configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
 configureComponent(TYPE.SCATTER_PLOTLY, ScatterPlotly, AllOutputValuesNotEmptyValidator);
+configureComponent(TYPE.BAR_PLOTLY, BarPlotly, AllOutputValuesNotEmptyValidator);
 
 configureComponent(TYPE.SINGLE_DROPDOWN_MULTICHECKBOX, SingleDropdownMulticheckbox, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_MULTISELECT_STRING_ALL, MultipleInput(MultiselectStringInput), AllInnerValuesNotEmptyValidator)
