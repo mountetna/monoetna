@@ -39,6 +39,7 @@ services:
     command:
       - bash
       - -c
+      - --
       - |
         set -e
         export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://developer:$$(cat /run/secrets/airflow-postgres-password)@airflow_postgres:5432/airflow"
@@ -58,6 +59,7 @@ services:
     image: etnaagent/airflow:production
     command:
       - bash
+      - --
       - -c
       - |
         set -e
@@ -78,6 +80,7 @@ services:
     image: etnaagent/airflow:production
     command:
       - bash
+      - --
       - -c
       - |
         set -e
