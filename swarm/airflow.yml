@@ -10,6 +10,7 @@ services:
       POSTGRES_DB: airflow
     secrets:
       - airflow-postgres-password
+      - airflow-fernet-key
     volumes:
       - airflow-metadata-db:/var/lib/postgresql/data
     networks:
@@ -44,6 +45,9 @@ services:
         export AIRFLOW__CORE__FERNET_KEY=$(cat /run/secrets/airflow-fernet-key)
         export AIRFLOW__CORE__EXECUTOR=LocalExecutor
         exec /entrypoint airflow webserver
+    secrets:
+      - airflow-postgres-password
+      - airflow-fernet-key
     deploy:
       mode: replicated
       replicas: 1
@@ -61,6 +65,9 @@ services:
         export AIRFLOW__CORE__FERNET_KEY=$(cat /run/secrets/airflow-fernet-key)
         export AIRFLOW__CORE__EXECUTOR=LocalExecutor
         exec /entrypoint airflow scheduler
+    secrets:
+      - airflow-postgres-password
+      - airflow-fernet-key
     deploy:
       mode: replicated
       replicas: 1
