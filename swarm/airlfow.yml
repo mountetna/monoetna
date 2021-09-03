@@ -1,0 +1,100 @@
+version: '3.8'
+
+# Intended for agents that run in global deploy node, on most or all nodes, for service health purposes.
+services:
+  postgres:
+    image: "postgres:11"
+    environment:
+      POSTGRES_USER: developer
+      POSTGRES_PASSWORD_FILE: /run/secrets/airflow-postgres-password
+      POSTGRES_DB: airflow
+    secrets:
+      - airflow-postgres-password
+    volumes:
+      - airflow-metadata-db:/var/lib/postgresql/data
+    networks:
+      - airflow
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=150"
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        failure_action: rollback
+      placement:
+        constraints:
+          - node.labels.volumes.airflow-metadata-db == true
+    healthcheck:
+      test: pg_isready -q -d prefect -U developer || exit 1
+      interval: 10s
+      timeout: 2s
+      retries: 60
+      start_period: 2s
+
+  ui:
+    image: etnaagent/airflow:production
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://developer:$$(cat /run/secrets/airflow-postgres-password)@airflow_postgres:5432/airflow"
+        export AIRFLOW__CORE__FERNET_KEY=$(cat /run/secrets/airflow-fernet-key)
+        exec airflow webserver
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - airflow
+
+  scheduler:
+    image: etnaagent/airflow:production
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://developer:$$(cat /run/secrets/airflow-postgres-password)@airflow_postgres:5432/airflow"
+        export AIRFLOW__CORE__FERNET_KEY=$(cat /run/secrets/airflow-fernet-key)
+        exec airflow scheduler
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - airflow
+
+  init:
+    image: etnaagent/airflow:production
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://developer:$$(cat /run/secrets/airflow-postgres-password)@airflow_postgres:5432/airflow"
+        export AIRFLOW__CORE__FERNET_KEY=$(cat /run/secrets/airflow-fernet-key)
+        exec /entrypoint airflow version
+    environment:
+      _AIRFLOW_DB_UPGRADE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME}
+      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD}
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: none
+        max_attempts: 1
+
+volumes:
+  airflow-metadata-db:
+
+networks:
+  airflow:
+
+secrets:
+  airflow-fernet-key:
+    external: true
+  airflow-postgres-password:
+    external: true
