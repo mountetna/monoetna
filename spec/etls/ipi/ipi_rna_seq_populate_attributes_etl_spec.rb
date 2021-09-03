@@ -53,6 +53,13 @@ describe Polyphemus::IpiRnaSeqPopulateAttributesEtl do
                                          "filtered_mean_length": 90,
                                          "compartment": "comp2",
                                        },
+                                     },
+                                   },
+                                 }))
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq": {
                                        "PATIENT002.T1.comp": {
                                          "well": "3",
                                          "pipeline_version": "v1.1",
@@ -61,6 +68,14 @@ describe Polyphemus::IpiRnaSeqPopulateAttributesEtl do
                                          "filtered_mean_length": 30,
                                          "compartment": "other",
                                        },
+                                     },
+                                   },
+                                 }))
+
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq": {
                                        "PATIENT003.T1.comp": {
                                          "well": "4",
                                          "pipeline_version": "v1.7",

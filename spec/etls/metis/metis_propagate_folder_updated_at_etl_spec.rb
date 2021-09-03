@@ -43,7 +43,7 @@ describe Polyphemus::MetisPropagateFolderUpdatedAtEtl do
         create_metis_folder("output", "output", updated_at: now - 100, id: 1, project_name: project_name, bucket_name: bucket_name),
       ])
 
-      expect(WebMock).to have_requested(:get, /#{METIS_HOST}\/#{project_name}\/touch\/#{bucket_name}\/output\/PATIENT001.T1.comp/)
+      expect(WebMock).to have_requested(:get, /#{METIS_HOST}\/#{project_name}\/folder\/touch\/#{bucket_name}\/output\/PATIENT001.T1.comp/)
 
       Timecop.return
     end
@@ -73,7 +73,7 @@ describe Polyphemus::MetisPropagateFolderUpdatedAtEtl do
         create_metis_folder("output", "output", updated_at: now - 100, id: 1, project_name: project_name, bucket_name: bucket_name),
       ])
 
-      expect(WebMock).not_to have_requested(:get, /#{METIS_HOST}\/#{project_name}\/touch\/#{bucket_name}\/output\/PATIENT001.T1.comp/)
+      expect(WebMock).not_to have_requested(:get, /#{METIS_HOST}\/#{project_name}\/folder\/touch\/#{bucket_name}\/output\/PATIENT001.T1.comp/)
 
       Timecop.return
     end
