@@ -1,9 +1,9 @@
-describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
+describe Polyphemus::IpiRnaSeqCreateRecordNamesEtl do
   let(:cursor) {
     Polyphemus::MetisFolderEtlCursor.new(
       job_name: "test",
       project_name: "ipi",
-      bucket_name: "test",
+      bucket_name: "data",
     )
   }
 
@@ -27,12 +27,12 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
     end
 
     it "for all rna_seq" do
-      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
+      etl = Polyphemus::IpiRnaSeqCreateRecordNamesEtl.new
 
       etl.process(cursor, [
-        folder("IPIADR001.N1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
-        folder("IPIADR001.T1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.T1.rna.live"),
-        folder("IPIBLAD001.T1.rna.live", "bucket/plate2_rnaseq_new/output/IPIBLAD001.T1.rna.live"),
+        folder("IPIADR001.N1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
+        folder("IPIADR001.T1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output2/IPIADR001.T1.rna.live"),
+        folder("IPIBLAD001.T1.rna.live", "bulkRNASeq/plate2_rnaseq_new/output/IPIBLAD001.T1.rna.live"),
       ])
 
       # Make sure plates are created
@@ -59,17 +59,6 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
                                          "rna_seq_plate": "Plate1",
                                          "sample": "IPIADR001.N1",
                                        },
-                                       "IPIADR001.T1.rna.live": {
-                                         "rna_seq_plate": "Plate1",
-                                         "sample": "IPIADR001.T1",
-                                       },
-                                     },
-                                   },
-                                 }))
-      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
-                           .with(body: hash_including({
-                                   "revisions": {
-                                     "rna_seq": {
                                        "IPIBLAD001.T1.rna.live": {
                                          "rna_seq_plate": "Plate2",
                                          "sample": "IPIBLAD001.T1",
@@ -80,15 +69,15 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
     end
 
     it "does not create NASH / NAFLD samples" do
-      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
+      etl = Polyphemus::IpiRnaSeqCreateRecordNamesEtl.new
 
       etl.process(cursor, [
-        folder("IPIADR001.NASH1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.NASH1.rna.live"),
-        folder("IPIADR001.NAFLD1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.NAFLD1.rna.live"),
+        folder("IPIADR001.NASH1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NASH1.rna.live"),
+        folder("IPIADR001.NAFLD1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NAFLD1.rna.live"),
       ])
 
-      # No plates are 100% NASH / NAFLD, so this is okay
-      # Make sure plates are created
+      # Plates created anyways ... no plate is purely ignored samples,
+      #   so this is okay.
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
                            .with(body: hash_including({
                                    "revisions": {
@@ -126,11 +115,11 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
     end
 
     it "for control" do
-      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
+      etl = Polyphemus::IpiRnaSeqCreateRecordNamesEtl.new
 
       etl.process(cursor, [
-        folder("CONTROL_jurkat.plate1", "bucket/plate1_rnaseq_new/output/CONTROL_jurkat.plate1"),
-        folder("CONTROL_uhr.plate2", "bucket/plate2_rnaseq_new/output/CONTROL_uhr.plate2"),
+        folder("CONTROL_jurkat.plate1", "bulkRNASeq/plate1_rnaseq_new/output/CONTROL_jurkat.plate1"),
+        folder("CONTROL_uhr.plate2", "bulkRNASeq/plate2_rnaseq_new/output/CONTROL_uhr.plate2"),
       ])
 
       # Make sure plates are created
@@ -156,13 +145,6 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
                                        "Control_Jurkat.Plate1": {
                                          "rna_seq_plate": "Plate1",
                                        },
-                                     },
-                                   },
-                                 }))
-      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
-                           .with(body: hash_including({
-                                   "revisions": {
-                                     "rna_seq": {
                                        "Control_UHR.Plate2": {
                                          "rna_seq_plate": "Plate2",
                                        },
