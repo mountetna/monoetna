@@ -75,6 +75,8 @@ services:
     secrets:
       - airflow-postgres-password
       - airflow-fernet-key
+    networks:
+      - airflow
 
 volumes:
   airflow-metadata-db:
