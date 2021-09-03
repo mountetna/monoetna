@@ -1,13 +1,13 @@
-require_relative "../metis_folder_etl"
+require_relative "./metis_folder_filtering_base_etl"
 
-class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
+class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEtl
   def initialize(project_bucket_pairs:, model_name:, folder_path_regexes: {}, limit: 20, watch_type:)
     @model_name = model_name
     @watch_type = watch_type
-    @folder_path_regexes = folder_path_regexes
     super(
       project_bucket_pairs: project_bucket_pairs,
       limit: limit,
+      folder_path_regexes: folder_path_regexes,
     )
   end
 
@@ -29,16 +29,6 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
     remove_changed_records(cursor, folders)
 
     logger.info("Done")
-  end
-
-  def project_bucket_symbol(cursor)
-    "#{cursor[:project_name]}_#{cursor[:bucket_name]}".to_sym
-  end
-
-  def filter_target_folders(cursor, folders)
-    folders.select do |folder|
-      folder_path_satisfies_regex?(cursor, folder)
-    end
   end
 
   def new_folders(cursor, folders)
@@ -80,20 +70,6 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
         metis_id: folder.id,
       }
     end)
-  end
-
-  def should_skip_folder?(folder)
-    # Subclasses can override
-    false
-  end
-
-  def folder_path_satisfies_regex?(cursor, folder)
-    project_bucket = project_bucket_symbol(cursor)
-    regex = @folder_path_regexes[project_bucket]
-
-    raise Polyphemus::EtlError.new("No regex for project / bucket: #{project_bucket}") if regex.nil?
-
-    folder.folder_path =~ Regexp.new(regex)
   end
 
   def current_watch_folder_metis_ids(cursor, folders)
