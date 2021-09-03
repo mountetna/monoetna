@@ -309,6 +309,18 @@ def stub_bucket_find(params = {})
         'Content-Type': 'application/json'
       },
       body: (params[:response_body_2] || { files: [], folders: [] }).to_json,
+    }).then.to_return({
+      status: params[:status_3] || 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: (params[:response_body_3] || { files: [], folders: [] }).to_json,
+    }).then.to_return({
+      status: params[:status_4] || 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: (params[:response_body_4] || { files: [], folders: [] }).to_json,
     })
 end
 

@@ -26,8 +26,6 @@ class Mvir1Waiver
   end
 
   def restrict_patient_data(patient_name)
-    require "pry"
-    binding.pry
     @metis_client.rename_folders(
       project_name: @project_name,
       source_bucket: @release_bucket_name,
