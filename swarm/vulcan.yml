@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: developer
 
     volumes:
-      - db2:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data
     deploy:
       placement:
         constraints:
@@ -92,7 +92,7 @@ services:
 
 volumes:
   app_public:
-  db2:
+
   db:
     name: vulcan_db
 
