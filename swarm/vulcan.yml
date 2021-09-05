@@ -2,7 +2,18 @@ version: '3.8'
 
 # Intended for agents that run in global deploy node, on most or all nodes, for service health purposes.
 services:
-  vulcan_app:
+  postgres:
+    image: postgres:10.12
+    volumes:
+      - db:/var/lib/postgresql/data
+    deploy:
+      placement:
+        constraints:
+          - node.labels.volumes.vulcan_db == true
+    networks:
+      - vulcan
+
+  app:
     environment:
       APP_NAME: vulcan
       VULCAN_ENV: production
@@ -28,8 +39,10 @@ services:
       placement:
         constraints:
           - node.labels.volumes.vulcan_data == true
+    networks:
+      - vulcan
 
-  vulcan_app_fe:
+  app_fe:
     environment:
       APP_NAME: vulcan
       VULCAN_ENV: production
@@ -37,6 +50,7 @@ services:
     image: etnaagent/vulcan_app_fe:production
     networks:
       - edge_bridge
+      - vulcan
     volumes:
       - app_public:/app/public
       - /data_change_me_when_done/vulcan:/app/data/vulcan:ro
@@ -51,7 +65,7 @@ services:
         - node.labels.volumes.vulcan_app_public == true
         - node.labels.volumes.vulcan_data == true
 
-  vulcan_app_assets_deployer:
+  app_assets_deployer:
     environment:
       APP_NAME: vulcan
       VULCAN_ENV: production
@@ -73,3 +87,10 @@ services:
 
 volumes:
   app_public:
+  db:
+    name: vulcan_db
+
+networks:
+  vulcan:
+  edge_bridge:
+    external: true
