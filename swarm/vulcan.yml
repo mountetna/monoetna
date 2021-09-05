@@ -5,7 +5,7 @@ services:
   postgres:
     image: postgres:10.12
     volumes:
-      - db:/var/lib/postgresql/data
+      - db2:/var/lib/postgresql/data
     deploy:
       placement:
         constraints:
@@ -87,6 +87,7 @@ services:
 
 volumes:
   app_public:
+  db2:
   db:
     name: vulcan_db
 
