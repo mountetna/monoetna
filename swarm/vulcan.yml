@@ -1,0 +1,75 @@
+version: '3.8'
+
+# Intended for agents that run in global deploy node, on most or all nodes, for service health purposes.
+services:
+  vulcan_app:
+    environment:
+      APP_NAME: vulcan
+      VULCAN_ENV: production
+      HOST_DIR_MAP: /app/data=/data_change_me_when_done
+    command: /bin/deploy.sh migrate notifySlackOfVersion -- /app/bin/puma.sh
+    image: etnaagent/vulcan_app:production
+    volumes:
+      - /data_change_me_when_done/vulcan:/app/data/vulcan
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    user: 1502:999 # vulcan:docker
+    healthcheck:
+      interval: 5s
+      retries: 60
+      start_period: 1s
+      test: wget -O - http://localhost:3000 &>/dev/null
+        || exit 1
+      timeout: 2s
+    deploy:
+      update_config:
+        parallelism: 1
+      labels:
+        - autoupdate=true
+      placement:
+        constraints:
+          - node.labels.volumes.vulcan_data == true
+
+  vulcan_app_fe:
+    environment:
+      APP_NAME: vulcan
+      VULCAN_ENV: production
+
+    image: etnaagent/vulcan_app_fe:production
+    networks:
+      - edge_bridge
+    volumes:
+      - app_public:/app/public
+      - /data_change_me_when_done/vulcan:/app/data/vulcan:ro
+    user: 1502:3000 # vulcan:browser
+    deploy:
+      labels:
+        - autoupdate=true
+      restart_policy:
+        condition: none
+      placement:
+        constraints:
+        - node.labels.volumes.vulcan_app_public == true
+        - node.labels.volumes.vulcan_data == true
+
+  vulcan_app_assets_deployer:
+    environment:
+      APP_NAME: vulcan
+      VULCAN_ENV: production
+
+    command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
+    image: etnaagent/vulcan_app:production
+    volumes:
+      - app_public:/sync-assets
+    user: 1502:3000 # vulcan:browser
+    deploy:
+      labels:
+        - autoupdate=true
+      restart_policy:
+        condition: none
+      mode: global
+      placement:
+        max_replicas_per_node: 1
+        constraints: [node.labels.volumes.vulcan_app_public == true]
+
+volumes:
+  app_public:
