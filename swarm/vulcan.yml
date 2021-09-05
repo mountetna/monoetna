@@ -4,6 +4,11 @@ version: '3.8'
 services:
   postgres:
     image: postgres:10.12
+    environment:
+      POSTGRES_DB: 'vulcan'
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+
     volumes:
       - db2:/var/lib/postgresql/data
     deploy:
