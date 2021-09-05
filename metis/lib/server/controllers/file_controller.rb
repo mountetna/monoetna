@@ -45,6 +45,20 @@ class FileController < Metis::Controller
     success_json(files: [ file.to_hash(request: @request) ])
   end
 
+  def touch
+    bucket = require_bucket
+    file = Metis::File.from_path(bucket, @params[:file_path])
+
+    raise Etna::Error.new('File not found', 404) unless file&.has_data?
+
+    raise Etna::Forbidden, 'File is read only' if file.read_only?
+    
+    file.update(updated_at: Time.now)
+    file.refresh
+
+    success_json(files: [ file.to_hash ])
+  end
+
   def rename
     require_param(:new_file_path)
 

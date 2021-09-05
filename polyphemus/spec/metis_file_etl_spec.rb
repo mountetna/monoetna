@@ -28,13 +28,6 @@ describe Polyphemus::MetisFileEtl do
 
     def prepare_find_request(cursor, find_request)
       super
-
-      find_request.add_param(Etna::Clients::Metis::FindParam.new(
-          type: 'file',
-          attribute: 'name',
-          predicate: 'glob',
-          value: '*',
-      ))
     end
 
     attr_reader :process_calls
@@ -88,8 +81,8 @@ describe Polyphemus::MetisFileEtl do
             Etna::Clients::Metis::FindParam.new(
                 type: 'file',
                 attribute: 'name',
-                predicate: 'glob',
-                value: '*',
+                predicate: '=~',
+                value: '%',
             )
         ]
     )).files.all.map(&:file_path))

@@ -85,7 +85,7 @@ export class WorkflowUtils {
       this.stateRef.current.status,
       status
     );
-    this.dispatch(setStatus(updatedStatus, false));
+    this.dispatch(setStatus(updatedStatus, null));
 
     return status;
   }
@@ -121,7 +121,7 @@ export class WorkflowUtils {
       ...status, name: stepName, status: 'complete', downloads: {...status.downloads, [outputName]: url}
     }));
 
-    this.dispatch(setStatus(newStatus, false));
+    this.dispatch(setStatus(newStatus, null));
     this.dispatch(setDownloadedData(url, value));
     return newStatus;
   }

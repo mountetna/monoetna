@@ -2,40 +2,40 @@ cwlVersion: v1.1
 class: Workflow
 
 inputs:
-  1_ignore__spacer:
+  1_Filler__spacer:
     type: int
     default: 200
-    label: "Ignore me"
+    label: "Filler - will be replaced with a data load step!"
     doc: "Does nothing"
 
 outputs:
   the_plot:
     type: File
-    outputSource: plot_scatter/scatter_plot.json
+    outputSource: plot_scatter/plot.json
 
 steps:
   get_data:
     run: scripts/mockDF.cwl
     label: 'Fetch Data'
-    in: []
-    out: [data_frame, data_options]
+    in:
+      a: 1_Filler__spacer
+    out: [data_frame]
   fill_plot_options:
     run: ui-queries/scatter-plotly.cwl
     label: 'Set plot options'
     in:
-      data_options: get_data/data_options
       data_frame: get_data/data_frame
-    out: [data_options]
+    out: [plot_setup]
   plot_scatter:
-    run: scripts/scatter_make_scatter.cwl
+    run: scripts/make_scatter.cwl
     label: 'Create Scatter Plot'
     in:
-      plot_settings: fill_plot_options/data_options
+      plot_setup: fill_plot_options/plot_setup
       data_frame: get_data/data_frame
-    out: [scatter_plot.json]
+    out: [plot.json]
   show_scatter_plot:
     run: ui-outputs/plotly.cwl
     in:
-      a: plot_scatter/scatter_plot.json
+      a: plot_scatter/plot.json
     out: []
     label: 'Display Scatter Plot'

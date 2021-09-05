@@ -2,7 +2,7 @@
   "projects": ["example"],
   "authors": ["Dan Bunis"],
   "lastModified": "June 30, 2021",
-  "vignette": "### FILLER\n\n# This workflow allows users to create a scatter plot from data of their choice",
+  "vignette": "### FILLER\n\n# This workflow allows users to create a scatter plot from data of their choice, but the data loading step is not yet worked out.",
   "tags": ["general", "plotting", "continuous data"],
   "image": "umap.png",
   "displayName": "Scatter Plot",

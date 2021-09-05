@@ -17,3 +17,6 @@ export const postUnprotectFile = (project_name, bucket_name, file_name) =>
 
 export const postRenameFile = (project_name, bucket_name, file_name, new_file_path) =>
   json_post(`${window.location.origin}/${project_name}/file/rename/${bucket_name}/${file_name}`, {new_file_path});
+
+export const getTouchFile = (project_name, bucket_name, file_name) =>
+  json_get(`${window.location.origin}/${project_name}/file/touch/${bucket_name}/${file_name}`);

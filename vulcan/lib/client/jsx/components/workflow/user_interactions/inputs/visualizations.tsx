@@ -1,16 +1,15 @@
 // Input component that takes nested object
 //   and shows the keys one level at a time.
 // Returns the last "Leaf" that the user selects.
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import * as _ from 'lodash';
 
-import {DataEnvelope, nulled_vals, WithInputParams} from './input_types';
+import {DataEnvelope, WithInputParams} from './input_types';
 import { useSetsDefault } from './useSetsDefault';
-import { Maybe, maybeOfNullable, some, withDefault } from '../../../../selectors/maybe';
+import { maybeOfNullable, some, withDefault } from '../../../../selectors/maybe';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import { Button, Slider } from '@material-ui/core';
 import { pick } from 'lodash';
-import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 import StringInput from './string';
 import BooleanInput from './boolean';
 
@@ -31,27 +30,36 @@ Output Structure:
   dictionary of scatter_plotly inputs-name (key) + value pairs.
 */
 
-export default function scatter_plotly({
+export function ScatterPlotly({
   data, onChange, value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
   return VisualizationUI({data, onChange, value}, "scatter_plot")
 }
 
+export function BarPlotly({
+  data, onChange, value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, "bar_plot")
+}
+
 function VisualizationUI({
   data, onChange, ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>, plotType: string) {
-  const hide = useMemo(() => data && data['hide'], [data]);
-  const defaultValue = useMemo(() => whichDefaults(plotType, hide), [hide]);
+  const preset = useMemo(() => data && data['preset'], [data]);
+  const hide = useMemo(() => preset && Object.keys(preset), [preset]);
+  const defaultValue = whichDefaults(plotType, preset);
   const value = useSetsDefault(defaultValue, props.value, onChange);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const options: DataEnvelope<string> = useMemo(() => {
-    if (data == null) return {};
+  const options: string[] = useMemo(() => {
+    if (data == null) return [];
+    if (data['data_frame'] == null) return [];
 
-    return data['data_options'] || nulled_vals(data['data_frame']);
+    // return data['data_options'] || nulled_vals(data['data_frame']);
+    return Object.keys(data['data_frame'])
   }, [data]);
 
-  const updateValue = (newValue: any, key: string, prevValues = value) => {
+  const updateValue = (newValue: any, key: string, prevValues = {...value}) => {
     prevValues[key] = newValue;
     onChange(some(prevValues));
   };
@@ -83,8 +91,9 @@ function VisualizationUI({
   }
 
   const shownValues = useMemo(() => {
-    return showAdvanced ? value : pick(value, ...base)
-  }, [value, showAdvanced])
+    let initial = showAdvanced ? value : pick(value, ...base)
+    return remove_hidden(initial, hide);
+  }, [value, showAdvanced, hide])
   
   return (
     <div>
@@ -133,9 +142,13 @@ function key_wrap(k: string[]) {
 }
 
 const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
-  scatter_plot: {
-    main: ["x_by", "y_by", "color_by"],
-    adv: ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color']
+  'scatter_plot': {
+    'main': ["x_by", "y_by", "color_by"],
+    'adv': ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color']
+  },
+  'bar_plot': {
+    'main': ["x_by", "y_by", "scale_by"],
+    'adv': ['plot_title', 'legend_title', 'xlab', 'ylab']
   }
 }
 
@@ -143,6 +156,7 @@ const defaults: DataEnvelope<any> = {
   'x_by': null,
   'y_by': null,
   'color_by': null,
+  'scale_by': 'fraction',
   'size': 5,
   'plot_title': 'make',
   'legend_title': 'make',
@@ -152,19 +166,34 @@ const defaults: DataEnvelope<any> = {
   'order_when_continuous_color': false
 };
 
-function whichDefaults(plotType: string, hide: string[] | null | undefined) {
-  const inputs = input_sets[plotType]['main'].concat(input_sets[plotType]['adv'])
+function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | undefined) {
+  const initial_vals: DataEnvelope<any> = useMemo(() => {
+  
+    const inputs = input_sets[plotType]['main'].concat(input_sets[plotType]['adv'])
 
-  let output = defaults;
-  const keys = Object.keys(defaults);
-  for (let ind = 0; ind < defaults.length; ind++) {
-    if (!inputs.includes(keys[ind])) delete output[keys[ind]];
-  }
+    let initial_vals = {...defaults};
+    
+    // Remove input:value pairs that aren't in this Viz type
+    const def_keys = Object.keys(defaults);
+    for (let ind = 0; ind < def_keys.length; ind++) {
+      if (!inputs.includes(def_keys[ind])) delete initial_vals[def_keys[ind]];
+    }
 
-  return remove_hidden(defaults, hide);
+    // Add preset values / replace any default values.
+    if (preset != null) {
+      const pre_keys = Object.keys(preset);
+      for (let ind = 0; ind < pre_keys.length; ind++) {
+        initial_vals[pre_keys[ind]] = preset[pre_keys[ind]];
+      }
+    }
+    
+    return initial_vals;
+  }, [plotType, preset])
+
+return initial_vals;
 }
 
-function useExtraInputs(options: DataEnvelope<string>) {
+function useExtraInputs(options: string[]) {
   const extra_inputs: DataEnvelope<any[]> = useMemo(() => {
     return {
       // label, then for any extras
@@ -175,9 +204,10 @@ function useExtraInputs(options: DataEnvelope<string>) {
       'x_by': ['X-Axis Data', options],
       'y_by': ['Y-Axis Data', options],
       'color_by': ['Color Points By', options],
-      'color_order': ['Point render order', null, ['increasing', 'decreasing', 'unordered']],
+      'color_order': ['Point render order', ['increasing', 'decreasing', 'unordered']],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
-      'size': ['Point Size', 0.1, 50]
+      'size': ['Point Size', 0.1, 50],
+      'scale_by': ['Scale Y by counts or fraction?', ['counts', 'fraction']]
     }
   }, [options]);
 
@@ -199,20 +229,20 @@ const stringInput = (
     )
   };
 
-const nestableDropdownInput = (
-  key: string = "filler", changeFxn: Function, value: string | null,
-  label: string, options: DataEnvelope<null>) => {
-    
-    return(
-      <NestedSelectAutocompleteInput
-        key={key}
-        label={label}
-        data={{options}} 
-        value={maybeOfNullable(value)}
-        onChange={(val) => changeFxn(withDefault(val, null), key)}
-      />
-    )
-  }
+// const nestableDropdownInput = (
+//   key: string = "filler", changeFxn: Function, value: string | null,
+//   label: string, options: DataEnvelope<null>) => {
+//    
+//     return(
+//       <NestedSelectAutocompleteInput
+//         key={key}
+//         label={label}
+//         data={{options}} 
+//         value={maybeOfNullable(value)}
+//         onChange={(val) => changeFxn(withDefault(val, null), key)}
+//       />
+//     )
+//   }
 
 const checkboxInput = (
   key: string = "filler", changeFxn: Function, value: boolean = false,
@@ -224,21 +254,20 @@ const checkboxInput = (
         label={label}
         value={maybeOfNullable(value)}
         data={val_wrap(value)}
-        onChange={() => changeFxn(!value, key)}
+        onChange={ value => changeFxn(withDefault(value,false), key)}
       />
     )
   }
 
 const dropdownInput = (
   key: string = "filler", changeFxn: Function, value: string | null,
-  label: string, defaultValue: string | null = null, options: string[]) => {
+  label: string, options: string[]) => {
     
     return(
       <div key={key}>
         {label}
         <DropdownAutocomplete
           list={options}
-          defaultValue={defaultValue}
           value={value}
           onSelect={(val: string) => changeFxn(val, key)}
         />
@@ -269,10 +298,11 @@ const comps: DataEnvelope<Function> = {
   'legend_title': stringInput,
   'xlab': stringInput,
   'ylab': stringInput,
-  'x_by': nestableDropdownInput,
-  'y_by': nestableDropdownInput,
-  'color_by': nestableDropdownInput,
+  'x_by': dropdownInput,
+  'y_by': dropdownInput,
+  'color_by': dropdownInput,
   'color_order': dropdownInput,
   'order_when_continuous_color': checkboxInput,
-  'size': sliderInput
+  'size': sliderInput,
+  'scale_by': dropdownInput
 }

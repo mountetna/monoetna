@@ -4,6 +4,9 @@
 require_relative './query_builder'
 
 class Metis
+  class QueryError < Exception
+  end
+  
   class Query
     def initialize(project_name:, bucket:, params:, limit: nil, offset: 0)
       @project_name = project_name

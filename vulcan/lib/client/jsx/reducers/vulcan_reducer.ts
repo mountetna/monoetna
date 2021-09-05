@@ -2,10 +2,7 @@ import {
   VulcanAction
 } from '../actions/vulcan_actions';
 import {
-  defaultSessionStatusResponse,
-  SessionStatusResponse, StepStatus,
-  Workflow,
-  WorkflowsResponse
+  defaultSessionStatusResponse, SessionStatusResponse, StepStatus, Workflow, WorkflowsResponse
 } from "../api_types";
 import {allExpectedOutputSources, filterEmptyValues, statusOfStep, stepOfStatus} from "../selectors/workflow_selectors";
 import {mapSome, Maybe, some, withDefault} from "../selectors/maybe";
@@ -19,10 +16,7 @@ const defaultStatus: SessionStatusResponse['status'] = [[]];
 const defaultData: DownloadedStepDataMap = {};
 const defaultInputs: SessionStatusResponse['session']['inputs'] = {};
 export const defaultSession: SessionStatusResponse['session'] = {
-  project_name: '',
-  workflow_name: '',
-  key: '',
-  inputs: {},
+  project_name: '', workflow_name: '', key: '', inputs: {},
 }
 const defaultValidationErrors: [string | null, string, string[]][] = [];
 
@@ -49,13 +43,11 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
   switch (action.type) {
     case 'SET_WORKFLOWS':
       return {
-        ...state,
-        workflows: action.workflows,
+        ...state, workflows: action.workflows,
       };
     case 'MODIFY_POLLING':
       return {
-        ...state,
-        pollingState: Math.max(state.pollingState + action.delta, 0)
+        ...state, pollingState: Math.max(state.pollingState + action.delta, 0)
       };
     case 'SET_WORKFLOW':
       const workflowProjects = action.workflow.projects;
@@ -68,10 +60,9 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
         session: {...defaultSession, workflow_name: action.workflow.name, project_name: action.projectName},
       };
     case 'SET_STATUS':
-      if (action.clearStaleInputs) {
-        state = filterStaleInputs(state, action)
-      }
-
+      // When a submitting step is given, filter stale inputs that result from submitting a change
+      // to that step's outputs in session.inputs.
+      state = filterStaleInputs(state, action);
       return {...state, status: action.status};
 
     case 'SET_BUFFERED_INPUT':
@@ -89,10 +80,8 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
 
     case 'SET_DOWNLOAD':
       return {
-        ...state,
-        data: {
-          ...state.data,
-          [action.url]: action.data
+        ...state, data: {
+          ...state.data, [action.url]: action.data
         }
       };
 
@@ -106,15 +95,12 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       }
 
       return {
-        ...state,
-        session: {...state.session, ...action.session},
-        bufferedSteps: [],
+        ...state, session: {...state.session, ...action.session}, bufferedSteps: [],
       };
 
     case 'REMOVE_DOWNLOADS':
       return {
-        ...state,
-        status: [
+        ...state, status: [
           state.status[0].map(status => action.stepNames.includes(status.name) ? {...status, downloads: null} : status),
         ],
       };
@@ -129,8 +115,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       action.inputs.forEach(source => delete removedInputs[source]);
 
       return {
-        ...state,
-        session: {...state.session, inputs: filterEmptyValues(removedInputs)},
+        ...state, session: {...state.session, inputs: filterEmptyValues(removedInputs)},
       }
 
 
@@ -141,23 +126,19 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       }
 
       return {
-        ...state,
-        session: {...state.session, inputs: filterEmptyValues(action.inputs)},
+        ...state, session: {...state.session, inputs: filterEmptyValues(action.inputs)},
       }
 
     case 'ADD_VALIDATION_ERRORS':
       return {
-        ...state,
-        validationErrors: [
-          ...state.validationErrors,
-          [action.stepName, action.inputLabel, action.errors]
+        ...state, validationErrors: [
+          ...state.validationErrors, [action.stepName, action.inputLabel, action.errors]
         ]
       }
 
     case 'REMOVE_VALIDATION_ERRORS':
       return {
-        ...state,
-        validationErrors: state.validationErrors.filter(([_1, _2, e]) => e !== action.errors)
+        ...state, validationErrors: state.validationErrors.filter(([_1, _2, e]) => e !== action.errors)
       }
 
     default:
@@ -165,40 +146,50 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
   }
 }
 
-function filterStaleInputs(state: VulcanState, action: { type: "SET_STATUS" } & { status: [StepStatus[]] }) {
-  if (!state.workflow) return state;
-  let newState = {...state};
-  let newInputs = state.session.inputs;
-  let newData = state.data;
+function filterStaleInputs(state: VulcanState,
+  action: { type: "SET_STATUS" } & { status: [StepStatus[]], submittingStep: Maybe<string> }
+) {
+  const {workflow} = state;
+  if (!workflow) return state;
 
-  const hashesOfSteps = {} as {[k: string]: string};
-  action.status[0].forEach(stepStatus => {
-    hashesOfSteps[stepStatus.name] = stepStatus.hash;
-  })
+  return withDefault(mapSome(action.submittingStep, submittingStep => {
+    let newState = {...state};
+    let newInputs = state.session.inputs;
+    let newData = state.data;
 
-  for (let stepStatus of state.status[0]) {
-    if (hashesOfSteps[stepStatus.name] !== stepStatus.hash) {
-      const step = stepOfStatus(stepStatus, state.workflow);
-      if (!step) continue;
-      allExpectedOutputSources(step).forEach(outputSource => {
-        if (newState === state) {
-          newState = {...state, session: {...state.session, inputs: {...state.session.inputs}}};
-          newInputs = state.session.inputs;
-        }
-        delete newInputs[outputSource];
-      })
+    const hashesOfSteps = {} as { [k: string]: string };
+    action.status[0].forEach(stepStatus => {
+      hashesOfSteps[stepStatus.name] = stepStatus.hash;
+    })
 
-      if (stepStatus.downloads) {
-        Object.values(stepStatus.downloads).forEach(url => {
+    for (let stepStatus of state.status[0]) {
+      // The submitting step is pushing a new value from the client up, thus
+      // it should not have its input made stale.
+      if (stepStatus.name === submittingStep) continue;
+
+      if (hashesOfSteps[stepStatus.name] !== stepStatus.hash) {
+        const step = stepOfStatus(stepStatus, workflow);
+        if (!step) continue;
+        allExpectedOutputSources(step).forEach(outputSource => {
           if (newState === state) {
-            newState = {...state, data: {...state.data}};
-            newData = newState.data;
+            newState = {...state, session: {...state.session, inputs: {...state.session.inputs}}};
+            newInputs = state.session.inputs;
           }
-          delete newData[url];
+          delete newInputs[outputSource];
         })
+
+        if (stepStatus.downloads) {
+          Object.values(stepStatus.downloads).forEach(url => {
+            if (newState === state) {
+              newState = {...state, data: {...state.data}};
+              newData = newState.data;
+            }
+            delete newData[url];
+          })
+        }
       }
     }
-  }
 
-  return newState;
+    return newState;
+  }), state);
 }
