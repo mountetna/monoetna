@@ -81,8 +81,8 @@ services:
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
     image: etnaagent/vulcan:production
     volumes:
-      - app_public:/sync-assets
-    user: 1502:3000 # vulcan:browser
+      - app_public:/sync-assets:rw
+
     deploy:
       labels:
         - autoupdate=true
