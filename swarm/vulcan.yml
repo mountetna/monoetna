@@ -23,7 +23,16 @@ services:
       APP_NAME: vulcan
       VULCAN_ENV: production
       HOST_DIR_MAP: /app/data=/data_change_me_when_done
-    command: /bin/deploy.sh migrate notifySlackOfVersion -- /app/bin/puma.sh
+    command: 
+      - bash
+      - -c
+      - |
+        set -e
+        source /*.env.sh
+        export VULCAN__PRODUCTION__DB__PASSWORD="$$(cat /run/secrets/vulcan-postgres-password)"
+        export VULCAN__PRODUCTION__ROLLBAR__ACCESS_TOKEN="$$(cat /run/secrets/vulcan-rollbar-token)"
+        export VULCAN__PRODUCTION__USER_HASH_SECRET="$$(cat /run/secrets/user-hash-secret)"
+        exec /bin/deploy.sh migrate notifySlackOfVersion -- /app/bin/puma.sh
     image: etnaagent/vulcan:swarm_test
     volumes:
       - /data_change_me_when_done/vulcan:/app/data/vulcan
@@ -44,6 +53,14 @@ services:
       placement:
         constraints:
           - node.labels.volumes.vulcan_data == true
+    configs:
+      - source: vulcan.config
+        target: /app/config.yml
+      - production.etna.env.sh
+    secrets:
+      - vulcan-postgres-password
+      - vulcan-rollbar-token
+      - user-hash-secret
     networks:
       - vulcan
 
@@ -100,6 +117,18 @@ volumes:
 
 configs:
   browser.system.include:
+    external: true
+  vulcan.config:
+    external: true
+  production.etna.env.sh:
+    external: true
+    
+secrets:
+  vulcan-postgres-password:
+    external: true
+  vulcan-rollbar-token:
+    external: true
+  user-hash-secret:
     external: true
 
 networks:
