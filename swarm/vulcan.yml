@@ -24,7 +24,7 @@ services:
       VULCAN_ENV: production
       HOST_DIR_MAP: /app/data=/data_change_me_when_done
     command: /bin/deploy.sh migrate notifySlackOfVersion -- /app/bin/puma.sh
-    image: etnaagent/vulcan_app:production
+    image: etnaagent/vulcan:swarm_test
     volumes:
       - /data_change_me_when_done/vulcan:/app/data/vulcan
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -60,6 +60,9 @@ services:
       - app_public:/app/public
       - /data_change_me_when_done/vulcan:/app/data/vulcan:ro
     user: 0:3000 # vulcan:browser
+    configs:
+      - source: browser.system.include
+        target: /usr/opt/httpd.conf.d/browser.system.include
     deploy:
       labels:
         - autoupdate=true
@@ -76,7 +79,7 @@ services:
       VULCAN_ENV: production
 
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
-    image: etnaagent/vulcan_app:production
+    image: etnaagent/vulcan:production
     volumes:
       - app_public:/sync-assets
     user: 1502:3000 # vulcan:browser
@@ -92,9 +95,12 @@ services:
 
 volumes:
   app_public:
-
   db:
     name: vulcan_db
+
+configs:
+  browser.system.include:
+    external: true
 
 networks:
   vulcan:
