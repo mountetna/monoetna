@@ -23,6 +23,7 @@ services:
       APP_NAME: vulcan
       VULCAN_ENV: production
       HOST_DIR_MAP: /app/data=/data_change_me_when_done
+      ENV: production
     command: 
       - bash
       - -c
@@ -32,11 +33,14 @@ services:
         export VULCAN__PRODUCTION__DB__PASSWORD="$$(cat /run/secrets/vulcan-postgres-password)"
         export VULCAN__PRODUCTION__ROLLBAR__ACCESS_TOKEN="$$(cat /run/secrets/vulcan-rollbar-token)"
         export VULCAN__PRODUCTION__USER_HASH_SECRET="$$(cat /run/secrets/user-hash-secret)"
+        export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
         exec /bin/deploy.sh migrate notifySlackOfVersion -- /app/bin/puma.sh
     image: etnaagent/vulcan:swarm_test
     volumes:
       - /data_change_me_when_done/vulcan:/app/data/vulcan
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - deployment:/var/run/deployment/
+      - /var/node_exporter/metrics.prom:/tmp/metrics.prom
     user: 1502:999 # vulcan:docker
     healthcheck:
       interval: 5s
@@ -112,6 +116,7 @@ services:
 
 volumes:
   app_public:
+  deployment:
   db:
     name: vulcan_db
 
@@ -129,6 +134,8 @@ secrets:
   vulcan-rollbar-token:
     external: true
   user-hash-secret:
+    external: true
+  metrics-pw:
     external: true
 
 networks:
