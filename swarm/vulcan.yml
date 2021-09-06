@@ -59,7 +59,7 @@ services:
     volumes:
       - app_public:/app/public
       - /data_change_me_when_done/vulcan:/app/data/vulcan:ro
-    user: 1502:3000 # vulcan:browser
+    user: 0:3000 # vulcan:browser
     deploy:
       labels:
         - autoupdate=true
