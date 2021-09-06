@@ -34,12 +34,12 @@ services:
         export VULCAN__PRODUCTION__ROLLBAR__ACCESS_TOKEN="$$(cat /run/secrets/vulcan-rollbar-token)"
         export VULCAN__PRODUCTION__USER_HASH_SECRET="$$(cat /run/secrets/user-hash-secret)"
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
-        exec /bin/deploy.sh migrate notifySlackOfVersion -- /app/bin/puma.sh
+        exec /bin/deploy.sh migrate -- /app/bin/puma.sh
     image: etnaagent/vulcan:swarm_test
     volumes:
       - /data_change_me_when_done/vulcan:/app/data/vulcan
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - deployment:/var/run/deployment/
+
       - /var/node_exporter/metrics.prom:/tmp/metrics.prom
     user: 1502:999 # vulcan:docker
     healthcheck:
@@ -116,7 +116,6 @@ services:
 
 volumes:
   app_public:
-  deployment:
   db:
     name: vulcan_db
 
