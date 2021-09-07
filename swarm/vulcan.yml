@@ -43,7 +43,7 @@ services:
       - /var/node_exporter/metrics.prom:/tmp/metrics.prom
     user: 1502:999 # vulcan:docker
     healthcheck:
-      interval: 5s
+      interval: 60s
       retries: 60
       start_period: 1s
       test: wget -O - http://localhost:3000 &>/dev/null
