@@ -23,11 +23,24 @@ services:
       APP_NAME: vulcan
       VULCAN_ENV: production
       HOST_DIR_MAP: /app/data=/data_change_me_when_done
-    command: /bin/deploy.sh migrate notifySlackOfVersion -- /app/bin/puma.sh
-    image: etnaagent/vulcan_app:production
+      ENV: production
+    command: 
+      - bash
+      - -c
+      - |
+        set -e
+        source /*.env.sh
+        export VULCAN__PRODUCTION__DB__PASSWORD="$$(cat /run/secrets/vulcan-postgres-password)"
+        export VULCAN__PRODUCTION__ROLLBAR__ACCESS_TOKEN="$$(cat /run/secrets/vulcan-rollbar-token)"
+        export VULCAN__PRODUCTION__USER_HASH_SECRET="$$(cat /run/secrets/user-hash-secret)"
+        export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
+        exec /bin/deploy.sh migrate -- /app/bin/puma.sh
+    image: etnaagent/vulcan:swarm_test
     volumes:
       - /data_change_me_when_done/vulcan:/app/data/vulcan
       - /var/run/docker.sock:/var/run/docker.sock:ro
+
+      - /var/node_exporter/metrics.prom:/tmp/metrics.prom
     user: 1502:999 # vulcan:docker
     healthcheck:
       interval: 5s
@@ -44,6 +57,14 @@ services:
       placement:
         constraints:
           - node.labels.volumes.vulcan_data == true
+    configs:
+      - source: vulcan.config
+        target: /app/config.yml
+      - production.etna.env.sh
+    secrets:
+      - vulcan-postgres-password
+      - vulcan-rollbar-token
+      - user-hash-secret
     networks:
       - vulcan
 
@@ -59,7 +80,10 @@ services:
     volumes:
       - app_public:/app/public
       - /data_change_me_when_done/vulcan:/app/data/vulcan:ro
-    user: 1502:3000 # vulcan:browser
+    user: 0:3000 # vulcan:browser
+    configs:
+      - source: browser.system.include
+        target: /usr/opt/httpd.conf.d/browser.system.include
     deploy:
       labels:
         - autoupdate=true
@@ -76,10 +100,10 @@ services:
       VULCAN_ENV: production
 
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
-    image: etnaagent/vulcan_app:production
+    image: etnaagent/vulcan:production
     volumes:
-      - app_public:/sync-assets
-    user: 1502:3000 # vulcan:browser
+      - app_public:/sync-assets:rw
+
     deploy:
       labels:
         - autoupdate=true
@@ -92,9 +116,26 @@ services:
 
 volumes:
   app_public:
-
   db:
     name: vulcan_db
+
+configs:
+  browser.system.include:
+    external: true
+  vulcan.config:
+    external: true
+  production.etna.env.sh:
+    external: true
+    
+secrets:
+  vulcan-postgres-password:
+    external: true
+  vulcan-rollbar-token:
+    external: true
+  user-hash-secret:
+    external: true
+  metrics-pw:
+    external: true
 
 networks:
   vulcan:
