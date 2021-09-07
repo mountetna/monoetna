@@ -22,15 +22,13 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
       # The input matrices are transposed...
       # rows are gene_ids
       # columns are rna_seq tube_names.
-      attribute_name = matrix_file.file_name.sub("_table.tsv", "")
-      logger.info("Downloading #{attribute_name} for record #{matrix.tube_name}.")
+      logger.info("Downloading #{matrix_file.file_path}.")
       csv = CSV.parse(::File.read(tmp_file.path), headers: true, col_sep: "\t")
       csv.by_col!
-      attribute_name = matrix_file.file_name.sub("_table.tsv", "")
 
       data_gene_ids = csv[0]
 
-      logger.info("Processing #{attribute_name} for record #{matrix.tube_name}.")
+      logger.info("Processing #{matrix_file.file_path}.")
       csv.each.with_index do |col, index|
         next if index == 0
 
@@ -42,6 +40,7 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
 
         next if @helper.is_non_cancer_sample?(matrix.tube_name)
 
+        attribute_name = matrix_file.file_name.sub("_table.tsv", "")
         update_for_cursor(cursor) do |update_request|
           update_request.update_revision(MAGMA_MODEL, matrix.tube_name, {
             "#{attribute_name}": matrix.to_array,
