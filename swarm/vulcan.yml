@@ -46,8 +46,7 @@ services:
       interval: 60s
       retries: 60
       start_period: 1s
-      test: wget -O - http://localhost:3000 &>/dev/null
-        || exit 1
+      test: bash -c 'wget -O - http://localhost:3000 &>/dev/null || exit 1'
       timeout: 2s
     deploy:
       update_config:
