@@ -52,6 +52,7 @@ services:
     deploy:
       update_config:
         parallelism: 1
+        order: start-first
       labels:
         - autoupdate=true
       placement:
