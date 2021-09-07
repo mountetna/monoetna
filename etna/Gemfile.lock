@@ -120,6 +120,7 @@ DEPENDENCIES
   jwt
   mimemagic (~> 0.3.10)
   multipart-post
+  net-ssh
   nokogiri
   prometheus-client
   pry (~> 0.13.0)
@@ -141,4 +142,4 @@ RUBY VERSION
    ruby 2.5.7p206
 
 BUNDLED WITH
-   2.2.24
+   2.2.26
