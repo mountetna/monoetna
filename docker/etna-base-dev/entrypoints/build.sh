@@ -11,6 +11,15 @@ mkdir -p /app/public/images
 mkdir -p /app/log
 mkdir -p /app/vendor/bundle
 mkdir -p /app/data/
+mkdir -p /tmp/metrics.prom/
+
+# Often, etna is built as root, but the processes are not run as root.
+# Certain, and only certain, directories should be writable.
+# Especially with source code in script-based servers, we don't want to
+# generally allow write-ability into the source code by any logic.
+chmod -R 777 /app/tmp
+chmod -R 777 /app/log
+chmod -R 777 /tmp/metrics.prom/
 
 shopt -s globstar
 
