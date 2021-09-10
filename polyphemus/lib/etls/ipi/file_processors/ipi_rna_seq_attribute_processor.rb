@@ -23,7 +23,7 @@ class Polyphemus::IpiRnaSeqAttributeProcessor < Polyphemus::IpiRnaSeqProcessorBa
       csv = CSV.new(tmp_file, headers: true, col_sep: "\t")
 
       csv.each do |row|
-        rna_seq = MagmaRnaSeq.new(row, model_attributes)
+        rna_seq = MagmaRnaSeq.new(row, model_attributes, @helper)
 
         next if @helper.is_non_cancer_sample?(rna_seq.tube_name)
 
@@ -60,9 +60,9 @@ class Polyphemus::IpiRnaSeqAttributeProcessor < Polyphemus::IpiRnaSeqProcessorBa
       "compartment",
     ]
 
-    def initialize(table_row, attributes)
+    def initialize(table_row, attributes, helper)
       @raw = table_row
-      @helper = IpiHelper.new
+      @helper = helper
       @attributes = attributes
     end
 
