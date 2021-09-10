@@ -102,7 +102,7 @@ inputs:
 outputs:
   the_data:
     type: File
-    outputSource: Differential_Expression__between_clusters/umap_workflow_anndata.h5ad
+    outputSource: Finalize_Output_Object/umap_workflow_anndata.h5ad
 
 steps:
   projectData:
@@ -203,6 +203,23 @@ steps:
     in:
       a: calc_leiden/blank_annots.json
     out: [annots.json]
+  Differential_Expression_between_clusters:
+    run: scripts/DE_btwn_clusters.cwl
+    label: 'Diff. Exp.: Cluster Markers'
+    in:
+      leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
+      ignore_prefixes: 6_Cluster_Differential_Expression__ignore_prefixes
+      dge_method: 6_Cluster_Differential_Expression__dge_method
+    out: [umap_workflow_anndata.h5ad, diffexp.csv,top10.json]
+  Finalize_Output_Object:
+    run: scripts/umap_finalize_downloadable_object.cwl
+    label: 'Prep output anndata object'
+    in: 
+      scdata.h5ad: Differential_Expression_between_clusters/umap_workflow_anndata.h5ad
+      project_data: projectData/project_data
+      leiden.json: calc_leiden/leiden.json
+      annots.json: cluster_annotation/annots.json
+    out: [umap_workflow_anndata.h5ad]
   determine_color_by_options:
     run: scripts/determine_color_by_options.cwl
     label: 'Determine coloring options'
@@ -221,11 +238,9 @@ steps:
     label: 'Collect data for plotting'
     in:
       project_data: projectData/project_data
-      umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
-      leiden.json: calc_leiden/leiden.json
-      annots.json: cluster_annotation/annots.json
+      scdata.h5ad: Finalize_Output_Object/umap_workflow_anndata.h5ad
       color_by: select_color_by_option/color_by
-      top10.json: Differential_Expression__between_clusters/top10.json
+      top10.json: Differential_Expression_between_clusters/top10.json
     out: [data_frame, preset]
   user_plot_setup:
     run: ui-queries/scatter-plotly.cwl
@@ -250,21 +265,13 @@ steps:
   downloadRawData:
     run: ui-outputs/link.cwl
     in:
-      a: Differential_Expression__between_clusters/umap_workflow_anndata.h5ad
+      a: Finalize_Output_Object/umap_workflow_anndata.h5ad
     out: []
     label: 'Download data as h5ad'
-  Differential_Expression__between_clusters:
-    run: scripts/DE_btwn_clusters.cwl
-    label: 'Diff. Exp.: Cluster Markers'
-    in:
-      leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
-      ignore_prefixes: 6_Cluster_Differential_Expression__ignore_prefixes
-      dge_method: 6_Cluster_Differential_Expression__dge_method
-    out: [umap_workflow_anndata.h5ad, diffexp.csv,top10.json]
   downloadDEData:
     run: ui-outputs/link.cwl
     in:
-      a: Differential_Expression__between_clusters/diffexp.csv
+      a: Differential_Expression_between_clusters/diffexp.csv
     out: []
     label: 'Download cluster DiffExp as csv'
 
