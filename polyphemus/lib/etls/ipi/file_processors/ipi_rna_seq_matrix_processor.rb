@@ -29,7 +29,7 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
       csv.by_col!
       attribute_name = matrix_file.file_name.sub("_table.tsv", "")
 
-      data_gene_ids = csv[0]
+      data_gene_ids_map = Hash[csv[0].map.with_index.to_a]
 
       logger.info("Processing #{matrix_file.file_path}.")
       csv.each.with_index do |col, index|
@@ -39,7 +39,7 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
         matrix = MagmaRnaSeqMatrix.new(
           raw_data: col,
           magma_gene_ids: magma_gene_ids,
-          data_gene_ids: data_gene_ids,
+          data_gene_ids_map: data_gene_ids_map,
           helper: @helper,
         )
 
@@ -75,11 +75,11 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
   end
 
   class MagmaRnaSeqMatrix
-    def initialize(raw_data:, magma_gene_ids:, data_gene_ids:, helper:)
+    def initialize(raw_data:, magma_gene_ids:, data_gene_ids_map:, helper:)
       @raw = raw_data
       @helper = helper
       @magma_gene_ids = magma_gene_ids
-      @data_gene_ids = data_gene_ids
+      @data_gene_ids_map = data_gene_ids_map
     end
 
     def raw_tube_name
@@ -99,9 +99,9 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
     def to_array
       [].tap do |result|
         @magma_gene_ids.each do |magma_gene_id|
-          data_index = @data_gene_ids.find_index(magma_gene_id)
-
-          value = data_index.nil? ? 0 : raw_gene_data[data_index]
+          value = @data_gene_ids_map.key?(magma_gene_id) ?
+            raw_gene_data[@data_gene_ids_map[magma_gene_id].to_i] :
+            0
 
           result << value.to_f
         end
