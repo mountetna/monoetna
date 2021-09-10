@@ -120,7 +120,7 @@ def json_body
 end
 
 def json_post(endpoint, hash)
-  post("/#{endpoint}", hash.to_json, { "CONTENT_TYPE" => "application/json" })
+  post("/#{endpoint.reverse.chomp('/').reverse}", hash.to_json, { "CONTENT_TYPE" => "application/json" })
 end
 
 def stub_parent_exists(params = {})
@@ -490,6 +490,41 @@ def stub_watch_folders(folder_data = nil)
     create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "2015-01-01 00:00:00", folder_path: "path2", watch_type: "link_files", metis_id: 2)
     create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "1999-01-01 00:00:00", folder_path: "path1/path1_1", watch_type: "link_files", metis_id: 3)
   end
+end
+
+def create_dummy_etl(opts)
+  create(:etl_config, {project_name: "labors", name: "Dummy ETL", config: {}, etl: "dummy"}.merge(opts))
+end
+
+def remove_dummy_job
+  Polyphemus::Job.list.delete(Polyphemus::DummyJob)
+  Polyphemus.send(:remove_const,:DummyJob)
+end
+
+def create_dummy_job
+  dummy_job = Class.new(Polyphemus::Job)
+  dummy_job.class_eval do
+    def self.as_json
+      {
+        name: "dummy",
+        schema: {
+          type: "object",
+          properties: {
+            foo: { type: "integer" },
+            bar: { enum: [ "baz", "qux" ] }
+          },
+          required: ["foo"],
+          additionalProperties: false
+        }
+      }
+    end
+
+    def run
+      puts "Here is some output"
+    end
+  end
+
+  Polyphemus.const_set 'DummyJob', dummy_job
 end
 
 def create_metis_folder(folder_name, folder_path, updated_at: Time.now, id: nil, project_name: PROJECT, bucket_name: RELEASE_BUCKET)

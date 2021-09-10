@@ -4,37 +4,11 @@ describe Polyphemus::RunEtlJob do
   context 'running etl jobs' do
     before(:all) do
       Timecop.freeze
-      class Polyphemus
-        class DummyJob < Polyphemus::Job
-          def self.as_json
-            {
-              name: "dummy",
-              schema: {
-                type: "object",
-                properties: {
-                  foo: { type: "integer" },
-                  bar: { enum: [ "baz", "qux" ] }
-                },
-                required: ["foo"],
-                additionalProperties: false
-              }
-            }
-          end
-
-          def run
-            puts "Here is some output"
-          end
-        end
-      end
-    end
-
-    def create_dummy_etl(opts)
-      create(:etl_config, {project_name: "labors", name: "Dummy ETL", config: {}, etl: "dummy"}.merge(opts))
+      create_dummy_job
     end
 
     after(:all) do
-      Polyphemus::Job.list.delete(Polyphemus::DummyJob)
-      Polyphemus.send(:remove_const,:DummyJob)
+      remove_dummy_job
       Timecop.return
     end
 

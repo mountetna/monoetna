@@ -47,5 +47,16 @@ class Polyphemus
           Polyphemus::EtlConfig::RUN_NEVER : run_interval
       )
     end
+
+    def as_json
+      to_hash.reject { |k,v| k == :id }
+    end
+
+    def validate_config(config)
+      schema = JSONSchemer.schema(
+        JSON.parse(etl_job_class.as_json[:schema].to_json)
+      )
+      schema.valid?(JSON.parse(config.to_json))
+    end
   end
 end

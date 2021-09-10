@@ -31,11 +31,52 @@ require_relative 'controller'
 #   status       # the status of the job
 
 class EtlController < Polyphemus::Controller
-  def list_jobs
+  def jobs
     return success_json(Polyphemus::Job.list.map(&:as_json))
   end
 
-  def list_configs
+  def list
+    success_json(
+      Polyphemus::EtlConfig.exclude(archived: true).all.map(&:as_json)
+    )
+  end
+
+  def update
+    etl_configs = Polyphemus::EtlConfig.exclude(archived: true).where(
+      project_name: @params[:project_name],
+      etl: @params[:etl]
+    ).all
+
+    if etl_configs.empty?
+      raise Etna::FileNotFound, "No such etl #{@params[:etl_name]} configured for project #{@params[:project_name]}"
+    end
+
+    if etl_configs.length > 1
+      begin
+        # repair broken configs
+        *bad_etl_configs, etl_config = etl_configs.sort_by(&:updated_at)
+        Polyphemus::EtlConfig.where(id: bad_etl_configs.map(&:id)).update(archived: true)
+      end
+    else
+      etl_config = etl_configs.first
+    end
+
+    update = @params.slice(*(etl_config.columns - [:id, :project_name, :etl]))
+
+    if update[:config]
+      # validate the configuration
+      raise Etna::BadRequest, "Invalid configuration for etl \"#{etl_config.etl}\"" unless etl_config.validate_config(update[:config])
+      new_etl_config = Polyphemus::EtlConfig.create(etl_config.as_json.merge(update))
+      etl_config.update(archived: true, run_interval: Polyphemus::EtlConfig::RUN_NEVER)
+      etl_config = new_etl_config
+    else
+      etl_config.update(update)
+    end
+
+    success_json(etl_config.as_json)
+  end
+
+  def old_list_configs
     success_json([ {
       project_name: @params[:project_name],
       etl: "redcap",
