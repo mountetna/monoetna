@@ -67,6 +67,7 @@ services:
       - user-hash-secret
     networks:
       - vulcan
+      - prometheus
 
   app_fe:
     environment:
@@ -140,4 +141,6 @@ secrets:
 networks:
   vulcan:
   edge_bridge:
+    external: true
+  prometheus:
     external: true
