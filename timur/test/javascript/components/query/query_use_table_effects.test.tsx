@@ -59,15 +59,20 @@ describe('useTableEffects', () => {
         attribute_name: 'name',
         display_label: 'monster.name'
       },
-      attributes: {
-        prize: [
-          {
-            model_name: 'prize',
-            attribute_name: 'name',
-            display_label: 'prize.name'
-          }
-        ]
-      }
+      columns: [
+        {
+          model_name: 'monster',
+          attribute_name: 'name',
+          display_label: 'monster.name',
+          slices: []
+        },
+        {
+          model_name: 'prize',
+          attribute_name: 'name',
+          display_label: 'prize.name',
+          slices: []
+        }
+      ]
     };
 
     const data = {answer: [], format: [], type: 'Mock'};
@@ -97,25 +102,27 @@ describe('useTableEffects', () => {
         attribute_name: 'name',
         display_label: 'monster.name'
       },
-      attributes: {
-        labor: [
-          {
-            model_name: 'labor',
-            attribute_name: 'contributions',
-            display_label: 'labor.contributions'
-          }
-        ]
-      },
-      slices: {
-        labor: [
-          {
-            modelName: 'labor',
-            attributeName: 'contributions',
-            operator: '::slice',
-            operand: 'Athens,Sparta'
-          }
-        ]
-      }
+      columns: [
+        {
+          model_name: 'monster',
+          attribute_name: 'name',
+          display_label: 'monster.name',
+          slices: []
+        },
+        {
+          model_name: 'labor',
+          attribute_name: 'contributions',
+          display_label: 'labor.contributions',
+          slices: [
+            {
+              modelName: 'labor',
+              attributeName: 'contributions',
+              operator: '::slice',
+              operand: 'Athens,Sparta'
+            }
+          ]
+        }
+      ]
     };
 
     const data = {
@@ -163,25 +170,27 @@ describe('useTableEffects', () => {
         attribute_name: 'name',
         display_label: 'monster.name'
       },
-      attributes: {
-        labor: [
-          {
-            model_name: 'labor',
-            attribute_name: 'contributions',
-            display_label: 'labor.contributions'
-          }
-        ]
-      },
-      slices: {
-        labor: [
-          {
-            modelName: 'labor',
-            attributeName: 'contributions',
-            operator: '::slice',
-            operand: 'Athens,Sparta'
-          }
-        ]
-      }
+      columns: [
+        {
+          model_name: 'monster',
+          attribute_name: 'name',
+          display_label: 'monster.name',
+          slices: []
+        },
+        {
+          model_name: 'labor',
+          attribute_name: 'contributions',
+          display_label: 'labor.contributions',
+          slices: [
+            {
+              modelName: 'labor',
+              attributeName: 'contributions',
+              operator: '::slice',
+              operand: 'Athens,Sparta'
+            }
+          ]
+        }
+      ]
     };
 
     const data = {
@@ -228,25 +237,26 @@ describe('useTableEffects', () => {
         attribute_name: 'name',
         display_label: 'monster.name'
       },
-      attributes: {
-        labor: [
-          {
-            model_name: 'labor',
-            attribute_name: 'contributions',
-            display_label: 'labor.contributions'
-          }
-        ]
-      },
-      slices: {
-        labor: [
-          {
-            modelName: 'labor',
-            attributeName: 'contributions',
-            operator: '::slice',
-            operand: 'Sparta,Athens'
-          }
-        ]
-      }
+      columns: [
+        {
+          model_name: 'monster',
+          attribute_name: 'name',
+          display_label: 'monster.name'
+        },
+        {
+          model_name: 'labor',
+          attribute_name: 'contributions',
+          display_label: 'labor.contributions',
+          slices: [
+            {
+              modelName: 'labor',
+              attributeName: 'contributions',
+              operator: '::slice',
+              operand: 'Sparta,Athens'
+            }
+          ]
+        }
+      ]
     };
 
     const data = {
@@ -272,6 +282,83 @@ describe('useTableEffects', () => {
       'monster.name',
       'labor.contributions.Sparta',
       'labor.contributions.Athens'
+    ]);
+    expect(result.current.rows).toEqual([
+      ['Nemean Lion', 2, 1],
+      ['Lernean Hydra', 0, 3]
+    ]);
+  });
+
+  it('returns correct data for duplicated columns with distinct slices', async () => {
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../../fixtures/project_names.json')}
+    });
+
+    let mockState = {
+      ...defaultContext.state,
+      graph,
+      rootModel: 'monster',
+      rootIdentifier: {
+        model_name: 'monster',
+        attribute_name: 'name',
+        display_label: 'monster.name'
+      },
+      columns: [
+        {
+          model_name: 'monster',
+          attribute_name: 'name',
+          display_label: 'monster.name'
+        },
+        {
+          model_name: 'prize',
+          attribute_name: 'value',
+          display_label: 'prize.value',
+          slices: [
+            {
+              modelName: 'prize',
+              attributeName: 'name',
+              operator: '::equals',
+              operand: 'Athens'
+            }
+          ]
+        },
+        {
+          model_name: 'prize',
+          attribute_name: 'value',
+          display_label: 'prize.value',
+          slices: [
+            {
+              modelName: 'prize',
+              attributeName: 'name',
+              operator: '::equals',
+              operand: 'Sparta'
+            }
+          ]
+        }
+      ]
+    };
+
+    const data = {
+      answer: [
+        ['Nemean Lion', ['Nemean Lion', 2, 1]],
+        ['Lernean Hydra', ['Lernean Hydra', 0, 3]]
+      ],
+      format: [
+        'labors::monster#name',
+        ['labors::monster#name', 'labors::prize#value', 'labors::prize#value']
+      ],
+      type: 'Mock'
+    };
+
+    const {result} = renderHook(() => useTableEffects(data, true), {
+      wrapper: querySpecWrapper(mockState, store)
+    });
+
+    expect(result.current.columns.map(({label}) => label)).toEqual([
+      'monster.name',
+      'prize.value',
+      'prize.value'
     ]);
     expect(result.current.rows).toEqual([
       ['Nemean Lion', 2, 1],

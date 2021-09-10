@@ -13,68 +13,53 @@ import {
   pathToColumn,
   attributeIsMatrix,
   hasMatrixSlice,
-  isMatchingMatrixSlice
+  isMatrixSlice
 } from '../../selectors/query_selector';
 
 const useTableEffects = (data: QueryResponse, expandMatrices: boolean) => {
   let {state} = useContext(QueryContext);
   const reduxState = useReduxState();
 
-  function generateIdCol(attr: QueryColumn): string {
-    return `${CONFIG.project_name}::${attr.model_name}#${attr.attribute_name}`;
+  function generateIdCol(attr: QueryColumn, index: number): string {
+    return `${CONFIG.project_name}::${attr.model_name}#${attr.attribute_name}@${index}`;
   }
 
   const columns = useMemo(() => {
     if (!state.rootIdentifier) return [];
 
-    let colDefs: QueryTableColumn[] = [
-      {
-        colId: generateIdCol(state.rootIdentifier),
-        label: state.rootIdentifier.display_label
-      }
-    ];
-
-    return colDefs.concat(
-      Object.values(state.attributes || {})
-        .flat()
-        .reduce((acc: QueryTableColumn[], attr) => {
-          if (
-            expandMatrices &&
-            attributeIsMatrix(
-              selectModels(reduxState),
-              attr.model_name,
-              attr.attribute_name
-            ) &&
-            hasMatrixSlice(Object.values(state.slices).flat(), attr)
-          ) {
-            Object.values(state.slices)
-              .flat()
-              .filter((slice) => isMatchingMatrixSlice(slice, attr))
-              .forEach((slice) => {
-                (slice.operand as string).split(',').forEach((heading) => {
-                  acc.push({
-                    label: `${attr.display_label}.${heading}`,
-                    colId: `${generateIdCol(attr)}.${heading}`
-                  });
+    return state.columns.reduce(
+      (acc: QueryTableColumn[], column: QueryColumn, index: number) => {
+        if (
+          expandMatrices &&
+          attributeIsMatrix(
+            selectModels(reduxState),
+            column.model_name,
+            column.attribute_name
+          ) &&
+          hasMatrixSlice(column)
+        ) {
+          column.slices
+            .filter((slice) => isMatrixSlice(slice))
+            .forEach((slice) => {
+              (slice.operand as string).split(',').forEach((heading) => {
+                acc.push({
+                  label: `${column.display_label}.${heading}`,
+                  colId: `${generateIdCol(column, index)}.${heading}`
                 });
               });
-          } else {
-            acc.push({
-              label: attr.display_label,
-              colId: generateIdCol(attr)
             });
-          }
+        } else {
+          acc.push({
+            label: column.display_label,
+            colId: generateIdCol(column, index)
+          });
+        }
 
-          return acc;
-        }, [])
+        return acc;
+      },
+      []
     );
-  }, [
-    state.attributes,
-    state.rootIdentifier,
-    state.slices,
-    reduxState,
-    expandMatrices
-  ]);
+  }, [state.columns, state.rootIdentifier, reduxState, expandMatrices]);
 
   const formatRowData = useCallback(
     (allData: QueryResponse, cols: QueryTableColumn[]) => {
