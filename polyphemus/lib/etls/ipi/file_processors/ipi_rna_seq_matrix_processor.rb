@@ -18,6 +18,8 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
 
     logger.info("Found #{matrix_files.length} matrix files: #{matrix_files.map { |f| f.file_path }.join(",")}")
 
+    magma_gene_ids = matrix_gene_ids(cursor[:project_name])
+
     download_files(matrix_files) do |matrix_file, tmp_file|
       # The input matrices are transposed...
       # rows are gene_ids
@@ -27,26 +29,30 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
       csv.by_col!
       attribute_name = matrix_file.file_name.sub("_table.tsv", "")
 
-      data_gene_ids = csv[0]
+      data_gene_ids_map = Hash[csv[0].map.with_index.to_a]
 
       logger.info("Processing #{matrix_file.file_path}.")
       csv.each.with_index do |col, index|
         next if index == 0
 
+        logger.info("Instantiating matrix class for index #{index.to_s}.")
         matrix = MagmaRnaSeqMatrix.new(
           raw_data: col,
-          magma_gene_ids: matrix_gene_ids(cursor[:project_name]),
-          data_gene_ids: data_gene_ids,
+          magma_gene_ids: magma_gene_ids,
+          data_gene_ids_map: data_gene_ids_map,
+          helper: @helper,
         )
 
         next if @helper.is_non_cancer_sample?(matrix.tube_name)
 
+        logger.info("Preparing revision request for #{matrix.tube_name}.")
         update_for_cursor(cursor) do |update_request|
           update_request.update_revision(MAGMA_MODEL, matrix.tube_name, {
             "#{attribute_name}": matrix.to_array,
           })
           logger.info("Updating #{attribute_name} for record #{matrix.tube_name}.")
         end
+        logger.info("Update complete.")
       end
     end
 
@@ -69,11 +75,11 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
   end
 
   class MagmaRnaSeqMatrix
-    def initialize(raw_data:, magma_gene_ids:, data_gene_ids:)
+    def initialize(raw_data:, magma_gene_ids:, data_gene_ids_map:, helper:)
       @raw = raw_data
-      @helper = IpiHelper.new
+      @helper = helper
       @magma_gene_ids = magma_gene_ids
-      @data_gene_ids = data_gene_ids
+      @data_gene_ids_map = data_gene_ids_map
     end
 
     def raw_tube_name
@@ -93,9 +99,9 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
     def to_array
       [].tap do |result|
         @magma_gene_ids.each do |magma_gene_id|
-          data_index = @data_gene_ids.find_index(magma_gene_id)
-
-          value = data_index.nil? ? 0 : raw_gene_data[data_index]
+          value = @data_gene_ids_map.key?(magma_gene_id) ?
+            raw_gene_data[@data_gene_ids_map[magma_gene_id]] :
+            0
 
           result << value.to_f
         end
