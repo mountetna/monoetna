@@ -1,5 +1,5 @@
 import {QueryGraph} from '../../../lib/client/jsx/utils/query_graph';
-import {QueryBuilder} from "../../../lib/client/jsx/utils/query_builder";
+import {QueryBuilder} from '../../../lib/client/jsx/utils/query_builder';
 
 const models = {
   monster: {
@@ -25,6 +25,24 @@ const models = {
     revisions: {},
     views: {},
     template: require('../fixtures/template_victim.json')
+  },
+  wound: {
+    documents: {},
+    revisions: {},
+    views: {},
+    template: require('../fixtures/template_wound.json')
+  },
+  habitat: {
+    documents: {},
+    revisions: {},
+    views: {},
+    template: require('../fixtures/template_habitat.json')
+  },
+  vegetation: {
+    documents: {},
+    revisions: {},
+    views: {},
+    template: require('../fixtures/template_vegetation.json')
   }
 };
 
@@ -46,7 +64,8 @@ describe('QueryGraph', () => {
     expect(Object.keys(graph.graph.children).includes('prize')).toEqual(true);
     expect(Object.keys(graph.graph.parents).includes('prize')).toEqual(true);
     expect(graph.pathsFrom('labor')).toEqual([
-      ['labor', 'monster', 'victim'],
+      ['labor', 'monster', 'habitat', 'vegetation'],
+      ['labor', 'monster', 'victim', 'wound'],
       ['labor', 'prize']
     ]);
   });
@@ -54,7 +73,8 @@ describe('QueryGraph', () => {
   it('provides all paths from a child model, up and down the graph', () => {
     expect(graph.allPaths('prize')).toEqual([
       ['labor'],
-      ['labor', 'monster', 'victim'],
+      ['labor', 'monster', 'habitat', 'vegetation'],
+      ['labor', 'monster', 'victim', 'wound'],
       ['labor', 'prize']
     ]);
   });
@@ -65,12 +85,12 @@ describe('QueryGraph', () => {
       graph = new QueryGraph(models);
     });
 
-    it('handles the path laterally from subject -> sc_seq', () =>{
+    it('handles the path laterally from subject -> sc_seq', () => {
       expect(graph.shortestPath('subject', 'sc_seq')).toEqual([
         'biospecimen',
         'biospecimen_group',
-        'sc_seq',
-      ])
-    })
-  })
+        'sc_seq'
+      ]);
+    });
+  });
 });
