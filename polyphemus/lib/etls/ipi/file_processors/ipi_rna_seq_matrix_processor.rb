@@ -100,7 +100,7 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
       [].tap do |result|
         @magma_gene_ids.each do |magma_gene_id|
           value = @data_gene_ids_map.key?(magma_gene_id) ?
-            raw_gene_data[@data_gene_ids_map[magma_gene_id].to_i] :
+            raw_gene_data[@data_gene_ids_map[magma_gene_id]] :
             0
 
           result << value.to_f
