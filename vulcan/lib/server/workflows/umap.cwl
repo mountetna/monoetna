@@ -47,11 +47,6 @@ inputs:
     default: false
     label: 'regress percent.ribosomal?'
     doc: 'Controls whether to regress data that correlates with cells percentage of ribosomal reads. Regression of data confounders for PCA/UMAP/clustering calculations can improve results of these steps.'
-  2_Regress_by__regress_tube_id:
-    type: boolean
-    default: false
-    label: 'regress on tube IDs?'
-    doc: 'Controls whether to regress data that correlates with tube IDs. Regression by this data for PCA/UMAP/clustering can be an effective form of batch correction for these steps. (We do plan to add additional batch correction options in the future!)'
   3_For_UMAP_and_Clustering__max_pc:
     type: int
     default: 15
@@ -169,7 +164,6 @@ steps:
       regress_genes: 2_Regress_by__regress_genes
       regress_pct_mito: 2_Regress_by__regress_pct_mito
       regress_pct_ribo: 2_Regress_by__regress_pct_ribo
-      regress_tube_id: 2_Regress_by__regress_tube_id
     out: [pca_anndata.h5ad]
   neighbors:
     run: scripts/neighbors.cwl
