@@ -34,7 +34,7 @@ services:
         export VULCAN__PRODUCTION__ROLLBAR__ACCESS_TOKEN="$$(cat /run/secrets/vulcan-rollbar-token)"
         export VULCAN__PRODUCTION__USER_HASH_SECRET="$$(cat /run/secrets/user-hash-secret)"
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
-        exec /bin/deploy.sh migrate -- /app/bin/puma.sh
+        exec /bin/deploy.sh migrate 'docker pull etnaagent/archimedes:production' -- /app/bin/puma.sh
     image: etnaagent/vulcan:swarm_test
     volumes:
       - /data_change_me_when_done/vulcan:/app/data/vulcan
@@ -43,15 +43,15 @@ services:
       - /var/node_exporter/metrics.prom:/tmp/metrics.prom
     user: 1502:999 # vulcan:docker
     healthcheck:
-      interval: 5s
+      interval: 60s
       retries: 60
       start_period: 1s
-      test: wget -O - http://localhost:3000 &>/dev/null
-        || exit 1
+      test: bash -c 'wget -O - http://localhost:3000 &>/dev/null || exit 1'
       timeout: 2s
     deploy:
       update_config:
         parallelism: 1
+        order: start-first
       labels:
         - autoupdate=true
       placement:
@@ -67,6 +67,7 @@ services:
       - user-hash-secret
     networks:
       - vulcan
+      - prometheus
 
   app_fe:
     environment:
@@ -140,4 +141,6 @@ secrets:
 networks:
   vulcan:
   edge_bridge:
+    external: true
+  prometheus:
     external: true

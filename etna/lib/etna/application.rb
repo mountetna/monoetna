@@ -53,6 +53,21 @@ module Etna::Application
   def configure(opts)
     @config = opts
 
+    # Apply environmental variables of the form "APP__x__y__z"
+    prefix = "#{self.class.name.upcase}__"
+    ENV.keys.select { |k| k.start_with?(prefix) }.each do |key|
+      path = key.split("__", -1)
+      path.shift # drop the first, just app name
+
+      target = @config
+      while path.length > 1
+        n = path.shift
+        target = (target[n.downcase.to_sym] ||= {})
+      end
+
+      target[path.last.downcase.to_sym] ||= ENV[key]
+    end
+
     if (rollbar_config = config(:rollbar)) && rollbar_config[:access_token]
       Rollbar.configure do |config|
         config.access_token = rollbar_config[:access_token]

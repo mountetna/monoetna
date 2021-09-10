@@ -26,7 +26,7 @@ class Polyphemus::IpiRnaSeqProcessorBase
           yield [attribute_file, tmp]
         end
       rescue Exception => e
-        `/bin/post-to-slack "#{self.class.name}" "data-ingest-ping" "Error processing IPI rna_seq file #{attribute_file.file_path}.\n#{e.message}." || true`
+        `/bin/post-to-slack.sh "#{self.class.name}" "data-ingest-ping" "Error processing IPI rna_seq file #{attribute_file.file_path}.\n#{e.message}." || true`
         logger.log_error(e)
       end
     end
