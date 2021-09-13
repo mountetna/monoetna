@@ -35,7 +35,6 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
       csv.each.with_index do |col, index|
         next if index == 0
 
-        logger.info("Instantiating matrix class for index #{index.to_s}.")
         matrix = MagmaRnaSeqMatrix.new(
           raw_data: col,
           magma_gene_ids: magma_gene_ids,
@@ -45,14 +44,12 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
 
         next if @helper.is_non_cancer_sample?(matrix.tube_name)
 
-        logger.info("Preparing revision request for #{matrix.tube_name}.")
         update_for_cursor(cursor) do |update_request|
           update_request.update_revision(MAGMA_MODEL, matrix.tube_name, {
             "#{attribute_name}": matrix.to_array,
           })
           logger.info("Updating #{attribute_name} for record #{matrix.tube_name}.")
         end
-        logger.info("Update complete.")
       end
     end
 
