@@ -28,6 +28,21 @@ module Etna
           @etna_client.folder_list(list_folder_request.to_h))
       end
 
+      def list_folder_by_id(list_folder_by_id_request = ListFolderByIdRequest.new)
+        FoldersAndFilesResponse.new(
+          @etna_client.folder_list_by_id(list_folder_by_id_request.to_h))
+      end
+
+      def touch_folder(touch_folder_request = TouchFolderRequest.new)
+        FoldersResponse.new(
+          @etna_client.folder_touch(touch_folder_request.to_h))
+      end
+
+      def touch_file(touch_file_request = TouchFileRequest.new)
+        FilesResponse.new(
+          @etna_client.file_touch(touch_file_request.to_h))
+      end
+
       def ensure_parent_folder_exists(project_name:, bucket_name:, path:)
         create_folder_request = CreateFolderRequest.new(
           project_name: project_name,
@@ -181,7 +196,16 @@ module Etna
 
         return if found_folders.length == 0
 
-        found_folders.each { |folder|
+        rename_folders(
+          project_name: project_name,
+          source_bucket: source_bucket,
+          source_folders: found_folders,
+          dest_bucket: dest_bucket
+        )
+      end
+
+      def rename_folders(project_name:, source_bucket:, source_folders:, dest_bucket:)
+        source_folders.each { |folder|
           # If the destination folder already exists, we need to copy the files
           #   over to it and delete the source folder.
           create_folder_request = CreateFolderRequest.new(

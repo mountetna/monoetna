@@ -8,8 +8,8 @@ describe Polyphemus::SyncCatFilesEtl do
       MockChange.new("foo/bar/oligo-test1.txt"),
       MockChange.new("foo/bar/oligo-test2.txt"),
       MockChange.new("foo/bar/oligo-test3.txt"),
-      MockChange.new("wrong-oligo-file.txt"),
-      MockChange.new("oligo-file-to-add.txt"),
+      MockChange.new("wrong-olino-file.txt"),
+      MockChange.new("foo/oligo/file-to-add.txt"),
     ])
     sync_etl = Polyphemus::SyncCatFilesEtl.new
 
@@ -19,7 +19,7 @@ describe Polyphemus::SyncCatFilesEtl do
 
     expect(Polyphemus::IngestFile.count).to eq(4)
     expect(Polyphemus::IngestFile.last[:should_ingest]).to eq(true)
-    expect(Polyphemus::IngestFile.last[:name]).to eq("oligo-file-to-add.txt")
+    expect(Polyphemus::IngestFile.last[:name]).to eq("foo/oligo/file-to-add.txt")
   end
 
   it "should remove old, uningested records" do

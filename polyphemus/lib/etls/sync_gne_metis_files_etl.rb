@@ -33,7 +33,7 @@ class Polyphemus::SyncGneMetisFilesEtl < Polyphemus::MetisFileEtl
           file_path = file.file_path
           logger.info "Writing #{file_path}"
           workflow.copy_file(dest: file_path, url: file.download_url)
-          `post-to-slack "Sync GNE Metis files ETL" "bioinformatics-ping" "Successfully uploaded metis://mvir1/#{BUCKET}/#{file_path} to genentech" || true`
+          `/bin/post-to-slack.sh "Sync GNE Metis files ETL" "bioinformatics-ping" "Successfully uploaded metis://mvir1/#{BUCKET}/#{file_path} to genentech" || true`
         rescue => e
           errors << e
         ensure

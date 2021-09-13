@@ -1,5 +1,6 @@
 import {
-  postCreateFolder, postProtectFolder, postUnprotectFolder, postRenameFolder, deleteFolder
+  postCreateFolder, postProtectFolder, postUnprotectFolder, postRenameFolder, deleteFolder,
+  getTouchFolder
 } from '../api/folders_api';
 import { errorMessage } from './message_actions';
 
@@ -60,3 +61,17 @@ export const renameFolder = ({bucket_name, folder, new_folder_path}) => (dispatc
       errorMessage(dispatch, 'warning', 'Folder renaming failed', error => error)
     );
 }
+
+export const touchFolder = ({bucket_name, folder}) => (dispatch) => {
+  getTouchFolder(
+    CONFIG.project_name, bucket_name, folder.folder_path
+  )
+    .then(({folders}) => {
+      dispatch(removeFolders([folder]));
+      dispatch(addFolders(folders));
+    })
+    .catch(
+      errorMessage(dispatch, 'warning', 'Folder touching failed', error => error)
+    );
+}
+

@@ -69,15 +69,13 @@ const useStyles = makeStyles((theme) => ({
 const QueryFilterControl = ({
   filter,
   modelNames,
-  matrixAttributesOnly,
-  hideModel,
+  isColumnFilter,
   patchFilter,
   removeFilter
 }: {
   filter: QueryFilter | QuerySlice;
   modelNames: string[];
-  matrixAttributesOnly?: boolean;
-  hideModel?: boolean;
+  isColumnFilter: boolean;
   patchFilter: (filter: QueryFilter | QuerySlice) => void;
   removeFilter: () => void;
 }) => {
@@ -92,17 +90,10 @@ const QueryFilterControl = ({
         template.attributes
       );
 
-      if (matrixAttributesOnly) {
-        return selectMatrixAttributes(
-          sortedTemplateAttributes,
-          state.attributes[filter.modelName]
-        );
-      } else {
-        return selectAllowedModelAttributes(sortedTemplateAttributes);
-      }
+      return selectAllowedModelAttributes(sortedTemplateAttributes);
     }
     return [];
-  }, [filter.modelName, state.attributes, reduxState, matrixAttributesOnly]);
+  }, [filter.modelName, reduxState]);
 
   const attributeType = useMemo(() => {
     if ('' !== filter.attributeName) {
@@ -181,25 +172,23 @@ const QueryFilterControl = ({
 
   return (
     <Grid container>
-      {!hideModel ? (
-        <Grid item xs={3}>
-          <FormControl className={classes.fullWidth}>
-            <InputLabel id={uniqId('model')}>Model</InputLabel>
-            <Select
-              labelId={uniqId('model')}
-              value={filter.modelName}
-              onChange={(e) => handleModelSelect(e.target.value as string)}
-              displayEmpty
-            >
-              {modelNames.sort().map((name, index: number) => (
-                <MenuItem key={index} value={name}>
-                  {name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-      ) : null}
+      <Grid item xs={3}>
+        <FormControl className={classes.fullWidth}>
+          <InputLabel id={uniqId('model')}>Model</InputLabel>
+          <Select
+            labelId={uniqId('model')}
+            value={filter.modelName}
+            onChange={(e) => handleModelSelect(e.target.value as string)}
+            displayEmpty
+          >
+            {modelNames.sort().map((name, index: number) => (
+              <MenuItem key={index} value={name}>
+                {name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Grid>
       <Grid item xs={3}>
         <FormControl className={classes.fullWidth}>
           <InputLabel id={uniqId('attribute')}>Attribute</InputLabel>
@@ -228,7 +217,7 @@ const QueryFilterControl = ({
             onChange={(e) => handleOperatorSelect(e.target.value as string)}
             displayEmpty
           >
-            {Object.keys(filterOperator.options())
+            {Object.keys(filterOperator.options(isColumnFilter))
               .sort()
               .map((operator: string, index: number) => (
                 <MenuItem key={index} value={operator}>

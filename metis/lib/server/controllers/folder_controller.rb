@@ -5,22 +5,28 @@ class FolderController < Metis::Controller
     bucket = require_bucket
     folder = require_folder(bucket, @params[:folder_path])
 
-    files = Metis::File.where(
-      project_name: @params[:project_name],
-      bucket: bucket,
-      folder_id: folder ? folder.id : nil
-    ).all.map do |file|
-      file.to_hash(request: @request)
-    end
+    success_json(list_folder_contents(bucket, folder))
+  end
 
-    folders = Metis::Folder.where(
-      bucket: bucket,
-      folder_id: folder ? folder.id : nil
-    ).all.map do |fold|
-      fold.to_hash
-    end
+  def list_by_id
+    bucket = require_bucket
+    folder = require_folder_by_id(bucket, @params[:folder_id])
 
-    success_json(files: files, folders: folders)
+    success_json(list_folder_contents(bucket, folder))
+  end
+
+  def touch
+    bucket = require_bucket
+    folder = require_folder(bucket, @params[:folder_path])
+
+    raise Etna::BadRequest, "Invalid folder: #{@params[:folder_path]}" unless folder
+
+    raise Etna::Forbidden, 'Folder is read-only' if folder.read_only?
+    
+    folder.update(updated_at: Time.now)
+    folder.refresh
+
+    success_json(folders: [ folder.to_hash ])
   end
 
   def list_all_folders
@@ -178,5 +184,27 @@ class FolderController < Metis::Controller
         parents << Metis::Folder.find(bucket_id: bucket&.id, folder_id: parents.last&.id, folder_name: folder_name)
       end
     end
+  end
+
+  def list_folder_contents(bucket, folder)
+    files = Metis::File.where(
+      project_name: @params[:project_name],
+      bucket: bucket,
+      folder_id: folder ? folder.id : nil
+    ).all.map do |file|
+      file.to_hash(request: @request)
+    end
+
+    folders = Metis::Folder.where(
+      bucket: bucket,
+      folder_id: folder ? folder.id : nil
+    ).all.map do |fold|
+      fold.to_hash
+    end
+
+    {
+      files: files,
+      folders: folders
+    }
   end
 end
