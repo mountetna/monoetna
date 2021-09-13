@@ -30,7 +30,14 @@ def y_plot(
     x_by = "leiden",
     y_by = "1",
     color_by = "leiden",
-    plots = ["box"]):
+    plots = ["box"],
+    xlab="make", ylab="make", main="make", legend_title ="make"
+  ):
+     # Parse dependent defaults
+    xlab = _default_to_if_make_and_logic(xlab, x_by)
+    ylab = _default_to_if_make_and_logic(ylab, y_by)
+    main = _default_to_if_make_and_logic(main, ylab)
+    legend_title = _default_to_if_make_and_logic(legend_title, y_by)
     # 2. convert from our variables names to px.bar variables names. 
     the_atributes = {
         # have keys be input names of px.bar, and px.violin values to names of our variables
@@ -42,6 +49,8 @@ def y_plot(
         }
     # to add: conditional code that implements plots input
     if "violin" in plots:
+        #use conditional here for checking if box is in plots
+        the_atributes["box"]= "box" in plots
         fig = px.violin(
             **the_atributes
             )
@@ -49,10 +58,18 @@ def y_plot(
         fig = px.box(
             **the_atributes
             )
+    fig.update_layout(
+        title_text=main,
+        xaxis_title=xlab,
+        yaxis_title=ylab,
+        legend= {'itemsizing': 'constant'},
+        legend_title_text=legend_title
+    )
     return fig
 
 ### Make plot
 # You'll need to change this in multiple ways to go from scatter -> violin plot
+
 # Use the plotly documentation to figure out how!
 
 # fig = px.bar(
@@ -74,7 +91,7 @@ def y_plot(
 
 ### Output the plot
 import plotly
-fig = y_plot()
+fig = y_plot(plots=["violin", "box"])
 plotly.offline.plot(fig, filename = 'test_data/y_plot.html', auto_open=False)
 
 # ----------- Modify above here to start ------------ #
