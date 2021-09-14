@@ -19,7 +19,7 @@ def y_plotly(
     xlab = _default_to_if_make_and_logic(xlab, x_by)
     ylab = _default_to_if_make_and_logic(ylab, y_by)
     plot_title = _default_to_if_make_and_logic(plot_title, ylab)
-    legend_title = _default_to_if_make_and_logic(legend_title, x_by)
+    legend_title = _default_to_if_make_and_logic(legend_title, color_by)
     
     # Convert from our variables names to px.violin/bar variables names. 
     the_atributes = {
