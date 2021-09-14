@@ -3,7 +3,7 @@ import plotly.express as px
 from .utils import _default_to_if_make_and_logic
 from .colors import colors
 
-def y_plot(
+def y_plotly(
     data_frame,
     x_by,
     y_by,
@@ -11,15 +11,15 @@ def y_plot(
     plots = ["violin", "box"],
     xlab="make",
     ylab="make",
-    main="make",
+    plot_title="make",
     legend_title ="make"):
     
     # Parse dependent defaults
     color_by = _default_to_if_make_and_logic(color_by, x_by)
     xlab = _default_to_if_make_and_logic(xlab, x_by)
     ylab = _default_to_if_make_and_logic(ylab, y_by)
-    main = _default_to_if_make_and_logic(main, ylab)
-    legend_title = _default_to_if_make_and_logic(legend_title, y_by)
+    plot_title = _default_to_if_make_and_logic(plot_title, ylab)
+    legend_title = _default_to_if_make_and_logic(legend_title, x_by)
     
     # Convert from our variables names to px.violin/bar variables names. 
     the_atributes = {
@@ -44,10 +44,11 @@ def y_plot(
     
     # Tweaks
     fig.update_layout(
-        title_text=main,
+        title_text=plot_title,
         xaxis_title=xlab,
         yaxis_title=ylab,
         legend_title_text=legend_title,
         legend= {'itemsizing': 'constant'}
     )
     return fig
+

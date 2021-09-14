@@ -42,6 +42,12 @@ export function BarPlotly({
   return VisualizationUI({data, onChange, value}, "bar_plot")
 }
 
+export function YPlotly({
+  data, onChange, value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, "y_plot")
+}
+
 function VisualizationUI({
   data, onChange, ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>, plotType: string) {
@@ -148,6 +154,10 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   },
   'bar_plot': {
     'main': ["x_by", "y_by", "scale_by"],
+    'adv': ['plot_title', 'legend_title', 'xlab', 'ylab']
+  },
+  'y_plot': {
+    'main': ["x_by", "y_by", "color_by"],
     'adv': ['plot_title', 'legend_title', 'xlab', 'ylab']
   }
 }
