@@ -8,4 +8,9 @@ image:
 
 .PHONY: bash
 bash: image
-	docker run --rm -it $(baseTag) bash
+	docker run --rm -it -u 0:0 -v $$PWD/opt/plugins:/opt/airflow/plugins -v $$PWD/opt/swarm_executor:/opt/airflow/swarm_executor -v /var/run/docker.sock:/var/run/docker.sock:ro $(baseTag) bash
+
+.PHONY: test
+test: image
+	docker run --rm -it -u 0:0 -v $$PWD/opt/plugins:/opt/airflow/plugins -v $$PWD/opt/swarm_executor:/opt/airflow/swarm_executor -v /var/run/docker.sock:/var/run/docker.sock:ro $(baseTag) python -m pytest
+
