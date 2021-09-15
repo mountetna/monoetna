@@ -6,8 +6,9 @@ import * as _ from 'lodash';
 
 import {DataEnvelope, WithInputParams} from './input_types';
 import { useSetsDefault } from './useSetsDefault';
-import { maybeOfNullable, some, withDefault } from '../../../../selectors/maybe';
+import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
+import MultiselectStringInput from './multiselect_string';
 import { Button, Slider } from '@material-ui/core';
 import { pick } from 'lodash';
 import StringInput from './string';
@@ -101,6 +102,8 @@ function VisualizationUI({
     return remove_hidden(initial, hide);
   }, [value, showAdvanced, hide])
   
+  console.log(props.value);
+  
   return (
     <div>
       {Object.entries(shownValues).map(([key, val]) => {
@@ -147,7 +150,7 @@ function key_wrap(k: string[]) {
   return de;
 }
 
-const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
+const input_sets: DataEnvelope<DataEnvelope<string[]|DataEnvelope<any>>> = {
   'scatter_plot': {
     'main': ["x_by", "y_by", "color_by"],
     'adv': ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color']
@@ -157,14 +160,16 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
     'adv': ['plot_title', 'legend_title', 'xlab', 'ylab']
   },
   'y_plot': {
-    'main': ["x_by", "y_by", "color_by"],
-    'adv': ['plot_title', 'legend_title', 'xlab', 'ylab']
+    'main': ["x_by", "y_by", "plots"],
+    'adv': ["color_by", 'plot_title', 'legend_title', 'xlab', 'ylab'],
+    'default_adjust': {'color_by': "make"}
   }
 }
 
 const defaults: DataEnvelope<any> = {
   'x_by': null,
   'y_by': null,
+  'plots': ['box', 'violin'],
   'color_by': null,
   'scale_by': 'fraction',
   'size': 5,
@@ -187,6 +192,15 @@ function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | unde
     const def_keys = Object.keys(defaults);
     for (let ind = 0; ind < def_keys.length; ind++) {
       if (!inputs.includes(def_keys[ind])) delete initial_vals[def_keys[ind]];
+    }
+    
+    // Replace any values if different default given for this plot type
+    if (input_sets[plotType]['default_adjust'] != null) {
+      const new_def_keys = Object.keys(input_sets[plotType]['default_adjust'])
+      const new_def_vals = Object.values(input_sets[plotType]['default_adjust'])
+      for (let ind = 0; ind < new_def_keys.length; ind++) {
+        initial_vals[new_def_keys[ind]]=new_def_vals[ind];
+      }
     }
 
     // Add preset values / replace any default values.
@@ -213,7 +227,8 @@ function useExtraInputs(options: string[]) {
       'ylab': ['Y-Axis Title'],
       'x_by': ['X-Axis Data', options],
       'y_by': ['Y-Axis Data', options],
-      'color_by': ['Color Points By', options],
+      'color_by': ['Color Data By', options],
+      'plots': ['Data Representations', ['violin', 'box']],
       'color_order': ['Point render order', ['increasing', 'decreasing', 'unordered']],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
       'size': ['Point Size', 0.1, 50],
@@ -285,6 +300,22 @@ const dropdownInput = (
     )
   }
 
+const MultiselectInput = (
+  key: string = "filler", changeFxn: Function, value: string[],
+  label: string, options: string[]) => {
+    
+    return(
+      <div key={key}>
+        {label}
+        <MultiselectStringInput
+          data={{'0': options}}
+          value={some(value)}
+          onChange={(val: Maybe<string[]>) => changeFxn(withDefault(val, null), key)}
+        />
+      </div>
+    )
+  }
+
 const sliderInput = (
   key: string = "filler", changeFxn: Function, value: number,
   label: string, min: number = 0.1, max: number = 20) => {
@@ -311,6 +342,7 @@ const comps: DataEnvelope<Function> = {
   'x_by': dropdownInput,
   'y_by': dropdownInput,
   'color_by': dropdownInput,
+  'plots': MultiselectInput,
   'color_order': dropdownInput,
   'order_when_continuous_color': checkboxInput,
   'size': sliderInput,
