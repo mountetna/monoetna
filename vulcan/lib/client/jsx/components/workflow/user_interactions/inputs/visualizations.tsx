@@ -102,7 +102,7 @@ function VisualizationUI({
     return remove_hidden(initial, hide);
   }, [value, showAdvanced, hide])
   
-  console.log(props.value);
+  // console.log(props.value);
   
   return (
     <div>
