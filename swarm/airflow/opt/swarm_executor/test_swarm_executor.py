@@ -1,11 +1,17 @@
 import datetime
 import unittest
 from typing import Optional, Callable
+from airflow import models, settings
 
+from airflow import DAG
+from airflow.models import DagPickle, BaseOperator
+from airflow.utils.cli import get_dag
+from airflow.utils.session import create_session
 from airflow.utils.state import State
 
 from . import SwarmExecutor
-from airflow.models.taskinstance import TaskInstanceKey
+from airflow.models.taskinstance import TaskInstanceKey, TaskInstance
+
 
 class TestSwarmExecute(unittest.TestCase):
   def setUp(self) -> None:
@@ -22,6 +28,10 @@ class TestSwarmExecute(unittest.TestCase):
 
     for callable in self._teardown:
       callable()
+
+  def get_task(self, ti_key: TaskInstanceKey) -> BaseOperator:
+    dag = get_dag(settings.DAGS_FOLDER, ti_key.dag_id)
+    return dag.get_task(task_id=ti_key.task_id)
 
   def on_tear_down(self, c: Callable):
     self._teardown.append(c)
@@ -50,9 +60,15 @@ class TestSwarmExecute(unittest.TestCase):
     executor2 = self.create_executor()
     task1 = self.create_task_instance()
 
+    TaskInstance.generate_command(
+      task_id=task1.task_id,
+      dag_id=task1.dag_id,
+      execution_date=task1.execution_date
+    )
+
     executor1.execute_async(
       task1,
-      command=['airflow', 'tasks', 'run', 'true', 'some_parameter'],
+      command=['airflow', 'tasks', 'run', 'weird_dag', 'task_1'],
       executor_config={'image': 'airflow:latest'}
     )
     executor1.sync()
