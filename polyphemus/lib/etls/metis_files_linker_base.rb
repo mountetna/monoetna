@@ -4,11 +4,18 @@ class Polyphemus::MetisFilesLinkerBase
   include WithLogger
   include WithEtnaClients
 
-  def initialize
+  attr_reader :model_name, :bucket_name, :project_name
+
+  def initialize(project_name:, bucket_name:)
+    @project_name = project_name
+    @bucket_name = bucket_name
     @magma_models = {}
   end
 
-  def link(project_name:, model_name:, files_by_record_name:, attribute_regex:)
+  # Important!  If files_by_record_name includes files to be included in a file collection, /all files belonging to that collection must be present/.
+  # the metis file in watch folder etl uses folder_ids_matching_file_collections to grab all containing folders for files that
+  # match file collections and ensures that a folder list is performed and that all known files in that grouping are included.
+  def link(model_name:, files_by_record_name:, attribute_regex:)
     return if files_by_record_name.empty?
 
     logger.info("Processing files for: #{files_by_record_name.map { |f| f.record_name }.join(",")}")
@@ -57,6 +64,15 @@ class Polyphemus::MetisFilesLinkerBase
     )).models
 
     @magma_models[project_name]
+  end
+
+  def folder_ids_matching_file_collections(model_name:, files:, attribute_regex:)
+    attribute_regex.map do |attribute_name, regex|
+      next [] unless is_file_collection?(project_name, model_name, attribute_name)
+      files.select do |file|
+        file.file_name =~ regex
+      end.map(&:folder_id)
+    end.flatten.uniq
   end
 
   def files_payload(project_name:, model_name:, files:, attribute_regex:)
@@ -118,11 +134,25 @@ class Polyphemus::MetisFilesLinkerBase
   end
 
   def organize_metis_files_by_magma_record(
+    model_name:,
     metis_files:,
     magma_record_names:,
     path_regex:,
+    attribute_regex:,
     record_name_gsub_pair: nil
   )
+    folder_ids = folder_ids_matching_file_collections(model_name: model_name, files: metis_files, attribute_regex: attribute_regex)
+    file_collection_folder_files = folder_ids.map do |folder_id|
+      metis_client.list_folder_by_id(Etna::Clients::Metis::ListFolderByIdRequest.new(
+        project_name: project_name,
+        bucket_name: bucket_name,
+        folder_id: folder_id
+      )).files.all
+    end.flatten
+
+    metis_files += file_collection_folder_files
+    metis_files.uniq!(&:file_path)
+
     metis_files_by_record_name = metis_files.group_by do |file|
       match = full_path_for_file(file).match(path_regex)
 

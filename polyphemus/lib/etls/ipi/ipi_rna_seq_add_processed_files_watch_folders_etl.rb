@@ -6,7 +6,6 @@ class Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl < Polyphemus::AddWat
   BUCKET = "data"
 
   def initialize
-    @linker = Polyphemus::IpiRnaSeqProcessedFilesLinker.new
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
       folder_path_regexes: {

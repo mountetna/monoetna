@@ -36,12 +36,13 @@ class Polyphemus
                 bucket_name: cursor[:bucket_name],
                 offset: 0
             )
+
             prepare_find_request(cursor, find_request)
             find_request
           end.result_updated_at do |file|
             file.updated_at
           end.result_id do |file|
-            file.file_path
+            file.id
           end.execute_batch_find do |find_request, i|
             execute_request(find_request, i)
           end
