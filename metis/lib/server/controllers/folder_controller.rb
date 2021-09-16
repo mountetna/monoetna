@@ -23,7 +23,7 @@ class FolderController < Metis::Controller
 
     raise Etna::Forbidden, 'Folder is read-only' if folder.read_only?
     
-    folder.update(updated_at: Time.now)
+    folder.update(updated_at: Time.now, author: Metis::File.author(@user))
     folder.refresh
 
     success_json(folders: [ folder.to_hash ])
