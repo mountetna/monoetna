@@ -120,7 +120,7 @@ def json_body
 end
 
 def json_post(endpoint, hash)
-  post("/#{endpoint.reverse.chomp('/').reverse}", hash.to_json, { "CONTENT_TYPE" => "application/json" })
+  post(URI.encode("/#{endpoint.reverse.chomp('/').reverse}"), hash.to_json, { "CONTENT_TYPE" => "application/json" })
 end
 
 def stub_parent_exists(params = {})

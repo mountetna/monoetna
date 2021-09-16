@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { json_post } from 'etna-js/utils/fetch';
 
 import ConfigScript from './config-script';
 
@@ -43,35 +44,58 @@ const StatusIcon = ({status}:{status:string}) => {
   return <IconComponent size='small'/>
 }
 
+const RUN_ONCE = 0;
+const RUN_NEVER = -1;
+const RUN_INTERVAL = 1;
 
-const SetRunState = ({run,update}:{run:number, update:Function}) => {
-  const [ runState, setRunState ] = useState(run > 1 ? 1 : run);
-  const [ runInterval, setRunInterval ] = useState(run);
+const getRunState = (run) => (run != RUN_ONCE && run != RUN_NEVER ? RUN_INTERVAL : run);
+const getRunIntervalTime = (run) => (run != RUN_ONCE && run != RUN_NEVER ? run : 600);
+const formatTime = (time) => Intl.DateTimeFormat('en-US', {
+   year: 'numeric', month: 'long', day: 'numeric',
+   hour: 'numeric', minute: 'numeric'
+}).format(new Date(time))
+const runTime = (ran_at, run) => {
+  if (run == RUN_NEVER) return 'never';
+  if (run == RUN_ONCE || !ran_at) return 'pending';
 
-  const runValue = () => runState == 1 ? runInterval : runState;
-  const reset = () => { setRunState(run > 1 ? 1 : run); setRunInterval(run); };
+  const ranAt = new Date(ran_at);
+  const runAt = new Date( ranAt.getTime() + run * 1000 );
+  const now = new Date();
+
+  if (runAt < now) return 'pending';
+
+  return formatTime( runAt );
+}
+
+const SetRunState = ({run_interval,update}:{run_interval:number, update:Function}) => {
+  const [ runState, setRunState ] = useState(getRunState(run_interval));
+  const [ runIntervalTime, setRunIntervalTime ] = useState(getRunIntervalTime(run_interval));
+
+  const runValue = () => runState == RUN_INTERVAL ? runIntervalTime : runState;
+  const reset = () => { setRunState(getRunState(run_interval)); setRunIntervalTime(getRunIntervalTime(run_interval)); };
 
   return <Grid spacing={1} container alignItems='center'>
     <Grid item>Run</Grid>
     <Grid item><Select labelId='label' id='select' value={runState} onChange={e => setRunState(parseInt(e.target.value as string))}>
-      <MenuItem value={0}>Once</MenuItem>
-      <MenuItem value={-1}>Never</MenuItem>
-      <MenuItem value={1}>Interval</MenuItem>
+      <MenuItem value={RUN_ONCE}>Once</MenuItem>
+      <MenuItem value={RUN_NEVER}>Never</MenuItem>
+      <MenuItem value={RUN_INTERVAL}>Interval</MenuItem>
     </Select>
     </Grid>
     {
-      runState == 1 && <Grid item> <TextField
+      runState == RUN_INTERVAL && <Grid item> <TextField
         size='small'
         InputProps={{
           endAdornment:<InputAdornment position='end'>seconds</InputAdornment>
         }}
-        value={runInterval}
-        onChange={e => setRunInterval(parseInt(e.target.value as string))}/>
+        value={runIntervalTime}
+        onChange={ e => { setRunIntervalTime(parseInt(e.target.value as string)); } }
+        />
       </Grid>
     }
     {
-      runState != run && (runState != 1 || runInterval != run) && <React.Fragment>
-        <Grid item><Button onClick={ update({run: runValue()}) }>Save</Button></Grid>
+      runState != run_interval && (runState != RUN_INTERVAL || runIntervalTime != run_interval) && <React.Fragment>
+        <Grid item><Button onClick={ () => update({run_interval: runValue()}) }>Save</Button></Grid>
         <Grid item><Button onClick={ reset } color='secondary'>Reset</Button></Grid>
       </React.Fragment>
     }
@@ -96,7 +120,8 @@ const useStyles = makeStyles( theme => ({
     borderBottom: '1px solid #ccc'
   },
   etl: {
-    border: '1px solid #ccc'
+    border: '1px solid #ccc',
+    marginBottom: '15px',
   },
   buttons: {
     justifyContent: 'space-evenly'
@@ -118,11 +143,15 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-const EtlConfig = ({etl,name,config,status,output,schema,run}: Etl & {schema:any}) => {
+const EtlConfig = ({project_name, etl,name,config,status,output,run_interval,ran_at,schema,onUpdate}: Etl & {schema:any,onUpdate:Function}) => {
   const [ mode, setMode ] = useState<string | null>(null);
   const toggleMode = (m:string) => mode == m ? setMode(null) : setMode(m);
 
   const classes:any = useStyles();
+
+  const postUpdate = update => json_post(
+    `/api/etl/${project_name}/update/${name}`, update
+  ).then( etl => onUpdate(etl) );
 
   return <Card className={classes.etl} elevation={0} key={etl}>
     <CardContent>
@@ -138,7 +167,7 @@ const EtlConfig = ({etl,name,config,status,output,schema,run}: Etl & {schema:any
               <Typography>Last Ran</Typography>
             </Grid>
             <Grid item xs={8}>
-              <Typography>01-01-2020</Typography>
+              <Typography>{ran_at ? formatTime(ran_at) : 'never'}</Typography>
             </Grid>
           </Grid>
           <Grid direction='row' className={classes.statusline} container>
@@ -146,7 +175,7 @@ const EtlConfig = ({etl,name,config,status,output,schema,run}: Etl & {schema:any
               <Typography>Next Run</Typography>
             </Grid>
             <Grid item xs={8}>
-              <Typography>01-01-2020</Typography>
+              <Typography>{runTime(ran_at, run_interval)} </Typography>
             </Grid>
           </Grid>
           <Grid direction='row' className={classes.statusline} container>
@@ -178,12 +207,12 @@ const EtlConfig = ({etl,name,config,status,output,schema,run}: Etl & {schema:any
       </Collapse>
       <Collapse in={mode == 'run'} timeout='auto' unmountOnExit>
         <CardContent>
-          <SetRunState run={run} update={() => {}} />
+          <SetRunState run_interval={run_interval} update={ update => postUpdate(update) } />
         </CardContent>
       </Collapse>
       <Collapse in={mode == 'remove'} timeout='auto' unmountOnExit>
         <CardContent>
-          Remove
+          <Button onClick={ () => postUpdate({ archived: true }) }>Remove</Button>
         </CardContent>
       </Collapse>
       <Collapse in={mode == 'logs'} timeout='auto' unmountOnExit>

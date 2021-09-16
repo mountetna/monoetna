@@ -4,7 +4,9 @@ import { json_get } from 'etna-js/utils/fetch';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
-import EtlConfig from './polyphemus-etl';
+import Button from '@material-ui/core/Button';
+import EtlConfig from './etl/etl-config';
+import EtlCreate from './etl/etl-create';
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -18,25 +20,44 @@ const schemaFor = (etl: string, jobs: Job[]) : (any | null) => {
 }
 
 const PolyphemusMain = ({project_name}:{project_name: string}) => {
-  const [ etls, setEtls ] = useState< Etl[] | null>(null);
+  const [ etls, setEtls ] = useState< Etl[] >([]);
   const [ jobs, setJobs ] = useState< Job[] | null>(null);
+  const [ create, setCreate ] = useState(false);
+
+  const addEtl = etl => {
+    let index = etls.findIndex( e => e.name == etl.name );
+    let new_etls = (index == -1) ? etls.concat(etl) :
+      etl.archived ? etls.filter( (e, i) => i != index ) :
+      etls.map( (e,i) => i == index ? etl : e );
+
+    setEtls(new_etls);
+  }
 
   const classes = useStyles();
 
   useEffect( () => {
-    json_get(`/api/${project_name}/etl/configs`).then(setEtls)
-    json_get(`/api/${project_name}/etl/jobs`).then(setJobs)
+    json_get(`/api/etl/${project_name}/configs`).then(setEtls)
+    json_get(`/api/etl/jobs`).then(setJobs)
   }, [] );
   return <Grid id='polyphemus-main'>
     {
-      !(jobs && etls) ? null :
+      !jobs ? null :
         <Grid item xs={6}>
           <Typography className={classes.title} variant="h5">
             {project_name} Data Loaders
           </Typography>
           {
-            etls.map( (etl:Etl) => <EtlConfig key={etl.name} { ...etl } status='completed' schema={schemaFor(etl.etl, jobs)} />)
+            etls.map( (etl:Etl) => <EtlConfig key={etl.name} { ...etl } status='completed' onUpdate={ addEtl } schema={schemaFor(etl.etl, jobs)} />)
           }
+          <Grid>
+            <Button onClick={ () => setCreate(true) }>Add Loader</Button>
+            <EtlCreate
+              project_name={project_name}
+              open={create}
+              onClose={() => setCreate(false)}
+              onCreate={addEtl}
+              jobs={ jobs }/>
+          </Grid>
         </Grid>
     }
   </Grid>;

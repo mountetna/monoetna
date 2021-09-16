@@ -49,7 +49,9 @@ class Polyphemus
     end
 
     def as_json
-      to_hash.reject { |k,v| k == :id }
+      to_hash.reject { |k,v| k == :id }.map { |k,v|
+        v.is_a?(Time) ? [ k, v.iso8601 ] : [ k, v ]
+      }.to_h
     end
 
     def validate_config(config)

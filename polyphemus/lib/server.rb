@@ -28,9 +28,10 @@ class Polyphemus
     # Add files in the folder to the ingest queue
     post "/:project_name/ingest/enqueue/:ingest_host/*folder_path", action: "ingest#enqueue", auth: { user: { is_admin?: :project_name } }, match_ext: true
 
-    get '/api/:project_name/etl/configs', action: 'etl#list', auth: { user: { can_edit?: :project_name } }
-    get '/api/:project_name/etl/jobs', action: 'etl#jobs', auth: { user: { can_edit?: :project_name } }
-    post '/api/:project_name/etl/update/:etl', action: 'etl#update', auth: { user: { can_edit?: :project_name } }
+    get '/api/etl/:project_name/configs', action: 'etl#list', auth: { user: { can_edit?: :project_name } }
+    get '/api/etl/jobs', action: 'etl#jobs'
+    post '/api/etl/:project_name/update/:name', action: 'etl#update', auth: { user: { can_edit?: :project_name } }
+    post '/api/etl/:project_name/create/:name', action: 'etl#create', auth: { user: { can_edit?: :project_name } }
 
     get '/' do erb_view(:client) end
 

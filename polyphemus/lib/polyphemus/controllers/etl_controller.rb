@@ -37,18 +37,18 @@ class EtlController < Polyphemus::Controller
 
   def list
     success_json(
-      Polyphemus::EtlConfig.exclude(archived: true).all.map(&:as_json)
+      Polyphemus::EtlConfig.exclude(archived: true).where(project_name: @params[:project_name]).all.map(&:as_json)
     )
   end
 
   def update
     etl_configs = Polyphemus::EtlConfig.exclude(archived: true).where(
       project_name: @params[:project_name],
-      etl: @params[:etl]
+      name: @params[:name]
     ).all
 
     if etl_configs.empty?
-      raise Etna::FileNotFound, "No such etl #{@params[:etl_name]} configured for project #{@params[:project_name]}"
+      raise Etna::FileNotFound, "No such etl #{@params[:name]} configured for project #{@params[:project_name]}"
     end
 
     if etl_configs.length > 1
@@ -61,7 +61,7 @@ class EtlController < Polyphemus::Controller
       etl_config = etl_configs.first
     end
 
-    update = @params.slice(*(etl_config.columns - [:id, :project_name, :etl]))
+    update = @params.slice(*(etl_config.columns - [:id, :project_name, :name]))
 
     if update[:config]
       # validate the configuration
@@ -76,7 +76,34 @@ class EtlController < Polyphemus::Controller
     success_json(etl_config.as_json)
   end
 
-  def old_list_configs
+  def create
+    require_params(:job_type)
+
+    etl_configs = Polyphemus::EtlConfig.exclude(archived: true).where(
+      project_name: @params[:project_name],
+      name: @params[:name]
+    ).all
+
+    unless etl_configs.empty?
+      raise Etna::BadRequest, "There is already an etl #{@params[:name]} configured for project #{@params[:project_name]}"
+    end
+
+    unless Polyphemus::Job.from_name(@params[:job_type])
+      raise Etna::BadRequest, "There is no such job type #{@params[:job_type]}"
+    end
+
+    etl_config = Polyphemus::EtlConfig.create(
+      project_name: @params[:project_name],
+      name: @params[:name],
+      etl: @params[:job_type],
+      config: {},
+      run_interval: Polyphemus::EtlConfig::RUN_NEVER
+    )
+
+    success_json(etl_config.as_json)
+  end
+
+  def old_list
     success_json([ {
       project_name: @params[:project_name],
       etl: "redcap",
