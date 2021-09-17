@@ -3,59 +3,63 @@ import React, {useMemo, useCallback, useContext} from 'react';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectModels} from 'etna-js/selectors/magma';
 import {QueryContext} from '../../contexts/query/query_context';
-import {QuerySlice} from '../../contexts/query/query_types';
+import {QuerySlice, QueryColumn} from '../../contexts/query/query_types';
 import {
   selectMatrixModelNames,
-  selectCollectionModelNames,
-  isMatrixSlice
+  selectCollectionModelNames
 } from '../../selectors/query_selector';
 
 const useSliceMethods = (
-  modelName: string,
+  column: QueryColumn,
+  columnIndex: number,
   updateCounter: number,
-  setUpdateCounter: React.Dispatch<React.SetStateAction<number>>,
-  removeSlice: (modelName: string, index: number) => void
+  setUpdateCounter: React.Dispatch<React.SetStateAction<number>>
 ) => {
-  let {state, addSlice, patchSlice} = useContext(QueryContext);
+  let {state, patchQueryColumn} = useContext(QueryContext);
   const reduxState = useReduxState();
 
-  const addNewSlice = useCallback(
-    (operator: string) => {
-      addSlice({
-        modelName,
+  const addNewSlice = useCallback(() => {
+    patchQueryColumn(columnIndex, {
+      ...column,
+      slices: [...(column.slices || [])].concat({
+        modelName: '',
         attributeName: '',
-        operator,
+        operator: '',
         operand: ''
-      });
-    },
-    [addSlice, modelName]
-  );
+      })
+    });
+  }, [patchQueryColumn, column, columnIndex]);
 
   const handlePatchSlice = useCallback(
-    (index: number, filter: QuerySlice) => {
-      patchSlice(index, filter);
+    (sliceIndex: number, slice: QuerySlice) => {
+      let updatedSlices = [...column.slices];
+      updatedSlices[sliceIndex] = slice;
+      patchQueryColumn(columnIndex, {
+        ...column,
+        slices: updatedSlices
+      });
     },
-    [patchSlice]
+    [patchQueryColumn, column, columnIndex]
   );
 
   const handleRemoveSlice = useCallback(
-    (index: number) => {
-      removeSlice(modelName, index);
+    (sliceIndex: number) => {
+      let updatedSlices = [...column.slices];
+      updatedSlices.splice(sliceIndex, 1);
+      patchQueryColumn(columnIndex, {
+        ...column,
+        slices: updatedSlices
+      });
       setUpdateCounter(updateCounter + 1);
     },
-    [removeSlice, updateCounter, modelName, setUpdateCounter]
+    [updateCounter, setUpdateCounter, patchQueryColumn, column, columnIndex]
   );
 
   const attributesWithRootIdentifier = useMemo(() => {
-    if (!state.rootIdentifier || !state.rootModel) return {};
+    if (!state.rootIdentifier || !state.rootModel) return [];
 
-    return {
-      ...state.attributes,
-      [state.rootModel]: [...(state.attributes[state.rootModel] || [])].concat([
-        state.rootIdentifier
-      ])
-    };
-  }, [state.attributes, state.rootModel, state.rootIdentifier]);
+    return [...state.columns].concat([state.rootIdentifier]);
+  }, [state.columns, state.rootModel, state.rootIdentifier]);
 
   const matrixModelNames = useMemo(() => {
     if (!state.rootModel) return [];
@@ -69,35 +73,17 @@ const useSliceMethods = (
   const collectionModelNames = useMemo(() => {
     if (!state.rootModel) return [];
 
-    return selectCollectionModelNames(
-      state.graph,
-      state.rootModel,
-      Object.keys(state.attributes)
-    );
-  }, [state.graph, state.rootModel, state.attributes]);
-
-  const matrixSlices = useMemo(() => {
-    if (!state.slices[modelName] || !matrixModelNames.includes(modelName))
-      return [];
-
-    return state.slices[modelName].filter((slice) => isMatrixSlice(slice));
-  }, [state.slices, modelName, matrixModelNames]);
-
-  const collectionSlices = useMemo(() => {
-    if (!state.slices[modelName] || !collectionModelNames.includes(modelName))
-      return [];
-
-    return state.slices[modelName];
-  }, [state.slices, modelName, collectionModelNames]);
+    return selectCollectionModelNames(state.graph, state.rootModel, [
+      ...new Set(state.columns.map((c) => c.model_name))
+    ]);
+  }, [state.graph, state.rootModel, state.columns]);
 
   return {
     handleRemoveSlice,
     handlePatchSlice,
     addNewSlice,
     matrixModelNames,
-    collectionModelNames,
-    matrixSlices,
-    collectionSlices
+    collectionModelNames
   };
 };
 

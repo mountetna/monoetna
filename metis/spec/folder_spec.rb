@@ -877,6 +877,7 @@ describe FolderController do
 
     it 'updates a folder timestamp' do
       expect(@blueprints_folder.updated_at.iso8601).to eq(@creation_time.iso8601)
+      expect(@blueprints_folder.author).to eq('metis|Metis')
 
       @update_time = DateTime.now
       Timecop.freeze(@update_time)
@@ -887,6 +888,7 @@ describe FolderController do
       @blueprints_folder.refresh
       expect(last_response.status).to eq(200)
       expect(@blueprints_folder.updated_at.iso8601).to eq(@update_time.iso8601)
+      expect(@blueprints_folder.author).to eq('metis@olympus.org|Metis')
     end
 
     it 'throws exception if folder is read only' do

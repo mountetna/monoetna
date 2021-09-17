@@ -53,7 +53,7 @@ class FileController < Metis::Controller
 
     raise Etna::Forbidden, 'File is read only' if file.read_only?
     
-    file.update(updated_at: Time.now)
+    file.update(updated_at: Time.now, author: Metis::File.author(@user))
     file.refresh
 
     success_json(files: [ file.to_hash ])
