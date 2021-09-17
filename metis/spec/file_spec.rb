@@ -1599,6 +1599,7 @@ describe FileController do
 
     it 'updates a file timestamp' do
       expect(@helmet_file.updated_at.iso8601).to eq(@creation_time.iso8601)
+      expect(@helmet_file.author).to eq('metis|Metis')
 
       @update_time = DateTime.now
       Timecop.freeze(@update_time)
@@ -1609,6 +1610,7 @@ describe FileController do
       @helmet_file.refresh
       expect(last_response.status).to eq(200)
       expect(@helmet_file.updated_at.iso8601).to eq(@update_time.iso8601)
+      expect(@helmet_file.author).to eq('metis@olympus.org|Metis')
     end
 
     it 'throws exception if file is read only' do
