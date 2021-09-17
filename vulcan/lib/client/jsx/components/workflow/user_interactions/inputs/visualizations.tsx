@@ -85,7 +85,7 @@ function VisualizationUI({
   // Advanced Options Button
   const base = useMemo(() => {
     return Object.keys(remove_hidden(
-      key_wrap(input_sets[plotType]['main']), hide
+      key_wrap(input_sets[plotType]['main'] as string[]), hide
     ))
   }, [hide])
   
