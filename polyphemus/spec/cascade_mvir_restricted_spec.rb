@@ -31,6 +31,18 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       stub_parent_exists({status: 422, bucket: RESTRICT_BUCKET})
       stub_create_folder({bucket: RESTRICT_BUCKET})
       stub_rename_folder({bucket: RELEASE_BUCKET})
+      stub_bucket_find(
+        bucket: RELEASE_BUCKET,
+        response_body: {
+          folders: []
+        }
+      )
+      stub_bucket_find(
+        bucket: RESTRICT_BUCKET,
+        response_body: {
+          folders: []
+        }
+      )
 
       command.execute
 
@@ -59,6 +71,37 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       stub_parent_exists({status: 422, bucket: RESTRICT_BUCKET})
       stub_create_folder({bucket: RESTRICT_BUCKET})
       stub_rename_folder({bucket: RELEASE_BUCKET})
+      stub_bucket_find(
+        bucket: RELEASE_BUCKET,
+        response_body: {
+          folders: [
+            create_metis_folder("Dan-D0-ASSAY1", "assay/processed/Dan-D0-ASSAY1").raw,
+            create_metis_folder("Dan-D12-ASSAY1", "assay/processed/Dan-D12-ASSAY1").raw,
+            create_metis_folder("Dan-D0-ASSAY3", "assay/raw/Dan-D0-ASSAY3").raw,
+            create_metis_folder("Dan-D12-ASSAY3", "assay/raw/Dan-D12-ASSAY3").raw,
+          ]
+        },
+        response_body_2: {
+          folders: [
+            create_metis_folder("Mike-D0-ASSAY3", "assay/processed/Mike-D0-ASSAY3").raw,
+            create_metis_folder("Mike-D12-ASSAY3", "assay/processed/Mike-D12-ASSAY3").raw,
+            create_metis_folder("Mike-D0-ASSAY", "assay/raw/Mike-D0-ASSAY").raw,
+            create_metis_folder("Mike-D12-ASSAY4", "assay/raw/Mike-D12-ASSAY4").raw
+          ]
+        },
+        response_body_3: {
+          folders: [
+            create_metis_folder("pool-a", "assay/processed/pool-a").raw,
+            create_metis_folder("pool-a", "assay/raw/pool-a").raw,
+          ]
+        }
+      )
+      stub_bucket_find(
+        bucket: RESTRICT_BUCKET,
+        response_body: {
+          folders: []
+        }
+      )
 
       command.execute
 
@@ -69,6 +112,49 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       # pool-c not in the release folder fixture, so it shouldn't have requests
       expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/).times(10)
       expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/).times(10)
+    end
+
+    it 'continues working if a single patient throws an error' do
+      stub_parent_exists({status: 422, bucket: RESTRICT_BUCKET})
+      stub_create_folder({bucket: RESTRICT_BUCKET})
+      stub_rename_folder_with_error({bucket: RELEASE_BUCKET})
+      stub_bucket_find(
+        bucket: RELEASE_BUCKET,
+        response_body: {
+          folders: [
+            create_metis_folder("Dan-D0-ASSAY1", "assay/processed/Dan-D0-ASSAY1").raw,
+            create_metis_folder("Dan-D12-ASSAY1", "assay/processed/Dan-D12-ASSAY1").raw,
+            create_metis_folder("Dan-D0-ASSAY3", "assay/raw/Dan-D0-ASSAY3").raw,
+            create_metis_folder("Dan-D12-ASSAY3", "assay/raw/Dan-D12-ASSAY3").raw,
+          ]
+        },
+        response_body_2: {
+          folders: [
+            create_metis_folder("Mike-D0-ASSAY3", "assay/processed/Mike-D0-ASSAY3").raw,
+            create_metis_folder("Mike-D12-ASSAY3", "assay/processed/Mike-D12-ASSAY3").raw,
+            create_metis_folder("Mike-D0-ASSAY", "assay/raw/Mike-D0-ASSAY").raw,
+            create_metis_folder("Mike-D12-ASSAY4", "assay/raw/Mike-D12-ASSAY4").raw
+          ]
+        },
+        response_body_3: {
+          folders: [
+            create_metis_folder("pool-a", "assay/processed/pool-a").raw,
+            create_metis_folder("pool-a", "assay/raw/pool-a").raw,
+          ]
+        }
+      )
+      stub_bucket_find(
+        bucket: RESTRICT_BUCKET,
+        response_body: {
+          folders: []
+        }
+      )
+
+      command.execute
+
+      # One patient skips, so only 7 requests per patient (fewer than above test)
+      expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/).times(7)
+      expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/).times(7)
     end
   end
 
@@ -97,6 +183,18 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       stub_parent_exists({status: 422, bucket: RELEASE_BUCKET})
       stub_create_folder({bucket: RELEASE_BUCKET})
       stub_rename_folder({bucket: RESTRICT_BUCKET})
+      stub_bucket_find(
+        bucket: RELEASE_BUCKET,
+        response_body: {
+          folders: []
+        }
+      )
+      stub_bucket_find(
+        bucket: RESTRICT_BUCKET,
+        response_body: {
+          folders: []
+        }
+      )
 
       command.execute
 
@@ -124,6 +222,29 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       stub_parent_exists({status: 422, bucket: RELEASE_BUCKET})
       stub_create_folder({bucket: RELEASE_BUCKET})
       stub_rename_folder({bucket: RESTRICT_BUCKET})
+      stub_bucket_find(
+        bucket: RESTRICT_BUCKET,
+        response_body: {
+          folders: [
+            create_metis_folder("Danielle-D7-ASSAY1", "assay/processed/Danielle-D7-ASSAY1").raw,
+            create_metis_folder("Danielle-D14-ASSAY1", "assay/processed/Danielle-D14-ASSAY1").raw,
+            create_metis_folder("Danielle-D7", "assay/raw/Danielle-D7").raw,
+            create_metis_folder("Danielle-D14-ASSAY2", "assay/raw/Danielle-D14-ASSAY2").raw,
+          ]
+        },
+        response_body_2: {
+          folders: [
+            create_metis_folder("pool-c", "assay/processed/pool-c").raw,
+            create_metis_folder("pool-c", "assay/raw/pool-c").raw,
+          ]
+        }
+      )
+      stub_bucket_find(
+        bucket: RELEASE_BUCKET,
+        response_body: {
+          folders: []
+        }
+      )
 
       command.execute
 

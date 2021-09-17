@@ -21,14 +21,17 @@ const parsePermissions = (perms) => {
   }, {});
 }
 
+const parseFlags = (flags) => flags ? flags.split(';') : []
+
 export function parseToken(token) {
   let [header, params, signature] = token.split(/\./);
-  let {email, name, perm} = JSON.parse(atob(params));
+  let {email, name, perm, flags} = JSON.parse(atob(params));
 
   return {
     email,
     name,
-    permissions: parsePermissions(perm)
+    permissions: parsePermissions(perm),
+    flags: parseFlags(flags)
   };
 }
 

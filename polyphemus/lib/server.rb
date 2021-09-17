@@ -1,9 +1,9 @@
-require 'json'
-require 'rack'
+require "json"
+require "rack"
 
-require_relative './polyphemus'
-require_relative './polyphemus/controllers/configuration_controller'
-require_relative './polyphemus/controllers/job_controller'
+require_relative "./polyphemus"
+require_relative "./polyphemus/controllers/configuration_controller"
+require_relative "./polyphemus/controllers/job_controller"
 
 class Polyphemus
   class Server < Etna::Server
@@ -11,16 +11,16 @@ class Polyphemus
       super
       # application.load_models
       application.setup_db
+      application.setup_sequel
+      application.setup_ssh
     end
 
     # Return the app host configuration values
-    get '/configuration', as: :configuration, action: 'configuration#action', auth: { noauth: true }
+    get "/configuration", as: :configuration, action: "configuration#action", auth: { noauth: true }
 
     # Submit a job for a project
-    post '/:project_name/job', action: 'job#submit', auth: { user: { is_admin?: :project_name } }
+    post "/:project_name/job", action: "job#submit", auth: { user: { is_admin?: :project_name } }
 
-    get '/' do
-      [ 200, {}, [ 'Polyphemus is available.' ] ]
-    end
+    get "/" do erb_view(:client) end
   end
 end

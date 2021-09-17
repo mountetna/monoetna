@@ -1,17 +1,19 @@
-import React, {useCallback, useContext, useEffect, useMemo} from 'react';
+import React, {useCallback, useContext} from 'react';
 import ReactModal from 'react-modal';
-import Icon from 'etna-js/components/icon';
+import FlatButton from 'etna-js/components/flat-button';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
+import {setSession} from '../../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 import Vignette from '../vignette';
 import {
-  allWorkflowPrimaryInputSources,
-  statusOfStep,
-  uiOutputOfStep,
   workflowName
 } from '../../../selectors/workflow_selectors';
+import {useWorkflow} from '../../../contexts/workflow_context';
+import {readTextFile, downloadBlob} from 'etna-js/utils/blob';
+import { defaultSession } from '../../../reducers/vulcan_reducer';
+import {VulcanSession} from "../../../api_types";
 
 const modalStyles = {
   content: {
@@ -25,60 +27,62 @@ const modalStyles = {
 };
 
 export default function SessionManager() {
-  const context = useContext(VulcanContext);
-  const {state, requestPoll} = context;
-
-  const workflow = state.workflow;
-  if (!workflow) return null;
-  const name = workflowName(workflow);
-  if (!name) return null;
+  const {state, dispatch, showErrors, requestPoll, cancelPolling} = useContext(VulcanContext);
+  const {workflow, hasPendingEdits, complete} = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
-  function openModal() {
-    setIsOpen(true);
-  }
+  const {session} = state;
 
-  function closeModal() {
-    setIsOpen(false);
-  }
+  const name = workflowName(workflow);
+  const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
+  const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
-  const {steps} = workflow;
-  const {status, session} = state;
+  const run = useCallback(() => requestPoll(true), [requestPoll]);
+  const stop = useCallback(() => cancelPolling(), [cancelPolling]);
 
-  // We are done once every step either has a download or that step is a uiOutput.
-  const complete = useMemo(
-    () =>
-      steps[0].every(
-        (step) => uiOutputOfStep(step) || statusOfStep(step, status)?.downloads
-      ),
-    [steps, status]
+  const saveSession = useCallback(() => {
+    if (hasPendingEdits) {
+      alert('You have uncommitted changes, reset or commit those before saving.')
+      return;
+    }
+
+    downloadBlob({
+      data: JSON.stringify(session, null, 2),
+      filename: `${name}.json`,
+      contentType: 'text/json'
+    });
+  }, [hasPendingEdits, session, name]);
+
+  const openSession = () => {
+    showErrors(readTextFile('*.json').then((sessionJson) => {
+      const session: VulcanSession = JSON.parse(sessionJson);
+      if (session.workflow_name !== state.session.project_name || session.project_name !== state.session.project_name) {
+        // TODO: Confirm the user has project and workflow access before doing the navigation?
+        if (confirm('This session file belongs to a different project / workflow combination, navigate to that page?')) {
+          location.href = location.origin + ROUTES.workflow(session.project_name, session.workflow_name);
+        }
+        throw new Error('Cannot read session file, incompatible with current page.')
+      }
+      dispatch(setSession(session));
+    }));
+  };
+
+  const resetSession = useCallback(
+    () => {
+      const newSession = {
+        ...defaultSession,
+        workflow_name: session.workflow_name,
+        project_name: session.project_name,
+      }
+      dispatch(setSession(newSession));
+      requestPoll();
+    }, [session.workflow_name, session.project_name, dispatch, requestPoll]
   );
 
-  const idle = useMemo(
-    () =>
-      steps[0].every(
-        (step) =>
-          uiOutputOfStep(step) ||
-          statusOfStep(step, status)?.status !== 'running'
-      ),
-    [steps, status]
-  );
+  const running = state.pollingState > 0;
+  const disableRunButton = complete || running || hasPendingEdits;
 
-  const primaryInputsReady = useMemo(
-    () =>
-      allWorkflowPrimaryInputSources(workflow).every(
-        (source) => source in state.inputs
-      ),
-    [state.inputs, workflow]
-  );
-
-  const running = !idle;
-
-  const run = useCallback(() => {
-    requestPoll(true);
-  }, [requestPoll]);
-
-  const disableRunButton = complete || running || !primaryInputsReady;
+  if (!name) return null;
 
   return (
     <div className='session-manager'>
@@ -88,12 +92,12 @@ export default function SessionManager() {
         </span>
         {workflow.vignette && (
           <React.Fragment>
-            <div className='header-btn' onClick={openModal}>
-              <div className='vignette-btn'>
-                Vignette
-                <Icon className='vignette' icon='book' />
-              </div>
-            </div>
+            <FlatButton
+              icon='book'
+              className='header-btn vignette'
+              label='Vignette'
+              onClick={openModal}
+            />
             <ReactModal
               isOpen={modalIsOpen}
               onRequestClose={closeModal}
@@ -104,20 +108,45 @@ export default function SessionManager() {
             </ReactModal>
           </React.Fragment>
         )}
-        <div
+        { state.pollingState ? <FlatButton
+          className={`header-btn`}
+          icon='stop'
+          label='Stop'
+          title='Stop workflow'
+          onClick={stop}
+        /> :
+        <FlatButton
+          className={`header-btn run`}
+          icon='play'
+          label='Run'
+          title='Run workflow'
           onClick={run}
-          className={`run-workflow-btn ${
-            disableRunButton ? 'disabled' : ''
-          } header-btn`}
-        >
-          Run
-          <Icon
-            className='run'
-            disabled={complete || running || !primaryInputsReady}
-            title='Run workflow'
-            icon='play'
-          />
-        </div>
+          disabled={disableRunButton}
+        /> }
+        <FlatButton
+          className='header-btn save'
+          icon='save'
+          label='Save'
+          title='Save workflow parameters to file'
+          onClick={saveSession}
+          disabled={running}
+        />
+        <FlatButton
+          className='header-btn open'
+          icon='folder-open'
+          label='Open'
+          title='Load workflow parameters from file'
+          onClick={openSession}
+          disabled={running}
+        />
+        <FlatButton
+          className='header-btn reset'
+          icon='undo'
+          label='Reset'
+          title='Reset to the default workflow parameters'
+          onClick={resetSession}
+          disabled={running}
+        />
       </div>
       <div className='session-feed-container'>
         <InputFeed />

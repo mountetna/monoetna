@@ -93,6 +93,74 @@ describe MetisShell do
     end
   end
 
+  describe MetisShell::Set do
+    before(:each) do
+      create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+    end
+
+    it 'exits upon error, if errexit option is true' do
+      stub_metis_list_bucket
+
+      with_temp_stdio do |stdin, stdout|
+        stdin.write("set -e\n")
+        stdin.write("project athena\n")
+        stdin.write("cd armor\n")
+        stdin.write("cd jabberwocky\n") # <- this should fail and exit, the folder doesn't exist
+        stdin.write("put #{stdin.path} .\n")
+        stdin.flush
+
+        shell = MetisShell.new("metis:://athena/armor")
+        begin
+          replace_stdio(stdin.path, stdout.path) do
+            shell.run
+          end
+        rescue Exception => e
+          # Catch the exception / exit that will get thrown by the shell
+          #  otherwise, this test exits, too...
+        end
+
+        # Shell exited before it even tried processing the put command
+        expect(stdout.read.include?("put")).to eq(false)
+
+        # There is NO call to authorize the upload
+        expect(WebMock).not_to have_requested(:post, /https:\/\/metis.test\/authorize\/upload/).
+          with(body: hash_including({
+            "project_name": "athena",
+            "bucket_name": "armor",
+            "file_path": ::File.basename(stdin.path)
+          }))
+      end
+    end
+
+    it 'does not exit upon error, if errexit option is false' do
+      stub_metis_list_bucket
+
+      with_temp_stdio do |stdin, stdout|
+        stdin.write("project athena\n")
+        stdin.write("cd armor\n")
+        stdin.write("cd jabberwocky\n") # <- this folder doesn't exist, but shell ignores that and moves on to the next command
+        stdin.write("put #{stdin.path} .\n")
+        stdin.flush
+
+        shell = MetisShell.new("metis:://athena/armor")
+        replace_stdio(stdin.path, stdout.path) do
+          shell.run
+        end
+
+        # The PUT command is still executed, since no `set -e` called.
+        expect(stdout.read.include?("put")).to eq(true)
+
+        # There IS a call to authorize the upload
+        expect(WebMock).to have_requested(:post, /https:\/\/metis.test\/authorize\/upload/).
+          with(body: hash_including({
+            "project_name": "athena",
+            "bucket_name": "armor",
+            "file_path": ::File.basename(stdin.path)
+          }))
+      end
+    end
+  end
+
   describe MetisShell::Ls do
     it 'lists root buckets' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
@@ -239,61 +307,81 @@ describe MetisShell do
   end
 
   describe MetisShell::Get do
+    before(:each) do
+      # cleanup
+      FileUtils.rm_rf('spec/data/helmet')
+    end
+
+    after(:each) do
+      # cleanup
+      FileUtils.rm_rf('spec/data/helmet')
+    end
+
     it 'downloads a folder from a bucket' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
 
+      stub_metis_download("/athena/download/armor/helmet/helmet.jpg", HELMET)
+
       # it shows download progress
-      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg/ }
-
-      # This ideally would equal HELMET, but because we don't use Apache X-Sendfile
-      #   while testing, no bits are sent by Metis and the local file has no data.
-      # expect(::File.read("spec/data/helmet/helmet.jpg")).to eq(HELMET)
-
-      expect(::File.read("spec/data/helmet/helmet.jpg")).to eq('')
-
-      # cleanup
-      FileUtils.rm_rf('spec/data/helmet')
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg.*k?B\/s/ }
     end
 
-    # We aren't able to test this because Metis uses Apache's X-Sendfile module
-    #   to send the actual bits. So we require a 'production' environment.
-    xit 'does not download data twice' do
+    it 'does not download data if local file size matches' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
 
+      stub_metis_download("/athena/download/armor/helmet/helmet.jpg", HELMET)
+
       # first time it shows download progress
-      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg/ }
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg.*k?B\/s/ }
 
       # second time it shows no progress
-      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { "" }
-
-      # cleanup
-      FileUtils.rm_rf('spec/data/helmet')
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /(?!k?B\/s).*/ }
     end
 
-    it 'will re-download data if the file size does not match' do
+    it 'will re-download data if the local file size does not match' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
 
-      # first time it shows download progress
-      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg/ }
+      stub_metis_download("/athena/download/armor/helmet/helmet.jpg", HELMET)
 
-      # At this point there will be a file created locally, but it will be 0 bytes
-      #   because no bits are sent. So the file size will not be matched with remote
-      #   and calling the command again should result in a re-download.
+      # first time it shows download progress
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg.*k?B\/s/ }
+
+      # At this point there will be a file created locally, so we'll tweak the
+      #   server contents to be a different size.
+      helmet_file = create_file('athena', 'helmet.jpg', SHINY_HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', SHINY_HELMET)
+      stub_metis_download("/athena/download/armor/helmet/helmet.jpg", SHINY_HELMET)
 
       # second time it still shows download progress
-      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg/ }
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg.*k?B\/s/ }
+      expect(::File.read("spec/data/helmet/helmet.jpg")).to eq(SHINY_HELMET)
+    end
 
-      # cleanup
-      FileUtils.rm_rf('spec/data/helmet')
+    it 'will re-start a download if it is incomplete' do
+      allow_any_instance_of(MetisShell::Get).to receive(:sleep)
+      
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
+
+      # Should get Incomplete message
+      expect_error("metis://athena/armor", "get", "helmet", "spec/data") { /Incomplete download/ }
+
+      stub_metis_download("/athena/download/armor/helmet/helmet.jpg", HELMET)
+
+      # second time it will finish the download
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg.*k?B\/s/ }
+      expect(::File.read("spec/data/helmet/helmet.jpg")).to eq(HELMET)
     end
   end
 
@@ -305,7 +393,6 @@ describe MetisShell do
       stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
 
       expect(Metis::Folder.count).to eq(1)
-
       expect_error("metis://athena/armor", "mkdir", "helmet") { /Folder already exists/ }
 
       expect(Metis::Folder.count).to eq(1)
@@ -458,6 +545,70 @@ describe MetisShell do
       expect_output("metis://athena/sundry", "cp", "metis://athena/armor/helmet/helmet.jpg", "helmet.jpg") { // }
 
       expect(Metis::File.count).to eq(2)
+    end
+  end
+
+  describe MetisShell::Peek do
+    describe 'throws error if you peek at' do
+      it 'buckets' do
+        bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+        expect_error("metis://athena", "peek", "0", "1", "armor") { %r!Cannot peek at buckets!}
+      end
+  
+      it 'folders' do
+        bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+        helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+        helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+        expect_error("metis://athena/armor", "peek", "0", "1", "helmet") { %r!Cannot peek at folders! }
+      end
+
+      it 'non-existent files' do
+        bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+        helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+        helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+        expect_error("metis://athena/armor", "peek", "0", "1", "vaporware.jpg") { %r!File does not exist! }
+      end
+    end
+    
+    it 'peeks at a file' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+      stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
+
+      MetisShell.new("metis://athena", "peek", "4", "5", "armor/helmet.jpg").run
+
+      expect(WebMock).to have_requested(:get, /https:\/\/metis.test\/athena\/download/).
+        with(headers: {
+          "Range": "bytes=4-8"
+        })
+    end
+
+    it 'can write peek output to a file' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+      stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
+
+      tmp = Tempfile.new
+
+      stub_request(:get, /download/)
+        .to_return({
+          status: 200,
+          body: "partial-chunk"
+        })
+
+      MetisShell.new("metis://athena", "peek", "4", "5", "armor/helmet.jpg", tmp.path).run
+
+      expect(WebMock).to have_requested(:get, /https:\/\/metis.test\/athena\/download/).
+        with(headers: {
+          "Range": "bytes=4-8"
+        })
+
+      expect(tmp.read).to eq("partial-chunk")
+
+      tmp.close
+      tmp.unlink
     end
   end
 end

@@ -23,11 +23,11 @@ describe Metis::FolderPathCalculator do
 
   it 'returns folder name for root folder' do
     calc = Metis::FolderPathCalculator.new(bucket: @bucket)
-    expect(calc.get_folder_path(@public_folder)).to eq('public')
+    expect(calc.get_folder_path(@public_folder.id)).to eq('public')
   end
 
   it 'correctly calculates path for nested folders' do
     calc = Metis::FolderPathCalculator.new(bucket: @bucket)
-    expect(calc.get_folder_path(@grandchild_folder)).to eq('public/child/grandchild')
+    expect(calc.get_folder_path(@grandchild_folder.id)).to eq('public/child/grandchild')
   end
 end

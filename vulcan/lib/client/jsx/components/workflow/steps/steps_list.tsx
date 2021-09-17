@@ -1,27 +1,27 @@
-import React, {useContext, useState, useEffect} from 'react';
+import React, {useContext, useState, useEffect, useMemo} from 'react';
 import Icon from 'etna-js/components/icon';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import Step from './step';
 import {completedUiOutputSteps} from "../../../selectors/workflow_selectors";
+import {useWorkflow} from "../../../contexts/workflow_context";
 
 export default function StepsList() {
   const [open, setOpen] = useState(false);
   const {state} = useContext(VulcanContext);
-  const {workflow, status} = state;
+  const {status} = state;
+  const {workflow} = useWorkflow();
 
   function handleToggle() {
     setOpen(!open);
   }
 
+  const outputs = useMemo(() => completedUiOutputSteps(workflow, status), [workflow, status]);
+  const hasCompletedOutputs = outputs.length === 0;
+
   useEffect(() => {
-    // Automatically close the drawer when there are
-    //   output steps. Open drawer if the output
-    //   steps are removed...
-    if (!workflow) return;
-    let outputs = completedUiOutputSteps(workflow, status);
-    setOpen(outputs.length === 0);
-  }, [status]);
+    setOpen(hasCompletedOutputs || !!state.pollingState);
+  }, [state.pollingState, hasCompletedOutputs]);
 
   return (
     <div className={`steps-list toggle-control ${open ? 'open' : 'closed'}`}>
@@ -31,7 +31,7 @@ export default function StepsList() {
       </div>
       <div className='steps-list-wrapper'>
         {workflow ? workflow.steps[0].map((step, index) => {
-              return <Step key={index} step={step}></Step>;
+              return <Step key={index} step={step}/>;
             })
           : null}
       </div>

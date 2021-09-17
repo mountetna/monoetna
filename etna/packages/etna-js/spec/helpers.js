@@ -5,6 +5,12 @@ import {appSubscription} from "../utils/subscription";
 
 export const mockStore = (state, middleware = []) => configureMockStore([thunk, ...middleware])(state);
 
+function nockDebug(...args) {
+  if (process.env['NOCK_DEBUG'] === '1') {
+    console.log(...args);
+  }
+}
+
 export const stubUrl = ({
   verb = 'get',
   path,
@@ -29,21 +35,21 @@ export const stubUrl = ({
     }
   }
 
-  console.log('Stubbing for', {request, path, verb, response, host}, '\nactive')
+  nockDebug('Stubbing for', {request, path, verb, response, host}, '\nactive')
 
   return new Promise((resolve, reject) => {
     const base = nock(host)[verb](path, request);
     nocked = response instanceof Function
       ? base.reply(function (uri, body, cb) {
         response(uri, body, function () {
-          console.log('responding to', { uri, body }, '\nusing custom response cb')
+          nockDebug('responding to', { uri, body }, '\nusing custom response cb')
           nock.removeInterceptor(base);
           resolve();
           return cb.apply(this, arguments);
         })
       })
       : base.reply(function () {
-        console.log('responding to', { path, request }, '\nreplying with', { status, response })
+        nockDebug('responding to', { path, request }, '\nreplying with', { status, response })
         nock.removeInterceptor(base);
         resolve();
         return [status, response, {

@@ -14,12 +14,17 @@ volumes:
     driver: local
   polyphemus-opt-dir:
     driver: local
+  polyphemus-node-modules:
+    driver: local
+  polyphemus-ssh-dir:
+    driver: local
 
 x-base-etna-service:
   &base-etna-service # Base configuration used by most etna services.
   image: etna-base-dev
   volumes: &base-etna-service-volumes
     - .:/app:delegated
+    - polyphemus-node-modules:/app/node_modules
     - polyphemus-app-gems:/app/vendor/bundle:rw
     - polyphemus-log-dir:/app/log:rw
     - polyphemus-tmp-dir:/app/tmp:rw
@@ -27,6 +32,8 @@ x-base-etna-service:
     - polyphemus-data-dir:/app/data:rw
     - polyphemus-opt-dir:/usr/opt:rw
     - ../etna:/etna:delegated
+    - /tmp/metrics.prom:/tmp/metrics.prom
+    - polyphemus-ssh-dir:/root/.ssh:rw
   environment: &base-etna-env
     'POLYPHEMUS_ENV': 'development'
     APP_NAME: 'polyphemus'
@@ -55,10 +62,6 @@ x-base-etna-services:
   'polyphemus_webpack':
     &base-etna-webpack # The ruby webpack server watching for changes
     <<: *base-etna-service
-    environment:
-      <<: *base-etna-env
-      RUN_NPM_INSTALL: 'true'
-      SKIP_RUBY_SETUP: 'true'
     command: npm run webpack
 
   'polyphemus_db':
@@ -78,15 +81,11 @@ x-base-etna-services:
     image: etna-apache
     volumes:
       - polyphemus-public-dir:/app/public:ro
-      - polyphemus-opt-dir:/usr/opt:ro
-      - ../docker/etna-base-dev/entrypoints:/entrypoints:ro
     depends_on:
       - 'polyphemus_app'
-    entrypoint: /entrypoints/development.sh
+    entrypoint: /entrypoints/development_app_fe.sh
     command: ['httpd', '-DFOREGROUND']
     environment:
-      SKIP_BUILD: '1'
-      WAIT_FOR_APP: '1'
       APP_NAME: 'polyphemus'
 
 version: "3.4"
@@ -100,10 +99,4 @@ networks:
         - subnet: '2001:3984:3989::/64'
 
 services:
-  "polyphemus_app":
-    <<: *base-etna-app
-  "polyphemus_db":
-    <<: *base-etna-db
-  "polyphemus_app_fe":
-    <<: *base-etna-fe
-
+  <<: *base-etna-services

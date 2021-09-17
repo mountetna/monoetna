@@ -113,13 +113,28 @@ class Metis
       !read_only? && files.empty?
     end
 
-    def rename!(new_folder, new_folder_name)
-      update(folder: new_folder, folder_name: new_folder_name)
+    def rename!(new_folder, new_folder_name, user=nil)
+      new_params = {
+        folder: new_folder,
+        folder_name: new_folder_name
+      }
+
+      new_params[:author] = Metis::File.author(user) if user
+
+      update(**new_params)
       refresh
     end
 
-    def update_bucket_and_rename!(new_folder, new_folder_name, new_bucket)
-      update(folder: new_folder, folder_name: new_folder_name, bucket: new_bucket)
+    def update_bucket_and_rename!(new_folder, new_folder_name, new_bucket, user=nil)
+      new_params = {
+        folder: new_folder,
+        folder_name: new_folder_name,
+        bucket: new_bucket,
+      }
+
+      new_params[:author] = Metis::File.author(user) if user
+
+      update(**new_params)      
 
       # Need to recursively update all sub-folders and files
       files.each { |file|
@@ -153,7 +168,8 @@ class Metis
         read_only: read_only,
         updated_at: updated_at.iso8601,
         created_at: created_at.iso8601,
-        author: author
+        author: author,
+        id: id
       }
 
       my_hash.delete(:folder_path) if !with_path

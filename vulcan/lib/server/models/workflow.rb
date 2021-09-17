@@ -32,7 +32,6 @@ module Etna
             name: name,
             inputs: @attributes['inputs'].map(&:as_steps_inputs_json_pair).to_h,
             outputs: @attributes['outputs'].map(&:as_steps_output_json_pair).to_h,
-            dependencies_of_outputs: dependencies_of_output_map.as_normalized_hash(:root, false),
             steps: Vulcan::Orchestration.serialize_step_path(self).map do |path|
               path.map { |step_name| self.find_step(step_name)&.as_step_json }.select { |v| v }
             end
@@ -61,28 +60,6 @@ module Etna
 
       def source_as_string(source)
         Etna::Cwl.source_as_string(source)
-      end
-
-      def dependencies_of_output_map
-        ::DirectedGraph.new.tap do |directed_graph|
-          inputs.each do |input|
-            directed_graph.add_connection(:root, source_as_string([:primary_inputs, input.id]))
-          end
-
-          steps.each do |step|
-            step.out.each do |step_out|
-              output_key = source_as_string([step.id, step_out.id])
-
-              if step.in.empty?
-                directed_graph.add_connection(:root, output_key)
-              end
-
-              step.in.each do |step_input|
-                directed_graph.add_connection(source_as_string(step_input.source), output_key)
-              end
-            end
-          end
-        end
       end
     end
 

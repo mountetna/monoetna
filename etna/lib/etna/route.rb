@@ -1,3 +1,6 @@
+require 'digest'
+require 'date'
+
 module Etna
   class Route
     attr_reader :name
@@ -58,6 +61,63 @@ module Etna
     end
 
     def call(app, request)
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+      try_yabeda(request)  do |tags|
+        Yabeda.etna.visits.increment(tags)
+      end
+
+      begin
+        process_call(app, request)
+      ensure
+        try_yabeda(request) do |tags|
+          dur = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+          Yabeda.etna.response_time.measure(tags, dur)
+        end
+      end
+    end
+
+    def hash_user_email(email)
+      secret = Etna::Application.instance.config(:user_hash_secret) || 'notsosecret'
+      digest = email + secret + Date.today.to_s
+
+      if @name
+        digest += @name.to_s
+      else
+        digest += @route.to_s
+      end
+
+      Digest::MD5.hexdigest(digest)
+    end
+
+    def try_yabeda(request, &block)
+      if @action
+        controller, action = @action.split('#')
+      elsif @name
+        controller = "none"
+        action = @name
+      else
+        controller = "none"
+        action = @route
+      end
+
+      params = request.env['rack.request.params']
+      user = request.env['etna.user']
+      user_hash = user ? hash_user_email(user.email) : 'unknown'
+      project_name = "unknown"
+
+      if params && (params.include?(:project_name) || params.include?('project_name'))
+        project_name = params[:project_name] || params['project_name']
+      end
+
+      begin
+        block.call({ controller: controller, action: action, user_hash: user_hash, project_name: project_name })
+      rescue => e
+        raise e unless Etna::Application.instance.environment == :production
+      end
+    end
+
+    def process_call(app, request)
       update_params(request)
 
       unless authorized?(request)
@@ -148,7 +208,10 @@ module Etna
       params = request.env['rack.request.params']
 
       @auth[:user].all? do |constraint, param_name|
-        user.respond_to?(constraint) && user.send(constraint, params[param_name])
+        user.respond_to?(constraint) && (
+          param_name.is_a?(Symbol) ?
+            user.send(constraint, params[param_name]) :
+            user.send(constraint, param_name))
       end
     end
 

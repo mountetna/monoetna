@@ -221,6 +221,7 @@ describe Metis::FolderRenameRevision do
 
     it 'executes the revision' do
         expect(Metis::Folder.count).to eq(1)
+        expect(Metis::Folder.first.author).to eq('metis|Metis')
         revision = Metis::FolderRenameRevision.new({
             source: 'metis://athena/files/wisdom',
             dest: 'metis://athena/files/learn-wisdom',
@@ -231,6 +232,28 @@ describe Metis::FolderRenameRevision do
         revision.validate
         learn_wisdom = revision.revise!
         expect(Metis::Folder.count).to eq(1)
+        expect(Metis::Folder.first.author).to eq(Metis::File.author(@user))
+        expect(learn_wisdom.id).to eq(@wisdom_folder.id)
+    end
+
+    it 'executes the revision to a new bucket' do
+        new_bucket_name = 'new_bucket'
+        stubs.create_bucket(new_bucket_name, 'files')
+        new_bucket = create( :bucket, project_name: new_bucket_name, name: 'files', owner: 'metis', access: 'viewer')
+        
+        expect(Metis::Folder.count).to eq(1)
+        expect(Metis::Folder.first.author).to eq('metis|Metis')
+        revision = Metis::FolderRenameRevision.new({
+            source: 'metis://athena/files/wisdom',
+            dest: "metis://#{new_bucket_name}/files/learn-wisdom",
+            user: @user
+        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = new_bucket
+        revision.validate
+        learn_wisdom = revision.revise!
+        expect(Metis::Folder.count).to eq(1)
+        expect(Metis::Folder.first.author).to eq(Metis::File.author(@user))
         expect(learn_wisdom.id).to eq(@wisdom_folder.id)
     end
 

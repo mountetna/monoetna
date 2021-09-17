@@ -1,18 +1,19 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {IntegerInput as EtnaIntegerInput} from 'etna-js/components/inputs/numeric_input';
-import {InputBackendComponent} from "./input_types";
+import {WithInputParams} from './input_types';
+import {some} from "../../../../selectors/maybe";
+import {useSetsDefault} from "./useSetsDefault";
+import {selectDefaultNumber} from "./monoids";
 
-const IntegerInput: InputBackendComponent = ({input, onChange}) => {
-  if (!input || !onChange) return null;
+export default function IntegerInput({onChange, data, ...props}: WithInputParams<{}, number, number>) {
+  const onNewInt = useCallback((f: number) => onChange(some(f)), [onChange])
+  const value = useSetsDefault(selectDefaultNumber(data), props.value, onChange);
 
   return (
     <EtnaIntegerInput
-      defaultValue={input.default}
-      onChange={(e: any) => {
-        onChange(input.name, e);
-      }}
+      followDefault
+      defaultValue={value}
+      onChange={onNewInt}
     />
   );
-}
-
-export default IntegerInput;
+};

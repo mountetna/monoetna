@@ -21,15 +21,15 @@ describe Vulcan::Orchestration do
   end
 
   def should_builds
-    build_targets.map { |b| b.map { |bt| bt.should_build?(storage) } }
+    build_targets.map { |b| b.map { |step_name, bt| bt.should_build?(storage) } }
   end
 
   def cell_hashes
-    build_targets.map { |b| b.map { |bt| bt.cell_hash } }
+    build_targets.map { |b| b.map { |step_name,bt| bt.cell_hash } }
   end
 
   def next_buildable
-    orchestration.next_runnable_build_targets(storage).first
+    orchestration.next_runnable_build_targets(storage).first.last
   end
 
   def cell_hashes_same(old_cell_hashes)
@@ -70,7 +70,7 @@ describe Vulcan::Orchestration do
             [false, true, false, false],
         ])
 
-        expect(orchestration.next_runnable_build_targets(storage).map(&:cell_hash)).to eql([
+        expect(orchestration.next_runnable_build_targets(storage).map(&:last).map(&:cell_hash)).to eql([
             orchestration.build_target_for('firstAdd').cell_hash
         ])
 

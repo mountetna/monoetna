@@ -47,11 +47,6 @@ inputs:
     default: false
     label: 'regress percent.ribosomal?'
     doc: 'Controls whether to regress data that correlates with cells percentage of ribosomal reads. Regression of data confounders for PCA/UMAP/clustering calculations can improve results of these steps.'
-  2_Regress_by__regress_tube_id:
-    type: boolean
-    default: false
-    label: 'regress on tube IDs?'
-    doc: 'Controls whether to regress data that correlates with tube IDs. Regression by this data for PCA/UMAP/clustering can be an effective form of batch correction for these steps. (We do plan to add additional batch correction options in the future!)'
   3_For_UMAP_and_Clustering__max_pc:
     type: int
     default: 15
@@ -102,7 +97,7 @@ inputs:
 outputs:
   the_data:
     type: File
-    outputSource: calc_umap/umap_anndata.h5ad
+    outputSource: Finalize_Output_Object/umap_workflow_anndata.h5ad
 
 steps:
   projectData:
@@ -169,7 +164,6 @@ steps:
       regress_genes: 2_Regress_by__regress_genes
       regress_pct_mito: 2_Regress_by__regress_pct_mito
       regress_pct_ribo: 2_Regress_by__regress_pct_ribo
-      regress_tube_id: 2_Regress_by__regress_tube_id
     out: [pca_anndata.h5ad]
   neighbors:
     run: scripts/neighbors.cwl
@@ -183,49 +177,27 @@ steps:
     run: scripts/calc_umap.cwl
     label: 'Calculate UMAP'
     in:
-      project_data: projectData/project_data
       spread: 4_UMAP_Calculation__umap_spread
       min_dist: 4_UMAP_Calculation__umap_min_dist
       num_iters: 4_UMAP_Calculation__umap_num_iters
       nn_anndata.h5ad: neighbors/nn_anndata.h5ad
-    out: [umap_anndata.h5ad,color_options]
+    out: [umap_anndata.h5ad]
   calc_leiden:
     run: scripts/calc_leiden.cwl
     label: 'Calculate Leiden clustering'
     in:
-      nn_anndata.h5ad: calc_umap/umap_anndata.h5ad
-      leiden_resolution: 5_Cluster_Calculation__leiden_resolution
-      use_weights: 5_Cluster_Calculation__leiden_use_weights
-    out: [leiden.json,leiden_anndata.h5ad]
-  select_color_by_option:
-    run: ui-queries/nested-select-autocomplete.cwl
-    label: 'Color Options'
-    in:
-      a: calc_umap/color_options
-    out: [color_by]
-  plot_umap:
-    run: scripts/plot_umap.cwl
-    label: 'Create UMAP plot'
-    in:
       project_data: projectData/project_data
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
-      leiden.json: calc_leiden/leiden.json
-      color_by: select_color_by_option/color_by
-      top10.json: Differential_Expression__between_clusters/top10.json
-    out: [umap.plotly.json]
-  show_umap_plot:
-    run: ui-outputs/plotly.cwl
+      leiden_resolution: 5_Cluster_Calculation__leiden_resolution
+      use_weights: 5_Cluster_Calculation__leiden_use_weights
+    out: [leiden.json,leiden_anndata.h5ad,blank_annots.json]
+  cluster_annotation:
+    run: ui-queries/multiple-string.cwl
+    label: 'Manually Annotate Clusters'
     in:
-      a: plot_umap/umap.plotly.json
-    out: []
-    label: 'Display UMAP'
-  downloadRawData:
-    run: ui-outputs/link.cwl
-    in:
-      a: Differential_Expression__between_clusters/umap_workflow_anndata.h5ad
-    out: []
-    label: 'Download data as h5ad'
-  Differential_Expression__between_clusters:
+      a: calc_leiden/blank_annots.json
+    out: [annots.json]
+  Differential_Expression_between_clusters:
     run: scripts/DE_btwn_clusters.cwl
     label: 'Diff. Exp.: Cluster Markers'
     in:
@@ -233,10 +205,67 @@ steps:
       ignore_prefixes: 6_Cluster_Differential_Expression__ignore_prefixes
       dge_method: 6_Cluster_Differential_Expression__dge_method
     out: [umap_workflow_anndata.h5ad, diffexp.csv,top10.json]
+  Finalize_Output_Object:
+    run: scripts/umap_finalize_downloadable_object.cwl
+    label: 'Prep output anndata object'
+    in: 
+      scdata.h5ad: Differential_Expression_between_clusters/umap_workflow_anndata.h5ad
+      project_data: projectData/project_data
+      leiden.json: calc_leiden/leiden.json
+      annots.json: cluster_annotation/annots.json
+    out: [umap_workflow_anndata.h5ad]
+  determine_color_by_options:
+    run: scripts/determine_color_by_options.cwl
+    label: 'Determine coloring options'
+    in:
+      project_data: projectData/project_data
+      leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
+    out: [color_options]
+  select_color_by_option:
+    run: ui-queries/nested-select-autocomplete.cwl
+    label: 'Color Options'
+    in:
+      data_options: determine_color_by_options/color_options
+    out: [color_by]
+  prep_umap_plot_data:
+    run: scripts/umap_prep_plotting_data.cwl
+    label: 'Collect data for plotting'
+    in:
+      project_data: projectData/project_data
+      scdata.h5ad: Finalize_Output_Object/umap_workflow_anndata.h5ad
+      color_by: select_color_by_option/color_by
+      top10.json: Differential_Expression_between_clusters/top10.json
+    out: [data_frame, preset]
+  user_plot_setup:
+    run: ui-queries/scatter-plotly.cwl
+    label: 'Set plot options'
+    in:
+      data_frame: prep_umap_plot_data/data_frame
+      preset: prep_umap_plot_data/preset
+    out: [plot_setup]
+  make_umap:
+    run: scripts/make_scatter.cwl
+    label: 'Create UMAP plot'
+    in:
+      plot_setup: user_plot_setup/plot_setup
+      data_frame: prep_umap_plot_data/data_frame
+    out: [plot.json]
+  show_umap_plot:
+    run: ui-outputs/plotly.cwl
+    label: 'Display UMAP'
+    in:
+      a: make_umap/plot.json
+    out: []
+  downloadRawData:
+    run: ui-outputs/link.cwl
+    in:
+      a: Finalize_Output_Object/umap_workflow_anndata.h5ad
+    out: []
+    label: 'Download data as h5ad'
   downloadDEData:
     run: ui-outputs/link.cwl
     in:
-      a: Differential_Expression__between_clusters/diffexp.csv
+      a: Differential_Expression_between_clusters/diffexp.csv
     out: []
     label: 'Download cluster DiffExp as csv'
 

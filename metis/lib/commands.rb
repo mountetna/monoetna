@@ -14,6 +14,32 @@ class Metis
     end
   end
 
+  class MeasureFileCounts < Etna::Command
+    def setup(config)
+      super
+      Metis.instance.load_models
+      Metis.instance.setup_db
+    end
+
+    # TODO: Also collect file size, which would require us to add that to the data_blocks table rather than
+    # reading it from file.
+    def execute
+      Metis::File.select_group(:bucket_id).select_more{count(:id)}.each do |row|
+        count = row[:count]
+        bucket_id = row[:bucket_id]
+        bucket = Metis::Bucket.where(id: bucket_id).first
+        next if bucket.nil?
+
+        project_name = bucket.project_name
+        bucket_name = bucket.name
+
+        tags = {project_name: project_name, bucket_name: bucket_name}
+        Yabeda.metis.file_count.set(tags, count)
+      end
+    end
+  end
+
+
   class Schema < Etna::Command
     usage 'Show the current database schema.'
 
@@ -53,14 +79,25 @@ class Metis
     end
   end
 
-  class Archive < Etna::Command
-    usage 'Checksum and archive files.'
+  class ChecksumFiles < Etna::Command
+    usage 'Checksum files.'
 
     def execute
       needs_hash = Metis::DataBlock.where(md5_hash: Metis::DataBlock::TEMP_MATCH, removed: false).order(:updated_at).all[0..10]
       puts "Found #{needs_hash.count} data blocks to be checksummed."
       needs_hash.each(&:compute_hash!)
+    end
 
+    def setup(config)
+      super
+      Metis.instance.load_models
+    end
+  end
+
+  class Archive < Etna::Command
+    usage 'Archive files.'
+
+    def execute
       needs_archive = Metis::DataBlock.exclude(md5_hash: Metis::DataBlock::TEMP_MATCH).where(archive_id: nil, removed: false).order(:updated_at).all[0..10]
       puts "Found #{needs_archive.count} files to be archived."
       needs_archive.each do |data_block|

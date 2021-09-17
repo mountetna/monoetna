@@ -1,42 +1,55 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
+import React, {useCallback} from 'react';
 import MenuControl from '../menu-control';
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 
-class BucketControl extends React.Component {
-  configureBucket() {
-    let { showDialog, updateBucket, bucket } = this.props;
-    let { bucket_name, description, access } = bucket;
+const BucketControl = ({bucket}) => {
+  const invoke = useActionInvoker();
+
+  function updateBucket(bucket) {
+    invoke({
+      type: 'UPDATE_BUCKET',
+      bucket
+    });
+  }
+
+  const configureBucket = useCallback(() => {
+    let {bucket_name, description, access} = bucket;
 
     let dialog = {
       type: 'configure-bucket',
       updateBucket,
-      bucket_name, description, access
+      bucket_name,
+      description,
+      access
+    };
+    invoke({
+      type: 'SHOW_DIALOG',
+      dialog
+    });
+  }, [bucket.bucket_name, bucket.description, bucket.access, invoke]);
+
+  const destroyBucket = useCallback(() => {
+    invoke({
+      type: 'DESTROY_BUCKET',
+      bucket
+    });
+  }, [invoke, bucket]);
+
+  let items = [
+    {
+      label: 'Configure bucket',
+      callback: configureBucket,
+      show: true,
+      role: 'administrator'
+    },
+    bucket.count == 0 && {
+      label: 'Remove bucket',
+      callback: destroyBucket,
+      role: 'administrator'
     }
-    showDialog(dialog);
-  }
+  ].filter((_) => _);
 
-  destroyBucket() {
-    let { destroyBucket, bucket } = this.props;
+  return <MenuControl items={items} />;
+};
 
-    destroyBucket(bucket);
-  }
-
-  render() {
-    let { bucket } = this.props;
-    let items = [
-      { label: 'Configure bucket', callback: this.configureBucket.bind(this), show: true, role: 'administrator' },
-      bucket.count == 0 && { label: 'Remove bucket', callback: this.destroyBucket.bind(this), role: 'administrator' }
-    ].filter(_=>_);
-    return <MenuControl items={items}/>;
-  }
-}
-
-export default connect(
-  null,
-  (dispatch) => ({
-    destroyBucket: (bucket) => dispatch({ type: 'DESTROY_BUCKET', bucket }),
-    updateBucket: (bucket) => dispatch({ type: 'UPDATE_BUCKET', bucket}),
-    showDialog: (dialog) => dispatch({ type: 'SHOW_DIALOG', dialog})
-  })
-)(BucketControl);
-
+export default BucketControl;

@@ -1,10 +1,6 @@
 
 version: '3.4'
 
-volumes:
-  data-dir:
-    driver: local
-
 networks:
   edge_net:
     ipam:
@@ -14,12 +10,18 @@ networks:
         - subnet: '2001:3984:3989::/64'
 
 services:
-  edge-apache:
+  edge-apache-bash:
+    &base-edge-apache
     image: etna-apache
     volumes:
       - ../development-certs/certs:/root/certs
       - ./development-edge-httpd.conf:/usr/opt/httpd.conf.d/main.conf
-      - data-dir:/app/data
+    networks:
+      edge_net:
+      default:
+
+  edge-apache:
+    <<: *base-edge-apache
     ports:
       - '443:443'
       - '80:80'
@@ -28,4 +30,3 @@ services:
         ipv4_address: 172.16.238.10
         ipv6_address: 2001:3984:3989::10
       default:
-

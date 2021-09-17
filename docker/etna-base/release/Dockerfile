@@ -8,8 +8,7 @@ COPY src/package.json src/package-lock.json /app/
 RUN npm install
 COPY src /app/
 ARG APP_NAME
-ARG RUN_NPM_INSTALL
-ARG SKIP_RUBY_SETUP=1
+ARG FULL_BUILD=1
 RUN /entrypoints/build.sh
 RUN npm run build
 ENV RACK_ENV production

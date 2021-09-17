@@ -1,11 +1,12 @@
 var path = require('path');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var MiniCssExtractPlugin = require('mini-css-extract-plugin');
 var webpack = require('webpack');
 
 module.exports = (env) => ({
+  mode: env.NODE_ENV || 'development',
   context: path.resolve(__dirname),
   resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx', '.scss', '.png', '.jpg', '.jpeg', '.svg'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx', '.scss', '.png', '.jpg', '.jpeg', '.svg', '.css'],
     alias: {
       'code-mirror': path.join(__dirname, 'node_modules/codemirror/lib'),
       react: path.join(__dirname, 'node_modules/react'),
@@ -29,10 +30,11 @@ module.exports = (env) => ({
         include: [
           path.resolve(__dirname, 'lib/client/jsx'),
           path.resolve(__dirname, 'node_modules/etna-js/'),
+          path.resolve(__dirname, 'stories/'),
           '/etna/packages/etna-js'
         ],
 
-        // Only run `.js` and `.jsx` files through Babel
+        // Only run `.js`, `.jsx`, `.ts`, and `.tsx` files through Babel
         test: /\.(js|ts)x?$/
       },
 
@@ -44,7 +46,7 @@ module.exports = (env) => ({
           path.resolve(__dirname, 'node_modules/react-notifications-component'),
           '/etna/packages/etna-js'
         ],
-        test: /\.css$/
+        test: /\.css$/,
       },
 
       {
@@ -71,18 +73,26 @@ module.exports = (env) => ({
             __dirname,
             'node_modules/react-loader-spinner/dist/loader/css'
           ),
+          path.resolve(__dirname, 'node_modules/etna-js/'),
+          '/etna/packages/etna-js',
+          path.resolve(__dirname, 'node_modules/react-notifications-component'),
           path.resolve(__dirname, 'lib/client/scss')
         ],
 
-        loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader'])
+        // loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader']),
+        // loader: env.NODE_ENV === 'storybook' ? ['css-loader', 'sass-loader'] : undefined,
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
       }
     ]
   },
   plugins: [
-    new ExtractTextPlugin({
-      // define where to save the file
+    // new ExtractTextPlugin({
+    //   // define where to save the file
+    //   filename: 'public/css/vulcan.bundle.css',
+    //   allChunks: true
+    // }),
+    new MiniCssExtractPlugin({
       filename: 'public/css/vulcan.bundle.css',
-      allChunks: true
     }),
     new webpack.DefinePlugin({
       'process.env': {

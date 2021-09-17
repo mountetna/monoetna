@@ -13,71 +13,184 @@ exports[`JanusAdmin renders 1`] = `
       Projects
     </div>
     <div
-      className="project header"
+      className="MuiPaper-root MuiTableContainer-root MuiPaper-elevation1 MuiPaper-rounded"
     >
-      <div
-        className="project_name"
+      <table
+        aria-label="all projects"
+        className="MuiTable-root"
+        role={null}
       >
-         project_name 
-      </div>
-      <div
-        className="full_name"
-      >
-         title 
-      </div>
+        <thead
+          className="MuiTableHead-root"
+          role={null}
+        >
+          <tr
+            className="MuiTableRow-root MuiTableRow-head"
+            role={null}
+          >
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Project Name
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Title
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          className="MuiTableBody-root"
+          role={null}
+        >
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <a
+                href="/gateway"
+              >
+                gateway
+              </a>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Gateway
+            </td>
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <a
+                href="/mirror"
+              >
+                mirror
+              </a>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Mirror
+            </td>
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <a
+                href="/tunnel"
+              >
+                tunnel
+              </a>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Tunnel
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div
+    id="new-project"
+  >
+    <div
+      className="title"
+    >
+      New Project
     </div>
     <div
-      className="project"
+      className="item"
     >
       <div
-        className="project_name"
+        className="cell"
       >
-        <a
-          href="/gateway"
+        <div
+          className="MuiFormControl-root MuiTextField-root"
         >
-          gateway
-        </a>
+          <div
+            className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+            onClick={[Function]}
+          >
+            <input
+              aria-invalid={false}
+              autoFocus={false}
+              className="MuiInputBase-input MuiInput-input"
+              disabled={false}
+              onAnimationStart={[Function]}
+              onBlur={[Function]}
+              onChange={[Function]}
+              onFocus={[Function]}
+              placeholder="project_name"
+              required={false}
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
       </div>
       <div
-        className="full_name"
+        className="cell"
       >
-        Gateway
-      </div>
-    </div>
-    <div
-      className="project"
-    >
-      <div
-        className="project_name"
-      >
-        <a
-          href="/mirror"
+        <div
+          className="MuiFormControl-root MuiTextField-root"
         >
-          mirror
-        </a>
+          <div
+            className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+            onClick={[Function]}
+          >
+            <input
+              aria-invalid={false}
+              autoFocus={false}
+              className="MuiInputBase-input MuiInput-input"
+              disabled={false}
+              onAnimationStart={[Function]}
+              onBlur={[Function]}
+              onChange={[Function]}
+              onFocus={[Function]}
+              placeholder="Project Title"
+              required={false}
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
       </div>
       <div
-        className="full_name"
+        className="cell submit"
       >
-        Mirror
-      </div>
-    </div>
-    <div
-      className="project"
-    >
-      <div
-        className="project_name"
-      >
-        <a
-          href="/tunnel"
+        <span
+          className="icon-grp icon-grp-approve  fa-stack fa-fw"
+          onClick={[Function]}
         >
-          tunnel
-        </a>
-      </div>
-      <div
-        className="full_name"
-      >
-        Tunnel
+          <i
+            className="icon approve  magic fa fa-2x fa-magic"
+          />
+        </span>
       </div>
     </div>
   </div>

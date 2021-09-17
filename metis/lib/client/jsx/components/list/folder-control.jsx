@@ -35,6 +35,11 @@ class FolderControl extends React.Component{
     copyText(download_url);
   }
 
+  touchFolder() {
+    let { folder, touchFolder } = this.props;
+    touchFolder(folder);
+  }
+
   render() {
     let { folder } = this.props;
     let items = folder.read_only ?
@@ -44,6 +49,7 @@ class FolderControl extends React.Component{
         { label: 'Rename folder', callback: this.renameFolder.bind(this), role: 'editor' },
         { label: 'Protect folder', callback: this.protectFolder.bind(this), role: 'administrator' },
         { label: 'Remove folder', callback: this.removeFolder.bind(this), role: 'editor' },
+        { label: 'Touch folder', callback: this.touchFolder.bind(this), role: 'editor' },
       ];
     return <MenuControl items={items}/>;
   }
@@ -55,7 +61,8 @@ export default connect(
     removeFolder: (folder) => dispatch({ type: 'REMOVE_FOLDER', folder, bucket_name }),
     unprotectFolder: (folder) => dispatch({ type: 'UNPROTECT_FOLDER', folder, bucket_name }),
     protectFolder: (folder) => dispatch({ type: 'PROTECT_FOLDER', folder, bucket_name }),
-    renameFolder: (folder, new_folder_path) => dispatch({ type: 'RENAME_FOLDER', folder, new_folder_path, bucket_name })
+    renameFolder: (folder, new_folder_path) => dispatch({ type: 'RENAME_FOLDER', folder, new_folder_path, bucket_name }),
+    touchFolder: (folder) => dispatch({ type: 'TOUCH_FOLDER', folder, bucket_name })
   })
 )(FolderControl);
 

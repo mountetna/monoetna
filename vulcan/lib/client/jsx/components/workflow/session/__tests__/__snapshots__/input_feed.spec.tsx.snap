@@ -4,11 +4,13 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
 <div
   className="session-input-feed"
 >
+  <div>
+    <div
+      className="primary-inputs"
+    />
+  </div>
   <div
-    className="primary-inputs"
-  />
-  <div
-    className="step-user-input step"
+    className="step-user-input step "
   >
     <div
       onClick={[Function]}
@@ -33,40 +35,57 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         >
           second
         </div>
+        <svg
+          aria-hidden={true}
+          className="MuiSvgIcon-root"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"
+          />
+        </svg>
       </div>
     </div>
     <div
       className="step-user-input-inputs sliding-panel vertical open"
     >
-      <div
-        className="view_item"
-      >
+      <div>
         <div
-          className="item_view"
+          className="view_item"
         >
           <div
-            className="input-help"
+            className="item_name"
+          >
+            second
+          </div>
+          <div
+            className="item_view"
           >
             <div
-              className="input-help-children-wrapper"
+              className="input-help"
             >
-              <input
-                onChange={[Function]}
-                type="text"
-                value=""
+              <div
+                className="input-help-children-wrapper"
+              >
+                <input
+                  onChange={[Function]}
+                  type="text"
+                  value="default-value"
+                />
+              </div>
+              <div
+                className="help-icon-wrapper"
+                title=""
               />
             </div>
-            <div
-              className="help-icon-wrapper"
-              title=""
-            />
           </div>
         </div>
       </div>
     </div>
   </div>
   <div
-    className="step-user-input step"
+    className="step-user-input step "
   >
     <div
       onClick={[Function]}
@@ -91,33 +110,50 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         >
           third
         </div>
+        <svg
+          aria-hidden={true}
+          className="MuiSvgIcon-root"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"
+          />
+        </svg>
       </div>
     </div>
     <div
       className="step-user-input-inputs sliding-panel vertical open"
     >
-      <div
-        className="view_item"
-      >
+      <div>
         <div
-          className="item_view"
+          className="view_item"
         >
           <div
-            className="input-help"
+            className="item_name"
+          >
+            third
+          </div>
+          <div
+            className="item_view"
           >
             <div
-              className="input-help-children-wrapper"
+              className="input-help"
             >
-              <input
-                onChange={[Function]}
-                type="text"
-                value=""
+              <div
+                className="input-help-children-wrapper"
+              >
+                <input
+                  onChange={[Function]}
+                  type="text"
+                  value="default-value"
+                />
+              </div>
+              <div
+                className="help-icon-wrapper"
+                title=""
               />
             </div>
-            <div
-              className="help-icon-wrapper"
-              title=""
-            />
           </div>
         </div>
       </div>

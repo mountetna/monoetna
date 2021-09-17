@@ -1,41 +1,46 @@
 import React, {useContext, useEffect, useState} from 'react';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
-import {defaultInputValues, workflowByName} from '../../selectors/workflow_selectors';
+import {workflowByName} from '../../selectors/workflow_selectors';
 
 import SessionManager from './session/session_manager';
 import StepsList from './steps/steps_list';
-import {setInputs, setSession, setWorkflow} from "../../actions/vulcan";
-import {defaultVulcanSession} from "../../api_types";
+import {setSession, setWorkflow} from "../../actions/vulcan_actions";
 
 export default function WorkflowManager({workflowName, projectName}: { workflowName: string, projectName: string }) {
   const {
     state,
     dispatch,
-    getLocalSession
+    getLocalSession,
+    cancelPolling,
+    requestPoll,
   } = useContext(VulcanContext);
 
   const workflow = workflowByName(workflowName, state);
 
   useEffect(() => {
     if (workflow && projectName) {
-      dispatch(setWorkflow(workflow, projectName));
-
       getLocalSession(workflow, projectName).then((session) => {
-        if (!session) {
-          // Set the default input values
-          dispatch(setInputs(defaultInputValues(workflow)));
-        } else {
+        cancelPolling();
+
+        dispatch(setWorkflow(workflow, projectName));
+        if (session) {
           dispatch(setSession(session));
         }
+
+        requestPoll();
       });
     }
-  }, [workflow]);
+  }, [cancelPolling, dispatch, getLocalSession, projectName, workflow]);
+
+  if (!state.workflow) {
+    return null;
+  }
 
   return (
-      <div className='workflow-manager'>
-        <SessionManager/>
-        <StepsList/>
-      </div>
+    <div className='workflow-manager'>
+      <SessionManager/>
+      <StepsList/>
+    </div>
   );
 }

@@ -18,17 +18,15 @@
 
 .steps-list {
   padding-left: 10px;
-  padding-right: 10px;
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow-y: auto;
+  overflow-y: hidden;
   box-sizing: border-box;
   overflow-x: hidden;
   background: white;
   border-left: 1px solid lightgray;
   margin-left: 10px;
-  margin-right: 10px;
   flex: 0 0 auto;
 
   &.open {
@@ -72,6 +70,10 @@
       flex: 1;
       padding-left: 10px;
     }
+  }
+
+  .steps-list-wrapper {
+    overflow-y: scroll;
   }
 
   .step {
@@ -139,48 +141,37 @@
     align-items: center;
     border-bottom: 1px solid red;
     flex: 0 0 40px;
-    padding-right: 50px;
     margin-left: 10px;
 
-    .run-workflow-btn {
-      color: #9f2727;
-    }
-
-    .icon-grp {
-      font-family: $body_font;
-      font-size: 0.6em;
-      margin-left: 0.25rem;
-      margin-top: -2px;
-      cursor: pointer;
-
-      .icon.disabled {
-        color: grey;
-        cursor: not-allowed;
-        &:hover {
-          color: grey;
-        }
-      }
-    }
-
     .header-btn {
-      margin-right: 0.5rem;
-      margin-left: 0.5rem;
-      border-radius: 2px;
-      border: 1px solid lightgray;
-      background: rgba(lightgray, 0.5);
-      font-size: 1rem;
-      height: 32px;
-      cursor: pointer;
-      display: flex;
-      padding: 0px 5px;
-      align-items: center;
-
-      .vignette-btn {
+      &.vignette {
         color: goldenrod;
       }
+      &.run {
+        color: #9f2727;
 
-      &:hover {
-        background: rgba(lightgray, 0.25);
+        &.validation-errors {
+          background: repeating-linear-gradient(
+            45deg,
+            #ffaaaa,
+            #ecc4c4 10px,
+            #ffaaaa 10px,
+            #ecc4c4 20px
+          );
+          cursor: not-allowed;
+          &:hover {
+            opacity: 0.5;
+          }
+        }
+      }
+      &.save {
+        color: green;
+      }
+      &.open {
+        color: dodgerblue;
+      }
+      &.reset {
+        color: dodgerblue;
       }
 
       &.disabled {
@@ -196,7 +187,7 @@
 
   .session-feed-container {
     display: flex;
-    height: calc(100% - 48px);
+    height: calc(100% - 39px);
 
     .session-input-feed,
     .session-output-feed {
@@ -204,8 +195,7 @@
     }
 
     .session-input-feed {
-      flex: 1;
-      max-width: 500px;
+      flex: 0 0 500px;
 
       .step-user-input {
         padding: 10px;
@@ -215,6 +205,12 @@
 
           .step-button {
             text-align: right;
+          }
+        }
+
+        &.error {
+          .step-user-input-inputs {
+            border: 1px solid red;
           }
         }
 
@@ -337,7 +333,7 @@
     flex: 1;
 
     .add_item {
-      cursor: default;
+      cursor: pointer;
       color: green;
       padding-right: 10px;
     }

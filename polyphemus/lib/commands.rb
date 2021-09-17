@@ -169,6 +169,45 @@ class Polyphemus
     end
   end
 
+  class CopyMetisTreeCommand < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+
+    def execute(source_env, target_env, source_project, target_project, source_bucket, target_bucket, folder_name_glob)
+      source_metis_client = environment(source_env).metis_client
+      dest_metis_client = environment(target_env).metis_client
+
+      folders = source_metis_client.find(Etna::Clients::Metis::FindRequest.new(
+          project_name: source_project,
+          bucket_name: source_bucket,
+          params: [
+              Etna::Clients::Metis::FindParam.new(
+                type: 'folder',
+                attribute: 'name',
+                predicate: 'glob',
+                value: folder_name_glob,
+              )
+          ]
+      )).folders.all
+
+      logger.info("Found #{folders.length} folders")
+      folders.each do |folder|
+        dest_metis_client.create_folder(Etna::Clients::Metis::CreateFolderRequest.new(
+          project_name: target_project,
+          bucket_name: target_bucket,
+          folder_path: folder.folder_path
+          )
+        )
+      end
+      logger.info("Done")
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+    end
+  end
+
   class CopyMagmaRecords < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
@@ -263,7 +302,11 @@ class Polyphemus
         if all_restricted_pools.include? pool
           logger.info "#{base_model}_pool #{pool} includes a restricted patient, restricting."
 
-          mvir1_waiver.restrict_pool_data(pool)
+          begin
+            mvir1_waiver.restrict_pool_data(pool)
+          rescue Etna::Error => e
+            logger.log_error(e)
+          end
 
           update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
           update_request.update_revision("#{base_model}_pool", pool, restricted: true)
@@ -271,7 +314,11 @@ class Polyphemus
         else
           logger.info "#{base_model}_pool #{pool} does not include a restricted patient, relaxing."
 
-          mvir1_waiver.release_pool_data(pool)
+          begin
+            mvir1_waiver.release_pool_data(pool)
+          rescue Etna::Error => e
+            logger.log_error(e)
+          end
 
           update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
           update_request.update_revision("#{base_model}_pool", pool, restricted: false)
@@ -283,14 +330,18 @@ class Polyphemus
     def restrict!(patient, delete_metis_files: false)
       name = patient['name']
 
-      if delete_metis_files
-        # do metis movement attempt for now -- no auto-delete
-        mvir1_waiver.restrict_patient_data(name)
-      else
-        # do metis movement attempt
-        mvir1_waiver.restrict_patient_data(name)
+      begin
+        if delete_metis_files
+          # do metis movement attempt for now -- no auto-delete
+          mvir1_waiver.restrict_patient_data(name)
+        else
+          # do metis movement attempt
+          mvir1_waiver.restrict_patient_data(name)
+        end
+      rescue Etna::Error => e
+        logger.log_error(e)
       end
-
+      
       unless patient['restricted']
         logger.warn("Attempting to restrict access to #{name}")
         Rollbar.info("Attempting to restrict access to #{name}")
@@ -307,7 +358,11 @@ class Polyphemus
       # This code path should be --eventually consistent--  That is to say, we should ensure each operation
       # is idempotent (may need to be repeated), and that the patient is not marked restricted until all other
       # related tasks are complete and the state is consistent.
-      mvir1_waiver.release_patient_data(name)
+      begin
+        mvir1_waiver.release_patient_data(name)
+      rescue Etna::Error => e
+        logger.log_error(e)
+      end
 
       if patient['restricted']
         Rollbar.info("Attempting to unrestrict access to #{name}")
@@ -569,6 +624,9 @@ class Polyphemus
 
     def setup(config)
       super
+      Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
+      Polyphemus.instance.setup_ssh
     end
   end
 end

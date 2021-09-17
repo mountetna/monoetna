@@ -3,25 +3,42 @@ import Icon from 'etna-js/components/icon';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import { json_post, json_get } from 'etna-js/utils/fetch';
-import {isSuperuser} from 'etna-js/utils/janus';
+import {isSuperEditor} from 'etna-js/utils/janus';
+
+import TextField from '@material-ui/core/TextField';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
 
 const Projects = ({projects}) => (
   <div id='admin-projects'>
     <div className='title'>Projects</div>
-      <div className='project header'>
-        <div className='project_name'> project_name </div>
-        <div className='full_name'> title </div>
-      </div>
-    { projects.sort((p1,p2) => p1.project_name_full.localeCompare(p2.project_name_full)).map( project =>
-      <div key={project.project_name} className='project'>
-        <div className='project_name'>
-          <a href={`/${project.project_name}`} >
-            { project.project_name }
-          </a>
-        </div>
-        <div className='full_name'>{ project.project_name_full }</div>
-      </div>)
-    }
+    <TableContainer component={Paper}>
+      <Table aria-label='all projects'>
+        <TableHead>
+          <TableRow>
+            <TableCell>Project Name</TableCell>
+            <TableCell>Title</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          { projects.sort((p1,p2) => p1.project_name_full.localeCompare(p2.project_name_full)).map( project =>
+            <TableRow key={project.project_name}>
+              <TableCell>
+                <a href={`/${project.project_name}`} >
+                  { project.project_name }
+                </a>
+              </TableCell>
+              <TableCell>{ project.project_name_full }</TableCell>
+            </TableRow>)
+          }
+        </TableBody>
+      </Table>
+    </TableContainer>
   </div>
 );
 
@@ -36,14 +53,15 @@ const NewProject = ({retrieveAllProjects}) => {
     { error && <div className='error'>Error: {error}</div> }
     <div className='item'>
       <div className='cell'>
-        <input type='text' placeholder='Project Full Name' name='project_name_full'
-          value={ newproject.project_name_full || '' }
-          onChange={ (e) => setNewProject({ ...newproject, project_name_full: e.target.value }) }/>
-      </div>
-      <div className='cell'>
-        <input type='text' placeholder='project_short_name' name='project_name'
+        <TextField placeholder='project_name'
           value={ newproject.project_name || '' }
           onChange={ (e) => setNewProject({ ...newproject, project_name: e.target.value }) }/>
+      </div>
+      <div className='cell'>
+        <TextField
+          placeholder='Project Title'
+          value={ newproject.project_name_full || '' }
+          onChange={ (e) => setNewProject({ ...newproject, project_name_full: e.target.value }) }/>
       </div>
       <div className='cell submit'>
         <Icon className='approve' icon='magic' onClick={
@@ -77,7 +95,7 @@ const JanusAdmin = () => {
   useEffect(retrieveAllProjects, []);
   return <div id='janus-admin'>
     <Projects user={user} projects={projects}/>
-    { isSuperuser(user) && <NewProject retrieveAllProjects={retrieveAllProjects}/> }
+    { isSuperEditor(user) && <NewProject retrieveAllProjects={retrieveAllProjects}/> }
   </div>;
 }
 

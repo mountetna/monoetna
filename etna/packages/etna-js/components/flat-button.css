@@ -1,0 +1,41 @@
+.flat-button {
+  display: flex;
+  flex-direction: row-reverse;
+  border: 1px solid #ddd;
+  background: #eee;
+  height: 30px;
+  font-size: 0.9rem;
+  justify-content: center;
+  align-items: center;
+  margin-left: 5px;
+  border-radius: 2px;
+  padding: 0px 2px;
+  cursor: pointer;
+}
+
+.flat-button:hover {
+  background: rgba(238, 238, 238, 0.25);
+}
+
+.flat-button .icon-grp {
+  font-size: 0.5em;
+  cursor: pointer;
+}
+
+.flat-button:hover .icon-grp,.flat-button:hover .flat-label {
+  filter: brightness(120%);
+}
+
+.flat-button .icon-grp .icon.disabled {
+  color: grey;
+  cursor: not-allowed;
+  &:hover {
+    color: grey;
+  }
+}
+
+.flat-label {
+  color: #454545;
+  font-size: 1rem;
+  padding: 2px;
+}

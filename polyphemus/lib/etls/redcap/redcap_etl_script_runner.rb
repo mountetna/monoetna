@@ -1,10 +1,12 @@
 require 'json'
 
 require_relative 'lib/client'
+require_relative 'lib/record'
 require_relative 'lib/model'
 require_relative 'lib/template'
 require_relative 'lib/loader'
 require_relative 'lib/script'
+require_relative 'lib/entity'
 require_relative 'lib/value'
 require_relative 'lib/project'
 require_relative 'lib/magma_models'
@@ -120,19 +122,7 @@ EOM
     end
 
     def define_model(model_name, &block)
-      return Kernel.const_get(model_name) if Kernel.const_defined?(model_name)
-
-      # Set some default methods for each model
-      Kernel.const_set(model_name, Class.new(Redcap::Model) {
-        def identifier(record_name, event_name)
-          [
-              "::temp", record_name, event_name, rand(36**8).to_s(36)
-          ].compact.join('-')
-        end
-
-        def patch(id, record)
-        end
-      })
+      Redcap::Model.define(model_name, &block)
     end
   end
 end

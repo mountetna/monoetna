@@ -1,14 +1,13 @@
 import * as _ from 'lodash';
 import {
-  OUTPUT_COMPONENT,
-  RUN,
-  SessionStatusResponse, STATUS, StepInput,
-  StepStatus,
-  Workflow,
-  WorkflowStep,
+  OUTPUT_COMPONENT, RUN, SessionStatusResponse, STATUS, StepInput, StepStatus, Workflow, WorkflowInput, WorkflowStep,
 } from "../api_types";
 import {VulcanState} from "../reducers/vulcan_reducer";
-import {GroupedInputStep, UIStep, InputSpecification} from "../components/workflow/user_interactions/inputs/input_types";
+import {
+   WorkflowStepGroup
+} from "../components/workflow/user_interactions/inputs/input_types";
+import {useMemo} from "react";
+import {mapSome, Maybe, maybeOfNullable, withDefault} from "./maybe";
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
     workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
@@ -27,13 +26,11 @@ export function statusOfStep(step: WorkflowStep | string, status: VulcanState['s
   return status[0] ? status[0].find(s => s.name === stepName) : undefined;
 }
 
-export function statusStringOfStepOrGroupedStep(step: WorkflowStep | GroupedInputStep, workflow: Workflow, status: VulcanState['status']) {
-  if ('isGroup' in step) {
+export function statusStringOfStepOrGroupedStep(step: WorkflowStep | WorkflowStepGroup, workflow: Workflow, status: VulcanState['status']) {
+  if ('steps' in step) {
     let statusStr = null as string | null;
-    for (let input of step.in) {
-      let stepName = stepOfSource(input.source);
-      if (!stepName) continue;
-      let stepStatus = statusOfStep(stepName, status);
+    for (let innerStep of step.steps) {
+      let stepStatus = statusOfStep(innerStep.name, status);
 
       if (!stepStatus) {
         return STATUS.PENDING;
@@ -47,6 +44,14 @@ export function statusStringOfStepOrGroupedStep(step: WorkflowStep | GroupedInpu
   }
 
   return statusOfStep(step, status)?.status || STATUS.PENDING;
+}
+
+export function labelOfStepOrGroupedStep(step: WorkflowStep | WorkflowStepGroup) {
+  if ('steps' in step) {
+    return step.label;
+  }
+
+  return step.label || step.name;
 }
 
 const SOURCE_STR_REGEX = /^([^\/]+)\/[^\/]+$/;
@@ -99,18 +104,32 @@ export function allWorkflowPrimaryInputSources(workflow: Workflow): string[] {
   return Object.keys(workflow.inputs);
 }
 
+export function inputSourcesOfStep(step: WorkflowStep) {
+  return step.out.map(outputName => sourceNameOfReference([step.name, outputName]));
+}
+
+export function inputSourcesOfPrimaryInputs(workflow: Workflow) {
+  return Object.keys(workflow.inputs);
+}
+
 export function allWorkflowInputSources(workflow: Workflow): string[] {
   return allWorkflowPrimaryInputSources(workflow).concat(workflow.steps[0].reduce((acc, step) => {
     if (uiQueryOfStep(step)) {
-      acc.push(...step.out.map(outputName => sourceNameOfReference([step.name, outputName])));
+      acc.push(...inputSourcesOfStep(step));
     }
 
     return acc;
   }, [] as string[]));
 }
 
-export function inputValueNonEmpty(val: any) {
-  return val != null && (typeof val !== "number" || !isNaN(val)) && !_.isEqual(val, ['']) && !_.isEqual(val, []);
+export function inputValueNonEmpty(val: Maybe<any>, disallow_empty_string = false): boolean {
+  return withDefault(mapSome(val, inner =>
+    (typeof inner !== "number" || !isNaN(inner)) &&
+      inner != null &&
+      !_.isEqual(inner, ['']) &&
+      !_.isEqual(inner, []) &&
+      (!disallow_empty_string || !_.isEqual(inner, ''))
+    ), false);
 }
 
 export function allDataNonEmpty(data: ([any] | null)[]) {
@@ -133,52 +152,29 @@ export function dataOfSource(source: string, workflow: Workflow | null, status: 
   return null;
 }
 
-export function allExpectedOutputSources(step: WorkflowStep | GroupedInputStep): string[] {
-  if ('isGroup' in step) {
-    return step.in.map(({source}) => source);
+export function allExpectedOutputSources(step: WorkflowStep | WorkflowStepGroup): string[] {
+  if ('steps' in step) {
+    return step.steps.map(allExpectedOutputSources).reduce((a, b) => [...a, ...b], []);
   } else {
     return step.out.map(outputName => sourceNameOfReference([step.name, outputName]));
   }
 }
 
-export function dependentStepConsumersOf(startingSource: string, workflow: Workflow, shallow = false) {
-  const result: WorkflowStep[] = [];
-  const dependents = workflow.dependencies_of_outputs[startingSource] || [];
-
-  if (dependents != null) {
-    result.push(...workflow.steps[0].filter(s => !!uiOutputOfStep(s)).filter(
-        s => !!s.in.find(({source}) => source === startingSource || dependents.indexOf(source) !== -1)));
-  }
-
-  dependents.map(s => stepOfSource(s)).forEach(stepName => {
-    if (!stepName) return;
-    const step = stepOfStatus(stepName, workflow);
-
-    if (step) {
-      if (result.indexOf(step) === -1) result.push(step);
-    }
-  });
-
-  if (shallow) {
-    return result.filter(step => {
-      return step.in.find(({source}) => stepOfSource(source) == stepOfSource(startingSource));
-    })
-  }
-
-  return result;
+export function allSourcesForStepName(name: string | null, workflow: Workflow | null): string[] {
+  if (!workflow) return [];
+  if (!name) return allWorkflowPrimaryInputSources(workflow);
+  const step = stepOfStatus(name, workflow);
+  if (!step) return [];
+  return allExpectedOutputSources(step);
 }
 
-export const shouldDownload = (url: string, workflow: Workflow, step: WorkflowStep | undefined, status: SessionStatusResponse['status']) => {
-  if (step == null) return false;
-  const stepStatus = statusOfStep(step, status);
-  if (stepStatus == null) return false;
-  const {downloads} = stepStatus;
-  if (downloads == null) return false;
-  return !!step.out.find(outName => {
-    const source = sourceNameOfReference([step.name, outName]);
-    if (downloads[outName] !== url) return false;
-    const deps = dependentStepConsumersOf(source, workflow, true);
-    return !!deps.find(dep => isDataConsumer(dep));
+export function shouldDownloadStep(stepName: string, workflow: Workflow, outputName: string) {
+  return !!workflow.steps[0].find(step => {
+    if (!isDataConsumer(step)) return false;
+    return !!step.in.find(({source}) => {
+      const [sourceStep, sourceOutputName] = splitSource(source);
+      return sourceStep === stepName && sourceOutputName == outputName;
+    });
   })
 }
 
@@ -189,12 +185,14 @@ export function isPendingUiQuery(step: WorkflowStep, status: VulcanState['status
   const bufferedData = stepInputDataRaw(step, status, data, session);
   return uiQueryOfStep(step)
       && statusOfStep(step, status)?.status == 'pending'
-      && step.in.every(({id}) => inputValueNonEmpty(bufferedData[id]))
+      && step.in.every(({id}) => id in bufferedData)
 }
 
 export const stepInputDataRaw = (
     step: WorkflowStep,
-    status: VulcanState['status'], data: VulcanState['data'], session: VulcanState['session'],
+    status: VulcanState['status'],
+    data: VulcanState['data'],
+    session: VulcanState['session'],
 ): { [k: string]: any } => {
   // Pull out any previous step's output data link that is a required
   //   input into this UI step.
@@ -225,16 +223,7 @@ export const sourceNamesOfStep = (step: WorkflowStep) => {
   return step.out.map(name => sourceNameOfReference([step.name, name]))
 }
 
-export const defaultInputValues = (workflow: Workflow) => {
-  return Object.keys(workflow.inputs).reduce((result, inputName) => {
-    if (null != workflow.inputs[inputName].default) {
-      result[inputName] = workflow.inputs[inputName].default;
-    }
-    return result;
-  }, {} as { [k: string]: any });
-};
-
-export function missingUiQueryOutputs(step: WorkflowStep, inputs: VulcanState['inputs']): { [k: string]: null } {
+export function missingOutputsForStep(step: WorkflowStep, inputs: VulcanState['session']['inputs']): { [k: string]: null } {
   const result: { [k: string]: null } = {};
 
   step.out.forEach(outputName => {
@@ -249,13 +238,12 @@ export function missingUiQueryOutputs(step: WorkflowStep, inputs: VulcanState['i
   return result;
 }
 
-export function completedUiOutputSteps(workflow: Workflow, status: VulcanState['status']): UIStep[] {
-  return completedSteps(workflow, status).filter(({step}) => !!uiOutputOfStep(step));
+export function completedUiOutputSteps(workflow: Workflow, status: VulcanState['status']): WorkflowStep[] {
+  return completedSteps(workflow, status).filter((step) => !!uiOutputOfStep(step));
 }
 
-export function completedSteps(workflow: Workflow, status: VulcanState['status']): UIStep[] {
-  return workflow.steps[0].map((step, index) => ({step, index}))
-      .filter(({step}) => statusOfStep(step, status)?.status === 'complete');
+export function completedSteps(workflow: Workflow, status: VulcanState['status']): WorkflowStep[] {
+  return workflow.steps[0].filter((step) => statusOfStep(step, status)?.status === 'complete');
 }
 
 export function erroredSteps(workflow: Workflow, status: VulcanState['status']) {
@@ -264,9 +252,8 @@ export function erroredSteps(workflow: Workflow, status: VulcanState['status']) 
 }
 
 
-export function pendingSteps(workflow: Workflow, status: VulcanState['status']): UIStep[] {
-  return workflow.steps[0].map((step, index) => ({step, index}))
-      .filter(({step}) => statusOfStep(step, status)?.status === 'pending');
+export function pendingSteps(workflow: Workflow, status: VulcanState['status']): WorkflowStep[] {
+  return workflow.steps[0].filter(step => statusOfStep(step, status)?.status === 'pending');
 }
 
 export function hasNoRunningSteps(status: VulcanState['status']): boolean {
@@ -275,47 +262,35 @@ export function hasNoRunningSteps(status: VulcanState['status']): boolean {
 
 export const inputGroupName = (name: string) => {
   let groupName = name.split('__')[0];
-  if (groupName === name) groupName = 'Inputs';
+  if (groupName === name) return null;
 
   groupName = groupName.replace(/_/g, ' ');
 
   return groupName;
 };
 
-export function groupUiSteps(uiSteps: UIStep[]): UIStep[] {
-  const map: { [k: string]: UIStep } = {};
-  const result: UIStep[] = [];
+export function groupUiSteps(uiSteps: WorkflowStep[]): WorkflowStepGroup[] {
+  const map: { [k: string]: WorkflowStepGroup } = {};
+  const result: WorkflowStepGroup[] = [];
 
-  uiSteps.forEach(uiStep => {
-    if ('isGroup' in uiStep) {
-      throw new Error('Cannot group a grouped input!' + JSON.stringify(uiStep));
+  uiSteps.forEach(step => {
+    if ('isGroup' in step) {
+      throw new Error('Cannot group a grouped input!' + JSON.stringify(step));
     }
 
-    const groupName = inputGroupName(uiStep.step.name);
+    const groupName = inputGroupName(step.name);
 
-    if (groupName === 'Inputs') {
-      result.push(map[uiStep.step.name] = uiStep);
+    if (groupName == null) {
+      result.push(map[step.name] = { label: step.label || step.name, steps: [step] });
       return;
     }
 
-    const group = map[groupName] || result.push(map[groupName] = {
-      step: {
-        name: groupName,
-        isGroup: true,
-        label: groupName,
-        run: "", // group steps have no real run
-        in: [],
-        out: [],
-      },
-      index: uiStep.index,
-    }) && map[groupName];
+    if (!(groupName in map)) {
+      result.push(map[groupName] = { label: groupName, steps: [] })
+    }
 
-    group.step.in = group.step.in.concat(uiStep.step.out.map(name => ({
-      id: sourceNameOfReference([uiStep.step.name, name]),
-      source: sourceNameOfReference([uiStep.step.name, name]),
-      doc: uiStep.step.doc,
-      label: uiStep.step.label || sourceNameOfReference([uiStep.step.name, name]),
-    })));
+    const group = map[groupName];
+    group.steps.push(step);
   });
 
   return result;
@@ -326,48 +301,12 @@ export function filterEmptyValues(values: { [k: string]: any }): { [k: string]: 
 
   Object.keys(values).forEach(k => {
     const val = values[k];
-    if (inputValueNonEmpty(val)) result[k] = val;
+    if (inputValueNonEmpty(maybeOfNullable(val))) result[k] = val;
   })
 
   return result;
 }
 
-// For each key in changes, remove any dependencies_of_outputs for that key (dependents)
-// in the existing object (copy on change), iff that dependent is not also in changes.
-export function unsetDependentInputs(
-    changes: { [k: string]: any },
-    existing: { [k: string]: any },
-    workflow: Workflow | null
-): { [k: string]: any } {
-  let result = existing;
-  if (!workflow) return result;
-
-  Object.keys(changes).forEach(changedSource => {
-    const dependents = workflow.dependencies_of_outputs[changedSource];
-    if (!dependents) return;
-
-    dependents.forEach(dependentSource => {
-      // In the case of forward change propagation, allow specifying two inputs at once that happen to have a dependency
-      if (dependentSource in changes) return;
-      result = {...result};
-      delete result[dependentSource];
-    });
-  });
-
-  return result;
-}
-
-export function findSourceDependencies(source: string, workflow: Workflow | null): string[] {
-  if (!workflow) return [];
-  return Object.keys(workflow.dependencies_of_outputs).filter(k => workflow.dependencies_of_outputs[k].includes(source));
-}
-
-export function sortInputsByLabel(inputs: InputSpecification[]): InputSpecification[] {
-  var collator = new Intl.Collator(undefined, {
-    numeric: true,
-    sensitivity: 'base'
-  });
-
-  return inputs.sort((a, b) => collator.compare(a.label || a.name, b.label || b.name))
-
+export function useMemoized<P1, R>(f: (p1: P1) => R, p1: P1): R {
+  return useMemo(() => f(p1), [f, p1]);
 }

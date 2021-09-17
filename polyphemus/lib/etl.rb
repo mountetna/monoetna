@@ -1,10 +1,10 @@
-require_relative 'helpers'
+require_relative "helpers"
 
 class Polyphemus
   class EtlExecutor
     def self.ensure_for_etl(etl)
       return nil unless etl.descendants.empty? # Ignore base classes.
-      name = etl.name.split('::').last
+      name = etl.name.split("::").last
       EtlCommand.const_set(:"#{name}", Class.new(EtlExecutor) do
         usage "manages the #{name}"
         const_set(:EtlClass, etl)
@@ -14,7 +14,7 @@ class Polyphemus
     def self.inherited(subclass)
       subclass.include(Etna::CommandExecutor)
 
-      self.const_set(:Run, Class.new(Etna::Command) do
+      subclass.const_set(:Run, Class.new(Etna::Command) do
         usage 'runs the etl process until no more active processing is currently available.'
         include WithLogger
 
@@ -35,10 +35,12 @@ class Polyphemus
           super
           Polyphemus.instance.setup_db
           Polyphemus.instance.setup_logger
+          Polyphemus.instance.setup_sequel
+          Polyphemus.instance.setup_ssh
         end
       end) unless self.const_defined?(:Run)
 
-      self.const_set(:Reset, Class.new(Etna::Command) do
+      subclass.const_set(:Reset, Class.new(Etna::Command) do
         usage 'resets the cursor for this etl, so that next processing starts from the beginning of time.'
         include WithLogger
 
@@ -64,7 +66,7 @@ class Polyphemus
     include Etna::CommandExecutor
 
     def command_name
-      'etl'
+      "etl"
     end
 
     def subcommands
@@ -74,6 +76,9 @@ class Polyphemus
 
       super
     end
+  end
+
+  class EtlError < Exception
   end
 
   # Abstract base class meant to process batches of data based on a cursor, scanner, and process.
@@ -103,7 +108,7 @@ class Polyphemus
     def run_once
       logger.info("Starting loop")
       @cursor_group.with_next do |cursor|
-        logger.info("Selecting cursor for #{cursor}")
+        logger.info("Selecting cursor for #{cursor.name}")
         cursor.load_from_db
         logger.info("Finding batch...")
         batch = @scanner.find_batch(cursor)

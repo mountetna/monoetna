@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-
-#if [ -n "$VERBOSE" ]; then
-  set -x
-#fi
+set -x
 
 # Default directories
 mkdir -p /app/tmp/pids
@@ -14,25 +11,31 @@ mkdir -p /app/public/images
 mkdir -p /app/log
 mkdir -p /app/vendor/bundle
 mkdir -p /app/data/
+mkdir -p /tmp/metrics.prom/
+
+# Often, etna is built as root, but the processes are not run as root.
+# Certain, and only certain, directories should be writable.
+# Especially with source code in script-based servers, we don't want to
+# generally allow write-ability into the source code by any logic.
+chmod -R 777 /app/tmp
+chmod -R 777 /app/log
+chmod -R 777 /tmp/metrics.prom/
 
 shopt -s globstar
 
-if [ -z "$SKIP_RUBY_SETUP" ]; then
+if [ -n "$FULL_BUILD" ]; then
   bundle install -j "$(nproc)"
 fi
 
-if [ -n "$RUN_NPM_INSTALL" ]; then
+if [ -n "$FULL_BUILD" ]; then
   # The images tend to build as root, which for host systems is unsafe,
   # but in containers is fine.
   npm install --unsafe-perm
 fi
 
-# Prepare the httpd conf hooks.  These are shared from the app images to the app_fe image.
-# This allows individual apps to package their frontend configuration but run them
-# as a separate docker container.
-mkdir -p /usr/opt/httpd.conf.d
-echo "@app_name = '${APP_NAME}'" > /usr/opt/vars.rb
-rm -rf /usr/opt/httpd.conf.d/*.include
+# Prepare the puma.sh into the /app/bin directory.
+ln -sf /entrypoints/puma.sh /app/bin/
+chmod +x /app/bin/puma.sh
 
 if [ -e /app/build ]; then
   for hook in /app/build/*; do
@@ -41,10 +44,6 @@ if [ -e /app/build ]; then
     fi
   done
 fi
-
-# Not all apache directives support environment variable interpolation, so the best way to hook in
-# certain per app variables is via a template.
-erb -r /usr/opt/vars.rb -- /opt/fe.conf.erb > /usr/opt/httpd.conf.d/main.conf
 
 if ! [ -e config.yml ] && [ -e config.yml.template ]; then
   cp config.yml.template config.yml

@@ -9,3 +9,19 @@ EXTRA_DOCKER_ARGS:=-v /var/run/docker.sock:/var/run/docker.sock:ro -v ${PWD}/../
 # Ensures that the etnaagent/archimedes image is ready
 docker-ready::
 	@ IMAGES_PREFIX=etnaagent/ IMAGES_POSTFIX=:latest make -C ../archimedes release-build
+
+start-storybook: docker-ready
+	docker run --rm \
+	 -e VULCAN_ENV=development \
+	 -e APP_NAME=vulcan \
+	 -v $$PWD:/app \
+	 -v $$PWD/../etna:/etna \
+	 -v vulcan-node-modules:/app/node_modules \
+	 --entrypoint /entrypoints/development.sh \
+	 -p 9700:6006 \
+	 -p 6006:6006 \
+	 --name vulcan-storybook \
+	 etna-base-dev npm run storybook || true
+
+stop-storybook:
+	docker stop vulcan-storybook || true

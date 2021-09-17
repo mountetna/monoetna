@@ -31,13 +31,15 @@ class Janus
 
     post '/add_user/:project_name', action: 'admin#add_user', auth: { user: { is_admin?: :project_name } }
 
-    post '/add_project', action: 'admin#add_project', auth: { user: { is_superuser?: true } }
+    post '/add_project', action: 'admin#add_project', auth: { user: { is_supereditor?: true } }
 
     post '/flag_user', action: 'admin#flag_user', auth: { user: { is_superuser?: true } }
 
     post '/update_key', action: 'user#update_key'
 
     get '/user', action: 'user#info'
+
+    get '/users', action: 'user#fetch_all', auth: { user: { is_superuser?: true } }
 
     get '/allprojects', action: 'admin#projects', auth: { user: { is_superviewer?: true } }
 
@@ -48,6 +50,8 @@ class Janus
     get '/admin' do erb_view(:client) end
 
     get '/settings' do erb_view(:client) end
+
+    get '/flags' do erb_view(:client) end
 
     get '/:project_name', auth: { user: { can_edit?: :project_name } } do erb_view(:client) end
 

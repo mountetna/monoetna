@@ -332,6 +332,15 @@ describe Metis::QueryBuilder do
     expect(builder.build.count).to eq(2) # child/ + child/grandchild/
 
     builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: '{sibling,child}/*'
+      }])
+    expect(builder.build.count).to eq(2)
+
+    builder = Metis::QueryBuilder.new(
       Metis::File.where(project_name: 'athena', bucket: @bucket),
       [{
         attribute: 'name',
@@ -366,6 +375,15 @@ describe Metis::QueryBuilder do
         value: 'grandchild/*.txt'
       }])
     expect(builder.build.count).to eq(0)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: '{sibling,child}/**/*.jpg'
+      }])
+    expect(builder.build.count).to eq(2)
   end
 
   it 'can query by globs for files' do
@@ -395,8 +413,9 @@ describe Metis::QueryBuilder do
         predicate: 'glob',
         value: 'wisdom/**/*.txt'
       }])
-    expect(builder.build.count).to eq(1)
-    expect(builder.build.first[:file_name]).to eq(young_wisdom_file.file_name)
+    expect(builder.build.count).to eq(2)
+    expect(builder.build.first[:file_name]).to eq(@wisdom_file.file_name)
+    expect(builder.build.last[:file_name]).to eq(young_wisdom_file.file_name)
 
     builder = Metis::QueryBuilder.new(
       Metis::File.where(project_name: 'athena', bucket: @bucket),
@@ -415,5 +434,130 @@ describe Metis::QueryBuilder do
         value: 'child/*.jpg'
       }])
     expect(builder.build.count).to eq(0)
+  end
+
+  it 'can query by folder_id for files' do
+    child_folder = create_folder('athena', 'child', bucket: @bucket, folder: @wisdom_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child')
+
+    grandchild_folder = create_folder('athena', 'grandchild', bucket: @bucket, folder: child_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child/grandchild')
+
+    young_wisdom_file = create_file('athena', 'young_wisdom.txt', WISDOM*2, folder: grandchild_folder)
+    stubs.create_file('athena', 'files', 'wisdom/child/grandchild/young_wisdom.txt', WISDOM*2)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'folder_id',
+        predicate: 'in',
+        value: [@wisdom_folder.id]
+      }])
+    expect(builder.build.count).to eq(1)
+    expect(builder.build.first[:file_name]).to eq(@wisdom_file.file_name)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'folder_id',
+        predicate: 'in',
+        value: [-1]
+      }])
+    expect(builder.build.count).to eq(0)
+  end
+
+  it 'throws exception for invalid folder_id "in" value for files' do
+    child_folder = create_folder('athena', 'child', bucket: @bucket, folder: @wisdom_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child')
+
+    grandchild_folder = create_folder('athena', 'grandchild', bucket: @bucket, folder: child_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child/grandchild')
+
+    young_wisdom_file = create_file('athena', 'young_wisdom.txt', WISDOM*2, folder: grandchild_folder)
+    stubs.create_file('athena', 'files', 'wisdom/child/grandchild/young_wisdom.txt', WISDOM*2)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'folder_id',
+        predicate: 'in',
+        value: @wisdom_folder.id
+      }])
+    expect {
+      builder.build.count
+    }.to raise_error(Metis::QueryError)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'folder_id',
+        predicate: 'in',
+        value: [@wisdom_folder.id.to_s]
+      }])
+    expect {
+      builder.build.count
+    }.to raise_error(Metis::QueryError)
+  end
+
+  it 'can query by folder_id for folders' do
+    child_folder = create_folder('athena', 'child', bucket: @bucket, folder: @wisdom_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child')
+
+    grandchild_folder = create_folder('athena', 'grandchild', bucket: @bucket, folder: child_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child/grandchild')
+
+    greatgrandchild_folder = create_folder('athena', 'greatgrandchild', bucket: @bucket, folder: grandchild_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child/grandchild/greatgrandchild')
+
+    builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'folder_id',
+        predicate: 'in',
+        value: [grandchild_folder.id]
+      }])
+    expect(builder.build.count).to eq(1)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'folder_id',
+        predicate: 'in',
+        value: [greatgrandchild_folder.id]
+      }])
+    expect(builder.build.count).to eq(0)
+  end
+
+  it 'throws exception for invalid folder_id "in" value for folders' do
+    child_folder = create_folder('athena', 'child', bucket: @bucket, folder: @wisdom_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child')
+
+    grandchild_folder = create_folder('athena', 'grandchild', bucket: @bucket, folder: child_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child/grandchild')
+
+    greatgrandchild_folder = create_folder('athena', 'greatgrandchild', bucket: @bucket, folder: grandchild_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child/grandchild/greatgrandchild')
+
+    builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'folder_id',
+        predicate: 'in',
+        value: grandchild_folder.id
+      }])
+    expect {
+      builder.build.count
+    }.to raise_error(Metis::QueryError)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'folder_id',
+        predicate: 'in',
+        value: [greatgrandchild_folder.id.to_s]
+      }])
+    expect {
+      builder.build.count
+    }.to raise_error(Metis::QueryError)
   end
 end

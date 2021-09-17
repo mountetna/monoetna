@@ -32,7 +32,6 @@ describe WorkflowsController do
     it 'gets a list of workflows' do
       auth_header(:viewer)
       get("/api/workflows")
-
       expect(last_response.status).to eq(200)
 
       response = JSON.parse(last_response.body)
@@ -66,14 +65,6 @@ describe WorkflowsController do
               "outputSource" => "finalStep/sum",
               "type" => "int",
           }
-      })
-
-      expect(workflow['dependencies_of_outputs']).to eql({
-          "finalStep/sum" => [],
-          "firstAdd/sum" => ["finalStep/sum", "pickANum/num"],
-          "pickANum/num" => ["finalStep/sum"],
-          "someInt" => ["firstAdd/sum", "finalStep/sum", "pickANum/num"],
-          "someIntWithoutDefault" => ["firstAdd/sum", "finalStep/sum", "pickANum/num"],
       })
 
       expect(workflow['steps']).to eql([
@@ -118,6 +109,13 @@ describe WorkflowsController do
 
     it 'rejects a non-user' do
       auth_header(:non_user)
+      get("/api/workflows")
+
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'rejects a user without the right flag' do
+      auth_header(:no_flag)
       get("/api/workflows")
 
       expect(last_response.status).to eq(403)

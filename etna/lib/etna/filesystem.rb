@@ -3,6 +3,7 @@ require 'fileutils'
 require 'open3'
 require 'securerandom'
 require 'concurrent-ruby'
+require 'curb'
 
 module Etna
   # A class that encapsulates opening / reading file system entries that abstracts normal file access in order
@@ -48,6 +49,11 @@ module Etna
     def mv(src, dest)
       raise "mv not supported by #{self.class.name}" unless self.class == Filesystem
       ::FileUtils.mv(src, dest)
+    end
+
+    def stat(src)
+      raise "stat not supported by #{self.class.name}" unless self.class == Filesystem
+      ::File.stat(src)
     end
 
     class EmptyIO < StringIO
@@ -369,7 +375,120 @@ module Etna
       end
     end
 
+    class SftpFilesystem < Filesystem
+      include WithPipeConsumer
+
+      class SftpFile
+        attr_reader :size, :name
+
+        def initialize(metadata)
+          @metadata_parts = metadata.split(" ")
+          @size = @metadata_parts[4].to_i
+          @perms = @metadata_parts.first
+          @name = @metadata_parts[8]
+        end
+      end
+
+      def initialize(host:, username:, password: nil, port: 22, **args)
+        @username = username
+        @password = password
+        @host = host
+        @port = port
+
+        @dir_listings = {}
+      end
+
+      def url(src)
+        "sftp://#{@host}/#{src}"
+      end
+
+      def authn
+        "#{@username}:#{@password}"
+      end
+
+      def curl_cmd(path, opts=[])
+        connection = Curl::Easy.new(url(path))
+        connection.http_auth_types = :basic
+        connection.username = @username
+        connection.password = @password
+
+        connection
+      end
+
+      def sftp_file_from_path(src)
+        file = ls(::File.dirname(src)).split("\n").map do |listing|
+          SftpFile.new(listing)
+        end.select do |file|
+          file.name == ::File.basename(src)
+        end
+
+        raise "#{src} not found" if file.empty?
+
+        file.first
+      end
+
+      def mkcommand(rd, wd, file, opts, size_hint: nil)
+        env = {}
+        cmd = [env, "curl"]
+
+        cmd << "-u"
+        cmd << authn
+        cmd << "-o"
+        cmd << "-"
+        cmd << "-N"
+        cmd << url(file)
+
+        if opts.include?('r')
+          cmd << {out: wd}
+        end
+
+        cmd
+      end
+
+      def with_readable(src, opts = 'r', &block)
+        raise "#{src} does not exist" unless exist?(src)
+
+        sftp_file = sftp_file_from_path(src)
+
+        mkio(src, opts, size_hint: sftp_file.size, &block)
+      end
+
+      def exist?(src)
+        files = ls(::File.dirname(src))
+        files.include?(::File.basename(src))
+      end
+
+      def ls(dir)
+        dir = dir + "/" unless "/" == dir[-1]  # Trailing / makes curl list directory
+
+        return @dir_listings[dir] if @dir_listings.has_key?(dir)
+
+        listing = ''
+        connection = curl_cmd(dir)
+        connection.on_body { |data| listing << data; data.size }
+        connection.perform
+
+        @dir_listings[dir] = listing
+
+        listing
+      end
+
+      def stat(src)
+        sftp_file_from_path(src)
+      end
+    end
+
     class Mock < Filesystem
+      class MockStat
+        def initialize(io)
+          @io = io
+        end
+
+        def size
+          @io.respond_to?(:length) ? @io.length : 0
+        end
+      end
+
       def initialize(&new_io)
         @files = {}
         @dirs = {}
@@ -437,6 +556,10 @@ module Etna
 
       def exist?(src)
         @files.include?(src) || @dirs.include?(src)
+      end
+
+      def stat(src)
+        @files[src].respond_to?(:stat) ? @files[src].stat : MockStat.new(@files[src])
       end
     end
   end

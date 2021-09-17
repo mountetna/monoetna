@@ -43,6 +43,10 @@ for image in $(ls $DIR/../*/Makefile | grep -v docker | xargs -n 1 dirname | xar
   echo "${IMAGES_PREFIX}$(basename $image)${IMAGES_POSTFIX}" >> $tmp
 done
 
+for image in $(ls $DIR/../*/*_app_fe/Makefile | grep -v docker | xargs -n 1 dirname | xargs -n 1 basename); do
+  echo "${IMAGES_PREFIX}$(basename $image)${IMAGES_POSTFIX}" >> $tmp
+done
+
 cat $tmp | xargs -P10 -n1 -I % bash -c '$@ || true' -- $@
 
 

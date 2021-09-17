@@ -23,6 +23,7 @@ class Magma
     #      ::first - returns the first item in the list, namely a Model
     #      ::all - returns every item in the list, represented by a Model
     #      ::count - returns the number of items in the list
+    #      ::every - a Boolean that returns true if every item in the list is non-zero
 
     attr_reader :model
 
@@ -41,16 +42,22 @@ class Magma
       @model = model
       @filters = []
 
+      subquery_args, filter_args = Magma::SubqueryUtils.partition_args(self, query_args)
+
+      subquery_args.each do |args|
+        create_subquery(args)
+      end
+
       # Since we are shifting off the the first elements on the query_args array
       # we look to see if the first element is an array itself. If it is then we
       # add it to the filters.
-      while query_args.first.is_a?(Array)
-        create_filter(query_args.shift)
+      while filter_args.first.is_a?(Array)
+        create_filter(filter_args.shift)
       end
 
       add_filters
 
-      process_args(query_args)
+      process_args(filter_args)
     end
 
     verb '::first' do
@@ -88,8 +95,28 @@ class Magma
 
     verb '::any' do
       child TrueClass
+
+      subquery :join_subqueries
+
+      subquery_config Magma::SubqueryConfig.new(magma_class: Magma::SubqueryInner, condition: "> 0")
+
       extract do |table,return_identity|
         table.any? do |row|
+          row[identity]
+        end
+      end
+      format { 'Boolean' }
+    end
+
+    verb '::every' do
+      child TrueClass
+
+      subquery :join_subqueries
+
+      subquery_config Magma::SubqueryConfig.new(magma_class: Magma::SubqueryInner, condition: "= count(*)")
+
+      extract do |table,return_identity|
+        table.length > 0 && table.all? do |row|
           row[identity]
         end
       end
@@ -99,7 +126,9 @@ class Magma
     verb '::count' do
       child Numeric
       extract do |table,return_identity|
-        table.count do |row|
+        table.uniq do |row|
+          row[identity]
+        end.count do |row|
           row[identity]
         end
       end
@@ -107,7 +136,11 @@ class Magma
     end
 
     def create_filter(args)
-      filter = FilterPredicate.new(@question, @model, alias_name, *args)
+      filter = FilterPredicate.new(
+        question: @question,
+        model: @model,
+        alias_name: alias_name,
+        query_args: args)
 
       unless filter.reduced_type == TrueClass
         raise ArgumentError,
@@ -115,6 +148,19 @@ class Magma
       end
 
       @filters.push(filter)
+    end
+
+    def create_subquery(args)
+      verb = self.class.match_verbs(args, self, true).first
+      subquery = SubqueryOperator.new(
+        predicate: self,
+        question: @question,
+        model_alias_name: alias_name,
+        query_args: args,
+        subquery_class: verb.do(:subquery_config).magma_class
+      )
+
+      @subqueries.push(subquery)
     end
 
     def add_filters
@@ -134,6 +180,10 @@ class Magma
 
     def join
       join_filters
+    end
+
+    def subquery
+      join_subqueries.concat(join_filter_subqueries)
     end
 
     def select

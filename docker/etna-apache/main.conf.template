@@ -1,0 +1,45 @@
+# Addons that are not part of the virtual host component
+IncludeOptional /usr/opt/httpd.conf.d/*.system.include
+
+# We are the proxy service backing http termination on a secure internal docker network, so we just use port 80.
+<VirtualHost *:80>
+  DocumentRoot /app/public
+
+  # NOTE:  This url is a bit of a lie.  This virtual host is actually serving off port 80, and this
+  # isn't the physical access url in front of this service, either.  However,
+  # 1.  Mod shib requires us to specify the 443 and https in order for the idp to correctly respond
+  # 2.  We can't get the full physical url due to this file being backed in at build time.
+  # Rather than force, say, chef managing this file, the simple answer is to tell a white lie about our
+  # servername here for the sake of shibd.
+  # The actual https termination occurs via edge-apache service stood up on each host via monoetna recipes.
+  ServerName https://-app_name-_app_fe:443
+
+  # Disable TRACE and TRACK. This bit here prevents a certain kind of attack
+  # which leaks info by repeatedly calling these two methods.
+  RewriteEngine On
+  RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK)
+  RewriteRule .* - [F]
+
+  # Max 5 minutes waiting on the proxy.  Maybe it should be lower?
+  ProxyTimeout 300
+  ProxyPreserveHost on
+  ProxyPassReverse / http://-app_name-_app:3000/
+
+  # Add the Service-Worker-Allowed header to make service workers simple to use.
+  Header add Service-Worker-Allowed "/"
+
+  <Directory /app/public>
+  Allow from all
+  <IfModule mod_negotiation.c>
+    Options -MultiViews
+  </IfModule>
+  Require all granted
+  </Directory>
+
+  # Route any url that does not map to a public asset to the backend server.
+  RewriteCond "/app/public/%{REQUEST_URI}" !-f
+  IncludeOptional /usr/opt/httpd.conf.d/*.rewrite.include
+  RewriteRule ^/(.*)$ http://-app_name-_app:3000/$1 [P]
+
+  IncludeOptional /usr/opt/httpd.conf.d/*.addon.include
+</VirtualHost>

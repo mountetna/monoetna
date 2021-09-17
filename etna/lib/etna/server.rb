@@ -74,6 +74,11 @@ module Etna
     def initialize
       # Setup logging.
       application.setup_logger
+
+      # This needs to be required before yabeda invocation, but cannot belong at the top of any module since clients
+      # do not install yabeda.
+      require 'yabeda'
+      application.setup_yabeda
     end
 
     private

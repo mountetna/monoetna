@@ -6,7 +6,7 @@ const fs = require('fs-extra');
 module.exports = {
   context: path.resolve(__dirname),
   resolve: {
-    extensions: ['.js', '.jsx'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
     alias: {
       'font-awesome': path.join(
         __dirname,
@@ -34,9 +34,10 @@ module.exports = {
         include: [
           path.resolve(__dirname, 'node_modules/etna-js/'),
           path.resolve(__dirname, 'node_modules/downzip/'),
-          path.resolve(__dirname, 'lib/client/jsx')
+          path.resolve(__dirname, 'lib/client/jsx'),
+          '/etna/packages/etna-js'
         ],
-        test: /\.jsx?$/
+        test: /\.(js|ts)x?$/
       },
 
       {

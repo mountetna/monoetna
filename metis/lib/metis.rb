@@ -39,6 +39,19 @@ class Metis
     ::File.join(config(:data_path), project)
   end
 
+  def setup_yabeda
+    Yabeda.configure do
+      group :metis do
+        gauge :file_count do
+          comment "The number of files by project and bucket_name"
+          tags [:project_name, :bucket_name]
+        end
+      end
+    end
+
+    super
+  end
+
   def archiver
     @archiver ||= Metis::Archiver.new(config(:backup))
   end

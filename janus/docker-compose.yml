@@ -12,6 +12,7 @@ x-base-etna-service:
     - janus-public-dir:/app/public:rw
     - janus-data-dir:/app/data:rw
     - janus-opt-dir:/usr/opt:rw
+    - janus-node-modules:/app/node_modules
     - ../etna:/etna:delegated
   environment: &base-etna-env
     'JANUS_ENV': 'development'
@@ -41,17 +42,13 @@ x-base-etna-services:
   'janus_webpack':
     &base-etna-webpack # The ruby webpack server watching for changes
     <<: *base-etna-service
-    environment:
-      <<: *base-etna-env
-      RUN_NPM_INSTALL: 'true'
-      SKIP_RUBY_SETUP: 'true'
     command: npm run webpack
 
   'janus_db':
     &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
     image: development-psql
     volumes:
-      - janus-db-data:/var/lib/postgresql/data
+      - janus-db-data10:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: 'janus_development'
       POSTGRES_PASSWORD: password
@@ -64,15 +61,13 @@ x-base-etna-services:
     image: etna-apache
     volumes:
       - janus-public-dir:/app/public:ro
-      - janus-opt-dir:/usr/opt:ro
-      - ../docker/etna-base-dev/entrypoints:/entrypoints:ro
+      - ./data:/app/data:delegated
+      - ./janus_app_fe:/app/build:ro
     depends_on:
       - 'janus_app'
-    entrypoint: /entrypoints/development.sh
+    entrypoint: /entrypoints/development_app_fe.sh
     command: ['httpd', '-DFOREGROUND']
     environment:
-      SKIP_BUILD: '1'
-      WAIT_FOR_APP: '1'
       APP_NAME: 'janus'
 
 networks:
@@ -86,9 +81,9 @@ networks:
 volumes:
   janus-app-gems:
     driver: local
-  janus-db-data:
+  janus-db-data10:
     driver: local
-    name: "janus-db-data"
+    name: "janus-db-data10"
   janus-log-dir:
     driver: local
     name: "janus-log-dir"
@@ -105,10 +100,13 @@ volumes:
     driver: local
   janus-opt-dir:
     driver: local
+  janus-node-modules:
+    driver: local
+    name: "janus-node-modules"
 
 services:
   <<: *base-etna-services
   janus_db:
     <<: *base-etna-db
-    image: development-psql-9
+    image: development-psql
 

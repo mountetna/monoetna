@@ -1,14 +1,13 @@
-import React from 'react';
+import React, {PropsWithChildren} from 'react';
 import Icon from 'etna-js/components/icon';
-import {InputSpecification} from "./input_types";
 
-export default function InputHelp({input, children}: {input: InputSpecification, children: any}) {
+export default function InputHelp({doc = '', children}: PropsWithChildren<{doc?: string}>) {
   return (
     <div className='input-help'>
       <div className='input-help-children-wrapper'>{children}</div>
-      <div className='help-icon-wrapper' title={input.doc || ''}>
-        {input.doc ? (
-          <Icon icon='question-circle' className='help-icon'></Icon>
+      <div className='help-icon-wrapper' title={doc}>
+        {doc ? (
+          <Icon icon='question-circle' className='help-icon'/>
         ) : null}
       </div>
     </div>

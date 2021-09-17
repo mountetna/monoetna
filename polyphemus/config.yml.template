@@ -39,6 +39,22 @@
   :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.development.local
+  :ingest:
+    :filename_regex: ^some-string-that-uniquely-identifies-our-files
+    :sftp:
+      - :host: sftp.example.com
+        :username: user
+        :password: pass
+        :alias: cat
+        :root: /root/directory/to/scan
+        :ssh-key: public-key-of-server
+    :ssh:
+      - :host: ssh.example.com
+        :username: user
+        :password: pass
+        :alias: c4
+        :root: /root/directory/to/save/files/in
+        :ssh-key: public-key-of-server
 
 :production:
   :magma:
@@ -78,3 +94,19 @@
   :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.test
+  :ingest:
+    :filename_regex: oligo
+    :sftp:
+      - :host: sftp.example.com
+        :username: user
+        :password: pass
+        :alias: cat
+        :root: /
+        :ssh-key: public-key-of-server
+    :ssh:
+      - :host: ssh.example.com
+        :username: user
+        :password: pass
+        :alias: c4
+        :root: /
+        :ssh-key: public-key-of-server

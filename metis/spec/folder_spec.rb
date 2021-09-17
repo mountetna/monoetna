@@ -61,6 +61,32 @@ describe FolderController do
       )
     end
 
+    it 'should return a list of files and folders using a folder_id' do
+      # our files
+      token_header(:editor)
+      get("/athena/list_by_id/files/#{@helmet_folder.id}")
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:files].first).to include(
+        file_name: 'helmet.jpg',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        size: HELMET.length,
+        file_hash: Digest::MD5.hexdigest(HELMET),
+        download_url: a_string_matching(%r{http.*athena/download.*blueprints/helmet/helmet.jpg})
+      )
+      expect(json_body[:folders]).to eq([])
+    end
+
+    it 'throws exception if invalid folder_id' do
+      # our files
+      token_header(:editor)
+      get("/athena/list_by_id/files/blueprints")
+
+      expect(last_response.status).to eq(422)
+    end
+
     it 'should list files from a sub-folder' do
       # our files
       token_header(:editor)
@@ -829,6 +855,59 @@ describe FolderController do
       expect(@blueprints_folder.bucket).to eq(@backup_files_bucket)
     end
 
+  end
+
+  context '#touch' do
+    before(:each) do
+      @creation_time = DateTime.now - 100
+      Timecop.freeze(@creation_time)
+      @blueprints_folder = create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
+    end
+
+    after(:each) do
+      Timecop.return
+    end
+
+    def touch_folder path
+      get(
+        "/athena/folder/touch/files/#{path}"
+      )
+    end
+
+    it 'updates a folder timestamp' do
+      expect(@blueprints_folder.updated_at.iso8601).to eq(@creation_time.iso8601)
+      expect(@blueprints_folder.author).to eq('metis|Metis')
+
+      @update_time = DateTime.now
+      Timecop.freeze(@update_time)
+
+      token_header(:editor)
+      touch_folder('blueprints')
+
+      @blueprints_folder.refresh
+      expect(last_response.status).to eq(200)
+      expect(@blueprints_folder.updated_at.iso8601).to eq(@update_time.iso8601)
+      expect(@blueprints_folder.author).to eq('metis@olympus.org|Metis')
+    end
+
+    it 'throws exception if folder is read only' do
+      expect(@blueprints_folder.updated_at.iso8601).to eq(@creation_time.iso8601)
+      @blueprints_folder.read_only = true
+      @blueprints_folder.save
+      @blueprints_folder.refresh
+
+      @update_time = DateTime.now
+      Timecop.freeze(@update_time)
+
+      token_header(:editor)
+      touch_folder('blueprints')
+
+      @blueprints_folder.refresh
+      expect(last_response.status).to eq(403)
+      expect(@blueprints_folder.updated_at.iso8601).to eq(@creation_time.iso8601)
+      
+    end
   end
 
   context '#update_bucket_and_rename!' do

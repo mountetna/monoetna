@@ -20,7 +20,14 @@ describe SessionsController do
     FileUtils.rm_rf(storage.data_root) if ::File.exist?(storage.data_root)
   end
 
-  let(:session) { Session.from_json(JSON.parse(body).merge({ "workflow_name" => workflow_name, "project_name" => project_name })) }
+  let(:session) do
+    if body_json.include?(:key)
+      Session.from_json(JSON.parse(body).merge({ "workflow_name" => workflow_name, "project_name" => project_name }))
+    else
+      Session.from_json(last_json_response['session'])
+    end
+  end
+
   let(:orchestration) { session.orchestration }
   let(:headers) do
     {
@@ -80,10 +87,10 @@ describe SessionsController do
       ])
       expect(last_json_response['status']).to eql([
           [
-              {'downloads' => nil, 'name' => 'firstAdd',  'status' => 'pending'},
-              {'downloads' => nil, 'name' => 'pickANum',  'status' => 'pending'},
-              {'downloads' => nil, 'name' => 'finalStep', 'status' => 'pending'},
-              {'downloads' => nil, 'name' => 'aPlot',     'status' => 'pending'},
+              {'downloads' => nil, 'name' => 'firstAdd',  'status' => 'pending', 'hash' => orchestration.build_target_for('firstAdd').cell_hash },
+              {'downloads' => nil, 'name' => 'pickANum',  'status' => 'pending', 'hash' => orchestration.build_target_for('pickANum').cell_hash },
+              {'downloads' => nil, 'name' => 'finalStep', 'status' => 'pending', 'hash' => orchestration.build_target_for('finalStep').cell_hash },
+              {'downloads' => nil, 'name' => 'aPlot',     'status' => 'pending', 'hash' => orchestration.build_target_for('aPlot').cell_hash },
           ],
       ])
       expect(last_json_response['outputs']).to eql({'downloads' => nil, 'status' => 'pending'})
