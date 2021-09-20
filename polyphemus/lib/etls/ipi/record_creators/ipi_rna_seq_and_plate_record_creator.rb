@@ -53,10 +53,6 @@ class Polyphemus::IpiRnaSeqAndPlateRecordCreator
   end
 
   def create_records(folders)
-    update_request = Etna::Clients::Magma::UpdateRequest.new(
-      project_name: PROJECT,
-    )
-
     folders.each do |folder|
       plate_name = plate(folder.folder_path)
       folder_name = ::File.basename(folder.folder_path)
@@ -73,12 +69,17 @@ class Polyphemus::IpiRnaSeqAndPlateRecordCreator
 
       attrs[:sample] = sample_name(record_name) unless @helper.is_control?(folder_name)
 
-      update_request.update_revision("rna_seq", record_name, attrs)
-    end
-
-    if update_request.revisions.key?("rna_seq")
-      logger.info("Creating rna_seq records: #{update_request.revisions["rna_seq"].keys.join(",")}")
-      magma_client.update_json(update_request)
+      begin
+        update_request = Etna::Clients::Magma::UpdateRequest.new(
+          project_name: PROJECT,
+        )
+        update_request.update_revision("rna_seq", record_name, attrs)
+        logger.info("Creating rna_seq records: #{update_request.revisions["rna_seq"].keys.join(",")}")
+        magma_client.update_json(update_request)
+      rescue Exception => e
+        `/bin/post-to-slack.sh "#{self.class.name}" "data-ingest-ping" "Error creating IPI rna_seq record #{record_name}.\n#{e.message}." || true`
+        logger.log_error(e)
+      end
     end
   end
 
