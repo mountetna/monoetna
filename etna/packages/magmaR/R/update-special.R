@@ -34,11 +34,14 @@
 #' Data can be overwritten with NAs or zeros or the like, but improperly named records cannot be easily removed.
 #' 
 #' @seealso
-#' \url{https://mountetna.github.io/magma.html#update} for documentation of the underlying magma/update function.
+#' \code{\link{updateFromDF}} for a more flexible function for uploading multiple attributes-worth of (non-matrix) data at a time.
 #' 
-#' \code{\link{updateValues}} for a the more general version of this function which can handle non-matrix data types.
+#' \code{\link{updateValues}} for the more direct replica of \code{magma/update} which is more even more flexible that \code{updateFromDF}, though a bit more complicated to use.
 #' 
 #' \code{\link{retrieveTemplate}}, then check the \code{<output>$models$<modelName>$template$attributes$<attributeName>$options} to explore the rownames that your matrix should have.
+#'
+#' \url{https://mountetna.github.io/magma.html#update} for documentation of the underlying \code{magma/update} function.
+#' 
 #' @export
 #' @examples
 #' 
@@ -120,6 +123,144 @@ updateMatrix <- function(
     names(rec_att_vals) <- colnames(matrix)
     
     revs <- list(rec_att_vals)
+    # Because list(modelName = ...) would not substitute the value of modelName
+    names(revs) <- modelName
+    
+    ### Pass to updateValues() to:
+    # Summarize to user
+    # Check with the user before proceeding
+    # Perform upload
+    updateValues(
+        target = target,
+        projectName = projectName,
+        revisions = revs,
+        auto.proceed = auto.proceed,
+        ...)
+}
+
+#' Easier to use wrapper of \code{\link{updateValues}}
+#' @description A wrapper of \code{\link{updateValues}} which takes in updates in the form of a dataframe, csv, tsv, with rows = records and columns = attributes.
+#' @inheritParams retrieve
+#' @param df A dataframe, containing the data to upload to magma.
+#' 
+#' Alternatively, a String specifying the file path of a file containing such data.
+#' 
+#' See below for additional formatting details.
+#' @param separator String indicating the field separator to use if providing \code{df} as a file path.
+#' Default = \code{","}.
+#' Use \code{"\t"} for tsvs.
+#' @param auto.proceed Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.
+#' @return None directly.
+#' 
+#' The function sends data to magma, and the only outputs are information reported via the console.
+#' @details This function provides a simple method for updating multiple attributes of multiple magma records provided as a rectangular dataframe, or equivalent file structure.
+#' It utilizes the magma/query function, documented here \url{https://mountetna.github.io/magma.html#update},
+#' to upload data after converting to the format required by that function.
+#' 
+#' Upload targets the \code{df}'s row-indicated records and column-indicated attributes of the \code{modelName} model of \code{projectName} project.
+#' 
+#' \code{df} data are provided either as a dataframe, or file path which points toward such data.
+#' If given as a file path, the \code{separator} input can be used to adjust for whether the file is a csv (the default, \code{separator = ","}), or tsv, \code{separator = "\t"}, or other format.
+#' 
+#' The data structure:
+#' \itemize{
+#' \otem Rows = records, with the first column indicating the record identifiers.
+#' \item Columns = represent the data desired to be given for each attribute.
+#' \item Column Names (or the first row when providing a file) = attribute names.
+#' }
+#' 
+#' This data is read in, presented to the user for inspection, then transformed to the necessary format and passed along to \code{\link{updateValues}}.
+#' 
+#' The \code{updateValues()} function will then summarize records to be updated and allow the user to double-check this information before proceeding.
+#' 
+#' This user-prompt step can be bypassed (useful when running in a non-interactive way) by setting \code{auto.proceed = TRUE}, but NOTE:
+#' It is a good idea to always check carefully before proceeding, if possible.
+#' Data can be overwritten with NAs or zeros or the like, but improperly named records cannot be easily removed.
+#' 
+#' @seealso
+#' \code{\link{updateMatrix}} for uploading matrix data
+#' 
+#' \code{\link{updateValues}} for a more direct replica of \code{magma/update} which is more flexible, though a bit more complicated to use.
+#' 
+#' \url{https://mountetna.github.io/magma.html#update} for documentation of the underlying \code{magma/update} function.
+#' @export
+#' @examples
+#' 
+#' if (interactive()) {
+#'     # First, we use magmaRset to create an object which will tell other magmaR
+#'     #  functions our authentication token (as well as some other optional bits).
+#'     # When run in this way, it will ask you to give your token.
+#'     magma <- magmaRset()
+#'     
+#'     ### Note that you likely do not have write-permissions for the 'example'
+#'     # project, so this code can be expected to give an authorization error.
+#'     
+#'     ### Retrieve some data from magma, which will be in the proper format.
+#'     df <- retrieve(magma, "example", "rna_seq", "all", c("tube_name", "biospecimen", "cell_number"))
+#'     df
+#'     
+#'     updateFromDF(
+#'         target = magma,
+#'         projectName = "example",
+#'         modelName = "rna_seq",
+#'         df = df)
+#' }
+#'
+#' @importFrom utils read.csv
+updateFromDF <- function(
+    target,
+    projectName,
+    modelName,
+    df,
+    separator = ",",
+    auto.proceed = FALSE,
+    ...) {
+    
+    ### Read in df if passed as a string (file-location)
+    if (is.character(df)) {
+        df <- read.csv(
+            df, sep = separator, row.names = 0, check.names = FALSE, header = TRUE)
+        if (ncol(df)<1){
+            stop("Parsing error. Is 'separator' correct?")
+        }
+    }
+    # Validate that there are column names
+    if (is.null(colnames(df))) {
+        stop("Colnames of df should be attribute names.")
+    }
+    # Validate that 1st column, should be IDs, is uqique
+    if (any(duplicated(df[,1]))) {
+        stop("Values of 1st column (record identifiers) must be unique.")
+    }
+    
+    cat("Data recieved:")
+    print(df)
+    
+    # Transform into the nested list format
+    # Note: Do not supply recordNames directly to vapply as any "-" will be
+    #   converted to "."
+    df_to_revs <- function(DF) {
+        
+        # For each row of the DataFrame...
+        recs <- lapply(
+            seq_len(nrow(DF)),
+            function(x) {
+                # Make the contents of cols 2:end a list of attribute values, and for each
+                # attribute value slot, make it a list if length is >1.
+                atts <- lapply(
+                    seq_len(ncol(DF)),
+                    function(y) {
+                            DF[x,y]
+                        })
+                names(atts) <- colnames(DF)
+                atts
+            })
+        names(recs) <- DF[,1]
+        recs
+    }
+    
+    revs <- list(df_to_revs(df))
+    # Because list(modelName = ...) would not substitute the value of modelName
     names(revs) <- modelName
     
     ### Pass to updateValues() to:
