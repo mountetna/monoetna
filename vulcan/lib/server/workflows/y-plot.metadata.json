@@ -1,0 +1,10 @@
+{
+  "projects": ["example"],
+  "authors": ["Dan Bunis", "Andres Vicente"],
+  "lastModified": "Sep 13, 2021",
+  "vignette": "### FILLER\n\n# This workflow allows users to create a y plot from data of their choice, but the data loading step is not yet worked out.",
+  "tags": ["general", "plotting", "continuous data"],
+  "image": "umap.png",
+  "displayName": "Y Plot",
+  "description": "Y Plot workflow: Pick data, then create a yplot"
+}
