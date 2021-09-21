@@ -67,16 +67,30 @@ So in this vignette, our singular focus will be on how to input your data so tha
 
 # magmaR's data upload functions:
 
-**magma** has just one data input function, **`/update`**.
+**The base function:**
 
-**magmaR** provides two functions methods for sending data into magma via this function, `updateValues()` and `updateMatrix()`.
+- `updateValues()` = a few-frills wrapper of **magma**'s sole data input function, **`/update`**.  It's quite flexible, but that flexibility owes largely to a rigid input structure, so we also provide a few wrapper functions to make some common upload needs easier.
+
+**Convenient wrapper functions:**
+
+- `updateFromDF()` allows update of a set of attributes, of multiple records, via a simple `data.frame` structure, or via a csv/tsv file encoding such data.
+- `updateMatrix()` allows update of a matrix-type attribute, of multiple records, directly from an R `matrix`, `data.frame`, or a csv/tsv file encoding such data.
+
+**Common features to all magmaR update functions:**
+
+- A summary of updates to be made will always be presented, prior to transferring the update payload to magma. Currently, the summary describes record IDs for each mode that would be created or updated, but that summary may grow in the future.
+- Then, the user will always be prompted to check that the summary matches their intended updates, unless the input `auto.proceed` is set to FALSE.
+- Lastly, the success/failure status of the post to `magma/update` will be presented, including any error messages returned.
 
 ## updateValues()
 
-`updateValues()` is the main workhorse function of `magmaR`'s data upload capabilities. It largely mimics `magma/update` except in that the `hash` structures that are used by `magma/update` do not exist within R. Thus the format for the `revisions` input is a nested `list`, rather than a nested `hash`.
+`updateValues()` is the main workhorse function of `magmaR`'s data upload capabilities. It largely mimics `magma/update`, where each target record is indicated individually, giving very flexible control. The function relies on a rigid nested *list* structure, and is at the heart of all updates made via magmaR.
 
-The function has 2 main inputs, `project` and `revisions`:
+Utility: Useful for smaller updates, carefully scripted automation, or any updates that cannot be handled with the `updateFromDF()` and `updateMatrix()` wrappers. Its `revisions` structure can feel a bit clunky, but is ultimately very powerful.
 
+The function has 3 main inputs, `project` and `revisions`:
+
+- `target`, an integral bit of any call to `magmaR`. It describes how to connect with `magma`. See the dedicated section of the download-focused vignette for more details.
 - `project` is simply the String name of the project that you wish to upload data to; e.g. `updateValues(project = "example", ...)`.
 - `revisions` includes information about which model(s), which record(s), and which attribute(s) to update, and with what value(s). Each of these levels is encoded as a nested list where the format looks something like:
 
@@ -209,7 +223,7 @@ After a successful `update()` a user should see this message (unless `verbose` h
 /update: successful.
 ```
 
-## Important Consideration when added NEW records
+## Important Consideration when adding NEW records
 
 Contrary to the "update" portion of the function names, these functions can add totally new data to magma records. They are not solely restricted to updating old records.  That said,
 
