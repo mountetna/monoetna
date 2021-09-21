@@ -3,19 +3,46 @@ import * as _ from 'lodash';
 export default class FilterOperator {
   attributeType: string;
   operator: string;
+  isColumnFilter: boolean;
 
-  static allOptions: {[key: string]: string} = {
-    Slice: '::slice',
-    Equals: '::equals',
-    Contains: '::matches',
-    In: '::in',
-    'Less than': '::<',
-    'Greater than': '::>',
-    'Is present': '::has',
-    'Is missing': '::lacks',
-    'Is true': '::true',
-    'Is false': '::false',
-    'Is untrue': '::untrue'
+  static queryOperatorsByType: {[key: string]: {[key: string]: string}} = {
+    base: {
+      'Is present': '::has',
+      'Is missing': '::lacks'
+    },
+    boolean: {
+      'Is true': '::true',
+      'Is false': '::false',
+      'Is untrue': '::untrue'
+    },
+    number: {
+      In: '::in',
+      Equals: '::=',
+      'Greater than': '::>',
+      'Greater than or equals': '::>=',
+      'Less than': '::<',
+      'Less than or equals': '::<=',
+      'Not equals': '::!='
+    },
+    date: {
+      Equals: '::=',
+      'Greater than': '::>',
+      'Greater than or equals': '::>=',
+      'Less than': '::<',
+      'Less than or equals': '::<=',
+      'Not equals': '::!='
+    },
+    text: {
+      In: '::in',
+      Equals: '::equals',
+      Contains: '::matches'
+    }
+  };
+
+  static columnOptionsByType: {[key: string]: {[key: string]: string}} = {
+    matrix: {
+      Slice: '::slice'
+    }
   };
 
   static terminalOperators: string[] = ['::true', '::false', '::untrue'];
@@ -24,9 +51,14 @@ export default class FilterOperator {
 
   static commaSeparatedOperators: string[] = ['::in', '::slice'];
 
-  constructor(attributeType: string, operator: string) {
+  constructor(
+    attributeType: string,
+    operator: string,
+    isColumnFilter: boolean
+  ) {
     this.attributeType = attributeType;
     this.operator = operator;
+    this.isColumnFilter = isColumnFilter;
   }
 
   hasOperand(): boolean {
@@ -36,43 +68,30 @@ export default class FilterOperator {
     );
   }
 
+  optionsForAttribute(): {[key: string]: string} {
+    return this.isColumnFilter &&
+      this.attributeType in FilterOperator.columnOptionsByType
+      ? FilterOperator.columnOptionsByType[this.attributeType]
+      : this.attrOptionsWithBaseOptions();
+  }
+
+  attrOptionsWithBaseOptions(): {[key: string]: string} {
+    return {
+      ...FilterOperator.queryOperatorsByType.base,
+      ...(FilterOperator.queryOperatorsByType[this.attributeType] || {})
+    };
+  }
+
   prettify(): string {
-    if (this.attributeType === 'number' && this.operator === '::=') {
-      return 'Equals';
-    }
-    return _.invert(FilterOperator.allOptions)[this.operator];
+    return _.invert(this.optionsForAttribute())[this.operator];
   }
 
   magmify(newOperator: string): string {
-    if (this.attributeType === 'number' && newOperator === 'Equals') {
-      return '::=';
-    }
-
-    return FilterOperator.allOptions[newOperator];
+    return this.optionsForAttribute()[newOperator];
   }
 
-  options(isColumnFilter: boolean): {[key: string]: string} {
-    if ('matrix' === this.attributeType && isColumnFilter) {
-      return Object.keys(FilterOperator.allOptions).reduce(
-        (acc: {[key: string]: string}, key: string) => {
-          if ('Slice' === key) {
-            acc[key] = FilterOperator.allOptions[key];
-          }
-          return acc;
-        },
-        {}
-      );
-    } else {
-      return Object.keys(FilterOperator.allOptions).reduce(
-        (acc: {[key: string]: string}, key: string) => {
-          if ('Slice' !== key) {
-            acc[key] = FilterOperator.allOptions[key];
-          }
-          return acc;
-        },
-        {}
-      );
-    }
+  options(): {[key: string]: string} {
+    return this.optionsForAttribute();
   }
 
   formatOperand(operand: string): number | string {

@@ -59,6 +59,13 @@ describe Polyphemus::IpiRnaSeqCreateRecordNamesEtl do
                                          "rna_seq_plate": "Plate1",
                                          "sample": "IPIADR001.N1",
                                        },
+                                     },
+                                   },
+                                 }))
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq": {
                                        "IPIBLAD001.T1.rna.live": {
                                          "rna_seq_plate": "Plate2",
                                          "sample": "IPIBLAD001.T1",
@@ -145,6 +152,13 @@ describe Polyphemus::IpiRnaSeqCreateRecordNamesEtl do
                                        "Control_Jurkat.Plate1": {
                                          "rna_seq_plate": "Plate1",
                                        },
+                                     },
+                                   },
+                                 }))
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq": {
                                        "Control_UHR.Plate2": {
                                          "rna_seq_plate": "Plate2",
                                        },
