@@ -22,7 +22,8 @@ export const TYPE = {
   MULTIPLE_STRING: 'multiple-string',
   SINGLE_DROPDOWN_MULTICHECKBOX: 'single-dropdown-multicheckbox',
   SCATTER_PLOTLY: 'scatter-plotly',
-  BAR_PLOTLY: 'bar-plotly'
+  BAR_PLOTLY: 'bar-plotly',
+  Y_PLOTLY: 'y-plotly'
 };
 
 // CWL Step RUN Sentinels

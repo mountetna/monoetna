@@ -1,6 +1,6 @@
 {
   "projects": ["example"],
-  "authors": ["Dan Bunis"],
+  "authors": ["Dan Bunis", "Andres Vicente"],
   "lastModified": "Aug 31, 2021",
   "vignette": "### FILLER\n\n# This workflow allows users to create a bar plot from data of their choice, but the data loading step is not yet worked out.",
   "tags": ["general", "plotting", "discrete data"],
