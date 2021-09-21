@@ -106,7 +106,7 @@ updateValues <- function(
         num_new <- length(rec_names_new)
         
         ### Summarize for NEW records
-        cat("For model \"", modelName, "\", this update() will create ", num_new, " NEW records:\n    ",
+        cat("For model \"", modelName, "\", this update() will create (or update) ", num_new, " NEW (or orphan) records:\n    ",
             paste0(rec_names_new, collapse = "\n    "),
             "\nWARNING: Check the above carefully. Once created, there is no easy way to remove records from magma.\n",
             sep="")

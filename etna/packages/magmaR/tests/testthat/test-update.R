@@ -136,7 +136,7 @@ vcr::use_cassette("update_5", {
             suppressWarnings(
                 updateMatrix(target = targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                     matrix = mat_halfIDs_wrong)),
-"For model \"rna_seq\", this update() will create 6 NEW records:
+"For model \"rna_seq\", this update() will create (or update) 6 NEW (or orphan) records:
     WRONG1
     WRONG2
     WRONG3
@@ -160,7 +160,7 @@ For model \"rna_seq\", this update() will update 6 records:
             suppressWarnings(
                 updateMatrix(target = targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                     matrix = mat_allIDs_wrong)),
-"For model \"rna_seq\", this update() will create 12 NEW records:
+"For model \"rna_seq\", this update() will create (or update) 12 NEW (or orphan) records:
     WRONG1
     WRONG2
     WRONG3
