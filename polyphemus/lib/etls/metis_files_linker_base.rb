@@ -23,6 +23,24 @@ class Polyphemus::MetisFilesLinkerBase
     update_request = Etna::Clients::Magma::UpdateRequest.new(
       project_name: project_name,
     )
+
+    # Currently, there isn't a good magma api for transactions or deltas applied to collections, so this
+    # approach is vulnerable to race conditions such as a race to override by two simult writers.
+    # In this case, we should be ok, given the assumption that we only run one instance of the ETL or shard by record id,
+    # and that we don't plan on mixing source of truth (linking and hand appending files).
+    record_batch_ids = files_by_record_name.map(&:record_name)
+    record_batch = magma_client.retrieve(Etna::Clients::Magma::RetrievalRequest.new(
+      project_name: project_name,
+      model_name: model_name,
+      page_size: record_batch_ids.length, # Grab everything in one go, this should still have a fairly low batched ceiling,
+      record_names: record_batch_ids,
+      hide_templates: true,
+    )).models.model(model_name).&documents
+
+    if record_batch.nil?
+      raise "Unexpect nil in retrieval documents response for linker.  Did the server response change?"
+    end
+
     files_by_record_name.each do |file_record|
       next if should_skip_record?(file_record.record_name)
       next if file_record.files.empty?
@@ -36,6 +54,7 @@ class Polyphemus::MetisFilesLinkerBase
         model_name: model_name,
         files: file_record.files,
         attribute_regex: attribute_regex,
+        record: record_batch[file_record.record_name],
       )
 
       update_request.update_revision(
@@ -66,16 +85,7 @@ class Polyphemus::MetisFilesLinkerBase
     @magma_models[project_name]
   end
 
-  def folder_ids_matching_file_collections(model_name:, files:, attribute_regex:)
-    attribute_regex.map do |attribute_name, regex|
-      next [] unless is_file_collection?(project_name, model_name, attribute_name)
-      files.select do |file|
-        file.file_name =~ regex
-      end.map(&:folder_id)
-    end.flatten.uniq
-  end
-
-  def files_payload(project_name:, model_name:, files:, attribute_regex:)
+  def files_payload(project_name:, model_name:, files:, attribute_regex:, record:)
     {}.tap do |payload|
       attribute_regex.each do |attribute_name, regex|
         payloads_for_attr = files.select do |file|
@@ -86,9 +96,18 @@ class Polyphemus::MetisFilesLinkerBase
 
         next if payloads_for_attr.empty?
 
-        payload[attribute_name] = is_file_collection?(project_name, model_name, attribute_name) ?
-          payloads_for_attr :
-          payloads_for_attr.first
+        if is_file_collection?(project_name, model_name, attribute_name)
+          if record.nil? || (existing_files = record[attribute_name]).nil?
+            payload[attribute_name] = payloads_for_attr
+          else
+            payload_by_paths = payloads_for_attr.map { |f| f[:path] }
+            payload[attribute_name] = payloads_for_attr + existing_files.select do |file|
+              !payload_by_paths.include?(file[:path])
+            end
+          end
+        else
+          payload[attribute_name] = payloads_for_attr.first
+        end
       end
     end
   end
@@ -134,25 +153,11 @@ class Polyphemus::MetisFilesLinkerBase
   end
 
   def organize_metis_files_by_magma_record(
-    model_name:,
     metis_files:,
     magma_record_names:,
     path_regex:,
-    attribute_regex:,
     record_name_gsub_pair: nil
   )
-    folder_ids = folder_ids_matching_file_collections(model_name: model_name, files: metis_files, attribute_regex: attribute_regex)
-    file_collection_folder_files = folder_ids.map do |folder_id|
-      metis_client.list_folder_by_id(Etna::Clients::Metis::ListFolderByIdRequest.new(
-        project_name: project_name,
-        bucket_name: bucket_name,
-        folder_id: folder_id
-      )).files.all
-    end.flatten
-
-    metis_files += file_collection_folder_files
-    metis_files.uniq!(&:file_path)
-
     metis_files_by_record_name = metis_files.group_by do |file|
       match = full_path_for_file(file).match(path_regex)
 
