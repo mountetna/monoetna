@@ -9,8 +9,9 @@ import os
 import pickle
 import time
 from typing import Any, List, Optional, NamedTuple, Mapping, Callable, Generator, \
-  MutableMapping, Iterator, Tuple
+  MutableMapping, Iterator, Tuple, Iterable
 from airflow.configuration import conf
+from airflow.utils import timezone
 
 import docker
 import docker.errors
@@ -18,9 +19,11 @@ import docker.models
 import docker.types
 from airflow.exceptions import AirflowException
 from airflow.executors.base_executor import BaseExecutor, CommandType
+from airflow.executors.local_executor import LocalExecutor
 from airflow.models.taskinstance import TaskInstance, TaskInstanceKey
 from airflow.utils.event_scheduler import EventScheduler
 from airflow.utils.log.logging_mixin import LoggingMixin
+from airflow.utils.session import create_session
 from airflow.utils.state import State
 from docker.models.services import Service
 from docker.types import RestartPolicy
@@ -132,6 +135,7 @@ class SwarmExecutor(BaseExecutor, LoggingMixin):
     self.heartbeat_rate = heartbeat_rate or conf.getint('scheduler', 'SCHEDULER_HEARTBEAT_SEC')
     self.new_service_queue: List[QueuedSwarmCommand] = []
     self.queue_configs: MutableMapping[str, Any] = {}
+    self.local_executor = LocalExecutor
     super().__init__()
 
   def get_queue_config(self, queue: str):
@@ -155,6 +159,16 @@ class SwarmExecutor(BaseExecutor, LoggingMixin):
 
       target_state: str = State.SUCCESS if status is True else State.FAILED
       yield functools.partial(self._reap_finished_service, target_state, service)
+
+  # Run after all new services have potentially been created.
+  def _fail_missing_tasks(self, services: List[Service]) -> Iterator[Callable]:
+    keys_by_services = {task_instance_key_from_service(s) for s in services}
+    for key in self.running:
+      if key not in keys_by_services:
+        yield functools.partial(self._fail_missing_task, key)
+
+  def _fail_missing_task(self, key):
+    self.fail(key)
 
   def _reap_finished_service(self, target_state: str, service: Service):
     key = task_instance_key_from_service(service)
@@ -204,11 +218,12 @@ class SwarmExecutor(BaseExecutor, LoggingMixin):
                      command: CommandType,
                      image: str,
                      config: Mapping[str, Any]):
+    # Swap the current new service to the back of the queue.
+    self.new_service_queue.remove(new_service_item)
+
     try:
       if command[0:3] != ["airflow", "tasks", "run"]:
         raise ValueError('The command must start with ["airflow", "tasks", "run"].')
-
-      self.docker_client.configs.create()
 
       self.docker_client.services.create(
         image,
@@ -225,20 +240,48 @@ class SwarmExecutor(BaseExecutor, LoggingMixin):
       # so we wouldn't want to mark it as failure but then switch to success
       # later on.  Instead, we let the service exist and let it converge
       # naturally with a future reap.
-      if e.response.status_code != 409:
-        self.log.error('Failed to start up new service', exc_info=True)
-        # we should only mark failure when we can explicitly confirm that
-        # creating the service has failed.
-        self.fail(new_service_item.key, e)
-    except (ValueError, TypeError) as e:
-      self.log.error('Failed with service configuration', exc_info=True)
-      self.fail(new_service_item.key, e)
+      if e.response.status_code == 409:
+        self.update_task_instance_state(new_service_item.key, [State.QUEUED], State.RUNNING)
+      else:
+        self.update_task_instance_state(new_service_item.key, [State.QUEUED, State.RUNNING], State.FAILED)
+        self.fail(new_service_item.key)
+        raise
+    except Exception as e:
+      self.update_task_instance_state(new_service_item.key, [State.QUEUED, State.RUNNING], State.FAILED)
+      self.fail(new_service_item.key)
+      raise
     else:
       self.log.info('New service is running: %s', new_service_item.key)
-      self.running.add(new_service_item.key)
+      self.update_task_instance_state(new_service_item.key, [State.QUEUED], State.RUNNING)
 
-    self.log.info('Processed starting new task: %s', new_service_item.key)
-    self.new_service_queue.remove(new_service_item)
+  def update_task_instance_state(self,
+                                 key: TaskInstanceKey,
+                                 from_states: Iterable[str],
+                                 to_state: str):
+    with create_session() as session:
+      tis_query = session.query(TaskInstance)\
+        .filter(
+          TaskInstance.task_id == key.task_id,
+          TaskInstance.dag_id == key.dag_id,
+          TaskInstance.execution_date == key.execution_date,
+          TaskInstance.state.in_(from_states),
+        )
+
+      ti = tis_query.first()
+      if ti is None:
+        return False
+
+      update_dict = {TaskInstance.state: to_state}
+
+      if to_state in {State.FAILED, State.SUCCESS}:
+        current_time = timezone.utcnow()
+        update_dict[TaskInstance.end_date] = current_time
+        if ti.start_time is not None:
+          update_dict[TaskInstance.duration] = current_time - ti.start_time
+
+      updated = tis_query.update(update_dict) > 0
+      session.commit()
+      return updated
 
   def _wait_for_pending_services(self, services: List[Service], await_pending=False):
     def wait():
@@ -344,7 +387,6 @@ class SwarmExecutor(BaseExecutor, LoggingMixin):
       if ti_key in adoptable_task_instances:
         if self.adopt_service(service):
           adopted_task_instances.add(ti_key)
-          self.running.add(ti_key)
 
     # Return any of the original task instances we did not, actually, adopt.
     return [
