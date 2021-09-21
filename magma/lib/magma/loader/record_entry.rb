@@ -33,8 +33,9 @@ class Magma
     def complaints
       return @complaints if @complaints
       check_document_validity
+      check_record_name_validity unless record_exists?
 
-      return @complaints
+      return @complaints.uniq
     end
 
     def valid_new_entry?
@@ -143,6 +144,21 @@ class Magma
       @loader.validator.validate(@model, @record_name, @record) do |complaint|
         @complaints << complaint
       end
+    end
+
+    def check_record_name_validity
+      # On create, make sure the record_name is valid
+      @loader.validator.validate(@model, @record_name, {
+        identifier_attribute_name => @record_name
+      }) do |complaint|
+        @complaints << complaint
+      end
+    end
+
+    def identifier_attribute_name
+      @model.attributes.values.select do |attribute|
+        attribute.is_a?(Magma::IdentifierAttribute)
+      end.first.name.to_sym
     end
   end
 end
