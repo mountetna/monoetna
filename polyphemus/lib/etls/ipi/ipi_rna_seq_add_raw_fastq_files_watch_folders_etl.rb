@@ -6,7 +6,6 @@ class Polyphemus::IpiRnaSeqAddRawFastqFilesWatchFoldersEtl < Polyphemus::AddWatc
   BUCKET = "integral_data"
 
   def initialize
-    @linker = Polyphemus::IpiRnaSeqRawFastqFilesLinker.new
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
       folder_path_regexes: {

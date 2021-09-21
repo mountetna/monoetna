@@ -2,7 +2,7 @@ require_relative "../../metis_files_linker_base"
 require_relative "../../../ipi/ipi_helper"
 
 class Polyphemus::IpiRnaSeqFilesLinkerBase < Polyphemus::MetisFilesLinkerBase
-  def initialize(project_name:, bucket_name:, attribute_regex:, record_name_regex:)
+  def initialize(project_name: "ipi", bucket_name:, attribute_regex:, record_name_regex:)
     super(project_name: project_name, bucket_name: bucket_name)
     @attribute_regex = attribute_regex
     @record_name_regex = record_name_regex
