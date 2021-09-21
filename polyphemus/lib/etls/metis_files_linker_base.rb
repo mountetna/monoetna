@@ -35,7 +35,7 @@ class Polyphemus::MetisFilesLinkerBase
       page_size: record_batch_ids.length, # Grab everything in one go, this should still have a fairly low batched ceiling,
       record_names: record_batch_ids,
       hide_templates: true,
-    )).models.model(model_name).&documents
+    )).models.model(model_name)&.documents
 
     if record_batch.nil?
       raise "Unexpect nil in retrieval documents response for linker.  Did the server response change?"
@@ -54,7 +54,7 @@ class Polyphemus::MetisFilesLinkerBase
         model_name: model_name,
         files: file_record.files,
         attribute_regex: attribute_regex,
-        record: record_batch[file_record.record_name],
+        record: record_batch.document(file_record.record_name),
       )
 
       update_request.update_revision(
