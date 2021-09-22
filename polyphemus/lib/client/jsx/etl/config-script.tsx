@@ -87,11 +87,12 @@ export const validator = (schema:any, editor:Editor): Function => {
 
 const useStyles = makeStyles( theme => ({
   editor: {
-    border: '1px solid #ccc'
+    border: '1px solid #ccc',
+    height: '200px'
   }
 }));
 
-const ConfigScript = ({ schema, script, onChange } : { schema: any, script: any, onChange?: Function } ) => {
+const ConfigScript = ({ schema, script, onChange } : { schema: any, script: string, onChange?: Function } ) => {
   let [ editor, setEditor ] = useState<Editor| null>(null);
 
   const classes = useStyles();
@@ -101,8 +102,6 @@ const ConfigScript = ({ schema, script, onChange } : { schema: any, script: any,
       if (editor) CodeMirror.registerHelper("lint", "json", validator(schema, editor))
     }, [ editor ]
   );
-
-  let [ editedScript, setEditedScript ] = useState(JSON.stringify(script,null,2));
 
   return (
     <div className={classes.editor}>
@@ -117,8 +116,8 @@ const ConfigScript = ({ schema, script, onChange } : { schema: any, script: any,
           tabSize: 2
         }}
         editorDidMount={ setEditor }
-        value={editedScript}
-        onBeforeChange={(editor, data, value) => { setEditedScript(value); }}
+        value={script}
+        onBeforeChange={(editor, data, value) => { onChange(value); }}
       />
     </div>
   );

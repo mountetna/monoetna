@@ -136,7 +136,7 @@ GEM
     rsync (1.0.9)
     ruby-progressbar (1.11.0)
     rubyzip (2.3.2)
-    sequel (5.42.0)
+    sequel (5.43.0)
     simplecov (0.21.2)
       docile (~> 1.1)
       simplecov-html (~> 0.11)

@@ -391,11 +391,18 @@ class Polyphemus
       return if !job_config
 
       begin
+        output = StringIO.new
+
+        old_stdout = $stdout
+        $stdout = output
+
         job_config.run!
       rescue Exception => e
+        job_config.set_error!(e)
         require 'pry'
         binding.pry
-        job_config.set_error!
+      ensure
+        $stdout = old_stdout
       end
     end
 
@@ -403,6 +410,7 @@ class Polyphemus
       super
       Polyphemus.instance.setup_logger
       Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
     end
   end
 

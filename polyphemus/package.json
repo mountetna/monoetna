@@ -26,6 +26,7 @@
     "codemirror": "^5.62.2",
     "color": "^3.1.3",
     "css-loader": "^3.6.0",
+    "diff": "^5.0.0",
     "downloadjs": "^1.4.7",
     "etna-js": "file:../etna/packages/etna-js",
     "isomorphic-fetch": "^3.0.0",

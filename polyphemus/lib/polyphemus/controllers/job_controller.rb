@@ -1,7 +1,5 @@
 require_relative 'controller'
-require_relative '../models/redcap_job'
 require_relative '../../etls/redcap/redcap_etl_script_runner'
-
 
 class JobController < Polyphemus::Controller
   def submit

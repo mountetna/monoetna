@@ -14,9 +14,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const schemaFor = (etl: string, jobs: Job[]) : (any | null) => {
-  let job = jobs.find( j => j.name == etl )
-  return job ? job.schema : null;
+const jobFor = (etl: string, jobs: Job[]) : (any | null) => {
 }
 
 const PolyphemusMain = ({project_name}:{project_name: string}) => {
@@ -47,7 +45,7 @@ const PolyphemusMain = ({project_name}:{project_name: string}) => {
             {project_name} Data Loaders
           </Typography>
           {
-            etls.map( (etl:Etl) => <EtlConfig key={etl.name} { ...etl } status='completed' onUpdate={ addEtl } schema={schemaFor(etl.etl, jobs)} />)
+            etls.map( (etl:Etl) => <EtlConfig key={etl.name} { ...etl } onUpdate={ addEtl } job={ jobs.find( j => j.name == etl.etl ) } />)
           }
           <Grid>
             <Button onClick={ () => setCreate(true) }>Add Loader</Button>

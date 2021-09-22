@@ -15,16 +15,19 @@ class Polyphemus
         end
       end
 
+      def secret_keys
+        as_json[:secrets]
+      end
+
       def job_name
         self.name.match(/::(.*)Job/)[1].underscore
       end
     end
 
-    attr_reader :request_params, :request_env, :response, :job_params, :errors, :user
+    attr_reader :request_params, :request_env, :response, :errors, :user
     def initialize(request_params:, request_env:, response:, user:)
       @request_env = request_env
       @request_params = request_params
-      @job_params = request_params[:job_params]
       @user = user
       @errors = []
       @response = response
@@ -44,11 +47,11 @@ class Polyphemus
 
     private
 
-    def require_job_params(*params)
-      missing_params = params.reject{|p| @job_params.key?(p) }
-      raise JobError, "job_params missing required param(s): #{missing_params.join(', ')}" unless missing_params.empty?
+    def require_params(*params)
+      missing_params = params.reject{|p| @request_params.key?(p) }
+      raise JobError, "request_params missing required param(s): #{missing_params.join(', ')}" unless missing_params.empty?
     end
-    alias_method :require_job_param, :require_job_params
+    alias_method :require_param, :require_params
   end
 
   class JobType < String
@@ -58,3 +61,5 @@ class Polyphemus
   class JobError < StandardError
   end
 end
+
+require_relative './redcap_job'

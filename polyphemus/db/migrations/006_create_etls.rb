@@ -6,9 +6,11 @@ Sequel.migration do
       String :name, null: false
       String :etl, null: false
       column :config, :json, null: false
+      String :secrets, null: false
       DateTime :updated_at, null: false
       DateTime :created_at, null: false
       DateTime :ran_at
+      String :comment
       String :status
       String :output
       Integer :run_interval, null: false

@@ -12,6 +12,7 @@ type Etl = {
   ran_at: string,
   run: number,
   output: string,
+  secrets: any,
   status: string
 };
 

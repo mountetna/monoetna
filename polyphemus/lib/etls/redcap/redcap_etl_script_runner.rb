@@ -23,7 +23,7 @@ class Polyphemus
     def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:, mode: nil)
       raise "No dateshift_salt provided, please provide one." unless dateshift_salt
       raise "Mode must be nil, \"existing\", or \"strict\"." unless [nil, "existing", "strict"].include?(mode)
-      raise "Must provide at least one REDCap token." unless redcap_tokens&.length > 0
+      raise "Must provide at least one REDCap token." unless redcap_tokens && redcap_tokens.length > 0
 
       @file_path = File.join(File.dirname(__FILE__), 'projects', "#{project_name}.rb")
 

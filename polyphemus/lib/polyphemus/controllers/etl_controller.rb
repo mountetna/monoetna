@@ -1,35 +1,5 @@
 require_relative 'controller'
 
-# At base is the Job, a generic function provided as-is
-#
-# Each project may include any number of EtlConfig. Each
-# EtlConfig configures a single type of Etl to run for
-# this project.
-#
-# Each project may also configure any number of EtlRuns.
-# Each EtlRun contains parameters describing the
-# necessary runtime requirements (including secrets).
-#
-# Job
-#   name
-#   full_name
-#   description
-#   config_grammar
-#   job_params
-#
-# JobConfig
-#   project_name
-#   job
-#   config_name
-#   config
-#   run_every    # how often the run should be executed, -1 runs once, null disables
-#   created_at
-#   updated_at
-#   ran_at       # when this job was last executed
-#   completed_at # when this job last finished executing
-#   output       # log of the output of this run
-#   status       # the status of the job
-
 class EtlController < Polyphemus::Controller
   def jobs
     return success_json(Polyphemus::Job.list.map(&:as_json))
@@ -39,6 +9,16 @@ class EtlController < Polyphemus::Controller
     success_json(
       Polyphemus::EtlConfig.exclude(archived: true).where(project_name: @params[:project_name]).all.map(&:as_json)
     )
+  end
+
+  def revisions
+    etl_configs = Polyphemus::EtlConfig.where(
+      archived:true,
+      project_name: @params[:project_name],
+      name: @params[:name]
+    ).reverse_order(:updated_at).all
+
+    success_json(etl_configs.map(&:to_revision))
   end
 
   def update
@@ -63,10 +43,17 @@ class EtlController < Polyphemus::Controller
 
     update = @params.slice(*(etl_config.columns - [:id, :project_name, :name]))
 
+    if update[:secrets]
+      unless etl_config.valid_secrets?(update[:secrets])
+        raise Etna::BadRequest, "Secrets for #{etl_config.etl_job_class.job_name} jobs must be one of: #{etl_config.etl_job_class.secret_keys.join(', ')}"
+      end
+      update[:secrets] = etl_config.secrets.merge(update[:secrets])
+    end
+
     if update[:config]
-      # validate the configuration
       raise Etna::BadRequest, "Invalid configuration for etl \"#{etl_config.etl}\"" unless etl_config.validate_config(update[:config])
-      new_etl_config = Polyphemus::EtlConfig.create(etl_config.as_json.merge(update))
+
+      new_etl_config = Polyphemus::EtlConfig.create(etl_config.as_json.merge(update).merge(secrets: etl_config.secrets))
       etl_config.update(archived: true, run_interval: Polyphemus::EtlConfig::RUN_NEVER)
       etl_config = new_etl_config
     else
@@ -97,6 +84,7 @@ class EtlController < Polyphemus::Controller
       name: @params[:name],
       etl: @params[:job_type],
       config: {},
+      secrets: {},
       run_interval: Polyphemus::EtlConfig::RUN_NEVER
     )
 
