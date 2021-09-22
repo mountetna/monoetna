@@ -11,6 +11,7 @@ updateFromDF(
   df,
   separator = ",",
   auto.proceed = FALSE,
+  revisions.only = FALSE,
   ...
 )
 }
@@ -33,6 +34,9 @@ Default = \code{","}.
 Use \code{"\t"} for tsvs.}
 
 \item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.}
+
+\item{revisions.only}{Logical. For troubleshooting purposes, when set to \code{TRUE}, no data will be sent to magma.
+Instead, the list structure that would have been passed to the \code{revisions} input of \code{\link{updateValues}} is returned as output.}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
@@ -60,9 +64,10 @@ If given as a file path, the \code{separator} input can be used to adjust for wh
 
 The data structure:
 \itemize{
-\otem Rows = records, with the first column indicating the record identifiers.
+\item Rows = records, with the first column indicating the record identifiers.
 \item Columns = represent the data desired to be given for each attribute.
-\item Column Names (or the first row when providing a file) = attribute names.
+\item Column Names (or the top row when providing a file) = attribute names.
+Except for the first column (ignored as this column's data are used as identifiers), all column names must be valid attribute names of the target \code{modelName}.
 }
 
 This data is read in, presented to the user for inspection, then transformed to the necessary format and passed along to \code{\link{updateValues}}.
@@ -73,6 +78,18 @@ This user-prompt step can be bypassed (useful when running in a non-interactive 
 It is a good idea to always check carefully before proceeding, if possible.
 Data can be overwritten with NAs or zeros or the like, but improperly named records cannot be easily removed.
 }
+\section{Use Case. Using this function to change records' identifiers}{
+
+
+To do so, provide a file or dataframe where
+1) The first column, named something random Iits name will be ignored.), contains current identifiers;
+2) Some other column, named as the attribute which is treated as the identifier for the model, contains the new identifiers
+
+To determine the identifier attribute's name, you can use \code{\link{retrieveTemplate}}:
+
+\code{retrieveTemplate(<target>, <projectName>)$models$<modelName>$template$identifier}.
+}
+
 \examples{
 
 if (interactive()) {
@@ -85,7 +102,11 @@ if (interactive()) {
     # project, so this code can be expected to give an authorization error.
     
     ### Retrieve some data from magma, which will be in the proper format.
-    df <- retrieve(magma, "example", "rna_seq", "all", c("tube_name", "biospecimen", "cell_number"))
+    df <- retrieve(
+        magma, projectName = "example", modelName = "rna_seq",
+        recordNames = "all",
+        attributeNames = c("tube_name", "biospecimen", "cell_number")
+        )
     df
     
     updateFromDF(

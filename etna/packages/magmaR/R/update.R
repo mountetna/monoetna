@@ -12,6 +12,7 @@
 #' 
 #' See \url{https://mountetna.github.io/magma.html#update} for additional formatting details.
 #' 
+#' @param auto.proceed Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.
 #' @return None directly.
 #' 
 #' The function sends data to magma, and the only outputs are information reported via the console.

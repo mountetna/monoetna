@@ -1,6 +1,7 @@
 #' A matrix-specific wrapper of \code{\link{updateValues}}
 #' @description A matrix-specific wrapper of \code{\link{updateValues}} which can take in a matrix, data.frame, or file path, directly.
 #' @inheritParams retrieve
+#' @inheritParams updateValues
 #' @param attributeName String naming the matrix attribute for which to upload data.
 #' @param matrix A matrix or dataframe containing the data to upload to magma.
 #' 
@@ -10,7 +11,8 @@
 #' Check the 'See Also' section below for how to determine the needed 'options'.
 #' @param separator String indicating the field separator to use if providing \code{matrix} as a file path.
 #' Default = \code{","}.
-#' @param auto.proceed Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.
+#' @param revisions.only Logical. For troubleshooting purposes, when set to \code{TRUE}, no data will be sent to magma.
+#' Instead, the list structure that would have been passed to the \code{revisions} input of \code{\link{updateValues}} is returned as output.
 #' @return None directly.
 #' 
 #' The function sends data to magma, and the only outputs are information reported via the console.
@@ -74,6 +76,7 @@ updateMatrix <- function(
     matrix,
     separator = ",",
     auto.proceed = FALSE,
+    revisions.only = FALSE,
     ...) {
     
     ### Read in matrix if passed as a string (file-location)
@@ -126,6 +129,9 @@ updateMatrix <- function(
     # Because list(modelName = ...) would not substitute the value of modelName
     names(revs) <- modelName
     
+    if (revisions.only) {
+        return(revs)
+    }
     ### Pass to updateValues() to:
     # Summarize to user
     # Check with the user before proceeding
@@ -141,6 +147,8 @@ updateMatrix <- function(
 #' Easier to use wrapper of \code{\link{updateValues}}
 #' @description A wrapper of \code{\link{updateValues}} which takes in updates in the form of a dataframe, csv, tsv, with rows = records and columns = attributes.
 #' @inheritParams retrieve
+#' @inheritParams updateMatrix
+#' @inheritParams updateValues
 #' @param df A dataframe, containing the data to upload to magma.
 #' 
 #' Alternatively, a String specifying the file path of a file containing such data.
@@ -164,9 +172,10 @@ updateMatrix <- function(
 #' 
 #' The data structure:
 #' \itemize{
-#' \otem Rows = records, with the first column indicating the record identifiers.
+#' \item Rows = records, with the first column indicating the record identifiers.
 #' \item Columns = represent the data desired to be given for each attribute.
-#' \item Column Names (or the first row when providing a file) = attribute names.
+#' \item Column Names (or the top row when providing a file) = attribute names.
+#' Except for the first column (ignored as this column's data are used as identifiers), all column names must be valid attribute names of the target \code{modelName}.
 #' }
 #' 
 #' This data is read in, presented to the user for inspection, then transformed to the necessary format and passed along to \code{\link{updateValues}}.
@@ -176,6 +185,17 @@ updateMatrix <- function(
 #' This user-prompt step can be bypassed (useful when running in a non-interactive way) by setting \code{auto.proceed = TRUE}, but NOTE:
 #' It is a good idea to always check carefully before proceeding, if possible.
 #' Data can be overwritten with NAs or zeros or the like, but improperly named records cannot be easily removed.
+#' 
+#' @section Use Case. Using this function to change records' identifiers:
+#' 
+#' To do so, provide a file or dataframe where
+#' 1) The first column, named something random Iits name will be ignored.), contains current identifiers;
+#' 2) Some other column, named as the attribute which is treated as the identifier for the model, contains the new identifiers
+#' 
+#' To determine the identifier attribute's name, you can use \code{\link{retrieveTemplate}}:
+#' 
+#' \code{retrieveTemplate(<target>, <projectName>)$models$<modelName>$template$identifier}.
+#' 
 #' 
 #' @seealso
 #' \code{\link{updateMatrix}} for uploading matrix data
@@ -196,7 +216,11 @@ updateMatrix <- function(
 #'     # project, so this code can be expected to give an authorization error.
 #'     
 #'     ### Retrieve some data from magma, which will be in the proper format.
-#'     df <- retrieve(magma, "example", "rna_seq", "all", c("tube_name", "biospecimen", "cell_number"))
+#'     df <- retrieve(
+#'         magma, projectName = "example", modelName = "rna_seq",
+#'         recordNames = "all",
+#'         attributeNames = c("tube_name", "biospecimen", "cell_number")
+#'         )
 #'     df
 #'     
 #'     updateFromDF(
@@ -214,6 +238,7 @@ updateFromDF <- function(
     df,
     separator = ",",
     auto.proceed = FALSE,
+    revisions.only = FALSE,
     ...) {
     
     ### Read in df if passed as a string (file-location)
@@ -232,6 +257,9 @@ updateFromDF <- function(
     if (any(duplicated(df[,1]))) {
         stop("Values of 1st column (record identifiers) must be unique.")
     }
+    if (ncol(df) < 2) {
+        stop(".")
+    }
     
     cat("Data recieved:")
     print(df)
@@ -241,21 +269,22 @@ updateFromDF <- function(
     #   converted to "."
     df_to_revs <- function(DF) {
         
+        DF_noID <- DF[, seq_len(ncol(DF))[-1], drop = FALSE]
         # For each row of the DataFrame...
         recs <- lapply(
-            seq_len(nrow(DF)),
+            seq_len(nrow(DF_noID)),
             function(x) {
                 # Make the contents of cols 2:end a list of attribute values, and for each
                 # attribute value slot, make it a list if length is >1.
                 atts <- lapply(
-                    seq_len(ncol(DF)),
+                    seq_len(ncol(DF_noID)),
                     function(y) {
-                            DF[x,y]
+                            DF_noID[x,y]
                         })
-                names(atts) <- colnames(DF)
+                names(atts) <- colnames(DF_noID)
                 atts
             })
-        names(recs) <- DF[,1]
+        names(recs) <- DF[,1, drop = TRUE]
         recs
     }
     
@@ -263,6 +292,9 @@ updateFromDF <- function(
     # Because list(modelName = ...) would not substitute the value of modelName
     names(revs) <- modelName
     
+    if (revisions.only) {
+        return(revs)
+    }
     ### Pass to updateValues() to:
     # Summarize to user
     # Check with the user before proceeding

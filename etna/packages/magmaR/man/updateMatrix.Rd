@@ -12,6 +12,7 @@ updateMatrix(
   matrix,
   separator = ",",
   auto.proceed = FALSE,
+  revisions.only = FALSE,
   ...
 )
 }
@@ -36,6 +37,9 @@ Check the 'See Also' section below for how to determine the needed 'options'.}
 Default = \code{","}.}
 
 \item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.}
+
+\item{revisions.only}{Logical. For troubleshooting purposes, when set to \code{TRUE}, no data will be sent to magma.
+Instead, the list structure that would have been passed to the \code{revisions} input of \code{\link{updateValues}} is returned as output.}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
