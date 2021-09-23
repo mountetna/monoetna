@@ -69,15 +69,13 @@ const useStyles = makeStyles((theme) => ({
 const QueryFilterControl = ({
   filter,
   modelNames,
-  matrixAttributesOnly,
-  hideModel,
+  isColumnFilter,
   patchFilter,
   removeFilter
 }: {
   filter: QueryFilter | QuerySlice;
   modelNames: string[];
-  matrixAttributesOnly?: boolean;
-  hideModel?: boolean;
+  isColumnFilter: boolean;
   patchFilter: (filter: QueryFilter | QuerySlice) => void;
   removeFilter: () => void;
 }) => {
@@ -92,17 +90,10 @@ const QueryFilterControl = ({
         template.attributes
       );
 
-      if (matrixAttributesOnly) {
-        return selectMatrixAttributes(
-          sortedTemplateAttributes,
-          state.attributes[filter.modelName]
-        );
-      } else {
-        return selectAllowedModelAttributes(sortedTemplateAttributes);
-      }
+      return selectAllowedModelAttributes(sortedTemplateAttributes);
     }
     return [];
-  }, [filter.modelName, state.attributes, reduxState, matrixAttributesOnly]);
+  }, [filter.modelName, reduxState]);
 
   const attributeType = useMemo(() => {
     if ('' !== filter.attributeName) {
@@ -113,7 +104,7 @@ const QueryFilterControl = ({
       ) {
         case 'string':
           return 'text';
-        case 'datetime':
+        case 'date_time':
           return 'date';
         case 'integer':
         case 'float':
@@ -131,8 +122,8 @@ const QueryFilterControl = ({
   }, [filter.attributeName, filter.modelName, reduxState]);
 
   const filterOperator = useMemo(() => {
-    return new FilterOperator(attributeType, filter.operator);
-  }, [attributeType, filter.operator]);
+    return new FilterOperator(attributeType, filter.operator, isColumnFilter);
+  }, [attributeType, filter.operator, isColumnFilter]);
 
   const handleModelSelect = useCallback(
     (modelName: string) => {
@@ -150,7 +141,9 @@ const QueryFilterControl = ({
     (attributeName: string) =>
       patchFilter({
         ...filter,
-        attributeName
+        attributeName,
+        operator: '',
+        operand: ''
       }),
     [filter, patchFilter]
   );
@@ -181,25 +174,23 @@ const QueryFilterControl = ({
 
   return (
     <Grid container>
-      {!hideModel ? (
-        <Grid item xs={3}>
-          <FormControl className={classes.fullWidth}>
-            <InputLabel id={uniqId('model')}>Model</InputLabel>
-            <Select
-              labelId={uniqId('model')}
-              value={filter.modelName}
-              onChange={(e) => handleModelSelect(e.target.value as string)}
-              displayEmpty
-            >
-              {modelNames.sort().map((name, index: number) => (
-                <MenuItem key={index} value={name}>
-                  {name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
-      ) : null}
+      <Grid item xs={3}>
+        <FormControl className={classes.fullWidth}>
+          <InputLabel id={uniqId('model')}>Model</InputLabel>
+          <Select
+            labelId={uniqId('model')}
+            value={filter.modelName}
+            onChange={(e) => handleModelSelect(e.target.value as string)}
+            displayEmpty
+          >
+            {modelNames.sort().map((name, index: number) => (
+              <MenuItem key={index} value={name}>
+                {name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Grid>
       <Grid item xs={3}>
         <FormControl className={classes.fullWidth}>
           <InputLabel id={uniqId('attribute')}>Attribute</InputLabel>

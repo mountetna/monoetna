@@ -79,7 +79,7 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
     existing_names = existing_file_names(records)
 
     new_records = records.select do |record|
-      !existing_names.include?(record.filename) && ::File.basename(record.filename) =~ Regexp.new(filename_regex)
+      !existing_names.include?(record.filename) && record.filename =~ Regexp.new(filename_regex)
     end
 
     logger.info("Found #{new_records.length} new files matching the regex: #{filename_regex}.")

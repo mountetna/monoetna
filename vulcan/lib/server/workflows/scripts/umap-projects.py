@@ -52,8 +52,9 @@ project_data = {
 			'sc_rna_seq': []
 		},
 		'color_options': {
-			# Format = <Label for the color-by drop down>: '<model>#<attribute>'
-			#   Cluster, Tube, and Gene are standard options that do not need to be added here!
+			# Format Non-Table = <Label in the UI>: '<model>#<attribute>'
+			# Format Table     = <Label in the UI>: '<model>#<target_attribute>$<slice_attribute>$<value of slice_attribute>'
+			#   Cluster, Tube, Manual Annotation, and Gene are standard options that do not need to be added here!
 			'Indication': 'experiment#name',
 			'Tissue': 'sample#tissue_type',
 			'Compartment': 'sc_rna_seq#biospecimen',
@@ -62,7 +63,8 @@ project_data = {
 			# age, sex at birth, age at diag, bmi, smoker status, alcohol use, race, ethnicity, *past medical history (up to 10 per), time on ice
 		},
 		'selection_options': {
-			# Format = <Label of this selection item>: '<model>#<attribute>'
+			# Format Non-Table = <Label in the UI>: '<model>#<attribute>'
+			# Format Table     = <Label in the UI>: '<model>#<target_attribute>$<slice_attribute>$<value of slice_attribute>'
 			'Indication': 'experiment#name',
 			'Tissue': 'sample#tissue_type',
 			'Compartment': 'sc_rna_seq#biospecimen',

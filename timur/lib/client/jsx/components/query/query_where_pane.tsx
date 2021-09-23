@@ -46,19 +46,10 @@ const QueryWherePane = () => {
         state.rootModel &&
         updatedFilter.modelName !== originalFilter.modelName
       ) {
-        let modelsInPath = state.graph.shortestPath(
+        let selectableModels = state.graph.sliceableModelNamesInPath(
           state.rootModel,
           updatedFilter.modelName
         );
-        let previousModelName = state.rootModel;
-        let selectableModels: string[] = [];
-
-        modelsInPath?.forEach((modelName) => {
-          if (state.graph.stepIsOneToMany(previousModelName, modelName)) {
-            selectableModels.push(modelName);
-          }
-          previousModelName = modelName;
-        });
 
         updatedFilter.anyMap = selectableModels.reduce(
           (acc: {[key: string]: boolean}, modelName: string) => {
@@ -100,6 +91,14 @@ const QueryWherePane = () => {
 
   return (
     <QueryClause title='Where'>
+      {state.recordFilters.length > 0 ? (
+        <Grid container alignItems='center' justify='center'>
+          <Grid item xs={1}>
+            OR
+          </Grid>
+          <Grid item xs={11} />
+        </Grid>
+      ) : null}
       {state.recordFilters.map((filter: QueryFilter, index: number) => (
         <Grid key={index} container alignItems='center' justify='center'>
           <Grid item xs={1}>
@@ -117,6 +116,7 @@ const QueryWherePane = () => {
             <QueryFilterControl
               key={`${index}-${updateCounter}`}
               filter={filter}
+              isColumnFilter={false}
               modelNames={modelNames}
               patchFilter={(updatedFilter: QueryFilter | QuerySlice) =>
                 handlePatchFilter(index, updatedFilter as QueryFilter, filter)

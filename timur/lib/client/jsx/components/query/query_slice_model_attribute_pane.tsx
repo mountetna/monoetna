@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useState, useMemo} from 'react';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
@@ -7,19 +7,15 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 import {QueryContext} from '../../contexts/query/query_context';
 import QueryFilterControl from './query_filter_control';
-import {QuerySlice} from '../../contexts/query/query_types';
+import {QuerySlice, QueryColumn} from '../../contexts/query/query_types';
 import useSliceMethods from './query_use_slice_methods';
 
 const QuerySliceModelAttributePane = ({
-  modelName,
-  slices,
-  isMatrix,
-  removeSlice
+  column,
+  columnIndex
 }: {
-  modelName: string;
-  slices: QuerySlice[];
-  isMatrix: boolean;
-  removeSlice: (modelName: string, index: number) => void;
+  column: QueryColumn;
+  columnIndex: number;
 }) => {
   // All the slices related to a given model / attribute,
   //   with the model / attribute as a "label".
@@ -27,12 +23,24 @@ const QuerySliceModelAttributePane = ({
   const [updateCounter, setUpdateCounter] = useState(0);
   const {state} = useContext(QueryContext);
 
-  const {addNewSlice, handlePatchSlice, handleRemoveSlice} = useSliceMethods(
-    modelName,
-    updateCounter,
-    setUpdateCounter,
-    removeSlice
-  );
+  const {matrixModelNames, addNewSlice, handlePatchSlice, handleRemoveSlice} =
+    useSliceMethods(column, columnIndex, updateCounter, setUpdateCounter);
+
+  let sliceableModelNames = useMemo(() => {
+    if (!state.rootModel) return [];
+
+    if (
+      state.rootModel === column.model_name &&
+      matrixModelNames.includes(column.model_name)
+    ) {
+      return [column.model_name];
+    } else {
+      return state.graph.sliceableModelNamesInPath(
+        state.rootModel,
+        column.model_name
+      );
+    }
+  }, [state.rootModel, column, state.graph, matrixModelNames]);
 
   if (!state.rootModel) return null;
 
@@ -42,27 +50,20 @@ const QuerySliceModelAttributePane = ({
         <Typography>Slices</Typography>
       </Grid>
       <Grid item xs={1}>
-        <Tooltip
-          title={`Add ${isMatrix ? 'matrix' : 'table'} slice`}
-          aria-label={`Add ${isMatrix ? 'matrix' : 'table'} slice`}
-        >
-          <IconButton
-            aria-label={`Add ${isMatrix ? 'matrix' : 'table'} slice`}
-            onClick={() => addNewSlice(isMatrix ? '::slice' : '')}
-          >
+        <Tooltip title='Add slice' aria-label='Add slice'>
+          <IconButton aria-label='Add slice' onClick={() => addNewSlice()}>
             <AddIcon />
           </IconButton>
         </Tooltip>
       </Grid>
       <Grid item xs={10}>
-        {slices
-          ? slices.map((filter: QuerySlice, index: number) => (
+        {column.slices
+          ? column.slices.map((slice: QuerySlice, index: number) => (
               <QueryFilterControl
-                key={`model-${modelName}-${index}-${updateCounter}`}
-                filter={filter}
-                modelNames={[modelName]}
-                hideModel={true}
-                matrixAttributesOnly={isMatrix}
+                key={`model-${column.model_name}-${index}-${updateCounter}`}
+                filter={slice}
+                isColumnFilter={true}
+                modelNames={sliceableModelNames}
                 patchFilter={(updatedFilter: QuerySlice) =>
                   handlePatchSlice(index, updatedFilter)
                 }

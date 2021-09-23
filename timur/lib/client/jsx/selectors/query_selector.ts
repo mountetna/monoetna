@@ -1,11 +1,7 @@
 import * as _ from 'lodash';
 
 import {Attribute, Model} from '../models/model_types';
-import {
-  QueryColumn,
-  QueryFilter,
-  QuerySlice
-} from '../contexts/query/query_types';
+import {QueryColumn, QuerySlice} from '../contexts/query/query_types';
 import {QueryGraph} from '../utils/query_graph';
 
 export const modelHasAttribute = (
@@ -75,15 +71,13 @@ export const selectMatrixAttributes = (
 
 export const selectMatrixModelNames = (
   magmaModels: any,
-  selectedAttributes: {[key: string]: QueryColumn[]}
+  columns: QueryColumn[]
 ): string[] => {
-  return Object.entries(selectedAttributes)
-    .filter(([modelName, attributes]: [string, QueryColumn[]]) =>
-      attributes.some((attr) =>
-        attributeIsMatrix(magmaModels, modelName, attr.attribute_name)
-      )
+  return columns
+    .filter((column: QueryColumn) =>
+      attributeIsMatrix(magmaModels, column.model_name, column.attribute_name)
     )
-    .map(([modelName, attributes]: [string, QueryColumn[]]) => modelName);
+    .map((column: QueryColumn) => column.model_name);
 };
 
 export const selectCollectionModelNames = (
@@ -125,11 +119,13 @@ export const getPath = (
   heading: string,
   currentPath: number[]
 ): number[] => {
+  if (!array) return [];
+  if (!Array.isArray(array)) array = [array];
+
   let index = array.indexOf(heading);
   if (index > -1) return currentPath.concat([index]);
 
   let innerPath: number[] = [];
-
   array.forEach((ele, index: number) => {
     if (Array.isArray(ele)) {
       let tempPath = getPath(ele, heading, currentPath.concat(index));
@@ -147,16 +143,18 @@ export const pathToColumn = (
   heading: string,
   expandMatrices: boolean
 ): string => {
-  let index = array.indexOf(heading);
-  if (index > -1) return index.toString();
+  let indexlessHeading = heading.split('@')[0];
+  let startingIndexPlusMatrixColId = heading.split('@')[1];
+
+  if (!startingIndexPlusMatrixColId) return '-1';
 
   let fullPath: number[] = [];
 
   if (expandMatrices) {
-    let nonMatrixColId = heading.split('.')[0];
-    let sliceColId = heading.split('.')[1];
+    let startingIndex = parseInt(startingIndexPlusMatrixColId.split('.')[0]);
+    let sliceColId = startingIndexPlusMatrixColId.split('.')[1];
 
-    fullPath = getPath(array, nonMatrixColId, []);
+    fullPath = getPath(array[startingIndex], indexlessHeading, [startingIndex]);
 
     if (!sliceColId) return fullPath.length > 0 ? fullPath[0].toString() : '-1';
 
@@ -168,11 +166,19 @@ export const pathToColumn = (
 
     let sliceIndex = sliceOperands.indexOf(sliceColId);
 
-    // Disgard the extra [1] here from pathToSliceOperands,
-    //   because of the answer format
-    return fullPath.slice(0, -1).concat([sliceIndex]).join('.');
+    // Get rid of the extra [1] used to find the slice operands
+    return pathToSliceOperands.slice(0, -1).concat([sliceIndex]).join('.');
   } else {
-    fullPath = getPath(array, heading, []);
+    let startingIndex = parseInt(startingIndexPlusMatrixColId);
+
+    if (!Array.isArray(array[startingIndex])) {
+      if (array[startingIndex] === indexlessHeading)
+        return startingIndex.toString();
+      else return '-1';
+    }
+
+    fullPath = getPath(array[startingIndex], indexlessHeading, [startingIndex]);
+
     return fullPath.length > 0 ? fullPath[0].toString() : '-1';
   }
 };
@@ -203,20 +209,6 @@ export const attributeIsFile = (
 export const isMatrixSlice = (slice: QuerySlice) =>
   '::slice' === slice.operator;
 
-export const isMatchingMatrixSlice = (
-  slice: QuerySlice,
-  attribute: QueryColumn
-) => {
-  return (
-    isMatrixSlice(slice) &&
-    slice.attributeName === attribute.attribute_name &&
-    slice.modelName === attribute.model_name
-  );
-};
-
-export const hasMatrixSlice = (
-  slices: QuerySlice[],
-  attribute: QueryColumn
-) => {
-  return slices.some((slice) => isMatchingMatrixSlice(slice, attribute));
+export const hasMatrixSlice = (column: QueryColumn) => {
+  return column.slices.some((slice) => isMatrixSlice(slice));
 };
