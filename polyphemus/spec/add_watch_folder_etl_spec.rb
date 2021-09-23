@@ -17,6 +17,7 @@ describe Polyphemus::AddWatchFolderBaseEtl do
       expect(Polyphemus::WatchFolder.count).to eq(0)
 
       etl = Polyphemus::AddWatchFolderBaseEtl.new(
+        linker: nil,
         project_bucket_pairs: [[PROJECT, RESTRICT_BUCKET]],
         model_name: "foo",
         watch_type: "link_files",
@@ -38,6 +39,7 @@ describe Polyphemus::AddWatchFolderBaseEtl do
       expect(Polyphemus::WatchFolder.count).to eq(0)
 
       etl = Polyphemus::AddWatchFolderBaseEtl.new(
+        linker: nil,
         project_bucket_pairs: [[PROJECT, RESTRICT_BUCKET]],
         model_name: "foo",
         watch_type: "link_files",
@@ -58,6 +60,7 @@ describe Polyphemus::AddWatchFolderBaseEtl do
       expect(Polyphemus::WatchFolder.count).to eq(0)
 
       etl = Polyphemus::AddWatchFolderBaseEtl.new(
+        linker: nil,
         project_bucket_pairs: [[PROJECT, RESTRICT_BUCKET]],
         model_name: "foo",
         watch_type: "link_files",
@@ -75,6 +78,7 @@ describe Polyphemus::AddWatchFolderBaseEtl do
       expect(Polyphemus::WatchFolder.count).to eq(2)
 
       etl = Polyphemus::AddWatchFolderBaseEtl.new(
+        linker: nil,
         project_bucket_pairs: [[PROJECT, RESTRICT_BUCKET]],
         model_name: "foo",
         watch_type: "process_files",
@@ -106,6 +110,7 @@ describe Polyphemus::AddWatchFolderBaseEtl do
       expect(Polyphemus::WatchFolder.count).to eq(1)
 
       etl = Polyphemus::AddWatchFolderBaseEtl.new(
+        linker: nil,
         project_bucket_pairs: [[PROJECT, RESTRICT_BUCKET]],
         model_name: "foo",
         folder_path_regexes: {

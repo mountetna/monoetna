@@ -5,8 +5,8 @@ class Polyphemus::IpiRnaSeqRawFastqFilesLinker < Polyphemus::IpiRnaSeqFilesLinke
 
   RAW_FASTQ_FILE = /.*\.fastq\.gz$/
 
-  def initialize
-    super(attribute_regex: attribute_regex, record_name_regex: RECORD_NAME_REGEX)
+  def initialize(project_name:, bucket_name:)
+    super(attribute_regex: attribute_regex, record_name_regex: RECORD_NAME_REGEX, project_name: project_name, bucket_name: bucket_name)
   end
 
   private

@@ -1,11 +1,12 @@
 require_relative "../../metis_folder_etl"
 
+# TODO: Can we generalize this to propagate folder updates across all projects?  Would need some refactoring of
+# cursors and some endpoints.
 class Polyphemus::MetisPropagateFolderUpdatedAtEtl < Polyphemus::MetisFolderEtl
   PROJECT = "ipi"
   BUCKET = "data"
 
   def initialize
-    @linker = Polyphemus::IpiRnaSeqProcessedFilesLinker.new
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
     )
