@@ -21,10 +21,6 @@ fi
 
 if [ -n "$UPDATE_STATE" ]; then
   ./bin/${APP_NAME} migrate
-
-  app_name_capitalized=$(echo ${APP_NAME} | tr [a-z] [A-Z])
-  eval "export ${app_name_capitalized}_ENV=TEST"
-  ./bin/${APP_NAME} migrate
 fi
 
 mkdir -p /app/data/uploads
