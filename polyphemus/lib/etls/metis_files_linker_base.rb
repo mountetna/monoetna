@@ -16,7 +16,7 @@ class Polyphemus::MetisFilesLinkerBase
   # the metis file in watch folder etl uses folder_ids_matching_file_collections to grab all containing folders for files that
   # match file collections and ensures that a folder list is performed and that all known files in that grouping are included.
   def link(model_name:, files_by_record_name:, attribute_regex:)
-    return if files_by_record_name.empty?
+    return false if files_by_record_name.empty?
 
     logger.info("Processing files for: #{files_by_record_name.map { |f| f.record_name }.join(",")}")
 
@@ -68,9 +68,9 @@ class Polyphemus::MetisFilesLinkerBase
     magma_client.update_json(update_request) if update_request.revisions.keys.length > 0
 
     logger.info("Done")
-  end
 
-  private
+    update_request.revisions
+  end
 
   def magma_models(project_name)
     return @magma_models[project_name] if @magma_models.key?(project_name)
@@ -135,7 +135,11 @@ class Polyphemus::MetisFilesLinkerBase
   end
 
   def full_path_for_file(file)
-    "#{watch_folder_for_file(file).folder_path}/#{file.file_name}"
+    watch_folder = watch_folder_for_file(file)
+
+    unless watch_folder.nil?
+      "#{watch_folder.folder_path}/#{file.file_name}"
+    end
   end
 
   def is_file_collection?(project_name, model_name, attribute_name)
@@ -159,7 +163,7 @@ class Polyphemus::MetisFilesLinkerBase
     record_name_gsub_pair: nil
   )
     metis_files_by_record_name = metis_files.group_by do |file|
-      match = full_path_for_file(file).match(path_regex)
+      match = full_path_for_file(file)&.match(path_regex)
 
       if match
         record_name = corrected_record_name(match[:record_name])

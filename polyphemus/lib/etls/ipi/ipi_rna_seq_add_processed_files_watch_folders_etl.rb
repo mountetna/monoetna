@@ -7,6 +7,7 @@ class Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl < Polyphemus::AddWat
 
   def initialize
     super(
+      linker: Polyphemus::IpiRnaSeqProcessedFilesLinker.new(project_name: PROJECT, bucket_name: BUCKET),
       project_bucket_pairs: [[PROJECT, BUCKET]],
       folder_path_regexes: {
         "#{PROJECT}_#{BUCKET}": /^bulkRNASeq\/.*\/output\/.*$/,
