@@ -44,10 +44,20 @@ class EtlController < Polyphemus::Controller
     update = @params.slice(*(etl_config.columns - [:id, :project_name, :name]))
 
     if update[:secrets]
-      unless etl_config.valid_secrets?(update[:secrets])
-        raise Etna::BadRequest, "Secrets for #{etl_config.etl_job_class.job_name} jobs must be one of: #{etl_config.etl_job_class.secret_keys.join(', ')}"
-      end
+      error = etl_config.validate_secrets(update[:secrets])
+
+      raise Etna::BadRequest, error if error
+
       update[:secrets] = etl_config.secrets.merge(update[:secrets])
+    end
+
+    if update[:params]
+      errors = etl_config.validate_params(update[:params])
+
+      unless errors.empty?
+        raise Etna::BadRequest, errors.join('; ').capitalize
+      end
+      update[:params] = etl_config.params.merge(update[:params])
     end
 
     if update[:config]
@@ -55,7 +65,7 @@ class EtlController < Polyphemus::Controller
 
       new_etl_config = Polyphemus::EtlConfig.create(etl_config.as_json.merge(update).merge(secrets: etl_config.secrets))
       etl_config.update(archived: true, run_interval: Polyphemus::EtlConfig::RUN_NEVER)
-      etl_config = new_etl_config
+      return success_json(new_etl_config)
     else
       etl_config.update(update)
     end
@@ -85,6 +95,7 @@ class EtlController < Polyphemus::Controller
       etl: @params[:job_type],
       config: {},
       secrets: {},
+      params: {},
       run_interval: Polyphemus::EtlConfig::RUN_NEVER
     )
 

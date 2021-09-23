@@ -19,6 +19,42 @@ class Polyphemus
         as_json[:secrets]
       end
 
+      def validate_secrets(secrets)
+        unless (secrets.keys - secret_keys).empty?
+          return "Secrets for #{job_name} jobs must be one of: #{secret_keys.join(', ')}"
+        end
+      end
+
+      def job_params
+        as_json[:params]
+      end
+
+      def validate_params(params)
+        errors = []
+        params.each do |param, value|
+          unless job_params.has_key?(param)
+            errors.push("no such param #{param}")
+            next
+          end
+          value_opts = job_params[param]
+          case value_opts
+          when Array
+            unless value_opts.include?(value)
+              errors.push("#{param} must be in: #{value_opts.join(', ')}")
+            end
+          when 'string'
+            unless value.is_a?(String)
+              errors.push("#{param} must be a string")
+            end
+          when 'boolean'
+            unless [true,false].include?(value)
+              errors.push("#{param} must be a boolean")
+            end
+          end
+        end
+        errors
+      end
+
       def job_name
         self.name.match(/::(.*)Job/)[1].underscore
       end

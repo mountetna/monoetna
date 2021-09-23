@@ -493,7 +493,7 @@ def stub_watch_folders(folder_data = nil)
 end
 
 def create_dummy_etl(opts)
-  create(:etl_config, {project_name: "labors", name: "Dummy ETL", config: {}, secrets: {}, etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_NEVER}.merge(opts))
+  create(:etl_config, {project_name: "labors", name: "Dummy ETL", config: {}, params: {}, secrets: {}, etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_NEVER}.merge(opts))
 end
 
 def remove_dummy_job
@@ -515,6 +515,10 @@ def create_dummy_job
           },
           required: ["foo"],
           additionalProperties: false
+        },
+        params: {
+          problem: [ 'present', 'absent' ],
+          whippit: 'boolean',
         },
         secrets: [ :rumor, :password ]
       }

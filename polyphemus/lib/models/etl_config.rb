@@ -30,8 +30,12 @@ class Polyphemus
       Polyphemus::Job.from_name(etl)
     end
 
-    def valid_secrets?(secrets)
-      (secrets.keys - etl_job_class.secret_keys).empty?
+    def validate_secrets(secrets)
+      etl_job_class.validate_secrets(secrets)
+    end
+
+    def validate_params(params)
+      etl_job_class.validate_params(params)
     end
 
     def run!
@@ -44,12 +48,23 @@ class Polyphemus
         user: nil
       ).run
 
-      update(
+      state = {
         status: STATUS_COMPLETED,
-        output: $stdout.string,
-        run_interval: run_interval == Polyphemus::EtlConfig::RUN_ONCE ?
-          Polyphemus::EtlConfig::RUN_NEVER : run_interval
-      )
+        output: $stdout.string
+      }
+
+      if run_once?
+        state.update(
+          run_interval: Polyphemus::EtlConfig::RUN_NEVER,
+          params: {}
+        )
+      end
+
+      update(state)
+    end
+
+    def run_once?
+      run_interval == Polyphemus::EtlConfig::RUN_ONCE
     end
 
     def set_error!(e)

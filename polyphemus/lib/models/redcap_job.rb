@@ -6,6 +6,20 @@ class Polyphemus
       {
         name: "redcap",
         schema: Redcap::Loader.to_schema,
+        params: {
+          mode: {
+            value: [ 'default', 'strict', 'existing' ],
+            default: 'default'
+          },
+          model_names: {
+            value: 'string',
+            default: ''
+          },
+          commit: {
+            value: 'boolean',
+            default: false
+          }
+        },
         secrets: [ :redcap_tokens ]
       }
     end

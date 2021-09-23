@@ -13,7 +13,7 @@ describe Polyphemus::RunEtlJob do
     end
 
     it 'runs a one-time Etl job' do
-      etl = create_dummy_etl(etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_ONCE)
+      etl = create_dummy_etl(etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_ONCE, params: { problem: 'absent', whippit: true } )
       
       command.execute
 
@@ -22,6 +22,7 @@ describe Polyphemus::RunEtlJob do
       expect(etl.ran_at).to be_within(1).of(Time.now)
       expect(etl.run_interval).to eq(Polyphemus::EtlConfig::RUN_NEVER)
       expect(etl.status).to eq(Polyphemus::EtlConfig::STATUS_COMPLETED)
+      expect(etl.params).to eq({})
       expect(etl.output).to eq("Here is some output\n")
     end
 

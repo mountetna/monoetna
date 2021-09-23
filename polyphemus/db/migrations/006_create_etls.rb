@@ -6,6 +6,7 @@ Sequel.migration do
       String :name, null: false
       String :etl, null: false
       column :config, :json, null: false
+      column :params, :json, null: false
       String :secrets, null: false
       DateTime :updated_at, null: false
       DateTime :created_at, null: false

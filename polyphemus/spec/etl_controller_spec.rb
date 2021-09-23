@@ -15,7 +15,7 @@ describe EtlController do
       expect(last_response.status).to eq(200)
       expect(json_body.length).to eq(1)
       expect(json_body.first.keys).to match_array([
-        :project_name, :etl, :name, :ran_at, :run_interval, :archived, :status, :output, :updated_at, :created_at, :config, :comment, :secrets
+        :project_name, :etl, :name, :ran_at, :run_interval, :archived, :status, :output, :updated_at, :created_at, :config, :comment, :secrets, :params
       ])
       expect(json_body.first[:project_name]).to eq('labors')
       expect(json_body.first[:secrets]).to eq(password: '***')
@@ -28,7 +28,7 @@ describe EtlController do
       get('/api/etl/jobs')
 
       expect(last_response.status).to eq(200)
-      expect(json_body.map(&:keys)).to all(eq([:name, :schema, :secrets]))
+      expect(json_body.map(&:keys)).to all(match_array([:name, :schema, :secrets, :params]))
     end
   end
 
@@ -112,10 +112,10 @@ describe EtlController do
     it 'updates secrets' do
       etl = create_dummy_etl(
         updated_at: DateTime.now, run_interval: Polyphemus::EtlConfig::RUN_ONCE,
-        secrets: { 'password' => 'shibboleth', 'rumor' => "King Midas has the ears of an ass" }
+        secrets: { 'password' => 'shibboleth', 'rumor' => 'King Midas has the ears of an ass' }
       )
 
-      new_secret = { 'rumor' => "Midas has the ears of an ass" }
+      new_secret = { 'rumor' => 'Midas has the ears of an ass' }
       auth_header(:editor)
       json_post('/api/etl/labors/update/Dummy ETL', secrets: new_secret)
 
@@ -128,7 +128,7 @@ describe EtlController do
     it 'complains about unknown secrets' do
       etl = create_dummy_etl(updated_at: DateTime.now, run_interval: Polyphemus::EtlConfig::RUN_ONCE)
 
-      new_secret = { 'barber' => "Midas has the ears of an ass" }
+      new_secret = { 'barber' => 'Midas has the ears of an ass' }
       auth_header(:editor)
       json_post('/api/etl/labors/update/Dummy ETL', secrets: new_secret)
 
@@ -136,6 +136,39 @@ describe EtlController do
       expect(json_body[:error]).to eq('Secrets for dummy jobs must be one of: rumor, password')
       etl.refresh
       expect(etl.secrets).to eq({})
+    end
+
+    it 'updates params' do
+      etl = create_dummy_etl(
+        updated_at: DateTime.now, run_interval: Polyphemus::EtlConfig::RUN_ONCE,
+        params: { problem: 'present' }
+      )
+
+      new_params = { whippit: true }
+      auth_header(:editor)
+      json_post('/api/etl/labors/update/Dummy ETL', params: new_params)
+
+      expect(last_response.status).to eq(200)
+      expect(Polyphemus::EtlConfig.count).to eq(1)
+      etl.refresh
+      expect(etl.params.to_h).to eq({'problem' => 'present', 'whippit' => true})
+    end
+
+    it 'complains about invalid params' do
+      etl = create_dummy_etl(
+        updated_at: DateTime.now, run_interval: Polyphemus::EtlConfig::RUN_ONCE,
+        params: {}
+      )
+
+      new_params = { problem: 'bogus', zippit: true }
+      auth_header(:editor)
+      json_post('/api/etl/labors/update/Dummy ETL', params: new_params)
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Problem must be in: present, absent; no such param zippit')
+      expect(Polyphemus::EtlConfig.count).to eq(1)
+      etl.refresh
+      expect(etl.params.to_h).to eq({})
     end
   end
 
@@ -187,17 +220,17 @@ describe EtlController do
 
   context '#revisions' do
     it 'returns previous revisions for an etl' do
-      etl = create_dummy_etl(config: {}, updated_at: DateTime.parse('1000-01-01'), archived: true, comment: "first pass")
-      etl = create_dummy_etl(config: { "foo": "bar"}, updated_at: DateTime.parse('1000-02-01'), archived: true, comment: "some tweaks")
-      etl = create_dummy_etl(config: { "foo": "baz"}, updated_at: DateTime.parse('1000-03-01'), archived: true, comment: "almost got it")
-      etl = create_dummy_etl(config: { "foo": 1 }, updated_at: DateTime.parse('1000-04-01'), archived: false, comment: "final version")
+      etl = create_dummy_etl(config: {}, updated_at: DateTime.parse('1000-01-01'), archived: true, comment: 'first pass')
+      etl = create_dummy_etl(config: { 'foo': 'bar'}, updated_at: DateTime.parse('1000-02-01'), archived: true, comment: 'some tweaks')
+      etl = create_dummy_etl(config: { 'foo': 'baz'}, updated_at: DateTime.parse('1000-03-01'), archived: true, comment: 'almost got it')
+      etl = create_dummy_etl(config: { 'foo': 1 }, updated_at: DateTime.parse('1000-04-01'), archived: false, comment: 'final version')
 
       auth_header(:editor)
       get(URI.encode('/api/etl/labors/revisions/Dummy ETL'))
 
       expect(last_response.status).to eq(200)
       expect(json_body.map{|r| r[:config]}).to eq([
-        { foo: "baz" }, { foo: "bar" }, {}
+        { foo: 'baz' }, { foo: 'bar' }, {}
       ])
       expect(json_body.map(&:keys)).to all(match_array([ :config, :updated_at, :comment ]))
     end
