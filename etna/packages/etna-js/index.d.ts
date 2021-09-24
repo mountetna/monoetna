@@ -183,6 +183,10 @@ declare module 'etna-js/api/magma_api' {
   export function getAnswer(question: any, exchange: any): Promise<T>;
 }
 
+declare module 'etna-js/utils/copy' {
+  export function copyText(text: string): void;
+}
+
 declare module 'etna-js/actions/exchange_actions' {
   export class Exchange {
     dispatch: any;
