@@ -4,4 +4,5 @@ from archimedes.functions.scanpy import scanpy as sc
 
 metadata = sc.read(input_path('scdata.h5ad')).obs
 meta = input_var('meta')
+
 output_json(unique(list(metadata[meta])), 'opts')

@@ -1,12 +1,7 @@
 cwlVersion: v1.1
 class: Workflow
 
-inputs:
-  1_DGE_Calculation_Options__dge_method:
-    type: string
-    default: 'wilcoxon'
-    label: 'testing method'
-    doc: 'A string indicating what scanpy method option to use for calculating differential expression. Options are: "logreg", "t-test", "wilcoxon", "t-test_overestim_var". See documentation for "scanpy.tl.rank_genes_groups" for further details.'
+inputs: []
 
 outputs:
   the_csv:
@@ -58,7 +53,7 @@ steps:
       selected_vals: selectSubsetVals/selected_vals
       meta: selectSubsetMeta/subset_meta
       scdata.h5ad: mockSetup/scdata.h5ad
-    out: [scdata.h5ad]
+    out: [scdata.h5ad, pauser, methods]
     
   selectDGEMeta:
     run: ui-queries/select-autocomplete.cwl
@@ -66,6 +61,7 @@ steps:
     doc: 'Selections here pick the attribute with which to group cells for differential expression analysis. Actual group-names (values for this data) will be presented in the next step.'
     in:
       a: parse_metadata_options_full/discrete_metas
+      b: subsetData/pauser
     out: [dge_meta]
     
   prepDGEVals:
@@ -90,6 +86,14 @@ steps:
       a: prepDGEVals/opts
     out: [selected_vals]
     
+  DGEmethod:
+    run: ui-queries/select-autocomplete.cwl
+    doc: "Your selection here picks the 'method' of the 'scanpy.tl.rank_genes_groups' differential expression function."
+    label: 'Select p-value Calculation Method'
+    in:
+      a: subsetData/methods
+    out: [dge_method]
+  
   DGEcalc:
     run: scripts/dge_calc.cwl
     label: 'Calculate DGE'
@@ -98,7 +102,7 @@ steps:
       target_meta: selectDGEMeta/dge_meta
       target_1: selectDGEVals_1/selected_vals
       target_2: selectDGEVals_2/selected_vals
-      dge_method: 1_DGE_Calculation_Options__dge_method
+      dge_method: DGEmethod/dge_method
     out: [diffexp.csv]
     
   downloadDEData:

@@ -1,4 +1,4 @@
-from archimedes.functions.dataflow import input_path, input_json, input_var, output_path
+from archimedes.functions.dataflow import input_path, input_json, input_var, output_path, output_json
 from archimedes.functions.scanpy import scanpy as sc
 
 # Load
@@ -8,3 +8,4 @@ meta = input_var('meta')
 
 # Subset & Output
 scdata[scdata.obs[meta].isin(vals)].write(output_path('scdata.h5ad'))
+output_json(['logreg', 't-test', 'wilcoxon', 't-test_overestim_var'], 'methods')
