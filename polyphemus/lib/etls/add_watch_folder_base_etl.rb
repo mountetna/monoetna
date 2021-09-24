@@ -1,7 +1,8 @@
 require_relative "./metis_folder_filtering_base_etl"
 
 class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEtl
-  def initialize(project_bucket_pairs:, model_name:, folder_path_regexes: {}, limit: 20, watch_type:)
+  def initialize(project_bucket_pairs:, model_name:, folder_path_regexes: {}, limit: 20, watch_type:, linker:)
+    @linker = linker
     @model_name = model_name
     @watch_type = watch_type
     super(
@@ -90,7 +91,6 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
     folders.each do |folder|
       files = folder_files(cursor, folder)
       @linker.link(
-        project_name: cursor[:project_name],
         model_name: @model_name,
         files: files,
       ) if @linker
