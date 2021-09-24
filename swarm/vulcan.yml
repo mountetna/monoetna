@@ -35,7 +35,7 @@ services:
         export VULCAN__PRODUCTION__USER_HASH_SECRET="$$(cat /run/secrets/user-hash-secret)"
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
         exec /bin/deploy.sh migrate 'docker pull etnaagent/archimedes:production' -- /app/bin/puma.sh
-    image: etnaagent/vulcan:swarm_test
+    image: etnaagent/vulcan:production
     volumes:
       - /data_change_me_when_done/vulcan:/app/data/vulcan
       - /var/run/docker.sock:/var/run/docker.sock:ro
