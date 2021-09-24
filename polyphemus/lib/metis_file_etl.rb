@@ -36,11 +36,15 @@ class Polyphemus
                 bucket_name: cursor[:bucket_name],
                 offset: 0
             )
+
             prepare_find_request(cursor, find_request)
             find_request
           end.result_updated_at do |file|
             file.updated_at
           end.result_id do |file|
+            # This works as a change of the underlying file at a given name will trigger
+            # further processing, and we're only concerned with the state of the nominal file
+            # system at a point of time.
             file.file_path
           end.execute_batch_find do |find_request, i|
             execute_request(find_request, i)
