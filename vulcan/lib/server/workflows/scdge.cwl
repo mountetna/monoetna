@@ -7,95 +7,103 @@ inputs:
     default: 'wilcoxon'
     label: 'testing method'
     doc: 'A string indicating what scanpy method option to use for calculating differential expression. Options are: "logreg", "t-test", "wilcoxon", "t-test_overestim_var". See documentation for "scanpy.tl.rank_genes_groups" for further details.'
-  HOLDER__umap_session_info:
-    type: string
-    label: 'FILLER'
-    default: 'FILLER'
 
 outputs:
-  the_data:
-    type: File
-    outputSource: DGEcalc/scdata
   the_csv:
     type: File
     outputSource: DGEcalc/diffexp.csv
 
 steps:
-  projectData:
-    run: scripts/umap-projects.cwl
-    label: 'Fetch project settings'
+  mockSetup:
+    run: scripts/dge_mock_data.cwl
+    label: 'Fetch data'
     in: []
-    out: [project_data]
-  queryMagma:
-    run: scripts/retrieve_aattribute_options.cwl
-    label: 'Fetch data options'
+    out: [scdata.h5ad]
+    
+  parse_metadata_options_full:
+    run: scripts/dge_summarize_obs.cwl
+    label: 'Determine Subsetting Options'
     in:
-      project_data: projectData/project_data
-      umap_session_info: HOLDER_umap_session_info
-    out: [selection_atts, scData]
-  selectSubsetAttributes:
-    run: ui-queries/multiselect-string-all.cwl
-    label: 'Select Subset Targets-1'
+      scdata.h5ad: mockSetup/scdata.h5ad
+    out: [discrete_metas, continuous_metas]
+    
+  selectSubsetMeta:
+    run: ui-queries/select-autocomplete.cwl
+    label: 'Select metadata to subset on'
+    doc: 'Selections here pick the attribute with which to group cells for subsetting which cells DGE will be run on. Actual group-names (values for this data) will be presented in the next step.'
+    in:
+      a: parse_metadata_options_full/discrete_metas
+    out: [subset_meta]
+    
+  prepSubsetVals:
+    run: scripts/dge_retrieve_meta_vals.cwl
+    label: 'Parse metadata selection'
+    in:
+      scdata.h5ad: mockSetup/scdata.h5ad
+      meta: selectSubsetMeta/subset_meta
+    out: [opts]
+    
+  selectSubsetVals:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select Subset Targets'
     doc: 'Selections here pick the subset of attributes base cell subsetting on. Actual values for this data will be presented in the next step. If you DO NOT WISH TO SUBSET to certain cells, select any one of these, then "all" in the next step.'
     in:
-      a: queryMagma/selection_atts
-    out: [selected_atts]
-  parseSelectionAttributes:
-    run: scripts/parse_attribute_selections.cwl
-    label: 'Parse Subset Targets-1'
-    in:
-      project_data: projectData/project_data
-      selected_atts: selectSubsetAttributes/selected_atts
-      scdata: queryMagma/scData
-    out: [selection_values]
-  selectSubsetValues:
-    run: ui-queries/multiple-multiselect-string-all.cwl
-    label: 'Select Subseting Targets-2'
-    doc: 'Selections here pick the subset of cells to move forward with. Select all values of the selected attributes that you would like to target. The cells that meet these criteria, based on the union of ALL feature selections here, will be retained for differential expression calculation steps. Selections must be made for each in order to proceed. If you DO NOT WISH TO SUBSET to certain cells, select "all".'
-    in:
-      a: parseSelectionAttributes/selection_values
-    out: [selected_values]
+      a: prepSubsetVals/opts
+    out: [selected_vals]
+    
   subsetData:
-    run: scripts/parse_value_selections.cwl
+    run: scripts/dge_subset.cwl
     label: 'Subset cells'
     in:
-      scdata: queryMagma/scdata
-      selected_values: selectSubsetValues/selected_values
-    out: [scdata]
-  selectDGEAttributes:
-    run: ui-queries/multiselect-string-all.cwl
-    label: 'Select DGE Target-1'
+      selected_vals: selectSubsetVals/selected_vals
+      meta: selectSubsetMeta/subset_meta
+      scdata.h5ad: mockSetup/scdata.h5ad
+    out: [scdata.h5ad]
+    
+  selectDGEMeta:
+    run: ui-queries/select-autocomplete.cwl
+    label: 'Select metadata to run DGE on'
     doc: 'Selections here pick the attribute with which to group cells for differential expression analysis. Actual group-names (values for this data) will be presented in the next step.'
     in:
-      a: queryMagma/selection_atts
-    out: [selected_att]
-  parseDGEAttributes:
-    run: scripts/parse_attribute_selections.cwl
-    label: 'Parse DGE Target-1'
+      a: parse_metadata_options_full/discrete_metas
+    out: [dge_meta]
+    
+  prepDGEVals:
+    run: scripts/dge_retrieve_meta_vals.cwl
+    label: 'Parse metadata selection'
     in:
-      selected_att: selectDGEAttributes/selected_att
-      scdata: subsetData/scData
-    out: [selection_values]
-  selectDGEGroups:
-    run: ui-queries/multiselect-string-all.cwl
-    label: 'Select DGE Groups'
-    doc: 'Selections here pick the groups to compare in DGE analysis. In an initial iteration of this workflow, cells of each individual selection here will be compared to all other cells.'
+      scdata.h5ad: subsetData/scdata.h5ad
+      meta: selectDGEMeta/dge_meta
+    out: [opts]
+    
+  selectDGEVals_1:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select DGE Target-1'
     in:
-      a: parseDGEAttributes/selection_values
-    out: [dge_groups]
+      a: prepDGEVals/opts
+    out: [selected_vals]
+    
+  selectDGEVals_2:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select DGE Target-2'
+    in:
+      a: prepDGEVals/opts
+    out: [selected_vals]
+    
   DGEcalc:
     run: scripts/dge_calc.cwl
     label: 'Calculate DGE'
     in:
-      scdata: subsetData/scData
-      target_att: selectDGEAttributes/selected_att
-      target_groups: selectDGEGroups/dge_groups
+      scdata.h5ad: subsetData/scdata.h5ad
+      target_meta: selectDGEMeta/dge_meta
+      target_1: selectDGEVals_1/selected_vals
+      target_2: selectDGEVals_2/selected_vals
       dge_method: 1_DGE_Calculation_Options__dge_method
-    out: [scdata, diffexp.csv]
+    out: [diffexp.csv]
+    
   downloadDEData:
     run: ui-outputs/link.cwl
     in:
       a: DGEcalc/diffexp.csv
     out: []
     label: 'Download DiffExp as csv'
-
