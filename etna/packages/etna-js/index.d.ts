@@ -170,6 +170,15 @@ declare module 'etna-js/utils/debounce' {
   ): any;
 }
 
+declare module 'etna-js/utils/debouncer' {
+  export class Debouncer {
+    constructor(params: any);
+    reset();
+    ready(func: any);
+    timeout();
+  }
+}
+
 declare module 'etna-js/api/magma_api' {
   export function getAnswer(question: any, exchange: any): Promise<T>;
 }
