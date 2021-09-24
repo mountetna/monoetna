@@ -7,7 +7,7 @@ class Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl < Polyphemus::MetisFileInWatchFo
   MODEL = "rna_seq"
 
   def initialize
-    @linker = Polyphemus::IpiRnaSeqRawFastqFilesLinker.new
+    @linker = Polyphemus::IpiRnaSeqRawFastqFilesLinker.new(project_name: PROJECT, bucket_name: BUCKET)
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
       watch_type: "link_files",
@@ -19,7 +19,6 @@ class Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl < Polyphemus::MetisFileInWatchFo
     logger.info("Found #{files.length} files in watch folders: #{files.map { |f| f.file_path }.join(",")}")
 
     @linker.link(
-      project_name: cursor[:project_name],
       model_name: MODEL,
       files: files,
     )

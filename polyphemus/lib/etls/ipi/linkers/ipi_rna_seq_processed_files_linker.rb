@@ -8,8 +8,11 @@ class Polyphemus::IpiRnaSeqProcessedFilesLinker < Polyphemus::IpiRnaSeqFilesLink
   JUNCTION_REGEX = /.*\.junction$/
   UNMAPPED_FASTQ_REGEX = /.*\.fastq\.gz$/
 
-  def initialize
-    super(attribute_regex: attribute_regex, record_name_regex: RECORD_NAME_REGEX)
+  def initialize(project_name:, bucket_name:)
+    super(
+      project_name: project_name, bucket_name: bucket_name,
+      attribute_regex: attribute_regex, record_name_regex: RECORD_NAME_REGEX
+    )
   end
 
   private

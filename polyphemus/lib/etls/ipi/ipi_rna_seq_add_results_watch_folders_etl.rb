@@ -10,6 +10,7 @@ class Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl < Polyphemus::AddWatchFolde
     @attribute_processor = Polyphemus::IpiRnaSeqAttributeProcessor.new
     @matrix_processor = Polyphemus::IpiRnaSeqMatrixProcessor.new
     super(
+      linker: nil,
       project_bucket_pairs: [[PROJECT, BUCKET]],
       folder_path_regexes: {
         "#{PROJECT}_#{BUCKET}": /^bulkRNASeq\/.*\/results$/,
