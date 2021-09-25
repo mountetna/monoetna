@@ -111,7 +111,11 @@ module Redcap
     end
 
     def restrict_mode?
-      !!config[:mode] && !strict_mode && existing_mode
+      !default_mode && !strict_mode && existing_mode
+    end
+
+    def default_mode
+      "default" == config[:mode]
     end
 
     def strict_mode

@@ -84,7 +84,7 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-const EtlConfig = ({project_name, etl,name,config,status,secrets,output,run_interval,ran_at,job,onUpdate}: Etl & {job:any,onUpdate:Function}) => {
+const EtlConfig = ({project_name, etl,name,config,status,secrets,params,output,run_interval,ran_at,job,onUpdate}: Etl & {job:any,onUpdate:Function}) => {
   const [ mode, setMode ] = useState<string | null>(null);
   const toggleMode = (m:string) => mode == m ? setMode(null) : setMode(m);
 
@@ -101,49 +101,49 @@ const EtlConfig = ({project_name, etl,name,config,status,secrets,output,run_inte
       </Typography>
 
       <CardActions>
-      <Grid direction='row' container>
-        <Grid direction='column' container item xs={9}>
-          <Grid direction='row' className={classes.statusline} container>
-            <Grid container className={classes.title} item>
-              <Typography>Last Ran</Typography>
+        <Grid direction='row' container>
+          <Grid direction='column' container item xs={9}>
+            <Grid direction='row' className={classes.statusline} container>
+              <Grid container className={classes.title} item>
+                <Typography>Last Ran</Typography>
+              </Grid>
+              <Grid item className={classes.values}>
+                <Typography>{ran_at ? formatTime(ran_at) : 'never'}</Typography>
+              </Grid>
             </Grid>
-            <Grid item className={classes.values}>
-              <Typography>{ran_at ? formatTime(ran_at) : 'never'}</Typography>
+            <Grid direction='row' className={classes.statusline} container>
+              <Grid container className={classes.title} item>
+                <Typography>Next Run</Typography>
+              </Grid>
+              <Grid item className={ classes.values }>
+                <Typography>{runTime(ran_at, run_interval)} </Typography>
+              </Grid>
+            </Grid>
+            <Grid direction='row' className={classes.statusline} container>
+              <Grid container className={classes.title}>
+                <Typography>Status</Typography>
+              </Grid>
+              <Grid className={classes.values} direction='row' item container>
+                <Grid item><StatusIcon status={status}/></Grid>
+                <Grid className={classes[status || 'none']} item><Typography>{ status || 'none' }</Typography></Grid>
+              </Grid>
             </Grid>
           </Grid>
-          <Grid direction='row' className={classes.statusline} container>
-            <Grid container className={classes.title} item>
-              <Typography>Next Run</Typography>
-            </Grid>
-            <Grid item className={ classes.values }>
-              <Typography>{runTime(ran_at, run_interval)} </Typography>
-            </Grid>
-          </Grid>
-          <Grid direction='row' className={classes.statusline} container>
-            <Grid container className={classes.title}>
-              <Typography>Status</Typography>
-            </Grid>
-            <Grid className={classes.values} direction='row' item container>
-              <Grid item><StatusIcon status={status}/></Grid>
-              <Grid className={classes[status || 'none']} item><Typography>{ status || 'none' }</Typography></Grid>
-            </Grid>
+          <Grid item container
+            direction='row'
+            className={classes.buttons}
+            alignItems='center'
+            xs={3}>
+            <EtlButton selected={mode} mode='run' onClick={ toggleMode }><PlayArrowIcon/></EtlButton>
+            <EtlButton selected={mode} mode='logs' onClick={ toggleMode }><LibraryBooksIcon/></EtlButton>
+            <EtlButton selected={mode} mode='configure' onClick={ toggleMode }><SettingsIcon/></EtlButton>
+            <EtlButton selected={mode} mode='secrets' onClick={ toggleMode }><LockIcon/></EtlButton>
+            <EtlButton selected={mode} mode='remove' onClick={ toggleMode }><DeleteIcon/></EtlButton>
           </Grid>
         </Grid>
-        <Grid item container
-          direction='row'
-          className={classes.buttons}
-          alignItems='center'
-          xs={3}>
-          <EtlButton selected={mode} mode='run' onClick={ toggleMode }><PlayArrowIcon/></EtlButton>
-          <EtlButton selected={mode} mode='logs' onClick={ toggleMode }><LibraryBooksIcon/></EtlButton>
-          <EtlButton selected={mode} mode='configure' onClick={ toggleMode }><SettingsIcon/></EtlButton>
-          <EtlButton selected={mode} mode='secrets' onClick={ toggleMode }><LockIcon/></EtlButton>
-          <EtlButton selected={mode} mode='remove' onClick={ toggleMode }><DeleteIcon/></EtlButton>
-        </Grid>
-      </Grid>
       </CardActions>
       <ConfigurePane name={name} project_name={project_name} selected={mode} config={config} schema={job ? job.schema : null} update={postUpdate}/>
-      <RunPane selected={mode} run_interval={run_interval} update={postUpdate} />
+      <RunPane selected={mode} run_interval={run_interval} update={postUpdate} params={params} param_opts={ job ? job.params : null } />
       <RemovePane selected={mode} update={postUpdate}/>
       <LogsPane selected={mode} output={output}/>
       <SecretsPane selected={mode} update={postUpdate} keys={ job ? job.secrets : null} secrets={secrets}/>

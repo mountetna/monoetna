@@ -399,8 +399,6 @@ class Polyphemus
         job_config.run!
       rescue Exception => e
         job_config.set_error!(e)
-        require 'pry'
-        binding.pry
       ensure
         $stdout = old_stdout
       end

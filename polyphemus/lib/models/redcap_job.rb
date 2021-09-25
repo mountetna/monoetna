@@ -7,18 +7,9 @@ class Polyphemus
         name: "redcap",
         schema: Redcap::Loader.to_schema,
         params: {
-          mode: {
-            value: [ 'default', 'strict', 'existing' ],
-            default: 'default'
-          },
-          model_names: {
-            value: 'string',
-            default: ''
-          },
-          commit: {
-            value: 'boolean',
-            default: false
-          }
+          mode: [ 'default', 'strict', 'existing' ],
+          model_names: 'string',
+          commit: 'boolean'
         },
         secrets: [ :redcap_tokens ]
       }
@@ -26,12 +17,14 @@ class Polyphemus
 
     def validate
       require_params(:redcap_tokens, :model_names)
-      raise JobError, "redcap_tokens must be an array of tokens." unless request_params[:redcap_tokens].is_a?(Array)
-      raise JobError, "model_names must be \"all\" or an array of model names." unless array_or_string_param(:model_names)
+      raise JobError, "redcap_tokens must be a comma-separated list of tokens." unless comma_separated?(:redcap_tokens, '[0-9A-F]{32}')
+      raise JobError, "model_names must be \"all\" or a comma-separated list of model names." unless comma_separated?(:model_names, '[a-z]*(_[a-z]+)*')
 
-      if request_params[:mode]
-        raise JobError, "mode must be nil, \"existing\", or \"strict\"." unless [nil, "existing", "strict"].include?(request_params[:mode])
-      end
+      raise JobError, "mode must be \"default\", \"existing\", or \"strict\"." unless ["default", "existing", "strict"].include?(request_params[:mode])
+    end
+
+    def comma_separated?(param_name, pattern)
+      request_params[param_name] =~ /\A#{pattern}(,\s*#{pattern})*\z/
     end
 
     def run
@@ -46,7 +39,7 @@ class Polyphemus
       )
 
       magma_client = Etna::Clients::Magma.new(
-        token: user.token,
+        token: token,
         host: Polyphemus.instance.config(:magma)[:host])
 
       redcap_etl.run(magma_client: magma_client, commit: commit?, logger: $stdout)

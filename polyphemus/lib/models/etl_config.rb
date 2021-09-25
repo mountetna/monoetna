@@ -41,12 +41,28 @@ class Polyphemus
     def run!
       update(ran_at: DateTime.now)
 
-      etl_job_class.new(
-        request_params: {},
-        request_env: {},
-        response: {},
-        user: nil
-      ).run
+      task_token = Etna::Clients::Janus.new(
+        token: Polyphemus.instance.config(:polyphemus)[:token],
+        ignore_ssl: Polyphemus.instance.config(:ignore_ssl),
+        **Polyphemus.instance.config(:janus)
+      ).generate_token(
+        'task',
+        signed_nonce: nil,
+        project_name: project_name
+      )
+
+      job = etl_job_class.new(
+        request_params: secrets.merge(params).symbolize_keys.merge(
+          project_name: project_name
+        ),
+        token: task_token
+      )
+
+      job.validate
+
+      raise Etna::BadRequest, "Errors in job request: #{job.errors}" unless job.valid?
+
+      results = job.run
 
       state = {
         status: STATUS_COMPLETED,
@@ -84,9 +100,12 @@ class Polyphemus
           end.to_h ]
         when :id
           next
-        when Time
-          next [ key, value.iso8601 ]
         else
+          case value
+          when Time
+            next [ key, value.iso8601 ]
+          end
+
           next [ key, value ]
         end
       end.compact.to_h

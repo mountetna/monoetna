@@ -20,9 +20,9 @@ class Polyphemus
     attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :dateshift_salt, :mode
 
     # Override initialize, user won't be passing in a filename directly as with other ETLs.
-    def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:, mode: nil)
+    def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:, mode: 'default')
       raise "No dateshift_salt provided, please provide one." unless dateshift_salt
-      raise "Mode must be nil, \"existing\", or \"strict\"." unless [nil, "existing", "strict"].include?(mode)
+      raise "Mode must be \"default\", \"existing\", or \"strict\"." unless ['default', 'existing', 'strict'].include?(mode)
       raise "Must provide at least one REDCap token." unless redcap_tokens && redcap_tokens.length > 0
 
       @file_path = File.join(File.dirname(__FILE__), 'projects', "#{project_name}.rb")
@@ -30,8 +30,8 @@ class Polyphemus
       raise "Project configuration does not exist." unless File.file?(@file_path)
 
       @project_name = project_name
-      @model_names = model_names
-      @redcap_tokens = redcap_tokens
+      @model_names = model_names.split(/,\s*/)
+      @redcap_tokens = redcap_tokens.split(/,\s*/)
 
       raise "REDCap host must use https://" unless redcap_host.start_with?("https://")
       raise "Magma host must use https://" unless magma_host.start_with?("https://")

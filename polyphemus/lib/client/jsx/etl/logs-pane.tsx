@@ -23,8 +23,9 @@ const LogsPane = ({selected, output}:{mode:string,selected:string}) => {
           readOnly: true,
           lineNumbers: true,
           lineWrapping: true,
+          mode: 'text',
           gutters: ['CodeMirror-lint-markers'],
-          lint: true,
+          lint: false,
           tabSize: 2
         }}
         value={output}

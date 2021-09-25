@@ -13,6 +13,7 @@ type Etl = {
   run: number,
   output: string,
   secrets: any,
+  params: any,
   status: string
 };
 
