@@ -1,4 +1,10 @@
 require_relative '../project_watch_folders_etl'
+require_relative '../project_propagate_folder_updated_at_etl'
+require_relative './file_processors/ipi_rna_seq_attribute_processor'
+require_relative './file_processors/ipi_rna_seq_matrix_processor'
+require_relative './linkers/ipi_rna_seq_processed_files_linker'
+require_relative './linkers/ipi_rna_seq_raw_fastq_files_linker'
+require_relative './record_creators/ipi_rna_seq_and_plate_record_creator'
 
 module Polyphemus
   module Ipi
@@ -33,6 +39,12 @@ module Polyphemus
     end
 
     class IpiWatchFoldersEtl < Polyphemus::ProjectWatchFoldersEtl
+      def initialize
+        super(WatchFoldersConfig.new)
+      end
+    end
+
+    class IpiPropagateFolderUpdatedAt < Polyphemus::ProjectPropagateFolderUpdatedAtEtl
       def initialize
         super(WatchFoldersConfig.new)
       end
