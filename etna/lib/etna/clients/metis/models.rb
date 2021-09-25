@@ -281,6 +281,12 @@ module Etna
           @raw = raw
         end
 
+        def with_containing_folder(folder)
+          File.new({
+            file_path: ::File.join(folder.folder_path, self.file_name)
+          }.update(self.raw))
+        end
+
         def file_path
           raw[:file_path]
         end

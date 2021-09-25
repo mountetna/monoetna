@@ -9,27 +9,21 @@ class Polyphemus::MetisFolderFilteringBaseEtl < Polyphemus::MetisFolderEtl
     )
   end
 
-  def process(cursor, folders)
-    raise "Subclass should do its filtering here"
-  end
-
-  def project_bucket_symbol(cursor)
-    "#{cursor[:project_name]}_#{cursor[:bucket_name]}".to_sym
+  def project_bucket_symbol(project_name:, bucket_name:)
+    "#{project_name}_#{bucket_name}".to_sym
   end
 
   def filter_target_folders(cursor, folders)
-    folders.select do |folder|
+    folders = folders.select do |folder|
       folder_path_satisfies_regex?(cursor, folder)
     end
-  end
 
-  def should_skip_folder?(folder)
-    # Subclasses can override
-    false
+    folders
   end
 
   def folder_path_satisfies_regex?(cursor, folder)
-    project_bucket = project_bucket_symbol(cursor)
+    return true unless cursor.include?(:project_name) && cursor.include?(:bucket_name)
+    project_bucket = project_bucket_symbol(**cursor)
     regex = @folder_path_regexes[project_bucket]
 
     raise Polyphemus::EtlError.new("No regex for project / bucket: #{project_bucket}") if regex.nil?

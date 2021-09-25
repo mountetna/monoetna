@@ -16,13 +16,4 @@ class Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl < Polyphemus::AddWat
       watch_type: "link_files",
     )
   end
-
-  def should_skip_folder?(folder)
-    # Ideally we wouldn't watch folders that aren't actual, valid record
-    #   names in Magma. However, we are creating record names from the folders currently,
-    #   so we would run into a race condition between the ETLs. For now, we'll treat all folders
-    #   as watch folders and filter out records during the linking process.
-    # !current_magma_record_names.include?(folder.folder_name)
-    false
-  end
 end

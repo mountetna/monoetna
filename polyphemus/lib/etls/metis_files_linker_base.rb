@@ -4,7 +4,7 @@ class Polyphemus::MetisFilesLinkerBase
   include WithLogger
   include WithEtnaClients
 
-  attr_reader :model_name, :bucket_name, :project_name
+  attr_reader :bucket_name, :project_name
 
   def initialize(project_name:, bucket_name:)
     @project_name = project_name
@@ -117,6 +117,17 @@ class Polyphemus::MetisFilesLinkerBase
       path: metis_path(file),
       original_filename: file.file_name,
     }
+  end
+
+  def current_magma_record_names(project_name, model_name)
+    request = Etna::Clients::Magma::RetrievalRequest.new(
+      project_name: project_name,
+      model_name: model_name,
+      attribute_names: ["identifier"],
+      record_names: "all",
+      hide_templates: true,
+    )
+    self.magma_client.retrieve(request).models.model(model_name).documents.document_keys
   end
 
   def metis_path(file)

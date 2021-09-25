@@ -3,12 +3,12 @@ require_relative "./metis_file_etl"
 
 class Polyphemus
   class MetisFileInWatchFolderEtl < MetisFileEtl
-    def initialize(project_bucket_pairs:, metis_client: nil, limit: 20, file_name_params: {}, watch_type:, hide_paths: true)
+    def initialize(project_bucket_pairs:, metis_client: nil, limit: 20, watch_type:, hide_paths: true)
       super(
         project_bucket_pairs: project_bucket_pairs,
         metis_client: metis_client,
         limit: limit,
-        file_name_params: file_name_params,
+        file_name_params: {},
       )
       @watch_type = watch_type
       @hide_paths = hide_paths
