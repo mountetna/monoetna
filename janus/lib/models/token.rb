@@ -71,14 +71,16 @@ module Token
       # ensure read only
 
       if read_only
-        payload[:perm] = "v:#{project_name}" if read_only
+        payload[:perm] = "v:#{project_name}"
       elsif payload[:perm] =~ /^[Aa]/
         # degrade admin permissions
         payload[:perm] = payload[:perm].sub(/^[Aa]/) { |c| c == 'A' ? 'E' : 'e' }
+      elsif @janus_user.supereditor?
+        payload[:perm] = "e:#{project_name}"
       end
 
       # Ensure the resulting permission is valid.
-      unless payload[:perm] =~ /^[AaEeVv]:#{Project::PROJECT_NAME_MATCH.source}$/
+      unless payload[:perm] =~ /^[EeVv]:#{Project::PROJECT_NAME_MATCH.source}$/
         raise Token::Error, "Cannot write invalid permission on task token!"
       end
 
@@ -122,6 +124,9 @@ module Token
       # no superuser or admin task tokens
       return false if project_name == 'administration'
       return false if token_role == 'administrator'
+
+      # if the user is a supereditor, the request is honored
+      return true if janus_user.supereditor?
 
       # the project must be valid
       janus_permission = janus_user.permissions.find do |permission|
