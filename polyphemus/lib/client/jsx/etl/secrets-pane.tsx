@@ -21,7 +21,12 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-const SecretsPane = ({selected, keys, update, secrets}:{selected:string}) => {
+const SecretsPane = ({selected, keys, update, secrets}:{
+  selected:string|null,
+  keys:string[],
+  update:Function,
+  secrets:any
+}) => {
   const classes = useStyles();
 
   const [ secret, setSecret ] = useState('');
@@ -39,7 +44,7 @@ const SecretsPane = ({selected, keys, update, secrets}:{selected:string}) => {
     </Grid>
     <Grid container spacing={1}>
       <Grid item>
-        <Select displayEmpty value={secret} onChange={e => setSecret(e.target.value)}>
+        <Select displayEmpty value={secret} onChange={e => setSecret(e.target.value as string)}>
           <MenuItem disabled value=''>Set secret</MenuItem>
           {
             keys && keys.map( key => <MenuItem key={key} value={key}>{key}</MenuItem>)

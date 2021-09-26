@@ -14,6 +14,7 @@
   :polyphemus:
     :host: https://polyphemus.development.local
     :token: my-token # create a long lived token with janus
+  :log_file: /dev/stdout
   :db:
     :adapter: postgres
     :host: polyphemus_db
@@ -39,6 +40,7 @@
   :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.development.local
+  :etl_secrets_key: 123456
   :ingest:
     :filename_regex: ^some-string-that-uniquely-identifies-our-files
     :sftp:
@@ -55,16 +57,6 @@
         :alias: c4
         :root: /root/directory/to/save/files/in
         :ssh-key: public-key-of-server
-
-:production:
-  :magma:
-    :host: https://magma.ucsf.edu
-  :metis:
-    :host: https://metis.ucsf.edu
-    :release_bucket: this_is_releasable
-    :restrict_bucket: dont_show_anyone
-  :polyphemus:
-    :token: production-token
 
 :test:
   :magma:
@@ -91,9 +83,11 @@
     :user: developer
     :password: password
     :search_path: [ public ]
+  :log_file: /dev/stdout
   :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.test
+  :etl_secrets_key: 123456
   :ingest:
     :filename_regex: oligo
     :sftp:

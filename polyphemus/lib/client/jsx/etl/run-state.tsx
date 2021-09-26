@@ -2,15 +2,15 @@ export const RUN_ONCE = 0;
 export const RUN_NEVER = -1;
 export const RUN_INTERVAL = 1;
 
-export const getRunState = (run) => (run != RUN_ONCE && run != RUN_NEVER ? RUN_INTERVAL : run);
-export const getRunIntervalTime = (run) => (run != RUN_ONCE && run != RUN_NEVER ? run : 600);
+export const getRunState = (run:number) => (run != RUN_ONCE && run != RUN_NEVER ? RUN_INTERVAL : run);
+export const getRunIntervalTime = (run:number) => (run != RUN_ONCE && run != RUN_NEVER ? run : 600);
 
-export const formatTime = (time) => Intl.DateTimeFormat('en-US', {
+export const formatTime = (time:Date|string) => Intl.DateTimeFormat('en-US', {
    year: 'numeric', month: 'short', day: 'numeric',
    hour: 'numeric', minute: 'numeric'
 }).format(new Date(time))
 
-export const runTime = (ran_at, run) => {
+export const runTime = (ran_at:string, run:number) => {
   if (run == RUN_NEVER) return 'never';
   if (run == RUN_ONCE || !ran_at) return 'pending';
 

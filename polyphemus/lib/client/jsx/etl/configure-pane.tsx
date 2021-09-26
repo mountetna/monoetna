@@ -6,7 +6,7 @@ import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import HistoryIcon from '@material-ui/icons/HistoryRounded';
-import Tooltip from '@material-ui/core/Typography';
+import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 
 import ConfigScript from './config-script';
@@ -26,7 +26,7 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-const ConfigurePane = ({name, project_name, selected, config, schema, update}:{name:string, project_name:string, selected:string, config:any, schema:any,update:Function}) => {
+const ConfigurePane = ({name, project_name, selected, config, schema, update}:{name:string, project_name:string, selected:string|null, config:any, schema:any,update:Function}) => {
   const classes = useStyles();
 
   let [ origScript, setOrigScript ] = useState('');

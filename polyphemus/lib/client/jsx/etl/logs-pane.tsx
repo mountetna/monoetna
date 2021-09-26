@@ -12,7 +12,7 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-const LogsPane = ({selected, output}:{mode:string,selected:string}) => {
+const LogsPane = ({selected, output}:{selected:string|null,output:string}) => {
   const classes = useStyles();
 
   return <EtlPane mode='logs' selected={selected}>

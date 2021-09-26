@@ -10,7 +10,7 @@ const useStyles = makeStyles( theme => ({
     width: 'auto',
   }
 }));
-const RemovePane = ({update,selected}:{update:Function,selected:string}) => {
+const RemovePane = ({update,selected}:{update:Function,selected:string|null}) => {
   const classes = useStyles();
 
   return <EtlPane mode='remove' selected={selected}>

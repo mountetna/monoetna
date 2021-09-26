@@ -22,7 +22,7 @@ const PolyphemusMain = ({project_name}:{project_name: string}) => {
   const [ jobs, setJobs ] = useState< Job[] | null>(null);
   const [ create, setCreate ] = useState(false);
 
-  const addEtl = etl => {
+  const addEtl = (etl:Etl) => {
     let index = etls.findIndex( e => e.name == etl.name );
     let new_etls = (index == -1) ? etls.concat(etl) :
       etl.archived ? etls.filter( (e, i) => i != index ) :

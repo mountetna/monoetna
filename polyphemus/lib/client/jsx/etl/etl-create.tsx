@@ -13,10 +13,16 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { json_post } from 'etna-js/utils/fetch';
 
-const EtlCreate = ({project_name, open, onClose, onCreate, jobs}) => {
+const EtlCreate = ({project_name, open, onClose, onCreate, jobs}:{
+  project_name: string,
+  open: boolean,
+  onClose: Function,
+  onCreate: Function,
+  jobs: Job[]
+}) => {
   const [ job_name, setJobName ] = useState('');
   const [ job_type, setJobType ] = useState('');
-  const [ error, setError ] = useState(null);
+  const [ error, setError ] = useState<string|null>(null);
 
   const reset = () => {
     setJobName('');
@@ -36,7 +42,7 @@ const EtlCreate = ({project_name, open, onClose, onCreate, jobs}) => {
       onCreate(etl);
       close();
     }
-  ).catch( response => response.then( ({error}) => setError(error)))
+  ).catch( response => response.then( ({error}:EtnaError) => setError(error)))
 
   return <Dialog open={open} onClose={ close } aria-labelledby="form-dialog-title">
     <DialogTitle id="form-dialog-title">Add Loader</DialogTitle>
@@ -48,14 +54,14 @@ const EtlCreate = ({project_name, open, onClose, onCreate, jobs}) => {
           margin="dense"
           label="Loader Name"
           value={ job_name }
-          onChange={ e => setJobName(e.target.value) }
+          onChange={ e => setJobName(e.target.value as string) }
           />
       </FormControl>
       <FormControl fullWidth>
         <InputLabel>Job Type</InputLabel>
         <Select
           value={job_type}
-          onChange={ e => setJobType(e.target.value) }
+          onChange={ e => setJobType(e.target.value as string) }
         >
           {
             jobs.map( ({name}) => <MenuItem key={name} value={name}>{name}</MenuItem> )

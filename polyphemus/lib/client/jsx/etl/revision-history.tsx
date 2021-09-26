@@ -32,7 +32,12 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-const diff = ({revision, prev, diffType, config}) => {
+const diff = ({revision, prev, diffType, config}:{
+  revision:EtlRevision,
+  prev:EtlRevision,
+  diffType:string,
+  config:any
+}) => {
   if (diffType == 'text') return JSON.stringify(revision.config,null,2);
 
   console.log({revision,prev})
@@ -48,12 +53,19 @@ const diff = ({revision, prev, diffType, config}) => {
   return diff;
 }
 
-const RevisionHistory = ({project_name, name, update, open, onClose, config}) => {
-  const [ revisions, setRevisions ] = useState(null);
-  const [ selectedRevision, setSelectedRevision ] = useState(null);
+const RevisionHistory = ({project_name, name, update, open, onClose, config}:{
+  project_name: string,
+  name: string,
+  update: (config: any) => void,
+  open: boolean,
+  onClose: (event:{})=>void,
+  config: any
+}) => {
+  const [ revisions, setRevisions ] = useState<null | EtlRevision[]>(null);
+  const [ selectedRevision, setSelectedRevision ] = useState<number|null>(null);
   const [ diffType, setDiffType ] = useState('text');
 
-  const setSelected = (revision, diffType) => {
+  const setSelected = (revision:number, diffType:string) => {
     setSelectedRevision(revision);
     setDiffType(diffType);
   }
@@ -115,7 +127,7 @@ const RevisionHistory = ({project_name, name, update, open, onClose, config}) =>
     </DialogContent>
     <DialogActions className={classes.actions}>
       {
-        selectedRevision != null && <Button onClick={() => update(revisions[selectedRevision].config)} >Load</Button>
+        revisions && selectedRevision != null && <Button onClick={() => update(revisions[selectedRevision].config)} >Load</Button>
       }
     </DialogActions>
   </Dialog>;

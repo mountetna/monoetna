@@ -23,7 +23,7 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-export const EtlPaneHeader = ({title,children}) => {
+export const EtlPaneHeader = ({title,children}:{title:string,children?:React.ReactNode}) => {
   const classes = useStyles();
 
   return <Grid className={classes.header} container alignItems='center'>
@@ -34,7 +34,7 @@ export const EtlPaneHeader = ({title,children}) => {
   </Grid>
 }
 
-const EtlPane = ({mode, selected, children }) => {
+const EtlPane = ({mode, selected, children }:{mode:string, selected:string|null,children:React.ReactNode}) => {
   const classes = useStyles();
 
   return <Collapse in={mode == selected} timeout='auto' unmountOnExit>

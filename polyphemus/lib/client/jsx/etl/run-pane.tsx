@@ -31,9 +31,14 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-const Param = ({value, opts, name, update}) => {
+const Param = ({value, opts, name, update}:{
+  value: undefined|string|boolean,
+  opts: string[]|'string'|'boolean',
+  name: string,
+  update: (name:string,value:string|boolean) => void
+}) => {
   if (Array.isArray(opts)) {
-    return <Select size='small' value={value||''} onChange={e => update(name, e.target.value)}>
+    return <Select value={value||''} onChange={e => update(name, e.target.value as string)}>
       {
         opts.map(
           opt => <MenuItem key={opt} value={opt}>{opt}</MenuItem>
@@ -43,17 +48,17 @@ const Param = ({value, opts, name, update}) => {
   }
 
   if (opts == 'string') {
-    return <TextField size='small' fullWidth value={value||''} onChange={e => update(name, e.target.value)}/>;
+    return <TextField size='small' fullWidth value={value== undefined ? '' : value} onChange={e => update(name, e.target.value)}/>;
   }
 
   if (opts == 'boolean') {
-    return <Switch size='small' checked={value == undefined ? false : value} onChange={ e => update(name, e.target.checked)}/>;
+    return <Switch size='small' checked={value == undefined ? false : value as boolean} onChange={ e => update(name, e.target.checked)}/>;
   }
 
   return null
 }
 
-const RunPane = ({run_interval,update,params,param_opts,selected}:{run_interval:number, params:any, param_opts: any, update:Function,selected:string}) => {
+const RunPane = ({run_interval,update,params,param_opts,selected}:{run_interval:number, params:any, param_opts: any, update:Function,selected:string|null}) => {
   const [ runState, setRunState ] = useState(getRunState(run_interval));
   const [ runIntervalTime, setRunIntervalTime ] = useState(getRunIntervalTime(run_interval));
   const [ newParams, setParams ] = useState(params);
