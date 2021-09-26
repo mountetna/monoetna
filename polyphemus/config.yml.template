@@ -40,7 +40,7 @@
   :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.development.local
-  :etl_secrets_key: 12345678901234567890123456789012
+  :etl_secrets_key: A2345678901234567890123456789012
   :ingest:
     :filename_regex: ^some-string-that-uniquely-identifies-our-files
     :sftp:
@@ -87,7 +87,7 @@
   :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.test
-  :etl_secrets_key: 12345678901234567890123456789012
+  :etl_secrets_key: A2345678901234567890123456789012
   :ingest:
     :filename_regex: oligo
     :sftp:
