@@ -387,7 +387,6 @@ class Polyphemus
     def execute
       job_config = Polyphemus::EtlConfig.next_to_run
 
-
       return if !job_config
 
       begin

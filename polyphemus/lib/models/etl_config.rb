@@ -53,14 +53,17 @@ class Polyphemus
 
       job = etl_job_class.new(
         request_params: secrets.merge(params).symbolize_keys.merge(
-          project_name: project_name
+          project_name: project_name,
+          config: config
         ),
         token: task_token
       )
 
+      raise 'Current config is invalid against current schema' unless validate_config(config)
+
       job.validate
 
-      raise Etna::BadRequest, "Errors in job request: #{job.errors}" unless job.valid?
+      raise "Errors in job request: #{job.errors}" unless job.valid?
 
       results = job.run
 

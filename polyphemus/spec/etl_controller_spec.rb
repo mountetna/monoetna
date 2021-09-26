@@ -84,7 +84,7 @@ describe EtlController do
       etl.refresh
       expect(etl.archived).to be_truthy
       expect(etl.run_interval).to eq(Polyphemus::EtlConfig::RUN_NEVER)
-      expect(etl.config).to eq({})
+      expect(etl.config).to eq('foo' => 2)
 
       expect(Polyphemus::EtlConfig.count).to eq(2)
 
@@ -106,7 +106,7 @@ describe EtlController do
       expect(Polyphemus::EtlConfig.count).to eq(1)
       etl.refresh
       expect(etl.archived).to be_falsy
-      expect(etl.config).to eq({})
+      expect(etl.config.to_h).to eq('foo' => 2)
     end
 
     it 'updates secrets' do

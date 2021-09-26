@@ -8,7 +8,7 @@ describe Redcap::Loader do
         dateshift_salt: '123',
         redcap_host: REDCAP_HOST,
         magma_host: MAGMA_HOST,
-        models: models
+        config: models
       }, 'test', @magma_client, STDERR
     ).run.first
   end

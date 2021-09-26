@@ -3,13 +3,20 @@ describe Polyphemus::RunEtlJob do
 
   context 'running etl jobs' do
     before(:all) do
-      Timecop.freeze
       create_dummy_job
+    end
+
+    before(:each) do
+      Timecop.freeze
+      stub_task_token
+    end
+
+    after(:each) do
+      Timecop.return
     end
 
     after(:all) do
       remove_dummy_job
-      Timecop.return
     end
 
     it 'runs a one-time Etl job' do

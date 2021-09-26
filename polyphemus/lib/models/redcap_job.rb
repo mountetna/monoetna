@@ -1,4 +1,4 @@
-require "action_controller"
+require_relative '../etls/redcap/redcap_etl_script_runner'
 
 class Polyphemus
   class RedcapJob < Polyphemus::Job
@@ -35,7 +35,8 @@ class Polyphemus
         dateshift_salt: Polyphemus.instance.config(:dateshift_salt).to_s,
         redcap_host: Polyphemus.instance.config(:redcap)[:host],
         magma_host: Polyphemus.instance.config(:magma)[:host],
-        mode: request_params[:mode]
+        mode: request_params[:mode],
+        config: request_params[:config]
       )
 
       magma_client = Etna::Clients::Magma.new(

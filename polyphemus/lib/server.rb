@@ -3,7 +3,6 @@ require "rack"
 
 require_relative "./polyphemus"
 require_relative "./polyphemus/controllers/configuration_controller"
-require_relative "./polyphemus/controllers/job_controller"
 require_relative './polyphemus/controllers/etl_controller'
 
 class Polyphemus
@@ -18,9 +17,6 @@ class Polyphemus
 
     # Return the app host configuration values
     get "/configuration", as: :configuration, action: "configuration#action", auth: { noauth: true }
-
-    # Submit a job for a project
-    post "/:project_name/job", action: "job#submit", auth: { user: { is_admin?: :project_name } }
 
     get "/:project_name/ingest/hosts", action: "ingest#list_hosts", auth: { user: { is_admin?: :project_name } }
     # Get files associated with a directory, for ingest

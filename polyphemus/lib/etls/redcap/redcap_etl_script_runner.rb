@@ -20,7 +20,7 @@ class Polyphemus
     attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :dateshift_salt, :mode
 
     # Override initialize, user won't be passing in a filename directly as with other ETLs.
-    def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:, mode: 'default')
+    def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:, mode: 'default', config:)
       raise "No dateshift_salt provided, please provide one." unless dateshift_salt
       raise "Mode must be \"default\", \"existing\", or \"strict\"." unless ['default', 'existing', 'strict'].include?(mode)
       raise "Must provide at least one REDCap token." unless redcap_tokens && redcap_tokens.length > 0
@@ -30,8 +30,9 @@ class Polyphemus
       raise "Project configuration does not exist." unless File.file?(@file_path)
 
       @project_name = project_name
-      @model_names = model_names.split(/,\s*/)
+      @model_names = model_names == 'all' ? model_names : model_names.split(/,\s*/)
       @redcap_tokens = redcap_tokens.split(/,\s*/)
+      @config = config
 
       raise "REDCap host must use https://" unless redcap_host.start_with?("https://")
       raise "Magma host must use https://" unless magma_host.start_with?("https://")
@@ -49,7 +50,7 @@ class Polyphemus
       #   self.__binding__ here -- throws an UndefinedMethod exception.
       run_script(self.get_binding)
 
-      loader = Redcap::Loader.new(config.update(system_config), @project_name, magma_client, logger)
+      loader = Redcap::Loader.new(system_config, @project_name, magma_client, logger)
 
       all_records, records_to_blank = loader.run
 
@@ -87,7 +88,8 @@ class Polyphemus
         magma_host: magma_host,
         project_name: @project_name,
         models_to_build: model_names,
-        mode: mode
+        mode: mode,
+        config: @config
       }
     end
 
