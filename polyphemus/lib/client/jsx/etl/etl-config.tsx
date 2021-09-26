@@ -123,9 +123,9 @@ const EtlConfig = ({project_name, etl,name,config,status,secrets,params,output,r
               <Grid container className={classes.title}>
                 <Typography>Status</Typography>
               </Grid>
-              <Grid className={classes.values} direction='row' item container>
+              <Grid className={`${classes.values} ${classes[status]}`} direction='row' item container>
                 <Grid item><StatusIcon status={status}/></Grid>
-                <Grid className={classes[status || 'none']} item><Typography>{ status || 'none' }</Typography></Grid>
+                <Grid item><Typography>{ status || 'none' }</Typography></Grid>
               </Grid>
             </Grid>
           </Grid>

@@ -26,6 +26,9 @@ const useStyles = makeStyles( theme => ({
   diff: {
     height: '200px',
     border: '1px solid #ccc'
+  },
+  actions: {
+    paddingRight: '25px'
   }
 }));
 
@@ -110,7 +113,10 @@ const RevisionHistory = ({project_name, name, update, open, onClose, config}) =>
         )
       }
     </DialogContent>
-    <DialogActions>
+    <DialogActions className={classes.actions}>
+      {
+        selectedRevision != null && <Button onClick={() => update(revisions[selectedRevision].config)} >Load</Button>
+      }
     </DialogActions>
   </Dialog>;
 }

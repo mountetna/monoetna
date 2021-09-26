@@ -92,7 +92,7 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-const ConfigScript = ({ schema, script, onChange } : { schema: any, script: string, onChange?: Function } ) => {
+const ConfigScript = ({ schema, script, onChange } : { schema: any, script: string, onChange: Function } ) => {
   let [ editor, setEditor ] = useState<Editor| null>(null);
 
   const classes = useStyles();

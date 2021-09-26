@@ -64,6 +64,12 @@ const ConfigurePane = ({name, project_name, selected, config, schema, update}:{n
             project_name={project_name}
             open={showRevisions}
             config={config}
+            update={
+              config => {
+                setEditedScript(JSON.stringify(config,null,2));
+                setShowRevisions(false)
+              }
+            }
             onClose={() => setShowRevisions(false)}
           />
         </Grid>
