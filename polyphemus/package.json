@@ -82,9 +82,9 @@
   },
   "scripts": {
     "test": "tsc && jest && webpack",
-    "build": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development",
+    "build": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production",
     "build-dev": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development",
-    "webpack": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development --watch",
+    "webpack": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production --watch",
     "webpack-dev": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development --watch"
   }
 }
