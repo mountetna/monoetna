@@ -32,7 +32,7 @@ var documents = function (old_documents, action) {
       let documents = {
         ...old_documents
       };
-      for (let record_name in action.documents) {
+      for (let record_name in action.documents || {}) {
         documents[record_name] = {
           ...documents[record_name],
           ...action.documents[record_name]
