@@ -33,6 +33,28 @@ describe Polyphemus::RunEtlJob do
       expect(etl.output).to eq("Here is some output\n")
     end
 
+    it 'catches errors' do
+      etl = create_dummy_etl(etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_ONCE, params: { problem: 'absent', whippit: true } )
+
+      Polyphemus::DummyJob.define_method :run do
+        raise 'Uh-oh'
+      end
+      
+      command.execute
+
+      etl.refresh
+
+      expect(etl.ran_at).to be_within(1).of(Time.now)
+      expect(etl.run_interval).to eq(Polyphemus::EtlConfig::RUN_NEVER)
+      expect(etl.status).to eq(Polyphemus::EtlConfig::STATUS_ERROR)
+      expect(etl.params).to eq('problem' => 'absent', 'whippit' => true)
+      expect(etl.output).to eq("\nUh-oh")
+
+      Polyphemus::DummyJob.define_method :run do
+        puts 'Here is some output'
+      end
+    end
+
     it 'runs an interval Etl job' do
       etl = create_dummy_etl(etl: "dummy", run_interval: 60)
       

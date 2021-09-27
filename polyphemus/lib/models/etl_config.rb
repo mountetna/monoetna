@@ -89,8 +89,8 @@ class Polyphemus
     def set_error!(e)
       update(
         status: STATUS_ERROR,
-        output: $stdout.string + "\n#{e.message}"
-        #run_interval: Polyphemus::EtlConfig::RUN_NEVER
+        output: $stdout.string + "\n#{e.message}",
+        run_interval: Polyphemus::EtlConfig::RUN_NEVER
       )
     end
 
