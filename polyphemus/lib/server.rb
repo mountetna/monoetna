@@ -26,7 +26,7 @@ class Polyphemus
 
     get '/api/etl/:project_name/configs', action: 'etl#list', auth: { user: { can_edit?: :project_name } }
     get '/api/etl/jobs', action: 'etl#jobs'
-    post '/api/etl/:project_name/update/:name', action: 'etl#update', auth: { user: { can_edit?: :project_name } }
+    post '/api/etl/:project_name/update/:name', action: 'etl#update', auth: { user: { can_edit?: :project_name } }, log_redact_keys: [ :secrets ]
     post '/api/etl/:project_name/create/:name', action: 'etl#create', auth: { user: { can_edit?: :project_name } }
     get '/api/etl/:project_name/revisions/:name', action: 'etl#revisions', auth: { user: { can_edit?: :project_name } }
 
