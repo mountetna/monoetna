@@ -6,8 +6,9 @@ require_relative './file_processors/ipi_rna_seq_matrix_processor'
 require_relative './linkers/ipi_rna_seq_processed_files_linker'
 require_relative './linkers/ipi_rna_seq_raw_fastq_files_linker'
 require_relative './record_creators/ipi_rna_seq_and_plate_record_creator'
+require_relative '../linker_processor'
 
-module Polyphemus
+class Polyphemus
   module Ipi
     class WatchFoldersConfig < Polyphemus::ProjectWatchFoldersConfig
       def initialize

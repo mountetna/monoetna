@@ -22,8 +22,8 @@ class Polyphemus::MetisFolderFilteringBaseEtl < Polyphemus::MetisFolderEtl
   end
 
   def folder_path_satisfies_regex?(cursor, folder)
-    return true unless cursor.include?(:project_name) && cursor.include?(:bucket_name)
-    project_bucket = project_bucket_symbol(**cursor)
+    return true unless cursor[:project_name] && cursor[:bucket_name]
+    project_bucket = project_bucket_symbol(project_name: cursor[:project_name], bucket_name: cursor[:bucket_name])
     regex = @folder_path_regexes[project_bucket]
 
     raise Polyphemus::EtlError.new("No regex for project / bucket: #{project_bucket}") if regex.nil?
