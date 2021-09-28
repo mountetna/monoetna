@@ -3,7 +3,7 @@ title: "Uploading data to magma with the R-client magmaR"
 author:
 - name: Daniel Bunis
   affiliation: Data Science CoLab, University of California San Francisco, San Francisco, CA
-date: "Updated: April 26, 2021"
+date: "Updated: Sept 28, 2021"
 output:
   BiocStyle::html_document:
     toc_float: true
@@ -170,7 +170,7 @@ retrieveAttributes(target = prod, "example", "rna_seq")
 
 As the name suggests, `updateMatrix()` is a convenient wrapper function of `updateValues()` that is meant specifically for matrix data. It allows a user to point magmaR to either a file containing matrix data, or to a readily constructed matrix, without needing to perform the manual conversion of such data to the `revisions`-input format. 
 
-Internally, the function performs some necessary validations, adjusts the matrix into the proper `revisions`-input format, then passes it along to `updateValues()` where all the common functionality is housed.
+Internally, the function performs some necessary validations, adjusts the matrix into the rigid `revisions`-input format of `updateValues()`, then passes its payload along to `updateValues()` where all the common update functionality is housed.
 
 #### Necessary inputs:
 
@@ -195,7 +195,7 @@ updateMatrix(
     projectName = "example",
     modelName = "rna_seq",
     attributeName = "gene_counts",
-    matrix = "../tests/testthat/rna_seq_counts.csv")
+    matrix = "path/to/rna_seq_counts.csv")
 
 ### From a tsv, set the 'separator' input to "\t"
 updateMatrix(
@@ -203,7 +203,8 @@ updateMatrix(
     projectName = "example",
     modelName = "rna_seq",
     attributeName = "gene_counts",
-    matrix = "../tests/testthat/rna_seq_counts.tsv",
+    matrix = "path/to/rna_seq_counts.tsv",
+    # Use separator to adjust parsing for tab-separated values
     separator = "\t")
 
 ### From an already loaded matrix:
@@ -231,41 +232,85 @@ head(matrix, n = c(6,2))
 
 ### updateFromDF()
 
-This function wraps `updateValues()` to allow easier update of a set of attributes for of multiple records, via a simpler, rectangular, data input structure.
+This function allows easy update of a set of attributes for of multiple records, via a rectangular data input structure.
 
-Internally, the function performs some necessary validations, adjusts the input into the proper `revisions`-input format, then passes it along to `updateValues()` where all the common functionality is housed.
+Utility: When aiming to update the same set of attributes for many different records, which is probably the most common case when wanting to upload data, use this function. For matrix attributes, use `updateMatrix()` instead.
+
+Internally, the function performs some necessary validations, adjusts the df into the rigid `revisions`-input format of `updateValues()`, then passes its payload along to `updateValues()` where all the common update functionality is housed.
 
 #### Necessary inputs:
 
 In addition to the normal `target` and `projectName` inputs, here a `modelName` is also needed in order to direct where to upload your data.
 
-A separate `df` input then takes in the target data. This can be given as data.frame directly, or a string representing the path to a csv or tsv file containing such data. In all cases, `df` must be formatted to have:
+A separate `df` input then takes in the target data. `df` can be given as data.frame directly, or as a string representing the path to a csv or tsv file containing such data. In all cases, `df` must be formatted to have:
 
 - Rows = records, with the first column indicating the record identifiers.
 - Columns = represent the data desired to be given for each attribute.
 - Column Names (or the first row when providing a file) = attribute names. Except for the first column (ignored as this column's data are used as identifiers), all column names must be valid attribute names of the target modelName.
 
-When `matrix` points to a file, the optional `separator` input can be use to indicate between csv (default assumption) versus tsv parsing.
+When `df` points to a file, the optional `separator` input can be use to indicate between csv (default assumption) versus tsv parsing.
 
 **Example:**
 
-To update the raw counts of our "rna_seq" model from either a csv, a tsv, or directly from a matrix, we could use the code below:
+To update the  of our "rna_seq" model from either a csv, a tsv, or directly from a matrix, we could use the code below:
 
-`data.frame` structure, or via a csv/tsv file encoding such data.
+```{r, eval = FALSE}
+### From a csv
+updateMatrix(
+    target = prod,
+    projectName = "example",
+    modelName = "rna_seq",
+    attributeName = "gene_counts",
+    df = "path/to/rna_seq_data.csv")
+
+### From a tsv, set the 'separator' input to "\t"
+updateMatrix(
+    target = prod,
+    projectName = "example",
+    modelName = "rna_seq",
+    attributeName = "gene_counts",
+    df = "path/to/rna_seq_data.tsv",
+    # Use separator to adjust parsing for tab-separated values
+    separator = "\t")
+
+### From an already loaded matrix:
+df <- retrieve(target = prod, "example", "rna_seq", "all",
+               c("tube_name", "cell_number", "fraction"))
+updateMatrix(
+    target = prod,
+    projectName = "example",
+    modelName = "rna_seq",
+    df = df)
+```
+
+Let's explore the structure of `matrix` a little bit, noting that:
+
+```{r, include = FALSE}
+df <- retrieve(target = prod, "example", "rna_seq", "all",
+               c("tube_name", "cell_number", "fraction"))
+```
+
+```{r}
+head(df, n = c(6,3))
+```
+
+1. The left-most column of df holds record identifiers.
+2. Column 2 onwards are data columns which hold intended data for attributes of each target record.
+3. Column names 2 onwards of df are the target attribute-names.
+
+*One final note:* The identifier column's name does not actually matter. 'tube_name' is the name of the identifier attribute of this "rna_seq" model, but we could have named the column anything. This is an intended feature as it allows users to provide a data column with the identifier attribute's name in order to adjust records' identifiers!
 
 ### updateValues()
 
-`updateValues()` is the main workhorse function of `magmaR`'s data upload capabilities. It largely mimics `magma/update`, where each target record is indicated individually, giving very flexible control. The function relies on a rigid nested *list* structure, and is at the heart of all updates made via magmaR.
+`updateValues()` is the main workhorse function of `magmaR`'s data upload capabilities. It largely mimics `magma/update`, where each target model, record, and attribute are indicated individually, thus giving very flexible control. The function relies on a rigid nested *list* structure for providing such data. This `revisions` input structure can feel a bit clunky, but is ultimately very powerful.
 
-Utility: Useful for smaller updates, any updates that cannot be handled with the `updateFromDF()` and `updateMatrix()` wrappers, and carefully scripted automation scripts.
+Utility: Useful for smaller updates, for any updates that cannot be handled with the `updateFromDF()` and `updateMatrix()` wrappers, and for carefully scripted automation scripts.
 
-Its `revisions` input structure can feel a bit clunky, but is ultimately very powerful.
+#### Necessary inputs:
 
-The function has 3 main inputs, `project` and `revisions`:
+In addition to the normal `target` and `projectName` inputs, the `revisions` is the primary input of `updateValues()`:
 
-- `target`, an integral bit of any call to `magmaR`. It describes how to connect with `magma`. See the dedicated section of the download-focused vignette for more details.
-- `project` is simply the String name of the project that you wish to upload data to; e.g. `updateValues(project = "example", ...)`.
-- `revisions` includes information about which model(s), which record(s), and which attribute(s) to update, and with what value(s). Each of these levels is encoded as a nested list where the format looks something like:
+- `revisions` includes information about which model(s), which record(s), and which attribute(s) to update, and with what value(s). Each of these levels are encoded as a nested list where the format looks something like:
 
 ```
 revisions = list(
@@ -279,7 +324,7 @@ revisions = list(
 
 To make more than one update within a single call, you can simply add an additional index at any of these levels.
 
-So for example, the below would update...
+For example, the below `revisions` would encode some very different updates
 
 ```
 # 2 attributes for the same record
@@ -352,9 +397,9 @@ For model "rna_seq", this update() will update 1 records:
 Proceed, Y/n?
 ```
 
-As mentioned previously, it is highly recommended that these outputs be checked carefully for accuracy before proceeding.
+As mentioned previously, it is highly recommended that summary outputs be checked carefully for accuracy before proceeding.
 
-However, for running `update()` code in non-interactive modes, like scripts or .Rmd knits, this user-prompt step can also be turned off by adding the input `auto.proceed = TRUE`.  Example:
+However, for running `update*()` code in non-interactive modes, like scripts or .Rmd knits, this user-prompt step can also be turned off by adding the input `auto.proceed = TRUE`.  Example:
 
 ```{r, include = FALSE}
 revs <- list(
