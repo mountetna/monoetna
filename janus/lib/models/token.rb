@@ -74,7 +74,7 @@ module Token
         payload[:perm] = "v:#{project_name}" if read_only
       elsif payload[:perm] =~ /^[Aa]/
         # degrade admin permissions
-        payload[:perm] = payload[:perm].tr('Aa', 'Ee')
+        payload[:perm] = payload[:perm].sub(/^[Aa]/) { |c| c == 'A' ? 'E' : 'e' }
       end
 
       # Ensure the resulting permission is valid.
