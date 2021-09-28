@@ -1,73 +1,114 @@
-import React, {useContext} from 'react';
+import React, {useMemo, useContext, useCallback} from 'react';
 import Button from '@material-ui/core/Button';
 import AddIcon from '@material-ui/icons/Add';
 
 import {QueryColumn} from '../../contexts/query/query_types';
-import {QueryContext} from '../../contexts/query/query_context';
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
+import {QueryColumnContext} from '../../contexts/query/query_column_context';
 import QueryModelAttributeSelector from './query_model_attribute_selector';
 import QueryClause from './query_clause';
 
 const QuerySelectPane = () => {
-  const {state, addQueryColumn, removeQueryColumn, patchQueryColumn} =
-    useContext(QueryContext);
+  const {
+    state: {graph, rootModel}
+  } = useContext(QueryGraphContext);
+  const {
+    state: {columns},
+    addQueryColumn,
+    patchQueryColumn,
+    removeQueryColumn
+  } = useContext(QueryColumnContext);
 
-  if (!state.rootModel) return null;
+  const handleOnSelectModel = useCallback(
+    (columnIndex: number, modelName: string) => {
+      patchQueryColumn(columnIndex, {
+        model_name: modelName,
+        slices: [],
+        attribute_name: '',
+        display_label: ''
+      });
+    },
+    [patchQueryColumn]
+  );
 
-  let choiceSet = [
-    ...new Set(
-      state.graph.allPaths(state.rootModel).flat().concat(state.rootModel)
-    )
-  ];
+  const handleOnSelectAttribute = useCallback(
+    (columnIndex: number, modelName: string, attributeName: string) => {
+      patchQueryColumn(columnIndex, {
+        model_name: modelName,
+        slices: [],
+        attribute_name: attributeName,
+        display_label: `${modelName}.${attributeName}`
+      });
+    },
+    [patchQueryColumn]
+  );
+
+  const handleOnChangeLabel = useCallback(
+    (columnIndex: number, column: QueryColumn, label: string) => {
+      patchQueryColumn(columnIndex, {
+        ...column,
+        display_label: label
+      });
+    },
+    [patchQueryColumn]
+  );
+
+  const handleOnRemoveColumn = useCallback(
+    (columnIndex: number) => {
+      removeQueryColumn(columnIndex);
+    },
+    [removeQueryColumn]
+  );
+
+  const modelChoiceSet = useMemo(
+    () => [
+      ...new Set(
+        graph
+          .allPaths(rootModel)
+          .flat()
+          .concat(rootModel ? [rootModel] : [])
+      )
+    ],
+    [graph, rootModel]
+  );
+
+  if (!rootModel) return null;
 
   return (
     <QueryClause title='Columns'>
-      {state.columns.map((column: QueryColumn, index: number) => {
-        if (!state.rootModel) return;
-
+      {columns.map((column: QueryColumn, index: number) => {
         return (
           <QueryModelAttributeSelector
             key={index}
             label='Join Model'
             column={column}
+            modelChoiceSet={modelChoiceSet}
             columnIndex={index}
-            modelChoiceSet={choiceSet}
-            onSelectModel={(newModelName) =>
-              patchQueryColumn(index, {
-                model_name: newModelName,
-                slices: [],
-                attribute_name: '',
-                display_label: ''
-              })
-            }
-            onSelectAttribute={(attributeName) =>
-              patchQueryColumn(index, {
-                model_name: column.model_name,
-                slices: [],
-                attribute_name: attributeName,
-                display_label: `${column.model_name}.${attributeName}`
-              })
-            }
             canEdit={0 !== index}
-            removeColumn={() => removeQueryColumn(index)}
+            graph={graph}
+            onSelectModel={(modelName) => handleOnSelectModel(index, modelName)}
+            onSelectAttribute={(attributeName) =>
+              handleOnSelectAttribute(index, column.model_name, attributeName)
+            }
+            onChangeLabel={(label) => handleOnChangeLabel(index, column, label)}
+            onRemoveColumn={() => handleOnRemoveColumn(index)}
           />
         );
       })}
-      {state.rootModel ? (
-        <Button
-          onClick={() =>
-            addQueryColumn({
-              slices: [],
-              model_name: '',
-              attribute_name: '',
-              display_label: ''
-            })
-          }
-          startIcon={<AddIcon />}
-          className='query-add-column-btn'
-        >
-          Column
-        </Button>
-      ) : null}
+      <Button
+        onClick={() =>
+          addQueryColumn({
+            slices: [],
+            model_name: '',
+            attribute_name: '',
+            display_label: ''
+          })
+        }
+        startIcon={<AddIcon />}
+        className='query-add-column-btn'
+      >
+        Column
+      </Button>
     </QueryClause>
   );
 };

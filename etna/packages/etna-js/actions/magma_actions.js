@@ -12,27 +12,10 @@ import {TEMP} from './file_actions';
 import {dispatchUploadWork} from '../upload/actions/upload_actions';
 import {AddUploadCommand, Upload} from '../upload/workers/uploader';
 
-export const ADD_TEMPLATE = 'ADD_TEMPLATE';
-export const ADD_DOCUMENTS = 'ADD_DOCUMENTS';
 export const REVISE_DOCUMENT = 'REVISE_DOCUMENT';
 export const DISCARD_REVISION = 'DISCARD_REVISION';
 export const ADD_PREDICATES = 'ADD_PREDICATES;';
-
-export const addTemplate = (template) => {
-  return {
-    type: ADD_TEMPLATE,
-    model_name: template.name,
-    template: template
-  };
-};
-
-export const addDocumentsForTemplate = (model_name, documents) => {
-  return {
-    type: ADD_DOCUMENTS,
-    model_name: model_name,
-    documents: documents
-  };
-};
+export const ADD_TEMPLATES_AND_DOCUMENTS = 'ADD_TEMPLATES_AND_DOCUMENTS';
 
 export const reviseDocument = (
   document,
@@ -65,6 +48,13 @@ export const addPredicates = (predicates) => {
   };
 };
 
+export const addTemplatesAndDocuments = (models) => {
+  return {
+    type: ADD_TEMPLATES_AND_DOCUMENTS,
+    models
+  }
+}
+
 /*
  * Here we add the models and documents to the store. At the same time we strip
  * off the model namespacing. The server returns the full name of the model.
@@ -73,17 +63,7 @@ export const addPredicates = (predicates) => {
  */
 export const consumePayload = (dispatch, response) => {
   if (response.models) {
-    Object.keys(response.models).forEach((model_name) => {
-      let model = response.models[model_name];
-
-      if (model.template) {
-        dispatch(addTemplate(model.template));
-      }
-
-      if (model.documents) {
-        dispatch(addDocumentsForTemplate(model_name, model.documents));
-      }
-    });
+    dispatch(addTemplatesAndDocuments(response.models));
   }
 };
 

@@ -51,6 +51,17 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesEtl do
                                      },
                                    },
                                  }))
+
+      # Make sure rna_seq records are updated
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/retrieve/)
+        .with(body: hash_including({
+          project_name: project_name,
+          model_name: "rna_seq",
+          page_size: 1,
+          attribute_names: "all",
+          record_names: ["PATIENT001.T1.comp"],
+          hide_templates: true,
+        }))
     end
 
     it "when scanner finds new files for file_collection attribute" do
