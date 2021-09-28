@@ -1,62 +1,5 @@
 require_relative "./metis_folder_filtering_base_etl"
-
-class Polyphemus::BucketWatchFoldersConfig
-  attr_reader :bucket_name, :project_name
-
-  def initialize(bucket_name:, project_name:)
-    @bucket_name = bucket_name
-    @project_name = project_name
-    @watches = {}
-  end
-
-  def cursor_pair
-    [project_name, bucket_name]
-  end
-
-  def watcher(watch_type)
-    @watches[watch_type] ||= Polyphemus::WatchTypeConfig.new(
-      watch_type: watch_type,
-      bucket_name: bucket_name,
-      project_name: project_name
-    )
-  end
-
-  def find_matching_watches(path)
-    @watches.values.select do |config|
-      path =~ config.sum_watch_regex
-    end
-  end
-
-  def sum_bucket_regex
-    Regexp.union(@watches.values.map(&:sum_watch_regex))
-  end
-end
-
-class Polyphemus::WatchTypeConfig
-  attr_reader :watch_type, :project_name, :bucket_name, :regexes
-
-  def initialize(project_name:, bucket_name:, watch_type:)
-    @watch_type = watch_type
-    @project_name = project_name
-    @bucket_name = bucket_name
-    @regexes = []
-  end
-
-  def truple
-    [project_name, bucket_name, watch_type]
-  end
-
-  def watch(regex)
-    @regexes << regex unless @regexes.include?(regex)
-    # Reset so the next sum call recalculates
-    @sum_watch_regex = nil
-    self
-  end
-
-  def sum_watch_regex
-    @sum_watch_regex ||= Regexp.union(regexes)
-  end
-end
+require_relative './watch_etl_config'
 
 class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEtl
   def initialize(bucket_watch_configs: [], limit: 20)
@@ -84,11 +27,11 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
   end
 
   def watch_type_groups(cursor, folders)
-    return {} if bucket_config.nil?
+    return {} if bucket_config(cursor).nil?
 
     {}.tap do |watch_type_groups|
       folders.each do |folder|
-        bucket_config.find_matching_watches(folder).each do |watch_config|
+        bucket_config.find_matching_watches(folder.folder_path).each do |watch_config|
           folders = watch_type_groups[watch_config.watch_type] ||= []
           folders << folder
         end
