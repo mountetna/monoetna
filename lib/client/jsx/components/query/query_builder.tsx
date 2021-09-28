@@ -1,30 +1,28 @@
 import React, {useContext} from 'react';
-import Grid from '@material-ui/core/Grid';
-import {makeStyles} from '@material-ui/core/styles';
 
-import {QueryContext} from '../../contexts/query/query_context';
+import {useReduxState} from 'etna-js/hooks/useReduxState';
 import QueryControls from './query_controls';
 import QueryResults from './query_results';
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 
-const useStyles = makeStyles((theme) => ({
-  previewPane: {
-    overflowX: 'auto',
-    maxWidth: '100%',
-    maxHeight: '100%'
-  }
-}));
+import useQueryGraph from '../../contexts/query/use_query_graph';
 
 const QueryBuilder = ({}) => {
-  const classes = useStyles();
-  const {state} = useContext(QueryContext);
+  const {
+    state: {graph},
+    setGraph
+  } = useContext(QueryGraphContext);
+  const reduxState = useReduxState();
+
+  useQueryGraph(reduxState, graph, setGraph);
+
+  if (!graph || !graph.initialized) return null;
 
   return (
-    <Grid container direction='column'>
+    <React.Fragment>
       <QueryControls />
-      <Grid item className={classes.previewPane}>
-        <QueryResults key={state.rootModel} />
-      </Grid>
-    </Grid>
+      <QueryResults />
+    </React.Fragment>
   );
 };
 
