@@ -2,7 +2,6 @@ import React from 'react';
 import {renderHook} from '@testing-library/react-hooks';
 import '@testing-library/jest-dom/extend-expect';
 
-import {defaultContext} from '../../../../lib/client/jsx/contexts/query/query_context';
 import {mockStore, querySpecWrapper} from '../../helpers';
 import useSliceMethods from '../../../../lib/client/jsx/components/query/query_use_slice_methods';
 import {QueryGraph} from '../../../../lib/client/jsx/utils/query_graph';
@@ -62,21 +61,25 @@ describe('useSliceMethods', () => {
   let store;
   const graph = new QueryGraph(models);
 
+  let mockWhereState = {
+    orRecordFilterIndices: [],
+    recordFilters: []
+  };
+
+  let mockGraphState = {
+    graph,
+    rootModel: ''
+  };
+
   it('does not include root model in collections', async () => {
     store = mockStore({
       magma: {models},
       janus: {projects: require('../../fixtures/project_names.json')}
     });
 
-    let mockState = {
-      ...defaultContext.state,
-      graph,
-      rootModel: 'prize',
-      rootIdentifier: {
-        model_name: 'prize',
-        attribute_name: 'name',
-        display_label: 'prize.name'
-      },
+    mockGraphState.rootModel = 'prize';
+
+    let mockColumnState = {
       columns: [
         {
           model_name: 'prize',
@@ -99,10 +102,13 @@ describe('useSliceMethods', () => {
       ]
     };
 
-    const data = {answer: [], format: [], type: 'Mock'};
-
-    const {result} = renderHook(() => useSliceMethods(data, true), {
-      wrapper: querySpecWrapper(mockState, store)
+    const {result} = renderHook(() => useSliceMethods(1, 1, () => null), {
+      wrapper: querySpecWrapper({
+        mockGraphState,
+        mockColumnState,
+        mockWhereState,
+        store
+      })
     });
 
     expect(result.current.collectionModelNames).toEqual(['victim']);
@@ -114,15 +120,9 @@ describe('useSliceMethods', () => {
       janus: {projects: require('../../fixtures/project_names.json')}
     });
 
-    let mockState = {
-      ...defaultContext.state,
-      graph,
-      rootModel: 'monster',
-      rootIdentifier: {
-        model_name: 'monster',
-        attribute_name: 'name',
-        display_label: 'monster.name'
-      },
+    mockGraphState.rootModel = 'monster';
+
+    let mockColumnState = {
       columns: [
         {
           model_name: 'monster',
@@ -145,10 +145,13 @@ describe('useSliceMethods', () => {
       ]
     };
 
-    const data = {answer: [], format: [], type: 'Mock'};
-
-    const {result} = renderHook(() => useSliceMethods(data, true), {
-      wrapper: querySpecWrapper(mockState, store)
+    const {result} = renderHook(() => useSliceMethods(1, 1, () => null), {
+      wrapper: querySpecWrapper({
+        mockGraphState,
+        mockColumnState,
+        mockWhereState,
+        store
+      })
     });
 
     expect(result.current.collectionModelNames).toEqual(['aspect', 'prize']);
@@ -160,15 +163,9 @@ describe('useSliceMethods', () => {
       janus: {projects: require('../../fixtures/project_names.json')}
     });
 
-    let mockState = {
-      ...defaultContext.state,
-      graph,
-      rootModel: 'wound',
-      rootIdentifier: {
-        model_name: 'wound',
-        attribute_name: 'name',
-        display_label: 'wound.name'
-      },
+    mockGraphState.rootModel = 'wound';
+
+    let mockColumnState = {
       columns: [
         {
           model_name: 'wound',
@@ -191,10 +188,13 @@ describe('useSliceMethods', () => {
       ]
     };
 
-    const data = {answer: [], format: [], type: 'Mock'};
-
-    const {result} = renderHook(() => useSliceMethods(data, true), {
-      wrapper: querySpecWrapper(mockState, store)
+    const {result} = renderHook(() => useSliceMethods(1, 1, () => null), {
+      wrapper: querySpecWrapper({
+        mockGraphState,
+        mockColumnState,
+        mockWhereState,
+        store
+      })
     });
 
     expect(result.current.collectionModelNames).toEqual([]);
@@ -206,15 +206,9 @@ describe('useSliceMethods', () => {
       janus: {projects: require('../../fixtures/project_names.json')}
     });
 
-    let mockState = {
-      ...defaultContext.state,
-      graph,
-      rootModel: 'labor',
-      rootIdentifier: {
-        model_name: 'labor',
-        attribute_name: 'name',
-        display_label: 'labor.name'
-      },
+    mockGraphState.rootModel = 'labor';
+
+    let mockColumnState = {
       columns: [
         {
           model_name: 'labor',
@@ -231,10 +225,13 @@ describe('useSliceMethods', () => {
       ]
     };
 
-    const data = {answer: [], format: [], type: 'Mock'};
-
-    const {result} = renderHook(() => useSliceMethods(data, true), {
-      wrapper: querySpecWrapper(mockState, store)
+    const {result} = renderHook(() => useSliceMethods(1, 1, () => null), {
+      wrapper: querySpecWrapper({
+        mockGraphState,
+        mockColumnState,
+        mockWhereState,
+        store
+      })
     });
 
     expect(result.current.matrixModelNames).toEqual(['labor']);

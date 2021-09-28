@@ -1,22 +1,26 @@
 import React, {useMemo, useCallback, useContext} from 'react';
 
-import {useReduxState} from 'etna-js/hooks/useReduxState';
-import {selectModels} from 'etna-js/selectors/magma';
-import {QueryContext} from '../../contexts/query/query_context';
-import {QuerySlice, QueryColumn} from '../../contexts/query/query_types';
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
+import {QueryColumnContext} from '../../contexts/query/query_column_context';
+import {QuerySlice} from '../../contexts/query/query_types';
 import {
   selectMatrixModelNames,
   selectCollectionModelNames
 } from '../../selectors/query_selector';
 
 const useSliceMethods = (
-  column: QueryColumn,
   columnIndex: number,
   updateCounter: number,
   setUpdateCounter: React.Dispatch<React.SetStateAction<number>>
 ) => {
-  let {state, patchQueryColumn} = useContext(QueryContext);
-  const reduxState = useReduxState();
+  const {
+    state: {columns},
+    patchQueryColumn
+  } = useContext(QueryColumnContext);
+  const {
+    state: {graph, rootModel}
+  } = useContext(QueryGraphContext);
+  const column = useMemo(() => columns[columnIndex], [columns, columnIndex]);
 
   const addNewSlice = useCallback(() => {
     patchQueryColumn(columnIndex, {
@@ -55,28 +59,17 @@ const useSliceMethods = (
     [updateCounter, setUpdateCounter, patchQueryColumn, column, columnIndex]
   );
 
-  const attributesWithRootIdentifier = useMemo(() => {
-    if (!state.rootIdentifier || !state.rootModel) return [];
-
-    return [...state.columns].concat([state.rootIdentifier]);
-  }, [state.columns, state.rootModel, state.rootIdentifier]);
-
   const matrixModelNames = useMemo(() => {
-    if (!state.rootModel) return [];
-
-    return selectMatrixModelNames(
-      selectModels(reduxState),
-      attributesWithRootIdentifier
-    );
-  }, [reduxState, state.rootModel, attributesWithRootIdentifier]);
+    return selectMatrixModelNames(graph.models, columns);
+  }, [graph, columns]);
 
   const collectionModelNames = useMemo(() => {
-    if (!state.rootModel) return [];
+    if (!rootModel) return [];
 
-    return selectCollectionModelNames(state.graph, state.rootModel, [
-      ...new Set(state.columns.map((c) => c.model_name))
+    return selectCollectionModelNames(graph, rootModel, [
+      ...new Set(columns.map((c) => c.model_name))
     ]);
-  }, [state.graph, state.rootModel, state.columns]);
+  }, [graph, columns, rootModel]);
 
   return {
     handleRemoveSlice,

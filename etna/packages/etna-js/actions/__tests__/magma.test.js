@@ -50,14 +50,13 @@ describe('async actions', () => {
         type: 'REMOVE_EXCHANGE'
       },
       {
-        type: 'ADD_TEMPLATE',
-        model_name: 'monster',
-        template: monsters.models.monster.template
-      },
-      {
-        model_name: 'monster',
-        type: 'ADD_DOCUMENTS',
-        documents: monsters.models.monster.documents
+        type: 'ADD_TEMPLATES_AND_DOCUMENTS',
+        models: {
+          monster: {
+            template: monsters.models.monster.template,
+            documents: monsters.models.monster.documents
+          }
+        }
       }
     ];
 
