@@ -1,14 +1,7 @@
 // Generic filter component?
 // Model, attribute, operator, operand
 
-import React, {
-  useMemo,
-  useContext,
-  useCallback,
-  useState,
-  useEffect
-} from 'react';
-import _ from 'lodash';
+import React, {useMemo, useCallback, useState, useEffect} from 'react';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
@@ -20,40 +13,13 @@ import IconButton from '@material-ui/core/IconButton';
 import ClearIcon from '@material-ui/icons/Clear';
 import Tooltip from '@material-ui/core/Tooltip';
 
-import {useReduxState} from 'etna-js/hooks/useReduxState';
-import {selectTemplate} from 'etna-js/selectors/magma';
-
-import {QueryContext} from '../../contexts/query/query_context';
+import {Debouncer} from 'etna-js/utils/debouncer';
 import {QueryFilter, QuerySlice} from '../../contexts/query/query_types';
-import {
-  selectAllowedModelAttributes,
-  selectMatrixAttributes
-} from '../../selectors/query_selector';
-import {visibleSortedAttributesWithUpdatedAt} from '../../utils/attributes';
 import FilterOperator from './query_filter_operator';
+import useFilterAttributes from './query_use_filter_attributes';
+import {QueryGraph} from '../../utils/query_graph';
 
 const useStyles = makeStyles((theme) => ({
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 120
-  },
-  selectEmpty: {
-    marginTop: theme.spacing(2)
-  },
-  root: {
-    minWidth: 345
-  },
-  bullet: {
-    display: 'inline-block',
-    margin: '0 2px',
-    transform: 'scale(0.8)'
-  },
-  title: {
-    fontSize: 14
-  },
-  pos: {
-    marginBottom: 12
-  },
   textInput: {
     margin: theme.spacing(1),
     minWidth: 120,
@@ -70,56 +36,41 @@ const QueryFilterControl = ({
   filter,
   modelNames,
   isColumnFilter,
+  graph,
+  waitTime,
+  eager,
   patchFilter,
   removeFilter
 }: {
   filter: QueryFilter | QuerySlice;
   modelNames: string[];
   isColumnFilter: boolean;
+  graph: QueryGraph;
+  waitTime?: number;
+  eager?: boolean;
   patchFilter: (filter: QueryFilter | QuerySlice) => void;
   removeFilter: () => void;
 }) => {
+  const [operandValue, setOperandValue] = useState('' as string | number);
+  const [previousOperandValue, setPreviousOperandValue] = useState(
+    '' as string | number
+  );
+  const [debouncer, setDebouncer] = useState(
+    () => new Debouncer({windowMs: waitTime, eager})
+  );
+  // Clear the existing debouncer and accept any new changes to the settings
+  useEffect(() => {
+    const debouncer = new Debouncer({windowMs: waitTime, eager});
+    setDebouncer(debouncer);
+    return () => debouncer.reset();
+  }, [waitTime, eager]);
+
   const classes = useStyles();
-  const {state} = useContext(QueryContext);
-  let reduxState = useReduxState();
 
-  const modelAttributes = useMemo(() => {
-    if ('' !== filter.modelName) {
-      let template = selectTemplate(reduxState, filter.modelName);
-      let sortedTemplateAttributes = visibleSortedAttributesWithUpdatedAt(
-        template.attributes
-      );
-
-      return selectAllowedModelAttributes(sortedTemplateAttributes);
-    }
-    return [];
-  }, [filter.modelName, reduxState]);
-
-  const attributeType = useMemo(() => {
-    if ('' !== filter.attributeName) {
-      let template = selectTemplate(reduxState, filter.modelName);
-
-      switch (
-        template.attributes[filter.attributeName].attribute_type.toLowerCase()
-      ) {
-        case 'string':
-          return 'text';
-        case 'date_time':
-          return 'date';
-        case 'integer':
-        case 'float':
-        case 'number':
-          return 'number';
-        case 'boolean':
-          return 'boolean';
-        case 'matrix':
-          return 'matrix';
-        default:
-          return 'text';
-      }
-    }
-    return 'text';
-  }, [filter.attributeName, filter.modelName, reduxState]);
+  const {modelAttributes, attributeType} = useFilterAttributes({
+    filter,
+    graph
+  });
 
   const filterOperator = useMemo(() => {
     return new FilterOperator(attributeType, filter.operator, isColumnFilter);
@@ -157,20 +108,35 @@ const QueryFilterControl = ({
     [filter, patchFilter, filterOperator]
   );
 
-  let handleOperandChange = useCallback(
+  const handleOperandChange = useCallback(
     (operand: string) => {
       patchFilter({
         ...filter,
         operand: filterOperator.formatOperand(operand)
       });
     },
-    [filter, patchFilter, filterOperator]
+    [patchFilter, filter, filterOperator]
   );
+
+  const handleOperandChangeWithDebounce = useCallback(
+    (value: string) => {
+      debouncer.ready(() => handleOperandChange(value));
+      setOperandValue(value);
+    },
+    [handleOperandChange, debouncer]
+  );
+
+  // When the operand value changes, follow it
+  useEffect(() => {
+    if (filter.operand !== previousOperandValue) {
+      debouncer.reset();
+      setOperandValue(filter.operand);
+      setPreviousOperandValue(filter.operand);
+    }
+  }, [filter.operand, debouncer, previousOperandValue]);
 
   let uniqId = (idType: string): string =>
     `${idType}-Select-${Math.random().toString()}`;
-
-  if (!state.rootModel) return null;
 
   return (
     <Grid container>
@@ -183,7 +149,7 @@ const QueryFilterControl = ({
             onChange={(e) => handleModelSelect(e.target.value as string)}
             displayEmpty
           >
-            {modelNames.sort().map((name, index: number) => (
+            {modelNames.map((name, index: number) => (
               <MenuItem key={index} value={name}>
                 {name}
               </MenuItem>
@@ -235,8 +201,10 @@ const QueryFilterControl = ({
             <TextField
               id={uniqId('operand')}
               label='Operand'
-              value={filter.operand}
-              onChange={(e) => handleOperandChange(e.target.value as string)}
+              value={operandValue}
+              onChange={(e) =>
+                handleOperandChangeWithDebounce(e.target.value as string)
+              }
             />
           </FormControl>
         ) : null}
@@ -251,5 +219,4 @@ const QueryFilterControl = ({
     </Grid>
   );
 };
-
 export default QueryFilterControl;

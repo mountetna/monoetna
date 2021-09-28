@@ -1,8 +1,13 @@
 var path = require('path');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 var webpack = require('webpack');
 
 module.exports = (env) => ({
+  mode: env.NODE_ENV || 'development',
+  optimization: {
+    minimizer: [new TerserPlugin({ /* additional options here */ })],
+  },
   context: path.resolve(__dirname),
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.scss', '.png', '.jpg', '.jpeg', '.svg'],
@@ -10,7 +15,7 @@ module.exports = (env) => ({
       'code-mirror': path.join(__dirname, 'node_modules/codemirror/lib'),
       react: path.join(__dirname, 'node_modules/react'),
       'react-dom': path.join(__dirname, 'node_modules/react-dom'),
-      'react-redux': path.join(__dirname, 'node_modules/react-redux')
+      'react-redux': path.join(__dirname, 'node_modules/react-redux'),
     },
     symlinks: false
   },
@@ -52,23 +57,10 @@ module.exports = (env) => ({
         loader: 'file-loader',
         include: [
           path.resolve(__dirname, 'node_modules/etna-js/'),
-          '/etna/packages/etna-js'
+          '/etna/packages/etna-js',
+          path.resolve(__dirname, 'lib/client/img/')
         ],
         test: /\.(jpe?g|png|svg)$/i,
-
-        options: {
-          name: '[name].[ext]',
-          outputPath: 'public/images/',
-          publicPath: '/images'
-        }
-      },
-
-      {
-        test: /\.(jpe?g|png|svg)$/i,
-
-        include: [path.resolve(__dirname, 'lib/client/img')],
-
-        loader: 'file-loader',
 
         options: {
           name: '[name].[ext]',
@@ -88,20 +80,24 @@ module.exports = (env) => ({
           path.resolve(__dirname, 'lib/client/scss')
         ],
 
-        loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader'])
+        // loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader'])
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
       }
     ]
   },
   plugins: [
-    new ExtractTextPlugin({
-      // define where to save the file
+    // new ExtractTextPlugin({
+    //   // define where to save the file
+    //   filename: 'public/css/timur.bundle.css',
+    //   allChunks: true
+    // }),
+    new MiniCssExtractPlugin({
       filename: 'public/css/timur.bundle.css',
-      allChunks: true
     }),
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: JSON.stringify(env ? env.NODE_ENV : 'development')
-      }
-    })
+    // new webpack.DefinePlugin({
+    //   'process.env': {
+    //     NODE_ENV: JSON.stringify(env ? env.NODE_ENV : 'development')
+    //   }
+    // })
   ]
 });

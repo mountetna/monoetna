@@ -47,6 +47,12 @@ export class QueryGraph {
     this.initialized = true;
   }
 
+  template(modelName: string): any {
+    if (!Object.keys(this.models).includes(modelName)) return null;
+
+    return this.models[modelName].template;
+  }
+
   pathsFrom(modelName: string): string[][] {
     // this.allowedModels could have disconnected models that
     //   where only connected to models in the unallowedModels list,
@@ -91,7 +97,9 @@ export class QueryGraph {
     return results;
   }
 
-  allPaths(modelName: string): string[][] {
+  allPaths(modelName: string | null): string[][] {
+    if (!modelName) return [];
+
     if (!Object.keys(this.graph.children).includes(modelName)) return [];
 
     let parentage: string[] = this.graph.fullParentage(modelName);
