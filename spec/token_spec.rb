@@ -238,6 +238,14 @@ describe "Token Generation" do
       expect(last_response.status).to eq(401)
     end
 
+    it 'allows supereditors create a task token without project permission' do
+      admin = create(:project, project_name: 'administration', project_name_full: 'Administration')
+      perm = create(:permission, project: admin, user: @user, role: 'editor')
+      header('Authorization', "Etna #{@user.create_token!}")
+      post('/api/tokens/generate', project_name: 'gateway', token_type: 'task')
+      expect(last_response.status).to eq(200)
+    end
+
     it 'validates a task token' do
       header('Authorization', "Etna #{@user.create_task_token!('tunnel')}")
       post('/api/tokens/validate_task')
