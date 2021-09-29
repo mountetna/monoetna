@@ -14,8 +14,10 @@ class Polyphemus::ProjectWatchFoldersEtl < Polyphemus::AddWatchFolderBaseEtl
     bucket_name = cursor[:bucket_name]
 
     processors = config.processors(bucket_name, watch_type)
-    return if processor.empty?
+    p processors
+    return if processors.empty?
     files = folders_files(cursor, folders)
+    p files
     processors.each { |p| p.process(cursor, files) }
   end
 end

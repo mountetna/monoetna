@@ -28,8 +28,29 @@ describe Polyphemus::Ipi::IpiWatchFoldersEtl do
       )
       stub_magma_update_json
       stub_magma_models(fixture: "spec/fixtures/magma_ipi_models_with_records.json")
+      stub_request(:post, /#{METIS_HOST}\/#{project_name}\/find\/#{bucket_name}/)
+        .to_return({
+          status: 200,
+          headers: {
+            'Content-Type' => 'application/json'
+          },
+          body: {
+                  files: files,
+                  folders: [],
+                }.to_json
+        })
     end
 
+    let(:files) do
+      [
+        {
+          file_name: "something.fastq.gz",
+          folder_id: 1,
+          bucket_name: bucket_name,
+          project_name: project_name,
+        }
+      ]
+    end
 
     describe "create Polyphemus::WatchFile records" do
       it "for invalid NASH / NAFLD samples" do
@@ -53,23 +74,6 @@ describe Polyphemus::Ipi::IpiWatchFoldersEtl do
     end
 
     it "links files in found folders" do
-      stub_list_folder(
-        url_verb: "list_by_id",
-        project: project_name,
-        bucket: bucket_name,
-        response_body: {
-          files: [{
-            file_name: "something.fastq.gz",
-            folder_id: 1,
-            bucket_name: bucket_name,
-            project_name: project_name,
-          }],
-          folders: [],
-        },
-      )
-
-      etl = Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl.new
-
       etl.process(cursor, [
         create_metis_folder("PATIENT001.T1.comp", "bulkRNASeq/plate1_rnaseq_new/output/PATIENT001.T1.comp", id: 1),
         create_metis_folder("PATIENT001.N1.comp", "bulkRNASeq/plate1_rnaseq_new/output/PATIENT001.N1.comp", id: 2),

@@ -23,7 +23,11 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
   end
 
   def bucket_config(cursor)
-    @bucket_watch_configs.find { |b| b.bucket_name == cursor[:bucket_name] && b.project_name == cursor[:project_name] }
+    @bucket_watch_configs.find { |b| b.bucket_name == cursor[:bucket_name] && b.project_name == cursor[:project_name] }.tap do |config|
+      if config.nil?
+        raise "Could not find bucket_config matching cursor, either reset the cursor or fix the config"
+      end
+    end
   end
 
   def watch_type_groups(cursor, folders)
@@ -31,7 +35,7 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
 
     {}.tap do |watch_type_groups|
       folders.each do |folder|
-        bucket_config.find_matching_watches(folder.folder_path).each do |watch_config|
+        bucket_config(cursor).find_matching_watches(folder.folder_path).each do |watch_config|
           folders = watch_type_groups[watch_config.watch_type] ||= []
           folders << folder
         end
@@ -94,7 +98,13 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
   end
 
   def apply_records(cursor, folders, watch_type)
-    Polyphemus::WatchFolder.on_duplicate_key_update(:folder_path, :updated_at).multi_insert(folders.map do |folder|
+    Polyphemus.instance.db[:watch_folders].insert_conflict(
+      target: [:bucket_name, :project_name, :metis_id, :watch_type],
+      update: {
+        folder_path: Sequel[:excluded][:folder_path],
+        updated_at: Sequel[:excluded][:updated_at],
+      }
+    ).multi_insert(folders.map do |folder|
       {
         created_at: DateTime.now,
         updated_at: DateTime.now,
@@ -139,6 +149,13 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
       value: folders.map(&:id),
     ))
 
-    metis_client.find(find_request).files.all.map(&:with_containing_folder)
+    metis_client.find(find_request).files.all.map do |f|
+      folder = folders.find { |folder| folder.id == f.folder_id }
+      if folder.nil?
+        raise "Could not find matching folder for file in add watch etl, bug or test setup issue?"
+      end
+
+      f.with_containing_folder(folder)
+    end
   end
 end

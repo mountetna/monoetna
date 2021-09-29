@@ -11,6 +11,7 @@ class Polyphemus::LinkerProcessor
       raise "Invalid linker configuration: input cursor project and bucket do not match linker specification."
     end
 
+    puts "linking #{files}"
     linker.link(
       model_name: model_name,
       files: files,
