@@ -244,24 +244,20 @@ updateFromDF <- function(
     ### Read in df if passed as a string (file-location)
     if (is.character(df)) {
         df <- read.csv(
-            df, sep = separator, row.names = 0, check.names = FALSE, header = TRUE)
-        if (ncol(df)<1){
+            df, sep = separator, check.names = FALSE, header = TRUE)
+        if (ncol(df)<2){
             stop("Parsing error. Is 'separator' correct?")
         }
     }
-    # Validate that there are column names
-    if (is.null(colnames(df))) {
-        stop("Colnames of df should be attribute names.")
-    }
-    # Validate that 1st column, should be IDs, is uqique
+    # Validate that 1st column, which should be IDs, is all unique values
     if (any(duplicated(df[,1]))) {
         stop("Values of 1st column (record identifiers) must be unique.")
     }
     if (ncol(df) < 2) {
-        stop(".")
+        stop("df has one column, but at least 2 are required.")
     }
     
-    cat("Data recieved:")
+    cat("Data recieved:\n")
     print(df)
     
     # Transform into the nested list format
