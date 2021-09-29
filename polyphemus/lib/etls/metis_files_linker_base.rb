@@ -44,7 +44,6 @@ class Polyphemus::MetisFilesLinkerBase
     files_by_record_name.each do |file_record|
       next if should_skip_record?(file_record.record_name)
       next if file_record.files.empty?
-      puts "going"
 
       correct_record_name = corrected_record_name(
         file_record.record_name

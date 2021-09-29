@@ -1,13 +1,14 @@
 describe Polyphemus::Ipi::IpiWatchFoldersEtl do
   let(:etl) { Polyphemus::Ipi::IpiWatchFoldersEtl.new }
+  let(:files) { [] }
   let(:project_name) { "ipi" }
   let(:folder_cursor) {
-     Polyphemus::MetisFolderEtlCursor.new(
-       job_name: "test",
-       project_name: project_name,
-       bucket_name: bucket_name,
-     )
-  }
+                        Polyphemus::MetisFolderEtlCursor.new(
+                          job_name: "test",
+                          project_name: project_name,
+                          bucket_name: bucket_name,
+                        )
+                      }
   let(:cursor) { folder_cursor }
   let(:helper) { IpiHelper.new("lib/etls/renaming/projects/test_renames.json") }
 
@@ -31,6 +32,79 @@ describe Polyphemus::Ipi::IpiWatchFoldersEtl do
                 folders: [],
               }.to_json
       })
+  end
+
+  describe 'process_bulk_rna_seq_results' do
+    let(:bucket_name) { 'data' }
+
+    describe "processes files in found folders" do
+      let(:files) do
+        [{
+          file_name: "rnaseq_table.tsv",
+          download_url: "/#{project_name}/download/rnaseq_table.tsv",
+          bucket_name: bucket_name,
+          project_name: project_name,
+          folder_id: 1,
+        }]
+      end
+
+      describe "for attributes" do
+        it 'works' do
+          stub_download_file(
+            project: project_name,
+            file_contents: ::File.read("./spec/fixtures/ipi_rna_seq_results.tsv"),
+          )
+
+          etl.process(cursor, [
+            create_metis_folder("results", "bulkRNASeq/plate1_rnaseq_new/results", id: 1),
+            create_metis_folder("results", "bulkRNASeq/plate2_rnaseq_new/results", id: 2),
+          ])
+
+          # Make sure rna_seq records are updated, once per rna_seq record. Only when file is found.
+          #   Three valid records in the given response, so three updates.
+          expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).times(3)
+        end
+      end
+
+      describe "for matrices" do
+        let(:files) do
+          [{
+            file_name: "gene_counts_table.tsv",
+            download_url: "/#{project_name}/download/gene_counts_table.tsv",
+            bucket_name: bucket_name,
+            project_name: project_name,
+            folder_id: 1,
+          }]
+        end
+
+        it 'works' do
+          stub_download_file(
+            project: project_name,
+            file_contents: ::File.read("./spec/fixtures/ipi_gene_counts.tsv"),
+          )
+
+          etl.process(cursor, [
+            create_metis_folder("results", "bulkRNASeq/plate1_rnaseq_new/results", id: 1),
+            create_metis_folder("results", "bulkRNASeq/plate2_rnaseq_new/results", id: 2),
+          ])
+
+          # Make sure rna_seq records are updated, once per rna_seq record. Only when file is found.
+          #   two records in the given response, so two updates.
+          expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).times(2)
+        end
+      end
+    end
+
+    it "for invalid NASH / NAFLD samples" do
+      expect(Polyphemus::WatchFolder.count).to eq(0)
+
+      etl.process(cursor, [
+        create_metis_folder("results", "bulkRNASeq/plate1_rnaseq_new/results", id: 1),
+        create_metis_folder("results", "bulkRNASeq/plate2_rnaseq_new/results", id: 2),
+      ])
+
+      expect(Polyphemus::WatchFolder.count).to eq(2)
+    end
   end
 
   describe 'link_rna_seq_raw_fastq_files' do
