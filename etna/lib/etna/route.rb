@@ -13,6 +13,7 @@ module Etna
       @route = route.gsub(/\A(?=[^\/])/, '/')
       @block = block
       @match_ext = options[:match_ext]
+      @log_redact_keys = options[:log_redact_keys]
     end
 
     def to_hash
@@ -168,15 +169,13 @@ module Etna
     end
 
     def redact_keys
-      @redact_keys ||= application.config(:log_redact_keys).split(",").map do |key|
-        key.to_sym
-      end
+      @log_redact_keys
     end
 
     def redact(key, value)
       # From configuration, redact any values for the supplied key values, so they
       #   don't appear in the logs.
-      return compact(value) unless application.config(:log_redact_keys)
+      return compact(value) unless redact_keys
 
       if value.is_a?(Hash)
         redacted_value = value.map do |value_key, value_value|
