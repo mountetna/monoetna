@@ -383,6 +383,34 @@ class Polyphemus
     end
   end
 
+  class RunEtlJob < Etna::Command
+    def execute
+      job_config = Polyphemus::EtlConfig.next_to_run
+
+      return if !job_config
+
+      begin
+        output = StringIO.new
+
+        old_stdout = $stdout
+        $stdout = output
+
+        job_config.run!
+      rescue Exception => e
+        job_config.set_error!(e)
+      ensure
+        $stdout = old_stdout
+      end
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+      Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
+    end
+  end
+
   class GetMetisFolders < Etna::Command
     include WithEtnaClients
 

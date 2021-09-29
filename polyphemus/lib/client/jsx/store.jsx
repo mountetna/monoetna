@@ -2,9 +2,10 @@ import * as Redux from 'redux';
 import thunk from 'redux-thunk';
 import * as ReduxLogger from 'redux-logger';
 import user from 'etna-js/reducers/user-reducer';
+import janus from 'etna-js/reducers/janus-reducer';
 
 const createStore = () => {
-  let reducers = { user };
+  let reducers = { user, janus };
 
   let middleWares = [thunk];
 
