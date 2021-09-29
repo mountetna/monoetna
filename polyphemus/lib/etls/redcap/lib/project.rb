@@ -76,8 +76,12 @@ module Redcap
       config[:models_to_build]
     end
 
+    def etl_config
+      config[:config].deep_symbolize_keys
+    end
+
     def models
-      @models ||= config[:models].map do |model_name, model_config|
+      @models ||= etl_config.map do |model_name, model_config|
         next unless build_model?(model_name.to_s)
         [
           model_name,

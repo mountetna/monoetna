@@ -1,60 +1,38 @@
 import React, {useCallback, useContext} from 'react';
-import {makeStyles} from '@material-ui/core/styles';
 
-import {useReduxState} from 'etna-js/hooks/useReduxState';
-import {selectTemplate} from 'etna-js/selectors/magma';
-
-import {QueryContext} from '../../contexts/query/query_context';
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
+import {QueryColumnContext} from '../../contexts/query/query_column_context';
 import QueryModelSelector from './query_model_selector';
 import QueryClause from './query_clause';
 
-const useStyles = makeStyles((theme) => ({
-  clauseTitle: {
-    fontSize: '1.2rem',
-    minWidth: '120px'
-  },
-  queryClause: {
-    padding: '5px'
-  }
-}));
-
 const QueryFromPane = () => {
-  const {state, setRootModel} = useContext(QueryContext);
-
-  let reduxState = useReduxState();
+  const {
+    state: {graph, rootModel},
+    setRootModel
+  } = useContext(QueryGraphContext);
+  const {setRootIdentifierColumn} = useContext(QueryColumnContext);
 
   const onRootModelSelect = useCallback(
     (modelName: string) => {
-      if ('' !== modelName) {
-        let template = selectTemplate(reduxState, modelName);
-        setRootModel(modelName, {
-          model_name: modelName,
-          attribute_name: template.identifier,
-          display_label: `${modelName}.${template.identifier}`,
-          slices: []
-        });
-      } else {
-        setRootModel(null, null);
-      }
+      let template = graph.template(modelName);
+      setRootModel(modelName);
+      setRootIdentifierColumn({
+        model_name: modelName,
+        attribute_name: template.identifier,
+        display_label: `${modelName}.${template.identifier}`,
+        slices: []
+      });
     },
-    [reduxState]
+    [graph, setRootModel, setRootIdentifierColumn]
   );
-
-  const classes = useStyles();
 
   return (
     <QueryClause title='From'>
       <QueryModelSelector
         label='Root Model'
-        modelValue={state.rootModel || ''}
-        modelChoiceSet={
-          state.graph && state.graph.allowedModels
-            ? [...state.graph.allowedModels]
-            : []
-        }
+        modelValue={rootModel || ''}
+        modelChoiceSet={[...graph.allowedModels]}
         onSelectModel={(modelName) => onRootModelSelect(modelName)}
-        canRemove={false}
-        removeModel={() => {}}
       />
     </QueryClause>
   );

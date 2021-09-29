@@ -18,7 +18,6 @@ class Magma
 
       subquery_model = model(subquery_model_name)
 
-      is_down_graph = going_down_graph?(main_model, subquery_model)
       verb_applies = verb_applies_to_model?(subquery_args)
 
       original_subquery_args = subquery_args.dup
@@ -39,23 +38,38 @@ class Magma
         subquery_model: subquery_model,
         derived_table_alias: derived_table_alias,
         main_table_alias: join_table_alias,
-        main_table_join_column_name: is_down_graph ? "id" : parent_column_name(main_model),
+        main_table_join_column_name: main_table_join_column_name(main_model, subquery_model),
         internal_table_alias: internal_table_alias,
-        subquery_pivot_column_name: is_down_graph ? parent_column_name(subquery_model) : "id",
+        subquery_pivot_column_name: subquery_pivot_column_name(main_model, subquery_model),
         filters: subquery_filters(subquery_args, internal_table_alias, subquery_model),
         subqueries: nested_subqueries,
         condition: verb_applies ? verb.do(:subquery_config).condition : nil,
       )
     end
 
-    def is_nested_subquery?(model)
-      model.model_name == predicate.model.model_name
+    def model_is_parent(main_model, subquery_model)
+      subquery_model.attributes[main_model.model_name].is_a?(Magma::ParentAttribute) ||
+      subquery_model.attributes[main_model.model_name].is_a?(Magma::LinkAttribute)
     end
 
-    def going_down_graph?(start_model, end_model)
-      # Returns boolean if start_model is parent of end_model, so
-      #   the relationship is one-to-many.
-      end_model.parent_model_name == start_model.model_name
+    def main_table_join_column_name(main_model, subquery_model)
+      if model_is_parent(main_model, subquery_model)
+        "id"
+      else
+        main_model.attributes[subquery_model.model_name].column_name
+      end
+    end
+
+    def subquery_pivot_column_name(main_model, subquery_model)
+      if model_is_parent(main_model, subquery_model)
+        subquery_model.attributes[main_model.model_name].column_name
+      else
+        "id"
+      end
+    end
+
+    def is_nested_subquery?(model)
+      model.model_name == predicate.model.model_name
     end
 
     def verb_applies_to_model?(subquery_args)

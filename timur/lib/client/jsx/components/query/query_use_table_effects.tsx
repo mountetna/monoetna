@@ -1,9 +1,6 @@
-import React, {useMemo, useContext, useCallback} from 'react';
+import React, {useMemo, useCallback} from 'react';
 import * as _ from 'lodash';
 
-import {useReduxState} from 'etna-js/hooks/useReduxState';
-import {selectModels} from 'etna-js/selectors/magma';
-import {QueryContext} from '../../contexts/query/query_context';
 import {
   QueryColumn,
   QueryResponse,
@@ -15,24 +12,30 @@ import {
   hasMatrixSlice,
   isMatrixSlice
 } from '../../selectors/query_selector';
+import {QueryGraph} from '../../utils/query_graph';
 
-const useTableEffects = (data: QueryResponse, expandMatrices: boolean) => {
-  let {state} = useContext(QueryContext);
-  const reduxState = useReduxState();
-
+const useTableEffects = ({
+  columns,
+  data,
+  graph,
+  expandMatrices
+}: {
+  columns: QueryColumn[];
+  data: QueryResponse;
+  expandMatrices: boolean;
+  graph: QueryGraph;
+}) => {
   function generateIdCol(attr: QueryColumn, index: number): string {
     return `${CONFIG.project_name}::${attr.model_name}#${attr.attribute_name}@${index}`;
   }
 
-  const columns = useMemo(() => {
-    if (!state.rootIdentifier) return [];
-
-    return state.columns.reduce(
+  const formattedColumns = useMemo(() => {
+    return columns.reduce(
       (acc: QueryTableColumn[], column: QueryColumn, index: number) => {
         if (
           expandMatrices &&
           attributeIsMatrix(
-            selectModels(reduxState),
+            graph.models,
             column.model_name,
             column.attribute_name
           ) &&
@@ -59,7 +62,7 @@ const useTableEffects = (data: QueryResponse, expandMatrices: boolean) => {
       },
       []
     );
-  }, [state.columns, state.rootIdentifier, reduxState, expandMatrices]);
+  }, [columns, graph, expandMatrices]);
 
   const formatRowData = useCallback(
     (allData: QueryResponse, cols: QueryTableColumn[]) => {
@@ -78,12 +81,12 @@ const useTableEffects = (data: QueryResponse, expandMatrices: boolean) => {
   const rows = useMemo(() => {
     if (!data || !data.answer) return;
 
-    // Need to order the results the same as `columns`
-    return formatRowData(data, columns);
-  }, [data, columns, formatRowData]);
+    // Need to order the results the same as `formattedColumns`
+    return formatRowData(data, formattedColumns);
+  }, [data, formattedColumns, formatRowData]);
 
   return {
-    columns,
+    columns: formattedColumns,
     rows,
     formatRowData
   };

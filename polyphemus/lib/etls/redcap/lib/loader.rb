@@ -1,5 +1,24 @@
 module Redcap
   class Loader
+    def self.to_schema
+      {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "https://example.com/product.schema.json",
+	title: "Redcap Loader",
+	description: "This loader takes data from a Redcap host and imports it into Magma according to a specified mapping template. It requires a Redcap API token.",
+        definitions: [
+          Redcap::Model,
+          Redcap::Script,
+          Redcap::Entity,
+          Redcap::Value
+        ].map(&:to_schema).reduce(&:merge),
+	type: "object",
+        additionalProperties: {
+          "$ref": "#/definitions/redcap_model"
+        }
+      }
+    end
+
     attr_reader :records, :magma_models_wrapper, :config, :logger
     def initialize(config, project_name, magma_client, logger=STDOUT)
       @config = config
@@ -92,7 +111,11 @@ module Redcap
     end
 
     def restrict_mode?
-      !!config[:mode] && !strict_mode && existing_mode
+      !default_mode && !strict_mode && existing_mode
+    end
+
+    def default_mode
+      "default" == config[:mode]
     end
 
     def strict_mode
