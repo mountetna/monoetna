@@ -29,9 +29,11 @@ RELEASE_BUCKET = Polyphemus.instance.config(:metis)[:release_bucket]
 RESTRICT_BUCKET = Polyphemus.instance.config(:metis)[:restrict_bucket]
 MAGMA_HOST = Polyphemus.instance.config(:magma)[:host]
 REDCAP_HOST = Polyphemus.instance.config(:redcap)[:host]
+JANUS_HOST = Polyphemus.instance.config(:janus)[:host]
 TEST_TOKEN = Polyphemus.instance.config(:polyphemus)[:token]
 
 PROJECT = "mvir1"
+REDCAP_TOKEN='09ED4B852506E81DC4E192061D602934'
 REDCAP_PROJECT_CONFIG_DIR = "lib/etls/redcap/projects"
 RENAMING_PROJECT_CONFIG_DIR = "lib/etls/renaming/projects"
 
@@ -109,6 +111,10 @@ FactoryBot.define do
   factory :watch_folder, class: Polyphemus::WatchFolder do
     to_create(&:save)
   end
+
+  factory :etl_config, class: Polyphemus::EtlConfig do
+    to_create(&:save)
+  end
 end
 
 def json_body
@@ -116,7 +122,7 @@ def json_body
 end
 
 def json_post(endpoint, hash)
-  post("/#{endpoint}", hash.to_json, { "CONTENT_TYPE" => "application/json" })
+  post(URI.encode("/#{endpoint.reverse.chomp('/').reverse}"), hash.to_json, { "CONTENT_TYPE" => "application/json" })
 end
 
 def stub_parent_exists(params = {})
@@ -137,6 +143,13 @@ def stub_rename_folder(params = {})
   stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{params[:bucket] || RESTRICT_BUCKET}\//)
     .to_return({
       status: params[:status] || 200,
+    })
+end
+
+def stub_task_token
+  stub_request(:post, /#{JANUS_HOST}/)
+    .to_return({
+      status: 200
     })
 end
 
@@ -486,6 +499,49 @@ def stub_watch_folders(folder_data = nil)
     create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "2015-01-01 00:00:00", folder_path: "path2", watch_type: "link_files", metis_id: 2)
     create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "1999-01-01 00:00:00", folder_path: "path1/path1_1", watch_type: "link_files", metis_id: 3)
   end
+end
+
+def create_dummy_etl(opts)
+  create(:etl_config, {project_name: "labors", name: "Dummy ETL", config: { foo: 2 }, params: {}, secrets: {}, etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_NEVER}.merge(opts))
+end
+
+def remove_dummy_job
+  Polyphemus::Job.list.delete(Polyphemus::DummyJob)
+  Polyphemus.send(:remove_const,:DummyJob)
+end
+
+def create_dummy_job
+  dummy_job = Class.new(Polyphemus::Job)
+  dummy_job.class_eval do
+    def self.as_json
+      {
+        name: "dummy",
+        schema: {
+          type: "object",
+          properties: {
+            foo: { type: "integer" },
+            bar: { enum: [ "baz", "qux" ] }
+          },
+          required: ["foo"],
+          additionalProperties: false
+        },
+        params: {
+          problem: [ 'present', 'absent' ],
+          whippit: 'boolean',
+        },
+        secrets: [ :rumor, :password ]
+      }
+    end
+
+    def validate
+    end
+
+    def run
+      puts "Here is some output"
+    end
+  end
+
+  Polyphemus.const_set 'DummyJob', dummy_job
 end
 
 def create_metis_folder(folder_name, folder_path, updated_at: Time.now, id: nil, project_name: PROJECT, bucket_name: RELEASE_BUCKET)
