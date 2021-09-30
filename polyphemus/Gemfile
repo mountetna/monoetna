@@ -5,7 +5,7 @@ gem "sequel"
 gem "pg"
 gem "puma", ">=5.0.2"
 gem "etna", path: "/etna"
-gem "actionpack" # For streaming the job controller results back...
+gem "activesupport" # we work on it
 gem "aspera-cli", ">=4.1.0"
 gem "rake" # for mimemagic??
 gem "mimemagic", "~>0.3.10" # for aspera-cli
