@@ -107,7 +107,7 @@ const RunPane = ({run_interval,update,params,param_opts,selected}:{run_interval:
             <Grid alignItems='center' key={param_name} className={classes.param} container>
               <Grid item xs={4}>{param_name}</Grid>
               <Grid item xs={5}>
-                <Param name={param_name} value={newParams[param_name]} opts={param_opts[param_name]} update={
+                <Param name={param_name} value={newParams && newParams[param_name]} opts={param_opts[param_name]} update={
                   (name,value) => {
                     console.log({name, value});
                     setParams({...newParams, [name]: value});
