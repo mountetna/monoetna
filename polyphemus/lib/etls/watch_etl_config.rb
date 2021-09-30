@@ -9,7 +9,8 @@ class Polyphemus::ProjectWatchFoldersConfig
   def initialize(project_name:)
     @project_name = project_name
     @buckets = {}
-    @processors = {}
+    @file_processors = {}
+    @folder_processors = {}
   end
 
   def bucket(bucket_name)
@@ -24,22 +25,37 @@ class Polyphemus::ProjectWatchFoldersConfig
     @buckets.values
   end
 
-  # processors are objects receiving process(cursor, files)
+  # file_processors are objects receiving process(cursor, files)
   # In combination with ProjectWatchFilesEtl and ProjectWatchFoldersEtl,
   # this defines processes that handle files both as they are 'joined' to
   # a subject watch folder when a folder event occurs, but also processes
   # as the individual files change while still attached to a subject watch
   # folder.  Note that this processing currently does not provide 'undoing',
-  # or following delete deltas.  They apply but do not unapply.  In the future
-  # we can consider improving this, but doing so will require careful planning.
-  def process_watch_type_with(watch_type_config, *processors)
-    (@processors[watch_type_config.truple] ||= []).push(*processors)
+  # or following delete deltas.
+  def process_watch_type_with(watch_type_config, *file_processors)
+    (@file_processors[watch_type_config.truple] ||= []).push(*file_processors)
     watch_type_config
   end
 
-  def processors(bucket_name, watch_type)
+
+  # folder_processors are objects receiving process(cursor, folders)
+  # Unlike the above file processors, these only run from the watch folder etl
+  # and only work on a filtered view of the folders.  These are executed only
+  # when a new watch folder match is found, and not necessarily when an existing
+  # watch folder is updated.
+  def process_folders_with(watch_type_config, *folder_processors)
+    (@folder_processors[watch_type_config.truple] ||= []).push(*folder_processors)
+    watch_type_config
+  end
+
+  def file_processors(bucket_name, watch_type)
     watch_type = bucket(bucket_name).watcher(watch_type)
-    @processors[watch_type.truple] ||= []
+    @file_processors[watch_type.truple] ||= []
+  end
+
+  def folder_processors(bucket_name, watch_type)
+    watch_type = bucket(bucket_name).watcher(watch_type)
+    @folder_processors[watch_type.truple] ||= []
   end
 end
 

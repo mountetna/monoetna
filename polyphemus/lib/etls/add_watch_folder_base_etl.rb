@@ -74,6 +74,7 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
     remove_changed_records(cursor, all_batch_folders, current_folder_metis_ids, watch_type)
   end
 
+
   def partition_folders(folders, current_folder_metis_ids)
     folders.partition do |folder|
       !current_folder_metis_ids.include?(folder.id)

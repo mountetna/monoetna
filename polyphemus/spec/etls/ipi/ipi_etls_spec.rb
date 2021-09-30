@@ -203,6 +203,153 @@ describe Polyphemus::Ipi::IpiWatchFoldersEtl do
       ]
     end
 
+    describe 'magma record creation' do
+      def folder(folder_name, folder_path, updated_at = Time.now)
+        @folder_id ||= 0
+        Etna::Clients::Metis::Folder.new({
+          folder_name: folder_name,
+          folder_path: folder_path,
+          updated_at: updated_at,
+          id: (@folder_id += 1)
+        })
+      end
+
+      it "for all rna_seq" do
+        etl.process(cursor, [
+          folder("IPIADR001.N1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
+          folder("IPIADR001.T1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output2/IPIADR001.T1.rna.live"),
+          folder("IPIBLAD001.T1.rna.live", "bulkRNASeq/plate2_rnaseq_new/output/IPIBLAD001.T1.rna.live"),
+        ])
+
+        # Make sure plates are created
+        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+          .with(body: hash_including({
+            "revisions": {
+              "rna_seq_plate": {
+                "Plate1": {
+                  "project": "UCSF Immunoprofiler",
+                },
+                "Plate2": {
+                  "project": "UCSF Immunoprofiler",
+                },
+              },
+            },
+          }))
+
+        # Make sure rna_seq records are created
+        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+          .with(body: hash_including({
+            "revisions": {
+              "rna_seq": {
+                "IPIADR001.N1.rna.live": {
+                  "rna_seq_plate": "Plate1",
+                  "sample": "IPIADR001.N1",
+                },
+              },
+            },
+          }))
+        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+          .with(body: hash_including({
+            "revisions": {
+              "rna_seq": {
+                "IPIBLAD001.T1.rna.live": {
+                  "rna_seq_plate": "Plate2",
+                  "sample": "IPIBLAD001.T1",
+                },
+              },
+            },
+          }))
+      end
+
+      it "does not create NASH / NAFLD samples" do
+        etl.process(cursor, [
+          folder("IPIADR001.NASH1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NASH1.rna.live"),
+          folder("IPIADR001.NAFLD1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NAFLD1.rna.live"),
+        ])
+
+        # Plates created anyways ... no plate is purely ignored samples,
+        #   so this is okay.
+        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+          .with(body: hash_including({
+            "revisions": {
+              "rna_seq_plate": {
+                "Plate1": {
+                  "project": "UCSF Immunoprofiler",
+                },
+              },
+            },
+          }))
+
+        # Make sure NO rna_seq records are created
+        expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
+          .with(body: hash_including({
+            "revisions": {
+              "rna_seq": {
+                "IPIADR001.NASH1.rna.live": {
+                  "rna_seq_plate": "Plate1",
+                  "sample": "IPIADR001.NASH1",
+                },
+              },
+            },
+          }))
+        expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
+          .with(body: hash_including({
+            "revisions": {
+              "rna_seq": {
+                "IPIADR001.NAFLD1.rna.live": {
+                  "rna_seq_plate": "Plate1",
+                  "sample": "IPIADR001.NAFLD1",
+                },
+              },
+            },
+          }))
+      end
+
+      it "for control" do
+        etl.process(cursor, [
+          folder("CONTROL_jurkat.plate1", "bulkRNASeq/plate1_rnaseq_new/output/CONTROL_jurkat.plate1"),
+          folder("CONTROL_uhr.plate2", "bulkRNASeq/plate2_rnaseq_new/output/CONTROL_uhr.plate2"),
+        ])
+
+        # Make sure plates are created
+        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+          .with(body: hash_including({
+            "revisions": {
+              "rna_seq_plate": {
+                "Plate1": {
+                  "project": "UCSF Immunoprofiler",
+                },
+                "Plate2": {
+                  "project": "UCSF Immunoprofiler",
+                },
+              },
+            },
+          }))
+
+        # Make sure Control record names work with validation and not attached to sample
+        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+          .with(body: hash_including({
+            "revisions": {
+              "rna_seq": {
+                "Control_Jurkat.Plate1": {
+                  "rna_seq_plate": "Plate1",
+                },
+              },
+            },
+          }))
+        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+          .with(body: hash_including({
+            "revisions": {
+              "rna_seq": {
+                "Control_UHR.Plate2": {
+                  "rna_seq_plate": "Plate2",
+                },
+              },
+            },
+          }))
+      end
+    end
+
     describe "create Polyphemus::WatchFile records" do
       it "for invalid NASH / NAFLD samples" do
         expect do
@@ -230,8 +377,9 @@ describe Polyphemus::Ipi::IpiWatchFoldersEtl do
         create_metis_folder("PATIENT001.N1.comp", "bulkRNASeq/plate1_rnaseq_new/output/PATIENT001.N1.comp", id: 2),
         create_metis_folder("PATIENT002.T1.comp", "bulkRNASeq/plate2_rnaseq_new/output/PATIENT002.T1.comp", id: 3),
       ])
-      # Make sure rna_seq records are updated. Once per folder when files found.
-      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).times(1)
+      # Make sure rna_seq records are created and updated.
+      # Once per process per folder when files found.
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).times(2)
     end
   end
 end

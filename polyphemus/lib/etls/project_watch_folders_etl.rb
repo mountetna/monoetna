@@ -11,11 +11,24 @@ class Polyphemus::ProjectWatchFoldersEtl < Polyphemus::AddWatchFolderBaseEtl
   end
 
   def process_folder_contents(cursor, folders, watch_type)
+    run_file_processors(cursor, folders, watch_type)
+    run_folder_processors(cursor, folders, watch_type)
+  end
+
+  def run_file_processors(cursor, folders, watch_type)
     bucket_name = cursor[:bucket_name]
 
-    processors = config.processors(bucket_name, watch_type)
+    processors = config.file_processors(bucket_name, watch_type)
     return if processors.empty?
     files = folders_files(cursor, folders)
     processors.each { |p| p.process(cursor, files) }
+  end
+
+  def run_folder_processors(cursor, folders, watch_type)
+    bucket_name = cursor[:bucket_name]
+
+    processors = config.folder_processors(bucket_name, watch_type)
+    return if processors.empty?
+    processors.each { |p| p.process(cursor, folders) }
   end
 end

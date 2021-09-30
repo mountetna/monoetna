@@ -20,9 +20,12 @@ class Polyphemus
             Polyphemus::IpiRnaSeqMatrixProcessor.new,
         )
 
-        process_watch_type_with(
-          bucket('data').watcher('link_processed_rna_seq_files').watch(/^bulkRNASeq\/.*\/output\/.*$/),
-          Polyphemus::LinkerProcessor.new(linker: rna_seq_processed_linker, model_name: 'rna_seq')
+        process_folders_with(
+          process_watch_type_with(
+            bucket('data').watcher('link_processed_rna_seq_files').watch(/^bulkRNASeq\/.*\/output\/.*$/),
+            Polyphemus::LinkerProcessor.new(linker: rna_seq_processed_linker, model_name: 'rna_seq'),
+          ),
+          Polyphemus::IpiRnaSeqAndPlateRecordCreator.new
         )
 
         process_watch_type_with(
@@ -37,6 +40,10 @@ class Polyphemus
 
       def rna_seq_fastq_linker
         Polyphemus::IpiRnaSeqRawFastqFilesLinker.new(project_name: project_name, bucket_name: 'integral_data')
+      end
+
+      def ipi_rna_seq_and_plate_record_creator
+        Polyphemus::IpiRnaSeqAndPlateRecordCreator.new
       end
     end
 
