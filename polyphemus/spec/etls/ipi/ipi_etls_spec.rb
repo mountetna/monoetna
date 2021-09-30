@@ -1,26 +1,183 @@
-describe Polyphemus::Ipi::IpiWatchFoldersEtl do
-  let(:etl) { Polyphemus::Ipi::IpiWatchFoldersEtl.new }
-  let(:files) { [] }
-  let(:project_name) { "ipi" }
-  let(:folder_cursor) {
-                        Polyphemus::MetisFolderEtlCursor.new(
-                          job_name: "test",
-                          project_name: project_name,
-                          bucket_name: bucket_name,
-                        )
-                      }
-  let(:cursor) { folder_cursor }
-  let(:helper) { IpiHelper.new("lib/etls/renaming/projects/test_renames.json") }
+module IpiMetisEtlTestHelpers
+  def folder(folder_path, updated_at = Time.now)
+    @folder_id ||= 0
+    Etna::Clients::Metis::Folder.new({
+      folder_name: File.dirname(folder_path),
+      folder_path: folder_path,
+      updated_at: updated_at,
+      id: (@folder_id += 1)
+    })
+  end
+
+  def self.included(cls)
+    cls.let(:files_etl) { Polyphemus::Ipi::IpiWatchFilesEtl.new }
+    cls.let(:folders_etl) { Polyphemus::Ipi::IpiWatchFoldersEtl.new }
+    cls.let(:project_name) { "ipi" }
+    cls.let(:file_cursor) {
+                            Polyphemus::MetisFileEtlCursor.new(
+                              job_name: "test",
+                              project_name: project_name,
+                              bucket_name: bucket_name,
+                            )
+                          }
+    cls.let(:folder_cursor) {
+                              Polyphemus::MetisFolderEtlCursor.new(
+                                job_name: "test",
+                                project_name: project_name,
+                                bucket_name: bucket_name,
+                              )
+                            }
+    cls.let(:helper) { IpiHelper.new("lib/etls/renaming/projects/test_renames.json") }
+
+    cls.before(:each) do
+      allow(IpiHelper).to receive(:new).and_return(helper)
+
+      stub_metis_setup
+      copy_renaming_project
+
+      stub_magma_update_json
+      stub_magma_models(fixture: "spec/fixtures/magma_ipi_models_with_records.json")
+    end
+  end
+end
+
+describe Polyphemus::Ipi::IpiWatchFilesEtl do
+  include IpiMetisEtlTestHelpers
+  let(:etl) { files_etl }
+  let(:cursor) { file_cursor }
+  let(:folders){[
+  ]}
 
   before(:each) do
-    allow(IpiHelper).to receive(:new).and_return(helper)
+    Polyphemus::AddWatchFolderBaseEtl.new(
+      bucket_watch_configs: folders_etl.config.bucket_configs
+    ).process(
+      folder_cursor,
+      folders
+    )
+  end
 
-    stub_metis_setup
-    copy_renaming_project
+  describe 'link_processed_rna_seq_files' do
+    let(:bucket_name) { "data" }
+    let(:folders) {[
+      folder("bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp")
+    ]}
 
-    stub_magma_update_json
-    stub_magma_models(fixture: "spec/fixtures/magma_ipi_models_with_records.json")
+    describe 'updates magma records' do
+      it "when scanner finds new files for file attribute" do
+        etl.process(cursor, [
+          create_metis_file("PATIENT001.T1.comp.deduplicated.cram", "--path-would-be-omitted--"),
+        ])
 
+        # Make sure rna_seq records are updated
+        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+          .with(body: hash_including({
+            "revisions": {
+              "rna_seq": {
+                "PATIENT001.T1.comp": {
+                  "cram": {
+                    "path": "metis://ipi/data/bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.deduplicated.cram",
+                    "original_filename": "PATIENT001.T1.comp.deduplicated.cram",
+                  },
+                },
+              },
+            },
+          }))
+
+        # Make sure rna_seq records are updated
+        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/retrieve/)
+          .with(body: hash_including({
+            project_name: project_name,
+            model_name: "rna_seq",
+            page_size: 1,
+            attribute_names: "all",
+            record_names: ["PATIENT001.T1.comp"],
+            hide_templates: true,
+          }))
+      end
+
+      it "when scanner finds new files for file_collection attribute" do
+        etl.process(cursor, [
+          create_metis_file("PATIENT001.T1.comp.unmapped.1.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.1.fastq.gz"),
+          create_metis_file("PATIENT001.T1.comp.unmapped.2.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.2.fastq.gz"),
+        ])
+
+        # Make sure rna_seq records are updated
+        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+          .with(body: hash_including({
+            "revisions": {
+              "rna_seq": {
+                "PATIENT001.T1.comp": {
+                  "unmapped_fastqs": [{
+                    "path": "metis://ipi/data/bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.1.fastq.gz",
+                    "original_filename": "PATIENT001.T1.comp.unmapped.1.fastq.gz",
+                  }, {
+                    "path": "metis://ipi/data/bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.2.fastq.gz",
+                    "original_filename": "PATIENT001.T1.comp.unmapped.2.fastq.gz",
+                  }],
+                },
+              },
+            },
+          }))
+      end
+
+      it "correctly ignores non-cancer files" do
+        etl.process(cursor, [
+          create_metis_file("PATIENT001.T1.NAFLD.blahblah3.junction", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.NAFLD/PATIENT001.T1.NAFLD.blahblah3.junction"),
+        ])
+
+        # Make sure rna_seq records are NOT updated
+        expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
+          .with(body: hash_including({
+            "revisions": {
+              "rna_seq": {
+                "PATIENT001.T1.NAFLD": {
+                  "junction": {
+                    "path": "metis://ipi/data/bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.NAFLD/PATIENT001.T1.NAFLD.blahblah3.junction",
+                    "original_filename": "PATIENT001.T1.NAFLD.blahblah3.junction",
+                  },
+                },
+              },
+            },
+          }))
+      end
+
+      describe 'with tubes that need renaming' do
+        let(:folders) {[
+          folder("bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor")
+        ]}
+      it "correctly renames renamed tube_names" do
+        etl.process(cursor, [
+          create_metis_file("WRONG001.T1.rna.tumor.deduplicated.cram.crai", "bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor/WRONG001.T1.rna.tumor.deduplicated.cram.crai"),
+        ])
+
+        # Make sure rna_seq records are updated for renamed patient, but pointing to the "wrong" file locations
+        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+          .with(body: hash_including({
+            "revisions": {
+              "rna_seq": {
+                "RIGHT001.T1.rna.tumor": {
+                  "cram_index": {
+                    "path": "metis://ipi/data/bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor/WRONG001.T1.rna.tumor.deduplicated.cram.crai",
+                    "original_filename": "WRONG001.T1.rna.tumor.deduplicated.cram.crai",
+                  },
+                },
+              },
+            },
+          }))
+        end
+      end
+    end
+  end
+end
+
+describe Polyphemus::Ipi::IpiWatchFoldersEtl do
+  include IpiMetisEtlTestHelpers
+  let(:etl) { folders_etl }
+  let(:files) { [] }
+  let(:cursor) { folder_cursor }
+
+  before(:each) do
     stub_request(:post, /#{METIS_HOST}\/#{project_name}\/find\/#{bucket_name}/)
       .to_return({
         status: 200,
@@ -204,21 +361,12 @@ describe Polyphemus::Ipi::IpiWatchFoldersEtl do
     end
 
     describe 'magma record creation' do
-      def folder(folder_name, folder_path, updated_at = Time.now)
-        @folder_id ||= 0
-        Etna::Clients::Metis::Folder.new({
-          folder_name: folder_name,
-          folder_path: folder_path,
-          updated_at: updated_at,
-          id: (@folder_id += 1)
-        })
-      end
 
       it "for all rna_seq" do
         etl.process(cursor, [
-          folder("IPIADR001.N1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
-          folder("IPIADR001.T1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output2/IPIADR001.T1.rna.live"),
-          folder("IPIBLAD001.T1.rna.live", "bulkRNASeq/plate2_rnaseq_new/output/IPIBLAD001.T1.rna.live"),
+          folder("bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
+          folder("bulkRNASeq/plate1_rnaseq_new/output2/IPIADR001.T1.rna.live"),
+          folder("bulkRNASeq/plate2_rnaseq_new/output/IPIBLAD001.T1.rna.live"),
         ])
 
         # Make sure plates are created
@@ -263,8 +411,8 @@ describe Polyphemus::Ipi::IpiWatchFoldersEtl do
 
       it "does not create NASH / NAFLD samples" do
         etl.process(cursor, [
-          folder("IPIADR001.NASH1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NASH1.rna.live"),
-          folder("IPIADR001.NAFLD1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NAFLD1.rna.live"),
+          folder("bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NASH1.rna.live"),
+          folder("bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NAFLD1.rna.live"),
         ])
 
         # Plates created anyways ... no plate is purely ignored samples,
@@ -307,8 +455,8 @@ describe Polyphemus::Ipi::IpiWatchFoldersEtl do
 
       it "for control" do
         etl.process(cursor, [
-          folder("CONTROL_jurkat.plate1", "bulkRNASeq/plate1_rnaseq_new/output/CONTROL_jurkat.plate1"),
-          folder("CONTROL_uhr.plate2", "bulkRNASeq/plate2_rnaseq_new/output/CONTROL_uhr.plate2"),
+          folder("bulkRNASeq/plate1_rnaseq_new/output/CONTROL_jurkat.plate1"),
+          folder("bulkRNASeq/plate2_rnaseq_new/output/CONTROL_uhr.plate2"),
         ])
 
         # Make sure plates are created

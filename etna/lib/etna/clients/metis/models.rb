@@ -282,10 +282,10 @@ module Etna
         end
 
         def with_containing_folder(folder)
-          folder_path = folder.is_a?(Folder) ? folder.folder_path : folder_path
-          File.new({
+          folder_path = folder.is_a?(Folder) ? folder.folder_path : folder
+          File.new({}.update(self.raw).update({
             file_path: ::File.join(folder_path, self.file_name)
-          }.update(self.raw))
+          }))
         end
 
         def file_path

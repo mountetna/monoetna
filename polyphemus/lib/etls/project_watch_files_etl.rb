@@ -12,8 +12,8 @@ class Polyphemus::ProjectWatchFilesEtl < Polyphemus::MetisFileInWatchFolderEtl
   def process_files(cursor, files, watch_type)
     bucket_name = cursor[:bucket_name]
 
-    processors = config.processors(bucket_name, watch_type)
-    return if processor.empty?
+    processors = config.file_processors(bucket_name, watch_type)
+    return if processors.empty?
     processors.each { |p| p.process(cursor, files) }
   end
 end
