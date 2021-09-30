@@ -1,5 +1,25 @@
 module Redcap
   class Value
+    def self.to_schema
+      {
+        attribute_value: {
+          type: "object",
+          properties: {
+            redcap_field: { type: "string" },
+            value: { enum: [ "text", "value", "label", "note", "select_choice", "combine", "none" ] },
+            text: { type: "string" },
+            combine: { type: "string" },
+            equals: { type: "string" },
+            match: { type: "string" },
+            in: { type: "array", items: { type: "string" } },
+            exists: { type: "boolean" }
+          },
+          additionalProperties: false,
+          required: [ "value" ]
+        }
+      }
+    end
+
     def initialize(att_name, config, template)
       @attribute_name = att_name
       @template = template

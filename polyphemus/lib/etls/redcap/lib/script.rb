@@ -1,5 +1,25 @@
 module Redcap
   class Script
+    def self.to_schema
+      {
+        script: {
+          type: "object",
+          properties: {
+            attributes: {
+              type: "object",
+              additionalProperties: {
+                oneOf: [
+                  { type: "string" },
+                  { "$ref": "#/definitions/attribute_value" }
+                ]
+              }
+            }
+          },
+          required: [ "attributes" ]
+        }
+      }
+    end
+
     def initialize(model, script, template)
       @model = model
       @project = model.project
