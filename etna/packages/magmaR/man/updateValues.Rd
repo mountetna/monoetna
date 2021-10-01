@@ -13,6 +13,10 @@ updateValues(
 )
 }
 \arguments{
+\item{target}{A list, which can be created using \code{\link{magmaRset}}, containing your authorization 'token' (a string), a 'url' of magma to target (a string), and optional 'opts' for specifying additions parameters for curl requests (a named list).}
+
+\item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
+
 \item{revisions}{A list of named lists containing the data to be updated.
 
 List structure:
@@ -25,6 +29,12 @@ List structure:
 See \url{https://mountetna.github.io/magma.html#update} for additional formatting details.}
 
 \item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.}
+
+\item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
+for troubleshooting or advanced-user purposes only: \itemize{
+\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which 1) stop the function before its main curl request to magma and 2) returns the values that would have been sent to magma in either of two formats.
+\item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
+}}
 }
 \value{
 None directly.

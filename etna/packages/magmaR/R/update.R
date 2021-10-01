@@ -1,6 +1,7 @@
 #' Analogous to the '/update' function of magma
 #' @description Analogous to the '/update' function of magma, allows data to be sent to magma (by users with at least "editor" authorization).
 #' @inheritParams updateMatrix
+#' @inheritParams retrieve
 #' @param revisions A list of named lists containing the data to be updated.
 #' 
 #' List structure:
