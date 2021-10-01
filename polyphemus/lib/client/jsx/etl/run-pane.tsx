@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -61,7 +61,11 @@ const Param = ({value, opts, name, update}:{
 const RunPane = ({run_interval,update,params,param_opts,selected}:{run_interval:number, params:any, param_opts: any, update:Function,selected:string|null}) => {
   const [ runState, setRunState ] = useState(getRunState(run_interval));
   const [ runIntervalTime, setRunIntervalTime ] = useState(getRunIntervalTime(run_interval));
-  const [ newParams, setParams ] = useState(params);
+  const [ newParams, setParams ] = useState({});
+
+  useEffect( () => {
+    setParams(params)
+  }, [ params ] );
 
   const runValue = () => runState == RUN_INTERVAL ? runIntervalTime : runState;
   const reset = () => { setRunState(getRunState(run_interval)); setRunIntervalTime(getRunIntervalTime(run_interval)); setParams(params) };
