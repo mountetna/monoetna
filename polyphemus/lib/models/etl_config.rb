@@ -94,7 +94,7 @@ class Polyphemus
       )
     end
 
-    def as_json
+    def as_json(options = nil)
       to_hash.map do |key,value|
         case key
         when :secrets
