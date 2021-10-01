@@ -23,7 +23,7 @@ const useStyles = makeStyles( theme => ({
 
 const SecretsPane = ({selected, keys, update, secrets}:{
   selected:string|null,
-  keys:string[],
+  keys:string[]|null,
   update:Function,
   secrets:any
 }) => {
@@ -36,7 +36,7 @@ const SecretsPane = ({selected, keys, update, secrets}:{
     <EtlPaneHeader title='Secrets'/>
     <Grid container className={classes.table}>
       {
-        keys.map( key => <Grid item className={classes.tablerow} container key={key}>
+        keys && keys.map( key => <Grid item className={classes.tablerow} container key={key}>
           <Grid item xs={4}>{key}</Grid>
           <Grid item xs={4}>{secrets[key] ? '●●●' : <em>none</em>}</Grid>
         </Grid>)

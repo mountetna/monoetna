@@ -53,7 +53,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
         {
           attributes: {
             name: {
-              match: /citation-(111|abc)/,
+              match: 'citation-(111|abc)',
               value: "none"
             },
             date: {
