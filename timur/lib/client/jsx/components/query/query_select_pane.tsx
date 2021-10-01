@@ -1,12 +1,23 @@
 import React, {useMemo, useContext, useCallback} from 'react';
+import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import AddIcon from '@material-ui/icons/Add';
+
+import {makeStyles} from '@material-ui/core/styles';
 
 import {QueryColumn} from '../../contexts/query/query_types';
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import {QueryColumnContext} from '../../contexts/query/query_column_context';
 import QueryModelAttributeSelector from './query_model_attribute_selector';
 import QueryClause from './query_clause';
+
+const useStyles = makeStyles((theme) => ({
+  displayLabel: {
+    marginBottom: 10,
+    paddingLeft: 10
+  }
+}));
 
 const QuerySelectPane = () => {
   const {
@@ -18,26 +29,31 @@ const QuerySelectPane = () => {
     patchQueryColumn,
     removeQueryColumn
   } = useContext(QueryColumnContext);
+  const classes = useStyles();
 
   const handleOnSelectModel = useCallback(
-    (columnIndex: number, modelName: string) => {
+    (columnIndex: number, modelName: string, displayLabel: string) => {
       patchQueryColumn(columnIndex, {
         model_name: modelName,
         slices: [],
         attribute_name: '',
-        display_label: ''
+        display_label: displayLabel
       });
     },
     [patchQueryColumn]
   );
 
   const handleOnSelectAttribute = useCallback(
-    (columnIndex: number, modelName: string, attributeName: string) => {
+    (columnIndex: number, column: QueryColumn, attributeName: string) => {
       patchQueryColumn(columnIndex, {
-        model_name: modelName,
+        model_name: column.model_name,
         slices: [],
         attribute_name: attributeName,
-        display_label: `${modelName}.${attributeName}`
+        display_label: `${
+          column.display_label === ''
+            ? `${column.model_name}.${attributeName}`
+            : column.display_label
+        }`
       });
     },
     [patchQueryColumn]
@@ -76,6 +92,20 @@ const QuerySelectPane = () => {
 
   return (
     <QueryClause title='Columns'>
+      <Grid className={classes.displayLabel} container>
+        <Grid item xs={2}>
+          <Typography>Display Label</Typography>
+        </Grid>
+        <Grid item xs={2}>
+          <Typography>Model</Typography>
+        </Grid>
+        <Grid item xs={2}>
+          <Typography>Attribute</Typography>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography>Slices</Typography>
+        </Grid>
+      </Grid>
       {columns.map((column: QueryColumn, index: number) => {
         return (
           <QueryModelAttributeSelector
@@ -86,9 +116,11 @@ const QuerySelectPane = () => {
             columnIndex={index}
             canEdit={0 !== index}
             graph={graph}
-            onSelectModel={(modelName) => handleOnSelectModel(index, modelName)}
+            onSelectModel={(modelName) =>
+              handleOnSelectModel(index, modelName, column.display_label)
+            }
             onSelectAttribute={(attributeName) =>
-              handleOnSelectAttribute(index, column.model_name, attributeName)
+              handleOnSelectAttribute(index, column, attributeName)
             }
             onChangeLabel={(label) => handleOnChangeLabel(index, column, label)}
             onRemoveColumn={() => handleOnRemoveColumn(index)}
