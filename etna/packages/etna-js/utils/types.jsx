@@ -16,3 +16,5 @@ export const flatten = (array) => [...new Set([].concat(...array))];
 
 export const mapObject = (o, f) =>
   Object.assign({}, ...Object.keys(o).map((k) => ({[k]: f(k, o[k])})));
+
+export const getType = v => Object.prototype.toString.call(v).match(/^\[object (.*)\]$/)[1];

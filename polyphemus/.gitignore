@@ -11,6 +11,7 @@ trash.rb
 /log
 /source
 
+*.swp
 *.eot
 *.svg
 *.ttf

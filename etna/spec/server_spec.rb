@@ -254,11 +254,11 @@ describe Etna::Server do
     end
 
     it 'removes root param values' do
-      Arachne::Server.route('POST', '/silk/:thread_weight/:shape', action: 'web#silk')
+      Arachne::Server.route('POST', '/silk/:thread_weight/:shape', action: 'web#silk', log_redact_keys: [ :shape, :image ])
 
       io = StringIO.new
 
-      @app = setup_app(Arachne::Server, nil, {test: {log_file: io, log_redact_keys: "shape,image"}})
+      @app = setup_app(Arachne::Server, nil, {test: {log_file: io}})
       Etna::Application.instance.setup_logger
 
       post(
@@ -277,11 +277,11 @@ describe Etna::Server do
     end
 
     it 'removes nested values' do
-      Arachne::Server.route('POST', '/silk/:thread_weight/:shape', action: 'web#silk')
+      Arachne::Server.route('POST', '/silk/:thread_weight/:shape', action: 'web#silk', log_redact_keys: [ :scary ])
 
       io = StringIO.new
 
-      @app = setup_app(Arachne::Server, nil, {test: {log_file: io, log_redact_keys: "scary"}})
+      @app = setup_app(Arachne::Server, nil, {test: {log_file: io}})
       Etna::Application.instance.setup_logger
 
       post(
