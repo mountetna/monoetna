@@ -47,11 +47,13 @@ const useStyles = makeStyles( theme => ({
   title: {
     color: 'goldenrod',
     justifyContent: 'flex-end',
+    alignItems: 'center',
     paddingRight: '15px',
     flexBasis: '200px'
   },
   values: {
     flex: '1 1 auto',
+    alignItems: 'center',
     width: 'auto'
   },
   heading: {
@@ -112,20 +114,20 @@ const EtlConfig = ({project_name, etl,name,config,status,secrets,params,output,r
               </Grid>
             </Grid>
             <Grid direction='row' className={classes.statusline} container>
+              <Grid container className={classes.title}>
+                <Typography>Last Status</Typography>
+              </Grid>
+              <Grid className={`${classes.values} ${classes[status]}`} direction='row' item container>
+                <Grid item><StatusIcon status={status}/></Grid>
+                <Grid item><Typography>{ status || 'none' }</Typography></Grid>
+              </Grid>
+            </Grid>
+            <Grid direction='row' className={classes.statusline} container>
               <Grid container className={classes.title} item>
                 <Typography>Next Run</Typography>
               </Grid>
               <Grid item className={ classes.values }>
                 <Typography>{runTime(ran_at, run_interval)} </Typography>
-              </Grid>
-            </Grid>
-            <Grid direction='row' className={classes.statusline} container>
-              <Grid container className={classes.title}>
-                <Typography>Status</Typography>
-              </Grid>
-              <Grid className={`${classes.values} ${classes[status]}`} direction='row' item container>
-                <Grid item><StatusIcon status={status}/></Grid>
-                <Grid item><Typography>{ status || 'none' }</Typography></Grid>
               </Grid>
             </Grid>
           </Grid>
