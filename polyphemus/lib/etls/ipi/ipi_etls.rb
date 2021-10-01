@@ -29,7 +29,7 @@ class Polyphemus
         )
 
         process_watch_type_with(
-          bucket('integral_data').watcher('link_rna_seq_raw_fastq_files').watch(/^.*\/BulkRNASeq\/.*$/),
+          bucket('integral_data').watcher('link_rna_seq_raw_fastq_files').watch(/^(.*\/)?BulkRNASeq\/.*$/),
           Polyphemus::LinkerProcessor.new(linker: rna_seq_fastq_linker, model_name: 'rna_seq')
         )
       end

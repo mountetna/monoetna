@@ -12,12 +12,11 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
   end
 
   def process(cursor, files)
-    puts("Files #{files}")
     matrix_files = files.select do |file|
       file.file_name =~ MATRIX_FILE_REGEX
     end
 
-    puts("Found #{matrix_files.length} matrix files: #{matrix_files.map { |f| f.file_path }.join(",")}")
+    logger.info("Found #{matrix_files.length} matrix files: #{matrix_files.map { |f| f.file_path }.join(",")}")
 
     magma_gene_ids = matrix_gene_ids(cursor[:project_name])
 
@@ -25,14 +24,14 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
       # The input matrices are transposed...
       # rows are gene_ids
       # columns are rna_seq tube_names.
-      puts("Downloading #{matrix_file.file_path}.")
+      logger.info("Downloading #{matrix_file.file_path}.")
       csv = CSV.parse(::File.read(tmp_file.path), headers: true, col_sep: "\t")
       csv.by_col!
       attribute_name = matrix_file.file_name.sub("_table.tsv", "")
 
       data_gene_ids_map = Hash[csv[0].map.with_index.to_a]
 
-      puts("Processing #{matrix_file.file_path}.")
+      logger.info("Processing #{matrix_file.file_path}.")
       csv.each.with_index do |col, index|
         next if index == 0
 
@@ -49,12 +48,10 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
           update_request.update_revision(MAGMA_MODEL, matrix.tube_name, {
             "#{attribute_name}": matrix.to_array,
           })
-          puts("Updating #{attribute_name} for record #{matrix.tube_name}.")
+          logger.info("Updating #{attribute_name} for record #{matrix.tube_name}.")
         end
       end
     end
-
-    logger.info("Done")
   end
 
   private

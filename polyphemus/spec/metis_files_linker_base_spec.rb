@@ -35,7 +35,6 @@ describe Polyphemus::MetisFilesLinkerBase do
     files << Etna::Clients::Metis::File.new({
       project_name: project_name,
       bucket_name: bucket_name,
-      file_path: file_path,
       file_name: file_name,
       folder_id: folder_id,
     })
