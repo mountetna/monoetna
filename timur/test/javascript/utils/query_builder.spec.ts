@@ -26,7 +26,7 @@ describe('QueryBuilder', () => {
 
   beforeEach(() => {
     graph = new QueryGraph(models);
-    builder = new QueryBuilder(graph, models);
+    builder = new QueryBuilder(graph);
   });
 
   function stamp(
@@ -46,18 +46,19 @@ describe('QueryBuilder', () => {
     const models = require('../fixtures/xcrs1_magma_metadata.json').models;
     beforeEach(() => {
       graph = new QueryGraph(models);
-      builder = new QueryBuilder(graph, models);
+      builder = new QueryBuilder(graph);
     });
 
     it('handles https://www.notion.so/ucsfdatascience/6bf73d7edfad4bd38a8527049c9f1510?v=b689c4e7890d4d2dbe3d8c6acb51a6ca&p=6d87fdcbba89412782c8b5d7d3897b5b', () => {
-      builder.addRootIdentifier(stamp('subject', 'name', []));
+      builder.addRootModel('subject');
       builder.addRecordFilters([
         {
           anyMap: {biospecimen: true, sc_seq: true},
           attributeName: 'tube_name',
           modelName: 'sc_seq',
           operand: '',
-          operator: '::has'
+          operator: '::has',
+          attributeType: 'text'
         }
       ]);
       builder.addColumns([stamp('subject', 'name', [])]);
@@ -79,7 +80,7 @@ describe('QueryBuilder', () => {
   });
 
   it('works', () => {
-    builder.addRootIdentifier(stamp('monster', 'name', []));
+    builder.addRootModel('monster');
     builder.addColumns([
       stamp('monster', 'name', []),
       stamp('monster', 'species', []),
@@ -91,7 +92,8 @@ describe('QueryBuilder', () => {
           modelName: 'labor',
           attributeName: 'contributions',
           operator: '::slice',
-          operand: 'Athens,Sidon'
+          operand: 'Athens,Sidon',
+          attributeType: 'matrix'
         }
       ]),
       stamp('prize', 'value', [
@@ -99,7 +101,8 @@ describe('QueryBuilder', () => {
           modelName: 'prize',
           attributeName: 'name',
           operator: '::equals',
-          operand: 'Sparta'
+          operand: 'Sparta',
+          attributeType: 'text'
         }
       ]),
       stamp('victim', 'country', [])
@@ -110,21 +113,24 @@ describe('QueryBuilder', () => {
         attributeName: 'name',
         operator: '::in',
         operand: 'lion,hydra,apples',
-        anyMap: {}
+        anyMap: {},
+        attributeType: 'text'
       },
       {
         modelName: 'monster',
         attributeName: 'name',
         operator: '::equals',
         operand: 'Nemean Lion',
-        anyMap: {}
+        anyMap: {},
+        attributeType: 'text'
       },
       {
         modelName: 'labor',
         attributeName: 'number',
         operator: '::equals',
-        operand: 2,
-        anyMap: {}
+        operand: '2',
+        anyMap: {},
+        attributeType: 'number'
       },
       {
         modelName: 'prize',
@@ -133,7 +139,8 @@ describe('QueryBuilder', () => {
         operand: 'Apples',
         anyMap: {
           prize: true
-        }
+        },
+        attributeType: 'text'
       }
     ]);
 
@@ -212,7 +219,7 @@ describe('QueryBuilder', () => {
   });
 
   it('adds slice for root model', () => {
-    builder.addRootIdentifier(stamp('labor', 'name', []));
+    builder.addRootModel('labor');
     builder.addColumns([
       stamp('labor', 'name', []),
       stamp('labor', 'contributions', [
@@ -220,7 +227,8 @@ describe('QueryBuilder', () => {
           modelName: 'labor',
           attributeName: 'contributions',
           operator: '::slice',
-          operand: 'Athens,Sidon'
+          operand: 'Athens,Sidon',
+          attributeType: 'matrix'
         }
       ])
     ]);
@@ -233,7 +241,7 @@ describe('QueryBuilder', () => {
   });
 
   it('returns a count query string', () => {
-    builder.addRootIdentifier(stamp('monster', 'name', []));
+    builder.addRootModel('monster');
     builder.addColumns([
       stamp('monster', 'name', []),
       stamp('labor', 'year', []),
@@ -244,7 +252,8 @@ describe('QueryBuilder', () => {
           modelName: 'prize',
           attributeName: 'name',
           operator: '::equals',
-          operand: 'Sparta'
+          operand: 'Sparta',
+          attributeType: 'text'
         }
       ])
     ]);
@@ -254,14 +263,16 @@ describe('QueryBuilder', () => {
         attributeName: 'name',
         operator: '::in',
         operand: 'lion,hydra,apples',
-        anyMap: {}
+        anyMap: {},
+        attributeType: 'text'
       },
       {
         modelName: 'monster',
         attributeName: 'name',
         operator: '::equals',
         operand: 'Nemean Lion',
-        anyMap: {}
+        anyMap: {},
+        attributeType: 'text'
       }
     ]);
 
@@ -278,7 +289,7 @@ describe('QueryBuilder', () => {
 
   describe('handles any for', () => {
     it('deep paths in filters with some non-branching models', () => {
-      builder.addRootIdentifier(stamp('labor', 'name', []));
+      builder.addRootModel('labor');
       builder.addRecordFilters([
         {
           modelName: 'wound',
@@ -288,7 +299,8 @@ describe('QueryBuilder', () => {
           anyMap: {
             victim: true,
             wound: true
-          }
+          },
+          attributeType: 'text'
         }
       ]);
       builder.addColumns([stamp('labor', 'name', [])]);
@@ -310,7 +322,7 @@ describe('QueryBuilder', () => {
     });
 
     it('deep paths in filters with branching models only', () => {
-      builder.addRootIdentifier(stamp('monster', 'name', []));
+      builder.addRootModel('monster');
       builder.addRecordFilters([
         {
           modelName: 'wound',
@@ -320,7 +332,8 @@ describe('QueryBuilder', () => {
           anyMap: {
             victim: true,
             wound: true
-          }
+          },
+          attributeType: 'text'
         }
       ]);
       builder.addColumns([stamp('monster', 'name', [])]);
@@ -338,7 +351,7 @@ describe('QueryBuilder', () => {
     });
 
     it('shallow paths in filters with branching models', () => {
-      builder.addRootIdentifier(stamp('monster', 'name', []));
+      builder.addRootModel('monster');
       builder.addRecordFilters([
         {
           modelName: 'victim',
@@ -347,7 +360,8 @@ describe('QueryBuilder', () => {
           operand: 'Hercules',
           anyMap: {
             victim: true
-          }
+          },
+          attributeType: 'text'
         }
       ]);
       builder.addColumns([stamp('monster', 'name', [])]);
@@ -361,7 +375,7 @@ describe('QueryBuilder', () => {
     });
 
     it('paths that go up and down the tree', () => {
-      builder.addRootIdentifier(stamp('prize', 'name', []));
+      builder.addRootModel('prize');
       builder.addRecordFilters([
         {
           modelName: 'wound',
@@ -371,7 +385,8 @@ describe('QueryBuilder', () => {
           anyMap: {
             victim: true,
             wound: true
-          }
+          },
+          attributeType: 'text'
         }
       ]);
       builder.addColumns([stamp('prize', 'name', [])]);
@@ -397,7 +412,7 @@ describe('QueryBuilder', () => {
     });
 
     it('paths that go up and down and terminate in a table', () => {
-      builder.addRootIdentifier(stamp('monster', 'name', []));
+      builder.addRootModel('monster');
       builder.addRecordFilters([
         {
           modelName: 'prize',
@@ -406,7 +421,8 @@ describe('QueryBuilder', () => {
           operand: 'Apples',
           anyMap: {
             prize: true
-          }
+          },
+          attributeType: 'text'
         }
       ]);
       builder.addColumns([stamp('monster', 'name', [])]);
@@ -420,14 +436,15 @@ describe('QueryBuilder', () => {
     });
 
     it('paths that go up the tree', () => {
-      builder.addRootIdentifier(stamp('prize', 'name', []));
+      builder.addRootModel('prize');
       builder.addRecordFilters([
         {
           modelName: 'labor',
           attributeName: 'name',
           operator: '::in',
           operand: 'Lion,Hydra',
-          anyMap: {}
+          anyMap: {},
+          attributeType: 'text'
         }
       ]);
       builder.addColumns([stamp('prize', 'name', [])]);
@@ -443,7 +460,7 @@ describe('QueryBuilder', () => {
 
   describe('handles every for', () => {
     it('deep paths in filters with some non-branching models', () => {
-      builder.addRootIdentifier(stamp('labor', 'name', []));
+      builder.addRootModel('labor');
       builder.addRecordFilters([
         {
           modelName: 'wound',
@@ -453,7 +470,8 @@ describe('QueryBuilder', () => {
           anyMap: {
             victim: false,
             wound: false
-          }
+          },
+          attributeType: 'text'
         }
       ]);
       builder.addColumns([stamp('labor', 'name', [])]);
@@ -475,7 +493,7 @@ describe('QueryBuilder', () => {
     });
 
     it('deep paths in filters with branching models only', () => {
-      builder.addRootIdentifier(stamp('monster', 'name', []));
+      builder.addRootModel('monster');
       builder.addRecordFilters([
         {
           modelName: 'wound',
@@ -485,7 +503,8 @@ describe('QueryBuilder', () => {
           anyMap: {
             victim: false,
             wound: false
-          }
+          },
+          attributeType: 'text'
         }
       ]);
       builder.addColumns([stamp('monster', 'name', [])]);
@@ -503,7 +522,7 @@ describe('QueryBuilder', () => {
     });
 
     it('shallow paths in filters with branching models', () => {
-      builder.addRootIdentifier(stamp('monster', 'name', []));
+      builder.addRootModel('monster');
       builder.addRecordFilters([
         {
           modelName: 'victim',
@@ -512,7 +531,8 @@ describe('QueryBuilder', () => {
           operand: 'Hercules',
           anyMap: {
             victim: false
-          }
+          },
+          attributeType: 'text'
         }
       ]);
       builder.addColumns([stamp('monster', 'name', [])]);
@@ -526,7 +546,7 @@ describe('QueryBuilder', () => {
     });
 
     it('paths that go up and down the tree', () => {
-      builder.addRootIdentifier(stamp('prize', 'name', []));
+      builder.addRootModel('prize');
       builder.addRecordFilters([
         {
           modelName: 'wound',
@@ -536,7 +556,8 @@ describe('QueryBuilder', () => {
           anyMap: {
             victim: false,
             wound: false
-          }
+          },
+          attributeType: 'text'
         }
       ]);
       builder.addColumns([stamp('prize', 'name', [])]);
@@ -562,7 +583,7 @@ describe('QueryBuilder', () => {
     });
 
     it('paths that go up and down and terminate in a table', () => {
-      builder.addRootIdentifier(stamp('monster', 'name', []));
+      builder.addRootModel('monster');
       builder.addRecordFilters([
         {
           modelName: 'prize',
@@ -571,7 +592,8 @@ describe('QueryBuilder', () => {
           operand: 'Apples',
           anyMap: {
             prize: false
-          }
+          },
+          attributeType: 'text'
         }
       ]);
       builder.addColumns([stamp('monster', 'name', [])]);
@@ -589,14 +611,15 @@ describe('QueryBuilder', () => {
     });
 
     it('paths that go up the tree', () => {
-      builder.addRootIdentifier(stamp('prize', 'name', []));
+      builder.addRootModel('prize');
       builder.addRecordFilters([
         {
           modelName: 'labor',
           attributeName: 'name',
           operator: '::in',
           operand: 'Lion,Hydra',
-          anyMap: {}
+          anyMap: {},
+          attributeType: 'text'
         }
       ]);
       builder.addColumns([stamp('prize', 'name', [])]);
@@ -604,6 +627,110 @@ describe('QueryBuilder', () => {
       expect(builder.query()).toEqual([
         'prize',
         ['labor', ['name', '::in', ['Lion', 'Hydra']], '::any'],
+        '::all',
+        ['name']
+      ]);
+    });
+
+    it('correctly handles numeric filters', () => {
+      builder.addRootModel('monster');
+      builder.addColumns([stamp('monster', 'name', [])]);
+      builder.addRecordFilters([
+        {
+          modelName: 'labor',
+          attributeName: 'number',
+          operator: '::equals',
+          operand: '2',
+          anyMap: {},
+          attributeType: 'number'
+        },
+        {
+          modelName: 'labor',
+          attributeName: 'number',
+          operator: '::in',
+          operand: '1,3,5',
+          anyMap: {},
+          attributeType: 'number'
+        },
+        {
+          modelName: 'labor',
+          attributeName: 'number',
+          operator: '::notin',
+          operand: '2,4,6',
+          anyMap: {},
+          attributeType: 'number'
+        },
+        {
+          modelName: 'labor',
+          attributeName: 'number',
+          operator: '::>=',
+          operand: '5,6',
+          anyMap: {},
+          attributeType: 'number'
+        }
+      ]);
+
+      expect(builder.query()).toEqual([
+        'monster',
+        [
+          '::and',
+          ['labor', ['number', '::equals', 2], '::any'],
+          ['labor', ['number', '::in', [1, 3, 5]], '::any'],
+          ['labor', ['number', '::notin', [2, 4, 6]], '::any'],
+          ['labor', ['number', '::>=', 5], '::any']
+        ],
+        '::all',
+        ['name']
+      ]);
+    });
+
+    it('correctly handles non-numeric filters', () => {
+      builder.addRootModel('monster');
+      builder.addColumns([stamp('monster', 'name', [])]);
+      builder.addRecordFilters([
+        {
+          modelName: 'labor',
+          attributeName: 'name',
+          operator: '::equals',
+          operand: '2',
+          anyMap: {},
+          attributeType: 'text'
+        },
+        {
+          modelName: 'labor',
+          attributeName: 'name',
+          operator: '::in',
+          operand: '1,3,5',
+          anyMap: {},
+          attributeType: 'text'
+        },
+        {
+          modelName: 'labor',
+          attributeName: 'name',
+          operator: '::notin',
+          operand: '2,4,6',
+          anyMap: {},
+          attributeType: 'text'
+        },
+        {
+          modelName: 'labor',
+          attributeName: 'name',
+          operator: '::>=',
+          operand: '5,6',
+          anyMap: {},
+          attributeType: 'text'
+        }
+      ]);
+
+      expect(builder.query()).toEqual([
+        'monster',
+        [
+          '::and',
+          ['labor', ['name', '::equals', '2'], '::any'],
+          ['labor', ['name', '::in', ['1', '3', '5']], '::any'],
+          ['labor', ['name', '::notin', ['2', '4', '6']], '::any'],
+          ['labor', ['name', '::>=', '5,6'], '::any']
+        ],
         '::all',
         ['name']
       ]);

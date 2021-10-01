@@ -102,10 +102,21 @@ class User < Sequel::Model
   end
 
   def superuser?
-    @superuser ||= permissions.any? do |permission|
-      permission.role == 'administrator' &&
-        permission.project &&
-        permission.project.project_name == 'administration'
+    @superuser ||= has_role?('administration', 'administrator')
+  end
+
+  def supereditor?
+    @supereditor ||= has_role?('administration', 'administrator', 'editor')
+  end
+
+  def superviewer?
+    @superviewer ||= has_role?('administration', 'administrator', 'editor', 'viewer')
+  end
+
+  def has_role?(project,*roles)
+    permissions.any? do |permission|
+      roles.include?(permission.role) &&
+        permission.project&.project_name == project
     end
   end
 end

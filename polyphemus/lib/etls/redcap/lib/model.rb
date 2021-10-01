@@ -1,5 +1,23 @@
 module Redcap
   class Model
+    def self.to_schema
+      {
+        redcap_model: {
+          type: "object",
+          properties: {
+            each: { "$ref": "#/definitions/each" },
+            invert: { type: "boolean" },
+            scripts: {
+              type: "array",
+              items: { "$ref": "#/definitions/script" }
+            }
+          },
+          additionalProperties: false,
+          required: [ "scripts" ]
+        }
+      }
+    end
+
     def self.define(model_name, &block)
       return Kernel.const_get(model_name) if Kernel.const_defined?(model_name)
 

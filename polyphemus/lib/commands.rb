@@ -3,6 +3,7 @@ require 'logger'
 require 'rollbar'
 require 'sequel'
 require 'tempfile'
+require 'active_support/all'
 require_relative 'helpers'
 require_relative 'data_processing/xml_dsl'
 require_relative 'data_processing/magma_dsl'
@@ -380,6 +381,38 @@ class Polyphemus
     def setup(config)
       super
       Polyphemus.instance.setup_logger
+    end
+  end
+
+  class RunEtlJob < Etna::Command
+    def execute
+      job_config = Polyphemus::EtlConfig.next_to_run
+
+      return if !job_config
+
+      puts "Running #{job_config.project_name}/#{job_config.name} with params #{job_config.params}"
+
+      begin
+        output = StringIO.new
+
+        old_stdout = $stdout
+        $stdout = output
+
+        job_config.run!
+      rescue Exception => e
+        STDOUT.puts e.message
+        STDOUT.puts e.backtrace
+        job_config.set_error!(e)
+      ensure
+        $stdout = old_stdout
+      end
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+      Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
     end
   end
 

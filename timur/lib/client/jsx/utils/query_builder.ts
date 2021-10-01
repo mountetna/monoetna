@@ -6,7 +6,6 @@ import {
   QueryBase
 } from '../contexts/query/query_types';
 import {QueryGraph} from './query_graph';
-import {Model} from '../models/model_types';
 import QuerySimplePathBuilder from './query_simple_path_builder';
 import QueryFilterPathBuilder from './query_filter_path_builder';
 import {
@@ -22,20 +21,18 @@ import FilterOperator from '../components/query/query_filter_operator';
 
 export class QueryBuilder {
   graph: QueryGraph;
-  models: {[key: string]: Model};
   recordFilters: QueryFilter[] = [];
   columns: QueryColumn[] = [];
   root: string = '';
   flatten: boolean = true;
   orRecordFilterIndices: number[] = [];
 
-  constructor(graph: QueryGraph, models: {[key: string]: Model}) {
+  constructor(graph: QueryGraph) {
     this.graph = graph;
-    this.models = models;
   }
 
-  addRootIdentifier(rootIdentifier: QueryColumn) {
-    this.root = rootIdentifier.model_name;
+  addRootModel(modelName: string) {
+    this.root = modelName;
   }
 
   addColumns(columns: QueryColumn[]) {
@@ -67,14 +64,28 @@ export class QueryBuilder {
     return [this.root, ...this.expandedOperands(this.recordFilters), '::count'];
   }
 
+  isNumeric(queryBase: QueryBase): boolean {
+    return queryBase.attributeType === 'number';
+  }
+
   serializeQueryBase(queryBase: QueryBase): any[] {
     let result: any[] = [];
 
     result.push(queryBase.attributeName);
     result.push(queryBase.operator);
 
-    if (FilterOperator.commaSeparatedOperators.includes(queryBase.operator)) {
+    if (
+      !this.isNumeric(queryBase) &&
+      FilterOperator.commaSeparatedOperators.includes(queryBase.operator)
+    ) {
       result.push((queryBase.operand as string).split(','));
+    } else if (
+      FilterOperator.commaSeparatedOperators.includes(queryBase.operator) &&
+      this.isNumeric(queryBase)
+    ) {
+      result.push(
+        (queryBase.operand as string).split(',').map((o) => parseFloat(o))
+      );
     } else if (
       FilterOperator.terminalInvertOperators.includes(queryBase.operator)
     ) {
@@ -85,6 +96,8 @@ export class QueryBuilder {
       result[length - 2] = tmpOperator;
     } else if (FilterOperator.terminalOperators.includes(queryBase.operator)) {
       // ignore operand
+    } else if (this.isNumeric(queryBase)) {
+      result.push(parseFloat(queryBase.operand as string));
     } else {
       result.push(queryBase.operand);
     }
@@ -164,7 +177,7 @@ export class QueryBuilder {
     const filterBuilder = new QueryFilterPathBuilder(
       pathWithoutRoot,
       this.root,
-      this.models,
+      this.graph.models,
       filter.anyMap
     );
     return filterBuilder.build();
@@ -178,7 +191,7 @@ export class QueryBuilder {
     const pathBuilder = new QuerySimplePathBuilder(
       pathWithoutRoot,
       this.root,
-      this.models,
+      this.graph.models,
       this.flatten
     );
     return pathBuilder.build();
@@ -275,7 +288,7 @@ export class QueryBuilder {
   attributeNameWithPredicate(modelName: string, attributeName: string) {
     // Probably only used for File / Image / FileCollection attributes?
     let predicate = [attributeName];
-    if (attributeIsFile(this.models, modelName, attributeName)) {
+    if (attributeIsFile(this.graph.models, modelName, attributeName)) {
       predicate.push('::url');
     }
 
