@@ -67,7 +67,7 @@ module Redcap
       end
 
       if @config.has_key?(:match)
-        return value =~ @config[:match]
+        return value =~ Regexp.new(@config[:match])
       end
 
       if @config.has_key?(:in)
