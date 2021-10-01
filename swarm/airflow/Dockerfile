@@ -4,8 +4,9 @@ FROM apache/airflow:2.1.3
 #RUN pip install -U requests[socks]
 #COPY src/dags /opt/airflow/dags
 # RUN pip3 install dask[complete]
-RUN pip3 install simple-dag-editor docker pytest
+RUN pip3 install simple-dag-editor docker pytest airflow-code-editor
 
-COPY src/opt/ /opt/airflow/
+COPY --chown=airflow src/opt/ /opt/airflow/
+# RUN chown -R airflow /opt/airflow/
 COPY etna-base-dev/bin/post-to-slack.sh /usr/local/bin/post-to-slack
 ENTRYPOINT ["/opt/airflow/entrypoint-with-secret-files.sh"]

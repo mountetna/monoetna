@@ -1,6 +1,6 @@
 baseTag:=$(shell basename "$$(pwd)")
 fullTag:=$(IMAGES_PREFIX)$(baseTag)$(IMAGES_POSTFIX)
-dockerOptions:=-u $(shell id -u):0 -v $$PWD/test_dags:/opt/airflow/dags  -v $$PWD/opt/plugins:/opt/airflow/plugins -v $$PWD/opt/swarm_executor:/opt/airflow/swarm_executor -v /var/run/docker.sock:/var/run/docker.sock:ro
+dockerOptions:=-u $(shell id -u):0 -v $$PWD/opt/plugins:/opt/airflow/plugins -v /var/run/docker.sock:/var/run/docker.sock:ro
 
 .PHONY: image
 image:
@@ -13,5 +13,5 @@ bash: image
 
 .PHONY: test
 test: image
-	docker run --rm $(dockerOptions) $(baseTag) python -m pytest
+	docker run --rm $(dockerOptions) $(baseTag) -v $$PWD/test_dags:/opt/airflow/dags python -m pytest
 
