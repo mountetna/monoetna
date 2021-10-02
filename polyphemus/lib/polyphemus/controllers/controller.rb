@@ -8,12 +8,8 @@ class Polyphemus
     def config_json
       {
         project_name: @params[:project_name],
-        token_name: Polyphemus.instance.config(:token_name),
-        timur_host: Polyphemus.instance.config(:timur)&.dig(:host),
-        janus_host: Polyphemus.instance.config(:janus)&.dig(:host),
-        metis_host: Polyphemus.instance.config(:metis)&.dig(:host),
-        vulcan_host: Polyphemus.instance.config(:vulcan)&.dig(:host)
-      }.to_json
+        token_name: Polyphemus.instance.config(:token_name)
+      }.merge(config_hosts).to_json
     end
   end
 end
