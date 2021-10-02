@@ -157,6 +157,7 @@ class Polyphemus::MetisFilesLinkerBase
     record_name_gsub_pair: nil
   )
     metis_files_by_record_name = metis_files.group_by do |file|
+      next if file.file_path.nil?
       match = file.file_path.match(path_regex)
 
       if match

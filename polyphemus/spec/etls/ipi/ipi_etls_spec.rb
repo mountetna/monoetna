@@ -45,8 +45,8 @@ describe Polyphemus::Ipi::IpiWatchFilesEtl do
   include IpiMetisEtlTestHelpers
   let(:etl) { files_etl }
   let(:cursor) { file_cursor }
-  let(:folders){[
-  ]}
+  let(:folders) { [
+  ] }
 
   before(:each) do
     Polyphemus::AddWatchFolderBaseEtl.new(
@@ -59,9 +59,9 @@ describe Polyphemus::Ipi::IpiWatchFilesEtl do
 
   describe 'link_rna_seq_raw_fastq_files' do
     let(:bucket_name) { "integral_data" }
-    let(:folders) {[
+    let(:folders) { [
       folder("BulkRNASeq/PATIENT001.T1.comp")
-    ]}
+    ] }
 
     describe 'updates magma records' do
       it "when scanner finds new files" do
@@ -97,9 +97,9 @@ describe Polyphemus::Ipi::IpiWatchFilesEtl do
 
   describe 'link_processed_rna_seq_files' do
     let(:bucket_name) { "data" }
-    let(:folders) {[
+    let(:folders) { [
       folder("bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp")
-    ]}
+    ] }
 
     describe 'updates magma records' do
       it "when scanner finds new files for file attribute" do
@@ -181,28 +181,28 @@ describe Polyphemus::Ipi::IpiWatchFilesEtl do
       end
 
       describe 'with tubes that need renaming' do
-        let(:folders) {[
+        let(:folders) { [
           folder("bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor")
-        ]}
-      it "correctly renames renamed tube_names" do
-        etl.process(cursor, [
-          create_metis_file("WRONG001.T1.rna.tumor.deduplicated.cram.crai", "bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor/WRONG001.T1.rna.tumor.deduplicated.cram.crai"),
-        ])
+        ] }
+        it "correctly renames renamed tube_names" do
+          etl.process(cursor, [
+            create_metis_file("WRONG001.T1.rna.tumor.deduplicated.cram.crai", "bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor/WRONG001.T1.rna.tumor.deduplicated.cram.crai"),
+          ])
 
-        # Make sure rna_seq records are updated for renamed patient, but pointing to the "wrong" file locations
-        expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
-          .with(body: hash_including({
-            "revisions": {
-              "rna_seq": {
-                "RIGHT001.T1.rna.tumor": {
-                  "cram_index": {
-                    "path": "metis://ipi/data/bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor/WRONG001.T1.rna.tumor.deduplicated.cram.crai",
-                    "original_filename": "WRONG001.T1.rna.tumor.deduplicated.cram.crai",
+          # Make sure rna_seq records are updated for renamed patient, but pointing to the "wrong" file locations
+          expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+            .with(body: hash_including({
+              "revisions": {
+                "rna_seq": {
+                  "RIGHT001.T1.rna.tumor": {
+                    "cram_index": {
+                      "path": "metis://ipi/data/bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor/WRONG001.T1.rna.tumor.deduplicated.cram.crai",
+                      "original_filename": "WRONG001.T1.rna.tumor.deduplicated.cram.crai",
+                    },
                   },
                 },
               },
-            },
-          }))
+            }))
         end
       end
     end
@@ -227,6 +227,70 @@ describe Polyphemus::Ipi::IpiWatchFoldersEtl do
                 folders: [],
               }.to_json
       })
+  end
+
+  describe 'propagate folder updated at' do
+    let(:bucket_name) { "data" }
+    let(:etl) { Polyphemus::Ipi::IpiPropagateFolderUpdatedAt.new }
+    it "touches children folders with updated_at older than parent" do
+      now = DateTime.now
+      Timecop.freeze(now - 100)
+
+      stub_touch_folder(
+        project: project_name,
+        bucket: bucket_name,
+      )
+      stub_list_folder(
+        url_verb: "list_by_id",
+        project: project_name,
+        bucket: bucket_name,
+        response_body: {
+          files: [],
+          folders: [{
+            project_name: project_name,
+            bucket_name: bucket_name,
+            folder_path: "output/PATIENT001.T1.comp",
+            updated_at: (now - 200).iso8601,
+          }],
+        },
+      )
+
+      etl.process(cursor, [
+        create_metis_folder("output", "output", updated_at: now - 100, id: 1, project_name: project_name, bucket_name: bucket_name),
+      ])
+
+      expect(WebMock).to have_requested(:get, /#{METIS_HOST}\/#{project_name}\/folder\/touch\/#{bucket_name}\/output\/PATIENT001.T1.comp/)
+
+      Timecop.return
+    end
+
+    it "does not touch children folders with updated_at newer than parent" do
+      now = DateTime.now
+      Timecop.freeze(now - 100)
+
+      stub_list_folder(
+        url_verb: "list_by_id",
+        project: project_name,
+        bucket: bucket_name,
+        response_body: {
+          files: [],
+          folders: [{
+            project_name: project_name,
+            bucket_name: bucket_name,
+            folder_path: "output/PATIENT001.T1.comp",
+            updated_at: (now - 10).iso8601,
+          }],
+        },
+      )
+
+      etl.process(cursor, [
+        create_metis_folder("output", "output", updated_at: now - 100, id: 1, project_name: project_name, bucket_name: bucket_name),
+      ])
+
+      expect(WebMock).not_to have_requested(:get, /#{METIS_HOST}\/#{project_name}\/folder\/touch\/#{bucket_name}\/output\/PATIENT001.T1.comp/)
+
+      Timecop.return
+    end
   end
 
   describe 'process_bulk_rna_seq_results' do
