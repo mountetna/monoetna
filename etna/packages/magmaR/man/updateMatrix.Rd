@@ -12,6 +12,7 @@ updateMatrix(
   matrix,
   separator = ",",
   auto.proceed = FALSE,
+  revisions.only = FALSE,
   ...
 )
 }
@@ -36,6 +37,9 @@ Check the 'See Also' section below for how to determine the needed 'options'.}
 Default = \code{","}.}
 
 \item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.}
+
+\item{revisions.only}{Logical. For troubleshooting purposes, when set to \code{TRUE}, no data will be sent to magma.
+Instead, the list structure that would have been passed to the \code{revisions} input of \code{\link{updateValues}} is returned as output.}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
@@ -95,9 +99,11 @@ if (interactive()) {
 
 }
 \seealso{
-\url{https://mountetna.github.io/magma.html#update} for documentation of the underlying magma/update function.
+\code{\link{updateFromDF}} for a more flexible function for uploading multiple attributes-worth of (non-matrix) data at a time.
 
-\code{\link{updateValues}} for a the more general version of this function which can handle non-matrix data types.
+\code{\link{updateValues}} for the more direct replica of \code{magma/update} which is more even more flexible that \code{updateFromDF}, though a bit more complicated to use.
 
 \code{\link{retrieveTemplate}}, then check the \code{<output>$models$<modelName>$template$attributes$<attributeName>$options} to explore the rownames that your matrix should have.
+
+\url{https://mountetna.github.io/magma.html#update} for documentation of the underlying \code{magma/update} function.
 }

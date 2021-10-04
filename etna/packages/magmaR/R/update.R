@@ -1,6 +1,7 @@
 #' Analogous to the '/update' function of magma
 #' @description Analogous to the '/update' function of magma, allows data to be sent to magma (by users with at least "editor" authorization).
 #' @inheritParams updateMatrix
+#' @inheritParams retrieve
 #' @param revisions A list of named lists containing the data to be updated.
 #' 
 #' List structure:
@@ -12,6 +13,7 @@
 #' 
 #' See \url{https://mountetna.github.io/magma.html#update} for additional formatting details.
 #' 
+#' @param auto.proceed Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.
 #' @return None directly.
 #' 
 #' The function sends data to magma, and the only outputs are information reported via the console.
@@ -106,7 +108,7 @@ updateValues <- function(
         num_new <- length(rec_names_new)
         
         ### Summarize for NEW records
-        cat("For model \"", modelName, "\", this update() will create ", num_new, " NEW records:\n    ",
+        cat("For model \"", modelName, "\", this update() will create (or update) ", num_new, " NEW (or orphan) records:\n    ",
             paste0(rec_names_new, collapse = "\n    "),
             "\nWARNING: Check the above carefully. Once created, there is no easy way to remove records from magma.\n",
             sep="")
