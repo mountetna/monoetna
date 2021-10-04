@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -31,8 +31,10 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
+type Value = undefined|string|boolean;
+
 const Param = ({value, opts, name, update}:{
-  value: undefined|string|boolean,
+  value: Value;
   opts: string[]|'string'|'boolean',
   name: string,
   update: (name:string,value:string|boolean) => void
@@ -61,7 +63,11 @@ const Param = ({value, opts, name, update}:{
 const RunPane = ({run_interval,update,params,param_opts,selected}:{run_interval:number, params:any, param_opts: any, update:Function,selected:string|null}) => {
   const [ runState, setRunState ] = useState(getRunState(run_interval));
   const [ runIntervalTime, setRunIntervalTime ] = useState(getRunIntervalTime(run_interval));
-  const [ newParams, setParams ] = useState(params);
+  const [ newParams, setParams ] = useState<any>({});
+
+  useEffect( () => {
+    setParams(params)
+  }, [ params ] );
 
   const runValue = () => runState == RUN_INTERVAL ? runIntervalTime : runState;
   const reset = () => { setRunState(getRunState(run_interval)); setRunIntervalTime(getRunIntervalTime(run_interval)); setParams(params) };
@@ -107,7 +113,7 @@ const RunPane = ({run_interval,update,params,param_opts,selected}:{run_interval:
             <Grid alignItems='center' key={param_name} className={classes.param} container>
               <Grid item xs={4}>{param_name}</Grid>
               <Grid item xs={5}>
-                <Param name={param_name} value={newParams[param_name]} opts={param_opts[param_name]} update={
+                <Param name={param_name} value={newParams[param_name] as Value} opts={param_opts[param_name]} update={
                   (name,value) => {
                     console.log({name, value});
                     setParams({...newParams, [name]: value});
