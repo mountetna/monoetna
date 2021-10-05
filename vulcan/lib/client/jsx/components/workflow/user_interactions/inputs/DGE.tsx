@@ -111,7 +111,7 @@ export default function DiffExpSC({
         />
       
       <hr/> 
-      {"Use all cells or just a subset? "}
+      {"Step 2: Use all cells or just a subset? "}
       <Button
           variant="outlined"
           color="primary"
@@ -121,9 +121,8 @@ export default function DiffExpSC({
         </Button>
       {SubsetComps(value, options, subOptions, updateValue)}
       
-      <hr/>
       {DEComps(value, options, subOptions, updateValue)}
-      {/* {GroupsComps} */}
+      {GroupComps(value, options, subOptions, updateValue)}
     </div>
   );
 
@@ -151,12 +150,13 @@ const output_sets: DataEnvelope<DataEnvelope<string|string[]|null>> = {
     'de_meta': null,
     'de_group_1': null,
     'de_group_2': null,
-    'groups_meta': null,
-    'groups_use': null
+    'group_meta': null,
+    'group_use': null
   }
 }
 
 const SubsetComps = (vals: DataEnvelope<any>, opts: string[], subopts: DataEnvelope<StringOptions>, changeFxn: Function) => {
+  
   let value_select = null;
   if (Object.keys(vals).includes('subset_meta')) {
     if (vals['subset_meta']!=null) {
@@ -176,11 +176,39 @@ const SubsetComps = (vals: DataEnvelope<any>, opts: string[], subopts: DataEnvel
   return(<div></div>)
 }
 
+const GroupComps = (vals: DataEnvelope<any>, opts: string[], subopts: DataEnvelope<StringOptions>, changeFxn: Function) => {
+  
+  if (Object.keys(vals).includes('group_meta')) {
+    
+    let value_select = null;
+    if (vals['group_meta']!=null) {
+      if (Object.keys(vals).includes('group_use')) {
+        value_select = MultiselectInput(
+          'group_use', changeFxn, vals['group_use'],
+          'Labels to focus on', subopts[(vals['group_meta'])] as string[])
+      }
+    }
+    
+    return(
+      <div>
+        <hr/>
+        {"Step 4: Between what comparison groups?"}
+        {dropdownInput(
+          'group_meta', changeFxn, vals['group_meta'],
+          'Group by:', opts)}
+        {value_select}
+      </div>
+    )
+  }
+  return(<div></div>)
+}
+
 const DEComps = (vals: DataEnvelope<any>, opts: string[], subopts: DataEnvelope<StringOptions>, changeFxn: Function) => {
-  console.log(Object.keys(vals));
-  let value_select_1 = null;
-  let value_select_2 = null;
+  
   if (Object.keys(vals).includes('de_meta')) {
+    
+    let value_select_1 = null;
+    let value_select_2 = null;
     if (vals['de_meta']!=null) {
       if (Object.keys(vals).includes('de_group_1')) {
         value_select_1 = MultiselectInput(
@@ -193,11 +221,14 @@ const DEComps = (vals: DataEnvelope<any>, opts: string[], subopts: DataEnvelope<
           'Labels to keep', subopts[(vals['de_meta'])] as string[])
       }
     }
+    
     return(
       <div>
+        <hr/>
+        {"Step 3: What labels do you want to compare? "}
         {dropdownInput(
           'de_meta', changeFxn, vals['de_meta'],
-          'DiffEexp by', opts)}
+          'DiffExp by:', opts)}
         {value_select_1}
         {value_select_2}
       </div>
