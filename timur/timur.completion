@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-function _vulcan_completions() {
-  _vulcan_inner_completions "${COMP_WORDS[@]:1:COMP_CWORD}"
+function _timur_completions() {
+  _timur_inner_completions "${COMP_WORDS[@]:1:COMP_CWORD}"
 }
 
-function _vulcan_inner_completions() {
+function _timur_inner_completions() {
   local all_flag_completion_names=''
   local arg_flag_completion_names=''
   local multi_flags=''
@@ -17,7 +17,7 @@ arg_flag_completion_names="$arg_flag_completion_names  "
 multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names="console create_db generate_completion_script help migrate schema workflow"
+all_completion_names="console create_db create_routes generate_completion_script help migrate schema"
 all_completion_names="$all_completion_names $all_flag_completion_names"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
@@ -63,6 +63,44 @@ fi
 done
 return
 elif [[ "$1" == "create_db" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
+a=$1
+shift
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "create_routes" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names  "
 arg_flag_completion_names="$arg_flag_completion_names  "
@@ -253,140 +291,6 @@ return
 fi
 done
 return
-elif [[ "$1" == "workflow" ]]; then
-shift
-all_flag_completion_names="$all_flag_completion_names  "
-arg_flag_completion_names="$arg_flag_completion_names  "
-multi_flags="$multi_flags  "
-while [[ "$#" != "0" ]]; do
-if [[ "$#" == "1" ]];  then
-all_completion_names="help run"
-all_completion_names="$all_completion_names $all_flag_completion_names"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-elif [[ "$1" == "help" ]]; then
-shift
-all_flag_completion_names="$all_flag_completion_names  "
-arg_flag_completion_names="$arg_flag_completion_names  "
-multi_flags="$multi_flags  "
-while [[ "$#" != "0" ]]; do
-if [[ "$#" == "1" ]];  then
-all_completion_names=""
-all_completion_names="$all_completion_names $all_flag_completion_names"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
-return
-elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
-if ! [[ "$multi_flags" =~ $1\  ]]; then
-all_flag_completion_names="${all_flag_completion_names//$1\ /}"
-fi
-a=$1
-shift
-if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
-if [[ "$#" == "1" ]];  then
-a="${a//--/}"
-a="${a//-/_}"
-i="_completions_for_$a"
-all_completion_names="${!i}"
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-fi
-else
-return
-fi
-done
-return
-elif [[ "$1" == "run" ]]; then
-shift
-if [[ "$#" == "1" ]];  then
-all_completion_names="__project_name__"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-if [[ "$#" == "1" ]];  then
-all_completion_names="__workflow_name__"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-all_flag_completion_names="$all_flag_completion_names --session-key --output-file --input-file "
-arg_flag_completion_names="$arg_flag_completion_names --session-key --output-file --input-file "
-multi_flags="$multi_flags  "
-declare _completions_for_session_key="__session_key__"
-declare _completions_for_output_file="__output_file__"
-declare _completions_for_input_file="__input_file__"
-while [[ "$#" != "0" ]]; do
-if [[ "$#" == "1" ]];  then
-all_completion_names=""
-all_completion_names="$all_completion_names $all_flag_completion_names"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
-return
-elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
-if ! [[ "$multi_flags" =~ $1\  ]]; then
-all_flag_completion_names="${all_flag_completion_names//$1\ /}"
-fi
-a=$1
-shift
-if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
-if [[ "$#" == "1" ]];  then
-a="${a//--/}"
-a="${a//-/_}"
-i="_completions_for_$a"
-all_completion_names="${!i}"
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-fi
-else
-return
-fi
-done
-return
-elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
-return
-elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
-if ! [[ "$multi_flags" =~ $1\  ]]; then
-all_flag_completion_names="${all_flag_completion_names//$1\ /}"
-fi
-a=$1
-shift
-if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
-if [[ "$#" == "1" ]];  then
-a="${a//--/}"
-a="${a//-/_}"
-i="_completions_for_$a"
-all_completion_names="${!i}"
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-fi
-else
-return
-fi
-done
 elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
 return
 elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
@@ -412,5 +316,5 @@ fi
 done
 }
 
-complete -o default -F _vulcan_completions vulcan
+complete -o default -F _timur_completions timur
 
