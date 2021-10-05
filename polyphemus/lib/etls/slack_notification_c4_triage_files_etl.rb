@@ -1,6 +1,9 @@
 require_relative "./slack_notification_triage_base_etl"
+require_relative "./ingest_config_module"
 
 class Polyphemus::SlackNotificationC4TriageFilesEtl < Polyphemus::SlackNotificationTriageBaseEtl
+  include Polyphemus::WithIngestConfig
+
   def initialize
     @project_name = "c4"
     @bucket_name = "triage"
@@ -17,19 +20,5 @@ class Polyphemus::SlackNotificationC4TriageFilesEtl < Polyphemus::SlackNotificat
       "data-ingest-ping",
       "Downloaded #{records.length} files from the CAT to C4.\n#{serialize(records)}.\nThey are available at #{c4_config[:root]} and ready for triage."
     )
-  end
-
-  private
-
-  def c4_config
-    @c4_config ||= ssh_configs.find { |c| c[:alias] == "c4" }
-  end
-
-  def ssh_configs
-    ingest_configs[:ssh]
-  end
-
-  def ingest_configs
-    Polyphemus.instance.config(:ingest)
   end
 end
