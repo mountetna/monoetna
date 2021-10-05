@@ -13,7 +13,8 @@ describe Polyphemus::MetisFilesLinkerBase do
   def make_file(
     file_path,
     file_name: File.basename(file_path),
-    add_watch_folder: true
+    add_watch_folder: true,
+    set_file_path: false
   )
     dir = File.dirname(file_path)
 
@@ -35,9 +36,9 @@ describe Polyphemus::MetisFilesLinkerBase do
     files << Etna::Clients::Metis::File.new({
       project_name: project_name,
       bucket_name: bucket_name,
-      file_path: file_path,
       file_name: file_name,
       folder_id: folder_id,
+      file_path: set_file_path ? file_path : nil
     })
   end
 
@@ -113,7 +114,7 @@ describe Polyphemus::MetisFilesLinkerBase do
     describe 'but without a file watch backing it' do
       it 'runs without exception, processing nothing' do
         @record_one_name, attrs = make_record({})
-        make_file("processed/#{@record_one_name}/one-a", add_watch_folder: false)
+        make_file("processed/#{@record_one_name}/one-a", add_watch_folder: false, set_file_path: false)
 
         expect(files_by_record_name).to be_empty
         expect(linker.link(
@@ -137,9 +138,9 @@ describe Polyphemus::MetisFilesLinkerBase do
           },
         ]
       })
-      make_file("processed/#{@record_one_name}/two-a")
+      make_file("processed/#{@record_one_name}/two-a", set_file_path: true)
       # two-b is no longer included, but should not be dropped
-      make_file("processed/#{@record_one_name}/two-c")
+      make_file("processed/#{@record_one_name}/two-c", set_file_path: true)
 
       expect(linker.link(
         model_name: model_name,
@@ -169,8 +170,8 @@ describe Polyphemus::MetisFilesLinkerBase do
 
     it 'can link in a few files into an empty collection attribute' do
       @record_one_name, attrs = make_record({})
-      make_file("processed/#{@record_one_name}/two-a")
-      make_file("processed/#{@record_one_name}/two-b")
+      make_file("processed/#{@record_one_name}/two-a", set_file_path: true)
+      make_file("processed/#{@record_one_name}/two-b", set_file_path: true)
 
       expect(linker.link(
         model_name: model_name,
@@ -196,7 +197,7 @@ describe Polyphemus::MetisFilesLinkerBase do
 
     it 'can link in a single file attribute' do
       @record_one_name, attrs = make_record({})
-      make_file("processed/#{@record_one_name}/one-a")
+      make_file("processed/#{@record_one_name}/one-a", set_file_path: true)
 
       expect(files_by_record_name).to_not be_empty
 
