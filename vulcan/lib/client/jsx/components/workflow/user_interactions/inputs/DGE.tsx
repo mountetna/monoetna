@@ -58,12 +58,12 @@ export default function DiffExpSC({
   }, [data])
   
   const [doSubset, setSubset] = useState(false);
-  const addSubset = (vals = value) => {
+  const addSubset = (vals = {...value}) => {
     vals['subset_meta'] = null
     vals['subset_use'] = null
     onChange(some(vals));
   }
-  const removeSubset = (vals = value) => {
+  const removeSubset = (vals = {...value}) => {
     if (Object.keys(vals).includes('subset_meta')) delete vals['subset_meta']
     if (Object.keys(vals).includes('subset_use')) delete vals['subset_use']
     onChange(some(vals));
@@ -74,8 +74,8 @@ export default function DiffExpSC({
     setSubset(!doSubset)
   }
   
-  const setDEMethod = (method: string, vals = value) => {
-    let newVals = output_sets[method]
+  const setDEMethod = (method: string, vals = {...value}) => {
+    let newVals = {...output_sets[method]}
     if (doSubset) {
       newVals['subset_meta'] = vals['subset_meta']
       newVals['subset_use'] = vals['subset_use']
@@ -87,19 +87,6 @@ export default function DiffExpSC({
     prevValues[key] = newValue;
     onChange(some(prevValues));
   };
-
-  /*
-  method question
-  subset button
-    subset_by
-    subset_use
-  DE_by
-    DE_group1
-    DE_group2
-  group_by if there
-  */
-  
-  console.log(value)
   
   return (
     <div>
@@ -121,8 +108,8 @@ export default function DiffExpSC({
         </Button>
       {SubsetComps(value, options, subOptions, updateValue)}
       
-      {DEComps(value, options, subOptions, updateValue)}
-      {GroupComps(value, options, subOptions, updateValue)}
+      {DEComps(value, options, subOptions, updateValue, value['method'])}
+      {GroupComps(value, options, subOptions, updateValue, value['method'])}
     </div>
   );
 
@@ -176,65 +163,83 @@ const SubsetComps = (vals: DataEnvelope<any>, opts: string[], subopts: DataEnvel
   return(<div></div>)
 }
 
-const GroupComps = (vals: DataEnvelope<any>, opts: string[], subopts: DataEnvelope<StringOptions>, changeFxn: Function) => {
+const DEComps = (
+  vals: DataEnvelope<any>,
+  opts: string[],
+  subopts: DataEnvelope<StringOptions>,
+  changeFxn: Function,
+  method: string) => {
   
-  if (Object.keys(vals).includes('group_meta')) {
-    
-    let value_select = null;
-    if (vals['group_meta']!=null) {
-      if (Object.keys(vals).includes('group_use')) {
-        value_select = MultiselectInput(
-          'group_use', changeFxn, vals['group_use'],
-          'Labels to focus on', subopts[(vals['group_meta'])] as string[])
+  const comps = useMemo(() => {
+    if (Object.keys(vals).includes('de_meta')) {
+      
+      let value_select_1 = null;
+      let value_select_2 = null;
+      if (vals['de_meta']!=null) {
+        if (Object.keys(vals).includes('de_group_1')) {
+          value_select_1 = MultiselectInput(
+            'de_group_1', changeFxn, vals['de_group_1'],
+            'Labels to for Group-1', subopts[(vals['de_meta'])] as string[])
+        }
+        if (Object.keys(vals).includes('de_group_2')) {
+          value_select_2 = MultiselectInput(
+            'de_group_2', changeFxn, vals['de_group_2'],
+            'Labels to keep', subopts[(vals['de_meta'])] as string[])
+        }
       }
+      
+      return(
+        <div>
+          <hr/>
+          {"Step 3: What labels do you want to compare? "}
+          {dropdownInput(
+            'de_meta', changeFxn, vals['de_meta'],
+            'DiffExp by:', opts)}
+          {value_select_1}
+          {value_select_2}
+        </div>
+      )
     }
-    
-    return(
-      <div>
-        <hr/>
-        {"Step 4: Between what comparison groups?"}
-        {dropdownInput(
-          'group_meta', changeFxn, vals['group_meta'],
-          'Group by:', opts)}
-        {value_select}
-      </div>
-    )
-  }
-  return(<div></div>)
+    return(<div></div>)
+  }, [method])
+  
+  return comps
 }
 
-const DEComps = (vals: DataEnvelope<any>, opts: string[], subopts: DataEnvelope<StringOptions>, changeFxn: Function) => {
-  
-  if (Object.keys(vals).includes('de_meta')) {
-    
-    let value_select_1 = null;
-    let value_select_2 = null;
-    if (vals['de_meta']!=null) {
-      if (Object.keys(vals).includes('de_group_1')) {
-        value_select_1 = MultiselectInput(
-          'de_group_1', changeFxn, vals['de_group_1'],
-          'Labels to for Group-1', subopts[(vals['de_meta'])] as string[])
+const GroupComps = (
+  vals: DataEnvelope<any>,
+  opts: string[],
+  subopts: DataEnvelope<StringOptions>,
+  changeFxn: Function,
+  method: string) => {
+
+  const comps = useMemo(() => {
+    if (Object.keys(vals).includes('group_meta')) {
+      
+      let value_select = null;
+      if (vals['group_meta']!=null) {
+        if (Object.keys(vals).includes('group_use')) {
+          value_select = MultiselectInput(
+            'group_use', changeFxn, vals['group_use'],
+            'Labels to focus on', subopts[(vals['group_meta'])] as string[])
+        }
       }
-      if (Object.keys(vals).includes('de_group_2')) {
-        value_select_2 = MultiselectInput(
-          'de_group_2', changeFxn, vals['de_group_2'],
-          'Labels to keep', subopts[(vals['de_meta'])] as string[])
-      }
+      
+      return(
+        <div>
+          <hr/>
+          {"Step 4: Between what comparison groups?"}
+          {dropdownInput(
+            'group_meta', changeFxn, vals['group_meta'],
+            'Group by:', opts)}
+          {value_select}
+        </div>
+      )
     }
-    
-    return(
-      <div>
-        <hr/>
-        {"Step 3: What labels do you want to compare? "}
-        {dropdownInput(
-          'de_meta', changeFxn, vals['de_meta'],
-          'DiffExp by:', opts)}
-        {value_select_1}
-        {value_select_2}
-      </div>
-    )
-  }
-  return(<div></div>)
+    return(<div></div>)
+  }, [method])
+  
+  return comps
 }
 
 // Component Setups
