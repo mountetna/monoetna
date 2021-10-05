@@ -1,23 +1,16 @@
-require_relative "../../metis_folder_etl"
+require_relative "../metis_folder_etl"
 
-# TODO: Can we generalize this to propagate folder updates across all projects?  Would need some refactoring of
-# cursors and some endpoints.
-class Polyphemus::MetisPropagateFolderUpdatedAtEtl < Polyphemus::MetisFolderEtl
-  PROJECT = "ipi"
-  BUCKET = "data"
-
-  def initialize
+class Polyphemus::ProjectPropagateFolderUpdatedAtEtl < Polyphemus::MetisFolderEtl
+  def initialize(config)
     super(
-      project_bucket_pairs: [[PROJECT, BUCKET]],
+      project_bucket_pairs: [config.project_name].product(config.buckets),
     )
   end
 
   def process(cursor, folders)
     # For each folder that is updated, we'll touch it's child folders
     logger.info("Found #{folders.length} updated folders: #{folders.map { |f| f.folder_path }.join(",")}")
-
     update_child_folders(folders)
-
     logger.info("Done")
   end
 
