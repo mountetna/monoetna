@@ -75,12 +75,10 @@ export default function DiffExpSC({
   
   const setDEMethod = (method: string, vals = {...value}) => {
     let newVals = {...output_sets[method]}
-    console.log(newVals);
     if (doSubset) {
       newVals['subset_meta'] = vals['subset_meta']
       newVals['subset_use'] = vals['subset_use']
     }
-    console.log(newVals);
     onChange(some(newVals));
   }
   
@@ -89,7 +87,7 @@ export default function DiffExpSC({
     onChange(some(prevValues));
   };
   
-  console.log(value)
+  //console.log(value)
   
   return (
     <div>
@@ -111,8 +109,8 @@ export default function DiffExpSC({
         </Button>
       {SubsetComps(value, options, updateValue)}
       
-      {DEComps(value, options, updateValue, value['method'])}
-      {GroupComps(value, options, updateValue, value['method'])}
+      {DEComps(value, options, updateValue)}
+      {GroupComps(value, options, updateValue)}
     </div>
   );
 
@@ -169,8 +167,7 @@ const SubsetComps = (vals: DataEnvelope<any>, opts: DataEnvelope<StringOptions>,
 const DEComps = (
   vals: DataEnvelope<any>,
   opts: DataEnvelope<StringOptions>,
-  changeFxn: Function,
-  method: string) => {
+  changeFxn: Function) => {
   
   const comps = useMemo(() => {
     if (Object.keys(vals).includes('de_meta')) {
@@ -203,7 +200,7 @@ const DEComps = (
       )
     }
     return(<div></div>)
-  }, [vals, opts, method])
+  }, [vals, opts])
   
   return comps
 }
@@ -211,8 +208,7 @@ const DEComps = (
 const GroupComps = (
   vals: DataEnvelope<any>,
   opts: DataEnvelope<StringOptions>,
-  changeFxn: Function,
-  method: string) => {
+  changeFxn: Function) => {
 
   const comps = useMemo(() => {
     if (Object.keys(vals).includes('group_meta')) {
@@ -238,7 +234,7 @@ const GroupComps = (
       )
     }
     return(<div></div>)
-  }, [vals, opts, method])
+  }, [vals, opts])
   
   return comps
 }
