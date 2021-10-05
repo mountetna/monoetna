@@ -13,7 +13,7 @@ import { Button, Slider } from '@material-ui/core';
 import { pick } from 'lodash';
 import StringInput from './string';
 import BooleanInput from './boolean';
-import { flattenStringOptions, joinNesting } from './monoids';
+import { flattenStringOptions, joinNesting, StringOptions } from './monoids';
 import { useMemoized } from '../../../../selectors/workflow_selectors';
 
 /*
@@ -43,33 +43,46 @@ export default function DiffExpSC({
   data, onChange, ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>, plotType: string) {
   const value = useSetsDefault({method: null}, props.value, onChange);
-  const allOptions = useMemoized(joinNesting, data);
-  const options = Object.keys(allOptions);
-  const [doSubset, setSubset] = useState(false);
-  
-  /*
-  const subOptions: DataEnvelope<string[]> = useMemo(() => {
-    if (data == null) return [];
-    const vals = {...data}
-    let opts = {...data}
-    Object.entries(vals).map( ([key,value]) => {
-      opts[key] = flattenStringOptions({'0': value})
+  const allData = useMemoized(joinNesting, data);
+  const options = Object.keys(allData);
+  const subOptions: DataEnvelope<StringOptions> = useMemo(() => {
+    let opts: DataEnvelope<StringOptions> = {}
+    Object.entries(allData).map( ([key,value]) => {
+      const vals=Object.values(value as string);
+      // String values only! 
+      if (_.every(vals, _.isString)) {
+        opts[key] = [...new Set(vals)];
+      }
     })
     return opts;
   }, [data])
-  */
+  
+  const [doSubset, setSubset] = useState(false);
   const addSubset = (vals = value) => {
     vals['subset_meta'] = null
     vals['subset_use'] = null
     onChange(some(vals));
   }
-  
   const removeSubset = (vals = value) => {
     if (Object.keys(vals).includes('subset_meta')) delete vals['subset_meta']
     if (Object.keys(vals).includes('subset_use')) delete vals['subset_use']
     onChange(some(vals));
   }
-
+  function toggleSubsetting() {
+    if (doSubset) removeSubset();
+    if (!doSubset) addSubset();
+    setSubset(!doSubset)
+  }
+  
+  const setDEMethod = (method: string, vals = value) => {
+    let newVals = output_sets[method]
+    if (doSubset) {
+      newVals['subset_meta'] = vals['subset_meta']
+      newVals['subset_use'] = vals['subset_use']
+    }
+    onChange(some(newVals));
+  }
+  
   const updateValue = (newValue: any, key: string, prevValues = {...value}) => {
     prevValues[key] = newValue;
     onChange(some(prevValues));
@@ -85,56 +98,31 @@ export default function DiffExpSC({
     DE_group2
   group_by if there
   */
- 
-  const SubsetComps = (vals = value, opts = options, allopts = allOptions) => {
-    console.log(Object.keys(vals));
-    let value_select = null;
-    if (Object.keys(vals).includes('subset_meta')) {
-      if (vals['subset_meta']!=null) {
-        value_select = MultiselectInput(
-          'subset_use', updateValue, vals['subset_use'],
-          'Labels to keep', allopts[vals['subset_meta']] as string[])
-      }
-      return(
-        <div>
-          {dropdownInput(
-            'subset_meta', updateValue, vals['subset_meta'],
-            "Subset by:", opts)}
-          {value_select}
-        </div>
-      )
-    } else {
-      return(<div></div>)
-    }
-  }
   
-  function toggleSubsetting(vals = value) {
-    if (doSubset) removeSubset();
-    if (!doSubset) addSubset();
-    setSubset(!doSubset)
-  }
-  
-  console.log(options)
   console.log(value)
   
   return (
     <div>
-      Differential Expression Question:
+      Step 1: Select your DE Question Type:
       <DropdownAutocomplete
           list={Object.keys(method_labels)}
           value={value['method']}
-          onSelect={(val: string) => updateValue(method_labels[val], 'method')}
+          onSelect={(val: string) => setDEMethod(method_labels[val])}
         />
-      Use all cells or just a subset?
+      
+      <hr/> 
+      {"Use all cells or just a subset? "}
       <Button
-          variant="contained"
+          variant="outlined"
           color="primary"
           onClick={() => {toggleSubsetting()}}
           >
-          Subsetting
+          Toggle Subsetting
         </Button>
-      {SubsetComps()}
-      {/* {DEComps} */}
+      {SubsetComps(value, options, subOptions, updateValue)}
+      
+      <hr/>
+      {DEComps(value, options, subOptions, updateValue)}
       {/* {GroupsComps} */}
     </div>
   );
@@ -150,11 +138,10 @@ const method_labels: DataEnvelope<string> = {
 const output_sets: DataEnvelope<DataEnvelope<string|string[]|null>> = {
   'btwn-all-de-groups': {
     'method': 'btwn-all-de-groups',
-    'de_meta': null,
-    'de_group_1': null
+    'de_meta': null
   },
   'btwn-sets': {
-    'method': 'btwn-all-de-groups',
+    'method': 'btwn-sets',
     'de_meta': null,
     'de_group_1': null,
     'de_group_2': null
@@ -167,6 +154,56 @@ const output_sets: DataEnvelope<DataEnvelope<string|string[]|null>> = {
     'groups_meta': null,
     'groups_use': null
   }
+}
+
+const SubsetComps = (vals: DataEnvelope<any>, opts: string[], subopts: DataEnvelope<StringOptions>, changeFxn: Function) => {
+  let value_select = null;
+  if (Object.keys(vals).includes('subset_meta')) {
+    if (vals['subset_meta']!=null) {
+      value_select = MultiselectInput(
+        'subset_use', changeFxn, vals['subset_use'],
+        'Labels to keep', subopts[(vals['subset_meta'])] as string[])
+    }
+    return(
+      <div>
+        {dropdownInput(
+          'subset_meta', changeFxn, vals['subset_meta'],
+          "Subset by:", opts)}
+        {value_select}
+      </div>
+    )
+  }
+  return(<div></div>)
+}
+
+const DEComps = (vals: DataEnvelope<any>, opts: string[], subopts: DataEnvelope<StringOptions>, changeFxn: Function) => {
+  console.log(Object.keys(vals));
+  let value_select_1 = null;
+  let value_select_2 = null;
+  if (Object.keys(vals).includes('de_meta')) {
+    if (vals['de_meta']!=null) {
+      if (Object.keys(vals).includes('de_group_1')) {
+        value_select_1 = MultiselectInput(
+          'de_group_1', changeFxn, vals['de_group_1'],
+          'Labels to for Group-1', subopts[(vals['de_meta'])] as string[])
+      }
+      if (Object.keys(vals).includes('de_group_2')) {
+        value_select_2 = MultiselectInput(
+          'de_group_2', changeFxn, vals['de_group_2'],
+          'Labels to keep', subopts[(vals['de_meta'])] as string[])
+      }
+    }
+    return(
+      <div>
+        {dropdownInput(
+          'de_meta', changeFxn, vals['de_meta'],
+          'DiffEexp by', opts)}
+        {value_select_1}
+        {value_select_2}
+      </div>
+    )
+  }
+  return(<div></div>)
 }
 
 // Component Setups
