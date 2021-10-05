@@ -44,8 +44,7 @@ export default function DiffExpSC({
 }: WithInputParams<{}, DataEnvelope<any>, any>, plotType: string) {
   const value = useSetsDefault({method: null}, props.value, onChange);
   const allData = useMemoized(joinNesting, data);
-  const options = Object.keys(allData);
-  const subOptions: DataEnvelope<StringOptions> = useMemo(() => {
+  const options: DataEnvelope<StringOptions> = useMemo(() => {
     let opts: DataEnvelope<StringOptions> = {}
     Object.entries(allData).map( ([key,value]) => {
       const vals=Object.values(value as string);
@@ -76,10 +75,12 @@ export default function DiffExpSC({
   
   const setDEMethod = (method: string, vals = {...value}) => {
     let newVals = {...output_sets[method]}
+    console.log(newVals);
     if (doSubset) {
       newVals['subset_meta'] = vals['subset_meta']
       newVals['subset_use'] = vals['subset_use']
     }
+    console.log(newVals);
     onChange(some(newVals));
   }
   
@@ -87,6 +88,8 @@ export default function DiffExpSC({
     prevValues[key] = newValue;
     onChange(some(prevValues));
   };
+  
+  console.log(value)
   
   return (
     <div>
@@ -106,10 +109,10 @@ export default function DiffExpSC({
           >
           Toggle Subsetting
         </Button>
-      {SubsetComps(value, options, subOptions, updateValue)}
+      {SubsetComps(value, options, updateValue)}
       
-      {DEComps(value, options, subOptions, updateValue, value['method'])}
-      {GroupComps(value, options, subOptions, updateValue, value['method'])}
+      {DEComps(value, options, updateValue, value['method'])}
+      {GroupComps(value, options, updateValue, value['method'])}
     </div>
   );
 
@@ -133,7 +136,7 @@ const output_sets: DataEnvelope<DataEnvelope<string|string[]|null>> = {
     'de_group_2': null
   },
   'btwn-sets-multiple-groups': {
-    'method': 'btwn-all-de-groups',
+    'method': 'btwn-sets-multiple-groups',
     'de_meta': null,
     'de_group_1': null,
     'de_group_2': null,
@@ -142,20 +145,20 @@ const output_sets: DataEnvelope<DataEnvelope<string|string[]|null>> = {
   }
 }
 
-const SubsetComps = (vals: DataEnvelope<any>, opts: string[], subopts: DataEnvelope<StringOptions>, changeFxn: Function) => {
+const SubsetComps = (vals: DataEnvelope<any>, opts: DataEnvelope<StringOptions>, changeFxn: Function) => {
   
   let value_select = null;
   if (Object.keys(vals).includes('subset_meta')) {
     if (vals['subset_meta']!=null) {
       value_select = MultiselectInput(
         'subset_use', changeFxn, vals['subset_use'],
-        'Labels to keep', subopts[(vals['subset_meta'])] as string[])
+        'Labels to keep', opts[(vals['subset_meta'])] as string[])
     }
     return(
       <div>
         {dropdownInput(
           'subset_meta', changeFxn, vals['subset_meta'],
-          "Subset by:", opts)}
+          "Subset by:", Object.keys(opts))}
         {value_select}
       </div>
     )
@@ -165,8 +168,7 @@ const SubsetComps = (vals: DataEnvelope<any>, opts: string[], subopts: DataEnvel
 
 const DEComps = (
   vals: DataEnvelope<any>,
-  opts: string[],
-  subopts: DataEnvelope<StringOptions>,
+  opts: DataEnvelope<StringOptions>,
   changeFxn: Function,
   method: string) => {
   
@@ -179,12 +181,12 @@ const DEComps = (
         if (Object.keys(vals).includes('de_group_1')) {
           value_select_1 = MultiselectInput(
             'de_group_1', changeFxn, vals['de_group_1'],
-            'Labels to for Group-1', subopts[(vals['de_meta'])] as string[])
+            'Labels to for Group-1', opts[(vals['de_meta'])] as string[])
         }
         if (Object.keys(vals).includes('de_group_2')) {
           value_select_2 = MultiselectInput(
             'de_group_2', changeFxn, vals['de_group_2'],
-            'Labels to keep', subopts[(vals['de_meta'])] as string[])
+            'Labels to keep', opts[(vals['de_meta'])] as string[])
         }
       }
       
@@ -194,22 +196,21 @@ const DEComps = (
           {"Step 3: What labels do you want to compare? "}
           {dropdownInput(
             'de_meta', changeFxn, vals['de_meta'],
-            'DiffExp by:', opts)}
+            'DiffExp by:', Object.keys(opts))}
           {value_select_1}
           {value_select_2}
         </div>
       )
     }
     return(<div></div>)
-  }, [method])
+  }, [vals, opts, method])
   
   return comps
 }
 
 const GroupComps = (
   vals: DataEnvelope<any>,
-  opts: string[],
-  subopts: DataEnvelope<StringOptions>,
+  opts: DataEnvelope<StringOptions>,
   changeFxn: Function,
   method: string) => {
 
@@ -221,7 +222,7 @@ const GroupComps = (
         if (Object.keys(vals).includes('group_use')) {
           value_select = MultiselectInput(
             'group_use', changeFxn, vals['group_use'],
-            'Labels to focus on', subopts[(vals['group_meta'])] as string[])
+            'Labels to focus on', opts[(vals['group_meta'])] as string[])
         }
       }
       
@@ -231,46 +232,18 @@ const GroupComps = (
           {"Step 4: Between what comparison groups?"}
           {dropdownInput(
             'group_meta', changeFxn, vals['group_meta'],
-            'Group by:', opts)}
+            'Group by:', Object.keys(opts))}
           {value_select}
         </div>
       )
     }
     return(<div></div>)
-  }, [method])
+  }, [vals, opts, method])
   
   return comps
 }
 
 // Component Setups
-const stringInput = (
-  key: string = "filler", changeFxn: Function, value: string = "filler",
-  label: string = 'hello') => {
-    return (
-      <StringInput
-        key={key}
-        label={label}
-        data={val_wrap(value)}
-        value={maybeOfNullable(value)}
-        onChange={(newValue) => changeFxn(withDefault(newValue,'make'), key)}
-      />
-    )
-  };
-
-const checkboxInput = (
-  key: string = "filler", changeFxn: Function, value: boolean = false,
-  label: string) => {
-
-    return(
-      <BooleanInput
-        key={key}
-        label={label}
-        value={maybeOfNullable(value)}
-        data={val_wrap(value)}
-        onChange={ value => changeFxn(withDefault(value,false), key)}
-      />
-    )
-  }
 
 const dropdownInput = (
   key: string = "filler", changeFxn: Function, value: string | null,
