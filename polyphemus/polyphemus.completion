@@ -412,7 +412,7 @@ arg_flag_completion_names="$arg_flag_completion_names  "
 multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names="help ipi_load_magma_population_tables_etl ipi_patient_flowjo ipi_propagate_folder_updated_at ipi_watch_files_etl ipi_watch_folders_etl materialize_gne_magma_records_etl sftp_ingest_cat_to_c4triage_files_etl sftp_ingest_metis_triage_files_etl stub_magma_record_etl stub_metis_file_etl sync_cat_files_etl sync_gne_metis_files_etl"
+all_completion_names="help ipi_load_magma_population_tables_etl ipi_patient_flowjo ipi_propagate_folder_updated_at ipi_watch_files_etl ipi_watch_folders_etl materialize_gne_magma_records_etl sftp_ingest_cat_to_c4triage_files_etl sftp_ingest_metis_triage_files_etl slack_notification_c4triage_files_etl slack_notification_metis_triage_files_etl stub_magma_record_etl stub_metis_file_etl sync_cat_files_etl sync_gne_metis_files_etl"
 all_completion_names="$all_completion_names $all_flag_completion_names"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
@@ -1515,6 +1515,308 @@ return
 fi
 done
 elif [[ "$1" == "sftp_ingest_metis_triage_files_etl" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names="help reset run"
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ "$1" == "help" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
+a=$1
+shift
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "reset" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
+a=$1
+shift
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "run" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
+a=$1
+shift
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
+a=$1
+shift
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+elif [[ "$1" == "slack_notification_c4triage_files_etl" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names="help reset run"
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ "$1" == "help" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
+a=$1
+shift
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "reset" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
+a=$1
+shift
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "run" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
+a=$1
+shift
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
+a=$1
+shift
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+elif [[ "$1" == "slack_notification_metis_triage_files_etl" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names  "
 arg_flag_completion_names="$arg_flag_completion_names  "

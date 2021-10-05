@@ -1,6 +1,9 @@
 require_relative "../db_triage_file_etl"
+require_relative "./ingest_config_module"
 
 class Polyphemus::SftpIngestCatToC4TriageFilesEtl < Polyphemus::DbTriageFileEtl
+  include Polyphemus::WithIngestConfig
+
   def initialize
     @project_name = "c4"
     @bucket_name = "triage"
@@ -31,7 +34,6 @@ class Polyphemus::SftpIngestCatToC4TriageFilesEtl < Polyphemus::DbTriageFileEtl
       ) do |file_name|
         logger.info("#{file_name} completed.")
         update_ingested_timestamp(file_name)
-        `/bin/post-to-slack.sh "C4 Triage from CAT ETL" "data-ingest-ping" "Successfully downloaded #{file_name} from the CAT to C4. It is available at #{c4_config[:root]} and ready for triage." || true`
       end
     end
 
@@ -39,26 +41,6 @@ class Polyphemus::SftpIngestCatToC4TriageFilesEtl < Polyphemus::DbTriageFileEtl
   end
 
   private
-
-  def cat_config
-    @cat_config ||= sftp_configs.find { |c| c[:alias] == "cat" }
-  end
-
-  def c4_config
-    @c4_config ||= ssh_configs.find { |c| c[:alias] == "c4" }
-  end
-
-  def sftp_configs
-    ingest_configs[:sftp]
-  end
-
-  def ssh_configs
-    ingest_configs[:ssh]
-  end
-
-  def ingest_configs
-    Polyphemus.instance.config(:ingest)
-  end
 
   def update_ingested_timestamp(file_name)
     Polyphemus::IngestFile.where(
