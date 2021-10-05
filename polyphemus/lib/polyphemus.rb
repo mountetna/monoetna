@@ -6,6 +6,7 @@ require_relative 'etls'
 require 'etna/clients/magma'
 require 'etna/clients/metis'
 require 'etna/clients/janus'
+require 'pathname'
 
 class Polyphemus
   include Etna::Application
@@ -30,7 +31,10 @@ class Polyphemus
   def setup_ssh
     ssh_dir = ::File.expand_path(".ssh", "~")
     FileUtils.mkdir_p(ssh_dir)
-    ::File.open(::File.join(ssh_dir, "known_hosts"), "w") do |known_hosts|
+
+    known_hosts_file = ::File.join(ssh_dir, "known_hosts")
+
+    ::File.open(known_hosts_file, "w") do |known_hosts|
       Polyphemus.instance.config(:ingest).each do |ingest_config_type, ingest_config|
         next unless ingest_config.is_a?(Array)
 
@@ -38,6 +42,6 @@ class Polyphemus
           known_hosts.write(conf[:ssh_key] + "\n") unless conf[:ssh_key].nil?
         end
       end
-    end
+    end if Pathname.new(known_hosts_file).writable?
   end
 end
