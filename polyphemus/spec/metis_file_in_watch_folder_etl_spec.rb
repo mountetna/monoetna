@@ -29,8 +29,7 @@ describe Polyphemus::MetisFileInWatchFolderEtl do
   class TestMetisFileInWatchFolderEtl < Polyphemus::MetisFileInWatchFolderEtl
     def initialize(**args)
       super(
-        project_bucket_pairs: [["ipi", "integral_data"]],
-        watch_type: "link_files",
+        bucket_watch_configs: [Polyphemus::BucketWatchFoldersConfig.new(bucket_name: 'integral_data', project_name: 'ipi')],
         **args,
       )
     end

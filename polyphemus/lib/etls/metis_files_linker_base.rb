@@ -4,7 +4,7 @@ class Polyphemus::MetisFilesLinkerBase
   include WithLogger
   include WithEtnaClients
 
-  attr_reader :model_name, :bucket_name, :project_name
+  attr_reader :bucket_name, :project_name
 
   def initialize(project_name:, bucket_name:)
     @project_name = project_name
@@ -119,27 +119,21 @@ class Polyphemus::MetisFilesLinkerBase
     }
   end
 
+  def current_magma_record_names(project_name, model_name)
+    request = Etna::Clients::Magma::RetrievalRequest.new(
+      project_name: project_name,
+      model_name: model_name,
+      attribute_names: ["identifier"],
+      record_names: "all",
+      hide_templates: true,
+    )
+    self.magma_client.retrieve(request).models.model(model_name).documents.document_keys
+  end
+
   def metis_path(file)
     # Technically you could build an ETL to watch for a file without a folder...
     #   but that doesn't seem like a realistic use case.
-    "metis://#{file.project_name}/#{file.bucket_name}/#{watch_folder_for_file(file).folder_path}/#{file.file_name}"
-  end
-
-  def watch_folder_for_file(file)
-    Polyphemus::WatchFolder.where(
-      project_name: file.project_name,
-      bucket_name: file.bucket_name,
-      watch_type: "link_files",
-      metis_id: file.folder_id,
-    ).first
-  end
-
-  def full_path_for_file(file)
-    watch_folder = watch_folder_for_file(file)
-
-    unless watch_folder.nil?
-      "#{watch_folder.folder_path}/#{file.file_name}"
-    end
+    "metis://#{file.project_name}/#{file.bucket_name}/#{file.file_path}"
   end
 
   def is_file_collection?(project_name, model_name, attribute_name)
@@ -163,7 +157,8 @@ class Polyphemus::MetisFilesLinkerBase
     record_name_gsub_pair: nil
   )
     metis_files_by_record_name = metis_files.group_by do |file|
-      match = full_path_for_file(file)&.match(path_regex)
+      next if file.file_path.nil?
+      match = file.file_path.match(path_regex)
 
       if match
         record_name = corrected_record_name(match[:record_name])
