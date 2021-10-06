@@ -15,10 +15,9 @@ class Polyphemus::SlackNotificationC4TriageFilesEtl < Polyphemus::SlackNotificat
   end
 
   def process(cursor, records)
-    slack(
-      "C4 Triage from CAT ETL",
-      "data-ingest-ping",
-      "Downloaded #{records.length} files from the CAT to C4.\n#{serialize(records)}.\nThey are available at #{c4_config[:root]} and ready for triage."
+    notify_slack(
+      "Downloaded #{records.length} files from the CAT to C4.\n#{serialize(records)}.\nThey are available at #{c4_config[:root]} and ready for triage.",
+      channel: "data-ingest-ping",
     )
   end
 end

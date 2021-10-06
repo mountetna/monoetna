@@ -1,7 +1,9 @@
 require_relative '../metis_file_etl'
+require_relative '../helpers'
 require 'concurrent'
 
 class Polyphemus::SyncGneMetisFilesEtl < Polyphemus::MetisFileEtl
+  include WithSlackNotifications
   BUCKET = 'GNE_composite'
 
   def initialize
@@ -33,7 +35,10 @@ class Polyphemus::SyncGneMetisFilesEtl < Polyphemus::MetisFileEtl
           file_path = file.file_path
           logger.info "Writing #{file_path}"
           workflow.copy_file(dest: file_path, url: file.download_url)
-          `/bin/post-to-slack.sh "Sync GNE Metis files ETL" "bioinformatics-ping" "Successfully uploaded metis://mvir1/#{BUCKET}/#{file_path} to genentech" || true`
+          notify_slack(
+            "Successfully uploaded metis://mvir1/#{BUCKET}/#{file_path} to genentech",
+            channel: 'bioinformatics-ping'
+          )
         rescue => e
           errors << e
         ensure
