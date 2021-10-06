@@ -140,7 +140,6 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
     find_request = Etna::Clients::Metis::FindRequest.new(
       project_name: cursor[:project_name],
       bucket_name: cursor[:bucket_name],
-      hide_paths: true,
     )
 
     find_request.add_param(Etna::Clients::Metis::FindParam.new(
@@ -150,13 +149,6 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
       value: folders.map(&:id),
     ))
 
-    metis_client.find(find_request).files.all.map do |f|
-      folder = folders.find { |folder| folder.id == f.folder_id }
-      if folder.nil?
-        raise "Could not find matching folder for file in add watch etl, bug or test setup issue?"
-      end
-
-      f.with_containing_folder(folder)
-    end
+    metis_client.find(find_request).files.all
   end
 end
