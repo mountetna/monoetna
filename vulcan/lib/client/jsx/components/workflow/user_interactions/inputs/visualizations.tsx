@@ -138,11 +138,11 @@ const remove_hidden = (vals: DataEnvelope<any>, hide: string[] | null | undefine
   return values;
 };
 
-function val_wrap(v: any): DataEnvelope<typeof v> {
+export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v}
 }
 
-function key_wrap(k: string[]) {
+export function key_wrap(k: string[]) {
   let de: DataEnvelope<string> = {};
   for (let ind = 0; ind < k.length; ind++) {
     de[k[ind]]="0";
