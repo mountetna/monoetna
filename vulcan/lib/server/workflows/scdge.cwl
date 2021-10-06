@@ -61,7 +61,7 @@ steps:
       scdata.h5ad: mockSetup/scdata.h5ad
       setup: setDEMethods/dge_setup
       test_method: 1_DiffExp_Calculation_Inputs__test_method
-    out: [diffexp.csv, filtered_diffexp.csv]
+    out: [diffexp.csv]
     
   downloadDEData:
     run: ui-outputs/link.cwl
@@ -69,9 +69,21 @@ steps:
       a: DGEcalc/diffexp.csv
     out: []
     label: 'Download Full DiffExp Results as csv'
+  
+  DGEfilter:
+    run: scripts/dge_filter.cwl
+    label: 'Filter the DGE Output'
+    in:
+      full_diffexp.csv: DGEcalc/diffexp.csv
+      min_abs_fc: 2_After_Calculation_Cutoffs__min_abs_fc
+      max_pval: 2_After_Calculation_Cutoffs__max_pval
+      min_pct: 2_After_Calculation_Cutoffs__min_pct
+      pos_only: 2_After_Calculation_Cutoffs__pos_only
+    out: [filtered_diffexp.csv]
+  
   downloadFilteredDEData:
     run: ui-outputs/link.cwl
     in:
-      a: DGEcalc/filtered_diffexp.csv
+      a: DGEfilter/filtered_diffexp.csv
     out: []
     label: 'Download Filtered DiffExp Results as csv'
