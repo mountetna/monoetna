@@ -1,0 +1,10 @@
+{
+  "projects": ["xcrs1"],
+  "authors": ["Anton Ogorodnikov", "Dan Bunis"],
+  "lastModified": "May 18, 2021",
+  "vignette": "# Single-cell Differential Expression & Further Exploration Workflow\n\nThis workflow performs subsetting and differential expression analysis on outputs of the \"UMAP\" pre-processing workflow, using scanpy. Then it allows download and/or various visualization options.\n\n## The Workflow\n\n... \n\n#### Note: Refer to in-line (?) icons for additional information about specific inputs.",
+  "tags": ["single-cell", "umap", "genes"],
+  "image": "umap.png",
+  "displayName": "scDiffExp_bad",
+  "description": "Differential Expression workflow: further single-cell data analysis"
+}
