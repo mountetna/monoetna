@@ -29,7 +29,7 @@ class Polyphemus::IpiRnaSeqProcessorBase
       rescue Exception => e
         notify_slack(
           "Error processing IPI rna_seq file #{attribute_file.file_path}.\n#{e.message}.",
-          channel: "data-ingest-ping",
+          channel: "data-ingest-errors",
         )
         logger.log_error(e)
       end
