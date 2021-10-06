@@ -99,7 +99,7 @@ export default function DiffExpSC({
         />
       
       <hr/> 
-      {"Step 2: Use all cells or just a subset? "}
+      {"Step 2: Focus on / remove certain cells? "}
       <Button
           variant="outlined"
           color="primary"
