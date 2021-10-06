@@ -4,6 +4,7 @@ require_relative "../../../helpers"
 class Polyphemus::IpiRnaSeqProcessorBase
   include WithEtnaClients
   include WithLogger
+  include WithSlackNotifications
 
   def initialize
     @helper = IpiHelper.new
@@ -26,7 +27,10 @@ class Polyphemus::IpiRnaSeqProcessorBase
           yield [attribute_file, tmp]
         end
       rescue Exception => e
-        `/bin/post-to-slack.sh "#{self.class.name}" "data-ingest-ping" "Error processing IPI rna_seq file #{attribute_file.file_path}.\n#{e.message}." || true`
+        notify_slack(
+          "Error processing IPI rna_seq file #{attribute_file.file_path}.\n#{e.message}.",
+          channel: "data-ingest-ping",
+        )
         logger.log_error(e)
       end
     end
