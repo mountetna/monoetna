@@ -1,8 +1,8 @@
 require_relative "../db_triage_file_notification_etl"
-require_relative "./slack_notification_module"
+require_relative "../helpers"
 
 class Polyphemus::SlackNotificationTriageBaseEtl < Polyphemus::DbTriageFileNotificationEtl
-  include Polyphemus::WithSlackNotification
+  include WithSlackNotifications
 
   private
 

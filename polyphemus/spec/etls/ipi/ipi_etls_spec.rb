@@ -66,9 +66,9 @@ describe Polyphemus::Ipi::IpiWatchFilesEtl do
     describe 'updates magma records' do
       it "when scanner finds new files" do
         etl.process(cursor, [
-          create_metis_file("PATIENT001.T1.comp.blahblah1.fastq.gz", ""),
-          create_metis_file("PATIENT001.T1.comp.blahblah2.fastq.gz", ""),
-          create_metis_file("PATIENT001.T1.comp.blahblah3.fastq.gz", ""),
+          create_metis_file("PATIENT001.T1.comp.blahblah1.fastq.gz", "", project_name: project_name, bucket_name: bucket_name),
+          create_metis_file("PATIENT001.T1.comp.blahblah2.fastq.gz", "", project_name: project_name, bucket_name: bucket_name),
+          create_metis_file("PATIENT001.T1.comp.blahblah3.fastq.gz", "", project_name: project_name, bucket_name: bucket_name),
         ])
 
         # Make sure rna_seq records are updated
@@ -104,7 +104,7 @@ describe Polyphemus::Ipi::IpiWatchFilesEtl do
     describe 'updates magma records' do
       it "when scanner finds new files for file attribute" do
         etl.process(cursor, [
-          create_metis_file("PATIENT001.T1.comp.deduplicated.cram", "--path-would-be-omitted--"),
+          create_metis_file("PATIENT001.T1.comp.deduplicated.cram", "--path-would-be-omitted--", project_name: project_name, bucket_name: bucket_name),
         ])
 
         # Make sure rna_seq records are updated
@@ -136,8 +136,8 @@ describe Polyphemus::Ipi::IpiWatchFilesEtl do
 
       it "when scanner finds new files for file_collection attribute" do
         etl.process(cursor, [
-          create_metis_file("PATIENT001.T1.comp.unmapped.1.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.1.fastq.gz"),
-          create_metis_file("PATIENT001.T1.comp.unmapped.2.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.2.fastq.gz"),
+          create_metis_file("PATIENT001.T1.comp.unmapped.1.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.1.fastq.gz", project_name: project_name, bucket_name: bucket_name),
+          create_metis_file("PATIENT001.T1.comp.unmapped.2.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.2.fastq.gz", project_name: project_name, bucket_name: bucket_name),
         ])
 
         # Make sure rna_seq records are updated
@@ -186,7 +186,7 @@ describe Polyphemus::Ipi::IpiWatchFilesEtl do
         ] }
         it "correctly renames renamed tube_names" do
           etl.process(cursor, [
-            create_metis_file("WRONG001.T1.rna.tumor.deduplicated.cram.crai", "bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor/WRONG001.T1.rna.tumor.deduplicated.cram.crai"),
+            create_metis_file("WRONG001.T1.rna.tumor.deduplicated.cram.crai", "bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor/WRONG001.T1.rna.tumor.deduplicated.cram.crai", project_name: project_name, bucket_name: bucket_name),
           ])
 
           # Make sure rna_seq records are updated for renamed patient, but pointing to the "wrong" file locations
@@ -375,42 +375,9 @@ describe Polyphemus::Ipi::IpiWatchFoldersEtl do
           folder_id: 1,
           bucket_name: bucket_name,
           project_name: project_name,
+          file_path: "some_folder/BulkRNASeq/PATIENT001.T1.comp/something.fastq.gz"
         }
       ]
-    end
-
-    describe "create Polyphemus::WatchFile records" do
-      it "for invalid NASH / NAFLD samples" do
-        expect(Polyphemus::WatchFolder.count).to eq(0)
-
-        etl.process(cursor, [
-          create_metis_folder("IPIADR001.NASH1.rna.live", "some_folder/BulkRNASeq/IPIADR001.NASH1.rna.live", id: 1),
-          create_metis_folder("IPIADR001.NAFLD1.rna.live", "some_folder/BulkRNASeq/IPIADR001.NAFLD1.rna.live", id: 2),
-        ])
-
-        expect(Polyphemus::WatchFolder.count).to eq(2)
-      end
-
-      it "for incorrectly named samples" do
-        expect(Polyphemus::WatchFolder.count).to eq(0)
-
-        etl.process(cursor, [
-          create_metis_folder("WRONG001.T1.rna.tumor", "some_folder/BulkRNASeq/WRONG001.T1.rna.tumor", id: 1),
-        ])
-
-        expect(Polyphemus::WatchFolder.count).to eq(1)
-      end
-    end
-
-    it "links files in found folders" do
-      etl.process(cursor, [
-        create_metis_folder("PATIENT001.T1.comp", "some_folder/BulkRNASeq/PATIENT001.T1.comp", id: 1),
-        create_metis_folder("PATIENT001.N1.comp", "some_folder/BulkRNASeq/PATIENT001.N1.comp", id: 2),
-        create_metis_folder("PATIENT002.T1.comp", "some_folder/BulkRNASeq/PATIENT002.T1.comp", id: 3),
-      ])
-
-      # Make sure rna_seq records are updated. Once per folder with files.
-      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
     end
 
     describe "create Polyphemus::WatchFile records" do
@@ -458,6 +425,7 @@ describe Polyphemus::Ipi::IpiWatchFoldersEtl do
           folder_id: 1,
           bucket_name: bucket_name,
           project_name: project_name,
+          file_path: "bulkRNASeq/plate1_rnaseq_new/output/PATIENT001.T1.comp/something.fastq.gz"
         }
       ]
     end
@@ -623,9 +591,9 @@ describe Polyphemus::Ipi::IpiWatchFoldersEtl do
 
     it "links files in found folders" do
       etl.process(cursor, [
-        create_metis_folder("PATIENT001.T1.comp", "bulkRNASeq/plate1_rnaseq_new/output/PATIENT001.T1.comp", id: 1),
-        create_metis_folder("PATIENT001.N1.comp", "bulkRNASeq/plate1_rnaseq_new/output/PATIENT001.N1.comp", id: 2),
-        create_metis_folder("PATIENT002.T1.comp", "bulkRNASeq/plate2_rnaseq_new/output/PATIENT002.T1.comp", id: 3),
+        create_metis_folder("PATIENT001.T1.comp", "bulkRNASeq/plate1_rnaseq_new/output/PATIENT001.T1.comp", id: 1, project_name: project_name, bucket_name: bucket_name),
+        create_metis_folder("PATIENT001.N1.comp", "bulkRNASeq/plate1_rnaseq_new/output/PATIENT001.N1.comp", id: 2, project_name: project_name, bucket_name: bucket_name),
+        create_metis_folder("PATIENT002.T1.comp", "bulkRNASeq/plate2_rnaseq_new/output/PATIENT002.T1.comp", id: 3, project_name: project_name, bucket_name: bucket_name),
       ])
       # Make sure rna_seq records are created and updated.
       # Once per process per folder when files found.
