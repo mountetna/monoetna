@@ -555,7 +555,7 @@ def create_metis_folder(folder_name, folder_path, updated_at: Time.now, id: nil,
   })
 end
 
-def create_metis_file(file_name, file_path, file_hash: SecureRandom.hex, updated_at: Time.now, folder_id: 1)
+def create_metis_file(file_name, file_path, file_hash: SecureRandom.hex, updated_at: Time.now, folder_id: 1, project_name: PROJECT, bucket_name: RELEASE_BUCKET)
   Etna::Clients::Metis::File.new({
     file_name: file_name,
     file_path: file_path,
