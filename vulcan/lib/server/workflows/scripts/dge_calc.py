@@ -1,27 +1,61 @@
-from archimedes.functions.dataflow import input_json, input_var, input_path, output_json
+from archimedes.functions.dataflow import input_json, input_var, input_path, output_path
 from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.utils import pandas as pd
 from archimedes.functions.list import unique
 
+def ensure_list(l):
+    if isinstance(l, str):
+        return [l]
+    return l
+
 # Functions for DE Extraction and Output
 def DF_per_group(DEdat, meta_used, group):
-    # keys = DEdat.keys
+    # keys = DEdat.keys()
+    keys = ['names', 'scores', 'pvals', 'pvals_adj', 'logfoldchanges', 'pts']
+    if 'Group' in DEdat.keys():
+        keys = keys + ['Group']
     DF = pd.DataFrame(
         dict([
             this_col,
             DEdat[this_col][group]
         # ] for this_col in keys
-        ] for this_col in ['names', 'scores', 'pvals', 'pvals_adj', 'logfoldchanges']
+        ] for this_col in keys
         )
     )
     DF[meta_used] = group
     return DF
-def DF_all_groups(DEdat, meta_used, group_use = None):
+def DF_all_groups(DEdat, meta_used, scdata, group_use = None):
     if group_use==None:
-        group_use = unique(scdata.obs['leiden'])
+        group_use = unique(scdata.obs[meta_used])
     return pd.concat( (DF_per_group(DEdat, meta_used, group)) for group in group_use )
 
-# Read inputs
+# Function for running set-vs-set targeted DE
+def DE_specific_sets(scdata, de_meta, de_g1, de_g2, test_method, group = None):
+    # Subset to cells in these groups
+    scdata_setsub = scdata[ scdata.obs[ de_meta ].isin( de_g1 + de_g2 )]
+    
+    # Add metadata of exactly g1 vs g2 
+    string_g1 = '_'.join(de_g1)
+    string_g2 = '_'.join(de_g2)
+    string_report = string_g1 + "__VS__" + string_g2
+    scdata_setsub.obs['DE_sets'] = list(
+        {True: string_report, False: 'never_seen'}[is_in] for is_in in scdata_setsub.obs[ de_meta ].isin( de_g1 )
+    )
+    
+    # Run DE
+    sc.tl.rank_genes_groups(
+        scdata_setsub, method=test_method,
+        groupby='DE_sets', groups = [string_report], reference='never_seen',        
+        # use_raw=True, layer=...,
+        pts=True, corr_method='benjamini-hochberg')
+    
+    # Extract results and reshape
+    DEdat = scdata_setsub.uns['rank_genes_groups']
+    if group!=None:
+        DEdat['Group']=group
+    return DF_per_group(DEdat, 'DE_sets', string_report)
+
+## Read inputs
 scdata = sc.read(input_path('scdata.h5ad'))
 test_method = input_var('test_method')
 setup = input_json('setup')
@@ -29,10 +63,10 @@ setup = input_json('setup')
 method = setup['method']
 de_meta = setup['de_meta']
 
-# Subset if there are subset inputs in 'setup'
-if 'subset_meta' in setup.keys:
+## Subset if there are subset inputs in 'setup'
+if 'subset_meta' in setup.keys():
     subset_meta = setup['subset_meta']
-    subset_use = setup['subset_use']
+    subset_use = ensure_list(setup['subset_use'])
     scdata = scdata[scdata.obs[subset_meta].isin(subset_use)]
 
 ## Run DE
@@ -42,45 +76,41 @@ if setup['method']=='btwn-all-de-groups':
     # Run DE
     sc.tl.rank_genes_groups(
         scdata, method=test_method,
-        groupby=de_meta,
+        groupby=de_meta, reference='rest',
         # use_raw=True, layer=...,
-        pct=True, reference='rest', corr_method='benjamini-hochberg')
+        pts=True, corr_method='benjamini-hochberg')
     
     # Extract results and reshape
     DEdat = scdata.uns['rank_genes_groups']
-    DEdf = DF_all_groups(DEdat, de_meta)
+    DEdf = DF_all_groups(DEdat, de_meta, scdata)
 
 # Method 2:
 if method=='btwn-sets':
-    de_group_1 = setup['de_group_1']
-    de_group_2 = setup['de_group_2']
-    
-    # Subset to cells in these groups
-    scdata = scdata[ scdata.obs[ de_meta ].isin( de_group_1 + de_group_2 )]
-    
-    # Add metadata of exactly g1 vs g2 
-    string_g1 = '_'.join(de_group_1)
-    string_g2 = '_'.join(de_group_2)
-    scdata.obs['DE_groups'] = list(
-        {True: string_g1, False: string_g2}[is_in] for is_in in scdata.obs[ de_meta ].isin( de_group_1 )
-    )
-    
-    # Run DE
-    sc.tl.rank_genes_groups(
-        scdata, method=test_method,
-        groupby='DE_groups', groups = [string_g1 + string_g2],        
-        # use_raw=True, layer=...,
-        pct=True, reference='rest', corr_method='benjamini-hochberg')
-    
-    # Extract results and reshape
-    DEdat = scdata.uns['rank_genes_groups']
-    DEdf = DF_all_groups(DEdat, 'DE_groups')
+    de_group_1 = ensure_list(setup['de_group_1'])
+    de_group_2 = ensure_list(setup['de_group_2'])
+    DEdf = DE_specific_sets(scdata, de_meta, de_group_1, de_group_2, test_method)
 
 # Method 3
-# if method=='btwn-sets-multiple-groups':
-    #
+if method=='btwn-sets-multiple-groups':
+    de_group_1 = ensure_list(setup['de_group_1'])
+    de_group_2 = ensure_list(setup['de_group_2'])
+    group_meta = setup['group_meta']
+    group_use = ensure_list(setup['group_use'])
+    
+    subsets = dict(
+        [
+            group,
+            scdata[scdata.obs[group_meta]==group]
+        ] for group in group_use
+    )
+    DEdf = pd.concat(
+            DE_specific_sets(subsets[group], de_meta, de_group_1, de_group_2, test_method, group = group)
+            for group in group_use
+        )
 
-# OUTPUT.to_csv(output_path('diffexp.csv'))
+## Output unfiltered
+
+DEdf.to_csv(output_path('diffexp.csv'))
 
 ## Filter
 
