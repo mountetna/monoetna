@@ -69,7 +69,7 @@ class Polyphemus::IpiRnaSeqAndPlateRecordCreator
       unless @helper.is_control?(folder_name)
         attrs[:sample] = sample_name(record_name)
         if attrs[:sample].nil?
-          notify_slack("Skipping non control record without valid sample name #{record_name}.", channel: 'data-ingest-ping')
+          notify_slack("Skipping non control record without valid sample name #{record_name}.", channel: 'data-ingest-errors')
           next
         end
       end
