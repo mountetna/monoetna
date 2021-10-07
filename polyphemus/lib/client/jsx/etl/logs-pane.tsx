@@ -8,7 +8,9 @@ import Typography from '@material-ui/core/Typography';
 const useStyles = makeStyles( theme => ({
   editor: {
     border: '1px solid #ccc',
-    height: '200px'
+    height: '200px',
+    resize: 'vertical',
+    overflow: 'hidden'
   }
 }));
 
