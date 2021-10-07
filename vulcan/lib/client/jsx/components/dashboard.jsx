@@ -7,88 +7,53 @@ import {pushLocation} from 'etna-js/actions/location_actions';
 import {VulcanContext} from '../contexts/vulcan_context';
 import Card from '../components/dashboard/card';
 import {workflowName} from "../selectors/workflow_selectors";
-import ReactModal from "react-modal";
 import SelectInput from 'etna-js/components/inputs/select_input'
 
-const modalStyles = {
-  content: {
-    top: '50%',
-    left: '50%',
-    right: 'auto',
-    bottom: 'auto',
-    marginRight: '-50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-  }
-};
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import {makeStyles} from '@material-ui/core/styles';
 
-export default function Dashboard() {
+const useStyles = makeStyles( theme => ({
+  title: {
+    padding: '10px 15px 5px',
+    color: '#444'
+  },
+  workflows: {
+    padding: '15px'
+  },
+  none: {
+    color: '#f44'
+  }
+}));
+
+export default function Dashboard({project_name}) {
   const invoke = useActionInvoker();
   let {state} = useContext(VulcanContext);
   const {workflows} = state;
-  const [selectedWorkflow, setSelectedWorkflow] = useState(null);
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [projectModalOpen, setProjectModalOpen] = useState(false);
 
-  const visitWorkflow = useCallback(() => {
-    if (!selectedProject || !selectedWorkflow) return;
-    invoke(pushLocation(`/workflow/${selectedProject}/${workflowName(selectedWorkflow)}`));
-  }, [selectedProject, selectedWorkflow, invoke])
+  const classes = useStyles();
 
-  const openProjectModal = useCallback((workflow) => {
-    setSelectedWorkflow(workflow);
-    setProjectModalOpen(true);
-  }, []);
+  const visitWorkflow = useCallback((workflow) => {
+    invoke(pushLocation(`/${project_name}/workflow/${workflowName(workflow)}`));
+  }, [invoke])
 
-  const confirmProject = useCallback(() => {
-    setProjectModalOpen(false);
-    visitWorkflow();
-  }, [visitWorkflow]);
-
-  const cancelProjectModal = useCallback(() => {
-    setSelectedWorkflow(null);
-    setSelectedProject(null);
-    setProjectModalOpen(false);
-  }, []);
-
-  if (!workflows || workflows.length === 0) return null;
+  const projectWorkflows = workflows ? workflows.filter( ({projects}) => projects.includes(project_name) ) : [];
 
   return (
     <main className='vulcan-dashboard'>
-      {workflows.map((w, ind) => {
-        return (
-          <Card
-            workflow={w}
-            key={ind}
-            onClick={() => {
-              openProjectModal(w);
-            }}
-          />
-        );
-      })}
-      { selectedWorkflow && <ReactModal
-        isOpen={projectModalOpen}
-        onRequestClose={cancelProjectModal}
-        style={modalStyles}
-        contentLabel='Select Your Project'
-      >
-        <div className="">
-          To begin working on the {workflowName(selectedWorkflow)} workflow, you must select a project
-          context to begin your work in.
-        </div>
-        <div className="select-project-modal">
-          <SelectInput
-            showNone
-            defaultValue={null}
-            values={selectedWorkflow.projects}
-            onChange={setSelectedProject}
-          />
-
-          <button className='modal-button' onClick={confirmProject}>
-            Confirm
-          </button>
-        </div>
-      </ReactModal> }
+      <Grid container direction='column'>
+        <Grid item container className={classes.title}><Typography variant='h5'>{project_name} workflows</Typography></Grid>
+        <Grid item container className={classes.workflows}>
+          {
+            projectWorkflows.length ? projectWorkflows.map((w, ind) =>
+                <Grid item key={ind}><Card
+                  workflow={w}
+                  onClick={() => visitWorkflow(w) }
+              /></Grid>
+                ) : <Grid item className={classes.none}><em>No workflows</em></Grid>
+          }
+        </Grid>
+      </Grid>
     </main>
   );
 }
