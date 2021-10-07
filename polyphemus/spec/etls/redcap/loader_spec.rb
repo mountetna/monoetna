@@ -99,6 +99,10 @@ describe Redcap::Loader do
         def identifier(record_name)
           record_name
         end
+
+        def offset_id(record_name)
+          record_name
+        end
       end
 
       stub_redcap(
