@@ -12,10 +12,9 @@ class Polyphemus::SlackNotificationMetisTriageFilesEtl < Polyphemus::SlackNotifi
   end
 
   def process(cursor, records)
-    slack(
-      "Metis Triage from CAT ETL",
-      "data-ingest-ping",
-      "Downloaded #{records.length} files from the CAT to Metis.\n#{serialize(records)}.\nThey are available in #{@project_name} / #{@bucket_name}."
+    notify_slack(
+      "Downloaded #{records.length} files from the CAT to Metis.\n#{serialize(records)}.\nThey are available in #{@project_name} / #{@bucket_name}.",
+      channel: "data-ingest-ping",
     )
   end
 end
