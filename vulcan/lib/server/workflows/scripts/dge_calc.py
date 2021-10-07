@@ -1,12 +1,7 @@
 from archimedes.functions.dataflow import input_json, input_var, input_path, output_path
 from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.utils import pandas as pd
-from archimedes.functions.list import unique
-
-def ensure_list(l):
-    if not isinstance(l, list):
-        return [l]
-    return l
+from archimedes.functions.list import unique, ensure_list
 
 # Functions for DE Extraction and Output
 def DF_per_set(DEdat, meta_used, set, group_name = None):
