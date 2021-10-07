@@ -131,7 +131,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
 
       expect {
         redcap_etl.run(magma_client: magma_client)
-      }.to raise_error(RuntimeError, "offset_id() needs to be implemented for the test project, bad_model class.")
+      }.to raise_error(RuntimeError, "offset_id() needs to be implemented for the test project, bad_model class. It should return the patient / subject identifier.")
     end
   end
 
