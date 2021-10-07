@@ -21,24 +21,11 @@ class Polyphemus::IpiRnaSeqFilesLinkerBase < Polyphemus::MetisFilesLinkerBase
     )
   end
 
-  private
-
   def corrected_record_name(record_name)
     @helper.corrected_rna_seq_tube_name(record_name)
   end
 
   def should_skip_record?(record_name)
     @helper.is_non_cancer_sample?(record_name)
-  end
-
-  def current_magma_record_names(project_name, model_name)
-    request = Etna::Clients::Magma::RetrievalRequest.new(
-      project_name: project_name,
-      model_name: model_name,
-      attribute_names: ["identifier"],
-      record_names: "all",
-      hide_templates: true,
-    )
-    self.magma_client.retrieve(request).models.model(model_name).documents.document_keys
   end
 end
