@@ -24,9 +24,9 @@ def DF_per_set(DEdat, meta_used, set, group_name = None):
     )
     if not 'pts_rest' in DEdat.keys():
         # Gotta grab and rename.
-        grps = DEdat['pts'].keys()[0].split("__VS__")
+        grps = set.split("__VS__")
         for i in [0,1]:
-            DF['pts ' + grps[i]] = list(DEdat['pts'][DEdat['pts'].keys()[i]])
+            DF['pts_' + grps[i]] = list(DEdat['pts'][DEdat['pts'].keys()[i]])
     DF[meta_used] = set
     if group_name!=None:
         DF['DE_group'] = group_name
