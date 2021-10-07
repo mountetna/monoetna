@@ -24,6 +24,9 @@
 .etna-vulcan-logo {
   background: url('~etna-js/images/vulcan.svg');
 }
+.etna-polyphemus {
+  background: url('~etna-js/images/polyphemus.svg');
+}
 
 .etna-login {
   display: flex;
