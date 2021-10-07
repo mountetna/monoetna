@@ -256,6 +256,47 @@
           }
         }
       }
+    },
+    "bad_model": {
+      "template": {
+        "parent": "model_one",
+        "name": "bad_model",
+        "identifier": "name",
+        "attributes": {
+          "birthday": {
+            "name": "birthday",
+            "attribute_name": "birthday",
+            "display_name": "Birthday",
+            "restricted": false,
+            "read_only": false,
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "model_one": {
+            "name": "model_one",
+            "attribute_name": "model_one",
+            "model_name": "model_one",
+            "link_model_name": "model_one",
+            "display_name": "ModelOne",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          }
+        }
+      }
     }
   }
 }
