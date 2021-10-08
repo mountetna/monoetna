@@ -42,7 +42,7 @@ Labels:
 
 export default function DiffExpSC({
   data, onChange, ...props
-}: WithInputParams<{}, DataEnvelope<any>, any>, plotType: string) {
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
   const value = useSetsDefault({method: null}, props.value, onChange);
   const allData = useMemoized(joinNesting, data);
   const options: DataEnvelope<StringOptions> = useMemo(() => {
