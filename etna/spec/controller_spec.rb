@@ -101,5 +101,50 @@ EOT
       BACKTRACE = %r!(/[^/]+)+:[0-9]+:in `.*'!
       expect(log_contents[3..-1]).to all( match(BACKTRACE) )
     end
+
+    it 'redacts keys defined in route' do
+      Arachne::Server.get('/test', {log_redact_keys: [:secret]}) { success('') }
+
+      @app = setup_app(
+        Arachne::Server,
+        [ Etna::TestAuth ],
+        test: { log_file: @log_file },
+      )
+
+      header(*Etna::TestAuth.token_header(
+        email: 'janus@two-faces.org',
+        perm: 'e:labors'
+      ))
+
+      get('/test')
+      expect(last_response.status).to eq(200)
+      output = <<EOT
+# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/61378
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {}
+EOT
+      # it reports the error
+      log_contents = File.foreach(@log_file).to_a
+      expect(log_contents[0..1].join).to eq(output)
+
+      get('/test?secret=foo')
+      expect(last_response.status).to eq(200)
+      output = <<EOT
+# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/61378
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {:secret => "*"}
+EOT
+      # it reports the error
+      log_contents = File.foreach(@log_file).to_a
+      expect(log_contents[1..2].join).to eq(output)
+
+      get('/test?not_secret=bar')
+      expect(last_response.status).to eq(200)
+      output = <<EOT
+# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/61378
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {:not_secret => "bar"}
+EOT
+      # it reports the error
+      log_contents = File.foreach(@log_file).to_a
+      expect(log_contents[2..3].join).to eq(output)
+    end
   end
 end

@@ -14,8 +14,6 @@ module Etna
       @route = route.gsub(/\A(?=[^\/])/, '/')
       @block = block
       @match_ext = options[:match_ext]
-
-      @censor = Etna::Censor.new(options[:log_redact_keys])
     end
 
     def to_hash
@@ -134,12 +132,10 @@ module Etna
         )
         logger = request.env['etna.logger']
         user = request.env['etna.user']
+        require 'pry'
+        binding.pry
+        request.env['etna.route_log_redact_keys'] = @log_redact_keys
 
-        params = request.env['rack.request.params'].map do |key,value|
-          [ key, @censor.redact(key, value) ]
-        end.to_h
-
-        logger.warn("User #{user ? user.email : :unknown} calling #{controller}##{action} with params #{params}")
         return controller_class.new(request, action).response
       elsif @block
         application = Etna::Application.find(app.class).class
