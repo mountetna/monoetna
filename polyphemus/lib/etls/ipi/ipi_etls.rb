@@ -7,12 +7,45 @@ require_relative './linkers/ipi_rna_seq_processed_files_linker'
 require_relative './linkers/ipi_rna_seq_raw_fastq_files_linker'
 require_relative './record_creators/ipi_rna_seq_and_plate_record_creator'
 require_relative '../linker_processor'
+require_relative '../shared/single_cell/single_cell_linkers'
 
 class Polyphemus
   module Ipi
+    # Broken out to simplify tests
+    module SingleCellLinkers
+      def add_single_cell_linkers!
+        process_watch_type_with(
+          bucket('data')
+            .watcher('single_cell_pool_processed')
+            .watch(/^single_cell_GEX\/.*\/[^\/]*POOL[^\/]*\/.*$/),
+          Polyphemus::LinkerProcessor.new(
+            linker: SingleCellLinker.new,
+            model_name: 'sc_rna_seq_pool'
+          ),
+        )
+      end
+
+      class SingleCellLinker < Polyphemus::SingleCellProcessedLinker
+        def initialize
+          super(
+            project_name: 'ipi',
+            bucket_name: 'data',
+          )
+        end
+
+        def corrected_record_name(record_name)
+          record_name.gsub(/_/, '.').sub(/^([^.]*\.[^.]*\.)(.*)$/) { $1 + $2.downcase }
+        end
+      end
+    end
+
     class WatchFoldersConfig < Polyphemus::ProjectWatchFoldersConfig
+      include SingleCellLinkers
+
       def initialize
         super(project_name: 'ipi')
+
+        add_single_cell_linkers!
 
         process_watch_type_with(
           bucket('data').watcher('process_bulk_rna_seq_results').watch(/^bulkRNASeq\/.*\/results$/),

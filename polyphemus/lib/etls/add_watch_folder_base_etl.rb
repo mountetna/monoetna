@@ -44,8 +44,7 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
   end
 
   def process(cursor, folders)
-    # We'll need to filter out the folders based on folder_name here, using the
-    #   supplied regexes
+    # We'll need to filter out the folders based on folder_name here, using the supplied regexes.
     logger.info("Found #{folders.length} updated matching folders: #{folders.map { |f| f.folder_path }.join(",")}")
 
     target_folders = filter_target_folders(cursor, folders)

@@ -41,6 +41,112 @@ module IpiMetisEtlTestHelpers
   end
 end
 
+describe Polyphemus::Ipi::SingleCellLinkers do
+  let(:etl) do
+    class TestSingleCellConfig < Polyphemus::ProjectWatchFoldersConfig
+      include Polyphemus::Ipi::SingleCellLinkers
+
+      def initialize
+        super(project_name: 'ipi')
+        add_single_cell_linkers!
+      end
+    end
+
+    class TestSingleCellWatchEtl < Polyphemus::ProjectWatchFoldersEtl
+      def initialize
+        super(TestSingleCellConfig.new)
+      end
+    end
+
+    TestSingleCellWatchEtl.new
+  end
+
+  let(:project_name) { 'ipi' }
+  let(:bucket_name) { 'data' }
+
+  let(:cursor) do
+    Polyphemus::MetisFolderEtlCursor.new(
+      job_name: "test",
+      project_name: project_name,
+      bucket_name: bucket_name,
+    )
+  end
+
+  it 'works' do
+    VCR.use_cassette('ipi_sc_processed_linker.e2e') do
+      metis_client = Etna::Clients::Metis.new(
+        host: 'https://metis.ucsf.edu',
+        token: ENV['TOKEN'] || TEST_TOKEN,
+      )
+
+      magma_client = Etna::Clients::Magma.new(
+        host: 'https://magma.ucsf.edu',
+        token: ENV['TOKEN'] || TEST_TOKEN,
+      )
+
+      allow(Etna::Clients::Metis).to receive(:new).and_return(metis_client)
+      allow(Etna::Clients::Magma).to receive(:new).and_return(magma_client)
+
+      update_request_raw = {}
+      expect(magma_client).to receive(:update_json).and_wrap_original do |m, request|
+        update_request_raw.update(request.as_json)
+      end
+
+      test_root_folder_ids = metis_client.find(
+        Etna::Clients::Metis::FindRequest.new(
+          project_name: project_name,
+          bucket_name: bucket_name,
+          params: [Etna::Clients::Metis::FindParam.new(
+            attribute: "name",
+            predicate: "=",
+            value: 'IPIPOOL001_P1_scRNA_XVIPBMC',
+            type: "folder",
+          )],
+        )
+      ).folders.all.map(&:id)
+
+      test_folders = metis_client.find(
+        Etna::Clients::Metis::FindRequest.new(
+          project_name: project_name,
+          bucket_name: bucket_name,
+          params: [Etna::Clients::Metis::FindParam.new(
+            attribute: "folder_id",
+            predicate: "in",
+            value: test_root_folder_ids,
+            type: "folder",
+          )],
+        )
+      ).folders.all
+
+      etl.process(
+        cursor,
+        test_folders
+      )
+
+      expect(update_request_raw).to eql({
+        project_name: 'ipi',
+        revisions: {
+          "sc_rna_seq_pool" => {
+            "IPIPOOL001.P1.scrna.xvipbmc" => {
+              "filtered_counts_h5" => { "original_filename" => "filtered_feature_bc_matrix.h5", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/cellranger/filtered_feature_bc_matrix.h5" },
+              "processed_robject_rdata" => { "original_filename" => "IPIPOOL001.P1.scRNA.XVIPBMC_scTransformed_processed.RData", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/automated_processing/IPIPOOL001.P1.scRNA.XVIPBMC_scTransformed_processed.RData" },
+              "processed_umap" => { "original_filename" => "IPIPOOL001.P1.scRNA.XVIPBMC_umap.pdf", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/automated_processing/IPIPOOL001.P1.scRNA.XVIPBMC_umap.pdf" },
+              "processing_pipeline_parameters" => { "original_filename" => "cutoffs.yml", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/automated_processing/cutoffs.yml" },
+              "raw_counts_h5" => { "original_filename" => "raw_feature_bc_matrix.h5", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/cellranger/raw_feature_bc_matrix.h5" },
+              "tenx_aligned_bam" => { "original_filename" => "possorted_genome_bam.bam", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/cellranger/possorted_genome_bam.bam" },
+              "tenx_aligned_bam_index" => { "original_filename" => "possorted_genome_bam.bam.bai", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/cellranger/possorted_genome_bam.bam.bai" },
+              "tenx_cloupe_file" => { "original_filename" => "cloupe.cloupe", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/cellranger/cloupe.cloupe" },
+              "tenx_metrics_csv" => { "original_filename" => "metrics_summary.csv", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/cellranger/metrics_summary.csv" },
+              "tenx_molecule_info_h5" => { "original_filename" => "molecule_info.h5", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/cellranger/molecule_info.h5" },
+              "tenx_web_summary" => { "original_filename" => "web_summary.html", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/cellranger/web_summary.html" }
+            }
+          }
+        },
+      })
+    end
+  end
+end
+
 describe Polyphemus::Ipi::IpiWatchFilesEtl do
   include IpiMetisEtlTestHelpers
   let(:etl) { files_etl }

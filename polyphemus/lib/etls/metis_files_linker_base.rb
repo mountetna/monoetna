@@ -137,7 +137,9 @@ class Polyphemus::MetisFilesLinkerBase
   end
 
   def is_file_collection?(project_name, model_name, attribute_name)
-    magma_models(project_name).model(model_name).template.attributes.attribute(attribute_name.to_s).attribute_type == Etna::Clients::Magma::AttributeType::FILE_COLLECTION
+    attribute = magma_models(project_name).model(model_name).template.attributes.attribute(attribute_name.to_s)
+    raise "Unknown linker attribute #{attribute_name}" if attribute.nil?
+    attribute.attribute_type == Etna::Clients::Magma::AttributeType::FILE_COLLECTION
   end
 
   def corrected_record_name(record_name)
@@ -156,15 +158,14 @@ class Polyphemus::MetisFilesLinkerBase
     path_regex:,
     record_name_gsub_pair: nil
   )
+    logger.info("Files #{metis_files}")
     metis_files_by_record_name = metis_files.group_by do |file|
       next if file.file_path.nil?
       match = file.file_path.match(path_regex)
 
       if match
         record_name = corrected_record_name(match[:record_name])
-
         record_name = record_name.gsub(record_name_gsub_pair.first, record_name_gsub_pair.last) if record_name_gsub_pair
-
         record_name
       else
         nil

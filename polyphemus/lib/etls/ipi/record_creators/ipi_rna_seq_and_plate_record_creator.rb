@@ -69,7 +69,9 @@ class Polyphemus::IpiRnaSeqAndPlateRecordCreator
       unless @helper.is_control?(folder_name)
         attrs[:sample] = sample_name(record_name)
         if attrs[:sample].nil?
-          notify_slack("Skipping non control record without valid sample name #{record_name}.", channel: 'data-ingest-errors')
+          notify_slack(
+            "Skipping non control record without valid sample name #{record_name}.",
+            channel: 'data-ingest-errors')
           next
         end
       end
@@ -82,7 +84,9 @@ class Polyphemus::IpiRnaSeqAndPlateRecordCreator
         logger.info("Creating rna_seq records: #{update_request.revisions["rna_seq"].keys.join(",")}")
         magma_client.update_json(update_request)
       rescue Exception => e
-        notify_slack("Error creating IPI rna_seq record #{record_name}.\n#{e.message}.", channel: 'data-ingest-ping')
+        notify_slack(
+          "Error creating IPI rna_seq record #{record_name}.\n#{e.message}.",
+          channel: 'data-ingest-errors')
         logger.log_error(e)
       end
     end
