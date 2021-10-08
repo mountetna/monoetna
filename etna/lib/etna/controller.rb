@@ -106,7 +106,11 @@ module Etna
         [ key, @censor.redact(key, value) ]
       end.to_h
 
-      log("User #{@user ? @user.email : :unknown} calling #{self.class.name.sub("Kernel::", "").sub("Controller", "").downcase}##{@action} with params #{redacted_params}")
+      log("User #{@user ? @user.email : :unknown} calling #{controller_name}##{@action} with params #{redacted_params}")
+    end
+
+    def controller_name
+      self.class.name.sub("Kernel::", "").sub("Controller", "").downcase
     end
 
     def success(msg, content_type='text/plain')
