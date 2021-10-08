@@ -7,6 +7,11 @@ import {makeStyles} from '@material-ui/core/styles';
 
 import 'codemirror/mode/javascript/javascript';
 import 'codemirror/addon/lint/lint';
+import 'codemirror/addon/search/search';
+import 'codemirror/addon/search/searchcursor';
+import 'codemirror/addon/search/jump-to-line';
+import 'codemirror/addon/dialog/dialog';
+import 'codemirror/addon/dialog/dialog.css';
 
 import JsonMap from 'json-source-map';
 
@@ -88,7 +93,9 @@ export const validator = (schema:any, editor:Editor): Function => {
 const useStyles = makeStyles( theme => ({
   editor: {
     border: '1px solid #ccc',
-    height: '200px'
+    height: '200px',
+    resize: 'vertical',
+    overflow: 'hidden'
   }
 }));
 

@@ -12,6 +12,8 @@
     :host: https://timur.development.local
   :vulcan:
     :host: https://vulcan.development.local
+  :polyphemus:
+    :host: https://polyphemus.development.local
   :auth_redirect: https://janus.development.local
   :pass_algo: sha256
   :pass_salt: 
