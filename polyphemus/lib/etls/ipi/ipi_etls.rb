@@ -17,19 +17,32 @@ class Polyphemus
         process_watch_type_with(
           bucket('data')
             .watcher('single_cell_pool_processed')
-            .watch(/^single_cell_GEX\/.*\/[^\/]*POOL[^\/]*\/.*$/),
+            .watch(/^single_cell_[^\/]*\/processed\/.*\/[^\/]+POOL[^\/]+\/.*$/),
           Polyphemus::LinkerProcessor.new(
             linker: SingleCellLinker.new,
             model_name: 'sc_rna_seq_pool'
           ),
         )
+
+        process_watch_type_with(
+          bucket('data')
+            .watcher('single_cell_processed')
+            .watch(/^single_cell_[^\/]*\/processed\/((?!POOL).)*$/),
+          Polyphemus::LinkerProcessor.new(
+            linker: SingleCellLinker.new(
+              record_name_regex: /.*\/(?<record_name>.*)\/.*$/
+            ),
+            model_name: 'sc_rna_seq',
+          ),
+        )
       end
 
       class SingleCellLinker < Polyphemus::SingleCellProcessedLinker
-        def initialize
+        def initialize(**kwds)
           super(
             project_name: 'ipi',
             bucket_name: 'data',
+            **kwds
           )
         end
 

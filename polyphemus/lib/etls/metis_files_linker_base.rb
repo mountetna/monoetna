@@ -158,7 +158,6 @@ class Polyphemus::MetisFilesLinkerBase
     path_regex:,
     record_name_gsub_pair: nil
   )
-    logger.info("Files #{metis_files}")
     metis_files_by_record_name = metis_files.group_by do |file|
       next if file.file_path.nil?
       match = file.file_path.match(path_regex)
@@ -172,12 +171,15 @@ class Polyphemus::MetisFilesLinkerBase
       end
     end
 
-    magma_record_names.map do |magma_record_name|
-      next if metis_files_by_record_name[magma_record_name].nil?
+    metis_files_by_record_name.keys.map do |matched_record_name|
+      unless magma_record_names.include?(matched_record_name)
+        logger.info("Could not find magma record matching file record #{matched_record_name}")
+        next
+      end
 
       MetisFilesForMagmaRecord.new(
-        magma_record_name,
-        metis_files_by_record_name[magma_record_name]
+        matched_record_name,
+        metis_files_by_record_name[matched_record_name]
       )
     end.compact
   end

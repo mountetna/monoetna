@@ -36,8 +36,8 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
     {}.tap do |watch_type_groups|
       folders.each do |folder|
         bucket_config(cursor).find_matching_watches(folder.folder_path).each do |watch_config|
-          folders = watch_type_groups[watch_config.watch_type] ||= []
-          folders << folder
+          f = watch_type_groups[watch_config.watch_type] ||= []
+          f << folder
         end
       end
     end

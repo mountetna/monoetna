@@ -88,7 +88,7 @@ describe Polyphemus::Ipi::SingleCellLinkers do
       allow(Etna::Clients::Magma).to receive(:new).and_return(magma_client)
 
       update_request_raw = {}
-      expect(magma_client).to receive(:update_json).and_wrap_original do |m, request|
+      expect(magma_client).to receive(:update_json).twice.and_wrap_original do |m, request|
         update_request_raw.update(request.as_json)
       end
 
@@ -142,6 +142,40 @@ describe Polyphemus::Ipi::SingleCellLinkers do
             }
           }
         },
+      })
+
+      update_request_raw.clear
+
+      test_folders = metis_client.find(
+        Etna::Clients::Metis::FindRequest.new(
+          project_name: project_name,
+          bucket_name: bucket_name,
+          params: [Etna::Clients::Metis::FindParam.new(
+            attribute: "name",
+            predicate: "=",
+            value: 'IPIHEP034.T1.scrna.cd45neg',
+            type: "folder",
+          )],
+        )
+      ).folders.all
+
+      etl.process(
+        cursor,
+        test_folders
+      )
+
+      expect(update_request_raw).to eql({
+        project_name: 'ipi',
+        revisions: {
+          "sc_rna_seq" => {
+            "IPIHEP034.T1.scrna.cd45neg" => {
+              "tenx_cloupe_file" => {"original_filename"=>"cloupe.cloupe", "path"=>"metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v2_chemistry/HEP/IPIHEP034.T1.scrna.cd45neg/cloupe.cloupe"},
+              "tenx_metrics_csv" => {"original_filename"=>"metrics_summary.csv", "path"=>"metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v2_chemistry/HEP/IPIHEP034.T1.scrna.cd45neg/metrics_summary.csv"},
+              "tenx_molecule_info_h5" => {"original_filename"=>"molecule_info.h5", "path"=>"metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v2_chemistry/HEP/IPIHEP034.T1.scrna.cd45neg/molecule_info.h5"},
+              "tenx_web_summary" => {"original_filename"=>"web_summary.html", "path"=>"metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v2_chemistry/HEP/IPIHEP034.T1.scrna.cd45neg/web_summary.html"}
+            }
+          }
+        }
       })
     end
   end
