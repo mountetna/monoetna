@@ -19,8 +19,10 @@ class Polyphemus::ProjectWatchFoldersEtl < Polyphemus::AddWatchFolderBaseEtl
     bucket_name = cursor[:bucket_name]
 
     processors = config.file_processors(bucket_name, watch_type)
+    logger.info("Found #{processors.length} processors to handle folder files, running")
     return if processors.empty?
     files = folders_files(cursor, folders)
+    logger.info("Found #{files.length} inside #{folders.length} folders")
     processors.each { |p| p.process(cursor, files) }
   end
 
@@ -28,6 +30,7 @@ class Polyphemus::ProjectWatchFoldersEtl < Polyphemus::AddWatchFolderBaseEtl
     bucket_name = cursor[:bucket_name]
 
     processors = config.folder_processors(bucket_name, watch_type)
+    logger.info("Found #{processors.length} processors to handle folders, running")
     return if processors.empty?
     processors.each { |p| p.process(cursor, folders) }
   end
