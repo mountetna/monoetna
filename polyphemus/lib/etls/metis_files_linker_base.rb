@@ -29,10 +29,10 @@ class Polyphemus::MetisFilesLinkerBase
       cur_records[file_record.record_name] = 0
     end
 
-    Yabeda.linker.identified_records.set(cur_records.length, {
+    Yabeda.linker.identified_records.set({
       project_name: project_name,
       model_name: model_name
-    })
+    }, cur_records.length)
   end
 
   def count_attribute_links(cursor, model_name, attribute_name, record_name, payloads_for_attr)
@@ -53,12 +53,12 @@ class Polyphemus::MetisFilesLinkerBase
       linked_models[record_name] = 1
     end
 
-    Yabeda.linker.identified_records.set(linked_models.length, {
+    Yabeda.linker.identified_records.set({
       project_name: project_name,
       model_name: model_name,
       attribute_name: attribute_name,
       attribute_type: attribute.attribute_type
-    })
+    }, linked_models.length)
   end
 
   # Important!  If files_by_record_name includes files to be included in a file collection, /all files belonging to that collection must be present/.
