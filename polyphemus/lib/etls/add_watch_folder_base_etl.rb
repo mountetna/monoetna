@@ -71,9 +71,6 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
     # The guarantee: if we've created a watch folder record, it's because we also successfully processed its contents once.
     apply_records(cursor, watch_folders, watch_type)
     current_folder_metis_ids += new_folders_to_watch.map(&:id)
-    # It's possible for dupes to exist in the case of an existing watch folder in the metis_ids
-    # but it is newer than the cursor
-    current_folder_metis_ids.uniq!
     remove_changed_records(cursor, all_batch_folders, current_folder_metis_ids, watch_type)
   end
 
