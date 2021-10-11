@@ -14,6 +14,7 @@ class Polyphemus::LinkerProcessor
     linker.link(
       model_name: model_name,
       files: files,
+      cursor: cursor,
     )
   end
 end
