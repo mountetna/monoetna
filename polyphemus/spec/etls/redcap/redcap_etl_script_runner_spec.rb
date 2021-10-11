@@ -66,6 +66,19 @@ describe Polyphemus::RedcapEtlScriptRunner do
     }
   }
 
+  NO_OFFSET_ID_REDCAP_CONFIG = {
+    bad_model: {
+      each: [ "record" ],
+      scripts: [
+        {
+          attributes: {
+            birthday: "date_of_birth",
+          }
+        }
+      ]
+    }
+  }
+
   context 'dateshifts' do
     before do
       stub_magma_models
@@ -100,6 +113,25 @@ describe Polyphemus::RedcapEtlScriptRunner do
       system_config = redcap_etl.system_config
 
       expect(system_config[:dateshift_salt]).to eq('123')
+    end
+
+    it 'throws exception if model with date_time attribute does not define offset_id' do
+      stub_redcap_data(:essential_data)
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test',
+        model_names: "all",
+        redcap_tokens: REDCAP_TOKEN,
+        dateshift_salt: '123',
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST,
+        config: NO_OFFSET_ID_REDCAP_CONFIG
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
+
+      expect {
+        redcap_etl.run(magma_client: magma_client)
+      }.to raise_error(RuntimeError, "offset_id() needs to be implemented for the test project, bad_model class. It should return the patient / subject identifier.")
     end
   end
 

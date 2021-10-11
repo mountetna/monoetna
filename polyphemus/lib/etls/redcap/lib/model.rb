@@ -96,7 +96,7 @@ module Redcap
     end
 
     def offset_id(record_id)
-      record_id
+      raise "offset_id() needs to be implemented for the #{@project.project_name} project, #{@model_name} class. It should return the patient / subject identifier."
     end
 
     def redcap_id(magma_record_name, magma_record)

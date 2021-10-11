@@ -82,6 +82,12 @@ module Etna
       @response.finish
     end
 
+    def config_hosts
+      [:janus, :magma, :timur, :metis, :vulcan, :polyphemus].map do |host|
+        [ :"#{host}_host", @server.send(:application).config(host)&.dig(:host) ]
+      end.to_h.compact
+    end
+
     private
 
     def success(msg, content_type='text/plain')

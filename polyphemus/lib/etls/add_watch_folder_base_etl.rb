@@ -36,16 +36,15 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
     {}.tap do |watch_type_groups|
       folders.each do |folder|
         bucket_config(cursor).find_matching_watches(folder.folder_path).each do |watch_config|
-          folders = watch_type_groups[watch_config.watch_type] ||= []
-          folders << folder
+          f = watch_type_groups[watch_config.watch_type] ||= []
+          f << folder
         end
       end
     end
   end
 
   def process(cursor, folders)
-    # We'll need to filter out the folders based on folder_name here, using the
-    #   supplied regexes
+    # We'll need to filter out the folders based on folder_name here, using the supplied regexes.
     logger.info("Found #{folders.length} updated matching folders: #{folders.map { |f| f.folder_path }.join(",")}")
 
     target_folders = filter_target_folders(cursor, folders)
@@ -59,12 +58,13 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
   end
 
   def process_watch_type_group(cursor, watch_type, watch_folders, all_batch_folders)
-    current_folder_metis_ids = current_watch_folder_metis_ids(cursor, watch_folders, watch_type)
+    current_watch_folders = self.current_watch_folders(cursor, watch_folders, watch_type)
+    current_folder_metis_ids = current_watch_folders.map(&:metis_id)
     new_folders_to_watch, _ = partition_folders(watch_folders, current_folder_metis_ids)
     logger.info("Found #{new_folders_to_watch.length} new folders to watch as #{watch_type}: #{new_folders_to_watch.map { |f| f.folder_path }.join(",")}")
 
 
-    process_folder_contents(cursor, new_folders_to_watch, watch_type)
+    process_folder_contents(cursor, watch_folders, watch_type)
     # Do not create the watch folders until we have successfully processed contents, else we risk 'missing' processing
     # a folder content due to an error between creating the records (which would prevent those folders from showing up
     # in the next new_folders_to_watch) and processing folder contents.
@@ -118,7 +118,7 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
     end)
   end
 
-  def current_watch_folder_metis_ids(cursor, folders, watch_type)
+  def current_watch_folders(cursor, folders, watch_type)
     Polyphemus::WatchFolder.where(
       project_name: cursor[:project_name],
       bucket_name: cursor[:bucket_name],
@@ -126,9 +126,7 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
         folder.id
       end,
       watch_type: watch_type,
-    ).all.map do |folder|
-      folder.metis_id
-    end
+    ).all
   end
 
   def process_folder_contents(cursor, folders, watch_type)
@@ -140,7 +138,6 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
     find_request = Etna::Clients::Metis::FindRequest.new(
       project_name: cursor[:project_name],
       bucket_name: cursor[:bucket_name],
-      hide_paths: true,
     )
 
     find_request.add_param(Etna::Clients::Metis::FindParam.new(
@@ -150,13 +147,6 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
       value: folders.map(&:id),
     ))
 
-    metis_client.find(find_request).files.all.map do |f|
-      folder = folders.find { |folder| folder.id == f.folder_id }
-      if folder.nil?
-        raise "Could not find matching folder for file in add watch etl, bug or test setup issue?"
-      end
-
-      f.with_containing_folder(folder)
-    end
+    metis_client.find(find_request).files.all
   end
 end
