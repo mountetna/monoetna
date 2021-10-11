@@ -126,9 +126,7 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderFilteringBaseEt
         folder.id
       end,
       watch_type: watch_type,
-    ).all.map do |folder|
-      folder.metis_id
-    end
+    ).all
   end
 
   def process_folder_contents(cursor, folders, watch_type)
