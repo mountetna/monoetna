@@ -12,11 +12,61 @@ class Polyphemus::MetisFilesLinkerBase
     @magma_models = {}
   end
 
+  def cursor_model_group_state(cursor, model_name, group_name, default)
+    linked_models_state = cursor[:linked_models_state] ||= {}
+    model_state = linked_models_state[model_name.to_s] ||= {}
+    model_state[group_name.to_s] ||= default
+  end
+
+  def count_records(cursor, files_by_record_name, model_name)
+    return if cursor.nil?
+
+    cur_records = cursor_model_group_state(
+      cursor, model_name, 'seen', {},
+    )
+
+    files_by_record_name.each do |file_record|
+      cur_records[file_record.record_name] = 0
+    end
+
+    Yabeda.linker.identified_records.set(cur_records.length, {
+      project_name: project_name,
+      model_name: model_name
+    })
+  end
+
+  def count_attribute_links(cursor, model_name, attribute_name, record_name, payloads_for_attr)
+    return if cursor.nil?
+
+    attribute = magma_models(project_name).model(model_name)
+                                          .template.attributes
+                                          .attribute(attribute_name.to_s)
+    raise "Unknown linker attribute #{attribute_name}" if attribute.nil?
+
+    linked_models = cursor_model_group_state(
+      cursor, model_name, attribute_name, {},
+    )
+
+    if payloads_for_attr.empty?
+      linked_models.delete(record_name)
+    else
+      linked_models[record_name] = 1
+    end
+
+    Yabeda.linker.identified_records.set(linked_models.length, {
+      project_name: project_name,
+      model_name: model_name,
+      attribute_name: attribute_name,
+      attribute_type: attribute.attribute_type
+    })
+  end
+
   # Important!  If files_by_record_name includes files to be included in a file collection, /all files belonging to that collection must be present/.
   # the metis file in watch folder etl uses folder_ids_matching_file_collections to grab all containing folders for files that
   # match file collections and ensures that a folder list is performed and that all known files in that grouping are included.
-  def link(model_name:, files_by_record_name:, attribute_regex:)
+  def link(model_name:, files_by_record_name:, attribute_regex:, cursor: nil)
     return false if files_by_record_name.empty?
+    count_records(cursor, files_by_record_name, model_name)
 
     logger.info("Processing files for: #{files_by_record_name.map { |f| f.record_name }.join(",")}")
 
@@ -55,6 +105,8 @@ class Polyphemus::MetisFilesLinkerBase
         files: file_record.files,
         attribute_regex: attribute_regex,
         record: record_batch.document(file_record.record_name),
+        record_name: file_record.record_name,
+        cursor: cursor
       )
 
       update_request.update_revision(
@@ -62,6 +114,7 @@ class Polyphemus::MetisFilesLinkerBase
         correct_record_name,
         payload
       )
+
       logger.info("Found #{payload.values.flatten.length} files for #{correct_record_name}: #{payload.values.flatten.join(",")}")
     end
 
@@ -85,7 +138,7 @@ class Polyphemus::MetisFilesLinkerBase
     @magma_models[project_name]
   end
 
-  def files_payload(project_name:, model_name:, files:, attribute_regex:, record:)
+  def files_payload(project_name:, model_name:, files:, attribute_regex:, record:, cursor: nil, record_name:)
     {}.tap do |payload|
       attribute_regex.each do |attribute_name, regex|
         payloads_for_attr = files.select do |file|
@@ -94,6 +147,7 @@ class Polyphemus::MetisFilesLinkerBase
           serialize(file)
         end
 
+        count_attribute_links(cursor, model_name, attribute_name, record_name, payloads_for_attr)
         next if payloads_for_attr.empty?
 
         if is_file_collection?(project_name, model_name, attribute_name)
@@ -156,7 +210,8 @@ class Polyphemus::MetisFilesLinkerBase
     metis_files:,
     magma_record_names:,
     path_regex:,
-    record_name_gsub_pair: nil
+    record_name_gsub_pair: nil,
+    cursor: nil
   )
     metis_files_by_record_name = metis_files.group_by do |file|
       next if file.file_path.nil?
