@@ -55,11 +55,6 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
           className="view_item"
         >
           <div
-            className="item_name"
-          >
-            second
-          </div>
-          <div
             className="item_view"
           >
             <div
@@ -129,11 +124,6 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         <div
           className="view_item"
         >
-          <div
-            className="item_name"
-          >
-            third
-          </div>
           <div
             className="item_view"
           >

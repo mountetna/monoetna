@@ -34,14 +34,12 @@ export default function MultipleInput<Value, Values>(InnerInput: InputBackendCom
         {Object.keys(options).map(label => (<div key={label} className='view_item'>
             <div className='item_name'>{label}</div>
             <div className='item_view'>
-              <InputHelp doc={label}>
-                <InnerInput
-                  key={label}
-                  data={{options: options[label]}}
-                  value={label in values ? some(values[label]) : null}
-                  onChange={(value) => onChangeValue(label, value)}
-                />
-              </InputHelp>
+              <InnerInput
+                key={label}
+                data={{options: options[label]}}
+                value={label in values ? some(values[label]) : null}
+                onChange={(value) => onChangeValue(label, value)}
+              />
             </div>
           </div>))}
       </div>);
