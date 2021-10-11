@@ -12,7 +12,7 @@ export default function StepUserInputDrawer({group}: { group: WorkflowStepGroup;
   // We need to unpack the grouped steps and add docs
   let stepInputs = useMemo(() => steps.sort(
     (a, b) => collator.compare(a.label || a.name, b.label || b.name))
-    .map(step => <StepUserInput key={step.name} step={step} hideLabel={false}/>), [steps]);
+    .map(step => <StepUserInput key={step.name} step={step} hideLabel={true}/>), [steps]);
 
   return (<React.Fragment>
     {stepInputs}
