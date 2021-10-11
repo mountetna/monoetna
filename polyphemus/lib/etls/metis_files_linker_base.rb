@@ -53,7 +53,7 @@ class Polyphemus::MetisFilesLinkerBase
       linked_models[record_name] = 1
     end
 
-    Yabeda.linker.identified_records.set({
+    Yabeda.linker.linked_attributes.set({
       project_name: project_name,
       model_name: model_name,
       attribute_name: attribute_name,
