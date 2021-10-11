@@ -9,6 +9,9 @@ import EtlConfig from './etl/etl-config';
 import EtlCreate from './etl/etl-create';
 
 const useStyles = makeStyles((theme) => ({
+  etls: {
+    minWidth: '800px'
+  },
   title: {
     padding: '10px'
   }
@@ -40,7 +43,7 @@ const PolyphemusMain = ({project_name}:{project_name: string}) => {
   return <Grid id='polyphemus-main'>
     {
       !jobs ? null :
-        <Grid item xs={6}>
+        <Grid classes={classes.etls} item xs={8}>
           <Typography className={classes.title} variant="h5">
             {project_name} Data Loaders
           </Typography>

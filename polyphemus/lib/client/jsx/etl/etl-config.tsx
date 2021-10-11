@@ -87,7 +87,7 @@ const useStyles = makeStyles( theme => ({
 }));
 
 const EtlConfig = ({project_name, etl,name,config,status,secrets,params,output,run_interval,ran_at,job,onUpdate}: Etl & {job:Job|undefined,onUpdate:Function}) => {
-  const [ mode, setMode ] = useState<string | null>(null);
+  const [ mode, setMode ] = useState<string | null>('configure');
   const toggleMode = (m:string) => mode == m ? setMode(null) : setMode(m);
 
   const classes:any = useStyles();
@@ -144,7 +144,7 @@ const EtlConfig = ({project_name, etl,name,config,status,secrets,params,output,r
           </Grid>
         </Grid>
       </CardActions>
-      <ConfigurePane name={name} project_name={project_name} selected={mode} config={config} schema={job ? job.schema : null} update={postUpdate}/>
+      <ConfigurePane name={name} project_name={project_name} selected={mode} config={config} job={job} update={postUpdate}/>
       <RunPane selected={mode} run_interval={run_interval} update={postUpdate} params={params} param_opts={ job ? job.params : null } />
       <RemovePane selected={mode} update={postUpdate}/>
       <LogsPane selected={mode} output={output}/>

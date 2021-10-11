@@ -19,7 +19,7 @@ const useStyles = makeStyles( theme => ({
     height: '35px'
   },
   title: {
-    width: '200px'
+    flexBasis: '200px'
   }
 }));
 
