@@ -56,7 +56,7 @@ services:
     configs:
       - source: metis.config
         target: /app/config.yml
-      - etna.${ENV}.env.sh
+      - env
     networks:
       - metis
       - prometheus
@@ -122,6 +122,9 @@ configs:
     external: true
   metis.config:
     external: true
+  env:
+    external: true
+    name: "etna.${ENV}.env.sh"
 
 secrets:
   user-hash-secret:
