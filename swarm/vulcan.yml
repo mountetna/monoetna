@@ -27,7 +27,7 @@ services:
       VULCAN__PRODUCTION__DB__PASSWORD: "${PRODUCTION_DB_PASSWORD}"
       VULCAN__PRODUCTION__ROLLBAR__ACCESS_TOKEN: "${PRODUCTION_ROLLBAR_TOKEN}"
       VULCAN__PRODUCTION__USER_HASH_SECRET: "${USER_HASH_SECRET}"
-    command: 
+    command:
       - bash
       - -c
       - |

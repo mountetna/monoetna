@@ -22,7 +22,6 @@ services:
       METIS_ENV: production
       METIS__PRODUCTION__DB__PASSWORD: "${DB_PASSWORD}"
       METIS__PRODUCTION__ROLLBAR__ACCESS_TOKEN: "${ROLLBAR_TOKEN}"
-      METIS__PRODUCTION__USER_HASH_SECRET: "${USER_HASH_SECRET}"
     command:
       - bash
       - -c
@@ -95,7 +94,7 @@ services:
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
     image: etnaagent/metis:${ENV}
     volumes:
-      - ${ENV}_app_public:/sync-assets:rw
+      - app_public:/sync-assets:rw
 
     deploy:
       labels:
@@ -108,7 +107,7 @@ services:
         constraints: ["node.labels.volumes.metis_${ENV}_app_public == true"]
 
 volumes:
-  ${ENV}_app_public:
+  app_public:
   db:
     name: metis_db
 
