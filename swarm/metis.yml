@@ -1,83 +1,42 @@
 version: '3.8'
 
-x-app: &app
- environment:
-   APP_NAME: metis
-   METIS_ENV: production
- command:
-   - bash
-   - -c
-   - |
-     set -e
-     source /*.env.sh
-     export METIS__PRODUCTION__DB__PASSWORD="$$(cat /run/secrets/vulcan-postgres-password)"
-     export METIS__PRODUCTION__ROLLBAR__ACCESS_TOKEN="$$(cat /run/secrets/vulcan-rollbar-token)"
-     export METIS__PRODUCTION__USER_HASH_SECRET="$$(cat /run/secrets/user-hash-secret)"
-     export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
-     exec /bin/deploy.sh migrate -- /app/bin/puma.sh
- image: etnaagent/metis:production
-# volumes:
-#   - /data_change_me_when_done/metis:/app/data/metis
-#   - /var/node_exporter/metrics.prom:/tmp/metrics.prom
- user: 1501:999 # metis:docker
- healthcheck:
-   interval: 60s
-   retries: 60
-   start_period: 1s
-   test: bash -c 'wget -O - http://localhost:3000 &>/dev/null || exit 1'
-   timeout: 2s
- deploy:
-   update_config:
-     parallelism: 1
-     order: start-first
-   labels:
-     - autoupdate=true
-   placement:
-     constraints:
-       - node.labels.volumes.metis_data == true
-# configs:
-#   - source: vulcan.config
-#     target: /app/config.yml
-#   - production.etna.env.sh
-# secrets:
-#   - vulcan-postgres-password
-#   - vulcan-rollbar-token
-#   - user-hash-secret
-# networks:
-#   - vulcan
-#   - prometheus
-
-# Intended for agents that run in global deploy node, on most or all nodes, for service health purposes.
 services:
   postgres:
     image: postgres:10.12
     environment:
       POSTGRES_DB: 'metis'
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
       POSTGRES_USER: developer
     volumes:
       - db:/var/lib/postgresql/data
     deploy:
       placement:
         constraints:
-          - node.labels.volumes.metis_db == true
+          - node.labels.volumes.metis_${ENV}_db == true
     networks:
-      - production
-      - staging
+      - metis
 
-  app_production:
-    <<: *app
-    image: etnaagent/metis:staging
+  app:
+    environment:
+      APP_NAME: metis
+      METIS_ENV: production
+      METIS__PRODUCTION__DB__PASSWORD: "${PRODUCTION_DB_PASSWORD}"
+      METIS__PRODUCTION__ROLLBAR__ACCESS_TOKEN: "${PRODUCTION_ROLLBAR_TOKEN}"
+      METIS__PRODUCTION__USER_HASH_SECRET: "${USER_HASH_SECRET}"
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        source /*.env.sh
+        export METIS__PRODUCTION__USER_HASH_SECRET="$$(cat /run/secrets/user-hash-secret)"
+        export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
+        exec /bin/deploy.sh migrate -- /app/bin/puma.sh
+    image: etnaagent/metis:${ENV}
     volumes:
-      - /data_change_me_when_done/metis/staging:/app/data/metis
+      - ${DATA_SOURCE}/metis/:/app/data/metis
       - /var/node_exporter/metrics.prom:/tmp/metrics.prom
-    user: 1501:999 # vulcan:docker
-    healthcheck:
-      interval: 60s
-      retries: 60
-      start_period: 1s
-      test: bash -c 'wget -O - http://localhost:3000 &>/dev/null || exit 1'
-      timeout: 2s
+    user: 1501:999 # metis:docker
     deploy:
       update_config:
         parallelism: 1
@@ -86,28 +45,32 @@ services:
         - autoupdate=true
       placement:
         constraints:
-          - node.labels.volumes.vulcan_data == true
+          - node.labels.volumes.metis_${ENV}_data == true
+    healthcheck:
+      interval: 60s
+      retries: 60
+      start_period: 1s
+      test: bash -c 'wget -O - http://localhost:3000 &>/dev/null || exit 1'
+      timeout: 2s
     configs:
       - source: metis.config
         target: /app/config.yml
-      - staging.etna.env.sh
-    secrets:
-      - vulcan-postgres-password
+      - ${ENV}.etna.env.sh
     networks:
-      - staging
+      - metis
       - prometheus
 
   app_fe:
     environment:
       APP_NAME: metis
       VULCAN_ENV: production
-    image: etnaagent/metis_app_fe:staging
+    image: etnaagent/metis_app_fe:${ENV}
     networks:
       - edge_bridge
-      - staging
+      - metis
     volumes:
       - app_public:/app/public
-      - /data_change_me_when_done/metis/staging:/app/data/staging:ro
+      - ${DATA_SOURCE}/metis/:/app/data/metis:ro
     # Notable, apache needs to start as super user but it immediately downgrades
     # its own user permissions after bootup.  See the includes.
     user: 0:3000 # su:browser
@@ -121,18 +84,18 @@ services:
         condition: none
       placement:
         constraints:
-        - node.labels.volumes.metis_staging_app_public == true
+        - node.labels.volumes.metis_${ENV}_app_public == true
         - node.labels.volumes.metis_data == true
 
-  staging_app_assets_deployer:
+  app_assets_deployer:
     environment:
       APP_NAME: metis
       VULCAN_ENV: production
 
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
-    image: etnaagent/metis:staging
+    image: etnaagent/metis:${ENV}
     volumes:
-      - staging_app_public:/sync-assets:rw
+      - ${ENV}_app_public:/sync-assets:rw
 
     deploy:
       labels:
@@ -142,10 +105,10 @@ services:
       mode: global
       placement:
         max_replicas_per_node: 1
-        constraints: [node.labels.volumes.metis_staging_app_public == true]
+        constraints: ["node.labels.volumes.metis_${ENV}_app_public == true"]
 
 volumes:
-  staging_app_public:
+  ${ENV}_app_public:
   db:
     name: metis_db
 
@@ -158,18 +121,13 @@ configs:
     external: true
     
 secrets:
-  metis-postgres-password:
-    external: true
-  metis-rollbar-token:
-    external: true
   user-hash-secret:
     external: true
   metrics-pw:
     external: true
 
 networks:
-  staging:
-  production:
+  metis:
   edge_bridge:
     external: true
   prometheus:
