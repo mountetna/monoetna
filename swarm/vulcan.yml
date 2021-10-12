@@ -24,22 +24,22 @@ services:
       VULCAN_ENV: production
       HOST_DIR_MAP: /app/data=/data_change_me_when_done
       ENV: production
+      VULCAN__PRODUCTION__DB__PASSWORD: "${PRODUCTION_DB_PASSWORD}"
+      VULCAN__PRODUCTION__ROLLBAR__ACCESS_TOKEN: "${PRODUCTION_ROLLBAR_TOKEN}"
+      VULCAN__PRODUCTION__USER_HASH_SECRET: "${USER_HASH_SECRET}"
     command: 
       - bash
       - -c
       - |
         set -e
         source /*.env.sh
-        export VULCAN__PRODUCTION__DB__PASSWORD="$$(cat /run/secrets/vulcan-postgres-password)"
-        export VULCAN__PRODUCTION__ROLLBAR__ACCESS_TOKEN="$$(cat /run/secrets/vulcan-rollbar-token)"
-        export VULCAN__PRODUCTION__USER_HASH_SECRET="$$(cat /run/secrets/user-hash-secret)"
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
+        export VULCAN__PRODUCTION__USER_HASH_SECRET="$$(cat /run/secrets/user-hash-secret)"
         exec /bin/deploy.sh migrate 'docker pull etnaagent/archimedes:production' -- /app/bin/puma.sh
     image: etnaagent/vulcan:production
     volumes:
       - /data_change_me_when_done/vulcan:/app/data/vulcan
       - /var/run/docker.sock:/var/run/docker.sock:ro
-
       - /var/node_exporter/metrics.prom:/tmp/metrics.prom
     user: 1502:999 # vulcan:docker
     healthcheck:
@@ -61,10 +61,6 @@ services:
       - source: vulcan.config
         target: /app/config.yml
       - production.etna.env.sh
-    secrets:
-      - vulcan-postgres-password
-      - vulcan-rollbar-token
-      - user-hash-secret
     networks:
       - vulcan
       - prometheus
@@ -129,10 +125,7 @@ configs:
     external: true
     
 secrets:
-  vulcan-postgres-password:
-    external: true
-  vulcan-rollbar-token:
-    external: true
+
   user-hash-secret:
     external: true
   metrics-pw:
