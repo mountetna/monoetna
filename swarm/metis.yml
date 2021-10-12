@@ -29,6 +29,8 @@ services:
         set -e
         source /*.env.sh
         export METIS__PRODUCTION__USER_HASH_SECRET="$$(cat /run/secrets/user-hash-secret)"
+        export METIS__PRODUCTION__HMAC_KEYS__METIS="$$(cat /run/secrets/staging-metis-hmac)"
+        export METIS__PRODUCTION__HMAC_KEYS__MAGMA="$$(cat /run/secrets/staging-magma-hmac)"
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
         exec /bin/deploy.sh migrate -- /app/bin/puma.sh
     image: etnaagent/metis:${ENV}
@@ -54,10 +56,14 @@ services:
     configs:
       - source: metis.config
         target: /app/config.yml
-      - ${ENV}.etna.env.sh
+      - etna.${ENV}.env.sh
     networks:
       - metis
       - prometheus
+    secrets:
+      - staging-metis-hmac
+      - staging-magma-hmac
+      - metrics-pw
 
   app_fe:
     environment:
@@ -116,7 +122,7 @@ configs:
     external: true
   metis.config:
     external: true
-  staging.etna.env.sh:
+  etna.${ENV}.env.sh:
     external: true
     
 secrets:
