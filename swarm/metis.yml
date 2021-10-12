@@ -122,9 +122,7 @@ configs:
     external: true
   metis.config:
     external: true
-  etna.${ENV}.env.sh:
-    external: true
-    
+
 secrets:
   user-hash-secret:
     external: true
