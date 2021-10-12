@@ -109,7 +109,7 @@ services:
 volumes:
   app_public:
   db:
-    name: metis_db
+    name: metis_${ENV}_db
 
 configs:
   browser.system.include:
