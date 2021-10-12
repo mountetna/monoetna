@@ -71,8 +71,8 @@ describe Etna::Controller do
 
       output = <<EOT
 # Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/61378
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {}
 ERROR:2000-01-01T00:00:00+00:00 8fzmq8 Exiting with 403, You cannot do that.
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org called etna::# with params {}
 EOT
       expect(File.read(@log_file)).to eq(output)
     end
@@ -95,19 +95,17 @@ EOT
       expect(last_response.status).to eq(500)
       output = <<EOT
 # Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/61378
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {}
 ERROR:2000-01-01T00:00:00+00:00 8fzmq8 Caught unspecified error
 ERROR:2000-01-01T00:00:00+00:00 8fzmq8 Something broke.
 EOT
       # it reports the error
       log_contents = File.foreach(@log_file).to_a
-      expect(log_contents[0..2].join).to eq(output)
+      expect(log_contents[0..3].join).to eq(output)
 
       # it reports backtraces
       BACKTRACE = %r!(/[^/]+)+:[0-9]+:in `.*'!
-      expect(log_contents[3..-2]).to all( match(BACKTRACE) )
-
-      # logs the request with params
-      expect(log_contents[-1]).to eq("WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org called etna::# with params {}\n")
+      expect(log_contents[4..-1]).to all( match(BACKTRACE) )
     end
 
     it 'redacts keys defined in route for routes without #action' do
@@ -133,9 +131,9 @@ EOT
       get('/test?not_secret=bar')
       expect(last_response.status).to eq(200)
       output = <<EOT
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org called etna::# with params {}
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org called etna::# with params {:secret=>"*"}
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org called etna::# with params {:not_secret=>"bar"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {:secret=>"*"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {:not_secret=>"bar"}
 EOT
       # it reports the requests
       log_contents = File.foreach(@log_file).to_a
@@ -168,9 +166,9 @@ EOT
       get('/test?not_secret=bar')
       expect(last_response.status).to eq(200)
       output = <<EOT
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org called test#action with params {}
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org called test#action with params {:secret=>"*"}
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org called test#action with params {:not_secret=>"bar"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling test#action with params {}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling test#action with params {:secret=>"*"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling test#action with params {:not_secret=>"bar"}
 EOT
       # it reports the requests
       log_contents = File.foreach(@log_file).to_a
@@ -203,9 +201,9 @@ EOT
       get('/test?not_secret=bar')
       expect(last_response.status).to eq(200)
       output = <<EOT
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org called strict#action with params {}
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org called strict#action with params {:secret=>"*"}
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org called strict#action with params {:not_secret=>"*"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling strict#action with params {}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling strict#action with params {:secret=>"*"}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling strict#action with params {:not_secret=>"*"}
 EOT
       # it reports the requests
       log_contents = File.foreach(@log_file).to_a

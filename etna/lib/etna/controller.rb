@@ -42,9 +42,10 @@ module Etna
 
       [501, {}, ['This controller is not implemented.']]
     rescue Exception => e
-      handle_error(e)
+      error = e
     ensure
       log_request
+      return handle_error(error) if error
     end
 
     def require_params(*params)
@@ -107,7 +108,7 @@ module Etna
         [ key, censor.redact(key, value) ]
       end.to_h
 
-      log("User #{@user ? @user.email : :unknown} called #{controller_name}##{@action} with params #{redacted_params}")
+      log("User #{@user ? @user.email : :unknown} calling #{controller_name}##{@action} with params #{redacted_params}")
     end
 
     def controller_name
