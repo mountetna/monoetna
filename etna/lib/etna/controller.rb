@@ -13,9 +13,6 @@ module Etna
       @user = @request.env['etna.user']
       @request_id = @request.env['etna.request_id']
       @hmac = @request.env['etna.hmac']
-
-      @route_log_redact_keys = @request.env['etna.route_log_redact_keys']
-      @censor = Etna::Censor.new(redact_keys)
     end
 
     def log(line)
@@ -40,14 +37,14 @@ module Etna
     end
 
     def response(&block)
-      log_request
-
       return instance_eval(&block) if block_given?
       return send(@action) if @action
 
       [501, {}, ['This controller is not implemented.']]
     rescue Exception => e
       handle_error(e)
+    ensure
+      log_request
     end
 
     def require_params(*params)
@@ -96,17 +93,21 @@ module Etna
     private
 
     def redact_keys
-      # Subclasses may want to override this, if they want to
-      #   redact additional keys
-      @route_log_redact_keys
+      @request.env['etna.redact_keys']
+    end
+
+    def add_redact_keys(new_redact_keys=[])
+      @request.env['etna.redact_keys'] = (@request.env['etna.redact_keys'] || []).concat(new_redact_keys)
     end
 
     def log_request
+      censor = Etna::Censor.new(redact_keys)
+
       redacted_params = @params.map do |key,value|
-        [ key, @censor.redact(key, value) ]
+        [ key, censor.redact(key, value) ]
       end.to_h
 
-      log("User #{@user ? @user.email : :unknown} calling #{controller_name}##{@action} with params #{redacted_params}")
+      log("User #{@user ? @user.email : :unknown} called #{controller_name}##{@action} with params #{redacted_params}")
     end
 
     def controller_name

@@ -126,7 +126,7 @@ module Etna
         return [ 403, { 'Content-Type' => 'application/json' }, [ { error: 'You are forbidden from performing this action.' }.to_json ] ]
       end
 
-      request.env['etna.route_log_redact_keys'] = @log_redact_keys
+      request.env['etna.redact_keys'] = @log_redact_keys
 
       if @action
         controller, action = @action.split('#')
