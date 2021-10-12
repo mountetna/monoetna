@@ -28,6 +28,24 @@ class Polyphemus
     require_relative 'models/models'
   end
 
+  def setup_yabeda
+    Yabeda.configure do
+      group :linker do
+        gauge :linked_attributes do
+          comment "The number of files linked for each attribute"
+          tags [:project_name, :model_name, :attribute_type, :attribute_name]
+        end
+
+        gauge :identified_records do
+          comment "The number of records identified by the linker"
+          tags [:project_name, :model_name]
+        end
+      end
+    end
+
+    super
+  end
+
   def setup_ssh
     ssh_dir = ::File.expand_path(".ssh", "~")
     FileUtils.mkdir_p(ssh_dir)
