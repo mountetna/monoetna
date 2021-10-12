@@ -43,6 +43,11 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+      placement:
+        constraints:
+          - node.labels.volumes.airflow-dags == true
+    volumes:
+      - dags:/opt/airflow/dags
     networks:
       - airflow
       - edge_bridge
@@ -56,8 +61,14 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+      placement:
+        constraints:
+          - node.labels.volumes.airflow-dags == true
+    volumes:
+      - dags:/opt/airflow/dags
     networks:
       - airflow
+     
 
   init:
     image: etnaagent/airflow:production
@@ -81,6 +92,7 @@ services:
 
 volumes:
   airflow-metadata-db:
+  dags:
 
 networks:
   airflow:
