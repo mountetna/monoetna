@@ -2,6 +2,8 @@ require_relative 'controller'
 
 class UpdateController < Magma::Controller
   def action
+    add_redact_keys(dateshift_redact_keys)
+
     @loader = Magma::Loader.new(@user,@project_name)
     @revisions = @params[:revisions]
 
@@ -31,5 +33,10 @@ class UpdateController < Magma::Controller
     log(m.complaints)
     @errors.concat(m.complaints)
     return nil
+  end
+
+  def dateshift_redact_keys
+    # Make sure the keys are symbols?
+    []
   end
 end
