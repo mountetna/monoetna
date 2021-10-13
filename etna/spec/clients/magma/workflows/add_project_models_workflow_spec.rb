@@ -193,7 +193,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
 
       VCR.use_cassette('add_project_models_workflow-timepoint-project.e2e') do
         # Change this name when re-recording the cassette file to ensure a new project is synced
-        test_project = "test_add_project_models_workflow_full_ezdj"
+        test_project = "test_add_project_models_workflow_full_ezdk"
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
             token: ENV['TOKEN'] || TEST_TOKEN, ignore_ssl: true,
@@ -256,7 +256,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
 
       VCR.use_cassette('add_project_models_workflow-full-project.e2e') do
         # Change this name when re-recording the cassette file to ensure a new project is synced
-        test_project = "test_add_project_models_workflow_full_tzg"
+        test_project = "test_add_project_models_workflow_full_tzh"
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
             token: ENV['TOKEN'] || TEST_TOKEN, ignore_ssl: true,
