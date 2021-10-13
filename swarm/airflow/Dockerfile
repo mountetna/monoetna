@@ -4,7 +4,7 @@ FROM apache/airflow:2.1.3
 #RUN pip install -U requests[socks]
 #COPY src/dags /opt/airflow/dags
 # RUN pip3 install dask[complete]
-RUN pip3 install simple-dag-editor docker pytest airflow-code-editor
+RUN pip3 install docker pytest airflow-code-editor black
 
 COPY --chown=airflow src/opt/ /opt/airflow/
 # RUN chown -R airflow /opt/airflow/
