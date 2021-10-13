@@ -79,17 +79,16 @@ class Polyphemus
     end
 
     def with_next(&block)
-      n = @cursors.inject(nil) do |acc, n|
-        if acc.nil?
-          n
-        elsif n.updated_at < acc.updated_at
-          n
-        else
-          acc
+      sorted_cursors = @cursors.sort_by(&:updated_at)
+
+      sorted_cursors.each do |cursor|
+        processed = yield cursor
+        if processed
+          return true
         end
       end
 
-      yield n unless n.nil?
+      false
     end
 
     def reset_all!

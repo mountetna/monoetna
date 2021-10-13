@@ -116,12 +116,12 @@ class Polyphemus
         logger.info("Attempting to process")
         if batch.empty? || process(cursor, batch) == :stop
           logger.info("No more work found, stopping.")
-          return false
+          next false
         end
 
         logger.info("Saving cursor to database")
         cursor.save_to_db
-        return true
+        next true
       end
 
       false
