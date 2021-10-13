@@ -123,8 +123,6 @@ class Polyphemus
         cursor.save_to_db
         next true
       end
-
-      false
     end
 
     # Subclasses should override with their processing loop.
