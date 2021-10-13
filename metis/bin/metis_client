@@ -824,6 +824,26 @@ EOT
     end
   end
 
+  class Validate < Command
+    usage "validate <remote_path>"
+
+    def run(path)
+      raise ShellError, 'No project is selected' if !@shell.project_name
+
+      path = @shell.relative_path(path)
+
+      folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(path))
+      file = folder[:files]&.find { |f| f[:file_name] == ::File.basename(path) }
+      raise ShellError, 'No such file!' unless file
+
+      if file[:archive_id]
+        puts "Archived"
+      else
+        raise ShellError, 'File is not archived!'
+      end
+    end
+  end
+
   class Mkdir < Command
     usage "mkdir <remote_path>"
     def run(path)
