@@ -19,7 +19,7 @@ class Polyphemus
             .watcher('single_cell_pool_processed')
             .watch(/^single_cell_[^\/]*\/processed\/.*\/[^\/]+POOL[^\/]+\/.*$/),
           Polyphemus::LinkerProcessor.new(
-            linker: SingleCellLinker.new,
+            linker: RawFastqLinker.new,
             model_name: 'sc_rna_seq_pool'
           ),
         )
@@ -47,21 +47,15 @@ class Polyphemus
         )
       end
 
-      class SingleCellLinker < Polyphemus::SingleCellProcessedLinker
-        def initialize(**kwds)
-          super(
-            project_name: 'ipi',
-            bucket_name: 'data',
-            **kwds
-          )
-        end
-
+      module RecordNameDemangler
         def corrected_record_name(record_name)
           record_name.gsub(/_/, '.').sub(/^([^.]*\.[^.]*\.)(.*)$/) { $1 + $2.downcase }
         end
       end
 
-      class RawFastqLinker < Polyphemus::SingleCellRawFastqLinker
+      class SingleCellLinker < Polyphemus::SingleCellProcessedLinker
+        include RecordNameDemangler
+
         def initialize(**kwds)
           super(
             project_name: 'ipi',
@@ -69,9 +63,17 @@ class Polyphemus
             **kwds
           )
         end
+      end
 
-        def corrected_record_name(record_name)
-          record_name.gsub(/_/, '.').sub(/^([^.]*\.[^.]*\.)(.*)$/) { $1 + $2.downcase }
+      class RawFastqLinker < Polyphemus::SingleCellRawFastqLinker
+        include RecordNameDemangler
+
+        def initialize(**kwds)
+          super(
+            project_name: 'ipi',
+            bucket_name: 'data',
+            **kwds
+          )
         end
       end
     end
