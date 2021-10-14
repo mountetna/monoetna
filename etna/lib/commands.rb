@@ -411,6 +411,25 @@ class EtnaApp
           end
         end
       end
+
+      class SetDateShiftRoot < Etna::Command
+        include WithEtnaClients
+        include WithLogger
+        include StrongConfirmation
+
+        boolean_flags << '--date-shift-root'
+        string_flags << '--target-model'
+
+        def execute(project_name, target_model: 'subject', date_shift_root: false)
+          magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
+            actions:[Etna::Clients::Magma::SetDateShiftRootAction.new(
+              model_name: target_model,
+              date_shift_root: date_shift_root
+            )],
+            project_name: project_name,
+          ))
+        end
+      end
     end
   end
 
