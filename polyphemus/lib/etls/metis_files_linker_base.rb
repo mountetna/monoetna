@@ -18,55 +18,11 @@ class Polyphemus::MetisFilesLinkerBase
     model_state[group_name.to_s] ||= default
   end
 
-  def count_records(cursor, files_by_record_name, model_name)
-    return if cursor.nil?
-
-    cur_records = cursor_model_group_state(
-      cursor, model_name, 'seen', {},
-    )
-
-    files_by_record_name.each do |file_record|
-      cur_records[file_record.record_name] = 0
-    end
-
-    Yabeda.linker.identified_records.set({
-      project_name: project_name,
-      model_name: model_name
-    }, cur_records.length)
-  end
-
-  def count_attribute_links(cursor, model_name, attribute_name, record_name, payloads_for_attr)
-    return if cursor.nil?
-
-    attribute = magma_models(project_name).model(model_name)
-                                          .template.attributes
-                                          .attribute(attribute_name.to_s)
-    raise "Unknown linker attribute #{attribute_name}" if attribute.nil?
-
-    linked_models = cursor_model_group_state(
-      cursor, model_name, attribute_name, {},
-    )
-
-    if payloads_for_attr.empty?
-      linked_models.delete(record_name)
-    else
-      linked_models[record_name] = 1
-    end
-
-    Yabeda.linker.linked_attributes.set({
-      project_name: project_name,
-      model_name: model_name,
-      attribute_name: attribute_name,
-      attribute_type: attribute.attribute_type
-    }, linked_models.length)
-  end
-
   # Important!  If files_by_record_name includes files to be included in a file collection, /all files belonging to that collection must be present/.
   # the metis file in watch folder etl uses folder_ids_matching_file_collections to grab all containing folders for files that
   # match file collections and ensures that a folder list is performed and that all known files in that grouping are included.
   def link(model_name:, files_by_record_name:, attribute_regex:, cursor: nil)
     return false if files_by_record_name.empty?
-    count_records(cursor, files_by_record_name, model_name)
 
     logger.info("Processing files for: #{files_by_record_name.map { |f| f.record_name }.join(",")}")
 
@@ -147,7 +103,6 @@ class Polyphemus::MetisFilesLinkerBase
           serialize(file)
         end
 
-        count_attribute_links(cursor, model_name, attribute_name, record_name, payloads_for_attr)
         next if payloads_for_attr.empty?
 
         if is_file_collection?(project_name, model_name, attribute_name)
