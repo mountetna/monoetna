@@ -35,7 +35,7 @@ inputs:
 outputs:
   the_csv:
     type: File
-    outputSource: DGEcalc/diffexp.csv
+    outputSource: calc_DGE/diffexp.csv
 
 steps:
   mockSetup:
@@ -44,50 +44,50 @@ steps:
     in: []
     out: [scdata.h5ad]
     
-  extract_metadata:
+  extract_metadata_for_dge:
     run: scripts/dge_grab_obs.cwl
     label: 'Extract metadata Options'
     in:
       scdata.h5ad: mockSetup/scdata.h5ad
     out: [metadata]
     
-  setDEMethods:
+  pick_DGE_methods:
     run: ui-queries/diff-exp-sc.cwl
     label: 'Set how DE should be run'
     in:
-      a: extract_metadata/metadata
+      a: extract_metadata_for_dge/metadata
     out: [dge_setup]
   
-  DGEcalc:
+  calc_DGE:
     run: scripts/dge_calc.cwl
     label: 'Calculate DGE'
     in:
       scdata.h5ad: mockSetup/scdata.h5ad
-      setup: setDEMethods/dge_setup
+      setup: pick_DGE_methods/dge_setup
       test_method: 2_DiffExp_Calculation_Inputs__test_method
     out: [diffexp.csv]
     
-  downloadDEData:
+  download_full_DGE_csv:
     run: ui-outputs/link.cwl
     in:
-      a: DGEcalc/diffexp.csv
+      a: calc_DGE/diffexp.csv
     out: []
     label: 'Download Full DiffExp Results as csv'
   
-  DGEfilter:
+  filter_DGE:
     run: scripts/dge_filter.cwl
     label: 'Filter the DGE Output'
     in:
-      full_diffexp.csv: DGEcalc/diffexp.csv
+      full_diffexp.csv: calc_DGE/diffexp.csv
       min_abs_fc: 3_After_Calculation_Cutoffs__min_abs_fc
       max_pval: 3_After_Calculation_Cutoffs__max_pval
       min_pct: 3_After_Calculation_Cutoffs__min_pct
       pos_only: 3_After_Calculation_Cutoffs__pos_only
     out: [filtered_diffexp.csv]
   
-  downloadFilteredDEData:
+  download_filtered_DGE_csv:
     run: ui-outputs/link.cwl
     in:
-      a: DGEfilter/filtered_diffexp.csv
+      a: filter_DGE/filtered_diffexp.csv
     out: []
     label: 'Download Filtered DiffExp Results as csv'
