@@ -106,10 +106,16 @@ describe Polyphemus::EtlCursorGroup do
         ]
       end
 
-      it 'yields the oldest cursor' do
+      it 'yields the oldest cursor first' do
         @yielded = false
-        group.with_next { |v| @yielded = v }
+        expect(group.with_next { |v| @yielded = v; true }).to eql(true)
         expect(@yielded).to eql(cursors.last)
+      end
+
+      it 'continues yielding on false' do
+        @yielded = []
+        expect(group.with_next { |v| @yielded << v; false }).to eql(false)
+        expect(@yielded).to eql([cursors[2], cursors[0], cursors[1]])
       end
     end
   end
