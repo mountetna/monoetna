@@ -83,16 +83,41 @@ inputs:
     label: 'Number of iterations?'
     default: 0
     doc: 'The number of iterations for optimization - by default (0) either 200 for small datasets or 500 for large ones.'
-  6_Cluster_Differential_Expression__ignore_prefixes:
+  6_Initial_Cluster_DGE__ignore_prefixes:
     type: string
     default: 'MT-,RPL,RPS'
     label: 'Gene prefixes to ignore'
     doc: 'A set of strings, separated by commas, for which gene symbols starting with these strings should NOT be shown in the umap overlay. Not case-sensitive, so the same strings will work for both human and mouse ribo & mito genes. Note: this does not affect the full differential expression table that can be downloaded.'
-  6_Cluster_Differential_Expression__dge_method:
+  6_Initial_Cluster_DGE__dge_method:
     type: string
     default: 'wilcoxon'
     label: 'testing method'
     doc: 'A string indicating what scanpy method option to use for calculating differential expression. Options are: "logreg", "t-test", "wilcoxon", "t-test_overestim_var". See documentation for "scanpy.tl.rank_genes_groups" for further details.'
+  7_Post_UMAP_DGE_Calculation_Inputs__test_method:
+    type: string
+    default: t-test
+    label: 'p-value calc method'
+    doc: 'One of [logreg, t-test, wilcoxon, t-test_overestim_var]. Sets the `method` input of the `scanpy.tl.rank_genes_groups()` function used for differential expression calculation.'
+  8_Post_Calculation_DGE_Cutoffs__min_abs_fc:
+    type: float
+    default: 0
+    label: 'Min. Fold Change (absolute value)'
+    doc: 'A number, used for subsetting the differential expression output based on fold-changes. Common values: 0.5, 1, 2.'
+  8_Post_Calculation_DGE_Cutoffs__max_pval:
+    type: float
+    default: 0.05
+    label: 'Max. Adjusted P-value'
+    doc: 'A number, used for subsetting the differential expression output based on p-values.'
+  8_Post_Calculation_DGE_Cutoffs__min_pct:
+    type: float
+    default: 0.05
+    label: 'Min. Percent Expression'
+    doc: 'A number, used for subsetting the differential expression output based on percent capture of genes within the comparison groups. Genes are retained as long as either side of the comparison has a higher percent capture.'
+  8_Post_Calculation_DGE_Cutoffs__pos_only:
+    type: boolean
+    default: false
+    label: 'Upregulated only?'
+    doc: 'true or false, used for subsetting the differential expression output based fold change directionality. When true, only genes upregulated in the group-1 will be retained.'
 
 outputs:
   the_data:
@@ -202,8 +227,8 @@ steps:
     label: 'Diff. Exp.: Cluster Markers'
     in:
       leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
-      ignore_prefixes: 6_Cluster_Differential_Expression__ignore_prefixes
-      dge_method: 6_Cluster_Differential_Expression__dge_method
+      ignore_prefixes: 6_Initial_Cluster_DGE__ignore_prefixes
+      dge_method: 6_Initial_Cluster_DGE__dge_method
     out: [umap_workflow_anndata.h5ad, diffexp.csv,top10.json]
   Finalize_Output_Object:
     run: scripts/umap_finalize_downloadable_object.cwl
@@ -269,3 +294,45 @@ steps:
     out: []
     label: 'Download cluster DiffExp as csv'
 
+  extract_metadata_for_dge:
+    run: scripts/dge_grab_obs.cwl
+    label: 'Extract metadata Options'
+    in:
+      scdata.h5ad: Finalize_Output_Object/umap_workflow_anndata.h5ad
+    out: [metadata]
+  pick_DGE_methods:
+    run: ui-queries/diff-exp-sc.cwl
+    label: 'Set how DE should be run'
+    in:
+      a: extract_metadata_for_dge/metadata
+    out: [dge_setup]
+  calc_DGE:
+    run: scripts/dge_calc.cwl
+    label: 'Calculate DGE'
+    in:
+      scdata.h5ad: Finalize_Output_Object/umap_workflow_anndata.h5ad
+      setup: pick_DGE_methods/dge_setup
+      test_method: 7_Post_UMAP_DGE_Calculation_Inputs__test_method
+    out: [diffexp.csv]
+  download_full_DGE_csv:
+    run: ui-outputs/link.cwl
+    in:
+      a: calc_DGE/diffexp.csv
+    out: []
+    label: 'Download Full DiffExp Results as csv'
+  filter_DGE:
+    run: scripts/dge_filter.cwl
+    label: 'Filter the DGE Output'
+    in:
+      full_diffexp.csv: calc_DGE/diffexp.csv
+      min_abs_fc: 8_Post_Calculation_DGE_Cutoffs__min_abs_fc
+      max_pval: 8_Post_Calculation_DGE_Cutoffs__max_pval
+      min_pct: 8_Post_Calculation_DGE_Cutoffs__min_pct
+      pos_only: 8_Post_Calculation_DGE_Cutoffs__pos_only
+    out: [filtered_diffexp.csv]
+  download_filtered_DGE_csv:
+    run: ui-outputs/link.cwl
+    in:
+      a: filter_DGE/filtered_diffexp.csv
+    out: []
+    label: 'Download Filtered DiffExp Results as csv'
