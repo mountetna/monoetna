@@ -8,6 +8,7 @@ import RootView from 'etna-js/components/RootView';
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 
 import { createEtnaTheme } from 'etna-js/style/theme';
+import { MagmaProvider } from './magma-context';
 
 const theme = createEtnaTheme("#688d30","#d18e47");
 
@@ -31,12 +32,14 @@ const PolyphemusUI = () => {
   let Component = route ? route.component : Invalid;
 
   return (
-    <ThemeProvider theme={theme}>
-      <div id='polyphemus-group'>
-        <PolyphemusNav/>
-        <Component {...params}/>
-      </div>
-    </ThemeProvider>
+    <MagmaProvider>
+      <ThemeProvider theme={theme}>
+        <div id='polyphemus-group'>
+          <PolyphemusNav/>
+          <Component {...params}/>
+        </div>
+      </ThemeProvider>
+    </MagmaProvider>
   );
 }
 

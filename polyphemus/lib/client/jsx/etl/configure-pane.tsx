@@ -41,6 +41,7 @@ const ConfigurePane = ({name, project_name, selected, config, job, update}:{name
 
   let [ origScript, setOrigScript ] = useState('');
   let [ editedScript, setEditedScript ] = useState('');
+  let [ editedConfig, setEditedConfig ] = useState({});
   let [ comment, setComment ] = useState('');
   let [ showRevisions, setShowRevisions ] = useState(false);
   let [ showJson, setShowJson ] = useState(false);
@@ -51,6 +52,7 @@ const ConfigurePane = ({name, project_name, selected, config, job, update}:{name
     origScript = JSON.stringify(config,null,2);
     setOrigScript(origScript);
     setEditedScript(origScript);
+    setEditedConfig(JSON.parse(origScript));
   }, [config]);
 
   return <EtlPane mode='configure' selected={selected}>
@@ -98,7 +100,7 @@ const ConfigurePane = ({name, project_name, selected, config, job, update}:{name
     {
       (!JobForm || showJson)
         ? <ConfigScript script={editedScript} schema={job ? job.schema : null} onChange={setEditedScript} />
-        : <JobForm config={config} />
+        : <JobForm project_name={project_name} config={editedConfig} job={job} update={ setEditedConfig }/>
     }
   </EtlPane>
 }

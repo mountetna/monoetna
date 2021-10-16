@@ -87,7 +87,7 @@ const useStyles = makeStyles( theme => ({
 }));
 
 const EtlConfig = ({project_name, etl,name,config,status,secrets,params,output,run_interval,ran_at,job,onUpdate}: Etl & {job:Job|undefined,onUpdate:Function}) => {
-  const [ mode, setMode ] = useState<string | null>('configure');
+  const [ mode, setMode ] = useState<string | null>(null);
   const toggleMode = (m:string) => mode == m ? setMode(null) : setMode(m);
 
   const classes:any = useStyles();

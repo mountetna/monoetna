@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { json_get } from 'etna-js/utils/fetch';
+import { getDocuments } from 'etna-js/api/magma_api';
 
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
@@ -7,6 +8,8 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import EtlConfig from './etl/etl-config';
 import EtlCreate from './etl/etl-create';
+
+import { MagmaContext } from './magma-context';
 
 const useStyles = makeStyles((theme) => ({
   etls: {
@@ -17,13 +20,11 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const jobFor = (etl: string, jobs: Job[]) : (any | null) => {
-}
-
 const PolyphemusMain = ({project_name}:{project_name: string}) => {
   const [ etls, setEtls ] = useState< Etl[] >([]);
   const [ jobs, setJobs ] = useState< Job[] | null>(null);
   const [ create, setCreate ] = useState(false);
+  const { models, setModels } = useContext(MagmaContext);
 
   const addEtl = (etl:Etl) => {
     let index = etls.findIndex( e => e.name == etl.name );
@@ -38,12 +39,22 @@ const PolyphemusMain = ({project_name}:{project_name: string}) => {
 
   useEffect( () => {
     json_get(`/api/etl/${project_name}/configs`).then(setEtls)
-    json_get(`/api/etl/jobs`).then(setJobs)
+    json_get(`/api/etl/jobs`).then(setJobs);
+    getDocuments({
+      project_name,
+      model_name: 'all',
+      record_names: [],
+      attribute_names: 'all',
+    }, fetch).then(
+      ({models}) => setModels(models)
+    ).catch( e => console.log({e}) )
   }, [] );
+
+
   return <Grid id='polyphemus-main'>
     {
       !jobs ? null :
-        <Grid classes={classes.etls} item xs={8}>
+        <Grid className={classes.etls} item xs={12}>
           <Typography className={classes.title} variant="h5">
             {project_name} Data Loaders
           </Typography>
