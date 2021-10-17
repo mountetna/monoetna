@@ -9,6 +9,8 @@ import TextField from '@material-ui/core/TextField';
 import Checkbox from '@material-ui/core/Checkbox';
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import IconButton from '@material-ui/core/IconButton';
@@ -19,6 +21,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import CopyIcon from '@material-ui/icons/FileCopy';
 import EditIcon from '@material-ui/icons/Edit';
 import TuneIcon from '@material-ui/icons/Tune';
+import Pagination from '@material-ui/lab/Pagination';
 
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -97,6 +100,10 @@ const useStyles = makeStyles( theme => ({
   model_row_name: {
     marginTop: '7px'
   },
+  page_size: {
+    color: '#666',
+    padding: '0px 15px'
+  },
   script: {
     background: '#eee',
     marginTop: '15px',
@@ -154,6 +161,14 @@ const SmallCheckbox = (props) => <Checkbox
   icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
   checkedIcon={<CheckBoxIcon fontSize="small" />}
   {...props}/>;
+
+const debounce = (callback, delay) => {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => callback(...args), delay);
+  }
+}
 
 const ValueRow = ({field_name, value, update, opts}) => {
   const classes = useStyles();
@@ -380,7 +395,7 @@ const RedcapEntity = ({each, allowNull=false, update}) => {
             (entityName(entity) != 'record' || each.length == 1 && allowNull) &&
             <Grid item container alignContent='center' className={classes.remove_entity}>
               <Tooltip title='Remove entity'><IconButton onClick={
-                  () => update(each.filter( (e,j) => j != i ))
+                () => each.length == 1 ? update(undefined) : update(each.filter( (e,j) => j != i ))
                 } size='small'><ClearIcon fontSize='small'/></IconButton></Tooltip>
             </Grid>
           }
@@ -452,13 +467,21 @@ const ModelRow = ({name,children}) => {
   const classes = useStyles();
   return <Grid className={classes.model_row} spacing={1} item container>
     <Grid className={classes.model_row_name} item container justify='flex-end' xs={1} >{name}</Grid>
-    <Grid item alignContent='center' container xs={11}>{ children }</Grid>
+    <Grid item alignItems='center' container xs={11}>{ children }</Grid>
   </Grid>
 }
 
 const RedcapModel = ({config,modelName, update}) => {
   const classes = useStyles();
   const { each, invert, scripts } = config;
+  const [ pageSize, setPageSize ] = useState(5);
+
+  const pages = Math.ceil(scripts.length / pageSize);
+  const [ page, setPage ] = useState(1);
+
+  console.log({page,pages,pageSize, l: scripts.length});
+
+  const page_scripts = scripts.slice((page-1)*pageSize, page*pageSize);
 
   return <Grid className={classes.model} container>
     <ModelRow name='remove'><Button onClick={() => update(undefined) }>Remove model</Button></ModelRow>
@@ -466,19 +489,30 @@ const RedcapModel = ({config,modelName, update}) => {
     <ModelRow name='invert'><SmallCheckbox size='small' checked={ !!invert } onChange={ e => update({ ...config, invert: e.target.checked }) }/></ModelRow>
     <ModelRow name='scripts'>
       <Button onClick={ () => update({ ...config, scripts: [ { attributes: {} }, ...scripts ]}) }><AddIcon fontSize='small'/> Add Script</Button>
-      { scripts.map(
-        (script,i) => <RedcapScript key={i} script={script} update={
-            newScript => {
-              const newScripts = (newScript === undefined) ?
-                scripts.filter((s,j) => j != i) :
-                Object.assign([], scripts, {[i]: newScript});
-
-              update({ ...config, scripts: newScripts });
+      { (pages > 1 || pageSize != 5) && <>
+          <Typography className={classes.page_size}>Page size</Typography>
+          <Select value={pageSize} onChange={e => setPageSize(e.target.value)}>
+            {
+              [ 5, 10, 100 ].map( n => <MenuItem key={n} value={n}>{n}</MenuItem>)
             }
-          }
-          modelName={modelName}
-          copy={ () => update({...config, scripts: [ ...scripts.slice(0,i), JSON.parse(JSON.stringify(script)), ...scripts.slice(i) ]}) }
-        />
+          </Select>
+          <Pagination count={ pages } page={page} onChange={ (e,v) => setPage(v) }/>
+        </>
+      }
+        { page_scripts.map(
+          (script,i) => <RedcapScript key={i} script={script} update={
+              newScript => {
+                const pos = i + (page-1)*pageSize;
+                const newScripts = (newScript === undefined) ?
+                  scripts.filter((s,j) => j != pos) :
+                  Object.assign([], scripts, {[pos]: newScript});
+
+                update({ ...config, scripts: newScripts });
+              }
+            }
+            modelName={modelName}
+            copy={ () => update({...config, scripts: [ ...scripts.slice(0,i), JSON.parse(JSON.stringify(script)), ...scripts.slice(i) ]}) }
+          />
       )}
     </ModelRow>
   </Grid>
