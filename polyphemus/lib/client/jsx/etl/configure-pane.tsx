@@ -39,39 +39,41 @@ const FORMS = {
 const ConfigurePane = ({name, project_name, selected, config, job, update}:{name:string, project_name:string, selected:string|null, config:any, job:Job|null,update:Function}) => {
   const classes = useStyles();
 
-  let [ origScript, setOrigScript ] = useState('');
-  let [ editedScript, setEditedScript ] = useState('');
-  let [ editedConfig, setEditedConfig ] = useState({});
-  let [ comment, setComment ] = useState('');
-  let [ showRevisions, setShowRevisions ] = useState(false);
-  let [ showJson, setShowJson ] = useState(false);
+  const [ origScript, setOrigScript ] = useState('');
+  const [ editedScript, setEditedScript ] = useState('');
+  const [ editedConfig, setEditedConfig ] = useState({});
+  const [ comment, setComment ] = useState('');
+  const [ showRevisions, setShowRevisions ] = useState(false);
+  const [ showJson, setShowJson ] = useState(false);
 
-  let JobForm = job ? FORMS[job.name] : null;
+  const JobForm = job ? FORMS[job.name] : null;
 
   useEffect( () => {
-    origScript = JSON.stringify(config,null,2);
-    setOrigScript(origScript);
-    setEditedScript(origScript);
-    setEditedConfig(JSON.parse(origScript));
+    const script = JSON.stringify(config,null,2);
+    setOrigScript(script);
+    setEditedScript(script);
+    setEditedConfig(config);
   }, [config]);
+
+  const showSave = showJson ? (origScript != editedScript) : (editedConfig != config);
 
   return <EtlPane mode='configure' selected={selected}>
     <EtlPaneHeader title='Configuration'>
       {
-        origScript != editedScript && 
+        showSave && 
           <Grid spacing={1} container className={classes.savebar}>
             <Grid item><TextField style={{width:300}} value={comment} onChange={ e => setComment(e.target.value) } placeholder='Revision comment'/></Grid>
             <Grid item><Button disabled={ comment == '' } onClick={ () => {
-              update({ comment, config: JSON.parse(editedScript) });
+              update({ comment, config: showJson ? JSON.parse(editedScript) : editedConfig });
               setComment('');
-            } } >Save</Button></Grid>
-            <Grid item><Button onClick={() => setEditedScript(origScript)} color='secondary'>Reset</Button></Grid>
+            } } >Save</Button></Grid >
+            <Grid item><Button onClick={() => showJson ? setEditedScript(origScript) : setEditedConfig(config)} color='secondary'>Reset</Button></Grid>
           </Grid>
       }
       <Grid container spacing={1} item className={classes.buttons}>
         {
           JobForm && <Tooltip title={ showJson ? 'show form' : 'show json' }>
-            <IconButton onClick={() => setShowJson(!showJson) } size='small' aria-label='revision history'
+            <IconButton disabled={showSave} onClick={() => setShowJson(!showJson) } size='small' aria-label='revision history'
               color={ showJson ? 'primary' : 'default' }>
               <CodeIcon/>
             </IconButton>
