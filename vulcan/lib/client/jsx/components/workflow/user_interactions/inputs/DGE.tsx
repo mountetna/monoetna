@@ -25,15 +25,10 @@ Output:
     - (optional) subset_meta = a string naming a metadata to subset by (when: subsetting needed)
     - (optional) subset_use = a string vector of values of the subset meta to keep (when: subsetting needed)
     - de_meta = a string naming a metadata to compare between
-    - de_group_1 = a string vector of values of the de_meta to either compare among (when: "btwn-all-de-groups") or use as group1 (when:"btwn-sets", "btwn-sets-multiple-groups")
+    - (optional) de_group_1 = a string vector of values of the de_meta to use as group1 (when: "btwn-sets", "btwn-sets-multiple-groups")
     - (optional) de_group_2 = a string vector of values of the de_meta to use as group2 (when: "btwn-sets", "btwn-sets-multiple-groups")
     - (optional) groups_meta = a string naming a metadata to use as cell groupings (when: "btwn-sets-multiple-groups")
     - (optional) groups_use = a string vector indicating which values of the groupings meta to investigate within (when: "btwn-sets-multiple-groups")
-
-Labels:
-- Between all labels of a particular metadata
-- Between particular labels
-- Between particular labels in multiple cell groups
 */
 
 export default function DiffExpSC({

@@ -12,20 +12,20 @@ import { pick } from 'lodash';
 import { key_wrap, stringInput, dropdownInput, MultiselectInput, checkboxInput, sliderInput } from './user_input_pieces';
 
 /*
-This input is closely tied to archimedes/functions/plotting/scatter_plotly.
+This UI is closely tied to archimedes/functions/plotting/*_plotly functions.
 
 Major design notes:
-- It will have a set of advanced options that are shown/hidden via a toggle button
-- It will also allow workflow-designers to hide controls for any inputs that are set internally by the workflow. (Ex: x_by & y_by for a UMAP)
+- Organized around a set of pairs of input-names and associated component-setups.
+- An 'input_sets' object then defines the set of inputs used for any given visualization type & a new exported function should be created for every such plot_type.
+- Widgets have a set of advanced options that are shown/hidden via a toggle button. These inputs are listed as 'adv' inputs in the 'input_sets' definition.
+- Widgets also allow workflow-designers to hide controls for any inputs that are set internally by the workflow. (Ex: x_by & y_by for a UMAP)
 
 Input structure:
-  (Minimal = Either of 'data_frame' or 'data_options')
-  'data_options': dictionary of options for '*_by' (ex: 'x_by', 'color_by') inputs where keys are the primary options and None vs [] values indicates what secondary options there may be if there are indeed secondary options (such as for genes!)
-  'data_frame': A hash whose keys will be used as options if 'data_options' is not set
-  'hide': An  array (python list). The names of scatter_plotly inputs which should not be shown in the current widget render.  Hidden inputs should be set elsewhere.  Perhaps they are hardset by the workflow so a user has no choice
+  'data_frame': A hash representing the data_frame that will be used to make a plot. keys = column names, values = data points. 
+  (optional) 'preset': A hash where keys = input_names that should be hidden from the user & values = the preset value that should be used for that input. E.g. The x_by and y_by inputs are hardset within the umap workflow as '0' and '1', so a user has no choice here and should not be able to adjust those fields!
 
 Output Structure:
-  dictionary of scatter_plotly inputs-name (key) + value pairs.
+  A hash (dict once in python) of input-name (key) + value pairs that can be splatted, along with the accompanying DataFrame, into a visualization funciton in archimedes.
 */
 
 export function ScatterPlotly({
