@@ -8,7 +8,7 @@ import RootView from 'etna-js/components/RootView';
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 
 import { createEtnaTheme } from 'etna-js/style/theme';
-import { MagmaProvider } from './magma-context';
+import { MagmaProvider } from 'etna-js/contexts/magma-context';
 
 const theme = createEtnaTheme("#688d30","#d18e47");
 

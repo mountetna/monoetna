@@ -558,7 +558,7 @@ const AddModel = ({open,close,update,config}) => {
     </DialogContent>
     <DialogActions>
       <Button disabled={ !newModel } onClick={ () => {
-        update({ ...config, [newModel]: { each: ['record'] } })
+        update({ ...config, [newModel]: { each: ['record'], scripts: [] } })
 
         close();
       } } color="secondary">Add</Button>

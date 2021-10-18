@@ -9,7 +9,7 @@ import Button from '@material-ui/core/Button';
 import EtlConfig from './etl/etl-config';
 import EtlCreate from './etl/etl-create';
 
-import { MagmaContext } from './magma-context';
+import { MagmaContext } from 'etna-js/contexts/magma-context';
 
 const useStyles = makeStyles((theme) => ({
   etls: {
