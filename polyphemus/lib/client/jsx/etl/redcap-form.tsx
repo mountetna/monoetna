@@ -108,11 +108,19 @@ const useStyles = makeStyles( theme => ({
     background: '#eee',
     marginTop: '15px',
     border: '1px solid #ccc',
-    borderRadius: '2px'
+    borderRadius: '2px',
+    position: 'relative'
   },
   script_header: {
     borderBottom: '1px solid #ccc',
     background: '#ccc'
+  },
+  number: {
+    color: '#888',
+    position: 'absolute',
+    transform: 'translate(-100%, 0)',
+    left: '-10px',
+    top: '10px'
   },
   attribute: {
     "&:not(:last-of-type)": {
@@ -420,13 +428,14 @@ const RedcapEntity = ({each, allowNull=false, update}) => {
   </Grid>
 }
 
-const RedcapScript = ({script, update, copy, modelName}) => {
+const RedcapScript = ({script, num, update, copy, modelName}) => {
   const classes = useStyles();
   const { attributes, each } = script;
 
   const [ showAddAttribute, setShowAddAttribute ] = useState(false);
 
   return <Grid className={ classes.script } container direction='column'>
+    <Typography className={classes.number}>{num}</Typography>
     <Grid container item className={ classes.script_header} alignItems='center' >
       <Grid item className={ classes.attribute_name } xs={2}>each</Grid>
       <Grid item xs={6}>
@@ -500,7 +509,12 @@ const RedcapModel = ({config,modelName, update}) => {
         </>
       }
         { page_scripts.map(
-          (script,i) => <RedcapScript key={i} script={script} update={
+          (script,i) => <RedcapScript
+            key={i}
+            script={script}
+            num={i+(page-1)*pageSize+1}
+            modelName={modelName}
+            update={
               newScript => {
                 const pos = i + (page-1)*pageSize;
                 const newScripts = (newScript === undefined) ?
@@ -510,8 +524,15 @@ const RedcapModel = ({config,modelName, update}) => {
                 update({ ...config, scripts: newScripts });
               }
             }
-            modelName={modelName}
-            copy={ () => update({...config, scripts: [ ...scripts.slice(0,i), JSON.parse(JSON.stringify(script)), ...scripts.slice(i) ]}) }
+            copy={
+              () => update({
+                ...config,
+                scripts: [ ...scripts.slice(0,i),
+                  JSON.parse(JSON.stringify(script)),
+                  ...scripts.slice(i)
+                ]
+              })
+            }
           />
       )}
     </ModelRow>
@@ -588,6 +609,7 @@ const RedcapForm = ({config, project_name, job, update}:{
     <Grid item className={classes.tab_pane}>
       {
         modelName != undefined && <RedcapModel
+          key={modelName}
           modelName={modelName}
           config={config[modelName]}
           update={ modelConfig => {

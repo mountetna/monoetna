@@ -90,9 +90,10 @@ const ConfigurePane = ({name, project_name, selected, config, job, update}:{name
           open={showRevisions}
           config={config}
           update={
-            config => {
-              setEditedScript(JSON.stringify(config,null,2));
-              setShowRevisions(false)
+            newConfig => {
+              setEditedConfig(newConfig);
+              setEditedScript(JSON.stringify(newConfig,null,2));
+              setShowRevisions(false);
             }
           }
           onClose={() => setShowRevisions(false)}
