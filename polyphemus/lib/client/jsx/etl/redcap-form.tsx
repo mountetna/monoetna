@@ -242,8 +242,10 @@ const AddProp = ({open,close,update,attribute_value,attribute_props}) => {
           opts.type == 'array' ? [] :
           opts.type == 'boolean' ? true : undefined;
 
+        const oldValue = (typeof attribute_value === 'string') ? { redcap_field: attribute_value, value: 'value' } : attribute_value;
+
         if (newValue != undefined) update({
-          ...attribute_value, [newProp]: newValue
+          ...oldValue, [newProp]: newValue
         });
 
         close();
