@@ -25,7 +25,7 @@ export default function Vignette({workflowName}: {workflowName: string}) {
       className='markdown'
       dangerouslySetInnerHTML={{__html: markdown(text)}}
       style={{
-        height: '400px',
+        maxHeight: '400px',
         overflowY: 'auto'
       }}
     />
