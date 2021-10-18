@@ -29,7 +29,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-import { MagmaContext } from '../magma-context';
+import { MagmaContext } from 'etna-js/contexts/magma-context';
 import { RedcapContext, RedcapProvider } from './redcap-context';
 
 import {makeStyles} from '@material-ui/core/styles';

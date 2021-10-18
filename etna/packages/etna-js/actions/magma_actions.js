@@ -85,8 +85,9 @@ export const requestDocuments = ({
   collapse_tables,
   exchange_name,
   output_predicate
-}) => {
-  return dispatch => getDocuments(
+}) => dispatch => {
+  const exchange = new Exchange(dispatch, exchange_name);
+  return getDocuments(
     {
       model_name,
       record_names,
@@ -98,7 +99,7 @@ export const requestDocuments = ({
       collapse_tables,
       output_predicate
     },
-    (new Exchange(dispatch, exchange_name)).fetch
+    exchange.fetch.bind(exchange)
   ).then( response => {
     showError(dispatch)(response);
     consumePayload(dispatch, response);
@@ -263,10 +264,11 @@ export const sendRevisions = (
   revisions,
   success,
   error
-) => {
-  return dispatch => postRevisions(
+) => dispatch => {
+  const exchange =  new Exchange(dispatch, `revisions-${model_name}`);
+  return postRevisions(
     formatRevisions(revisions, model_name, model_template),
-    (new Exchange(dispatch, `revisions-${model_name}`)).fetch
+    exchange.fetch.bind(exchange)
   ).then(
     response => uploadFileRevisions(model_name, revisions, response, dispatch).then(
       (updatedResponse) => {
@@ -343,27 +345,20 @@ const cleanFileCollectionRevisions = (revisions, model_template) => {
 // Download a TSV from magma via Timur.
 export const requestTSV = (params) => (dispatch) => getTSVForm(params);
 
-export const requestAnswer = (question, callback = null) => {
-  return dispatch => getAnswer(
+export const requestAnswer = (question, callback = null) => dispatch => {
+  const exchange = new Exchange(
+    dispatch,
+    Array.isArray(question) ? JSON.stringify(question) : question
+  );
 
-    question,
-    (new Exchange(
-      dispatch,
-      Array.isArray(question) ? JSON.stringify(question) : question
-    )).fetch
-
-  ).then(
-
+  return getAnswer(question, exchange.fetch.bind(exchange)).then(
     response => {
       showError(dispatch)(response);
       if (callback) callback(response);
       else return response;
-
   }).catch( error => {
-
     console.log(error);
-    if (!callback) throw new Error(error);
-
+    throw new Error(error);
   });
 }
 
