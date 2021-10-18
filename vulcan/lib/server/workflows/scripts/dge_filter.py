@@ -20,12 +20,12 @@ DEdf_filt = DEdf_filt[ DEdf_filt['pvals_adj'] <= max_pval ]
 
 # min_pct
 min_pct = float(input_var('min_pct'))
-pct_cols = [s for s in DEdf.keys() if s.startswith("pts_")]
 # Algorithm choice: OR filter, a.k.a. either group meets the cutoff
+pct_cols = [s for s in DEdf.keys() if (s=="pts" or s.startswith("pts_"))]
+pct_col1 = list(DEdf[pct_cols[0]])
+pct_col2 = list(DEdf[pct_cols[1]])
 idx_passed = [
-    i for i in list(DEdf_filt.index) if (
-    list(DEdf[pct_cols[0]])[i] >= min_pct or list(DEdf[pct_cols[1]])[i] >= min_pct
-    )]
+    i for i in list(DEdf_filt.index) if ( pct_col1[i] >= min_pct or pct_col2[i] >= min_pct )]
 DEdf_filt = DEdf_filt.loc[idx_passed,:]
 
 ## Output Filtered Results
