@@ -8,14 +8,10 @@ import {DataEnvelope, WithInputParams} from './input_types';
 import { useSetsDefault } from './useSetsDefault';
 import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import MultiselectStringInput from './multiselect_string';
-import { Button, Slider } from '@material-ui/core';
-import { pick } from 'lodash';
-import StringInput from './string';
 import BooleanInput from './boolean';
-import { flattenStringOptions, joinNesting, StringOptions } from './monoids';
+import { joinNesting, StringOptions } from './monoids';
 import { useMemoized } from '../../../../selectors/workflow_selectors';
-import { val_wrap } from './visualizations';
+import { val_wrap, MultiselectInput, dropdownInput } from './user_input_pieces';
 
 /*
 This input is closely tied to a python script for running scanpy-based differential expression.
@@ -249,37 +245,3 @@ const GroupComps = (
   
   return comps
 }
-
-// Component Setups
-
-const dropdownInput = (
-  key: string = "filler", changeFxn: Function, value: string | null,
-  label: string, options: string[]) => {
-    
-    return(
-      <div key={key}>
-        {label}
-        <DropdownAutocomplete
-          list={options}
-          value={value}
-          onSelect={(val: string) => changeFxn(val, key)}
-        />
-      </div>
-    )
-  }
-
-const MultiselectInput = (
-  key: string = "filler", changeFxn: Function, value: string[],
-  label: string, options: string[]) => {
-    
-    return(
-      <div key={key}>
-        {label}
-        <MultiselectStringInput
-          data={{'0': options}}
-          value={some(value)}
-          onChange={(val: Maybe<string[]>) => changeFxn(withDefault(val, null), key)}
-        />
-      </div>
-    )
-  }

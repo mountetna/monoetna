@@ -6,13 +6,10 @@ import * as _ from 'lodash';
 
 import {DataEnvelope, WithInputParams} from './input_types';
 import { useSetsDefault } from './useSetsDefault';
-import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
-import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import MultiselectStringInput from './multiselect_string';
+import { some } from '../../../../selectors/maybe';
 import { Button, Slider } from '@material-ui/core';
 import { pick } from 'lodash';
-import StringInput from './string';
-import BooleanInput from './boolean';
+import { key_wrap, stringInput, dropdownInput, MultiselectInput, checkboxInput, sliderInput } from './user_input_pieces';
 
 /*
 This input is closely tied to archimedes/functions/plotting/scatter_plotly.
@@ -138,18 +135,6 @@ const remove_hidden = (vals: DataEnvelope<any>, hide: string[] | null | undefine
   return values;
 };
 
-export function val_wrap(v: any): DataEnvelope<typeof v> {
-  return {'a': v}
-}
-
-export function key_wrap(k: string[]) {
-  let de: DataEnvelope<string> = {};
-  for (let ind = 0; ind < k.length; ind++) {
-    de[k[ind]]="0";
-  }
-  return de;
-}
-
 const input_sets: DataEnvelope<DataEnvelope<string[]|DataEnvelope<any>>> = {
   'scatter_plot': {
     'main': ["x_by", "y_by", "color_by"],
@@ -238,101 +223,6 @@ function useExtraInputs(options: string[]) {
 
   return extra_inputs;
 }
-
-// Component Setups
-const stringInput = (
-  key: string = "filler", changeFxn: Function, value: string = "filler",
-  label: string = 'hello') => {
-    return (
-      <StringInput
-        key={key}
-        label={label}
-        data={val_wrap(value)}
-        value={maybeOfNullable(value)}
-        onChange={(newValue) => changeFxn(withDefault(newValue,'make'), key)}
-      />
-    )
-  };
-
-// const nestableDropdownInput = (
-//   key: string = "filler", changeFxn: Function, value: string | null,
-//   label: string, options: DataEnvelope<null>) => {
-//    
-//     return(
-//       <NestedSelectAutocompleteInput
-//         key={key}
-//         label={label}
-//         data={{options}} 
-//         value={maybeOfNullable(value)}
-//         onChange={(val) => changeFxn(withDefault(val, null), key)}
-//       />
-//     )
-//   }
-
-const checkboxInput = (
-  key: string = "filler", changeFxn: Function, value: boolean = false,
-  label: string) => {
-
-    return(
-      <BooleanInput
-        key={key}
-        label={label}
-        value={maybeOfNullable(value)}
-        data={val_wrap(value)}
-        onChange={ value => changeFxn(withDefault(value,false), key)}
-      />
-    )
-  }
-
-const dropdownInput = (
-  key: string = "filler", changeFxn: Function, value: string | null,
-  label: string, options: string[]) => {
-    
-    return(
-      <div key={key}>
-        {label}
-        <DropdownAutocomplete
-          list={options}
-          value={value}
-          onSelect={(val: string) => changeFxn(val, key)}
-        />
-      </div>
-    )
-  }
-
-const MultiselectInput = (
-  key: string = "filler", changeFxn: Function, value: string[],
-  label: string, options: string[]) => {
-    
-    return(
-      <div key={key}>
-        {label}
-        <MultiselectStringInput
-          data={{'0': options}}
-          value={some(value)}
-          onChange={(val: Maybe<string[]>) => changeFxn(withDefault(val, null), key)}
-        />
-      </div>
-    )
-  }
-
-const sliderInput = (
-  key: string = "filler", changeFxn: Function, value: number,
-  label: string, min: number = 0.1, max: number = 20) => {
-
-    return(
-        <div key={key}>
-          {label}
-          <Slider
-            value={value}
-            onChange={(event, newValue) => changeFxn(newValue as number, key)}
-            min={min}
-            max={max}
-            valueLabelDisplay="auto"
-          />
-        </div>
-    )
-  }
 
 const comps: DataEnvelope<Function> = {
   'plot_title': stringInput,
