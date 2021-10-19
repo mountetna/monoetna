@@ -95,7 +95,7 @@ module Redcap
       records
     end
 
-    def offset_id(record_id, redcap_record: nil)
+    def offset_id(record_id)
       raise "offset_id() needs to be implemented for the #{@project.project_name} project, #{@model_name} class. It should return the patient / subject identifier."
     end
 
@@ -103,14 +103,14 @@ module Redcap
       nil
     end
 
-    def offset_days(record_id, redcap_record: nil)
+    def offset_days(record_id)
       @offset_days[record_id] ||=
         begin
           # the offset in days is computed from hmac of the record_id
           signature = OpenSSL::HMAC.hexdigest(
             'SHA256',
             @salt,
-            offset_id(record_id, redcap_record: redcap_record)
+            offset_id(record_id)
           )
 
           # we convert the hexadecimal string to a number in base 16.
