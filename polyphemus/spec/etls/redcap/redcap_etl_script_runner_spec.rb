@@ -85,8 +85,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
       scripts: [
         {
           attributes: {
-            name: "name",
-            alternate_id: "date_of_birth"
+            name: "date_of_birth",
           }
         }
       ]
@@ -318,16 +317,17 @@ describe Polyphemus::RedcapEtlScriptRunner do
       expect(records.keys.include?(:model_with_alternate_id)).to eq(true)
 
       # Only finds records with all the fields in the CONFIG, which
-      #   should be :name and :date_of_birth
+      #   should be :date_of_birth
       expect(records[:model_with_alternate_id].keys.length).to eq(2)
 
-      data_789 = data_for_id('789')
-      data_987 = data_for_id('987')
+      data_456 = data_for_id('456')
+      data_654 = data_for_id('654')
 
-      expected_id_789 = temp_id(records, data_789[:date_of_birth])
-      expected_id_987 = temp_id(records, data_987[:date_of_birth])
-      expect(records[:model_with_alternate_id].key?(expected_id_789)).to eq(true)
-      expect(records[:model_with_alternate_id].key?(expected_id_987)).to eq(true)
+      expected_id_456 = temp_id(records, data_456[:date_of_birth])
+      expected_id_654 = temp_id(records, data_654[:date_of_birth])
+
+      expect(records[:model_with_alternate_id].key?(expected_id_456)).to eq(true)
+      expect(records[:model_with_alternate_id].key?(expected_id_654)).to eq(true)
     end
 
     context("mode == nil") do
