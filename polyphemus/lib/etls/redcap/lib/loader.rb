@@ -47,8 +47,6 @@ module Redcap
         )
 
         project.fetch_records.each do |model_name, model_records|
-          require 'pry'
-          binding.pry
           records[model_name] = {} unless records.keys.include?(model_name)
           records[model_name].update(
             filter_records(model_name, model_records)
