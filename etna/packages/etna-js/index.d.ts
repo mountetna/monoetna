@@ -193,6 +193,8 @@ declare module 'etna-js/actions/exchange_actions' {
     exchange_name: string;
 
     constructor(dispatch: any, exchange_name: string);
+
+    fetch: Function;
   }
 }
 
