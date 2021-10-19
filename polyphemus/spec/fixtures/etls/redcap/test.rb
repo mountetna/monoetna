@@ -48,3 +48,13 @@ define_model("BadModel").class_eval do
     "::temp-#{record_name}-abc"
   end
 end
+
+define_model("ModelWithAlternateId").class_eval do
+  def identifier(record_name, redcap_record: nil)
+    # Hardcode a temp id so that the offset is consistent. Makes
+    #   testing less random.
+    raise ArgumentError, "Missing :date_of_birth in form" if redcap_record.nil? || redcap_record[:date_of_birth].nil?
+  
+    "::temp-#{redcap_record[:date_of_birth]}-abc"
+  end
+end

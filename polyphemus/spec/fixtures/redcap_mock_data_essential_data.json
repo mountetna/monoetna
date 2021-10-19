@@ -18,7 +18,16 @@
     "record_id": "789",
     "redcap_event_name": "Name",
     "field_name": "name",
-    "value": "Acme"
+    "value": "Acme",
+    "date_of_birth": "1901-01-01"
+  },
+  {
+    "record": "987",
+    "record_id": "987",
+    "redcap_event_name": "Name",
+    "field_name": "name",
+    "value": "Acme",
+    "date_of_birth": "1950-01-01"
   },
   {
     "record": "000",

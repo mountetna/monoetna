@@ -25,14 +25,16 @@
     "record_id": "456",
     "redcap_event_name": "Birthday Party!",
     "field_name": "date_of_birth",
-    "value": "1900-01-01"
+    "value": "1900-01-01",
+    "date_of_birth": "1900-01-01"
   },
   {
     "record": "789",
     "record_id": "789",
     "redcap_event_name": "Name",
     "field_name": "name",
-    "value": "Acme"
+    "value": "Acme",
+    "date_of_birth": "1901-01-01"
   },
   {
     "record": "000",
@@ -46,14 +48,16 @@
     "record_id": "654",
     "redcap_event_name": "Birthday Party!",
     "field_name": "date_of_birth",
-    "value": "900-01-01"
+    "value": "900-01-01",
+    "date_of_birth": "900-01-01"
   },
   {
     "record": "987",
     "record_id": "987",
     "redcap_event_name": "Name",
     "field_name": "name",
-    "value": "Acme"
+    "value": "Acme",
+    "date_of_birth": "1950-01-01"
   },
   {
     "record": "111",
