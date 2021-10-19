@@ -23,7 +23,7 @@ module Redcap
 
       # Set some default methods for each model
       Kernel.const_set(model_name, Class.new(Redcap::Model) {
-        def identifier(*record_id)
+        def identifier(*record_id, redcap_record: nil)
           [
               "::temp", *record_id, rand(36**8).to_s(36)
           ].compact.join('-')
@@ -95,7 +95,7 @@ module Redcap
       records
     end
 
-    def offset_id(record_id)
+    def offset_id(record_id, redcap_record: nil)
       raise "offset_id() needs to be implemented for the #{@project.project_name} project, #{@model_name} class. It should return the patient / subject identifier."
     end
 
@@ -103,14 +103,14 @@ module Redcap
       nil
     end
 
-    def offset_days(record_id)
+    def offset_days(record_id, redcap_record: nil)
       @offset_days[record_id] ||=
         begin
           # the offset in days is computed from hmac of the record_id
           signature = OpenSSL::HMAC.hexdigest(
             'SHA256',
             @salt,
-            offset_id(record_id)
+            offset_id(record_id, redcap_record: redcap_record)
           )
 
           # we convert the hexadecimal string to a number in base 16.
