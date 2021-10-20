@@ -7,6 +7,12 @@ module Redcap
           properties: {
             each: { "$ref": "#/definitions/each" },
             invert: { type: "boolean" },
+            identifier_fields: {
+              type: "array",
+              items: {
+                type: "string"
+              }
+            },
             scripts: {
               type: "array",
               items: { "$ref": "#/definitions/script" }
@@ -23,7 +29,7 @@ module Redcap
 
       # Set some default methods for each model
       Kernel.const_set(model_name, Class.new(Redcap::Model) {
-        def identifier(*record_id)
+        def identifier(*record_id, identifier_fields: nil)
           [
               "::temp", *record_id, rand(36**8).to_s(36)
           ].compact.join('-')
@@ -80,6 +86,10 @@ module Redcap
 
     def attribute_names
       @config[:attributes] || 'identifier'
+    end
+
+    def identifier_fields
+      @config[:identifier_fields] || []
     end
 
     def load
