@@ -160,6 +160,7 @@ steps:
     run: scripts/determine_batch_by_options.cwl
     label: 'Prep Batch Correction Options'
     in:
+      record_ids: verifyRecordNames/names
       project_data: projectData/project_data
     out: [batch_options, no_batch_string]
   query_batch_options:
@@ -180,6 +181,7 @@ steps:
     run: scripts/merge_anndata_from_raw_h5.cwl
     label: 'Import into scanpy'
     in:
+      project_data: projectData/project_data
       h5_locations: magma_query_paths/h5_locations
     out: [merged_anndata.h5ad]
   subset_normalize_and_select_features:
@@ -209,8 +211,8 @@ steps:
     run: scripts/neighbors.cwl
     label: 'Calculate nearest neighbors (based on PCA)'
     in:
-      pca_anndata.h5ad: regress_and_pca/pca_anndata.h5ad
-      pca_use: regress_and_pca/pca_use
+      pca_anndata.h5ad: regress_pca_and_harmony/pca_anndata.h5ad
+      pca_use: regress_pca_and_harmony/pca_use
       max_pc: 3_For_UMAP_and_Clustering__max_pc
       n_neighbors: 3_For_UMAP_and_Clustering__n_neighbors
     out: [nn_anndata.h5ad]
