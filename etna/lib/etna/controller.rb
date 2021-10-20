@@ -42,7 +42,10 @@ module Etna
 
       [501, {}, ['This controller is not implemented.']]
     rescue Exception => e
-      handle_error(e)
+      error = e
+    ensure
+      log_request
+      return handle_error(error) if error
     end
 
     def require_params(*params)
@@ -89,6 +92,28 @@ module Etna
     end
 
     private
+
+    def redact_keys
+      @request.env['etna.redact_keys']
+    end
+
+    def add_redact_keys(new_redact_keys=[])
+      @request.env['etna.redact_keys'] = (@request.env['etna.redact_keys'] || []).concat(new_redact_keys)
+    end
+
+    def log_request
+      censor = Etna::Censor.new(redact_keys)
+
+      redacted_params = @params.map do |key,value|
+        [ key, censor.redact(key, value) ]
+      end.to_h
+
+      log("User #{@user ? @user.email : :unknown} calling #{controller_name}##{@action} with params #{redacted_params}")
+    end
+
+    def controller_name
+      self.class.name.sub("Kernel::", "").sub("Controller", "").downcase
+    end
 
     def success(msg, content_type='text/plain')
       @response['Content-Type'] = content_type

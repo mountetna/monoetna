@@ -14,8 +14,7 @@ module Etna
       @route = route.gsub(/\A(?=[^\/])/, '/')
       @block = block
       @match_ext = options[:match_ext]
-
-      @censor = Etna::Censor.new(options[:log_redact_keys])
+      @log_redact_keys = options[:log_redact_keys]
     end
 
     def to_hash
@@ -127,6 +126,8 @@ module Etna
         return [ 403, { 'Content-Type' => 'application/json' }, [ { error: 'You are forbidden from performing this action.' }.to_json ] ]
       end
 
+      request.env['etna.redact_keys'] = @log_redact_keys
+
       if @action
         controller, action = @action.split('#')
         controller_class = Kernel.const_get(
@@ -135,11 +136,6 @@ module Etna
         logger = request.env['etna.logger']
         user = request.env['etna.user']
 
-        params = request.env['rack.request.params'].map do |key,value|
-          [ key, @censor.redact(key, value) ]
-        end.to_h
-
-        logger.warn("User #{user ? user.email : :unknown} calling #{controller}##{action} with params #{params}")
         return controller_class.new(request, action).response
       elsif @block
         application = Etna::Application.find(app.class).class
