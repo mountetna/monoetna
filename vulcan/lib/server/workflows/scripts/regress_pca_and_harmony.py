@@ -30,7 +30,7 @@ pca_use = 'X_pca'
 
 # harmony batch correction
 if not batch_by==no_batch_string:
-    sc.pp.harmony_integrate(scdata, key=batch_by)
+    sc.external.pp.harmony_integrate(scdata, key=batch_by)
     pca_use='X_pca_harmony'
 
 ##### OUTPUT
