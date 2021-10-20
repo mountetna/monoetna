@@ -26,7 +26,7 @@ class Polyphemus
           matching_watches = watch_folders.select { |wf| wf.metis_id == file.folder_id }
           matching_watches.each do |watch|
             matched_files = (result[watch.watch_type] ||= [])
-            matched_files << file.with_containing_folder(watch.folder_path)
+            matched_files << file
           end
         end
       end
@@ -53,7 +53,6 @@ class Polyphemus
         predicate: "in",
         value: watch_folders(cursor).map(&:metis_id),
       ))
-      find_request.hide_paths = true
     end
 
     def matching_bucket_config(cursor)
