@@ -7,6 +7,12 @@ module Redcap
           properties: {
             each: { "$ref": "#/definitions/each" },
             invert: { type: "boolean" },
+            identifier_fields: {
+              type: "array",
+              items: {
+                type: "string"
+              }
+            },
             scripts: {
               type: "array",
               items: { "$ref": "#/definitions/script" }
@@ -80,6 +86,12 @@ module Redcap
 
     def attribute_names
       @config[:attributes] || 'identifier'
+    end
+
+    def identifier_fields
+      (@config[:identifier_fields] || []).map do |id_field|
+        id_field.to_sym
+      end
     end
 
     def load
