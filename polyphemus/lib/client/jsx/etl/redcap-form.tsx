@@ -29,12 +29,14 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
+import { ModalProps } from '@material-ui/core/Modal';
+
 import { MagmaContext } from 'etna-js/contexts/magma-context';
 import { RedcapContext, RedcapProvider } from './redcap-context';
 
-import {makeStyles} from '@material-ui/core/styles';
+import {makeStyles, Theme} from '@material-ui/core/styles';
 
-const useStyles = makeStyles( theme => ({
+const useStyles = makeStyles( (theme:Theme) => ({
   form: {
     height: '500px',
     flexWrap: 'nowrap'
@@ -72,7 +74,7 @@ const useStyles = makeStyles( theme => ({
     borderBottom: 'none'
   },
   tab_scroll: {
-    flexGrow: '0',
+    flexGrow: 0,
     maxWidth: 'calc(100% - 50px)',
     flexBasis: 'calc(100% - 50px)',
   },
@@ -160,25 +162,25 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-const diff = (list1, list2) => {
+const diff = (list1:string[], list2:string[]) => {
   const l2 = new Set(list2);
   return list1.filter( x => !l2.has(x) );
 }
 
-const SmallCheckbox = (props) => <Checkbox
+const SmallCheckbox = (props:any) => <Checkbox
   icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
   checkedIcon={<CheckBoxIcon fontSize="small" />}
   {...props}/>;
 
-const debounce = (callback, delay) => {
-  let timer;
-  return (...args) => {
+const debounce = (callback:Function, delay:number) => {
+  let timer:ReturnType<typeof setTimeout>;
+  return (...args:any[]) => {
     clearTimeout(timer);
     timer = setTimeout(() => callback(...args), delay);
   }
 }
 
-const ValueRow = ({field_name, value, update, opts}) => {
+const ValueRow = ({field_name, value, update, opts}:{field_name: string, value: any, update: Function, opts:any}) => {
   const classes = useStyles();
 
   let valueComponent;
@@ -186,16 +188,16 @@ const ValueRow = ({field_name, value, update, opts}) => {
   if (opts === undefined)
     valueComponent = <Typography>{ value }</Typography>;
   else if (opts.type === 'string')
-    valueComponent = <TextField fullWidth value={value} onChange={e => update(e.target.value)}/>;
+    valueComponent = <TextField fullWidth value={value} onChange={(e:React.ChangeEvent<HTMLInputElement>) => update(e.target.value)}/>;
   else if (opts.type == 'array')
-    valueComponent = <TextField placeholder='Comma-separated list' fullWidth value={value.join(', ')} onChange={e => update(e.target.value.split(/,\s*/))}/>;
+    valueComponent = <TextField placeholder='Comma-separated list' fullWidth value={value.join(', ')} onChange={(e:React.ChangeEvent<HTMLInputElement>) => update(e.target.value.split(/,\s*/))}/>;
   else if (opts.type == 'boolean')
-    valueComponent = <SmallCheckbox checked={value} onChange={e => update(e.target.checked)}/>;
+    valueComponent = <SmallCheckbox checked={value} onChange={(e:React.ChangeEvent<HTMLInputElement>) => update(e.target.checked)}/>;
   else if (opts.enum)
     valueComponent = <Select value={value} onChange={e => update(e.target.value) } >
       {
         opts.enum.map(
-          v => <MenuItem key={v} value={v}>{v}</MenuItem>
+           (v:string) => <MenuItem key={v} value={v}>{v}</MenuItem>
         )
       }
     </Select>;
@@ -213,7 +215,13 @@ const ValueRow = ({field_name, value, update, opts}) => {
   </Card>
 }
 
-const AddProp = ({open,close,update,attribute_value,attribute_props}) => {
+const AddProp = ({open,close,update,attribute_value,attribute_props}:{
+  open: boolean,
+  close: () => void,
+  update: Function,
+  attribute_value: { [key: string]: any }|string,
+  attribute_props: { [key: string]: any }
+}) => {
   const props = diff(
     attribute_props ? Object.keys(attribute_props) : [],
     typeof attribute_value === 'string' ? [ 'redcap_field', 'value' ] : Object.keys(attribute_value)
@@ -224,7 +232,7 @@ const AddProp = ({open,close,update,attribute_value,attribute_props}) => {
   return <Dialog open={open} onClose={close}>
     <DialogTitle>Add property</DialogTitle>
     <DialogContent>
-      <Select displayEmpty value={newProp} onChange={ e => setNewProp(e.target.value)} >
+      <Select displayEmpty value={newProp} onChange={ (e:React.ChangeEvent<{ value: unknown }>) => setNewProp(e.target.value as string)} >
         <MenuItem value=''><em>None</em></MenuItem>
         {
           props.map(
@@ -254,7 +262,11 @@ const AddProp = ({open,close,update,attribute_value,attribute_props}) => {
   </Dialog>
 }
 
-const RedcapAttribute = ({att_name, attribute_value, update}) => {
+const RedcapAttribute = ({att_name, attribute_value, update}:{
+  att_name: string,
+  attribute_value: any,
+  update: Function
+}) => {
   const classes = useStyles();
   const { schema } = useContext(RedcapContext);
   const attribute_props = schema?.definitions?.attribute_value?.properties;
@@ -266,7 +278,7 @@ const RedcapAttribute = ({att_name, attribute_value, update}) => {
   if (typeof attribute_value === 'string')
     valueComponent = <TextField placeholder='redcap_field' onChange={ e => update(e.target.value) } value={attribute_value}/>;
   else {
-    const sort = { value: 2, redcap_field: 1 }
+    const sort:{ [key:string]:number|undefined}  = { value: 2, redcap_field: 1 }
     const fieldNames = Object.keys(attribute_value).sort( (a, b) => (sort[b] || 0) - (sort[a] || 0) );
 
     valueComponent = fieldNames.map(
@@ -276,7 +288,7 @@ const RedcapAttribute = ({att_name, attribute_value, update}) => {
         value={attribute_value[field_name]}
         opts={ attribute_props?.[field_name] }
         update={
-          newValue => {
+          (newValue:any) => {
             let v = { ...attribute_value, [field_name]: newValue };
             if (newValue === undefined) delete v[field_name];
             update(v);
@@ -309,7 +321,13 @@ const RedcapAttribute = ({att_name, attribute_value, update}) => {
   </Grid>
 }
 
-const AddAttribute = ({open,close,update,script,modelName}) => {
+const AddAttribute = ({open,close,update,script,modelName}:{
+  open:boolean,
+  close:()=>void,
+  update:Function,
+  script:any,
+  modelName:string
+}) => {
   const [ newAttribute, setNewAttribute ] = useState('');
 
   const { models } = useContext(MagmaContext);
@@ -336,12 +354,19 @@ const AddAttribute = ({open,close,update,script,modelName}) => {
   </Dialog>
 }
 
-const isFilteredEntity = e => typeof e !== 'string';
+type Entity = string|{[key:string]:string};
 
-const entityName = e => isFilteredEntity(e) ? Object.keys(e)[0] : e;
-const entityValue = e => Object.values(e)[0];
+const isFilteredEntity = (e:Entity) => typeof e !== 'string';
 
-const AddEntity = ({open,close,update,each}) => {
+const entityName = (e:Entity) => isFilteredEntity(e) ? Object.keys(e)[0] : e;
+const entityValue = (e:Entity) => Object.values(e)[0];
+
+const AddEntity = ({open,close,update,each}:{
+  open:boolean,
+  close:()=>void,
+  update:Function,
+  each:Entity[]
+}) => {
   const [ newEntity, setNewEntity ] = useState('');
 
   each = each || [];
@@ -349,7 +374,7 @@ const AddEntity = ({open,close,update,each}) => {
   const { schema } = useContext(RedcapContext);
   const entity_names = diff(
     Object.keys(schema?.definitions?.each_entity?.properties || {}),
-    each.map(entityName)
+    each.map(entityName as string)
   );
 
   return <Dialog open={open} onClose={close}>
@@ -571,7 +596,7 @@ const AddModel = ({open,close,update,config}) => {
 const RedcapForm = ({config, project_name, job, update}:{
   project_name: string,
   config: any,
-  job: Job,
+  job: Job|undefined,
   update: Function
 }) => {
   const classes = useStyles();

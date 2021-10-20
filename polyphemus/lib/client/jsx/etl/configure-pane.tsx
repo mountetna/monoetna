@@ -7,7 +7,6 @@ import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import HistoryIcon from '@material-ui/icons/HistoryRounded';
 import CodeIcon from '@material-ui/icons/Code';
-import CodeOffIcon from '@material-ui/icons/CodeOff';
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -32,11 +31,13 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-const FORMS = {
+const FORMS:{
+  [key:string]: any
+} = {
   redcap: RedcapForm
-}
+};
 
-const ConfigurePane = ({name, project_name, selected, config, job, update}:{name:string, project_name:string, selected:string|null, config:any, job:Job|null,update:Function}) => {
+const ConfigurePane = ({name, project_name, selected, config, job, update}:{name:string, project_name:string, selected:string|null, config:any, job:Job|undefined,update:Function}) => {
   const classes = useStyles();
 
   const [ origScript, setOrigScript ] = useState('');

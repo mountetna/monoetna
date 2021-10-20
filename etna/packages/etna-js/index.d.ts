@@ -208,3 +208,6 @@ declare module 'etna-js/utils/tsv' {
     fileName: string
   ): void;
 }
+
+declare module 'etna-js/contexts/magma-contex' {
+}
