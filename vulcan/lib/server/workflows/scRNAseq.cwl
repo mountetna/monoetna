@@ -156,6 +156,19 @@ steps:
     in:
       a: parse_record_selections/tube_recs
     out: [names]
+  determine_batch_options:
+    run: scripts/determine_batch_by_options.cwl
+    label: 'Prep Batch Correction Options'
+    in:
+      project_data: projectData/project_data
+    out: [batch_options, no_batch_string]
+  query_batch_options:
+    run: ui-queries/select-autocomplete.cwl
+    label: 'Batch Correction, Select batch_by'
+    doc: 'Selects the data to use for marking batches. To skip batch correction, select the option of similar name. NOTE: Skipping batch correction is valid and normal to do before seeing evidence that batch effects exist!'
+    in:
+      a: determine_batch_options/batch_options
+    out: [batch_by]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl
     label: 'Query paths to raw counts files'
@@ -180,21 +193,24 @@ steps:
       max_per_mito: 1_Cell_Filtering__max_per_mito
       max_per_ribo: 1_Cell_Filtering__max_per_ribo
     out: [normed_anndata.h5ad]
-  regress_and_pca:
-    run: scripts/regress_and_pca.cwl
-    label: 'Regress params and run PCA'
+  regress_pca_and_harmony:
+    run: scripts/regress_pca_and_harmony.cwl
+    label: 'Regress params, PCA, batch correction'
     in:
       normed_anndata.h5ad: subset_normalize_and_select_features/normed_anndata.h5ad
       regress_counts: 2_Regress_by__regress_counts
       regress_genes: 2_Regress_by__regress_genes
       regress_pct_mito: 2_Regress_by__regress_pct_mito
       regress_pct_ribo: 2_Regress_by__regress_pct_ribo
-    out: [pca_anndata.h5ad]
+      batch_by: query_batch_options/batch_by
+      no_batch_string: determine_batch_options/no_batch_string
+    out: [pca_anndata.h5ad, pca_use]
   neighbors:
     run: scripts/neighbors.cwl
     label: 'Calculate nearest neighbors (based on PCA)'
     in:
       pca_anndata.h5ad: regress_and_pca/pca_anndata.h5ad
+      pca_use: regress_and_pca/pca_use
       max_pc: 3_For_UMAP_and_Clustering__max_pc
       n_neighbors: 3_For_UMAP_and_Clustering__n_neighbors
     out: [nn_anndata.h5ad]
