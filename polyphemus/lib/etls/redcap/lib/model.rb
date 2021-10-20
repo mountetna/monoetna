@@ -29,7 +29,7 @@ module Redcap
 
       # Set some default methods for each model
       Kernel.const_set(model_name, Class.new(Redcap::Model) {
-        def identifier(*record_id, redcap_record: nil)
+        def identifier(*record_id, identifier_fields: nil)
           [
               "::temp", *record_id, rand(36**8).to_s(36)
           ].compact.join('-')

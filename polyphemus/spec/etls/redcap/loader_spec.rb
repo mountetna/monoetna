@@ -21,7 +21,7 @@ describe Redcap::Loader do
 
     it 'uses flat record values to replace regular values' do
       Redcap::Model.define("Model").class_eval do
-        def identifier(record_name, event_name, redcap_record: nil)
+        def identifier(record_name, event_name, identifier_fields: nil)
           event_name
         end
       end
@@ -96,7 +96,7 @@ describe Redcap::Loader do
 
     it 'iterates across records' do
       Redcap::Model.define("Make").class_eval do
-        def identifier(record_name, redcap_record: nil)
+        def identifier(record_name, identifier_fields: nil)
           record_name
         end
 
@@ -137,7 +137,7 @@ describe Redcap::Loader do
 
     it 'iterates across events' do
       Redcap::Model.define("Model").class_eval do
-        def identifier(record_name, event_name, redcap_record: nil)
+        def identifier(record_name, event_name, identifier_fields: nil)
           event_name
         end
       end
@@ -174,7 +174,7 @@ describe Redcap::Loader do
 
     it 'iterates across repeating instruments' do
       Redcap::Model.define("Year").class_eval do
-        def identifier(record_name, event_name, (repeat_instrument, repeat_id), redcap_record: nil )
+        def identifier(record_name, event_name, (repeat_instrument, repeat_id), identifier_fields: nil )
           [ record_name, event_name, repeat_id ].join(' ')
         end
       end
@@ -275,7 +275,7 @@ describe Redcap::Loader do
 
     it 'combines across values' do
       Redcap::Model.define("Year").class_eval do
-        def identifier(record_name, event_name, (repeat_instrument, repeat_id), redcap_record: nil )
+        def identifier(record_name, event_name, (repeat_instrument, repeat_id), identifier_fields: nil )
           [ record_name, event_name, repeat_id ].join(' ')
         end
       end

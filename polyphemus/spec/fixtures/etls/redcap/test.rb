@@ -1,6 +1,6 @@
 # Define the new classes dynamically
 define_model("ModelOne").class_eval do
-  def identifier(record_name, redcap_record: nil)
+  def identifier(record_name, identifier_fields: nil)
     # Hardcode a temp id so that the offset is consistent. Makes
     #   testing less random.
     "::temp-#{record_name}-xyz"
@@ -12,7 +12,7 @@ define_model("ModelOne").class_eval do
 end
 
 define_model("ModelTwo").class_eval do
-  def identifier(record_name, redcap_record: nil)
+  def identifier(record_name, identifier_fields: nil)
     record_name
   end
 
@@ -42,7 +42,7 @@ define_model("Citation").class_eval do
 end
 
 define_model("BadModel").class_eval do
-  def identifier(record_name, redcap_record: nil)
+  def identifier(record_name, identifier_fields: nil)
     # Hardcode a temp id so that the offset is consistent. Makes
     #   testing less random.
     "::temp-#{record_name}-abc"
@@ -50,11 +50,11 @@ define_model("BadModel").class_eval do
 end
 
 define_model("ModelWithAlternateId").class_eval do
-  def identifier(record_name, redcap_record: nil)
+  def identifier(record_name, identifier_fields: nil)
     # Hardcode a temp id so that the offset is consistent. Makes
     #   testing less random.
-    raise ArgumentError, "Missing :date_of_birth in form" if redcap_record.nil? || redcap_record[:date_of_birth].nil?
+    raise ArgumentError, "Missing :date_of_birth in form" if identifier_fields.nil? || identifier_fields[:date_of_birth].nil?
   
-    "::temp-#{redcap_record[:date_of_birth]}-abc"
+    "::temp-#{identifier_fields[:date_of_birth]}-abc"
   end
 end
