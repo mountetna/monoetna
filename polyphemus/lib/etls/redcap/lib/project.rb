@@ -48,8 +48,6 @@ module Redcap
     private
 
     def valid_fields
-      require 'pry'
-      binding.pry
       return @valid_fields if @valid_fields
 
       all_fields = models.map do |model_name, model|

@@ -122,8 +122,6 @@ module Redcap
       update = {}
 
       redcap_records.each do |record_id, redcap_record|
-        require 'pry'
-        binding.pry
         magma_record_name = @model.identifier(*record_id, redcap_record: flat_record(record_id))
 
         next unless magma_record_name

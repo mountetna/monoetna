@@ -89,9 +89,7 @@ module Redcap
     end
 
     def identifier_fields
-      (@config[:identifier_fields] || []).map do |id_field|
-        id_field.to_sym
-      end
+      @config[:identifier_fields] || []
     end
 
     def load
