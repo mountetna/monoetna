@@ -51,7 +51,7 @@ module Redcap
       return @valid_fields if @valid_fields
 
       all_fields = models.map do |model_name, model|
-        model.scripts.map(&:fields)
+        model.scripts.map(&:fields).concat(model.identifier_fields)
       end.flatten.compact.uniq
 
       @valid_fields = all_fields & template.field_names
