@@ -33,6 +33,7 @@ import { ModalProps } from '@material-ui/core/Modal';
 
 import { MagmaContext } from 'etna-js/contexts/magma-context';
 import { RedcapContext, RedcapProvider } from './redcap-context';
+import {Debouncer} from 'etna-js/utils/debouncer';
 
 import {makeStyles, Theme} from '@material-ui/core/styles';
 
@@ -183,14 +184,26 @@ const debounce = (callback:Function, delay:number) => {
 const ValueRow = ({field_name, value, update, opts}:{field_name: string, value: any, update: Function, opts:any}) => {
   const classes = useStyles();
 
+  const [localValue, setLocalValue] = useState(value);
+
   let valueComponent;
+
+  const [debouncer, setDebouncer] = useState(new Debouncer({windowMs: 200}));
+
+  const debouncedUpdate = useCallback(
+    (newValue: any) => {
+      setLocalValue(newValue);
+      debouncer.ready(() => update(newValue));
+    },
+    [ value, debouncer, update ]
+  );
 
   if (opts === undefined)
     valueComponent = <Typography>{ value }</Typography>;
   else if (opts.type === 'string')
-    valueComponent = <TextField fullWidth value={value} onChange={(e:React.ChangeEvent<HTMLInputElement>) => update(e.target.value)}/>;
+    valueComponent = <TextField fullWidth value={localValue} onChange={(e:React.ChangeEvent<HTMLInputElement>) => debouncedUpdate(e.target.value)}/>;
   else if (opts.type == 'array')
-    valueComponent = <TextField placeholder='Comma-separated list' fullWidth value={value.join(', ')} onChange={(e:React.ChangeEvent<HTMLInputElement>) => update(e.target.value.split(/,\s*/))}/>;
+    valueComponent = <TextField placeholder='Comma-separated list' fullWidth value={localValue.join(', ')} onChange={(e:React.ChangeEvent<HTMLInputElement>) => debouncedUpdate(e.target.value.split(/,\s*/))}/>;
   else if (opts.type == 'boolean')
     valueComponent = <SmallCheckbox checked={value} onChange={(e:React.ChangeEvent<HTMLInputElement>) => update(e.target.checked)}/>;
   else if (opts.enum)
@@ -461,6 +474,12 @@ const RedcapScript = ({script, num, update, copy, modelName}) => {
 
   const [ showAddAttribute, setShowAddAttribute ] = useState(false);
 
+  const updateAttributes = useCallback((att_name, newValue) => {
+    let s = { ...script, attributes: { ...attributes, [att_name]: newValue } }
+    if (newValue === undefined) delete s.attributes[att_name];
+    update(s);
+  }, [ script, attributes ]);
+
   return <Grid className={ classes.script } container direction='column'>
     <Typography className={classes.number}>{num}</Typography>
     <Grid container item className={ classes.script_header} alignItems='center' >
@@ -482,11 +501,7 @@ const RedcapScript = ({script, num, update, copy, modelName}) => {
           key={att_name}
           att_name={att_name}
           attribute_value={attributes[att_name]}
-          update={ newValue => {
-            let s = { ...script, attributes: { ...attributes, [att_name]: newValue } }
-            if (newValue === undefined) delete s.attributes[att_name];
-            update(s);
-          } }/>
+          update={ newValue => updateAttributes(att_name, newValue) } />
       )
     }
     <AddAttribute
