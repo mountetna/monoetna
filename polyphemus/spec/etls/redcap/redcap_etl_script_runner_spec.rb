@@ -79,6 +79,20 @@ describe Polyphemus::RedcapEtlScriptRunner do
     }
   }
 
+  ALTERNATE_ID_REDCAP_CONFIG = {
+    model_with_alternate_id: {
+      each: [ "record" ],
+      identifier_fields: [ "date_of_birth" ],
+      scripts: [
+        {
+          attributes: {
+            name: "name",
+          }
+        }
+      ]
+    }
+  }
+
   context 'dateshifts' do
     before do
       stub_magma_models
@@ -283,6 +297,38 @@ describe Polyphemus::RedcapEtlScriptRunner do
       expect(records.keys.include?(:model_two)).to eq(false)
 
       expect(records[:model_one].keys.length).to eq(6)
+    end
+
+    it 'when using alternate REDCap fields for ids' do
+      stub_redcap_data(:essential_data)
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test',
+        model_names: "model_with_alternate_id",
+        redcap_tokens: REDCAP_TOKEN,
+        dateshift_salt: '123',
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST,
+        config: ALTERNATE_ID_REDCAP_CONFIG
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
+
+      records = redcap_etl.run(magma_client: magma_client)
+
+      expect(records.keys.include?(:model_with_alternate_id)).to eq(true)
+
+      # Only finds records with all the fields in the CONFIG, which
+      #   should be :date_of_birth
+      expect(records[:model_with_alternate_id].keys.length).to eq(2)
+
+      data_789 = data_for_id('789')
+      data_987 = data_for_id('987')
+
+      expected_id_789 = temp_id(records, data_789[:date_of_birth])
+      expected_id_987 = temp_id(records, data_987[:date_of_birth])
+
+      expect(records[:model_with_alternate_id].key?(expected_id_789)).to eq(true)
+      expect(records[:model_with_alternate_id].key?(expected_id_987)).to eq(true)
     end
 
     context("mode == nil") do
