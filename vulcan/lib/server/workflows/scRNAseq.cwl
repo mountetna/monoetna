@@ -163,7 +163,7 @@ steps:
       record_ids: verifyRecordNames/names
       project_data: projectData/project_data
     out: [batch_options, no_batch_string]
-  query_batch_options:
+  select_batch_options:
     run: ui-queries/select-autocomplete.cwl
     label: 'Batch Correction, Select batch_by'
     doc: 'Selects the data to use for marking batches. To skip batch correction, select the option of similar name. NOTE: Skipping batch correction is valid and normal to do before seeing evidence that batch effects exist!'
@@ -204,7 +204,7 @@ steps:
       regress_genes: 2_Regress_by__regress_genes
       regress_pct_mito: 2_Regress_by__regress_pct_mito
       regress_pct_ribo: 2_Regress_by__regress_pct_ribo
-      batch_by: query_batch_options/batch_by
+      batch_by: select_batch_options/batch_by
       no_batch_string: determine_batch_options/no_batch_string
     out: [pca_anndata.h5ad, pca_use]
   neighbors:
