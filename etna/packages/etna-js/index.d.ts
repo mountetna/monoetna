@@ -181,6 +181,7 @@ declare module 'etna-js/utils/debouncer' {
 
 declare module 'etna-js/api/magma_api' {
   export function getAnswer(question: any, exchange: any): Promise<T>;
+  export function getDocuments(doc_args: any, fetch: Function): Promise<T>;
 }
 
 declare module 'etna-js/utils/copy' {
@@ -209,5 +210,7 @@ declare module 'etna-js/utils/tsv' {
   ): void;
 }
 
-declare module 'etna-js/contexts/magma-contex' {
-}
+declare module 'etna-js/utils/fetch';
+
+declare module 'etna-js/contexts/magma-context';
+

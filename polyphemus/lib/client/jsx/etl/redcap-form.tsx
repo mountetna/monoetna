@@ -125,11 +125,6 @@ const useStyles = makeStyles( (theme:Theme) => ({
     left: '-10px',
     top: '10px'
   },
-  attribute: {
-    "&:not(:last-of-type)": {
-      borderBottom: '1px solid #ddd'
-    }
-  },
   attribute_name: {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -155,6 +150,7 @@ const useStyles = makeStyles( (theme:Theme) => ({
   },
   value_row: {
     borderRadius: '2px',
+    border: 'none',
     marginRight: '5px'
   },
   remove_value: {
@@ -181,7 +177,12 @@ const debounce = (callback:Function, delay:number) => {
   }
 }
 
-const ValueRow = ({field_name, value, update, opts}:{field_name: string, value: any, update: Function, opts:any}) => {
+const ValueRow = ({field_name, value, update, opts}:{
+  field_name: string,
+  value: any,
+  update: (newValue:any) => void,
+  opts:any
+}) => {
   const classes = useStyles();
 
   const [localValue, setLocalValue] = useState(value);
@@ -201,7 +202,7 @@ const ValueRow = ({field_name, value, update, opts}:{field_name: string, value: 
   if (opts === undefined)
     valueComponent = <Typography>{ value }</Typography>;
   else if (opts.type === 'string')
-    valueComponent = <TextField fullWidth value={localValue} onChange={(e:React.ChangeEvent<HTMLInputElement>) => debouncedUpdate(e.target.value)}/>;
+    valueComponent = <TextField fullWidth value={localValue} onChange={(e) => debouncedUpdate(e.target.value)}/>;
   else if (opts.type == 'array')
     valueComponent = <TextField placeholder='Comma-separated list' fullWidth value={localValue.join(', ')} onChange={(e:React.ChangeEvent<HTMLInputElement>) => debouncedUpdate(e.target.value.split(/,\s*/))}/>;
   else if (opts.type == 'boolean')
@@ -231,7 +232,7 @@ const ValueRow = ({field_name, value, update, opts}:{field_name: string, value: 
 const AddProp = ({open,close,update,attribute_value,attribute_props}:{
   open: boolean,
   close: () => void,
-  update: Function,
+  update: (newValue:any) => void,
   attribute_value: { [key: string]: any }|string,
   attribute_props: { [key: string]: any }
 }) => {
@@ -278,7 +279,7 @@ const AddProp = ({open,close,update,attribute_value,attribute_props}:{
 const RedcapAttribute = ({att_name, attribute_value, update}:{
   att_name: string,
   attribute_value: any,
-  update: Function
+  update: (newValue:any) => void
 }) => {
   const classes = useStyles();
   const { schema } = useContext(RedcapContext);
@@ -311,7 +312,7 @@ const RedcapAttribute = ({att_name, attribute_value, update}:{
     )
   }
 
-  return <Grid key={att_name} className={ classes.attribute } item container alignItems='center'>
+  return <Grid key={att_name} item container alignItems='center'>
     <Tooltip placement='left' title={att_name}>
       <Grid className={ classes.attribute_name} item xs={2}>
         {att_name}
@@ -338,7 +339,7 @@ const AddAttribute = ({open,close,update,script,modelName}:{
   open:boolean,
   close:()=>void,
   update:Function,
-  script:any,
+  script:Script,
   modelName:string
 }) => {
   const [ newAttribute, setNewAttribute ] = useState('');
@@ -350,7 +351,7 @@ const AddAttribute = ({open,close,update,script,modelName}:{
   return <Dialog open={open} onClose={close}>
     <DialogTitle>Add Attribute</DialogTitle>
     <DialogContent>
-      <Select displayEmpty value={newAttribute} onChange={ e => setNewAttribute(e.target.value)} >
+      <Select displayEmpty value={newAttribute} onChange={ e => setNewAttribute(e.target.value as string)} >
         <MenuItem value=''><em>None</em></MenuItem>
         {
           attribute_names.map( att_name => <MenuItem key={att_name} value={att_name}>{att_name}</MenuItem>)
@@ -371,14 +372,14 @@ type Entity = string|{[key:string]:string};
 
 const isFilteredEntity = (e:Entity) => typeof e !== 'string';
 
-const entityName = (e:Entity) => isFilteredEntity(e) ? Object.keys(e)[0] : e;
-const entityValue = (e:Entity) => Object.values(e)[0];
+const entityName = (e:Entity):string => typeof e === 'string' ? e : Object.keys(e)[0];
+const entityValue = (e:Entity):string => Object.values(e)[0];
 
 const AddEntity = ({open,close,update,each}:{
   open:boolean,
   close:()=>void,
-  update:Function,
-  each:Entity[]
+  update: (newEach:Entity[]|undefined) => void,
+  each:Entity[]|undefined
 }) => {
   const [ newEntity, setNewEntity ] = useState('');
 
@@ -387,13 +388,13 @@ const AddEntity = ({open,close,update,each}:{
   const { schema } = useContext(RedcapContext);
   const entity_names = diff(
     Object.keys(schema?.definitions?.each_entity?.properties || {}),
-    each.map(entityName as string)
+    each.map(entityName)
   );
 
   return <Dialog open={open} onClose={close}>
     <DialogTitle>Add Entity</DialogTitle>
     <DialogContent>
-      <Select displayEmpty value={newEntity} onChange={ e => setNewEntity(e.target.value)} >
+      <Select displayEmpty value={newEntity} onChange={ e => setNewEntity(e.target.value as string)} >
         <MenuItem value=''><em>None</em></MenuItem>
         {
           entity_names.map( entity_name => <MenuItem key={entity_name} value={entity_name}>{entity_name}</MenuItem>)
@@ -402,25 +403,29 @@ const AddEntity = ({open,close,update,each}:{
     </DialogContent>
     <DialogActions>
       <Button disabled={ !newEntity } onClick={ () => {
-        let newEach = [ ...each, newEntity ];
+        let newEach = each !== undefined ? [ ...each, newEntity ] : [ newEntity ];
 
-        update(newEach.length > 0 ? newEach : undefined);
+        update(newEach);
 
         close();
       } } color="secondary">Add</Button>
     </DialogActions>
   </Dialog>
 }
-const RedcapEntity = ({each, allowNull=false, update}) => {
+const RedcapEntity = ({each, allowNull=false, update}:{
+  each: Entity[]|undefined,
+  allowNull?: boolean,
+  update: (newEach:Entity[]|undefined) => void
+}) => {
   const classes = useStyles();
 
   const updateItem = useCallback(
-    (i, entity) => update(Object.assign([], each, {[i]: entity}))
+    (i, entity) => update(Object.assign([], each, {[i]: entity})), [update, each]
   );
   
   const [ showAddEntity, setShowAddEntity ] = useState(false);
 
-  return <Grid item container alignContent='center'>
+  return <Grid item container alignItems='center'>
     {
       !each ? <em>inherited</em> :
       each.map( (entity,i) => <Grid item key={i}>
@@ -429,7 +434,7 @@ const RedcapEntity = ({each, allowNull=false, update}) => {
           <Grid item container alignContent='center' className={classes.filter_entity}>
             <Tooltip title='Filter entity'><IconButton
               color={ isFilteredEntity(entity) ? 'secondary' : 'default' }
-              onClick={ () => isFilteredEntity(entity) ? updateItem(i, entityName(entity)) : updateItem(i, { [entity]: '' }) }
+              onClick={ () => isFilteredEntity(entity) ? updateItem(i, entityName(entity)) : updateItem(i, { [entity as string]: '' }) }
               size='small'><TuneIcon fontSize='small'/></IconButton></Tooltip>
             {
               isFilteredEntity(entity) ? 
@@ -468,7 +473,15 @@ const RedcapEntity = ({each, allowNull=false, update}) => {
   </Grid>
 }
 
-const RedcapScript = ({script, num, update, copy, modelName}) => {
+type Script = any;
+
+const RedcapScript = ({script, num, update, copy, modelName}:{
+  script: Script,
+  num: number,
+  update: (newScript:Script|undefined) => void,
+  copy: () => void,
+  modelName: string
+}) => {
   const classes = useStyles();
   const { attributes, each } = script;
 
@@ -485,7 +498,11 @@ const RedcapScript = ({script, num, update, copy, modelName}) => {
     <Grid container item className={ classes.script_header} alignItems='center' >
       <Grid item className={ classes.attribute_name } xs={2}>each</Grid>
       <Grid item xs={6}>
-        <RedcapEntity each={each} allowNull={true} update={ newEach => update({ ...script, each: newEach }) } />
+        <RedcapEntity each={each} allowNull={true} update={ (newEach:Entity[]|undefined) => {
+          const s = { ...script, each: newEach };
+          if (newEach === undefined) delete s.each;
+          update(s);
+        } } />
       </Grid>
       <Grid item xs={4}>
         <Grid container justify='flex-end'>
@@ -501,7 +518,7 @@ const RedcapScript = ({script, num, update, copy, modelName}) => {
           key={att_name}
           att_name={att_name}
           attribute_value={attributes[att_name]}
-          update={ newValue => updateAttributes(att_name, newValue) } />
+          update={ (newValue:any) => updateAttributes(att_name, newValue) } />
       )
     }
     <AddAttribute
@@ -514,7 +531,10 @@ const RedcapScript = ({script, num, update, copy, modelName}) => {
   </Grid>
 }
 
-const ModelRow = ({name,children}) => {
+const ModelRow = ({name,children}:{
+  name: string,
+  children: React.ReactNode
+}) => {
   const classes = useStyles();
   return <Grid className={classes.model_row} spacing={1} item container>
     <Grid className={classes.model_row_name} item container justify='flex-end' xs={1} >{name}</Grid>
@@ -522,7 +542,18 @@ const ModelRow = ({name,children}) => {
   </Grid>
 }
 
-const RedcapModel = ({config,modelName, update}) => {
+type Model = {
+  scripts: Script[],
+  each: Entity[],
+  invert?: boolean,
+  identifier_fields?: string[]
+};
+
+const RedcapModel = ({config,modelName, update}:{
+  config: Model,
+  modelName: string,
+  update: (modelConfig:Model|undefined) => void
+}) => {
   const classes = useStyles();
   const { each, invert, scripts, identifier_fields } = config;
   const [ pageSize, setPageSize ] = useState(5);
@@ -534,14 +565,18 @@ const RedcapModel = ({config,modelName, update}) => {
 
   return <Grid className={classes.model} container>
     <ModelRow name='remove'><Button onClick={() => update(undefined) }>Remove model</Button></ModelRow>
-    <ModelRow name='each'><RedcapEntity each={each} update={ newEach => update({...config, each: newEach }) }/></ModelRow>
-    <ModelRow name='invert'><SmallCheckbox size='small' checked={ !!invert } onChange={ e => update({ ...config, invert: e.target.checked }) }/></ModelRow>
+    <ModelRow name='each'><RedcapEntity each={each} update={ (newEach:Entity[]|undefined) => {
+      const c = {...config, each: newEach };
+      if (newEach === undefined) delete c.each;
+      update(c as Model);
+    } }/></ModelRow>
+    <ModelRow name='invert'><SmallCheckbox size='small' checked={ !!invert } onChange={ (e:React.ChangeEvent<HTMLInputElement>) => update({ ...config, invert: e.target.checked }) }/></ModelRow>
     <ModelRow name='identifier_fields'><TextField placeholder='Comma-separated list' value={ (identifier_fields||[]).join(', ') } onChange={ e => update({ ...config, identifier_fields: e.target.value.split(/,\s*/) }) } /></ModelRow>
     <ModelRow name='scripts'>
       <Button onClick={ () => update({ ...config, scripts: [ { attributes: {} }, ...scripts ]}) }><AddIcon fontSize='small'/> Add Script</Button>
       { (pages > 1 || pageSize != 5) && <>
           <Typography className={classes.page_size}>Page size</Typography>
-          <Select value={pageSize} onChange={e => setPageSize(e.target.value)}>
+          <Select value={pageSize} onChange={e => setPageSize(e.target.value as number)}>
             {
               [ 5, 10, 100 ].map( n => <MenuItem key={n} value={n}>{n}</MenuItem>)
             }
@@ -556,7 +591,7 @@ const RedcapModel = ({config,modelName, update}) => {
             num={i+(page-1)*pageSize+1}
             modelName={modelName}
             update={
-              newScript => {
+              (newScript:Script|undefined) => {
                 const pos = i + (page-1)*pageSize;
                 const newScripts = (newScript === undefined) ?
                   scripts.filter((s,j) => j != pos) :
@@ -580,7 +615,12 @@ const RedcapModel = ({config,modelName, update}) => {
   </Grid>
 };
 
-const AddModel = ({open,close,update,config}) => {
+const AddModel = ({open,close,update,config}:{
+  open: boolean,
+  close: ()=>void,
+  update: (config:Config) => void,
+  config: Config
+}) => {
   const [ newModel, setNewModel ] = useState('');
 
   const { models } = useContext(MagmaContext);
@@ -590,7 +630,7 @@ const AddModel = ({open,close,update,config}) => {
   return <Dialog open={open} onClose={close}>
     <DialogTitle>Add Model</DialogTitle>
     <DialogContent>
-      <Select displayEmpty value={newModel} onChange={ e => setNewModel(e.target.value)} >
+      <Select displayEmpty value={newModel} onChange={ e => setNewModel(e.target.value as string)} >
         <MenuItem value=''><em>None</em></MenuItem>
         {
           model_names.map( att_name => <MenuItem key={att_name} value={att_name}>{att_name}</MenuItem>)
@@ -607,11 +647,15 @@ const AddModel = ({open,close,update,config}) => {
   </Dialog>
 }
 
+type Config = {
+  [modelName: string]: Model
+}
+
 const RedcapForm = ({config, project_name, job, update}:{
   project_name: string,
-  config: any,
+  config: Config,
   job: Job|undefined,
-  update: Function
+  update: (config:Config) => void
 }) => {
   const classes = useStyles();
 
@@ -653,10 +697,10 @@ const RedcapForm = ({config, project_name, job, update}:{
           key={modelName}
           modelName={modelName}
           config={config[modelName]}
-          update={ modelConfig => {
+          update={ (modelConfig:Model|undefined) => {
             let c = { ...config, [modelName]: modelConfig};
             if (modelConfig === undefined) delete c[modelName];
-            update(c);
+            update(c as Config);
           } }/>
       }
     </Grid>
@@ -669,7 +713,7 @@ const RedcapForm = ({config, project_name, job, update}:{
   </Grid>
 }
 
-const RedcapFormProvider = (props) => <RedcapProvider>
+const RedcapFormProvider = (props:any) => <RedcapProvider>
   <RedcapForm {...props}/>
 </RedcapProvider>
 
