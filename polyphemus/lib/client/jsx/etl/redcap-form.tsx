@@ -509,13 +509,11 @@ const ModelRow = ({name,children}) => {
 
 const RedcapModel = ({config,modelName, update}) => {
   const classes = useStyles();
-  const { each, invert, scripts } = config;
+  const { each, invert, scripts, identifier_fields } = config;
   const [ pageSize, setPageSize ] = useState(5);
 
   const pages = Math.ceil(scripts.length / pageSize);
   const [ page, setPage ] = useState(1);
-
-  console.log({page,pages,pageSize, l: scripts.length});
 
   const page_scripts = scripts.slice((page-1)*pageSize, page*pageSize);
 
@@ -523,6 +521,7 @@ const RedcapModel = ({config,modelName, update}) => {
     <ModelRow name='remove'><Button onClick={() => update(undefined) }>Remove model</Button></ModelRow>
     <ModelRow name='each'><RedcapEntity each={each} update={ newEach => update({...config, each: newEach }) }/></ModelRow>
     <ModelRow name='invert'><SmallCheckbox size='small' checked={ !!invert } onChange={ e => update({ ...config, invert: e.target.checked }) }/></ModelRow>
+    <ModelRow name='identifier_fields'><TextField placeholder='Comma-separated list' value={ (identifier_fields||[]).join(', ') } onChange={ e => update({ ...config, identifier_fields: e.target.value.split(/,\s*/) }) } /></ModelRow>
     <ModelRow name='scripts'>
       <Button onClick={ () => update({ ...config, scripts: [ { attributes: {} }, ...scripts ]}) }><AddIcon fontSize='small'/> Add Script</Button>
       { (pages > 1 || pageSize != 5) && <>
