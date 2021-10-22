@@ -88,13 +88,16 @@ const useStyles = makeStyles( theme => ({
 
 const EtlConfig = ({project_name, etl,name,config,status,secrets,params,output,run_interval,ran_at,job,onUpdate}: Etl & {job:Job|undefined,onUpdate:Function}) => {
   const [ mode, setMode ] = useState<string | null>(null);
+  const [ error, setError ] = useState('');
   const toggleMode = (m:string) => mode == m ? setMode(null) : setMode(m);
 
   const classes:any = useStyles();
 
   const postUpdate = (update:any) => json_post(
     `/api/etl/${project_name}/update/${name}`, update
-  ).then( etl => onUpdate(etl) );
+  ).then( etl => onUpdate(etl) ).catch(
+    r => r.then(({error}:{error:string}) => setError(error))
+  );
 
   return <Card className={classes.etl} elevation={0} key={etl}>
     <CardContent>
@@ -144,11 +147,11 @@ const EtlConfig = ({project_name, etl,name,config,status,secrets,params,output,r
           </Grid>
         </Grid>
       </CardActions>
-      <ConfigurePane name={name} project_name={project_name} selected={mode} config={config} job={job} update={postUpdate}/>
-      <RunPane selected={mode} run_interval={run_interval} update={postUpdate} params={params} param_opts={ job ? job.params : null } />
+      <ConfigurePane error={error} name={name} project_name={project_name} selected={mode} config={config} job={job} update={postUpdate}/>
+      <RunPane error={error} selected={mode} run_interval={run_interval} update={postUpdate} params={params} param_opts={ job ? job.params : null } />
       <RemovePane selected={mode} update={postUpdate}/>
       <LogsPane selected={mode} output={output}/>
-      <SecretsPane selected={mode} update={postUpdate} keys={ job ? job.secrets : null} secrets={secrets}/>
+      <SecretsPane error={error} selected={mode} update={postUpdate} keys={ job ? job.secrets : null} secrets={secrets}/>
     </CardContent>
   </Card>
 }

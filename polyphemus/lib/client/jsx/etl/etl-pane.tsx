@@ -20,16 +20,25 @@ const useStyles = makeStyles( theme => ({
   },
   title: {
     flexBasis: '200px'
+  },
+  error: {
+    flex: '1 1 auto',
+    color: 'red'
   }
 }));
 
-export const EtlPaneHeader = ({title,children}:{title:string,children?:React.ReactNode}) => {
+export const EtlPaneHeader = ({title,error,children}:{title:string,error?:string,children?:React.ReactNode}) => {
   const classes = useStyles();
 
   return <Grid className={classes.header} container alignItems='center'>
     <Grid item className={classes.title}>
       <Typography>{title}</Typography>
     </Grid>
+    {
+      error && <Grid item className={classes.error}>
+        <Typography>{error}</Typography>
+      </Grid>
+    }
     { children }
   </Grid>
 }

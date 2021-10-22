@@ -37,7 +37,15 @@ const FORMS:{
   redcap: RedcapForm
 };
 
-const ConfigurePane = ({name, project_name, selected, config, job, update}:{name:string, project_name:string, selected:string|null, config:any, job:Job|undefined,update:Function}) => {
+const ConfigurePane = ({name, project_name, selected, config, job, update, error}:{
+  name:string,
+  project_name:string,
+  selected:string|null,
+  config:any,
+  job:Job|undefined,
+  update:Function,
+  error:string
+}) => {
   const classes = useStyles();
 
   const [ origScript, setOrigScript ] = useState('');
@@ -59,7 +67,7 @@ const ConfigurePane = ({name, project_name, selected, config, job, update}:{name
   const showSave = showJson ? (origScript != editedScript) : (editedConfig != config);
 
   return <EtlPane mode='configure' selected={selected}>
-    <EtlPaneHeader title='Configuration'>
+    <EtlPaneHeader title='Configuration' error={error}>
       {
         showSave && 
           <Grid spacing={1} container className={classes.savebar}>
