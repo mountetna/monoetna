@@ -114,4 +114,4 @@ if method=='btwn-sets-multiple-groups':
         )
 
 ## Output unfiltered
-DEdf.to_csv(output_path('diffexp.csv'))
+DEdf.to_csv(output_path('full_diffexp.csv'))

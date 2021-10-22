@@ -247,7 +247,7 @@ steps:
       leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
       ignore_prefixes: 6_Initial_Cluster_DGE__ignore_prefixes
       dge_method: 6_Initial_Cluster_DGE__dge_method
-    out: [umap_workflow_anndata.h5ad, diffexp.csv,top10.json]
+    out: [umap_workflow_anndata.h5ad, cluster_diffexp.csv, top10.json]
   Finalize_Output_Object:
     run: scripts/umap_finalize_downloadable_object.cwl
     label: 'Prep output anndata object'
@@ -308,7 +308,7 @@ steps:
   downloadDEData:
     run: ui-outputs/link.cwl
     in:
-      a: Differential_Expression_between_clusters/diffexp.csv
+      a: Differential_Expression_between_clusters/cluster_diffexp.csv
     out: []
     label: 'Download cluster DiffExp as csv'
 
@@ -331,18 +331,18 @@ steps:
       scdata.h5ad: Finalize_Output_Object/umap_workflow_anndata.h5ad
       setup: pick_DGE_methods/dge_setup
       test_method: 7_Post_UMAP_DGE_Calculation_Inputs__test_method
-    out: [diffexp.csv]
+    out: [full_diffexp.csv]
   download_full_DGE_csv:
     run: ui-outputs/link.cwl
     in:
-      a: calc_DGE/diffexp.csv
+      a: calc_DGE/full_diffexp.csv
     out: []
     label: 'Download Full DiffExp Results as csv'
   filter_DGE:
     run: scripts/dge_filter.cwl
     label: 'Filter the DGE Output'
     in:
-      full_diffexp.csv: calc_DGE/diffexp.csv
+      full_diffexp.csv: calc_DGE/full_diffexp.csv
       min_abs_fc: 8_Post_Calculation_DGE_Cutoffs__min_abs_fc
       max_pval: 8_Post_Calculation_DGE_Cutoffs__max_pval
       min_pct: 8_Post_Calculation_DGE_Cutoffs__min_pct
