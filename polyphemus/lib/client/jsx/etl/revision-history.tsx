@@ -40,17 +40,20 @@ const diff = ({revision, prev, diffType, config}:{
 }) => {
   if (diffType == 'text') return JSON.stringify(revision.config,null,2);
 
-  console.log({revision,prev})
-  let comp = diffType == 'curr' ? config : prev ? prev.config : {}
-
-  const diff = createTwoFilesPatch(
-    'revision',
-    diffType,
-    JSON.stringify(revision.config,null,2)+'\n',
-    JSON.stringify(comp,null,2)+'\n'
-  )
-  
-  return diff;
+  if (diffType == 'curr')
+    return createTwoFilesPatch(
+      'revision',
+      'curr',
+      JSON.stringify(revision.config,null,2)+'\n',
+      JSON.stringify(config,null,2)+'\n'
+    );
+  else
+    return createTwoFilesPatch(
+      'prev',
+      'revision',
+      JSON.stringify(prev ? prev.config : {},null,2)+'\n',
+      JSON.stringify(revision.config,null,2)+'\n'
+    );
 }
 
 const RevisionHistory = ({project_name, name, update, open, onClose, config}:{

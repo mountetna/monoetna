@@ -83,16 +83,41 @@ inputs:
     label: 'Number of iterations?'
     default: 0
     doc: 'The number of iterations for optimization - by default (0) either 200 for small datasets or 500 for large ones.'
-  6_Cluster_Differential_Expression__ignore_prefixes:
+  6_Initial_Cluster_DGE__ignore_prefixes:
     type: string
     default: 'MT-,RPL,RPS'
     label: 'Gene prefixes to ignore'
     doc: 'A set of strings, separated by commas, for which gene symbols starting with these strings should NOT be shown in the umap overlay. Not case-sensitive, so the same strings will work for both human and mouse ribo & mito genes. Note: this does not affect the full differential expression table that can be downloaded.'
-  6_Cluster_Differential_Expression__dge_method:
+  6_Initial_Cluster_DGE__dge_method:
     type: string
     default: 'wilcoxon'
     label: 'testing method'
     doc: 'A string indicating what scanpy method option to use for calculating differential expression. Options are: "logreg", "t-test", "wilcoxon", "t-test_overestim_var". See documentation for "scanpy.tl.rank_genes_groups" for further details.'
+  7_Post_UMAP_DGE_Calculation_Inputs__test_method:
+    type: string
+    default: t-test
+    label: 'p-value calc method'
+    doc: 'One of [logreg, t-test, wilcoxon, t-test_overestim_var]. Sets the `method` input of the `scanpy.tl.rank_genes_groups()` function used for differential expression calculation.'
+  8_Post_Calculation_DGE_Cutoffs__min_abs_fc:
+    type: float
+    default: 0
+    label: 'Min. Fold Change (absolute value)'
+    doc: 'A number, used for subsetting the differential expression output based on fold-changes. Common values: 0.5, 1, 2.'
+  8_Post_Calculation_DGE_Cutoffs__max_pval:
+    type: float
+    default: 0.05
+    label: 'Max. Adjusted P-value'
+    doc: 'A number, used for subsetting the differential expression output based on p-values.'
+  8_Post_Calculation_DGE_Cutoffs__min_pct:
+    type: float
+    default: 0.05
+    label: 'Min. Percent Expression'
+    doc: 'A number, used for subsetting the differential expression output based on percent capture of genes within the comparison groups. Genes are retained as long as either side of the comparison has a higher percent capture.'
+  8_Post_Calculation_DGE_Cutoffs__pos_only:
+    type: boolean
+    default: false
+    label: 'Upregulated only?'
+    doc: 'true or false, used for subsetting the differential expression output based fold change directionality. When true, only genes upregulated in the group-1 will be retained.'
 
 outputs:
   the_data:
@@ -131,6 +156,20 @@ steps:
     in:
       a: parse_record_selections/tube_recs
     out: [names]
+  determine_batch_options:
+    run: scripts/determine_batch_by_options.cwl
+    label: 'Prep Batch Correction Options'
+    in:
+      record_ids: verifyRecordNames/names
+      project_data: projectData/project_data
+    out: [batch_options, no_batch_string]
+  select_batch_options:
+    run: ui-queries/select-autocomplete.cwl
+    label: 'Batch Correction, Select batch_by'
+    doc: 'Selects the data to use for marking batches. To skip batch correction, select the option of similar name. NOTE: Skipping batch correction is valid and normal to do before seeing evidence that batch effects exist!'
+    in:
+      a: determine_batch_options/batch_options
+    out: [batch_by]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl
     label: 'Query paths to raw counts files'
@@ -142,6 +181,7 @@ steps:
     run: scripts/merge_anndata_from_raw_h5.cwl
     label: 'Import into scanpy'
     in:
+      project_data: projectData/project_data
       h5_locations: magma_query_paths/h5_locations
     out: [merged_anndata.h5ad]
   subset_normalize_and_select_features:
@@ -155,21 +195,24 @@ steps:
       max_per_mito: 1_Cell_Filtering__max_per_mito
       max_per_ribo: 1_Cell_Filtering__max_per_ribo
     out: [normed_anndata.h5ad]
-  regress_and_pca:
-    run: scripts/regress_and_pca.cwl
-    label: 'Regress params and run PCA'
+  regress_pca_and_harmony:
+    run: scripts/regress_pca_and_harmony.cwl
+    label: 'Regress params, PCA, batch correction'
     in:
       normed_anndata.h5ad: subset_normalize_and_select_features/normed_anndata.h5ad
       regress_counts: 2_Regress_by__regress_counts
       regress_genes: 2_Regress_by__regress_genes
       regress_pct_mito: 2_Regress_by__regress_pct_mito
       regress_pct_ribo: 2_Regress_by__regress_pct_ribo
-    out: [pca_anndata.h5ad]
+      batch_by: select_batch_options/batch_by
+      no_batch_string: determine_batch_options/no_batch_string
+    out: [pca_anndata.h5ad, pca_use]
   neighbors:
     run: scripts/neighbors.cwl
     label: 'Calculate nearest neighbors (based on PCA)'
     in:
-      pca_anndata.h5ad: regress_and_pca/pca_anndata.h5ad
+      pca_anndata.h5ad: regress_pca_and_harmony/pca_anndata.h5ad
+      pca_use: regress_pca_and_harmony/pca_use
       max_pc: 3_For_UMAP_and_Clustering__max_pc
       n_neighbors: 3_For_UMAP_and_Clustering__n_neighbors
     out: [nn_anndata.h5ad]
@@ -202,9 +245,9 @@ steps:
     label: 'Diff. Exp.: Cluster Markers'
     in:
       leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
-      ignore_prefixes: 6_Cluster_Differential_Expression__ignore_prefixes
-      dge_method: 6_Cluster_Differential_Expression__dge_method
-    out: [umap_workflow_anndata.h5ad, diffexp.csv,top10.json]
+      ignore_prefixes: 6_Initial_Cluster_DGE__ignore_prefixes
+      dge_method: 6_Initial_Cluster_DGE__dge_method
+    out: [umap_workflow_anndata.h5ad, cluster_diffexp.csv, top10.json]
   Finalize_Output_Object:
     run: scripts/umap_finalize_downloadable_object.cwl
     label: 'Prep output anndata object'
@@ -265,7 +308,49 @@ steps:
   downloadDEData:
     run: ui-outputs/link.cwl
     in:
-      a: Differential_Expression_between_clusters/diffexp.csv
+      a: Differential_Expression_between_clusters/cluster_diffexp.csv
     out: []
     label: 'Download cluster DiffExp as csv'
 
+  extract_metadata_for_dge:
+    run: scripts/dge_grab_obs.cwl
+    label: 'Extract metadata Options'
+    in:
+      scdata.h5ad: Finalize_Output_Object/umap_workflow_anndata.h5ad
+    out: [metadata]
+  pick_DGE_methods:
+    run: ui-queries/diff-exp-sc.cwl
+    label: 'Set how DE should be run'
+    in:
+      a: extract_metadata_for_dge/metadata
+    out: [dge_setup]
+  calc_DGE:
+    run: scripts/dge_calc.cwl
+    label: 'Calculate DGE'
+    in:
+      scdata.h5ad: Finalize_Output_Object/umap_workflow_anndata.h5ad
+      setup: pick_DGE_methods/dge_setup
+      test_method: 7_Post_UMAP_DGE_Calculation_Inputs__test_method
+    out: [full_diffexp.csv]
+  download_full_DGE_csv:
+    run: ui-outputs/link.cwl
+    in:
+      a: calc_DGE/full_diffexp.csv
+    out: []
+    label: 'Download Full DiffExp Results as csv'
+  filter_DGE:
+    run: scripts/dge_filter.cwl
+    label: 'Filter the DGE Output'
+    in:
+      full_diffexp.csv: calc_DGE/full_diffexp.csv
+      min_abs_fc: 8_Post_Calculation_DGE_Cutoffs__min_abs_fc
+      max_pval: 8_Post_Calculation_DGE_Cutoffs__max_pval
+      min_pct: 8_Post_Calculation_DGE_Cutoffs__min_pct
+      pos_only: 8_Post_Calculation_DGE_Cutoffs__pos_only
+    out: [filtered_diffexp.csv]
+  download_filtered_DGE_csv:
+    run: ui-outputs/link.cwl
+    in:
+      a: filter_DGE/filtered_diffexp.csv
+    out: []
+    label: 'Download Filtered DiffExp Results as csv'
