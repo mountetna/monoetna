@@ -1,5 +1,9 @@
-from archimedes.functions.dataflow import output_path, input_path, input_bool, input_var, output_var
+from archimedes.functions.dataflow import output_path, input_path, input_bool, input_var
 from archimedes.functions.scanpy import scanpy as sc
+
+def output_var(data, name):
+    with open(output_path(name), 'w') as output_file:
+        output_file.write(data)
 
 scdata = sc.read(input_path('normed_anndata.h5ad'))
 regress_nCounts = input_bool('regress_counts')
