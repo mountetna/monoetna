@@ -32,3 +32,8 @@ type EtlRevision = {
   updated_at: string
 }
 
+type MagmaModel = any;
+
+type MagmaModels = {
+  [model_name: string]: MagmaModel
+}

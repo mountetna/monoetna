@@ -3,3 +3,4 @@ import numpy
 import re
 import pandas
 import csv
+import harmonypy

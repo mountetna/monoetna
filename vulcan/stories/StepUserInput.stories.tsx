@@ -57,6 +57,14 @@ export default {
 
 const Template: ComponentStory<typeof ParameterizedStepUserInput> = (args: any) => <ParameterizedStepUserInput {...args}/>;
 
+export const DiffExpSC = Template.bind({});
+DiffExpSC.args = {
+  type: TYPE.DIFF_EXP_SC,
+  cwlParams: {
+      'data_frame': require('./mockDF.json')
+  }
+};
+
 export const ScatterPlotlyFULL = Template.bind({});
 ScatterPlotlyFULL.args = {
   type: TYPE.SCATTER_PLOTLY,

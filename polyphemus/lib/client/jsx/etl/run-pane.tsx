@@ -60,7 +60,14 @@ const Param = ({value, opts, name, update}:{
   return null
 }
 
-const RunPane = ({run_interval,update,params,param_opts,selected}:{run_interval:number, params:any, param_opts: any, update:Function,selected:string|null}) => {
+const RunPane = ({run_interval,update,params,param_opts,selected,error}:{
+  run_interval:number,
+  params:any,
+  param_opts: any,
+  update:Function,
+  error:string,
+  selected:string|null
+}) => {
   const [ runState, setRunState ] = useState(getRunState(run_interval));
   const [ runIntervalTime, setRunIntervalTime ] = useState(getRunIntervalTime(run_interval));
   const [ newParams, setParams ] = useState<any>({});
@@ -75,7 +82,7 @@ const RunPane = ({run_interval,update,params,param_opts,selected}:{run_interval:
   const classes = useStyles();
 
   return <EtlPane mode='run' selected={selected}>
-    <EtlPaneHeader title='Run'>
+    <EtlPaneHeader title='Run' error={error}>
       <Grid className={classes.runbar} spacing={1} container>
       {
         (newParams != params || (runState != run_interval && (runState != RUN_INTERVAL || runIntervalTime != run_interval))) && <React.Fragment>

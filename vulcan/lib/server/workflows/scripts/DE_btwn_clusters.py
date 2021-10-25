@@ -26,7 +26,7 @@ def DF_per_cluster(DEdat, cluster):
     return DF
 pd.concat(
     (DF_per_cluster(DEdat, cluster)) for cluster in unique(scdata.obs['leiden'])
-).to_csv(output_path('diffexp.csv'))
+).to_csv(output_path('cluster_diffexp.csv'))
 
 # Extract top 10 markers per cluster, ignoring given certain prefixes
 names = DEdat['names']
@@ -45,7 +45,7 @@ if len(filters) > 0:
         return list
     top10 = dict( [
         clust,
-        trim_prefixes(list(names[clust]), filters.split(","))[:(out_len-1)]
+        trim_prefixes(list(names[clust]), filters.split(","))[:(out_len)]
     ] for clust in unique(scdata.obs['leiden']) )
 else:
     top10 = pd.DataFrame(names).head(10).to_dict('list')
