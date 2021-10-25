@@ -628,6 +628,7 @@ module Etna
         MATRIX = AttributeType.new("matrix")
         PARENT = AttributeType.new("parent")
         TABLE = AttributeType.new("table")
+        SHIFTED_DATE_TIME = AttributeType.new("shifted_date_time")
       end
 
       class ParentLinkType < String
