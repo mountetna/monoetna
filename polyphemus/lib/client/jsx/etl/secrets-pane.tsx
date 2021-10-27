@@ -21,10 +21,11 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-const SecretsPane = ({selected, keys, update, secrets}:{
+const SecretsPane = ({selected, keys, update, error, secrets}:{
   selected:string|null,
   keys:string[]|null,
   update:Function,
+  error: string,
   secrets:any
 }) => {
   const classes = useStyles();
@@ -33,7 +34,7 @@ const SecretsPane = ({selected, keys, update, secrets}:{
   const [ value, setValue ] = useState('');
 
   return <EtlPane mode='secrets' selected={selected}>
-    <EtlPaneHeader title='Secrets'/>
+    <EtlPaneHeader title='Secrets' error={error}/>
     <Grid container className={classes.table}>
       {
         keys && keys.map( key => <Grid item className={classes.tablerow} container key={key}>

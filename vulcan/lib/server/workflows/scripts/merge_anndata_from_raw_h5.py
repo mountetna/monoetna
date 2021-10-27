@@ -1,6 +1,12 @@
-from archimedes.functions.dataflow import output_path, input_json, curl_data, tempfile, _os_path
+from archimedes.functions.dataflow import output_path, input_json, curl_data, tempfile, _os_path, buildTargetPath, parseModelAttr
 from archimedes.functions.scanpy import scanpy as sc
+from archimedes.functions.magma import connect, question
+from archimedes.functions.environment import project_name
+from archimedes.functions.utils import re
+from archimedes.functions.list import unique
 
+### Initialize merged data, then loop through
+data_tube_url = input_json('h5_locations')
 
 def h5_dl_and_scanpy_import(tube_name, raw_counts_h5_mpath):
     with tempfile.TemporaryDirectory() as tmpdirname:
@@ -15,9 +21,6 @@ def h5_dl_and_scanpy_import(tube_name, raw_counts_h5_mpath):
 
     return adata
 
-data_tube_url = input_json('h5_locations')
-
-# Initialize merged data, then loop through
 merged_data = h5_dl_and_scanpy_import(data_tube_url[0][0], data_tube_url[0][1])
 
 if len(data_tube_url)>1:
@@ -29,5 +32,33 @@ if len(data_tube_url)>1:
         # Merge objects
         merged_data = merged_data.concatenate(new_data)
 
-##### OUTPUT
+### Add metadata for all color-data
+pdat = input_json("project_data")[project_name]
+color_options = pdat['color_options']
+
+# Prep magma querying
+seq_model = parseModelAttr(pdat['seq_h5_counts_data'])['model']
+magma = connect()
+def get(ids, value):
+    ids = ids if type(ids) == list else ids.tolist()
+    values = dict(question(magma, [
+        seq_model,
+        [ '::identifier', '::in', ids ],
+        '::all',
+        *value
+    ], strip_identifiers=False))
+
+    return [ values.get(id, None) for id in ids ]
+
+# Add data
+recs = merged_data.obs[ 'Record_ID' ].values
+for color_by in color_options.keys():
+    rec_data = dict(map(
+        lambda x: [x, get([x], buildTargetPath(color_options[color_by], pdat))[0]],
+        unique(recs) ))
+    label = re.sub(" ", "_", color_by)
+    #raise Exception(rec_data)
+    merged_data.obs[ label ] = list( map( lambda x: rec_data[x], recs) )
+
+### OUTPUT
 merged_data.write(output_path('merged_anndata.h5ad'))

@@ -13,8 +13,10 @@ module Redcap
                   { "$ref": "#/definitions/attribute_value" }
                 ]
               }
-            }
+            },
+            each: { "$ref": "#/definitions/each" }
           },
+          additionalProperties: false,
           required: [ "attributes" ]
         }
       }
