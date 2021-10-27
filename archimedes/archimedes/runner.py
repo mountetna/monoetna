@@ -136,6 +136,10 @@ class DockerIsolator(Isolator[Container]):
                            type='bind',
                            source=output_file.host_path)
                      for output_file in request.output_files
+                 ] + [
+                     Mount(target="/app/vulcan_built",
+                           type='bind',
+                           source="/app/vulcan_built")
                  ]
 
         environment = request.environment + [

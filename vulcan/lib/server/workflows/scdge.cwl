@@ -48,7 +48,7 @@ steps:
     run: scripts/dge_grab_obs.cwl
     label: 'Extract metadata Options'
     in:
-      data_url: 1_Data_Selection__vulcan_cache_url
+      scdata.h5ad: mockSetup/scdata.h5ad
     out: [metadata]
     
   setDEMethods:
