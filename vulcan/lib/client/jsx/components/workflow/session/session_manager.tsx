@@ -80,7 +80,7 @@ export default function SessionManager() {
   );
 
   const running = state.pollingState > 0;
-  const disableRunButton = complete || running || !changesReady;
+  const disableRunButton = complete || running || (hasPendingEdits && !changesReady);
 
   if (!name) return null;
 
