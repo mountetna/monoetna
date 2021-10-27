@@ -3,7 +3,7 @@ import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {clearChangesReady, setSession} from '../../../actions/vulcan_actions';
+import {clearCommittedStepPending, setSession} from '../../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 import Vignette from '../vignette';
@@ -31,13 +31,13 @@ export default function SessionManager() {
   const {workflow, hasPendingEdits, complete} = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
-  const {session, changesReady} = state;
+  const {session, committedStepPending} = state;
 
   const name = workflowName(workflow);
   const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
   const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
-  const run = useCallback(() => {requestPoll(true); dispatch(clearChangesReady())}, [requestPoll]);
+  const run = useCallback(() => {requestPoll(true); dispatch(clearCommittedStepPending())}, [requestPoll]);
   const stop = useCallback(() => cancelPolling(), [cancelPolling]);
 
   const saveSession = useCallback(() => {
@@ -80,7 +80,7 @@ export default function SessionManager() {
   );
 
   const running = state.pollingState > 0;
-  const disableRunButton = complete || running || (hasPendingEdits && !changesReady);
+  const disableRunButton = complete || running || (hasPendingEdits && !committedStepPending);
 
   if (!name) return null;
 

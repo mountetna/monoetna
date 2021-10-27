@@ -1,7 +1,7 @@
 import {defaultApiHelpers} from "./api";
 import {Dispatch, MutableRefObject} from "react";
 import {VulcanState} from "../reducers/vulcan_reducer";
-import {checkChangesReady, finishPolling, setSession, setStatus, startPolling, VulcanAction} from "../actions/vulcan_actions";
+import {checkCommittedStepPending, finishPolling, setSession, setStatus, startPolling, VulcanAction} from "../actions/vulcan_actions";
 import {SessionStatusResponse} from "../api_types";
 import {hasNoRunningSteps} from "../selectors/workflow_selectors";
 import {runPromise, useAsyncCallback} from "etna-js/utils/cancellable_helpers";
@@ -25,7 +25,7 @@ function updateFromSessionResponse(
 ) {
   dispatch(setSession(response.session));
   dispatch(setStatus(response.status, submittingStep));
-  dispatch(checkChangesReady(submittingStep));
+  dispatch(checkCommittedStepPending(submittingStep));
 }
 
 export function useSessionSync(state: MutableRefObject<VulcanState>,
