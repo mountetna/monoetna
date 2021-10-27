@@ -4,11 +4,9 @@ from archimedes.functions.utils import pandas as pd
 from archimedes.functions.list import unique, ensure_list
 
 # Functions for DE Extraction and Output
-def DF_per_set(DEdat, meta_used, set, group_name = None):
+def collect_DF_per_set(DEdat, meta_used, set, group_name = None):
     # keys = DEdat.keys()
     keys = ['names', 'scores', 'pvals', 'pvals_adj', 'logfoldchanges']
-    if 'pts_rest' in DEdat.keys():
-        keys = keys + ['pts', 'pts_rest']
     DF = pd.DataFrame(
         dict(
             [
@@ -17,19 +15,25 @@ def DF_per_set(DEdat, meta_used, set, group_name = None):
             ] for this_col in keys
         )
     )
+    ## Add pts (percent expressed), ensuring proper ordering
+    names = list(DF['names'])
+    if 'pts_rest' in DEdat.keys():
+        for key in ['pts', 'pts_rest']:
+            DF[key] = list(DEdat[key].reindex(names)[set])
     if not 'pts_rest' in DEdat.keys():
         # Gotta grab and rename.
         grps = set.split("__VS__")
+        pct_dat = DEdat['pts'].reindex(names)
         for i in [0,1]:
-            DF['pts_' + grps[i]] = list(DEdat['pts'][DEdat['pts'].keys()[i]])
+            DF['pts_' + grps[i]] = list(pct_dat[pct_dat.keys()[i]])
     DF[meta_used] = set
     if group_name!=None:
         DF['DE_group'] = group_name
     return DF
-def DF_all_sets(DEdat, meta_used, scdata, sets_use = None):
+def collect_DF_all_sets(DEdat, meta_used, scdata, sets_use = None):
     if sets_use==None:
         sets_use = unique(scdata.obs[meta_used])
-    return pd.concat( (DF_per_set(DEdat, meta_used, set)) for set in sets_use )
+    return pd.concat( (collect_DF_per_set(DEdat, meta_used, set)) for set in sets_use )
 
 # Function for running set-vs-set targeted DE
 def DE_specific_sets(scdata, de_meta, de_g1, de_g2, test_method, group = None):
@@ -54,7 +58,7 @@ def DE_specific_sets(scdata, de_meta, de_g1, de_g2, test_method, group = None):
     # Extract results and reshape
     DEdat = scdata_setsub.uns['rank_genes_groups']
     # return DEdat
-    return DF_per_set(DEdat, 'DE_sets', string_report, group_name=group)
+    return collect_DF_per_set(DEdat, 'DE_sets', string_report, group_name=group)
 
 ## Read inputs
 scdata = sc.read(input_path('scdata.h5ad'))
@@ -83,7 +87,7 @@ if setup['method']=='btwn-all-de-groups':
     
     # Extract results and reshape
     DEdat = scdata.uns['rank_genes_groups']
-    DEdf = DF_all_sets(DEdat, de_meta, scdata)
+    DEdf = collect_DF_all_sets(DEdat, de_meta, scdata)
 
 # Method 2:
 if method=='btwn-sets':
@@ -110,4 +114,4 @@ if method=='btwn-sets-multiple-groups':
         )
 
 ## Output unfiltered
-DEdf.to_csv(output_path('diffexp.csv'))
+DEdf.to_csv(output_path('full_diffexp.csv'))

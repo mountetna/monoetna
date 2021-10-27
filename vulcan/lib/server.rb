@@ -11,11 +11,6 @@ class Vulcan
       erb_view(:no_auth)
     end
 
-    # root path
-    get '/', as: :root do
-      erb_view(:client)
-    end
-
     get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true, has_flag?: 'vulcan' } }
     get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true, auth: { user: { can_view?: :project_name, has_flag?: 'vulcan' } }
     post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true, auth: { user: { can_view?: :project_name, has_flag?: 'vulcan' } }
@@ -24,14 +19,18 @@ class Vulcan
     with auth: { user: { active?: true, has_flag?: 'vulcan' } } do
 
       # remaining view routes are parsed by the client and must also be set there
-      get 'workflow', as: :workflow do
+      get '/:project_name/workflow', as: :workflow do
         erb_view(:client)
       end
 
-      get 'workflow/*view_path', as: :workflow_view do
+      get '/:project_name/workflow/*view_path', as: :workflow_view do
         erb_view(:client)
       end
     end
+
+    # root path
+    get '/', as: :root do erb_view(:client) end
+    get '/:project_name', as: :root do erb_view(:client) end
 
     def initialize
       super

@@ -170,12 +170,25 @@ class Magma
         set_dataset(Sequel[project_name][table_name])
       end
 
+      def model_record
+        Magma.instance.db[:models].where(project_name: project_name.to_s, model_name: model_name.to_s).first
+      end
+
       def version
-        m = Magma.instance.db[:models].where(project_name: project_name.to_s, model_name: model_name.to_s).first
-        if m.nil?
+        record = model_record
+        if record.nil?
           0
         else
-          m[:version]
+          record[:version]
+        end
+      end
+
+      def is_date_shift_root?
+        record = model_record
+        if record.nil?
+          false
+        else
+          record[:date_shift_root]
         end
       end
     end
@@ -208,6 +221,21 @@ class Magma
           # always ensure some sort of identifier
           model.identity => identifier
       )
+    end
+
+    def date_shift_root_record
+      search_model = model
+      record = self
+
+      loop do
+        break unless search_model # nothing found, is nil
+        break if search_model.is_date_shift_root?
+        
+        search_model = search_model.parent_model
+        record = search_model ? record.send(search_model.model_name) : nil
+      end
+
+      record
     end
   end
 end

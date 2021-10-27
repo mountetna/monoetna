@@ -30,7 +30,7 @@ import MultipleInput from "./multiple_input";
 import SingleDropdownMulticheckbox from "./single_dropdown_multicheckbox";
 import {stepOfSource} from "../../../../selectors/workflow_selectors";
 import AllOutputValuesNotEmptyValidator from "./validators/all_output_values_not_empty_validator"
-import DiffExpSC from './DGE';
+import DiffExpSC from './scDGE';
 
 const components: {[k: string]: [InputBackendComponent<any, any, any>, InputValidator<any, any>]} = {};
 function configureComponent<Value, DataElement>(

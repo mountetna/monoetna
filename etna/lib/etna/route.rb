@@ -1,5 +1,6 @@
 require 'digest'
 require 'date'
+require_relative "./censor"
 
 module Etna
   class Route
@@ -125,6 +126,8 @@ module Etna
         return [ 403, { 'Content-Type' => 'application/json' }, [ { error: 'You are forbidden from performing this action.' }.to_json ] ]
       end
 
+      request.env['etna.redact_keys'] = @log_redact_keys
+
       if @action
         controller, action = @action.split('#')
         controller_class = Kernel.const_get(
@@ -133,11 +136,6 @@ module Etna
         logger = request.env['etna.logger']
         user = request.env['etna.user']
 
-        params = request.env['rack.request.params'].map do |key,value|
-          [ key, redact(key, value) ]
-        end.to_h
-
-        logger.warn("User #{user ? user.email : :unknown} calling #{controller}##{action} with params #{params}")
         return controller_class.new(request, action).response
       elsif @block
         application = Etna::Application.find(app.class).class
@@ -160,33 +158,6 @@ module Etna
 
     def application
       @application ||= Etna::Application.instance
-    end
-
-    def compact(value)
-      value = value.to_s
-      value = value[0..500] + "..." + value[-100..-1] if value.length > 600
-      value
-    end
-
-    def redact_keys
-      @log_redact_keys
-    end
-
-    def redact(key, value)
-      # From configuration, redact any values for the supplied key values, so they
-      #   don't appear in the logs.
-      return compact(value) unless redact_keys
-
-      if value.is_a?(Hash)
-        redacted_value = value.map do |value_key, value_value|
-          [ value_key, redact(value_key, value_value) ]
-        end.to_h
-        return redacted_value
-      elsif redact_keys.include?(key)
-        return "*"
-      end
-
-      return compact(value)
     end
 
     def authorized?(request)

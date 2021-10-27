@@ -16,10 +16,7 @@ class Janus
       {
         project_name: @params[:project_name],
         token_name: Janus.instance.config(:token_name),
-        timur_host: Janus.instance.config(:timur)&.dig(:host),
-        metis_host: Janus.instance.config(:metis)&.dig(:host),
-        vulcan_host: Janus.instance.config(:vulcan)&.dig(:host)
-      }.to_json
+      }.merge(config_hosts).to_json
     end
   end
 end

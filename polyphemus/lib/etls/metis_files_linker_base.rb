@@ -12,10 +12,16 @@ class Polyphemus::MetisFilesLinkerBase
     @magma_models = {}
   end
 
+  def cursor_model_group_state(cursor, model_name, group_name, default)
+    linked_models_state = cursor[:linked_models_state] ||= {}
+    model_state = linked_models_state[model_name.to_s] ||= {}
+    model_state[group_name.to_s] ||= default
+  end
+
   # Important!  If files_by_record_name includes files to be included in a file collection, /all files belonging to that collection must be present/.
   # the metis file in watch folder etl uses folder_ids_matching_file_collections to grab all containing folders for files that
   # match file collections and ensures that a folder list is performed and that all known files in that grouping are included.
-  def link(model_name:, files_by_record_name:, attribute_regex:)
+  def link(model_name:, files_by_record_name:, attribute_regex:, cursor: nil)
     return false if files_by_record_name.empty?
 
     logger.info("Processing files for: #{files_by_record_name.map { |f| f.record_name }.join(",")}")
@@ -55,6 +61,8 @@ class Polyphemus::MetisFilesLinkerBase
         files: file_record.files,
         attribute_regex: attribute_regex,
         record: record_batch.document(file_record.record_name),
+        record_name: file_record.record_name,
+        cursor: cursor
       )
 
       update_request.update_revision(
@@ -62,6 +70,7 @@ class Polyphemus::MetisFilesLinkerBase
         correct_record_name,
         payload
       )
+
       logger.info("Found #{payload.values.flatten.length} files for #{correct_record_name}: #{payload.values.flatten.join(",")}")
     end
 
@@ -85,7 +94,7 @@ class Polyphemus::MetisFilesLinkerBase
     @magma_models[project_name]
   end
 
-  def files_payload(project_name:, model_name:, files:, attribute_regex:, record:)
+  def files_payload(project_name:, model_name:, files:, attribute_regex:, record:, cursor: nil, record_name:)
     {}.tap do |payload|
       attribute_regex.each do |attribute_name, regex|
         payloads_for_attr = files.select do |file|
@@ -137,7 +146,9 @@ class Polyphemus::MetisFilesLinkerBase
   end
 
   def is_file_collection?(project_name, model_name, attribute_name)
-    magma_models(project_name).model(model_name).template.attributes.attribute(attribute_name.to_s).attribute_type == Etna::Clients::Magma::AttributeType::FILE_COLLECTION
+    attribute = magma_models(project_name).model(model_name).template.attributes.attribute(attribute_name.to_s)
+    raise "Unknown linker attribute #{attribute_name}" if attribute.nil?
+    attribute.attribute_type == Etna::Clients::Magma::AttributeType::FILE_COLLECTION
   end
 
   def corrected_record_name(record_name)
@@ -154,7 +165,8 @@ class Polyphemus::MetisFilesLinkerBase
     metis_files:,
     magma_record_names:,
     path_regex:,
-    record_name_gsub_pair: nil
+    record_name_gsub_pair: nil,
+    cursor: nil
   )
     metis_files_by_record_name = metis_files.group_by do |file|
       next if file.file_path.nil?
@@ -162,21 +174,22 @@ class Polyphemus::MetisFilesLinkerBase
 
       if match
         record_name = corrected_record_name(match[:record_name])
-
         record_name = record_name.gsub(record_name_gsub_pair.first, record_name_gsub_pair.last) if record_name_gsub_pair
-
         record_name
       else
         nil
       end
     end
 
-    magma_record_names.map do |magma_record_name|
-      next if metis_files_by_record_name[magma_record_name].nil?
+    metis_files_by_record_name.keys.map do |matched_record_name|
+      unless magma_record_names.include?(matched_record_name)
+        logger.info("Could not find magma record matching file record #{matched_record_name}")
+        next
+      end
 
       MetisFilesForMagmaRecord.new(
-        magma_record_name,
-        metis_files_by_record_name[magma_record_name]
+        matched_record_name,
+        metis_files_by_record_name[matched_record_name]
       )
     end.compact
   end

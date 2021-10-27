@@ -19,6 +19,7 @@ scanpy = "^1.7.0"
 magby = {path = "../magby"}
 plotly = "^4.14.3"
 leidenalg = "^0.8.3"
+harmonypy = "^0.0.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

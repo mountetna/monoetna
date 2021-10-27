@@ -18,3 +18,4 @@ docker-ready:: .projects-mark
 app_name=polyphemus
 include ../make-base/etna-ruby.mk
 include ../make-base/docker-compose.mk
+include ../make-base/node.mk

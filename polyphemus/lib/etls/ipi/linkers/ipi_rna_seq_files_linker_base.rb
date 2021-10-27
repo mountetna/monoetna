@@ -9,7 +9,7 @@ class Polyphemus::IpiRnaSeqFilesLinkerBase < Polyphemus::MetisFilesLinkerBase
     @helper = IpiHelper.new
   end
 
-  def link(model_name:, files:)
+  def link(model_name:, files:, cursor: nil)
     super(
       model_name: model_name,
       files_by_record_name: organize_metis_files_by_magma_record(
@@ -18,6 +18,7 @@ class Polyphemus::IpiRnaSeqFilesLinkerBase < Polyphemus::MetisFilesLinkerBase
         path_regex: @record_name_regex,
       ),
       attribute_regex: @attribute_regex,
+      cursor: cursor,
     )
   end
 
