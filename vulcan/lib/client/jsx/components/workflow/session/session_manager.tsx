@@ -3,7 +3,7 @@ import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {setSession} from '../../../actions/vulcan_actions';
+import {clearChangesReady, setSession} from '../../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 import Vignette from '../vignette';
@@ -31,13 +31,13 @@ export default function SessionManager() {
   const {workflow, hasPendingEdits, complete} = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
-  const {session} = state;
+  const {session, changesReady} = state;
 
   const name = workflowName(workflow);
   const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
   const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
-  const run = useCallback(() => requestPoll(true), [requestPoll]);
+  const run = useCallback(() => {requestPoll(true); dispatch(clearChangesReady())}, [requestPoll]);
   const stop = useCallback(() => cancelPolling(), [cancelPolling]);
 
   const saveSession = useCallback(() => {
@@ -80,7 +80,7 @@ export default function SessionManager() {
   );
 
   const running = state.pollingState > 0;
-  const disableRunButton = complete || running;
+  const disableRunButton = complete || running || !changesReady;
 
   if (!name) return null;
 
