@@ -2,6 +2,20 @@
 
 mono-repository version of etna projects
 
+## Force build + push of docker images
+
+If an image is not updating in CI due to issues, you can build and push production images from your local
+code.  Make sure you have the correct checkout (latest of the origin/production branch), or whatever hotfix
+code you wish to deploy, because this will build, WHATEVER your current local code is, and put that into
+production.
+
+You will also need to log into the etnaagent docker account using `docker login` for the push to succeed.
+
+```
+PUSH_IMAGES=1 IMAGES_PREFIX=etnaagent/ IMAGES_POSTFIX=:production make -C archimedes/ release
+```
+
+
 ## Setup for Mac
 
 You'll need `homebrew` and to install a few extra items. Most tools are developed for linux, and thus

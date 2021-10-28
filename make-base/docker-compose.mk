@@ -45,24 +45,37 @@ test:: docker-ready
 	if [ -e Dockerfile]; then cp ../docker/.dockerignore.template ./.dockerignore; fi
 
 release-build:: .dockerignore
-	if [ -e Dockerfile ]; then touch /tmp/.release-test; ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS); else touch /tmp/etna-build-markers/$(baseTag); fi
+	# Build this project's image using the BUILD_REQS and BUILD_ARGS if there is a Dockerfile to build
+	if [ -e Dockerfile ]; then ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS); fi
+	# Build this project's app_fe image iff there is a Dockerfile in the expected place.
 	if [ -e $(baseFeTag)/Dockerfile ]; then ../docker/build_image $(baseFeTag)/Dockerfile -- $(BUILD_ARGS); fi
 
-/tmp/.release-test: /tmp/etna-build-markers/$(baseTag)
-	make release-test
-	touch /tmp/.release-test
-
-release::
+# Create two markers -- one tracks when release tests are run, the other when builds are complete.
+# Important is that both of these files are initialized to the same timestamp, so that tests would not
+# be invoked unless a successful build_image updates the build marker.
+/tmp/etna-build-markers/$(baseTag):
 	mkdir -p /tmp/etna-build-markers
-	touch /tmp/etna-build-markers/$(baseTag)
-	touch /tmp/.release-test
+	touch -d "197001010101" $<
+
+/tmp/etna-build-markers/$(baseTag).release-test: /tmp/etna-build-markers/$(baseTag)
+	touch -d "197001010101" $<
+
+# This step is called and extended to force a run of release image tests and updates the marker that they have been
+# executed.
+release-test::
+	touch /tmp/etna-build-markers/$(baseTag).release-test
+
+# This step invokes the release iff the build marker is newer than the test marker. ie,
+# the image has been built since the last test.
+.PHONY: release-test-if-stale
+release-test-if-stale: /tmp/etna-build-markers/$(baseTag).release-test /tmp/etna-build-markers/$(baseTag)
+	if [[ /tmp/etna-build-markers/$(baseTag) -nt /tmp/etna-build-markers/$(baseTag).release-test ]]; then make release-test; fi
+
+release:: /tmp/etna-build-markers/$(baseTag) /tmp/etna-build-markers/$(baseTag).release-test
 	make release-build
-	if ! [ -n "$$NO_TEST" ]; then make /tmp/.release-test; fi
+	if ! [ -n "$$NO_TEST" ]; then make release-test-if-stale; fi
 	if [ -e Dockerfile ]; then if [ -n "$$PUSH_IMAGES" ]; then docker push $(fullTag); fi; fi
 	if [ -e $(baseFeTag)/Dockerfile ]; then if [ -n "$$PUSH_IMAGES" ]; then docker push $(fullFeTag); fi; fi
 
 update::
 	@ docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 ${app_service_name} echo 'Updated'
-
-release-test::
-	true
