@@ -5,6 +5,7 @@ export const isSuperEditor = ({permissions}) => (permissions.administration && [
 export const isSuperViewer = ({permissions}) => (permissions.administration && [ ROLES.a, ROLES.e, ROLES.v ].includes(permissions.administration.role))
 export const isEditor = ({permissions}, project_name) => (permissions[project_name] && [ ROLES.a, ROLES.e ].includes(permissions[project_name].role)) || isSuperEditor({permissions})
 export const isAdmin = ({permissions}, project_name) => (permissions[project_name] && permissions[project_name].role == ROLES.a) || isSuperuser({permissions})
+export const isPrivileged = ({permissions}, project_name) => (permissions[project_name].privileged);
 
 const parsePermissions = (perms) => {
   // Permissions are encoded as 'a:project1,project2;v:project3'
