@@ -23,7 +23,7 @@ export default function DropdownAutocomplete({
 
   const [filteredList, setFilteredList] = useState(null);
   const [showList, setShowList] = useState(false);
-  const [selectedValue, setSelectedValue] = useState(null);
+  const [selectedValue, setSelectedValue] = useState("");
 
   function filterTheList(value) {
     let re = new RegExp(value);
@@ -85,7 +85,7 @@ export default function DropdownAutocomplete({
         <input
           type='text'
           onChange={handleChange}
-          value={selectedValue || undefined}
+          value={selectedValue}
         />
         <div className='icon-wrapper' onClick={toggleList}>
           <Icon icon={`${showList ? 'caret-up' : 'caret-down'}`}></Icon>

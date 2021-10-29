@@ -8,7 +8,7 @@ import { useSetsDefault } from './useSetsDefault';
 
 export default function SelectAutocompleteInput({data, onChange, ...props}: WithInputParams<{}, string | null, StringOptions>) {
   const options = useMemoized(flattenStringOptions, data);
-  const value = useSetsDefault(null, props.value, onChange);
+  const value = useSetsDefault("", props.value, onChange);
 
   return (
     <DropdownAutocomplete
