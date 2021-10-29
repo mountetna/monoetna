@@ -178,12 +178,12 @@ const DEComps = (
         if (Object.keys(vals).includes('de_group_1')) {
           value_select_1 = MultiselectInput(
             'de_group_1', changeFxn, vals['de_group_1'],
-            'Labels to for Group-1', opts[(vals['de_meta'])] as string[])
+            'Labels to include in Set-1', opts[(vals['de_meta'])] as string[])
         }
         if (Object.keys(vals).includes('de_group_2')) {
           value_select_2 = MultiselectInput(
             'de_group_2', changeFxn, vals['de_group_2'],
-            'Labels to keep', opts[(vals['de_meta'])] as string[])
+            'Labels to include in Set-2', opts[(vals['de_meta'])] as string[])
         }
       }
       
@@ -218,7 +218,7 @@ const GroupComps = (
         if (Object.keys(vals).includes('group_use')) {
           value_select = MultiselectInput(
             'group_use', changeFxn, vals['group_use'],
-            'Labels to focus on', opts[(vals['group_meta'])] as string[])
+            'Labels to target', opts[(vals['group_meta'])] as string[])
         }
       }
       
