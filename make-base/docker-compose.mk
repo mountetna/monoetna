@@ -50,28 +50,21 @@ release-build:: .dockerignore
 	# Build this project's app_fe image iff there is a Dockerfile in the expected place.
 	if [ -e $(baseFeTag)/Dockerfile ]; then ../docker/build_image $(baseFeTag)/Dockerfile -- $(BUILD_ARGS); fi
 
-# Create two markers -- one tracks when release tests are run, the other when builds are complete.
-# Important is that both of these files are initialized to the same timestamp, so that tests would not
-# be invoked unless a successful build_image updates the build marker.
-/tmp/etna-build-markers/$(baseTag):
-	mkdir -p /tmp/etna-build-markers
-	touch -d "197001010101" $<
-
-/tmp/etna-build-markers/$(baseTag).release-test: /tmp/etna-build-markers/$(baseTag)
-	touch -d "197001010101" $<
+/tmp/etna-test-markers:
+	mkdir -p /tmp/etna-test-markers
 
 # This step is called and extended to force a run of release image tests and updates the marker that they have been
 # executed.
-release-test::
-	touch /tmp/etna-build-markers/$(baseTag).release-test
+release-test:: /tmp/etna-test-markers
+	touch /tmp/etna-test-markers/$(baseTag)
 
 # This step invokes the release iff the build marker is newer than the test marker. ie,
 # the image has been built since the last test.
 .PHONY: release-test-if-stale
-release-test-if-stale: /tmp/etna-build-markers/$(baseTag).release-test /tmp/etna-build-markers/$(baseTag)
-	if [[ /tmp/etna-build-markers/$(baseTag) -nt /tmp/etna-build-markers/$(baseTag).release-test ]]; then make release-test; fi
+release-test-if-stale:
+	if [[ /tmp/etna-build-markers/$(baseTag) -nt /tmp/etna-test-markers/$(baseTag) ]]; then make release-test; fi
 
-release:: /tmp/etna-build-markers/$(baseTag) /tmp/etna-build-markers/$(baseTag).release-test
+release::
 	make release-build
 	if ! [ -n "$$NO_TEST" ]; then make release-test-if-stale; fi
 	if [ -e Dockerfile ]; then if [ -n "$$PUSH_IMAGES" ]; then docker push $(fullTag); fi; fi
