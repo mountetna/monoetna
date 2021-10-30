@@ -79,8 +79,6 @@ export default function DiffExpSC({
     onChange(some(prevValues));
   };
   
-  console.log(value)
-  
   return (
     <div>
       Step 1: Select your DE Question Type:
@@ -145,7 +143,7 @@ const SubsetComps = (vals: DataEnvelope<any>, opts: DataEnvelope<StringOptions>,
     
     let value_select = null;
     if (Object.keys(vals).includes('subset_meta')) {
-      if (vals['subset_meta']!=null) {
+      if (Object.keys(opts).length>0 && vals['subset_meta']!=null) {
         value_select = MultiselectInput(
           'subset_use', changeFxn, vals['subset_use'],
           'Labels to keep', opts[(vals['subset_meta'])] as string[])
@@ -176,16 +174,16 @@ const DEComps = (
       
       let value_select_1 = null;
       let value_select_2 = null;
-      if (vals['de_meta']!=null) {
+      if (Object.keys(opts).length>0 && vals['de_meta']!=null) {
         if (Object.keys(vals).includes('de_group_1')) {
           value_select_1 = MultiselectInput(
             'de_group_1', changeFxn, vals['de_group_1'],
-            'Labels to for Group-1', opts[(vals['de_meta'])] as string[])
+            'Labels to include in Set-1', opts[(vals['de_meta'])] as string[])
         }
         if (Object.keys(vals).includes('de_group_2')) {
           value_select_2 = MultiselectInput(
             'de_group_2', changeFxn, vals['de_group_2'],
-            'Labels to keep', opts[(vals['de_meta'])] as string[])
+            'Labels to include in Set-2', opts[(vals['de_meta'])] as string[])
         }
       }
       
@@ -216,11 +214,11 @@ const GroupComps = (
     if (Object.keys(vals).includes('group_meta')) {
       
       let value_select = null;
-      if (vals['group_meta']!=null) {
+      if (Object.keys(opts).length>0 && vals['group_meta']!=null) {
         if (Object.keys(vals).includes('group_use')) {
           value_select = MultiselectInput(
             'group_use', changeFxn, vals['group_use'],
-            'Labels to focus on', opts[(vals['group_meta'])] as string[])
+            'Labels to target', opts[(vals['group_meta'])] as string[])
         }
       }
       
