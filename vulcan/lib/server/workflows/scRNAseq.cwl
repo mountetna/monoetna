@@ -321,7 +321,7 @@ steps:
   pick_DGE_methods:
     run: ui-queries/diff-exp-sc.cwl
     label: 'Set how DE should be run'
-    doc: 'Sets the cells compared in differential gene expression calculations.  First, (step 1) you will select your question type, and then (step 2, optional) if there are certain cells you wish to exclude, click the subset checkbox and select the cells which you with to KEEP.  Afterwards, the exact needs (step 3, and sometimes also step 4) will depend on your question type selection of step one, but the overall idea is that these steps fill in the specific sets of cells to compare. See the dedicated section of the overall vignette for more detail. Also note: Sections 7 & 8 of the primary inputs contain additional inputs which contribute to the (7) calculation method or (8) post-calculation filtration cutoffs.'
+    doc: 'Sets the cells compared in differential gene expression calculations.  First, (step 1) you will select your question type, and then (step 2, optional) if there are certain cells you wish to exclude, click the subset checkbox and select the cells which you wish to KEEP.  Afterwards, the exact needs (step 3, and sometimes also step 4) will depend on your question type selection of step one, but the overall idea is that these steps fill in the specific sets of cells to compare. See the dedicated section of the overall vignette for more detail. Also note: Sections 7 & 8 of the primary inputs contain additional inputs which contribute to the (7) calculation method or (8) post-calculation filtration cutoffs.'
     in:
       a: extract_metadata_for_dge/metadata
     out: [dge_setup]
