@@ -54,23 +54,26 @@ class Polyphemus
 
       all_records, records_to_blank = loader.run
 
-      logger.write(JSON.pretty_generate(all_records))
+      logger.write("DRY RUN!\n") if !commit
+      logger.write("Posting revisions.\n")
+
+      update_request = Etna::Clients::Magma::UpdateRequest.new(
+        project_name: @project_name,
+        revisions: all_records,
+        dry_run: !commit)
+      magma_payload = magma_client.update_json(update_request).raw["models"]
+
+      logger.write(prettify(magma_payload))
       logger.write("\n")
-
-      if commit
-        logger.write("Posting revisions.\n")
-
-        update_request = Etna::Clients::Magma::UpdateRequest.new(
-          project_name: @project_name,
-          revisions: all_records)
-        magma_client.update_json(update_request)
-
-        logger.write("Revisions saved to Magma.\n")
-      end
+      logger.write(
+        commit ?
+        "Revisions saved to Magma.\n" :
+        "Dry run results obtained from Magma.\n"
+      )
 
       summarize(
         logger: logger,
-        all_records: all_records,
+        all_records: magma_payload,
         records_to_blank: records_to_blank,
         commit: commit)
 
@@ -99,6 +102,16 @@ class Polyphemus
 
     protected
 
+    def prettify(payload)
+      JSON.pretty_generate({}.tap do |to_log|
+        payload.keys.each do |model_name|
+          to_log[model_name] = {
+            documents: payload[model_name]["documents"]
+          }
+        end
+      end)
+    end
+
     def summarize(logger:, all_records:, records_to_blank:, commit:)
       logger.write(<<-EOM
 ===============================
@@ -111,7 +124,7 @@ Committed to Magma: #{commit}
 EOM
       )
       all_records.keys.each do |model_name|
-        logger.write("#{model_name} records updated: #{all_records[model_name].keys.length}\n")
+        logger.write("#{model_name} records updated: #{all_records[model_name]["documents"].keys.length}\n")
       end
 
       if records_to_blank

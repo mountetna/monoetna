@@ -159,14 +159,8 @@ module Redcap
       return nil unless value
       case attribute(att_name).attribute_type
       when "date_time"
-        # eventually, we hope, magma will do this
-        return nil if value.empty?
-
-        begin
-          return (DateTime.parse(value) - offset_days(id)).iso8601[0..9]
-        rescue ArgumentError
-          return nil
-        end
+        # Date-shifting is done in Magma with the `shifted_date_time` attribute type
+        return value
       when "float"
         return value.to_f
       when "integer"
