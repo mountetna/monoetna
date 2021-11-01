@@ -30,7 +30,7 @@ class Polyphemus
             .watch(/^single_cell_[^\/]*\/processed\/((?!POOL).)*$/),
           Polyphemus::LinkerProcessor.new(
             linker: SingleCellLinker.new(
-              record_name_regex: /.*\/(?<record_name>.*)\/.*$/
+              record_name_regex: /.*\/(?<record_name>IPI[^\/]*)\/.*$/
             ),
             model_name: 'sc_rna_seq',
           ),
@@ -47,7 +47,20 @@ class Polyphemus
         end
 
         def corrected_record_name(record_name)
-          record_name.gsub(/_/, '.').sub(/^([^.]*\.[^.]*\.)(.*)$/) { $1 + $2.downcase }
+          if record_name.include?('POOL')
+            record_name.gsub(/_/, '.').sub(/^([^.]*\.[^.]*\.)(.*)$/) do
+              first = $1
+              second = $2
+              first + second.downcase
+            end
+          else
+            record_name.sub(/^([^_.]*[_.][^_.]*[_.])([^_.]*)(.*)$/) do
+              first = $1
+              second = $2
+              third = $3
+              first.gsub(/_/, '.') + second.downcase + third
+            end
+          end
         end
       end
     end

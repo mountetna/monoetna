@@ -72,8 +72,8 @@ describe Polyphemus::Ipi::SingleCellLinkers do
     )
   end
 
-  it 'works' do
-    VCR.use_cassette('ipi_sc_processed_linker.e2e') do
+  def run_e2e_test(name, &block)
+    VCR.use_cassette("#{name}.e2e") do
       metis_client = Etna::Clients::Metis.new(
         host: 'https://metis.ucsf.edu',
         token: ENV['TOKEN'] || TEST_TOKEN,
@@ -88,10 +88,106 @@ describe Polyphemus::Ipi::SingleCellLinkers do
       allow(Etna::Clients::Magma).to receive(:new).and_return(magma_client)
 
       update_request_raw = {}
-      expect(magma_client).to receive(:update_json).twice.and_wrap_original do |m, request|
+      expect(magma_client).to receive(:update_json).at_least(1).and_wrap_original do |m, request|
         update_request_raw.update(request.as_json)
       end
 
+      yield metis_client, magma_client, update_request_raw
+    end
+  end
+
+  it 'works for sc record directories whose files are one step indirect' do
+    run_e2e_test('ipi_sc_processed_linker.lung.enriched') do |metis_client, magma_client, update_request_raw|
+      parent_folders = metis_client.find(
+        Etna::Clients::Metis::FindRequest.new(
+          project_name: project_name,
+          bucket_name: bucket_name,
+          params: [Etna::Clients::Metis::FindParam.new(
+            attribute: "name",
+            predicate: "=",
+            value: 'IPILUNG094.N1.scrna.CD45_enriched',
+            type: "folder",
+          )],
+        )
+      ).folders.all
+
+      test_folders = metis_client.find(
+        Etna::Clients::Metis::FindRequest.new(
+          project_name: project_name,
+          bucket_name: bucket_name,
+          params: [Etna::Clients::Metis::FindParam.new(
+            attribute: "folder_id",
+            predicate: "in",
+            value: parent_folders.map(&:id),
+            type: "folder",
+          )],
+        )
+      ).folders.all
+
+      etl.process(
+        cursor,
+        test_folders
+      )
+
+      expect(update_request_raw).to eql(
+        {
+          project_name: "ipi",
+          revisions: {
+            "sc_rna_seq" => {
+              "IPILUNG094.N1.scrna.CD45_enriched" => {
+                "filtered_counts_h5" => {
+                  "original_filename" => "filtered_feature_bc_matrix.h5",
+                  "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/filtered_feature_bc_matrix.h5"
+                },
+                "processed_robject_rdata" => {
+                  "original_filename"=>"IPILUNG094_N1_scrna_CD45_enriched_scTransformed_processed.RData",
+                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/automated_processing/IPILUNG094_N1_scrna_CD45_enriched_scTransformed_processed.RData"
+                },
+                "processed_umap" => {
+                  "original_filename"=>"IPILUNG094_N1_scrna_CD45_enriched_umap.pdf",
+                  "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/automated_processing/IPILUNG094_N1_scrna_CD45_enriched_umap.pdf"
+                },
+                "processing_pipeline_parameters" => {
+                  "original_filename" => "cutoffs.yml",
+                  "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/automated_processing/cutoffs.yml"
+                },
+                "raw_counts_h5" => {
+                  "original_filename"=>"raw_feature_bc_matrix.h5",
+                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/raw_feature_bc_matrix.h5"
+                },
+                "tenx_aligned_bam" => {
+                  "original_filename"=>"possorted_genome_bam.bam",
+                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/possorted_genome_bam.bam"
+                },
+                "tenx_aligned_bam_index" => {
+                  "original_filename" => "possorted_genome_bam.bam.bai",
+                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/possorted_genome_bam.bam.bai"
+                },
+                "tenx_cloupe_file" => {
+                  "original_filename"=>"cloupe.cloupe",
+                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/cloupe.cloupe"
+                },
+                "tenx_metrics_csv" => {
+                  "original_filename"=>"metrics_summary.csv",
+                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/metrics_summary.csv"
+                },
+                "tenx_molecule_info_h5" => {
+                  "original_filename"=>"molecule_info.h5",
+                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/molecule_info.h5"
+                },
+                "tenx_web_summary" => {
+                  "original_filename"=>"web_summary.html",
+                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/web_summary.html"
+                }
+              }
+            }
+          }
+        })
+    end
+  end
+
+  it 'works for some common record structures' do
+    run_e2e_test('ipi_sc_processed_linker') do |metis_client, magma_client, update_request_raw|
       test_root_folder_ids = metis_client.find(
         Etna::Clients::Metis::FindRequest.new(
           project_name: project_name,
