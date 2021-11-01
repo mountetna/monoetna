@@ -1,0 +1,15 @@
+#! /usr/bin/env bash
+# Invokes a file (first parameter) as a bash string, allowing interpolation of
+# environment variables and bash stuff.
+# Careful that this expands both environment variables and shell invocations,
+# and thus is not safe for arbitrary user input.
+# Note that $this_file will expand to the readlink version of the given file.
+
+set -e
+cat_template() {
+  echo "cat << EOT"
+  cat "$1"
+  echo EOT
+}
+
+cat_template "$1" | this_file="$(readlink -m "$1")" bash

@@ -17,10 +17,10 @@ images: config-ready docker-compose.yml
 config-ready:: docker-compose.yml
 	@ true
 
-docker-ready:: images
+compose-ready:: images
 	@ true
 
-up:: docker-ready
+up:: compose-ready
 	@ docker-compose up -d
 
 down:: docker-compose.yml
@@ -29,16 +29,16 @@ down:: docker-compose.yml
 ps::
 	@ docker-compose ps
 
-restart:: docker-ready
+restart:: compose-ready
 	@ docker-compose restart
 
-bash:: docker-ready
+bash:: compose-ready
 	@ docker-compose run --rm $(app_service_name) $(containerSh)
 
 logs::
 	@ docker-compose logs -f
 
-test:: docker-ready
+test:: compose-ready
 	@ true
 
 .dockerignore:

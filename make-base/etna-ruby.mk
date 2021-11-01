@@ -14,10 +14,6 @@ config-ready:: config.yml
 irb::
 	@ docker-compose run --rm $app_service_name bundle exec irb
 
-migrate::
-	@ docker-compose run --rm ${app_service_name} ./bin/${app_name} migrate
-	@ docker-compose run -e ${app_name_capitalized}_ENV=test --rm ${app_service_name} ./bin/${app_name} migrate
-
 test:: docker-ready
 	@ docker-compose run -e ${app_name_capitalized}_ENV=test -e CI_SECRET=$${CI_SECRET} -e IS_CI=$${IS_CI} --rm ${app_service_name} bundle exec rspec
 
