@@ -42,8 +42,9 @@ export default function SessionManager() {
 
   const saveSession = useCallback(() => {
     if (hasPendingEdits) {
-      alert('You have uncommitted changes, reset or commit those before saving.')
-      return;
+      if (!confirm('You have unfilled inputs and/or uncommitted changes. Unfilled inputs will be left of the saves state. Uncommited changes will be reset to their previously committed values. Proceed?')) {
+        return;
+      }
     }
 
     downloadBlob({
