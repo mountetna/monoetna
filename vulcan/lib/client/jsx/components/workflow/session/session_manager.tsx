@@ -42,7 +42,7 @@ export default function SessionManager() {
 
   const saveSession = useCallback(() => {
     if (hasPendingEdits) {
-      if (!confirm('You have unfilled inputs and/or uncommitted changes. Unfilled inputs will be left of the saves state. Uncommited changes will be reset to their previously committed values. Proceed?')) {
+      if (!confirm('You have unfilled inputs and/or uncommitted changes. Unfilled inputs will be left out of the saved state. Uncommited changes will be reset to their previously committed values. Proceed?')) {
         return;
       }
     }
