@@ -62,8 +62,7 @@ class Polyphemus
         revisions: all_records,
         dry_run: !commit)
       magma_payload = select_documents(magma_client.update_json(update_request))
-      require 'pry'
-      binding.pry
+
       logger.write(JSON.pretty_generate(magma_payload))
       logger.write("\n")
       logger.write(
