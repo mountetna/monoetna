@@ -1,12 +1,28 @@
-export interface QueryBase {
-  modelName: string;
+export interface QueryClause {
   attributeName: string;
+  attributeType: string;
   operator: string;
   operand: string | number;
-  attributeType: string;
+  modelName: string;
+  any: boolean;
 }
 
-export interface QuerySlice extends QueryBase {}
+export const EmptyQueryClause: QueryClause = {
+  attributeName: '',
+  operator: '',
+  operand: '',
+  attributeType: '',
+  modelName: '',
+  any: true
+};
+
+export interface QueryBase {
+  modelName: string;
+}
+
+export interface QuerySlice extends QueryBase {
+  clause: QueryClause;
+}
 
 export interface QueryFilterAnyMap {
   [modelName: string]: boolean;
@@ -14,6 +30,7 @@ export interface QueryFilterAnyMap {
 
 export interface QueryFilter extends QueryBase {
   anyMap: QueryFilterAnyMap;
+  clauses: QueryClause[];
 }
 
 export interface QueryColumn {

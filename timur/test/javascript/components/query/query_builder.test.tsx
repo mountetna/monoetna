@@ -65,10 +65,14 @@ describe('QueryBuilder', () => {
           slices: [
             {
               modelName: 'prize',
-              attributeName: 'name',
-              operator: '::equals',
-              operand: 'Athens',
-              attributeType: 'text'
+              clause: {
+                attributeName: 'name',
+                operator: '::equals',
+                operand: 'Athens',
+                attributeType: 'text',
+                modelName: 'prize',
+                any: true
+              }
             }
           ]
         },
@@ -79,10 +83,14 @@ describe('QueryBuilder', () => {
           slices: [
             {
               modelName: 'prize',
-              attributeName: 'name',
-              operator: '::equals',
-              operand: 'Sparta',
-              attributeType: 'text'
+              clause: {
+                attributeName: 'name',
+                operator: '::equals',
+                operand: 'Sparta',
+                attributeType: 'text',
+                modelName: 'prize',
+                any: true
+              }
             }
           ]
         }
@@ -99,11 +107,17 @@ describe('QueryBuilder', () => {
       recordFilters: [
         {
           modelName: 'labor',
-          attributeName: 'year',
-          operator: '::=',
-          operand: 2,
-          anyMap: {},
-          attributeType: 'number'
+          clauses: [
+            {
+              attributeName: 'year',
+              operator: '::=',
+              operand: 2,
+              attributeType: 'number',
+              modelName: 'labor',
+              any: true
+            }
+          ],
+          anyMap: {}
         }
       ]
     };
