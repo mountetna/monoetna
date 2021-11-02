@@ -73,7 +73,7 @@ describe Redcap::Loader do
       expect(records[:model].values).to match_array([{type: "coupe"}, {type: "sedan"}])
     end
 
-    it 'imposes an age cap for age_value configs' do
+    it 'imposes an age cap for age configs' do
       stub_redcap(
         hash_including(content: 'metadata') => redcap_metadata(
           cars: [
@@ -107,7 +107,7 @@ describe Redcap::Loader do
               attributes: {
                 inventor_age: {
                   "redcap_field": "inventor_age",
-                  "value": "age_value"
+                  "value": "age"
                 },
               }
             }
