@@ -1,26 +1,21 @@
 import React, {useMemo, useState, useEffect} from 'react';
 import _ from 'lodash';
 
-import {QueryFilter, QuerySlice} from '../../contexts/query/query_types';
+import {QueryClause} from '../../contexts/query/query_types';
 import {selectAllowedModelAttributes} from '../../selectors/query_selector';
 import {visibleSortedAttributesWithUpdatedAt} from '../../utils/attributes';
 import {QueryGraph} from '../../utils/query_graph';
 
-const useFilterAttributes = ({
-  filter,
+const useQueryClause = ({
+  clause,
   graph
 }: {
-  filter: QueryFilter | QuerySlice;
+  clause: QueryClause;
   graph: QueryGraph;
 }) => {
-  const [template, setTemplate] = useState(null as any);
-
-  useEffect(() => {
-    setTemplate(graph.template(filter.modelName));
-  }, [filter.modelName, graph]);
-
   const modelAttributes = useMemo(() => {
-    if ('' !== filter.modelName) {
+    if ('' !== clause.modelName) {
+      const template = graph.template(clause.modelName);
       if (!template) return [];
 
       let sortedTemplateAttributes = visibleSortedAttributesWithUpdatedAt(
@@ -30,14 +25,15 @@ const useFilterAttributes = ({
       return selectAllowedModelAttributes(sortedTemplateAttributes);
     }
     return [];
-  }, [filter.modelName, template]);
+  }, [clause.modelName, graph]);
 
   const attributeType = useMemo(() => {
-    if ('' !== filter.attributeName) {
+    if ('' !== clause.attributeName) {
+      const template = graph.template(clause.modelName);
       if (!template) return 'text';
 
       switch (
-        template.attributes[filter.attributeName].attribute_type.toLowerCase()
+        template.attributes[clause.attributeName].attribute_type.toLowerCase()
       ) {
         case 'string':
           return 'text';
@@ -56,7 +52,7 @@ const useFilterAttributes = ({
       }
     }
     return 'text';
-  }, [filter.attributeName, template]);
+  }, [clause.attributeName, clause.modelName, graph]);
 
   return {
     modelAttributes,
@@ -64,4 +60,4 @@ const useFilterAttributes = ({
   };
 };
 
-export default useFilterAttributes;
+export default useQueryClause;
