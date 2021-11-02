@@ -17,15 +17,19 @@ describe Redcap::Loader do
     before(:each) do
       stub_magma_models(fixture: 'spec/fixtures/magma_test2_models.json')
       @magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
-    end
 
-    it 'uses flat record values to replace regular values' do
       Redcap::Model.define("Model").class_eval do
         def identifier(record_name, event_name, identifier_fields: nil)
           event_name
         end
       end
+    end
 
+    after(:each) do
+      Kernel.send(:remove_const,:Model)
+    end
+
+    it 'uses flat record values to replace regular values' do
       stub_redcap(
         hash_including(content: 'metadata') => redcap_metadata(
           cars: [
@@ -67,8 +71,53 @@ describe Redcap::Loader do
       expect(records.keys).to match_array([:model])
       expect(records[:model].keys).to match_array(["Thunderer", "El Corazon"])
       expect(records[:model].values).to match_array([{type: "coupe"}, {type: "sedan"}])
+    end
 
-      Kernel.send(:remove_const,:Model)
+    it 'imposes an age cap for age_value configs' do
+      stub_redcap(
+        hash_including(content: 'metadata') => redcap_metadata(
+          cars: [
+            [ "inventor_age" ]
+          ]
+        ),
+        /eav/ => redcap_records(
+          { field_name: "inventor_age" },
+          [
+            { "record": "Fjord", "redcap_event_name": "Model Eh", "value": "1" },
+            { "record": "Verbie", "redcap_event_name": "Steamer", "value": "2" },
+          ]
+        ).to_json,
+        /flat/ => flat_records(
+          redcap_records(
+            { field_name: "inventor_age" },
+            [
+              { "record": "Fjord", "redcap_event_name": "Model Eh", "value": "45" },
+              { "record": "Verbie", "redcap_event_name": "Steamer", "value": "90" },
+            ]
+          )
+        ).to_json
+      )
+
+
+      records = run_loader(
+        model: {
+          each: [ "record", "event" ],
+          scripts: [
+            {
+              attributes: {
+                inventor_age: {
+                  "redcap_field": "inventor_age",
+                  "value": "age_value"
+                },
+              }
+            }
+          ]
+        }
+      )
+
+      expect(records.keys).to match_array([:model])
+      expect(records[:model].keys).to match_array(["Model Eh", "Steamer"])
+      expect(records[:model].values).to match_array([{inventor_age: 45}, {inventor_age: 89}])
     end
   end
 
