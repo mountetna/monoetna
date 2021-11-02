@@ -6,6 +6,8 @@ class Polyphemus
     # Record name is two directories above a file
     RECORD_NAME_REGEX = /.*\/(?<record_name>.*)\/[^\/]*\/[^\/]*$/
 
+    attr_reader :record_name_regex
+
     def initialize(
       project_name:,
       bucket_name:,

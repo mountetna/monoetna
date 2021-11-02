@@ -4,7 +4,7 @@ require 'shellwords'
 
 module WithSlackNotifications
   def notify_slack(message, messenger:self.class.name, channel:)
-    `/bin/post-to-slack.sh "#{Shellwords.escape(messenger)}" "#{Shellwords.escape(channel)}" "#{Shellwords.escape(message)}" || true`
+    `/bin/post-to-slack.sh #{Shellwords.escape(messenger)} #{Shellwords.escape(channel)} #{Shellwords.escape(message)} || true`
   end
 end
 

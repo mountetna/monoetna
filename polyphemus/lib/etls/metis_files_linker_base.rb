@@ -161,24 +161,23 @@ class Polyphemus::MetisFilesLinkerBase
     false
   end
 
+  def record_name_by_path(path, regex)
+    match = path.match(regex)
+    if match
+      corrected_record_name(match[:record_name])
+    else
+      nil
+    end
+  end
+
   def organize_metis_files_by_magma_record(
     metis_files:,
     magma_record_names:,
-    path_regex:,
-    record_name_gsub_pair: nil,
-    cursor: nil
+    path_regex:
   )
     metis_files_by_record_name = metis_files.group_by do |file|
       next if file.file_path.nil?
-      match = file.file_path.match(path_regex)
-
-      if match
-        record_name = corrected_record_name(match[:record_name])
-        record_name = record_name.gsub(record_name_gsub_pair.first, record_name_gsub_pair.last) if record_name_gsub_pair
-        record_name
-      else
-        nil
-      end
+      record_name_by_path(file.file_path, path_regex)
     end
 
     metis_files_by_record_name.keys.map do |matched_record_name|

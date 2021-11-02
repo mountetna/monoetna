@@ -87,17 +87,17 @@ describe Polyphemus::Ipi::SingleCellLinkers do
       allow(Etna::Clients::Metis).to receive(:new).and_return(metis_client)
       allow(Etna::Clients::Magma).to receive(:new).and_return(magma_client)
 
-      update_request_raw = {}
+      update_requests_raw = []
       expect(magma_client).to receive(:update_json).at_least(1).and_wrap_original do |m, request|
-        update_request_raw.update(request.as_json)
+        update_requests_raw << request.as_json
       end
 
-      yield metis_client, magma_client, update_request_raw
+      yield metis_client, magma_client, update_requests_raw
     end
   end
 
   it 'works for sc record directories whose files are one step indirect' do
-    run_e2e_test('ipi_sc_processed_linker.lung.enriched') do |metis_client, magma_client, update_request_raw|
+    run_e2e_test('ipi_sc_processed_linker.lung.enriched') do |metis_client, magma_client, update_requests_raw|
       parent_folders = metis_client.find(
         Etna::Clients::Metis::FindRequest.new(
           project_name: project_name,
@@ -129,7 +129,19 @@ describe Polyphemus::Ipi::SingleCellLinkers do
         test_folders
       )
 
-      expect(update_request_raw).to eql(
+      expect(update_requests_raw).to include({
+        project_name: "ipi",
+        revisions: {
+          "sc_rna_seq" => {
+            "IPILUNG094.N1.scrna.CD45_enriched" => {
+              "biospecimen" => "CD45_enriched",
+              "chemistry" => "10X_5prime_v3"
+            }
+          }
+        }
+      })
+
+      expect(update_requests_raw).to include(
         {
           project_name: "ipi",
           revisions: {
@@ -140,11 +152,11 @@ describe Polyphemus::Ipi::SingleCellLinkers do
                   "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/filtered_feature_bc_matrix.h5"
                 },
                 "processed_robject_rdata" => {
-                  "original_filename"=>"IPILUNG094_N1_scrna_CD45_enriched_scTransformed_processed.RData",
-                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/automated_processing/IPILUNG094_N1_scrna_CD45_enriched_scTransformed_processed.RData"
+                  "original_filename" => "IPILUNG094_N1_scrna_CD45_enriched_scTransformed_processed.RData",
+                  "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/automated_processing/IPILUNG094_N1_scrna_CD45_enriched_scTransformed_processed.RData"
                 },
                 "processed_umap" => {
-                  "original_filename"=>"IPILUNG094_N1_scrna_CD45_enriched_umap.pdf",
+                  "original_filename" => "IPILUNG094_N1_scrna_CD45_enriched_umap.pdf",
                   "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/automated_processing/IPILUNG094_N1_scrna_CD45_enriched_umap.pdf"
                 },
                 "processing_pipeline_parameters" => {
@@ -152,32 +164,32 @@ describe Polyphemus::Ipi::SingleCellLinkers do
                   "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/automated_processing/cutoffs.yml"
                 },
                 "raw_counts_h5" => {
-                  "original_filename"=>"raw_feature_bc_matrix.h5",
-                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/raw_feature_bc_matrix.h5"
+                  "original_filename" => "raw_feature_bc_matrix.h5",
+                  "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/raw_feature_bc_matrix.h5"
                 },
                 "tenx_aligned_bam" => {
-                  "original_filename"=>"possorted_genome_bam.bam",
-                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/possorted_genome_bam.bam"
+                  "original_filename" => "possorted_genome_bam.bam",
+                  "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/possorted_genome_bam.bam"
                 },
                 "tenx_aligned_bam_index" => {
                   "original_filename" => "possorted_genome_bam.bam.bai",
-                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/possorted_genome_bam.bam.bai"
+                  "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/possorted_genome_bam.bam.bai"
                 },
                 "tenx_cloupe_file" => {
-                  "original_filename"=>"cloupe.cloupe",
-                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/cloupe.cloupe"
+                  "original_filename" => "cloupe.cloupe",
+                  "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/cloupe.cloupe"
                 },
                 "tenx_metrics_csv" => {
-                  "original_filename"=>"metrics_summary.csv",
-                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/metrics_summary.csv"
+                  "original_filename" => "metrics_summary.csv",
+                  "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/metrics_summary.csv"
                 },
                 "tenx_molecule_info_h5" => {
-                  "original_filename"=>"molecule_info.h5",
-                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/molecule_info.h5"
+                  "original_filename" => "molecule_info.h5",
+                  "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/molecule_info.h5"
                 },
                 "tenx_web_summary" => {
-                  "original_filename"=>"web_summary.html",
-                  "path"=>"metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/web_summary.html"
+                  "original_filename" => "web_summary.html",
+                  "path" => "metis://ipi/data/single_cell_GEX/processed/5prime_GEX/LUNG/IPILUNG094.N1.scrna.CD45_enriched/cellranger/web_summary.html"
                 }
               }
             }
@@ -187,7 +199,7 @@ describe Polyphemus::Ipi::SingleCellLinkers do
   end
 
   it 'works for some common record structures' do
-    run_e2e_test('ipi_sc_processed_linker') do |metis_client, magma_client, update_request_raw|
+    run_e2e_test('ipi_sc_processed_linker') do |metis_client, magma_client, update_requests_raw|
       test_root_folder_ids = metis_client.find(
         Etna::Clients::Metis::FindRequest.new(
           project_name: project_name,
@@ -219,7 +231,19 @@ describe Polyphemus::Ipi::SingleCellLinkers do
         test_folders
       )
 
-      expect(update_request_raw).to eql({
+      expect(update_requests_raw).to include({
+        :project_name => "ipi",
+        :revisions => {
+          "sc_rna_seq_pool" => {
+            "IPIPOOL001.P1.scrna.xvipbmc" => {
+              "biospecimen" => "xvipbmc",
+              "chemistry" => "10X_3prime_v3"
+            }
+          }
+        }
+      })
+
+      expect(update_requests_raw).to include({
         project_name: 'ipi',
         revisions: {
           "sc_rna_seq_pool" => {
@@ -240,8 +264,6 @@ describe Polyphemus::Ipi::SingleCellLinkers do
         },
       })
 
-      update_request_raw.clear
-
       test_folders = metis_client.find(
         Etna::Clients::Metis::FindRequest.new(
           project_name: project_name,
@@ -260,15 +282,27 @@ describe Polyphemus::Ipi::SingleCellLinkers do
         test_folders
       )
 
-      expect(update_request_raw).to eql({
+      expect(update_requests_raw[5]).to eql({
+        :project_name => "ipi",
+        :revisions => {
+          "sc_rna_seq" => {
+            "IPIHEP034.T1.scrna.cd45neg" => {
+              "biospecimen"=>"cd45neg",
+              "chemistry"=>"10X_3prime_v2"
+            }
+          }
+        }
+      })
+
+      expect(update_requests_raw).to include({
         project_name: 'ipi',
         revisions: {
           "sc_rna_seq" => {
             "IPIHEP034.T1.scrna.cd45neg" => {
-              "tenx_cloupe_file" => {"original_filename"=>"cloupe.cloupe", "path"=>"metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v2_chemistry/HEP/IPIHEP034.T1.scrna.cd45neg/cloupe.cloupe"},
-              "tenx_metrics_csv" => {"original_filename"=>"metrics_summary.csv", "path"=>"metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v2_chemistry/HEP/IPIHEP034.T1.scrna.cd45neg/metrics_summary.csv"},
-              "tenx_molecule_info_h5" => {"original_filename"=>"molecule_info.h5", "path"=>"metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v2_chemistry/HEP/IPIHEP034.T1.scrna.cd45neg/molecule_info.h5"},
-              "tenx_web_summary" => {"original_filename"=>"web_summary.html", "path"=>"metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v2_chemistry/HEP/IPIHEP034.T1.scrna.cd45neg/web_summary.html"}
+              "tenx_cloupe_file" => { "original_filename" => "cloupe.cloupe", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v2_chemistry/HEP/IPIHEP034.T1.scrna.cd45neg/cloupe.cloupe" },
+              "tenx_metrics_csv" => { "original_filename" => "metrics_summary.csv", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v2_chemistry/HEP/IPIHEP034.T1.scrna.cd45neg/metrics_summary.csv" },
+              "tenx_molecule_info_h5" => { "original_filename" => "molecule_info.h5", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v2_chemistry/HEP/IPIHEP034.T1.scrna.cd45neg/molecule_info.h5" },
+              "tenx_web_summary" => { "original_filename" => "web_summary.html", "path" => "metis://ipi/data/single_cell_GEX/processed/3prime_GEX/v2_chemistry/HEP/IPIHEP034.T1.scrna.cd45neg/web_summary.html" }
             }
           }
         }
