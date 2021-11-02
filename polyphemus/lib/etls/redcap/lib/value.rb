@@ -6,7 +6,7 @@ module Redcap
           type: "object",
           properties: {
             redcap_field: { type: "string" },
-            value: { enum: [ "text", "value", "label", "note", "select_choice", "combine", "none", "age_value" ] },
+            value: { enum: [ "text", "value", "label", "note", "select_choice", "combine", "age_value", "none" ] },
             text: { type: "string" },
             combine: { type: "string" },
             equals: { type: "string" },
