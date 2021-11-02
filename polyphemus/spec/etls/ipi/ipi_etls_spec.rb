@@ -130,6 +130,7 @@ describe Polyphemus::Ipi::SingleCellLinkers do
       )
 
       expect(update_requests_raw).to include({
+        dry_run: false,
         project_name: "ipi",
         revisions: {
           "sc_rna_seq" => {
@@ -143,6 +144,7 @@ describe Polyphemus::Ipi::SingleCellLinkers do
 
       expect(update_requests_raw).to include(
         {
+          dry_run: false,
           project_name: "ipi",
           revisions: {
             "sc_rna_seq" => {
@@ -232,6 +234,7 @@ describe Polyphemus::Ipi::SingleCellLinkers do
       )
 
       expect(update_requests_raw).to include({
+        dry_run: false,
         :project_name => "ipi",
         :revisions => {
           "sc_rna_seq_pool" => {
@@ -244,6 +247,7 @@ describe Polyphemus::Ipi::SingleCellLinkers do
       })
 
       expect(update_requests_raw).to include({
+        dry_run: false,
         project_name: 'ipi',
         revisions: {
           "sc_rna_seq_pool" => {
@@ -283,6 +287,7 @@ describe Polyphemus::Ipi::SingleCellLinkers do
       )
 
       expect(update_requests_raw[5]).to eql({
+        dry_run: false,
         :project_name => "ipi",
         :revisions => {
           "sc_rna_seq" => {
@@ -295,6 +300,7 @@ describe Polyphemus::Ipi::SingleCellLinkers do
       })
 
       expect(update_requests_raw).to include({
+        dry_run: false,
         project_name: 'ipi',
         revisions: {
           "sc_rna_seq" => {
