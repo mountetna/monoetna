@@ -4,6 +4,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
 import AddIcon from '@material-ui/icons/Add';
 
 import {makeStyles} from '@material-ui/core/styles';
@@ -11,7 +12,11 @@ import {makeStyles} from '@material-ui/core/styles';
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import {QueryWhereContext} from '../../contexts/query/query_where_context';
 import QueryFilterControl from './query_filter_control';
-import {QueryFilter, QuerySlice} from '../../contexts/query/query_types';
+import {
+  QueryFilter,
+  QuerySlice,
+  EmptyQueryClause
+} from '../../contexts/query/query_types';
 import QueryClause from './query_clause';
 import QueryAnyEverySelectorList from './query_any_every_selector_list';
 
@@ -20,6 +25,13 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: 10,
     paddingLeft: '1rem',
     paddingRight: '1rem'
+  },
+  clauseHeading: {
+    paddingLeft: '0.25rem'
+  },
+  clauseSubheading: {
+    color: 'gray',
+    fontSize: '0.9rem'
   }
 }));
 
@@ -45,10 +57,11 @@ const QueryWherePane = () => {
   const addNewRecordFilter = useCallback(() => {
     addRecordFilter({
       modelName: '',
-      attributeName: '',
-      operator: '',
-      operand: '',
-      attributeType: '',
+      clauses: [
+        {
+          ...EmptyQueryClause
+        }
+      ],
       anyMap: {}
     });
   }, [addRecordFilter]);
@@ -98,6 +111,13 @@ const QueryWherePane = () => {
     [orRecordFilterIndices, setOrRecordFilterIndices]
   );
 
+  const handleCopyFilter = useCallback(
+    (filter: QueryFilter) => {
+      addRecordFilter({...filter});
+    },
+    [addRecordFilter]
+  );
+
   const modelNames = useMemo(
     () => [...new Set(graph.allPaths(rootModel).flat())].sort(),
     [graph, rootModel]
@@ -108,32 +128,49 @@ const QueryWherePane = () => {
   return (
     <QueryClause title='Where'>
       {recordFilters.length > 0 ? (
-        <Grid
-          container
-          alignItems='center'
-          justify='center'
-          className={classes.header}
-        >
+        <Grid container justify='center' className={classes.header}>
           <Grid item xs={1}>
             OR
           </Grid>
-          <Grid item xs={2}>
+          <Grid item xs={1}>
             Any / Every
           </Grid>
-          <Grid item container xs={9}>
-            <Grid item xs={3}>
+          <Grid item container xs={10}>
+            <Grid item xs={2}>
               Model
             </Grid>
-            <Grid item xs={3}>
-              Attribute
+            <Grid item xs={9} className={classes.clauseHeading}>
+              <Typography>Clauses</Typography>
+              <Grid container item>
+                <Grid
+                  item
+                  container
+                  spacing={1}
+                  alignItems='center'
+                  className={classes.clauseSubheading}
+                >
+                  <Grid item xs={1}>
+                    Any/Every
+                  </Grid>
+                  <Grid item container xs={11}>
+                    <Grid item xs={3}>
+                      Model
+                    </Grid>
+                    <Grid item xs={3}>
+                      Attribute
+                    </Grid>
+                    <Grid item xs={2}>
+                      Operator
+                    </Grid>
+                    <Grid item xs={3}>
+                      Operand
+                    </Grid>
+                    <Grid item xs={1} />
+                  </Grid>
+                </Grid>
+              </Grid>
             </Grid>
-            <Grid item xs={2}>
-              Operator
-            </Grid>
-            <Grid item xs={3}>
-              Operand
-            </Grid>
-            <Grid item xs={1}></Grid>
+            <Grid item xs={1} />
           </Grid>
         </Grid>
       ) : null}
@@ -153,25 +190,31 @@ const QueryWherePane = () => {
                 inputProps={{'aria-label': 'secondary checkbox'}}
               />
             </Grid>
-            <Grid item xs={2}>
+            <Grid item xs={1}>
               <QueryAnyEverySelectorList
                 filter={filter}
                 index={index}
                 patchRecordFilter={patchRecordFilter}
               />
             </Grid>
-            <Grid item container xs={9}>
-              <QueryFilterControl
-                key={`${index}-${updateCounter}`}
-                filter={filter}
-                isColumnFilter={false}
-                modelNames={modelNames}
-                graph={graph}
-                patchFilter={(updatedFilter: QueryFilter | QuerySlice) =>
-                  handlePatchFilter(index, updatedFilter as QueryFilter, filter)
-                }
-                removeFilter={() => handleRemoveFilter(index)}
-              />
+            <Grid item container xs={10} direction='column'>
+              <Grid item container alignItems='center' justify='flex-start'>
+                <QueryFilterControl
+                  key={`${index}-${updateCounter}`}
+                  filter={filter}
+                  modelNames={modelNames}
+                  graph={graph}
+                  patchFilter={(updatedFilter: QueryFilter | QuerySlice) =>
+                    handlePatchFilter(
+                      index,
+                      updatedFilter as QueryFilter,
+                      filter
+                    )
+                  }
+                  removeFilter={() => handleRemoveFilter(index)}
+                  copyFilter={() => handleCopyFilter(filter)}
+                />
+              </Grid>
             </Grid>
           </Grid>
         </Paper>
