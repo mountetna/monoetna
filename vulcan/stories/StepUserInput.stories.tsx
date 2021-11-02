@@ -128,3 +128,11 @@ ColorSelection.args = {
     'color_options': require('./color_options.json')
   }
 };
+
+export const BatchSelection = Template.bind({});
+BatchSelection.args = {
+  type: TYPE.SELECT_AUTOCOMPLETE,
+  cwlParams:  {
+    'batch_options': ['1', '2', '3']
+  }
+}
