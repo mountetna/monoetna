@@ -75,6 +75,7 @@ updateMatrix <- function(
     attributeName,
     matrix,
     separator = ",",
+    dry.run = FALSE,
     auto.proceed = FALSE,
     revisions.only = FALSE,
     ...) {
@@ -140,6 +141,7 @@ updateMatrix <- function(
         target = target,
         projectName = projectName,
         revisions = revs,
+        dry.run = dry.run,
         auto.proceed = auto.proceed,
         ...)
 }
@@ -237,6 +239,7 @@ updateFromDF <- function(
     modelName,
     df,
     separator = ",",
+    dry.run = FALSE,
     auto.proceed = FALSE,
     revisions.only = FALSE,
     ...) {
@@ -300,5 +303,6 @@ updateFromDF <- function(
         projectName = projectName,
         revisions = revs,
         auto.proceed = auto.proceed,
+        dry.run = dry.run,
         ...)
 }

@@ -8,6 +8,7 @@ updateValues(
   target,
   projectName,
   revisions = list(),
+  dry.run = FALSE,
   auto.proceed = FALSE,
   ...
 )

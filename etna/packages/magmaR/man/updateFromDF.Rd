@@ -10,6 +10,7 @@ updateFromDF(
   modelName,
   df,
   separator = ",",
+  dry.run = FALSE,
   auto.proceed = FALSE,
   revisions.only = FALSE,
   ...

@@ -67,6 +67,7 @@ updateValues <- function(
     target,
     projectName,
     revisions = list(),
+    dry.run = FALSE,
     auto.proceed = FALSE,
     ...
 ) {
@@ -90,6 +91,7 @@ updateValues <- function(
         target = target,
         projectName = projectName,
         revisions = revisions,
+        dry.run = dry.run,
         ...)
 }
 
@@ -147,6 +149,7 @@ updateValues <- function(
     target,
     projectName,
     revisions,
+    dry.run = FALSE,
     request.only = FALSE,
     json.params.only = FALSE,
     verbose = TRUE
@@ -155,7 +158,9 @@ updateValues <- function(
     ### Put together the request 
     jsonParams <- list(
         project_name = projectName,
-        revisions = revisions)
+        revisions = revisions,
+        params = list(dry_run = dry.run)
+    )
     
     requestBody <- jsonlite::toJSON(jsonParams, auto_unbox = TRUE)
     

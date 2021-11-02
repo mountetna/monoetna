@@ -11,6 +11,7 @@ updateMatrix(
   attributeName,
   matrix,
   separator = ",",
+  dry.run = FALSE,
   auto.proceed = FALSE,
   revisions.only = FALSE,
   ...
