@@ -70,10 +70,12 @@ describe('QueryResults', () => {
           slices: [
             {
               modelName: 'prize',
-              attributeName: 'name',
-              operator: '::equals',
-              operand: 'Athens',
-              attributeType: 'text'
+              clause: {
+                attributeName: 'name',
+                operator: '::equals',
+                operand: 'Athens',
+                attributeType: 'text'
+              }
             }
           ]
         }
@@ -85,11 +87,15 @@ describe('QueryResults', () => {
       recordFilters: [
         {
           modelName: 'labor',
-          attributeName: 'year',
-          operator: '::equals',
-          operand: 2,
-          anyMap: {},
-          attributeType: 'number'
+          clauses: [
+            {
+              attributeName: 'year',
+              operator: '::equals',
+              operand: 2,
+              attributeType: 'number'
+            }
+          ],
+          anyMap: {}
         }
       ]
     };
@@ -138,10 +144,12 @@ describe('QueryResults', () => {
           slices: [
             {
               modelName: 'prize',
-              attributeName: 'name',
-              operator: '::equals',
-              operand: 'Athens',
-              attributeType: 'text'
+              clause: {
+                attributeName: 'name',
+                operator: '::equals',
+                operand: 'Athens',
+                attributeType: 'text'
+              }
             }
           ]
         },
@@ -152,10 +160,12 @@ describe('QueryResults', () => {
           slices: [
             {
               modelName: 'labor',
-              attributeName: 'contributions',
-              operator: '::slice',
-              operand: 'Athens,Sparta',
-              attributeType: 'matrix'
+              clause: {
+                attributeName: 'contributions',
+                operator: '::slice',
+                operand: 'Athens,Sparta',
+                attributeType: 'matrix'
+              }
             }
           ]
         }
@@ -167,11 +177,15 @@ describe('QueryResults', () => {
       recordFilters: [
         {
           modelName: 'labor',
-          attributeName: 'year',
-          operator: '::equals',
-          operand: 2,
-          anyMap: {},
-          attributeType: 'number'
+          clauses: [
+            {
+              attributeName: 'year',
+              operator: '::equals',
+              operand: 2,
+              attributeType: 'number'
+            }
+          ],
+          anyMap: {}
         }
       ]
     };

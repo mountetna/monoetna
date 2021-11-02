@@ -1,219 +1,183 @@
-// Generic filter component?
-// Model, attribute, operator, operand
-
-import React, {useMemo, useCallback, useState, useEffect} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import Grid from '@material-ui/core/Grid';
-import TextField from '@material-ui/core/TextField';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
+import Paper from '@material-ui/core/Paper';
+import Button from '@material-ui/core/Button';
 import {makeStyles} from '@material-ui/core/styles';
-import IconButton from '@material-ui/core/IconButton';
-import ClearIcon from '@material-ui/icons/Clear';
 import Tooltip from '@material-ui/core/Tooltip';
+import AddIcon from '@material-ui/icons/Add';
 
-import {Debouncer} from 'etna-js/utils/debouncer';
-import {QueryFilter, QuerySlice} from '../../contexts/query/query_types';
-import FilterOperator from './query_filter_operator';
-import useFilterAttributes from './query_use_filter_attributes';
+import {
+  QueryClause,
+  QueryFilter,
+  EmptyQueryClause
+} from '../../contexts/query/query_types';
 import {QueryGraph} from '../../utils/query_graph';
+import QueryFilterClause from './query_filter_clause';
+import RemoveIcon from './query_remove_icon';
+import CopyIcon from './query_copy_icon';
+import Selector from './query_selector';
 
 const useStyles = makeStyles((theme) => ({
-  textInput: {},
-  fullWidth: {
-    width: '80%'
+  paper: {
+    padding: '0.5rem 0.5rem 0 0.5rem',
+    marginBottom: '0.5rem',
+    height: '48px'
+  },
+  paddingLeft: {
+    paddingLeft: 'calc(0.5rem - 4px)'
+  },
+  grid: {
+    paddingTop: '0.5rem'
   }
 }));
 
 const QueryFilterControl = ({
   filter,
   modelNames,
-  isColumnFilter,
   graph,
-  waitTime,
-  eager,
   patchFilter,
-  removeFilter
+  removeFilter,
+  copyFilter
 }: {
-  filter: QueryFilter | QuerySlice;
+  filter: QueryFilter;
   modelNames: string[];
-  isColumnFilter: boolean;
   graph: QueryGraph;
-  waitTime?: number;
-  eager?: boolean;
-  patchFilter: (filter: QueryFilter | QuerySlice) => void;
+  patchFilter: (filter: QueryFilter) => void;
   removeFilter: () => void;
+  copyFilter: () => void;
 }) => {
-  const [operandValue, setOperandValue] = useState('' as string | number);
-  const [previousOperandValue, setPreviousOperandValue] = useState(
-    '' as string | number
-  );
-  const [debouncer, setDebouncer] = useState(
-    () => new Debouncer({windowMs: waitTime, eager})
-  );
-  // Clear the existing debouncer and accept any new changes to the settings
-  useEffect(() => {
-    const debouncer = new Debouncer({windowMs: waitTime, eager});
-    setDebouncer(debouncer);
-    return () => debouncer.reset();
-  }, [waitTime, eager]);
-
   const classes = useStyles();
-
-  const {modelAttributes, attributeType} = useFilterAttributes({
-    filter,
-    graph
-  });
-
-  const filterOperator = useMemo(() => {
-    return new FilterOperator(attributeType, filter.operator, isColumnFilter);
-  }, [attributeType, filter.operator, isColumnFilter]);
-
-  useEffect(() => {
-    // When user selects a different attribute, update the type
-    patchFilter({
-      ...filter,
-      attributeType
-    });
-  }, [filter.attributeName, attributeType]);
 
   const handleModelSelect = useCallback(
     (modelName: string) => {
       patchFilter({
         modelName,
-        attributeName: '',
-        operator: '',
-        operand: '',
-        attributeType: ''
+        anyMap: {},
+        clauses: [
+          {
+            ...EmptyQueryClause
+          }
+        ]
       });
     },
     [patchFilter]
   );
 
-  const handleAttributeSelect = useCallback(
-    (attributeName: string) => {
+  const handlePatchClause = useCallback(
+    (clause: QueryClause, index: number) => {
+      let updatedClauses = [...filter.clauses];
+      updatedClauses[index] = clause;
       patchFilter({
         ...filter,
-        attributeName,
-        operator: '',
-        operand: ''
+        clauses: updatedClauses
       });
     },
-    [filter, patchFilter]
+    [patchFilter, filter]
   );
 
-  const handleOperatorSelect = useCallback(
-    (operator: string) =>
+  const handleRemoveClause = useCallback(
+    (index: number) => {
+      let updatedClauses = [...filter.clauses];
+      updatedClauses.splice(index, 1);
       patchFilter({
         ...filter,
-        operator: filterOperator.magmify(operator)
-      }),
-    [filter, patchFilter, filterOperator]
-  );
-
-  const handleOperandChange = useCallback(
-    (operand: string) => {
-      patchFilter({
-        ...filter,
-        operand: filterOperator.formatOperand(operand)
+        clauses: updatedClauses
       });
     },
-    [patchFilter, filter, filterOperator]
+    [patchFilter, filter]
   );
 
-  const handleOperandChangeWithDebounce = useCallback(
-    (value: string) => {
-      debouncer.ready(() => handleOperandChange(value));
-      setOperandValue(value);
+  const handleAddClause = useCallback(() => {
+    patchFilter({
+      ...filter,
+      clauses: [...filter.clauses].concat([
+        {...EmptyQueryClause, modelName: filter.modelName}
+      ])
+    });
+  }, [patchFilter, filter]);
+
+  const handleClauseAnySelect = useCallback(
+    (val: string, clause: QueryClause, index: number) => {
+      handlePatchClause(
+        {
+          ...clause,
+          any: val === 'Any'
+        },
+        index
+      );
     },
-    [handleOperandChange, debouncer]
+    [handlePatchClause]
   );
 
-  // When the operand value changes, follow it
-  useEffect(() => {
-    if (filter.operand !== previousOperandValue) {
-      debouncer.reset();
-      setOperandValue(filter.operand);
-      setPreviousOperandValue(filter.operand);
-    }
-  }, [filter.operand, debouncer, previousOperandValue]);
+  const modelChildren = useMemo(() => {
+    if (!filter.modelName || filter.modelName === '') return {};
 
-  let uniqId = (idType: string): string =>
-    `${idType}-Select-${Math.random().toString()}`;
+    return graph.childrenMap(filter.modelName);
+  }, [filter.modelName, graph]);
 
   return (
     <>
-      <Grid item xs={3}>
-        <FormControl className={classes.fullWidth}>
-          <Select
-            labelId={uniqId('model')}
-            value={filter.modelName}
-            onChange={(e) => handleModelSelect(e.target.value as string)}
-            displayEmpty
-          >
-            {modelNames.map((name, index: number) => (
-              <MenuItem key={index} value={name}>
-                {name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Grid>
-      <Grid item xs={3}>
-        <FormControl className={classes.fullWidth}>
-          {modelAttributes.length > 0 ? (
-            <Select
-              labelId={uniqId('attribute')}
-              value={filter.attributeName}
-              onChange={(e) => handleAttributeSelect(e.target.value as string)}
-              displayEmpty
-            >
-              {modelAttributes.sort().map((attr, index: number) => (
-                <MenuItem key={index} value={attr.attribute_name}>
-                  {attr.attribute_name}
-                </MenuItem>
-              ))}
-            </Select>
-          ) : null}
-        </FormControl>
-      </Grid>
       <Grid item xs={2}>
-        <FormControl className={classes.fullWidth}>
-          <Select
-            labelId={uniqId('operator')}
-            value={filterOperator.prettify() || ''}
-            onChange={(e) => handleOperatorSelect(e.target.value as string)}
-            displayEmpty
-          >
-            {Object.keys(filterOperator.options())
-              .sort()
-              .map((operator: string, index: number) => (
-                <MenuItem key={index} value={operator}>
-                  {operator}
-                </MenuItem>
-              ))}
-          </Select>
-        </FormControl>
+        <Selector
+          canEdit={true}
+          name={filter.modelName}
+          onSelect={handleModelSelect}
+          choiceSet={modelNames}
+          label='model'
+        />
       </Grid>
-      <Grid item xs={3}>
-        {filterOperator.hasOperand() ? (
-          <FormControl className={classes.textInput}>
-            <TextField
-              id={uniqId('operand')}
-              value={operandValue}
-              onChange={(e) =>
-                handleOperandChangeWithDebounce(e.target.value as string)
-              }
-            />
-          </FormControl>
-        ) : null}
+      <Grid item container xs={9} direction='column'>
+        <Grid>
+          <Tooltip title='Add and clause' aria-label='Add and clause'>
+            <Button
+              className={classes.paddingLeft}
+              startIcon={<AddIcon />}
+              onClick={handleAddClause}
+            >
+              And Clause
+            </Button>
+          </Tooltip>
+        </Grid>
+        <Grid container direction='column' className={classes.grid}>
+          {filter.clauses.map((clause: QueryClause, index: number) => {
+            return (
+              <Paper className={classes.paper} key={index}>
+                <Grid item container alignItems='center'>
+                  <Grid item xs={1}>
+                    {modelChildren[clause.modelName] ? (
+                      <Selector
+                        canEdit={true}
+                        name={clause.any ? 'Any' : 'Every'}
+                        onSelect={(val: string) =>
+                          handleClauseAnySelect(val, clause, index)
+                        }
+                        choiceSet={['Any', 'Every']}
+                        label='model'
+                      />
+                    ) : null}
+                  </Grid>
+                  <Grid item xs={11}>
+                    <QueryFilterClause
+                      clause={clause}
+                      clauseIndex={index}
+                      graph={graph}
+                      modelNames={Object.keys(modelChildren)}
+                      isColumnFilter={false}
+                      patchClause={(updatedClause: QueryClause) =>
+                        handlePatchClause(updatedClause, index)
+                      }
+                      removeClause={() => handleRemoveClause(index)}
+                    />
+                  </Grid>
+                </Grid>
+              </Paper>
+            );
+          })}
+        </Grid>
       </Grid>
       <Grid item xs={1} container justify='flex-end'>
-        <Tooltip title='Remove filter' aria-label='remove filter'>
-          <IconButton aria-label='remove filter' onClick={removeFilter}>
-            <ClearIcon />
-          </IconButton>
-        </Tooltip>
+        <CopyIcon canEdit={true} onClick={copyFilter} label='filter' />
+        <RemoveIcon canEdit={true} onClick={removeFilter} label='filter' />
       </Grid>
     </>
   );
