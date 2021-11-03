@@ -57,9 +57,11 @@ class Vulcan
 
       # Ensure that the primary inputs, at least, have been loaded so that the status endpoint can report
       # meaningful steps running.
-      pi = build_target_for(:primary_inputs)
-      if pi.should_build?(storage)
-        run!(storage: storage, build_target: pi, token: nil)
+      workflow.inputs.each do |input|
+        pi = build_target_for(:primary_inputs, var_name: input.id)
+        if pi.should_build?(storage)
+          run!(storage: storage, build_target: pi, token: nil)
+        end
       end
     end
 
@@ -259,12 +261,13 @@ class Vulcan
 
     # Cache is used to save effort in computing common recursive targets within a single calculation session.
     # Do not pass an actual value in for it.
-    def build_target_for(step_name, cache = {})
-      if cache.include?(step_name)
-        return cache[step_name]
+    def build_target_for(step_name, cache = {}, var_name: nil)
+      cache_name = "#{step_name}#{var_name}"
+      if cache.include?(cache_name)
+        return cache[cache_name]
       end
 
-      cache[step_name] = begin
+      cache[cache_name] = begin
         output_filenames = []
         input_files = []
         script = nil
@@ -272,6 +275,8 @@ class Vulcan
         if step_name == :primary_inputs
           script = {}
           workflow.inputs.zip(primary_input_material_sources).each do |input, source|
+            next if var_name && var_name != input.id
+
             output_filenames << input.id
             input_files << source.take_as_input(input.id)
             script[input.id] = input_files.last
@@ -311,7 +316,7 @@ class Vulcan
 
           step.in.each do |step_in|
             source_step_name, source_output_name = step_in.source
-            input_file = build_target_for(source_step_name, cache).take_as_input(source_output_name, step_in.id)
+            input_file = build_target_for(source_step_name, cache, var_name: source_output_name).take_as_input(source_output_name, step_in.id)
             if input_file.nil?
               raise "Could not find output #{source_output_name.inspect} from source #{source_step_name.inspect} while building input #{step_in.id.inspect} for step #{step.id.inspect}"
             end
