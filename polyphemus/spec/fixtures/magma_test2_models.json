@@ -92,6 +92,16 @@
             "hidden": false,
             "validation": null,
             "attribute_type": "table"
+          },
+          "inventor_age": {
+            "name": "inventor_age",
+            "attribute_name": "inventor_age",
+            "display_name": "Age of inventor",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "integer"
           }
         }
       }
