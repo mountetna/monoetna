@@ -158,6 +158,15 @@ module Redcap
     def cast_type(value, att_name, id)
       return nil unless value
       case attribute(att_name).attribute_type
+      when "date_time"
+        # eventually, we hope, magma will do this
+        return nil if value.empty?
+
+        begin
+          return (DateTime.parse(value) - offset_days(id)).iso8601[0..9]
+        rescue ArgumentError
+          return nil
+        end
       when "float"
         return value.to_f
       when "integer"
@@ -165,7 +174,6 @@ module Redcap
       when "boolean"
         return value == "Yes" ? true : value == "No" ? false : nil
       else
-        # Date-shifting is done in Magma with the `shifted_date_time` attribute type
         return value
       end
     end
