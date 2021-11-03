@@ -1,14 +1,14 @@
 from archimedes.functions.dataflow import output_path, input_json, curl_data, tempfile, _os_path, buildTargetPath, parseModelAttr
 from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.magma import connect, question
-from archimedes.functions.environment import token, magma_host, project_name
+from archimedes.functions.environment import token, magma_host
 from archimedes.functions.utils import re
 from archimedes.functions.list import unique
 
 input_records = input_json('record_ids')
 
 ### Query paths to raw data for requested records
-pdat = input_json("project_data")[project_name]
+pdat = input_json("project_data")
 seq_target = parseModelAttr(pdat['seq_h5_counts_data'])
 
 magma = connect()
@@ -48,7 +48,7 @@ if len(data_tube_url)>1:
         merged_data = merged_data.concatenate(new_data)
 
 ### Add metadata for all color-data
-pdat = input_json("project_data")[project_name]
+pdat = input_json("project_data")
 color_options = pdat['color_options']
 
 # Prep magma querying

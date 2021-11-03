@@ -1,7 +1,6 @@
 from archimedes.functions.dataflow import output_path, output_json, input_path, input_var, input_json, buildTargetPath
 from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.list import flatten
-from archimedes.functions.environment import project_name
 from archimedes.functions.utils import pandas as pd
 from archimedes.functions.utils import re
 
@@ -10,7 +9,7 @@ scdata = sc.read(input_path('scdata.h5ad'))
 
 color_by = input_var('color_by')
 
-pdat = input_json("project_data")[project_name]
+pdat = input_json("project_data")
 color_options = pdat['color_options']
 
 # Obtain color data
