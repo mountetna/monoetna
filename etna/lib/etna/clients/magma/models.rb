@@ -22,12 +22,12 @@ module Etna
         include JsonSerializableStruct
       end
 
-      class UpdateRequest < Struct.new(:revisions, :project_name, keyword_init: true)
+      class UpdateRequest < Struct.new(:revisions, :project_name, :dry_run, keyword_init: true)
         include JsonSerializableStruct
         include MultipartSerializableNestedHash
 
         def initialize(**params)
-          super({revisions: {}}.update(params))
+          super({revisions: {}, dry_run: false}.update(params))
         end
 
         def update_revision(model_name, record_name, attrs)
