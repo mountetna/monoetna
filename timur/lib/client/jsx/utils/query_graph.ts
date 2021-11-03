@@ -191,4 +191,20 @@ export class QueryGraph {
 
     return selectableModels;
   }
+
+  childrenMap(modelName: string): {[key: string]: boolean} {
+    // Returns the child models, with a boolean flag
+    //   for one-to-many relationships. Includes original model for convenience.
+    let results: {[key: string]: boolean} = {
+      [modelName]: false
+    };
+
+    Object.keys(this.graph.children[modelName] || {}).forEach(
+      (childNeighbor: string) => {
+        results[childNeighbor] = this.stepIsOneToMany(modelName, childNeighbor);
+      }
+    );
+
+    return results;
+  }
 }

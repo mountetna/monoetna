@@ -126,10 +126,12 @@ describe('useTableEffects', () => {
           slices: [
             {
               modelName: 'labor',
-              attributeName: 'contributions',
-              operator: '::slice',
-              operand: 'Athens,Sparta',
-              attributeType: 'matrix'
+              clause: {
+                attributeName: 'contributions',
+                operator: '::slice',
+                operand: 'Athens,Sparta',
+                attributeType: 'matrix'
+              }
             }
           ]
         }
@@ -203,10 +205,12 @@ describe('useTableEffects', () => {
           slices: [
             {
               modelName: 'labor',
-              attributeName: 'contributions',
-              operator: '::slice',
-              operand: 'Athens,Sparta',
-              attributeType: 'matrix'
+              clause: {
+                attributeName: 'contributions',
+                operator: '::slice',
+                operand: 'Athens,Sparta',
+                attributeType: 'matrix'
+              }
             }
           ]
         }
@@ -279,10 +283,12 @@ describe('useTableEffects', () => {
           slices: [
             {
               modelName: 'labor',
-              attributeName: 'contributions',
-              operator: '::slice',
-              operand: 'Sparta,Athens',
-              attributeType: 'matrix'
+              clause: {
+                attributeName: 'contributions',
+                operator: '::slice',
+                operand: 'Sparta,Athens',
+                attributeType: 'matrix'
+              }
             }
           ]
         }
@@ -356,10 +362,12 @@ describe('useTableEffects', () => {
           slices: [
             {
               modelName: 'prize',
-              attributeName: 'name',
-              operator: '::equals',
-              operand: 'Athens',
-              attributeType: 'text'
+              clause: {
+                attributeName: 'name',
+                operator: '::equals',
+                operand: 'Athens',
+                attributeType: 'text'
+              }
             }
           ]
         },
@@ -370,10 +378,12 @@ describe('useTableEffects', () => {
           slices: [
             {
               modelName: 'prize',
-              attributeName: 'name',
-              operator: '::equals',
-              operand: 'Sparta',
-              attributeType: 'text'
+              clause: {
+                attributeName: 'name',
+                operator: '::equals',
+                operand: 'Sparta',
+                attributeType: 'text'
+              }
             }
           ]
         }
