@@ -61,9 +61,9 @@ class Polyphemus
         project_name: @project_name,
         revisions: all_records,
         dry_run: !commit)
-      magma_payload = select_documents(magma_client.update_json(update_request))
+      magma_documents = select_documents(magma_client.update_json(update_request))
 
-      logger.write(JSON.pretty_generate(magma_payload))
+      logger.write(JSON.pretty_generate(magma_documents))
       logger.write("\n")
       logger.write(
         commit ?
@@ -73,7 +73,7 @@ class Polyphemus
 
       summarize(
         logger: logger,
-        all_records: magma_payload,
+        all_records: magma_documents,
         records_to_blank: records_to_blank,
         commit: commit)
 
