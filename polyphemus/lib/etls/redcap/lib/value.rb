@@ -6,7 +6,7 @@ module Redcap
           type: "object",
           properties: {
             redcap_field: { type: "string" },
-            value: { enum: [ "text", "value", "label", "note", "select_choice", "combine", "none" ] },
+            value: { enum: [ "text", "value", "label", "note", "select_choice", "combine", "age", "none" ] },
             text: { type: "string" },
             combine: { type: "string" },
             equals: { type: "string" },
@@ -48,6 +48,9 @@ module Redcap
         return @template.select_choice(field_name, field_value(redcap_record))
       when "combine"
         return field_value_array(redcap_record)&.join(@config[:combine] || ' ')
+      when "age"
+        raw_value = field_value(redcap_record)
+        return [ 89, raw_value.to_i ].min.to_s if raw_value
       else
         raise "Invalid value specified in value config: #{@config}"
       end
