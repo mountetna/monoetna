@@ -22,6 +22,10 @@ function migrate() {
   /app/bin/$APP_NAME migrate
 }
 
+function globalMigrate() {
+  /app/bin/$APP_NAME global_migrate
+}
+
 while [ "$#" -gt 1 ]; do
   if [ "$1" = "--" ]; then
     shift
