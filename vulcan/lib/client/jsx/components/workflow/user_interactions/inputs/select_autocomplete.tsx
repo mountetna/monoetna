@@ -17,6 +17,7 @@ export default function SelectAutocompleteInput({data, onChange, ...props}: With
       }}
       list={options}
       value={value}
+      maxItems={30}
     />
   );
 };
