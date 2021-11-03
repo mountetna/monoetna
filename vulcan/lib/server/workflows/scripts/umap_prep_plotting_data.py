@@ -15,7 +15,7 @@ color_options = pdat['color_options']
 
 # Obtain color data
 custom_tooltip = False
-if color_by == 'Cluster':
+if color_by in ['leiden', 'Clustering (leiden)']:
     color = scdata.obs[ 'leiden' ].values
     custom_tooltip = True
     sets = input_json('top10.json')
@@ -26,12 +26,8 @@ if color_by == 'Cluster':
         ] for clust in list(sets.keys()) ])
     hover_name = 'top10 markers'
     hover_text = [texts[str(val)] for val in color]
-elif color_by == 'Manual Annotations':
-    color = scdata.obs[ 'Manual_Annotations' ].values
-elif color_by == 'Tube':
-    color = scdata.obs[ 'Record_ID' ].values
-elif color_by in color_options.keys():
-    color = scdata.obs[ re.sub(" ", "_", color_by) ].values
+elif color_by in list(scdata.obs.columns):
+    color = scdata.obs[ color_by ].values
 elif color_by in scdata.raw.var_names:
     color = flatten(scdata.raw.X[ : , scdata.raw.var_names == color_by ].toarray())
 else:
