@@ -6,7 +6,7 @@ class Polyphemus::ProjectWatchFilesEtl < Polyphemus::MetisFileInWatchFolderEtl
 
   def initialize(config)
     @config = config
-    super(bucket_watch_configs: config.bucket_configs)
+    super(bucket_watch_configs: config.bucket_configs, limit: 100)
   end
 
   def process_files(cursor, files, watch_type)

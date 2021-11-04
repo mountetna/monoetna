@@ -286,7 +286,7 @@ describe Polyphemus::Ipi::SingleCellLinkers do
         test_folders
       )
 
-      expect(update_requests_raw[5]).to eql({
+      expect(update_requests_raw).to include({
         dry_run: false,
         :project_name => "ipi",
         :revisions => {
