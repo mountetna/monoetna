@@ -1,7 +1,6 @@
 from archimedes.functions.dataflow import output_path, output_json, input_path, input_var, input_json, buildTargetPath
 from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.list import flatten
-from archimedes.functions.environment import project_name
 from archimedes.functions.utils import pandas as pd
 from archimedes.functions.utils import re
 
@@ -10,12 +9,12 @@ scdata = sc.read(input_path('scdata.h5ad'))
 
 color_by = input_var('color_by')
 
-pdat = input_json("project_data")[project_name]
+pdat = input_json("project_data")
 color_options = pdat['color_options']
 
 # Obtain color data
 custom_tooltip = False
-if color_by == 'Cluster':
+if color_by in ['leiden', 'Clustering (leiden)']:
     color = scdata.obs[ 'leiden' ].values
     custom_tooltip = True
     sets = input_json('top10.json')
@@ -26,12 +25,8 @@ if color_by == 'Cluster':
         ] for clust in list(sets.keys()) ])
     hover_name = 'top10 markers'
     hover_text = [texts[str(val)] for val in color]
-elif color_by == 'Manual Annotations':
-    color = scdata.obs[ 'Manual_Annotations' ].values
-elif color_by == 'Tube':
-    color = scdata.obs[ 'Record_ID' ].values
-elif color_by in color_options.keys():
-    color = scdata.obs[ re.sub(" ", "_", color_by) ].values
+elif color_by in list(scdata.obs.columns):
+    color = scdata.obs[ color_by ].values
 elif color_by in scdata.raw.var_names:
     color = flatten(scdata.raw.X[ : , scdata.raw.var_names == color_by ].toarray())
 else:
