@@ -74,12 +74,11 @@ describe Polyphemus::MetisFilesLinkerBase do
     linker.organize_metis_files_by_magma_record(
       metis_files: files,
       magma_record_names: existing_records.keys,
-      path_regex: record_name_regex,
     )
   end
 
   let(:linker) do
-    Polyphemus::MetisFilesLinkerBase.new(project_name: project_name, bucket_name: bucket_name)
+    Polyphemus::MetisFilesLinkerBase.new(project_name: project_name, bucket_name: bucket_name, record_name_regex: record_name_regex)
   end
 
   before(:each) do

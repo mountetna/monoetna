@@ -3,18 +3,13 @@ class Polyphemus
   end
 
   class SingleCellProcessedLinker < Polyphemus::MetisFilesLinkerBase
-    # Record name is two directories above a file
-    RECORD_NAME_REGEX = /.*\/(?<record_name>.*)\/[^\/]*\/[^\/]*$/
-
-    attr_reader :record_name_regex
-
     def initialize(
       project_name:,
       bucket_name:,
-      attribute_regex_overrides: {},
-      record_name_regex: RECORD_NAME_REGEX
+      record_name_regex:,
+      attribute_regex_overrides: {}
     )
-      super(project_name: project_name, bucket_name: bucket_name)
+      super(project_name: project_name, bucket_name: bucket_name, record_name_regex: record_name_regex)
       @attribute_regex_overrides = attribute_regex_overrides
       @record_name_regex = record_name_regex
     end
@@ -25,7 +20,6 @@ class Polyphemus
         files_by_record_name: organize_metis_files_by_magma_record(
           metis_files: files,
           magma_record_names: current_magma_record_names(project_name, model_name),
-          path_regex: @record_name_regex,
         ),
         attribute_regex: attribute_regex,
         cursor: cursor,
