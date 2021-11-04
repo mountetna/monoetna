@@ -7,7 +7,7 @@ class Polyphemus::ProjectWatchFoldersEtl < Polyphemus::AddWatchFolderBaseEtl
 
   def initialize(config)
     @config = config
-    super(bucket_watch_configs: config.bucket_configs)
+    super(bucket_watch_configs: config.bucket_configs, limit: 100)
   end
 
   def process_folder_contents(cursor, folders, watch_type)
