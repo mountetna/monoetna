@@ -11,30 +11,136 @@ require_relative '../shared/single_cell/single_cell_linkers'
 
 class Polyphemus
   module Ipi
-    # Broken out to simplify tests
     module SingleCellLinkers
       def add_single_cell_linkers!
-        process_watch_type_with(
-          bucket('data')
-            .watcher('single_cell_pool_processed')
-            .watch(/^single_cell_[^\/]*\/processed\/.*\/[^\/]+POOL[^\/]+\/.*$/),
-          Polyphemus::LinkerProcessor.new(
-            linker: SingleCellLinker.new,
-            model_name: 'sc_rna_seq_pool'
+        process_folders_with(
+          process_watch_type_with(
+            bucket('data')
+              .watcher('single_cell_pool_processed')
+              .watch(/^single_cell_[^\/]*\/processed\/.*\/IPIPOOL[^\/]+(\/[^\/]*)?$/),
+            Polyphemus::LinkerProcessor.new(
+              linker: single_cell_pooled_linker,
+              model_name: 'sc_rna_seq_pool'
+            ),
           ),
+          SingleCellFolderProcessor.new(
+            model: 'sc_rna_seq_pool',
+            linker: single_cell_pooled_linker
+          )
         )
 
-        process_watch_type_with(
-          bucket('data')
-            .watcher('single_cell_processed')
-            .watch(/^single_cell_[^\/]*\/processed\/((?!POOL).)*$/),
-          Polyphemus::LinkerProcessor.new(
-            linker: SingleCellLinker.new(
-              record_name_regex: /.*\/(?<record_name>.*)\/.*$/
+        process_folders_with(
+          process_watch_type_with(
+            bucket('data')
+              .watcher('single_cell_processed')
+              .watch(/^single_cell_[^\/]*\/processed\/.*\/IPI((?!POOL)[^\/])+(\/[^\/]*)?$/),
+            Polyphemus::LinkerProcessor.new(
+              linker: single_cell_non_pooled_linker,
+              model_name: 'sc_rna_seq',
             ),
-            model_name: 'sc_rna_seq',
           ),
+          SingleCellFolderProcessor.new(
+            model: 'sc_rna_seq',
+            linker: single_cell_non_pooled_linker
+          )
         )
+      end
+
+      def single_cell_non_pooled_linker
+        SingleCellLinker.new
+      end
+
+      def single_cell_pooled_linker
+        SingleCellLinker.new
+      end
+
+      class SingleCellFolderProcessor
+        include WithEtnaClients
+        include WithSlackNotifications
+        include WithLogger
+
+        def initialize(
+          model:,
+          linker: SingleCellLinker.new
+        )
+          @model = model
+          @linker = linker
+        end
+
+        VERSION_DIGIT_REGEX = /.*\/(v2_chemistry|v3_chemistry)\/.*/
+        PRIME_DIGIT_REGEX = /.*\/(3prime_|5prime_).*/
+
+        def calculate_record(folder, record_name)
+          biospecimen = record_name.split('.').last
+          prime_digit = nil
+          version_digit = '3'
+
+          match = VERSION_DIGIT_REGEX.match(folder.folder_path)
+          if match
+            if match[1].include?('2')
+              version_digit = '2'
+            elsif match[1].include?('1')
+              version_digit = '1'
+            else
+              version_digit = '3'
+            end
+          end
+
+          match = PRIME_DIGIT_REGEX.match(folder.folder_path)
+          if match
+            if match[1].include?('3')
+              prime_digit = '3'
+            else
+              prime_digit = '5'
+            end
+          end
+
+          if prime_digit.nil?
+            logger.warn("Skipping #{folder.folder_path}, could not find prime component")
+            return nil
+          end
+
+          chemistry = "10X_#{prime_digit}prime_v#{version_digit}"
+
+          {
+            'biospecimen' => biospecimen,
+            'chemistry' => chemistry
+          }
+        end
+
+        def process(cursor, folders)
+          record_names = @linker.current_magma_record_names(cursor[:project_name], @model)
+
+          matched_folders = folders.map do |folder|
+            record_name = @linker.record_name_by_path(
+              folder
+            )
+            if record_names.include?(record_name)
+              [folder, record_name]
+            else
+              nil
+            end
+          end.select { |f| f }
+
+          matched_folders.each do |folder, record_name|
+            record = calculate_record(folder, record_name)
+            next if record.nil?
+
+            begin
+              magma_client.update_json(Etna::Clients::Magma::UpdateRequest.new(revisions: {
+                @model => {
+                  record_name => record
+                }
+              }, project_name: cursor[:project_name]))
+            rescue Exception => e
+              notify_slack(
+                "Error processing ipi record directory #{folder.folder_path}.\n#{e.message}.",
+                channel: "data-ingest-errors",
+              )
+              logger.log_error(e)
+            end
+          end
+        end
       end
 
       class SingleCellLinker < Polyphemus::SingleCellProcessedLinker
@@ -42,12 +148,26 @@ class Polyphemus
           super(
             project_name: 'ipi',
             bucket_name: 'data',
+            record_name_regex: /.*\/(?<record_name>IPI[^\/]*)\//,
             **kwds
           )
         end
 
         def corrected_record_name(record_name)
-          record_name.gsub(/_/, '.').sub(/^([^.]*\.[^.]*\.)(.*)$/) { $1 + $2.downcase }
+          if record_name.include?('POOL')
+            record_name.gsub(/_/, '.').sub(/^([^.]*\.[^.]*\.)(.*)$/) do
+              first = $1
+              second = $2
+              first + second.downcase
+            end
+          else
+            record_name.sub(/^([^_.]*[_.][^_.]*[_.])([^_.]*)(.*)$/) do
+              first = $1
+              second = $2
+              third = $3
+              first.gsub(/_/, '.') + second.downcase + third
+            end
+          end
         end
       end
     end
@@ -63,7 +183,7 @@ class Polyphemus
         process_watch_type_with(
           bucket('data').watcher('process_bulk_rna_seq_results').watch(/^bulkRNASeq\/.*\/results$/),
           Polyphemus::IpiRnaSeqAttributeProcessor.new,
-            Polyphemus::IpiRnaSeqMatrixProcessor.new,
+          Polyphemus::IpiRnaSeqMatrixProcessor.new,
         )
 
         process_folders_with(

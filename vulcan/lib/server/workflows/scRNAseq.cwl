@@ -170,25 +170,18 @@ steps:
     in:
       a: determine_batch_options/batch_options
     out: [batch_by]
-  magma_query_paths:
-    run: scripts/magma_query_paths.cwl
-    label: 'Query paths to raw counts files'
+  query_magma_and_merge_from_raw_h5:
+    run: scripts/get_and_merge_anndata_from_raw_h5.cwl
+    label: 'Import from magma to scanpy'
     in:
       project_data: projectData/project_data
       record_ids: verifyRecordNames/names
-    out: [h5_locations]
-  merge_anndata_from_raw_h5:
-    run: scripts/merge_anndata_from_raw_h5.cwl
-    label: 'Import into scanpy'
-    in:
-      project_data: projectData/project_data
-      h5_locations: magma_query_paths/h5_locations
     out: [merged_anndata.h5ad]
   subset_normalize_and_select_features:
     run: scripts/subset_normalize_and_select_features.cwl
     label: 'Subset cells and normalize'
     in:
-      merged_anndata.h5ad: merge_anndata_from_raw_h5/merged_anndata.h5ad
+      merged_anndata.h5ad: query_magma_and_merge_from_raw_h5/merged_anndata.h5ad
       min_nCounts: 1_Cell_Filtering__min_nCounts
       max_nCounts: 1_Cell_Filtering__max_nCounts
       min_nFeatures: 1_Cell_Filtering__min_nFeatures

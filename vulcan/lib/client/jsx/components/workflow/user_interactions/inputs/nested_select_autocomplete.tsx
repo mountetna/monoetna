@@ -58,6 +58,7 @@ function LeafOptions({
       }}
       list={options}
       defaultValue={null}
+      maxItems={30}
     />
   );
 }
@@ -119,6 +120,7 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
                   }}
                   list={options}
                   value={value}
+                  maxItems={30}
                 />
               );
             })
