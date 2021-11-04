@@ -64,15 +64,16 @@ function LeafOptions({
 
 type OptionSet = {[k: string]: null | OptionSet};
 
-export default function NestedSelectAutocompleteInput({ label, data, onChange, value }: WithInputParams<{label?: string}, string, OptionSet>) {
+export default function NestedSelectAutocompleteInput({ label, data, onChange, ...props }: WithInputParams<{label?: string}, string, OptionSet>) {
+  const value = useSetsDefault("", props.value, onChange)
   const allOptions = useMemoized(joinNesting, data);
   const [path, setPath] = useState([] as string[]);
-
+  
   useEffect(() => {
-    mapSome(value, value => {
+    if (value && value != "") {
       const updatedPath = getPath(allOptions, value);
       setPath(updatedPath);
-    })
+    }
   }, [allOptions, value])
 
   const handleSelect = useCallback(

@@ -1,9 +1,5 @@
-from archimedes.functions.dataflow import output_json, input_json, output_path
+from archimedes.functions.dataflow import output_json, input_json, output_var
 from archimedes.functions.environment import project_name
-
-def output_var(data, name):
-    with open(output_path(name), 'w') as output_file:
-        output_file.write(data)
 
 pdat = input_json("project_data")[project_name]
 

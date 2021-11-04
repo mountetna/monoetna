@@ -42,8 +42,9 @@ export default function SessionManager() {
 
   const saveSession = useCallback(() => {
     if (hasPendingEdits) {
-      alert('You have uncommitted changes, reset or commit those before saving.')
-      return;
+      if (!confirm('You have unfilled inputs and/or uncommitted changes. Unfilled inputs will be left out of the saved state. Uncommited changes will be reset to their previously committed values. Proceed?')) {
+        return;
+      }
     }
 
     downloadBlob({
@@ -56,7 +57,7 @@ export default function SessionManager() {
   const openSession = () => {
     showErrors(readTextFile('*.json').then((sessionJson) => {
       const session: VulcanSession = JSON.parse(sessionJson);
-      if (session.workflow_name !== state.session.project_name || session.project_name !== state.session.project_name) {
+      if (session.workflow_name !== state.session.workflow_name || session.project_name !== state.session.project_name) {
         // TODO: Confirm the user has project and workflow access before doing the navigation?
         if (confirm('This session file belongs to a different project / workflow combination, navigate to that page?')) {
           location.href = location.origin + ROUTES.workflow(session.project_name, session.workflow_name);
