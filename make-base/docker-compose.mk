@@ -1,14 +1,10 @@
 export COMPOSE_PROJECT_NAME:=monoetna
-COMPOSE_MIXINS:=docker-compose.shared.yml $(COMPOSE_MIXINS)
 app_service_name:=${app_name}_app
 baseTag:=$(shell basename "$$(pwd)")
 fullTag:=$(IMAGES_PREFIX)$(baseTag)$(IMAGES_POSTFIX)
 baseFeTag:=${app_name}_app_fe
 fullFeTag:=$(IMAGES_PREFIX)$(baseFeTag)$(IMAGES_POSTFIX)
 containerSh:=bash
-
-docker-compose.yml:: $(wildcard ../docker/*.shared.yml) ../docker/default_compose
-	COMPOSE_MIXINS="$(COMPOSE_MIXINS)" ../docker/default_compose docker-compose.yml
 
 .PHONY: images
 images: config-ready docker-compose.yml

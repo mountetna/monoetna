@@ -1,13 +1,12 @@
 export COMPOSE_PROJECT_NAME=monoetna
 export NODE_ENV=development
-projects := $(shell ls ./*/Makefile | grep -v docker | grep -v chef | xargs -n 1 dirname | xargs -n 1 basename)
 
+.PHONY: help
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) /dev/null | \
 		sed 's/^[^:]*://' | sort | \
 		awk -F':.*?## ' '{printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: help
 .DEFAULT_GOAL := help
 
 .PHONY: build
@@ -39,25 +38,13 @@ logs: ## Shows logs of all running projects' containers
 logs-recent: ## For CI
 	@ make -C docker logs-recent
 
-.PHONY: bash
-bash: ## Starts a bash shell in an app environment
-	@ echo Run this within a specific app context, ie: make -C metis bash
-
-.PHONY: psql
-psql: ## Starts a psql shell in an app environment
-	@ echo Run this within a specific app context, ie: make -C janus psql
-
-.PHONY: migrate
-migrate: ## Runs migrations in a specific app context
-	@ echo Run this within a specific app context, ie: make -C janus migrate
-
 .PHONY: update
 update: ## Runs all projects' updates, running bundle and npm install
 	@ make -C docker update
 
 .PHONY: release
 release: ## Builds static docker images staged for release, runs tests against them, and pushes them to dockerhub (requires PUSH_IMAGES=1)
-	@ set -e && for project in $(projects); do make -C $$project release; done
+	@ make -C docker release
 
 .PHONE: clean
 clean:  ## Cleans many dangling docker references, recovering much disk space.

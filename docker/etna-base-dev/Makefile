@@ -1,7 +1,3 @@
-CERTS ?= ../../development-certs/certs
-baseTag:=$(shell basename "$$(pwd)")
-fullTag:=$(IMAGES_PREFIX)$(baseTag)$(IMAGES_POSTFIX)
+include ../../make-base/stubs.mk
 
-image:
-	../build_image Dockerfile $(CERTS)
-	if [ -n "$$PUSH_IMAGES" ]; then docker push $(fullTag); fi
+release-build:: image.target.mk

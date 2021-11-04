@@ -3,7 +3,7 @@ set -e
 
 prog=$0
 error() {
-   echo "Whoops!  Looks like $2:$2 failed."
+   echo "Whoops!  Looks like $0:$2 failed."
    echo "Please try rerunning $prog again."
    exit 1
 }
@@ -18,7 +18,7 @@ done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 function usage() {
-  echo "$0 [-f] [-d] <Dockerfile> [<dep> [<dep2> ...]]" 1>&2
+  echo "$0 <Dockerfile> [<dep> [<dep2> ...]]" 1>&2
 	cat $SOURCE | grep -E '^#-.*$$' | sed -e 's@^#- @  @' 1>&2
 }
 
@@ -27,35 +27,21 @@ YELLOW='\033[1;33m'
 CYAN='\033[1;36m'
 NC='\033[0m'
 
-force=
-digestOnly=
-
-#- -f
-#-   Forces a rebuild of this image, even if the marker in /tmp/ is newer than changes made to its dependencies.
-#-   NOT recursive.  Base images are not force built as a result of this.
-if [[ "$1" == "-f" ]]; then
-    force=1
-    shift
-fi
-
-#- -d
-#-   Calculates and displays a digest based on the source files and dependencies used to build the image. Slow.
-if [[ "$1" == "-d" ]]; then
-    digestOnly=1
-    shift
-fi
-
 if [[ "$1" == "-h" ]]; then
   usage
   exit 0
 fi
 
-#- .
-#- Builds the given Dockerfile into an image, mounting the given dependency directories as siblings.
+#- Builds the given Dockerfile into an image,
+#-   first by constructing a build directory that links together the shortest
+#-   common parent directories of given dependencies, then running the given Dockerfile
+#-   in that context.  It also injects metadata related to the release sha at the time
+#-   the image is built.
 Dockerfile=$1
 
-#- The parent directory of the Dockerfile is used as the name of the image to be produced by this process.
-baseTag=$(basename "$(dirname "$(realpath $Dockerfile)")")
+#- The parent directory of the Dockerfile is used as the name of the image to be produced
+#-   by this process, unless BASE_TAG is specified in the environment.
+baseTag=${BASE_TAG:-$(basename "$(dirname "$(realpath $Dockerfile)")")}
 
 #- The final tag will also include env variables IMAGES_PREFIX and IMAGES_POSTFIX
 tag="${IMAGES_PREFIX}${baseTag}${IMAGES_POSTFIX}"
@@ -64,12 +50,6 @@ function imageExists() {
   docker inspect --type=image $tag &>/dev/null
 }
 
-#- Markers are used locally to detect when new builds should be kicked off by comparing the Dockerfile's parent
-#- directory and all dependency directories for changes newer than the marker.  Markers are kept in /tmp/etna-build-markers
-MARKERS_DIR=${MARKERS_DIR:-/tmp/etna-build-markers}
-mkdir -p $MARKERS_DIR
-marker=$MARKERS_DIR/$baseTag
-
 if [[ -z "$Dockerfile" ]]; then
     usage
     exit 1
@@ -77,124 +57,29 @@ fi
 
 shift
 
-# Calculate digests when invoked with -d
-export digestFile=$(mktemp)
-function addToDigest() {
-     digest=$(cat $digestFile)
-     echo $(cat -) $digest | md5sum | cut -d ' ' -f1 > $digestFile
-}
-function recursiveDigest() {
-  if [[ -n "$digestOnly" ]]; then
-     find "$1" -type f ! -path '*/node_modules/*' ! -path '*/.bundle/config' -exec md5sum {} \;
-     echo
-  fi
-}
+buildDir=$(mktemp -d)
 
-# Searches recursively for latest updated file and keeps this variable tracking that file.
-newestFile=$0
-function findNewest() {
-  local find=find
-  if type -p gfind; then
-    find=gfind
-  fi
+sourceDockerDir="$(readlink -m $(dirname $Dockerfile))"
+found=sourceDockerDir
 
-  lastModifiedFile=$($find $1 -type f ! -path '*/node_modules/*' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2)
-  if [ "$lastModifiedFile" -nt "$newestFile" ]; then
-      newestFile="$lastModifiedFile"
-   fi
-}
-
-function considerNewest() {
-if [ "$1" -nt "$newestFile" ]; then
-    newestFile="$1"
-fi
-}
-
-#- Any FROM clause in the given Dockerfile is processed as a potential dependency to be built before this image.
-while read depImage; do
-  baseDepImage=$depImage
-
-  depImage="$DIR/$baseDepImage"
-  if ! [[ -e "$depImage" ]]; then
-    continue;
-  fi
-
-  #- If that image exists a sub directory of the docker folder, that image is recursively built using make,
-  #- and its source files are tracked for the purposes of rebuild caching and digest of this build.
-  [[ -z "$digestOnly" ]] && make -C "$DIR/$baseDepImage"
-  recursiveDigest "$(realpath $depImage)" | addToDigest
-  findNewest "$depImage"
-  if [[ $newestFile -ot $MARKERS_DIR/$baseDepImage ]]; then
-    newestFile=$MARKERS_DIR/$baseDepImage
-  fi
-done < <(cat $Dockerfile | grep FROM | xargs -n2 echo | cut -d ' ' -f2)
-
-cat $0 | addToDigest
-
-mounts="-v /var/run/docker.sock:/var/run/docker.sock:ro -v /tmp/last.build:/build/last.build -v $MARKERS_DIR:$MARKERS_DIR"
-#- The dockerfile's parent directory is mount as 'src' into the build process.
-mounts="$mounts --mount type=bind,source=$(realpath $(dirname $Dockerfile)),target=/build/src"
-recursiveDigest "$(dirname $Dockerfile)" | addToDigest
-findNewest "$(dirname $Dockerfile)"
-
-foundMounts=
-
+ln -s "$(sourceDockerDir)" "$(buildDir)/src"
 while (( "$#" )); do
-    mountPath=$1
-    skipLocalRebuild=
-    if [[ "$mountPath" == "--" ]]; then
-      shift
-      break
-    fi
-
-    if [[ "$mountPath" =~ ^\? ]]; then
-      mountPath="${mountPath:1}"
-      skipLocalRebuild=1
-    fi
-
-    mountPath="$(realpath "$mountPath")"
-
-    # Dedup mounts
-    if echo "$foundMounts" | grep "$mountPath" &>/dev/null; then
+    path="$(readlink -m $1)"
+    if echo "$found" | grep "$path" &>/dev/null; then
       shift
       continue
     fi
+    found="$path
+$found"
 
-    foundMounts="$mountPath
-$foundMounts"
-
-    #- While other dependencies are mounted as siblings to the 'src' directory using their basename.
-    mounts="$mounts --mount type=bind,source=$mountPath,target=/build/$(basename $mountPath)"
-    recursiveDigest "$mountPath" | addToDigest
-    [[ -z "$skipLocalRebuild" ]] && findNewest "$mountPath"
-    shift
+    ln -s "$(readlink -m $1)" "$(buildDir)/$(basename $1)"
 done
 
-#- The build process also combines the docker/.dockerignore file with the Dockerfile project's own for a combined
-#- filtering.
-# Add in the built-from-sha here, too.
+# Docker can 'leak' intermediate build images from different runs, unfortunately, even with --rm and --force-rm.
+# This will atleast prune between runs to keep it minimal
+[[ -z "$IS_CI" ]] && docker image prune -f
 
 builtFromSha="$($DIR/find-parent-pr-merge.sh)"
-
-BUILD_CMD="
-set -x
-cat src/.dockerignore /assist/.dockerignore | grep -v '#' | awk '{print \"src/\"\$0}' > .dockerignore
-set -e
-cp src/$(basename $Dockerfile) /tmp/Dockerfile
-echo >> /tmp/Dockerfile
-echo 'RUN true' >> /tmp/Dockerfile
-echo 'COPY last.build/version /built-from-sha' >> /tmp/Dockerfile
-echo 'RUN true' >> /tmp/Dockerfile
-"
-
-if ! rm -rf /tmp/last.build/; then
-  echo "Could not clean /tmp/last.build/, required for build to continue"
-  echo "Perhaps permissions issue in this directory?"
-  exit 1
-fi
-
-mkdir -p /tmp/last.build
-
 # If we haven't pre-pulled the image, try pulling here.
 # this might fail, however, especially for new or local tags.
 if ! imageExists; then
@@ -202,73 +87,46 @@ if ! imageExists; then
 fi
 
 # If we did manage to pull the image, pull out the existing built version info.
+lastBuildId=
+lastBuildVersion=
 if imageExists; then
-  docker image inspect "$tag" | grep "\"Id\":" | sed -e 's/\s*//' | cut -d'"' -f4 > /tmp/last.build/id
-  docker image inspect "$tag" | grep "\"edu.ucsf.mountetna.version\":" | sed -e 's/\s*//' | tail -n 1 | cut -d'"' -f4 > /tmp/last.build/version
+  lastBuildId="$(docker image inspect "$tag" | grep "\"Id\":" | sed -e 's/\s*//' | cut -d'"' -f4)"
+  lastBuildVersion="$(docker image inspect "$tag" | grep "\"edu.ucsf.mountetna.version\":" | sed -e 's/\s*//' | tail -n 1 | cut -d'"' -f4)"
 fi
-
-DOCKER_BUILD_CMD="docker build --rm --force-rm \\
-  --iidfile=/build/next.build/id \\
-  --label=edu.ucsf.mountetna.version=\$(cat /build/last.build/version) \\
-  --tag $baseTag \\
-  --cache-from etnaagent/$baseTag:staging \\
-  --cache-from $tag \\
-  --cache-from $baseTag \\
-  $* -f /tmp/Dockerfile ."
-
-BUILD_CMD="${BUILD_CMD}
-mkdir -p /build/next.build/
-mkdir -p /build/last.build/
-touch /build/last.build/id
-touch /build/last.build/version
-$DOCKER_BUILD_CMD"
-
-#- For images that are intended to be tagged and pushed to a repository, we'll want to rebuild in the correct version
-#- labeling for this given commit, assuming that the built sha is differing.
-if [[ "$baseTag" != "$tag" ]]; then
-  BUILD_CMD="$BUILD_CMD
-if [[ \"\$(cat /build/last.build/id)\" != \"\$(cat /build/next.build/id)\" ]]; then
-  echo '${builtFromSha}' > /build/last.build/version
-  $DOCKER_BUILD_CMD
-  docker tag $baseTag $tag
-else
-  exit 0
-fi"
-fi
-
-BUILD_CMD="$BUILD_CMD
-touch $marker
-"
-
-echo "$BUILD_CMD" | addToDigest
-
-if [[ -n "$digestOnly" ]]; then
-  digest=$(cat $digestFile)
-  echo "$digest"
-  exit 0
-fi
-
-if imageExists && [[ -z "$force" && "$newestFile" -ot "$marker" ]]; then
-  echo -e "${YELLOW}Image $tag already up to date, skipping build${NC}"
-  exit 0
-fi
-
-if [[ "$newestFile" -ot "$marker" ]]; then
-  echo -e "${RED}Forcing rebuild, image does not exist or force flag set.${NC}"
-fi
-
-if [ -e $marker ]; then
-  echo -e "${CYAN}Detected change in $newestFile ($(date -r $newestFile)) over $marker ($(date -r $marker)), issuing build${NC}"
-fi
-
-# Ensure markers touched by build update to unique timestamp
-sleep 1
 
 set -x
-# Docker can 'leak' intermediate build images from different runs, unfortunately, even with --rm and --force-rm.
-# This will atleast prune between runs to keep it minimal
-[[ -z "$IS_CI" ]] && docker image prune -f
+cd "$buildDir"
+cat $sourceDockerDir/.dockerignore /assist/.dockerignore | grep -v '#' | awk '{print \"src/\"\$0}' > .dockerignore
+cp src/$(basename $Dockerfile) Dockerfile
+echo >> Dockerfile
+echo 'RUN true' >> Dockerfile
+echo "COPY last.version /built-from-sha" >> Dockerfile
+echo 'RUN true' >> Dockerfile
 
-# Build the base layer.
-gid=$(id -g)
-docker run --rm -u 0:$gid -w /build -v "${DIR}:/assist:ro" $mounts docker:19.03.12 sh -c "$BUILD_CMD"
+echo "$lastBuildVersion" > last.version
+
+
+function runBuild() {
+  docker build --rm --force-rm \
+    --iidfile=next.id \
+    --label=edu.ucsf.mountetna.version=$lastBuildVersion \
+    --tag $baseTag \
+    --cache-from etnaagent/$baseTag:staging \
+    --cache-from $tag \
+    --cache-from $baseTag \
+    .
+}
+
+# Execute a base run.
+runBuild
+
+#- For images that are intended to be tagged and pushed to a repository, we'll want to rebuild
+#  in the correct version labeling for this given commit, assuming that the built
+#  id is differing.
+if [[ "$baseTag" != "$tag" ]]; then
+if [[ "$lastBuildId" != "$(cat next.id)" ]]; then
+  lastBuildVersion="$builtFromSha"
+  echo "$builtFromSha" > last.version
+  runBuild
+  docker tag $baseTag $tag
+fi
