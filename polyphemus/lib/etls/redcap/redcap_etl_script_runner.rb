@@ -104,6 +104,8 @@ class Polyphemus
 
     def select_documents(payload)
       models = payload.raw["models"]
+      return {} if models.nil?
+      
       {}.tap do |to_log|
         models.keys.each do |model_name|
           to_log[model_name] = models[model_name]["documents"]
