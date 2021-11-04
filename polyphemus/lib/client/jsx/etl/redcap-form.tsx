@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useContext, useMemo } from 'react';
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
 import Tabs from '@material-ui/core/Tabs';
@@ -289,6 +289,12 @@ const RedcapAttribute = ({att_name, attribute_value, update}:{
 
   let valueComponent;
 
+  const handleUpdateValue = useCallback((field_name: string, newValue: any) => {
+    let v = { ...attribute_value, [field_name]: newValue };
+    if (newValue === undefined) delete v[field_name];
+    update(v);
+  }, [attribute_value, update]);
+
   if (typeof attribute_value === 'string')
     valueComponent = <TextField placeholder='redcap_field' onChange={ e => update(e.target.value) } value={attribute_value}/>;
   else {
@@ -303,9 +309,7 @@ const RedcapAttribute = ({att_name, attribute_value, update}:{
         opts={ attribute_props?.[field_name] }
         update={
           (newValue:any) => {
-            let v = { ...attribute_value, [field_name]: newValue };
-            if (newValue === undefined) delete v[field_name];
-            update(v);
+            handleUpdateValue(field_name, newValue);
           }
         }
       />
@@ -487,22 +491,28 @@ const RedcapScript = ({script, num, update, copy, modelName}:{
 
   const [ showAddAttribute, setShowAddAttribute ] = useState(false);
 
+  const handleUpdate = useCallback((newScript: Script | undefined) => {
+    update(newScript);
+  }, [update]);
+
   const updateAttributes = useCallback((att_name, newValue) => {
     let s = { ...script, attributes: { ...attributes, [att_name]: newValue } }
     if (newValue === undefined) delete s.attributes[att_name];
-    update(s);
-  }, [ script, attributes ]);
+    handleUpdate(s);
+  }, [ script, attributes, handleUpdate ]);
+
+  const handleUpdateRedcapEntity = useCallback((newEach: Entity[]|undefined) => {
+    const s = { ...script, each: newEach };
+    if (newEach === undefined) delete s.each;
+    handleUpdate(s);
+  }, [handleUpdate, each, script]);
 
   return <Grid className={ classes.script } container direction='column'>
     <Typography className={classes.number}>{num}</Typography>
     <Grid container item className={ classes.script_header} alignItems='center' >
       <Grid item className={ classes.attribute_name } xs={2}>each</Grid>
       <Grid item xs={6}>
-        <RedcapEntity each={each} allowNull={true} update={ (newEach:Entity[]|undefined) => {
-          const s = { ...script, each: newEach };
-          if (newEach === undefined) delete s.each;
-          update(s);
-        } } />
+        <RedcapEntity each={each} allowNull={true} update={handleUpdateRedcapEntity} />
       </Grid>
       <Grid item xs={4}>
         <Grid container justify='flex-end'>
@@ -563,6 +573,24 @@ const RedcapModel = ({config,modelName, update}:{
 
   const page_scripts = scripts.slice((page-1)*pageSize, page*pageSize);
 
+  const handleUpdateScript = (index: number, newScript: Script|undefined) => {
+    const pos = index + (page-1)*pageSize;
+    const newScripts = (newScript === undefined) ?
+      scripts.filter((s,j) => j != pos) :
+      Object.assign([], scripts, {[pos]: newScript});
+    update({ ...config, scripts: newScripts });
+  }
+
+  const handleCopyScript = useCallback((index: number, script: Script) => {
+    update({
+      ...config,
+      scripts: [ ...scripts.slice(0,index),
+        JSON.parse(JSON.stringify(script)),
+        ...scripts.slice(index)
+      ]
+    })
+  }, [config, update, scripts])
+
   return <Grid className={classes.model} container>
     <ModelRow name='remove'><Button onClick={() => update(undefined) }>Remove model</Button></ModelRow>
     <ModelRow name='each'><RedcapEntity each={each} update={ (newEach:Entity[]|undefined) => {
@@ -585,30 +613,16 @@ const RedcapModel = ({config,modelName, update}:{
         </>
       }
         { page_scripts.map(
-          (script,i) => <RedcapScript
-            key={i}
+          (script: Script | undefined, i: number) => 
+          <RedcapScript
             script={script}
             num={i+(page-1)*pageSize+1}
             modelName={modelName}
             update={
-              (newScript:Script|undefined) => {
-                const pos = i + (page-1)*pageSize;
-                const newScripts = (newScript === undefined) ?
-                  scripts.filter((s,j) => j != pos) :
-                  Object.assign([], scripts, {[pos]: newScript});
-
-                update({ ...config, scripts: newScripts });
-              }
+              (newScript:Script|undefined) => 
+                handleUpdateScript(i, newScript)
             }
-            copy={
-              () => update({
-                ...config,
-                scripts: [ ...scripts.slice(0,i),
-                  JSON.parse(JSON.stringify(script)),
-                  ...scripts.slice(i)
-                ]
-              })
-            }
+            copy={() => handleCopyScript(i, script)}
           />
       )}
     </ModelRow>
@@ -672,6 +686,16 @@ const RedcapForm = ({config, project_name, job, update}:{
   const modelName = modelNames[tab];
   const [ showAddModel, setShowAddModel ] = useState(false);
 
+  const handleUpdateModel = useCallback((modelConfig: Model|undefined) => {
+    let c = { ...config, [modelName]: modelConfig};
+    if (modelConfig === undefined) delete c[modelName];
+    update(c as Config);
+  }, [config, modelName, update]);
+
+  const modelConfig = useMemo(() => {
+    return config[modelName];
+  }, [config, modelName]);
+
   return <Grid container className={classes.form} direction='column'>
     <Grid item container className={classes.tabs}>
       <Grid item className={classes.tab_scroll}>
@@ -696,12 +720,8 @@ const RedcapForm = ({config, project_name, job, update}:{
         modelName != undefined && <RedcapModel
           key={modelName}
           modelName={modelName}
-          config={config[modelName]}
-          update={ (modelConfig:Model|undefined) => {
-            let c = { ...config, [modelName]: modelConfig};
-            if (modelConfig === undefined) delete c[modelName];
-            update(c as Config);
-          } }/>
+          config={modelConfig}
+          update={handleUpdateModel}/>
       }
     </Grid>
     <AddModel
