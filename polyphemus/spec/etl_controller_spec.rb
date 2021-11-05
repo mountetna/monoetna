@@ -230,7 +230,7 @@ describe EtlController do
 
       expect(last_response.status).to eq(200)
       expect(json_body.map{|r| r[:config]}).to eq([
-        { foo: 'baz' }, { foo: 'bar' }, {}
+        { foo: 1 }, { foo: 'baz' }, { foo: 'bar' }, {}
       ])
       expect(json_body.map(&:keys)).to all(match_array([ :config, :updated_at, :comment ]))
     end
