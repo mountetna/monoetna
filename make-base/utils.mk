@@ -37,13 +37,11 @@ endef
 images=$(shell cat $(1) | grep FROM | xargs -n2 echo | cut -d ' ' -f2)
 
 define image_target
-$(info $(1)> $(call images,$(1)))
+$(info $(1) <- $(call images,$(1)))
 $(shell if ! test -e $(shell dirname $(1))/image.marker; then touch -t 0001011000 $(shell dirname $(1))/image.marker; fi)
-$(foreach image,$(call images,$(1)),include $(call find_project_file,$(image),build.mk))
+$(addprefix include ,$(foreach image,$(call images,$(1)),$(call find_project_file,$(image),build.mk)))
+$(info $(call find_updated_sources,$(shell dirname $(1))))
 $(shell dirname $(1))/image.marker: $(call find_updated_sources,$(shell dirname $(1))) $(updated_build_files) $(call dependent_image_markers,$(call images,$(1))) $(1)
-	@echo $(foreach image,$(call images,$(1)),include $(call find_project_file,$(image),build.mk))
-	@echo $(call dependent_image_markers,$(call images,$(1)))
-	@echo $(call images,$(1))
 	$(call find_project_file,docker,build_image) $(1)
 	touch $@
 endef
