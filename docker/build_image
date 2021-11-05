@@ -39,9 +39,7 @@ fi
 #-   the image is built.
 Dockerfile=$1
 
-#- The parent directory of the Dockerfile is used as the name of the image to be produced
-#-   by this process, unless BASE_TAG is specified in the environment.
-baseTag=${BASE_TAG:-$(basename "$(dirname "$(realpath $Dockerfile)")")}
+baseTag=$(basename "$(dirname "$(realpath $Dockerfile)")")
 
 #- The final tag will also include env variables IMAGES_PREFIX and IMAGES_POSTFIX
 tag="${IMAGES_PREFIX}${baseTag}${IMAGES_POSTFIX}"

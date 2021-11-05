@@ -38,3 +38,15 @@ endef
 define updated_build_files
 $(call find_updated_targets,$(call find_project_containing,docker,build_image))
 endef
+
+define image_target
+$(foreach image,$(shell cat $(1) | echo 'FROM   a' | xargs -n2 echo | cut -d ' ' -f2),include $(call find_project_file,$(image),build.mk))
+
+image.marker: $(updated_source_files) $(updated_build_files) $(call dependent_image_markers,$(1))
+	$(call find_project_file,docker,build_image) $(1) $(source_dirs)
+	touch $@
+endef
+
+define dependent_image_markers
+$(foreach image,$(shell cat $(1) | echo 'FROM   a' | xargs -n2 echo | cut -d ' ' -f2),$(call find_project_containing,$(image),build.mk)/image.marker)
+endef

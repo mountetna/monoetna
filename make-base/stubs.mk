@@ -1,5 +1,4 @@
 include $(shell dirname $(lastword $(MAKEFILE_LIST)))/utils.mk
-include $(shell dirname $(lastword $(MAKEFILE_LIST)))/build.mk
 
 # Set this up as the default context for any Makefile.
 # Every project's default name matches the directory it exists in,
