@@ -1,0 +1,591 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RedcapForm renders blank for new config 1`] = `
+<DocumentFragment>
+  <div
+    class="MuiGrid-root makeStyles-form MuiGrid-container MuiGrid-direction-xs-column"
+  >
+    <div
+      class="MuiGrid-root makeStyles-tabs MuiGrid-container MuiGrid-item"
+    >
+      <div
+        class="MuiGrid-root makeStyles-tab_scroll MuiGrid-item"
+      >
+        <div
+          class="MuiTabs-root"
+        >
+          <div
+            class="MuiTabs-scrollable"
+            style="width: 99px; height: 99px; position: absolute; top: -9999px; overflow: scroll;"
+          />
+          <div
+            class="MuiTabs-scroller MuiTabs-scrollable"
+            style="margin-bottom: 0px;"
+          >
+            <div
+              class="MuiTabs-flexContainer"
+              role="tablist"
+            />
+            <span
+              class="PrivateTabIndicator-root PrivateTabIndicator-colorPrimary MuiTabs-indicator"
+              style="left: 0px; width: 0px;"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiGrid-root makeStyles-tab_buttons MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end"
+      >
+        <button
+          class="MuiButtonBase-root MuiIconButton-root"
+          tabindex="0"
+          title="Add model"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root"
+          />
+        </button>
+      </div>
+    </div>
+    <div
+      class="MuiGrid-root makeStyles-tab_pane MuiGrid-item"
+    />
+  </div>
+</DocumentFragment>
+`;
+
+exports[`RedcapForm renders renders with existing config 1`] = `
+<DocumentFragment>
+  <div
+    class="MuiGrid-root makeStyles-form MuiGrid-container MuiGrid-direction-xs-column"
+  >
+    <div
+      class="MuiGrid-root makeStyles-tabs MuiGrid-container MuiGrid-item"
+    >
+      <div
+        class="MuiGrid-root makeStyles-tab_scroll MuiGrid-item"
+      >
+        <div
+          class="MuiTabs-root"
+        >
+          <div
+            class="MuiTabs-scrollable"
+            style="width: 99px; height: 99px; position: absolute; top: -9999px; overflow: scroll;"
+          />
+          <div
+            class="MuiTabs-scroller MuiTabs-scrollable"
+            style="margin-bottom: 0px;"
+          >
+            <div
+              class="MuiTabs-flexContainer"
+              role="tablist"
+            >
+              <button
+                aria-selected="true"
+                class="MuiButtonBase-root MuiTab-root MuiTab-textColorInherit MuiTab-selected"
+                role="tab"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiTab-wrapper"
+                >
+                  testModel
+                </span>
+                <span
+                  class="MuiTouchRipple-root"
+                />
+              </button>
+            </div>
+            <span
+              class="PrivateTabIndicator-root PrivateTabIndicator-colorPrimary MuiTabs-indicator"
+              style="left: 0px; width: 0px;"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="MuiGrid-root makeStyles-tab_buttons MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end"
+      >
+        <button
+          class="MuiButtonBase-root MuiIconButton-root"
+          tabindex="0"
+          title="Add model"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-label"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </svg>
+          </span>
+          <span
+            class="MuiTouchRipple-root"
+          />
+        </button>
+      </div>
+    </div>
+    <div
+      class="MuiGrid-root makeStyles-tab_pane MuiGrid-item"
+    >
+      <div
+        class="MuiGrid-root makeStyles-model MuiGrid-container"
+      >
+        <div
+          class="MuiGrid-root makeStyles-model_row MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item"
+        >
+          <div
+            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+          >
+            remove
+          </div>
+          <div
+            class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-grid-xs-11"
+          >
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-text"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label"
+              >
+                Remove model
+              </span>
+              <span
+                class="MuiTouchRipple-root"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="MuiGrid-root makeStyles-model_row MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item"
+        >
+          <div
+            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+          >
+            each
+          </div>
+          <div
+            class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-grid-xs-11"
+          >
+            <div
+              class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
+            >
+              <div
+                class="MuiGrid-root MuiGrid-item"
+              >
+                <div
+                  class="MuiGrid-root MuiGrid-container MuiGrid-align-content-xs-center"
+                >
+                  <div
+                    class="MuiGrid-root makeStyles-entity MuiGrid-container MuiGrid-item MuiGrid-align-content-xs-center"
+                  >
+                    record
+                  </div>
+                  <div
+                    class="MuiGrid-root makeStyles-filter_entity MuiGrid-container MuiGrid-item MuiGrid-align-content-xs-center"
+                  >
+                    <button
+                      class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
+                      tabindex="0"
+                      title="Filter entity"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button
+                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
+                tabindex="0"
+                title="Add entity"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                    />
+                  </svg>
+                </span>
+                <span
+                  class="MuiTouchRipple-root"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          class="MuiGrid-root makeStyles-model_row MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item"
+        >
+          <div
+            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+          >
+            invert
+          </div>
+          <div
+            class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-grid-xs-11"
+          >
+            <span
+              aria-disabled="false"
+              class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-checked MuiCheckbox-checked MuiIconButton-colorSecondary"
+            >
+              <span
+                class="MuiIconButton-label"
+              >
+                <input
+                  checked=""
+                  class="PrivateSwitchBase-input"
+                  data-indeterminate="false"
+                  type="checkbox"
+                  value=""
+                />
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                  />
+                </svg>
+              </span>
+              <span
+                class="MuiTouchRipple-root"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="MuiGrid-root makeStyles-model_row MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item"
+        >
+          <div
+            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+          >
+            identifier_fields
+          </div>
+          <div
+            class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-grid-xs-11"
+          >
+            <div
+              class="MuiFormControl-root MuiTextField-root"
+            >
+              <div
+                class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+              >
+                <input
+                  aria-invalid="false"
+                  class="MuiInputBase-input MuiInput-input"
+                  placeholder="Comma-separated list"
+                  type="text"
+                  value="non_standard_field"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="MuiGrid-root makeStyles-model_row MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item"
+        >
+          <div
+            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+          >
+            scripts
+          </div>
+          <div
+            class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-grid-xs-11"
+          >
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-text"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiButton-label"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                  />
+                </svg>
+                 Add Script
+              </span>
+              <span
+                class="MuiTouchRipple-root"
+              />
+            </button>
+            <div
+              class="MuiGrid-root makeStyles-script MuiGrid-container MuiGrid-direction-xs-column"
+            >
+              <p
+                class="MuiTypography-root makeStyles-number MuiTypography-body1"
+              >
+                1
+              </p>
+              <div
+                class="MuiGrid-root makeStyles-script_header MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
+              >
+                <div
+                  class="MuiGrid-root makeStyles-attribute_name MuiGrid-item MuiGrid-grid-xs-2"
+                >
+                  each
+                </div>
+                <div
+                  class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-6"
+                >
+                  <div
+                    class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
+                  >
+                    <em>
+                      inherited
+                    </em>
+                    <button
+                      class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
+                      tabindex="0"
+                      title="Add entity"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root"
+                      />
+                    </button>
+                  </div>
+                </div>
+                <div
+                  class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
+                >
+                  <div
+                    class="MuiGrid-root MuiGrid-container MuiGrid-justify-xs-flex-end"
+                  >
+                    <button
+                      class="MuiButtonBase-root MuiIconButton-root"
+                      tabindex="0"
+                      title="Add attribute"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root"
+                      />
+                    </button>
+                    <button
+                      class="MuiButtonBase-root MuiIconButton-root"
+                      tabindex="0"
+                      title="Copy script"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm-1 4l6 6v10c0 1.1-.9 2-2 2H7.99C6.89 23 6 22.1 6 21l.01-14c0-1.1.89-2 1.99-2h7zm-1 7h5.5L14 6.5V12z"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root"
+                      />
+                    </button>
+                    <button
+                      class="MuiButtonBase-root MuiIconButton-root"
+                      tabindex="0"
+                      title="Delete script"
+                      type="button"
+                    >
+                      <span
+                        class="MuiIconButton-label"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                          focusable="false"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                          />
+                        </svg>
+                      </span>
+                      <span
+                        class="MuiTouchRipple-root"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
+              >
+                <div
+                  class="MuiGrid-root makeStyles-attribute_name MuiGrid-item MuiGrid-grid-xs-2"
+                  title="name"
+                >
+                  name
+                </div>
+                <div
+                  class="MuiGrid-root makeStyles-attribute_value MuiGrid-container MuiGrid-item"
+                >
+                  <div
+                    class="MuiFormControl-root MuiTextField-root"
+                  >
+                    <div
+                      class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+                    >
+                      <input
+                        aria-invalid="false"
+                        class="MuiInputBase-input MuiInput-input"
+                        placeholder="redcap_field"
+                        type="text"
+                        value="redcap_field_name"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="MuiGrid-root MuiGrid-item"
+                >
+                  <button
+                    class="MuiButtonBase-root MuiIconButton-root"
+                    tabindex="0"
+                    title="Add property"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                        />
+                      </svg>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root"
+                    />
+                  </button>
+                  <button
+                    class="MuiButtonBase-root MuiIconButton-root"
+                    tabindex="0"
+                    title="Remove attribute"
+                    type="button"
+                  >
+                    <span
+                      class="MuiIconButton-label"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                        focusable="false"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                        />
+                      </svg>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;

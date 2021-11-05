@@ -615,6 +615,7 @@ const RedcapModel = ({config,modelName, update}:{
         { page_scripts.map(
           (script: Script | undefined, i: number) => 
           <RedcapScript
+            key={i}
             script={script}
             num={i+(page-1)*pageSize+1}
             modelName={modelName}
@@ -661,7 +662,7 @@ const AddModel = ({open,close,update,config}:{
   </Dialog>
 }
 
-type Config = {
+export type Config = {
   [modelName: string]: Model
 }
 
