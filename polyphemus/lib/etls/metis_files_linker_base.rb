@@ -6,10 +6,11 @@ class Polyphemus::MetisFilesLinkerBase
 
   attr_reader :bucket_name, :project_name
 
-  def initialize(project_name:, bucket_name:)
+  def initialize(project_name:, bucket_name:, record_name_regex:)
     @project_name = project_name
     @bucket_name = bucket_name
     @magma_models = {}
+    @record_name_regex = record_name_regex
   end
 
   def cursor_model_group_state(cursor, model_name, group_name, default)
@@ -161,8 +162,15 @@ class Polyphemus::MetisFilesLinkerBase
     false
   end
 
-  def record_name_by_path(path, regex)
-    match = path.match(regex)
+  def record_name_by_path(file_or_folder)
+    if file_or_folder.is_a?(Etna::Clients::Metis::File)
+      match = file_or_folder.file_path.match(@record_name_regex)
+    elsif file_or_folder.is_a?(Etna::Clients::Metis::Folder)
+      match = (file_or_folder.folder_path + '/').match(@record_name_regex)
+    else
+      raise "file_or_folder must be either a File or Folder object"
+    end
+
     if match
       corrected_record_name(match[:record_name])
     else
@@ -172,12 +180,11 @@ class Polyphemus::MetisFilesLinkerBase
 
   def organize_metis_files_by_magma_record(
     metis_files:,
-    magma_record_names:,
-    path_regex:
+    magma_record_names:
   )
     metis_files_by_record_name = metis_files.group_by do |file|
       next if file.file_path.nil?
-      record_name_by_path(file.file_path, path_regex)
+      record_name_by_path(file)
     end
 
     metis_files_by_record_name.keys.map do |matched_record_name|
