@@ -11,9 +11,9 @@ help: ## Display help text
 
 .DEFAULT_GOAL := help
 
-docker-compose.yml: $(compose_ymls) ./compose $(wildcard ./*.shared.yml)
+docker-compose.yml: $(compose_ymls) ./build_support/compose $(wildcard ./*.shared.yml)
 	@ echo 'Rebuilding docker-compose.yml from projects $(compose_ymls)'
-	@ ./compose $(compose_ymls) > .tmp
+	@ ./build_support/compose $(compose_ymls) > .tmp
 	@ mv .tmp docker-compose.yml
 
 .PHONY: config-ready

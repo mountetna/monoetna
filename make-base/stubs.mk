@@ -80,3 +80,7 @@ compose-ready:: ## Setup step that ensures that the images are ready to run the 
 .PHONY: _test-find-all
 _test-find-all:
 	@ echo $(call map,dirname,$(call find_projects_containing,Makefile))
+
+ifneq ($(wildcard ./Dockerfile),)
+$(eval $(call image_target_here))
+endif

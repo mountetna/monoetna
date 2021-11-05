@@ -6,7 +6,7 @@ EXTRA_DOCKER_ARGS:=
 export BUILD_REQS:=../docker/etna-base $(BUILD_REQS)
 
 config.yml: config.yml.template
-	../make-base/maybe-move-config
+	$(call find_project_file,build_support,maybe-move-config)
 
 config-ready:: config.yml
 	@ true

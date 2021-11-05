@@ -41,4 +41,4 @@ if ! [[ -z "$IS_CI" ]]; then
   target="$(git diff --name-only HEAD~1 $dir | wc)"
 fi
 
-$find $target -type f ! -path "*.mk" ! -path '*/node_modules/*' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2
+$find $target -type f ! -path "*.marker" ! -path '*/node_modules/*' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2
