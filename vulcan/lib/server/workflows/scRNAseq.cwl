@@ -170,25 +170,18 @@ steps:
     in:
       a: determine_batch_options/batch_options
     out: [batch_by]
-  magma_query_paths:
-    run: scripts/magma_query_paths.cwl
-    label: 'Query paths to raw counts files'
+  query_magma_and_merge_from_raw_h5:
+    run: scripts/get_and_merge_anndata_from_raw_h5.cwl
+    label: 'Import from magma to scanpy'
     in:
       project_data: projectData/project_data
       record_ids: verifyRecordNames/names
-    out: [h5_locations]
-  merge_anndata_from_raw_h5:
-    run: scripts/merge_anndata_from_raw_h5.cwl
-    label: 'Import into scanpy'
-    in:
-      project_data: projectData/project_data
-      h5_locations: magma_query_paths/h5_locations
     out: [merged_anndata.h5ad]
   subset_normalize_and_select_features:
     run: scripts/subset_normalize_and_select_features.cwl
     label: 'Subset cells and normalize'
     in:
-      merged_anndata.h5ad: merge_anndata_from_raw_h5/merged_anndata.h5ad
+      merged_anndata.h5ad: query_magma_and_merge_from_raw_h5/merged_anndata.h5ad
       min_nCounts: 1_Cell_Filtering__min_nCounts
       max_nCounts: 1_Cell_Filtering__max_nCounts
       min_nFeatures: 1_Cell_Filtering__min_nFeatures
@@ -321,6 +314,7 @@ steps:
   pick_DGE_methods:
     run: ui-queries/diff-exp-sc.cwl
     label: 'Set how DE should be run'
+    doc: 'Sets the cells compared in differential gene expression calculations.  First, (step 1) you will select your question type, and then (step 2, optional) if there are certain cells you wish to exclude, click the subset checkbox and select the cells which you wish to KEEP.  Afterwards, the exact needs (step 3, and sometimes also step 4) will depend on your question type selection of step one, but the overall idea is that these steps fill in the specific sets of cells to compare. See the dedicated section of the overall vignette for more detail. Also note: Sections 7 & 8 of the primary inputs contain additional inputs which contribute to the (7) calculation method or (8) post-calculation filtration cutoffs.'
     in:
       a: extract_metadata_for_dge/metadata
     out: [dge_setup]

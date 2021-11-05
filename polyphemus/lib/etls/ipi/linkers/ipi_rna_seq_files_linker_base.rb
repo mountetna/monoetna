@@ -3,9 +3,8 @@ require_relative "../../../ipi/ipi_helper"
 
 class Polyphemus::IpiRnaSeqFilesLinkerBase < Polyphemus::MetisFilesLinkerBase
   def initialize(project_name: "ipi", bucket_name:, attribute_regex:, record_name_regex:)
-    super(project_name: project_name, bucket_name: bucket_name)
+    super(project_name: project_name, bucket_name: bucket_name, record_name_regex: record_name_regex)
     @attribute_regex = attribute_regex
-    @record_name_regex = record_name_regex
     @helper = IpiHelper.new
   end
 
@@ -15,7 +14,6 @@ class Polyphemus::IpiRnaSeqFilesLinkerBase < Polyphemus::MetisFilesLinkerBase
       files_by_record_name: organize_metis_files_by_magma_record(
         metis_files: files,
         magma_record_names: current_magma_record_names(project_name, model_name),
-        path_regex: @record_name_regex,
       ),
       attribute_regex: @attribute_regex,
       cursor: cursor,
