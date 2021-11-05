@@ -37,7 +37,7 @@ fi
 #-   common parent directories of given dependencies, then running the given Dockerfile
 #-   in that context.  It also injects metadata related to the release sha at the time
 #-   the image is built.
-Dockerfile=$1
+Dockerfile=$(readlink -m $1)
 
 baseTag=$(basename "$(dirname "$(realpath $Dockerfile)")")
 
@@ -55,23 +55,9 @@ fi
 
 shift
 
-buildDir=$(mktemp -d)
-
+buildDir="$(mktemp -d)"
 sourceDockerDir="$(readlink -m $(dirname $Dockerfile))"
-found=sourceDockerDir
-
-ln -s "$(sourceDockerDir)" "$(buildDir)/src"
-while (( "$#" )); do
-    path="$(readlink -m $1)"
-    if echo "$found" | grep "$path" &>/dev/null; then
-      shift
-      continue
-    fi
-    found="$path
-$found"
-
-    ln -s "$(readlink -m $1)" "$(buildDir)/$(basename $1)"
-done
+rsync -a $sourceDockerDir $buildDir/
 
 # Docker can 'leak' intermediate build images from different runs, unfortunately, even with --rm and --force-rm.
 # This will atleast prune between runs to keep it minimal
@@ -94,8 +80,8 @@ fi
 
 set -x
 cd "$buildDir"
-cat $sourceDockerDir/.dockerignore /assist/.dockerignore | grep -v '#' | awk '{print \"src/\"\$0}' > .dockerignore
-cp src/$(basename $Dockerfile) Dockerfile
+cat $sourceDockerDir/.dockerignore $DIR/.dockerignore | grep -v '#' > .dockerignore
+cp $Dockerfile Dockerfile
 echo >> Dockerfile
 echo 'RUN true' >> Dockerfile
 echo "COPY last.version /built-from-sha" >> Dockerfile

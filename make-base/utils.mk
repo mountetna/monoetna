@@ -16,37 +16,38 @@ $(sort \
 endef
 
 define find_project_containing
-$(shell dirname $(filter %/$(1)/$(2),$(call find_projects_containing,$(2))))
+$(call map,dirname,$(filter %/$(1)/$(2),$(call find_projects_containing,$(2))))
 endef
 
 define find_project_file
-$(call find_project_containing,$(1),$(2))/$(2)
+$(addsuffix /$(2),$(call find_project_containing,$(1),$(2)))
 endef
 
 map = $(foreach a,$(2),$(call $(1),$(a)))
 readlink = $(shell readlink -m $(1))
-dirname = $(shell basename $(shell dirname $(1)))
+dirname = $(shell dirname $(1))
 
-define find_updated_targets
+define find_updated_sources
 $(shell $(call find_project_file,make-base,find-updated-sources) $(1))
 endef
-
-define updated_source_files
-$(call map,find_updated_targets,$(source_dirs))
-endef
-
 define updated_build_files
-$(call find_updated_targets,$(call find_project_containing,docker,build_image))
+$(call find_updated_sources,$(call find_project_containing,docker,build_image))
 endef
+
+images=$(shell cat $(1) | grep FROM | xargs -n2 echo | cut -d ' ' -f2)
 
 define image_target
-$(foreach image,$(shell cat $(1) | echo 'FROM   a' | xargs -n2 echo | cut -d ' ' -f2),include $(call find_project_file,$(image),build.mk))
-
-image.marker: $(updated_source_files) $(updated_build_files) $(call dependent_image_markers,$(1))
-	$(call find_project_file,docker,build_image) $(1) $(source_dirs)
+$(info $(1)> $(call images,$(1)))
+$(shell if ! test -e $(shell dirname $(1))/image.marker; then touch -t 0001011000 $(shell dirname $(1))/image.marker; fi)
+$(foreach image,$(call images,$(1)),include $(call find_project_file,$(image),build.mk))
+$(shell dirname $(1))/image.marker: $(call find_updated_sources,$(shell dirname $(1))) $(updated_build_files) $(call dependent_image_markers,$(call images,$(1))) $(1)
+	@echo $(foreach image,$(call images,$(1)),include $(call find_project_file,$(image),build.mk))
+	@echo $(call dependent_image_markers,$(call images,$(1)))
+	@echo $(call images,$(1))
+	$(call find_project_file,docker,build_image) $(1)
 	touch $@
 endef
 
 define dependent_image_markers
-$(foreach image,$(shell cat $(1) | echo 'FROM   a' | xargs -n2 echo | cut -d ' ' -f2),$(call find_project_containing,$(image),build.mk)/image.marker)
+$(foreach image,$(1),$(call find_project_containing,$(image),build.mk)/image.marker)
 endef
