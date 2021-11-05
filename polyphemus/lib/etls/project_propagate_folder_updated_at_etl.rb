@@ -1,7 +1,7 @@
 require_relative "../metis_folder_etl"
 
 class Polyphemus::ProjectPropagateFolderUpdatedAtEtl < Polyphemus::MetisFolderEtl
-  def initialize(config, limit:)
+  def initialize(config, limit: 20)
     super(
       project_bucket_pairs: [config.project_name].product(config.buckets),
       limit: limit
