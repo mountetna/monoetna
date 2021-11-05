@@ -40,12 +40,14 @@ define image_target
 $(info $(1) <- $(call images,$(1)))
 $(shell if ! test -e $(shell dirname $(1))/image.marker; then touch -t 0001011000 $(shell dirname $(1))/image.marker; fi)
 $(addprefix include ,$(foreach image,$(call images,$(1)),$(call find_project_file,$(image),build.mk)))
-$(info $(call find_updated_sources,$(shell dirname $(1))))
+$(info sources: $(call find_updated_sources,$(shell dirname $(1))))
+$(info goal: $(shell dirname $(1)))
+$(info deps: $(call find_updated_sources,$(shell dirname $(1))) $(updated_build_files) $(call dependent_image_markers,$(call images,$(1))) $(1))
 $(shell dirname $(1))/image.marker: $(call find_updated_sources,$(shell dirname $(1))) $(updated_build_files) $(call dependent_image_markers,$(call images,$(1))) $(1)
 	$(call find_project_file,docker,build_image) $(1)
 	touch $@
 endef
 
 define dependent_image_markers
-$(foreach image,$(1),$(call find_project_containing,$(image),build.mk)/image.marker)
+$(addsuffix /image.marker,$(foreach image,$(1),$(call find_project_containing,$(image),build.mk)))
 endef
