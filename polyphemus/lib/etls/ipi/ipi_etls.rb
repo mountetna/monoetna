@@ -17,7 +17,7 @@ class Polyphemus
           process_watch_type_with(
             bucket('data')
               .watcher('single_cell_pool_processed')
-              .watch(/^single_cell_[^\/]*\/processed\/.*\/[^\/]+POOL[^\/]+\/.*$/),
+              .watch(/^single_cell_[^\/]*\/processed\/.*\/IPIPOOL[^\/]+(\/[^\/]*)?$/),
             Polyphemus::LinkerProcessor.new(
               linker: single_cell_pooled_linker,
               model_name: 'sc_rna_seq_pool'
@@ -33,7 +33,7 @@ class Polyphemus
           process_watch_type_with(
             bucket('data')
               .watcher('single_cell_processed')
-              .watch(/^single_cell_[^\/]*\/processed\/((?!POOL).)*$/),
+              .watch(/^single_cell_[^\/]*\/processed\/.*\/IPI((?!POOL)[^\/])+(\/[^\/]*)?$/),
             Polyphemus::LinkerProcessor.new(
               linker: single_cell_non_pooled_linker,
               model_name: 'sc_rna_seq',
@@ -47,9 +47,7 @@ class Polyphemus
       end
 
       def single_cell_non_pooled_linker
-        SingleCellLinker.new(
-          record_name_regex: /.*\/(?<record_name>IPI[^\/]*)\/.*$/
-        )
+        SingleCellLinker.new
       end
 
       def single_cell_pooled_linker
@@ -115,10 +113,13 @@ class Polyphemus
 
           matched_folders = folders.map do |folder|
             record_name = @linker.record_name_by_path(
-              folder.folder_path + '/',
-              @linker.record_name_regex
+              folder
             )
-            [folder, record_name] if record_names.include?(record_name)
+            if record_names.include?(record_name)
+              [folder, record_name]
+            else
+              nil
+            end
           end.select { |f| f }
 
           matched_folders.each do |folder, record_name|
@@ -147,6 +148,7 @@ class Polyphemus
           super(
             project_name: 'ipi',
             bucket_name: 'data',
+            record_name_regex: /.*\/(?<record_name>IPI[^\/]*)\//,
             **kwds
           )
         end
@@ -213,7 +215,7 @@ class Polyphemus
 
     class IpiWatchFoldersEtl < Polyphemus::ProjectWatchFoldersEtl
       def initialize
-        super(WatchFoldersConfig.new)
+        super(WatchFoldersConfig.new, limit: 40)
       end
     end
 
@@ -225,7 +227,7 @@ class Polyphemus
 
     class IpiPropagateFolderUpdatedAt < Polyphemus::ProjectPropagateFolderUpdatedAtEtl
       def initialize
-        super(WatchFoldersConfig.new)
+        super(WatchFoldersConfig.new, limit: 40)
       end
     end
   end

@@ -1,9 +1,8 @@
 from archimedes.functions.dataflow import output_json, input_json, parseModelAttr, buildTargetPath
 from archimedes.functions.magma import connect, question
 from archimedes.functions.list import unique, flatten
-from archimedes.functions.environment import project_name
 
-pdat = input_json("project_data")[project_name]
+pdat = input_json("project_data")
 selection_atts = pdat['selection_options']
 
 selected = input_json('selected_options')
