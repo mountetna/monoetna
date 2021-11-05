@@ -3,7 +3,6 @@ from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.plotting import pio, scatter_plotly
 from archimedes.functions.magma import connect, question
 from archimedes.functions.list import flatten
-from archimedes.functions.environment import project_name
 from archimedes.functions.utils import pandas as pd
 
 # Read inputs
@@ -28,7 +27,7 @@ def get(ids, value):
 
     return [ values.get(id, None) for id in ids ]
 
-pdat = input_json("project_data")[project_name]
+pdat = input_json("project_data")
 color_options = pdat['color_options']
 
 # Obtain color data

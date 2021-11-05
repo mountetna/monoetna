@@ -1,4 +1,5 @@
 from archimedes.functions.dataflow import output_json
+from archimedes.functions.environment import project_name
 
 project_data = {
 	'xcrs1': {
@@ -73,4 +74,6 @@ project_data = {
 	}
 }
 
-output_json(project_data, "project_data")
+this_project = project_data[project_name]
+
+output_json(this_project, "project_data")
