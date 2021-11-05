@@ -185,7 +185,9 @@ const ValueRow = ({field_name, value, update, opts}:{
 }) => {
   const classes = useStyles();
 
-  const [localValue, setLocalValue] = useState(value);
+  const [localValue, setLocalValue] = useState<typeof value>('');
+
+  useEffect(() => { setLocalValue(value) }, [value]);
 
   let valueComponent;
 
