@@ -215,7 +215,7 @@ class Polyphemus
 
     class IpiWatchFoldersEtl < Polyphemus::ProjectWatchFoldersEtl
       def initialize
-        super(WatchFoldersConfig.new)
+        super(WatchFoldersConfig.new, limit: 40)
       end
     end
 
@@ -227,7 +227,7 @@ class Polyphemus
 
     class IpiPropagateFolderUpdatedAt < Polyphemus::ProjectPropagateFolderUpdatedAtEtl
       def initialize
-        super(WatchFoldersConfig.new)
+        super(WatchFoldersConfig.new, limit: 40)
       end
     end
   end
