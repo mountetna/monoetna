@@ -5,7 +5,6 @@ include $(shell dirname $(lastword $(MAKEFILE_LIST)))/utils.mk
 # as per utils.mk's find_project_containing logic.
 app_name:=$(shell basename $$(pwd))
 fullTag=$(IMAGES_PREFIX)$(app_name)$(IMAGES_POSTFIX)
-fullFeTag=$(IMAGES_PREFIX)$(app_name)_app_fe$(IMAGES_POSTFIX)
 
 # a phony target that always forces build of targets that depend on it.
 .PHONY: always
@@ -47,33 +46,35 @@ bash:: ## Starts a bash shell in an app environment for the given project
 psql:: ## Starts a psql shell in an app environment for the given project
 	@ true
 
-.PHONY: migrate
-migrate:: ## Runs migrations in an app environment for the given project
-	@ true
-
 .PHONY: restart
 restart:: ## Restarts all containers for the given project(s)
 	@ true
 
 .PHONY: release
 release:: release-build release-test ## Builds static docker images staged for release, runs tests against them, and pushes them to dockerhub (requires PUSH_IMAGES=1)
-	if docker inspect --type=image $(fullTag) &>/dev/null; then docker push $(fullTag); fi
-	if docker inspect --type=image $(fullFeTag) &>/dev/null; then docker push $(fullFeTag); fi
+	@ true
 
 .PHONY: release-build
-release-build:: config-ready ## Step that just builds docker images staged for release
+release-build:: config-ready ## Step that prepares a release build if necessary
 	@ true
 
-.PHONY: release-test ## Step that just runs the tests for currently built release images.
-release-test::
+.PHONY: release-test ## Step that prepares a release test if necessary
+release-test:: config-ready release-build
 	@ true
 
+.PHONY: config-ready
 config-ready:: ## Setup step that ensures that configuration files necessary for preparation of the development environment are ready.
 	@ true
 
-update:: ## Step to force update of database and development dependencies.
+.PHONY: update
+update:: update-ready ## Step to force update of database and development dependencies.
 	@ true
 
+.PHONY: update-ready
+update-ready::
+	@ true
+
+.PHONY: compose-ready
 compose-ready:: ## Setup step that ensures that the images are ready to run the development docker-compose.yml file
 	@ true
 

@@ -1,3 +1,5 @@
+FROM development-certs
+
 FROM library/httpd:2.4.43
 WORKDIR /app
 
@@ -10,8 +12,8 @@ RUN apt-get update -y
 RUN apt-get install -y libapache2-mod-xsendfile libapache2-mod-shib2 xmlsec1 curl
 RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
 
-COPY certs /root/certs
-COPY src/httpd.conf /usr/local/apache2/conf/httpd.conf
+COPY --from=0 /certs /root/
+COPY httpd.conf /usr/local/apache2/conf/httpd.conf
 
 # In production, shibboleth environemnt is mounted with a bind mount into the /usr/opt directory.
 # We can't just mount that shibboleth prod directly into /etc/shibboleth because we only want to inject
@@ -31,13 +33,13 @@ RUN ln -sf /shibboleth/idp-metadata.xml /etc/shibboleth/idp-metadata.xml
 RUN ln -sf /shibboleth/attribute-map.xml /etc/shibboleth/attribute-map.xml
 
 # Prepare the environment with ascript that can start shibd before httpd
-COPY src/bin/* /bin/
+COPY bin/* /bin/
 RUN chmod +x /bin/*
 
 RUN /bin/prepare_shib.sh
 
-COPY src/entrypoints /entrypoints
-COPY src/main.conf.template .
+COPY entrypoints /entrypoints
+COPY main.conf.template .
 RUN chmod +x /entrypoints/*
 
 # Hooks provided by app specific front end instances should be included here.

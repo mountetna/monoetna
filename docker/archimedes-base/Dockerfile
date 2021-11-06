@@ -1,3 +1,5 @@
+FROM magby
+
 FROM python:3.8-slim-buster
 WORKDIR /app
 
@@ -49,5 +51,5 @@ RUN tar -xf /tmp/docker.tgz -C /tmp/
 RUN mv /tmp/docker/* /usr/local/bin/
 
 # Copy entrypoint scripts
-COPY src/entrypoints /entrypoints
-COPY magby /magby
+COPY entrypoints /entrypoints
+COPY --from=0 /magby /magby

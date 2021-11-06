@@ -97,6 +97,7 @@ function runBuild() {
     --cache-from etnaagent/$baseTag:staging \
     --cache-from $tag \
     --cache-from $baseTag \
+    --build-arg APP_NAME=$baseTag \
     .
 }
 
