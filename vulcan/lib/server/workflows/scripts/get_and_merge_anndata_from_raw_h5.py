@@ -1,13 +1,28 @@
 from archimedes.functions.dataflow import output_path, input_json, curl_data, tempfile, _os_path, buildTargetPath, parseModelAttr
 from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.magma import connect, question
-from archimedes.functions.environment import project_name
+from archimedes.functions.environment import token, magma_host
 from archimedes.functions.utils import re
 from archimedes.functions.list import unique
 
-### Initialize merged data, then loop through
-data_tube_url = input_json('h5_locations')
+input_records = input_json('record_ids')
 
+### Query paths to raw data for requested records
+pdat = input_json("project_data")
+seq_target = parseModelAttr(pdat['seq_h5_counts_data'])
+
+magma = connect()
+
+data_tube_url = question(
+    magma, 
+    [
+        seq_target['model'],
+        ['::identifier', '::in', input_records],
+        '::all', seq_target['attribute'], '::url'
+    ],
+    strip_identifiers=False)
+
+### Initialize merged data, then loop through
 def h5_dl_and_scanpy_import(tube_name, raw_counts_h5_mpath):
     with tempfile.TemporaryDirectory() as tmpdirname:
         tmp_path = _os_path.join(tmpdirname,'new.h5')
@@ -33,7 +48,7 @@ if len(data_tube_url)>1:
         merged_data = merged_data.concatenate(new_data)
 
 ### Add metadata for all color-data
-pdat = input_json("project_data")[project_name]
+pdat = input_json("project_data")
 color_options = pdat['color_options']
 
 # Prep magma querying
