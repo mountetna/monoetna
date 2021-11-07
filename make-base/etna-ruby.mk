@@ -13,9 +13,6 @@ $(app_name)_app_fe:
 	cp -r $(call find_project_file,etna-base,app_fe) $(app_name)_app_fe
 	ln -s ../$(app_name)/$(app_name)_app_fe ../docker/$(app_name)_app_fe
 
-release::
-	make -C app_fe release
-
 psql:: docker-ready
 	@ docker-compose run -e -e PGPASSWORD=password --rm ${app_service_name} psql -h ${app_db_name} -U developer -d ${app_name}_development
 
