@@ -1,21 +1,52 @@
 # Monoetna Docker
 
-This directory contains the nuts and bolts necessary to build monoetna's docker images for local
-development and remote deployment.
+This directory contains two types of resources:
 
+1. `build_support` -> a set of tools that help build docker images for the environment
+2. A number of Dockerfile build directories, generally either for the purpose of supporting common base images
+   or providing development related services.
 
 ## Images
 
 Monoetna images come in 3 flavors:
 
-1. 'Base images' that are used by other monoetna images.  These belong in the `docker/` directory as subdirectories.
-2. 'Application images', which are simply top level directories that contain a `Dockerfile` and appropriate `Makefil`.  These often use a base image.
-2.  Remote images that are downloaded from dockerhub.   They simply fall out of the above two cases.
+1. 'Base images' that are used by other monoetna images.  These base images are either/both shared across multiple
+    other images, or used as the image in docker-compose.yml files.
+2. 'Application images', typically existing inside a top level directory.  Application images actually get deployed
+    and run actively in production.
+3. 'Swarm images', typically existing inside the `swarm/` directory.  These images are deployed actively in production,
+    but generally are not as actively worked on and may not have tests run in CI to save time.  These images likely
+    require manual `PUSH_IMAGES=1 make -C release` invocations to build and release.
 
-### Creating a new Base Image
+## 'Projects'
+'projects' are simply directories that exist either at the top level, in docker, or swarm, or in the 
+etna/packages directories.  A project can build a docker image *by the same name* simply by having a 
+Dockerfile in that directory.  `utils.mk` will know how to build that project automatically when it is discovered
+as a dependency in the system.
 
-Create a new sub directory in `docker`, and add a `Makefile` to build that image.
-Copying from one of the other available images is a good starting place.  Use `build_image` script for consistency.
+Dependencies are currently implicitly inferred from two places: docker-compose.yml files and Dockerfiles.
+See `utils.mk`#buildable_dependent_image_dockerfiles and buildable_dependent_compose_image_dockerfiles functions.
+Basically, in short: __any `FROM` line or `image:` inside of a Dockerfile or docker-compose.yml respectively, constitutes
+a project dependency, and `utils.mk` will attempt to find a Dockerfile to build that project's image for you.
+
+Not every project must have a Makefile, but if you want an easy way to execute basic commands, create  `Makefile` and
+include atleast `stubs.mk` and likely `docker-compose.mk` to the project to have several useful, project scoped targets
+created for you.
+
+## Development vs Production
+
+Development workflows are a bit different than production image workflows, which is important to keep in mind when
+understanding how all the docker technologies converge.  A short explanation:
+
+1. Docker images are immutable directory + metadata configurations for applications.  They are built with Dockerfiles
+   and are shared both in development and production.
+2. docker-compose is a development focused tooling that starts Docker images locally with fake networks and fake
+   mounts that simulate a production like environment.  docker-compose is different in production, however, in that
+   the source code is not 'bake' and immutable like normal images are.  docker-compose.yml files use *-base images
+   and then mount mutable directories containing the mutable code being worked on in development.  This means that
+   development is different than production: any local changes you are making, any intermediate files or local installs,
+   those will effect your development behavior but not your production behavior.  )
+3. docker-swarm: TODO.
 
 ### Creating a new application image
 
@@ -45,10 +76,8 @@ processes.
     `docker-compose.yml` is modified.  ESsentially, it uses the `docker/compose` script to join together each
     individual projects' compose.yml files together into one large multi-process one.
 3. Application level `docker-compose.yml` files.  By including `make-base/docker-compose.mk` in a project's
-    top level `Makefile`, this file becomes managed by the `docker/default_compose` script, which provides some
-    defaults and kept up to date via merging logic with common mixin files.
-4. Adhoc `docker-compose.yml` files.  These may represent applications that do not make use of `make-base/docker-compose.mk`
-    and instead configure manually their settings, but are still included in the top level compose file.
+    top level `Makefile`, several useful development targets that automatically manage the project's docker-compose
+   context are created.
     
 **IMPORTANT**
 
