@@ -2,7 +2,7 @@
 set -e
 set -x
 
-app_name_capitalized:=$(echo ${APP_NAME} | tr [a-z] [A-Z])
+app_name_capitalized=$(echo ${APP_NAME} | tr [a-z] [A-Z])
 
 # In which case, we are using development.sh as the entrypoint, but the build has completed for the image.
 if [ -z "$RELEASE_TEST" ]; then

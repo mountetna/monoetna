@@ -24,8 +24,6 @@ Add a new `Makefile` with contents like so:
 
 ```
 include ../make-base/stubs.mk
-
-app_name=name-of-the-app
 include ../make-base/docker-compose.mk
 include ../make-base/etna-ruby.mk
 include ../make-base/node.mk

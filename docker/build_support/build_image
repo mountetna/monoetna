@@ -29,7 +29,7 @@ NC='\033[0m'
 
 if [[ "$1" == "-h" ]]; then
   usage
-  exit 0
+  exit 1
 fi
 
 #- Builds the given Dockerfile into an image,

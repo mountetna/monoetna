@@ -9,6 +9,7 @@ $(sort \
 				$(addsuffix /*/$(1),. .. ../.. ../../..) \
 				$(addsuffix /docker/*/$(1),. .. ../.. ../../..) \
 				$(addsuffix /swarm/*/$(1),. .. ../.. ../../..) \
+				$(addsuffix /etna/packages/*/$(1),. .. ../.. ../../..) \
 			) \
 		) \
 	) \
@@ -51,14 +52,16 @@ seen_images:=
 # (dockerfile folder, dependent image dockerfiles)
 define image_target2
 ifeq ($(filter $(1)!,$(seen_images)),)
-seen_images:=$$(seen_images) $(1)!
+$(eval seen_images:=$(seen_images) $(1)!)
 $(shell if ! test -e $(1)/image.marker; then touch -t 0001011000 $(1)/image.marker; fi)
+
 $(foreach df,$(2),$(call image_target2,$(shell dirname $(df)),$(call buildable_dependent_image_dockerfiles,$(df))))
 
 $(1)/image.marker: $(call find_updated_sources,$(1)) $(updated_build_files) $(foreach df,$(2),$(shell dirname $(df))/image.marker)
 	$(call find_project_file,build_support,build_image) $(1)/Dockerfile
 	touch $$@
 endif
+
 endef
 
 define image_target1
@@ -75,9 +78,9 @@ endef
 define release_image_target1
 $(shell if ! test -e $(1)/image-release.marker; then touch -t 0001011000 $(1)/image-release.marker; fi)
 $(1)/image-release.marker: $(1)/image-test.marker
-	if ! [[ -z "$$PUSH_IMAGES" ]]; then \
-		docker push $(fullTag) \
-		touch $$@ \
+	if ! [[ -z "$${PUSH_IMAGES}" ]]; then \
+		docker push $(fullTag); \
+		touch $$@; \
 	fi
 endef
 

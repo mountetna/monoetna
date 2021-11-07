@@ -1,7 +1,7 @@
 include ../make-base/utils.mk
 export COMPOSE_PROJECT_NAME=monoetna
-compose_projects:=$(call find_projects_containing,docker-compose.yml)
-compose_ymls:=$(addsuffix /docker-compose.yml,$compose_projects)
+compose_ymls:=$(call find_projects_containing,docker-compose.yml)
+compose_projects:=$(call map,dirname,$(compose_ymls))
 
 .PHONY: help
 help: ## Display help text
@@ -28,7 +28,7 @@ update: compose-ready ## Runs all projects' updates, running bundle and npm inst
 
 .PHONY: up
 up: compose-ready ## Starts up all containers of this project in the background
-	@ for project in $(compose_projects); do make -C $$project config.yml || true; done
+	@ set -e; for project in $(compose_projects); do make -C $$project compose-ready; done
 	@ docker-compose up -d
 
 .PHONY: down
