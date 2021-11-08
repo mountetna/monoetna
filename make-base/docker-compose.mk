@@ -41,5 +41,5 @@ run-image-test:: compose-ready
 .dockerignore:
 	cp $(call find_project_file,docker,.dockerignore.template) .dockerignore
 
-update::
+update:: compose-ready
 	@ docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 ${app_service_name} echo 'Updated'
