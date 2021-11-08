@@ -354,6 +354,20 @@ def stub_redcap_data(stub = nil)
   )
 end
 
+def stub_magma_update_dry_run
+  stub_request(:post, /#{MAGMA_HOST}\/update$/).
+  to_return(lambda { |request| 
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: {
+        models: JSON.parse(request.body, symbolize_names: true)[:revisions].map { |k,v| [k, {documents: v}] }.to_h
+      }.to_json
+    }
+  })
+end 
+
 def redcap_choices(*choices)
   choices.map.with_index do |c, i|
     "#{i}, #{c}"
