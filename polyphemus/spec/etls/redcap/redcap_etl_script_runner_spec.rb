@@ -173,6 +173,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
 
   context 'loads' do
     before do
+      stub_magma_update_dry_run
       stub_magma_models
       stub_redcap_data
       copy_redcap_project
