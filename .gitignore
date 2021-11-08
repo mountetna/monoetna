@@ -75,3 +75,5 @@ etna/packages/magmaR.Rcheck*
 
 venv/
 __pycache__
+
+*.marker

@@ -1,5 +1,5 @@
-FROM etna-base-dev
+FROM etna
 WORKDIR /app
-
-COPY etna /etna
+RUN rm -rf /app
+RUN mkdir -p /app
 
