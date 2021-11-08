@@ -13,10 +13,9 @@ class EtlController < Polyphemus::Controller
 
   def revisions
     etl_configs = Polyphemus::EtlConfig.where(
-      archived:true,
       project_name: @params[:project_name],
       name: @params[:name]
-    ).reverse_order(:updated_at).all
+    ).reverse_order(:updated_at).all.sort_by{|e| e.archived ? 1 : 0 }
 
     success_json(etl_configs.map(&:to_revision))
   end
@@ -64,6 +63,7 @@ class EtlController < Polyphemus::Controller
       raise Etna::BadRequest, "Invalid configuration for etl \"#{etl_config.etl}\"" unless etl_config.validate_config(update[:config])
 
       new_etl_config = Polyphemus::EtlConfig.create(etl_config.as_json.merge(update).merge(secrets: etl_config.secrets))
+      etl_config.modified!(:updated_at)
       etl_config.update(archived: true, run_interval: Polyphemus::EtlConfig::RUN_NEVER)
       return success_json(new_etl_config)
     else
