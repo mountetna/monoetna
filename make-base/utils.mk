@@ -71,7 +71,7 @@ endef
 define test_image_target1
 $(shell if ! test -e $(1)/image-test.marker; then touch -t 0001011000 $(1)/image-test.marker; fi)
 $(1)/image-test.marker: $(1)/image.marker
-	if [[ -z "$$NO_TEST" ]]; then make -C $$(shell dirname $$@) run-image-test; fi
+	set -e; if [[ -z "$${NO_TEST}" ]]; then make -C $$(shell dirname $$@) run-image-test; fi
 	touch $$@
 
 $(info $(1)/image-test.marker)
