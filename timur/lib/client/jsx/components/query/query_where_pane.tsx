@@ -3,13 +3,37 @@ import React, {useMemo, useContext, useState, useCallback} from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
+import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
 import AddIcon from '@material-ui/icons/Add';
 
-import {QueryContext} from '../../contexts/query/query_context';
+import {makeStyles} from '@material-ui/core/styles';
+
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
+import {QueryWhereContext} from '../../contexts/query/query_where_context';
 import QueryFilterControl from './query_filter_control';
-import {QueryFilter, QuerySlice} from '../../contexts/query/query_types';
+import {
+  QueryFilter,
+  QuerySlice,
+  EmptyQueryClause
+} from '../../contexts/query/query_types';
 import QueryClause from './query_clause';
 import QueryAnyEverySelectorList from './query_any_every_selector_list';
+
+const useStyles = makeStyles((theme) => ({
+  header: {
+    marginBottom: 10,
+    paddingLeft: '1rem',
+    paddingRight: '1rem'
+  },
+  clauseHeading: {
+    paddingLeft: '0.25rem'
+  },
+  clauseSubheading: {
+    color: 'gray',
+    fontSize: '0.9rem'
+  }
+}));
 
 const QueryWherePane = () => {
   // Use an update counter to get the child components
@@ -19,22 +43,28 @@ const QueryWherePane = () => {
   //  because of non-unique keys.
   const [updateCounter, setUpdateCounter] = useState(0);
   const {
-    state,
+    state: {graph, rootModel}
+  } = useContext(QueryGraphContext);
+  const {
+    state: {orRecordFilterIndices, recordFilters},
     addRecordFilter,
     removeRecordFilter,
     patchRecordFilter,
     setOrRecordFilterIndices
-  } = useContext(QueryContext);
+  } = useContext(QueryWhereContext);
+  const classes = useStyles();
 
-  function addNewRecordFilter() {
+  const addNewRecordFilter = useCallback(() => {
     addRecordFilter({
       modelName: '',
-      attributeName: '',
-      operator: '',
-      operand: '',
+      clauses: [
+        {
+          ...EmptyQueryClause
+        }
+      ],
       anyMap: {}
     });
-  }
+  }, [addRecordFilter]);
 
   const handlePatchFilter = useCallback(
     (
@@ -43,11 +73,11 @@ const QueryWherePane = () => {
       originalFilter: QueryFilter
     ) => {
       if (
-        state.rootModel &&
-        updatedFilter.modelName !== originalFilter.modelName
+        updatedFilter.modelName !== originalFilter.modelName &&
+        rootModel != null
       ) {
-        let selectableModels = state.graph.sliceableModelNamesInPath(
-          state.rootModel,
+        let selectableModels = graph.sliceableModelNamesInPath(
+          rootModel,
           updatedFilter.modelName
         );
 
@@ -61,7 +91,7 @@ const QueryWherePane = () => {
       }
       patchRecordFilter(index, updatedFilter);
     },
-    [patchRecordFilter, state.rootModel, state.graph]
+    [patchRecordFilter, graph, rootModel]
   );
 
   function handleRemoveFilter(index: number) {
@@ -71,60 +101,123 @@ const QueryWherePane = () => {
 
   const handleChangeOrFilters = useCallback(
     (index: number) => {
-      let copy = [...state.orRecordFilterIndices];
+      let copy = [...orRecordFilterIndices];
 
       if (copy.includes(index)) copy.splice(copy.indexOf(index), 1);
       else copy.push(index);
 
       setOrRecordFilterIndices(copy);
     },
-    [state.orRecordFilterIndices, setOrRecordFilterIndices]
+    [orRecordFilterIndices, setOrRecordFilterIndices]
   );
 
-  const modelNames = useMemo(() => {
-    if (!state.rootModel) return [];
+  const handleCopyFilter = useCallback(
+    (filter: QueryFilter) => {
+      addRecordFilter({...filter});
+    },
+    [addRecordFilter]
+  );
 
-    return [...new Set(state.graph.allPaths(state.rootModel).flat())];
-  }, [state.graph, state.rootModel]);
+  const modelNames = useMemo(
+    () => [...new Set(graph.allPaths(rootModel).flat())].sort(),
+    [graph, rootModel]
+  );
 
-  if (!state.rootModel) return null;
+  if (!rootModel) return null;
 
   return (
     <QueryClause title='Where'>
-      {state.recordFilters.length > 0 ? (
-        <Grid container alignItems='center' justify='center'>
+      {recordFilters.length > 0 ? (
+        <Grid container justify='center' className={classes.header}>
           <Grid item xs={1}>
             OR
           </Grid>
-          <Grid item xs={11} />
+          <Grid item xs={1}>
+            Any / Every
+          </Grid>
+          <Grid item container xs={10}>
+            <Grid item xs={2}>
+              Model
+            </Grid>
+            <Grid item xs={9} className={classes.clauseHeading}>
+              <Typography>Clauses</Typography>
+              <Grid container item>
+                <Grid
+                  item
+                  container
+                  spacing={1}
+                  alignItems='center'
+                  className={classes.clauseSubheading}
+                >
+                  <Grid item xs={1}>
+                    Any/Every
+                  </Grid>
+                  <Grid item container xs={11}>
+                    <Grid item xs={3}>
+                      Model
+                    </Grid>
+                    <Grid item xs={3}>
+                      Attribute
+                    </Grid>
+                    <Grid item xs={2}>
+                      Operator
+                    </Grid>
+                    <Grid item xs={3}>
+                      Operand
+                    </Grid>
+                    <Grid item xs={1} />
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
+            <Grid item xs={1} />
+          </Grid>
         </Grid>
       ) : null}
-      {state.recordFilters.map((filter: QueryFilter, index: number) => (
-        <Grid key={index} container alignItems='center' justify='center'>
-          <Grid item xs={1}>
-            <Checkbox
-              checked={state.orRecordFilterIndices.includes(index)}
-              color='primary'
-              onChange={(e, checked) => handleChangeOrFilters(index)}
-              inputProps={{'aria-label': 'secondary checkbox'}}
-            />
+      {recordFilters.map((filter: QueryFilter, index: number) => (
+        <Paper key={index}>
+          <Grid
+            container
+            alignItems='center'
+            justify='center'
+            className='query-where-selector'
+          >
+            <Grid item xs={1}>
+              <Checkbox
+                checked={orRecordFilterIndices.includes(index)}
+                color='primary'
+                onChange={(e, checked) => handleChangeOrFilters(index)}
+                inputProps={{'aria-label': 'secondary checkbox'}}
+              />
+            </Grid>
+            <Grid item xs={1}>
+              <QueryAnyEverySelectorList
+                filter={filter}
+                index={index}
+                patchRecordFilter={patchRecordFilter}
+              />
+            </Grid>
+            <Grid item container xs={10} direction='column'>
+              <Grid item container alignItems='center' justify='flex-start'>
+                <QueryFilterControl
+                  key={`${index}-${updateCounter}`}
+                  filter={filter}
+                  modelNames={modelNames}
+                  graph={graph}
+                  patchFilter={(updatedFilter: QueryFilter | QuerySlice) =>
+                    handlePatchFilter(
+                      index,
+                      updatedFilter as QueryFilter,
+                      filter
+                    )
+                  }
+                  removeFilter={() => handleRemoveFilter(index)}
+                  copyFilter={() => handleCopyFilter(filter)}
+                />
+              </Grid>
+            </Grid>
           </Grid>
-          <Grid item xs={2}>
-            <QueryAnyEverySelectorList filter={filter} index={index} />
-          </Grid>
-          <Grid item container xs={9}>
-            <QueryFilterControl
-              key={`${index}-${updateCounter}`}
-              filter={filter}
-              isColumnFilter={false}
-              modelNames={modelNames}
-              patchFilter={(updatedFilter: QueryFilter | QuerySlice) =>
-                handlePatchFilter(index, updatedFilter as QueryFilter, filter)
-              }
-              removeFilter={() => handleRemoveFilter(index)}
-            />
-          </Grid>
-        </Grid>
+        </Paper>
       ))}
       <Button onClick={addNewRecordFilter} startIcon={<AddIcon />}>
         Filter

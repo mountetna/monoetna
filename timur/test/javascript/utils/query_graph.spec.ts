@@ -1,5 +1,4 @@
 import {QueryGraph} from '../../../lib/client/jsx/utils/query_graph';
-import {QueryBuilder} from '../../../lib/client/jsx/utils/query_builder';
 
 const models = {
   monster: {
@@ -79,6 +78,23 @@ describe('QueryGraph', () => {
     ]);
   });
 
+  it('correctly returns children and one-to-many status', () => {
+    expect(graph.childrenMap('monster')).toEqual({
+      habitat: false,
+      victim: true,
+      monster: false
+    });
+
+    expect(graph.childrenMap('habitat')).toEqual({
+      vegetation: true,
+      habitat: false
+    });
+
+    expect(graph.childrenMap('wound')).toEqual({
+      wound: false
+    });
+  });
+
   describe('for xcrs1 models', () => {
     const models = require('../fixtures/xcrs1_magma_metadata.json').models;
     beforeEach(() => {
@@ -98,6 +114,14 @@ describe('QueryGraph', () => {
         'biospecimen_group',
         'biospecimen',
         'subject'
+      ]);
+    });
+
+    it('handles the path laterally from sc_seq -> cytof', () => {
+      expect(graph.shortestPath('sc_seq', 'cytof')).toEqual([
+        'biospecimen_group',
+        'biospecimen',
+        'cytof'
       ]);
     });
   });

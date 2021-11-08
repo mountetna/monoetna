@@ -22,12 +22,12 @@ module Etna
         include JsonSerializableStruct
       end
 
-      class UpdateRequest < Struct.new(:revisions, :project_name, keyword_init: true)
+      class UpdateRequest < Struct.new(:revisions, :project_name, :dry_run, keyword_init: true)
         include JsonSerializableStruct
         include MultipartSerializableNestedHash
 
         def initialize(**params)
-          super({revisions: {}}.update(params))
+          super({revisions: {}, dry_run: false}.update(params))
         end
 
         def update_revision(model_name, record_name, attrs)
@@ -58,11 +58,19 @@ module Etna
         end
       end
 
-      class AddModelAction < Struct.new(:action_name, :model_name, :parent_model_name, :parent_link_type, :identifier, keyword_init: true)
+      class AddModelAction < Struct.new(:action_name, :model_name, :parent_model_name, :parent_link_type, :identifier, :date_shift_root, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**args)
-          super({action_name: 'add_model'}.update(args))
+          super({action_name: 'add_model', date_shift_root: false}.update(args))
+        end
+      end
+
+      class SetDateShiftRootAction < Struct.new(:action_name, :model_name, :date_shift_root, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**args)
+          super({action_name: 'set_date_shift_root'}.update(args))
         end
       end
 
@@ -620,6 +628,7 @@ module Etna
         MATRIX = AttributeType.new("matrix")
         PARENT = AttributeType.new("parent")
         TABLE = AttributeType.new("table")
+        SHIFTED_DATE_TIME = AttributeType.new("shifted_date_time")
       end
 
       class ParentLinkType < String

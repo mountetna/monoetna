@@ -12,27 +12,10 @@ import {TEMP} from './file_actions';
 import {dispatchUploadWork} from '../upload/actions/upload_actions';
 import {AddUploadCommand, Upload} from '../upload/workers/uploader';
 
-export const ADD_TEMPLATE = 'ADD_TEMPLATE';
-export const ADD_DOCUMENTS = 'ADD_DOCUMENTS';
 export const REVISE_DOCUMENT = 'REVISE_DOCUMENT';
 export const DISCARD_REVISION = 'DISCARD_REVISION';
 export const ADD_PREDICATES = 'ADD_PREDICATES;';
-
-export const addTemplate = (template) => {
-  return {
-    type: ADD_TEMPLATE,
-    model_name: template.name,
-    template: template
-  };
-};
-
-export const addDocumentsForTemplate = (model_name, documents) => {
-  return {
-    type: ADD_DOCUMENTS,
-    model_name: model_name,
-    documents: documents
-  };
-};
+export const ADD_TEMPLATES_AND_DOCUMENTS = 'ADD_TEMPLATES_AND_DOCUMENTS';
 
 export const reviseDocument = (
   document,
@@ -65,6 +48,13 @@ export const addPredicates = (predicates) => {
   };
 };
 
+export const addTemplatesAndDocuments = (models) => {
+  return {
+    type: ADD_TEMPLATES_AND_DOCUMENTS,
+    models
+  }
+}
+
 /*
  * Here we add the models and documents to the store. At the same time we strip
  * off the model namespacing. The server returns the full name of the model.
@@ -73,116 +63,81 @@ export const addPredicates = (predicates) => {
  */
 export const consumePayload = (dispatch, response) => {
   if (response.models) {
-    Object.keys(response.models).forEach((model_name) => {
-      let model = response.models[model_name];
-
-      if (model.template) {
-        dispatch(addTemplate(model.template));
-      }
-
-      if (model.documents) {
-        dispatch(addDocumentsForTemplate(model_name, model.documents));
-      }
-    });
+    dispatch(addTemplatesAndDocuments(response.models));
   }
 };
 
-export const requestDocuments = (args) => {
-  let {
-    model_name,
-    record_names,
-    attribute_names,
-    filter,
-    show_disconnected,
-    page,
-    page_size,
-    collapse_tables,
-    exchange_name,
-    output_predicate
-  } = args;
+const showError = dispatch => response => {
+  if ('error' in response) {
+    dispatch(showMessages([`There was a ${response.type} error.`]));
+    console.log(response.error);
+  }
+}
 
-  return (dispatch) => {
-    let handleRequestSuccess = (response) => {
-      if ('error' in response) {
-        dispatch(showMessages([`There was a ${response.type} error.`]));
-        console.log(response.error);
-        return;
-      }
+export const requestDocuments = ({
+  model_name,
+  record_names,
+  attribute_names,
+  filter,
+  show_disconnected,
+  page,
+  page_size,
+  collapse_tables,
+  exchange_name,
+  output_predicate
+}) => dispatch => {
+  const exchange = new Exchange(dispatch, exchange_name);
+  return getDocuments(
+    {
+      model_name,
+      record_names,
+      attribute_names,
+      filter,
+      show_disconnected,
+      page,
+      page_size,
+      collapse_tables,
+      output_predicate
+    },
+    exchange.fetch.bind(exchange)
+  ).then( response => {
+    showError(dispatch)(response);
+    consumePayload(dispatch, response);
+    return Promise.resolve(response);
+  }).catch(e => {
+    return Promise.resolve(e).then((response) => {
+      let errStr = response.error
+        ? response.error
+        : response.errors
+        ? response.errors.map((error) => `* ${error}`)
+        : response;
+      errStr = [`### Our request was refused.\n\n${errStr}`];
+      dispatch(showMessages(errStr));
+      return Promise.reject(e);
+    });
+  })
+}
 
-      consumePayload(dispatch, response);
-      return Promise.resolve(response);
-    };
+export const requestModels = () => requestDocuments({
+  model_name: 'all',
+  record_names: [],
+  attribute_names: 'all',
+  exchange_name: 'request-models'
+});
 
-    let handleRequestError = (e) => {
-      return Promise.resolve(e).then((response) => {
-        if (!response) {
-          dispatch(showMessages([`Something is amiss. ${e}`]));
-        }
+export const requestModel = (model_name) => requestDocuments({
+  model_name: model_name,
+  record_names: [],
+  attribute_names: 'all',
+  exchange_name: 'request-model'
+});
 
-        let errStr = response.error
-          ? response.error
-          : response.errors
-          ? response.errors.map((error) => `* ${error}`)
-          : response;
-        errStr = [`### Our request was refused.\n\n${errStr}`];
-        dispatch(showMessages(errStr));
-        return Promise.reject(e);
-      });
-    };
-
-    let get_doc_args = [
-      {
-        model_name,
-        record_names,
-        attribute_names,
-        filter,
-        show_disconnected,
-        page,
-        page_size,
-        collapse_tables,
-        output_predicate
-      },
-      new Exchange(dispatch, exchange_name)
-    ];
-
-    return getDocuments(...get_doc_args)
-      .then(handleRequestSuccess)
-      .catch(handleRequestError);
-  };
-};
-
-export const requestModels = () => {
-  let reqOpts = {
-    model_name: 'all',
-    record_names: [],
-    attribute_names: 'all',
-    exchange_name: 'request-models'
-  };
-
-  return requestDocuments(reqOpts);
-};
-
-export const requestModel = (model_name) => {
-  let reqOpts = {
-    model_name: model_name,
-    record_names: [],
-    attribute_names: 'all',
-    exchange_name: 'request-model'
-  };
-
-  return requestDocuments(reqOpts);
-};
-
-export const requestIdentifiers = () => {
-  let reqOpts = {
-    model_name: 'all',
-    record_names: 'all',
-    attribute_names: 'identifier',
-    exchange_name: 'request-identifiers'
-  };
-
-  return requestDocuments(reqOpts);
-};
+export const requestIdentifiers = () => requestDocuments({
+  model_name: 'all',
+  record_names: 'all',
+  attribute_names: 'identifier',
+  exchange_name: 'request-identifiers'
+});
 
 const uploadFileRevisions = (model_name, revisions, response, dispatch) => {
   // Handle any file upload revisions by sending the file to Metis.
@@ -309,42 +264,34 @@ export const sendRevisions = (
   revisions,
   success,
   error
-) => {
-  return (dispatch) => {
-    let localSuccess = (response) => {
-      uploadFileRevisions(model_name, revisions, response, dispatch).then(
-        (updatedResponse) => {
-          consumePayload(dispatch, updatedResponse);
-          for (var record_name in revisions) {
-            dispatch(discardRevision(record_name, model_name));
-          }
-
-          if (success != undefined) success();
+) => dispatch => {
+  const exchange =  new Exchange(dispatch, `revisions-${model_name}`);
+  return postRevisions(
+    formatRevisions(revisions, model_name, model_template),
+    exchange.fetch.bind(exchange)
+  ).then(
+    response => uploadFileRevisions(model_name, revisions, response, dispatch).then(
+      (updatedResponse) => {
+        consumePayload(dispatch, updatedResponse);
+        for (var record_name in revisions) {
+          dispatch(discardRevision(record_name, model_name));
         }
-      );
-    };
 
-    let localError = (e) => {
-      e.then((response) => {
-        let errStr = response.error
-          ? response.error
-          : response.errors.map((error) => `* ${error}`);
-        errStr = [`### The change we sought did not occur.\n\n${errStr}`];
-        dispatch(showMessages(errStr));
-      });
-
-      if (error != undefined) error();
-    };
-
-    let exchng = new Exchange(dispatch, `revisions-${model_name}`);
-    postRevisions(
-      formatRevisions(revisions, model_name, model_template),
-      exchng
+        if (success != undefined) success();
+      }
     )
-      .then(localSuccess)
-      .catch(localError);
-  };
-};
+  ).catch(e => {
+    e.then((response) => {
+      let errStr = response.error
+        ? response.error
+        : response.errors.map((error) => `* ${error}`);
+      errStr = [`### The change we sought did not occur.\n\n${errStr}`];
+      dispatch(showMessages(errStr));
+    });
+
+    if (error != undefined) error();
+  });
+}
 
 // export for testing
 export const formatRevisions = (revisions, model_name, model_template) => {
@@ -398,32 +345,22 @@ const cleanFileCollectionRevisions = (revisions, model_template) => {
 // Download a TSV from magma via Timur.
 export const requestTSV = (params) => (dispatch) => getTSVForm(params);
 
-export const requestAnswer = (question, callback = null) => {
-  return (dispatch) => {
-    let localSuccess = (response) => {
-      if ('error' in response) {
-        dispatch(showMessages([`There was a ${response.type} error.`]));
-        console.log(response.error);
-        if (!callback) throw new Error(response.error);
-      }
+export const requestAnswer = (question, callback = null) => dispatch => {
+  const exchange = new Exchange(
+    dispatch,
+    Array.isArray(question) ? JSON.stringify(question) : question
+  );
 
+  return getAnswer(question, exchange.fetch.bind(exchange)).then(
+    response => {
+      showError(dispatch)(response);
       if (callback) callback(response);
       else return response;
-    };
-
-    let localError = (error) => {
-      console.log(error);
-      if (!callback) throw new Error(error);
-    };
-
-    let question_name = question;
-    if (Array.isArray(question)) {
-      question_name = [].concat.apply([], question).join('-');
-    }
-    let exchange = new Exchange(dispatch, question_name);
-    return getAnswer(question, exchange).then(localSuccess).catch(localError);
-  };
-};
+  }).catch( error => {
+    console.log(error);
+    throw new Error(error);
+  });
+}
 
 export const requestPredicates = () => {
   return (dispatch) => {

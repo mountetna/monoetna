@@ -52,8 +52,6 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
         end
       end
     end
-
-    logger.info("Done")
   end
 
   private

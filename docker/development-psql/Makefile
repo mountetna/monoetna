@@ -1,2 +1,1 @@
-image:
-	../build_image Dockerfile
+include ../../make-base/stubs.mk

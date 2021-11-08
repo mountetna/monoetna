@@ -1,38 +1,22 @@
-import React, {
-  useMemo,
-  useContext,
-  useState,
-  useCallback,
-  useEffect
-} from 'react';
+import React, {useContext} from 'react';
 import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
-
 import {makeStyles} from '@material-ui/core/styles';
 
 import {Controlled as CodeMirror} from 'react-codemirror2';
 
-import {useReduxState} from 'etna-js/hooks/useReduxState';
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {showMessages} from 'etna-js/actions/message_actions';
-import {getAnswer} from 'etna-js/api/magma_api';
-import {selectModels} from 'etna-js/selectors/magma';
-import {Exchange} from 'etna-js/actions/exchange_actions';
-import {downloadTSV, MatrixDatum} from 'etna-js/utils/tsv';
-import {ReactReduxContext} from 'react-redux';
-
-import {QueryContext} from '../../contexts/query/query_context';
-import {QueryBuilder} from '../../utils/query_builder';
-import {QueryResponse} from '../../contexts/query/query_types';
+import {QueryGraphContext} from '../../contexts/query/query_graph_context';
+import {QueryColumnContext} from '../../contexts/query/query_column_context';
+import {QueryResultsContext} from '../../contexts/query/query_results_context';
 import QueryTable from './query_table';
-import AntSwitch from './ant_switch';
 import useTableEffects from './query_use_table_effects';
+import AntSwitch from './ant_switch';
 
 const useStyles = makeStyles((theme) => ({
-  button: {
-    marginRight: '5px'
+  checkbox: {
+    marginRight: '30px'
   },
   result: {
+    width: '100%',
     padding: 10,
     margin: 10,
     border: '1px solid #0f0',
@@ -41,95 +25,48 @@ const useStyles = makeStyles((theme) => ({
   },
   config: {
     padding: 5,
-    paddingTop: 0
+    paddingTop: 0,
+    alignSelf: 'flex-end'
+  },
+  resultsPane: {
+    overflowX: 'auto',
+    maxWidth: '100%',
+    maxHeight: '100%'
   }
 }));
 
 const QueryResults = () => {
-  const [expandMatrices, setExpandMatrices] = useState(true);
-  const [flattenQuery, setFlattenQuery] = useState(true);
-  const [lastPage, setLastPage] = useState(0);
-  const [page, setPage] = useState(0);
-  const [lastPageSize, setLastPageSize] = useState(10);
-  const [pageSize, setPageSize] = useState(10);
-  const [queries, setQueries] = useState([] as string[][]);
-  const [data, setData] = useState({} as QueryResponse);
-  const [numRecords, setNumRecords] = useState(0);
-  const {state} = useContext(QueryContext);
-  let {store} = useContext(ReactReduxContext);
-  const invoke = useActionInvoker();
-  let reduxState = useReduxState();
+  const {
+    state: {graph, rootModel}
+  } = useContext(QueryGraphContext);
+  const {
+    state: {columns}
+  } = useContext(QueryColumnContext);
+  const {
+    state: {
+      pageSize,
+      page,
+      numRecords,
+      queryString,
+      data,
+      expandMatrices,
+      flattenQuery,
+      maxColumns
+    },
+    setPageSize,
+    setPage,
+    setExpandMatrices,
+    setFlattenQuery
+  } = useContext(QueryResultsContext);
   const classes = useStyles();
 
-  const builder = useMemo(() => {
-    if (state.rootIdentifier && state.graph && state.graph.initialized) {
-      let builder = new QueryBuilder(state.graph, selectModels(reduxState));
-
-      builder.addRootIdentifier(state.rootIdentifier);
-      builder.addColumns(state.columns);
-      builder.addRecordFilters(state.recordFilters);
-      builder.setFlatten(flattenQuery);
-      builder.setOrRecordFilterIndices(state.orRecordFilterIndices);
-
-      return builder;
-    }
-
-    return null;
-  }, [
-    state.rootIdentifier,
-    state.columns,
-    state.recordFilters,
-    state.graph,
-    state.orRecordFilterIndices,
-    flattenQuery,
-    reduxState
-  ]);
-
-  const query = useMemo(() => {
-    if (!builder) return '';
-
-    return builder.query();
-  }, [builder]);
-
-  const count = useMemo(() => {
-    if (!builder) return '';
-
-    return builder.count();
-  }, [builder]);
-
-  const runQuery = useCallback(() => {
-    if ('' === count || '' === query) return;
-
-    let exchange = new Exchange(store.dispatch, 'query-post-magma');
-    getAnswer({query: count}, exchange)
-      .then((countData) => {
-        setNumRecords(countData.answer);
-        return getAnswer(
-          {query, page_size: pageSize, page: page + 1},
-          exchange
-        );
-      })
-      .then((answerData) => {
-        setData(answerData);
-        // setQueries([...queries].splice(0, 0, builder));
-      })
-      .catch((e) => {
-        e.then((error: {[key: string]: string[]}) => {
-          console.error(error);
-          invoke(showMessages(error.errors || [error.error] || error));
-        });
-      });
-  }, [query, count, store.dispatch, pageSize, page, invoke]);
-
-  useEffect(() => {
-    // At some point, we can probably cache data and only
-    //   fetch when needed?
-    if (lastPage !== page || lastPageSize !== pageSize) {
-      runQuery();
-      setLastPage(page);
-      setLastPageSize(pageSize);
-    }
-  }, [page, pageSize, lastPage, lastPageSize, runQuery]);
+  const {columns: formattedColumns, rows} = useTableEffects({
+    columns,
+    data,
+    graph,
+    expandMatrices,
+    maxColumns
+  });
 
   function handlePageSizeChange(
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
@@ -144,62 +81,26 @@ const QueryResults = () => {
     setPage(newPage);
   }
 
-  const {columns, rows, formatRowData} = useTableEffects(data, expandMatrices);
-
-  const downloadData = useCallback(() => {
-    if ('' === query) return;
-
-    let exchange = new Exchange(store.dispatch, 'query-download-tsv-magma');
-    getAnswer({query}, exchange)
-      .then((allData) => {
-        let rowData = formatRowData(allData, columns);
-        let matrixMap = rowData.map((row: any) => {
-          return columns.reduce((acc: MatrixDatum, {label}, i: number) => {
-            return {...acc, [label]: row[i]};
-          }, {});
-        }, []);
-
-        downloadTSV(
-          matrixMap,
-          columns.map(({label}) => label),
-          `${state.rootModel}-${new Date().toISOString()}` // at some point include the builder hash?
-        );
-      })
-      .catch((e) => {
-        e.then((error: {[key: string]: string[]}) => {
-          console.error(error);
-          invoke(showMessages(error.errors || [error.error] || error));
-        });
-      });
-  }, [query, store.dispatch, columns, formatRowData, invoke, state.rootModel]);
-
-  if (!state.rootModel || !state.rootIdentifier) return null;
+  if (!rootModel) return null;
 
   return (
-    <Grid container xs={12}>
-      <Grid item xs={12} className={classes.result}>
-        <CodeMirror
-          options={{
-            readOnly: 'no-cursor',
-            lineWrapping: true,
-            mode: 'application/json',
-            autoCloseBrackets: true,
-            lint: false,
-            background: 'none',
-            tabSize: 2
-          }}
-          value={JSON.stringify(query)}
-          onBeforeChange={(editor, data, value) => {}}
-        />
-      </Grid>
+    <Grid container className={classes.resultsPane}>
+      <CodeMirror
+        className={classes.result}
+        options={{
+          readOnly: 'no-cursor',
+          lineWrapping: true,
+          mode: 'application/json',
+          autoCloseBrackets: true,
+          lint: false,
+          background: 'none',
+          tabSize: 2
+        }}
+        value={queryString}
+        onBeforeChange={(editor, data, value) => {}}
+      />
       <Grid xs={12} item container direction='column'>
-        <Grid
-          className={classes.config}
-          item
-          container
-          alignItems='center'
-          justify='flex-end'
-        >
+        <Grid className={classes.config} item container justify='flex-end'>
           <AntSwitch
             checked={expandMatrices}
             onChange={() => setExpandMatrices(!expandMatrices)}
@@ -214,27 +115,17 @@ const QueryResults = () => {
             leftOption='Nested'
             rightOption='Flattened'
           />
-          <Button className={classes.button} disabled>
-            Previous Queries
-          </Button>
-          <Button className={classes.button} onClick={runQuery}>
-            Query
-          </Button>
-          <Button className={classes.button} onClick={downloadData}>
-            {'\u21af TSV'}
-          </Button>
         </Grid>
-        <Grid item>
-          <QueryTable
-            columns={columns}
-            rows={rows}
-            pageSize={pageSize}
-            numRecords={numRecords}
-            page={page}
-            handlePageChange={handlePageChange}
-            handlePageSizeChange={handlePageSizeChange}
-          />
-        </Grid>
+        <QueryTable
+          maxColumns={maxColumns}
+          columns={formattedColumns}
+          rows={rows}
+          pageSize={pageSize}
+          numRecords={numRecords}
+          page={page}
+          handlePageChange={handlePageChange}
+          handlePageSizeChange={handlePageSizeChange}
+        />
       </Grid>
     </Grid>
   );

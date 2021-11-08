@@ -2,10 +2,10 @@ import React from 'react';
 import {render} from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 
-import {defaultContext} from '../../../../lib/client/jsx/contexts/query/query_context';
 import {mockStore, querySpecWrapper} from '../../helpers';
 import QueryBuilder from '../../../../lib/client/jsx/components/query/query_builder';
 import {QueryGraph} from '../../../../lib/client/jsx/utils/query_graph';
+import {defaultQueryResultsParams} from '../../../../lib/client/jsx/contexts/query/query_results_context';
 
 const models = {
   monster: {
@@ -50,15 +50,7 @@ describe('QueryBuilder', () => {
       janus: {projects: require('../../fixtures/project_names.json')}
     });
 
-    let mockState = {
-      ...defaultContext.state,
-      graph,
-      rootModel: 'monster',
-      rootIdentifier: {
-        model_name: 'monster',
-        attribute_name: 'name',
-        display_label: 'monster.name'
-      },
+    let mockColumnState = {
       columns: [
         {
           model_name: 'monster',
@@ -73,9 +65,14 @@ describe('QueryBuilder', () => {
           slices: [
             {
               modelName: 'prize',
-              attributeName: 'name',
-              operator: '::equals',
-              operand: 'Athens'
+              clause: {
+                attributeName: 'name',
+                operator: '::equals',
+                operand: 'Athens',
+                attributeType: 'text',
+                modelName: 'prize',
+                any: true
+              }
             }
           ]
         },
@@ -86,25 +83,53 @@ describe('QueryBuilder', () => {
           slices: [
             {
               modelName: 'prize',
-              attributeName: 'name',
-              operator: '::equals',
-              operand: 'Sparta'
+              clause: {
+                attributeName: 'name',
+                operator: '::equals',
+                operand: 'Sparta',
+                attributeType: 'text',
+                modelName: 'prize',
+                any: true
+              }
             }
           ]
         }
-      ],
+      ]
+    };
+
+    let mockGraphState = {
+      graph,
+      rootModel: 'monster'
+    };
+
+    let mockWhereState = {
+      orRecordFilterIndices: [],
       recordFilters: [
         {
           modelName: 'labor',
-          attributeName: 'year',
-          operator: '::=',
-          operand: 2
+          clauses: [
+            {
+              attributeName: 'year',
+              operator: '::=',
+              operand: 2,
+              attributeType: 'number',
+              modelName: 'labor',
+              any: true
+            }
+          ],
+          anyMap: {}
         }
       ]
     };
 
     const {asFragment} = render(<QueryBuilder />, {
-      wrapper: querySpecWrapper(mockState, store)
+      wrapper: querySpecWrapper({
+        mockColumnState,
+        mockGraphState,
+        mockWhereState,
+        mockResultsState: defaultQueryResultsParams,
+        store
+      })
     });
 
     expect(asFragment()).toMatchSnapshot();

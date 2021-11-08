@@ -3,10 +3,10 @@ import {
   QueryColumn,
   QueryFilter,
   QuerySlice,
-  QueryBase
+  QueryBase,
+  QueryClause
 } from '../contexts/query/query_types';
 import {QueryGraph} from './query_graph';
-import {Model} from '../models/model_types';
 import QuerySimplePathBuilder from './query_simple_path_builder';
 import QueryFilterPathBuilder from './query_filter_path_builder';
 import {
@@ -22,20 +22,18 @@ import FilterOperator from '../components/query/query_filter_operator';
 
 export class QueryBuilder {
   graph: QueryGraph;
-  models: {[key: string]: Model};
   recordFilters: QueryFilter[] = [];
   columns: QueryColumn[] = [];
   root: string = '';
   flatten: boolean = true;
   orRecordFilterIndices: number[] = [];
 
-  constructor(graph: QueryGraph, models: {[key: string]: Model}) {
+  constructor(graph: QueryGraph) {
     this.graph = graph;
-    this.models = models;
   }
 
-  addRootIdentifier(rootIdentifier: QueryColumn) {
-    this.root = rootIdentifier.model_name;
+  addRootModel(modelName: string) {
+    this.root = modelName;
   }
 
   addColumns(columns: QueryColumn[]) {
@@ -67,37 +65,70 @@ export class QueryBuilder {
     return [this.root, ...this.expandedOperands(this.recordFilters), '::count'];
   }
 
-  serializeQueryBase(queryBase: QueryBase): any[] {
+  isNumeric(queryClause: QueryClause): boolean {
+    return queryClause.attributeType === 'number';
+  }
+
+  serializeQueryClause(queryClause: QueryClause): any[] {
     let result: any[] = [];
 
-    result.push(queryBase.attributeName);
-    result.push(queryBase.operator);
+    result.push(queryClause.attributeName);
+    result.push(queryClause.operator);
 
-    if (FilterOperator.commaSeparatedOperators.includes(queryBase.operator)) {
-      result.push((queryBase.operand as string).split(','));
+    if (
+      !this.isNumeric(queryClause) &&
+      FilterOperator.commaSeparatedOperators.includes(queryClause.operator)
+    ) {
+      result.push((queryClause.operand as string).split(','));
     } else if (
-      FilterOperator.terminalInvertOperators.includes(queryBase.operator)
+      FilterOperator.commaSeparatedOperators.includes(queryClause.operator) &&
+      this.isNumeric(queryClause)
+    ) {
+      result.push(
+        (queryClause.operand as string).split(',').map((o) => parseFloat(o))
+      );
+    } else if (
+      FilterOperator.terminalInvertOperators.includes(queryClause.operator)
     ) {
       // invert the model and attribute names, ignore operand
       let length = result.length;
       let tmpOperator = result[length - 1];
       result[length - 1] = result[length - 2];
       result[length - 2] = tmpOperator;
-    } else if (FilterOperator.terminalOperators.includes(queryBase.operator)) {
+    } else if (
+      FilterOperator.terminalOperators.includes(queryClause.operator)
+    ) {
       // ignore operand
+    } else if (this.isNumeric(queryClause)) {
+      result.push(parseFloat(queryClause.operand as string));
     } else {
-      result.push(queryBase.operand);
+      result.push(queryClause.operand);
     }
 
     return result;
   }
 
-  filterWithPath(filter: QueryBase, includeModelPath: boolean = true): any[] {
-    let result: any[] = this.serializeQueryBase(filter);
+  wrapQueryClause(filterModelName: string, clause: QueryClause): any[] {
+    const serializedClause = this.serializeQueryClause(clause);
 
-    let path: string[] | undefined = this.filterPathWithModelPredicates(
-      filter as QueryFilter
-    );
+    if (filterModelName === clause.modelName) return serializedClause;
+
+    return [
+      clause.modelName,
+      serializedClause,
+      clause.any ? '::any' : '::every'
+    ];
+  }
+
+  filterWithPath(filter: QueryFilter, includeModelPath: boolean = true): any[] {
+    let result: any[] = [
+      '::and',
+      ...filter.clauses.map((clause) =>
+        this.wrapQueryClause(filter.modelName, clause)
+      )
+    ];
+
+    let path: string[] | undefined = this.filterPathWithModelPredicates(filter);
     if (includeModelPath && undefined != path) {
       // Inject the current [attribute, operator, operand] into
       //   the deepest array, between [model, "::any"]...
@@ -164,7 +195,7 @@ export class QueryBuilder {
     const filterBuilder = new QueryFilterPathBuilder(
       pathWithoutRoot,
       this.root,
-      this.models,
+      this.graph.models,
       filter.anyMap
     );
     return filterBuilder.build();
@@ -178,7 +209,7 @@ export class QueryBuilder {
     const pathBuilder = new QuerySimplePathBuilder(
       pathWithoutRoot,
       this.root,
-      this.models,
+      this.graph.models,
       this.flatten
     );
     return pathBuilder.build();
@@ -240,7 +271,9 @@ export class QueryBuilder {
       if (isMatrixSlice(matchingSlice)) {
         // For matrices (i.e. ::slice), we'll construct it
         //   a little differently.
-        predicate = predicate.concat(this.serializeQueryBase(matchingSlice));
+        predicate = predicate.concat(
+          this.serializeQueryClause(matchingSlice.clause)
+        );
         // attribute name already
         // included as part of the expanded operand
         includeAttributeName = false;
@@ -248,11 +281,11 @@ export class QueryBuilder {
         // This splicing works for tables.
         // Adds in a new array for the operand before
         //   the ::first or ::all
-        let sliceModelIndex = predicate.indexOf(matchingSlice.modelName);
+        let sliceModelIndex = predicate.indexOf(matchingSlice.clause.modelName);
         predicate.splice(
           sliceModelIndex + 1,
           0,
-          this.serializeQueryBase(matchingSlice)
+          this.serializeQueryClause(matchingSlice.clause)
         );
       }
     });
@@ -275,7 +308,7 @@ export class QueryBuilder {
   attributeNameWithPredicate(modelName: string, attributeName: string) {
     // Probably only used for File / Image / FileCollection attributes?
     let predicate = [attributeName];
-    if (attributeIsFile(this.models, modelName, attributeName)) {
+    if (attributeIsFile(this.graph.models, modelName, attributeName)) {
       predicate.push('::url');
     }
 

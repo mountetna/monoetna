@@ -4,10 +4,11 @@ import {WithInputParams} from './input_types';
 import {maybeOfNullable, some, withDefault} from "../../../../selectors/maybe";
 import {flattenStringOptions, StringOptions} from "./monoids";
 import {useMemoized} from "../../../../selectors/workflow_selectors";
+import { useSetsDefault } from './useSetsDefault';
 
-export default function SelectAutocompleteInput({data, onChange, ...props}: WithInputParams<{}, string, StringOptions>) {
+export default function SelectAutocompleteInput({data, onChange, ...props}: WithInputParams<{}, string | null, StringOptions>) {
   const options = useMemoized(flattenStringOptions, data);
-  const value = withDefault(props.value, null);
+  const value = useSetsDefault("", props.value, onChange);
 
   return (
     <DropdownAutocomplete
@@ -16,6 +17,7 @@ export default function SelectAutocompleteInput({data, onChange, ...props}: With
       }}
       list={options}
       value={value}
+      maxItems={30}
     />
   );
 };

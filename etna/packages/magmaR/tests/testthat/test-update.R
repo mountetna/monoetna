@@ -10,64 +10,123 @@ targ <- magmaRset(
 vcr::use_cassette("update_1", {
     mat <- retrieveMatrix(targ, "example", "rna_seq", "all", "gene_counts")
     
-    test_that("updateMatrix can take in data directly", {
+    test_that("updateMatrix can take in data directly, as csv, or as tsv", {
         
+        # Run for direct, and check that nothing actually changed 
         expect_output(
-            updateMatrix(targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
+            updateMatrix(
+                targ, projectName = "example",
+                modelName = "rna_seq", attributeName = "gene_counts",
                 matrix = mat,
                 auto.proceed = TRUE),
-"For model \"rna_seq\", this update() will update 12 records",
+            "/update: successful.",
             fixed = TRUE
         )
         mat_after <- retrieveMatrix(targ, "example", "rna_seq", "all", "gene_counts")
-    
         expect_identical(mat,mat_after)
+        
+        # csv, tsv identical
+        revs_mat_csv <-
+            updateMatrix(
+                targ, projectName = "example",
+                modelName = "rna_seq", attributeName = "gene_counts",
+                matrix = "rna_seq_counts.csv",
+                revisions.only = TRUE)
+        revs_mat_tsv <-
+            updateMatrix(
+                targ, projectName = "example",
+                modelName = "rna_seq", attributeName = "gene_counts",
+                matrix = "rna_seq_counts.tsv",
+                separator = "\t",
+                revisions.only = TRUE)
+        expect_identical(revs_mat_csv, revs_mat_tsv)
+        
+        # Errors if 'separator' is not changed for tsv
+        expect_error(
+            updateMatrix(
+                targ, projectName = "example",
+                modelName = "rna_seq", attributeName = "gene_counts",
+                matrix = "rna_seq_counts.tsv"),
+            "Parsing error.",
+            fixed = TRUE
+        )
+        
+        # Run one, and check that nothing actually changed 
+        expect_output(
+            updateMatrix(
+                targ, projectName = "example",
+                modelName = "rna_seq", attributeName = "gene_counts",
+                matrix = "rna_seq_counts.csv",
+                auto.proceed = TRUE),
+            "/update: successful.",
+            fixed = TRUE
+        )
     })
 })
 
 vcr::use_cassette("update_2", {
-    test_that("updateMatrix can take in data as csv", {
+    df <- retrieve(targ, "example", "rna_seq", "all",
+                   c("tube_name", "cell_number", "fraction"))
+    
+    test_that("updateFromDF can take in data directly, as csv, or as tsv", {
+        revs_df_direct <-
+            updateFromDF(
+                targ, projectName = "example",
+                modelName = "rna_seq",
+                df = df,
+                revisions.only = TRUE)
+        revs_df_csv <-
+            updateFromDF(
+                targ, projectName = "example",
+                modelName = "rna_seq",
+                df = "rna_seq_df.csv",
+                revisions.only = TRUE)
+        revs_df_tsv <-
+            updateFromDF(
+                targ, projectName = "example",
+                modelName = "rna_seq",
+                df = "rna_seq_df.tsv",
+                separator = "\t",
+                revisions.only = TRUE)
+        expect_identical(revs_df_direct, revs_df_csv)
+        expect_identical(revs_df_csv, revs_df_tsv)
         
-        expect_output(
-            updateMatrix(target = targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
-                matrix = "rna_seq_counts.csv",
-                auto.proceed = TRUE),
-"For model \"rna_seq\", this update() will update 12 records",
+        # Column#1 / identifiers column name is ignored
+        revs_df_csv_idName <-
+            updateFromDF(
+                targ, projectName = "example",
+                modelName = "rna_seq",
+                df = "rna_seq_df_idName.csv",
+                revisions.only = TRUE)
+        expect_identical(revs_df_csv, revs_df_csv_idName)
+        
+        # Errors if 'separator' is not changed for tsv
+        expect_error(
+            updateFromDF(
+                targ, projectName = "example",
+                modelName = "rna_seq", attributeName = "gene_counts",
+                df = "rna_seq_df.tsv"),
+            "Parsing error.",
             fixed = TRUE
         )
-        mat_after <- retrieveMatrix(targ, "example", "rna_seq", "all", "gene_counts")
-    
-        expect_identical(mat,mat_after)
+        
+        # Run one, and check that nothing actually changed 
+        expect_output(
+            updateFromDF(
+                targ, projectName = "example",
+                modelName = "rna_seq",
+                df = df,
+                auto.proceed = TRUE),
+            "For model \"rna_seq\", this update() will update 12 records",
+            fixed = TRUE
+        )
+        df_after <- retrieve(targ, "example", "rna_seq", "all",
+                             c("tube_name", "cell_number", "fraction"))
+        expect_identical(df,df_after)
     })
 })
 
 vcr::use_cassette("update_3", {
-    test_that("updateMatrix can take in data as tsv", {
-        
-        expect_output(
-            updateMatrix(target = targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
-                matrix = "rna_seq_counts.tsv",
-                separator = "\t",
-                auto.proceed = TRUE),
-"For model \"rna_seq\", this update() will update 12 records",
-            fixed = TRUE
-        )
-        mat_after <- retrieveMatrix(targ, "example", "rna_seq", "all", "gene_counts")
-    
-        expect_identical(mat,mat_after)
-        
-        # Error if 'separator' is not changed:
-        expect_error(
-            updateMatrix(target = targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
-                matrix = "rna_seq_counts.tsv",
-                auto.proceed = TRUE),
-            "Parsing error.", fixed = TRUE
-        )
-        
-    })
-})
-
-vcr::use_cassette("update_4", {
     test_that("updateMatrix gives expected errors/warnings", {
         
         # Error when matrix does not have colnames (recordNames)
@@ -75,7 +134,7 @@ vcr::use_cassette("update_4", {
         colnames(mat_noIDs) <- NULL
         expect_error(
             updateMatrix(target = targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
-                matrix = mat_noIDs),
+                         matrix = mat_noIDs),
             "Colnames of matrix should be record names.", fixed = TRUE
         )
         
@@ -84,16 +143,51 @@ vcr::use_cassette("update_4", {
         rownames(mat_notGENEs) <- paste0("NOPE", seq_len(nrow(mat)))
         expect_error(
             updateMatrix(target = targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
-                matrix = mat_notGENEs),
+                         matrix = mat_notGENEs),
             "Validation error: rownames of 'matrix' are not valid options for", fixed = TRUE
         )
         
-        # Error when run non-interactively without 'auto.proceed = TRUE' or when user says "no" to proceeding.
+        # Error when run non-interactively without 'auto.proceed = TRUE'.
         # Note: when running interactively, SAY NO!
         skip_if(interactive(), "running in interactive mode")
         expect_warning(
             updateMatrix(target = targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
-                matrix = mat),
+                         matrix = mat),
+            "To run in non-interactive mode, set 'auto.proceed = TRUE'.", fixed = TRUE)
+    })
+})
+
+vcr::use_cassette("update_4", {
+    test_that("updateFromDF gives expected errors/warnings", {
+        
+        # Error when matrix does not have colnames (recordNames).
+        df_dupID <- df
+        df_dupID[2,1] <- df[1,1]
+        expect_error(
+            updateFromDF(
+                targ, projectName = "example",
+                modelName = "rna_seq",
+                df = df_dupID),
+            "Values of 1st column (record identifiers) must be unique.", fixed = TRUE
+        )
+        
+        # Error when no attribute columns are given.
+        df_IDs_only <- df[,1,drop=FALSE]
+        expect_error(
+            updateFromDF(
+                targ, projectName = "example",
+                modelName = "rna_seq",
+                df = df_IDs_only),
+            "df has one column, but at least 2 are required.", fixed = TRUE
+        )
+        
+        # Error when run non-interactively without 'auto.proceed = TRUE'.
+        skip_if(interactive(), "running in interactive mode")
+        expect_warning(
+            updateFromDF(
+                target = targ, projectName = "example",
+                modelName = "rna_seq",
+                df = df),
             "To run in non-interactive mode, set 'auto.proceed = TRUE'.", fixed = TRUE)
     })
 })
@@ -106,7 +200,7 @@ vcr::use_cassette("update_4", {
 ### Note2: When running in an interactive mode, always say NO to proceeding if asked.
 
 vcr::use_cassette("update_5", {
-    test_that("updateMatrix gives expected messages", {
+    test_that("updates give expected summary / not-run messages", {
         
         # When all records already exist:
         expect_output(
@@ -136,7 +230,7 @@ vcr::use_cassette("update_5", {
             suppressWarnings(
                 updateMatrix(target = targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                     matrix = mat_halfIDs_wrong)),
-"For model \"rna_seq\", this update() will create 6 NEW records:
+"For model \"rna_seq\", this update() will create (or update) 6 NEW (or orphan) records:
     WRONG1
     WRONG2
     WRONG3
@@ -160,7 +254,7 @@ For model \"rna_seq\", this update() will update 6 records:
             suppressWarnings(
                 updateMatrix(target = targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                     matrix = mat_allIDs_wrong)),
-"For model \"rna_seq\", this update() will create 12 NEW records:
+"For model \"rna_seq\", this update() will create (or update) 12 NEW (or orphan) records:
     WRONG1
     WRONG2
     WRONG3

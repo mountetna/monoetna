@@ -57,6 +57,14 @@ export default {
 
 const Template: ComponentStory<typeof ParameterizedStepUserInput> = (args: any) => <ParameterizedStepUserInput {...args}/>;
 
+export const DiffExpSC = Template.bind({});
+DiffExpSC.args = {
+  type: TYPE.DIFF_EXP_SC,
+  cwlParams: {
+      'data_frame': require('./mockDF.json')
+  }
+};
+
 export const ScatterPlotlyFULL = Template.bind({});
 ScatterPlotlyFULL.args = {
   type: TYPE.SCATTER_PLOTLY,
@@ -120,3 +128,11 @@ ColorSelection.args = {
     'color_options': require('./color_options.json')
   }
 };
+
+export const BatchSelection = Template.bind({});
+BatchSelection.args = {
+  type: TYPE.SELECT_AUTOCOMPLETE,
+  cwlParams:  {
+    'batch_options': ['1', '2', '3']
+  }
+}

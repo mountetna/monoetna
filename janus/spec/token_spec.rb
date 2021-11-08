@@ -151,9 +151,11 @@ describe "Token Generation" do
       @user = create(:user, name: 'Zeus Almighty', email: 'zeus@olympus.org')
       gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
       tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
+      tannel = create(:project, project_name: 'tannel', project_name_full: 'Tunnel with an a')
       mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
 
       perm = create(:permission, project: tunnel, user: @user, role: 'administrator', privileged: true)
+      perm = create(:permission, project: tannel, user: @user, role: 'administrator', privileged: true)
       perm = create(:permission, project: mirror, user: @user, role: 'viewer')
     end
 
@@ -185,7 +187,7 @@ describe "Token Generation" do
       Timecop.freeze
 
       header('Authorization', "Etna #{@user.create_token!}")
-      post('/api/tokens/generate', project_name: 'tunnel', token_type: 'task')
+      post('/api/tokens/generate', project_name: 'tannel', token_type: 'task')
       expect(last_response.status).to eq(200)
 
       payload = header = nil
@@ -195,7 +197,7 @@ describe "Token Generation" do
       }.not_to raise_error
 
       # there is only one project on the token, with reduced permissions
-      expect(payload["perm"]).to eq('E:tunnel')
+      expect(payload["perm"]).to eq('E:tannel')
 
       expect(payload["task"]).to be_truthy
 
@@ -234,6 +236,14 @@ describe "Token Generation" do
       header('Authorization', "Etna #{@user.create_token!}")
       post('/api/tokens/generate', project_name: 'gateway', token_type: 'task')
       expect(last_response.status).to eq(401)
+    end
+
+    it 'allows supereditors create a task token without project permission' do
+      admin = create(:project, project_name: 'administration', project_name_full: 'Administration')
+      perm = create(:permission, project: admin, user: @user, role: 'editor')
+      header('Authorization', "Etna #{@user.create_token!}")
+      post('/api/tokens/generate', project_name: 'gateway', token_type: 'task')
+      expect(last_response.status).to eq(200)
     end
 
     it 'validates a task token' do

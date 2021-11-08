@@ -1,9 +1,6 @@
-import React, {useMemo, useContext, useCallback} from 'react';
+import React, {useMemo, useCallback} from 'react';
 import * as _ from 'lodash';
 
-import {useReduxState} from 'etna-js/hooks/useReduxState';
-import {selectModels} from 'etna-js/selectors/magma';
-import {QueryContext} from '../../contexts/query/query_context';
 import {
   QueryColumn,
   QueryResponse,
@@ -15,39 +12,64 @@ import {
   hasMatrixSlice,
   isMatrixSlice
 } from '../../selectors/query_selector';
+import {QueryGraph} from '../../utils/query_graph';
 
-const useTableEffects = (data: QueryResponse, expandMatrices: boolean) => {
-  let {state} = useContext(QueryContext);
-  const reduxState = useReduxState();
-
+const useTableEffects = ({
+  columns,
+  data,
+  graph,
+  expandMatrices,
+  maxColumns
+}: {
+  columns: QueryColumn[];
+  data: QueryResponse;
+  expandMatrices: boolean;
+  graph: QueryGraph;
+  maxColumns: number;
+}) => {
   function generateIdCol(attr: QueryColumn, index: number): string {
     return `${CONFIG.project_name}::${attr.model_name}#${attr.attribute_name}@${index}`;
   }
 
-  const columns = useMemo(() => {
-    if (!state.rootIdentifier) return [];
+  const validationValues = useCallback(
+    (column: QueryColumn) => {
+      return (graph.models[column.model_name]?.template.attributes[
+        column.attribute_name
+      ]?.validation?.value || []) as string[];
+    },
+    [graph.models]
+  );
 
-    return state.columns.reduce(
+  const formattedColumns = useMemo(() => {
+    return columns.reduce(
       (acc: QueryTableColumn[], column: QueryColumn, index: number) => {
         if (
           expandMatrices &&
           attributeIsMatrix(
-            selectModels(reduxState),
+            graph.models,
             column.model_name,
             column.attribute_name
-          ) &&
-          hasMatrixSlice(column)
+          )
         ) {
-          column.slices
-            .filter((slice) => isMatrixSlice(slice))
-            .forEach((slice) => {
-              (slice.operand as string).split(',').forEach((heading) => {
-                acc.push({
-                  label: `${column.display_label}.${heading}`,
-                  colId: `${generateIdCol(column, index)}.${heading}`
-                });
-              });
+          let matrixHeadings: string[] = [];
+
+          if (hasMatrixSlice(column)) {
+            matrixHeadings = column.slices
+              .filter((slice) => isMatrixSlice(slice))
+              .map((slice) => {
+                return (slice.clause.operand as string).split(',');
+              })
+              .flat();
+          } else {
+            matrixHeadings = validationValues(column);
+          }
+
+          matrixHeadings.forEach((heading) => {
+            acc.push({
+              label: `${column.display_label}.${heading}`,
+              colId: `${generateIdCol(column, index)}.${heading}`
             });
+          });
         } else {
           acc.push({
             label: column.display_label,
@@ -59,7 +81,7 @@ const useTableEffects = (data: QueryResponse, expandMatrices: boolean) => {
       },
       []
     );
-  }, [state.columns, state.rootIdentifier, reduxState, expandMatrices]);
+  }, [columns, graph, expandMatrices, validationValues]);
 
   const formatRowData = useCallback(
     (allData: QueryResponse, cols: QueryTableColumn[]) => {
@@ -76,14 +98,14 @@ const useTableEffects = (data: QueryResponse, expandMatrices: boolean) => {
   );
 
   const rows = useMemo(() => {
-    if (!data || !data.answer) return;
+    if (!data || !data.answer || data.answer.length === 0) return;
 
-    // Need to order the results the same as `columns`
-    return formatRowData(data, columns);
-  }, [data, columns, formatRowData]);
+    // Need to order the results the same as `formattedColumns`
+    return formatRowData(data, formattedColumns.slice(0, maxColumns));
+  }, [data, formattedColumns, formatRowData, maxColumns]);
 
   return {
-    columns,
+    columns: formattedColumns,
     rows,
     formatRowData
   };

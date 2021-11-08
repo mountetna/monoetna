@@ -13,6 +13,7 @@ import {selectUser} from 'etna-js/selectors/user-selector';
 
 import {showMessages} from 'etna-js/actions/message_actions';
 import {updateLocation} from 'etna-js/actions/location_actions';
+import RootView from 'etna-js/components/RootView';
 
 import {ModalDialogContainer} from 'etna-js/components/ModalDialogContainer';
 import {Notifications} from 'etna-js/components/Notifications';
@@ -21,18 +22,23 @@ import ReactModal from "react-modal";
 const ROUTES = [
   {
     template: '',
+    component: RootView,
+    mode: ''
+  },
+  {
+    template: ':project_name/',
     component: Dashboard,
-    mode: 'home'
+    mode: ''
   },
   {
     name: 'workflows',
-    template: 'workflow',
+    template: ':project_name/workflow',
     component: Browser,
     mode: 'workflow'
   },
   {
     name: 'workflow',
-    template: 'workflow/:projectName/:workflowName',
+    template: ':projectName/workflow/:workflowName',
     component: Browser,
     mode: 'workflow'
   }

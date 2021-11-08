@@ -84,7 +84,7 @@ arg_flag_completion_names="$arg_flag_completion_names  "
 multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names="apply_template attributes copy_template help load_from_redcap"
+all_completion_names="apply_template attributes copy_template help load_from_redcap set_date_shift_root"
 all_completion_names="$all_completion_names $all_flag_completion_names"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
@@ -568,6 +568,54 @@ return
 fi
 done
 return
+elif [[ "$1" == "set_date_shift_root" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__project_name__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names --date-shift-root --target-model "
+arg_flag_completion_names="$arg_flag_completion_names --target-model "
+multi_flags="$multi_flags  "
+declare _completions_for_target_model="__target_model__"
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
+a=$1
+shift
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
 elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
 return
 elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
@@ -738,10 +786,11 @@ COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 elif [[ "$1" == "generate" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --task --project-name "
-arg_flag_completion_names="$arg_flag_completion_names --project-name "
+all_flag_completion_names="$all_flag_completion_names --task --project-name --email "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --email "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
+declare _completions_for_email="__email__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""

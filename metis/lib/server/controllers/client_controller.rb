@@ -9,11 +9,7 @@ class ClientController < Metis::Controller
   def config_json
     {
       project_name: @params[:project_name],
-      token_name: Metis.instance.config(:token_name),
-      timur_host: Metis.instance.config(:timur)&.dig(:host),
-      vulcan_host: Metis.instance.config(:vulcan)&.dig(:host),
-      janus_host: Metis.instance.config(:janus)&.dig(:host),
-      polyphemus_host: Metis.instance.config(:polyphemus)&.dig(:host)
-    }.to_json
+      token_name: Metis.instance.config(:token_name)
+    }.merge(config_hosts).to_json
   end
 end

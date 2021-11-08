@@ -19,6 +19,8 @@ default: &default
     :host: https://metis.development.local
   :janus:
     :host: https://janus.development.local
+  :polyphemus:
+    :host: https://polyphemus.development.local
   :auth_redirect: https://janus.development.local
   :data_folder: /app/data
   :workflows_folder: /app/lib/server/workflows

@@ -41,30 +41,34 @@ const AntSwitch = withStyles((theme: Theme) =>
 
 const useStyles = makeStyles((theme) => ({
   container: {
-    marginRight: "30px"
+    marginRight: '30px'
   }
 }));
 
-export default ({leftOption,rightOption,checked,onChange, name} : { leftOption: string, rightOption: string, checked: boolean, onChange: (event: any, checked: boolean) => void, name: string } ) => {
+export default ({
+  leftOption,
+  rightOption,
+  checked,
+  onChange,
+  name
+}: {
+  leftOption: string;
+  rightOption: string;
+  checked: boolean;
+  onChange: (event: any, checked: boolean) => void;
+  name: string;
+}) => {
   const classes = useStyles();
 
-  return <Typography component='div'
-      className={classes.container}>
-    <Grid
-      component='label'
-      container
-      alignItems='center'
-      spacing={1}
-    >
-      <Grid item>{leftOption}</Grid>
-      <Grid item>
-        <AntSwitch
-          checked={checked}
-          onChange={onChange}
-          name={name}
-        />
+  return (
+    <Typography component='div' className={classes.container}>
+      <Grid component='label' container alignItems='center' spacing={1}>
+        <Grid item>{leftOption}</Grid>
+        <Grid item>
+          <AntSwitch checked={checked} onChange={onChange} name={name} />
+        </Grid>
+        <Grid item>{rightOption}</Grid>
       </Grid>
-      <Grid item>{rightOption}</Grid>
-    </Grid>
-  </Typography>
+    </Typography>
+  );
 };

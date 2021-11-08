@@ -68,10 +68,19 @@ export function clearBufferedInput(step: string | null) {
     return actionObject('CLEAR_BUFFERED_INPUT', {step})
 }
 
+export function checkCommittedStepPending(step: Maybe<string>) {
+    return actionObject('CHECK_CHANGES_READY', {step})
+}
+
+export function clearCommittedStepPending() {
+    return actionObject('CLEAR_CHANGES_READY', {})
+}
+
 export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof setWorkflow> | ReturnType<typeof setStatus> |
     ReturnType<typeof setDownloadedData> | ReturnType<typeof setSession> | ReturnType<typeof setInputs> |
     ReturnType<typeof removeInputs> |
     ReturnType<typeof removeDownloads> |
     ReturnType<typeof startPolling> | ReturnType<typeof finishPolling> |
     ReturnType<typeof addValidationErrors> | ReturnType<typeof removeValidationErrors> |
-    ReturnType<typeof setBufferedInput> | ReturnType<typeof clearBufferedInput>;
+    ReturnType<typeof setBufferedInput> | ReturnType<typeof clearBufferedInput> |
+    ReturnType<typeof checkCommittedStepPending> | ReturnType<typeof clearCommittedStepPending>;

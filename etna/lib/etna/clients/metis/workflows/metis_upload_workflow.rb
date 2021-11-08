@@ -110,8 +110,6 @@ module Etna
 
           def initialize(source_file: nil, next_blob_size: nil, current_byte_position: nil)
             self.source_file = source_file
-            self.next_blob_size = next_blob_size
-            self.current_byte_position = current_byte_position
             self.next_blob_size = [file_size, INITIAL_BLOB_SIZE].min
             self.current_byte_position = 0
           end

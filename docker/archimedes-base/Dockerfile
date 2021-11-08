@@ -1,3 +1,6 @@
+FROM magby
+FROM development-certs
+
 FROM python:3.8-slim-buster
 WORKDIR /app
 
@@ -9,7 +12,7 @@ ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCK
 ENV PATH "/app/bin:/opt/poetry/bin:$PATH"
 ENV POETRY_HOME "/opt/poetry"
 
-COPY certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
+COPY --from=1 /certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
 RUN chmod 644 /usr/local/share/ca-certificates/devRoot.crt && update-ca-certificates
 
 RUN apt-get update \
@@ -49,5 +52,5 @@ RUN tar -xf /tmp/docker.tgz -C /tmp/
 RUN mv /tmp/docker/* /usr/local/bin/
 
 # Copy entrypoint scripts
-COPY src/entrypoints /entrypoints
-COPY magby /magby
+COPY entrypoints /entrypoints
+COPY --from=0 /magby /magby

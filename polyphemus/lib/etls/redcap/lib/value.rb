@@ -1,5 +1,25 @@
 module Redcap
   class Value
+    def self.to_schema
+      {
+        attribute_value: {
+          type: "object",
+          properties: {
+            redcap_field: { type: "string" },
+            value: { enum: [ "text", "value", "label", "note", "select_choice", "combine", "age", "none" ] },
+            text: { type: "string" },
+            combine: { type: "string" },
+            equals: { type: "string" },
+            match: { type: "string" },
+            in: { type: "array", items: { type: "string" } },
+            exists: { type: "boolean" }
+          },
+          additionalProperties: false,
+          required: [ "value" ]
+        }
+      }
+    end
+
     def initialize(att_name, config, template)
       @attribute_name = att_name
       @template = template
@@ -28,6 +48,9 @@ module Redcap
         return @template.select_choice(field_name, field_value(redcap_record))
       when "combine"
         return field_value_array(redcap_record)&.join(@config[:combine] || ' ')
+      when "age"
+        raw_value = field_value(redcap_record)
+        return [ 89, raw_value.to_i ].min.to_s if raw_value
       else
         raise "Invalid value specified in value config: #{@config}"
       end
@@ -47,7 +70,7 @@ module Redcap
       end
 
       if @config.has_key?(:match)
-        return value =~ @config[:match]
+        return value =~ Regexp.new(@config[:match])
       end
 
       if @config.has_key?(:in)

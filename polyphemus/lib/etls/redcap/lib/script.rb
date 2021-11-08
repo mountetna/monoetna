@@ -1,5 +1,27 @@
 module Redcap
   class Script
+    def self.to_schema
+      {
+        script: {
+          type: "object",
+          properties: {
+            attributes: {
+              type: "object",
+              additionalProperties: {
+                oneOf: [
+                  { type: "string" },
+                  { "$ref": "#/definitions/attribute_value" }
+                ]
+              }
+            },
+            each: { "$ref": "#/definitions/each" }
+          },
+          additionalProperties: false,
+          required: [ "attributes" ]
+        }
+      }
+    end
+
     def initialize(model, script, template)
       @model = model
       @project = model.project
@@ -102,7 +124,7 @@ module Redcap
       update = {}
 
       redcap_records.each do |record_id, redcap_record|
-        magma_record_name = @model.identifier(*record_id)
+        magma_record_name = @model.identifier(*record_id, identifier_fields: identifier_fields_data(record_id))
 
         next unless magma_record_name
 
@@ -142,6 +164,12 @@ module Redcap
       update.select do |id,record|
         !record.empty?
       end.to_h
+    end
+
+    def identifier_fields_data(record_id)
+      flat_record(record_id)&.slice(*(@model.identifier_fields.map do |field|
+        field.to_sym
+      end))
     end
   end
 end

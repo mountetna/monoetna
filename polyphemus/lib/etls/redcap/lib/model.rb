@@ -1,11 +1,35 @@
 module Redcap
   class Model
+    def self.to_schema
+      {
+        redcap_model: {
+          type: "object",
+          properties: {
+            each: { "$ref": "#/definitions/each" },
+            invert: { type: "boolean" },
+            identifier_fields: {
+              type: "array",
+              items: {
+                type: "string"
+              }
+            },
+            scripts: {
+              type: "array",
+              items: { "$ref": "#/definitions/script" }
+            }
+          },
+          additionalProperties: false,
+          required: [ "scripts" ]
+        }
+      }
+    end
+
     def self.define(model_name, &block)
       return Kernel.const_get(model_name) if Kernel.const_defined?(model_name)
 
       # Set some default methods for each model
       Kernel.const_set(model_name, Class.new(Redcap::Model) {
-        def identifier(*record_id)
+        def identifier(*record_id, identifier_fields: nil)
           [
               "::temp", *record_id, rand(36**8).to_s(36)
           ].compact.join('-')
@@ -64,6 +88,10 @@ module Redcap
       @config[:attributes] || 'identifier'
     end
 
+    def identifier_fields
+      @config[:identifier_fields] || []
+    end
+
     def load
       @project.logger.write("Attempting to load model #{name}.\n")
 
@@ -78,7 +106,7 @@ module Redcap
     end
 
     def offset_id(record_id)
-      record_id
+      raise "offset_id() needs to be implemented for the #{@project.project_name} project, #{@model_name} class. It should return the patient / subject identifier."
     end
 
     def redcap_id(magma_record_name, magma_record)

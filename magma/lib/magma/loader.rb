@@ -35,9 +35,9 @@ class Magma
       end
     end
 
-    attr_reader :validator, :user
+    attr_reader :validator, :user, :dry_run
 
-    def initialize(user, project_name)
+    def initialize(user, project_name, dry_run: false)
       @user = user
       @project_name = project_name
       @validator = Magma::Validation.new
@@ -47,6 +47,7 @@ class Magma
       @attribute_entries = {}
       @identifiers = {}
       @now = Time.now.iso8601
+      @dry_run = dry_run
     end
 
     def push_record(model, record_name, revision)
@@ -252,9 +253,11 @@ class Magma
 
       run_attribute_hooks!
 
-      upsert
+      begin
+        upsert
 
-      update_temp_ids
+        update_temp_ids
+      end unless @dry_run
 
       payload = to_payload
 
@@ -296,6 +299,8 @@ class Magma
     end
 
     def real_id(model, identifier)
+      return identifier if @dry_run
+
       id = identifier_id(model, identifier)
       id.is_a?(TempId) ? id.real_id : id
     end
@@ -314,7 +319,97 @@ class Magma
       @records[model]
     end
 
+    # This is implemented in the loader because it 
+    #   requires access to both the set of @records as well as the database.
+    def path_to_date_shift_root(model, record_name)
+      # Check if there is some path to the date-shift-root model, across @records and
+      #   the database.
+      queue = model.path_to_date_shift_root
+      has_path = !queue.empty?
+
+      # First model off the queue matches the record_name.
+      current_record_name = record_name
+      path_to_root = []
+
+      until queue.empty? || !has_path
+        model_to_check = queue.shift
+
+        path_to_root << current_record_name
+
+        # If the model is the date-shift-root and we have a record-name for it,
+        #   then a path must exist or will be created.
+        next if model_to_check.is_date_shift_root? && !current_record_name.nil?
+
+        # If the user disconnects the record before we've found the date-shift-root
+        #   model, then they've broken the path.
+        begin
+          has_path = false
+          next
+        end if record_entry_explicitly_disconnected?(model_to_check, current_record_name) && !model_to_check.is_date_shift_root?
+
+        # If parent exists in the @records, and will be created
+        parent_record_name = parent_record_name_from_records(model_to_check, current_record_name)
+
+        # If parent not found in @records AND there is not an explicit "disconnect" action, 
+        #   check the database for the EXISTING record and find its parent.
+        # If no existing record (current_record_name is a new record_entry), this should return nil and there is no path
+        parent_record_name = parent_record_name_from_db(model_to_check, current_record_name) if parent_record_name.nil?
+        
+        begin
+          current_record_name = parent_record_name
+          next
+        end unless parent_record_name.nil?
+
+        # If no parents have been found, the path doesn't exist or is broken
+        has_path = false
+      end
+
+      has_path ? path_to_root : []
+    end
+    
+    def is_connected_to_date_shift_root?(model, record_name)
+      !path_to_date_shift_root(model, record_name).empty?
+    end
+
     private
+
+    def record_entry_explicitly_disconnected?(model, record_name)
+      entry = record_entry_from_records(model, record_name)
+
+      return false if entry.nil?
+
+      (entry.explicitly_disconnected_from_parent?) ||
+      (record_entry_explicitly_disconnected_by_parent(entry, model, record_name))
+    end
+
+    def record_entry_from_records(model, record_name)
+      return @records[model][record_name] if @records[model][record_name]
+      
+      nil
+    end
+
+    def record_entry_explicitly_disconnected_by_parent(record_entry, model, record_name)
+      return false unless !record_entry.includes_parent_record?
+
+      parent_record_name = parent_record_name_from_db(model, record_name)
+      parent_entry = record_entry_from_records(model.parent_model, parent_record_name)
+
+      return false unless parent_entry
+
+      !parent_entry[model.model_name]&.include?(record_name)
+    end
+
+    def parent_record_name_from_records(model, record_name)
+      record_entry_from_records(model, record_name)&.parent_record_name
+    end
+
+    def parent_record_name_from_db(model, record_name)
+      db_record = model.where(
+        model.identity.column_name.to_sym => record_name
+      ).first
+
+      db_record&.send(model.parent_model_name)&.identifier
+    end
 
     def validate!
       complaints = []
@@ -351,6 +446,10 @@ class Magma
           record_set.each do |record_name, record|
             next unless record.has_key?(att_name)
             error = attribute.load_hook(self, record_name, record[att_name], bulk_load_attribute)
+
+            raise Magma::LoadFailed.new([error]) if error
+
+            error = attribute.patch_record_load_hook(self, record_name, record)
 
             raise Magma::LoadFailed.new([error]) if error
           end

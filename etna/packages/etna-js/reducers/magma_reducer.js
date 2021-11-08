@@ -18,11 +18,9 @@
  *  }
  */
 import {
-  ADD_DOCUMENTS,
-  ADD_TEMPLATE,
   REVISE_DOCUMENT,
   DISCARD_REVISION,
-  ADD_PREDICATES
+  ADD_TEMPLATES_AND_DOCUMENTS
 } from '../actions/magma_actions';
 
 import {UPLOAD_COMPLETE} from '../upload/workers/uploader';
@@ -30,11 +28,11 @@ import {UPLOAD_COMPLETE} from '../upload/workers/uploader';
 var documents = function (old_documents, action) {
   if (!old_documents) old_documents = {};
   switch (action.type) {
-    case ADD_DOCUMENTS:
+    case ADD_TEMPLATES_AND_DOCUMENTS:
       let documents = {
         ...old_documents
       };
-      for (let record_name in action.documents) {
+      for (let record_name in action.documents || {}) {
         documents[record_name] = {
           ...documents[record_name],
           ...action.documents[record_name]
@@ -76,14 +74,10 @@ var model = function (old_model, action) {
     };
 
   switch (action.type) {
-    case ADD_TEMPLATE:
+    case ADD_TEMPLATES_AND_DOCUMENTS:
       return {
         ...old_model,
-        template: action.template
-      };
-    case ADD_DOCUMENTS:
-      return {
-        ...old_model,
+        template: action.template ? action.template : old_model.template,
         documents: documents(old_model.documents, action)
       };
     case REVISE_DOCUMENT:
@@ -100,8 +94,18 @@ var model = function (old_model, action) {
 var models = function (models, action) {
   if (!models) models = {};
   switch (action.type) {
-    case ADD_TEMPLATE:
-    case ADD_DOCUMENTS:
+    case ADD_TEMPLATES_AND_DOCUMENTS:
+      return {
+        ...models,
+        ...Object.entries(action.models).reduce((acc, [modelName, modelData]) => {
+          acc[modelName] = model(models[modelName], {
+            type: ADD_TEMPLATES_AND_DOCUMENTS,
+            template: modelData.template,
+            documents: modelData.documents
+          });
+          return acc;
+        }, {})
+      };
     case REVISE_DOCUMENT:
     case DISCARD_REVISION:
       return {
@@ -120,8 +124,7 @@ var magmaReducer = function (magma, action) {
       tables: {}
     };
   switch (action.type) {
-    case ADD_TEMPLATE:
-    case ADD_DOCUMENTS:
+    case ADD_TEMPLATES_AND_DOCUMENTS:
     case REVISE_DOCUMENT:
     case DISCARD_REVISION:
       return {

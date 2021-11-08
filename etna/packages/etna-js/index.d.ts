@@ -170,8 +170,22 @@ declare module 'etna-js/utils/debounce' {
   ): any;
 }
 
+declare module 'etna-js/utils/debouncer' {
+  export class Debouncer {
+    constructor(params: any);
+    reset();
+    ready(func: any);
+    timeout();
+  }
+}
+
 declare module 'etna-js/api/magma_api' {
   export function getAnswer(question: any, exchange: any): Promise<T>;
+  export function getDocuments(doc_args: any, fetch: Function): Promise<T>;
+}
+
+declare module 'etna-js/utils/copy' {
+  export function copyText(text: string): void;
 }
 
 declare module 'etna-js/actions/exchange_actions' {
@@ -180,6 +194,8 @@ declare module 'etna-js/actions/exchange_actions' {
     exchange_name: string;
 
     constructor(dispatch: any, exchange_name: string);
+
+    fetch: Function;
   }
 }
 
@@ -193,3 +209,8 @@ declare module 'etna-js/utils/tsv' {
     fileName: string
   ): void;
 }
+
+declare module 'etna-js/utils/fetch';
+
+declare module 'etna-js/contexts/magma-context';
+

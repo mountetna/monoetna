@@ -1,13 +1,14 @@
 import React from 'react';
-
 import {makeStyles} from '@material-ui/core/styles';
+
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 import Table from '@material-ui/core/Table';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TableBody from '@material-ui/core/TableBody';
-import Paper from '@material-ui/core/Paper';
 import TablePagination from '@material-ui/core/TablePagination';
 
 import {QueryTableColumn} from '../../contexts/query/query_types';
@@ -24,6 +25,7 @@ const QueryTable = ({
   numRecords,
   page,
   pageSize,
+  maxColumns,
   handlePageChange,
   handlePageSizeChange
 }: {
@@ -32,6 +34,7 @@ const QueryTable = ({
   numRecords: number;
   page: number;
   pageSize: number;
+  maxColumns: number;
   handlePageChange: (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent> | null,
     newPage: number
@@ -42,42 +45,47 @@ const QueryTable = ({
 }) => {
   const classes = useStyles();
 
-  if (0 === columns.length) return null;
-
   return (
     <React.Fragment>
-      <TablePagination
-        rowsPerPageOptions={[10, 25, 50, 200]}
-        component='div'
-        count={numRecords}
-        rowsPerPage={pageSize}
-        page={page}
-        onChangePage={handlePageChange}
-        onChangeRowsPerPage={handlePageSizeChange}
-      />
+      <Grid
+        container
+        justify='flex-end'
+        direction='column'
+        alignItems='flex-end'
+      >
+        <TablePagination
+          rowsPerPageOptions={[10, 25, 50, 200]}
+          component='div'
+          count={numRecords}
+          rowsPerPage={pageSize}
+          page={page}
+          onChangePage={handlePageChange}
+          onChangeRowsPerPage={handlePageSizeChange}
+        />
+      </Grid>
       <TableContainer>
         <Table className={classes.table} size='small' aria-label='result table'>
           <TableHead>
             <TableRow>
-              {columns.map(({label}: {label: string}, index: number) => (
-                <TableCell key={index}>{label}</TableCell>
-              ))}
+              {columns
+                ?.slice(0, maxColumns)
+                .map(({label}: {label: string}, index: number) => (
+                  <TableCell key={index}>{label}</TableCell>
+                ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows
-              ? rows.map((row: any[]) => {
-                  return (
-                    <TableRow hover tabIndex={-1} key={row[0]}>
-                      {row.map((datum: any, index: number) => (
-                        <TableCell key={index} scope='row'>
-                          {datum?.toString()}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  );
-                })
-              : null}
+            {rows?.map((row: any[]) => {
+              return (
+                <TableRow hover tabIndex={-1} key={row[0]}>
+                  {row.slice(0, maxColumns).map((datum: any, index: number) => (
+                    <TableCell key={index} scope='row'>
+                      {datum?.toString()}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
