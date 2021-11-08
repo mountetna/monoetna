@@ -40,7 +40,7 @@ logs-recent: ## For CI
 
 .PHONY: update
 update: ## Runs all projects' updates, running bundle and npm install
-	@ make -C docker update
+	@ make -C docker update-all
 
 .PHONY: release
 release: ## Builds static docker images staged for release, runs tests against them, and pushes them to dockerhub (requires PUSH_IMAGES=1)

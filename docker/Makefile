@@ -23,7 +23,10 @@ config-ready: docker-compose.yml ## Prepares the top level docker-compose.yml co
 compose-ready: config-ready
 
 .PHONY: update
-update: compose-ready ## Runs all projects' updates, running bundle and npm install
+update:
+
+.PHONY: update-all
+update-all: compose-ready ## Runs all projects' updates, running bundle and npm install
 	@ set -e && for project in $(compose_projects); do make -C $$project update; done
 
 .PHONY: up
