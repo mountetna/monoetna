@@ -81,7 +81,7 @@ define release_image_target1
 $(shell if ! test -e $(1)/image-release.marker; then touch -t 0001011000 $(1)/image-release.marker; fi)
 $(1)/image-release.marker: $(1)/image-test.marker
 	set -e; if ! [ -z "$${PUSH_IMAGES}" ]; then \
-		docker push $${IMAGES_PREFIX}$(1)$${IMAGES_POSTFIX}; \
+		docker push $${IMAGES_PREFIX}$(shell dirname $(1))$${IMAGES_POSTFIX}; \
 		touch $$@; \
 	fi
 
