@@ -44,7 +44,8 @@ update: ## Runs all projects' updates, running bundle and npm install
 
 .PHONY: release
 release: ## Builds static docker images staged for release, runs tests against them, and pushes them to dockerhub (requires PUSH_IMAGES=1)
-	@ make -f Release.mk
+	@ NO_PRUNE=1 $(MAKE) -f Release.mk
+	@ docker image prune -f
 
 .PHONE: clean
 clean:  ## Cleans many dangling docker references, recovering much disk space.

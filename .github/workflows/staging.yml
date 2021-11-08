@@ -22,5 +22,5 @@ jobs:
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :staging
           NO_TEST: 1
-        run: make release
+        run: make -j 4 release
 

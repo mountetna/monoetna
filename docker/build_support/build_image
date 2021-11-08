@@ -61,7 +61,9 @@ rsync -a $sourceDockerDir/ $buildDir/
 
 # Docker can 'leak' intermediate build images from different runs, unfortunately, even with --rm and --force-rm.
 # This will atleast prune between runs to keep it minimal
-[[ -z "$IS_CI" ]] && docker image prune -f
+if [[ -z "$IS_CI" ]] && [[ -z "$NO_PRUNE" ]]; then
+ docker image prune -f || true
+fi
 
 builtFromSha="$($DIR/find-parent-pr-merge.sh)"
 # If we haven't pre-pulled the image, try pulling here.
