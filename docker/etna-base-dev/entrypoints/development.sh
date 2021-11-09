@@ -26,6 +26,16 @@ if [ -n "$UPDATE_STATE" ]; then
 eval "${app_name_capitalized}_ENV=test ./bin/${APP_NAME} migrate"
 fi
 
+if [ -n "$FULL_BUILD" ]; then
+  bundle install -j "$(nproc)"
+fi
+
+if [ -n "$FULL_BUILD" ]; then
+  # The images tend to build as root, which for host systems is unsafe,
+  # but in containers is fine.
+  npm install --unsafe-perm
+fi
+
 mkdir -p /app/data/uploads
 mkdir -p /app/data/data_blocks
 
