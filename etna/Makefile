@@ -5,9 +5,8 @@ bash::
 	@ docker-compose run --rm etna_app bash
 
 run-image-test::
-	docker network create monoetna_default
-	docker run --rm -e APP_NAME=etna -e RELEASE_TEST=1 -e CI_SECRET=$${CI_SECRET} -e IS_CI=$${IS_CI} --network monoetna_default $(fullTag) /entrypoints/development.sh bundle exec rspec
-	docker run --rm -e APP_NAME=etna -e RELEASE_TEST=1 -e IS_CI=$${IS_CI} --network monoetna_default $(fullTag) /entrypoints/development.sh npm test
+	docker run --rm -e APP_NAME=etna -e FULL_BUILD=1 -e CI_SECRET=$${CI_SECRET} -e IS_CI=$${IS_CI} --network monoetna_default $(fullTag) /entrypoints/development.sh bundle exec rspec
+	docker run --rm -e APP_NAME=etna -e FULL_BUILD=1 -e IS_CI=$${IS_CI} --network monoetna_default $(fullTag) /entrypoints/development.sh npm test
 
 update::
 	@ docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bundle install
