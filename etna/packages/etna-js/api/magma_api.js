@@ -2,9 +2,8 @@ import {checkStatus, headers} from '../utils/fetch';
 
 const magmaPath = (endpoint) => `${CONFIG.magma_host}/${endpoint}`;
 
-const magmaPost = (endpoint, exchange, params) => {
-  return exchange
-    .fetch(magmaPath(endpoint), {
+const magmaPost = (endpoint, fetch, params) => {
+  return fetch(magmaPath(endpoint), {
       method: 'POST',
       credentials: 'include',
       headers: headers('json'),
@@ -76,14 +75,14 @@ export const getTSVForm = ({
   document.body.removeChild(form);
 };
 
-export const getDocuments = (doc_args, exchange) => {
-  return magmaPost('retrieve', exchange, doc_args);
+export const getDocuments = (doc_args, fetch) => {
+  return magmaPost('retrieve', fetch, doc_args);
 };
 
-export const postRevisions = (revision_data, exchange) => {
-  return magmaPost('update', exchange, revision_data);
+export const postRevisions = (revision_data, fetch) => {
+  return magmaPost('update', fetch, revision_data);
 };
 
-export const getAnswer = (question, exchange) => {
-  return magmaPost('query', exchange, question);
+export const getAnswer = (question, fetch) => {
+  return magmaPost('query', fetch, question);
 };

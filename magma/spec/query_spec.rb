@@ -678,6 +678,212 @@ describe QueryController do
         expect(json_body[:format]).to eq([ 'labors::labor#name', 'labors::labor#name' ])
       end
 
+      it 'supports nested ::any\'s inside ::and\'s' do
+        lion_monster = create(:monster, :lion, labor: @lion)
+        hydra_monster = create(:monster, :hydra, labor: @hydra)
+
+        john_doe = create(:victim, name: 'John Doe', monster: lion_monster, weapon: 'sword')
+        jane_doe = create(:victim, name: 'Jane Doe', monster: lion_monster, weapon: 'spear')
+
+        susan_doe = create(:victim, name: 'Susan Doe', monster: hydra_monster, weapon: 'bow and arrow')
+        shawn_doe = create(:victim, name: 'Shawn Doe', monster: hydra_monster, weapon: 'spear')
+
+        create(:wound, victim: john_doe, location: 'Arm', severity: 5)
+        create(:wound, victim: john_doe, location: 'Leg', severity: 1)
+        create(:wound, victim: jane_doe, location: 'Arm', severity: 2)
+        create(:wound, victim: jane_doe, location: 'Head', severity: 4)
+        create(:wound, victim: susan_doe, location: 'Arm', severity: 3)
+        create(:wound, victim: susan_doe, location: 'Leg', severity: 3)
+        create(:wound, victim: shawn_doe, location: 'Arm', severity: 1)
+        create(:wound, victim: shawn_doe, location: 'Leg', severity: 1)
+
+        query(['labor',
+              ['monster', 'victim',
+                ['::and',
+                  ['name', '::matches', 'Doe'],
+                  ['wound', ['location', '::equals', 'Head'], '::any']
+                ],
+                '::any'
+              ],
+              '::all', '::identifier'])
+
+        expect(json_body[:answer].map(&:last)).to eq([ "Nemean Lion" ])
+        expect(json_body[:format]).to eq([ 'labors::labor#name', 'labors::labor#name' ])
+
+        query(['labor',
+          ['monster', 'victim',
+            ['::and',
+              ['name', '::matches', 'Doe'],
+              ['wound', ['location', '::equals', 'Leg'], '::any']
+            ],
+            '::every'
+          ],
+          '::all', '::identifier'])
+
+        expect(json_body[:answer].map(&:last)).to eq([ "Lernean Hydra" ])
+        expect(json_body[:format]).to eq([ 'labors::labor#name', 'labors::labor#name' ])
+      end
+
+      context 'nested' do
+        before(:each) do
+          lion_monster = create(:monster, :lion, labor: @lion)
+          hydra_monster = create(:monster, :hydra, labor: @hydra)
+  
+          john_doe = create(:victim, name: 'John Doe', monster: lion_monster, weapon: 'sword')
+          jane_doe = create(:victim, name: 'Jane Doe', monster: lion_monster, weapon: 'spear')
+  
+          susan_doe = create(:victim, name: 'Susan Doe', monster: hydra_monster, weapon: 'bow and arrow')
+          shawn_doe = create(:victim, name: 'Shawn Doe', monster: hydra_monster, weapon: 'spear')
+  
+          create(:wound, victim: john_doe, location: 'Arm', severity: 5)
+          create(:wound, victim: john_doe, location: 'Leg', severity: 1)
+          create(:wound, victim: jane_doe, location: 'Arm', severity: 2)
+          create(:wound, victim: jane_doe, location: 'Head', severity: 4)
+          create(:wound, victim: susan_doe, location: 'Arm', severity: 3)
+          create(:wound, victim: susan_doe, location: 'Leg', severity: 3)
+          create(:wound, victim: shawn_doe, location: 'Arm', severity: 1)
+          create(:wound, victim: shawn_doe, location: 'Leg', severity: 1)
+        end
+
+        it '::every inside ::and and ::any' do
+          query(['labor',
+                ['monster', 'victim',
+                  ['::and',
+                    ['name', '::matches', 'Doe'],
+                    ['wound', ['severity', '::<', 4], '::every']
+                  ],
+                  '::any'
+                ],
+                '::all', '::identifier'])
+  
+          expect(json_body[:answer].map(&:last)).to eq([ "Lernean Hydra" ])
+          expect(json_body[:format]).to eq([ 'labors::labor#name', 'labors::labor#name' ])
+        end
+
+        it '::every and ::any inside ::and and ::any' do
+          query(['labor',
+            ['monster', 'victim',
+              ['::and',
+                ['name', '::matches', 'Doe'],
+                ['wound', ['severity', '::<', 4], '::every'],
+                ['wound', ['location', '::equals', 'Head'], '::any']
+              ],
+              '::any'
+            ],
+            '::all', '::identifier'])
+  
+          expect(json_body[:answer].map(&:last)).to eq([ ])
+          expect(json_body[:format]).to eq([ 'labors::labor#name', 'labors::labor#name' ])
+        end
+
+        it '::every inside ::and and ::every' do
+          query(['labor',
+            ['monster', 'victim',
+              ['::and',
+                ['name', '::matches', 'Doe'],
+                ['wound', ['severity', '::<', 3], '::every']
+              ],
+              '::every'
+            ],
+            '::all', '::identifier'])
+  
+          expect(json_body[:answer].map(&:last)).to eq([ ])
+          expect(json_body[:format]).to eq([ 'labors::labor#name', 'labors::labor#name' ])
+        end
+      end
+
+      it 'supports nested ::any\'s inside ::or\'s' do
+        lion_monster = create(:monster, :lion, labor: @lion)
+        hydra_monster = create(:monster, :hydra, labor: @hydra)
+
+        john_doe = create(:victim, name: 'John Doe', monster: lion_monster, weapon: 'sword')
+        jane_doe = create(:victim, name: 'Jane Doe', monster: lion_monster, weapon: 'spear')
+
+        susan_doe = create(:victim, name: 'Susan Doe', monster: hydra_monster, weapon: 'bow and arrow')
+        shawn_doe = create(:victim, name: 'Shawn Doe', monster: hydra_monster, weapon: 'spear')
+
+        create(:wound, victim: john_doe, location: 'Arm', severity: 5)
+        create(:wound, victim: john_doe, location: 'Leg', severity: 1)
+        create(:wound, victim: jane_doe, location: 'Arm', severity: 2)
+        create(:wound, victim: jane_doe, location: 'Head', severity: 4)
+        create(:wound, victim: susan_doe, location: 'Arm', severity: 3)
+        create(:wound, victim: susan_doe, location: 'Leg', severity: 3)
+        create(:wound, victim: shawn_doe, location: 'Arm', severity: 1)
+        create(:wound, victim: shawn_doe, location: 'Leg', severity: 1)
+
+        query(['labor',
+              ['monster', 'victim',
+                ['::or',
+                  ['name', '::matches', 'Susan'],
+                  ['wound', ['severity', '::>=', 4], '::any']
+                ],
+                '::any'
+              ],
+              '::all', '::identifier'])
+
+        expect(json_body[:answer].map(&:last)).to eq([ "Lernean Hydra", "Nemean Lion" ])
+        expect(json_body[:format]).to eq([ 'labors::labor#name', 'labors::labor#name' ])
+
+        query(['labor',
+          ['monster', 'victim',
+            ['::or',
+              ['name', '::matches', 'Susan'],
+              ['wound', ['severity', '::>=', 4], '::any']
+            ],
+            '::every'
+          ],
+          '::all', '::identifier'])
+
+        expect(json_body[:answer].map(&:last)).to eq([ "Nemean Lion" ])
+        expect(json_body[:format]).to eq([ 'labors::labor#name', 'labors::labor#name' ])
+      end
+
+      it 'supports nested ::every\'s inside ::or\'s' do
+        lion_monster = create(:monster, :lion, labor: @lion)
+        hydra_monster = create(:monster, :hydra, labor: @hydra)
+
+        john_doe = create(:victim, name: 'John Doe', monster: lion_monster, weapon: 'sword')
+        jane_doe = create(:victim, name: 'Jane Doe', monster: lion_monster, weapon: 'spear')
+
+        susan_doe = create(:victim, name: 'Susan Doe', monster: hydra_monster, weapon: 'bow and arrow')
+        shawn_doe = create(:victim, name: 'Shawn Doe', monster: hydra_monster, weapon: 'spear')
+
+        create(:wound, victim: john_doe, location: 'Arm', severity: 5)
+        create(:wound, victim: john_doe, location: 'Leg', severity: 1)
+        create(:wound, victim: jane_doe, location: 'Arm', severity: 2)
+        create(:wound, victim: jane_doe, location: 'Head', severity: 4)
+        create(:wound, victim: susan_doe, location: 'Arm', severity: 3)
+        create(:wound, victim: susan_doe, location: 'Leg', severity: 3)
+        create(:wound, victim: shawn_doe, location: 'Arm', severity: 1)
+        create(:wound, victim: shawn_doe, location: 'Leg', severity: 1)
+
+        query(['labor',
+              ['monster', 'victim',
+                ['::or',
+                  ['name', '::matches', 'J'],
+                  ['wound', ['severity', '::<', 4], '::every']
+                ],
+                '::any'
+              ],
+              '::all', '::identifier'])
+
+        expect(json_body[:answer].map(&:last)).to eq([ "Lernean Hydra", "Nemean Lion" ])
+        expect(json_body[:format]).to eq([ 'labors::labor#name', 'labors::labor#name' ])
+
+        query(['labor',
+          ['monster', 'victim',
+            ['::or',
+              ['name', '::matches', 'John'],
+              ['wound', ['severity', '::<', 4], '::every']
+            ],
+            '::every'
+          ],
+          '::all', '::identifier'])
+
+        expect(json_body[:answer].map(&:last)).to eq([ "Lernean Hydra" ])
+        expect(json_body[:format]).to eq([ 'labors::labor#name', 'labors::labor#name' ])
+      end
+
       it 'supports ::and / ::or inside of an ::every filter' do
         lion_monster = create(:monster, :lion, labor: @lion)
         hydra_monster = create(:monster, :hydra, labor: @hydra)
@@ -1041,9 +1247,9 @@ describe QueryController do
       @hydra_difficulty = create(:characteristic, labor: hydra, name: "difficulty", value: "2" )
       @stables_difficulty = create(:characteristic, labor: stables, name: "difficulty", value: "5.1" )
 
-      lion_stance = create(:characteristic, labor: lion, name: "stance", value: "wrestling" )
-      hydra_stance = create(:characteristic, labor: hydra, name: "stance", value: "hacking" )
-      stables_stance = create(:characteristic, labor: stables, name: "stance", value: "shoveling" )
+      lion_stance = create(:characteristic, labor: lion, name: "stance", value: "wrestling2.0" )
+      hydra_stance = create(:characteristic, labor: hydra, name: "stance", value: "hacking1.5" )
+      stables_stance = create(:characteristic, labor: stables, name: "stance", value: "shoveling:00123" )
     end
 
     it 'supports ::matches' do
@@ -1114,9 +1320,16 @@ describe QueryController do
 
       expect(json_body[:answer].map { |a| a.last }).to eq([@lion_difficulty.id, @stables_difficulty.id])
       expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
+
+      query(
+        [ 'characteristic', [ "name", "::matches", "difficulty" ], ["value", "::>", "5.0e0"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer].map { |a| a.last }).to eq([@lion_difficulty.id, @stables_difficulty.id])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
     end
 
-    it 'ignores ::> for non-numeric strings' do
+    it 'ignores ::> for non-numeric string values' do
       query(
         [ 'characteristic', [ "name", "::matches", "stance" ], ["value", "::>", "5"], '::all', '::identifier' ]
       )
@@ -1132,9 +1345,16 @@ describe QueryController do
 
       expect(json_body[:answer].map { |a| a.last }).to eq([@lion_difficulty.id, @stables_difficulty.id])
       expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
+
+      query(
+        [ 'characteristic', [ "name", "::matches", "difficulty" ], ["value", "::>=", "0.51e1"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer].map { |a| a.last }).to eq([@lion_difficulty.id, @stables_difficulty.id])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
     end
 
-    it 'ignores ::>= for non-numeric strings' do
+    it 'ignores ::>= for non-numeric string values' do
       query(
         [ 'characteristic', [ "name", "::matches", "stance" ], ["value", "::>=", "5"], '::all', '::identifier' ]
       )
@@ -1157,9 +1377,16 @@ describe QueryController do
 
       expect(json_body[:answer].map { |a| a.last }).to eq([@hydra_difficulty.id, @stables_difficulty.id])
       expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
+
+      query(
+        [ 'characteristic', [ "name", "::matches", "difficulty" ], ["value", "::<", "5.2e0"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer].map { |a| a.last }).to eq([@hydra_difficulty.id, @stables_difficulty.id])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
     end
 
-    it 'ignores ::< for non-numeric strings' do
+    it 'ignores ::< for non-numeric string values' do
       query(
         [ 'characteristic', [ "name", "::matches", "stance" ], ["value", "::<", "5"], '::all', '::identifier' ]
       )
@@ -1175,9 +1402,16 @@ describe QueryController do
 
       expect(json_body[:answer].map { |a| a.last }).to eq([@hydra_difficulty.id, @stables_difficulty.id])
       expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
+
+      query(
+        [ 'characteristic', [ "name", "::matches", "difficulty" ], ["value", "::<=", "0.51e1"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer].map { |a| a.last }).to eq([@hydra_difficulty.id, @stables_difficulty.id])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
     end
 
-    it 'ignores ::<= for non-numeric strings' do
+    it 'ignores ::<= for non-numeric string values' do
       query(
         [ 'characteristic', [ "name", "::matches", "stance" ], ["value", "::<=", "5"], '::all', '::identifier' ]
       )
@@ -1237,7 +1471,7 @@ describe QueryController do
 
   context Magma::DateTimePredicate do
     before(:each) do
-      lion = create(:labor, name: 'Nemean Lion', number: 1, year: '02-01-0001', completed: true, project: @project)
+      @lion = create(:labor, name: 'Nemean Lion', number: 1, year: '02-01-0001', completed: true, project: @project)
       hydra = create(:labor, name: 'Lernean Hydra', number: 2, year: '03-15-0002', completed: false, project: @project)
       stables = create(:labor, name: 'Augean Stables', number: 5, year: '06-07-0005', completed: false, project: @project)
     end
@@ -1268,6 +1502,21 @@ describe QueryController do
       )
 
       expect(last_response.status).to eq(422)
+    end
+
+    it 'supports comparisons across shifted_date_time attributes' do
+      lion_monster = create(:monster, name: 'Nemean Lion', labor: @lion)
+      create(:victim, name: "John Doe", monster: lion_monster, birthday: "2000-01-01")
+      create(:victim, name: "Jane Doe", monster: lion_monster, birthday: "1980-01-01")
+
+      query(
+        [ 'victim', [ 'birthday', '::>', '03-01-1990' ], '::all', '::identifier' ]
+      )
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:answer].map(&:last).sort).to eq([ 'John Doe' ])
+      expect(json_body[:format]).to eq(['labors::victim#name', 'labors::victim#name'])
     end
   end
 

@@ -40,17 +40,20 @@ const diff = ({revision, prev, diffType, config}:{
 }) => {
   if (diffType == 'text') return JSON.stringify(revision.config,null,2);
 
-  console.log({revision,prev})
-  let comp = diffType == 'curr' ? config : prev ? prev.config : {}
-
-  const diff = createTwoFilesPatch(
-    'revision',
-    diffType,
-    JSON.stringify(revision.config,null,2)+'\n',
-    JSON.stringify(comp,null,2)+'\n'
-  )
-  
-  return diff;
+  if (diffType == 'curr')
+    return createTwoFilesPatch(
+      'revision',
+      'curr',
+      JSON.stringify(revision.config,null,2)+'\n',
+      JSON.stringify(config,null,2)+'\n'
+    );
+  else
+    return createTwoFilesPatch(
+      'prev',
+      'revision',
+      JSON.stringify(prev ? prev.config : {},null,2)+'\n',
+      JSON.stringify(revision.config,null,2)+'\n'
+    );
 }
 
 const RevisionHistory = ({project_name, name, update, open, onClose, config}:{
@@ -92,14 +95,14 @@ const RevisionHistory = ({project_name, name, update, open, onClose, config}:{
       {
         revisions && revisions.map( (revision,i) =>
           <React.Fragment key={i}>
-            <Grid container>
+            <Grid container alignItems='center'>
               <Grid xs={6} item >
                 <Button variant='text' onClick={ () => setSelected(i, 'text') }>
                   { revision.comment || 'No comment'}
                 </Button>
               </Grid>
-              <Grid xs={2} container item >
-                <Button onClick={ () => setSelected(i,'curr') } variant='text' size='small'>curr</Button>
+              <Grid xs={2}  container item >
+                { i != 0 ? <Button onClick={ () => setSelected(i,'curr') } variant='text' size='small'>curr</Button> : <div style={{width: '64px', display: 'inline'}}/> }
                 { i < revisions.length-1 && <Button onClick={ () => setSelected(i, 'prev') } variant='text' size='small'>prev</Button> }
               </Grid>
               <Grid xs={4} item>{formatTime(revision.updated_at) }</Grid>

@@ -20,7 +20,7 @@ class Polyphemus
       }.first
     end
 
-    plugin :timestamps, update_on_create: true
+    plugin :timestamps, update_on_create: true, allow_manual_update: true
     plugin :column_encryption do |enc|
       enc.key 0, Polyphemus.instance.config(:etl_secrets_key)
       enc.column :secrets, format: :json

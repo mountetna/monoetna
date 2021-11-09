@@ -11,6 +11,9 @@ First off, you'll nee to install `homebrew install coreutils` to get the base se
 Secondly, you may need `homebrew install findutils` as well. Try running `type -p gfind || echo need findutils!` to determine
 if you need to install findutils as well.
 
+Mostly, the goal is to have standard linux executables.  Macosx unfortunately comes with some out of date BSD variants
+of common gnu utils that will cause the command line tools to behave weirdly.
+
 ## Directory Structure
 
 Top Level directories fall into one of three types:
@@ -23,7 +26,7 @@ Top Level directories fall into one of three types:
    - Most of these applications define their own `Makefile`, `Dockerfile`, and `docker-compose.yml` files. These
      can provide overwrites of standard behaviors. see `docker/README.md` for more details.
 2. Development utilities
-   - `bin` contains several useful development scripts for general operations. Some of these are also used by CI.
+   - `bin` contains several useful development scripts for development operations. Some of these are also used by CI.
    - `development-certs` contains development SSL certs used by the development servers.
 3. Build utilities
    - `docker` contains base images and build logic for our docker based build system.
@@ -41,6 +44,10 @@ Use the `Makefile` at the top of the repo to easily start and stop a set of all 
 
 You will want to use per-project `Makefile`s to access proejct specific databases and bash consoles. eg: `make -C janus help`
 
+This process can unfortunately be very slow, especially on first build, due to the need to install many many dependencies
+between each project and get base images built.  `npm` and `bundle` tend to require heavy, heavy disk and cpu usage
+while processing, so expect to let an initial `make up` run for an hour or more.
+
 ### Update
 
 Once you've got docker installed and such, you'll want to start by running `make update`.  This command will take a long time,
@@ -48,8 +55,9 @@ as it will first need download many things, build our docker images, start datab
 and a bunch of other filesystem intensive tasks.
 
 Subsequently, after pulling a new set of changes or adjusting Gemfile / package.json / Dockerfiles, run `make update` again
-to apply those changes.  I do my best to ensure that builds are fast and cached, but there is a lot of filesystem work needed
-by our complex system, so it will consume resources.
+to apply those changes.
+
+`make update` will migrate development and test databases with the current code set.
 
 ### Builds
 

@@ -1,0 +1,20 @@
+# A base dockerignore file that is combined with application specific dockerignores to produce a list of files
+# to be filtered from being directly ADD'd into contains.  These files should generally either be built
+# inside the images themselves or are potentially unnecessary.
+node_modules
+etna
+data
+!/spec/data
+tmp
+log
+docker
+.bundle
+.npm-packages
+coverage
+.docker-build-mark
+Dockerfile
+README.md
+LICENSE
+config.yml
+Makefile
+*.mk

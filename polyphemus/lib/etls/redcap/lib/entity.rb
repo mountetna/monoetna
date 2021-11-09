@@ -13,11 +13,11 @@ module Redcap
         },
         each_entity: {
           type: "object",
-          additionalProperties: { type: "string" },
           properties: {
             record: { type: "string" },
             event: { type: "string" },
-            repeat: { type: "string" }
+            repeat: { type: "string" },
+            field: { type: "string" }
           },
           maxProperties: 1,
           minProperties: 1

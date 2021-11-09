@@ -25,7 +25,9 @@ class QueryController < Magma::Controller
       return failure(422, errors: [ e.message ])
     rescue Sequel::DatabaseError => e
       Magma.instance.logger.log_error(e)
-      return failure(501, errors: 'Database error.')
+      return failure(501, errors: ['Database error.'])
+    rescue Sequel::Error => e
+      return failure(422, errors: [ e.message ])
     end
   end
 end

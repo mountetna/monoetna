@@ -2,6 +2,11 @@ from collections.abc import Iterable
 from typing import List, Union
 import re 
 
+def ensure_list(l):
+    if not isinstance(l, list):
+        return [l]
+    return l
+
 def unique(ls: list):
     return list(dict.fromkeys(ls))
 

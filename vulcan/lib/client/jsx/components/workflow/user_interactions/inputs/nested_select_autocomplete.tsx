@@ -58,21 +58,23 @@ function LeafOptions({
       }}
       list={options}
       defaultValue={null}
+      maxItems={30}
     />
   );
 }
 
 type OptionSet = {[k: string]: null | OptionSet};
 
-export default function NestedSelectAutocompleteInput({ label, data, onChange, value }: WithInputParams<{label?: string}, string, OptionSet>) {
+export default function NestedSelectAutocompleteInput({ label, data, onChange, ...props }: WithInputParams<{label?: string}, string, OptionSet>) {
+  const value = useSetsDefault("", props.value, onChange)
   const allOptions = useMemoized(joinNesting, data);
   const [path, setPath] = useState([] as string[]);
-
+  
   useEffect(() => {
-    mapSome(value, value => {
+    if (value && value != "") {
       const updatedPath = getPath(allOptions, value);
       setPath(updatedPath);
-    })
+    }
   }, [allOptions, value])
 
   const handleSelect = useCallback(
@@ -118,6 +120,7 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, v
                   }}
                   list={options}
                   value={value}
+                  maxItems={30}
                 />
               );
             })

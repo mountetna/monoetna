@@ -28,6 +28,8 @@ export const defaultVulcanState = {
 
   // A subset of all steps that have buffered changes.
   bufferedSteps: [] as ((string | null)[]),
+  // If a buffered step was filled in while remaining 'pending'
+  committedStepPending: false,
 
   session: defaultSession,
   outputs: defaultSessionStatusResponse.outputs,
@@ -139,6 +141,26 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
     case 'REMOVE_VALIDATION_ERRORS':
       return {
         ...state, validationErrors: state.validationErrors.filter(([_1, _2, e]) => e !== action.errors)
+      }
+    
+    case 'CHECK_CHANGES_READY':
+      const stepName = withDefault(action.step,null)
+      let ready: boolean;
+      if (stepName == null) {
+        ready = false;
+      } else {
+        const stepNum = state.status[0].findIndex(
+          (element) => element['name'] == stepName
+        )
+        ready = state.status[0][stepNum]['status'] == "pending"
+      }
+      return {
+        ...state, committedStepPending: ready
+      }
+    
+    case 'CLEAR_CHANGES_READY':
+      return {
+        ...state, committedStepPending: false
       }
 
     default:

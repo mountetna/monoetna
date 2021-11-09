@@ -5,9 +5,9 @@ require_relative './watch_etl_config'
 class Polyphemus::ProjectWatchFoldersEtl < Polyphemus::AddWatchFolderBaseEtl
   attr_reader :config
 
-  def initialize(config)
+  def initialize(config, limit: 20)
     @config = config
-    super(bucket_watch_configs: config.bucket_configs)
+    super(bucket_watch_configs: config.bucket_configs, limit: limit)
   end
 
   def process_folder_contents(cursor, folders, watch_type)

@@ -3,7 +3,7 @@ import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {setSession} from '../../../actions/vulcan_actions';
+import {clearCommittedStepPending, setSession} from '../../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 import Vignette from '../vignette';
@@ -31,19 +31,20 @@ export default function SessionManager() {
   const {workflow, hasPendingEdits, complete} = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
-  const {session} = state;
+  const {session, committedStepPending} = state;
 
   const name = workflowName(workflow);
   const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
   const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
-  const run = useCallback(() => requestPoll(true), [requestPoll]);
+  const run = useCallback(() => {requestPoll(true); dispatch(clearCommittedStepPending())}, [requestPoll]);
   const stop = useCallback(() => cancelPolling(), [cancelPolling]);
 
   const saveSession = useCallback(() => {
     if (hasPendingEdits) {
-      alert('You have uncommitted changes, reset or commit those before saving.')
-      return;
+      if (!confirm('You have unfilled inputs and/or uncommitted changes. Unfilled inputs will be left out of the saved state. Uncommited changes will be reset to their previously committed values. Proceed?')) {
+        return;
+      }
     }
 
     downloadBlob({
@@ -56,7 +57,7 @@ export default function SessionManager() {
   const openSession = () => {
     showErrors(readTextFile('*.json').then((sessionJson) => {
       const session: VulcanSession = JSON.parse(sessionJson);
-      if (session.workflow_name !== state.session.project_name || session.project_name !== state.session.project_name) {
+      if (session.workflow_name !== state.session.workflow_name || session.project_name !== state.session.project_name) {
         // TODO: Confirm the user has project and workflow access before doing the navigation?
         if (confirm('This session file belongs to a different project / workflow combination, navigate to that page?')) {
           location.href = location.origin + ROUTES.workflow(session.project_name, session.workflow_name);
@@ -80,7 +81,7 @@ export default function SessionManager() {
   );
 
   const running = state.pollingState > 0;
-  const disableRunButton = complete || running || hasPendingEdits;
+  const disableRunButton = complete || running || (hasPendingEdits && !committedStepPending);
 
   if (!name) return null;
 
