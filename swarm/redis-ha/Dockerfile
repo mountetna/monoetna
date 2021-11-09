@@ -7,7 +7,7 @@ RUN curl -fsLo /tini https://github.com/krallin/tini/releases/download/v0.19.0/t
 
 FROM redis:6
 COPY --from=curl /tini /usr/local/bin/
-COPY src/bin/* /usr/local/bin/
+COPY bin/* /usr/local/bin/
 RUN chmod +x /usr/local/bin/*
 
 ENTRYPOINT ["tini", "init-config-and-run-ha.sh"]

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
+# Clear images not being used to recover some space
+docker image prune
+
 postToSlack() {
   post-to-slack "deployer on ${HOST_HOSTNAME}" "watchtower-ping" "$1"
 }
@@ -37,6 +40,7 @@ while read serviceName; do
   image="$(findServiceImage $serviceName)"
   tag=$(tagOfImageDigest "$image")
   sha=$(shaOfImageDigest "$image")
+
   if [[ -n "$sha" ]]; then
     docker pull "$tag"
     newImage=$(docker image inspect "${tag}" | jq -r '.[].RepoDigests[]')
@@ -48,4 +52,6 @@ while read serviceName; do
       docker service update -d $serviceName --image "${tag}" --force
     fi
   fi
+
+  docker image prune
 done < <(echo "$services")
