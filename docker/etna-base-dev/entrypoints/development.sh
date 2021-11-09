@@ -23,7 +23,6 @@ fi
 
 if [ -n "$UPDATE_STATE" ]; then
   ./bin/${APP_NAME} migrate
-eval "${app_name_capitalized}_ENV=test ./bin/${APP_NAME} global_migrate" || true
 eval "${app_name_capitalized}_ENV=test ./bin/${APP_NAME} migrate"
 fi
 
