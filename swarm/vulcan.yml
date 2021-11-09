@@ -18,6 +18,22 @@ services:
     networks:
       - vulcan
 
+  # Exists purely to allow updates to its image via service deployer.
+  # Intention is for this to be removed when we move the scheduler to airflow.
+  archimedes:
+    command: 
+      - bash
+      - -c
+      - sleep 1
+    image: etnaagent/archimedes:production
+    deploy:
+      labels:
+        - autoupdate=true
+      placement:
+        constraints:
+          - node.labels.volumes.vulcan_data == true
+
+
   app:
     environment:
       APP_NAME: vulcan
