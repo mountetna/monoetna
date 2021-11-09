@@ -14,7 +14,7 @@ $(app_name)_app_fe:
 	ln -s ../$(app_name)/$(app_name)_app_fe ../docker/$(app_name)_app_fe
 
 psql:: docker-ready
-	@ docker-compose run -e -e PGPASSWORD=password --rm ${app_service_name} psql -h ${app_db_name} -U developer -d ${app_name}_development
+	@ docker-compose run -e PGPASSWORD=password --rm ${app_service_name} psql -h ${app_db_name} -U developer -d ${app_name}_development
 
 Dockerfile:
 	cp $(call find_project_file,etna-base,Dockerfile.etna-ruby.default) Dockerfile
