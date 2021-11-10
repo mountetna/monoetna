@@ -17,18 +17,25 @@ describe Etna::Application do
       ENV.clear.update(@orig_ENV)
     end
 
+    def in_temp_file(string)
+      Tempfile.open do |file|
+        file.write(string)
+        file.path
+      end
+    end
+
     it 'loads all kinds of keys successfully, merging them with existing items' do
-      ENV['TESTAPP__PRODUCTION__DB__PASSWORD'] = 'password'
-      ENV['TESTAPP__PRODUCTION__DB__NO_OVERRIDE'] = 'blah'
-      ENV['TESTAPP__PRODUCTION__KEY'] = 'value'
+      ENV['ETNA__PRODUCTION__DB__PASSWORD_FILE'] = in_temp_file('- password')
+      ENV['ETNA__PRODUCTION__DB__NO_OVERRIDE_FILE'] = in_temp_file('blah')
+      ENV['ETNA__PRODUCTION__KEY_FILE'] = in_temp_file('123')
       app = TestApp.instance
       app.configure({:production => { :db => {:host => 'm', :no_override => 'thing'}} })
 
-      expect(app.config(:key, :production)).to eql('value')
+      expect(app.config(:key, :production)).to eql(123)
       expect(app.config(:db, :production)).to eql({
         :no_override => 'thing',
         :host => 'm',
-        :password => 'password'
+        :password => ['password']
       })
     end
   end

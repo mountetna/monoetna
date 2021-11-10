@@ -53,10 +53,11 @@ module Etna::Application
   def configure(opts)
     @config = opts
 
-    # Apply environmental variables of the form "APP__x__y__z"
-    prefix = "#{self.class.name.upcase}__"
-    ENV.keys.select { |k| k.start_with?(prefix) }.each do |key|
-      path = key.split("__", -1)
+    # Apply environmental variables of the form "ETNA__x__y__z_FILE"
+    # by reading the given file.
+    prefix = "ETNA__"
+    ENV.keys.select { |k| k.start_with?(prefix) && k.end_with?("_FILE") }.each do |key|
+      path = key.sub(/_FILE/, '').split("__", -1)
       path.shift # drop the first, just app name
 
       target = @config
@@ -65,7 +66,7 @@ module Etna::Application
         target = (target[n.downcase.to_sym] ||= {})
       end
 
-      target[path.last.downcase.to_sym] ||= ENV[key]
+      target[path.last.downcase.to_sym] ||= YAML.load(File.read(ENV[key]))
     end
 
     if (rollbar_config = config(:rollbar)) && rollbar_config[:access_token]
