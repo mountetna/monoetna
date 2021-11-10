@@ -1,6 +1,6 @@
 include ../make-base/utils.mk
 export COMPOSE_PROJECT_NAME=monoetna
-compose_ymls:=$(call find_projects_containing,docker-compose.yml)
+compose_ymls:=$(filter-out %/docker/docker-compose.yml,$(call find_projects_containing,docker-compose.yml))
 compose_projects:=$(call map,dirname,$(compose_ymls))
 
 .PHONY: help
