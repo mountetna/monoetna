@@ -6,7 +6,7 @@ set -x
 shopt -s globstar
 
 PROXY_APP_NAME=
-if [[ "$(APP_NAME)" =~ (.*)_app_fe$ ]]; then
+if [[ "${APP_NAME}" =~ (.*)_app_fe$ ]]; then
   PROXY_APP_NAME=${BASH_REMATCH[1]}
 else
   exit 1
