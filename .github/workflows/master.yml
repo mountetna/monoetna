@@ -15,12 +15,6 @@ jobs:
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
-      - name: Download all images
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IMAGES_POSTFIX: :master
-        run: |
-          ./bin/x-all-images docker pull %
       - name: Test + Push Release
         env:
           PUSH_IMAGES: 1
@@ -46,15 +40,6 @@ jobs:
           bin/pull-subtrees master
           git push
           git push origin HEAD:staging --force
-  empty-job:
-      # if no jobs run, github action considers it a test failure.  But we want it to be a success if the other
-      # jobs just happen to be filtered, so we create a 'dummy' job that just succeeds.
-      runs-on: ubuntu-latest
-      if: success()
-      steps:
-        - name: Meep
-          run: |
-            echo "This job will always succeed. If no jobs run, we still want the workflow to give status success."
 
 
 

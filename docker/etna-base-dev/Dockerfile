@@ -1,3 +1,5 @@
+FROM development-certs
+
 FROM ruby:2.5.7
 WORKDIR /app
 
@@ -12,12 +14,12 @@ ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCK
 ENV RACK_ENV development
 ENV PATH "/app/bin:/app/node_modules/.bin:/app/vendor/bundle/$RUBY_VERSION/bin:$PATH:/home/aspera/.aspera/connect/bin"
 
-COPY certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
+COPY --from=0 /certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
 RUN chmod 644 /usr/local/share/ca-certificates/devRoot.crt && update-ca-certificates
 
 # add postgres 10 repo for debian stretch
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
-RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 
 RUN apt-get update \
    && apt-get install -y \
@@ -74,7 +76,7 @@ RUN tar -xf /tmp/docker.tgz -C /tmp/
 RUN mv /tmp/docker/* /usr/local/bin/
 
 RUN mkdir -p /opt
-COPY src/entrypoints /entrypoints
+COPY entrypoints /entrypoints
 
-COPY src/bin/* /bin/
+COPY bin/* /bin/
 RUN chmod +x /bin/*

@@ -29,13 +29,6 @@ jobs:
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
-      - name: Download all images
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IS_CI: 1
-          IMAGES_POSTFIX: :master
-        run: |
-          ./bin/x-all-images docker pull %
       - name: Run ${{ matrix.test-app }} test suite
         id: app_first_test_run
         env:

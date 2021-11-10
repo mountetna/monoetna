@@ -16,13 +16,6 @@ jobs:
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
-      - name: Download all images
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IS_CI: 1
-          IMAGES_POSTFIX: :master
-        run: |
-          ./bin/x-all-images docker pull %
       - name: Setup Python
         id: magby_setup_py
         uses: actions/setup-python@v2

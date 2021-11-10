@@ -1,34 +1,31 @@
 app_service_name:=${app_name}_app
 app_db_name:=${app_name}_db
 app_name_capitalized:=$(shell echo ${app_name} | tr [a-z] [A-Z])
-BUILD_ARGS:=--build-arg APP_NAME=$(app_name) $(BUILD_ARGS)
 EXTRA_DOCKER_ARGS:=
-export BUILD_REQS:=../docker/etna-base $(BUILD_REQS)
 
 config.yml: config.yml.template
-	../make-base/maybe-move-config
+	$(call find_project_file,build_support,maybe-move-config)
 
-config-ready:: config.yml
+config-ready:: $(app_name)_app_fe config.yml Dockerfile
 	@ true
 
-irb::
-	@ docker-compose run --rm $app_service_name bundle exec irb
-
-migrate::
-	@ docker-compose run --rm ${app_service_name} ./bin/${app_name} migrate
-	@ docker-compose run -e ${app_name_capitalized}_ENV=test --rm ${app_service_name} ./bin/${app_name} migrate
-
-test:: docker-ready
-	@ docker-compose run -e ${app_name_capitalized}_ENV=test -e CI_SECRET=$${CI_SECRET} -e IS_CI=$${IS_CI} --rm ${app_service_name} bundle exec rspec
+$(app_name)_app_fe:
+	cp -r $(call find_project_file,etna-base,app_fe) $(app_name)_app_fe
+	ln -s ../$(app_name)/$(app_name)_app_fe ../docker/$(app_name)_app_fe
 
 psql:: docker-ready
-	@ docker-compose run -e -e PGPASSWORD=password --rm ${app_service_name} psql -h ${app_db_name} -U developer -d ${app_name}_development
+	@ docker-compose run -e PGPASSWORD=password --rm ${app_service_name} psql -h ${app_db_name} -U developer -d ${app_name}_development
 
 Dockerfile:
-	cp ../docker/etna-base/release/Dockerfile .
+	cp $(call find_project_file,etna-base,Dockerfile.etna-ruby.default) Dockerfile
 
-release-build:: .dockerignore
+run-image-test::
+	docker-compose up -d $(app_db_name) || true
+	docker run --rm $(EXTRA_DOCKER_ARGS) -e $(app_name_capitalized)_ENV=test \
+			-e APP_NAME=$(app_name) -e RELEASE_TEST=1 -e CI_SECRET=$${CI_SECRET} \
+			-e IS_CI=$${IS_CI} -e WAIT_FOR_DB=1 -e UPDATE_STATE=1 \
+			--network monoetna_default $(fullTag) \
+			/entrypoints/development.sh bundle exec rspec
 
-release-test:: docker-ready
+update-ready::
 	docker-compose up -d $(app_db_name)
-	docker run --rm $(EXTRA_DOCKER_ARGS) -e $(app_name_capitalized)_ENV=test -e APP_NAME=$(app_name) -e RELEASE_TEST=1 -e CI_SECRET=$${CI_SECRET} -e IS_CI=$${IS_CI} -e WAIT_FOR_DB=1 -e UPDATE_STATE=1 --network monoetna_default $(fullTag) /entrypoints/development.sh bundle exec rspec

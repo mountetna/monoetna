@@ -17,3 +17,4 @@ README.md
 LICENSE
 config.yml
 Makefile
+*.mk
