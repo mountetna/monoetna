@@ -6,6 +6,8 @@ on:
       - '*/*'
       - '*/*/*'
       - '!master'
+      - '!production'
+      - '!staging'
 
 jobs:
   test:
