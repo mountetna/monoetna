@@ -251,7 +251,7 @@ class LocalIsolator(Isolator[LocalProcess]):
         ), stderr_log_io, stderr_log
 
 
-def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 15, remove = True) -> RunResult:
+def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 60, remove = True) -> RunResult:
     res = RunResult(status='running', error=None)
     print(f"Preparing to run script using {request.isolator} isolator", file=sys.stderr)
 

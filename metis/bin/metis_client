@@ -643,6 +643,7 @@ EOT
 
     def long_display(files: [], folders: [], buckets: [])
       rows = (folders + files).map do |file|
+        is_file = file.include?(:file_name)
         [
           file[:author].split('|').first.to_s,
           file[:size].to_s,
@@ -651,6 +652,7 @@ EOT
               d.strftime("%b %d  %Y") :
               d.strftime("%b %d %H:%M")
           },
+          is_file ? (file[:archive_id] ? "archived" : "unarchived") : "n/a",
           file[:file_name] || "#{file[:folder_name]}/"
         ]
       end + buckets.map do |bucket|
@@ -658,11 +660,12 @@ EOT
           bucket[:access],
           bucket[:count],
           bucket[:description],
+          "n/a",
           "#{bucket[:bucket_name]}/"
         ]
       end
 
-      widths = 4.times.map do |i|
+      widths = 5.times.map do |i|
         rows.map { |row| row[i].size }.max
       end
 
@@ -823,6 +826,7 @@ EOT
       raise ShellError, "Invalid path, cannot remove: #{path}" unless file || folder
     end
   end
+
 
   class Mkdir < Command
     usage "mkdir <remote_path>"
