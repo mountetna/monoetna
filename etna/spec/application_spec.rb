@@ -28,6 +28,7 @@ describe Etna::Application do
       ENV['ETNA__PRODUCTION__DB__PASSWORD_FILE'] = in_temp_file('- password')
       ENV['ETNA__PRODUCTION__DB__NO_OVERRIDE_FILE'] = in_temp_file('blah')
       ENV['ETNA__PRODUCTION__KEY_FILE'] = in_temp_file('123')
+      ENV['ETNA__PRODUCTION_FILE'] = in_temp_file({ :db => { merge_me: 123 } }.to_yaml)
       app = TestApp.instance
       app.configure({:production => { :db => {:host => 'm', :no_override => 'thing'}} })
 
@@ -35,7 +36,8 @@ describe Etna::Application do
       expect(app.config(:db, :production)).to eql({
         :no_override => 'thing',
         :host => 'm',
-        :password => ['password']
+        :password => ['password'],
+        :merge_me => 123,
       })
     end
   end

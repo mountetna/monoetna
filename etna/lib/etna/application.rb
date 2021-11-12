@@ -50,6 +50,21 @@ module Etna::Application
     Etna::Application.register(self)
   end
 
+  # a <- b
+  def deep_merge(a, b)
+    if a.is_a?(Hash)
+      if b.is_a?(Hash)
+        b.keys.each do |b_key|
+          a[b_key] = deep_merge(a[b_key], b[b_key])
+        end
+
+        return a
+      end
+    end
+
+    a.nil? ? b : a
+  end
+
   def configure(opts)
     @config = opts
 
@@ -66,7 +81,9 @@ module Etna::Application
         target = (target[n.downcase.to_sym] ||= {})
       end
 
-      target[path.last.downcase.to_sym] ||= YAML.load(File.read(ENV[key]))
+      v = YAML.load(File.read(ENV[key]))
+      target[path.last.downcase.to_sym] =
+        deep_merge(target[path.last.downcase.to_sym], v)
     end
 
     if (rollbar_config = config(:rollbar)) && rollbar_config[:access_token]
