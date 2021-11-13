@@ -332,13 +332,7 @@ class Polyphemus
       name = patient['name']
 
       begin
-        if delete_metis_files
-          # do metis movement attempt for now -- no auto-delete
-          mvir1_waiver.restrict_patient_data(name)
-        else
-          # do metis movement attempt
-          mvir1_waiver.restrict_patient_data(name)
-        end
+        mvir1_waiver.restrict_patient_data(name, delete_metis_files)
       rescue Etna::Error => e
         logger.log_error(e)
       end

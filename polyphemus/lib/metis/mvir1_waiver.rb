@@ -25,13 +25,18 @@ class Mvir1Waiver
     "#{pool_name}"
   end
 
-  def restrict_patient_data(patient_name)
+  def restrict_patient_data(patient_name, delete_on_metis)
     @metis_client.rename_folders(
       project_name: @project_name,
       source_bucket: @release_bucket_name,
-      source_folders: find_folders_in_bucket(@release_bucket_name, patient_name_search_string(patient_name)),
+      source_folders: find_folders_in_bucket(
+        @release_bucket_name, patient_name_search_string(patient_name)),
       dest_bucket: @restrict_bucket_name,
     )
+
+    unless delete_on_metis
+
+    end
   end
 
   def release_patient_data(patient_name)
