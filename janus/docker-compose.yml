@@ -68,7 +68,7 @@ x-base-etna-services:
     entrypoint: /entrypoints/development_app_fe.sh
     command: ['httpd', '-DFOREGROUND']
     environment:
-      APP_NAME: 'janus'
+      APP_NAME: 'janus_app_fe'
 
 networks:
   edge_net:
