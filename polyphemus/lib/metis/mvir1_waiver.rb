@@ -25,17 +25,129 @@ class Mvir1Waiver
     "#{pool_name}"
   end
 
-  def restrict_patient_data(patient_name, delete_on_metis)
-    @metis_client.rename_folders(
+  def diff_worker_for(release_folder, restricted_folder) end
+
+  def empty_for(from_bucket, to_bucket, folder_name)
+    Etna::Clients::Metis::WalkMetisDiffWorkflow.new(
+      left_walker: Etna::Clients::Metis::WalkMetisWorkflow.new(
+        metis_client: @metis_client,
+        project_name: @project_name,
+        bucket_name: from_bucket,
+        root_dir: folder_name,
+      ),
+      right_walker: Etna::Clients::Metis::WalkMetisWorkflow.new(
+        metis_client: @metis_client,
+        project_name: @project_name,
+        bucket_name: to_bucket,
+        root_dir: folder_name,
+      ),
+    ).each do |diff|
+      type, left, right = diff
+
+      case type
+      when :equal
+        try_empty_file(left)
+      when :left_unique
+        try_copy(left, to_bucket)
+        try_empty_file(left)
+      when :right_unique
+        # leave it be, maybe an artifact of concurrent behavior
+      when :left_older
+        try_empty_file(left)
+      else
+        try_remove(right)
+        try_copy(left, to_bucket)
+        try_empty_file(left)
+      end
+    end
+  end
+
+  # Try to atomically empty the contents of the file without it disappearing.
+  def try_empty_file(file)
+    return unless file.is_a?(Etna::Clients::Metis::File)
+
+    uploader = Etna::Clients::Metis::MetisUploadWorkflow.new(
+      metis_client: @metis_client,
       project_name: @project_name,
-      source_bucket: @release_bucket_name,
-      source_folders: find_folders_in_bucket(
-        @release_bucket_name, patient_name_search_string(patient_name)),
-      dest_bucket: @restrict_bucket_name,
+      bucket_name: file.bucket_name,
     )
 
-    unless delete_on_metis
+    uploader.do_upload(
+      Etna::Clients::Metis::MetisUploadWorkflow::StreamingIOUpload.new(
+        readable_io: StringIO.new
+      ),
+      file.file_path
+    )
+  end
 
+  def try_copy(file, to_bucket)
+    if file.is_a?(Etna::Clients::Metis::Folder)
+      req = Etna::Clients::Metis::CreateFolderRequest.new(
+        project_name: @project_name,
+        bucket_name: to_bucket,
+        folder_path: file.folder_path
+      )
+      @metis_client.create_folder(req) unless folder_exists?(req)
+      return
+    end
+
+    downloader = Etna::Clients::Metis::MetisDownloadWorkflow.new(
+      metis_client: @metis_client,
+      project_name: @project_name,
+      bucket_name: file.bucket_name
+    )
+
+    io = StringIO.new
+    downloader.do_download(io, file)
+    io.rewind
+
+    uploader = Etna::Clients::Metis::MetisUploadWorkflow.new(
+      metis_client: @metis_client,
+      project_name: @project_name,
+      bucket_name: to_bucket,
+    )
+
+    uploader.do_upload(
+      Etna::Clients::Metis::MetisUploadWorkflow::StreamingIOUpload.new(
+        readable_io: io
+      ),
+      file.file_path
+    )
+  end
+
+  def try_remove(file)
+    if file.is_a?(Etna::Clients::Metis::File)
+      @metis_client.delete_file(Etna::Clients::Metis::DeleteFileRequest.new(
+        project_name: @project_name,
+        bucket_name: file.bucket_name,
+        file_path: file.file_path,
+      ))
+    else
+      @metis_client.delete_folder(Etna::Clients::Metis::DeleteFolderRequest.new(
+        project_name: @project_name,
+        bucket_name: file.bucket_name,
+        folder_path: file.folder_path,
+      ))
+    end
+  end
+
+  def restrict_patient_data(patient_name, delete_on_metis)
+    folders = find_folders_in_bucket(
+      @release_bucket_name, patient_name_search_string(patient_name))
+
+    if delete_on_metis
+      # Completely move and remove source files.
+      @metis_client.rename_folders(
+        project_name: @project_name,
+        source_bucket: @release_bucket_name,
+        source_folders: folders,
+        dest_bucket: @restrict_bucket_name,
+      )
+    else
+      # 'copy' over files but leave empty marker files for anything missing.
+      folders.each do |folder|
+        empty_for(@release_bucket_name, @restrict_bucket_name, folder.folder_name)
+      end
     end
   end
 

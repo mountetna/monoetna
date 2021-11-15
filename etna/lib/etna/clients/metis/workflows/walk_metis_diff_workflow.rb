@@ -2,6 +2,12 @@ module Etna
   module Clients
     class Metis
       class WalkMetisDiffWorkflow < Struct.new(:left_walker, :right_walker, keyword_init: true)
+        # Iterates entries of the form [kind, left | nil, right | nil]
+        # where kind is one of
+        #   :left_unique | :right_unique | :left_is_folder | :right_is_folder
+        #   :unknown | :equal | :right_older | :left_older
+        # and left / right is one of
+        #   nil | Etna::Clients::Metis::File | Etna::Clients::Metis::Folder
         def each(&block)
           left_enum = self.left_walker.to_enum
           right_enum = self.right_walker.to_enum
