@@ -71,7 +71,7 @@ x-base-etna-services:
       - 'metis_app'
     command: ['httpd', '-DFOREGROUND']
     environment:
-      APP_NAME: 'metis'
+      APP_NAME: 'metis_app_fe'
 
 services:
   <<: *base-etna-services

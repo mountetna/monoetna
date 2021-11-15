@@ -182,8 +182,8 @@ describe MetisShell do
       stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
 
       expect_output("metis://athena/armor", "ls", "-l") {
-        "metis    Jun 17 04:37    helmet/\n"+
-        "metis 13 Jun 17 04:37 helmet.jpg\n"
+        "metis    Jun 17 04:37        n/a    helmet/\n"+
+        "metis 13 Jun 17 04:37 unarchived helmet.jpg\n"
       }
       Timecop.return
     end
@@ -241,7 +241,7 @@ describe MetisShell do
       stubs.create_file('athena', 'armor', 'helmet/helmet.jpg', HELMET)
 
       expect_output("metis://athena/armor", "ls", "-l", "helmet/helmet.jpg") {
-        "metis 13 Jun 17 04:37 armor/helmet/helmet.jpg\n"
+        "metis 13 Jun 17 04:37 unarchived armor/helmet/helmet.jpg\n"
       }
       Timecop.return
     end
