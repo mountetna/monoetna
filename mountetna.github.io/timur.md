@@ -77,6 +77,10 @@ Paste this value into the Timur input field, and when you save the record the va
 ![Modal with metis path pasted into the input text field](/assets/images/timur/metis-path-modal-with-data.png)
 {:.image}
 
+## Map
+
+The Map interface shows how your project's data is organized into models. Clicking on a model brings up its list of attributes, which lets you know what data is being stored in Timur.
+
 ## Search
 
 The Search interface allows simple filtering of records by their attribute data and bulk download via TSV.
