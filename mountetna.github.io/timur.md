@@ -82,7 +82,12 @@ Paste this value into the Timur input field, and when you save the record the va
 The Search interface allows simple filtering of records by their attribute data and bulk download via TSV.
 The filter uses the Magma /retrieve api's [filter syntax]({{ site.baseurl }}{% link magma.md %}#retrieve).
 
-## Manifests
+## Query
+
+The Query interface allows complex filtering of records across multiple models and bulk download via TSV.
+A help guide that provides detailed explanations of the interface, as well as some project-specific examples, [is available here](/assets/images/timur/querying_guide.pdf).
+
+## Manifests (advanced users only)
 
 A Manifest allows data to be collected from multiple sources, usually starting
 from Magma, and possibly passing through several calculation services (Rtemis
@@ -90,7 +95,7 @@ and Pythia). Manifests are written in a scripting language with R-like syntax
 (tentatively dubbed TimurLang). Writing a manifest is necessary for extracting
 data for use in plots with Timur.
 
-## Plot
+## Plot (advanced users only)
 
 Plots allow data retrieved using a manifest to be graphed in the browser. Timur features a few basic plot types:
 
