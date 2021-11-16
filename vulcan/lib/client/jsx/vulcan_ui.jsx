@@ -3,6 +3,11 @@ import {connect} from 'react-redux';
 import {findRoute, setRoutes} from './router';
 
 import {VulcanProvider} from './contexts/vulcan_context';
+import { ThemeProvider } from '@material-ui/core/styles';
+
+import { createEtnaTheme } from 'etna-js/style/theme';
+
+const theme = createEtnaTheme("#de5833","#948f8e");
 
 // Components.
 import Browser from './components/browser.tsx';
@@ -92,14 +97,16 @@ class VulcanUI extends React.Component {
       <React.Fragment>
         <ModalDialogContainer>
           <VulcanProvider params={params}>
-            <div id='ui-container'>
-              <RemountOnParamsChange params={params}>
-                <Notifications />
-                <VulcanNav environment={environment} mode={mode} />
-                <Messages />
-                <Component key={key} {...params} />
-              </RemountOnParamsChange>
-            </div>
+            <ThemeProvider theme={theme}>
+              <div id='ui-container'>
+                <RemountOnParamsChange params={params}>
+                  <Notifications />
+                  <VulcanNav environment={environment} mode={mode} />
+                  <Messages />
+                  <Component key={key} {...params} />
+                </RemountOnParamsChange>
+              </div>
+            </ThemeProvider>
           </VulcanProvider>
         </ModalDialogContainer>
       </React.Fragment>

@@ -22,12 +22,14 @@ import {makeStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({
   card: {
-    borderRadius: 0
+    borderRadius: 0,
+    border: '1px solid #eee',
   },
   header: {
-    padding: '5px 5px 5px 10px'
+    padding: '5px 10px'
   }
 }));
+
 export default function PrimaryInputs() {
   const {commitSessionInputChanges, dispatch} = useContext(VulcanContext);
 
@@ -89,8 +91,8 @@ function PrimaryInputsInner() {
             <Typography variant='h6'>Inputs</Typography>
           </Grid>
           <Grid item>
-            <IconButton onClick={ () => setOpen(!open) }>
-              { open ? <ExpandLessIcon/> : <ExpandMoreIcon/>}
+            <IconButton size='small' onClick={ () => setOpen(!open) }>
+              { open ? <ExpandLessIcon fontSize='small'/> : <ExpandMoreIcon fontSize='small'/>}
             </IconButton>
           </Grid>
         </Grid>

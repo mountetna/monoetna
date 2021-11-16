@@ -36,6 +36,8 @@ const useStyles = makeStyles((theme) => ({
 interface Props {
   inputs: BoundInputSpecification[],
   groupName: string,
+  expanded: boolean,
+  select: (event: any) => void
 }
 
 const collator = new Intl.Collator(undefined, {
