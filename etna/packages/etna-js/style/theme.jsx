@@ -80,9 +80,6 @@ export const createEtnaTheme = (p,s) => {
       MuiCheckbox: {
         disableRipple: true
       },
-      MuiGrid: {
-        disableElevation: true
-      },
       MuiChip: {
         color: "secondary",
         size: "small"
