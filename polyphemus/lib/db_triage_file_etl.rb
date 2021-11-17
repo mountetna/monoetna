@@ -10,7 +10,9 @@ class Polyphemus
         should_ingest: true,
         @column_name => nil,
         removed_from_source: false,
-      )
+      ).where {
+        updated_at >= (cursor.updated_at || Time.at(0)) + 1
+      }
     end
   end
 end
