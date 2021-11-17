@@ -1,6 +1,6 @@
 export type Model = {
   documents: {};
-  template: {[key: string]: Attribute};
+  template: {attributes: {[key: string]: Attribute}};
 };
 
 export type Attribute = {
