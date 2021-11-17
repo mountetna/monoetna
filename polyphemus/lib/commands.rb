@@ -267,8 +267,8 @@ class Polyphemus
         should_be_deleted = patient['consent'] == 'No Samples/Data'
 
         if should_be_deleted
-          # Magma does not support delete right now, so we restrict the models, but we can unlink and
-          # delete the files in metis
+          # Magma does not support delete right now, so we restrict the models,
+          # but we can unlink and delete the files in metis
           restrict!(patient, delete_metis_files: true)
         elsif should_be_restricted
           restrict!(patient)

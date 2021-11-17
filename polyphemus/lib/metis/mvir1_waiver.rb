@@ -52,8 +52,6 @@ class Mvir1Waiver
         try_empty_file(left)
       when :right_unique
         # leave it be, maybe an artifact of concurrent behavior
-      when :left_older
-        try_empty_file(left)
       else
         try_remove(right)
         try_copy(left, to_bucket)
@@ -70,6 +68,7 @@ class Mvir1Waiver
       metis_client: @metis_client,
       project_name: @project_name,
       bucket_name: file.bucket_name,
+      metis_uid: '7af8e4be837744ce791c6239d00afefd',
     )
 
     uploader.do_upload(
@@ -87,7 +86,7 @@ class Mvir1Waiver
         bucket_name: to_bucket,
         folder_path: file.folder_path
       )
-      @metis_client.create_folder(req) unless folder_exists?(req)
+      @metis_client.create_folder(req) unless @metis_client.folder_exists?(req)
       return
     end
 
@@ -105,11 +104,13 @@ class Mvir1Waiver
       metis_client: @metis_client,
       project_name: @project_name,
       bucket_name: to_bucket,
+      metis_uid: '7af8e4be837744ce791c6239d00afefd',
     )
 
     uploader.do_upload(
       Etna::Clients::Metis::MetisUploadWorkflow::StreamingIOUpload.new(
-        readable_io: io
+        readable_io: io,
+        size_hint: io.length,
       ),
       file.file_path
     )
@@ -121,12 +122,6 @@ class Mvir1Waiver
         project_name: @project_name,
         bucket_name: file.bucket_name,
         file_path: file.file_path,
-      ))
-    else
-      @metis_client.delete_folder(Etna::Clients::Metis::DeleteFolderRequest.new(
-        project_name: @project_name,
-        bucket_name: file.bucket_name,
-        folder_path: file.folder_path,
       ))
     end
   end

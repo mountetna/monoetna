@@ -7,11 +7,13 @@ module Etna
           q = [self.root_dir]
 
           while (n = q.pop)
-            resp = metis_client.list_folder(Etna::Clients::Metis::ListFolderRequest.new(
+            req = Etna::Clients::Metis::ListFolderRequest.new(
               project_name: project_name,
               bucket_name: bucket_name,
               folder_path: n
-            ))
+            )
+            next unless metis_client.folder_exists?(req)
+            resp = metis_client.list_folder(req)
 
             resp.files.all.sort_by { |f| f.file_path[self.root_dir.length..-1] }.each do |file|
               yield [file, file.file_path[self.root_dir.length..-1]]
