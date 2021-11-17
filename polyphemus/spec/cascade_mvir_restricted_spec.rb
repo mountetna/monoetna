@@ -68,6 +68,9 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
     end
 
     it 'correctly makes Metis calls to restrict patient and pool folders' do
+      patients_to_restrict[:Dan][:consent] = 'No Samples/Data'
+      stub_magma_setup(patients_to_restrict)
+
       stub_parent_exists({status: 422, bucket: RESTRICT_BUCKET})
       stub_create_folder({bucket: RESTRICT_BUCKET})
       stub_rename_folder({bucket: RELEASE_BUCKET})
