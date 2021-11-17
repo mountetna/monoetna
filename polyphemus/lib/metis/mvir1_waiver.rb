@@ -44,6 +44,11 @@ class Mvir1Waiver
     ).each do |diff|
       type, left, right = diff
 
+      # do not copy marker files in any case
+      if left.is_a?(Etna::Clients::Metis::File) && left.size == 0
+        next
+      end
+
       case type
       when :equal
         try_empty_file(left)
