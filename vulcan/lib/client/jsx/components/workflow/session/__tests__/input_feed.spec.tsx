@@ -18,6 +18,7 @@ import {
   setWorkflow,
   setWorkflows
 } from '../../../../actions/vulcan_actions';
+import Card from '@material-ui/core/Card';
 
 describe('InputFeed', () => {
   fit('renders complete UI steps and error steps', () => {
@@ -84,8 +85,11 @@ describe('InputFeed', () => {
       1
     );
 
+
     expect(
-      instance.findAllByProps({className: 'step-user-input step '}).length
+      instance.findAllByType(Card).filter(
+        t => t.props.className.endsWith('step-user-input')
+      ).length
     ).toEqual(2);
 
     expect(component.toJSON()).toMatchSnapshot();

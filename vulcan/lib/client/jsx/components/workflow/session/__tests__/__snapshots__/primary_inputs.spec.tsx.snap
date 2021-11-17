@@ -4,271 +4,368 @@ exports[`PrimaryInputs renders each type of input 1`] = `
 Array [
   <div>
     <div
-      className="primary-inputs"
+      className="MuiPaper-root MuiCard-root makeStyles-card-1 MuiPaper-elevation1 MuiPaper-rounded"
     >
       <div
-        className="inputs-pane"
+        className="MuiGrid-root makeStyles-header-2 MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-xs-space-between"
+        onClick={[Function]}
       >
         <div
-          className="header-wrapper"
+          className="MuiGrid-root MuiGrid-item"
         >
-          <div
-            className="inputs-pane-header toggle open"
-            onClick={[Function]}
+          <h6
+            className="MuiTypography-root MuiTypography-h6"
           >
-            <div
-              className="title"
-            >
-              Inputs
-            </div>
-            <svg
-              aria-hidden={true}
-              className="MuiSvgIcon-root"
-              focusable="false"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"
-              />
-            </svg>
-          </div>
-          <div
-            className="filler"
-          />
+            Primary Inputs
+          </h6>
         </div>
         <div
-          className="primary-inputs-container items sliding-panel vertical open"
+          className="MuiGrid-root MuiGrid-item"
+        >
+          <button
+            className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
+            disabled={false}
+            onBlur={[Function]}
+            onDragLeave={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+            onMouseDown={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            onTouchEnd={[Function]}
+            onTouchMove={[Function]}
+            onTouchStart={[Function]}
+            tabIndex={0}
+            type="button"
+          >
+            <span
+              className="MuiIconButton-label"
+            >
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"
+                />
+              </svg>
+            </span>
+            <span
+              className="MuiTouchRipple-root"
+            />
+          </button>
+        </div>
+      </div>
+      <div
+        className="MuiCollapse-container MuiCollapse-hidden"
+        style={
+          Object {
+            "minHeight": "0px",
+          }
+        }
+      >
+        <div
+          className="MuiCollapse-wrapper"
         >
           <div
-            className="view_item"
+            className="MuiCollapse-wrapperInner"
           >
             <div
-              className="item_name"
-            >
-              aBool
-            </div>
-            <div
-              className="item_view"
+              className="MuiPaper-root MuiAccordion-root MuiAccordion-rounded MuiPaper-elevation0 MuiPaper-rounded"
             >
               <div
-                className="input-help"
+                aria-disabled={false}
+                aria-expanded={false}
+                className="MuiButtonBase-root MuiAccordionSummary-root makeStyles-header-3"
+                onBlur={[Function]}
+                onClick={[Function]}
+                onDragLeave={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                role="button"
+                tabIndex={0}
               >
                 <div
-                  className="input-help-children-wrapper"
+                  className="MuiAccordionSummary-content"
                 >
-                  <input
-                    checked={true}
-                    className="text_box"
-                    onChange={[Function]}
-                    type="checkbox"
-                  />
-                </div>
-                <div
-                  className="help-icon-wrapper"
-                  title="help"
-                >
-                  <span
-                    className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
+                  <p
+                    className="MuiTypography-root MuiTypography-body1"
                   >
-                    <i
-                      className="icon help-icon  question-circle fa fa-2x fa-question-circle"
-                    />
-                  </span>
+                    
+                  </p>
                 </div>
               </div>
-            </div>
-          </div>
-          <div
-            className="view_item"
-          >
-            <div
-              className="item_name"
-            >
-              aBoolWithoutDefault
-            </div>
-            <div
-              className="item_view"
-            >
               <div
-                className="input-help"
+                className="MuiCollapse-container MuiCollapse-hidden"
+                style={
+                  Object {
+                    "minHeight": "0px",
+                  }
+                }
               >
                 <div
-                  className="input-help-children-wrapper"
+                  className="MuiCollapse-wrapper"
                 >
-                  <input
-                    checked={false}
-                    className="text_box"
-                    onChange={[Function]}
-                    type="checkbox"
-                  />
-                </div>
-                <div
-                  className="help-icon-wrapper"
-                  title="help"
-                >
-                  <span
-                    className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
+                  <div
+                    className="MuiCollapse-wrapperInner"
                   >
-                    <i
-                      className="icon help-icon  question-circle fa fa-2x fa-question-circle"
-                    />
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            className="view_item"
-          >
-            <div
-              className="item_name"
-            >
-              aFloat
-            </div>
-            <div
-              className="item_view"
-            >
-              <div
-                className="input-help"
-              >
-                <div
-                  className="input-help-children-wrapper"
-                >
-                  <input
-                    onChange={[Function]}
-                    onKeyPress={[Function]}
-                    type="text"
-                    value={1.2}
-                  />
-                </div>
-                <div
-                  className="help-icon-wrapper"
-                  title="help"
-                >
-                  <span
-                    className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
-                  >
-                    <i
-                      className="icon help-icon  question-circle fa fa-2x fa-question-circle"
-                    />
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            className="view_item"
-          >
-            <div
-              className="item_name"
-            >
-              aFloatWithoutDefault
-            </div>
-            <div
-              className="item_view"
-            >
-              <div
-                className="input-help"
-              >
-                <div
-                  className="input-help-children-wrapper"
-                >
-                  <input
-                    onChange={[Function]}
-                    onKeyPress={[Function]}
-                    type="text"
-                    value={0}
-                  />
-                </div>
-                <div
-                  className="help-icon-wrapper"
-                  title="help"
-                >
-                  <span
-                    className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
-                  >
-                    <i
-                      className="icon help-icon  question-circle fa fa-2x fa-question-circle"
-                    />
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            className="view_item"
-          >
-            <div
-              className="item_name"
-            >
-              anInt
-            </div>
-            <div
-              className="item_view"
-            >
-              <div
-                className="input-help"
-              >
-                <div
-                  className="input-help-children-wrapper"
-                >
-                  <input
-                    onChange={[Function]}
-                    onKeyPress={[Function]}
-                    type="text"
-                    value={1}
-                  />
-                </div>
-                <div
-                  className="help-icon-wrapper"
-                  title="help"
-                >
-                  <span
-                    className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
-                  >
-                    <i
-                      className="icon help-icon  question-circle fa fa-2x fa-question-circle"
-                    />
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            className="view_item"
-          >
-            <div
-              className="item_name"
-            >
-              anIntWithoutDefault
-            </div>
-            <div
-              className="item_view"
-            >
-              <div
-                className="input-help"
-              >
-                <div
-                  className="input-help-children-wrapper"
-                >
-                  <input
-                    onChange={[Function]}
-                    onKeyPress={[Function]}
-                    type="text"
-                    value={0}
-                  />
-                </div>
-                <div
-                  className="help-icon-wrapper"
-                  title="help"
-                >
-                  <span
-                    className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
-                  >
-                    <i
-                      className="icon help-icon  question-circle fa fa-2x fa-question-circle"
-                    />
-                  </span>
+                    <div
+                      role="region"
+                    >
+                      <div
+                        className="MuiAccordionDetails-root makeStyles-group-4"
+                      >
+                        <div
+                          className="MuiGrid-root MuiGrid-container MuiGrid-direction-xs-column"
+                        >
+                          <div
+                            className="view_item"
+                          >
+                            <div
+                              className="item_name"
+                            >
+                              aBool
+                            </div>
+                            <div
+                              className="item_view"
+                            >
+                              <div
+                                className="input-help"
+                              >
+                                <div
+                                  className="input-help-children-wrapper"
+                                >
+                                  <input
+                                    checked={true}
+                                    className="text_box"
+                                    onChange={[Function]}
+                                    type="checkbox"
+                                  />
+                                </div>
+                                <div
+                                  className="help-icon-wrapper"
+                                  title="help"
+                                >
+                                  <span
+                                    className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
+                                  >
+                                    <i
+                                      className="icon help-icon  question-circle fa fa-2x fa-question-circle"
+                                    />
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            className="view_item"
+                          >
+                            <div
+                              className="item_name"
+                            >
+                              aBoolWithoutDefault
+                            </div>
+                            <div
+                              className="item_view"
+                            >
+                              <div
+                                className="input-help"
+                              >
+                                <div
+                                  className="input-help-children-wrapper"
+                                >
+                                  <input
+                                    checked={false}
+                                    className="text_box"
+                                    onChange={[Function]}
+                                    type="checkbox"
+                                  />
+                                </div>
+                                <div
+                                  className="help-icon-wrapper"
+                                  title="help"
+                                >
+                                  <span
+                                    className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
+                                  >
+                                    <i
+                                      className="icon help-icon  question-circle fa fa-2x fa-question-circle"
+                                    />
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            className="view_item"
+                          >
+                            <div
+                              className="item_name"
+                            >
+                              aFloat
+                            </div>
+                            <div
+                              className="item_view"
+                            >
+                              <div
+                                className="input-help"
+                              >
+                                <div
+                                  className="input-help-children-wrapper"
+                                >
+                                  <input
+                                    onChange={[Function]}
+                                    onKeyPress={[Function]}
+                                    type="text"
+                                    value={1.2}
+                                  />
+                                </div>
+                                <div
+                                  className="help-icon-wrapper"
+                                  title="help"
+                                >
+                                  <span
+                                    className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
+                                  >
+                                    <i
+                                      className="icon help-icon  question-circle fa fa-2x fa-question-circle"
+                                    />
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            className="view_item"
+                          >
+                            <div
+                              className="item_name"
+                            >
+                              aFloatWithoutDefault
+                            </div>
+                            <div
+                              className="item_view"
+                            >
+                              <div
+                                className="input-help"
+                              >
+                                <div
+                                  className="input-help-children-wrapper"
+                                >
+                                  <input
+                                    onChange={[Function]}
+                                    onKeyPress={[Function]}
+                                    type="text"
+                                    value={0}
+                                  />
+                                </div>
+                                <div
+                                  className="help-icon-wrapper"
+                                  title="help"
+                                >
+                                  <span
+                                    className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
+                                  >
+                                    <i
+                                      className="icon help-icon  question-circle fa fa-2x fa-question-circle"
+                                    />
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            className="view_item"
+                          >
+                            <div
+                              className="item_name"
+                            >
+                              anInt
+                            </div>
+                            <div
+                              className="item_view"
+                            >
+                              <div
+                                className="input-help"
+                              >
+                                <div
+                                  className="input-help-children-wrapper"
+                                >
+                                  <input
+                                    onChange={[Function]}
+                                    onKeyPress={[Function]}
+                                    type="text"
+                                    value={1}
+                                  />
+                                </div>
+                                <div
+                                  className="help-icon-wrapper"
+                                  title="help"
+                                >
+                                  <span
+                                    className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
+                                  >
+                                    <i
+                                      className="icon help-icon  question-circle fa fa-2x fa-question-circle"
+                                    />
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            className="view_item"
+                          >
+                            <div
+                              className="item_name"
+                            >
+                              anIntWithoutDefault
+                            </div>
+                            <div
+                              className="item_view"
+                            >
+                              <div
+                                className="input-help"
+                              >
+                                <div
+                                  className="input-help-children-wrapper"
+                                >
+                                  <input
+                                    onChange={[Function]}
+                                    onKeyPress={[Function]}
+                                    type="text"
+                                    value={0}
+                                  />
+                                </div>
+                                <div
+                                  className="help-icon-wrapper"
+                                  title="help"
+                                >
+                                  <span
+                                    className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
+                                  >
+                                    <i
+                                      className="icon help-icon  question-circle fa fa-2x fa-question-circle"
+                                    />
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -281,14 +378,47 @@ Array [
     className="reset-or-commit-inputs"
   >
     <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-text"
       disabled={false}
+      onBlur={[Function]}
       onClick={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={0}
+      type="button"
     >
-      Reset
+      <span
+        className="MuiButton-label"
+      >
+        Reset
+      </span>
+      <span
+        className="MuiTouchRipple-root"
+      />
     </button>
     <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-text"
       disabled={false}
+      onBlur={[Function]}
       onClick={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
       style={
         Object {
           "background": "linear-gradient(135deg, #6e8efb, #a777e3)",
@@ -298,8 +428,17 @@ Array [
           "textAlign": "center",
         }
       }
+      tabIndex={0}
+      type="button"
     >
-      Commit
+      <span
+        className="MuiButton-label"
+      >
+        Commit
+      </span>
+      <span
+        className="MuiTouchRipple-root"
+      />
     </button>
   </div>,
 ]

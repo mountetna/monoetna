@@ -12,16 +12,39 @@ import {
 import {BoundInputSpecification} from "../user_interactions/inputs/input_types";
 import {useWorkflow} from "../../../contexts/workflow_context";
 
+import IconButton from '@material-ui/core/IconButton';
+import AccordionSummary from '@material-ui/core/AccordionSummary';
+import Grid from '@material-ui/core/Grid';
+import AccordionDetails from '@material-ui/core/AccordionDetails';
+import Accordion from '@material-ui/core/Accordion';
+import Typography from '@material-ui/core/Typography';
+import {makeStyles} from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme) => ({
+  header: {
+    background: '#eee',
+    cursor: 'pointer',
+    minHeight: '32px',
+    height: '32px'
+  },
+  group: {
+    padding: 0,
+    borderBottom: '1px solid #eee'
+  }
+}));
+
 interface Props {
   inputs: BoundInputSpecification[],
   groupName: string,
+  expanded: boolean,
+  select: (event: any) => void
 }
 
 const collator = new Intl.Collator(undefined, {
   numeric: true, sensitivity: 'base'
 });
 
-export default function InputGroup({inputs, groupName}: Props) {
+export default function InputGroup({inputs, groupName, select, expanded}: Props) {
   const {state} = useContext(VulcanContext);
   const {workflow} = useWorkflow();
   let {session, status, data} = state;
@@ -41,23 +64,21 @@ export default function InputGroup({inputs, groupName}: Props) {
     (a, b) =>
       collator.compare(a.label, b.label)), [inputs]);
 
-  return (<div className='inputs-pane'>
-    <div className='header-wrapper'>
-      <div onClick={toggleInputs} className={`inputs-pane-header toggle ${open ? 'open' : 'closed'}`}>
-        <div className='title'>{groupName}</div>
-        {open ? <ExpandLessIcon/> : <ExpandMoreIcon/>}
-      </div>
-      <div className='filler'/>
-    </div>
-    <div
-      className={`primary-inputs-container items sliding-panel vertical ${open ? 'open' : 'closed'}`}
-    >
+  const classes = useStyles();
+
+  return (<Accordion elevation={0} expanded={ expanded } onChange={ select }>
+    <AccordionSummary className={classes.header}>
+        <Typography>{groupName}</Typography>
+    </AccordionSummary>
+    <AccordionDetails className={classes.group}>
+      <Grid container direction='column'>
       {sortedInputs.map((input, index) => {
         return (<UserInput
           input={input}
           key={index}
         />);
       })}
-    </div>
-  </div>);
+      </Grid>
+    </AccordionDetails>
+  </Accordion>);
 }
