@@ -6,73 +6,197 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
 >
   <div>
     <div
-      className="primary-inputs"
-    />
+      className="MuiPaper-root MuiCard-root makeStyles-card-1 MuiPaper-elevation1 MuiPaper-rounded"
+    >
+      <div
+        className="MuiGrid-root makeStyles-header-2 MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-xs-space-between"
+        onClick={[Function]}
+      >
+        <div
+          className="MuiGrid-root MuiGrid-item"
+        >
+          <h6
+            className="MuiTypography-root MuiTypography-h6"
+          >
+            Primary Inputs
+          </h6>
+        </div>
+        <div
+          className="MuiGrid-root MuiGrid-item"
+        >
+          <button
+            className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
+            disabled={false}
+            onBlur={[Function]}
+            onDragLeave={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+            onMouseDown={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            onTouchEnd={[Function]}
+            onTouchMove={[Function]}
+            onTouchStart={[Function]}
+            tabIndex={0}
+            type="button"
+          >
+            <span
+              className="MuiIconButton-label"
+            >
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"
+                />
+              </svg>
+            </span>
+            <span
+              className="MuiTouchRipple-root"
+            />
+          </button>
+        </div>
+      </div>
+      <div
+        className="MuiCollapse-container MuiCollapse-hidden"
+        style={
+          Object {
+            "minHeight": "0px",
+          }
+        }
+      >
+        <div
+          className="MuiCollapse-wrapper"
+        >
+          <div
+            className="MuiCollapse-wrapperInner"
+          />
+        </div>
+      </div>
+    </div>
   </div>
   <div
-    className="step-user-input step "
+    className="MuiPaper-root MuiCard-root makeStyles-card-3  step-user-input MuiPaper-elevation0 MuiPaper-rounded"
   >
     <div
+      className="MuiGrid-root makeStyles-header-6 MuiGrid-container MuiGrid-justify-xs-space-between"
       onClick={[Function]}
     >
       <div
-        className="step-name"
+        className="MuiGrid-root MuiGrid-container MuiGrid-item"
+        style={
+          Object {
+            "width": "auto",
+          }
+        }
       >
-        <div
-          className="step-status-icon-wrapper"
-        >
-          <span
-            className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
-            title="second"
-          >
-            <i
-              className="icon step-status-icon light  clock fa fa-2x fa-clock"
-            />
-          </span>
-        </div>
-        <div
-          className="step-button"
-        >
-          second
-        </div>
         <svg
+          aria-describedby={null}
           aria-hidden={true}
-          className="MuiSvgIcon-root"
+          className="MuiSvgIcon-root makeStyles-pending-10 makeStyles-icon-7"
           focusable="false"
+          onBlur={[Function]}
+          onFocus={[Function]}
+          onMouseLeave={[Function]}
+          onMouseOver={[Function]}
+          onTouchEnd={[Function]}
+          onTouchStart={[Function]}
+          title="second"
           viewBox="0 0 24 24"
         >
           <path
-            d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"
+            d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+          />
+          <path
+            d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"
           />
         </svg>
+        <p
+          className="MuiTypography-root makeStyles-label-5 MuiTypography-body1"
+        >
+          second
+        </p>
       </div>
+      <button
+        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onDragLeave={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex={0}
+        type="button"
+      >
+        <span
+          className="MuiIconButton-label"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"
+            />
+          </svg>
+        </span>
+        <span
+          className="MuiTouchRipple-root"
+        />
+      </button>
     </div>
     <div
-      className="step-user-input-inputs sliding-panel vertical open"
+      className="MuiCollapse-container step-user-input-inputs MuiCollapse-entered"
+      style={
+        Object {
+          "minHeight": "0px",
+        }
+      }
     >
-      <div>
+      <div
+        className="MuiCollapse-wrapper"
+      >
         <div
-          className="view_item"
+          className="MuiCollapse-wrapperInner"
         >
-          <div
-            className="item_view"
-          >
+          <div>
             <div
-              className="input-help"
+              className="view_item"
             >
               <div
-                className="input-help-children-wrapper"
+                className="item_view"
               >
-                <input
-                  onChange={[Function]}
-                  type="text"
-                  value="default-value"
-                />
+                <div
+                  className="input-help"
+                >
+                  <div
+                    className="input-help-children-wrapper"
+                  >
+                    <input
+                      onChange={[Function]}
+                      type="text"
+                      value="default-value"
+                    />
+                  </div>
+                  <div
+                    className="help-icon-wrapper"
+                    title=""
+                  />
+                </div>
               </div>
-              <div
-                className="help-icon-wrapper"
-                title=""
-              />
             </div>
           </div>
         </div>
@@ -80,69 +204,123 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
     </div>
   </div>
   <div
-    className="step-user-input step "
+    className="MuiPaper-root MuiCard-root makeStyles-card-3  step-user-input MuiPaper-elevation0 MuiPaper-rounded"
   >
     <div
+      className="MuiGrid-root makeStyles-header-6 MuiGrid-container MuiGrid-justify-xs-space-between"
       onClick={[Function]}
     >
       <div
-        className="step-name"
+        className="MuiGrid-root MuiGrid-container MuiGrid-item"
+        style={
+          Object {
+            "width": "auto",
+          }
+        }
       >
-        <div
-          className="step-status-icon-wrapper"
-        >
-          <span
-            className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
-            title="third"
-          >
-            <i
-              className="icon step-status-icon light  clock fa fa-2x fa-clock"
-            />
-          </span>
-        </div>
-        <div
-          className="step-button"
-        >
-          third
-        </div>
         <svg
+          aria-describedby={null}
           aria-hidden={true}
-          className="MuiSvgIcon-root"
+          className="MuiSvgIcon-root makeStyles-pending-10 makeStyles-icon-7"
           focusable="false"
+          onBlur={[Function]}
+          onFocus={[Function]}
+          onMouseLeave={[Function]}
+          onMouseOver={[Function]}
+          onTouchEnd={[Function]}
+          onTouchStart={[Function]}
+          title="third"
           viewBox="0 0 24 24"
         >
           <path
-            d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"
+            d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+          />
+          <path
+            d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"
           />
         </svg>
+        <p
+          className="MuiTypography-root makeStyles-label-5 MuiTypography-body1"
+        >
+          third
+        </p>
       </div>
+      <button
+        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onDragLeave={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex={0}
+        type="button"
+      >
+        <span
+          className="MuiIconButton-label"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"
+            />
+          </svg>
+        </span>
+        <span
+          className="MuiTouchRipple-root"
+        />
+      </button>
     </div>
     <div
-      className="step-user-input-inputs sliding-panel vertical open"
+      className="MuiCollapse-container step-user-input-inputs MuiCollapse-entered"
+      style={
+        Object {
+          "minHeight": "0px",
+        }
+      }
     >
-      <div>
+      <div
+        className="MuiCollapse-wrapper"
+      >
         <div
-          className="view_item"
+          className="MuiCollapse-wrapperInner"
         >
-          <div
-            className="item_view"
-          >
+          <div>
             <div
-              className="input-help"
+              className="view_item"
             >
               <div
-                className="input-help-children-wrapper"
+                className="item_view"
               >
-                <input
-                  onChange={[Function]}
-                  type="text"
-                  value="default-value"
-                />
+                <div
+                  className="input-help"
+                >
+                  <div
+                    className="input-help-children-wrapper"
+                  >
+                    <input
+                      onChange={[Function]}
+                      type="text"
+                      value="default-value"
+                    />
+                  </div>
+                  <div
+                    className="help-icon-wrapper"
+                    title=""
+                  />
+                </div>
               </div>
-              <div
-                className="help-icon-wrapper"
-                title=""
-              />
             </div>
           </div>
         </div>
@@ -155,18 +333,24 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
     <div
       className="step-name"
     >
-      <div
-        className="step-status-icon-wrapper"
+      <svg
+        aria-describedby={null}
+        aria-hidden={true}
+        className="MuiSvgIcon-root makeStyles-error-11 makeStyles-icon-7"
+        focusable="false"
+        onBlur={[Function]}
+        onFocus={[Function]}
+        onMouseLeave={[Function]}
+        onMouseOver={[Function]}
+        onTouchEnd={[Function]}
+        onTouchStart={[Function]}
+        title="zero"
+        viewBox="0 0 24 24"
       >
-        <span
-          className="icon-grp icon-grp-step-status-icon light red  fa-stack fa-fw"
-          title="zero"
-        >
-          <i
-            className="icon step-status-icon light red  times-circle fa fa-2x fa-times-circle"
-          />
-        </span>
-      </div>
+        <path
+          d="M14.59 8L12 10.59 9.41 8 8 9.41 10.59 12 8 14.59 9.41 16 12 13.41 14.59 16 16 14.59 13.41 12 16 9.41 14.59 8zM12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+        />
+      </svg>
       <div
         className="step-button"
       >
