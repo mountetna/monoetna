@@ -23,10 +23,11 @@ import {makeStyles} from '@material-ui/core/styles';
 const useStyles = makeStyles((theme) => ({
   card: {
     borderRadius: 0,
-    border: '1px solid #eee',
+    border: '1px solid #eee'
   },
   header: {
-    padding: '5px 10px'
+    padding: '5px 10px',
+    cursor: 'pointer'
   }
 }));
 
@@ -86,12 +87,12 @@ function PrimaryInputsInner() {
 
   return (
     <Card className={classes.card}>
-        <Grid className={classes.header} container alignItems='center' justify='space-between'>
+        <Grid className={classes.header} container alignItems='center' justify='space-between' onClick={ () => setOpen(!open) }>
           <Grid item>
-            <Typography variant='h6'>Inputs</Typography>
+            <Typography variant='h6'>Primary Inputs</Typography>
           </Grid>
           <Grid item>
-            <IconButton size='small' onClick={ () => setOpen(!open) }>
+            <IconButton size='small'>
               { open ? <ExpandLessIcon fontSize='small'/> : <ExpandMoreIcon fontSize='small'/>}
             </IconButton>
           </Grid>

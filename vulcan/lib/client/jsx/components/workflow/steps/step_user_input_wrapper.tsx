@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: '5px'
   },
   header: {
-    padding: '5px 5px 5px 10px'
+    cursor: 'pointer'
   }
 }));
 
@@ -64,7 +64,7 @@ export default function StepUserInputWrapper({group}: { group: WorkflowStepGroup
 
   const label = labelOfStepOrGroupedStep(group);
   return (<Card elevation={0} className={`${classes.card} ${hasValidationErrors ? classes.error : '' } step-user-input`}>
-    <Grid justify='space-between' container onClick={toggleInputs}>
+    <Grid className={classes.header} justify='space-between' container onClick={toggleInputs}>
       <Grid item container style={{width:'auto'}}>
         <StepIcon step={group}/>
         <Typography className={classes.label}>{label}</Typography>
