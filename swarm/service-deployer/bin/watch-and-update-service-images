@@ -36,22 +36,23 @@ else
 fi
 
 services="$(findServices)"
+echo "Found services to check: ${services}"
 while read serviceName; do
   image="$(findServiceImage $serviceName)"
   tag=$(tagOfImageDigest "$image")
   sha=$(shaOfImageDigest "$image")
 
   if [[ -n "$sha" ]]; then
-    docker pull "$tag"
+    docker pull "$tag" &>/dev/null
     newImage=$(docker image inspect "${tag}" | jq -r '.[].RepoDigests[]')
     newsha=$(shaOfImageDigest "$newImage")
 
     if ! [ -f "/deployed/${serviceName}-${newsha}" ] && [[ "${sha}" != "${newsha}" ]]; then
       postToSlack "Updating ${tag} (${sha:8:6} -> ${newsha:8:6}) on ${serviceName}, issuing rolling restart"
       touch "/deployed/${serviceName}-${newsha}"
-      docker service update -d $serviceName --image "${tag}" --force
+      docker service update -d $serviceName --image "${tag}" --force &>/dev/null
     fi
   fi
 
-  docker image prune
+  docker image prune &>/dev/null
 done < <(echo "$services")

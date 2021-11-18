@@ -63,13 +63,6 @@ RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
     bash ~/.bash_it/install.sh --silent && \
     echo "export SCM_CHECK=false" >> ~/.bashrc
 
-# Install R from CRAN repo, to get latest
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF'
-RUN echo 'deb http://cloud.r-project.org/bin/linux/debian buster-cran40/' >> /etc/apt/sources.list
-RUN apt-get update && \
-    apt-get install -y r-base \
-    r-base-dev
-
 # Add the docker client
 RUN curl https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz > /tmp/docker.tgz
 RUN tar -xf /tmp/docker.tgz -C /tmp/
