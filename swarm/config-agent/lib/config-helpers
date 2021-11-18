@@ -1,0 +1,38 @@
+configRoot=${CONFIG_ROOT:-/config}
+
+function enable() {
+  # not, entirely atomic.
+  local existing=$(ls $configRoot/tmp.${1}.*)
+  local next=$(mktemp -p "$configRoot" -u tmp.${1}.XXXXXXXXXXXXX)
+  local target="$configRoot/$1"
+  mv "$1" "$next"
+
+  # This, should be atomic though.
+  ln -snf $(basename $next) $target
+
+  # Clean up spares.
+  rm -rf $existing
+}
+
+function lastModified() {
+ find $1 -type f -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2
+}
+
+function listAllVars() {
+  for i in {a..z}; do
+   for var in `eval echo "\\${!$i@}"`; do
+      echo "${var}=${!var}"
+   done
+  done
+
+  for val in $1; do
+    echo $val
+  done
+}
+
+function template() {
+  listAllVars "$1" | xargs -P 1 erb > "$2"
+}
+
+set -xo pipefail
+cd $(mktemp -d)

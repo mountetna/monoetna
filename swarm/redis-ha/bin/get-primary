@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+CONTAINER_IP=$(getent hosts ${HOSTNAME} | awk '{print $1}')
+PASSWORD=$(cat "${PASSWORD_FILE}")
+
+# go through the list of all replicas
+for replica_ip in $(getent hosts "${REDIS_NAME}" | awk '{print $1}')
+do
+  # skip this replica
+  test "${replica_ip}" == "${CONTAINER_IP}" && continue
+
+  # check if replica is a primary
+  if timeout 2 redis-cli -h "${replica_ip}" -p "${REDIS_PORT}" -a "${PASSWORD}" info replication | grep role:master >/dev/null
+  then
+    echo "${replica_ip}"
+  fi
+done
