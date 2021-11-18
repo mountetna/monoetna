@@ -1,7 +1,7 @@
 import {InputValidator, BoundInputSpecification} from '../input_types';
 import {inputValueNonEmpty} from '../../../../../selectors/workflow_selectors';
 
-const NotEmptyValidator: InputValidator = (input) => {
+export const NotEmptyValidator: InputValidator = (input) => {
   if (!inputValueNonEmpty(input.value)) {
     return ['Value cannot be empty.'];
   } else {
@@ -9,4 +9,10 @@ const NotEmptyValidator: InputValidator = (input) => {
   }
 };
 
-export default NotEmptyValidator;
+export const StronglyNotEmptyValidator: InputValidator = (input) => {
+  if (!inputValueNonEmpty(input.value, true)) {
+    return ['Value cannot be empty.'];
+  } else {
+    return [];
+  }
+};
