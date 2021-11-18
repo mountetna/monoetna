@@ -1,1 +1,1 @@
-include ../make-base/stubs.mk
+include ../../make-base/stubs.mk
