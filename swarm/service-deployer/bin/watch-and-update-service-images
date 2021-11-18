@@ -37,6 +37,7 @@ fi
 
 services="$(findServices)"
 echo "Found services to check: ${services}"
+
 while read serviceName; do
   image="$(findServiceImage $serviceName)"
   tag=$(tagOfImageDigest "$image")
