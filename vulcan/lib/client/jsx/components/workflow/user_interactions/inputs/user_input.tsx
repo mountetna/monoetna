@@ -22,7 +22,10 @@ import {
 } from './input_types';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 import {ScatterPlotly, BarPlotly, YPlotly} from './visualizations';
-import NotEmptyValidator from './validators/not_empty_validator';
+import {
+  NotEmptyValidator,
+  StronglyNotEmptyValidator
+} from './validators/not_empty_validator';
 import {
   AllInnerValuesNotEmptyValidator,
 } from './validators/all_inner_values_not_empty_validator';
@@ -46,9 +49,9 @@ configureComponent(TYPE.STRING, StringInput, NotEmptyValidator);
 configureComponent(TYPE.FLOAT, FloatInput, NotEmptyValidator);
 configureComponent(TYPE.INTEGER, IntegerInput, NotEmptyValidator);
 configureComponent(TYPE.BOOL, BooleanInput, NotEmptyValidator);
-configureComponent(TYPE.SELECT_AUTOCOMPLETE, SelectAutocompleteInput, NotEmptyValidator);
+configureComponent(TYPE.SELECT_AUTOCOMPLETE, SelectAutocompleteInput, StronglyNotEmptyValidator);
 configureComponent(TYPE.CHECKBOXES, CheckboxesInput, NotEmptyValidator);
-configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, NotEmptyValidator);
+configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, StronglyNotEmptyValidator);
 configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
 configureComponent(TYPE.SCATTER_PLOTLY, ScatterPlotly, AllOutputValuesNotEmptyValidator);
