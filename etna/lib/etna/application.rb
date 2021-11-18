@@ -50,13 +50,29 @@ module Etna::Application
     Etna::Application.register(self)
   end
 
+  # a <- b
+  def deep_merge(a, b)
+    if a.is_a?(Hash)
+      if b.is_a?(Hash)
+        b.keys.each do |b_key|
+          a[b_key] = deep_merge(a[b_key], b[b_key])
+        end
+
+        return a
+      end
+    end
+
+    a.nil? ? b : a
+  end
+
   def configure(opts)
     @config = opts
 
-    # Apply environmental variables of the form "APP__x__y__z"
-    prefix = "#{self.class.name.upcase}__"
-    ENV.keys.select { |k| k.start_with?(prefix) }.each do |key|
-      path = key.split("__", -1)
+    # Apply environmental variables of the form "ETNA__x__y__z_FILE"
+    # by reading the given file.
+    prefix = "ETNA__"
+    ENV.keys.select { |k| k.start_with?(prefix) && k.end_with?("_FILE") }.each do |key|
+      path = key.sub(/_FILE/, '').split("__", -1)
       path.shift # drop the first, just app name
 
       target = @config
@@ -65,7 +81,9 @@ module Etna::Application
         target = (target[n.downcase.to_sym] ||= {})
       end
 
-      target[path.last.downcase.to_sym] ||= ENV[key]
+      v = YAML.load(File.read(ENV[key]))
+      target[path.last.downcase.to_sym] =
+        deep_merge(target[path.last.downcase.to_sym], v)
     end
 
     if (rollbar_config = config(:rollbar)) && rollbar_config[:access_token]

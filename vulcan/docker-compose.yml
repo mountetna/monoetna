@@ -73,7 +73,7 @@ x-base-etna-services:
       - 'vulcan_app'
     command: ['httpd', '-DFOREGROUND']
     environment:
-      APP_NAME: 'vulcan'
+      APP_NAME: 'vulcan_app_fe'
 
 volumes:
   vulcan-db-data:

@@ -2,13 +2,13 @@ import React from 'react';
 
 export default function AnimatedClock() {
   return (
-    <article className='clock'>
+    <div className='clock'>
       <div className='hours-container'>
         <div className='hours'/>
       </div>
       <div className='minutes-container'>
         <div className='minutes'/>
       </div>
-    </article>
+    </div>
   );
 }

@@ -4,199 +4,277 @@ require_relative "../lib/commands"
 require_relative "../lib/metis/mvir1_waiver"
 
 describe "Mvir1Waiver class" do
-  let(:test_class) {
-    Mvir1Waiver.new(
-      metis_client: Etna::Clients::Metis.new(token: "fake-token", host: "https://metis.test"),
-      project_name: PROJECT,
-    )
-  }
+  describe 'e2e' do
+    describe 'empty_for' do
+      it 'works' do
+        left_bucket = 'testb'
+        right_bucket = 'testa'
+        dir = 'test-dir'
 
-  def stub_no_data
-    stub_bucket_find(
-      bucket: RELEASE_BUCKET,
-      response_body: {
-        folders: [],
-      },
-    )
-    stub_bucket_find(
-      bucket: RESTRICT_BUCKET,
-      response_body: {
-        folders: [],
-      },
-    )
+        VCR.use_cassette('mvir1_waiver_empty_for.e2e') do
+          metis_client = Etna::Clients::Metis.new(
+            token: ENV["TOKEN"] || TEST_TOKEN,
+            host: "https://metis.ucsf.edu"
+          )
+
+          mvir_waiver = Mvir1Waiver.new(
+            metis_client: metis_client,
+            project_name: "zach_test_project_one",
+          )
+
+          mvir_waiver.empty_for(
+            left_bucket,
+            right_bucket,
+            dir
+          )
+
+          from_files = metis_client.list_folder(Etna::Clients::Metis::ListFolderRequest.new(
+            project_name: 'zach_test_project_one',
+            bucket_name: left_bucket,
+            folder_path: dir
+          )).files.all
+
+          from_files.each do |file|
+            expect(file.size).to eql(0)
+          end
+
+          to_files = metis_client.list_folder(Etna::Clients::Metis::ListFolderRequest.new(
+            project_name: 'zach_test_project_one',
+            bucket_name: right_bucket,
+            folder_path: dir
+          )).files
+
+          to_files.all.each do |file|
+            expect(file.size).to_not eql(0)
+          end
+
+          mvir_waiver.empty_for(
+            right_bucket,
+            left_bucket,
+            dir
+          )
+
+          from_files = metis_client.list_folder(Etna::Clients::Metis::ListFolderRequest.new(
+            project_name: 'zach_test_project_one',
+            bucket_name: right_bucket,
+            folder_path: dir
+          )).files.all
+
+          from_files.each do |file|
+            expect(file.size).to eql(0)
+          end
+
+          to_files = metis_client.list_folder(Etna::Clients::Metis::ListFolderRequest.new(
+            project_name: 'zach_test_project_one',
+            bucket_name: left_bucket,
+            folder_path: dir
+          )).files
+
+          to_files.all.each do |file|
+            expect(file.size).to_not eql(0)
+          end
+
+          expect(to_files.all.length).to eql(from_files.length)
+        end
+      end
+    end
   end
 
-  before(:each) do
-    stub_metis_setup
-  end
+  describe 'unit' do
+    let(:test_class) {
+                       Mvir1Waiver.new(
+                         metis_client: Etna::Clients::Metis.new(token: "fake-token", host: "https://metis.test"),
+                         project_name: PROJECT,
+                       )
+                     }
 
-  it "does not throw an exception when does not find a valid patient to release" do
-    stub_parent_exists
-    stub_no_data
-    test_class.release_patient_data("Dan")
-    expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
-  end
+    def stub_no_data
+      stub_bucket_find(
+        bucket: RELEASE_BUCKET,
+        response_body: {
+          folders: [],
+        },
+      )
+      stub_bucket_find(
+        bucket: RESTRICT_BUCKET,
+        response_body: {
+          folders: [],
+        },
+      )
+    end
 
-  it "attempts to rename all patient folders when releasing" do
-    stub_parent_exists({ status: 422, bucket: RELEASE_BUCKET })
-    stub_create_folder({ bucket: RELEASE_BUCKET })
-    stub_rename_folder({ bucket: RESTRICT_BUCKET })
-    stub_bucket_find(
-      bucket: RESTRICT_BUCKET,
-      response_body: {
-        folders: [
-          create_metis_folder("Danielle-D7-ASSAY1", "assay/processed/Danielle-D7-ASSAY1").raw,
-          create_metis_folder("Danielle-D14-ASSAY1", "assay/processed/Danielle-D14-ASSAY1").raw,
-          create_metis_folder("Danielle-D7", "assay/raw/Danielle-D7").raw,
-          create_metis_folder("Danielle-D14-ASSAY2", "assay/raw/Danielle-D14-ASSAY2").raw,
-        ],
-      },
-    )
-    stub_bucket_find(
-      bucket: RELEASE_BUCKET,
-      response_body: {
-        folders: [],
-      },
-    )
+    before(:each) do
+      stub_metis_setup
+    end
 
-    test_class.release_patient_data("Danielle")
+    it "does not throw an exception when does not find a valid patient to release" do
+      stub_parent_exists
+      stub_no_data
+      test_class.release_patient_data("Dan")
+      expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
+    end
 
-    # There are two folders in assay/processed and two in assay/raw for each patient, in the fixtures
-    # This should ignore the "summary" sub-folder that is under a patient
-    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RELEASE_BUCKET}/).times(4)
-    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RESTRICT_BUCKET}/).times(4)
-  end
+    it "attempts to rename all patient folders when releasing" do
+      stub_parent_exists({ status: 422, bucket: RELEASE_BUCKET })
+      stub_create_folder({ bucket: RELEASE_BUCKET })
+      stub_rename_folder({ bucket: RESTRICT_BUCKET })
+      stub_bucket_find(
+        bucket: RESTRICT_BUCKET,
+        response_body: {
+          folders: [
+            create_metis_folder("Danielle-D7-ASSAY1", "assay/processed/Danielle-D7-ASSAY1").raw,
+            create_metis_folder("Danielle-D14-ASSAY1", "assay/processed/Danielle-D14-ASSAY1").raw,
+            create_metis_folder("Danielle-D7", "assay/raw/Danielle-D7").raw,
+            create_metis_folder("Danielle-D14-ASSAY2", "assay/raw/Danielle-D14-ASSAY2").raw,
+          ],
+        },
+      )
+      stub_bucket_find(
+        bucket: RELEASE_BUCKET,
+        response_body: {
+          folders: [],
+        },
+      )
 
-  it "does not throw  an exception when does not find a valid patient to restrict" do
-    stub_parent_exists
-    stub_no_data
-    test_class.restrict_patient_data("Danielle")
-    expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
-  end
+      test_class.release_patient_data("Danielle")
 
-  it "attempts to rename all patient folders when restricting" do
-    stub_parent_exists({ status: 422, bucket: RESTRICT_BUCKET })
-    stub_create_folder({ bucket: RESTRICT_BUCKET })
-    stub_rename_folder({ bucket: RELEASE_BUCKET })
-    stub_bucket_find(
-      bucket: RELEASE_BUCKET,
-      response_body: {
-        folders: [
-          create_metis_folder("Dan-D0-ASSAY1", "assay/processed/Dan-D0-ASSAY1").raw,
-          create_metis_folder("Dan-D12-ASSAY1", "assay/processed/Dan-D12-ASSAY1").raw,
-          create_metis_folder("Dan-D0-ASSAY3", "assay/raw/Dan-D0-ASSAY3").raw,
-          create_metis_folder("Dan-D12-ASSAY3", "assay/raw/Dan-D12-ASSAY3").raw,
-        ],
-      },
-    )
-    stub_bucket_find(
-      bucket: RESTRICT_BUCKET,
-      response_body: {
-        folders: [],
-      },
-    )
+      # There are two folders in assay/processed and two in assay/raw for each patient, in the fixtures
+      # This should ignore the "summary" sub-folder that is under a patient
+      expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RELEASE_BUCKET}/).times(4)
+      expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RESTRICT_BUCKET}/).times(4)
+    end
 
-    test_class.restrict_patient_data("Dan")
+    it "does not throw  an exception when does not find a valid patient to restrict" do
+      stub_parent_exists
+      stub_no_data
+      test_class.restrict_patient_data("Danielle", false)
+      expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
+    end
 
-    # There are two folders in assay/processed and two in assay/raw for each patient, in the fixtures
-    # This should ignore the "summary" sub-folder that is under a patient
-    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/).times(4)
-    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/).times(4)
-  end
+    it "attempts to rename all patient folders when restricting" do
+      stub_parent_exists({ status: 422, bucket: RESTRICT_BUCKET })
+      stub_create_folder({ bucket: RESTRICT_BUCKET })
+      stub_rename_folder({ bucket: RELEASE_BUCKET })
+      stub_bucket_find(
+        bucket: RELEASE_BUCKET,
+        response_body: {
+          folders: [
+            create_metis_folder("Dan-D0-ASSAY1", "assay/processed/Dan-D0-ASSAY1").raw,
+            create_metis_folder("Dan-D12-ASSAY1", "assay/processed/Dan-D12-ASSAY1").raw,
+            create_metis_folder("Dan-D0-ASSAY3", "assay/raw/Dan-D0-ASSAY3").raw,
+            create_metis_folder("Dan-D12-ASSAY3", "assay/raw/Dan-D12-ASSAY3").raw,
+          ],
+        },
+      )
+      stub_bucket_find(
+        bucket: RESTRICT_BUCKET,
+        response_body: {
+          folders: [],
+        },
+      )
 
-  it "does not throw an exception when does not find a valid pool to release" do
-    stub_no_data
-    test_class.release_pool_data("pool-a")
-    expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RESTRICT_BUCKET}/)
-  end
+      test_class.restrict_patient_data("Dan", true)
 
-  it "attempts to rename all pool folders when releasing" do
-    stub_parent_exists({ status: 422, bucket: RELEASE_BUCKET })
-    stub_create_folder({ bucket: RELEASE_BUCKET })
-    stub_rename_folder({ bucket: RESTRICT_BUCKET })
-    stub_bucket_find(
-      bucket: RESTRICT_BUCKET,
-      response_body: {
-        folders: [
-          create_metis_folder("pool-b", "assay/processed/pool-b").raw,
-          create_metis_folder("pool-b", "assay/raw/pool-b").raw,
-        ],
-      },
-    )
-    stub_bucket_find(
-      bucket: RELEASE_BUCKET,
-      response_body: {
-        folders: [],
-      },
-    )
+      # There are two folders in assay/processed and two in assay/raw for each patient, in the fixtures
+      # This should ignore the "summary" sub-folder that is under a patient
+      expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/).times(4)
+      expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/).times(4)
+    end
 
-    test_class.release_pool_data("pool-b")
+    it "does not throw an exception when does not find a valid pool to release" do
+      stub_no_data
+      test_class.release_pool_data("pool-a")
+      expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RESTRICT_BUCKET}/)
+    end
 
-    # There is one folder in assay/processed and one in assay/raw for each pool, in the fixtures
-    # This should ignore the "summary" sub-folder that is under the pool
-    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RELEASE_BUCKET}/).twice
-    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RESTRICT_BUCKET}/).twice
-  end
+    it "attempts to rename all pool folders when releasing" do
+      stub_parent_exists({ status: 422, bucket: RELEASE_BUCKET })
+      stub_create_folder({ bucket: RELEASE_BUCKET })
+      stub_rename_folder({ bucket: RESTRICT_BUCKET })
+      stub_bucket_find(
+        bucket: RESTRICT_BUCKET,
+        response_body: {
+          folders: [
+            create_metis_folder("pool-b", "assay/processed/pool-b").raw,
+            create_metis_folder("pool-b", "assay/raw/pool-b").raw,
+          ],
+        },
+      )
+      stub_bucket_find(
+        bucket: RELEASE_BUCKET,
+        response_body: {
+          folders: [],
+        },
+      )
 
-  it "does not throw an exception when does not find a valid pool to restrict" do
-    stub_no_data
-    test_class.restrict_pool_data("pool-b")
-    expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
-  end
+      test_class.release_pool_data("pool-b")
 
-  it "attempts to rename all pool folders when restricting" do
-    stub_parent_exists({ status: 422, bucket: RESTRICT_BUCKET })
-    stub_create_folder({ bucket: RESTRICT_BUCKET })
-    stub_rename_folder({ bucket: RELEASE_BUCKET })
-    stub_bucket_find(
-      bucket: RELEASE_BUCKET,
-      response_body: {
-        folders: [
-          create_metis_folder("pool-a", "assay/processed/pool-a").raw,
-          create_metis_folder("pool-a", "assay/raw/pool-a").raw,
-        ],
-      },
-    )
-    stub_bucket_find(
-      bucket: RESTRICT_BUCKET,
-      response_body: {
-        folders: [],
-      },
-    )
+      # There is one folder in assay/processed and one in assay/raw for each pool, in the fixtures
+      # This should ignore the "summary" sub-folder that is under the pool
+      expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RELEASE_BUCKET}/).twice
+      expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RESTRICT_BUCKET}/).twice
+    end
 
-    test_class.restrict_pool_data("pool-a")
+    it "does not throw an exception when does not find a valid pool to restrict" do
+      stub_no_data
+      test_class.restrict_pool_data("pool-b")
+      expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
+    end
 
-    # There is one folder in assay/processed and one in assay/raw for each pool, in the fixtures
-    # This should ignore the "summary" sub-folder that is under the pool
-    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/).twice
-    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/).twice
-  end
+    it "attempts to rename all pool folders when restricting" do
+      stub_parent_exists({ status: 422, bucket: RESTRICT_BUCKET })
+      stub_create_folder({ bucket: RESTRICT_BUCKET })
+      stub_rename_folder({ bucket: RELEASE_BUCKET })
+      stub_bucket_find(
+        bucket: RELEASE_BUCKET,
+        response_body: {
+          folders: [
+            create_metis_folder("pool-a", "assay/processed/pool-a").raw,
+            create_metis_folder("pool-a", "assay/raw/pool-a").raw,
+          ],
+        },
+      )
+      stub_bucket_find(
+        bucket: RESTRICT_BUCKET,
+        response_body: {
+          folders: [],
+        },
+      )
 
-  it "throws exception if checking for parent results in non-422 error" do
-    stub_parent_exists({ status: 403, bucket: RESTRICT_BUCKET })
-    stub_create_folder({ bucket: RESTRICT_BUCKET })
-    stub_rename_folder({ bucket: RELEASE_BUCKET })
-    stub_bucket_find(
-      bucket: RELEASE_BUCKET,
-      response_body: {
-        folders: [
-          create_metis_folder("pool-a", "assay/processed/pool-a").raw,
-          create_metis_folder("pool-a", "assay/raw/pool-a").raw,
-        ],
-      },
-    )
-    stub_bucket_find(
-      bucket: RESTRICT_BUCKET,
-      response_body: {
-        folders: [],
-      },
-    )
-
-    expect {
       test_class.restrict_pool_data("pool-a")
-    }.to raise_error(Etna::Error)
 
-    expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/)
-    expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
+      # There is one folder in assay/processed and one in assay/raw for each pool, in the fixtures
+      # This should ignore the "summary" sub-folder that is under the pool
+      expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/).twice
+      expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/).twice
+    end
+
+    it "throws exception if checking for parent results in non-422 error" do
+      stub_parent_exists({ status: 403, bucket: RESTRICT_BUCKET })
+      stub_create_folder({ bucket: RESTRICT_BUCKET })
+      stub_rename_folder({ bucket: RELEASE_BUCKET })
+      stub_bucket_find(
+        bucket: RELEASE_BUCKET,
+        response_body: {
+          folders: [
+            create_metis_folder("pool-a", "assay/processed/pool-a").raw,
+            create_metis_folder("pool-a", "assay/raw/pool-a").raw,
+          ],
+        },
+      )
+      stub_bucket_find(
+        bucket: RESTRICT_BUCKET,
+        response_body: {
+          folders: [],
+        },
+      )
+
+      expect {
+        test_class.restrict_pool_data("pool-a")
+      }.to raise_error(Etna::Error)
+
+      expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/)
+      expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
+    end
   end
 end

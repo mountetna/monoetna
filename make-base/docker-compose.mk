@@ -36,7 +36,7 @@ logs:: compose-ready
 	@ docker-compose logs -f
 
 run-image-test:: compose-ready
-	@ docker-compose up
+	@ docker-compose up -d
 
 .dockerignore:
 	cp $(call find_project_file,docker,.dockerignore.template) .dockerignore

@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo} from 'react';
+import React, {useState, useCallback, useContext, useEffect, useMemo} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
@@ -10,6 +10,26 @@ import {
 import {useWorkflow} from "../../../contexts/workflow_context";
 import {Maybe, maybeOfNullable} from "../../../selectors/maybe";
 import {BufferedInputsContext, WithBufferedInputs} from "../../../contexts/input_state_management";
+import Collapse from '@material-ui/core/Collapse';
+import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+import IconButton from '@material-ui/core/IconButton';
+import {makeStyles} from '@material-ui/core/styles';
+
+const useStyles = makeStyles((theme) => ({
+  card: {
+    borderRadius: 0,
+    border: '1px solid #eee'
+  },
+  header: {
+    padding: '5px 10px',
+    cursor: 'pointer'
+  }
+}));
 
 export default function PrimaryInputs() {
   const {commitSessionInputChanges, dispatch} = useContext(VulcanContext);
@@ -59,19 +79,39 @@ function PrimaryInputsInner() {
     }, {} as {[k: string]: BoundInputSpecification[]});
   }, [inputSpecifications, inputs, setInputs, state.data, state.session, state.status, workflow]);
 
+  const [ expanded, setExpanded ] = useState('');
+
+  const [ open, setOpen ] = useState(false);
+
+  const classes = useStyles();
+
   return (
-    <div className='primary-inputs'>
-      {Object.keys(groupedInputs)
-        .sort()
-        .map((groupName, index) => {
-          return (
-            <InputGroup
-              groupName={groupName}
-              key={index}
-              inputs={groupedInputs[groupName]}
-            />
-          );
-        })}
-    </div>
+    <Card className={classes.card}>
+        <Grid className={classes.header} container alignItems='center' justify='space-between' onClick={ () => setOpen(!open) }>
+          <Grid item>
+            <Typography variant='h6'>Primary Inputs</Typography>
+          </Grid>
+          <Grid item>
+            <IconButton size='small'>
+              { open ? <ExpandLessIcon fontSize='small'/> : <ExpandMoreIcon fontSize='small'/>}
+            </IconButton>
+          </Grid>
+        </Grid>
+        <Collapse in={ open }>
+          {Object.keys(groupedInputs)
+            .sort()
+            .map((groupName, index) => {
+              return (
+                <InputGroup
+                  expanded={ expanded == groupName }
+                  select={ () => setExpanded(expanded == groupName ? '' : groupName) }
+                  groupName={groupName.split('_').slice(1).join(' ')}
+                  key={index}
+                  inputs={groupedInputs[groupName]}
+                />
+              );
+            })}
+        </Collapse>
+    </Card>
   );
 }

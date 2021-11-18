@@ -12,6 +12,8 @@ import {mapSome, Maybe, maybeOfNullable, some, withDefault} from "../selectors/m
 import {DataEnvelope} from "../components/workflow/user_interactions/inputs/input_types";
 import {VulcanContext} from "./vulcan_context";
 
+import Button from '@material-ui/core/Button';
+
 export const defaultInputStateManagement = {
   commitSessionInputChanges(stepName: string | null, inputs: DataEnvelope<Maybe<any>>) {
     return false;
@@ -80,10 +82,10 @@ export function WithBufferedInputs({
       {children}
     </div>
     { hasInputs ? <div className='reset-or-commit-inputs'>
-      <button onClick={cancelInputs} disabled={!!state.pollingState}>
+      <Button onClick={cancelInputs} disabled={!!state.pollingState}>
         Reset
-      </button>
-      <button  
+      </Button>
+      <Button  
         onClick={commitInputs}
         style={{
           background: "linear-gradient(135deg, #6e8efb, #a777e3)",
@@ -95,7 +97,7 @@ export function WithBufferedInputs({
           }}
         disabled={!!state.pollingState}>
         Commit
-      </button>
+      </Button>
     </div> : null } 
   </BufferedInputsContext.Provider>
 }

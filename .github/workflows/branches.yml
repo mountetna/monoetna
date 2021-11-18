@@ -9,6 +9,8 @@ on:
       # The swarm stacks branch is for keeping up to date with swarm stack configuration,
       # thus running CI on it would be a major waste.
       - '!swarm/stacks'
+      - '!production'
+      - '!staging'
 
 jobs:
   test:

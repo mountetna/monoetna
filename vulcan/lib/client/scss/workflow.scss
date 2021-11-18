@@ -98,6 +98,7 @@
 .step-name {
   display: flex;
   align-items: center;
+  padding-left: 10px;
 
   .step-status-icon-wrapper {
     flex: 0 0 40px;
@@ -201,21 +202,7 @@
         padding: 10px;
 
         .step-name {
-          @include input-tab;
-
-          .step-button {
-            text-align: right;
-          }
-        }
-
-        &.error {
-          .step-user-input-inputs {
-            border: 1px solid red;
-          }
-        }
-
-        .step-user-input-inputs {
-          border: 1px solid #ccc;
+          flex: 1 1 auto;
         }
 
         .view_item {
