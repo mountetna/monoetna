@@ -1,8 +1,26 @@
+require 'cgi'
 require 'webmock/rspec'
 require 'vcr'
 require 'openssl'
 require 'digest/sha2'
 require 'base64'
+
+def clean_query(json_or_string)
+  if json_or_string.is_a?(Hash) && json_or_string.include?('upload_path')
+    json_or_string['upload_path'] = clean_query(json_or_string['upload_path'])
+    json_or_string
+  elsif json_or_string.is_a?(String)
+    uri = URI(json_or_string)
+
+    if uri.query&.include?('X-Etna-Signature')
+      uri.query = 'etna-signature'
+    end
+
+    uri.to_s
+  else
+    json_or_string
+  end
+end
 
 def setup_base_vcr(spec_helper_dir, server: nil, application: nil)
   VCR.configure do |c|
@@ -30,6 +48,10 @@ def setup_base_vcr(spec_helper_dir, server: nil, application: nil)
       end
     end
 
+    c.register_request_matcher :try_uri do |request_1, request_2|
+      clean_query(request_1.uri) == clean_query(request_2.uri)
+    end
+
     c.register_request_matcher :try_body do |request_1, request_2|
       if request_1.headers['Content-Type'].first =~ /application\/json/
         if request_2.headers['Content-Type'].first =~ /application\/json/
@@ -40,7 +62,7 @@ def setup_base_vcr(spec_helper_dir, server: nil, application: nil)
             JSON.parse(request_2.body) rescue 'not-json'
           end
 
-          request_1_json == request_2_json
+          clean_query(request_1_json) == clean_query(request_2_json)
         else
           false
         end
@@ -49,7 +71,7 @@ def setup_base_vcr(spec_helper_dir, server: nil, application: nil)
       end
     end
 
-    # c.debug_logger = File.open('log/vcr_debug.log', 'w')
+    c.debug_logger = File.open('log/vcr_debug.log', 'w')
 
     c.default_cassette_options = {
         serialize_with: :compressed,
@@ -58,7 +80,7 @@ def setup_base_vcr(spec_helper_dir, server: nil, application: nil)
         else
           ENV['RERECORD'] ? :all : :once
         end,
-        match_requests_on: [:method, :uri, :try_body, :verify_uri_route]
+        match_requests_on: [:method, :try_uri, :try_body, :verify_uri_route]
     }
 
     # Filter the authorization headers of any request by replacing any occurrence of that request's

@@ -50,7 +50,10 @@ module Etna
         end
       end
 
-      class ListFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
+      class FolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
+      end
+
+      class ListFolderRequest < FolderRequest
         include JsonSerializableStruct
 
         def initialize(**params)
@@ -110,7 +113,7 @@ module Etna
         end
       end
 
-      class CreateFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
+      class CreateFolderRequest < FolderRequest
         include JsonSerializableStruct
 
         def initialize(**params)
@@ -125,7 +128,7 @@ module Etna
         end
       end
 
-      class DeleteFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
+      class DeleteFolderRequest < FolderRequest
         include JsonSerializableStruct
 
         def initialize(**params)
