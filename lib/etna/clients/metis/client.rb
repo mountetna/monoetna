@@ -24,8 +24,13 @@ module Etna
       end
 
       def list_folder(list_folder_request = ListFolderRequest.new)
-        FoldersAndFilesResponse.new(
-          @etna_client.folder_list(list_folder_request.to_h))
+        if list_folder_request.folder_path != ''
+          FoldersAndFilesResponse.new(
+            @etna_client.folder_list(list_folder_request.to_h))
+        else
+          FoldersAndFilesResponse.new(
+            @etna_client.bucket_list(list_folder_request.to_h))
+        end
       end
 
       def list_folder_by_id(list_folder_by_id_request = ListFolderByIdRequest.new)
