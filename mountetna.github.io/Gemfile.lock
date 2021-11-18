@@ -240,10 +240,11 @@ GEM
 
 PLATFORMS
   ruby
+  x86_64-linux
 
 DEPENDENCIES
   github-pages
   minima (~> 2.0)
 
 BUNDLED WITH
-   2.2.0
+   2.2.1
