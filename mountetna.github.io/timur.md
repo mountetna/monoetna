@@ -89,9 +89,7 @@ The filter uses the Magma /retrieve api's [filter syntax]({{ site.baseurl }}{% l
 ## Query
 
 The Query interface allows complex filtering of records across multiple models and bulk download via TSV.
-A help guide that provides detailed explanations of the interface, as well as some project-specific examples, is available below.
-
-{% include querying_guide.html %}
+A help guide that provides detailed explanations of the interface, as well as some project-specific examples, [is available here]({{ site.baseurl }}{% link query.html %}).
 
 ## Manifests (advanced users only)
 
