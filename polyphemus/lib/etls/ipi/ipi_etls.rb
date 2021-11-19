@@ -11,6 +11,26 @@ require_relative '../shared/single_cell/single_cell_linkers'
 
 class Polyphemus
   module Ipi
+
+    module RecordNameDemangler
+      def corrected_record_name(record_name)
+        if record_name.include?('POOL')
+          record_name.gsub(/_/, '.').sub(/^([^.]*\.[^.]*\.)(.*)$/) do
+            first = $1
+            second = $2
+            first + second.downcase
+          end
+        else
+          record_name.sub(/^([^_.]*[_.][^_.]*[_.])([^_.]*)(.*)$/) do
+            first = $1
+            second = $2
+            third = $3
+            first.gsub(/_/, '.') + second.downcase + third
+          end
+        end
+      end
+    end
+    
     module RawFastqLinkers
       def add_raw_fastq_linkers!
         process_watch_type_with(
@@ -22,6 +42,18 @@ class Polyphemus
             model_name: 'sc_rna_seq_pool'
           ),
         )
+      end
+
+      class RawFastqLinker < Polyphemus::SingleCellRawFastqLinker
+        include RecordNameDemangler
+
+        def initialize(**kwds)
+          super(
+            project_name: 'ipi',
+            bucket_name: 'data',
+            **kwds
+          )
+        end
       end
     end
 
@@ -157,24 +189,6 @@ class Polyphemus
         end
       end
 
-      module RecordNameDemangler
-        def corrected_record_name(record_name)
-          if record_name.include?('POOL')
-            record_name.gsub(/_/, '.').sub(/^([^.]*\.[^.]*\.)(.*)$/) do
-              first = $1
-              second = $2
-              first + second.downcase
-            end
-          else
-            record_name.sub(/^([^_.]*[_.][^_.]*[_.])([^_.]*)(.*)$/) do
-              first = $1
-              second = $2
-              third = $3
-              first.gsub(/_/, '.') + second.downcase + third
-            end
-          end
-        end
-      end
 
       class SingleCellLinker < Polyphemus::SingleCellProcessedLinker
         include RecordNameDemangler
@@ -184,18 +198,6 @@ class Polyphemus
             project_name: 'ipi',
             bucket_name: 'data',
             record_name_regex: /.*\/(?<record_name>IPI[^\/]*)\//,
-            **kwds
-          )
-        end
-      end
-
-      class RawFastqLinker < Polyphemus::SingleCellRawFastqLinker
-        include RecordNameDemangler
-
-        def initialize(**kwds)
-          super(
-            project_name: 'ipi',
-            bucket_name: 'data',
             **kwds
           )
         end
