@@ -85,3 +85,6 @@ _test-find-all:
 ifneq ($(wildcard ./Dockerfile),)
 $(eval $(call image_target_here))
 endif
+
+run-image-test::
+	@true

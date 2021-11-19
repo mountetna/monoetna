@@ -1,0 +1,106 @@
+version: '3.8'
+
+# Intended for agents that run in global deploy node, on most or all nodes, for service health purposes.
+services:
+  postgres:
+    image: "postgres:11"
+    environment:
+      POSTGRES_USER: developer
+      POSTGRES_PASSWORD_FILE: /run/secrets/airflow-postgres-password
+      POSTGRES_DB: airflow
+    secrets:
+      - airflow-postgres-password
+      - airflow-fernet-key
+    volumes:
+      - airflow-metadata-db:/var/lib/postgresql/data
+    networks:
+      - airflow
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=150"
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        failure_action: rollback
+      placement:
+        constraints:
+          - node.labels.volumes.airflow-metadata-db == true
+    healthcheck:
+      test: pg_isready -q -d prefect -U developer || exit 1
+      interval: 10s
+      timeout: 2s
+      retries: 60
+      start_period: 2s
+
+  ui:
+    image: etnaagent/airflow:production
+    command: webserver
+    secrets:
+      - airflow-postgres-password
+      - airflow-fernet-key
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.volumes.airflow-dags == true
+    volumes:
+      - dags:/opt/airflow/dags
+    networks:
+      - airflow
+      - edge_bridge
+
+  scheduler:
+    image: etnaagent/airflow:production
+    command: scheduler
+    secrets:
+      - airflow-postgres-password
+      - airflow-fernet-key
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.volumes.airflow-dags == true
+    volumes:
+      - dags:/opt/airflow/dags
+    networks:
+      - airflow
+     
+
+  init:
+    image: etnaagent/airflow:production
+    command: version
+    environment:
+      _AIRFLOW_DB_UPGRADE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME}
+      _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD}
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: none
+        max_attempts: 1
+    secrets:
+      - airflow-postgres-password
+      - airflow-fernet-key
+    networks:
+      - airflow
+
+volumes:
+  airflow-metadata-db:
+  dags:
+
+networks:
+  airflow:
+  edge_bridge:
+    external: true
+
+secrets:
+  airflow-fernet-key:
+    external: true
+  airflow-postgres-password:
+    external: true

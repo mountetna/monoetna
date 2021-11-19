@@ -3,7 +3,7 @@ FROM development-certs
 FROM ruby:2.5.7
 WORKDIR /app
 
-ENV DOCKER_VERSION 19.03.12
+ENV DOCKER_VERSION 20.10.6
 ENV RUBY_VERSION 2.5.7
 # This is so dumb -- but if BUNDLER_VERSION is set as an environment variable,
 # it causes issues with bundler... bleck.  So, so add an underscore at the end.
@@ -62,13 +62,6 @@ ENV GEM_PATH="/root/.gem/ruby/2.5.0:/usr/local/lib/ruby/gems/2.5.0:/usr/local/bu
 RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
     bash ~/.bash_it/install.sh --silent && \
     echo "export SCM_CHECK=false" >> ~/.bashrc
-
-# Install R from CRAN repo, to get latest
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF'
-RUN echo 'deb http://cloud.r-project.org/bin/linux/debian buster-cran40/' >> /etc/apt/sources.list
-RUN apt-get update && \
-    apt-get install -y r-base \
-    r-base-dev
 
 # Add the docker client
 RUN curl https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz > /tmp/docker.tgz

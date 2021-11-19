@@ -1,0 +1,73 @@
+version: '3.8'
+services:
+
+  edge-apache:
+    image: etnaagent/edge-apache:production
+    volumes:
+      - httpd.conf.d:/usr/opt/httpd.conf.d:ro
+      - /etc/ssl:/etc/ssl:ro
+    deploy:
+      mode: replicated
+      labels:
+        - autoupdate=true
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement: &edge-placement
+        constraints:
+          - node.role == worker
+          - node.labels.is_edge == true
+    networks:
+      - edge_bridge
+    ports:
+      - 80:80
+      - 443:443
+
+  apply-config: &apply-config
+    configs:
+      - main.conf.erb
+    image: etnaagent/config-agent:production
+    volumes:
+      - httpd.conf.d:/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/ssl:/etc/ssl:ro
+    deploy:
+      labels:
+        - autoupdate=true
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: none
+
+      placement:
+        <<: *edge-placement
+
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        source /lib/config-helpers
+        template /main.conf.erb main.conf
+        cat main.conf | docker run --rm -i -v /etc/ssl:/etc/ssl:ro etnaagent/edge-apache:production bash -c 'cat > /usr/opt/httpd.conf.d/main.conf && httpd -t'
+        if [ -z "$$DRY_RUN" ]; then
+          enable main.conf
+          edge_node="$$(docker ps --filter name=edge_edge-apache -q || true)"
+          if [ -n "$$edge_node" ]; then
+            docker kill --signal="USR1" "$$edge_node" || true
+          fi
+        else
+          cat main.conf
+        fi
+
+volumes:
+
+  httpd.conf.d:
+
+networks:
+  edge_bridge:
+    external: true
+
+configs:
+  main.conf.erb:
+    external: true
