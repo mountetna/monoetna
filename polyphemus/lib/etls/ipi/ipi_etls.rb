@@ -12,7 +12,7 @@ require_relative '../shared/single_cell/single_cell_linkers'
 class Polyphemus
   module Ipi
 
-    module RecordNameDemangler
+    module IpiRecordNames
       def corrected_record_name(record_name)
         if record_name.include?('POOL')
           record_name.gsub(/_/, '.').sub(/^([^.]*\.[^.]*\.)(.*)$/) do
@@ -29,23 +29,38 @@ class Polyphemus
           end
         end
       end
+
+
+      SINGLE_CELL_ROOT = /^single_cell_[^\/]*/
+      POOL_CONTAINER = /.*\/IPIPOOL[^\/]+(\/[^\/]*)?$/
+      NON_POOLED_CONTAINER = /.*\/IPI((?!POOL)[^\/])+(\/[^\/]*)?$/
     end
-    
+
     module RawFastqLinkers
       def add_raw_fastq_linkers!
         process_watch_type_with(
           bucket('data')
-            .watcher('single_cell_raw_fastq')
-            .watch(/^single_cell_[^\/]*\/raw\/[^\/]+\/[^\/]+$/),
+            .watcher('single_cell_pool_raw_fastq')
+            .watch(/#{IpiRecordNames::SINGLE_CELL_ROOT}\/raw\/#{IpiRecordNames::POOL_CONTAINER}/),
           Polyphemus::LinkerProcessor.new(
             linker: RawFastqLinker.new,
             model_name: 'sc_rna_seq_pool'
           ),
         )
+
+        process_watch_type_with(
+          bucket('data')
+            .watcher('single_cell_non_pooled_raw_fastq')
+            .watch(/#{IpiRecordNames::SINGLE_CELL_ROOT}\/raw\/#{IpiRecordNames::NON_POOLED_CONTAINER}/),
+          Polyphemus::LinkerProcessor.new(
+            linker: RawFastqLinker.new,
+            model_name: 'sc_rna_seq'
+          ),
+        )
       end
 
       class RawFastqLinker < Polyphemus::SingleCellRawFastqLinker
-        include RecordNameDemangler
+        include IpiRecordNames
 
         def initialize(**kwds)
           super(
@@ -63,7 +78,7 @@ class Polyphemus
           process_watch_type_with(
             bucket('data')
               .watcher('single_cell_pool_processed')
-              .watch(/^single_cell_[^\/]*\/processed\/.*\/IPIPOOL[^\/]+(\/[^\/]*)?$/),
+              .watch(/#{IpiRecordNames::SINGLE_CELL_ROOT}\/processed\/#{IpiRecordNames::POOL_CONTAINER}/),
             Polyphemus::LinkerProcessor.new(
               linker: single_cell_pooled_linker,
               model_name: 'sc_rna_seq_pool'
@@ -79,7 +94,7 @@ class Polyphemus
           process_watch_type_with(
             bucket('data')
               .watcher('single_cell_processed')
-              .watch(/^single_cell_[^\/]*\/processed\/.*\/IPI((?!POOL)[^\/])+(\/[^\/]*)?$/),
+              .watch(/#{IpiRecordNames::SINGLE_CELL_ROOT}\/processed\/#{IpiRecordNames::NON_POOLED_CONTAINER}/),
             Polyphemus::LinkerProcessor.new(
               linker: single_cell_non_pooled_linker,
               model_name: 'sc_rna_seq',
@@ -191,7 +206,7 @@ class Polyphemus
 
 
       class SingleCellLinker < Polyphemus::SingleCellProcessedLinker
-        include RecordNameDemangler
+        include IpiRecordNames
 
         def initialize(**kwds)
           super(

@@ -549,7 +549,7 @@ class Polyphemus
         )
       end
 
-      puts "renaming #{attribute_name}_migrate -> #{attribute_name}"
+      puts "renaming #{attribute_name}_migrate -> #{attribute_name}s"
       magma_client.update_model(
         Etna::Clients::Magma::UpdateModelRequest.new(
           project_name: project_name,

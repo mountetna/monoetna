@@ -96,6 +96,81 @@ describe Polyphemus::Ipi::SingleCellLinkers do
     end
   end
 
+  describe 'raw fastq linkers' do
+    let(:etl) do
+      class TestSingleCellConfig < Polyphemus::ProjectWatchFoldersConfig
+        include Polyphemus::Ipi::RawFastqLinkers
+
+        def initialize
+          super(project_name: 'ipi')
+          add_raw_fastq_linkers!
+        end
+      end
+
+      class TestSingleCellWatchEtl < Polyphemus::ProjectWatchFoldersEtl
+        def initialize
+          super(TestSingleCellConfig.new)
+        end
+      end
+
+      TestSingleCellWatchEtl.new
+    end
+
+    it 'processes pools' do
+      run_e2e_test('ipi_sc_pool_rawfastqs') do |metis_client, magma_client, update_requests_raw|
+        test_folders = metis_client.find(
+          Etna::Clients::Metis::FindRequest.new(
+            project_name: project_name,
+            bucket_name: bucket_name,
+            params: [Etna::Clients::Metis::FindParam.new(
+              attribute: "name",
+              predicate: "=",
+              value: 'IPIPOOL001_P1_scRNA_XVIPBMC',
+              type: "folder",
+            )],
+          )
+        ).folders.all
+
+        etl.process(
+          cursor,
+          test_folders
+        )
+
+        expect(update_requests_raw).to include({
+          dry_run: false,
+          project_name: "ipi",
+          revisions: { "sc_rna_seq_pool" =>
+            { "IPIPOOL001.P1.scrna.xvipbmc" =>
+              { "raw_fastq" =>
+                [{ "original_filename" =>
+                  "IPIPOOL001_P1_scRNA_XVIPBMC_S4_L002_I1_001.fastq.gz",
+                  "path" =>
+                    "metis://ipi/data/single_cell_GEX/raw/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/IPIPOOL001_P1_scRNA_XVIPBMC_S4_L002_I1_001.fastq.gz" },
+                  { "original_filename" =>
+                    "IPIPOOL001_P1_scRNA_XVIPBMC_S4_L002_R1_001.fastq.gz",
+                    "path" =>
+                      "metis://ipi/data/single_cell_GEX/raw/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/IPIPOOL001_P1_scRNA_XVIPBMC_S4_L002_R1_001.fastq.gz" },
+                  { "original_filename" =>
+                    "IPIPOOL001_P1_scRNA_XVIPBMC_S4_L002_R2_001.fastq.gz",
+                    "path" =>
+                      "metis://ipi/data/single_cell_GEX/raw/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/IPIPOOL001_P1_scRNA_XVIPBMC_S4_L002_R2_001.fastq.gz" },
+                  { "original_filename" =>
+                    "IPIPOOL001_P1_scRNA_XVIPBMC_S4_L003_I1_001.fastq.gz",
+                    "path" =>
+                      "metis://ipi/data/single_cell_GEX/raw/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/IPIPOOL001_P1_scRNA_XVIPBMC_S4_L003_I1_001.fastq.gz" },
+                  { "original_filename" =>
+                    "IPIPOOL001_P1_scRNA_XVIPBMC_S4_L003_R1_001.fastq.gz",
+                    "path" =>
+                      "metis://ipi/data/single_cell_GEX/raw/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/IPIPOOL001_P1_scRNA_XVIPBMC_S4_L003_R1_001.fastq.gz" },
+                  { "original_filename" =>
+                    "IPIPOOL001_P1_scRNA_XVIPBMC_S4_L003_R2_001.fastq.gz",
+                    "path" =>
+                      "metis://ipi/data/single_cell_GEX/raw/3prime_GEX/v3_chemistry/IPIPOOL001/IPIPOOL001_P1_scRNA_XVIPBMC/IPIPOOL001_P1_scRNA_XVIPBMC_S4_L003_R2_001.fastq.gz" }] } } }
+        })
+      end
+    end
+  end
+
   it 'works for sc record directories whose files are one step indirect' do
     run_e2e_test('ipi_sc_processed_linker.lung.enriched') do |metis_client, magma_client, update_requests_raw|
       parent_folders = metis_client.find(
@@ -292,8 +367,8 @@ describe Polyphemus::Ipi::SingleCellLinkers do
         :revisions => {
           "sc_rna_seq" => {
             "IPIHEP034.T1.scrna.cd45neg" => {
-              "biospecimen"=>"cd45neg",
-              "chemistry"=>"10X_3prime_v2"
+              "biospecimen" => "cd45neg",
+              "chemistry" => "10X_3prime_v2"
             }
           }
         }
