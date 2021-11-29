@@ -16,7 +16,7 @@ services:
     networks:
       - db
     secrets:
-    - source: ${APP_NAME}_${ENV}_db_password
+    - source: db-pw
       target: password
 
   app:
@@ -69,7 +69,7 @@ services:
       #- staging-metis-hmac
       #- staging-magma-hmac
       - metrics-pw
-      - source: "${APP_NAME}_${ENV}_db_password"
+      - source: db-pw
         target: db-password
 
   app_fe:
@@ -144,6 +144,9 @@ secrets:
     external: true
   staging-magma-hmac:
     external: true
+  db-pw:
+    external: true
+    name: "${APP_NAME}_${ENV}_db_password"
 
 networks:
   fe:
