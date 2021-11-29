@@ -36,7 +36,7 @@ class Polyphemus
       NON_POOLED_CONTAINER = /.*\/IPI((?!POOL)[^\/])+(\/[^\/]*)?$/
     end
 
-    module RawFastqLinkers
+    module SingleCellRawFastqLinkers
       def add_raw_fastq_linkers!
         process_watch_type_with(
           bucket('data')
@@ -221,7 +221,7 @@ class Polyphemus
 
     class WatchFoldersConfig < Polyphemus::ProjectWatchFoldersConfig
       include SingleCellLinkers
-      include RawFastqLinkers
+      include SingleCellRawFastqLinkers
 
       def initialize
         super(project_name: 'ipi')

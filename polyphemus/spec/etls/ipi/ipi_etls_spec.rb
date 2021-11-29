@@ -99,7 +99,7 @@ describe Polyphemus::Ipi::SingleCellLinkers do
   describe 'raw fastq linkers' do
     let(:etl) do
       class TestSingleCellConfig < Polyphemus::ProjectWatchFoldersConfig
-        include Polyphemus::Ipi::RawFastqLinkers
+        include Polyphemus::Ipi::SingleCellRawFastqLinkers
 
         def initialize
           super(project_name: 'ipi')
