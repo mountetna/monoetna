@@ -22,7 +22,7 @@ services:
   app:
     environment:
       APP_NAME: ${APP_NAME}
-      "${APP_ENV}": production
+      JANUS_ENV: production
       ETNA__PRODUCTION_FILE: /app/env.yml
       ETNA__PRODUCTION__DB__PASSWORD_FILE: /run/secrets/db-password
       ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN: /run/secrets/rollbar-access-token
