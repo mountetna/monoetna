@@ -51,11 +51,11 @@ services:
         #constraints:
           #- node.labels.volumes.${APP_NAME}_${ENV}_data == true
     healthcheck:
-      interval: 60s
-      retries: 60
+      interval: 10s
+      retries: 3
       start_period: 1s
       test: bash -c 'wget -O - http://localhost:3000 &>/dev/null || exit 1'
-      timeout: 2s
+      timeout: 5s
     configs:
       - source: config
         target: /app/config.yml
@@ -133,7 +133,7 @@ configs:
     name: "${APP_NAME}.${ENV}.yml"
   env:
     external: true
-    name: "etna.${ENV}.yml_copy2"
+    name: "etna.${ENV}.yml"
 
 secrets:
   user-hash-secret:
