@@ -62,9 +62,11 @@ services:
       - source: env
         target: /app/env.yml
     networks:
-      - db
-      - fe
-      - prometheus
+      db:
+      prometheus:
+      fe:
+        aliases:
+          - janus_app
     secrets:
       #- staging-metis-hmac
       #- staging-magma-hmac
@@ -75,7 +77,7 @@ services:
   app_fe:
     environment:
       APP_NAME: ${APP_NAME}
-      "${APP_ENV}": production
+      JANUS_ENV: production
     image: etnaagent/${APP_NAME}_app_fe:${ENV}
     networks:
       - edge_bridge
@@ -102,7 +104,7 @@ services:
   app_assets_deployer:
     environment:
       APP_NAME: ${APP_NAME}
-      "${APP_ENV}": production
+      JANUS_ENV: production
 
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
     image: etnaagent/${APP_NAME}:${ENV}
