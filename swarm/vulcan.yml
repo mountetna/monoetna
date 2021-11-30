@@ -42,7 +42,7 @@ services:
       ENV: production
       VULCAN__PRODUCTION__DB__PASSWORD: "${PRODUCTION_DB_PASSWORD}"
       VULCAN__PRODUCTION__ROLLBAR__ACCESS_TOKEN: "${PRODUCTION_ROLLBAR_TOKEN}"
-    command:
+    command: 
       - bash
       - -c
       - |
@@ -142,6 +142,7 @@ configs:
     external: true
     
 secrets:
+
   user-hash-secret:
     external: true
   metrics-pw:
