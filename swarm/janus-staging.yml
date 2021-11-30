@@ -133,7 +133,7 @@ configs:
     name: "${APP_NAME}.${ENV}.yml"
   env:
     external: true
-    name: "etna.${ENV}.yml"
+    name: "etna.${ENV}.yml_copy_copy"
 
 secrets:
   user-hash-secret:
