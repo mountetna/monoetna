@@ -54,7 +54,7 @@ services:
       interval: 10s
       retries: 3
       start_period: 1s
-      test: bash -c 'wget -O - http://localhost:3000 &>/dev/null || exit 1'
+      test: bash -c 'curl http://localhost:3000 || exit 1'
       timeout: 5s
     configs:
       - source: config
