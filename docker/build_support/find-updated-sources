@@ -41,4 +41,8 @@ if ! [[ -z "$IS_CI" ]]; then
   target="$(git diff --name-only $($DIR/find-oldest-branch-root.sh) $dir)"
 fi
 
+if [[ -z "$target" ]]; then
+  exit 0
+fi
+
 $find $target -type f ! -path "*.marker" ! -path '*/node_modules/*' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2
