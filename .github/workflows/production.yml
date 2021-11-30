@@ -4,24 +4,32 @@ on:
     branches:
       - production
 
+# Ensure only one of these builds at a given time.
+concurrency:
+  group: production-build
+  cancel-in-progress: true
+
 jobs:
   build-production:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
-          # Arbitrarily deep in order for find-parent-pr-merge.sh to work.
-          fetch-depth: 10
+          token: ${{ secrets.SYNC_ACCESS_TOKEN }}
       - name: docker login
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
-      - name: Test + Push Release
+      - name: Build & Push production tag images to dockerhub
         env:
           IS_CI: 1
           PUSH_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :production
           NO_TEST: 1
-        run: make -j 4 release
+          TARGET_ROOT_BRANCH: production-build
+        run: |
+          git fetch origin production-build
+          make -j 4 release
+          git push origin HEAD:production-build --force
 
