@@ -30,7 +30,7 @@ jobs:
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
           NO_TEST: 1
-          TARGET_ROOT_BRANCH: staging
+          TARGET_ROOT_BRANCH: origin/staging
         run: |
           git fetch origin staging
           make -j 4 release

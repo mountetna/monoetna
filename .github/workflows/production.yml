@@ -27,7 +27,7 @@ jobs:
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :production
           NO_TEST: 1
-          TARGET_ROOT_BRANCH: production-build
+          TARGET_ROOT_BRANCH: origin/production-build
         run: |
           git fetch origin production-build
           make -j 4 release
