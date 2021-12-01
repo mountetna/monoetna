@@ -47,9 +47,6 @@ services:
         order: start-first
       labels:
         - autoupdate=true
-      #placement:
-        #constraints:
-          #- node.labels.volumes.${APP_NAME}_${ENV}_data == true
     healthcheck:
       interval: 10s
       retries: 3
@@ -84,6 +81,7 @@ services:
       - fe
     volumes:
       - app_public:/app/public
+      - staging_shibboleth:/shibboleth
       #- ${DATA_SOURCE}/${APP_NAME}/:/app/data/${APP_NAME}:ro
     # Notably, apache needs to start as super user but it immediately downgrades
     # its own user permissions after bootup.  See the includes.
@@ -99,6 +97,8 @@ services:
       placement:
         constraints:
           - node.labels.volumes.${APP_NAME}_${ENV}_app_public == true
+
+          - node.labels.volumes.staging_shibboleth == true
           #- node.labels.volumes.${APP_NAME}_${ENV}_data == true
 
   app_assets_deployer:
@@ -126,6 +126,8 @@ volumes:
   app_public:
   db:
     name: "${APP_NAME}_${ENV}_db"
+  staging_shibboleth:
+    external: true
 
 configs:
   browser.system.include:
