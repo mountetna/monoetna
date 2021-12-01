@@ -24,11 +24,11 @@ min_pct = float(input_var('min_pct'))
 pct_cols = [s for s in DEdf_filt.keys() if (s=="pts" or s.startswith("pts_"))]
 pct_col1 = list(DEdf_filt[pct_cols[0]])
 pct_col2 = list(DEdf_filt[pct_cols[1]])
-idx_passed = list(map(
+pct_passed = list(map(
     lambda i: (pct_col1[i] >= min_pct or pct_col2[i] >= min_pct),
     list(DEdf_filt.index)
 ))
-DEdf_filt = DEdf_filt.loc[idx_passed]
+DEdf_filt = DEdf_filt.loc[pct_passed]
 
 ## Output Filtered Results
 DEdf_filt.to_csv(output_path('filtered_diffexp.csv'))
