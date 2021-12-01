@@ -51,38 +51,8 @@ export const getTSVForm = ({
     transpose
   };
 
-  getTSVFormBase({
-    action: magmaPath('retrieve'),
-    data
-  });
-};
-
-export const getQueryTSVForm = ({
-  query,
-  user_columns,
-  expand_matrices,
-  transpose
-}) => {
-  let {Authorization} = headers('auth');
-  let data = {
-    'X-Etna-Authorization': Authorization,
-    project_name: CONFIG.project_name,
-    query,
-    user_columns,
-    format: 'tsv',
-    expand_matrices,
-    transpose
-  };
-
-  getTSVFormBase({
-    action: magmaPath('query'),
-    data
-  });
-}
-
-const getTSVFormBase = ({action, data}) => {
   let form = create('form', {
-    action: action,
+    action: magmaPath('retrieve'),
     method: 'POST'
   });
 
@@ -103,7 +73,7 @@ const getTSVFormBase = ({action, data}) => {
   document.body.appendChild(form);
   form.submit();
   document.body.removeChild(form);
-}
+};
 
 export const getDocuments = (doc_args, fetch) => {
   return magmaPost('retrieve', fetch, doc_args);

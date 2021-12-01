@@ -160,7 +160,6 @@ declare module 'etna-js/selectors/magma' {
 
 declare module 'etna-js/actions/magma_actions' {
   export function requestModels(): any;
-  export function requestQueryTSV(): any;
 }
 
 declare module 'etna-js/utils/debounce' {
@@ -214,4 +213,3 @@ declare module 'etna-js/utils/tsv' {
 declare module 'etna-js/utils/fetch';
 
 declare module 'etna-js/contexts/magma-context';
-

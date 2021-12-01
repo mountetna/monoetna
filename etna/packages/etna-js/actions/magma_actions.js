@@ -4,7 +4,6 @@ import {
   getDocuments,
   getAnswer,
   getTSVForm,
-  getQueryTSVForm,
   postRevisions
 } from '../api/magma_api';
 import {setMetisCookie} from './metis_actions';
@@ -343,10 +342,8 @@ const cleanFileCollectionRevisions = (revisions, model_template) => {
   return cleanRevisions;
 };
 
-// Download a TSV from magma via Timur via /retrieve
+// Download a TSV from magma via Timur.
 export const requestTSV = (params) => (dispatch) => getTSVForm(params);
-
-export const requestQueryTSV = (params) => (dispatch) => getQueryTSVForm(params);
 
 export const requestAnswer = (question, callback = null) => dispatch => {
   const exchange = new Exchange(
