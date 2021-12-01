@@ -6,11 +6,11 @@ on:
       - '*/*'
       - '*/*/*'
       - '!master'
-      # The swarm stacks branch is for keeping up to date with swarm stack configuration,
-      # thus running CI on it would be a major waste.
       - '!swarm/stacks'
       - '!production'
       - '!staging'
+      - '!production-build'
+      - '!staging-build'
 
 jobs:
   test:
@@ -37,9 +37,12 @@ jobs:
       - name: Run ${{ matrix.test-app }} test suite
         id: app_first_test_run
         env:
+          # Runs tests and builds images, but does not push (PUSH_IMAGES not set to 1)
           IMAGES_PREFIX: etnaagent/
           IS_CI: 1
           CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
+          TARGET_ROOT_BRANCH: origin/master
         run: |
+          git fetch origin master
           make -C ${{ matrix.test-app }} release

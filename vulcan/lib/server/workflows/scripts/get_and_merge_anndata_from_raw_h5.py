@@ -43,9 +43,10 @@ if len(data_tube_url)>1:
     for (tube_name, raw_counts_h5_mpath) in data_tube_url[1:]:
         # Convert from record name and metis path to the actual data
         new_data = h5_dl_and_scanpy_import(tube_name, raw_counts_h5_mpath)
-
         # Merge objects
         merged_data = merged_data.concatenate(new_data)
+    # Remove unecessary 'batch' annotation
+    del merged_data.obs['batch']
 
 ### Add metadata for all color-data
 pdat = input_json("project_data")
@@ -72,7 +73,6 @@ for color_by in color_options.keys():
         lambda x: [x, get([x], buildTargetPath(color_options[color_by], pdat))[0]],
         unique(recs) ))
     label = re.sub(" ", "_", color_by)
-    #raise Exception(rec_data)
     merged_data.obs[ label ] = list( map( lambda x: rec_data[x], recs) )
 
 ### OUTPUT

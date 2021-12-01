@@ -9,6 +9,8 @@ on:
       - '!swarm/stacks'
       - '!production'
       - '!staging'
+      - '!production-build'
+      - '!staging-build'
 
 jobs:
   test:
