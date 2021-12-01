@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+# Clear images not being used to recover some space
+docker image prune
+
+postToSlack() {
+  post-to-slack "deployer on ${HOST_HOSTNAME}" "watchtower-ping" "$1"
+}
+
+findServices() {
+  docker service ls --format "{{.Name}}" --filter label=autoupdate=true
+}
+
+findServiceImage() {
+  docker service inspect "${1}" --format "{{.Spec.TaskTemplate.ContainerSpec.Image}}"
+}
+
+function shaOfImageDigest() {
+  if [[ "$1" =~ ([^@]*)@(.*) ]]; then
+    echo ${BASH_REMATCH[2]}
+  fi
+}
+
+function tagOfImageDigest() {
+  if [[ "$1" =~ ([^@]*)@(.*) ]]; then
+    echo ${BASH_REMATCH[1]}
+  fi
+}
+
+if [ -e /run/secrets/service-deployer-docker-login ]; then
+  echo 'Login using /run/secrets/service-deployer-docker-login'
+  docker login -u etnaagent -p "$(cat /run/secrets/service-deployer-docker-login)"
+else
+  echo 'Could not find docker login at /run/secrets/service-deployer-docker-login, proceeding unauthenticated.'
+fi
+
+services="$(findServices)"
+echo "Found services to check: ${services}"
+
+while read serviceName; do
+  image="$(findServiceImage $serviceName)"
+  tag=$(tagOfImageDigest "$image")
+  sha=$(shaOfImageDigest "$image")
+
+  if [[ -n "$sha" ]]; then
+    docker pull "$tag" &>/dev/null
+    newImage=$(docker image inspect "${tag}" | jq -r '.[].RepoDigests[]')
+    newsha=$(shaOfImageDigest "$newImage")
+
+    if ! [ -f "/deployed/${serviceName}-${newsha}" ] && [[ "${sha}" != "${newsha}" ]]; then
+      postToSlack "Updating ${tag} (${sha:8:6} -> ${newsha:8:6}) on ${serviceName}, issuing rolling restart"
+      touch "/deployed/${serviceName}-${newsha}"
+      docker service update -d $serviceName --image "${tag}" --force &>/dev/null
+    fi
+  fi
+
+  docker image prune &>/dev/null
+done < <(echo "$services")

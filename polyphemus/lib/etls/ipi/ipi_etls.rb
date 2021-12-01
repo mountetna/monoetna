@@ -11,13 +11,74 @@ require_relative '../shared/single_cell/single_cell_linkers'
 
 class Polyphemus
   module Ipi
+
+    module IpiRecordNames
+      def corrected_record_name(record_name)
+        if record_name.include?('POOL')
+          record_name.gsub(/_/, '.').sub(/^([^.]*\.[^.]*\.)(.*)$/) do
+            first = $1
+            second = $2
+            first + second.downcase
+          end
+        else
+          record_name.sub(/^([^_.]*[_.][^_.]*[_.])([^_.]*)(.*)$/) do
+            first = $1
+            second = $2
+            third = $3
+            first.gsub(/_/, '.') + second.downcase + third
+          end
+        end
+      end
+
+
+      SINGLE_CELL_ROOT = /^single_cell_[^\/]*/
+      POOL_CONTAINER = /.*\/IPIPOOL[^\/]+(\/[^\/]*)?$/
+      NON_POOLED_CONTAINER = /.*\/IPI((?!POOL)[^\/])+(\/[^\/]*)?$/
+    end
+
+    module SingleCellRawFastqLinkers
+      def add_raw_fastq_linkers!
+        process_watch_type_with(
+          bucket('data')
+            .watcher('single_cell_pool_raw_fastq')
+            .watch(/#{IpiRecordNames::SINGLE_CELL_ROOT}\/raw\/#{IpiRecordNames::POOL_CONTAINER}/),
+          Polyphemus::LinkerProcessor.new(
+            linker: RawFastqLinker.new,
+            model_name: 'sc_rna_seq_pool'
+          ),
+        )
+
+        process_watch_type_with(
+          bucket('data')
+            .watcher('single_cell_non_pooled_raw_fastq')
+            .watch(/#{IpiRecordNames::SINGLE_CELL_ROOT}\/raw\/#{IpiRecordNames::NON_POOLED_CONTAINER}/),
+          Polyphemus::LinkerProcessor.new(
+            linker: RawFastqLinker.new,
+            model_name: 'sc_rna_seq'
+          ),
+        )
+      end
+
+      class RawFastqLinker < Polyphemus::SingleCellRawFastqLinker
+        include IpiRecordNames
+
+        def initialize(**kwds)
+          super(
+            project_name: 'ipi',
+            bucket_name: 'data',
+            **kwds
+          )
+        end
+      end
+    end
+
     module SingleCellLinkers
       def add_single_cell_linkers!
         process_folders_with(
           process_watch_type_with(
             bucket('data')
               .watcher('single_cell_pool_processed')
-              .watch(/^single_cell_[^\/]*\/processed\/.*\/IPIPOOL[^\/]+(\/[^\/]*)?$/),
+              .watch(/#{IpiRecordNames::SINGLE_CELL_ROOT}\/processed\/#{IpiRecordNames::POOL_CONTAINER}/),
             Polyphemus::LinkerProcessor.new(
               linker: single_cell_pooled_linker,
               model_name: 'sc_rna_seq_pool'
@@ -33,7 +94,7 @@ class Polyphemus
           process_watch_type_with(
             bucket('data')
               .watcher('single_cell_processed')
-              .watch(/^single_cell_[^\/]*\/processed\/.*\/IPI((?!POOL)[^\/])+(\/[^\/]*)?$/),
+              .watch(/#{IpiRecordNames::SINGLE_CELL_ROOT}\/processed\/#{IpiRecordNames::NON_POOLED_CONTAINER}/),
             Polyphemus::LinkerProcessor.new(
               linker: single_cell_non_pooled_linker,
               model_name: 'sc_rna_seq',
@@ -143,7 +204,10 @@ class Polyphemus
         end
       end
 
+
       class SingleCellLinker < Polyphemus::SingleCellProcessedLinker
+        include IpiRecordNames
+
         def initialize(**kwds)
           super(
             project_name: 'ipi',
@@ -152,33 +216,18 @@ class Polyphemus
             **kwds
           )
         end
-
-        def corrected_record_name(record_name)
-          if record_name.include?('POOL')
-            record_name.gsub(/_/, '.').sub(/^([^.]*\.[^.]*\.)(.*)$/) do
-              first = $1
-              second = $2
-              first + second.downcase
-            end
-          else
-            record_name.sub(/^([^_.]*[_.][^_.]*[_.])([^_.]*)(.*)$/) do
-              first = $1
-              second = $2
-              third = $3
-              first.gsub(/_/, '.') + second.downcase + third
-            end
-          end
-        end
       end
     end
 
     class WatchFoldersConfig < Polyphemus::ProjectWatchFoldersConfig
       include SingleCellLinkers
+      include SingleCellRawFastqLinkers
 
       def initialize
         super(project_name: 'ipi')
 
         add_single_cell_linkers!
+        add_raw_fastq_linkers!
 
         process_watch_type_with(
           bucket('data').watcher('process_bulk_rna_seq_results').watch(/^bulkRNASeq\/.*\/results$/),
