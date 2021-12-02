@@ -7,25 +7,31 @@ scdata = sc.read(input_path('leiden_anndata.h5ad'))
 
 # Run differential expression between clusters
 dge_method = input_var('dge_method')
-sc.tl.rank_genes_groups(scdata, 'leiden', method=dge_method)
+sc.tl.rank_genes_groups(scdata, groupby='leiden', method=dge_method, pts=True, corr_method='benjamini-hochberg')
 DEdat = scdata.uns['rank_genes_groups']
 
 # Output the anndata object
 scdata.write(output_path('umap_workflow_anndata.h5ad'))
 
 # Output target "columns" of the dict output as csv
-def DF_per_cluster(DEdat, cluster):
+def collect_DF_per_cluster(DEdat, cluster):
+    keys = ['names', 'pvals', 'pvals_adj', 'logfoldchanges']
     DF = pd.DataFrame(
-        dict([
-            this_col,
-            DEdat[this_col][cluster]
-        ] for this_col in ['names', 'scores', 'pvals', 'pvals_adj', 'logfoldchanges']
+        dict(
+            [
+                this_col,
+                DEdat[this_col][cluster]
+            ] for this_col in keys
         )
     )
+    ## Add pts (percent expressed), ensuring proper ordering
+    names = list(DF['names'])
+    for key in ['pts', 'pts_rest']:
+        DF[key] = list(DEdat[key].reindex(names)[cluster])
     DF['cluster'] = cluster
     return DF
 pd.concat(
-    (DF_per_cluster(DEdat, cluster)) for cluster in unique(scdata.obs['leiden'])
+    (collect_DF_per_cluster(DEdat, cluster)) for cluster in unique(scdata.obs['leiden'])
 ).to_csv(output_path('cluster_diffexp.csv'))
 
 # Extract top 10 markers per cluster, ignoring given certain prefixes
@@ -48,6 +54,6 @@ if len(filters) > 0:
         trim_prefixes(list(names[clust]), filters.split(","))[:(out_len)]
     ] for clust in unique(scdata.obs['leiden']) )
 else:
-    top10 = pd.DataFrame(names).head(10).to_dict('list')
+    top10 = pd.DataFrame(names).head(out_len).to_dict('list')
 
 output_json(top10, 'top10.json')
