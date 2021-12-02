@@ -21,14 +21,14 @@ services:
 
   app:
     environment:
-      - APP_NAME=${APP_NAME}
-      - ${APP_ENV}=production
-      - ETNA__PRODUCTION_FILE=/app/env.yml
-      - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
-      - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN=/run/secrets/rollbar-access-token
-      - ETNA__PRODUCTION__USER_HASH_SECRET=/run/secrets/user-hash-secret
-      #- ETNA__PRODUCTION__HMAC_KEYS__METIS_FILE=/run/secrets/staging-metis-hmac
-      #- ETNA__PRODUCTION__HMAC_KEYS__MAGMA_FILE=/run/secrets/staging-metis-hmac
+      APP_NAME: ${APP_NAME}
+      JANUS_ENV: production
+      ETNA__PRODUCTION_FILE: /app/env.yml
+      ETNA__PRODUCTION__DB__PASSWORD_FILE: /run/secrets/db-password
+      ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN: /run/secrets/rollbar-access-token
+      ETNA__PRODUCTION__USER_HASH_SECRET: /run/secrets/user-hash-secret
+#      ETNA__PRODUCTION__HMAC_KEYS__METIS_FILE: /run/secrets/staging-metis-hmac
+#      ETNA__PRODUCTION__HMAC_KEYS__MAGMA_FILE: /run/secrets/staging-metis-hmac
     command:
       - bash
       - -c
@@ -47,9 +47,6 @@ services:
         order: start-first
       labels:
         - autoupdate=true
-      #placement:
-        #constraints:
-          #- node.labels.volumes.${APP_NAME}_${ENV}_data == true
     healthcheck:
       interval: 10s
       retries: 3
@@ -66,7 +63,7 @@ services:
       prometheus:
       fe:
         aliases:
-          - ${APP_NAME}_app
+          - janus_app
     secrets:
       #- staging-metis-hmac
       #- staging-magma-hmac
@@ -76,8 +73,8 @@ services:
 
   app_fe:
     environment:
-      - APP_NAME=${APP_NAME}
-      - ${APP_ENV}=production
+      APP_NAME: ${APP_NAME}
+      JANUS_ENV: production
     image: etnaagent/${APP_NAME}_app_fe:${ENV}
     networks:
       - edge_bridge
@@ -106,8 +103,8 @@ services:
 
   app_assets_deployer:
     environment:
-      - APP_NAME=${APP_NAME}
-      - ${APP_ENV}=production
+      APP_NAME: ${APP_NAME}
+      JANUS_ENV: production
 
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
     image: etnaagent/${APP_NAME}:${ENV}
