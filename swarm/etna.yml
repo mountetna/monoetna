@@ -26,14 +26,14 @@ services:
 
   app:
     environment:
-      APP_NAME: ${APP_NAME}
-      "${APP_ENV}": production
-      ETNA__PRODUCTION_FILE: /app/env.yml
-      ETNA__PRODUCTION__DB__PASSWORD_FILE: /run/secrets/db-password
-      ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN: /run/secrets/rollbar-access-token
-      ETNA__PRODUCTION__USER_HASH_SECRET: /run/secrets/user-hash-secret
-#      ETNA__PRODUCTION__HMAC_KEYS__METIS_FILE: /run/secrets/staging-metis-hmac
-#      ETNA__PRODUCTION__HMAC_KEYS__MAGMA_FILE: /run/secrets/staging-metis-hmac
+      - APP_NAME=${APP_NAME}
+      - ${APP_ENV}=production
+      - ETNA__PRODUCTION_FILE=/app/env.yml
+      - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
+      - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN=/run/secrets/rollbar-access-token
+      - ETNA__PRODUCTION__USER_HASH_SECRET=/run/secrets/user-hash-secret
+      #- ETNA__PRODUCTION__HMAC_KEYS__METIS_FILE=/run/secrets/staging-metis-hmac
+      #- ETNA__PRODUCTION__HMAC_KEYS__MAGMA_FILE=/run/secrets/staging-metis-hmac
     command:
       - bash
       - -c
@@ -56,20 +56,22 @@ services:
         #constraints:
           #- node.labels.volumes.${APP_NAME}_${ENV}_data == true
     healthcheck:
-      interval: 60s
-      retries: 60
+      interval: 10s
+      retries: 3
       start_period: 1s
-      test: bash -c 'wget -O - http://localhost:3000 &>/dev/null || exit 1'
-      timeout: 2s
+      test: bash -c 'curl http://localhost:3000 || exit 1'
+      timeout: 5s
     configs:
       - source: config
         target: /app/config.yml
       - source: env
         target: /app/env.yml
     networks:
-      - db
-      - fe
-      - prometheus
+      db:
+      prometheus:
+      fe:
+        aliases:
+          - ${APP_NAME}_app
     secrets:
       #- staging-metis-hmac
       #- staging-magma-hmac
@@ -79,8 +81,8 @@ services:
 
   app_fe:
     environment:
-      APP_NAME: ${APP_NAME}
-      "${APP_ENV}": production
+      - APP_NAME=${APP_NAME}
+      - ${APP_ENV}=production
     image: etnaagent/${APP_NAME}_app_fe:${ENV}
     networks:
       - edge_bridge
@@ -106,8 +108,8 @@ services:
 
   app_assets_deployer:
     environment:
-      APP_NAME: ${APP_NAME}
-      "${APP_ENV}": production
+      - APP_NAME=${APP_NAME}
+      - ${APP_ENV}=production
 
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
     image: etnaagent/${APP_NAME}:${ENV}
@@ -135,7 +137,7 @@ configs:
     external: true
   config:
     external: true
-    name: "${APP_NAME}.yml"
+    name: "${APP_NAME}.${ENV}.yml"
   env:
     external: true
     name: "etna.${ENV}.yml"
