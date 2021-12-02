@@ -36,9 +36,9 @@ fi
 # By default in development, just track file modified times as the touched target
 target=$dir
 
-# but in ci, only consider source files those that actually changed from the branch root
-if ! [[ -z "$IS_CI" ]]; then
-  target="$(git diff --name-only $($DIR/find-oldest-branch-root.sh) $dir)"
+# when running tests in CI, only run tests for projects that have actually changed.
+if ! [[ -z "$TARGET_ROOT_BRANCH" ]]; then
+  target="$(git diff --name-only $TARGET_ROOT_BRANCH $dir)"
 fi
 
 if [[ -z "$target" ]]; then
