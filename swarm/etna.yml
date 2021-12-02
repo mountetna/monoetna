@@ -1,10 +1,5 @@
 version: '3.8'
 
-# Be sure to customize by removing commented lines that are relevant
-# (hmac keys, data sources), or adding additional items necessary.
-# This is intended as a base template and not fully comprehensive.
-# It is also likely slowly to diverge in convention from other deployments.
-
 services:
   postgres:
     image: postgres:10.19
