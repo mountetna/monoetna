@@ -6,7 +6,7 @@ from archimedes.functions.list import unique, ensure_list
 # Functions for DE Extraction and Output
 def collect_DF_per_set(DEdat, meta_used, set, group_name = None):
     # keys = DEdat.keys()
-    keys = ['names', 'scores', 'pvals', 'pvals_adj', 'logfoldchanges']
+    keys = ['names', 'pvals', 'pvals_adj', 'logfoldchanges']
     DF = pd.DataFrame(
         dict(
             [
