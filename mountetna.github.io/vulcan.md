@@ -16,6 +16,11 @@ Vulcan provides tools for doing analysis of data in Mount Etna.
 
 ### Workflows
 
+Workflows integrate calculation and user interactions to produce files, plots,
+tables and other kinds of outputs. Workflows can be very simple, such as
+selecting some data and using it to create a visualization, or they can be very
+complex, like a complete, user-guided single-cell sequencing analysis.
+
 A Vulcan workflow is defined in the Common Workflow Language (CWL,
 https://www.commonwl.org/user_guide) and runs steps which run Python code or
 mediate user interactions.  Users may interact with workflows in the Vulcan UI,
@@ -23,10 +28,10 @@ setting input parameters and queueing the workflow to be run by Vulcan.
 Subsequently the workflow is executed by Vulcan in a sandboxed Python
 environment called Archimedes.
 
-A workflow consists of a set of steps, each with defined inputs and outputs.
-The workflow begins with **primary inputs**, and each subsequent step depends
-on either primary inputs or the output of a previous step (producing a directed
-acyclic graph or DAG).
+A workflow consists of a set of primary inputs and a set of steps, each with
+defined inputs and outputs.  The workflow begins with the primary inputs, and
+each subsequent step depends on either primary inputs or the output of a
+previous step (producing a directed acyclic graph or DAG).
 
 Here is an example workflow, written in CWL.
 
@@ -102,11 +107,11 @@ Workflows can be run in the Vulcan UI. To run a workflow, navigate to your
 project page from the Vulcan root page. Select one of the available workflows
 and the Vulcan Workflow UI will appear with a new workflow session.
 
-The interface is divided into three columns. On the left, the user may
-configure primary inputs, or, once the workflow is running, UI query inputs
-created by the workflow. Outputs, such as plots or download links, appear in
-the second column. The final column shows the steps in the workflow in the
-order they will run (approximately, since the workflow may branch).
+The interface is divided into three columns.
+  - On the left, the user may configure primary inputs, or, once the workflow is running, UI query inputs
+created by the workflow.
+  - Outputs, such as plots or download links, appear in the second column.
+  - The final column shows the steps in the workflow in the order they will run (approximately, since the workflow may branch).
 
 The user may change inputs as they see fit; changes will not be persisted to
 the session until the user saves their edits to each required input using the
