@@ -6,7 +6,7 @@ group: app
 # Vulcan
 {:.no_toc}
 
-## Data Analysis
+## Calculation Service
 {:.no_toc}
 
 Vulcan provides tools for doing analysis of data in Mount Etna.
@@ -109,9 +109,10 @@ the second column. The final column shows the steps in the workflow in the
 order they will run (approximately, since the workflow may branch).
 
 The user may change inputs as they see fit; changes will not be persisted to
-the session until the user commits their edits to each required input. Once the
-session is updated with new inputs, Vulcan will note that some steps in the
-workflow can be run to produce new outputs and will enable the "Run" button.
+the session until the user saves their edits to each required input using the
+"Commit" button. Once the session is updated with new inputs, Vulcan will note
+that some steps in the workflow can be run to produce new outputs and will
+enable the "Run" button.
 
 Upon running, the workflow will run until it completes, encounters an error, or
 requires further input from the user to continue.

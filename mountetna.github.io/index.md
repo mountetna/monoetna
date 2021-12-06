@@ -22,4 +22,4 @@ The principal actors are:
 
 * [Timur]({{ site.baseurl }}{% link timur.md %}) - the **data browser**, allows viewing, searching and analyzing project data from Magma.
 
-* [Vulcan]({{ site.baseurl }}{% link vulcan.md %}) - performs **data analysis** on project data from Magma and Metis.
+* [Vulcan]({{ site.baseurl }}{% link vulcan.md %}) - the **calculation service**, performs data analysis on project data from Magma and Metis.
