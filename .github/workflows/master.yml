@@ -4,6 +4,14 @@ on:
     branches:
       - master
 
+# Ensure only one of these builds at a given time.
+concurrency:
+  group: master-build
+  # do not cancel mid subtree syncing, allow it to complete before
+  # we even proceed.
+  # cancel-in-progress: false
+
+
 jobs:
   sync-subtrees:
     runs-on: ubuntu-latest
@@ -15,14 +23,15 @@ jobs:
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
-      - name: Test + Push Release
+      - name: Build & Push master tag images to dockerhub
         env:
           IS_CI: 1
           PUSH_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
           NO_TEST: 1
-        run: make release
+        run: |
+          make -j 4 release
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.SYNC_ACCESS_TOKEN }}

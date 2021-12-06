@@ -90,7 +90,7 @@ inputs:
     doc: 'A set of strings, separated by commas, for which gene symbols starting with these strings should NOT be shown in the umap overlay. Not case-sensitive, so the same strings will work for both human and mouse ribo & mito genes. Note: this does not affect the full differential expression table that can be downloaded.'
   6_Initial_Cluster_DGE__dge_method:
     type: string
-    default: 'wilcoxon'
+    default: 't-test'
     label: 'testing method'
     doc: 'A string indicating what scanpy method option to use for calculating differential expression. Options are: "logreg", "t-test", "wilcoxon", "t-test_overestim_var". See documentation for "scanpy.tl.rank_genes_groups" for further details.'
   7_Post_UMAP_DGE_Calculation_Inputs__test_method:
