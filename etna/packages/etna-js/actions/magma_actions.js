@@ -1,3 +1,5 @@
+import * as _ from 'lodash';
+
 import {showMessages} from './message_actions';
 import {Exchange} from './exchange_actions';
 import {
@@ -68,7 +70,7 @@ export const consumePayload = (dispatch, response) => {
 };
 
 const showError = dispatch => response => {
-  if ('error' in response) {
+  if (_.isObject(response) && 'error' in response) {
     dispatch(showMessages([`There was a ${response.type} error.`]));
     console.log(response.error);
   }

@@ -214,4 +214,3 @@ declare module 'etna-js/utils/tsv' {
 declare module 'etna-js/utils/fetch';
 
 declare module 'etna-js/contexts/magma-context';
-
