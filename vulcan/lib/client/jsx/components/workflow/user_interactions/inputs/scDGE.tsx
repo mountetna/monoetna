@@ -225,7 +225,7 @@ const GroupComps = (
       return(
         <div>
           <hr/>
-          {"Step 4: Between what comparison groups?"}
+          {"Step 4: Within what comparison groups?"}
           {dropdownInput(
             'group_meta', changeFxn, vals['group_meta'],
             'Group by:', Object.keys(opts))}
