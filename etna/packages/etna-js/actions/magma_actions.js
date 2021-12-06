@@ -359,8 +359,10 @@ export const requestAnswer = (question, callback = null) => dispatch => {
       if (callback) callback(response);
       else return response;
   }).catch( error => {
-    console.log(error);
-    throw new Error(error);
+    return Promise.resolve(error).then((e) => {
+      console.log(e);
+      return Promise.reject(e);
+    })
   });
 }
 
