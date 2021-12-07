@@ -34,8 +34,8 @@ if type -p gfind; then
 fi
 
 # By default in development, just track file modified times as the touched target
+dir="$(realpath --relative-to=$(git rev-parse --show-toplevel) $dir)"
 target=$dir
-1>&2 echo "Running find-updated-sources $dir inside of $PWD"
 
 # when running tests in CI, only run tests for projects that have actually changed.
 if ! [[ -z "$TARGET_ROOT_BRANCH" ]]; then
