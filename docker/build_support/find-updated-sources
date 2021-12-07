@@ -38,11 +38,12 @@ target=$dir
 
 # when running tests in CI, only run tests for projects that have actually changed.
 if ! [[ -z "$TARGET_ROOT_BRANCH" ]]; then
-  target="$(git diff --name-only $TARGET_ROOT_BRANCH $dir)"
+  target="$(git diff --name-only --relative $TARGET_ROOT_BRANCH $dir)"
 fi
 
 if [[ -z "$target" ]]; then
   exit 0
 fi
 
+cd
 $find $target -type f ! -path "*.marker" ! -path '*/node_modules/*' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2
