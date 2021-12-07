@@ -45,5 +45,4 @@ if [[ -z "$target" ]]; then
   exit 0
 fi
 
-cd
 $find $target -type f ! -path "*.marker" ! -path '*/node_modules/*' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2
