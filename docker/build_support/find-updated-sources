@@ -33,18 +33,22 @@ if type -p gfind; then
   find=gfind
 fi
 
-# By default in development, just track file modified times as the touched target
-dir="$(realpath --relative-to=$(git rev-parse --show-toplevel) $dir)"
-target=$dir
-
 # when running tests in CI, only run tests for projects that have actually changed.
 if ! [[ -z "$TARGET_ROOT_BRANCH" ]]; then
-  git diff --name-only --relative $TARGET_ROOT_BRANCH $dir
+  # This is... so dumb.   git tooling will ---only work--- with,
+  #   not relative paths
+  #   not absolute paths
+  #     absolutely relative to the current repository root, paths
+  # which is a weird subset of paths which then break most assumptions in the makefiles
+  # and build tools.
+  # this comrpomise compromise forces us to the repository root to work
+  # inside of the absolute relative paths and then prepends the actual
+  # absolute path to the repository root before outputting that for normalization.
+  dir="$(realpath --relative-to=$(git rev-parse --show-toplevel) $dir)"
+  cd $(git rev-parse --show-toplevel)
+  echo $(git rev-parse --show-toplevel)/$(git diff --name-only --relative $TARGET_ROOT_BRANCH $dir | tail -1)
   exit 0
 fi
 
-if [[ -z "$target" ]]; then
-  exit 0
-fi
-
-$find $target -type f ! -path "*.marker" ! -path '*/node_modules/*' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2
+# By default in development, just track file modified times as the touched target
+$find $dir -type f ! -path "*.marker" ! -path '*/node_modules/*' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2
