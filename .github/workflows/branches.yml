@@ -42,5 +42,7 @@ jobs:
           IS_CI: 1
           CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
+          TARGET_ROOT_BRANCH: origin/master
         run: |
+          git fetch origin master
           make -C ${{ matrix.test-app }} release
