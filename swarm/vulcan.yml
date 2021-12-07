@@ -40,16 +40,16 @@ services:
       VULCAN_ENV: production
       HOST_DIR_MAP: /app/data=/data_change_me_when_done
       ENV: production
-      VULCAN__PRODUCTION__DB__PASSWORD: "${PRODUCTION_DB_PASSWORD}"
-      VULCAN__PRODUCTION__ROLLBAR__ACCESS_TOKEN: "${PRODUCTION_ROLLBAR_TOKEN}"
+      ETNA__PRODUCTION_FILE: /app/env.yml
+      ETNA__PRODUCTION__DB__PASSWORD_FILE: /run/secrets/db-password
+      ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN: /run/secrets/rollbar-access-token
+      ETNA__PRODUCTION__USER_HASH_SECRET: /run/secrets/user-hash-secret
     command: 
       - bash
       - -c
       - |
         set -e
-        source /*.env.sh
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
-        export VULCAN__PRODUCTION__USER_HASH_SECRET="$$(cat /run/secrets/user-hash-secret)"
         exec /bin/deploy.sh migrate 'docker pull etnaagent/archimedes:production' -- /app/bin/puma.sh
     image: etnaagent/vulcan:production
     volumes:
@@ -58,11 +58,11 @@ services:
       - /var/node_exporter/metrics.prom:/tmp/metrics.prom
     user: 1502:999 # vulcan:docker
     healthcheck:
-      interval: 60s
-      retries: 60
+      interval: 10s
+      retries: 3
       start_period: 1s
-      test: bash -c 'wget -O - http://localhost:3000 &>/dev/null || exit 1'
-      timeout: 2s
+      test: bash -c 'curl http://localhost:3000 || exit 1'
+      timeout: 5s
     deploy:
       update_config:
         parallelism: 1
@@ -73,14 +73,20 @@ services:
         constraints:
           - node.labels.volumes.vulcan_data == true
     configs:
-      - source: vulcan.config
+      - source: config
         target: /app/config.yml
-      - production.etna.env.sh
+      - source: env
+        target: /app/env.yml
     networks:
       - vulcan
       - prometheus
     secrets:
       - metrics-pw
+      - user-hash-secret
+      - source: db-pw
+        target: db-password
+      - rollbar-access-token
+      
 
   app_fe:
     environment:
@@ -136,17 +142,24 @@ volumes:
 configs:
   browser.system.include:
     external: true
-  vulcan.config:
+  config:
     external: true
-  production.etna.env.sh:
+    name: "vulcan.production.yml"
+  env:
     external: true
+    name: "etna.production.yml_copy"
     
 secrets:
-
+  db-pw:
+    external: true
+    name: "vulcan_production_db_password"
   user-hash-secret:
     external: true
   metrics-pw:
     external: true
+  rollbar-access-token:
+    external: true
+    name: "vulcan-rollbar-token"
 
 networks:
   vulcan:
