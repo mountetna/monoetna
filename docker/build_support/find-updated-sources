@@ -38,7 +38,8 @@ target=$dir
 
 # when running tests in CI, only run tests for projects that have actually changed.
 if ! [[ -z "$TARGET_ROOT_BRANCH" ]]; then
-  target="$(git diff --name-only --relative $TARGET_ROOT_BRANCH $dir)"
+  git diff --name-only --relative $TARGET_ROOT_BRANCH $dir
+  exit 0
 fi
 
 if [[ -z "$target" ]]; then
