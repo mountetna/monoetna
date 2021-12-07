@@ -110,7 +110,7 @@ class Metis
     end
 
     def can_remove?
-      !read_only? && files.empty?
+      !read_only? && files.empty? && folders.empty?
     end
 
     def rename!(new_folder, new_folder_name, user=nil)
@@ -145,6 +145,14 @@ class Metis
       }
 
       refresh
+    end
+
+    def remove_contents!
+      # remove child files
+      Metis::File.where(folder_id: [ id ] + child_folders.map(&:id)).delete
+
+      # remove child folders
+      Metis::Folder.where(id: child_folders.map(&:id)).delete
     end
 
     def remove!
