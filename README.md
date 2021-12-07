@@ -2,6 +2,35 @@
 
 mono-repository version of etna projects
 
+## Manual Deploys
+
+In general, CI will issue deploys based on what is merged into master and production
+branches, but -you need not wait for the automated deployment pipeline- to push directly
+to staging and or production.
+
+When developing hotfixes or fast turn around changes, you can issue manual builds and
+deploys locally.  To do this, you will need to have successfully logged in with `docker login`
+using out etna agent credentials.
+
+After logging your CLI in, you can issue either an entire repo build or a project
+specific build with something like this:
+
+```
+PUSH_IMAGES=1 IMAGES_PREFIX=etnaagent/ IMAGES_POSTFIX=:production make -B -C polyphemus release
+```
+
+`PUSH_IMAGES=1` informs our build system to push to dockerhub the result image in a `release` process.
+
+`IMAGES_PREFIX` and `IMAGES_POSTFIX` determine the repository and the tag respectively of the resulting image.
+
+`make -B` forces a rebuild (ignores local caching, safest option).
+
+NOTE:  This will build and release PRECISELY what is in your current environment.  It does not, for instance,
+check that you are on the correct branch, that you pulled latest, or if you have stray files with private
+stuff in it.  You should, at the very least, use `git status` to confirm any diff set you plan to push just to be
+sure stray personal files do not get released into production lol.  Ideally a `git pull` will also
+ensure you do not accidentally revert other fixes that were deployed after your last pull.
+
 ## Setup for Mac
 
 You'll need `homebrew` and to install a few extra items. Most tools are developed for linux, and thus
