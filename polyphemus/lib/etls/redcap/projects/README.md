@@ -1,0 +1,3 @@
+This is a private repository that should hold the Ruby config files for importing data from REDCap to Magma. Work in progress...
+
+Includes a `test.rb` file used for testing.

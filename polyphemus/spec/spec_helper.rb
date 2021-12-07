@@ -473,7 +473,7 @@ end
 def copy_renaming_project(file_name = "test_renames.json")
   # Make sure the test project is in the right location so the
   # REDCap ETL can find it.
-  test_fixture_path = "spec/fixtures/etls/renaming/#{file_name}"
+  test_fixture_path = "spec/fixtures/etls/renaming-test/#{file_name}"
   test_output_path = "#{RENAMING_PROJECT_CONFIG_DIR}/#{file_name}"
   FileUtils.mkdir_p(RENAMING_PROJECT_CONFIG_DIR) unless Dir.exist?(RENAMING_PROJECT_CONFIG_DIR)
 

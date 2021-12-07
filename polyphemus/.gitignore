@@ -22,8 +22,4 @@ config.yml
 coverage
 spec/examples.txt
 
-# Keep in a separate repo
-lib/etls/redcap/projects
-lib/etls/renaming/projects
-
 .projects-mark

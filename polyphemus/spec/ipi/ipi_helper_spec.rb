@@ -4,7 +4,7 @@ describe IpiHelper do
   end
 
   describe "rna_seq renames" do
-    let(:helper) { IpiHelper.new("lib/etls/renaming/projects/test_renames.json") }
+    let(:helper) { IpiHelper.new("lib/etls/renaming-test/projects/test_renames.json") }
 
     it "returns original tube name if not in the plate renames" do
       result = helper.corrected_rna_seq_tube_name("another-random-name")
@@ -18,7 +18,7 @@ describe IpiHelper do
   end
 
   describe "rna_seq finding old 'wrong' tube_name from 'correct' tube_name" do
-    let(:helper) { IpiHelper.new("lib/etls/renaming/projects/test_renames.json") }
+    let(:helper) { IpiHelper.new("lib/etls/renaming-test/projects/test_renames.json") }
 
     it "returns new tube name if not in the plate renames" do
       result = helper.incorrect_rna_seq_tube_name("another-random-name")

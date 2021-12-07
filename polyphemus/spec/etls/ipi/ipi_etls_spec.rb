@@ -27,7 +27,7 @@ module IpiMetisEtlTestHelpers
                                 bucket_name: bucket_name,
                               )
                             }
-    cls.let(:helper) { IpiHelper.new("lib/etls/renaming/projects/test_renames.json") }
+    cls.let(:helper) { IpiHelper.new("lib/etls/renaming-test/projects/test_renames.json") }
 
     cls.before(:each) do
       allow(IpiHelper).to receive(:new).and_return(helper)
