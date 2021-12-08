@@ -38,9 +38,19 @@ module Etna
         }
       end
 
+      def step_key(step)
+        step_name, var_name = step.source
+        if step_name == :primary_inputs
+          return :"primary_inputs_#{var_name}"
+        end
+        return step_name
+      end
+
       def step_graph
-        ::DirectedGraph.new.tap do |directed_graph|
-          directed_graph.add_connection(:root, :primary_inputs)
+        graph = ::DirectedGraph.new.tap do |directed_graph|
+          inputs.each do |input|
+            directed_graph.add_connection(:root, step_key(input))
+          end
 
           steps.each do |step|
             if step.in.empty?
@@ -48,7 +58,7 @@ module Etna
             end
 
             step.in.each do |step_input|
-              directed_graph.add_connection(step_input.source.first, step.id)
+              directed_graph.add_connection(step_key(step_input), step.id)
             end
           end
 
@@ -56,6 +66,8 @@ module Etna
             directed_graph.add_connection(output.outputSource.first, :primary_outputs)
           end
         end
+
+        graph
       end
 
       def source_as_string(source)
@@ -64,6 +76,10 @@ module Etna
     end
 
     class WorkflowInputParameter < Cwl
+      def source
+        [ :primary_inputs, self.id ]
+      end
+
       def as_steps_inputs_json_pair
         [self.id, {
             label: @attributes['label'],

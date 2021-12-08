@@ -33,16 +33,4 @@ if type -p gfind; then
   find=gfind
 fi
 
-# By default in development, just track file modified times as the touched target
-target=$dir
-
-# when running tests in CI, only run tests for projects that have actually changed.
-if ! [[ -z "$TARGET_ROOT_BRANCH" ]]; then
-  target="$(git diff --name-only $TARGET_ROOT_BRANCH $dir)"
-fi
-
-if [[ -z "$target" ]]; then
-  exit 0
-fi
-
-$find $target -type f ! -path "*.marker" ! -path '*/node_modules/*' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2
+$find $dir -type f ! -path "*.marker" ! -path '*/node_modules/*' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2

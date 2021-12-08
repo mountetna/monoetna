@@ -10,7 +10,9 @@ export type Attribute = {
   display_name: string;
   hidden: boolean;
   read_only: boolean;
-  validation: {} | null;
+  validation: {
+    value: any;
+  } | null;
   restricted: boolean;
   model_name?: string;
   link_model_name?: string;

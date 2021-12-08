@@ -1,7 +1,11 @@
 import * as _ from 'lodash';
 
 import {Attribute, Model} from '../models/model_types';
-import {QueryColumn, QuerySlice} from '../contexts/query/query_types';
+import {
+  EmptyQueryClause,
+  QueryColumn,
+  QuerySlice
+} from '../contexts/query/query_types';
 import {QueryGraph} from '../utils/query_graph';
 
 export const modelHasAttribute = (
@@ -213,4 +217,20 @@ export const isMatrixSlice = (slice: QuerySlice) =>
 
 export const hasMatrixSlice = (column: QueryColumn) => {
   return column.slices.some((slice) => isMatrixSlice(slice));
+};
+
+export const emptyQueryClauseStamp = (modelName: string) => {
+  return {
+    ...EmptyQueryClause,
+    modelName
+  };
+};
+
+export const queryColumnMatrixHeadings = (column: QueryColumn) => {
+  return column.slices
+    .filter((slice) => isMatrixSlice(slice))
+    .map((slice) => {
+      return (slice.clause.operand as string).split(',');
+    })
+    .flat();
 };

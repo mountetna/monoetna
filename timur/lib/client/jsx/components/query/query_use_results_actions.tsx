@@ -1,12 +1,10 @@
-import React, {useContext, useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 
 import downloadjs from 'downloadjs';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
-import {getAnswer} from 'etna-js/api/magma_api';
-import {Exchange} from 'etna-js/actions/exchange_actions';
-import {ReactReduxContext} from 'react-redux';
+import {requestAnswer} from 'etna-js/actions/magma_actions';
 import {
   QueryResponse,
   EmptyQueryResponse,
@@ -30,7 +28,6 @@ const useResultsActions = ({
   expandMatrices: boolean;
   setDataAndNumRecords: (data: QueryResponse, count: number) => void;
 }) => {
-  let {store} = useContext(ReactReduxContext);
   const invoke = useActionInvoker();
 
   const runQuery = useCallback(() => {
@@ -38,35 +35,25 @@ const useResultsActions = ({
 
     let numRecords = 0;
 
-    let exchange = new Exchange(store.dispatch, 'query-post-magma');
     setDataAndNumRecords(EmptyQueryResponse, 0);
-    getAnswer({query: countQuery}, exchange.fetch.bind(exchange))
-      .then((countData) => {
+    invoke(requestAnswer({query: countQuery}))
+      .then((countData: {answer: number}) => {
         numRecords = countData.answer;
-        return getAnswer(
-          {query, page_size: pageSize, page: page + 1},
-          exchange.fetch.bind(exchange)
+        return invoke(
+          requestAnswer({query, page_size: pageSize, page: page + 1})
         );
       })
-      .then((answerData) => {
+      .then((answerData: QueryResponse) => {
         setDataAndNumRecords(answerData, numRecords);
         // setQueries([...queries].splice(0, 0, builder));
       })
-      .catch((e) => {
-        e.then((error: {[key: string]: string[]}) => {
+      .catch((e: any) => {
+        Promise.resolve(e).then((error: {[key: string]: string[]}) => {
           console.error(error);
           invoke(showMessages(error.errors || [error.error] || error));
         });
       });
-  }, [
-    query,
-    countQuery,
-    pageSize,
-    page,
-    invoke,
-    store.dispatch,
-    setDataAndNumRecords
-  ]);
+  }, [query, countQuery, pageSize, page, invoke, setDataAndNumRecords]);
 
   const userColumns = useMemo(() => {
     let columnLabels = columns.map(
@@ -81,17 +68,15 @@ const useResultsActions = ({
   const downloadData = useCallback(() => {
     if ('' === query) return;
 
-    let exchange = new Exchange(store.dispatch, 'query-post-tsv-magma');
-    getAnswer(
-      {
+    invoke(
+      requestAnswer({
         query,
         format: 'tsv',
         user_columns: userColumns,
         expand_matrices: expandMatrices
-      },
-      exchange.fetch.bind(exchange)
+      })
     )
-      .then((answer) => {
+      .then((answer: any) => {
         downloadjs(
           answer,
           `${
@@ -100,13 +85,13 @@ const useResultsActions = ({
           'text/tsv'
         );
       })
-      .catch((error) => {
+      .catch((error: any) => {
         Promise.resolve(error).then((e) => {
           console.error(e);
           invoke(showMessages(e.errors || [e.toString()]));
         });
       });
-  }, [query, userColumns, store.dispatch, invoke, expandMatrices]);
+  }, [query, userColumns, invoke, expandMatrices]);
 
   return {
     runQuery,

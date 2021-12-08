@@ -57,9 +57,11 @@ class Vulcan
 
       # Ensure that the primary inputs, at least, have been loaded so that the status endpoint can report
       # meaningful steps running.
-      pi = build_target_for(:primary_inputs)
-      if pi.should_build?(storage)
-        run!(storage: storage, build_target: pi, token: nil)
+      workflow.inputs.each do |input|
+        pi = build_target_for(workflow.step_key(input))
+        if pi.should_build?(storage)
+          run!(storage: storage, build_target: pi, token: nil)
+        end
       end
     end
 
@@ -269,9 +271,12 @@ class Vulcan
         input_files = []
         script = nil
 
-        if step_name == :primary_inputs
+        if step_name.is_a?(Symbol) && step_name =~ /^primary_inputs_/
+          var_name = step_name.to_s.sub(/^primary_inputs_/,'')
           script = {}
           workflow.inputs.zip(primary_input_material_sources).each do |input, source|
+            next if var_name != input.id
+
             output_filenames << input.id
             input_files << source.take_as_input(input.id)
             script[input.id] = input_files.last
@@ -311,7 +316,7 @@ class Vulcan
 
           step.in.each do |step_in|
             source_step_name, source_output_name = step_in.source
-            input_file = build_target_for(source_step_name, cache).take_as_input(source_output_name, step_in.id)
+            input_file = build_target_for(workflow.step_key(step_in), cache).take_as_input(source_output_name, step_in.id)
             if input_file.nil?
               raise "Could not find output #{source_output_name.inspect} from source #{source_step_name.inspect} while building input #{step_in.id.inspect} for step #{step.id.inspect}"
             end
