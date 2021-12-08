@@ -56,7 +56,7 @@ $(eval seen_images:=$(seen_images) $(1)!)
 $(shell if ! test -e $(1)/image.marker; then touch -t 0001011000 $(1)/image.marker; fi)
 
 $(foreach df,$(2),$(call image_target2,$(shell dirname $(df)),$(call buildable_dependent_image_dockerfiles,$(df))))
-
+$(info $(1)/image.marker: $(call find_updated_sources,$(1)) $(updated_build_files) $(foreach df,$(2),$(shell dirname $(df))/image.marker))
 $(1)/image.marker: $(call find_updated_sources,$(1)) $(updated_build_files) $(foreach df,$(2),$(shell dirname $(df))/image.marker)
 	@echo
 	@echo Changed files detected, issuing build: $$?
@@ -79,7 +79,6 @@ $(1)/image-test.marker: $(1)/image.marker
 	set -e; if [ -z "$${NO_TEST}" ] && [ -e $$(shell dirname $$@)/Makefile ]; then make -C $$(shell dirname $$@) run-image-test; fi
 	touch $$@
 
-$(info $(1)/image-test.marker)
 endef
 
 define release_image_target1
@@ -90,7 +89,6 @@ $(1)/image-release.marker: $(1)/image-test.marker
 		touch $$@; \
 	fi
 
-$(info $(1)/image-release.marker)
 endef
 
 define image_target_here

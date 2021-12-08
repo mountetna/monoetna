@@ -2,10 +2,11 @@ import React, {useMemo, useCallback, useContext} from 'react';
 
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import {QueryColumnContext} from '../../contexts/query/query_column_context';
-import {QuerySlice, EmptyQueryClause} from '../../contexts/query/query_types';
+import {QuerySlice} from '../../contexts/query/query_types';
 import {
   selectMatrixModelNames,
-  selectCollectionModelNames
+  selectCollectionModelNames,
+  emptyQueryClauseStamp
 } from '../../selectors/query_selector';
 
 const useSliceMethods = (
@@ -27,9 +28,7 @@ const useSliceMethods = (
       ...column,
       slices: [...(column.slices || [])].concat({
         modelName: '',
-        clause: {
-          ...EmptyQueryClause
-        }
+        clause: emptyQueryClauseStamp('')
       })
     });
   }, [patchQueryColumn, column, columnIndex]);

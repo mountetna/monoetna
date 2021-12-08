@@ -1,9 +1,10 @@
 import * as _ from 'lodash';
 
+import {QueryClause} from '../../contexts/query/query_types';
+
 export default class FilterOperator {
-  attributeType: string;
-  operator: string;
   isColumnFilter: boolean;
+  clause: QueryClause;
 
   static queryOperatorsByType: {[key: string]: {[key: string]: string}} = {
     base: {
@@ -58,39 +59,67 @@ export default class FilterOperator {
 
   static commaSeparatedOperators: string[] = ['::in', '::slice', '::notin'];
 
-  constructor(
-    attributeType: string,
-    operator: string,
-    isColumnFilter: boolean
-  ) {
-    this.attributeType = attributeType;
-    this.operator = operator;
+  static numericTypes: string[] = ['number', 'integer', 'float'];
+
+  constructor({
+    clause,
+    isColumnFilter
+  }: {
+    clause: QueryClause;
+    isColumnFilter: boolean;
+  }) {
+    this.clause = clause;
     this.isColumnFilter = isColumnFilter;
   }
 
   hasOperand(): boolean {
     return !(
-      FilterOperator.terminalOperators.includes(this.operator) ||
-      FilterOperator.terminalInvertOperators.includes(this.operator)
+      FilterOperator.terminalOperators.includes(this.clause.operator) ||
+      FilterOperator.terminalInvertOperators.includes(this.clause.operator)
     );
+  }
+
+  hasPrepopulatedOperandOptions(): boolean {
+    return (
+      'string' === this.clause.attributeType && '' !== this.clause.attributeName
+    );
+  }
+
+  attributeInputType(): string {
+    switch (this.clause.attributeType) {
+      case 'string':
+        return 'text';
+      case 'date_time':
+        return 'date';
+      case 'integer':
+      case 'float':
+      case 'number':
+        return 'number';
+      case 'boolean':
+        return 'boolean';
+      case 'matrix':
+        return 'matrix';
+      default:
+        return 'text';
+    }
   }
 
   optionsForAttribute(): {[key: string]: string} {
     return this.isColumnFilter &&
-      this.attributeType in FilterOperator.columnOptionsByType
-      ? FilterOperator.columnOptionsByType[this.attributeType]
+      this.attributeInputType() in FilterOperator.columnOptionsByType
+      ? FilterOperator.columnOptionsByType[this.attributeInputType()]
       : this.attrOptionsWithBaseOptions();
   }
 
   attrOptionsWithBaseOptions(): {[key: string]: string} {
     return {
       ...FilterOperator.queryOperatorsByType.base,
-      ...(FilterOperator.queryOperatorsByType[this.attributeType] || {})
+      ...(FilterOperator.queryOperatorsByType[this.attributeInputType()] || {})
     };
   }
 
   prettify(): string {
-    return _.invert(this.optionsForAttribute())[this.operator];
+    return _.invert(this.optionsForAttribute())[this.clause.operator];
   }
 
   magmify(newOperator: string): string {
