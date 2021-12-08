@@ -90,18 +90,12 @@ class Polyphemus
   end
 
   class MetisFilesInFolder
-    attr_reader :files
+    attr_reader :identifier, :files
 
-    def initialize(folder_identifier, metis_files)
-      @folder_identifier = folder_identifier
+    def initialize(identifier, metis_files)
+      @identifier = identifier
       @files = metis_files
     end
-
-    def identifier
-      @folder_identifier
-    end
-
-    alias_method :folder_id, :identifier
 
     def file_paths_hashes
       files.map do |file|

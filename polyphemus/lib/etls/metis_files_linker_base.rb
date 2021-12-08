@@ -202,7 +202,7 @@ class Polyphemus::MetisFilesLinkerBase
 
   class MetisFilesForMagmaRecord < Polyphemus::MetisFilesInFolder
     def record_name
-      @folder_identifier
+      identifier
     end
   end
 end
