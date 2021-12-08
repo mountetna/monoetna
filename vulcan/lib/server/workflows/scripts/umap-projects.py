@@ -35,7 +35,7 @@ project_data = {
 			'Tissue': 'biospecimen_group#biospecimen_type',
 			'Fraction': 'sc_seq#cell_fraction'
 		},
-		'batch_recommendation' : 'Pool'
+		'batch_recommendation' : 'None or Pool'
 	},
 	'ipi': {
 		'seq_h5_counts_data': 'sc_rna_seq#raw_counts_h5',
@@ -72,7 +72,7 @@ project_data = {
 			'Compartment': 'sc_rna_seq#biospecimen',
 			'Chemistry': 'sc_rna_seq#chemistry'
 		},
-		'batch_recommendation' : 'Record_ID'
+		'batch_recommendation' : 'None or Record_ID'
 	}
 }
 
