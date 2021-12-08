@@ -43,7 +43,7 @@ describe Vulcan::Orchestration do
   describe '#serialized_step_path' do
     it 'works' do
       expect(serialized_step_path).to eql([
-          [:primary_inputs, "firstAdd", "pickANum", "finalStep", "aPlot", :primary_outputs],
+          [:primary_inputs_someIntWithoutDefault, :primary_inputs_someInt, "firstAdd", "pickANum", "finalStep", "aPlot", :primary_outputs],
       ])
     end
   end
@@ -56,7 +56,8 @@ describe Vulcan::Orchestration do
         expect(should_builds).to eql([
             [false, false, false, false],
             [false, false, false, false],
-            [false, false, false, false]
+            [false, false, false, false],
+            [false, false]
         ])
         expect(orchestration.next_runnable_build_targets(storage)).to eql([])
 
@@ -68,6 +69,7 @@ describe Vulcan::Orchestration do
             [false, true, false, false],
             [false, true, false, false],
             [false, true, false, false],
+            [false, true]
         ])
 
         expect(orchestration.next_runnable_build_targets(storage).map(&:last).map(&:cell_hash)).to eql([
@@ -86,13 +88,15 @@ describe Vulcan::Orchestration do
             [false, false, false, false],
             [false, false, false, false],
             [false, false, true, false],
+            [false, false]
         ])
       end
     end
 
     describe 'cell_hash calculations' do
       it 'works' do
-        expect(cell_hashes.flatten.sort.uniq.length).to eql(6)
+        expect(cell_hashes.flatten.sort.uniq.length).to eql(7)
+
 
         prev_cell_hashes = cell_hashes
         session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
@@ -100,6 +104,7 @@ describe Vulcan::Orchestration do
             [false, false, false, false],
             [false, false, false, false],
             [false, false, false, false],
+            [true, false],
         ])
 
         # Test verification: check the falsifiable condition that the reason these tests pass is because this function
@@ -109,6 +114,7 @@ describe Vulcan::Orchestration do
             [true, true, true, true],
             [true, true, true, true],
             [true, true, true, true],
+            [true, true],
         ])
 
         prev_cell_hashes = cell_hashes
@@ -117,6 +123,7 @@ describe Vulcan::Orchestration do
             [true, true, true, true],
             [true, true, true, true],
             [true, true, true, true],
+            [true, true]
         ])
 
         prev_cell_hashes = cell_hashes
@@ -125,6 +132,7 @@ describe Vulcan::Orchestration do
             [true, true, true, true],
             [true, true, true, true],
             [true, true, true, true],
+            [true, true]
         ])
 
         # Defining an input only effects downstream cells
@@ -134,6 +142,7 @@ describe Vulcan::Orchestration do
             [true, true, false, false],
             [true, true, false, false],
             [true, true, false, false],
+            [true, true]
         ])
       end
     end
