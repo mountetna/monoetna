@@ -162,13 +162,14 @@ steps:
     in:
       record_ids: verifyRecordNames/names
       project_data: projectData/project_data
-    out: [batch_options, no_batch_string]
+    out: [batch_options, no_batch_string, batch_recommendation]
   select_batch_options:
     run: ui-queries/select-autocomplete.cwl
     label: 'Batch Correction, Select batch_by'
     doc: 'Selects the data to use for marking batches. To skip batch correction, select the option of similar name. NOTE: Skipping batch correction is valid and normal to do before seeing evidence that batch effects exist!'
     in:
       a: determine_batch_options/batch_options
+      recommendation: determine_batch_options/batch_recommendation
     out: [batch_by]
   query_magma_and_merge_from_raw_h5:
     run: scripts/get_and_merge_anndata_from_raw_h5.cwl
