@@ -261,13 +261,12 @@ class Vulcan
 
     # Cache is used to save effort in computing common recursive targets within a single calculation session.
     # Do not pass an actual value in for it.
-    def build_target_for(step_name, cache = {}, var_name: nil)
-      cache_name = "#{step_name}#{var_name}"
-      if cache.include?(cache_name)
-        return cache[cache_name]
+    def build_target_for(step_name, cache = {})
+      if cache.include?(step_name)
+        return cache[step_name]
       end
 
-      cache[cache_name] = begin
+      cache[step_name] = begin
         output_filenames = []
         input_files = []
         script = nil
