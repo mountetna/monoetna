@@ -5,9 +5,11 @@ import React, {useMemo, useCallback, useState, useEffect} from 'react';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {Debouncer} from 'etna-js/utils/debouncer';
-import {EmptyQueryClause, QueryClause} from '../../contexts/query/query_types';
+import {QueryClause} from '../../contexts/query/query_types';
+import {emptyQueryClauseStamp} from '../../selectors/query_selector';
 import FilterOperator from './query_filter_operator';
 import useQueryClause from './query_use_query_clause';
 import {QueryGraph} from '../../utils/query_graph';
@@ -39,9 +41,13 @@ const QueryFilterClause = ({
   const [previousOperandValue, setPreviousOperandValue] = useState(
     '' as string | number
   );
+  const [previousAttributeName, setPreviousAttributeName] = useState(
+    clause.attributeName
+  );
   const [debouncer, setDebouncer] = useState(
     () => new Debouncer({windowMs: waitTime, eager})
   );
+
   // Clear the existing debouncer and accept any new changes to the settings
   useEffect(() => {
     const debouncer = new Debouncer({windowMs: waitTime, eager});
@@ -49,23 +55,60 @@ const QueryFilterClause = ({
     return () => debouncer.reset();
   }, [waitTime, eager]);
 
-  const {modelAttributes, attributeType} = useQueryClause({
+  const {
+    modelAttributes,
+    attributeType,
+    distinctAttributeValues,
+    fetchDistinctAttributeValues
+  } = useQueryClause({
     clause,
     graph
   });
 
   const filterOperator = useMemo(() => {
-    return new FilterOperator(attributeType, clause.operator, isColumnFilter);
-  }, [attributeType, clause.operator, isColumnFilter]);
+    return new FilterOperator({
+      clause,
+      isColumnFilter
+    });
+  }, [clause, isColumnFilter]);
 
   useEffect(() => {
     // When user selects a different attribute, update the type
-    if (attributeType !== clause.attributeType)
+    if (attributeType !== clause.attributeType) {
       patchClause({
         ...clause,
         attributeType
       });
+    }
   }, [attributeType, clause, patchClause]);
+
+  useEffect(() => {
+    // When component loads, if clause already populated then
+    //    fetch the pre-selected attribute values.
+    if (
+      '' !== clause.attributeName &&
+      filterOperator.hasPrepopulatedOperandOptions()
+    ) {
+      fetchDistinctAttributeValues();
+    }
+  }, []);
+
+  useEffect(() => {
+    // When user selects a different attribute, update the pre-populated options
+    if (
+      previousAttributeName !== clause.attributeName &&
+      '' !== clause.attributeName &&
+      filterOperator.hasPrepopulatedOperandOptions()
+    ) {
+      setPreviousAttributeName(clause.attributeName);
+      fetchDistinctAttributeValues();
+    }
+  }, [
+    clause.attributeName,
+    filterOperator,
+    previousAttributeName,
+    fetchDistinctAttributeValues
+  ]);
 
   const handleAttributeSelect = useCallback(
     (attributeName: string) => {
@@ -108,10 +151,7 @@ const QueryFilterClause = ({
 
   const handleModelSelect = useCallback(
     (modelName: string) => {
-      patchClause({
-        ...EmptyQueryClause,
-        modelName
-      });
+      patchClause(emptyQueryClauseStamp(modelName));
     },
     [patchClause]
   );
@@ -161,14 +201,33 @@ const QueryFilterClause = ({
       </Grid>
       <Grid item xs={3}>
         {filterOperator.hasOperand() ? (
-          <FormControl>
-            <TextField
-              id={uniqId(`operand-${clauseIndex}`)}
-              value={operandValue}
-              onChange={(e) =>
-                handleOperandChangeWithDebounce(e.target.value as string)
-              }
-            />
+          <FormControl fullWidth>
+            {filterOperator.hasPrepopulatedOperandOptions() &&
+            distinctAttributeValues.length > 0 ? (
+              <Autocomplete
+                id={uniqId(`operand-${clauseIndex}`)}
+                freeSolo
+                fullWidth
+                options={distinctAttributeValues}
+                renderInput={(params) => <TextField {...params} />}
+                onInputChange={(e, v, r) => {
+                  // Only send event if user manually clears the value
+                  //   or selects a non-empty-string option.
+                  if ('' !== v || 'reset' !== r)
+                    handleOperandChangeWithDebounce(v || '');
+                }}
+                inputValue={operandValue.toString()}
+                data-testid='operand-autocomplete'
+              />
+            ) : (
+              <TextField
+                id={uniqId(`operand-${clauseIndex}`)}
+                value={operandValue}
+                onChange={(e) =>
+                  handleOperandChangeWithDebounce(e.target.value as string)
+                }
+              />
+            )}
           </FormControl>
         ) : null}
       </Grid>

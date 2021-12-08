@@ -6,11 +6,8 @@ import {makeStyles} from '@material-ui/core/styles';
 import Tooltip from '@material-ui/core/Tooltip';
 import AddIcon from '@material-ui/icons/Add';
 
-import {
-  QueryClause,
-  QueryFilter,
-  EmptyQueryClause
-} from '../../contexts/query/query_types';
+import {QueryClause, QueryFilter} from '../../contexts/query/query_types';
+import {emptyQueryClauseStamp} from '../../selectors/query_selector';
 import {QueryGraph} from '../../utils/query_graph';
 import QueryFilterClause from './query_filter_clause';
 import RemoveIcon from './query_remove_icon';
@@ -53,12 +50,7 @@ const QueryFilterControl = ({
       patchFilter({
         modelName,
         anyMap: {},
-        clauses: [
-          {
-            ...EmptyQueryClause,
-            modelName
-          }
-        ]
+        clauses: [emptyQueryClauseStamp(modelName)]
       });
     },
     [patchFilter]
@@ -92,7 +84,7 @@ const QueryFilterControl = ({
     patchFilter({
       ...filter,
       clauses: [...filter.clauses].concat([
-        {...EmptyQueryClause, modelName: filter.modelName}
+        emptyQueryClauseStamp(filter.modelName)
       ])
     });
   }, [patchFilter, filter]);
