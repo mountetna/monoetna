@@ -580,3 +580,7 @@ def create_metis_file(file_name, file_path, file_hash: SecureRandom.hex, updated
     folder_id: folder_id
   })
 end
+
+def create_metis_files_in_folder(files, folder_id: 1)
+  [Polyphemus::MetisFilesInFolder.new(folder_id, files)]
+end

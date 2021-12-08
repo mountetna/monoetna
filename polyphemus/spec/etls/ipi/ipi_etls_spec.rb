@@ -416,11 +416,11 @@ describe Polyphemus::Ipi::IpiWatchFilesEtl do
 
     describe 'updates magma records' do
       it "when scanner finds new files" do
-        etl.process(cursor, [
+        etl.process(cursor, create_metis_files_in_folder([
           create_metis_file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", project_name: project_name, bucket_name: bucket_name),
           create_metis_file("PATIENT001.T1.comp.blahblah2.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", project_name: project_name, bucket_name: bucket_name),
           create_metis_file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", project_name: project_name, bucket_name: bucket_name),
-        ])
+        ]))
 
         # Make sure rna_seq records are updated
         expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -454,9 +454,9 @@ describe Polyphemus::Ipi::IpiWatchFilesEtl do
 
     describe 'updates magma records' do
       it "when scanner finds new files for file attribute" do
-        etl.process(cursor, [
+        etl.process(cursor, create_metis_files_in_folder([
           create_metis_file("PATIENT001.T1.comp.deduplicated.cram", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.deduplicated.cram", project_name: project_name, bucket_name: bucket_name),
-        ])
+        ]))
 
         # Make sure rna_seq records are updated
         expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -486,10 +486,10 @@ describe Polyphemus::Ipi::IpiWatchFilesEtl do
       end
 
       it "when scanner finds new files for file_collection attribute" do
-        etl.process(cursor, [
+        etl.process(cursor, create_metis_files_in_folder([
           create_metis_file("PATIENT001.T1.comp.unmapped.1.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.1.fastq.gz", project_name: project_name, bucket_name: bucket_name),
           create_metis_file("PATIENT001.T1.comp.unmapped.2.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.2.fastq.gz", project_name: project_name, bucket_name: bucket_name),
-        ])
+        ]))
 
         # Make sure rna_seq records are updated
         expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -511,9 +511,9 @@ describe Polyphemus::Ipi::IpiWatchFilesEtl do
       end
 
       it "correctly ignores non-cancer files" do
-        etl.process(cursor, [
+        etl.process(cursor, create_metis_files_in_folder([
           create_metis_file("PATIENT001.T1.NAFLD.blahblah3.junction", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.NAFLD/PATIENT001.T1.NAFLD.blahblah3.junction"),
-        ])
+        ]))
 
         # Make sure rna_seq records are NOT updated
         expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -536,9 +536,9 @@ describe Polyphemus::Ipi::IpiWatchFilesEtl do
           folder("bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor")
         ] }
         it "correctly renames renamed tube_names" do
-          etl.process(cursor, [
+          etl.process(cursor, create_metis_files_in_folder([
             create_metis_file("WRONG001.T1.rna.tumor.deduplicated.cram.crai", "bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor/WRONG001.T1.rna.tumor.deduplicated.cram.crai", project_name: project_name, bucket_name: bucket_name),
-          ])
+          ]))
 
           # Make sure rna_seq records are updated for renamed patient, but pointing to the "wrong" file locations
           expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
