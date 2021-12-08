@@ -1,6 +1,6 @@
 import React from 'react';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import {WithInputParams} from './input_types';
+import {DataEnvelope, WithInputParams} from './input_types';
 import {maybeOfNullable, some, withDefault} from "../../../../selectors/maybe";
 import {flattenStringOptions, StringOptions} from "./monoids";
 import {useMemoized} from "../../../../selectors/workflow_selectors";
@@ -30,7 +30,7 @@ export default function SelectAutocompleteInput({data, onChange, ...props}: With
   );
 };
 
-function pullRecommendation<T>(data: T): [T, string | null] {
+function pullRecommendation<T extends DataEnvelope<any>>(data: T | null | undefined): [T | null | undefined, string | null] {
   
   if (data != null) {
   
