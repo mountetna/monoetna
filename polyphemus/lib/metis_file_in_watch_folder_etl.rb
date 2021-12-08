@@ -33,7 +33,7 @@ class Polyphemus
     end
 
     def process(cursor, files)
-      group_by_watch_type(cursor, files).each do |watch_type, files|
+      group_by_watch_type(cursor, flatten_grouped_files(files)).each do |watch_type, files|
         process_files(cursor, files, watch_type)
       end
     end
@@ -55,10 +55,18 @@ class Polyphemus
       ))
     end
 
+    def execute_request(find_request, i)
+      raw_files = super
+
+      raw_files.group_by(&:folder_id).map do |folder_id, files|
+        MetisFilesInFolder.new(folder_id, files)
+      end
+    end
+
     def matching_bucket_config(cursor)
       @bucket_watch_configs.find do |c|
         c.project_name == cursor[:project_name] \
-     && c.bucket_name == cursor[:bucket_name]
+          && c.bucket_name == cursor[:bucket_name]
       end.tap do |bucket_config|
         if bucket_config.nil?
           raise "Could not find a configured bucket config for the cursor, possibly reset the cursor or fix etl config"
@@ -74,6 +82,45 @@ class Polyphemus
         bucket_name: cursor[:bucket_name],
         watch_type: bucket_config.all_watch_types,
       ).all
+    end
+
+    def flatten_grouped_files(grouped_metis_files)
+      grouped_metis_files.map(&:files).flatten
+    end
+  end
+
+  class MetisFilesInFolder
+    attr_reader :files
+
+    def initialize(folder_identifier, metis_files)
+      @folder_identifier = folder_identifier
+      @files = metis_files
+    end
+
+    def identifier
+      @folder_identifier
+    end
+
+    alias_method :folder_id, :identifier
+
+    def file_paths_hashes
+      files.map do |file|
+        [file.file_path, file.file_hash]
+      end
+    end
+
+    def file_path
+      files.map(&:file_path).join(",")
+    end
+
+    def updated_at
+      files.map do |file|
+        file.updated_at
+      end.minmax.last
+    end
+
+    def length
+      files.length
     end
   end
 end

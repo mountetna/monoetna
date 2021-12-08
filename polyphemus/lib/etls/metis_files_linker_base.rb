@@ -200,24 +200,9 @@ class Polyphemus::MetisFilesLinkerBase
     end.compact
   end
 
-  class MetisFilesForMagmaRecord
-    attr_reader :record_name, :files
-
-    def initialize(magma_record_name, metis_files)
-      @record_name = magma_record_name
-      @files = metis_files
-    end
-
-    def file_paths_hashes
-      files.map do |file|
-        [file.file_path, file.file_hash]
-      end
-    end
-
-    def updated_at
-      files.map do |file|
-        file.updated_at
-      end.minmax.last
+  class MetisFilesForMagmaRecord < Polyphemus::MetisFilesInFolder
+    def record_name
+      @folder_identifier
     end
   end
 end

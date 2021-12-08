@@ -93,4 +93,53 @@ describe Polyphemus::MetisFileInWatchFolderEtl do
     run_etl_command("test_metis_file_in_watch_folder_etl", "run")
     expect(etl.process_calls.length).to eq(1)
   end
+
+  it "should capture all files in a single folder" do
+    stub_watch_folders([{
+      project_name: project_name,
+      bucket_name: bucket_name,
+      updated_at: "2021-01-01 00:00:00",
+      folder_path: "path1/path1_1",
+      metis_id: 1,
+      watch_type: "link_files",
+    }])
+    stub_metis_setup
+    stub_list_folder(
+      project: project_name,
+      bucket: bucket_name,
+    )
+    response = {
+      files: [{
+        project_name: project_name,
+        bucket_name: bucket_name,
+        file_path: "path1/path1_1/sample.txt",
+        updated_at: "2021-01-01 00:00:00",
+        folder_id: 1
+      }, {
+        project_name: project_name,
+        bucket_name: bucket_name,
+        file_path: "path1/path1_1/sample2.txt",
+        updated_at: "2021-01-01 00:01:00",
+        folder_id: 1
+      }],
+    }
+
+    stub_bucket_find(
+      project: project_name,
+      bucket: bucket_name,
+      response_body: response,
+      response_body_2: response
+    )
+
+    etl = etl_executor.subcommands["run"].etl
+
+    run_etl_command("test_metis_file_in_watch_folder_etl", "run")
+    
+    expect(etl.process_calls.length).to eq(1)
+    # 1 grouped file object
+    expect(etl.process_calls.first.last.length).to eq(1)
+    # that should contain two files
+    expect(etl.process_calls.first.last.first.is_a?(Polyphemus::MetisFilesInFolder)).to eq(true)
+    expect(etl.process_calls.first.last.first.length).to eq(2)
+  end
 end
