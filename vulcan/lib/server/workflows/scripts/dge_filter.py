@@ -24,10 +24,8 @@ min_pct = float(input_var('min_pct'))
 pct_cols = [s for s in DEdf_filt.keys() if (s=="pts" or s.startswith("pts_"))]
 pct_col1 = list(DEdf_filt[pct_cols[0]])
 pct_col2 = list(DEdf_filt[pct_cols[1]])
-pct_passed = list(map(
-    lambda i: (pct_col1[i] >= min_pct or pct_col2[i] >= min_pct),
-    list(DEdf_filt.index)
-))
+pct_passed = [pct1 > min_pct or pct2 > min_pct for pct1, pct2 in zip(pct_col1, pct_col2)]
+
 DEdf_filt = DEdf_filt.loc[pct_passed]
 
 ## Output Filtered Results
