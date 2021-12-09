@@ -160,6 +160,7 @@ declare module 'etna-js/selectors/magma' {
 
 declare module 'etna-js/actions/magma_actions' {
   export function requestModels(): any;
+  export function requestAnswer(question: any): any;
 }
 
 declare module 'etna-js/utils/debounce' {

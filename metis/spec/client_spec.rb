@@ -473,6 +473,18 @@ describe MetisShell do
 
       expect(Metis::Folder.count).to eq(0)
     end
+    
+    it 'removes a folder recursively' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      old_folder = create_folder('athena', 'old', folder: helmet_folder, bucket: bucket)
+
+      expect(Metis::Folder.count).to eq(2)
+
+      expect_output("metis://athena/armor", "rm", "-r", "helmet") { // }
+
+      expect(Metis::Folder.count).to eq(0)
+    end
   end
 
   describe MetisShell::Cp do

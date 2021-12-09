@@ -1,7 +1,11 @@
-import React, {useMemo, useState, useEffect} from 'react';
+import React, {useMemo, useState, useCallback} from 'react';
 import _ from 'lodash';
 
-import {QueryClause} from '../../contexts/query/query_types';
+import {Cancellable} from 'etna-js/utils/cancellable';
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import {showMessages} from 'etna-js/actions/message_actions';
+import {requestAnswer} from 'etna-js/actions/magma_actions';
+import {QueryClause, QueryResponse} from '../../contexts/query/query_types';
 import {selectAllowedModelAttributes} from '../../selectors/query_selector';
 import {visibleSortedAttributesWithUpdatedAt} from '../../utils/attributes';
 import {QueryGraph} from '../../utils/query_graph';
@@ -13,6 +17,11 @@ const useQueryClause = ({
   clause: QueryClause;
   graph: QueryGraph;
 }) => {
+  const [distinctAttributeValues, setDistinctAttributeValues] = useState(
+    [] as string[]
+  );
+  const invoke = useActionInvoker();
+
   const modelAttributes = useMemo(() => {
     if ('' !== clause.modelName) {
       const template = graph.template(clause.modelName);
@@ -30,33 +39,47 @@ const useQueryClause = ({
   const attributeType = useMemo(() => {
     if ('' !== clause.attributeName) {
       const template = graph.template(clause.modelName);
-      if (!template) return 'text';
+      if (!template) return '';
 
-      switch (
-        template.attributes[clause.attributeName].attribute_type.toLowerCase()
-      ) {
-        case 'string':
-          return 'text';
-        case 'date_time':
-          return 'date';
-        case 'integer':
-        case 'float':
-        case 'number':
-          return 'number';
-        case 'boolean':
-          return 'boolean';
-        case 'matrix':
-          return 'matrix';
-        default:
-          return 'text';
-      }
+      return template.attributes[
+        clause.attributeName
+      ].attribute_type.toLowerCase();
     }
-    return 'text';
+    return '';
   }, [clause.attributeName, clause.modelName, graph]);
+
+  const fetchDistinctAttributeValues = useCallback(() => {
+    const cancellable = new Cancellable();
+
+    if ('' === clause.modelName || '' === clause.attributeName) {
+      setDistinctAttributeValues([]);
+    } else if ('string' !== clause.attributeType) {
+      setDistinctAttributeValues([]);
+    } else {
+      cancellable
+        .race(
+          invoke(
+            requestAnswer({
+              query: [clause.modelName, '::distinct', clause.attributeName]
+            })
+          )
+        )
+        .then(({result, cancelled}: any) => {
+          if (result && !cancelled) setDistinctAttributeValues(result.answer);
+        })
+        .catch((e: any) => {
+          invoke(showMessages([e]));
+        });
+    }
+
+    return () => cancellable.cancel();
+  }, [clause, invoke]);
 
   return {
     modelAttributes,
-    attributeType
+    attributeType,
+    fetchDistinctAttributeValues,
+    distinctAttributeValues
   };
 };
 

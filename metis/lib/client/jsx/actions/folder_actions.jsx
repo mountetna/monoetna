@@ -14,15 +14,22 @@ export const createFolder = ({bucket_name, folder_name, parent_folder}) => (disp
       errorMessage(dispatch, 'warning', 'Folder creation failed', error => error)
     );
 
-export const removeFolder = ({bucket_name, folder}) => (dispatch) => {
-  if (!confirm(`Are you sure you want to remove ${folder.folder_path}?`)) return;
-
+export const removeFolder = ({bucket_name, folder, recursive}) => (dispatch) => {
   deleteFolder(
-    CONFIG.project_name, bucket_name, folder.folder_path
+    CONFIG.project_name, bucket_name, folder.folder_path, recursive
   )
     .then(({folders}) => dispatch(removeFolders(folders)))
     .catch(
-      errorMessage(dispatch, 'warning', 'Folder removal failed', error => error)
+      response => response.then(
+        ({error}) => {
+          if (error == 'Folder is not empty') {
+            if (!confirm(`"${folder.folder_path}" is not empty. Are you sure you want to remove the folder and its contents?`)) return;
+            removeFolder({bucket_name, folder, recursive: true})(dispatch);
+            return;
+          }
+          errorMessage(dispatch, 'warning', 'Folder removal failed', error => error)(error);
+        }
+      )
     );
 }
 

@@ -372,8 +372,8 @@ class MetisClient < Client
     end
   end
 
-  def remove_folder(project_name, folder_path)
-    response = delete_request("/#{project_name}/folder/remove/#{URI.encode(folder_path)}")
+  def remove_folder(project_name, folder_path, recursive=false)
+    response = delete_request("/#{project_name}/folder/remove/#{URI.encode(folder_path)}",recursive ? { recursive: true } : {})
     raise MetisClient::Error, "Could not remove folder #{folder_path}\n#{error(response)}" unless response.code == "200"
   end
 
@@ -420,8 +420,10 @@ class MetisClient < Client
     https.request(req)
   end
 
-  def delete_request(path)
+  def delete_request(path, body={})
     req = delete(path)
+    req['Content-Type'] = 'application/json'
+    req.body = body.to_json
     https.request(req)
   end
 
@@ -794,6 +796,15 @@ EOT
 
   class Rm < Command
     usage "rm <remote_path>"
+
+    def parse(args)
+      parse_opts(args) do |opts|
+        opts.on("-r", "--recursive", "Recursive folder removal") do |n|
+          options[:recursive] = true
+        end
+      end
+    end
+
     def run(path)
       raise ShellError, 'No project is selected' if !@shell.project_name
 
@@ -819,7 +830,7 @@ EOT
       end
 
       if folder
-        @shell.client.remove_folder(@shell.project_name, path)
+        @shell.client.remove_folder(@shell.project_name, path, options[:recursive])
         return
       end
 
