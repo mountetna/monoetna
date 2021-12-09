@@ -126,14 +126,14 @@ describe Polyphemus::MetisFilesLinkerBase do
 
     it 'can merge in a few files into a non empty collection attribute' do
       @record_one_name, attrs = make_record({
-        two: [
+        "two" => [
           {
-            original_filename: "two-a",
-            path: "metis://#{project_name}/#{bucket_name}/processed/record-1/two-a"
+            "original_filename" => "two-a",
+            "path" => "metis://#{project_name}/#{bucket_name}/processed/record-1/two-a"
           },
           {
-            original_filename: "two-b",
-            path: "metis://#{project_name}/#{bucket_name}/processed/record-1/two-b"
+            "original_filename" => "two-b",
+            "path" => "metis://#{project_name}/#{bucket_name}/processed/record-1/two-b"
           },
         ]
       })
@@ -150,16 +150,16 @@ describe Polyphemus::MetisFilesLinkerBase do
           @record_one_name => {
             two: [
               {
-                original_filename: "two-a",
-                path: "metis://#{project_name}/#{bucket_name}/processed/#{@record_one_name}/two-a"
+                "original_filename" => "two-a",
+                "path" => "metis://#{project_name}/#{bucket_name}/processed/#{@record_one_name}/two-a"
               },
               {
-                original_filename: "two-c",
-                path: "metis://#{project_name}/#{bucket_name}/processed/#{@record_one_name}/two-c"
+                "original_filename" => "two-c",
+                "path" => "metis://#{project_name}/#{bucket_name}/processed/#{@record_one_name}/two-c"
               },
               {
-                original_filename: "two-b",
-                path: "metis://#{project_name}/#{bucket_name}/processed/#{@record_one_name}/two-b"
+                "original_filename" => "two-b",
+                "path" => "metis://#{project_name}/#{bucket_name}/processed/#{@record_one_name}/two-b"
               },
             ]
           }
@@ -181,12 +181,12 @@ describe Polyphemus::MetisFilesLinkerBase do
           @record_one_name => {
             two: [
               {
-                original_filename: "two-a",
-                path: "metis://#{project_name}/#{bucket_name}/processed/#{@record_one_name}/two-a"
+                "original_filename" => "two-a",
+                "path" => "metis://#{project_name}/#{bucket_name}/processed/#{@record_one_name}/two-a"
               },
               {
-                original_filename: "two-b",
-                path: "metis://#{project_name}/#{bucket_name}/processed/#{@record_one_name}/two-b"
+                "original_filename" => "two-b",
+                "path" => "metis://#{project_name}/#{bucket_name}/processed/#{@record_one_name}/two-b"
               },
             ]
           }
@@ -208,8 +208,8 @@ describe Polyphemus::MetisFilesLinkerBase do
         model_name => {
           @record_one_name => {
             one: {
-              original_filename: "one-a",
-              path: "metis://#{project_name}/#{bucket_name}/processed/#{@record_one_name}/one-a"
+              "original_filename" => "one-a",
+              "path" => "metis://#{project_name}/#{bucket_name}/processed/#{@record_one_name}/one-a"
             }
           }
         }

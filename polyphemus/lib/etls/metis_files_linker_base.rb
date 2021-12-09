@@ -107,12 +107,12 @@ class Polyphemus::MetisFilesLinkerBase
         next if payloads_for_attr.empty?
 
         if is_file_collection?(project_name, model_name, attribute_name)
-          if record.nil? || (existing_files = record[attribute_name]).nil?
+          if record.nil? || (existing_files = record[attribute_name.to_s]).nil?
             payload[attribute_name] = payloads_for_attr
           else
-            payload_by_paths = payloads_for_attr.map { |f| f[:path] }
+            payload_by_paths = payloads_for_attr.map { |f| f["path"] }
             payload[attribute_name] = payloads_for_attr + existing_files.select do |file|
-              !payload_by_paths.include?(file[:path])
+              !payload_by_paths.include?(file["path"])
             end
           end
         else
@@ -124,8 +124,8 @@ class Polyphemus::MetisFilesLinkerBase
 
   def serialize(file)
     {
-      path: metis_path(file),
-      original_filename: file.file_name,
+      "path" => metis_path(file),
+      "original_filename" => file.file_name,
     }
   end
 
@@ -200,9 +200,24 @@ class Polyphemus::MetisFilesLinkerBase
     end.compact
   end
 
-  class MetisFilesForMagmaRecord < Polyphemus::MetisFilesInFolder
-    def record_name
-      identifier
+  class MetisFilesForMagmaRecord
+    attr_reader :record_name, :files
+
+    def initialize(record_name, metis_files)
+      @record_name = record_name
+      @files = metis_files
+    end
+
+    def file_paths_hashes
+      files.map do |file|
+        [file.file_path, file.file_hash]
+      end
+    end
+
+    def updated_at
+      files.map do |file|
+        file.updated_at
+      end.minmax.last
     end
   end
 end
