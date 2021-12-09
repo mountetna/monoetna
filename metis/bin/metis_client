@@ -589,6 +589,9 @@ EOT
         opts.on("-l", "--long", "List file properties") do |n|
           options[:long] = true
         end
+        opts.on("-r", "--recursive", "List all (only) files recursively") do |n|
+          options[:recursive] = true
+        end
       end
     end
 
@@ -635,7 +638,39 @@ EOT
       )
     end
 
+    def list_all_files(folders, file_path)
+      files = []
+      folders.each do |folder|
+        new_file_path = ::File.join(file_path, folder[:folder_name])
+        folder[:contents] = @shell.client.list_folder(@shell.project_name, new_file_path)
+
+        folder[:contents][:files].each do |file|
+          file[:file_name] = ::File.join(new_file_path, file[:file_name])
+          files.push(file)
+        end
+        format_display(files: files, folders: [ folder ])
+
+        list_all_files(folder[:contents][:folders], new_file_path)
+      end
+      format_display(files: files)
+    end
+
     def display(files: [], folders: [], buckets: [])
+      if options[:recursive]
+        if folders.length > 0
+          file_path = ::File.dirname( folders[0][:bucket_name] + "/" + folders[0][:folder_path] )
+
+          format_display(files: files)
+          files = list_all_files(folders, file_path)
+          folders = []
+        end
+        return
+      end
+
+      format_display(files: files, folders: folders, buckets: buckets)
+    end
+
+    def format_display(files: [], folders: [], buckets: [])
       if options[:long]
         long_display(files: files, folders: folders, buckets: buckets)
       else
