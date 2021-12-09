@@ -229,8 +229,8 @@ class Polyphemus::MetisFilesLinkerBase
   class MetisFilesForMagmaRecord
     attr_reader :record_name, :files
 
-    def initialize(record_name, metis_files)
-      @record_name = record_name
+    def initialize(magma_record_name, metis_files)
+      @record_name = magma_record_name
       @files = metis_files
     end
 
