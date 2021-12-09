@@ -129,11 +129,15 @@ describe Polyphemus::MetisFilesLinkerBase do
         "two" => [
           {
             "original_filename" => "two-a",
-            "path" => "metis://#{project_name}/#{bucket_name}/processed/record-1/two-a"
+            "url" =>
+              "https://metis.test/#{project_name}/download/#{bucket_name}/rna_seq-1-raw_fastq_files-0?X-Etna-Signature=1&X-Etna-Expiration=2021-01-01T00%3A00%3A00%2B00%3A00&X-Etna-Nonce=1&X-Etna-Id=magma&X-Etna-Headers=",
+            "path" => "two-a"
           },
           {
             "original_filename" => "two-b",
-            "path" => "metis://#{project_name}/#{bucket_name}/processed/record-1/two-b"
+            "url" =>
+            "https://metis.test/#{project_name}/download/#{bucket_name}/rna_seq-1-raw_fastq_files-1?X-Etna-Signature=1&X-Etna-Expiration=2021-01-01T00%3A00%3A00%2B00%3A00&X-Etna-Nonce=1&X-Etna-Id=magma&X-Etna-Headers=",
+             "path" => "two-b"
           },
         ]
       })
@@ -159,7 +163,7 @@ describe Polyphemus::MetisFilesLinkerBase do
               },
               {
                 "original_filename" => "two-b",
-                "path" => "metis://#{project_name}/#{bucket_name}/processed/#{@record_one_name}/two-b"
+                "path" => "metis://#{project_name}/#{bucket_name}/rna_seq-1-raw_fastq_files-1"
               },
             ]
           }
