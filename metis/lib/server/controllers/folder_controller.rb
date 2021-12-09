@@ -71,9 +71,14 @@ class FolderController < Metis::Controller
 
     raise Etna::Forbidden, 'Parent folder is read-only' if folder.folder&.read_only?
 
-    raise Etna::BadRequest, 'Folder is not empty' unless folder.can_remove?
+    raise Etna::BadRequest, 'Folder is not empty' unless @params[:recursive] || folder.can_remove?
 
     response = { folders: [ folder.to_hash ] }
+
+    # remove contents if necessary
+    if @params[:recursive]
+      folder.remove_contents!
+    end
 
     # actually remove the folder
     folder.remove!

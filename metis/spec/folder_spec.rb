@@ -431,8 +431,8 @@ describe FolderController do
       @blueprints_folder = create_folder('athena', 'blueprints')
     end
 
-    def remove_folder path
-      delete("athena/folder/remove/files/#{path}")
+    def remove_folder(path, opts={})
+      delete("athena/folder/remove/files/#{path}", opts)
     end
 
     it 'removes a folder' do
@@ -502,6 +502,35 @@ describe FolderController do
       @blueprints_folder.refresh
       expect(Metis::Folder.last).to eq(@blueprints_folder)
       expect(@blueprints_folder.files).to eq([helmet_file])
+    end
+
+    it 'refuses to remove a folder that contains folders' do
+      old_folder = create_folder('athena', 'old', folder: @blueprints_folder)
+
+      token_header(:editor)
+      remove_folder('blueprints')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Folder is not empty')
+
+      @blueprints_folder.refresh
+      expect(Metis::Folder.all).to match_array([@blueprints_folder, old_folder])
+      expect(@blueprints_folder.folders).to eq([old_folder])
+    end
+
+    it 'removes a folder that contains files and folders if forced' do
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @blueprints_folder)
+      old_folder = create_folder('athena', 'old', folder: @blueprints_folder)
+      stubs.create_file('athena', 'files', 'blueprints/helmet.jpg', HELMET)
+
+      token_header(:editor)
+      remove_folder('blueprints', recursive: true)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq(1)
+
+      expect(Metis::Folder.count).to eq(0)
+      expect(Metis::File.count).to eq(0)
     end
   end
 
