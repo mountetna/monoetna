@@ -655,6 +655,7 @@ EOT
               d.strftime("%b %d %H:%M")
           },
           is_file ? (file[:archive_id] ? "archived" : "unarchived") : "n/a",
+          file[:file_hash] || "n/a",
           file[:file_name] || "#{file[:folder_name]}/"
         ]
       end + buckets.map do |bucket|
@@ -662,6 +663,7 @@ EOT
           bucket[:access],
           bucket[:count],
           bucket[:description],
+          "n/a",
           "n/a",
           "#{bucket[:bucket_name]}/"
         ]
