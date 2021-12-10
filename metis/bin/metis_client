@@ -639,8 +639,8 @@ EOT
     end
 
     def list_all_files(folders, file_path)
-      files = []
       folders.each do |folder|
+        files = []
         new_file_path = ::File.join(file_path, folder[:folder_name])
         folder[:contents] = @shell.client.list_folder(@shell.project_name, new_file_path)
 
@@ -648,11 +648,11 @@ EOT
           file[:file_name] = ::File.join(new_file_path, file[:file_name])
           files.push(file)
         end
+        folder[:folder_name] = new_file_path
         format_display(files: files, folders: [ folder ])
 
         list_all_files(folder[:contents][:folders], new_file_path)
       end
-      format_display(files: files)
     end
 
     def display(files: [], folders: [], buckets: [])
@@ -660,9 +660,8 @@ EOT
         if folders.length > 0
           file_path = ::File.dirname( folders[0][:bucket_name] + "/" + folders[0][:folder_path] )
 
-          format_display(files: files)
-          files = list_all_files(folders, file_path)
-          folders = []
+          format_display(files: files) unless files.empty?
+          list_all_files(folders, file_path)
         end
         return
       end

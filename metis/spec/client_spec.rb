@@ -182,8 +182,40 @@ describe MetisShell do
       stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
 
       expect_output("metis://athena/armor", "ls", "-l") {
-        "metis    Jun 17 04:37        n/a    helmet/\n"+
-        "metis 13 Jun 17 04:37 unarchived helmet.jpg\n"
+        "metis    Jun 17 04:37        n/a                              n/a helmet/\n"+
+        "metis 13 Jun 17 04:37 unarchived 6a0c7b898caf79d8137415427cca3b6e helmet.jpg\n"
+      }
+      Timecop.return
+    end
+
+    it 'lists files and folders recursively' do
+      Timecop.freeze(DateTime.parse("2020-06-17T04:37"))
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      blueprints_folder = create_folder('athena', 'blueprints', bucket: bucket)
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket, folder: blueprints_folder)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'armor', 'blueprints/helmet/helmet.jpg', HELMET)
+
+      expect_output("metis://athena/armor", "ls", "-r") {
+        "armor/blueprints/\n"+
+        "armor/blueprints/helmet/\n"+
+        "armor/blueprints/helmet/helmet.jpg\n"
+      }
+      Timecop.return
+    end
+
+    it 'lists files and folders recursively in long format' do
+      Timecop.freeze(DateTime.parse("2020-06-17T04:37"))
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      blueprints_folder = create_folder('athena', 'blueprints', bucket: bucket)
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket, folder: blueprints_folder)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'armor', 'blueprints/helmet/helmet.jpg', HELMET)
+
+      expect_output("metis://athena/armor", "ls", "-r", "-l") {
+        "metis  Jun 17 04:37 n/a n/a armor/blueprints/\n"+
+        "metis    Jun 17 04:37        n/a                              n/a armor/blueprints/helmet/\n"+
+        "metis 13 Jun 17 04:37 unarchived 6a0c7b898caf79d8137415427cca3b6e armor/blueprints/helmet/helmet.jpg\n"
       }
       Timecop.return
     end
@@ -241,7 +273,7 @@ describe MetisShell do
       stubs.create_file('athena', 'armor', 'helmet/helmet.jpg', HELMET)
 
       expect_output("metis://athena/armor", "ls", "-l", "helmet/helmet.jpg") {
-        "metis 13 Jun 17 04:37 unarchived armor/helmet/helmet.jpg\n"
+        "metis 13 Jun 17 04:37 unarchived 6a0c7b898caf79d8137415427cca3b6e armor/helmet/helmet.jpg\n"
       }
       Timecop.return
     end
