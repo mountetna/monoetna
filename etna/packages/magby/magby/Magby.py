@@ -80,7 +80,7 @@ class Magby(object):
         Performs an expressive query to Magma.
         :param projectName: str. Project name in Magma
         :param queryTerms: List[str]. Query terms to magma. See Magma documentation
-        :param formt: str. ?need to confirm? See Magma documentation
+        :param formt: str. "json" or "tsv". Adjusts the format of the returned data. See Magma documentation
         :param kwargs: Additional kwargs to pass to Magma class. Used for passing requests.Session with custom proxies
                         and other attributes
         :return: Dict
