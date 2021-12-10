@@ -6,6 +6,8 @@ class Polyphemus::MetisFilesLinkerBase
 
   attr_reader :bucket_name, :project_name
 
+  DOWNLOAD_REGEX = /^https:\/\/.*\/(?<project_name>.*)\/download\/(?<bucket_name>.*)\/(?<file_path>[^\?]*).*$/
+
   def initialize(project_name:, bucket_name:, record_name_regex:)
     @project_name = project_name
     @bucket_name = bucket_name
@@ -107,13 +109,13 @@ class Polyphemus::MetisFilesLinkerBase
         next if payloads_for_attr.empty?
 
         if is_file_collection?(project_name, model_name, attribute_name)
-          if record.nil? || (existing_files = record[attribute_name]).nil?
+          if record.nil? || (existing_files = record[attribute_name.to_s]).nil?
             payload[attribute_name] = payloads_for_attr
           else
-            payload_by_paths = payloads_for_attr.map { |f| f[:path] }
-            payload[attribute_name] = payloads_for_attr + existing_files.select do |file|
-              !payload_by_paths.include?(file[:path])
-            end
+            payload_by_filename = payloads_for_attr.map { |f| f["original_filename"] }
+            payload[attribute_name] = payloads_for_attr + convert_urls_to_metis_path(existing_files.select do |file|
+              !payload_by_filename.include?(file["original_filename"])
+            end)
           end
         else
           payload[attribute_name] = payloads_for_attr.first
@@ -124,9 +126,33 @@ class Polyphemus::MetisFilesLinkerBase
 
   def serialize(file)
     {
-      path: metis_path(file),
-      original_filename: file.file_name,
+      "path" => metis_path(file),
+      "original_filename" => file.file_name,
     }
+  end
+
+  def convert_urls_to_metis_path(existing_files)
+    #  Convert the download "url" value for existing files
+    #   to a metis://<path> so that we can re-send it back
+    #   to Magma in an update. Otherwise Magma doesn't know
+    #   what to do with a download URL and non-metis path.
+    existing_files.map do |file|
+      {
+        "original_filename" => file["original_filename"],
+        "path" => metis_path_from_download_url(file["url"])
+      }
+    end
+  end
+
+  def metis_path_from_download_url(download_url)
+    match = download_url.match(DOWNLOAD_REGEX)
+
+    begin
+      logger.error("Found an invalid existing file #{download_url}")
+      return nil
+    end if match.nil?
+
+    "metis://#{match[:project_name]}/#{match[:bucket_name]}/#{match[:file_path]}"
   end
 
   def current_magma_record_names(project_name, model_name)
