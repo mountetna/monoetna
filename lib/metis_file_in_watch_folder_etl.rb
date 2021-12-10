@@ -58,7 +58,7 @@ class Polyphemus
     def matching_bucket_config(cursor)
       @bucket_watch_configs.find do |c|
         c.project_name == cursor[:project_name] \
-     && c.bucket_name == cursor[:bucket_name]
+          && c.bucket_name == cursor[:bucket_name]
       end.tap do |bucket_config|
         if bucket_config.nil?
           raise "Could not find a configured bucket config for the cursor, possibly reset the cursor or fix etl config"
