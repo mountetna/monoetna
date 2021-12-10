@@ -196,10 +196,11 @@ describe MetisShell do
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       stubs.create_file('athena', 'armor', 'blueprints/helmet/helmet.jpg', HELMET)
 
+      ENV['COLUMNS'] = '80'
+
       expect_output("metis://athena/armor", "ls", "-r") {
         "armor/blueprints/\n"+
-        "armor/blueprints/helmet/\n"+
-        "armor/blueprints/helmet/helmet.jpg\n"
+        "armor/blueprints/helmet/  armor/blueprints/helmet/helmet.jpg\n"
       }
       Timecop.return
     end
@@ -211,6 +212,8 @@ describe MetisShell do
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket, folder: blueprints_folder)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       stubs.create_file('athena', 'armor', 'blueprints/helmet/helmet.jpg', HELMET)
+
+      ENV['COLUMNS'] = '80'
 
       expect_output("metis://athena/armor", "ls", "-r", "-l") {
         "metis  Jun 17 04:37 n/a n/a armor/blueprints/\n"+
