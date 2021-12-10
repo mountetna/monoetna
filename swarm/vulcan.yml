@@ -59,9 +59,9 @@ services:
     user: 1502:999 # vulcan:docker
     healthcheck:
       interval: 10s
-      retries: 3
-      start_period: 1s
-      test: bash -c 'curl http://localhost:3000 || exit 1'
+      retries: 5
+      start_period: 5s
+      test: curl http://localhost:3000
       timeout: 5s
     deploy:
       update_config:
