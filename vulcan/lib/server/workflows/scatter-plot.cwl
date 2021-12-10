@@ -2,11 +2,10 @@ cwlVersion: v1.1
 class: Workflow
 
 inputs:
-  1_Filler__spacer:
-    type: int
-    default: 200
-    label: "Filler - will be replaced with a data load step!"
-    doc: "Does nothing"
+  1_Data_Source__queryTerms:
+    type: string
+    label: "queryTerms string"
+    doc: "The set of terms for cunstructing a magma query towards the data of interest.  Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the chunk presented there!"
 
 outputs:
   the_plot:
@@ -15,10 +14,10 @@ outputs:
 
 steps:
   get_data:
-    run: scripts/mockDF.cwl
+    run: scripts/VIZ_query_df.cwl
     label: 'Fetch Data'
     in:
-      a: 1_Filler__spacer
+      queryTerms: 1_Data_Source__queryTerms
     out: [data_frame]
   fill_plot_options:
     run: ui-queries/scatter-plotly.cwl
