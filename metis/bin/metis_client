@@ -682,14 +682,14 @@ EOT
         is_file = file.include?(:file_name)
         [
           file[:author].split('|').first.to_s,
-          file[:size].to_s,
+          "%15s" % file[:size],
           DateTime.parse(file[:updated_at]).yield_self { |d|
             d.year < DateTime.now.year ?
               d.strftime("%b %d  %Y") :
               d.strftime("%b %d %H:%M")
           },
-          is_file ? (file[:archive_id] ? "archived" : "unarchived") : "n/a",
-          file[:file_hash] || "n/a",
+          is_file ? (file[:archive_id] ? "archived" : "unarchived") : "       n/a",
+          file[:file_hash] || "                             n/a",
           file[:file_name] || "#{file[:folder_name]}/"
         ]
       end + buckets.map do |bucket|
