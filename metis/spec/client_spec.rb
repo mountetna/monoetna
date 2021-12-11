@@ -182,8 +182,8 @@ describe MetisShell do
       stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
 
       expect_output("metis://athena/armor", "ls", "-l") {
-        "metis    Jun 17 04:37        n/a                              n/a helmet/\n"+
-        "metis 13 Jun 17 04:37 unarchived 6a0c7b898caf79d8137415427cca3b6e helmet.jpg\n"
+        "metis                 Jun 17 04:37        n/a                              n/a helmet/\n"+
+        "metis              13 Jun 17 04:37 unarchived 6a0c7b898caf79d8137415427cca3b6e helmet.jpg\n"
       }
       Timecop.return
     end
@@ -216,9 +216,9 @@ describe MetisShell do
       ENV['COLUMNS'] = '80'
 
       expect_output("metis://athena/armor", "ls", "-r", "-l") {
-        "metis  Jun 17 04:37 n/a n/a armor/blueprints/\n"+
-        "metis    Jun 17 04:37        n/a                              n/a armor/blueprints/helmet/\n"+
-        "metis 13 Jun 17 04:37 unarchived 6a0c7b898caf79d8137415427cca3b6e armor/blueprints/helmet/helmet.jpg\n"
+        "metis                 Jun 17 04:37        n/a                              n/a armor/blueprints/\n"+
+        "metis                 Jun 17 04:37        n/a                              n/a armor/blueprints/helmet/\n"+
+        "metis              13 Jun 17 04:37 unarchived 6a0c7b898caf79d8137415427cca3b6e armor/blueprints/helmet/helmet.jpg\n"
       }
       Timecop.return
     end
@@ -276,7 +276,7 @@ describe MetisShell do
       stubs.create_file('athena', 'armor', 'helmet/helmet.jpg', HELMET)
 
       expect_output("metis://athena/armor", "ls", "-l", "helmet/helmet.jpg") {
-        "metis 13 Jun 17 04:37 unarchived 6a0c7b898caf79d8137415427cca3b6e armor/helmet/helmet.jpg\n"
+        "metis              13 Jun 17 04:37 unarchived 6a0c7b898caf79d8137415427cca3b6e armor/helmet/helmet.jpg\n"
       }
       Timecop.return
     end
