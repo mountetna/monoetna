@@ -1,6 +1,6 @@
 import React from 'react';
 import {DataEnvelope} from './input_types';
-import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
+import { maybeOfNullable, some, withDefault, Maybe, mapSome } from '../../../../selectors/maybe';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import MultiselectStringInput from './multiselect_string';
 import { Slider } from '@material-ui/core';
@@ -93,7 +93,7 @@ export function dropdownInput(
   }
 
 export function MultiselectInput(
-  key: string = "filler", changeFxn: Function, value: string[],
+  key: string = "filler", changeFxn: Function, value: string[] | null,
   label: string, options: string[]) {
     
     return(
@@ -101,7 +101,7 @@ export function MultiselectInput(
         {label}
         <MultiselectStringInput
           data={{'0': options}}
-          value={some(value)}
+          value={value ? some(value) : null}
           onChange={(val: Maybe<string[]>) => changeFxn(withDefault(val, null), key)}
         />
       </div>
