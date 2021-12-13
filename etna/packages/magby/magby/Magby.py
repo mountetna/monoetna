@@ -88,7 +88,7 @@ class Magby(object):
         typeSelection = self._selectFormat('json')
         payload = {
             "project_name": projectName,
-            "query": queryTerms,
+            "query": queryTerms
         }
         if format=="tsv":
             typeSelection = self._selectFormat('meta')
