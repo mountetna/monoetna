@@ -31,6 +31,7 @@ RUN apt-get update \
       postgresql-client-10 \
       rsync \
       sshpass \
+      libvips \
       --no-install-recommends &&\
     rm -rf /var/lib/apt/lists/*
 
