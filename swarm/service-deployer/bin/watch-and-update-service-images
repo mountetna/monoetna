@@ -46,6 +46,7 @@ function runDeploy() {
   local tag="$2"
   local newsha="$3"
   local success=
+  local timeout=1
 
   echo "Attempting to deploy $newsha on $tag"
   postToSlack "Attempting deploy on ${serviceName} (${tag}@${newsha:8:6})"
@@ -58,22 +59,26 @@ function runDeploy() {
     case $state in
       created|completed)
         success=1
+        timeout=
         break
         ;;
       paused|rollback_completed)
+        timeout=
         break
         ;;
     esac
-    sleep 1
+    sleep 3
   done
-
-  echo "Deploy done"
 
   if [[ -n "$success" ]]; then
     touch "/deployed/${serviceName}-${newsha}"
     postToSlack "Deploy was successful."
   else
-    postToSlack "Deploy failed, check portainer logs."
+    if [[ -n "$timeout" ]]; then
+      postToSlack "Deploy timed out, it may succeed or fail, check portainer."
+    else
+      postToSlack "Deploy failed, check portainer logs."
+    fi
   fi
 }
 
