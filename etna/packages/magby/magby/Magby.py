@@ -80,19 +80,19 @@ class Magby(object):
         Performs an expressive query to Magma.
         :param projectName: str. Project name in Magma
         :param queryTerms: List[str]. Query terms to magma. See Magma documentation
-        :param formt: str. "json" or "tsv". Adjusts the format of the returned data. See Magma documentation
+        :param format: str. Adjusts the format of the returned data if set to "tsv". See Magma documentation
         :param kwargs: Additional kwargs to pass to Magma class. Used for passing requests.Session with custom proxies
                         and other attributes
         :return: Dict
         '''
         typeSelection = self._selectFormat('json')
-        if format=="tsv":
-            typeSelection = self._selectFormat('meta')
         payload = {
             "project_name": projectName,
             "query": queryTerms,
-            "format": format
         }
+        if format=="tsv":
+            typeSelection = self._selectFormat('meta')
+            payload['format']="tsv"
         magma = self._recordMagmaObj(endpoint='query', fmt=typeSelection[0], **kwargs)
         content, _ = self._call_api(payload, magma)
 
