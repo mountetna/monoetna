@@ -1,12 +1,9 @@
 import dataclasses
-from enum import Enum
-from types import NoneType
-from typing import Dict, Union, List, Literal, Tuple, Callable
-
 import re
+from typing import Dict, List, Callable, Optional
 
-from etna.utils.parser import parse_many_joined_by, Parser, literal_parser, take_left, eof_parser, either_parser, \
-  regex_parser, parser_apply, word_parser, parser_lift, ParseFailure
+from etna.utils.parser import parse_many_joined_by, Parser, literal_parser, take_left, eof_parser, regex_parser, \
+  parser_apply, parser_lift, either_parser
 
 ROLE_MAP = dict(
   a='admin',
@@ -27,6 +24,10 @@ class EtnaUser:
   flags: List[str]
   perm: List[Permission]
 
+  @property
+  def username(self):
+    return self.email.split('@')[0]
+
   @staticmethod
   def from_dict(payload: Dict[str, str]) -> "EtnaUser":
     name = payload['name']
@@ -45,7 +46,7 @@ class EtnaUser:
   def projects(self) -> List[str]:
     return [p.project_name for p in self.perm]
 
-  def project_permission(self, project_name: str) -> Union[Permission, NoneType]:
+  def project_permission(self, project_name: str) -> Optional[Permission]:
     for p in self.perm:
       if p.project_name == project_name:
         return p
@@ -82,7 +83,7 @@ class EtnaUser:
 def construct_permission(role: str) -> Callable[[List[str]], List[Permission]]:
   def construct_permissions(project_names: List[str]) -> List[Permission]:
     return [
-      Permission(role=ROLE_MAP[role], see_restricted=role==role.upper(), project_name=project_name)
+      Permission(role=ROLE_MAP[role.lower()], see_restricted=role==role.upper(), project_name=project_name)
       for project_name in project_names
     ]
   return construct_permissions
@@ -90,8 +91,8 @@ def construct_permission(role: str) -> Callable[[List[str]], List[Permission]]:
 role_parser: Parser[str] = take_left(regex_parser(re.compile(r"[aAeEvV]")), literal_parser(':'))
 permission_parser: Parser[List[Permission]] = parser_apply(
   parser_apply(parser_lift(construct_permission), role_parser),
-  parse_many_joined_by(word_parser, literal_parser(','))
-)
+  parse_many_joined_by(regex_parser(re.compile(r"[^,\s;]+")), literal_parser(',')))
+
 
 permissions_parser: Parser[List[List[Permission]]] = take_left(
   parse_many_joined_by(permission_parser, literal_parser(';')),

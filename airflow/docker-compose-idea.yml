@@ -1,0 +1,11 @@
+version: '3.4'
+
+services:
+  airflow_test:
+    user: airflow
+    image: airflow
+    command: 'true'
+    entrypoint: []
+    volumes:
+      - ./opt/plugins:/opt/airflow/plugins
+    #      - /var/run/docker.sock:/var/run/docker.sock:ro

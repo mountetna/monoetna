@@ -84,13 +84,18 @@ def parse_many(parser: Parser[A]) -> Parser[List[A]]:
       except ParseFailure as failure:
         break
 
-    return items
+    return items, cursor
 
-  return do_parsing
+  return Parser(do_parsing)
+
+# "Lift" a parsing value into a cell (singleton array) if it succeeds,
+# otherwise provide an empty array.
+def parser_maybe(parser: Parser[A]) -> Parser[List[A]]:
+  return either_parser(parser_map(parser, lambda v: [v]), parser_lift([]))
 
 def parse_many_joined_by(parser: Parser[A], sep: Parser[Any]) -> Parser[List[A]]:
   def with_head(head: List[A]) -> Parser[List[A]]:
-    return parser_map(either_parser(parser, parser_lift([])), lambda tail: head + tail)
+    return parser_map(parser_maybe(parser), lambda tail: head + tail)
 
   each_head: Parser[A] = take_left(parser, sep)
   head_parser: Parser[List[A]] = parse_many(each_head)
@@ -152,5 +157,4 @@ def token(p: Parser[A], bounds: Parser[Any] = whitespace_skipper) -> Parser[A]:
 
 int_parser: Parser[int] = parser_map(regex_parser(re.compile(r"[-+]?[0-9]+")), int)
 float_parser: Parser[float] = parser_map(regex_parser(re.compile(r"0\.\d\d+")), float)
-word_parser: Parser[str] = regex_parser(re.compile(r"\S+"))
 eof_parser: Parser[str] = regex_parser(re.compile(r"$"))

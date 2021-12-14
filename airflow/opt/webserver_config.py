@@ -16,15 +16,17 @@
 # specific language governing permissions and limitations
 # under the License.
 """Default configuration for the Airflow webserver"""
+import logging
 import os
 
+from flask_appbuilder.const import AUTH_REMOTE_USER
 from flask_appbuilder.security.manager import AUTH_DB
 
 # from flask_appbuilder.security.manager import AUTH_LDAP
 # from flask_appbuilder.security.manager import AUTH_OAUTH
 # from flask_appbuilder.security.manager import AUTH_OID
 # from flask_appbuilder.security.manager import AUTH_REMOTE_USER
-
+from etna.auth.etna_cookie_auth import EtnaSecurityManager
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -44,10 +46,17 @@ WTF_CSRF_ENABLED = True
 # AUTH_LDAP : Is for LDAP
 # AUTH_REMOTE_USER : Is for using REMOTE_USER from web server
 # AUTH_OAUTH : Is for OAuth
-AUTH_TYPE = AUTH_DB
+AUTH_TYPE = AUTH_REMOTE_USER
+
+ETNA_AUTH_COOKIE_NAME = os.environ.get('ETNA_AUTH_COOKIE_NAME', 'JANUS_TOKEN')
+ETNA_AUTH_JANUS_URL = os.environ.get('ETNA_AUTH_JANUS_URL', 'https://janus.ucsf.edu')
+ETNA_AUTH_PUBLIC_KEY = os.environ.get('ETNA_AUTH_PUBLIC_KEY', "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA3cmYfKvOUxKLgv/TQ9aG\nhMA4TCs2gQosmYejdE8I4Y39dSHtUnERX3ztMoesZVdhXU1GR7LWTfuOIze    /H9q+\nx/IDx/KBBoiYV+oZ6tCRVV74lNJJpAEyRT5hAW9yW2/OTG2R6wlXc1oxjRfi+M38\nmMzNN/mR54Yzgr4Rch1NYCd/ZOt0zrBKuNg7xu17N1wDjc7XDVgCn4btgpwO3g8D\nwsiAXwnpbXgi1FP+7oiHiHPS07+CuKDafvL    XqAVB2VymIR5muyWyayrxGjxyulZY\nTiDEPew/1TSBS+F8c4ZmAuH7fj+XX4ofWboZFrKl3R8V/041TdZX5nfOiLL3guDT\nV1fcc4gKfED4wI8bui0KDZqSTNYXsHNEm2r6y5VRhRwpRqFYT6YvAtiHrS9/U0L8\nrl8qoQWGG+b    qepaBcQZ6GuPzWcTQfookI0LMQHpexAfBef1IQS7JJ7CrRgLD8ryS\neolIQsOIX1fVTPUlY2x7liDaC49dnoZNDjMTy6bOiWGXzek0iF7qZd12nbDW5vUQ\niJ3tahGjB3AbekXFGXNBOByW/qZrj0EHWWJMysZ2lDlTnAPtBmwwc    F9YTZQA7XGO\nsPDtWvOVFzFxTEIPok1Cv/4dZDcVX4raeLaftV4PNY38o19E+ensWKeFUoA0a+wC\nVnOJnAt45Hq/mNZEBP2I7/MCAwEAAQ==\n-----END PUBLIC KEY-----")
+ETNA_AUTH_TOKEN_ALGO = os.environ.get('ETNA_AUTH_TOKEN_ALGO', 'RS256')
+
+logging.info(ETNA_AUTH_PUBLIC_KEY)
 
 # Uncomment to setup Full admin role name
-# AUTH_ROLE_ADMIN = 'Admin'
+AUTH_ROLE_ADMIN = 'Admin'
 
 # Uncomment to setup Public role name, no authentication needed
 # AUTH_ROLE_PUBLIC = 'Public'
@@ -98,6 +107,8 @@ AUTH_TYPE = AUTH_DB
 #    { 'name': 'AOL', 'url': 'http://openid.aol.com/<username>' },
 #    { 'name': 'Flickr', 'url': 'http://www.flickr.com/<username>' },
 #    { 'name': 'MyOpenID', 'url': 'https://www.myopenid.com' }]
+
+SECURITY_MANAGER_CLASS = EtnaSecurityManager
 
 # ----------------------------------------------------
 # Theme CONFIG

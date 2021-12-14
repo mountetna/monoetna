@@ -19,6 +19,18 @@ x-airflow-env:
   AIRFLOW__CORE__FERNET_KEY: abcdef
   AIRFLOW__CORE__EXECUTOR: LocalExecutor
   AIRFLOW__CORE__SQL_ALCHEMY_CONN:  "postgresql://developer:password@airflow_postgres:5432/airflow"
+  ETNA_AUTH_COOKIE_NAME: JANUS_DEV_TOKEN
+  ETNA_AUTH_JANUS_URL: https://janus.development.local
+  ETNA_AUTH_PUBLIC_KEY: |
+     -----BEGIN PUBLIC KEY-----
+     MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6pLkfi2RXd3jHWKh9W37
+     k7Nw5aZxIQRCf9b5b0uUIqyk4ODH1Pd4s/hhYq/9c+HT2304NkiqRw4cVOHMgk8N
+     O+a+7F+HgspJZopyEBCJvBloBoPKrpkZv0FeVHYwiDM2kf3GFDzTPBdUSpYJimtn
+     HF29DdEoj6O5xL9uGW97QZ34JYacIeG7GmVGjYnCvA87S0miDUxvGlu40g+VJhND
+     mLXMzWa5vTxyGb4cEQSL6rryVxmBlonG4J41K7A04/7tftKvWrqsCWAfSCusNs8w
+     CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
+     NQIDAQAB
+     -----END PUBLIC KEY-----
 
 services:
   airflow_postgres:
@@ -33,6 +45,16 @@ services:
       - "postgres"
       - "-c"
       - "max_connections=150"
+
+  airflow_test:
+    user: airflow
+    image: airflow
+    command: 'true'
+    volumes:
+      - ./opt/plugins:/opt/airflow/plugins
+    #      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      <<: *airflow-env
 
   airflow_ui:
     user: airflow
