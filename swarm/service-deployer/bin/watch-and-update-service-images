@@ -5,11 +5,15 @@ set -eo pipefail
 docker image prune
 
 postToSlack() {
-  post-to-slack "deployer on ${HOST_HOSTNAME}" "watchtower-ping" "$1"
+  post-to-slack "swarm deployer" "watchtower-ping" "$1"
 }
 
 findServices() {
   docker service ls --format "{{.Name}}" --filter label=autoupdate=true
+}
+
+imageExists() {
+  docker inspect --type=image "${1}" &>/dev/null
 }
 
 findServiceImage() {
@@ -35,6 +39,49 @@ else
   echo 'Could not find docker login at /run/secrets/service-deployer-docker-login, proceeding unauthenticated.'
 fi
 
+
+
+function runDeploy() {
+  local serviceName="$1"
+  local tag="$2"
+  local newsha="$3"
+  local success=
+  local timeout=1
+
+  echo "Attempting to deploy $newsha on $tag"
+  postToSlack "Attempting deploy on ${serviceName} (${tag}@${newsha:8:6})"
+
+  docker service update -d $serviceName --image "${tag}" --force
+  for i in {0..60}
+  do
+    state=$(docker service inspect --format '{{if .UpdateStatus}}{{.UpdateStatus.State}}{{else}}created{{end}}' $serviceName)
+    echo "state: ${state}"
+    case $state in
+      created|completed)
+        success=1
+        timeout=
+        break
+        ;;
+      paused|rollback_completed)
+        timeout=
+        break
+        ;;
+    esac
+    sleep 3
+  done
+
+  if [[ -n "$success" ]]; then
+    touch "/deployed/${serviceName}-${newsha}"
+    postToSlack "Deploy was successful."
+  else
+    if [[ -n "$timeout" ]]; then
+      postToSlack "Deploy timed out, it may succeed or fail, check portainer."
+    else
+      postToSlack "Deploy failed, check portainer logs."
+    fi
+  fi
+}
+
 services="$(findServices)"
 echo "Found services to check: ${services}"
 
@@ -51,11 +98,9 @@ for serviceName in $services; do
 
     echo "Found $newsha on $image $tag, existing is $sha"
     if ! [ -f "/deployed/${serviceName}-${newsha}" ] && [[ "${sha}" != "${newsha}" ]]; then
-      postToSlack "Updating ${tag} (${sha:8:6} -> ${newsha:8:6}) on ${serviceName}, issuing rolling restart"
-      touch "/deployed/${serviceName}-${newsha}"
-      docker service update -d $serviceName --image "${tag}" --force &>/dev/null
+      runDeploy "$serviceName" "$tag" "$newsha"
     fi
-  fi
 
-  docker image prune &>/dev/null
+    docker image prune
+  fi
 done
