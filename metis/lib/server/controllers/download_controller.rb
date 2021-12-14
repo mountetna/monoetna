@@ -1,5 +1,4 @@
-require 'mimemagic'
-require 'vips'
+require_relative '../../thumbnail_cache'
 
 class DownloadController < Metis::Controller
   # This is the endpoint that allows you to make a download.
@@ -14,24 +13,13 @@ class DownloadController < Metis::Controller
 
     raise Etna::Error.new('File not found', 404) unless file && file.has_data?
 
-    if @params.fetch(:thumbnail, nil)
-      thumbnail = Vips::Image.thumbnail(file.data_block.location, 240)
-      mimetype = MimeMagic.by_path(file.file_name)
+    @cache = Metis::ThumbnailCache.new
 
-      case mimetype.to_s
-      when /jpe?g$/
-        buffer = thumbnail.jpegsave_buffer
-      when 'image/tiff'
-        buffer = thumbnail.tiffsave_buffer
-      when 'image/png'
-        buffer = thumbnail.pngsave_buffer
-      else
-        raise Etna::Error.new("Thumbnails not supported for mimetype #{mimetype}", 422)
-      end
+    if @params.fetch(:thumbnail, nil) && @cache.thumbnail_in_cache?(file)
       return [
         200,
-        { 'Content-Type' => mimetype },
-        [ buffer ]
+        { 'Content-Type' => @cache.mimetype(file) },
+        [ @cache.thumbnail(file) ]
       ]
     end
 
