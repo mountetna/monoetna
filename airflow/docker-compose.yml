@@ -46,16 +46,6 @@ services:
       - "-c"
       - "max_connections=150"
 
-  airflow_test:
-    user: airflow
-    image: airflow
-    command: 'true'
-    volumes:
-      - ./opt/plugins:/opt/airflow/plugins
-    #      - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
-      <<: *airflow-env
-
   airflow_ui:
     user: airflow
     image: airflow
