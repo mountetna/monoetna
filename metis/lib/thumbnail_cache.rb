@@ -2,16 +2,24 @@ require "mimemagic"
 require "vips"
 
 class Metis
-  class ThumbnailNotExistError < StandardError
+  class ThumbnailError < StandardError
+  end
+
+  class ThumbnailNotExistError < ThumbnailError
+  end
+
+  class FileTypeError < ThumbnailError
   end
 
   class ThumbnailCache
+    IMAGE_MIMETYPES = ["image/png", "image/tiff", "image/jpg", "image/jpeg"]
+
     def mimetype(file)
       MimeMagic.by_path(file.file_name)
     end
 
     def thumbnail(file)
-      raise ThumbnailNotExistError.new("Thumbnail does not exist for file #{file.name}") unless thumbnail_in_cache?(file)
+      raise ThumbnailNotExistError.new("Thumbnail does not exist for file #{file.file_name}") unless thumbnail_in_cache?(file)
 
       cached_thumbnail(file)
     end
@@ -22,7 +30,14 @@ class Metis
       ::File.exist?(thumbnail_path(file))
     end
 
+    def image?(file)
+      mimetype = mimetype(file)
+      IMAGE_MIMETYPES.include?(mimetype.to_s)
+    end
+
     def generate_thumbnail(file)
+      raise FileTypeError.new("Thumbnails not supported for mimetype #{mimetype}") unless image?(file)
+
       thumbnail = Vips::Image.thumbnail(file.data_block.location, 240)
       mimetype = mimetype(file)
 
@@ -34,7 +49,7 @@ class Metis
       when "image/png"
         buffer = thumbnail.pngsave_buffer
       else
-        raise Etna::Error.new("Thumbnails not supported for mimetype #{mimetype}", 422)
+        raise FileTypeError.new("Misconfiguration for type #{mimetype}")
       end
 
       cache_thumbnail(file, buffer)
