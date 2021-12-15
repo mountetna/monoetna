@@ -61,6 +61,8 @@ services:
         target: /app/config.yml
       - source: env
         target: /app/env.yml
+      - source: known_hosts
+        target: /root/.ssh/known_hosts
     networks:
       db:
       prometheus:
@@ -73,6 +75,8 @@ services:
       - metrics-pw
       - source: db-pw
         target: db-password
+      - source: id_rsa_gne
+        target: /root/id_rsa_gne
 
   app_fe:
     environment:
@@ -136,6 +140,9 @@ configs:
   env:
     external: true
     name: "etna.${ENV}.yml"
+  known_hosts:
+    external: true
+    name: polyphemus_known_hosts
 
 secrets:
   user-hash-secret:
@@ -146,9 +153,13 @@ secrets:
     external: true
   staging-magma-hmac:
     external: true
+  id_rsa_gne:
+    external: true
   db-pw:
     external: true
     name: "${APP_NAME}_${ENV}_db_password"
+
+
 
 networks:
   fe:
