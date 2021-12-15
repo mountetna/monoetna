@@ -67,6 +67,7 @@ function runDeploy() {
         if [[ -z "$(docker service ps vulcan_app_assets_deployer --filter desired-state=shutdown --format '{{.Error}}' | head -n 1)" ]]; then
           success=1
         fi
+        break
         ;;
       rollback_completed|rollback_failed|rollback_started)
         timeout=
