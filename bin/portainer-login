@@ -1,0 +1,27 @@
+#! /usr/bin/env bash
+set -e
+set -o pipefail
+
+if ! type -p http &>/dev/null; then
+  echo "Requires installation of httpie" 1>&2
+  exit 1
+fi
+
+if ! type -p jq &>/dev/null; then
+  echo "Requires installation of jq" 1>&2
+  exit 1
+fi
+
+PORTAINER_HOST=${PORTAINER_HOST:-portainer.dsco.ucsf.edu}
+
+if [ -n "$SOCKS" ]; then
+  PROXY="--proxy=http:socks5h://$SOCKS --proxy=https:socks5h://$SOCKS"
+fi
+
+UN=
+PW=
+read -e -p "Portainer username: " UN
+read -es -p "Portainer password: " PW
+echo
+
+http --ignore-stdin $PROXY POST https://${PORTAINER_HOST}/api/auth Username="${UN}" Password="${PW}" | jq -r '.jwt' > ~/.portainer-auth

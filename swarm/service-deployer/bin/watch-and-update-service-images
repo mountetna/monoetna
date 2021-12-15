@@ -62,7 +62,7 @@ function runDeploy() {
         timeout=
         break
         ;;
-      paused|rollback_completed)
+      paused|rollback_completed|rollback_failed|rollback_started)
         timeout=
         break
         ;;
