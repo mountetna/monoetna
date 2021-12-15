@@ -167,7 +167,12 @@ class Metis
     def thumbnail_in_cache?
       return false if data_block.nil?
 
-      ::File.exist?(thumbnail_path)
+      thumbnail_exists = ::File.exist?(thumbnail_path)
+
+      # Account for multiple files pointing to the same data_block
+      update(has_thumbnail: true) if thumbnail_exists
+
+      thumbnail_exists
     end
 
     def generate_thumbnail
