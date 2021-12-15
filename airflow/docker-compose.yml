@@ -70,6 +70,13 @@ services:
     environment:
       <<: *airflow-env
 
+  copy_dev_dags:
+    image: alpine
+    command: cp -R -u /dev_dags /opt/airflow/dags
+    volumes:
+      - airflow-dags:/opt/airflow/dags
+      - ./dev_dags:/dev_dags
+
   airflow_init:
     image: airflow
     command: version
