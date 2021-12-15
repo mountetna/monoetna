@@ -212,37 +212,27 @@ class Metis
       # Do this from Metis::File instead of Metis::DataBlock
       #   to facilitate mimetype detection. Doing it from
       #   file contents (data_block) can be slow.
-      cache = Metis::ThumbnailCache.new
       needs_thumbnail_check = Metis::File.where(has_thumbnail: nil).order(:updated_at).all[0..10]
 
       image_files, non_image_files = needs_thumbnail_check.partition do |file|
-        cache.image?(file)
+        file.image?
       end
 
       puts "Found #{image_files.count} image files, #{non_image_files.count} non-image files."
 
-      update_non_image_files(non_image_files)
-
       has_thumbnail, needs_thumbnail = image_files.partition do |file|
-        cache.thumbnail_in_cache?(file)
+        file.thumbnail_in_cache?
       end
 
       puts "#{needs_thumbnail.count} images require thumbnails to be generated."
 
       needs_thumbnail.each do |file|
         begin
-          cache.generate_thumbnail(file)
-          file.update(has_thumbnail: true)
+          file.generate_thumbnail
         rescue Metis::ThumbnailError => e
           puts "Could not generate thumbnail for #{file.file_name}"
           next
         end
-      end
-    end
-
-    def update_non_image_files(files)
-      files.each do |file|
-        file.update(has_thumbnail: false)
       end
     end
 

@@ -1,4 +1,3 @@
-require_relative '../../thumbnail_cache'
 
 class DownloadController < Metis::Controller
   # This is the endpoint that allows you to make a download.
@@ -13,13 +12,11 @@ class DownloadController < Metis::Controller
 
     raise Etna::Error.new('File not found', 404) unless file && file.has_data?
 
-    @cache = Metis::ThumbnailCache.new
-
-    if @params.fetch(:thumbnail, nil) && @cache.thumbnail_in_cache?(file)
+    if @params.fetch(:thumbnail, nil) && file.thumbnail_in_cache?
       return [
         200,
-        { 'Content-Type' => @cache.mimetype(file) },
-        [ @cache.thumbnail(file) ]
+        { 'Content-Type' => file.mimetype },
+        [ file.thumbnail ]
       ]
     end
 
