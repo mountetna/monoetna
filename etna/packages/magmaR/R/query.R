@@ -2,17 +2,20 @@
 #' @description Analogous to the '/query' function of magma.
 #' @inheritParams retrieve
 #' @param queryTerms A list of strings where list elements are query predicates and verbs. See \url{https://mountetna.github.io/magma.html#query} for details.
-#' @param format Either "list" or "df" (=dataframe). This sets the desired output format. The list option is the more raw form.
+#' @param format Either "list", "tsv" or "df" (=dataframe).
+#' This sets the desired output format.
+#' The list option is the most raw form, whereas setting to "df" or "tsv" will utilize magma/query's 'format="tsv"' option to have data converted into a tsv string format, before it is output.
+#' The tsv string will then read into a data.frame.
 #' @return A list, default, if \code{format == "list"},
 #' 
-#' OR A dataframe conversion if \code{format = "df"}
-#' @details This function initially mimics the activity of the magma's /query functionality,
+#' OR A data.frame if \code{format = "df" or "tsv"}
+#' @details This function mimics the activity of the magma's /query functionality,
 #' which is documented here \url{https://mountetna.github.io/magma.html#query}.
 #' 
-#' Afterwards, the json list output of magma/query is converted into an R list, and then the \code{format} input determines whether it should be wrangled further:
+#' Afterwards, output formats are adjusted slightly for R compatibility or use-ability, depending on the 'format' requested:
 #' \itemize{
-#' \item \code{format = "list"}, default: R list output directly.
-#' \item \code{format = "df"}: R list converted into a dataframe where data comes from the list$answer and column names come from the list$format
+#' \item \code{format = "list"}, default: json format returned is output as it's nearest cognate, an R list.
+#' \item \code{format = "df" or "tsv"}: tsv string format returned is converted into a data.frame.
 #' }
 #' @seealso
 #' \url{https://mountetna.github.io/magma.html#query} for documentation of the underlying magma/query function.
