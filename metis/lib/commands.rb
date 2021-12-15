@@ -1,9 +1,9 @@
 class Metis
   class Console < Etna::Command
-    usage 'Open a console with a connected magma instance.'
+    usage "Open a console with a connected magma instance."
 
     def execute
-      require 'irb'
+      require "irb"
       ARGV.clear
       IRB.start
     end
@@ -24,7 +24,7 @@ class Metis
     # TODO: Also collect file size, which would require us to add that to the data_blocks table rather than
     # reading it from file.
     def execute
-      Metis::File.select_group(:bucket_id).select_more{count(:id)}.each do |row|
+      Metis::File.select_group(:bucket_id).select_more { count(:id) }.each do |row|
         count = row[:count]
         bucket_id = row[:bucket_id]
         bucket = Metis::Bucket.where(id: bucket_id).first
@@ -33,15 +33,14 @@ class Metis
         project_name = bucket.project_name
         bucket_name = bucket.name
 
-        tags = {project_name: project_name, bucket_name: bucket_name}
+        tags = { project_name: project_name, bucket_name: bucket_name }
         Yabeda.metis.file_count.set(tags, count)
       end
     end
   end
 
-
   class Schema < Etna::Command
-    usage 'Show the current database schema.'
+    usage "Show the current database schema."
 
     def execute
       Metis.instance.db.tap do |db|
@@ -57,8 +56,8 @@ class Metis
   end
 
   class Migrate < Etna::Command
-    usage 'Run migrations for the current environment.'
-    string_flags << '--version'
+    usage "Run migrations for the current environment."
+    string_flags << "--version"
 
     def execute(version: nil)
       Sequel.extension(:migration)
@@ -66,10 +65,10 @@ class Metis
 
       if version
         puts "Migrating to version #{version}"
-        Sequel::Migrator.run(db, 'db/migrations', target: version.to_i)
+        Sequel::Migrator.run(db, "db/migrations", target: version.to_i)
       else
-        puts 'Migrating to latest'
-        Sequel::Migrator.run(db, 'db/migrations')
+        puts "Migrating to latest"
+        Sequel::Migrator.run(db, "db/migrations")
       end
     end
 
@@ -80,7 +79,7 @@ class Metis
   end
 
   class ChecksumFiles < Etna::Command
-    usage 'Checksum files.'
+    usage "Checksum files."
 
     def execute
       needs_hash = Metis::DataBlock.where(md5_hash: Metis::DataBlock::TEMP_MATCH, removed: false).order(:updated_at).all[0..10]
@@ -95,7 +94,7 @@ class Metis
   end
 
   class Archive < Etna::Command
-    usage 'Archive files.'
+    usage "Archive files."
 
     def execute
       needs_archive = Metis::DataBlock.exclude(md5_hash: Metis::DataBlock::TEMP_MATCH).where(archive_id: nil, removed: false).order(:updated_at).all[0..10]
@@ -117,10 +116,10 @@ class Metis
   end
 
   class Assimilate < Etna::Command
-    usage '<project> <bucket> <path> <files> Add the indicated (non-tracked) files to Metis at the given path'
+    usage "<project> <bucket> <path> <files> Add the indicated (non-tracked) files to Metis at the given path"
 
-    def execute project_name, bucket_name, folder_path, *files
-      folder_path = folder_path.sub(%r!^/!,'')
+    def execute(project_name, bucket_name, folder_path, *files)
+      folder_path = folder_path.sub(%r!^/!, "")
 
       bucket = Metis::Bucket.where(project_name: project_name, name: bucket_name).first
 
@@ -147,7 +146,7 @@ class Metis
   end
 
   class CreateDb < Etna::Command
-    usage '# create the initial database per config.yml'
+    usage "# create the initial database per config.yml"
 
     def execute
       if @no_db
@@ -180,10 +179,10 @@ class Metis
   end
 
   class RemoveOrphanDataBlocks < Etna::Command
-    usage '# remove unused (orphaned) data blocks'
+    usage "# remove unused (orphaned) data blocks"
 
     def execute
-      zero_hash = 'd41d8cd98f00b204e9800998ecf8427e'
+      zero_hash = "d41d8cd98f00b204e9800998ecf8427e"
 
       used_data_block_ids = Metis::File.all().map { |file| file.data_block.id }.uniq
       orphaned_data_blocks = Metis::DataBlock.exclude(id: used_data_block_ids).exclude(removed: true).exclude(md5_hash: zero_hash).all
@@ -202,6 +201,53 @@ class Metis
     def setup(config)
       super
       Metis.instance.setup_logger
+      Metis.instance.load_models
+    end
+  end
+
+  class GenerateThumbnails < Etna::Command
+    usage "Generate image thumbnail files."
+
+    def execute
+      # Do this from Metis::File instead of Metis::DataBlock
+      #   to facilitate mimetype detection. Doing it from
+      #   file contents (data_block) can be slow.
+      cache = Metis::ThumbnailCache.new
+      needs_thumbnail_check = Metis::File.where(has_thumbnail: nil).order(:updated_at).all[0..10]
+
+      image_files, non_image_files = needs_thumbnail_check.partition do |file|
+        cache.image?(file)
+      end
+
+      puts "Found #{image_files.count} image files, #{non_image_files.count} non-image files."
+
+      update_non_image_files(non_image_files)
+
+      has_thumbnail, needs_thumbnail = image_files.partition do |file|
+        cache.thumbnail_in_cache?(file)
+      end
+
+      puts "#{needs_thumbnail.count} images require thumbnails to be generated."
+
+      needs_thumbnail.each do |file|
+        begin
+          cache.generate_thumbnail(file)
+          file.update(has_thumbnail: true)
+        rescue Metis::ThumbnailError => e
+          puts "Could not generate thumbnail for #{file.file_name}"
+          next
+        end
+      end
+    end
+
+    def update_non_image_files(files)
+      files.each do |file|
+        file.update(has_thumbnail: false)
+      end
+    end
+
+    def setup(config)
+      super
       Metis.instance.load_models
     end
   end

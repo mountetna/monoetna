@@ -3,6 +3,7 @@ require 'sequel'
 require 'fileutils'
 require_relative 'archiver'
 require_relative 'assimilation'
+require_relative 'thumbnail_cache'
 
 # This class handles the http request and routing
 class Metis
