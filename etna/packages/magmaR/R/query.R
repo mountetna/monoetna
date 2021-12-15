@@ -64,32 +64,25 @@ query <- function(
     target,
     projectName,
     queryTerms = list(),
-    format = c("list", "df"),
+    format = c("list", "df", "tsv"),
     ...
 ) {
     
     format <- match.arg(format)
     
-    raw <- .query(
+    .query(
         target = target,
         projectName = projectName,
         queryTerms = queryTerms,
+        format = format,
         ...)
-    
-    if (format == "list") {
-        raw
-    } else {
-        out <- data.frame(raw$answer)
-        colnames(out) <- raw$format
-        
-        out
-    }
 }
 
 .query <- function(
     target,
     projectName,
     queryTerms = list(),
+    format = "list",
     request.only = FALSE,
     json.params.only = FALSE,
     verbose = FALSE
@@ -100,6 +93,9 @@ query <- function(
     jsonParams <- list(
         project_name = projectName,
         query = queryTerms)
+    if (format %in% c("df", "tsv")) {
+        jsonParams$format <- "tsv"
+    }
 
     requestBody <- jsonlite::toJSON(jsonParams, auto_unbox = TRUE)
     
@@ -118,5 +114,9 @@ query <- function(
         parse = TRUE, verbose = verbose)
     
     ### Output
-    jsonlite::fromJSON(curl_out)
+    if (format %in% c("df", "tsv")) {
+        .parse_tsv(curl_out)
+    } else {
+        jsonlite::fromJSON(curl_out)
+    }
 }
