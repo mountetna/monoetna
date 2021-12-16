@@ -8,4 +8,4 @@ services:
     entrypoint: []
     volumes:
       - ./opt/plugins:/opt/airflow/plugins
-    #      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
