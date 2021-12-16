@@ -1,14 +1,4 @@
-require "mimemagic"
-require "vips"
 class Metis
-  class ThumbnailError < StandardError
-  end
-
-  class ThumbnailNotExistError < ThumbnailError
-  end
-
-  class FileTypeError < ThumbnailError
-  end
   class File < Sequel::Model
     plugin :timestamps, update_on_create: true
 
@@ -25,8 +15,6 @@ class Metis
         (?<name>#{FILENAME_MATCH.source})
       \z
     !x
-
-    IMAGE_MIMETYPES = ["image/png", "image/tiff", "image/jpg", "image/jpeg"]
 
     def self.valid_file_path?(file_path)
       !!(file_path =~ FILEPATH_MATCH)
@@ -146,56 +134,6 @@ class Metis
       end
     end
 
-    def image?
-      is_image = IMAGE_MIMETYPES.include?(mimetype)
-
-      update(has_thumbnail: false) unless is_image
-
-      is_image
-    end
-
-    def mimetype
-      @mimetype ||= MimeMagic.by_path(file_name).to_s
-    end
-
-    def thumbnail
-      raise ThumbnailNotExistError.new("Thumbnail does not exist for file #{file_name}") unless thumbnail_in_cache?
-
-      cached_thumbnail
-    end
-
-    def thumbnail_in_cache?
-      return false if data_block.nil?
-
-      thumbnail_exists = ::File.exist?(thumbnail_path)
-
-      # Account for multiple files pointing to the same data_block
-      update(has_thumbnail: true) if thumbnail_exists
-
-      thumbnail_exists
-    end
-
-    def generate_thumbnail
-      raise FileTypeError.new("Thumbnails not supported for mimetype #{mimetype}") unless image?
-
-      thumbnail = Vips::Image.thumbnail(data_block.location, 240)
-
-      case mimetype
-      when /jpe?g$/
-        buffer = thumbnail.jpegsave_buffer
-      when "image/tiff"
-        buffer = thumbnail.tiffsave_buffer
-      when "image/png"
-        buffer = thumbnail.pngsave_buffer
-      else
-        raise FileTypeError.new("Misconfiguration for type #{mimetype}")
-      end
-
-      cache_thumbnail(buffer)
-
-      buffer
-    end
-
     private
 
     def self.hmac_url(method:, host:, path:, user:  nil, expiration: 0)
@@ -313,26 +251,6 @@ class Metis
 
       update(**new_params)
       refresh
-    end
-
-    def cache_thumbnail(thumbnail_data)
-      ::File.open(thumbnail_path, "w") do |f|
-        f.write(thumbnail_data)
-      end
-
-      update(has_thumbnail: true)
-      refresh
-    end
-
-    def cached_thumbnail
-      ::File.read(thumbnail_path)
-    end
-
-    def thumbnail_path
-      ::File.join(
-        ::File.dirname(data_block.location),
-        "th_#{::File.basename(data_block.location)}"
-      )
     end
   end
 end

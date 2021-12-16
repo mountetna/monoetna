@@ -13,7 +13,6 @@ gem "yabeda"
 gem "yabeda-prometheus"
 gem "yabeda-puma-plugin"
 gem 'ruby-vips'
-gem 'mimemagic'
 
 group :test do
   gem 'rspec'

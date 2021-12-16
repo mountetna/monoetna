@@ -32,6 +32,7 @@ RUN apt-get update \
       rsync \
       sshpass \
       libvips \
+      libvips-tools \
       --no-install-recommends &&\
     rm -rf /var/lib/apt/lists/*
 

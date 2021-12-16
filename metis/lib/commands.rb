@@ -115,36 +115,6 @@ class Metis
     end
   end
 
-  class Assimilate < Etna::Command
-    usage "<project> <bucket> <path> <files> Add the indicated (non-tracked) files to Metis at the given path"
-
-    def execute(project_name, bucket_name, folder_path, *files)
-      folder_path = folder_path.sub(%r!^/!, "")
-
-      bucket = Metis::Bucket.where(project_name: project_name, name: bucket_name).first
-
-      if folder_path.empty?
-        files.each do |file_path|
-          Metis::Assimilation.new(file_path, bucket).execute
-        end
-      else
-        metis_folder = Metis::Folder.from_path(bucket, folder_path).last
-        unless metis_folder
-          puts "No such folder #{folder_path}"
-          exit
-        end
-        files.each do |file_path|
-          Metis::Assimilation.assimilate_folder(metis_folder, file_path)
-        end
-      end
-    end
-
-    def setup(config)
-      super
-      Metis.instance.load_models
-    end
-  end
-
   class CreateDb < Etna::Command
     usage "# create the initial database per config.yml"
 
@@ -212,25 +182,23 @@ class Metis
       # Do this from Metis::File instead of Metis::DataBlock
       #   to facilitate mimetype detection. Doing it from
       #   file contents (data_block) can be slow.
-      needs_thumbnail_check = Metis::File.where(has_thumbnail: nil).order(:updated_at).all[0..10]
+      needs_thumbnail_check = Metis::DataBlock.exclude(md5_hash: Metis::DataBlock::TEMP_MATCH).where(has_thumbnail: nil, removed: false).order(:updated_at).all[0..10]
 
-      image_files, non_image_files = needs_thumbnail_check.partition do |file|
-        file.image?
-      end
+      puts "Found #{needs_thumbnail_check.count} data blocks."
 
-      puts "Found #{image_files.count} image files, #{non_image_files.count} non-image files."
-
-      has_thumbnail, needs_thumbnail = image_files.partition do |file|
-        file.thumbnail_in_cache?
+      has_thumbnail, needs_thumbnail = needs_thumbnail_check.partition do |data_block|
+        data_block.thumbnail_in_cache?
       end
 
       puts "#{needs_thumbnail.count} images require thumbnails to be generated."
 
-      needs_thumbnail.each do |file|
+      require 'pry'
+      binding.pry
+      needs_thumbnail.each do |data_block|
         begin
-          file.generate_thumbnail
+          data_block.generate_thumbnail
         rescue Metis::ThumbnailError => e
-          puts "Could not generate thumbnail for #{file.file_name}"
+          puts "Could not generate thumbnail for #{data_block.md5_hash}"
           next
         end
       end
@@ -238,6 +206,7 @@ class Metis
 
     def setup(config)
       super
+      Metis.instance.setup_logger
       Metis.instance.load_models
     end
   end

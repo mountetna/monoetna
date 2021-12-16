@@ -12,11 +12,11 @@ class DownloadController < Metis::Controller
 
     raise Etna::Error.new('File not found', 404) unless file && file.has_data?
 
-    if @params.fetch(:thumbnail, nil) && file.thumbnail_in_cache?
+    if @params.fetch(:thumbnail, nil) && file.data_block.thumbnail_in_cache?
       return [
         200,
-        { 'Content-Type' => file.mimetype },
-        [ file.thumbnail ]
+        {}, # Do we need mimetype here?
+        [ file.data_block.thumbnail ]
       ]
     end
 
