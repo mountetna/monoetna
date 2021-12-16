@@ -322,8 +322,12 @@ The Magma Query API lets you pull data out of Magma through an expressive query 
 
 - `project_name` - the project key
 - `query` - An array of query predicates (see below for details)
+- `format` - Optional. If `tsv` is provided, a TSV is returned instead of a JSON paylod. By default, a JSON payload is provided.
+  - `user_columns` - If `format=tsv`, can provide an array of string values that act as column labels. The length of this array must match the number of requested columns.
+  - `expand_matrices` - If `format=tsv`, boolean value to expand matrix attributes into individual columns, with one matrix data point per column.
+  - `transpose` - If `format=tsv`, boolean value to transpose the resulting TSV. This means that rows become columns, and vice versa.
 
-A general form ofthe query is:
+A general form of the query is:
 
     [ *predicate_args, *verb_args, *predicate_args, *verb_args, ... ]
 
