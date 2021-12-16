@@ -323,9 +323,9 @@ The Magma Query API lets you pull data out of Magma through an expressive query 
 - `project_name` - the project key
 - `query` - An array of query predicates (see below for details)
 - `format` - Optional. If `tsv` is provided, a TSV is returned instead of a JSON paylod. By default, a JSON payload is provided.
-  - `user_columns` - If `format=tsv`, can provide an array of string values that act as column labels. The length of this array must match the number of requested columns.
-  - `expand_matrices` - If `format=tsv`, boolean value to expand matrix attributes into individual columns, with one matrix data point per column.
-  - `transpose` - If `format=tsv`, boolean value to transpose the resulting TSV. This means that rows become columns, and vice versa.
+- `user_columns` - Ignored unless `format=tsv`. Can provide an array of string values that act as column labels. The length of this array must match the number of requested columns.
+- `expand_matrices` - Ignored unless `format=tsv`. Boolean value to expand matrix attributes into individual columns, with one matrix data point per column.
+- `transpose` - Ignored unless `format=tsv`. Boolean value to transpose the resulting TSV. This means that rows become columns, and vice versa.
 
 A general form of the query is:
 
@@ -418,6 +418,143 @@ Column attributes usually just return their value. However, you may optionally f
 `matrix`
 
     ::slice - retrieve a subset of columns from the matrix
+
+**Example Queries**
+
+Using the examples above, you could formulate a query using a `POST` request and the following JSON payload:
+
+```
+{
+  "query": [ 'labor', '::all', 'monster', 'name' ],
+  "project": "labors"
+}
+```
+
+Results in something like:
+
+```
+{
+    "answer" : [ [ 'Nemean Lion', 'Nemean Lion' ], [ 'Lernean Hydra', 'Lernean Hydra' ] ]
+    "format" : ['labors::labor#name', 'labors::monster#name']
+}
+```
+
+To get a TSV back, you could add the `format=tsv` parameter:
+
+```
+{
+  "query": [ 'labor', '::all', 'monster', 'name' ],
+  "project": "labors",
+  "format": "tsv"
+}
+```
+
+Results in:
+
+```
+labors::labor#name\tlabors::monster#name
+Nemean Lion\tNemean Lion
+Lernean Hydra\tLernean Hydra
+```
+
+As noted above, this results in a two-column response. If you want to provide alternate column labels for the TSV, you can supply `user_columns`:
+
+
+```
+{
+  "query": [ 'labor', '::all', 'monster', 'name' ],
+  "project": "labors",
+  "format": "tsv",
+  "user_columns": ["Labor", "Roar"]
+}
+```
+
+Results in:
+
+```
+Labor\tRoar
+Nemean Lion\tNemean Lion
+Lernean Hydra\tLernean Hydra
+```
+
+Transposing the request:
+
+```
+{
+  "query": [ 'labor', '::all', 'monster', 'name' ],
+  "project": "labors",
+  "format": "tsv",
+  "user_columns": ["Labor", "Roar"],
+  "transpose": true
+}
+```
+
+Results in:
+
+```
+Labor\tNemean Lion\tLernean Hydra
+Roar\tNemean Lion\tLernean Hydra
+```
+
+And expanding a matrix attribute (`contributions`):
+
+```
+{
+  "query": [ 'labor', '::all', 'contributions', '::slice', ['Athens', 'Sparta'] ],
+  "project": "labors",
+  "format": "tsv",
+  "user_columns": ["Labor", "Share"],
+  "expand_matrices": true
+}
+```
+
+Results in:
+
+```
+Labor\tShare.Athens\tShare.Sparta
+Nemean Lion\t10\t20
+Lernean Hydra\t11\t21
+```
+
+Unexpanded, the data for the matrix attribute will nest into a single cell:
+
+```
+{
+  "query": [ 'labor', '::all', 'contributions', '::slice', ['Athens', 'Sparta'] ],
+  "project": "labors",
+  "format": "tsv",
+  "user_columns": ["Labor", "Share"]
+}
+```
+
+Results in:
+
+```
+Labor\tShare
+Nemean Lion\t[10,20]
+Lernean Hydra\t[11,21]
+```
+
+You can also transpose expanded matrices:
+
+```
+{
+  "query": [ 'labor', '::all', 'contributions', '::slice', ['Athens', 'Sparta'] ],
+  "project": "labors",
+  "format": "tsv",
+  "user_columns": ["Labor", "Share"],
+  "expand_matrices": true,
+  "transpose": true
+}
+```
+
+Results in:
+
+```
+Labor\tNemean Lion\tLernean Hydra
+Share.Athens\t10\t11
+Share.Sparta\t20\t21
+```
 
 #### /update_model
 
