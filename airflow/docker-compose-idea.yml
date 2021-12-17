@@ -2,10 +2,12 @@ version: '3.4'
 
 services:
   airflow_test:
-    user: airflow
+    user: 0:0
     image: airflow
     command: 'true'
-    entrypoint: []
+    entrypoint: /opt/airflow/entrypoint-with-netcat.sh
     volumes:
       - ./opt/plugins:/opt/airflow/plugins
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro

@@ -7,7 +7,7 @@ RUN airflow db reset --yes
 # RUN apk add --no-cache bash curl jq httpie py-setuptools py-pip git openssh-client
 USER root
 RUN apt-get update
-RUN apt-get install -y bash curl jq git openssh-client
+RUN apt-get install -y bash curl jq git openssh-client ncat
 
 USER airflow
 
