@@ -1,0 +1,110 @@
+#! /usr/bin/env bash
+set -e
+set -o pipefail
+
+if ! type -p http &>/dev/null; then
+  echo "Requires installation of httpie" 1>&2
+  exit 1
+fi
+
+if ! type -p jq &>/dev/null; then
+  echo "Requires installation of jq" 1>&2
+  exit 1
+fi
+
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+function api() {
+  $DIR/portainer-client $@
+}
+
+
+set +e
+stackId=$(api GET /stacks | jq -c ".[] | select(.Name == \"$1\") | .Id")
+set -e
+
+if [[ -z "$stackId" ]]; then
+  echo "Could not find stack $1" 1>&2
+  echo "Found these: $(api GET /stacks | jq -r -c '.[] | .Name')" 1>&2
+  exit 1
+fi
+
+endpoint="$(api GET /stacks/$stackId | jq -r -c '.EndpointId')"
+filtersJson=$(jq -n -c --arg n $1 '{label: ["com.docker.stack.namespace=" + $n]}')
+services=$(api GET /endpoints/$endpoint/docker/services "filters==$filtersJson" | jq -c '.[] | {Name: .Spec.Name, ID: .ID}')
+
+IFS=$'\n'
+
+while true; do
+  all_services_done=1
+  has_errors=0
+  outputBuff=
+
+  for service in $services; do
+    serviceName=$(echo $service | jq -r -c '.Name')
+    serviceId=$(echo $service | jq -r -c '.ID')
+
+    filtersJson=$(jq -n -c --arg n $serviceName '{service: [$n], "desired-state": ["running"]}')
+    runnables=$(api GET /endpoints/1/docker/tasks "filters==$filtersJson" | jq -c -r '.[]')
+
+    filtersJson=$(jq -n -c --arg n $serviceName '{service: [$n], "desired-state": ["shutdown"]}')
+    completed=$(api GET /endpoints/1/docker/tasks "filters==$filtersJson" | jq -c -r '.[]')
+
+    serviceState=
+
+    for task in $runnables; do
+      serviceState=$(echo "$task" | jq -r '.Status.State')
+      if [[ "$serviceState" != "running" ]]; then
+        all_services_done=0
+        break
+      fi
+    done
+
+    if [[ -z "$serviceState" ]]; then
+      for task in $completed; do
+        serviceState=$(echo "$task" | jq -r '.Status.State')
+        if [[ "$serviceState" != "complete" ]]; then
+          has_errors=1
+        fi
+
+        break
+      done
+    fi
+
+    outputBuff="${outputBuff}${serviceName}: $serviceState
+"
+  done
+
+  # clear updatable output per line (using 'tput ed' does not work correctly)
+  while [ ${updatable_output_lines:-0} -gt 0 ]
+  do
+    tput cuu 1 # move cursor up one line
+    tput el # clear line
+    ((updatable_output_lines--))
+  done
+
+  echo "$outputBuff"
+  updatable_output_lines=$(echo "$outputBuff" | wc -l | tr -d '\n')
+
+  # check if all services done
+  if [ "$all_services_done" == "1" ]; then
+    if [ "$has_errors" == "1" ]; then
+      echo "Deployment failed."
+      exit 1
+    else
+      echo "Deployment successful."
+      exit 0
+    fi
+  else
+    sleep 3
+  fi
+done
+
+
