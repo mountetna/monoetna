@@ -86,7 +86,7 @@ class Magby(object):
         :param format: str. Adjusts the format of the returned data if set to "tsv". See Magma documentation
         :param user_columns: List[str]. An array of desired column renames. Ignored unless 'formate = "tsv"'. See Magma documentation
         :param expand_matrices: bool, False by default. Whether to expand matrix attributes into individual columns, with one matrix data point per column. Ignored unless 'formate = "tsv"'.
-        :param format: str. Adjusts the format of the returned data if set to "tsv". Ignored unless 'formate = "tsv"'. See Magma documentation
+        :param transpose: bool, False by default. Whether to transpose the resulting data. Ignored unless 'formate = "tsv"'.
         :param kwargs: Additional kwargs to pass to Magma class. Used for passing requests.Session with custom proxies
                         and other attributes
         :return: Dict
