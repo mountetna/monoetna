@@ -1,7 +1,7 @@
-import logging
 import time
 from dataclasses import dataclass
 from datetime import timedelta, datetime
+from dateutil import parser
 from typing import Optional, List, Dict, Callable, Any, Union, Iterator, Set
 
 import docker.errors
@@ -140,7 +140,7 @@ def swarm_cleanup(cli: APIClient):
             "remove",
         ]:
             timestamp: str = task_status["Timestamp"]
-            t: datetime = datetime.strptime(timestamp, datetime.isoformat())
+            t: datetime = parser.parse(timestamp)
             if t < datetime.now() - timedelta(hours=1):
                 try:
                     service.remove()

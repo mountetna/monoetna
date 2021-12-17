@@ -1,4 +1,3 @@
-import logging
 from typing import List
 from urllib.parse import urlencode
 
@@ -7,7 +6,6 @@ from airflow.models.dag import DagModel, DagTag
 from airflow.security import permissions
 from airflow.security.permissions import resource_name_for_dag
 from airflow.www.security import AirflowSecurityManager
-from airflow.www.views import CustomUserRemoteUserModelView
 from flask import redirect, request
 from flask_appbuilder import expose
 from flask_appbuilder.security.sqla.models import Role, User
@@ -37,8 +35,6 @@ class EtnaCookieAuthView(AuthView):
         cookie_name = self.appbuilder.app.config["ETNA_AUTH_COOKIE_NAME"]
         cookie = request.cookies.get(cookie_name)
         user = None
-
-        logging.info(str(cookie))
 
         if cookie:
             user = self.apply_etna_user(cookie, self.appbuilder.sm)

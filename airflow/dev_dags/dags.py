@@ -1,13 +1,8 @@
-from airflow.decorators import dag, task
+from airflow.decorators import dag
+
+from etna import run_in_swarm
+
 
 @dag()
 def weird_dag():
-    @task
-    def task_1():
-        return 123
-
-    @task
-    def task_2(value):
-        return 234 + value
-
-    task_2(task_1())
+    run_in_swarm('test_swarm_operator', 'test-service-swarm', ['bach', '-c', "echo 1"], output_json=True)

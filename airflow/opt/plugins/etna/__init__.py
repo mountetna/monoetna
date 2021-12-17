@@ -9,12 +9,13 @@ from etna.operators.swarm_operator import DockerSwarmOperator, SwarmSharedData
 
 
 def run_in_swarm(
+    task_id: str,
     source_service: str,
     command: List[str],
     input_bytes: Optional[bytes] = None,
     input_file: Optional[str] = None,
     input_dir: Optional[str] = None,
-    include_all_networks: bool = False,
+    include_external_network: bool = False,
     output_json: bool = False,
     output_b64: bool = False,
 ):
@@ -54,9 +55,10 @@ def run_in_swarm(
         serialize_last_output = base64.b64decode
 
     return DockerSwarmOperator(
+        task_id=task_id,
         source_service=source_service,
         command=command,
-        include_all_networks=include_all_networks,
+        include_external_networks=include_external_network,
         swarm_shared_data=swarm_shared_data,
         serialize_last_output=serialize_last_output,
     )
