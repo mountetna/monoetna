@@ -7,6 +7,7 @@ from typing import Optional, List, Dict, Callable, Any, Union, Iterator, Set
 import docker.errors
 from airflow.exceptions import AirflowException
 from airflow.models import TaskInstance, BaseOperator
+from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.utils.strings import get_random_string
 from docker import types, APIClient
 
@@ -149,6 +150,7 @@ def swarm_cleanup(cli: APIClient):
 
 class DockerSwarmOperator(BaseOperator):
     swarm_shared_data: List[SwarmSharedData]
+    command: List[str]
     serialize_last_output: Optional[Callable[[bytes], Any]] = None
     include_external_networks: Optional[bool]
     source_service: str
@@ -158,6 +160,7 @@ class DockerSwarmOperator(BaseOperator):
     def __init__(
         self,
         source_service: str,
+        command: List[str],
         *args,
         include_external_networks: Optional[bool] = False,
         swarm_shared_data: Optional[List[SwarmSharedData]] = None,
@@ -168,6 +171,7 @@ class DockerSwarmOperator(BaseOperator):
         self.serialize_last_output = serialize_last_output
         self.source_service = source_service
         self.include_external_networks = include_external_networks
+        self.command = command
         super(DockerSwarmOperator, self).__init__(*args, **kwds)
 
     def execute(self, context) -> None:
@@ -180,12 +184,14 @@ class DockerSwarmOperator(BaseOperator):
         if not self.include_external_networks:
             local_network_ids = find_local_network_ids(self.cli, service_data)
 
-        return self._run_service(
-            create_service_definition(
-                service_data,
-                local_network_ids,
-            )
+        command = DockerOperator.format_command(self.command)
+        service_definition = create_service_definition(
+            service_data,
+            local_network_ids,
         )
+        service_definition.command = command
+
+        return self._run_service(service_definition)
 
     @staticmethod
     def shared_data_labeling():

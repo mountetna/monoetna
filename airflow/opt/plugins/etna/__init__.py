@@ -10,6 +10,7 @@ from etna.operators.swarm_operator import DockerSwarmOperator, SwarmSharedData
 
 def run_in_swarm(
     source_service: str,
+    command: List[str],
     input_bytes: Optional[bytes] = None,
     input_file: Optional[str] = None,
     input_dir: Optional[str] = None,
@@ -54,6 +55,7 @@ def run_in_swarm(
 
     return DockerSwarmOperator(
         source_service=source_service,
+        command=command,
         include_all_networks=include_all_networks,
         swarm_shared_data=swarm_shared_data,
         serialize_last_output=serialize_last_output,
