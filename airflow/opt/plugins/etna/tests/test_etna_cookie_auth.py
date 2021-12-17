@@ -15,7 +15,7 @@ def test_with_cookie(admin_client, app, session):
     admin_client.set_cookie(
         "localhost",
         app.config["ETNA_AUTH_COOKIE_NAME"],
-        "eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6ImRldmVsb3BlckB1Y3NmLmVkdSIsIm5hbWUiOiJEZXZlbG9wZXJQZXJzb24iLCJwZXJtIjoiYTphZG1pbmlzdHJhdGlvbixpcGksdGVzdC1wcm9qZWN0IiwiZmxhZ3MiOiJ2dWxjYW4iLCJleHAiOjE2Mzk2MTE2MTB9.1WH9ld8OocS2il-HHp2-FhtYYkgmHtRvGJ0pppHU7MKnkZnrmJbrrgfnNQXqnD7ng8iZnrOvDYPetK9nnMb3WU2lF8CAalw9osHyw5hnvZLPhdcZyuDq18Fe2SYwAEmKAAytN_n4N8D5yIjRGygBH-6V9whZ4bzx2jUrchIquUgugAeE2Ux9qn5YfM359GEtJ1xizx4GtzImxtfOAmqt12oWFb_FwunFWLzusXPumk2-t1beyZclH9-M3OYmtFNCy9fg79lyb8slqlgUw4LdqrVtq4hKDwV-2C-RttW2bMUuQnuDptoBeL8b_DD4iZ4Mr06UG7XvWlCkNL7sgQ5YsA",
+        "eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6ImRldmVsb3BlckB1Y3NmLmVkdSIsIm5hbWUiOiJEZXZlbG9wZXJQZXJzb24iLCJwZXJtIjoiYTphZG1pbmlzdHJhdGlvbixpcGksdGVzdC1wcm9qZWN0IiwiZmxhZ3MiOiJ2dWxjYW4iLCJleHAiOjI1MDM3MTM1NjZ9.1zO097iI_bNt4_Jn2pDP9VZxCGWGiBRFEz3TVjStY8spA_8tNjLWlhAzoJvWegpetnSmPVRDOCvNb6n8kjLv2LV716sdnoS1zuhtyMbbzLUHOpDPKpBuFVQN3fAiWjkw-Qo-4kQsMlk64pGK5GT4rQkUAouVlhsD1I7o-eVX9MKiTfwoHg5HndmjDFyRFsj6uTACAAYMGsgV3nGg3m6v4ebNeBM9AOYsBRnoR30Qd6E1j3VqxmD_RqPn57FQ-r6Ult-SfrK6lkldGxZa9xgAoxF-4s67C7AozcMvYq-A5ri4DbgwRgqwXf6kUNWpotGiUFPWqdKbRBLMH6e4TSZWuw",
     )
     response = admin_client.get("/login/")
     assert response.status == "302 FOUND"
