@@ -1635,6 +1635,7 @@ describe FileController do
   context '#thumbnails' do
     before(:each) do
       stubs.clear("data_blocks")
+      stubs.clear("thumbnails")
       @bucket = default_bucket("athena")
   
       blueprints_folder = create_folder("athena", "blueprints")
@@ -1650,32 +1651,28 @@ describe FileController do
   
     after(:each) do
       stubs.clear("data_blocks")
+      stubs.clear("thumbnails")
   
       expect(stubs.contents(:athena)).to be_empty
     end
   
-    it "correctly identifies image file" do
-      expect(@helmet_file.image?).to eq(false)
-      expect(@target_file.image?).to eq(true)
-    end
-  
     it "can generate a thumbnail" do
-      expect(@target_file.thumbnail_in_cache?).to eq(false)
+      expect(@target_file.data_block.thumbnail_in_cache?).to eq(false)
   
-      @target_file.generate_thumbnail
+      @target_file.data_block.generate_thumbnail
   
-      expect(@target_file.thumbnail_in_cache?).to eq(true)
+      expect(@target_file.data_block.thumbnail_in_cache?).to eq(true)
     end
   
     it "can fetch a cached thumbnail" do
       expect {
-        @target_file.thumbnail
+        @target_file.data_block.thumbnail
       }.to raise_error(Metis::ThumbnailNotExistError)
   
-      @target_file.generate_thumbnail
+      @target_file.data_block.generate_thumbnail
   
       expect {
-        @target_file.thumbnail
+        @target_file.data_block.thumbnail
       }.not_to raise_error
     end
 
@@ -1686,17 +1683,17 @@ describe FileController do
 
       expect(duplicate_square.data_block).to eq(@target_file.data_block)
 
-      expect(@target_file.thumbnail_in_cache?).to eq(false)
-      expect(duplicate_square.thumbnail_in_cache?).to eq(false)
-      expect(duplicate_square.has_thumbnail).to eq(nil)
+      expect(@target_file.data_block.thumbnail_in_cache?).to eq(false)
+      expect(duplicate_square.data_block.thumbnail_in_cache?).to eq(false)
+      expect(duplicate_square.data_block.has_thumbnail).to eq(nil)
   
-      @target_file.generate_thumbnail
+      @target_file.data_block.generate_thumbnail
   
-      expect(@target_file.thumbnail_in_cache?).to eq(true)
-      expect(duplicate_square.thumbnail_in_cache?).to eq(true)
-      expect(@target_file.thumbnail).to eq(duplicate_square.thumbnail)
+      expect(@target_file.data_block.thumbnail_in_cache?).to eq(true)
+      expect(duplicate_square.data_block.thumbnail_in_cache?).to eq(true)
+      expect(@target_file.data_block.thumbnail).to eq(duplicate_square.data_block.thumbnail)
 
-      expect(duplicate_square.has_thumbnail).to eq(true)
+      expect(duplicate_square.data_block.has_thumbnail).to eq(true)
     end
   end
 end

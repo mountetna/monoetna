@@ -7,6 +7,7 @@ describe DownloadController do
 
   context '#download' do
     before(:each) do
+      stubs.clear('thumbnails')
       @tips = "1. Burn the hydra's neck after cutting.\n2. Use a river to clean the stables."
 
       @location = stubs.create_file('labors', 'files', 'readme_hercules.txt', @tips)
@@ -15,7 +16,7 @@ describe DownloadController do
     end
 
     after(:each) do
-      stubs.clear
+      stubs.clear('thumbnails')
     end
 
     it 'downloads a file' do
@@ -83,9 +84,7 @@ describe DownloadController do
       stubs.create_file('labors', 'files', 'red_square.png', red_square_png)
       square = create_file('labors', 'red_square.png', red_square_png, bucket: default_bucket('labors'))
 
-      cache = Metis::ThumbnailCache.new
-
-      cache.generate_thumbnail(square)
+      square.data_block.generate_thumbnail
 
       hmac_header(params={thumbnail: true})
       get('/labors/download/files/red_square.png')

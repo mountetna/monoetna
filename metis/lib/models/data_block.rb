@@ -1,4 +1,6 @@
 require "fileutils"
+require "tempfile"
+require 'securerandom'
 
 class Metis
 
@@ -159,17 +161,20 @@ class Metis
 
     def generate_thumbnail
       begin
-        # source = Vips::Source.new_from_file(location)
-        # th = Vips::Image.thumbnail_source(source, 640, height: 480)
-        th = Vips::Image.thumbnail(location, 128, height: 96, size: :down)
-        # th = Vips::Image.thumbnail(location, 640)
-        # image = Vips::Image.new_from_file(location)
-        # th = image.thumbnail_image(640, height: 480)
-        th.write_to_file(thumbnail_location)
-        # output = `vipsthumbnail #{location} -o #{thumbnail_location}`
+        # For our large TIFF files, directly generating thumbnails causes
+        #   the process to hang inside of `libvips` ... can't figure out why.
+        # Going through an intermediate format seems to help, though does give us
+        #   a performance hit because of copying the image.
+        image = Vips::Image.new_from_file(location)
+        Tempfile.create([SecureRandom.hex, ".v"]) do |tmp|
+          image.vipssave(tmp.path)
+          th = Vips::Image.thumbnail(tmp.path, 640, height: 480)
+          th.write_to_file(thumbnail_location)
+        end
         update(has_thumbnail: true)
       rescue Vips::Error => e
         update(has_thumbnail: false)
+        Metis.instance.logger.log_error(e)
       rescue StandardError => e
         Metis.instance.logger.log_error(e)
       ensure

@@ -192,8 +192,6 @@ class Metis
 
       puts "#{needs_thumbnail.count} images require thumbnails to be generated."
 
-      require 'pry'
-      binding.pry
       needs_thumbnail.each do |data_block|
         begin
           data_block.generate_thumbnail

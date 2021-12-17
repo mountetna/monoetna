@@ -13,6 +13,7 @@
   :download_expiration: 60
 
   :data_path: ./spec/data
+  :thumbnail_path: ./spec/data/thumbnails
   :backup:
     :directory: 'metis-test-athena'
     :credentials:
