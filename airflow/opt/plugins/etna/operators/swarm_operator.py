@@ -1,8 +1,18 @@
+import logging
 import time
 from dataclasses import dataclass
 from datetime import timedelta, datetime
+
+import hashlib
+
+import threading
+
+import queue
+from functools import wraps
+
 from dateutil import parser
-from typing import Optional, List, Dict, Callable, Any, Union, Iterator, Set
+from typing import Optional, List, Dict, Callable, Any, Union, Iterator, Set, Tuple
+import requests.exceptions
 
 import docker.errors
 from airflow.exceptions import AirflowException
@@ -122,10 +132,7 @@ def swarm_cleanup(cli: APIClient):
     for config in cli.configs(
         filters={"label": join_labels(DockerSwarmOperator.shared_data_labeling())}
     ):
-        try:
-            config.remove()
-        except docker.errors.APIError:
-            pass  # ignore, maybe being used still.
+        cli.remove_config(config['Id'])
 
     for service in cli.services(
         filters={"label": join_labels(DockerSwarmOperator.service_labeling())}
@@ -142,10 +149,7 @@ def swarm_cleanup(cli: APIClient):
             timestamp: str = task_status["Timestamp"]
             t: datetime = parser.parse(timestamp)
             if t < datetime.now() - timedelta(hours=1):
-                try:
-                    service.remove()
-                except docker.errors.APIError:
-                    pass  # ignore, maybe being used still.
+                cli.remove_service(service['ID'])
 
 
 class DockerSwarmOperator(BaseOperator):
@@ -156,12 +160,13 @@ class DockerSwarmOperator(BaseOperator):
     source_service: str
     cli: APIClient
     ti: TaskInstance
+    terminated_service_state: Optional[str] = None
 
     def __init__(
         self,
+        *args,
         source_service: str,
         command: List[str],
-        *args,
         include_external_networks: Optional[bool] = False,
         swarm_shared_data: Optional[List[SwarmSharedData]] = None,
         serialize_last_output: Optional[Callable[[bytes], Any]] = None,
@@ -201,8 +206,9 @@ class DockerSwarmOperator(BaseOperator):
     def service_labeling():
         return {"etna.operators.swarm_operator.service": "true"}
 
-    def _service_name(self):
-        return f"{self.ti.dag_id}-{self.ti.task_id}-{self.ti.run_id}"
+    def _service_name(self) -> str:
+        digest = hashlib.md5(f"{self.ti.dag_id}-{self.ti.task_id}-{self.ti.run_id}".encode('utf8')).hexdigest()
+        return f"swarm_operator_{digest}"
 
     def _prepare_shared_data(self):
         configs: List[ConfigReference] = []
@@ -224,7 +230,7 @@ class DockerSwarmOperator(BaseOperator):
 
     def _find_or_create_service(
         self, service_definition: SwarmServiceDefinition
-    ) -> Service:
+    ) -> Dict:
         for service in self.cli.services(filters={"name": self._service_name()}):
             self.log.info("Attaching to running service: %s", str(self._service_name()))
             return service
@@ -234,35 +240,32 @@ class DockerSwarmOperator(BaseOperator):
         )
 
         self.log.info("Service started: %s", str(self._service_name()))
-        return service
+        return self.cli.inspect_service(service['ID'])
 
     def on_kill(self) -> None:
         if self.cli is not None:
             self.log.info("Removing docker service: %s", self.service["ID"])
             self.cli.remove_service(self.service["ID"])
 
-    def _run_service(self, service_definition: SwarmServiceDefinition) -> None:
+
+
+    def _run_service(self, service_definition: SwarmServiceDefinition) -> Any:
         self.log.info("Starting docker service from image %s", service_definition.image)
         if not self.cli:
             raise Exception("The 'cli' should be initialized before!")
 
         self.service = self._find_or_create_service(service_definition)
-
-        # wait for the service to start the task
-        while not self.cli.tasks(filters={"service": self.service["ID"]}):
-            time.sleep(1)
-
-        result = self._consume_logs(service_definition)
-
-        while True:
-            if self._has_service_terminated():
-                self.log.info(
-                    "Service status before exiting: %s", self._service_status()
-                )
-                break
-
         try:
-            if self._service_status() != "complete":
+            # wait for the service to start the task
+            while not self.cli.tasks(filters={"service": self.service["ID"]}):
+                self.log.info('Awaiting task to come up...')
+                time.sleep(1)
+
+            self.log.info('Consuming service logs now:')
+            result = self._consume_logs()
+            self.log.info("Service terminated: %s", self.terminated_service_state)
+
+            if self.terminated_service_state != "complete":
                 raise AirflowException(
                     "Service did not complete: " + repr(self.service)
                 )
@@ -272,75 +275,115 @@ class DockerSwarmOperator(BaseOperator):
 
     def _cleanup_service(self):
         self.cli.remove_service(self.service["ID"])
-        configs_json = self.service["Spec"]["TaskTemplate"]["Configs"]
+        configs_json = self.service["Spec"]["TaskTemplate"]['ContainerSpec'].get("Configs", [])
         for config_spec_json in configs_json:
             config_json = self.cli.inspect_config(config_spec_json["ID"])
             config_labels = config_json["Spec"]["Labels"]
 
             if all(
-                config_labels.get(key) == v
-                for key, v in self.shared_data_labeling().items()
+                    config_labels.get(key) == v
+                    for key, v in DockerSwarmOperator.shared_data_labeling().items()
             ):
                 self.cli.remove_config(config_json["ID"])
 
-    def _service_status(self) -> Optional[str]:
-        if not self.cli:
-            raise Exception("The 'cli' should be initialized before!")
-        return self.cli.tasks(filters={"service": self.service["ID"]})[0]["Status"][
-            "State"
-        ]
+    def _consume_logs(self) -> Any:
+        logs_iter = consume_logs(self.cli, self.service['ID'], self.log)
 
-    def _has_service_terminated(self) -> bool:
-        status = self._service_status()
-        return status in [
+        # await the task being complete
+        while True:
+            state = self.cli.tasks(filters={"service": self.service['ID']})[0]["Status"]["State"]
+            if state in [
+                "complete",
+                "failed",
+                "shutdown",
+                "rejected",
+                "orphaned",
+                "remove",
+            ]:
+                self.terminated_service_state = state
+                break
+
+            # While consuming logs
+            next(logs_iter)
+            time.sleep(1)
+
+        # Then consume the remaining logs after a task completes, keeping the last log line
+        last_line: bytes = next(logs_iter)
+
+        if self.serialize_last_output:
+            return self.serialize_last_output(last_line)
+        else:
+            try:
+                self.log.info(last_line.decode())
+            except UnicodeDecodeError:
+                self.log.info(last_line)
+
+def await_status(
+        cli: APIClient,
+        service: Dict,
+        result_queue: queue.Queue
+):
+    while True:
+        state = cli.tasks(filters={"service": service['ID']})[0]["Status"]["State"]
+        if state in [
             "complete",
             "failed",
             "shutdown",
             "rejected",
             "orphaned",
             "remove",
-        ]
+        ]:
+            result_queue.put(state)
+            break
+        time.sleep(1)
 
-    def _consume_logs(self, service_definition: SwarmServiceDefinition) -> Any:
-        log_chunk_iter = self.cli.service_logs(
-            self.service["ID"],
-            follow=True,
+def consume_logs(
+    cli: APIClient,
+    service_id: str,
+    log: logging.Logger,
+) -> Iterator[bytes]:
+    since = [0]
+    last_line: List[bytes] = []
+
+    while True:
+        chunk = cli.service_logs(
+            service_id,
             stdout=True,
             stderr=True,
-            is_tty=service_definition.tty,
+            timestamps=True,
+            since=since[0],
         )
-        last_line_buffer: List[bytes] = []
 
-        for line in consume_lines(log_chunk_iter, last_line_buffer):
-            self.log.info(line)
+        def process_chunk(chunk: Iterator[bytes]) -> bytes:
+            buff = b''.join(chunk)
+            lines = buff.split(b'\n')
+            results: List[bytes] = []
+            for line in lines:
+                if not line:
+                    continue
+                date = parser.parse(line[:30])
+                since[0] = time.mktime(date.timetuple())
+                line = line[31:]
+                results.append(line)
 
-        if self.serialize_last_output:
-            return self.serialize_last_output(b"".join(last_line_buffer))
-        else:
-            try:
-                self.log.info(b"".join(last_line_buffer))
-            except UnicodeDecodeError:
-                pass
+            if results:
+                if last_line:
+                    try:
+                        log.info(last_line[0].decode())
+                    except UnicodeDecodeError:
+                        log.info(last_line[0])
+                last_line.clear()
 
+                for line in results[:-1]:
+                    try:
+                        log.info(line.decode())
+                    except UnicodeDecodeError:
+                        log.info(line)
 
-def consume_lines(
-    chunk_iter: Iterator[bytes], last_line_buffer: List[bytes]
-) -> Iterator[str]:
-    buffer_ready = False
+                last_line.append(results[-1])
 
-    for chunk in chunk_iter:
-        if chunk == b"\n":
-            buffer_ready = True
-        else:
-            if buffer_ready:
-                a = b"".join(last_line_buffer)
-                last_line_buffer.clear()
-                buffer_ready = False
+            if last_line:
+                return last_line[0]
+            return b''
 
-                try:
-                    b = a.decode()
-                    yield b
-                except UnicodeDecodeError:
-                    pass
-
-            last_line_buffer.append(chunk)
+        yield process_chunk(chunk)

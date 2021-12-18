@@ -52,6 +52,7 @@ services:
     command: webserver
     volumes:
       - ./opt/plugins:/opt/airflow/plugins
+      - ./logs:/opt/airflow/logs
       - airflow-dags:/opt/airflow/dags
     environment:
       <<: *airflow-env
@@ -65,6 +66,7 @@ services:
     command: scheduler
     volumes:
       - ./opt/plugins:/opt/airflow/plugins
+      - ./logs:/opt/airflow/logs
       - airflow-dags:/opt/airflow/dags
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
@@ -72,7 +74,7 @@ services:
 
   copy_dev_dags:
     image: alpine
-    command: cp -R -u /dev_dags /opt/airflow/dags
+    command: cp -R -u /dev_dags /opt/airflow/dags && chmod -R a+wr /opt/airflow/dags
     volumes:
       - airflow-dags:/opt/airflow/dags
       - ./dev_dags:/dev_dags
