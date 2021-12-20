@@ -1,4 +1,3 @@
-
 class DownloadController < Metis::Controller
   # This is the endpoint that allows you to make a download.
   # You may call this with a token
@@ -15,7 +14,7 @@ class DownloadController < Metis::Controller
     if @params.fetch(:thumbnail, nil) && file.data_block.thumbnail_in_cache?
       return [
         200,
-        {}, # Do we need mimetype here?
+        {},
         [ file.data_block.thumbnail ]
       ]
     end
@@ -29,8 +28,8 @@ class DownloadController < Metis::Controller
       },
       [ '' ]
     ]
-  rescue Vips::Error => e
+  rescue Metis::ThumbnailError => e
     Metis.instance.logger.log_error(e)
-    raise Etna::Error.new('Unknown file format -- not supported with thumbnails', 422)
+    raise Etna::Error.new("Error generating thumbnail, #{e.message}.", 422)
   end
 end
