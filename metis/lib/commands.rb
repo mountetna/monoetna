@@ -179,9 +179,6 @@ class Metis
     usage "Generate image thumbnail files."
 
     def execute
-      # Do this from Metis::File instead of Metis::DataBlock
-      #   to facilitate mimetype detection. Doing it from
-      #   file contents (data_block) can be slow.
       needs_thumbnail_check = Metis::DataBlock.exclude(md5_hash: Metis::DataBlock::TEMP_MATCH).where(has_thumbnail: nil, removed: false).order(:updated_at).all[0..10]
 
       puts "Found #{needs_thumbnail_check.count} data blocks."
