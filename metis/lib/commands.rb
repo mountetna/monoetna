@@ -193,7 +193,8 @@ class Metis
         begin
           data_block.generate_thumbnail
         rescue Metis::ThumbnailError => e
-          puts "Could not generate thumbnail for #{data_block.md5_hash}"
+          Metis.instance.logger.error("Could not generate thumbnail for #{data_block.md5_hash}")
+          Metis.instance.logger.log_error(e)
           next
         end
       end
