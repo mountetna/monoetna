@@ -161,6 +161,7 @@ class DockerSwarmOperator(BaseOperator):
     cli: APIClient
     ti: TaskInstance
     terminated_service_state: Optional[str] = None
+    docker_base_url: str
 
     def __init__(
         self,
@@ -170,6 +171,7 @@ class DockerSwarmOperator(BaseOperator):
         include_external_networks: Optional[bool] = False,
         swarm_shared_data: Optional[List[SwarmSharedData]] = None,
         serialize_last_output: Optional[Callable[[bytes], Any]] = None,
+        docker_base_url="unix://var/run/docker.sock",
         **kwds,
     ):
         self.swarm_shared_data = swarm_shared_data or []
@@ -177,10 +179,11 @@ class DockerSwarmOperator(BaseOperator):
         self.source_service = source_service
         self.include_external_networks = include_external_networks
         self.command = command
+        self.docker_base_url = docker_base_url
         super(DockerSwarmOperator, self).__init__(*args, **kwds)
 
     def execute(self, context) -> None:
-        self.cli = APIClient(base_url="unix://var/run/docker.sock")
+        self.cli = APIClient(base_url=self.docker_base_url)
         self.ti = context["ti"]
 
         service_data = find_service(self.cli, self.source_service)

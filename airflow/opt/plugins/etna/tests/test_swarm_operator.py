@@ -1,4 +1,10 @@
+import logging
+from dataclasses import dataclass
+from io import StringIO
+
+import json
 import pytest
+from airflow.models import TaskInstance
 from docker import APIClient
 from docker.types import (
     TaskTemplate,
@@ -13,15 +19,67 @@ from etna.operators.swarm_operator import (
     create_service_definition,
     find_service,
     create_service_from_definition,
-    find_local_network_ids,
+    find_local_network_ids, DockerSwarmOperator,
 )
 
 
+@dataclass
+class FakeTaskInstance:
+    task_id: str
+    dag_id: str
+    run_id: str
+
+# In order to re-record these tests, you need to
+# 1.  configure your lock docker daemon into swarm mode (search this)
+# 2.  run the test suite with a proxy from inside the container on port 8085 to the container's mounted docker socker
+#        (actually, this is already setup.  use docker-compose-idea.yml with docker-compose, the mounted socket and
+#         alternate entrypoint should work)
+# 3.  Add the --record-mode argument to the pytest invocation (see pyvcr documentation)
+@pytest.mark.vcr
+def test_execute_swarm_operator():
+    cli = APIClient(base_url="http://localhost:8085")
+    test_service_name = "test-service-swarm"
+
+    try:
+        cli.remove_service(test_service_name)
+    except:
+        pass
+
+    # Try copying a service with many options set, and one with no options set, validating that we essentially 'copy'
+    # their options e2e.
+    cli.create_service(
+        TaskTemplate(
+            ContainerSpec(
+                image="bash",
+                command=[],
+            ),
+        ),
+        name=test_service_name,
+    )
+
+    operator = DockerSwarmOperator(
+        task_id='blahblahblah',
+        source_service=test_service_name,
+        command=["-c", "for i in {0..10}; do echo $i; sleep 1; done"],
+        docker_base_url="http://localhost:8085",
+        serialize_last_output=json.loads
+    )
+
+    test_buffer = StringIO()
+
+    operator._log = logging.Logger('test', logging.INFO)
+    operator.log.addHandler(logging.StreamHandler(test_buffer))
+
+    operator.execute(dict(ti=FakeTaskInstance(
+        task_id="task",
+        dag_id="dag",
+        run_id="run",
+    )))
+
+    assert test_buffer.read() == ""
+
 @pytest.mark.vcr
 def test_find_and_create_service_definition():
-    # cli = APIClient(base_url='http+unix://%2Fvar%2Frun%2Fdocker.sock/')
-    # cli = APIClient(base_url='http+unix://%2Fvar%2Frun%2Fdocker.sock')
-    # cli = APIClient(base_url="unix://var/run/docker.sock")
     cli = APIClient(base_url="http://localhost:8085")
 
     test_service_name = "test-service-swarm"
