@@ -20,6 +20,17 @@ class EtlController < Polyphemus::Controller
     success_json(etl_configs.map(&:to_revision))
   end
 
+  def output
+    etl_config = Polyphemus::EtlConfig.exclude(archived: true).where(
+      project_name: @params[:project_name],
+      name: @params[:name]
+    ).first
+
+    raise Etna::FileNotFound, "No such etl #{@params[:name]} configured for project #{@params[:project_name]}" unless etl_config
+
+    success_json(output: etl_config.output)
+  end
+
   def update
     etl_configs = Polyphemus::EtlConfig.exclude(archived: true).where(
       project_name: @params[:project_name],

@@ -15,10 +15,23 @@ describe EtlController do
       expect(last_response.status).to eq(200)
       expect(json_body.length).to eq(1)
       expect(json_body.first.keys).to match_array([
-        :project_name, :etl, :name, :ran_at, :run_interval, :archived, :status, :output, :updated_at, :created_at, :config, :comment, :secrets, :params
+        :project_name, :etl, :name, :ran_at, :run_interval, :archived, :status, :updated_at, :created_at, :config, :comment, :secrets, :params
       ])
       expect(json_body.first[:project_name]).to eq('labors')
       expect(json_body.first[:secrets]).to eq(password: '***')
+    end
+  end
+
+  context '#output' do
+    it 'returns output for an etl_config' do
+      output = 'A serious error happened'
+      create_dummy_etl(run_interval: Polyphemus::EtlConfig::RUN_NEVER, output: output)
+      auth_header(:editor)
+      get(URI.encode('/api/etl/labors/output/Dummy ETL'))
+
+      expect(last_response.status).to eq(200)
+      expect(json_body.length).to eq(1)
+      expect(json_body).to eq(output: output)
     end
   end
 
