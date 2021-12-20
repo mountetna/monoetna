@@ -175,8 +175,6 @@ class Metis
       rescue Vips::Error => e
         update(has_thumbnail: false)
         Metis.instance.logger.log_error(e)
-      rescue StandardError => e
-        Metis.instance.logger.log_error(e)
       ensure
         refresh
       end
