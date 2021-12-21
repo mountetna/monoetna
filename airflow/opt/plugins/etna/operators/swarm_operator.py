@@ -1,31 +1,19 @@
+import hashlib
 import logging
+import queue
 import time
 from dataclasses import dataclass
 from datetime import timedelta, datetime
-
-import hashlib
-
-import threading
-
-import queue
-from functools import wraps
-
-from dateutil import parser
-from typing import Optional, List, Dict, Callable, Any, Union, Iterator, Set, Tuple
-import requests.exceptions
+from typing import Optional, List, Dict, Callable, Any, Iterator, Set
 
 import docker.errors
 from airflow.exceptions import AirflowException
 from airflow.models import TaskInstance, BaseOperator
 from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.utils.strings import get_random_string
+from dateutil import parser
 from docker import types, APIClient
-
-from airflow.providers.docker.operators.docker_swarm import (
-    DockerSwarmOperator as OrigDockerSwarmOperator,
-)
-from docker.models.services import Service
-from docker.types import ConfigReference, Mount, SecretReference, ServiceMode, Resources
+from docker.types import ConfigReference, Mount, SecretReference, Resources
 
 
 @dataclass
@@ -35,7 +23,7 @@ class SwarmSharedData:
 
 
 def join_labels(labels: Dict[str, str]) -> List[str]:
-    return [f"{k}=={v}" for k, v in labels.items()]
+    return [f"{k}={v}" for k, v in labels.items()]
 
 
 @dataclass
@@ -59,14 +47,13 @@ def find_service(cli: APIClient, service_name: str) -> Dict:
 
 def find_local_network_ids(cli: APIClient, data: Dict) -> Set[str]:
     spec = data["Spec"]
-    task_template = spec["TaskTemplate"]
-    namespace = task_template.get("Labels", {}).get("com.docker.stack.namespace", None)
+    namespace = spec.get("Labels", {}).get("com.docker.stack.namespace", None)
 
     if namespace is not None:
         networks = cli.networks(
-            filters=dict(labels=join_labels({"com.docker.stack.namespace": namespace}))
+            filters=dict(label=join_labels({"com.docker.stack.namespace": namespace}))
         )
-        return {n["ID"] for n in networks}
+        return {n["Id"] for n in networks}
 
     return set()
 
@@ -80,9 +67,9 @@ def create_service_definition(
     task_template = spec["TaskTemplate"]
     container_spec = task_template["ContainerSpec"]
 
-    networks = task_template.get("Networks", [])
-    if local_network_ids:
-        networks = [n for n in networks if n["ID"] in local_network_ids]
+    networks = list(task_template.get("Networks", []))
+    if local_network_ids is not None:
+        networks = [n for n in networks if n["Target"] in local_network_ids]
 
     return SwarmServiceDefinition(
         image=container_spec["Image"],
@@ -127,13 +114,7 @@ def create_service_from_definition(
     )
 
 
-# TODO: Executor can hook this up.
 def swarm_cleanup(cli: APIClient):
-    for config in cli.configs(
-        filters={"label": join_labels(DockerSwarmOperator.shared_data_labeling())}
-    ):
-        cli.remove_config(config['Id'])
-
     for service in cli.services(
         filters={"label": join_labels(DockerSwarmOperator.service_labeling())}
     ):
@@ -147,10 +128,22 @@ def swarm_cleanup(cli: APIClient):
             "remove",
         ]:
             timestamp: str = task_status["Timestamp"]
-            t: datetime = parser.parse(timestamp)
-            if t < datetime.now() - timedelta(hours=1):
+            t: float = time.mktime(parser.parse(timestamp).timetuple())
+            now = time.mktime(datetime.utcnow().timetuple())
+            if t < now - timedelta(hours=2).total_seconds():
                 cli.remove_service(service['ID'])
 
+    for config in cli.configs(
+            filters={"label": join_labels(DockerSwarmOperator.shared_data_labeling())}
+    ):
+        try:
+            cli.remove_config(config['ID'])
+        except docker.errors.APIError as e:
+            # Config that happens to be shared by still running service will fail with 400,
+            # but this ok. the cleanup will happen later.
+            if e.response.status_code == 400:
+                continue
+            raise e
 
 class DockerSwarmOperator(BaseOperator):
     swarm_shared_data: List[SwarmSharedData]
@@ -295,8 +288,10 @@ class DockerSwarmOperator(BaseOperator):
 
         # await the task being complete
         while True:
+            # While consuming logs
+            next(logs_iter)
+
             tasks = self.cli.tasks(filters={"service": self.service['ID']})
-            print(type(tasks))
             status  = tasks[0]["Status"]
             err = status.get('Err')
             state = status["State"]
@@ -310,9 +305,6 @@ class DockerSwarmOperator(BaseOperator):
             ]:
                 self.terminated_service_state = state
                 break
-
-            # While consuming logs
-            next(logs_iter)
             time.sleep(1)
 
         # Then consume the remaining logs after a task completes, keeping the last log line
@@ -363,7 +355,7 @@ def await_status(
 #      which is not portable when using the vcr requests library, nor is it portable when using an http
 #      adapters or even different python versions.  This is a flaw in the way python http is implemented,
 #      its attempt to hide underlying sockets causes grief (ie: stop hiding resources that are not actually private)
-def hacky_service_logs(cli: APIClient, service_id: str, since: int) -> bytes:
+def hacky_service_logs(cli: APIClient, service_id: str, since: int, is_tty: bool) -> bytes:
     params = {
         'details': False,
         'follow': False,
@@ -375,10 +367,7 @@ def hacky_service_logs(cli: APIClient, service_id: str, since: int) -> bytes:
     }
 
     url = cli._url('/services/{0}/logs', service_id)
-    res = cli._get(url, params=params, stream=True)
-    is_tty = cli.inspect_service(
-        service_id
-    )['Spec']['TaskTemplate']['ContainerSpec'].get('TTY', False)
+    res = cli._get(url, params=params, stream=False)
     return cli._get_result_tty(False, res, is_tty)
 
 def consume_logs(
@@ -389,6 +378,10 @@ def consume_logs(
     since = [0]
     last_line: List[bytes] = []
 
+    is_tty = cli.inspect_service(
+        service_id
+    )['Spec']['TaskTemplate']['ContainerSpec'].get('TTY', False)
+
     def process_chunk(buff: bytes) -> bytes:
         lines = buff.split(b'\n')
         results: List[bytes] = []
@@ -396,7 +389,15 @@ def consume_logs(
             if not line:
                 continue
             date = parser.parse(line[:30])
-            since[0] = time.mktime(date.timetuple())
+            t = time.mktime(date.timetuple())
+
+            # There isn't a way to consume 'since' with a exclusive >, meaning that
+            # between calls to the logs we get overlapping lines on the last since
+            # value passed.  We compare the time and drop those.
+            if t <= since[0]:
+                continue
+
+            since[0] = t
             line = line[31:]
             results.append(line)
 
@@ -421,4 +422,4 @@ def consume_logs(
         return b''
 
     while True:
-        yield process_chunk(hacky_service_logs(cli, service_id, since[0]))
+        yield process_chunk(hacky_service_logs(cli, service_id, since[0], is_tty))

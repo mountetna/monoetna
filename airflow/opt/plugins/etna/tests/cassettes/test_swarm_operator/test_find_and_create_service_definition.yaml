@@ -25,7 +25,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -63,7 +63,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -95,7 +95,7 @@ interactions:
       Api-Version:
       - '1.40'
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -127,7 +127,7 @@ interactions:
       Api-Version:
       - '1.40'
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -159,7 +159,39 @@ interactions:
       Api-Version:
       - '1.40'
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/networks/test-network-2
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -188,7 +220,7 @@ interactions:
     uri: http://localhost:8085/v1.40/configs/create
   response:
     body:
-      string: '{"ID":"xnw4ax3jxkuyan9657dysf1p8"}
+      string: '{"ID":"elj5nmipjl8dkyz5z15pe8nie"}
 
         '
     headers:
@@ -199,7 +231,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -228,7 +260,7 @@ interactions:
     uri: http://localhost:8085/v1.40/secrets/create
   response:
     body:
-      string: '{"ID":"s50ccw1znr8kacqtcqtbrghj9"}
+      string: '{"ID":"otwsbj9ppg80dagetmlb61h56"}
 
         '
     headers:
@@ -239,7 +271,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -269,7 +301,7 @@ interactions:
     uri: http://localhost:8085/v1.40/networks/create
   response:
     body:
-      string: '{"Id":"e3161t2ecj79uhwx06s8ml7x0","Warning":""}
+      string: '{"Id":"p00j5uamulrk92h7auo2lh43t","Warning":""}
 
         '
     headers:
@@ -280,7 +312,47 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Name": "test-network-2", "Driver": "overlay", "Attachable": true}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '67'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/networks/create
+  response:
+    body:
+      string: '{"Id":"xelpaodxydt7u3jra2lj3zmca","Warning":""}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '48'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -295,9 +367,9 @@ interactions:
       "test"}, "TaskTemplate": {"ContainerSpec": {"Image": "alpine", "Command": ["true"],
       "Args": null, "Env": ["test=abc"], "User": "0:0", "Mounts": [{"Target": "/testmount",
       "Source": "/usr/bin", "Type": "bind", "ReadOnly": true}], "Secrets": [{"SecretName":
-      "test-secret", "SecretID": "s50ccw1znr8kacqtcqtbrghj9", "File": {"Name": "test-secret",
+      "test-secret", "SecretID": "otwsbj9ppg80dagetmlb61h56", "File": {"Name": "test-secret",
       "UID": "0", "GID": "0", "Mode": 292}}], "Configs": [{"ConfigName": "test-config",
-      "ConfigID": "xnw4ax3jxkuyan9657dysf1p8", "File": {"Name": "test-config", "UID":
+      "ConfigID": "elj5nmipjl8dkyz5z15pe8nie", "File": {"Name": "test-config", "UID":
       "0", "GID": "0", "Mode": 292}}], "TTY": false}, "Resources": {"Limits": {"MemoryBytes":
       5242880}}, "Networks": [{"Target": "test-network"}]}}'
     headers:
@@ -317,7 +389,7 @@ interactions:
     uri: http://localhost:8085/v1.40/services/create
   response:
     body:
-      string: '{"ID":"iki6dy4tta4ryfkazhfddw721"}
+      string: '{"ID":"3ex33fw57iotpfqekl1clahr2"}
 
         '
     headers:
@@ -328,7 +400,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -353,18 +425,54 @@ interactions:
     uri: http://localhost:8085/v1.40/services/test-service-swarm?insertDefaults=True
   response:
     body:
-      string: '{"ID":"iki6dy4tta4ryfkazhfddw721","Version":{"Index":2509},"CreatedAt":"2021-12-17T03:17:20.478717195Z","UpdatedAt":"2021-12-17T03:17:20.482844889Z","Spec":{"Name":"test-service-swarm","Labels":{"com.docker.stack.namespace":"test"},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Env":["test=abc"],"User":"0:0","Mounts":[{"Type":"bind","Source":"/usr/bin","Target":"/testmount","ReadOnly":true}],"StopGracePeriod":10000000000,"DNSConfig":{},"Secrets":[{"File":{"Name":"test-secret","UID":"0","GID":"0","Mode":292},"SecretID":"s50ccw1znr8kacqtcqtbrghj9","SecretName":"test-secret"}],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"xnw4ax3jxkuyan9657dysf1p8","ConfigName":"test-config"}],"Isolation":"default"},"Resources":{"Limits":{"MemoryBytes":5242880}},"RestartPolicy":{"Condition":"any","Delay":5000000000,"MaxAttempts":0},"Placement":{},"Networks":[{"Target":"e3161t2ecj79uhwx06s8ml7x0"}],"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}},"UpdateConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"},"RollbackConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"}},"Endpoint":{"Spec":{},"VirtualIPs":[{"NetworkID":"e3161t2ecj79uhwx06s8ml7x0","Addr":"10.0.1.2/24"}]}}
+      string: '{"ID":"3ex33fw57iotpfqekl1clahr2","Version":{"Index":118594},"CreatedAt":"2021-12-21T19:58:42.818105218Z","UpdatedAt":"2021-12-21T19:58:42.819081968Z","Spec":{"Name":"test-service-swarm","Labels":{"com.docker.stack.namespace":"test"},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Env":["test=abc"],"User":"0:0","Mounts":[{"Type":"bind","Source":"/usr/bin","Target":"/testmount","ReadOnly":true}],"StopGracePeriod":10000000000,"DNSConfig":{},"Secrets":[{"File":{"Name":"test-secret","UID":"0","GID":"0","Mode":292},"SecretID":"otwsbj9ppg80dagetmlb61h56","SecretName":"test-secret"}],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"elj5nmipjl8dkyz5z15pe8nie","ConfigName":"test-config"}],"Isolation":"default"},"Resources":{"Limits":{"MemoryBytes":5242880}},"RestartPolicy":{"Condition":"any","Delay":5000000000,"MaxAttempts":0},"Placement":{},"Networks":[{"Target":"p00j5uamulrk92h7auo2lh43t"}],"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}},"UpdateConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"},"RollbackConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"}},"Endpoint":{"Spec":{},"VirtualIPs":[{"NetworkID":"p00j5uamulrk92h7auo2lh43t","Addr":"10.0.18.2/24"}]}}
 
         '
     headers:
       Api-Version:
       - '1.40'
       Content-Length:
-      - '1372'
+      - '1375'
       Content-Type:
       - application/json
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/networks?filters=%7B%22label%22%3A+%5B%22com.docker.stack.namespace%3Dtest%22%5D%7D
+  response:
+    body:
+      string: '[{"Name":"test-network","Id":"p00j5uamulrk92h7auo2lh43t","Created":"2021-12-21T19:58:42.790408267Z","Scope":"swarm","Driver":"overlay","EnableIPv6":false,"IPAM":{"Driver":"default","Options":null,"Config":[{"Subnet":"10.0.18.0/24","Gateway":"10.0.18.1"}]},"Internal":false,"Attachable":true,"Ingress":false,"ConfigFrom":{"Network":""},"ConfigOnly":false,"Containers":null,"Options":{"com.docker.network.driver.overlay.vxlanid_list":"4114"},"Labels":{"com.docker.stack.namespace":"test"}}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '489'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -398,7 +506,7 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -413,12 +521,12 @@ interactions:
       {"Image": "alpine", "Command": ["true"], "Args": null, "Env": ["test=abc"],
       "User": "0:0", "Mounts": [{"Type": "bind", "Source": "/usr/bin", "Target": "/testmount",
       "ReadOnly": true}], "Secrets": [{"File": {"Name": "test-secret", "UID": "0",
-      "GID": "0", "Mode": 292}, "SecretID": "s50ccw1znr8kacqtcqtbrghj9", "SecretName":
+      "GID": "0", "Mode": 292}, "SecretID": "otwsbj9ppg80dagetmlb61h56", "SecretName":
       "test-secret"}], "Configs": [{"File": {"Name": "test-config", "UID": "0", "GID":
-      "0", "Mode": 292}, "ConfigID": "xnw4ax3jxkuyan9657dysf1p8", "ConfigName": "test-config"}]},
+      "0", "Mode": 292}, "ConfigID": "elj5nmipjl8dkyz5z15pe8nie", "ConfigName": "test-config"}]},
       "Resources": {"Limits": {"MemoryBytes": 5242880}}, "RestartPolicy": {"Condition":
       "none", "Delay": 0, "MaxAttempts": 0, "Window": 0}, "Networks": [{"Target":
-      "e3161t2ecj79uhwx06s8ml7x0"}]}}'
+      "p00j5uamulrk92h7auo2lh43t"}]}}'
     headers:
       Accept:
       - '*/*'
@@ -436,7 +544,7 @@ interactions:
     uri: http://localhost:8085/v1.40/services/create
   response:
     body:
-      string: '{"ID":"a967hc700uj9g5gblynt7ofze"}
+      string: '{"ID":"lrm8sk61g9th8yuz8aiqt90ty"}
 
         '
     headers:
@@ -447,7 +555,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -481,7 +589,7 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -493,7 +601,7 @@ interactions:
       message: OK
 - request:
     body: '{"Name": "test-service-swarm", "TaskTemplate": {"ContainerSpec": {"Image":
-      "alpine", "Command": null, "Args": null}}}'
+      "alpine", "Command": null, "Args": null}, "Networks": [{"Target": "test-network-2"}]}}'
     headers:
       Accept:
       - '*/*'
@@ -502,7 +610,7 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '117'
+      - '161'
       Content-Type:
       - application/json
       User-Agent:
@@ -511,7 +619,7 @@ interactions:
     uri: http://localhost:8085/v1.40/services/create
   response:
     body:
-      string: '{"ID":"5w33yxtq38dwlkyq3qp5fpy9t"}
+      string: '{"ID":"ucge3irevysprwxt17xxtlsov"}
 
         '
     headers:
@@ -522,7 +630,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -547,18 +655,18 @@ interactions:
     uri: http://localhost:8085/v1.40/services/test-service-swarm?insertDefaults=True
   response:
     body:
-      string: '{"ID":"5w33yxtq38dwlkyq3qp5fpy9t","Version":{"Index":2519},"CreatedAt":"2021-12-17T03:17:20.537843214Z","UpdatedAt":"2021-12-17T03:17:20.537843214Z","Spec":{"Name":"test-service-swarm","Labels":{},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","StopGracePeriod":10000000000,"DNSConfig":{},"Isolation":"default"},"Resources":{},"RestartPolicy":{"Condition":"any","Delay":5000000000,"MaxAttempts":0},"Placement":{},"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}},"UpdateConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"},"RollbackConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"}},"Endpoint":{"Spec":{}}}
+      string: '{"ID":"ucge3irevysprwxt17xxtlsov","Version":{"Index":118607},"CreatedAt":"2021-12-21T19:58:42.890155455Z","UpdatedAt":"2021-12-21T19:58:42.893945659Z","Spec":{"Name":"test-service-swarm","Labels":{},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","StopGracePeriod":10000000000,"DNSConfig":{},"Isolation":"default"},"Resources":{},"RestartPolicy":{"Condition":"any","Delay":5000000000,"MaxAttempts":0},"Placement":{},"Networks":[{"Target":"xelpaodxydt7u3jra2lj3zmca"}],"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}},"UpdateConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"},"RollbackConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"}},"Endpoint":{"Spec":{},"VirtualIPs":[{"NetworkID":"xelpaodxydt7u3jra2lj3zmca","Addr":"10.0.19.2/24"}]}}
 
         '
     headers:
       Api-Version:
       - '1.40'
       Content-Length:
-      - '757'
+      - '890'
       Content-Type:
       - application/json
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -592,7 +700,7 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -624,7 +732,7 @@ interactions:
     uri: http://localhost:8085/v1.40/services/create
   response:
     body:
-      string: '{"ID":"ojes9bcviguc24pc4uuifzpau"}
+      string: '{"ID":"cu8lnk71f6mqio8owx5guuzq8"}
 
         '
     headers:
@@ -635,7 +743,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:
@@ -669,7 +777,7 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Fri, 17 Dec 2021 03:17:20 GMT
+      - Tue, 21 Dec 2021 19:58:42 GMT
       Docker-Experimental:
       - 'true'
       Ostype:

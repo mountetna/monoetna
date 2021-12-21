@@ -1,10 +1,11 @@
+import datetime
+import json
 import logging
 from dataclasses import dataclass
 from io import StringIO
+from freezegun import freeze_time
 
-import json
 import pytest
-from airflow.models import TaskInstance
 from docker import APIClient
 from docker.types import (
     TaskTemplate,
@@ -19,7 +20,7 @@ from etna.operators.swarm_operator import (
     create_service_definition,
     find_service,
     create_service_from_definition,
-    find_local_network_ids, DockerSwarmOperator,
+    find_local_network_ids, DockerSwarmOperator, swarm_cleanup, join_labels,
 )
 
 
@@ -29,8 +30,66 @@ class FakeTaskInstance:
     dag_id: str
     run_id: str
 
+@pytest.mark.vcr
+def test_swarm_cleanup():
+    test_service_name = "test-service-swarm"
+    test_config_name = "test-config"
+
+    cli = APIClient(base_url="http://localhost:8085")
+
+    try:
+        cli.remove_service(test_service_name)
+    except:
+        pass
+
+    try:
+        cli.remove_config(test_config_name)
+    except:
+        pass
+
+    config = cli.create_config(test_config_name, b"abc", labels=DockerSwarmOperator.shared_data_labeling())
+    service = cli.create_service(
+        TaskTemplate(
+            ContainerSpec(
+                image="alpine",
+                command="true",
+                configs=[ConfigReference(config["ID"], test_config_name)],
+            ),
+        ),
+        name=test_service_name,
+        labels=DockerSwarmOperator.service_labeling(),
+    )
+
+    while True:
+        tasks = cli.tasks(filters={"service": service["ID"]})
+        if not tasks:
+            continue
+        if tasks[0]['Status']['State'] == 'complete':
+            break
+
+    def get_configs():
+        return cli.configs(filters={"label": join_labels(DockerSwarmOperator.shared_data_labeling())})
+
+    def get_services():
+        return cli.services(filters={"label": join_labels(DockerSwarmOperator.service_labeling())})
+
+    assert len(get_configs()) > 0
+    assert len(get_services()) > 0
+
+    swarm_cleanup(cli)
+
+    assert len(get_configs()) > 0
+    assert len(get_services()) > 0
+
+    with freeze_time(datetime.datetime.now() + datetime.timedelta(hours=5)):
+        swarm_cleanup(cli)
+
+    assert len(get_configs()) == 0
+    assert len(get_services()) == 0
+
+
 # In order to re-record these tests, you need to
-# 1.  configure your lock docker daemon into swarm mode (search this)
+# 1.  configure your local docker daemon into swarm mode (search this)
 # 2.  run the test suite with a proxy from inside the container on port 8085 to the container's mounted docker socker
 #        (actually, this is already setup.  use docker-compose-idea.yml with docker-compose, the mounted socket and
 #         alternate entrypoint should work)
@@ -38,6 +97,8 @@ class FakeTaskInstance:
 @pytest.mark.vcr
 def test_execute_swarm_operator():
     cli = APIClient(base_url="http://localhost:8085")
+    # decorate_api_client(cli)
+
     test_service_name = "test-service-swarm"
 
     try:
@@ -69,16 +130,36 @@ def test_execute_swarm_operator():
 
     # operator._log = logging.Logger('test', logging.INFO)
     handler = logging.StreamHandler(test_buffer)
+    operator.log.setLevel(logging.INFO)
     operator.log.addHandler(handler)
     # operator.log.removeHandler(handler)
 
-    operator.execute(dict(ti=FakeTaskInstance(
+    result = operator.execute(dict(ti=FakeTaskInstance(
         task_id="task",
         dag_id="dag",
         run_id="run",
     )))
 
-    assert test_buffer.read() == ""
+    test_buffer.seek(0)
+    assert test_buffer.read().split("\n") == [
+        'Starting docker service from image bash',
+        'Service started: swarm_operator_a71d33f9732598817e8efb5693d985dd',
+        'Consuming service logs now:',
+        '0',
+        '1',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9',
+        'Service terminated: complete',
+        ''
+    ]
+
+    assert result == 10
 
 @pytest.mark.vcr
 def test_find_and_create_service_definition():
@@ -88,6 +169,7 @@ def test_find_and_create_service_definition():
     test_config_name = "test-config"
     test_secret_name = "test-secret"
     test_network_name = "test-network"
+    test_network_name_global = "test-network-2"
 
     try:
         cli.remove_service(test_service_name)
@@ -109,6 +191,11 @@ def test_find_and_create_service_definition():
     except:
         pass
 
+    try:
+        cli.remove_network(test_network_name_global)
+    except:
+        pass
+
     config = cli.create_config(test_config_name, b"abc")
     secret = cli.create_secret(test_secret_name, b"abc")
     network = cli.create_network(
@@ -117,6 +204,8 @@ def test_find_and_create_service_definition():
         attachable=True,
         labels={"com.docker.stack.namespace": "test"},
     )
+
+    non_local_network = cli.create_network(test_network_name_global, driver="overlay", attachable=True)
 
     # Try copying a service with many options set, and one with no options set, validating that we essentially 'copy'
     # their options e2e.
@@ -154,12 +243,15 @@ def test_find_and_create_service_definition():
             ContainerSpec(
                 image="alpine",
             ),
+            networks=[test_network_name_global],
         ),
         name=test_service_name,
     )
     service_data = find_service(cli, test_service_name)
+    local_networks = find_local_network_ids(cli, service_data)
+    assert local_networks == set()
     definition = create_service_definition(
-        service_data, find_local_network_ids(cli, service_data)
+        service_data, local_networks
     )
 
     assert definition.networks == []
