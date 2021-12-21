@@ -161,6 +161,11 @@ class Metis
 
     def generate_thumbnail
       begin
+        update(has_thumbnail: false)
+        return
+      end unless has_data?
+
+      begin
         # For our large TIFF files, directly generating thumbnails causes
         #   the process to hang inside of `libvips` ... can't figure out why.
         # Going through an intermediate format seems to help, though does give us

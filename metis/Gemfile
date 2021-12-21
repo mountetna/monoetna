@@ -13,6 +13,8 @@ gem "yabeda"
 gem "yabeda-prometheus"
 gem "yabeda-puma-plugin"
 gem 'ruby-vips'
+gem 'fileinfo'
+gem 'mime-types'
 
 group :test do
   gem 'rspec'
