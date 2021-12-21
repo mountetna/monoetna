@@ -5,7 +5,8 @@ import tarfile
 from os.path import basename
 from typing import Optional, List, Callable, Any
 
-from etna.operators.swarm_operator import DockerSwarmOperator, SwarmSharedData
+from etna.operators.docker_operator_base import SwarmSharedData
+from etna.operators.swarm_operator import DockerSwarmOperator
 
 
 def run_in_swarm(

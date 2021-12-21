@@ -13,12 +13,6 @@ from docker.types import ConfigReference, Mount, SecretReference, Resources
 from etna.operators.docker_operator_base import DockerOperatorBase
 
 
-@dataclass
-class SwarmSharedData:
-    data: bytes
-    remote_path: str
-
-
 def join_labels(labels: Dict[str, str]) -> List[str]:
     return [f"{k}={v}" for k, v in labels.items()]
 
@@ -175,6 +169,10 @@ class DockerSwarmOperator(DockerOperatorBase):
             local_network_ids,
         )
         service_definition.command = command
+
+        for config in self._prepare_shared_data():
+            service_definition.configs.append(config)
+
         self.service = self._find_or_create_service(service_definition)
 
         while not self.cli.tasks(filters={"service": self.service["ID"]}):
@@ -231,15 +229,17 @@ class DockerSwarmOperator(DockerOperatorBase):
         configs: List[ConfigReference] = []
 
         for shared_data in self.swarm_shared_data:
+            config_name = f"{self.dag_id}-{self.task_id}-shared-data-{get_random_string()}"
             config = self.cli.create_config(
-                f"{self.dag_id}-{self.task_id}-shared-data-{get_random_string()}",
+                config_name,
                 shared_data.data,
                 self.shared_data_labeling(),
             )
+            print(config)
 
             configs.append(
                 ConfigReference(
-                    config.id, config.name, filename=shared_data.remote_path
+                    config['ID'], config_name, filename=shared_data.remote_path
                 )
             )
 
@@ -269,7 +269,7 @@ class DockerSwarmOperator(DockerOperatorBase):
             "Configs", []
         )
         for config_spec_json in configs_json:
-            config_json = self.cli.inspect_config(config_spec_json["ID"])
+            config_json = self.cli.inspect_config(config_spec_json["ConfigID"])
             config_labels = config_json["Spec"]["Labels"]
 
             if all(

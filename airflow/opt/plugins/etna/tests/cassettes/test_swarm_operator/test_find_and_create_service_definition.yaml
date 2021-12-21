@@ -787,4 +787,2374 @@ interactions:
     status:
       code: 200
       message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/version
+  response:
+    body:
+      string: '{"Platform":{"Name":""},"Components":[{"Name":"Engine","Version":"19.03.12","Details":{"ApiVersion":"1.40","Arch":"amd64","BuildTime":"1980-01-01T00:00:00.000000000+00:00","Experimental":"true","GitCommit":"v19.03.12","GoVersion":"go1.15.13","KernelVersion":"5.4.122","MinAPIVersion":"1.12","Os":"linux"}},{"Name":"containerd","Version":"v1.4.6","Details":{"GitCommit":"d71fcd7d8303cbf684402823e425e9dd2e99285d"}},{"Name":"runc","Version":"1.0.0-rc10","Details":{"GitCommit":""}},{"Name":"docker-init","Version":"0.18.0","Details":{"GitCommit":""}}],"Version":"19.03.12","ApiVersion":"1.40","MinAPIVersion":"1.12","GitCommit":"v19.03.12","GoVersion":"go1.15.13","Os":"linux","Arch":"amd64","KernelVersion":"5.4.122","Experimental":true,"BuildTime":"1980-01-01T00:00:00.000000000+00:00"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '787'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: '{"message":"service test-service-swarm not found"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '51'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 404
+      message: Not Found
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/secrets/test-secret
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/configs/test-config
+  response:
+    body:
+      string: '{"message":"config test-config not found"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '43'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 404
+      message: Not Found
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/networks/test-network
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/networks/test-network-2
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: '{"Data": "YWJj", "Name": "test-config"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '39'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/configs/create
+  response:
+    body:
+      string: '{"ID":"n5zx53pku01fgdjrm61dexs6x"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Data": "YWJj", "Name": "test-secret"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '39'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/secrets/create
+  response:
+    body:
+      string: '{"ID":"xoa36nanh90qiyrsl57l1k2og"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Name": "test-network", "Driver": "overlay", "Labels": {"com.docker.stack.namespace":
+      "test"}, "Attachable": true}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '115'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/networks/create
+  response:
+    body:
+      string: '{"Id":"vdpnjbtbm8ufjz741ya3wrm5e","Warning":""}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '48'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Name": "test-network-2", "Driver": "overlay", "Attachable": true}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '67'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/networks/create
+  response:
+    body:
+      string: '{"Id":"8dftttdixcjyg4dj7c3o32hmx","Warning":""}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '48'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Name": "test-service-swarm", "Labels": {"com.docker.stack.namespace":
+      "test"}, "TaskTemplate": {"ContainerSpec": {"Image": "alpine", "Command": ["true"],
+      "Args": null, "Env": ["test=abc"], "User": "0:0", "Mounts": [{"Target": "/testmount",
+      "Source": "/usr/bin", "Type": "bind", "ReadOnly": true}], "Secrets": [{"SecretName":
+      "test-secret", "SecretID": "xoa36nanh90qiyrsl57l1k2og", "File": {"Name": "test-secret",
+      "UID": "0", "GID": "0", "Mode": 292}}], "Configs": [{"ConfigName": "test-config",
+      "ConfigID": "n5zx53pku01fgdjrm61dexs6x", "File": {"Name": "test-config", "UID":
+      "0", "GID": "0", "Mode": 292}}], "TTY": false}, "Resources": {"Limits": {"MemoryBytes":
+      5242880}}, "Networks": [{"Target": "test-network"}]}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '718'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"6vpxw20aeuthxw5zdfg9u70eb"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/test-service-swarm?insertDefaults=True
+  response:
+    body:
+      string: '{"ID":"6vpxw20aeuthxw5zdfg9u70eb","Version":{"Index":141070},"CreatedAt":"2021-12-21T23:37:37.442047742Z","UpdatedAt":"2021-12-21T23:37:37.445955982Z","Spec":{"Name":"test-service-swarm","Labels":{"com.docker.stack.namespace":"test"},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Env":["test=abc"],"User":"0:0","Mounts":[{"Type":"bind","Source":"/usr/bin","Target":"/testmount","ReadOnly":true}],"StopGracePeriod":10000000000,"DNSConfig":{},"Secrets":[{"File":{"Name":"test-secret","UID":"0","GID":"0","Mode":292},"SecretID":"xoa36nanh90qiyrsl57l1k2og","SecretName":"test-secret"}],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"n5zx53pku01fgdjrm61dexs6x","ConfigName":"test-config"}],"Isolation":"default"},"Resources":{"Limits":{"MemoryBytes":5242880}},"RestartPolicy":{"Condition":"any","Delay":5000000000,"MaxAttempts":0},"Placement":{},"Networks":[{"Target":"vdpnjbtbm8ufjz741ya3wrm5e"}],"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}},"UpdateConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"},"RollbackConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"}},"Endpoint":{"Spec":{},"VirtualIPs":[{"NetworkID":"vdpnjbtbm8ufjz741ya3wrm5e","Addr":"10.0.20.2/24"}]}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '1375'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/networks?filters=%7B%22label%22%3A+%5B%22com.docker.stack.namespace%3Dtest%22%5D%7D
+  response:
+    body:
+      string: '[{"Name":"test-network","Id":"vdpnjbtbm8ufjz741ya3wrm5e","Created":"2021-12-21T23:37:37.417687948Z","Scope":"swarm","Driver":"overlay","EnableIPv6":false,"IPAM":{"Driver":"default","Options":null,"Config":[{"Subnet":"10.0.20.0/24","Gateway":"10.0.20.1"}]},"Internal":false,"Attachable":true,"Ingress":false,"ConfigFrom":{"Network":""},"ConfigOnly":false,"Containers":null,"Options":{"com.docker.network.driver.overlay.vxlanid_list":"4116"},"Labels":{"com.docker.stack.namespace":"test"}}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '489'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"Name": "test-service-swarm", "Labels": {}, "TaskTemplate": {"ContainerSpec":
+      {"Image": "alpine", "Command": ["true"], "Args": null, "Env": ["test=abc"],
+      "User": "0:0", "Mounts": [{"Type": "bind", "Source": "/usr/bin", "Target": "/testmount",
+      "ReadOnly": true}], "Secrets": [{"File": {"Name": "test-secret", "UID": "0",
+      "GID": "0", "Mode": 292}, "SecretID": "xoa36nanh90qiyrsl57l1k2og", "SecretName":
+      "test-secret"}], "Configs": [{"File": {"Name": "test-config", "UID": "0", "GID":
+      "0", "Mode": 292}, "ConfigID": "n5zx53pku01fgdjrm61dexs6x", "ConfigName": "test-config"}]},
+      "Resources": {"Limits": {"MemoryBytes": 5242880}}, "RestartPolicy": {"Condition":
+      "none", "Delay": 0, "MaxAttempts": 0, "Window": 0}, "Networks": [{"Target":
+      "vdpnjbtbm8ufjz741ya3wrm5e"}]}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '764'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"ni7cytyog8b4rdigcp6egvgkv"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"Name": "test-service-swarm", "TaskTemplate": {"ContainerSpec": {"Image":
+      "alpine", "Command": null, "Args": null}, "Networks": [{"Target": "test-network-2"}]}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '161'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"xwz4ejww06guf4kv4mqlgovqz"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/test-service-swarm?insertDefaults=True
+  response:
+    body:
+      string: '{"ID":"xwz4ejww06guf4kv4mqlgovqz","Version":{"Index":141082},"CreatedAt":"2021-12-21T23:37:37.515765609Z","UpdatedAt":"2021-12-21T23:37:37.517709965Z","Spec":{"Name":"test-service-swarm","Labels":{},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","StopGracePeriod":10000000000,"DNSConfig":{},"Isolation":"default"},"Resources":{},"RestartPolicy":{"Condition":"any","Delay":5000000000,"MaxAttempts":0},"Placement":{},"Networks":[{"Target":"8dftttdixcjyg4dj7c3o32hmx"}],"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}},"UpdateConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"},"RollbackConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"}},"Endpoint":{"Spec":{},"VirtualIPs":[{"NetworkID":"8dftttdixcjyg4dj7c3o32hmx","Addr":"10.0.21.2/24"}]}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '890'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"Name": "test-service-swarm", "Labels": {}, "TaskTemplate": {"ContainerSpec":
+      {"Image": "alpine", "Command": null, "Args": null, "Env": [], "Mounts": [],
+      "Secrets": [], "Configs": []}, "RestartPolicy": {"Condition": "none", "Delay":
+      0, "MaxAttempts": 0, "Window": 0}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '269'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"ufagl69x6jaegiipgttsgrjn3"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Tue, 21 Dec 2021 23:37:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/version
+  response:
+    body:
+      string: '{"Platform":{"Name":""},"Components":[{"Name":"Engine","Version":"19.03.12","Details":{"ApiVersion":"1.40","Arch":"amd64","BuildTime":"1980-01-01T00:00:00.000000000+00:00","Experimental":"true","GitCommit":"v19.03.12","GoVersion":"go1.15.13","KernelVersion":"5.4.122","MinAPIVersion":"1.12","Os":"linux"}},{"Name":"containerd","Version":"v1.4.6","Details":{"GitCommit":"d71fcd7d8303cbf684402823e425e9dd2e99285d"}},{"Name":"runc","Version":"1.0.0-rc10","Details":{"GitCommit":""}},{"Name":"docker-init","Version":"0.18.0","Details":{"GitCommit":""}}],"Version":"19.03.12","ApiVersion":"1.40","MinAPIVersion":"1.12","GitCommit":"v19.03.12","GoVersion":"go1.15.13","Os":"linux","Arch":"amd64","KernelVersion":"5.4.122","Experimental":true,"BuildTime":"1980-01-01T00:00:00.000000000+00:00"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '787'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: '{"message":"service test-service-swarm not found"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '51'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 404
+      message: Not Found
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/secrets/test-secret
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/configs/test-config
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/networks/test-network
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/networks/test-network-2
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: '{"Data": "YWJj", "Name": "test-config"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '39'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/configs/create
+  response:
+    body:
+      string: '{"ID":"ahi3tfz3ijhh5v65av32yrf1r"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Data": "YWJj", "Name": "test-secret"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '39'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/secrets/create
+  response:
+    body:
+      string: '{"ID":"box3hki8tw0qkakrvlq136z5s"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Name": "test-network", "Driver": "overlay", "Labels": {"com.docker.stack.namespace":
+      "test"}, "Attachable": true}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '115'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/networks/create
+  response:
+    body:
+      string: '{"Id":"tikqlrypsl9vbdq8tt1tnax8w","Warning":""}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '48'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Name": "test-network-2", "Driver": "overlay", "Attachable": true}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '67'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/networks/create
+  response:
+    body:
+      string: '{"Id":"avdmomehikl8v0nxos45y31ki","Warning":""}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '48'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Name": "test-service-swarm", "Labels": {"com.docker.stack.namespace":
+      "test"}, "TaskTemplate": {"ContainerSpec": {"Image": "alpine", "Command": ["true"],
+      "Args": null, "Env": ["test=abc"], "User": "0:0", "Mounts": [{"Target": "/testmount",
+      "Source": "/usr/bin", "Type": "bind", "ReadOnly": true}], "Secrets": [{"SecretName":
+      "test-secret", "SecretID": "box3hki8tw0qkakrvlq136z5s", "File": {"Name": "test-secret",
+      "UID": "0", "GID": "0", "Mode": 292}}], "Configs": [{"ConfigName": "test-config",
+      "ConfigID": "ahi3tfz3ijhh5v65av32yrf1r", "File": {"Name": "test-config", "UID":
+      "0", "GID": "0", "Mode": 292}}], "TTY": false}, "Resources": {"Limits": {"MemoryBytes":
+      5242880}}, "Networks": [{"Target": "test-network"}]}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '718'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"mxhy1utxjvtoyxlzrk8ye9tqh"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/test-service-swarm?insertDefaults=True
+  response:
+    body:
+      string: '{"ID":"mxhy1utxjvtoyxlzrk8ye9tqh","Version":{"Index":141134},"CreatedAt":"2021-12-21T23:37:51.87046345Z","UpdatedAt":"2021-12-21T23:37:51.872466211Z","Spec":{"Name":"test-service-swarm","Labels":{"com.docker.stack.namespace":"test"},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Env":["test=abc"],"User":"0:0","Mounts":[{"Type":"bind","Source":"/usr/bin","Target":"/testmount","ReadOnly":true}],"StopGracePeriod":10000000000,"DNSConfig":{},"Secrets":[{"File":{"Name":"test-secret","UID":"0","GID":"0","Mode":292},"SecretID":"box3hki8tw0qkakrvlq136z5s","SecretName":"test-secret"}],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"ahi3tfz3ijhh5v65av32yrf1r","ConfigName":"test-config"}],"Isolation":"default"},"Resources":{"Limits":{"MemoryBytes":5242880}},"RestartPolicy":{"Condition":"any","Delay":5000000000,"MaxAttempts":0},"Placement":{},"Networks":[{"Target":"tikqlrypsl9vbdq8tt1tnax8w"}],"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}},"UpdateConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"},"RollbackConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"}},"Endpoint":{"Spec":{},"VirtualIPs":[{"NetworkID":"tikqlrypsl9vbdq8tt1tnax8w","Addr":"10.0.22.2/24"}]}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '1374'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/networks?filters=%7B%22label%22%3A+%5B%22com.docker.stack.namespace%3Dtest%22%5D%7D
+  response:
+    body:
+      string: '[{"Name":"test-network","Id":"tikqlrypsl9vbdq8tt1tnax8w","Created":"2021-12-21T23:37:51.84395381Z","Scope":"swarm","Driver":"overlay","EnableIPv6":false,"IPAM":{"Driver":"default","Options":null,"Config":[{"Subnet":"10.0.22.0/24","Gateway":"10.0.22.1"}]},"Internal":false,"Attachable":true,"Ingress":false,"ConfigFrom":{"Network":""},"ConfigOnly":false,"Containers":null,"Options":{"com.docker.network.driver.overlay.vxlanid_list":"4118"},"Labels":{"com.docker.stack.namespace":"test"}}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '488'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"Name": "test-service-swarm", "Labels": {}, "TaskTemplate": {"ContainerSpec":
+      {"Image": "alpine", "Command": ["true"], "Args": null, "Env": ["test=abc"],
+      "User": "0:0", "Mounts": [{"Type": "bind", "Source": "/usr/bin", "Target": "/testmount",
+      "ReadOnly": true}], "Secrets": [{"File": {"Name": "test-secret", "UID": "0",
+      "GID": "0", "Mode": 292}, "SecretID": "box3hki8tw0qkakrvlq136z5s", "SecretName":
+      "test-secret"}], "Configs": [{"File": {"Name": "test-config", "UID": "0", "GID":
+      "0", "Mode": 292}, "ConfigID": "ahi3tfz3ijhh5v65av32yrf1r", "ConfigName": "test-config"}]},
+      "Resources": {"Limits": {"MemoryBytes": 5242880}}, "RestartPolicy": {"Condition":
+      "none", "Delay": 0, "MaxAttempts": 0, "Window": 0}, "Networks": [{"Target":
+      "tikqlrypsl9vbdq8tt1tnax8w"}]}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '764'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"8qy2ybo26o9qde9wd91gugugt"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"Name": "test-service-swarm", "TaskTemplate": {"ContainerSpec": {"Image":
+      "alpine", "Command": null, "Args": null}, "Networks": [{"Target": "test-network-2"}]}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '161'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"zmk7jkthrg3c2vja513ohc4y0"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/test-service-swarm?insertDefaults=True
+  response:
+    body:
+      string: '{"ID":"zmk7jkthrg3c2vja513ohc4y0","Version":{"Index":141146},"CreatedAt":"2021-12-21T23:37:51.956058404Z","UpdatedAt":"2021-12-21T23:37:51.958036742Z","Spec":{"Name":"test-service-swarm","Labels":{},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","StopGracePeriod":10000000000,"DNSConfig":{},"Isolation":"default"},"Resources":{},"RestartPolicy":{"Condition":"any","Delay":5000000000,"MaxAttempts":0},"Placement":{},"Networks":[{"Target":"avdmomehikl8v0nxos45y31ki"}],"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}},"UpdateConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"},"RollbackConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"}},"Endpoint":{"Spec":{},"VirtualIPs":[{"NetworkID":"avdmomehikl8v0nxos45y31ki","Addr":"10.0.23.2/24"}]}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '890'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"Name": "test-service-swarm", "Labels": {}, "TaskTemplate": {"ContainerSpec":
+      {"Image": "alpine", "Command": null, "Args": null, "Env": [], "Mounts": [],
+      "Secrets": [], "Configs": []}, "RestartPolicy": {"Condition": "none", "Delay":
+      0, "MaxAttempts": 0, "Window": 0}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '269'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"jsdhxeepmfymqjenh5ksp84q2"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:37:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Tue, 21 Dec 2021 23:37:52 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/version
+  response:
+    body:
+      string: '{"Platform":{"Name":""},"Components":[{"Name":"Engine","Version":"19.03.12","Details":{"ApiVersion":"1.40","Arch":"amd64","BuildTime":"1980-01-01T00:00:00.000000000+00:00","Experimental":"true","GitCommit":"v19.03.12","GoVersion":"go1.15.13","KernelVersion":"5.4.122","MinAPIVersion":"1.12","Os":"linux"}},{"Name":"containerd","Version":"v1.4.6","Details":{"GitCommit":"d71fcd7d8303cbf684402823e425e9dd2e99285d"}},{"Name":"runc","Version":"1.0.0-rc10","Details":{"GitCommit":""}},{"Name":"docker-init","Version":"0.18.0","Details":{"GitCommit":""}}],"Version":"19.03.12","ApiVersion":"1.40","MinAPIVersion":"1.12","GitCommit":"v19.03.12","GoVersion":"go1.15.13","Os":"linux","Arch":"amd64","KernelVersion":"5.4.122","Experimental":true,"BuildTime":"1980-01-01T00:00:00.000000000+00:00"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '787'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: '{"message":"service test-service-swarm not found"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '51'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 404
+      message: Not Found
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/secrets/test-secret
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/configs/test-config
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/networks/test-network
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/networks/test-network-2
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: '{"Data": "YWJj", "Name": "test-config"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '39'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/configs/create
+  response:
+    body:
+      string: '{"ID":"14l5bk8k75nfey9skszbbrv7f"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Data": "YWJj", "Name": "test-secret"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '39'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/secrets/create
+  response:
+    body:
+      string: '{"ID":"hlyonzvmjx2iqpdwl8zrjfhd1"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Name": "test-network", "Driver": "overlay", "Labels": {"com.docker.stack.namespace":
+      "test"}, "Attachable": true}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '115'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/networks/create
+  response:
+    body:
+      string: '{"Id":"2pw7093l5r40ernvcr2iftthv","Warning":""}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '48'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Name": "test-network-2", "Driver": "overlay", "Attachable": true}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '67'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/networks/create
+  response:
+    body:
+      string: '{"Id":"vqjrfwezvwh3glow4pe5i0mwm","Warning":""}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '48'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Name": "test-service-swarm", "Labels": {"com.docker.stack.namespace":
+      "test"}, "TaskTemplate": {"ContainerSpec": {"Image": "alpine", "Command": ["true"],
+      "Args": null, "Env": ["test=abc"], "User": "0:0", "Mounts": [{"Target": "/testmount",
+      "Source": "/usr/bin", "Type": "bind", "ReadOnly": true}], "Secrets": [{"SecretName":
+      "test-secret", "SecretID": "hlyonzvmjx2iqpdwl8zrjfhd1", "File": {"Name": "test-secret",
+      "UID": "0", "GID": "0", "Mode": 292}}], "Configs": [{"ConfigName": "test-config",
+      "ConfigID": "14l5bk8k75nfey9skszbbrv7f", "File": {"Name": "test-config", "UID":
+      "0", "GID": "0", "Mode": 292}}], "TTY": false}, "Resources": {"Limits": {"MemoryBytes":
+      5242880}}, "Networks": [{"Target": "test-network"}]}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '718'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"soiws1ujo1em4dbp611lmjmor"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/test-service-swarm?insertDefaults=True
+  response:
+    body:
+      string: '{"ID":"soiws1ujo1em4dbp611lmjmor","Version":{"Index":141206},"CreatedAt":"2021-12-21T23:38:16.422114115Z","UpdatedAt":"2021-12-21T23:38:16.423025962Z","Spec":{"Name":"test-service-swarm","Labels":{"com.docker.stack.namespace":"test"},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Env":["test=abc"],"User":"0:0","Mounts":[{"Type":"bind","Source":"/usr/bin","Target":"/testmount","ReadOnly":true}],"StopGracePeriod":10000000000,"DNSConfig":{},"Secrets":[{"File":{"Name":"test-secret","UID":"0","GID":"0","Mode":292},"SecretID":"hlyonzvmjx2iqpdwl8zrjfhd1","SecretName":"test-secret"}],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"14l5bk8k75nfey9skszbbrv7f","ConfigName":"test-config"}],"Isolation":"default"},"Resources":{"Limits":{"MemoryBytes":5242880}},"RestartPolicy":{"Condition":"any","Delay":5000000000,"MaxAttempts":0},"Placement":{},"Networks":[{"Target":"2pw7093l5r40ernvcr2iftthv"}],"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}},"UpdateConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"},"RollbackConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"}},"Endpoint":{"Spec":{},"VirtualIPs":[{"NetworkID":"2pw7093l5r40ernvcr2iftthv","Addr":"10.0.24.2/24"}]}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '1375'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/networks?filters=%7B%22label%22%3A+%5B%22com.docker.stack.namespace%3Dtest%22%5D%7D
+  response:
+    body:
+      string: '[{"Name":"test-network","Id":"2pw7093l5r40ernvcr2iftthv","Created":"2021-12-21T23:38:16.397474981Z","Scope":"swarm","Driver":"overlay","EnableIPv6":false,"IPAM":{"Driver":"default","Options":null,"Config":[{"Subnet":"10.0.24.0/24","Gateway":"10.0.24.1"}]},"Internal":false,"Attachable":true,"Ingress":false,"ConfigFrom":{"Network":""},"ConfigOnly":false,"Containers":null,"Options":{"com.docker.network.driver.overlay.vxlanid_list":"4120"},"Labels":{"com.docker.stack.namespace":"test"}}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '489'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"Name": "test-service-swarm", "Labels": {}, "TaskTemplate": {"ContainerSpec":
+      {"Image": "alpine", "Command": ["true"], "Args": null, "Env": ["test=abc"],
+      "User": "0:0", "Mounts": [{"Type": "bind", "Source": "/usr/bin", "Target": "/testmount",
+      "ReadOnly": true}], "Secrets": [{"File": {"Name": "test-secret", "UID": "0",
+      "GID": "0", "Mode": 292}, "SecretID": "hlyonzvmjx2iqpdwl8zrjfhd1", "SecretName":
+      "test-secret"}], "Configs": [{"File": {"Name": "test-config", "UID": "0", "GID":
+      "0", "Mode": 292}, "ConfigID": "14l5bk8k75nfey9skszbbrv7f", "ConfigName": "test-config"}]},
+      "Resources": {"Limits": {"MemoryBytes": 5242880}}, "RestartPolicy": {"Condition":
+      "none", "Delay": 0, "MaxAttempts": 0, "Window": 0}, "Networks": [{"Target":
+      "2pw7093l5r40ernvcr2iftthv"}]}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '764'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"tyugjfzdbewc9kp9ag4c3x9rx"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"Name": "test-service-swarm", "TaskTemplate": {"ContainerSpec": {"Image":
+      "alpine", "Command": null, "Args": null}, "Networks": [{"Target": "test-network-2"}]}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '161'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"kr5syp2wat99ufdtlm6bkt8cu"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/test-service-swarm?insertDefaults=True
+  response:
+    body:
+      string: '{"ID":"kr5syp2wat99ufdtlm6bkt8cu","Version":{"Index":141218},"CreatedAt":"2021-12-21T23:38:16.495247929Z","UpdatedAt":"2021-12-21T23:38:16.496265455Z","Spec":{"Name":"test-service-swarm","Labels":{},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","StopGracePeriod":10000000000,"DNSConfig":{},"Isolation":"default"},"Resources":{},"RestartPolicy":{"Condition":"any","Delay":5000000000,"MaxAttempts":0},"Placement":{},"Networks":[{"Target":"vqjrfwezvwh3glow4pe5i0mwm"}],"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}},"UpdateConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"},"RollbackConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"}},"Endpoint":{"Spec":{},"VirtualIPs":[{"NetworkID":"vqjrfwezvwh3glow4pe5i0mwm","Addr":"10.0.25.2/24"}]}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '890'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"Name": "test-service-swarm", "Labels": {}, "TaskTemplate": {"ContainerSpec":
+      {"Image": "alpine", "Command": null, "Args": null, "Env": [], "Mounts": [],
+      "Secrets": [], "Configs": []}, "RestartPolicy": {"Condition": "none", "Delay":
+      0, "MaxAttempts": 0, "Window": 0}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '269'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"0qlbpcr7i6qynwnabc4gethik"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Tue, 21 Dec 2021 23:38:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
 version: 1

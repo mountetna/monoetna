@@ -16,6 +16,7 @@ from docker.types import (
     Placement,
 )
 
+from etna import SwarmSharedData
 from etna.operators.swarm_operator import (
     create_service_definition,
     find_service,
@@ -131,34 +132,39 @@ def test_execute_swarm_operator():
     operator = DockerSwarmOperator(
         task_id="blahblahblah",
         source_service=test_service_name,
-        command=["bash", "-c", "for i in {0..10}; do echo $i; sleep 1; done"],
+        command=["bash", "-c", "[[ `cat /some/shared/data` == 'hello' ]] && for i in {0..10}; do echo $i; sleep 1; done"],
         docker_base_url="http://localhost:8085",
         serialize_last_output=json.loads,
+        swarm_shared_data=[
+            SwarmSharedData(
+                data=b'hello',
+                remote_path="/some/shared/data"
+            )
+        ]
     )
 
     test_buffer = StringIO()
 
-    # operator._log = logging.Logger('test', logging.INFO)
     handler = logging.StreamHandler(test_buffer)
     operator.log.setLevel(logging.INFO)
     operator.log.addHandler(handler)
-    # operator.log.removeHandler(handler)
 
-    result = operator.execute(
-        dict(
+    context = dict(
             ti=FakeTaskInstance(
                 task_id="task",
                 dag_id="dag",
                 run_id="run",
             )
         )
+    operator.pre_execute(context)
+    result = operator.execute(
+        context
     )
 
     test_buffer.seek(0)
     assert test_buffer.read().split("\n") == [
-        "Starting docker service from image bash",
-        "Service started: swarm_operator_a71d33f9732598817e8efb5693d985dd",
-        "Consuming service logs now:",
+        "Service started: DockerSwarmOperator_a71d33f9732598817e8efb5693d985dd",
+        "Consuming logs now:",
         "0",
         "1",
         "2",
@@ -169,7 +175,7 @@ def test_execute_swarm_operator():
         "7",
         "8",
         "9",
-        "Service terminated: complete",
+        "Task terminated: complete",
         "",
     ]
 

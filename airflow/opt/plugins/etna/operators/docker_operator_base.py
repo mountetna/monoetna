@@ -1,5 +1,6 @@
 import logging
 import time
+from dataclasses import dataclass
 from typing import List, Optional, Callable, Any, Mapping, Iterator, Set, Tuple
 
 import hashlib
@@ -9,7 +10,11 @@ from airflow.models import BaseOperator, TaskInstance
 from dateutil import parser
 from docker import APIClient
 
-from etna import SwarmSharedData
+
+@dataclass
+class SwarmSharedData:
+    data: bytes
+    remote_path: str
 
 
 class DockerOperatorBase(BaseOperator):
