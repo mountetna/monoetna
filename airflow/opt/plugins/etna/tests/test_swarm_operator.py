@@ -20,7 +20,10 @@ from etna.operators.swarm_operator import (
     create_service_definition,
     find_service,
     create_service_from_definition,
-    find_local_network_ids, DockerSwarmOperator, swarm_cleanup, join_labels,
+    find_local_network_ids,
+    DockerSwarmOperator,
+    swarm_cleanup,
+    join_labels,
 )
 
 
@@ -29,6 +32,7 @@ class FakeTaskInstance:
     task_id: str
     dag_id: str
     run_id: str
+
 
 @pytest.mark.vcr
 def test_swarm_cleanup():
@@ -47,7 +51,9 @@ def test_swarm_cleanup():
     except:
         pass
 
-    config = cli.create_config(test_config_name, b"abc", labels=DockerSwarmOperator.shared_data_labeling())
+    config = cli.create_config(
+        test_config_name, b"abc", labels=DockerSwarmOperator.shared_data_labeling()
+    )
     service = cli.create_service(
         TaskTemplate(
             ContainerSpec(
@@ -64,14 +70,18 @@ def test_swarm_cleanup():
         tasks = cli.tasks(filters={"service": service["ID"]})
         if not tasks:
             continue
-        if tasks[0]['Status']['State'] == 'complete':
+        if tasks[0]["Status"]["State"] == "complete":
             break
 
     def get_configs():
-        return cli.configs(filters={"label": join_labels(DockerSwarmOperator.shared_data_labeling())})
+        return cli.configs(
+            filters={"label": join_labels(DockerSwarmOperator.shared_data_labeling())}
+        )
 
     def get_services():
-        return cli.services(filters={"label": join_labels(DockerSwarmOperator.service_labeling())})
+        return cli.services(
+            filters={"label": join_labels(DockerSwarmOperator.service_labeling())}
+        )
 
     assert len(get_configs()) > 0
     assert len(get_services()) > 0
@@ -119,11 +129,11 @@ def test_execute_swarm_operator():
     )
 
     operator = DockerSwarmOperator(
-        task_id='blahblahblah',
+        task_id="blahblahblah",
         source_service=test_service_name,
         command=["bash", "-c", "for i in {0..10}; do echo $i; sleep 1; done"],
         docker_base_url="http://localhost:8085",
-        serialize_last_output=json.loads
+        serialize_last_output=json.loads,
     )
 
     test_buffer = StringIO()
@@ -134,32 +144,37 @@ def test_execute_swarm_operator():
     operator.log.addHandler(handler)
     # operator.log.removeHandler(handler)
 
-    result = operator.execute(dict(ti=FakeTaskInstance(
-        task_id="task",
-        dag_id="dag",
-        run_id="run",
-    )))
+    result = operator.execute(
+        dict(
+            ti=FakeTaskInstance(
+                task_id="task",
+                dag_id="dag",
+                run_id="run",
+            )
+        )
+    )
 
     test_buffer.seek(0)
     assert test_buffer.read().split("\n") == [
-        'Starting docker service from image bash',
-        'Service started: swarm_operator_a71d33f9732598817e8efb5693d985dd',
-        'Consuming service logs now:',
-        '0',
-        '1',
-        '2',
-        '3',
-        '4',
-        '5',
-        '6',
-        '7',
-        '8',
-        '9',
-        'Service terminated: complete',
-        ''
+        "Starting docker service from image bash",
+        "Service started: swarm_operator_a71d33f9732598817e8efb5693d985dd",
+        "Consuming service logs now:",
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "Service terminated: complete",
+        "",
     ]
 
     assert result == 10
+
 
 @pytest.mark.vcr
 def test_find_and_create_service_definition():
@@ -205,7 +220,9 @@ def test_find_and_create_service_definition():
         labels={"com.docker.stack.namespace": "test"},
     )
 
-    non_local_network = cli.create_network(test_network_name_global, driver="overlay", attachable=True)
+    non_local_network = cli.create_network(
+        test_network_name_global, driver="overlay", attachable=True
+    )
 
     # Try copying a service with many options set, and one with no options set, validating that we essentially 'copy'
     # their options e2e.
@@ -250,9 +267,7 @@ def test_find_and_create_service_definition():
     service_data = find_service(cli, test_service_name)
     local_networks = find_local_network_ids(cli, service_data)
     assert local_networks == set()
-    definition = create_service_definition(
-        service_data, local_networks
-    )
+    definition = create_service_definition(service_data, local_networks)
 
     assert definition.networks == []
 

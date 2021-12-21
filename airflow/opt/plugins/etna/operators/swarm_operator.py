@@ -1,19 +1,16 @@
-import hashlib
-import logging
-import queue
 import time
 from dataclasses import dataclass
 from datetime import timedelta, datetime
-from typing import Optional, List, Dict, Callable, Any, Iterator, Set, Mapping
+from typing import Optional, List, Dict, Callable, Set, Mapping, Tuple
 
 import docker.errors
-from airflow.exceptions import AirflowException
-from airflow.models import TaskInstance, BaseOperator
 from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.utils.strings import get_random_string
 from dateutil import parser
 from docker import types, APIClient
 from docker.types import ConfigReference, Mount, SecretReference, Resources
+
+from etna.operators.docker_operator_base import DockerOperatorBase
 
 
 @dataclass
@@ -100,7 +97,8 @@ def create_service_from_definition(
                 image=service_definition.image,
                 command=service_definition.command,
                 mounts=service_definition.mounts,
-                env=service_definition.env + list(f"{k}={v}" for k, v in extr_env.items()),
+                env=service_definition.env
+                + list(f"{k}={v}" for k, v in extr_env.items()),
                 user=service_definition.user,
                 tty=service_definition.tty,
                 configs=service_definition.configs,
@@ -133,13 +131,13 @@ def swarm_cleanup(cli: APIClient):
             t: float = time.mktime(parser.parse(timestamp).timetuple())
             now = time.mktime(datetime.utcnow().timetuple())
             if t < now - timedelta(hours=2).total_seconds():
-                cli.remove_service(service['ID'])
+                cli.remove_service(service["ID"])
 
     for config in cli.configs(
-            filters={"label": join_labels(DockerSwarmOperator.shared_data_labeling())}
+        filters={"label": join_labels(DockerSwarmOperator.shared_data_labeling())}
     ):
         try:
-            cli.remove_config(config['ID'])
+            cli.remove_config(config["ID"])
         except docker.errors.APIError as e:
             # Config that happens to be shared by still running service will fail with 400,
             # but this ok. the cleanup will happen later.
@@ -147,57 +145,79 @@ def swarm_cleanup(cli: APIClient):
                 continue
             raise e
 
-class DockerSwarmOperator(BaseOperator):
-    swarm_shared_data: List[SwarmSharedData]
-    command: List[str]
-    serialize_last_output: Optional[Callable[[bytes], Any]] = None
+
+class DockerSwarmOperator(DockerOperatorBase):
     include_external_networks: Optional[bool]
     source_service: str
-    cli: APIClient
-    ti: TaskInstance
-    terminated_service_state: Optional[str] = None
-    docker_base_url: str
-    env: Mapping[str, str]
+    service: Mapping
 
     def __init__(
         self,
         *args,
         source_service: str,
-        command: List[str],
         include_external_networks: Optional[bool] = False,
-        swarm_shared_data: Optional[List[SwarmSharedData]] = None,
-        serialize_last_output: Optional[Callable[[bytes], Any]] = None,
-        docker_base_url="unix://var/run/docker.sock",
-        env: Mapping[str, str] = dict(),
         **kwds,
     ):
-        self.swarm_shared_data = swarm_shared_data or []
-        self.serialize_last_output = serialize_last_output
         self.source_service = source_service
         self.include_external_networks = include_external_networks
-        self.command = command
-        self.docker_base_url = docker_base_url
-        self.env = env
         super(DockerSwarmOperator, self).__init__(*args, **kwds)
 
-    def execute(self, context) -> None:
-        self.cli = APIClient(base_url=self.docker_base_url)
-        self.ti = context["ti"]
-
+    def _start_task(self):
         service_data = find_service(self.cli, self.source_service)
-
         local_network_ids = None
         if not self.include_external_networks:
             local_network_ids = find_local_network_ids(self.cli, service_data)
 
         command = DockerOperator.format_command(self.command)
+        # TODO: Add in the shared data configs!
         service_definition = create_service_definition(
             service_data,
             local_network_ids,
         )
         service_definition.command = command
+        self.service = self._find_or_create_service(service_definition)
 
-        return self._run_service(service_definition)
+        while not self.cli.tasks(filters={"service": self.service["ID"]}):
+            self.log.info("Awaiting task to come up...")
+            time.sleep(1)
+
+    def _check_task(self) -> Tuple[str, Optional[str]]:
+        tasks = self.cli.tasks(filters={"service": self.service["ID"]})
+        if tasks:
+            status = tasks[0]["Status"]
+            err = status.get("Err")
+            state = status["State"]
+            return state, err
+        return "starting", None
+
+    @property
+    def _next_log_batch_since(self) -> Callable[[int], bytes]:
+        is_tty = self.cli.inspect_service(self.service["ID"])["Spec"]["TaskTemplate"][
+            "ContainerSpec"
+        ].get("TTY", False)
+
+        def next_log_batch(since: int):
+            return hacky_service_logs(self.cli, self.service["ID"], since, is_tty)
+
+        return next_log_batch
+
+    @property
+    def successful_states(self) -> Set[str]:
+        return {
+            "complete",
+        }
+
+    @property
+    def completed_states(self) -> Set[str]:
+        return self.successful_states.union(
+            {
+                "failed",
+                "shutdown",
+                "rejected",
+                "orphaned",
+                "remove",
+            }
+        )
 
     @staticmethod
     def shared_data_labeling():
@@ -206,10 +226,6 @@ class DockerSwarmOperator(BaseOperator):
     @staticmethod
     def service_labeling():
         return {"etna.operators.swarm_operator.service": "true"}
-
-    def _service_name(self) -> str:
-        digest = hashlib.md5(f"{self.ti.dag_id}-{self.ti.task_id}-{self.ti.run_id}".encode('utf8')).hexdigest()
-        return f"swarm_operator_{digest}"
 
     def _prepare_shared_data(self):
         configs: List[ConfigReference] = []
@@ -232,118 +248,36 @@ class DockerSwarmOperator(BaseOperator):
     def _find_or_create_service(
         self, service_definition: SwarmServiceDefinition
     ) -> Dict:
-        for service in self.cli.services(filters={"name": self._service_name()}):
-            self.log.info("Attaching to running service: %s", str(self._service_name()))
+        for service in self.cli.services(filters={"name": self.task_name}):
+            self.log.info("Attaching to running service: %s", str(self.task_name))
             return service
 
         service = create_service_from_definition(
-            self.cli, service_definition, self._service_name(), self.env, self.service_labeling()
+            self.cli,
+            service_definition,
+            self.task_name,
+            self.env,
+            self.service_labeling(),
         )
 
-        self.log.info("Service started: %s", str(self._service_name()))
-        return self.cli.inspect_service(service['ID'])
+        self.log.info("Service started: %s", str(self.task_name))
+        return self.cli.inspect_service(service["ID"])
 
-    def on_kill(self) -> None:
-        if self.cli is not None:
-            self.log.info("Removing docker service: %s", self.service["ID"])
-            self.cli.remove_service(self.service["ID"])
-
-
-
-    def _run_service(self, service_definition: SwarmServiceDefinition) -> Any:
-        self.log.info("Starting docker service from image %s", service_definition.image)
-        if not self.cli:
-            raise Exception("The 'cli' should be initialized before!")
-
-        self.service = self._find_or_create_service(service_definition)
-        try:
-            # wait for the service to start the task
-            while not self.cli.tasks(filters={"service": self.service["ID"]}):
-                self.log.info('Awaiting task to come up...')
-                time.sleep(1)
-
-            self.log.info('Consuming service logs now:')
-            result = self._consume_logs()
-            self.log.info("Service terminated: %s", self.terminated_service_state)
-
-            if self.terminated_service_state != "complete":
-                raise AirflowException(
-                    "Service did not complete: " + repr(self.service)
-                )
-            return result
-        finally:
-            self._cleanup_service()
-
-    def _cleanup_service(self):
+    def cleanup(self):
         self.cli.remove_service(self.service["ID"])
-        configs_json = self.service["Spec"]["TaskTemplate"]['ContainerSpec'].get("Configs", [])
+        configs_json = self.service["Spec"]["TaskTemplate"]["ContainerSpec"].get(
+            "Configs", []
+        )
         for config_spec_json in configs_json:
             config_json = self.cli.inspect_config(config_spec_json["ID"])
             config_labels = config_json["Spec"]["Labels"]
 
             if all(
-                    config_labels.get(key) == v
-                    for key, v in DockerSwarmOperator.shared_data_labeling().items()
+                config_labels.get(key) == v
+                for key, v in DockerSwarmOperator.shared_data_labeling().items()
             ):
                 self.cli.remove_config(config_json["ID"])
 
-    def _consume_logs(self) -> Any:
-        logs_iter = consume_logs(self.cli, self.service['ID'], self.log)
-        err = None
-
-        # await the task being complete
-        while True:
-            # While consuming logs
-            next(logs_iter)
-
-            tasks = self.cli.tasks(filters={"service": self.service['ID']})
-            status  = tasks[0]["Status"]
-            err = status.get('Err')
-            state = status["State"]
-            if state in [
-                "complete",
-                "failed",
-                "shutdown",
-                "rejected",
-                "orphaned",
-                "remove",
-            ]:
-                self.terminated_service_state = state
-                break
-            time.sleep(1)
-
-        # Then consume the remaining logs after a task completes, keeping the last log line
-        last_line: bytes = next(logs_iter)
-
-        if err:
-            self.log.error(err)
-
-        if self.terminated_service_state == 'complete' and self.serialize_last_output:
-            return self.serialize_last_output(last_line)
-        else:
-            try:
-                self.log.info(last_line.decode())
-            except UnicodeDecodeError:
-                self.log.info(last_line)
-
-def await_status(
-        cli: APIClient,
-        service: Dict,
-        result_queue: queue.Queue
-):
-    while True:
-        state = cli.tasks(filters={"service": service['ID']})[0]["Status"]["State"]
-        if state in [
-            "complete",
-            "failed",
-            "shutdown",
-            "rejected",
-            "orphaned",
-            "remove",
-        ]:
-            result_queue.put(state)
-            break
-        time.sleep(1)
 
 # Addresses issue with current python client's service logs method.
 # We force the entire logs to be consumed in a singular buffer rather than streamed.
@@ -360,71 +294,19 @@ def await_status(
 #      which is not portable when using the vcr requests library, nor is it portable when using an http
 #      adapters or even different python versions.  This is a flaw in the way python http is implemented,
 #      its attempt to hide underlying sockets causes grief (ie: stop hiding resources that are not actually private)
-def hacky_service_logs(cli: APIClient, service_id: str, since: int, is_tty: bool) -> bytes:
+def hacky_service_logs(
+    cli: APIClient, service_id: str, since: int, is_tty: bool
+) -> bytes:
     params = {
-        'details': False,
-        'follow': False,
-        'stdout': True,
-        'stderr': True,
-        'since': since,
-        'timestamps': True,
-        'tail': 'all'
+        "details": False,
+        "follow": False,
+        "stdout": True,
+        "stderr": True,
+        "since": since,
+        "timestamps": True,
+        "tail": "all",
     }
 
-    url = cli._url('/services/{0}/logs', service_id)
+    url = cli._url("/services/{0}/logs", service_id)
     res = cli._get(url, params=params, stream=False)
     return cli._get_result_tty(False, res, is_tty)
-
-def consume_logs(
-        cli: APIClient,
-        service_id: str,
-    log: logging.Logger,
-) -> Iterator[bytes]:
-    since = [0]
-    last_line: List[bytes] = []
-
-    is_tty = cli.inspect_service(
-        service_id
-    )['Spec']['TaskTemplate']['ContainerSpec'].get('TTY', False)
-
-    def process_chunk(buff: bytes) -> bytes:
-        lines = buff.split(b'\n')
-        results: List[bytes] = []
-        for line in lines:
-            if not line:
-                continue
-            date = parser.parse(line[:30])
-            t = time.mktime(date.timetuple())
-
-            # There isn't a way to consume 'since' with a exclusive >, meaning that
-            # between calls to the logs we get overlapping lines on the last since
-            # value passed.  We compare the time and drop those.
-            if t <= since[0]:
-                continue
-
-            since[0] = t
-            line = line[31:]
-            results.append(line)
-
-        if results:
-            if last_line:
-                try:
-                    log.info(last_line[0].decode())
-                except UnicodeDecodeError:
-                    log.info(last_line[0])
-            last_line.clear()
-
-            for line in results[:-1]:
-                try:
-                    log.info(line.decode())
-                except UnicodeDecodeError:
-                    log.info(line)
-
-            last_line.append(results[-1])
-
-        if last_line:
-            return last_line[0]
-        return b''
-
-    while True:
-        yield process_chunk(hacky_service_logs(cli, service_id, since[0], is_tty))

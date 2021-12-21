@@ -3,6 +3,7 @@ from docker import APIClient
 
 from etna.operators.swarm_operator import swarm_cleanup
 
+
 class LocalExecutor(OrigLocalExecutor):
     def start(self):
         try:
