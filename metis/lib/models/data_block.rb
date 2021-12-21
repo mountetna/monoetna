@@ -166,11 +166,9 @@ class Metis
       end unless has_data?
 
       begin
-        # For CZI images, we need to save them as TIFF first, because
+        # For CZI images, we will save them as TIFF first, because
         #   libvips doesn't handle CZI directly.
         czi_to_tiff do |source_location|
-          require 'pry'
-          binding.pry
           # For our large TIFF files, directly generating thumbnails causes
           #   the process to hang inside of `libvips` ... can't figure out why.
           # Going through an intermediate format seems to help, though does give us
@@ -231,10 +229,6 @@ class Metis
     end
 
     def czi_to_tiff_cmd(tiff_location)
-      # from aicsimageio import AICSImage
-      # from aicsimageio.readers import CziReader
-      # img = AICSImage("source.czi", reader=CziReader)
-      # img.save("copy.tiff")
       "from aicsimageio import AICSImage;from aicsimageio.readers import CziReader;AICSImage('#{location}', reader=CziReader).save('#{tiff_location}')"
     end
   end
