@@ -60,15 +60,17 @@ def test_execute_swarm_operator():
     operator = DockerSwarmOperator(
         task_id='blahblahblah',
         source_service=test_service_name,
-        command=["-c", "for i in {0..10}; do echo $i; sleep 1; done"],
+        command=["bash", "-c", "for i in {0..10}; do echo $i; sleep 1; done"],
         docker_base_url="http://localhost:8085",
         serialize_last_output=json.loads
     )
 
     test_buffer = StringIO()
 
-    operator._log = logging.Logger('test', logging.INFO)
-    operator.log.addHandler(logging.StreamHandler(test_buffer))
+    # operator._log = logging.Logger('test', logging.INFO)
+    handler = logging.StreamHandler(test_buffer)
+    operator.log.addHandler(handler)
+    # operator.log.removeHandler(handler)
 
     operator.execute(dict(ti=FakeTaskInstance(
         task_id="task",

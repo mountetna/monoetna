@@ -291,10 +291,15 @@ class DockerSwarmOperator(BaseOperator):
 
     def _consume_logs(self) -> Any:
         logs_iter = consume_logs(self.cli, self.service['ID'], self.log)
+        err = None
 
         # await the task being complete
         while True:
-            state = self.cli.tasks(filters={"service": self.service['ID']})[0]["Status"]["State"]
+            tasks = self.cli.tasks(filters={"service": self.service['ID']})
+            print(type(tasks))
+            status  = tasks[0]["Status"]
+            err = status.get('Err')
+            state = status["State"]
             if state in [
                 "complete",
                 "failed",
@@ -313,7 +318,10 @@ class DockerSwarmOperator(BaseOperator):
         # Then consume the remaining logs after a task completes, keeping the last log line
         last_line: bytes = next(logs_iter)
 
-        if self.serialize_last_output:
+        if err:
+            self.log.error(err)
+
+        if self.terminated_service_state == 'complete' and self.serialize_last_output:
             return self.serialize_last_output(last_line)
         else:
             try:
@@ -340,53 +348,77 @@ def await_status(
             break
         time.sleep(1)
 
+# Addresses issue with current python client's service logs method.
+# We force the entire logs to be consumed in a singular buffer rather than streamed.
+# This isn't ideal but the streaming solution offered in the underlying implementation
+# has many problems.  This should be ok since we still grab chunks using the 'since'
+# property and are capable of consuming logs "as they are produced".  Worst case scenario,
+# an extremely prolific logging service might cause network and memory bloating with
+# the buffered approach, but this would be indicative of a deeper problem.
+# In future maybe we can rewrite the python docker library's streaming implementation
+# to fix underlying issues:
+#   1. ability to cancel streaming (currently it removes socket timeout and does not allow retrieval
+#      of underlying socket to cancel it, resulting in a leaking stream when services are completed)
+#   2. it attempts to hack into internals of requests implementation to retrieve the underlying socket,
+#      which is not portable when using the vcr requests library, nor is it portable when using an http
+#      adapters or even different python versions.  This is a flaw in the way python http is implemented,
+#      its attempt to hide underlying sockets causes grief (ie: stop hiding resources that are not actually private)
+def hacky_service_logs(cli: APIClient, service_id: str, since: int) -> bytes:
+    params = {
+        'details': False,
+        'follow': False,
+        'stdout': True,
+        'stderr': True,
+        'since': since,
+        'timestamps': True,
+        'tail': 'all'
+    }
+
+    url = cli._url('/services/{0}/logs', service_id)
+    res = cli._get(url, params=params, stream=True)
+    is_tty = cli.inspect_service(
+        service_id
+    )['Spec']['TaskTemplate']['ContainerSpec'].get('TTY', False)
+    return cli._get_result_tty(False, res, is_tty)
+
 def consume_logs(
-    cli: APIClient,
-    service_id: str,
+        cli: APIClient,
+        service_id: str,
     log: logging.Logger,
 ) -> Iterator[bytes]:
     since = [0]
     last_line: List[bytes] = []
 
-    while True:
-        chunk = cli.service_logs(
-            service_id,
-            stdout=True,
-            stderr=True,
-            timestamps=True,
-            since=since[0],
-        )
+    def process_chunk(buff: bytes) -> bytes:
+        lines = buff.split(b'\n')
+        results: List[bytes] = []
+        for line in lines:
+            if not line:
+                continue
+            date = parser.parse(line[:30])
+            since[0] = time.mktime(date.timetuple())
+            line = line[31:]
+            results.append(line)
 
-        def process_chunk(chunk: Iterator[bytes]) -> bytes:
-            buff = b''.join(chunk)
-            lines = buff.split(b'\n')
-            results: List[bytes] = []
-            for line in lines:
-                if not line:
-                    continue
-                date = parser.parse(line[:30])
-                since[0] = time.mktime(date.timetuple())
-                line = line[31:]
-                results.append(line)
-
-            if results:
-                if last_line:
-                    try:
-                        log.info(last_line[0].decode())
-                    except UnicodeDecodeError:
-                        log.info(last_line[0])
-                last_line.clear()
-
-                for line in results[:-1]:
-                    try:
-                        log.info(line.decode())
-                    except UnicodeDecodeError:
-                        log.info(line)
-
-                last_line.append(results[-1])
-
+        if results:
             if last_line:
-                return last_line[0]
-            return b''
+                try:
+                    log.info(last_line[0].decode())
+                except UnicodeDecodeError:
+                    log.info(last_line[0])
+            last_line.clear()
 
-        yield process_chunk(chunk)
+            for line in results[:-1]:
+                try:
+                    log.info(line.decode())
+                except UnicodeDecodeError:
+                    log.info(line)
+
+            last_line.append(results[-1])
+
+        if last_line:
+            return last_line[0]
+        return b''
+
+    while True:
+        yield process_chunk(hacky_service_logs(cli, service_id, since[0]))
