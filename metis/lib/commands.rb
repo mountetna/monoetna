@@ -208,27 +208,4 @@ class Metis
       Metis.instance.load_models
     end
   end
-
-  class IdentifyNonImageDataBlocks < Etna::Command
-    usage "Flag non-image data_blocks based on mime-type"
-
-    def image_mime_types
-      ['image/jpeg', 'image/tiff', 'image/png', 'image/svg+xml']
-    end
-
-    def execute
-      Metis::DataBlock.exclude(md5_hash: Metis::DataBlock::TEMP_MATCH).where(has_thumbnail: nil, removed: false).order(:updated_at).each do |data_block|
-        next unless data_block.has_data?
-
-        info = FileInfo.load(data_block.location)
-        data_block.update(has_thumbnail: false) unless image_mime_types.include?(info.type)
-      end
-    end
-
-    def setup(config)
-      super
-      Metis.instance.setup_logger
-      Metis.instance.load_models
-    end
-  end
 end
