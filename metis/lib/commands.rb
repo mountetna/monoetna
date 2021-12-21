@@ -1,5 +1,3 @@
-require 'fileinfo'
-
 class Metis
   class Console < Etna::Command
     usage "Open a console with a connected magma instance."
