@@ -166,15 +166,21 @@ class Metis
       end unless has_data?
 
       begin
-        # For our large TIFF files, directly generating thumbnails causes
-        #   the process to hang inside of `libvips` ... can't figure out why.
-        # Going through an intermediate format seems to help, though does give us
-        #   a performance hit because of copying the image.
-        image = Vips::Image.new_from_file(location)
-        Tempfile.create([SecureRandom.hex, ".v"]) do |tmp|
-          image.vipssave(tmp.path)
-          th = Vips::Image.thumbnail(tmp.path, 640, height: 480)
-          th.write_to_file(thumbnail_location)
+        # For CZI images, we need to save them as TIFF first, because
+        #   libvips doesn't handle CZI directly.
+        czi_to_tiff do |source_location|
+          require 'pry'
+          binding.pry
+          # For our large TIFF files, directly generating thumbnails causes
+          #   the process to hang inside of `libvips` ... can't figure out why.
+          # Going through an intermediate format seems to help, though does give us
+          #   a performance hit because of copying the image.
+          image = Vips::Image.new_from_file(source_location)
+          Tempfile.create([SecureRandom.hex, ".v"]) do |tmp|
+            image.vipssave(tmp.path)
+            th = Vips::Image.thumbnail(tmp.path, 640, height: 480)
+            th.write_to_file(thumbnail_location)
+          end
         end
         update(has_thumbnail: true)
       rescue Vips::Error => e
@@ -212,6 +218,24 @@ class Metis
           "#{::File.basename(location)}.png"
         )
       )
+    end
+
+    def czi_to_tiff(&block)
+      Tempfile.create([SecureRandom.hex, ".tiff"]) do |tmp|
+        output = `poetry run python3 -c "#{czi_to_tiff_cmd(tmp.path)}"`
+
+        # If the conversion to TIFF failed, we'll pass back the original
+        #   data block location.
+        yield $?.exitstatus == 0 ? tmp.path : location
+      end
+    end
+
+    def czi_to_tiff_cmd(tiff_location)
+      # from aicsimageio import AICSImage
+      # from aicsimageio.readers import CziReader
+      # img = AICSImage("source.czi", reader=CziReader)
+      # img.save("copy.tiff")
+      "from aicsimageio import AICSImage;from aicsimageio.readers import CziReader;AICSImage('#{location}', reader=CziReader).save('#{tiff_location}')"
     end
   end
 end
