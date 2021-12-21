@@ -47,10 +47,6 @@ RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x6
 
 RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
 
-ENV PATH "/app/bin:/opt/poetry/bin:$PATH"
-ENV POETRY_HOME "/opt/poetry"
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
-
 # We want the bundle installed into the default location (/vendor/bundle)
 ENV BUNDLE_PATH="/app/vendor/bundle/$RUBY_VERSION"
 ENV BUNDLE_BIN="$BUNDLE_PATH/bin"
