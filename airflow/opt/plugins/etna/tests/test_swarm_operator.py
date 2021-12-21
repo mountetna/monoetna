@@ -233,7 +233,7 @@ def test_find_and_create_service_definition():
         service_data, find_local_network_ids(cli, service_data)
     )
     cli.remove_service(test_service_name)
-    create_service_from_definition(cli, definition, test_service_name, {})
+    create_service_from_definition(cli, definition, test_service_name, {}, {})
     cli.remove_service(test_service_name)
 
     assert definition.networks == [dict(Target=network["Id"])]
@@ -257,5 +257,5 @@ def test_find_and_create_service_definition():
     assert definition.networks == []
 
     cli.remove_service(test_service_name)
-    create_service_from_definition(cli, definition, test_service_name, {})
+    create_service_from_definition(cli, definition, test_service_name, {}, {})
     cli.remove_service(test_service_name)

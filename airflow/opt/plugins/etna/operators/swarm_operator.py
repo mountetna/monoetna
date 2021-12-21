@@ -4,7 +4,7 @@ import queue
 import time
 from dataclasses import dataclass
 from datetime import timedelta, datetime
-from typing import Optional, List, Dict, Callable, Any, Iterator, Set
+from typing import Optional, List, Dict, Callable, Any, Iterator, Set, Mapping
 
 import docker.errors
 from airflow.exceptions import AirflowException
@@ -90,15 +90,17 @@ def create_service_from_definition(
     cli: APIClient,
     service_definition: SwarmServiceDefinition,
     service_name: str,
+    extr_env: Mapping[str, str],
     labeling: Dict[str, str],
 ):
+
     return cli.create_service(
         types.TaskTemplate(
             container_spec=types.ContainerSpec(
                 image=service_definition.image,
                 command=service_definition.command,
                 mounts=service_definition.mounts,
-                env=service_definition.env,
+                env=service_definition.env + list(f"{k}={v}" for k, v in extr_env.items()),
                 user=service_definition.user,
                 tty=service_definition.tty,
                 configs=service_definition.configs,
@@ -155,6 +157,7 @@ class DockerSwarmOperator(BaseOperator):
     ti: TaskInstance
     terminated_service_state: Optional[str] = None
     docker_base_url: str
+    env: Mapping[str, str]
 
     def __init__(
         self,
@@ -165,6 +168,7 @@ class DockerSwarmOperator(BaseOperator):
         swarm_shared_data: Optional[List[SwarmSharedData]] = None,
         serialize_last_output: Optional[Callable[[bytes], Any]] = None,
         docker_base_url="unix://var/run/docker.sock",
+        env: Mapping[str, str] = dict(),
         **kwds,
     ):
         self.swarm_shared_data = swarm_shared_data or []
@@ -173,6 +177,7 @@ class DockerSwarmOperator(BaseOperator):
         self.include_external_networks = include_external_networks
         self.command = command
         self.docker_base_url = docker_base_url
+        self.env = env
         super(DockerSwarmOperator, self).__init__(*args, **kwds)
 
     def execute(self, context) -> None:
@@ -232,7 +237,7 @@ class DockerSwarmOperator(BaseOperator):
             return service
 
         service = create_service_from_definition(
-            self.cli, service_definition, self._service_name(), self.service_labeling()
+            self.cli, service_definition, self._service_name(), self.env, self.service_labeling()
         )
 
         self.log.info("Service started: %s", str(self._service_name()))
