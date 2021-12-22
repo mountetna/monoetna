@@ -1,5 +1,5 @@
 import tempfile
-from typing import Optional, Callable, Tuple, Set
+from typing import Optional, Callable, Tuple, Set, Mapping
 
 from docker import APIClient
 from docker.models.containers import Container
@@ -14,7 +14,7 @@ def find_container(cli: APIClient, container_name: str) -> Optional[Container]:
     return None
 
 
-class DockerSwarmOperator(DockerOperatorBase):
+class DockerOperator(DockerOperatorBase):
     source_container_name: str
     source: Container
 
@@ -25,10 +25,10 @@ class DockerSwarmOperator(DockerOperatorBase):
         **kwds,
     ):
         self.source_container_name = source_container_name
-        super(DockerSwarmOperator, self).__init__(*args, **kwds)
+        super(DockerOperator, self).__init__(*args, **kwds)
 
     def pre_execute(self, context) -> None:
-        super(DockerSwarmOperator, self).pre_execute(context)
+        super(DockerOperator, self).pre_execute(context)
         self.source = find_container(self.cli, self.source_container_name)
 
     @staticmethod
@@ -40,12 +40,16 @@ class DockerSwarmOperator(DockerOperatorBase):
             self.log.info("Removing docker container: %s", self.task_name)
             self.cli.remove_container(self.task_name)
 
-    def _start_task(self):
-        config = self.source.attrs["Config"]
+    def _find_or_create_container(self) -> Mapping:
+        existing = self.cli.containers(limit=1, filters=dict(name=self.task_name))
+        if existing:
+            return existing[0]
+
+        config = self.source.attrs.get("Config", {})
 
         new_host_config = {
             k: v
-            for k, v in self.source.attrs["HostConfig"]
+            for k, v in self.source.attrs["HostConfig"].items()
             if k not in {"PortBindings", "RestartPolicy", "AutoRemove", "LogConfig"}
         }
         binds = new_host_config.setdefault("Binds", [])
@@ -55,40 +59,41 @@ class DockerSwarmOperator(DockerOperatorBase):
                 file.write(data.data)
 
             binds.append(f"{file.name}:{data.remote_path}:ro")
+        print(binds)
 
         container = self.cli.create_container(
-            self.source.image,
+            self.source.attrs.get('ImageID', self.source.attrs['Image']),
             self.command,
-            user=config["User"] or None,
-            tty=config["Tty"],
-            environment=config["Env"] + list(f"{k}={v}" for k, v in self.env.items()),
+            user=config.get("User") or None,
+            tty=config.get("Tty"),
+            environment=config.get("Env", []) + list(f"{k}={v}" for k, v in self.env.items()),
             host_config=new_host_config,
             labels=self.container_labeling(),
             name=self.task_name,
         )
-
         for network_name, network in (
-            self.source.attrs["NetworkSettings"].get("Networks", {}).items()
+                self.source.attrs["NetworkSettings"].get("Networks", {}).items()
         ):
             self.cli.connect_container_to_network(
                 container["Id"],
-                network["NetworkID"],
+                network["NetworkID"] or network_name,
                 links=network.get("Links", None),
                 driver_opt=network.get("DriverOpt", None),
             )
 
+        return container
+
+    def _start_task(self):
+        container = self._find_or_create_container()
         self.cli.start(container["Id"])
 
     def _check_task(self) -> Tuple[str, Optional[str]]:
-        containers = self.cli.containers(limit=1, filters=dict(name=self.task_name))
-        if containers:
-            state = containers[0]["State"]
-            if state.get("ExitCode"):
-                return "failed", state.get("Error")
+        container = self.cli.inspect_container(self.task_name)
+        state = container["State"]
+        if state.get("ExitCode"):
+            return "failed", state.get("Error")
 
-            return state["Status"], state.get("Error")
-
-        return "starting", None
+        return state["Status"], state.get("Error")
 
     @property
     def _next_log_batch_since(self) -> Callable[[int], bytes]:

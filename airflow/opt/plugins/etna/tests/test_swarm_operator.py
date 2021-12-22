@@ -3,6 +3,8 @@ import json
 import logging
 from dataclasses import dataclass
 from io import StringIO
+from unittest import mock
+
 from freezegun import freeze_time
 
 import pytest
@@ -106,6 +108,7 @@ def test_swarm_cleanup():
 #         alternate entrypoint should work)
 # 3.  Add the --record-mode argument to the pytest invocation (see pyvcr documentation)
 @pytest.mark.vcr
+@mock.patch("airflow.utils.strings.get_random_string", mock.MagicMock(return_value="abc"))
 def test_execute_swarm_operator():
     cli = APIClient(base_url="http://localhost:8085")
     # decorate_api_client(cli)
@@ -132,15 +135,16 @@ def test_execute_swarm_operator():
     operator = DockerSwarmOperator(
         task_id="blahblahblah",
         source_service=test_service_name,
-        command=["bash", "-c", "[[ `cat /some/shared/data` == 'hello' ]] && for i in {0..10}; do echo $i; sleep 1; done"],
+        command=[
+            "bash",
+            "-c",
+            "[[ `cat /some/shared/data` == 'hello' ]] && for i in {0..10}; do echo $i; sleep 1; done",
+        ],
         docker_base_url="http://localhost:8085",
         serialize_last_output=json.loads,
         swarm_shared_data=[
-            SwarmSharedData(
-                data=b'hello',
-                remote_path="/some/shared/data"
-            )
-        ]
+            SwarmSharedData(data=b"hello", remote_path="/some/shared/data")
+        ],
     )
 
     test_buffer = StringIO()
@@ -150,16 +154,14 @@ def test_execute_swarm_operator():
     operator.log.addHandler(handler)
 
     context = dict(
-            ti=FakeTaskInstance(
-                task_id="task",
-                dag_id="dag",
-                run_id="run",
-            )
+        ti=FakeTaskInstance(
+            task_id="task",
+            dag_id="dag",
+            run_id="run",
         )
-    operator.pre_execute(context)
-    result = operator.execute(
-        context
     )
+    operator.pre_execute(context)
+    result = operator.execute(context)
 
     test_buffer.seek(0)
     assert test_buffer.read().split("\n") == [

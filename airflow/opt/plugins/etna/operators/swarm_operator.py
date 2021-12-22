@@ -229,7 +229,9 @@ class DockerSwarmOperator(DockerOperatorBase):
         configs: List[ConfigReference] = []
 
         for shared_data in self.swarm_shared_data:
-            config_name = f"{self.dag_id}-{self.task_id}-shared-data-{get_random_string()}"
+            config_name = (
+                f"{self.dag_id}-{self.task_id}-shared-data-{get_random_string()}"
+            )
             config = self.cli.create_config(
                 config_name,
                 shared_data.data,
@@ -239,7 +241,7 @@ class DockerSwarmOperator(DockerOperatorBase):
 
             configs.append(
                 ConfigReference(
-                    config['ID'], config_name, filename=shared_data.remote_path
+                    config["ID"], config_name, filename=shared_data.remote_path
                 )
             )
 
