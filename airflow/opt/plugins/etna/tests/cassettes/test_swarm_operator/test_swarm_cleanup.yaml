@@ -9107,4 +9107,1053 @@ interactions:
     status:
       code: 200
       message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/version
+  response:
+    body:
+      string: '{"Platform":{"Name":""},"Components":[{"Name":"Engine","Version":"19.03.12","Details":{"ApiVersion":"1.40","Arch":"amd64","BuildTime":"1980-01-01T00:00:00.000000000+00:00","Experimental":"true","GitCommit":"v19.03.12","GoVersion":"go1.15.13","KernelVersion":"5.4.122","MinAPIVersion":"1.12","Os":"linux"}},{"Name":"containerd","Version":"v1.4.6","Details":{"GitCommit":"d71fcd7d8303cbf684402823e425e9dd2e99285d"}},{"Name":"runc","Version":"1.0.0-rc10","Details":{"GitCommit":""}},{"Name":"docker-init","Version":"0.18.0","Details":{"GitCommit":""}}],"Version":"19.03.12","ApiVersion":"1.40","MinAPIVersion":"1.12","GitCommit":"v19.03.12","GoVersion":"go1.15.13","Os":"linux","Arch":"amd64","KernelVersion":"5.4.122","Experimental":true,"BuildTime":"1980-01-01T00:00:00.000000000+00:00"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '787'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:47 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Wed, 22 Dec 2021 00:44:47 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/configs/test-config
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 00:44:47 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: '{"Data": "YWJj", "Name": "test-config", "Labels": {"etna.operators.swarm_operator.shared_data":
+      "true"}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '104'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/configs/create
+  response:
+    body:
+      string: '{"ID":"wkk903fim843beaccwdktguh9"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:47 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Name": "test-service-swarm", "Labels": {"etna.operators.swarm_operator.service":
+      "true"}, "TaskTemplate": {"ContainerSpec": {"Image": "alpine", "Command": ["true"],
+      "Args": null, "Configs": [{"ConfigName": "test-config", "ConfigID": "wkk903fim843beaccwdktguh9",
+      "File": {"Name": "test-config", "UID": "0", "GID": "0", "Mode": 292}}]}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '337'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"9fl7zlvj04uveaxh6w9a9oox6"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:47 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%229fl7zlvj04uveaxh6w9a9oox6%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"n6pcehmq97xkmxsu36immbb9c","Version":{"Index":154094},"CreatedAt":"2021-12-22T00:44:47.258583802Z","UpdatedAt":"2021-12-22T00:44:47.310788341Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T00:44:47.310739166Z","State":"assigned","Message":"scheduler
+        assigned task to node","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '654'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:47 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%229fl7zlvj04uveaxh6w9a9oox6%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"n6pcehmq97xkmxsu36immbb9c","Version":{"Index":154096},"CreatedAt":"2021-12-22T00:44:47.258583802Z","UpdatedAt":"2021-12-22T00:44:47.483764475Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T00:44:47.443415857Z","State":"preparing","Message":"preparing","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '633'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:47 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%229fl7zlvj04uveaxh6w9a9oox6%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"n6pcehmq97xkmxsu36immbb9c","Version":{"Index":154096},"CreatedAt":"2021-12-22T00:44:47.258583802Z","UpdatedAt":"2021-12-22T00:44:47.483764475Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T00:44:47.443415857Z","State":"preparing","Message":"preparing","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '633'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:47 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%229fl7zlvj04uveaxh6w9a9oox6%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"n6pcehmq97xkmxsu36immbb9c","Version":{"Index":154096},"CreatedAt":"2021-12-22T00:44:47.258583802Z","UpdatedAt":"2021-12-22T00:44:47.483764475Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T00:44:47.443415857Z","State":"preparing","Message":"preparing","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '633'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:47 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%229fl7zlvj04uveaxh6w9a9oox6%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"n6pcehmq97xkmxsu36immbb9c","Version":{"Index":154096},"CreatedAt":"2021-12-22T00:44:47.258583802Z","UpdatedAt":"2021-12-22T00:44:47.483764475Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T00:44:47.443415857Z","State":"preparing","Message":"preparing","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '633'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:48 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%229fl7zlvj04uveaxh6w9a9oox6%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"n6pcehmq97xkmxsu36immbb9c","Version":{"Index":154096},"CreatedAt":"2021-12-22T00:44:47.258583802Z","UpdatedAt":"2021-12-22T00:44:47.483764475Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T00:44:47.443415857Z","State":"preparing","Message":"preparing","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '633'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:48 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%229fl7zlvj04uveaxh6w9a9oox6%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"n6pcehmq97xkmxsu36immbb9c","Version":{"Index":154096},"CreatedAt":"2021-12-22T00:44:47.258583802Z","UpdatedAt":"2021-12-22T00:44:47.483764475Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T00:44:47.443415857Z","State":"preparing","Message":"preparing","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '633'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:48 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%229fl7zlvj04uveaxh6w9a9oox6%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"n6pcehmq97xkmxsu36immbb9c","Version":{"Index":154099},"CreatedAt":"2021-12-22T00:44:47.258583802Z","UpdatedAt":"2021-12-22T00:44:48.59173726Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T00:44:48.492430237Z","State":"starting","Message":"starting","ContainerStatus":{"ContainerID":"0cb1d0d46e04577c3509689aea4dc0c5921141a471ab5858f5fdc3affcabe72d","PID":0,"ExitCode":0},"PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '752'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:48 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%229fl7zlvj04uveaxh6w9a9oox6%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"n6pcehmq97xkmxsu36immbb9c","Version":{"Index":154102},"CreatedAt":"2021-12-22T00:44:47.258583802Z","UpdatedAt":"2021-12-22T00:44:48.79608759Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T00:44:48.788357705Z","State":"complete","Message":"finished","ContainerStatus":{"ContainerID":"0cb1d0d46e04577c3509689aea4dc0c5921141a471ab5858f5fdc3affcabe72d","PID":0,"ExitCode":0},"PortStatus":{}},"DesiredState":"shutdown"},{"ID":"xrvh3ba1hgzuqmu5iygsm1a1g","Version":{"Index":154103},"CreatedAt":"2021-12-22T00:44:48.796202749Z","UpdatedAt":"2021-12-22T00:44:48.799319086Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"Status":{"Timestamp":"2021-12-22T00:44:48.79930482Z","State":"pending","Message":"pending
+        task scheduling","PortStatus":{}},"DesiredState":"ready"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '1356'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:48 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/configs?filters=%7B%22label%22%3A+%5B%22etna.operators.swarm_operator.shared_data%3Dtrue%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"wkk903fim843beaccwdktguh9","Version":{"Index":154090},"CreatedAt":"2021-12-22T00:44:47.241979863Z","UpdatedAt":"2021-12-22T00:44:47.241979863Z","Spec":{"Name":"test-config","Labels":{"etna.operators.swarm_operator.shared_data":"true"},"Data":"YWJj"}}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '260'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:48 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services?filters=%7B%22label%22%3A+%5B%22etna.operators.swarm_operator.service%3Dtrue%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"9fl7zlvj04uveaxh6w9a9oox6","Version":{"Index":154091},"CreatedAt":"2021-12-22T00:44:47.257559808Z","UpdatedAt":"2021-12-22T00:44:47.257559808Z","Spec":{"Name":"test-service-swarm","Labels":{"etna.operators.swarm_operator.service":"true"},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}}},"Endpoint":{"Spec":{}}}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '581'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:49 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services?filters=%7B%22label%22%3A+%5B%22etna.operators.swarm_operator.service%3Dtrue%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"9fl7zlvj04uveaxh6w9a9oox6","Version":{"Index":154091},"CreatedAt":"2021-12-22T00:44:47.257559808Z","UpdatedAt":"2021-12-22T00:44:47.257559808Z","Spec":{"Name":"test-service-swarm","Labels":{"etna.operators.swarm_operator.service":"true"},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}}},"Endpoint":{"Spec":{}}}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '581'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:49 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%229fl7zlvj04uveaxh6w9a9oox6%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"n6pcehmq97xkmxsu36immbb9c","Version":{"Index":154105},"CreatedAt":"2021-12-22T00:44:47.258583802Z","UpdatedAt":"2021-12-22T00:44:48.996285914Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T00:44:48.788357705Z","State":"complete","Message":"finished","ContainerStatus":{"ContainerID":"0cb1d0d46e04577c3509689aea4dc0c5921141a471ab5858f5fdc3affcabe72d","PID":0,"ExitCode":0},"PortStatus":{}},"DesiredState":"shutdown"},{"ID":"xrvh3ba1hgzuqmu5iygsm1a1g","Version":{"Index":154105},"CreatedAt":"2021-12-22T00:44:48.796202749Z","UpdatedAt":"2021-12-22T00:44:48.996165659Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T00:44:48.955556925Z","State":"preparing","Message":"preparing","PortStatus":{}},"DesiredState":"ready"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '1383'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:49 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/configs?filters=%7B%22label%22%3A+%5B%22etna.operators.swarm_operator.shared_data%3Dtrue%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"wkk903fim843beaccwdktguh9","Version":{"Index":154090},"CreatedAt":"2021-12-22T00:44:47.241979863Z","UpdatedAt":"2021-12-22T00:44:47.241979863Z","Spec":{"Name":"test-config","Labels":{"etna.operators.swarm_operator.shared_data":"true"},"Data":"YWJj"}}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '260'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:49 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/configs/wkk903fim843beaccwdktguh9
+  response:
+    body:
+      string: '{"message":"rpc error: code = InvalidArgument desc = config ''test-config''
+        is in use by the following service: test-service-swarm"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '131'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:49 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 400
+      message: Bad Request
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/configs?filters=%7B%22label%22%3A+%5B%22etna.operators.swarm_operator.shared_data%3Dtrue%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"wkk903fim843beaccwdktguh9","Version":{"Index":154090},"CreatedAt":"2021-12-22T00:44:47.241979863Z","UpdatedAt":"2021-12-22T00:44:47.241979863Z","Spec":{"Name":"test-config","Labels":{"etna.operators.swarm_operator.shared_data":"true"},"Data":"YWJj"}}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '260'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:49 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services?filters=%7B%22label%22%3A+%5B%22etna.operators.swarm_operator.service%3Dtrue%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"9fl7zlvj04uveaxh6w9a9oox6","Version":{"Index":154091},"CreatedAt":"2021-12-22T00:44:47.257559808Z","UpdatedAt":"2021-12-22T00:44:47.257559808Z","Spec":{"Name":"test-service-swarm","Labels":{"etna.operators.swarm_operator.service":"true"},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}}},"Endpoint":{"Spec":{}}}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '581'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:49 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services?filters=%7B%22label%22%3A+%5B%22etna.operators.swarm_operator.service%3Dtrue%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"9fl7zlvj04uveaxh6w9a9oox6","Version":{"Index":154091},"CreatedAt":"2021-12-22T00:44:47.257559808Z","UpdatedAt":"2021-12-22T00:44:47.257559808Z","Spec":{"Name":"test-service-swarm","Labels":{"etna.operators.swarm_operator.service":"true"},"TaskTemplate":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}}},"Endpoint":{"Spec":{}}}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '581'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:50 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%229fl7zlvj04uveaxh6w9a9oox6%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"n6pcehmq97xkmxsu36immbb9c","Version":{"Index":154105},"CreatedAt":"2021-12-22T00:44:47.258583802Z","UpdatedAt":"2021-12-22T00:44:48.996285914Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T00:44:48.788357705Z","State":"complete","Message":"finished","ContainerStatus":{"ContainerID":"0cb1d0d46e04577c3509689aea4dc0c5921141a471ab5858f5fdc3affcabe72d","PID":0,"ExitCode":0},"PortStatus":{}},"DesiredState":"shutdown"},{"ID":"xrvh3ba1hgzuqmu5iygsm1a1g","Version":{"Index":154107},"CreatedAt":"2021-12-22T00:44:48.796202749Z","UpdatedAt":"2021-12-22T00:44:50.097872296Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"alpine","Command":["true"],"Configs":[{"File":{"Name":"test-config","UID":"0","GID":"0","Mode":292},"ConfigID":"wkk903fim843beaccwdktguh9","ConfigName":"test-config"}],"Isolation":"default"},"ForceUpdate":0},"ServiceID":"9fl7zlvj04uveaxh6w9a9oox6","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T00:44:50.01057518Z","State":"ready","Message":"prepared","PortStatus":{}},"DesiredState":"ready"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '1377'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:50 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/9fl7zlvj04uveaxh6w9a9oox6
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Wed, 22 Dec 2021 00:44:50 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/configs?filters=%7B%22label%22%3A+%5B%22etna.operators.swarm_operator.shared_data%3Dtrue%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"wkk903fim843beaccwdktguh9","Version":{"Index":154090},"CreatedAt":"2021-12-22T00:44:47.241979863Z","UpdatedAt":"2021-12-22T00:44:47.241979863Z","Spec":{"Name":"test-config","Labels":{"etna.operators.swarm_operator.shared_data":"true"},"Data":"YWJj"}}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '260'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:50 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/configs/wkk903fim843beaccwdktguh9
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 00:44:50 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/configs?filters=%7B%22label%22%3A+%5B%22etna.operators.swarm_operator.shared_data%3Dtrue%22%5D%7D
+  response:
+    body:
+      string: '[]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '3'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:50 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services?filters=%7B%22label%22%3A+%5B%22etna.operators.swarm_operator.service%3Dtrue%22%5D%7D
+  response:
+    body:
+      string: '[]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '3'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 00:44:51 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
 version: 1
