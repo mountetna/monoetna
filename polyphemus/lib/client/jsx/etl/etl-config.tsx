@@ -150,7 +150,7 @@ const EtlConfig = ({project_name, etl,name,config,status,secrets,params,output,r
       <ConfigurePane error={error} name={name} project_name={project_name} selected={mode} config={config} job={job} update={postUpdate}/>
       <RunPane error={error} selected={mode} run_interval={run_interval} update={postUpdate} params={params} param_opts={ job ? job.params : null } />
       <RemovePane selected={mode} update={postUpdate}/>
-      <LogsPane selected={mode} output={output}/>
+      <LogsPane selected={mode} name={name} project_name={project_name}/>
       <SecretsPane error={error} selected={mode} update={postUpdate} keys={ job ? job.secrets : null} secrets={secrets}/>
     </CardContent>
   </Card>

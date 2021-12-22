@@ -67,7 +67,9 @@ describe('ImageAttribute', () => {
   });
 
   it('does not render action buttons while not editing', () => {
-    const value = null;
+    const value = {
+      url: 'https://example.com?HMAC-header=foo'
+    };
 
     const component = mount(
       <Provider store={store}>
@@ -84,8 +86,11 @@ describe('ImageAttribute', () => {
       </Provider>
     );
 
-    const buttons = component.find('file-buttons');
+    const buttons = component.find('.file-buttons');
     expect(buttons.exists()).toBeFalsy();
+
+    const thumbnail = component.find('.image-thumbnail');
+    expect(thumbnail.exists()).toBeTruthy();
 
     const tree = renderer
       .create(
@@ -144,6 +149,47 @@ describe('ImageAttribute', () => {
       </Provider>
     );
 
+    const thumbnail = component.find('.image-thumbnail');
+    expect(thumbnail.exists()).toBeFalsy();
+
+    const tree = renderer
+      .create(
+        <Provider store={store}>
+          <ImageAttribute
+            model_name='conquests'
+            record_name='Persia'
+            template={null}
+            value={value}
+            mode='view'
+            attribute='gravatar'
+            document='Timur'
+            revised_value=''
+          />
+        </Provider>
+      )
+      .toJSON();
+
+    expect(tree).toMatchSnapshot();
+  });
+
+  it('renders blank paths correctly while not editing', () => {
+    let value = {path: '::blank'};
+
+    const component = mount(
+      <Provider store={store}>
+        <ImageAttribute
+          model_name='conquests'
+          record_name='Persia'
+          template={null}
+          value={value}
+          mode='view'
+          attribute='gravatar'
+          document='Timur'
+          revised_value=''
+        />
+      </Provider>
+    );
+
     expect(component.text().trim()).toEqual('Blank file');
 
     const tree = renderer
@@ -166,8 +212,11 @@ describe('ImageAttribute', () => {
     expect(tree).toMatchSnapshot();
   });
 
-  it('renders "missing file" correctly while not editing', () => {
-    const value = null;
+  it('renders existing thumbnails correctly in view mode', () => {
+    const value = {
+      path: 'some-image.png',
+      url: 'some-image-url.png'
+    };
 
     const component = mount(
       <Provider store={store}>
@@ -184,73 +233,12 @@ describe('ImageAttribute', () => {
       </Provider>
     );
 
-    expect(component.text().trim()).toEqual('No file');
-
-    const tree = renderer
-      .create(
-        <Provider store={store}>
-          <ImageAttribute
-            model_name='conquests'
-            record_name='Persia'
-            template={null}
-            value={value}
-            mode='view'
-            attribute='gravatar'
-            document='Timur'
-            revised_value=''
-          />
-        </Provider>
-      )
-      .toJSON();
-
-    expect(tree).toMatchSnapshot();
+    const thumbnail = component.find('.image-thumbnail');
+    expect(thumbnail.exists()).toBeTruthy();
+    expect(thumbnail.prop('src')).toContain('thumbnail=true');
   });
 
-  it('renders existing files correctly when not editing', () => {
-    const value = new File(
-      ['Believe me, you are but pismire ant:'],
-      'conquest.txt',
-      {type: 'text/plain'}
-    );
-
-    const component = mount(
-      <Provider store={store}>
-        <ImageAttribute
-          model_name='conquests'
-          record_name='Persia'
-          template={null}
-          value={value}
-          mode='view'
-          attribute='gravatar'
-          document='Timur'
-          revised_value=''
-        />
-      </Provider>
-    );
-
-    expect(component.text().trim()).toEqual('conquest.txt (text/plain)');
-
-    const tree = renderer
-      .create(
-        <Provider store={store}>
-          <ImageAttribute
-            model_name='conquests'
-            record_name='Persia'
-            template={null}
-            value={value}
-            mode='view'
-            attribute='gravatar'
-            document='Timur'
-            revised_value=''
-          />
-        </Provider>
-      )
-      .toJSON();
-
-    expect(tree).toMatchSnapshot();
-  });
-
-  it('renders previous value before upload starts', () => {
+  it('renders previous thumbnail before upload starts', () => {
     store = mockStore({
       location: {
         path: '/labors/browse/monster/Nemean Lion'
@@ -261,7 +249,8 @@ describe('ImageAttribute', () => {
     });
 
     const value = {
-      path: 'previous-file-value.txt'
+      path: 'previous-file-value.txt',
+      url: 'previous-file-value-url.txt'
     };
 
     const component = mount(
@@ -281,17 +270,16 @@ describe('ImageAttribute', () => {
 
     component.setProps({
       value: {
-        path:
-          'https://metis.test/labors/upload/temporary-path?X-Etna-Signature=foo'
+        path: 'https://metis.test/labors/upload/temporary-path?X-Etna-Signature=foo'
       },
       revised_value: {
-        path:
-          'https://metis.test/labors/upload/temporary-path?X-Etna-Signature=foo'
+        path: 'https://metis.test/labors/upload/temporary-path?X-Etna-Signature=foo'
       }
     });
     component.update();
 
-    expect(component.text().trim()).toEqual('previous-file-value.txt');
+    const thumbnail = component.find('.image-thumbnail');
+    expect(thumbnail.exists()).toBeTruthy();
 
     const uploadControls = component.find(ListUpload);
     expect(uploadControls.exists()).toBeFalsy();
@@ -318,8 +306,7 @@ describe('ImageAttribute', () => {
     });
 
     const value = {
-      path:
-        'https://metis.test/labors/upload/temporary-file-location?X-Etna-Signture=hercules'
+      path: 'https://metis.test/labors/upload/temporary-file-location?X-Etna-Signture=hercules'
     };
 
     const component = mount(
@@ -341,30 +328,9 @@ describe('ImageAttribute', () => {
 
     const uploadControls = component.find(ListUpload);
     expect(uploadControls.exists()).toBeTruthy();
-
-    const tree = renderer
-      .create(
-        <Provider store={store}>
-          <ImageAttribute
-            model_name='conquests'
-            record_name='Persia'
-            template={null}
-            value={value}
-            mode='view'
-            attribute={{
-              attribute_name: 'gravatar'
-            }}
-            document='Timur'
-            revised_value={value}
-          />
-        </Provider>
-      )
-      .toJSON();
-
-    expect(tree).toMatchSnapshot();
   });
 
-  it('renders previous file path value if upload cancelled', () => {
+  it('renders previous image thumbnail if upload cancelled', (done) => {
     const upload = {
       file_name: 'temporary-file-location',
       original_filename: 'stats.txt',
@@ -388,40 +354,30 @@ describe('ImageAttribute', () => {
 
     store = mockStore(() => state);
 
-    const value = {
-      path: 'previous-file-value.txt'
+    const props = {
+      model_name: 'conquests',
+      record_name: 'Persia',
+      template: null,
+      value: {
+        path: 'https://metis.test/labors/upload/temporary-file-location?X-Etna-Signature=foo'
+      },
+      mode: 'view',
+      attribute: {
+        attribute_name: 'gravatar'
+      },
+      document: 'Timur',
+      revised_value:
+        'https://metis.test/labors/upload/temporary-file-location?X-Etna-Signature=foo'
     };
 
     const component = mount(
       <Provider store={store}>
-        <ImageAttribute
-          model_name='conquests'
-          record_name='Persia'
-          template={null}
-          value={value}
-          mode='view'
-          attribute={{
-            attribute_name: 'gravatar'
-          }}
-          document='Timur'
-          revised_value=''
-        />
+        <ImageAttribute {...props} />
       </Provider>
     );
 
-    component.setProps({
-      value: {
-        path:
-          'https://metis.test/labors/upload/temporary-file-location?X-Etna-Signature=foo'
-      },
-      revised_value: {
-        path:
-          'https://metis.test/labors/upload/temporary-file-location?X-Etna-Signature=foo'
-      }
-    });
-    component.update();
-
-    expect(component.text().trim()).not.toEqual('previous-file-value.txt');
+    let thumbnail = component.find('.image-thumbnail');
+    expect(thumbnail.exists()).toBeFalsy();
     let uploadControls = component.find(ListUpload);
     expect(uploadControls.exists()).toBeTruthy();
 
@@ -442,12 +398,28 @@ describe('ImageAttribute', () => {
       store.dispatch({type: 'CANCEL_UPLOAD', upload});
     });
 
+    const newProps = {
+      ...props,
+      value: {
+        path: 'previous-file.txt',
+        url: 'previous-file-url.html'
+      },
+      revised_value: ''
+    };
+
+    component.setProps({
+      children: <ImageAttribute {...newProps} />
+    });
+
     component.update();
 
-    expect(component.text().trim()).toEqual('previous-file-value.txt');
+    thumbnail = component.find('.image-thumbnail');
+    expect(thumbnail.exists()).toBeTruthy();
 
     uploadControls = component.find(ListUpload);
     expect(uploadControls.exists()).toBeFalsy();
+
+    done();
   });
 
   it('sends revisions to Magma when upload completes', () => {
@@ -534,7 +506,7 @@ describe('ImageAttribute', () => {
           value={null}
           mode='edit'
           attribute={{name: 'ExpansionPlans'}}
-          document={{'1': 'Timur'}}
+          document={{1: 'Timur'}}
           revised_value=''
         />
       </Provider>
@@ -580,7 +552,7 @@ describe('ImageAttribute', () => {
           value={null}
           mode='edit'
           attribute={{name: 'ExpansionPlans'}}
-          document={{'1': 'Timur'}}
+          document={{1: 'Timur'}}
           revised_value=''
         />
       </Provider>
@@ -614,7 +586,7 @@ describe('ImageAttribute', () => {
           value={null}
           mode='edit'
           attribute={{name: 'ExpansionPlans'}}
-          document={{'1': 'Timur'}}
+          document={{1: 'Timur'}}
           revised_value=''
         />
       </Provider>
@@ -646,7 +618,7 @@ describe('ImageAttribute', () => {
           value={null}
           mode='edit'
           attribute={{name: 'ExpansionPlans'}}
-          document={{'1': 'Timur'}}
+          document={{1: 'Timur'}}
           revised_value=''
         />
       </Provider>

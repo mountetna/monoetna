@@ -1,0 +1,28 @@
+#! /usr/bin/env bash
+set -e
+set -o pipefail
+
+if ! type -p http &>/dev/null; then
+  echo "Requires installation of httpie" 1>&2
+  exit 1
+fi
+
+if ! type -p jq &>/dev/null; then
+  echo "Requires installation of jq" 1>&2
+  exit 1
+fi
+
+PORTAINER_HOST=${PORTAINER_HOST:-portainer.dsco.ucsf.edu}
+
+if [ -n "$SOCKS" ]; then
+  PROXY="--proxy=http:socks5h://$SOCKS --proxy=https:socks5h://$SOCKS"
+fi
+
+JWT=$(cat ~/.portainer-auth)
+
+verb="$1"
+shift
+path="$1"
+shift
+result="$(http $PROXY "$verb" https://${PORTAINER_HOST}/api${path} "Authorization: Bearer ${JWT}" $@)"
+echo "$result"

@@ -13,6 +13,7 @@
   :download_expiration: 60
 
   :data_path: ./spec/data
+  :thumbnail_path: ./spec/data/thumbnails
   :backup:
     :directory: 'metis-test-athena'
     :credentials:
@@ -50,6 +51,7 @@
     :metis: 35e7c8775406612c431b654663fed668
     :magma: haggis
   :data_path: ./data
+  :thumbnail_path: ./thumbs
   :rsa_public: |
     -----BEGIN PUBLIC KEY-----
     MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6pLkfi2RXd3jHWKh9W37
