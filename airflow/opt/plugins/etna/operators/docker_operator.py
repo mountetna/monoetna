@@ -1,6 +1,8 @@
 import tempfile
 from typing import Optional, Callable, Tuple, Set, Mapping
 
+import docker.errors
+from airflow import AirflowException
 from docker import APIClient
 from docker.models.containers import Container
 
@@ -8,9 +10,11 @@ from etna.operators.docker_operator_base import DockerOperatorBase
 
 
 def find_container(cli: APIClient, container_name: str) -> Optional[Container]:
-    containers = cli.containers(limit=1, filters=dict(name=container_name))
-    if containers:
-        return Container(attrs=containers[0])
+    try:
+        return Container(cli.inspect_container(container_name))
+    except docker.errors.APIError as e:
+        if e.response.status_code != 404:
+            raise e
     return None
 
 
@@ -30,6 +34,8 @@ class DockerOperator(DockerOperatorBase):
     def pre_execute(self, context) -> None:
         super(DockerOperator, self).pre_execute(context)
         self.source = find_container(self.cli, self.source_container_name)
+        if not self.source:
+            raise AirflowException(f"Could not find source container: {self.source_container_name}")
 
     @staticmethod
     def container_labeling():
@@ -41,9 +47,9 @@ class DockerOperator(DockerOperatorBase):
             self.cli.remove_container(self.task_name)
 
     def _find_or_create_container(self) -> Mapping:
-        existing = self.cli.containers(limit=1, filters=dict(name=self.task_name))
-        if existing:
-            return existing[0]
+        existing = find_container(self.cli, self.task_name)
+        if existing is not None:
+            return existing.attrs
 
         config = self.source.attrs.get("Config", {})
 
@@ -53,6 +59,9 @@ class DockerOperator(DockerOperatorBase):
             if k not in {"PortBindings", "RestartPolicy", "AutoRemove", "LogConfig"}
         }
         binds = new_host_config.setdefault("Binds", [])
+        if binds is None:
+            binds = []
+            new_host_config['Binds'] = binds
 
         for data in self.swarm_shared_data:
             with tempfile.NamedTemporaryFile(delete=False) as file:
@@ -63,6 +72,7 @@ class DockerOperator(DockerOperatorBase):
         container = self.cli.create_container(
             self.source.attrs.get('ImageID', self.source.attrs['Image']),
             self.command,
+            entrypoint=config.get('Entrypoint', []),
             user=config.get("User") or None,
             tty=config.get("Tty"),
             environment=config.get("Env", []) + list(f"{k}={v}" for k, v in self.env.items()),
@@ -84,6 +94,7 @@ class DockerOperator(DockerOperatorBase):
 
     def _start_task(self):
         container = self._find_or_create_container()
+        self.log.info("Starting %s inside of %s", self.command, self.source_container_name)
         self.cli.start(container["Id"])
 
     def _check_task(self) -> Tuple[str, Optional[str]]:

@@ -115,6 +115,7 @@ class DockerOperatorBase(BaseOperator):
             time.sleep(1)
 
         # Then consume the remaining logs after a task completes, keeping the last log line
+        time.sleep(1)
         last_line: bytes = next(logs_iter)
 
         if err:

@@ -71,8 +71,7 @@ def test_execute_docker_operator():
     result = operator.execute(context)
 
     test_buffer.seek(0)
-    assert test_buffer.read().split("\n") == [
-        "Consuming logs now:",
+    assert test_buffer.read().split("\n")[2:] == [
         "0",
         "1",
         "2",

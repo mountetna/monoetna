@@ -254,6 +254,7 @@ class DockerSwarmOperator(DockerOperatorBase):
             self.log.info("Attaching to running service: %s", str(self.task_name))
             return service
 
+        self.log.info("Starting %s inside of service %s", self.command, self.source_service)
         service = create_service_from_definition(
             self.cli,
             service_definition,

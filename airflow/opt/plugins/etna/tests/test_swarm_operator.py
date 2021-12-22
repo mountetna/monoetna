@@ -164,8 +164,7 @@ def test_execute_swarm_operator():
     result = operator.execute(context)
 
     test_buffer.seek(0)
-    assert test_buffer.read().split("\n") == [
-        "Service started: DockerSwarmOperator_a71d33f9732598817e8efb5693d985dd",
+    assert test_buffer.read().split("\n")[2:] == [
         "Consuming logs now:",
         "0",
         "1",
