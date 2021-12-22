@@ -11,6 +11,14 @@ class DownloadController < Metis::Controller
 
     raise Etna::Error.new('File not found', 404) unless file && file.has_data?
 
+    if @params.fetch(:thumbnail, nil) && file.data_block.thumbnail_in_cache?
+      return [
+        200,
+        {},
+        [ file.data_block.thumbnail ]
+      ]
+    end
+
     return [
       200,
       {   'X-Sendfile' => file.data_block.location,
@@ -20,5 +28,8 @@ class DownloadController < Metis::Controller
       },
       [ '' ]
     ]
+  rescue Metis::ThumbnailError => e
+    Metis.instance.logger.log_error(e)
+    raise Etna::Error.new("Error generating thumbnail, #{e.message}.", 422)
   end
 end
