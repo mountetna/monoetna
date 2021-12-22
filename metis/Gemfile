@@ -12,6 +12,7 @@ gem 'concurrent-ruby'
 gem "yabeda"
 gem "yabeda-prometheus"
 gem "yabeda-puma-plugin"
+gem 'ruby-vips'
 
 group :test do
   gem 'rspec'

@@ -1,19 +1,28 @@
-require 'fileutils'
+require "fileutils"
+require "tempfile"
+require 'securerandom'
 
 class Metis
+
+  class ThumbnailError < StandardError
+  end
+
+  class ThumbnailNotExistError < ThumbnailError
+  end
+
   class DataBlock < Sequel::Model
     plugin :timestamps, update_on_create: true
 
     one_to_many :files
 
-    TEMP_PREFIX='temp-'
-    TEMP_MATCH=/^#{TEMP_PREFIX}/
+    TEMP_PREFIX = "temp-"
+    TEMP_MATCH = /^#{TEMP_PREFIX}/
 
-    def self.create_from(file_name, location, copy=false)
+    def self.create_from(file_name, location, copy = false)
       # we don't know the true md5 so we use a random value
       data_block = create(
         md5_hash: "#{TEMP_PREFIX}#{Metis.instance.sign.uid}",
-        description: "Originally for #{file_name}",
+        description: "Originally for #{file_name}"
       )
 
       data_block.set_file_data(location, copy)
@@ -21,7 +30,7 @@ class Metis
       return data_block
     end
 
-    def set_file_data(file_path, copy=false)
+    def set_file_data(file_path, copy = false)
       # Rename the existing file.
       if copy
         ::FileUtils.copy(
@@ -72,9 +81,9 @@ class Metis
         if existing_block
           # Point the files to the old block
           Metis::File.where(
-            data_block_id: id
+            data_block_id: id,
           ).update(
-            data_block_id: existing_block.id
+            data_block_id: existing_block.id,
           )
 
           # destroy the redundant file
@@ -117,7 +126,7 @@ class Metis
     def file_location(hash)
       directory = ::File.join(
         Metis.instance.config(:data_path),
-        'data_blocks',
+        "data_blocks",
         hash[0],
         hash[1]
       )
@@ -140,12 +149,69 @@ class Metis
       end
     end
 
+    def thumbnail
+      raise ThumbnailNotExistError.new("Thumbnail does not exist for data_block #{md5_hash}") unless thumbnail_in_cache?
+
+      cached_thumbnail
+    end
+
+    def thumbnail_in_cache?
+      ::File.exist?(thumbnail_location)
+    end
+
+    def generate_thumbnail
+      begin
+        update(has_thumbnail: false)
+        return
+      end unless has_data?
+
+      begin
+        # For our large TIFF files, directly generating thumbnails causes
+        #   the process to hang inside of `libvips` ... can't figure out why.
+        # Going through an intermediate format seems to help, though does give us
+        #   a performance hit because of copying the image.
+        image = Vips::Image.new_from_file(location)
+        Tempfile.create([SecureRandom.hex, ".v"]) do |tmp|
+          image.vipssave(tmp.path)
+          th = Vips::Image.thumbnail(tmp.path, 640, height: 480)
+          th.write_to_file(thumbnail_location)
+        end
+        update(has_thumbnail: true)
+      rescue Vips::Error => e
+        update(has_thumbnail: false)
+        Metis.instance.logger.log_error(e)
+      ensure
+        refresh
+      end
+    end
+
     private
 
     def delete_block!
       if ::File.exists?(location)
         ::File.delete(location)
       end
+    end
+
+    def cached_thumbnail
+      ::File.read(thumbnail_location)
+    end
+
+    def thumbnail_location
+      directory = ::File.join(
+        Metis.instance.config(:thumbnail_path),
+        md5_hash[0],
+        md5_hash[1],
+      )
+
+      FileUtils.mkdir_p(directory) unless ::File.directory?(directory)
+
+      ::File.expand_path(
+        ::File.join(
+          directory,
+          "#{::File.basename(location)}.png"
+        )
+      )
     end
   end
 end
