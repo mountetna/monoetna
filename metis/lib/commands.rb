@@ -206,4 +206,17 @@ class Metis
       Metis.instance.load_models
     end
   end
+
+  class ResetThumbnailFlag < Etna::Command
+    usage "Reset has_thumbnail to nil for all data blcoks, if we need to regenerate."
+
+    def execute
+      Metis.instance.db[:data_blocks].update(has_thumbnail: nil)
+    end
+
+    def setup(config)
+      super
+      Metis.instance.load_models
+    end
+  end
 end
