@@ -59,7 +59,6 @@ class DockerOperator(DockerOperatorBase):
                 file.write(data.data)
 
             binds.append(f"{file.name}:{data.remote_path}:ro")
-        print(binds)
 
         container = self.cli.create_container(
             self.source.attrs.get('ImageID', self.source.attrs['Image']),
@@ -139,6 +138,8 @@ def hacky_container_logs(cli: APIClient, container: str, since: int) -> bytes:
 
     if since > 0:
         params["since"] = since
+    else:
+        params["since"] = 1
 
     url = cli._url("/containers/{0}/logs", container)
     res = cli._get(url, params=params, stream=False)
