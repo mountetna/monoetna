@@ -1,0 +1,1903 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/version
+  response:
+    body:
+      string: '{"Platform":{"Name":""},"Components":[{"Name":"Engine","Version":"19.03.12","Details":{"ApiVersion":"1.40","Arch":"amd64","BuildTime":"1980-01-01T00:00:00.000000000+00:00","Experimental":"true","GitCommit":"v19.03.12","GoVersion":"go1.15.13","KernelVersion":"5.4.122","MinAPIVersion":"1.12","Os":"linux"}},{"Name":"containerd","Version":"v1.4.6","Details":{"GitCommit":"d71fcd7d8303cbf684402823e425e9dd2e99285d"}},{"Name":"runc","Version":"1.0.0-rc10","Details":{"GitCommit":""}},{"Name":"docker-init","Version":"0.18.0","Details":{"GitCommit":""}}],"Version":"19.03.12","ApiVersion":"1.40","MinAPIVersion":"1.12","GitCommit":"v19.03.12","GoVersion":"go1.15.13","Os":"linux","Arch":"amd64","KernelVersion":"5.4.122","Experimental":true,"BuildTime":"1980-01-01T00:00:00.000000000+00:00"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '787'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:04 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/test-service-swarm
+  response:
+    body:
+      string: '{"message":"service test-service-swarm not found"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '51'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:04 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 404
+      message: Not Found
+- request:
+    body: '{"Name": "test-service-swarm", "TaskTemplate": {"ContainerSpec": {"Image":
+      "bash", "Command": [], "Args": null}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '113'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"t9slql7pnt32332z88z9tgtr6"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:04 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/version
+  response:
+    body:
+      string: '{"Platform":{"Name":""},"Components":[{"Name":"Engine","Version":"19.03.12","Details":{"ApiVersion":"1.40","Arch":"amd64","BuildTime":"1980-01-01T00:00:00.000000000+00:00","Experimental":"true","GitCommit":"v19.03.12","GoVersion":"go1.15.13","KernelVersion":"5.4.122","MinAPIVersion":"1.12","Os":"linux"}},{"Name":"containerd","Version":"v1.4.6","Details":{"GitCommit":"d71fcd7d8303cbf684402823e425e9dd2e99285d"}},{"Name":"runc","Version":"1.0.0-rc10","Details":{"GitCommit":""}},{"Name":"docker-init","Version":"0.18.0","Details":{"GitCommit":""}}],"Version":"19.03.12","ApiVersion":"1.40","MinAPIVersion":"1.12","GitCommit":"v19.03.12","GoVersion":"go1.15.13","Os":"linux","Arch":"amd64","KernelVersion":"5.4.122","Experimental":true,"BuildTime":"1980-01-01T00:00:00.000000000+00:00"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '787'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:04 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/test-service-swarm?insertDefaults=True
+  response:
+    body:
+      string: '{"ID":"t9slql7pnt32332z88z9tgtr6","Version":{"Index":156235},"CreatedAt":"2021-12-22T01:06:04.615206182Z","UpdatedAt":"2021-12-22T01:06:04.615206182Z","Spec":{"Name":"test-service-swarm","Labels":{},"TaskTemplate":{"ContainerSpec":{"Image":"bash","StopGracePeriod":10000000000,"DNSConfig":{},"Isolation":"default"},"Resources":{},"RestartPolicy":{"Condition":"any","Delay":5000000000,"MaxAttempts":0},"Placement":{},"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}},"UpdateConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"},"RollbackConfig":{"Parallelism":1,"FailureAction":"pause","Monitor":5000000000,"MaxFailureRatio":0,"Order":"stop-first"}},"Endpoint":{"Spec":{}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '757'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:04 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"Data": "aGVsbG8=", "Name": "adhoc_airflow-blahblahblah-shared-data-upZH9nB7",
+      "Labels": {"etna.operators.swarm_operator.shared_data": "true"}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '144'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/configs/create
+  response:
+    body:
+      string: '{"ID":"hoycayg4ayrlhurf2raefdz09"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:04 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services?filters=%7B%22name%22%3A+%5B%22DockerSwarmOperator_a71d33f9732598817e8efb5693d985dd%22%5D%7D
+  response:
+    body:
+      string: '[]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '3'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:04 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"Name": "DockerSwarmOperator_a71d33f9732598817e8efb5693d985dd", "Labels":
+      {"etna.operators.swarm_operator.service": "true"}, "TaskTemplate": {"ContainerSpec":
+      {"Image": "bash", "Command": ["bash", "-c", "[[ `cat /some/shared/data` == ''hello''
+      ]] && for i in {0..10}; do echo $i; sleep 1; done"], "Args": null, "Env": [],
+      "Mounts": [], "Secrets": [], "Configs": [{"ConfigName": "adhoc_airflow-blahblahblah-shared-data-upZH9nB7",
+      "ConfigID": "hoycayg4ayrlhurf2raefdz09", "File": {"Name": "/some/shared/data",
+      "UID": "0", "GID": "0", "Mode": 292}}]}, "RestartPolicy": {"Condition": "none",
+      "Delay": 0, "MaxAttempts": 0, "Window": 0}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '631'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/services/create
+  response:
+    body:
+      string: '{"ID":"mdqz8ycih6lj216sk3zh9cwmf"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '35'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:04 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf
+  response:
+    body:
+      string: '{"ID":"mdqz8ycih6lj216sk3zh9cwmf","Version":{"Index":156239},"CreatedAt":"2021-12-22T01:06:04.676630047Z","UpdatedAt":"2021-12-22T01:06:04.676630047Z","Spec":{"Name":"DockerSwarmOperator_a71d33f9732598817e8efb5693d985dd","Labels":{"etna.operators.swarm_operator.service":"true"},"TaskTemplate":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}}},"Endpoint":{"Spec":{}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '822'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:04 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156241},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:04.678717641Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"Status":{"Timestamp":"2021-12-22T01:06:04.678708137Z","State":"pending","Message":"pending
+        task scheduling","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '817'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:04 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf
+  response:
+    body:
+      string: '{"ID":"mdqz8ycih6lj216sk3zh9cwmf","Version":{"Index":156239},"CreatedAt":"2021-12-22T01:06:04.676630047Z","UpdatedAt":"2021-12-22T01:06:04.676630047Z","Spec":{"Name":"DockerSwarmOperator_a71d33f9732598817e8efb5693d985dd","Labels":{"etna.operators.swarm_operator.service":"true"},"TaskTemplate":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0,"Runtime":"container"},"Mode":{"Replicated":{"Replicas":1}}},"Endpoint":{"Spec":{}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '822'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:04 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=0&timestamps=True&tail=all
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:04 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156242},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:04.729931663Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:04.729827849Z","State":"assigned","Message":"scheduler
+        assigned task to node","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '863'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:04 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=0&timestamps=True&tail=all
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:05 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156243},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:04.932785573Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:04.837457873Z","State":"preparing","Message":"preparing","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '842'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:05 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=0&timestamps=True&tail=all
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:06 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156243},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:04.932785573Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:04.837457873Z","State":"preparing","Message":"preparing","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '842'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:06 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=0&timestamps=True&tail=all
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:07 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156243},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:04.932785573Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:04.837457873Z","State":"preparing","Message":"preparing","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '842'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:07 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=0&timestamps=True&tail=all
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:08 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156243},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:04.932785573Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:04.837457873Z","State":"preparing","Message":"preparing","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '842'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:08 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=0&timestamps=True&tail=all
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:09 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156243},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:04.932785573Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:04.837457873Z","State":"preparing","Message":"preparing","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '842'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:09 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=0&timestamps=True&tail=all
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:10 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156243},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:04.932785573Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:04.837457873Z","State":"preparing","Message":"preparing","PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '842'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:11 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=0&timestamps=True&tail=all
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T01:06:11.719879000Z 0\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:12 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156254},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:11.75406226Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:11.726420676Z","State":"running","Message":"started","ContainerStatus":{"ContainerID":"c46a51b1f35e24502db2f0e2a42bbc685469b97303fe044441ec90fc2c3dfb2e","PID":21677,"ExitCode":0},"PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '963'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:12 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=1640135171.0&timestamps=True&tail=all
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T01:06:11.719879000Z 0\n\x01\0\0\0\0\0\0!2021-12-22T01:06:12.720501000Z
+        1\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:13 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156254},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:11.75406226Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:11.726420676Z","State":"running","Message":"started","ContainerStatus":{"ContainerID":"c46a51b1f35e24502db2f0e2a42bbc685469b97303fe044441ec90fc2c3dfb2e","PID":21677,"ExitCode":0},"PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '963'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:13 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=1640135172.0&timestamps=True&tail=all
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T01:06:12.720501000Z 1\n\x01\0\0\0\0\0\0!2021-12-22T01:06:13.721134000Z
+        2\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:14 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156254},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:11.75406226Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:11.726420676Z","State":"running","Message":"started","ContainerStatus":{"ContainerID":"c46a51b1f35e24502db2f0e2a42bbc685469b97303fe044441ec90fc2c3dfb2e","PID":21677,"ExitCode":0},"PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '963'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:14 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=1640135173.0&timestamps=True&tail=all
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T01:06:13.721134000Z 2\n\x01\0\0\0\0\0\0!2021-12-22T01:06:14.721795000Z
+        3\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:15 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156254},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:11.75406226Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:11.726420676Z","State":"running","Message":"started","ContainerStatus":{"ContainerID":"c46a51b1f35e24502db2f0e2a42bbc685469b97303fe044441ec90fc2c3dfb2e","PID":21677,"ExitCode":0},"PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '963'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:15 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=1640135174.0&timestamps=True&tail=all
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T01:06:14.721795000Z 3\n\x01\0\0\0\0\0\0!2021-12-22T01:06:15.722599000Z
+        4\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156254},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:11.75406226Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:11.726420676Z","State":"running","Message":"started","ContainerStatus":{"ContainerID":"c46a51b1f35e24502db2f0e2a42bbc685469b97303fe044441ec90fc2c3dfb2e","PID":21677,"ExitCode":0},"PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '963'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:16 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=1640135175.0&timestamps=True&tail=all
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T01:06:15.722599000Z 4\n\x01\0\0\0\0\0\0!2021-12-22T01:06:16.723280000Z
+        5\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:17 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156254},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:11.75406226Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:11.726420676Z","State":"running","Message":"started","ContainerStatus":{"ContainerID":"c46a51b1f35e24502db2f0e2a42bbc685469b97303fe044441ec90fc2c3dfb2e","PID":21677,"ExitCode":0},"PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '963'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:17 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=1640135176.0&timestamps=True&tail=all
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T01:06:16.723280000Z 5\n\x01\0\0\0\0\0\0!2021-12-22T01:06:17.724299000Z
+        6\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:18 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156254},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:11.75406226Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:11.726420676Z","State":"running","Message":"started","ContainerStatus":{"ContainerID":"c46a51b1f35e24502db2f0e2a42bbc685469b97303fe044441ec90fc2c3dfb2e","PID":21677,"ExitCode":0},"PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '963'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:18 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=1640135177.0&timestamps=True&tail=all
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T01:06:17.724299000Z 6\n\x01\0\0\0\0\0\0!2021-12-22T01:06:18.725500000Z
+        7\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:19 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156254},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:11.75406226Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:11.726420676Z","State":"running","Message":"started","ContainerStatus":{"ContainerID":"c46a51b1f35e24502db2f0e2a42bbc685469b97303fe044441ec90fc2c3dfb2e","PID":21677,"ExitCode":0},"PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '963'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:19 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=1640135178.0&timestamps=True&tail=all
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T01:06:18.725500000Z 7\n\x01\0\0\0\0\0\0!2021-12-22T01:06:19.726394000Z
+        8\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:20 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156254},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:11.75406226Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:11.726420676Z","State":"running","Message":"started","ContainerStatus":{"ContainerID":"c46a51b1f35e24502db2f0e2a42bbc685469b97303fe044441ec90fc2c3dfb2e","PID":21677,"ExitCode":0},"PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '963'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:20 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=1640135179.0&timestamps=True&tail=all
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T01:06:19.726394000Z 8\n\x01\0\0\0\0\0\0!2021-12-22T01:06:20.727359000Z
+        9\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:21 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156254},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:11.75406226Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:11.726420676Z","State":"running","Message":"started","ContainerStatus":{"ContainerID":"c46a51b1f35e24502db2f0e2a42bbc685469b97303fe044441ec90fc2c3dfb2e","PID":21677,"ExitCode":0},"PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '963'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:21 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=1640135180.0&timestamps=True&tail=all
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T01:06:20.727359000Z 9\n\x01\0\0\0\0\0\0\"2021-12-22T01:06:21.727962000Z
+        10\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:22 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156254},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:11.75406226Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:11.726420676Z","State":"running","Message":"started","ContainerStatus":{"ContainerID":"c46a51b1f35e24502db2f0e2a42bbc685469b97303fe044441ec90fc2c3dfb2e","PID":21677,"ExitCode":0},"PortStatus":{}},"DesiredState":"running"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '963'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:22 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=1640135181.0&timestamps=True&tail=all
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0\"2021-12-22T01:06:21.727962000Z 10\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:23 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/tasks?filters=%7B%22service%22%3A+%5B%22mdqz8ycih6lj216sk3zh9cwmf%22%5D%7D
+  response:
+    body:
+      string: '[{"ID":"md3twmfybbrm6dmzo8fln80t4","Version":{"Index":156297},"CreatedAt":"2021-12-22T01:06:04.677712836Z","UpdatedAt":"2021-12-22T01:06:23.108500511Z","Labels":{},"Spec":{"ContainerSpec":{"Image":"bash","Command":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Configs":[{"File":{"Name":"/some/shared/data","UID":"0","GID":"0","Mode":292},"ConfigID":"hoycayg4ayrlhurf2raefdz09","ConfigName":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7"}],"Isolation":"default"},"RestartPolicy":{"Condition":"none","Delay":0,"MaxAttempts":0,"Window":0},"ForceUpdate":0},"ServiceID":"mdqz8ycih6lj216sk3zh9cwmf","Slot":1,"NodeID":"r13i3yca5cbnf58s60yggsdrp","Status":{"Timestamp":"2021-12-22T01:06:22.850955277Z","State":"complete","Message":"finished","ContainerStatus":{"ContainerID":"c46a51b1f35e24502db2f0e2a42bbc685469b97303fe044441ec90fc2c3dfb2e","PID":0,"ExitCode":0},"PortStatus":{}},"DesiredState":"shutdown"}]
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '963'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:23 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf/logs?details=False&follow=False&stdout=True&stderr=True&since=1640135181.0&timestamps=True&tail=all
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0\"2021-12-22T01:06:21.727962000Z 10\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:23 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/services/mdqz8ycih6lj216sk3zh9cwmf
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Wed, 22 Dec 2021 01:06:23 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/configs/hoycayg4ayrlhurf2raefdz09
+  response:
+    body:
+      string: '{"ID":"hoycayg4ayrlhurf2raefdz09","Version":{"Index":156238},"CreatedAt":"2021-12-22T01:06:04.654801607Z","UpdatedAt":"2021-12-22T01:06:04.654801607Z","Spec":{"Name":"adhoc_airflow-blahblahblah-shared-data-upZH9nB7","Labels":{"etna.operators.swarm_operator.shared_data":"true"},"Data":"aGVsbG8="}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '298'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 01:06:23 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/configs/hoycayg4ayrlhurf2raefdz09
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 01:06:24 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+version: 1

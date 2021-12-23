@@ -16,15 +16,17 @@
 # specific language governing permissions and limitations
 # under the License.
 """Default configuration for the Airflow webserver"""
+import logging
 import os
 
+from flask_appbuilder.const import AUTH_REMOTE_USER
 from flask_appbuilder.security.manager import AUTH_DB
 
 # from flask_appbuilder.security.manager import AUTH_LDAP
 # from flask_appbuilder.security.manager import AUTH_OAUTH
 # from flask_appbuilder.security.manager import AUTH_OID
 # from flask_appbuilder.security.manager import AUTH_REMOTE_USER
-
+from etna.auth.etna_cookie_auth import EtnaSecurityManager
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -44,10 +46,27 @@ WTF_CSRF_ENABLED = True
 # AUTH_LDAP : Is for LDAP
 # AUTH_REMOTE_USER : Is for using REMOTE_USER from web server
 # AUTH_OAUTH : Is for OAuth
-AUTH_TYPE = AUTH_DB
+AUTH_TYPE = AUTH_REMOTE_USER
+
+ETNA_AUTH_COOKIE_NAME = os.environ.get('ETNA_AUTH_COOKIE_NAME', 'JANUS_DEV_TOKEN')
+ETNA_AUTH_JANUS_URL = os.environ.get('ETNA_AUTH_JANUS_URL', 'https://janus.development.local')
+
+# Development public key for testing.
+ETNA_AUTH_PUBLIC_KEY = os.environ.get('ETNA_AUTH_PUBLIC_KEY', """-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6pLkfi2RXd3jHWKh9W37
+k7Nw5aZxIQRCf9b5b0uUIqyk4ODH1Pd4s/hhYq/9c+HT2304NkiqRw4cVOHMgk8N
+O+a+7F+HgspJZopyEBCJvBloBoPKrpkZv0FeVHYwiDM2kf3GFDzTPBdUSpYJimtn
+HF29DdEoj6O5xL9uGW97QZ34JYacIeG7GmVGjYnCvA87S0miDUxvGlu40g+VJhND
+mLXMzWa5vTxyGb4cEQSL6rryVxmBlonG4J41K7A04/7tftKvWrqsCWAfSCusNs8w
+CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
+NQIDAQAB
+-----END PUBLIC KEY-----""")
+ETNA_AUTH_TOKEN_ALGO = os.environ.get('ETNA_AUTH_TOKEN_ALGO', 'RS256')
+
+logging.info(ETNA_AUTH_PUBLIC_KEY)
 
 # Uncomment to setup Full admin role name
-# AUTH_ROLE_ADMIN = 'Admin'
+AUTH_ROLE_ADMIN = 'Admin'
 
 # Uncomment to setup Public role name, no authentication needed
 # AUTH_ROLE_PUBLIC = 'Public'
@@ -98,6 +117,8 @@ AUTH_TYPE = AUTH_DB
 #    { 'name': 'AOL', 'url': 'http://openid.aol.com/<username>' },
 #    { 'name': 'Flickr', 'url': 'http://www.flickr.com/<username>' },
 #    { 'name': 'MyOpenID', 'url': 'https://www.myopenid.com' }]
+
+SECURITY_MANAGER_CLASS = EtnaSecurityManager
 
 # ----------------------------------------------------
 # Theme CONFIG

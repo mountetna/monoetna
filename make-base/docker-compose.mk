@@ -15,6 +15,7 @@ config-ready:: docker-compose.yml .dockerignore
 	@ true
 
 compose-ready:: docker-compose.yml images
+	make -C ../docker docker-compose.yml
 	@ true
 
 up:: compose-ready

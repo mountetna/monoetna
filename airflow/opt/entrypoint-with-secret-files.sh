@@ -3,7 +3,7 @@ set -eo pipefail
 
 if [ -f /run/secrets/airflow-postgres-password ]; then
   export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://developer:$(cat /run/secrets/airflow-postgres-password)@airflow_postgres:5432/airflow"
-  export AIRFLOW__CORE__EXECUTOR=LocalExecutor
+#  export AIRFLOW__CORE__EXECUTOR=LocalExecutor
 fi
 
 if [ -f /run/secrets/airflow-fernet-key ]; then
