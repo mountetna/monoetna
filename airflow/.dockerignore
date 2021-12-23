@@ -1,3 +1,5 @@
 # Add project specific dockerignore items.  Base is taken from docker/.dockerignore
 .idea
 logs
+dev_dags
+dags

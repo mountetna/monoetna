@@ -16,7 +16,7 @@ volumes:
 
 x-airflow-env:
   &airflow-env
-  AIRFLOW__CORE__FERNET_KEY: abcdef
+  AIRFLOW__CORE__FERNET_KEY: "tE8Ky3ovcpm0Jphr77anh-F2AICQlK7xD_iXnSkQE7A="
   AIRFLOW__CORE__EXECUTOR: etna.executors.local_executor.LocalExecutor
   AIRFLOW__CORE__SQL_ALCHEMY_CONN:  "postgresql://developer:password@airflow_postgres:5432/airflow"
   ETNA_AUTH_COOKIE_NAME: JANUS_DEV_TOKEN
@@ -54,6 +54,7 @@ services:
       - ./opt/plugins:/opt/airflow/plugins
       - ./logs:/opt/airflow/logs
       - airflow-dags:/opt/airflow/dags
+      - airflow-lib:/home/airflow/.local/lib/python3.7/site-packages/airflow/
     environment:
       <<: *airflow-env
     networks:
@@ -72,13 +73,6 @@ services:
       - /tmp:/tmp
     environment:
       <<: *airflow-env
-
-  copy_dev_dags:
-    image: alpine
-    command: cp -R -u /dev_dags /opt/airflow/dags && chmod -R a+wr /opt/airflow/dags
-    volumes:
-      - airflow-dags:/opt/airflow/dags
-      - ./dev_dags:/dev_dags
 
   airflow_init:
     image: airflow
