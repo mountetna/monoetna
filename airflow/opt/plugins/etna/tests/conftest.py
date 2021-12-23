@@ -31,9 +31,11 @@ from airflow.utils.session import create_session
 from airflow.www.app import purge_cached_app, create_app
 from flask_appbuilder.security.sqla.models import User, PermissionView
 
+
 class NotSoRandom(Random):
     def __init__(self, *args):
         super(NotSoRandom, self).__init__(0)
+
 
 @pytest.fixture()
 def reset_environment():

@@ -19,6 +19,7 @@ x-airflow-env:
   AIRFLOW__CORE__FERNET_KEY: "tE8Ky3ovcpm0Jphr77anh-F2AICQlK7xD_iXnSkQE7A="
   AIRFLOW__CORE__EXECUTOR: etna.executors.local_executor.LocalExecutor
   AIRFLOW__CORE__SQL_ALCHEMY_CONN:  "postgresql://developer:password@airflow_postgres:5432/airflow"
+  AIRFLOW__WEBSERVER__BASE_URL: https://airflow.development.local
   ETNA_AUTH_COOKIE_NAME: JANUS_DEV_TOKEN
   ETNA_AUTH_JANUS_URL: https://janus.development.local
   ETNA_AUTH_PUBLIC_KEY: |
@@ -54,7 +55,6 @@ services:
       - ./opt/plugins:/opt/airflow/plugins
       - ./logs:/opt/airflow/logs
       - airflow-dags:/opt/airflow/dags
-      - airflow-lib:/home/airflow/.local/lib/python3.7/site-packages/airflow/
     environment:
       <<: *airflow-env
     networks:

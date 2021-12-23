@@ -35,7 +35,9 @@ class DockerOperator(DockerOperatorBase):
         super(DockerOperator, self).pre_execute(context)
         self.source = find_container(self.cli, self.source_container_name)
         if not self.source:
-            raise AirflowException(f"Could not find source container: {self.source_container_name}")
+            raise AirflowException(
+                f"Could not find source container: {self.source_container_name}"
+            )
 
     @staticmethod
     def container_labeling():
@@ -61,7 +63,7 @@ class DockerOperator(DockerOperatorBase):
         binds = new_host_config.setdefault("Binds", [])
         if binds is None:
             binds = []
-            new_host_config['Binds'] = binds
+            new_host_config["Binds"] = binds
 
         for data in self.swarm_shared_data:
             with tempfile.NamedTemporaryFile(delete=False) as file:
@@ -70,18 +72,19 @@ class DockerOperator(DockerOperatorBase):
             binds.append(f"{file.name}:{data.remote_path}:ro")
 
         container = self.cli.create_container(
-            self.source.attrs.get('ImageID', self.source.attrs['Image']),
+            self.source.attrs.get("ImageID", self.source.attrs["Image"]),
             self.command,
-            entrypoint=config.get('Entrypoint', []),
+            entrypoint=config.get("Entrypoint", []),
             user=config.get("User") or None,
             tty=config.get("Tty"),
-            environment=config.get("Env", []) + list(f"{k}={v}" for k, v in self.env.items()),
+            environment=config.get("Env", [])
+            + list(f"{k}={v}" for k, v in self.env.items()),
             host_config=new_host_config,
             labels=self.container_labeling(),
             name=self.task_name,
         )
         for network_name, network in (
-                self.source.attrs["NetworkSettings"].get("Networks", {}).items()
+            self.source.attrs["NetworkSettings"].get("Networks", {}).items()
         ):
             self.cli.connect_container_to_network(
                 container["Id"],
@@ -94,7 +97,9 @@ class DockerOperator(DockerOperatorBase):
 
     def _start_task(self):
         container = self._find_or_create_container()
-        self.log.info("Starting %s inside of %s", self.command, self.source_container_name)
+        self.log.info(
+            "Starting %s inside of %s", self.command, self.source_container_name
+        )
         self.cli.start(container["Id"])
 
     def _check_task(self) -> Tuple[str, Optional[str]]:

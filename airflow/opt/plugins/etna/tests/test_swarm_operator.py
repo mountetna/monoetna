@@ -108,7 +108,9 @@ def test_swarm_cleanup():
 #         alternate entrypoint should work)
 # 3.  Add the --record-mode argument to the pytest invocation (see pyvcr documentation)
 @pytest.mark.vcr
-@mock.patch("airflow.utils.strings.get_random_string", mock.MagicMock(return_value="abc"))
+@mock.patch(
+    "airflow.utils.strings.get_random_string", mock.MagicMock(return_value="abc")
+)
 def test_execute_swarm_operator():
     cli = APIClient(base_url="http://localhost:8085")
     # decorate_api_client(cli)
