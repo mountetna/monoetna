@@ -2,7 +2,6 @@
 require 'sequel'
 require 'fileutils'
 require_relative 'archiver'
-require_relative 'assimilation'
 
 # This class handles the http request and routing
 class Metis

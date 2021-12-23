@@ -29,6 +29,7 @@ class Polyphemus
     post '/api/etl/:project_name/update/:name', action: 'etl#update', auth: { user: { can_edit?: :project_name } }, log_redact_keys: [ :secrets ]
     post '/api/etl/:project_name/create/:name', action: 'etl#create', auth: { user: { can_edit?: :project_name } }
     get '/api/etl/:project_name/revisions/:name', action: 'etl#revisions', auth: { user: { can_edit?: :project_name } }
+    get '/api/etl/:project_name/output/:name', action: 'etl#output', auth: { user: { can_edit?: :project_name } }
 
     get '/' do erb_view(:client) end
 

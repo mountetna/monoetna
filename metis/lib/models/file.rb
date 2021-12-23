@@ -1,4 +1,3 @@
-
 class Metis
   class File < Sequel::Model
     plugin :timestamps, update_on_create: true
