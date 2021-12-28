@@ -2,7 +2,7 @@
 set -eo pipefail
 
 # Clear images not being used to recover some space
-docker image prune
+docker image prune -f
 
 postToSlack() {
   post-to-slack "swarm deployer" "watchtower-ping" "$1"
@@ -108,6 +108,6 @@ for serviceName in $services; do
       runDeploy "$serviceName" "$tag" "$newsha"
     fi
 
-    docker image prune
+    docker image prune -f
   fi
 done

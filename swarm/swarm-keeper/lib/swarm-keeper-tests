@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+source $DIR/mocker
+source $DIR/swarm-keeper
+
+mock http cat
+
+doPortainerAuth
+
+loadRecording $DIR/test-stack.recording
+airflow=$(findStack airflow)
+
+loadRecording $DIR/dockerApi-fails.recording
+if dockerApi "$airflow" GET /not-a-url; then
+  exit 1
+fi
+
+loadRecording $DIR/getService.recording
+getService "$airflow" airflow_scheduler
+
+eval "
+function ${EDITOR:-vim}() {
+  sleep 1
+  touch \$1
+}
+"
+
+loadRecording $DIR/edit-stack-deploy.recording
+runCommand portainer-edit-stack airflow

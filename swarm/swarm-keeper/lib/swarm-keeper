@@ -1,45 +1,64 @@
 #!/usr/bin/env bash
 set -eo pipefail
-
 PORTAINER_HOST=${PORTAINER_HOST:-portainer.dsco.ucsf.edu}
-CONNECTION=${CONNECTION:-1}
 
 if [ -n "$SOCKS" ]; then
   PROXY="--proxy=http:socks5h://$SOCKS --proxy=https:socks5h://$SOCKS"
 fi
 
 function doPortainerAuth() {
+  local forceLogin=$1
+
   UN=
   PW=
-  if [ -f /run/secrets/portainer-auth.env ]; then
-    source /run/secrets/portainer-auth.env
+  if [[ -f ~/.portainer-auth && -z "$forceLogin" ]]; then
+    JWT=$(cat ~/.portainer-auth)
   else
-    read -e -p "Portainer username: " UN
-    read -es -p "Portainer password: " PW
-    echo
-  fi
+    if [ -f /run/secrets/portainer-auth.env ]; then
+      source /run/secrets/portainer-auth.env
+    else
+      read -e -p "Portainer username: " UN
+      read -es -p "Portainer password: " PW
+      echo
+    fi
 
-  JWT=$(http --ignore-stdin $PROXY POST https://${PORTAINER_HOST}/api/auth Username="${UN}" Password="${PW}" | jq -r '.jwt')
+    JWT=$(http --ignore-stdin $PROXY POST https://${PORTAINER_HOST}/api/auth Username="${UN}" Password="${PW}" | jq -r '.jwt')
+
+    if ! [ -f /run/secrets/portainer-auth.env ]; then
+      echo "$JWT" > ~/.portainer-auth
+    fi
+  fi
 }
 
 function doGithubAuth() {
-  mkdir -p ~/.ssh/
-  ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
   if [ -f /run/secrets/git-swarm-keeper-private-key ]; then
+    mkdir -p ~/.ssh/
+    ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
     cp /run/secrets/git-swarm-keeper-private-key ~/.ssh/id_rsa
   fi
 }
 
-function makeRequest() {
+function api() {
   local verb="$1"
   shift
   local path="$1"
   shift
-  http --ignore-stdin $PROXY "$verb" https://${PORTAINER_HOST}/api${path} "Authorization: Bearer ${JWT}" $@
+  http --check-status $PROXY "$verb" https://${PORTAINER_HOST}/api${path} "Authorization: Bearer ${JWT}" "$@"
+}
+
+function dockerApi() {
+  local stack="$1"
+  local endpoint="$(dig "$stack" -r '.EndpointId')"
+  shift
+  local verb="$1"
+  shift
+  local path="$1"
+  shift
+  api $verb /endpoints/$endpoint/docker${path} "$@"
 }
 
 function listStacks() {
-  makeRequest GET /stacks | jq -c '.[]'
+  api GET /stacks | jq -c '.[]'
 }
 
 function nonNull() {
@@ -51,6 +70,147 @@ function dig() {
   shift
   echo "$input" | jq -c $@
 }
+
+function findStack() {
+  local stackId=$(api GET /stacks | jq  --arg n "$1" -c '.[] | select(.Name == $n) | .Id')
+
+  if [[ -z "$stackId" ]]; then
+    echo "Could not find stack $1" 1>&2
+    echo "Found these: $(api GET /stacks | jq -r -c '.[] | .Name')" 1>&2
+    return 1
+  fi
+
+  api GET /stacks/$stackId
+}
+
+function downloadStack() {
+  local tmp=$(mktemp)
+  local stack="$1"
+  local id="$(dig "$stack" -r '.Id')"
+
+  api GET /stacks/$id/file | jq -r -c '.StackFileContent' > $tmp
+  echo $tmp
+}
+
+function editsFile() {
+  marker=$(mktemp)
+  ${EDITOR:-vim} $1
+  [[ $marker -ot $1 ]]
+}
+
+function mergeJson() {
+  jq -n --argjson a "$1" --argjson b "$2" '$a * $b'
+}
+
+function concatJson() {
+  jq -n --argjson a "$1" --argjson b "$2" '$a + $b'
+}
+
+function updateStackYml() {
+  local stack="$1"
+  local stackContent=${2:-}
+  local env=${3:-'[]'}
+
+  local endpoint="$(dig "$stack" -r '.EndpointId')"
+  local stackId="$(dig "$stack" -r '.Id')"
+
+  if [[ -z "$stackContent" ]]; then
+    stackContent="$(cat $(downloadStack "$stack"))"
+  fi
+
+  env=$(concatJson "$(dig "$stack" -r '.Env')" "$env")
+
+  jq -c -n --argjson env "$env" --arg content "$stackContent" '{stackFileContent: $content, prune: true, env: $env}' | api PUT /stacks/$stackId?endpointId=$endpoint | jq
+}
+
+function servicesInStack() {
+  local stack="$1"
+  local name=$(dig "$stack" -r '.Name')
+  local filtersJson=$(jq -n -c --arg n $name '{label: ["com.docker.stack.namespace=" + $n]}')
+  dockerApi "$stack" GET /services "filters==$filtersJson" | jq -r -c '.[] | .Spec.Name'
+}
+
+function getService() {
+  local stack="$1"
+  local filtersJson=$(jq -n -c --arg n $2 '{name: [$n]}')
+  local id=$(dockerApi "$stack" GET /services "filters==$filtersJson" | jq -r -c '.[0].ID')
+  dockerApi "$1" GET /services/$id
+}
+
+function awaitServiceDeploy() {
+  local stack="$1"
+  local serviceName="$2"
+  local success=
+  local IFS=$'\n'
+
+  for i in {0..60}
+  do
+    service=$(getService "$stack" "$serviceName")
+    filtersJson=$(jq -n -c --arg n $serviceName '{service: [$n], "desired-state": ["shutdown"]}')
+    completed=$(api GET /endpoints/$endpoint/docker/tasks "filters==$filtersJson" | jq -c -r '.[]')
+
+    case $(dig "$service" -r '.UpdateStatus.State') in
+      completed)
+        success=1
+        break
+        ;;
+      paused)
+        serviceState=
+
+        for task in $completed; do
+          serviceState=$(dig "$task" -r '.Status.State')
+          if [[ "$serviceState" != "complete" ]]; then
+            success=
+            break
+          fi
+
+          success=1
+        done
+
+        break
+        ;;
+      rollback_completed|rollback_failed|rollback_started)
+        break
+        ;;
+    esac
+    sleep 3
+  done
+
+  if [[ "$success" == 1 ]]; then
+    return 0
+  fi
+
+  return 1
+}
+
+function awaitStackDeploy() {
+  local stack="$1"
+  local endpoint="$(dig "$stack" -r '.EndpointId')"
+  local stackId="$(dig "$stack" -r '.Id')"
+  local name="$(dig "$stack" -r '.Name')"
+  local services="$(servicesInStack "$stack")"
+  local filtersJson
+
+  local IFS=$'\n'
+
+  for serviceName in $services; do
+    awaitServiceDeploy "$stack" $serviceName
+  done
+}
+
+#function convergeConfigTargets() {
+#  local stack="$1"
+#  local stackYaml="$2"
+#  local name=$(dig "$stack" -r '.Name')
+#  local id=$(dig "$stack" -r '.Id')
+#
+#  local endpoint="$(api GET /stacks/$id | jq -r -c '.EndpointId')"
+#  local filtersJson=$(jq -n -c --arg n $1 '{label: ["=" + $n]}')
+#  local configs=$(api GET /endpoints/$endpoint/docker/configs "filters==$filtersJson" | jq -c '.[] | {Name: .Spec.Name, ID: .ID}')
+#
+#  local configs=$(api GET )
+#
+#}
 
 function pushStackToRep() {
   local stack="$1"
@@ -70,7 +230,7 @@ function pushStackToRep() {
         git clone "git@github.com:${repo}.git" --branch "$branch" --single-branch . >/dev/null
         git config --global user.name "swarm-keeper"
         git config --global user.email "etnaagent@ucsf.edu"
-        local content="$(dig "$(makeRequest GET "/stacks/${id}/file")" -r '.StackFileContent')"
+        local content="$(dig "$(api GET "/stacks/${id}/file")" -r '.StackFileContent')"
         local path="$(dig "$gitConfig" -r '.ConfigFilePath')"
         echo "$content" > $path
         git add $path
@@ -108,4 +268,37 @@ function updateGitSources() {
       fi
     )
   done < <(listStacks)
+}
+
+
+function runCommand() {
+  cmd="$1"
+  shift
+
+
+  case "$cmd" in
+    portainer-login)
+      doPortainerAuth 1
+      ;;
+    portainer-client)
+      doPortainerAuth
+      api $@
+      ;;
+    portainer-edit-stack)
+      doPortainerAuth
+      stack=$(findStack "$1")
+      tmp=$(downloadStack "$stack")
+      if editsFile "$tmp"; then
+        echo "Deploying changes to stack file"
+        updateStackYml "$stack" "$(cat $tmp)"
+        if awaitStackDeploy "$stack"; then
+          echo "Deploy successful"
+        else
+          echo "Deploy failed, check portainer"
+        fi
+      else
+        echo "File was not modified, not deploying"
+      fi
+      ;;
+  esac
 }

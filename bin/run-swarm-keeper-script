@@ -1,0 +1,40 @@
+#! /usr/bin/env bash
+set -e
+set -o pipefail
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+if ! type -p http &>/dev/null; then
+  echo "Requires installation of httpie" 1>&2
+  exit 1
+fi
+
+if ! type -p jq &>/dev/null; then
+  echo "Requires installation of jq" 1>&2
+  exit 1
+fi
+
+if ! type -p yq &>/dev/null; then
+  echo "Requires installation of yq (you can use pip install)" 1>&2
+  exit 1
+fi
+
+
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+source $DIR/../swarm/swarm-keeper/lib/swarm-keeper
+
+runCommand "$(basename $0)" "$@"
