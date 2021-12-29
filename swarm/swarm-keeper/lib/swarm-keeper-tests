@@ -20,6 +20,13 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 source $DIR/mocker
 source $DIR/swarm-keeper
 
+# These tests were recorded by accessing portainer via a socks proxy on port 9090.
+# But you can adjust this if you connect directly or by other means.  The recordings
+# are required to capture these parameters. TODO: Filter these from the args in recording
+# files?
+export SOCKS=${SOCKS:-127.0.0.1:9090}
+export ENDPOINT=${ENDPOINT:-1}
+
 # Uses 'mocks' to replace invocations to external or non deterministic programs.
 # Run with RERECORD_ALL=1 to force recording of all tests again, or simply delete
 # a particular .recording file to have a new recording.
@@ -56,3 +63,5 @@ runCommand portainer-edit-stack airflow
 
 loadRecording $DIR/edit-config-deploy.recording
 runCommand portainer-edit-config polyphemus_known_hosts
+
+echo "Tests completed successfully!"

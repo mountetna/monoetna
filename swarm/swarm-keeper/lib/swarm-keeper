@@ -149,34 +149,42 @@ function servicesInStack() {
   dockerApi GET /services "filters==$filtersJson" | jq -r -c '.[] | .Spec.Name'
 }
 
-function getResourceByName() {
+function getResourceBy() {
   set -eo pipefail
+  filterName="$1"
+  shift
+
   if [[ -z "$1" ]]; then
-    echo "No $2 name given" 1>&2
+    echo "No $2 $filterName given" 1>&2
     return 1
   fi
   if [[ -z "$2" ]]; then
     return 1
   fi
 
-  filtersJson=$(jq -n -c --arg n $1 '{name: [$n]}')
+  filtersJson=$(jq -n -c --arg f "$filterName" --arg n "$1" '{($f): [$n]}')
   result="$(dockerApi GET /$2 "filters==$filtersJson" | jq -r -c '.[0]')"
   if nonNull "$result"; then
     echo "$result"
   else
-    echo "Could not find $2 by name '$1'" 1>&2
+    echo "Could not find $2 by $filterName '$1'" 1>&2
     return 1
   fi
 }
 
+function getImage() {
+  set -eo pipefail
+  getResourceBy "reference" "$1" "images"
+}
+
 function getService() {
   set -eo pipefail
-  getResourceByName "$1" "services"
+  getResourceBy "name" "$1" "services"
 }
 
 function getConfig() {
   set -eo pipefail
-  getResourceByName "$1" "configs"
+  getResourceBy "name" "$1" "configs"
 }
 
 function deleteConfig() {
@@ -281,6 +289,21 @@ function findConvergeableConfig() {
   dockerApi GET /configs "filters==$filtersJson" | jq 'sort_by(.UpdatedAt) | first'
 }
 
+function updateService() {
+  set -eo pipefail
+  service="$1"
+  update="$2"
+
+  spec=$(dig "$service" '.Spec')
+  serviceId=$(dig "$service" -r '.ID')
+  version=$(dig "$service" -r '.Version.Index')
+  update="$(mergeJson "$spec" "$update")"
+
+  dockerApi POST /services/$serviceId/update \
+    --raw "$update"
+    version=="$version" 1>/dev/null
+}
+
 function convergeConfig() {
   set -eo pipefail
   config="$1"
@@ -299,13 +322,10 @@ function convergeConfig() {
       version=$(dig "$nextServiceUsingReplaces" -r '.Version.Index')
       updatedConfigs=$(dig "$nextServiceUsingReplaces" --arg c "$replaces" --arg name "$configName" --arg id "$configId" \
         '.Spec.TaskTemplate.ContainerSpec.Configs | map(if .ConfigName == $c then (. * {ConfigName: $name, ConfigID: $id}) else . end)')
-      nextServiceTaskTemplate=$(dig "$nextServiceUsingReplaces" '.Spec.TaskTemplate')
-      updatedTaskTemplate=$(dig "$nextServiceTaskTemplate" --argjson c "$updatedConfigs" '. * {ContainerSpec: {Configs: $c}}')
+      specUpdate=$(dig "$updatedConfigs" '{TaskTemplate: {ContainerSpec: {Configs: .}}}')
       echo "Deploying $configName to $serviceName..."
-      dockerApi POST /services/$serviceId/update \
-        Name="$serviceName" \
-        TaskTemplate:="$updatedTaskTemplate" \
-        version=="$version" 1>/dev/null
+
+      updateService "$nextServiceUsingReplaces" "$specUpdate"
       awaitServiceDeploy "$serviceName"
     else
       break
@@ -373,6 +393,51 @@ function createBmodeConfig() {
   withCopiedResourceControls "$original" dockerApi GET /configs/$newConfigId
 }
 
+function listAllServiceNames() {
+  dockerApi GET /services | jq -r '.[] | .Name'
+}
+
+function shaOfImageDigest() {
+  if [[ "$1" =~ ([^@]*)@(.*) ]]; then
+    echo ${BASH_REMATCH[2]}
+  fi
+}
+
+function tagOfImageDigest() {
+  if [[ "$1" =~ ([^@]*)@(.*) ]]; then
+    echo ${BASH_REMATCH[1]}
+  fi
+}
+
+function watchAndDeployUpdatedImages() {
+  for serviceName in $(listAllServiceNames); do
+    echo "Checking $serviceName for updated image..."
+    service=$(getService "$serviceName")
+    serviceId=$(dig "$service" -r '.ID')
+    image=$(dig "$service" '.Spec.TaskTemplate.ContainerSpec.Image')
+    tag=$(tagOfImageDigest "$image")
+    sha=$(shaOfImageDigest "$image")
+
+    if [[ -n "$sha" ]]; then
+      docker pull "$tag" &>/dev/null
+      image=$(getImage "$tag")
+      newImage=$(dig "$image" -r '.[].RepoDigests[]' | head -n 1 || true)
+      newsha=$(shaOfImageDigest "$newImage")
+
+      echo "Found $newsha on $image $tag, existing is $sha"
+      if ! [ -f "/deployed/${serviceName}-${newsha}" ] && [[ "${sha}" != "${newsha}" ]]; then
+        version="$(dig "$service" -r '.Version.Index')"
+        postToSlack "Attempting deploy on ${serviceName} (${tag}@${newsha:8:6})"
+        dockerApi POST /configs/$serviceId/update \
+          Name="$serviceName" \
+          Labels:="$updatedLabels" \
+          version=="$configVersion" 1>/dev/null
+      fi
+
+      docker image prune -f
+    fi
+  done
+}
 
 function pushStackToRep() {
   set -eo pipefail
