@@ -6,8 +6,8 @@ function disableMocks() {
 function mock() {
   disableMocks
 
-  for cmd in $1; do
-      local cmd=$1
+  for cmd in $@; do
+      echo "Creating record/playback mocks for $cmd..."
       local dir=$(mktemp -d)
 
       MOCK_PATH=$dir:$MOCK_PATH
@@ -27,7 +27,6 @@ function runMock() {
   local dir=$1
   shift
   local PATH=${PATH/$dir:/}
-  local IFS=$'\n'
 
   local cmd=$1
   shift
@@ -74,10 +73,12 @@ function runMock() {
         fi
 
         line=$(cat $RECORD_FILE | jq -c --argjson args "$args" --arg cmd "$cmd" --arg stdin "$(cat $stdin)" \
-          'select(.cmd == $cmd and .args == $args and .stdin == $stdin)' | head -n 1)
+          'select(.cmd == $cmd and .args == $args and .stdin == $stdin)' | head -n 1 || true)
 
         if [[ -z "$line" ]]; then
           echo "Could not find matching request" 1>&2
+          echo "$cmd
+$args" 1>&2
           exit 1
         fi
 
@@ -96,13 +97,15 @@ function runMock() {
 }
 
 function loadRecording() {
-  if [[ -f "$RECORD_FILE" ]] && [[ -z "$RERECORD_ALL" ]]; then
+  if [[ -f "$1" ]] && [[ -z "$RERECORD_ALL" ]]; then
+    echo "Starting playback from $1"
     export RECORD_MODE=playback
     local tmp=$(mktemp)
     touch $1
     cat $1 > $tmp
     export RECORD_FILE=$tmp
   else
+    echo "Starting record to $1"
     export RECORD_MODE=record
     echo '' > $1
     export RECORD_FILE=$1

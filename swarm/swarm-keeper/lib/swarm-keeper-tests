@@ -20,7 +20,14 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 source $DIR/mocker
 source $DIR/swarm-keeper
 
-mock http cat
+# Uses 'mocks' to replace invocations to external or non deterministic programs.
+# Run with RERECORD_ALL=1 to force recording of all tests again, or simply delete
+# a particular .recording file to have a new recording.
+# You will need a valid portainer jwt, use bin/portainer-login to generate one into
+# your home directory.  This script will censure the private token so that it is not
+# exposed in the recordings.
+
+mock http date
 
 [[ -f ~/.portainer-auth ]] || echo 'magic-test-auth-token' > ~/.portainer-auth
 export RECORD_CENSURE="$(cat ~/.portainer-auth)"
@@ -30,7 +37,7 @@ loadRecording $DIR/test-stack.recording
 airflow=$(findStack airflow)
 
 loadRecording $DIR/dockerApi-fails.recording
-if dockerApi "$airflow" GET /not-a-url; then
+if dockerApi GET /not-a-url; then
   exit 1
 fi
 

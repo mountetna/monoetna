@@ -314,16 +314,19 @@ function convergeConfig() {
 
   if ! nonNull "$bMode"; then
     # 'replaces' is now fully undeployed, we should remove it if it exists
+    echo "Pruning $replaces, it is now undeployed"
     deleteConfig "$replaces"
 
     # If the process stops or fails here, on next entry the bmode config will be deleted
     # since it cannot be processed until after this config is deleted thanks to the sort by created at.
 
+    echo "Creating replacement $replaces from $configName"
     createBmodeConfig "$configName" "$replaces" "$configData" 1>/dev/null
   fi
 
   updatedLabels="$(dig "$config" '.Spec.Labels | del(.replaces) | del(.bmode)')"
 
+  echo "Removing 'replaces' label for $configName, as it is fully deployed."
   dockerApi POST /configs/$configId/update \
     Name="$configName" \
     Labels:="$updatedLabels" \
