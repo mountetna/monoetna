@@ -12,7 +12,8 @@ function mock() {
 
       MOCK_PATH=$dir:$MOCK_PATH
       echo "#!/usr/bin/env bash
-      runMock ${dir} ${cmd} \"\$@\"
+set -e -o pipefail
+runMock ${dir} ${cmd} \"\$@\"
       " > $dir/$cmd
       chmod +x $dir/$cmd
   done
@@ -21,9 +22,12 @@ function mock() {
 }
 
 function runMock() {
+  set -e
+  set -o pipefail
   local dir=$1
   shift
   local PATH=${PATH/$dir:/}
+  local IFS=$'\n'
 
   local cmd=$1
   shift
@@ -31,7 +35,8 @@ function runMock() {
   if [[ -z "$RECORD_FILE" ]]; then
     $cmd "$@"
   else
-    local args=$(printf '%s\n' "$@" | jq -R . | jq -s .)
+    local args
+    args=$(printf '%s\n' "$@" | sed -e "s/${RECORD_CENSURE:-xxx}/xxx/g" | jq -R . | jq -s .)
     local stdout=$(mktemp)
     local stderr=$(mktemp)
     local stdin=$(mktemp)
@@ -49,13 +54,31 @@ function runMock() {
           result=$?
         fi
 
-        jq -n -c --argjson args "$args" --arg cmd "$cmd" \
+        jq -n -c --argjson args "$args" --arg cmd "$cmd" --arg i "$(wc -l $RECORD_FILE)" \
           --arg stdin "$(cat $stdin)" --arg stdout "$(cat $stdout)" --arg stderr "$(cat $stderr)" --arg result $result \
-          '{cmd: $cmd, args: $args, result: $result, stdin: $stdin, stdout: $stdout, stderr: $stderr}' >> $RECORD_FILE
+          '{cmd: $cmd, args: $args, result: $result, stdin: $stdin, stdout: $stdout, stderr: $stderr, i: $i}' >> $RECORD_FILE
 
         return $result
         ;;
       playback)
+        if ! [ -t 0 ] ; then
+          cat - > $stdin
+        fi
+
+        line=$(cat $RECORD_FILE | jq -c --argjson args "$args" --arg cmd "$cmd" --arg stdin "$(cat $stdin)" \
+          'select(.cmd == $cmd and .args == $args and .stdin == $stdin)' | head -n 1)
+
+        if [[ -z "$line" ]]; then
+          echo "Could not find matching request" 1>&2
+          exit 1
+        fi
+
+        cat $RECORD_FILE | grep -F -v "$line" > $RECORD_FILE.tmp
+        mv $RECORD_FILE.tmp $RECORD_FILE
+
+        printf "%s" "$(echo "$line" | jq -r '.stdout')"
+        printf "%s" "$(echo "$line" | jq -r '.stderr')" 1>&2
+        return $(echo "$line" | jq -r '.result')
         ;;
       *)
         exit 1

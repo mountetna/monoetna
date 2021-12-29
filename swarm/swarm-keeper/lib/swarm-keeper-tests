@@ -22,6 +22,8 @@ source $DIR/swarm-keeper
 
 mock http cat
 
+[[ -f ~/.portainer-auth ]] || echo 'magic-test-auth-token' > ~/.portainer-auth
+export RECORD_CENSURE="$(cat ~/.portainer-auth)"
 doPortainerAuth
 
 loadRecording $DIR/test-stack.recording

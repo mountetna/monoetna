@@ -1,0 +1,2 @@
+
+{"cmd":"http","args":["--check-status","--proxy=http:socks5h://127.0.0.1:9090","--proxy=https:socks5h://127.0.0.1:9090","GET","https://portainer.dsco.ucsf.edu/api/endpoints/1/docker/not-a-url","Authorization: Bearer xxx"],"result":"4","stdin":"","stdout":"{\"message\":\"page not found\"}","stderr":"\nhttp: warning: HTTP 404 Not Found","i":"1 /home/home/monoetna/swarm/swarm-keeper/lib/dockerApi-fails.recording"}
