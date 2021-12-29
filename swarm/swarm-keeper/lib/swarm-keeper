@@ -5,6 +5,13 @@ PORTAINER_HOST=${PORTAINER_HOST:-portainer.dsco.ucsf.edu}
 if [ -n "$SOCKS" ]; then
   PROXY="--proxy=http:socks5h://$SOCKS --proxy=https:socks5h://$SOCKS"
 fi
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
 
 
 function doPortainerAuth() {
@@ -24,7 +31,7 @@ function doPortainerAuth() {
       echo
     fi
 
-    JWT=$(http --ignore-stdin $PROXY POST https://${PORTAINER_HOST}/api/auth Username="${UN}" Password="${PW}" | jq -r '.jwt')
+    JWT=$(http --ignore-stdin $PROXY POST https://${PORTAINER_HOST}/api/auth Username="${UN}" Password="${PW}" | tee >(cat 1>&2) | jq -r '.jwt')
 
     if ! [ -f /run/secrets/portainer-auth.env ]; then
       echo "$JWT" > ~/.portainer-auth
@@ -257,11 +264,16 @@ function downloadConfig() {
   echo $tmp
 }
 
-# a  <- b replaces a,
-# b  <- b replaces a
-#   delete a if a-mode
-#   create duplicate a
-# repeat process
+function convergeConfigs() {
+  for i in {0..60}; do
+    c=$(findConvergeableConfig)
+    if nonNull "$c"; then
+      convergeConfig "$c"
+    else
+      break
+    fi
+  done
+}
 
 function findConvergeableConfig() {
   set -eo pipefail
@@ -446,14 +458,6 @@ function runCommand() {
       fi
       ;;
 
-    portainer-converge-config)
-      doPortainerAuth
-      c=$(findConvergeableConfig)
-      if nonNull "$c"; then
-        convergeConfig "$c"
-      fi
-      ;;
-
     portainer-edit-config)
       doPortainerAuth
       tmp=$(downloadConfig "$1")
@@ -462,6 +466,7 @@ function runCommand() {
         echo "Creating config..."
         createReplacementConfig "$1" "$(cat $tmp)"
         echo "Deploying config file change..."
+        convergeConfigs
       else
         echo "File was not modified, not deploying"
       fi

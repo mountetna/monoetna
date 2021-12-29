@@ -35,7 +35,7 @@ if dockerApi "$airflow" GET /not-a-url; then
 fi
 
 loadRecording $DIR/getService.recording
-getService "$airflow" airflow_scheduler
+getService airflow_scheduler
 
 eval "
 function ${EDITOR:-vim}() {
@@ -46,3 +46,6 @@ function ${EDITOR:-vim}() {
 
 loadRecording $DIR/edit-stack-deploy.recording
 runCommand portainer-edit-stack airflow
+
+loadRecording $DIR/edit-config-deploy.recording
+runCommand portainer-edit-config polyphemus_known_hosts

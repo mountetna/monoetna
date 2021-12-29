@@ -39,7 +39,7 @@ function runMock() {
     args=$(printf '%s\n' "$@" | sed -e "s/${RECORD_CENSURE:-xxx}/xxx/g" | jq -R . | jq -s .)
     local stdout=$(mktemp)
     local stderr=$(mktemp)
-    local stdin=$(mktemp)
+    local stdin=$(mktemp
 
     case ${RECORD_MODE:-playback} in
       record)
@@ -48,10 +48,18 @@ function runMock() {
         fi
 
         local result=127
-        if cat $stdin | $cmd "$@" 1> >(tee $stdout) 2> >(tee $stderr >&2); then
-          result=0
+        if ! [ -t 0 ]; then
+            if cat $stdin | $cmd "$@" 1> >(tee $stdout) 2> >(tee $stderr >&2); then
+              result=0
+            else
+              result=$?
+            fi
         else
-          result=$?
+            if $cmd "$@" 1> >(tee $stdout) 2> >(tee $stderr >&2); then
+              result=0
+            else
+              result=$?
+            fi
         fi
 
         jq -n -c --argjson args "$args" --arg cmd "$cmd" --arg i "$(wc -l $RECORD_FILE)" \
@@ -88,18 +96,17 @@ function runMock() {
 }
 
 function loadRecording() {
-  case ${RECORD_MODE:-playback} in
-    playback)
-        local tmp=$(mktemp)
-        touch $1
-        cat $1 > $tmp
-        export RECORD_FILE=$tmp
-        ;;
-    *)
-      echo '' > $1
-      export RECORD_FILE=$1
-      ;;
-  esac
+  if [[ -f "$RECORD_FILE" ]] && [[ -z "$RERECORD_ALL" ]]; then
+    export RECORD_MODE=playback
+    local tmp=$(mktemp)
+    touch $1
+    cat $1 > $tmp
+    export RECORD_FILE=$tmp
+  else
+    export RECORD_MODE=record
+    echo '' > $1
+    export RECORD_FILE=$1
+  fi
 }
 
 export -f runMock
