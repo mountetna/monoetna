@@ -39,7 +39,7 @@ function runMock() {
     args=$(printf '%s\n' "$@" | sed -e "s/${RECORD_CENSURE:-xxx}/xxx/g" | jq -R . | jq -s .)
     local stdout=$(mktemp)
     local stderr=$(mktemp)
-    local stdin=$(mktemp
+    local stdin=$(mktemp)
 
     case ${RECORD_MODE:-playback} in
       record)
