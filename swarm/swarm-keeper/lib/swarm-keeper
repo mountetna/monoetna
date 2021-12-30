@@ -525,8 +525,11 @@ function deriveNextConfig() {
   withCopiedResourceControls "$original" dockerApi GET /configs/$newConfigId
 }
 
-function listAllServiceNames() {
-  dockerApi GET /services | jq -r '.[] | .Name'
+function listUpdateableServiceNames() {
+  set -eo pipefail
+  local filtersJson
+  filtersJson=$(jq -n -c '{label: ["autoupdate=true"]}')
+  dockerApi GET /services "filters==$filtersJson" | jq -r '.[] | .Spec.Name'
 }
 
 function shaOfImageDigest() {
@@ -541,36 +544,48 @@ function tagOfImageDigest() {
   fi
 }
 
-function watchAndDeployUpdatedImages() {
-  local serviceName service serviceId image tag sha newImage newsha version
+function checkAndDeployUpdatedImages() {
+  set -eo pipefail
+  local serviceName service serviceId image tag sha newImage newsha version deployFailed services
+  docker image prune -f
+  services="$(listUpdateableServiceNames)"
 
-  for serviceName in $(listAllServiceNames); do
+  for serviceName in $services; do
     echo "Checking $serviceName for updated image..."
     service=$(getService "$serviceName")
     serviceId=$(dig "$service" -r '.ID')
-    image=$(dig "$service" '.Spec.TaskTemplate.ContainerSpec.Image')
+    image=$(dig "$service" -r '.Spec.TaskTemplate.ContainerSpec.Image')
     tag=$(tagOfImageDigest "$image")
     sha=$(shaOfImageDigest "$image")
+    deployFailed=
+    echo "Current tag is $tag, sha is $sha"
 
     if [[ -n "$sha" ]]; then
-      docker pull "$tag" &>/dev/null
-      image=$(getImage "$tag")
+      docker pull "$tag" 1>/dev/null
+      image=$(docker image inspect "$tag")
       newImage=$(dig "$image" -r '.[].RepoDigests[]' | head -n 1 || true)
       newsha=$(shaOfImageDigest "$newImage")
 
-      echo "Found $newsha on $image $tag, existing is $sha"
-      if ! [ -f "/deployed/${serviceName}-${newsha}" ] && [[ "${sha}" != "${newsha}" ]]; then
-        version="$(dig "$service" -r '.Version.Index')"
-        postToSlack "Attempting deploy on ${serviceName} (${tag}@${newsha:8:6})"
-        dockerApi POST /configs/$serviceId/update \
-          Name="$serviceName" \
-          Labels:="$updatedLabels" \
-          version=="$configVersion" 1>/dev/null
-      fi
+      echo "Found $newsha on $tag, existing is $sha"
 
-      docker image prune -f
+      if ! [ -f "/deployed/${serviceName}-${newsha}" ] && [[ "${sha}" != "$(shaTestHook "$serviceName" "$newsha")" ]]; then
+        postToSlack "Attempting deploy on ${serviceName} (${tag}@${newsha:8:6})"
+        updateService "$service" "$(printJson '{TaskTemplate: {ContainerSpec: {Image: $v1}}}' "$tag@$newsha")" 1>/dev/null
+        touch "/deployed/${serviceName}-${newsha}" || true
+        awaitServiceDeploy "$serviceName" || deployFailed=1
+
+        if [[ -n "$deployFailed" ]]; then
+          postToSlack "Deployment of ${serviceName} may have failed, check portainer."
+        fi
+      fi
     fi
+
+    docker image prune -f
   done
+}
+
+function shaTestHook() {
+  echo "$2"
 }
 
 function pushStackToRep() {
