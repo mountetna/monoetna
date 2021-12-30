@@ -576,6 +576,8 @@ function checkAndDeployUpdatedImages() {
 
         if [[ -n "$deployFailed" ]]; then
           postToSlack "Deployment of ${serviceName} may have failed, check portainer."
+        else
+          postToSlack "Deployment of ${serviceName} succeeded."
         fi
       fi
     fi
