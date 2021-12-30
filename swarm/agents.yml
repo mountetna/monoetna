@@ -2,7 +2,7 @@ version: '3.8'
 
 # Intended for agents that run in global deploy node, on most or all nodes, for service health purposes.
 services:
-  sync-stacks-to-git:
+  swarm-keeper:
     image: etnaagent/swarm-keeper:production
     deploy:
       labels:
