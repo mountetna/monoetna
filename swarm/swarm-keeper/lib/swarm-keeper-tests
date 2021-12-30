@@ -62,6 +62,10 @@ loadRecording $DIR/edit-stack-deploy.recording
 runCommand portainer-edit-stack airflow
 
 loadRecording $DIR/edit-config-deploy.recording
+
+# Setup two configurations that both exist wanting to replace a single config.
+tmp=$(downloadConfig "polyphemus_known_hosts")
+createReplacementConfig "polyphemus_known_hosts" "$(encodeData "$(cat $tmp)")"
 runCommand portainer-edit-config polyphemus_known_hosts
 
 echo "Tests completed successfully!"

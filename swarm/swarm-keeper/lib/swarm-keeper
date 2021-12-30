@@ -50,6 +50,9 @@ function doGithubAuth() {
 
 function api() {
   set -eo pipefail
+
+  local verb
+  local path
   verb="$1"
   shift
   path="$1"
@@ -59,11 +62,14 @@ function api() {
 
 function dockerApi() {
   set -eo pipefail
+
+  local verb
+  local path
   verb="$1"
   shift
   path="$1"
   shift
-  api $verb /endpoints/$ENDPOINT/docker${path} "$@"
+  api $verb /endpoints/${ENDPOINT:-1}/docker${path} "$@"
 }
 
 function listStacks() {
@@ -78,6 +84,8 @@ function nonNull() {
 
 function dig() {
   set -eo pipefail
+
+  local input
   input="$1"
   shift
   echo "$input" | jq -c "$@"
@@ -85,6 +93,8 @@ function dig() {
 
 function findStack() {
   set -eo pipefail
+
+  local stackId
   stackId=$(api GET /stacks | jq  --arg n "$1" -c '.[] | select(.Name == $n) | .Id')
 
   if [[ -z "$stackId" ]]; then
@@ -98,6 +108,10 @@ function findStack() {
 
 function downloadStack() {
   set -eo pipefail
+  local tmp
+  local stack
+  local id
+
   tmp=$(mktemp)
   stack="$1"
   id="$(dig "$stack" -r '.Id')"
@@ -108,6 +122,8 @@ function downloadStack() {
 
 function editsFile() {
   set -eo pipefail
+  local marker
+
   marker=$(mktemp)
   ${EDITOR:-vim} $1
   [[ $marker -ot $1 ]]
@@ -125,6 +141,32 @@ function concatJson() {
 
 function updateStackYml() {
   set -eo pipefail
+
+  local stack stackContent env endpoint stackId
+
+  stack="$1"
+  stackContent=${2:-}
+  env=${3:-$(dig "$stack" '.Env')}
+
+  endpoint="$(dig "$stack" -r '.EndpointId')"
+  stackId="$(dig "$stack" -r '.Id')"
+
+  if [[ -z "$stackContent" ]]; then
+    stackContent="$(cat "$(downloadStack "$stack")")"
+  fi
+
+  jq -c -n --argjson env "$env" --arg content "$stackContent" '{stackFileContent: $content, prune: true, env: $env}' | api PUT /stacks/$stackId?endpointId=$endpoint
+}
+
+function updateStackYml() {
+  set -eo pipefail
+
+  local stack
+  local stackContent
+  local env
+  local endpoint
+  local stackId
+
   stack="$1"
   stackContent=${2:-}
   env=${3:-'[]'}
@@ -133,7 +175,7 @@ function updateStackYml() {
   stackId="$(dig "$stack" -r '.Id')"
 
   if [[ -z "$stackContent" ]]; then
-    stackContent="$(cat $(downloadStack "$stack"))"
+    stackContent="$(cat "$(downloadStack "$stack")")"
   fi
 
   env=$(concatJson "$(dig "$stack" -r '.Env')" "$env")
@@ -143,6 +185,10 @@ function updateStackYml() {
 
 function servicesInStack() {
   set -eo pipefail
+
+  local stack
+  local filtersJson
+
   stack="$1"
   name=$(dig "$stack" -r '.Name')
   filtersJson=$(jq -n -c --arg n $name '{label: ["com.docker.stack.namespace=" + $n]}')
@@ -151,6 +197,11 @@ function servicesInStack() {
 
 function getResourceBy() {
   set -eo pipefail
+
+  local filterName
+  local filtersJson
+  local result
+
   filterName="$1"
   shift
 
@@ -189,14 +240,21 @@ function getConfig() {
 
 function deleteConfig() {
   set -eo pipefail
-  config=$(getResourceByName "$1" "configs" 2>/dev/null || echo null)
+  local config
+
+  config=$(getResourceBy "name" "$1" "configs" || echo null)
   if nonNull "$config"; then
+    echo "Removing config $1"
     dockerApi DELETE /configs/$(dig "$config" -r '.ID') 1>/dev/null
   fi
+  echo "Config $1 not found, skipping delete."
 }
 
 function awaitServiceDeploy() {
   set -eo pipefail
+
+  local serviceName success service filtersJson status updateStartedAt completed serviceState
+
   serviceName="$1"
   success=
 
@@ -249,6 +307,9 @@ function awaitServiceDeploy() {
 
 function awaitStackDeploy() {
   set -eo pipefail
+
+  local stack endpoint stackId name services serviceName
+
   stack="$1"
   endpoint="$(dig "$stack" -r '.EndpointId')"
   stackId="$(dig "$stack" -r '.Id')"
@@ -264,6 +325,9 @@ function awaitStackDeploy() {
 
 function downloadConfig() {
   set -eo pipefail
+
+  local tmp stack config
+
   tmp=$(mktemp)
   stack="$1"
   config="$(getConfig "$stack" "$2")"
@@ -273,6 +337,8 @@ function downloadConfig() {
 }
 
 function convergeConfigs() {
+  local i c
+
   for i in {0..60}; do
     c=$(findConvergeableConfig)
     if nonNull "$c"; then
@@ -285,12 +351,25 @@ function convergeConfigs() {
 
 function findConvergeableConfig() {
   set -eo pipefail
-  filtersJson=$(jq -n -c '{label: ["replaces="]}')
+  local filtersJson
+  filtersJson=$(printJson '{label: ["replaces="]}')
   dockerApi GET /configs "filters==$filtersJson" | jq 'sort_by(.UpdatedAt) | first'
+}
+
+function findReplaceTargetsFor() {
+  set -eo pipefail
+  local filtersJson config canonName
+  config="$1"
+  canonName=$(dig "$config" -r '.Spec.Labels.canon // .Spec.Labels.replaces // .Spec.Name')
+  filtersJson=$(printJson '{label: ["replaces=" + $v1, "canon=" + $v1], name: [$v1]}' "$canonName")
+  dockerApi GET /configs "filters==$filtersJson"
 }
 
 function updateService() {
   set -eo pipefail
+
+  local service update spec serviceId version update
+
   service="$1"
   update="$2"
 
@@ -299,58 +378,77 @@ function updateService() {
   version=$(dig "$service" -r '.Version.Index')
   update="$(mergeJson "$spec" "$update")"
 
-  dockerApi POST /services/$serviceId/update \
-    --raw "$update"
-    version=="$version" 1>/dev/null
+  echo "$update" | dockerApi POST /services/$serviceId/update version=="$version" 1>/dev/null
 }
 
 function convergeConfig() {
   set -eo pipefail
+
+  local config configName replaces deployFailed anyDeployFailed
+  local env replaceTargetNames newEnv
+
   config="$1"
   configName="$(dig "$config" -r '.Spec.Name')"
-  configData="$(dig "$config" -r '.Spec.Data')"
-  configVersion="$(dig "$config" -r '.Version.Index')"
-  configId="$(dig "$config" -r '.ID')"
   replaces="$(dig "$config" -r '.Spec.Labels.replaces')"
-  bMode="$(dig "$config" '.Spec.Labels.bmode')"
-  while true; do
-    nextServiceUsingReplaces="$(dockerApi GET /services | jq --arg c "$replaces" \
-      'map(select((.Spec.TaskTemplate.ContainerSpec.Configs // []) | map(.ConfigName) | index($c) >= 0)) | first')"
-    if nonNull "$nextServiceUsingReplaces"; then
-      serviceId=$(dig "$nextServiceUsingReplaces" -r '.ID')
-      serviceName=$(dig "$nextServiceUsingReplaces" -r '.Spec.Name')
-      version=$(dig "$nextServiceUsingReplaces" -r '.Version.Index')
-      updatedConfigs=$(dig "$nextServiceUsingReplaces" --arg c "$replaces" --arg name "$configName" --arg id "$configId" \
-        '.Spec.TaskTemplate.ContainerSpec.Configs | map(if .ConfigName == $c then (. * {ConfigName: $name, ConfigID: $id}) else . end)')
-      specUpdate=$(dig "$updatedConfigs" '{TaskTemplate: {ContainerSpec: {Configs: .}}}')
-      echo "Deploying $configName to $serviceName..."
+  replaceTargetNames=$(findReplaceTargetsFor "$config" | jq 'map(.Spec.Name)')
+  anyDeployFailed=
 
-      updateService "$nextServiceUsingReplaces" "$specUpdate"
-      awaitServiceDeploy "$serviceName"
-    else
-      break
+  while IFS=$'\n' read -r stack; do
+    deployFailed=
+    env=$(dig "$stack" '.Env')
+    newEnv=$(dig "$env" --argjson targetNames "$replaceTargetNames" --arg configName "$configName" 'map(if (.value as $v | $targetNames | index($v) >= 0) then .value |= $configName  else . end)')
+    if [[ "$newEnv" != "$env" ]]; then
+      updateStackYml  "$stack" "" "$newEnv"
+      awaitStackDeploy "$stack" || deployFailed=1
+      if [[ -n "$deployFailed" ]]; then
+        postToSlack "Deployment of config $configName to $(dig "$stack" '.Name') failed, check portainer."
+        anyDeployFailed=1
+      fi
     fi
-  done
+  done <<< "$(listStacks)"
 
-  if ! nonNull "$bMode"; then
-    # 'replaces' is now fully undeployed, we should remove it if it exists
-    echo "Pruning $replaces, it is now undeployed"
-    deleteConfig "$replaces"
+  local canon
+  canon=$(dig "$config" -r '.Spec.Labels.canon')
 
-    # If the process stops or fails here, on next entry the bmode config will be deleted
-    # since it cannot be processed until after this config is deleted thanks to the sort by created at.
+  if [[ "$canon" == "$configName" ]]; then
+    # If we are the canonical config, having replaced ourself on all available services, we simply disable
+    # our need to converge.
+    echo "Clearing replaces and canon labels from $configName"
+    updateConfigLabels "$config" 'del(.replaces)'
 
-    echo "Creating replacement $replaces from $configName"
-    createBmodeConfig "$configName" "$replaces" "$configData" 1>/dev/null
+    echo "$replaces has converged into $configName"
+    return 0
+  else
+    echo "Clearing replaces from $configName"
+    updateConfigLabels "$config" 'del(.replaces)'
   fi
 
-  updatedLabels="$(dig "$config" '.Spec.Labels | del(.replaces) | del(.bmode)')"
+  if [[ -z "$anyDeployFailed" ]]; then
+    echo "Pruning $replaces, it is now undeployed."
+    deleteConfig "$replaces"
 
-  echo "Removing 'replaces' label for $configName, as it is fully deployed."
-  dockerApi POST /configs/$configId/update \
-    Name="$configName" \
-    Labels:="$updatedLabels" \
-    version=="$configVersion" 1>/dev/null
+    echo "Creating replacement $replaces from $configName"
+    deriveNextConfig "$configName" "$(dig "$config" -r '.Spec.Data')" "$replaces"
+  fi
+}
+
+function updateConfigLabels() {
+  set -eo pipefail
+
+  local config update labels configId version
+
+  config="$1"
+  update="$2"
+
+  labels=$(dig "$config" '.Spec.Labels')
+  update=$(dig "$labels" "$update")
+  update=$(dig "$update" '{Labels: .}')
+  update=$(mergeJson "$(dig "$config" '.Spec | del(.Labels)')" "$update")
+
+  configId=$(dig "$config" -r '.ID')
+  version=$(dig "$config" -r '.Version.Index')
+
+  echo "$update" | dockerApi POST /configs/$configId/update version=="$version" 1>/dev/null
 }
 
 function resourceIdOf() {
@@ -359,6 +457,9 @@ function resourceIdOf() {
 
 function withCopiedResourceControls() {
   set -eo pipefail
+
+  local original new origResourceControl newResourceId
+
   original="$1"
   shift
   new="$("$@")"
@@ -366,30 +467,61 @@ function withCopiedResourceControls() {
   origResourceControl=$(dig "$original" '.Portainer.ResourceControl')
   newResourceId=$(resourceIdOf "$new")
   api PUT /resource_controls/$newResourceId \
-    AdministratorsOnly:=$(dig "$origResourceControl" '.AdministratorsOnly') \
-    Public:=$(dig "$origResourceControl" '.Public') \
-    Teams:=$(dig "$origResourceControl" '.TeamAccesses') \
-    Users:=$(dig "$origResourceControl" '.UserAccesses') 1>/dev/null
+    "AdministratorsOnly:=$(dig "$origResourceControl" '.AdministratorsOnly')" \
+    "Public:=$(dig "$origResourceControl" '.Public')" \
+    "Teams:=$(dig "$origResourceControl" '.TeamAccesses | map(.TeamId)')" \
+    "Users:=$(dig "$origResourceControl" '.UserAccesses | map(.UserId)')" 1>/dev/null
 
   echo "$new"
 }
 
-function createReplacementConfig() {
-  set -eo pipefail
-  original=$(getConfig "$1")
-  origLabels=$(dig "$original" '.Spec.Labels // {}')
-  labels=$(jq -n -c --argjson orig "$origLabels" --arg replaces "$1" '$orig * {"replaces": $replaces}')
-  data=$(jq -r -n -c --arg content "$2" '$content | @base64')
-  newConfigId=$(dockerApi POST /configs/create "Name=$1_$(date +"%s")" "Data=$data" "Labels:=$labels" | jq -r '.ID')
-  withCopiedResourceControls "$original" dockerApi GET /configs/$newConfigId
+function encodeData() {
+  jq --arg data "$1" -r -n '$data | @base64'
 }
 
-function createBmodeConfig() {
+function printJson() {
+  local formula="$1"
+  local args i
+  i=1
+  args=()
+  shift
+  while [[ "$#" != "0" ]]; do
+    args+=("--arg" "v$i" "$1")
+    shift
+    ((i+=1))
+  done
+  jq -n -c "${args[@]}" "$formula"
+}
+
+function createConfig() {
   set -eo pipefail
+
+  local original labels data newConfigId now name
+  local name
+  name="$1"
+  data="$2"
+  labels="$3"
+
+  dockerApi POST /configs/create "Name=$name" "Data=$data" "Labels:=$labels"
+}
+
+function deriveNextConfig() {
+  set -eo pipefail
+
+  local original labels data newConfigId now name canonName
   original=$(getConfig "$1")
-  origLabels=$(dig "$original" '.Spec.Labels // {}')
-  labels=$(jq -n -c --argjson orig "$origLabels" --arg replaces "$1" '$orig * {"replaces": $replaces, bmode: "true"}')
-  newConfigId=$(dockerApi POST /configs/create "Name=$2" "Data=$3" "Labels:=$labels" | jq -r '.ID')
+  data="$2"
+  labels=$(dig "$original" '.Spec.Labels // {}')
+  canonName=$(dig "$labels" '.canon // .replaces')
+  if ! nonNull "$canonName"; then
+    canonName="$1"
+  fi
+
+  labels=$(mergeJson "$labels" "$(printJson '{replaces: $v1, canon: $v2}' "$1" "$canonName")")
+  now=$(date +"%s")
+  name=${3:-"${canonName}_${now}"}
+
+  newConfigId=$(createConfig "$name" "$data" "$labels" | jq -r '.ID')
   withCopiedResourceControls "$original" dockerApi GET /configs/$newConfigId
 }
 
@@ -410,6 +542,8 @@ function tagOfImageDigest() {
 }
 
 function watchAndDeployUpdatedImages() {
+  local serviceName service serviceId image tag sha newImage newsha version
+
   for serviceName in $(listAllServiceNames); do
     echo "Checking $serviceName for updated image..."
     service=$(getService "$serviceName")
@@ -482,9 +616,11 @@ function postToSlack() {
 
 function updateGitSources() {
   set -eo pipefail
+  local name stack
+
   while IFS=$'\n' read -r stack; do
-    echo "Processing $stack"
     name=$(dig "$stack" '.Name')
+    echo "Processing $name"
     gitConfig=$(dig "$stack" '.GitConfig')
     if nonNull "$gitConfig"; then
       dir=$(mktemp -d)
@@ -503,6 +639,7 @@ function runCommand() {
   cmd="$1"
   shift
 
+  local stack tmp
 
   case "$cmd" in
     portainer-login)
@@ -510,7 +647,7 @@ function runCommand() {
       ;;
     portainer-client)
       doPortainerAuth
-      api $@
+      api "$@"
       ;;
     portainer-edit-stack)
       doPortainerAuth
@@ -529,10 +666,9 @@ function runCommand() {
     portainer-edit-config)
       doPortainerAuth
       tmp=$(downloadConfig "$1")
-      cp $tmp ~/portainer-config-file
       if editsFile $tmp; then
         echo "Creating config..."
-        createReplacementConfig "$1" "$(cat $tmp)"
+        deriveNextConfig "$1" "$(encodeData "$(cat $tmp)")"
         echo "Deploying config file change..."
         convergeConfigs
       else
