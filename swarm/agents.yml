@@ -13,23 +13,31 @@ services:
         constraints: [node.role == manager]
       restart_policy:
         delay: 300s
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - autodeployed:/deployed
     secrets:
       - source: git-swarm-keeper-private-key
         mode: 0400
       - portainer-auth.env
+      - slack_webhook_url
+      - service-deployer-docker-login
     command:
       - bash
       - -c
       - |
         set -eo pipefail
         source /usr/lib/swarm-keeper
+        echo 'Login using /run/secrets/service-deployer-docker-login'
+        docker login -u etnaagent -p "$(cat /run/secrets/service-deployer-docker-login)"
         doPortainerAuth
         doGithubAuth
         # Run this for 5 hours before forcing a restart to refresh the portainer auth
         # Allows the caching to make things less more efficient
         for i in $$(seq 60); do
-          updateGitSources
-          sleep 300
+          checkAndDeployUpdatedImages
+          # updateGitSources
+          sleep 60
         done
   agent:
     image: gcr.io/cadvisor/cadvisor
@@ -44,23 +52,6 @@ services:
         constraints: [node.platform.os == linux]
     ports:
       - 7100:8080
-  service-deployer:
-    image: etnaagent/service-deployer:production
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - autodeployed:/deployed
-    secrets:
-      - slack_webhook_url
-      - service-deployer-docker-login
-    deploy:
-      labels:
-        - autoupdate=true
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints: [node.role == manager]
-      restart_policy:
-        delay: 300s
 
 volumes:
   autodeployed:
