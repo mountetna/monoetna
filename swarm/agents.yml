@@ -29,7 +29,7 @@ services:
         set -eo pipefail
         source /usr/lib/swarm-keeper
         echo 'Login using /run/secrets/service-deployer-docker-login'
-        docker login -u etnaagent -p "$(cat /run/secrets/service-deployer-docker-login)"
+        docker login -u etnaagent -p "$$(cat /run/secrets/service-deployer-docker-login)"
         doPortainerAuth
         doGithubAuth
         # Run this for 5 hours before forcing a restart to refresh the portainer auth
