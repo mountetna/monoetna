@@ -1,77 +1,616 @@
 #!/usr/bin/env bash
 set -eo pipefail
-
 PORTAINER_HOST=${PORTAINER_HOST:-portainer.dsco.ucsf.edu}
-CONNECTION=${CONNECTION:-1}
 
 if [ -n "$SOCKS" ]; then
   PROXY="--proxy=http:socks5h://$SOCKS --proxy=https:socks5h://$SOCKS"
 fi
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
 
 function doPortainerAuth() {
+  set -eo pipefail
+  local forceLogin=$1
+
   UN=
   PW=
-  if [ -f /run/secrets/portainer-auth.env ]; then
-    source /run/secrets/portainer-auth.env
+  if [[ -f ~/.portainer-auth && -z "$forceLogin" ]]; then
+    JWT=$(cat ~/.portainer-auth)
   else
-    read -e -p "Portainer username: " UN
-    read -es -p "Portainer password: " PW
-    echo
-  fi
+    if [ -f /run/secrets/portainer-auth.env ]; then
+      source /run/secrets/portainer-auth.env
+    else
+      read -e -p "Portainer username: " UN
+      read -es -p "Portainer password: " PW
+      echo
+    fi
 
-  JWT=$(http --ignore-stdin $PROXY POST https://${PORTAINER_HOST}/api/auth Username="${UN}" Password="${PW}" | jq -r '.jwt')
+    JWT=$(http --ignore-stdin $PROXY POST https://${PORTAINER_HOST}/api/auth Username="${UN}" Password="${PW}" | tee >(cat 1>&2) | jq -r '.jwt')
+
+    if ! [ -f /run/secrets/portainer-auth.env ]; then
+      echo "$JWT" > ~/.portainer-auth
+    fi
+  fi
 }
 
 function doGithubAuth() {
-  mkdir -p ~/.ssh/
-  ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+  set -eo pipefail
   if [ -f /run/secrets/git-swarm-keeper-private-key ]; then
+    mkdir -p ~/.ssh/
+    ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
     cp /run/secrets/git-swarm-keeper-private-key ~/.ssh/id_rsa
   fi
 }
 
-function makeRequest() {
-  local verb="$1"
+function api() {
+  set -eo pipefail
+
+  local verb
+  local path
+  verb="$1"
   shift
-  local path="$1"
+  path="$1"
   shift
-  http --ignore-stdin $PROXY "$verb" https://${PORTAINER_HOST}/api${path} "Authorization: Bearer ${JWT}" $@
+  http --check-status $PROXY "$verb" https://${PORTAINER_HOST}/api${path} "Authorization: Bearer ${JWT}" "$@"
+}
+
+function dockerApi() {
+  set -eo pipefail
+
+  local verb
+  local path
+  verb="$1"
+  shift
+  path="$1"
+  shift
+  api $verb /endpoints/${ENDPOINT:-1}/docker${path} "$@"
 }
 
 function listStacks() {
-  makeRequest GET /stacks | jq -c '.[]'
+  set -eo pipefail
+  api GET /stacks | jq -c '.[]'
 }
 
 function nonNull() {
+  set -eo pipefail
   echo "$1" | jq --exit-status >/dev/null
 }
 
 function dig() {
-  local input="$1"
+  set -eo pipefail
+
+  local input
+  input="$1"
   shift
-  echo "$input" | jq -c $@
+  echo "$input" | jq -c "$@"
+}
+
+function findStack() {
+  set -eo pipefail
+
+  local stackId
+  stackId=$(api GET /stacks | jq  --arg n "$1" -c '.[] | select(.Name == $n) | .Id')
+
+  if [[ -z "$stackId" ]]; then
+    echo "Could not find stack $1" 1>&2
+    echo "Found these: $(api GET /stacks | jq -r -c '.[] | .Name')" 1>&2
+    return 1
+  fi
+
+  api GET /stacks/$stackId
+}
+
+function downloadStack() {
+  set -eo pipefail
+  local tmp
+  local stack
+  local id
+
+  tmp=$(mktemp)
+  stack="$1"
+  id="$(dig "$stack" -r '.Id')"
+
+  api GET /stacks/$id/file | jq -r -c '.StackFileContent' > $tmp
+  echo $tmp
+}
+
+function editsFile() {
+  set -eo pipefail
+  local marker
+
+  marker=$(mktemp)
+  ${EDITOR:-vim} $1
+  [[ $marker -ot $1 ]]
+}
+
+function mergeJson() {
+  set -eo pipefail
+  jq -n --argjson a "$1" --argjson b "$2" '$a * $b'
+}
+
+function concatJson() {
+  set -eo pipefail
+  jq -n --argjson a "$1" --argjson b "$2" '$a + $b'
+}
+
+function updateStackYml() {
+  set -eo pipefail
+
+  local stack stackContent env endpoint stackId
+
+  stack="$1"
+  stackContent=${2:-}
+  env=${3:-$(dig "$stack" '.Env')}
+
+  endpoint="$(dig "$stack" -r '.EndpointId')"
+  stackId="$(dig "$stack" -r '.Id')"
+
+  if [[ -z "$stackContent" ]]; then
+    stackContent="$(cat "$(downloadStack "$stack")")"
+  fi
+
+  jq -c -n --argjson env "$env" --arg content "$stackContent" '{stackFileContent: $content, prune: true, env: $env}' | api PUT /stacks/$stackId?endpointId=$endpoint
+}
+
+function updateStackYml() {
+  set -eo pipefail
+
+  local stack
+  local stackContent
+  local env
+  local endpoint
+  local stackId
+
+  stack="$1"
+  stackContent=${2:-}
+  env=${3:-'[]'}
+
+  endpoint="$(dig "$stack" -r '.EndpointId')"
+  stackId="$(dig "$stack" -r '.Id')"
+
+  if [[ -z "$stackContent" ]]; then
+    stackContent="$(cat "$(downloadStack "$stack")")"
+  fi
+
+  env=$(concatJson "$(dig "$stack" -r '.Env')" "$env")
+
+  jq -c -n --argjson env "$env" --arg content "$stackContent" '{stackFileContent: $content, prune: true, env: $env}' | api PUT /stacks/$stackId?endpointId=$endpoint | jq
+}
+
+function servicesInStack() {
+  set -eo pipefail
+
+  local stack
+  local filtersJson
+
+  stack="$1"
+  name=$(dig "$stack" -r '.Name')
+  filtersJson=$(jq -n -c --arg n $name '{label: ["com.docker.stack.namespace=" + $n]}')
+  dockerApi GET /services "filters==$filtersJson" | jq -r -c '.[] | .Spec.Name'
+}
+
+function getResourceBy() {
+  set -eo pipefail
+
+  local filterName
+  local filtersJson
+  local result
+
+  filterName="$1"
+  shift
+
+  if [[ -z "$1" ]]; then
+    echo "No $2 $filterName given" 1>&2
+    return 1
+  fi
+  if [[ -z "$2" ]]; then
+    return 1
+  fi
+
+  filtersJson=$(jq -n -c --arg f "$filterName" --arg n "$1" '{($f): [$n]}')
+  result="$(dockerApi GET /$2 "filters==$filtersJson" | jq -r -c '.[0]')"
+  if nonNull "$result"; then
+    echo "$result"
+  else
+    echo "Could not find $2 by $filterName '$1'" 1>&2
+    return 1
+  fi
+}
+
+function getImage() {
+  set -eo pipefail
+  getResourceBy "reference" "$1" "images"
+}
+
+function getService() {
+  set -eo pipefail
+  getResourceBy "name" "$1" "services"
+}
+
+function getConfig() {
+  set -eo pipefail
+  getResourceBy "name" "$1" "configs"
+}
+
+function deleteConfig() {
+  set -eo pipefail
+  local config
+
+  config=$(getResourceBy "name" "$1" "configs" || echo null)
+  if nonNull "$config"; then
+    echo "Removing config $1"
+    dockerApi DELETE /configs/$(dig "$config" -r '.ID') 1>/dev/null
+  fi
+  echo "Config $1 not found, skipping delete."
+}
+
+function awaitServiceDeploy() {
+  set -eo pipefail
+
+  local serviceName success service filtersJson status updateStartedAt completed serviceState
+
+  serviceName="$1"
+  success=
+
+  echo "Awaiting update to converge on $serviceName"
+
+  for i in {0..60}
+  do
+    service=$(getService "$serviceName")
+    filtersJson=$(jq -n -c --arg n $serviceName '{service: [$n], "desired-state": ["shutdown"]}')
+    status=$(dig "$service" -r '.UpdateStatus.State')
+    updateStartedAt=$(dig "$service" -r '.UpdateStatus.StartedAt // "0"')
+    completed=$(dockerApi GET /tasks "filters==$filtersJson" | jq -c -r --arg sa "$updateStartedAt" '.[] | select(.CreatedAt >= $sa)')
+    echo "$serviceName update is $status"
+
+    case $status in
+      completed|null)
+        success=1
+        break
+        ;;
+      paused)
+        serviceState=
+
+        while IFS=$'\n' read -r task; do
+          serviceState=$(dig "$task" -r '.Status.State')
+          if [[ "$serviceState" != "complete" ]]; then
+            success=
+            break
+          fi
+
+          success=1
+        done <<< "$completed"
+
+        break
+        ;;
+      rollback_completed|rollback_failed|rollback_started)
+        break
+        ;;
+    esac
+    sleep 3
+  done
+
+  if [[ "$success" == 1 ]]; then
+    echo "Service finished deployment successfully"
+    return 0
+  fi
+
+  echo "Service update was not successful"
+  return 1
+}
+
+function awaitStackDeploy() {
+  set -eo pipefail
+
+  local stack endpoint stackId name services serviceName
+
+  stack="$1"
+  endpoint="$(dig "$stack" -r '.EndpointId')"
+  stackId="$(dig "$stack" -r '.Id')"
+  name="$(dig "$stack" -r '.Name')"
+  services="$(servicesInStack "$stack")"
+
+  echo "Awaiting stack '$name' services to converge..."
+
+  for serviceName in $services; do
+    awaitServiceDeploy $serviceName || true
+  done
+}
+
+function downloadConfig() {
+  set -eo pipefail
+
+  local tmp stack config
+
+  tmp=$(mktemp)
+  stack="$1"
+  config="$(getConfig "$stack" "$2")"
+
+  echo "$config" | jq -r '.Spec.Data | @base64d' > $tmp
+  echo $tmp
+}
+
+function convergeConfigs() {
+  local i c
+
+  for i in {0..60}; do
+    c=$(findConvergeableConfig)
+    if nonNull "$c"; then
+      convergeConfig "$c"
+    else
+      break
+    fi
+  done
+}
+
+function findConvergeableConfig() {
+  set -eo pipefail
+  local filtersJson
+  filtersJson=$(printJson '{label: ["replaces="]}')
+  dockerApi GET /configs "filters==$filtersJson" | jq 'sort_by(.UpdatedAt) | first'
+}
+
+function findReplaceTargetsFor() {
+  set -eo pipefail
+  local filtersJson config canonName
+  config="$1"
+  canonName=$(dig "$config" -r '.Spec.Labels.canon // .Spec.Labels.replaces // .Spec.Name')
+  filtersJson=$(printJson '{label: ["replaces=" + $v1, "canon=" + $v1], name: [$v1]}' "$canonName")
+  dockerApi GET /configs "filters==$filtersJson"
+}
+
+function updateService() {
+  set -eo pipefail
+
+  local service update spec serviceId version update
+
+  service="$1"
+  update="$2"
+
+  spec=$(dig "$service" '.Spec')
+  serviceId=$(dig "$service" -r '.ID')
+  version=$(dig "$service" -r '.Version.Index')
+  update="$(mergeJson "$spec" "$update")"
+
+  echo "$update" | dockerApi POST /services/$serviceId/update version=="$version" 1>/dev/null
+}
+
+function convergeConfig() {
+  set -eo pipefail
+
+  local config configName replaces deployFailed anyDeployFailed
+  local env replaceTargetNames newEnv
+
+  config="$1"
+  configName="$(dig "$config" -r '.Spec.Name')"
+  replaces="$(dig "$config" -r '.Spec.Labels.replaces')"
+  replaceTargetNames=$(findReplaceTargetsFor "$config" | jq 'map(.Spec.Name)')
+  anyDeployFailed=
+
+  while IFS=$'\n' read -r stack; do
+    deployFailed=
+    env=$(dig "$stack" '.Env')
+    newEnv=$(dig "$env" --argjson targetNames "$replaceTargetNames" --arg configName "$configName" 'map(if (.value as $v | $targetNames | index($v) >= 0) then .value |= $configName  else . end)')
+    if [[ "$newEnv" != "$env" ]]; then
+      updateStackYml  "$stack" "" "$newEnv"
+      awaitStackDeploy "$stack" || deployFailed=1
+      if [[ -n "$deployFailed" ]]; then
+        postToSlack "Deployment of config $configName to $(dig "$stack" '.Name') failed, check portainer."
+        anyDeployFailed=1
+      fi
+    fi
+  done <<< "$(listStacks)"
+
+  local canon
+  canon=$(dig "$config" -r '.Spec.Labels.canon')
+
+  if [[ "$canon" == "$configName" ]]; then
+    # If we are the canonical config, having replaced ourself on all available services, we simply disable
+    # our need to converge.
+    echo "Clearing replaces and canon labels from $configName"
+    updateConfigLabels "$config" 'del(.replaces)'
+
+    echo "$replaces has converged into $configName"
+    return 0
+  else
+    echo "Clearing replaces from $configName"
+    updateConfigLabels "$config" 'del(.replaces)'
+  fi
+
+  if [[ -z "$anyDeployFailed" ]]; then
+    echo "Pruning $replaces, it is now undeployed."
+    deleteConfig "$replaces"
+
+    echo "Creating replacement $replaces from $configName"
+    deriveNextConfig "$configName" "$(dig "$config" -r '.Spec.Data')" "$replaces"
+  fi
+}
+
+function updateConfigLabels() {
+  set -eo pipefail
+
+  local config update labels configId version
+
+  config="$1"
+  update="$2"
+
+  labels=$(dig "$config" '.Spec.Labels')
+  update=$(dig "$labels" "$update")
+  update=$(dig "$update" '{Labels: .}')
+  update=$(mergeJson "$(dig "$config" '.Spec | del(.Labels)')" "$update")
+
+  configId=$(dig "$config" -r '.ID')
+  version=$(dig "$config" -r '.Version.Index')
+
+  echo "$update" | dockerApi POST /configs/$configId/update version=="$version" 1>/dev/null
+}
+
+function resourceIdOf() {
+  dig "$1" '.Portainer.ResourceControl.Id'
+}
+
+function withCopiedResourceControls() {
+  set -eo pipefail
+
+  local original new origResourceControl newResourceId
+
+  original="$1"
+  shift
+  new="$("$@")"
+
+  origResourceControl=$(dig "$original" '.Portainer.ResourceControl')
+  newResourceId=$(resourceIdOf "$new")
+  api PUT /resource_controls/$newResourceId \
+    "AdministratorsOnly:=$(dig "$origResourceControl" '.AdministratorsOnly')" \
+    "Public:=$(dig "$origResourceControl" '.Public')" \
+    "Teams:=$(dig "$origResourceControl" '.TeamAccesses | map(.TeamId)')" \
+    "Users:=$(dig "$origResourceControl" '.UserAccesses | map(.UserId)')" 1>/dev/null
+
+  echo "$new"
+}
+
+function encodeData() {
+  jq --arg data "$1" -r -n '$data | @base64'
+}
+
+function printJson() {
+  local formula="$1"
+  local args i
+  i=1
+  args=()
+  shift
+  while [[ "$#" != "0" ]]; do
+    args+=("--arg" "v$i" "$1")
+    shift
+    ((i+=1))
+  done
+  jq -n -c "${args[@]}" "$formula"
+}
+
+function createConfig() {
+  set -eo pipefail
+
+  local original labels data newConfigId now name
+  local name
+  name="$1"
+  data="$2"
+  labels="$3"
+
+  dockerApi POST /configs/create "Name=$name" "Data=$data" "Labels:=$labels"
+}
+
+function deriveNextConfig() {
+  set -eo pipefail
+
+  local original labels data newConfigId now name canonName
+  original=$(getConfig "$1")
+  data="$2"
+  labels=$(dig "$original" '.Spec.Labels // {}')
+  canonName=$(dig "$labels" '.canon // .replaces')
+  if ! nonNull "$canonName"; then
+    canonName="$1"
+  fi
+
+  labels=$(mergeJson "$labels" "$(printJson '{replaces: $v1, canon: $v2}' "$1" "$canonName")")
+  now=$(date +"%s")
+  name=${3:-"${canonName}_${now}"}
+
+  newConfigId=$(createConfig "$name" "$data" "$labels" | jq -r '.ID')
+  withCopiedResourceControls "$original" dockerApi GET /configs/$newConfigId
+}
+
+function listUpdateableServiceNames() {
+  set -eo pipefail
+  local filtersJson
+  filtersJson=$(jq -n -c '{label: ["autoupdate=true"]}')
+  dockerApi GET /services "filters==$filtersJson" | jq -r '.[] | .Spec.Name'
+}
+
+function shaOfImageDigest() {
+  if [[ "$1" =~ ([^@]*)@(.*) ]]; then
+    echo ${BASH_REMATCH[2]}
+  fi
+}
+
+function tagOfImageDigest() {
+  if [[ "$1" =~ ([^@]*)@(.*) ]]; then
+    echo ${BASH_REMATCH[1]}
+  fi
+}
+
+function checkAndDeployUpdatedImages() {
+  set -eo pipefail
+  local serviceName service serviceId image tag sha newImage newsha version deployFailed services
+  docker image prune -f
+  services="$(listUpdateableServiceNames)"
+
+  for serviceName in $services; do
+    echo "Checking $serviceName for updated image..."
+    service=$(getService "$serviceName")
+    serviceId=$(dig "$service" -r '.ID')
+    image=$(dig "$service" -r '.Spec.TaskTemplate.ContainerSpec.Image')
+    tag=$(tagOfImageDigest "$image")
+    sha=$(shaOfImageDigest "$image")
+    deployFailed=
+    echo "Current tag is $tag, sha is $sha"
+
+    if [[ -n "$sha" ]]; then
+      docker pull "$tag" 1>/dev/null
+      image=$(docker image inspect "$tag")
+      newImage=$(dig "$image" -r '.[].RepoDigests[]' | head -n 1 || true)
+      newsha=$(shaOfImageDigest "$newImage")
+
+      echo "Found $newsha on $tag, existing is $sha"
+
+      if ! [ -f "/deployed/${serviceName}-${newsha}" ] && [[ "${sha}" != "$(shaTestHook "$serviceName" "$newsha")" ]]; then
+        postToSlack "Attempting deploy on ${serviceName} (${tag}@${newsha:8:6})"
+        updateService "$service" "$(printJson '{TaskTemplate: {ContainerSpec: {Image: $v1}}}' "$tag@$newsha")" 1>/dev/null
+        touch "/deployed/${serviceName}-${newsha}" || true
+        awaitServiceDeploy "$serviceName" || deployFailed=1
+
+        if [[ -n "$deployFailed" ]]; then
+          postToSlack "Deployment of ${serviceName} may have failed, check portainer."
+        else
+          postToSlack "Deployment of ${serviceName} succeeded."
+        fi
+      fi
+    fi
+
+    docker image prune -f
+  done
+}
+
+function shaTestHook() {
+  echo "$2"
 }
 
 function pushStackToRep() {
-  local stack="$1"
-  local name=$(dig "$stack" -r '.Name')
-  local id=$(dig "$stack" -r '.Id')
-  local gitConfig=$(dig "$stack" '.GitConfig')
+  set -eo pipefail
+  stack="$1"
+  name=$(dig "$stack" -r '.Name')
+  id=$(dig "$stack" -r '.Id')
+  gitConfig=$(dig "$stack" '.GitConfig')
 
-  local gitSourceMarker="/tmp/${name}.updated"
+  gitSourceMarker="/tmp/${name}.updated"
   mkdir -p /tmp/
   if ! [ -e "$gitSourceMarker" ] || [[ "$(date -r "$gitSourceMarker" +%s)" -lt "$(dig "$stack" '.UpdateDate')" ]]; then
     touch "$gitSourceMarker"
     if [[ "$(dig "$gitConfig" -r '.URL')" =~ https:\/\/github.com/([^.]*)\.git ]]; then
-      local repo="${BASH_REMATCH[1]}"
+      repo="${BASH_REMATCH[1]}"
       if [[ "$(dig "$gitConfig" -r '.ReferenceName')" =~ refs\/heads\/(.*) ]]; then
-        local branch="${BASH_REMATCH[1]}"
+        branch="${BASH_REMATCH[1]}"
         echo "Cloning..."
         git clone "git@github.com:${repo}.git" --branch "$branch" --single-branch . >/dev/null
         git config --global user.name "swarm-keeper"
         git config --global user.email "etnaagent@ucsf.edu"
-        local content="$(dig "$(makeRequest GET "/stacks/${id}/file")" -r '.StackFileContent')"
-        local path="$(dig "$gitConfig" -r '.ConfigFilePath')"
+        content="$(dig "$(api GET "/stacks/${id}/file")" -r '.StackFileContent')"
+        path="$(dig "$gitConfig" -r '.ConfigFilePath')"
         echo "$content" > $path
         git add $path
         git commit -m "Updating $path from swarm-keeper"
@@ -88,24 +627,69 @@ function pushStackToRep() {
 }
 
 function postToSlack() {
+  set -eo pipefail
   post-to-slack "Swarm Keeper" "watchtower-ping" "$1"
 }
 
 function updateGitSources() {
-  while read -r stack; do
-    (
-      echo "Processing $stack"
-      name=$(dig "$stack" '.Name')
-      gitConfig=$(dig "$stack" '.GitConfig')
-      if nonNull "$gitConfig"; then
-        local dir=$(mktemp -d)
-        cd $dir
-        if ! pushStackToRep "$stack"; then
-          postToSlack "Failed to push $name to $gitConfig"
-        fi
-        cd ..
-        rm -rf $dir
+  set -eo pipefail
+  local name stack
+
+  while IFS=$'\n' read -r stack; do
+    name=$(dig "$stack" '.Name')
+    echo "Processing $name"
+    gitConfig=$(dig "$stack" '.GitConfig')
+    if nonNull "$gitConfig"; then
+      dir=$(mktemp -d)
+      cd $dir
+      if ! pushStackToRep "$stack"; then
+        postToSlack "Failed to push $name to $gitConfig"
       fi
-    )
-  done < <(listStacks)
+      cd ..
+      rm -rf $dir
+    fi
+  done <<< "$(listStacks)"
+}
+
+function runCommand() {
+  set -eo pipefail
+  cmd="$1"
+  shift
+
+  local stack tmp
+
+  case "$cmd" in
+    portainer-login)
+      doPortainerAuth 1
+      ;;
+    portainer-client)
+      doPortainerAuth
+      api "$@"
+      ;;
+    portainer-edit-stack)
+      doPortainerAuth
+      stack=$(findStack "$1")
+      tmp=$(downloadStack "$stack")
+      if editsFile "$tmp"; then
+        echo "Deploying changes to stack file"
+        updateStackYml "$stack" "$(cat $tmp)"
+
+        awaitStackDeploy "$stack"
+      else
+        echo "File was not modified, not deploying"
+      fi
+      ;;
+
+    portainer-edit-config)
+      doPortainerAuth
+      tmp=$(downloadConfig "$1")
+      if editsFile $tmp; then
+        echo "Creating config..."
+        deriveNextConfig "$1" "$(encodeData "$(cat $tmp)")"
+        echo "Deploying config file change..."
+        convergeConfigs
+      else
+        echo "File was not modified, not deploying"
+      fi
+  esac
 }
