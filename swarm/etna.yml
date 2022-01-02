@@ -129,13 +129,14 @@ volumes:
 
 configs:
   browser.system.include:
+    name: ${BROWSER_SYSTEM_INCLUDE:-browser.system.include}
     external: true
   config:
     external: true
-    name: "${APP_NAME}.${ENV}.yml"
+    name: ${APP_CONFIG:-${APP_NAME}.${ENV}.yml}
   env:
     external: true
-    name: "etna.${ENV}.yml"
+    name: ${ENV_CONFIG:-etna.${ENV}.yml}
 
 secrets:
   user-hash-secret:

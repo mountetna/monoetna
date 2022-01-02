@@ -79,12 +79,16 @@ volumes:
 configs:
   prometheus.yml:
     external: true
+    name: ${PROMETHEUS_CONFIG:-prometheus.yml}
   alertmanager.yml:
     external: true
+    name: ${ALERTS_CONFIG:-alertmanager.yml}
   rules.yml:
     external: true
+    name: ${RULES_CONFIG:-rules.yml}
   web-config.yml:
     external: true
+    name: ${WEB_CONFIG:-web-config.yml}
 
 networks:
   edge_bridge:
