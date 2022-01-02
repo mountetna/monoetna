@@ -146,41 +146,16 @@ function updateStackYml() {
 
   stack="$1"
   stackContent=${2:-}
-  env=${3:-$(dig "$stack" '.Env')}
+  env=${3:-$(dig "$stack" '.Env')} || return 1
 
   endpoint="$(dig "$stack" -r '.EndpointId')"
   stackId="$(dig "$stack" -r '.Id')"
 
   if [[ -z "$stackContent" ]]; then
-    stackContent="$(cat "$(downloadStack "$stack")")"
+    stackContent="$(cat "$(downloadStack "$stack")")" || return 1
   fi
 
   jq -c -n --argjson env "$env" --arg content "$stackContent" '{stackFileContent: $content, prune: true, env: $env}' | api PUT /stacks/$stackId?endpointId=$endpoint
-}
-
-function updateStackYml() {
-  set -eo pipefail
-
-  local stack
-  local stackContent
-  local env
-  local endpoint
-  local stackId
-
-  stack="$1"
-  stackContent=${2:-}
-  env=${3:-'[]'}
-
-  endpoint="$(dig "$stack" -r '.EndpointId')"
-  stackId="$(dig "$stack" -r '.Id')"
-
-  if [[ -z "$stackContent" ]]; then
-    stackContent="$(cat "$(downloadStack "$stack")")"
-  fi
-
-  env=$(concatJson "$(dig "$stack" -r '.Env')" "$env")
-
-  jq -c -n --argjson env "$env" --arg content "$stackContent" '{stackFileContent: $content, prune: true, env: $env}' | api PUT /stacks/$stackId?endpointId=$endpoint | jq
 }
 
 function servicesInStack() {
@@ -262,11 +237,11 @@ function awaitServiceDeploy() {
 
   for i in {0..60}
   do
-    service=$(getService "$serviceName")
+    service=$(getService "$serviceName") || continue
     filtersJson=$(jq -n -c --arg n $serviceName '{service: [$n], "desired-state": ["shutdown"]}')
     status=$(dig "$service" -r '.UpdateStatus.State')
     updateStartedAt=$(dig "$service" -r '.UpdateStatus.StartedAt // "0"')
-    completed=$(dockerApi GET /tasks "filters==$filtersJson" | jq -c -r --arg sa "$updateStartedAt" '.[] | select(.CreatedAt >= $sa)')
+    completed=$(dockerApi GET /tasks "filters==$filtersJson" | jq -c -r --arg sa "$updateStartedAt" '.[] | select(.CreatedAt >= $sa)') || continue
     echo "$serviceName update is $status"
 
     case $status in
@@ -308,19 +283,24 @@ function awaitServiceDeploy() {
 function awaitStackDeploy() {
   set -eo pipefail
 
-  local stack endpoint stackId name services serviceName
+  local stack endpoint stackId name services serviceName deployFailed
 
   stack="$1"
   endpoint="$(dig "$stack" -r '.EndpointId')"
   stackId="$(dig "$stack" -r '.Id')"
   name="$(dig "$stack" -r '.Name')"
   services="$(servicesInStack "$stack")"
+  deployFailed=
 
   echo "Awaiting stack '$name' services to converge..."
 
   for serviceName in $services; do
-    awaitServiceDeploy $serviceName || true
+    awaitServiceDeploy $serviceName || deployFailed=1
   done
+
+  if [[ -n "$deployFailed" ]]; then
+    return 1
+  fi
 }
 
 function downloadConfig() {
@@ -628,7 +608,11 @@ function pushStackToRep() {
 
 function postToSlack() {
   set -eo pipefail
-  post-to-slack "Swarm Keeper" "watchtower-ping" "$1"
+  if type -p post-to-slack; then
+    post-to-slack "Swarm Keeper" "watchtower-ping" "$1"
+  else
+    echo "$1" 1>&2
+  fi
 }
 
 function updateGitSources() {
@@ -662,22 +646,28 @@ function runCommand() {
     portainer-login)
       doPortainerAuth 1
       ;;
+
     portainer-client)
       doPortainerAuth
       api "$@"
       ;;
-    portainer-edit-stack)
-      doPortainerAuth
-      stack=$(findStack "$1")
-      tmp=$(downloadStack "$stack")
-      if editsFile "$tmp"; then
-        echo "Deploying changes to stack file"
-        updateStackYml "$stack" "$(cat $tmp)"
 
-        awaitStackDeploy "$stack"
-      else
-        echo "File was not modified, not deploying"
-      fi
+    portainer-deploy-stack)
+      doPortainerAuth
+      path="$(git ls-tree --full-name --name-only HEAD $1)"
+      stacks="$(listStacks)"
+      while IFS=$'\n' read -r stack; do
+        gitConfig=$(dig "$stack" '.GitConfig')
+        stackPath="$(dig "$gitConfig" -r '.ConfigFilePath')"
+        if [[ "$stackPath" == "$path" ]]; then
+          updateStackYml  "$stack" "$(cat "$1")" || return 1
+          awaitStackDeploy "$stack" || deployFailed=1
+          if [[ -n "$deployFailed" ]]; then
+            echo "Deployment of $path to $(dig "$stack" '.Name') failed, check portainer."
+            anyDeployFailed=1
+          fi
+        fi
+      done <<< "$stacks"
       ;;
 
     portainer-edit-config)

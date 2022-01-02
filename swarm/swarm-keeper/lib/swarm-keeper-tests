@@ -34,7 +34,7 @@ export ENDPOINT=${ENDPOINT:-1}
 # your home directory.  This script will censure the private token so that it is not
 # exposed in the recordings.
 
-mock http date docker
+mock http date docker git
 
 [[ -f ~/.portainer-auth ]] || echo 'magic-test-auth-token' > ~/.portainer-auth
 export RECORD_CENSURE="$(cat ~/.portainer-auth)"
@@ -62,8 +62,15 @@ function postToSlack() {
   echo "Would have posted to slack: $1"
 }
 
-loadRecording $DIR/edit-stack-deploy.recording
-runCommand portainer-edit-stack airflow
+loadRecording $DIR/deploy-stack.recording
+f=$(downloadStack "$(findStack agents)")
+
+if ! [[ -f "swarm/agents.yml" ]]; then
+  mkdir -p swarm
+  cat "$f" > swarm/agents.yml
+fi
+
+runCommand portainer-deploy-stack swarm/agents.yml
 
 # loadRecording $DIR/edit-config-deploy.recording
 # Setup two configurations that both exist wanting to replace a single config.
