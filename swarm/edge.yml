@@ -71,3 +71,4 @@ networks:
 configs:
   main.conf.erb:
     external: true
+    name: ${MAIN_CONF_ERB:-main.conf.erb}

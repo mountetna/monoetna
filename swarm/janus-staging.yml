@@ -135,12 +135,13 @@ volumes:
 configs:
   browser.system.include:
     external: true
+    name: ${BROWSER_SYSTEM_INCLUDE:-browser.system.include}
   config:
     external: true
-    name: "${APP_NAME}.${ENV}.yml"
+    name: ${APP_CONFIG:-janus.staging.yml}
   env:
     external: true
-    name: "etna.${ENV}.yml"
+    name: ${ENV_CONFIG:-etna.staging.yml}
 
 secrets:
   user-hash-secret:

@@ -132,17 +132,18 @@ volumes:
     name: "${APP_NAME}_${ENV}_db"
 
 configs:
-  browser.system.include:
-    external: true
-  config:
-    external: true
-    name: "${APP_NAME}.${ENV}.yml"
-  env:
-    external: true
-    name: "etna.${ENV}.yml"
   known_hosts:
     external: true
     name: polyphemus_known_hosts
+  browser.system.include:
+    name: ${BROWSER_SYSTEM_INCLUDE:-browser.system.include}
+    external: true
+  config:
+    external: true
+    name: ${APP_CONFIG:-polyphemus.staging.yml}
+  env:
+    external: true
+    name: ${ENV_CONFIG:-etna.staging.yml}
 
 secrets:
   user-hash-secret:

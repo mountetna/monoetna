@@ -1,0 +1,1812 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/version
+  response:
+    body:
+      string: '{"Platform":{"Name":""},"Components":[{"Name":"Engine","Version":"19.03.12","Details":{"ApiVersion":"1.40","Arch":"amd64","BuildTime":"1980-01-01T00:00:00.000000000+00:00","Experimental":"true","GitCommit":"v19.03.12","GoVersion":"go1.15.13","KernelVersion":"5.4.122","MinAPIVersion":"1.12","Os":"linux"}},{"Name":"containerd","Version":"v1.4.6","Details":{"GitCommit":"d71fcd7d8303cbf684402823e425e9dd2e99285d"}},{"Name":"runc","Version":"1.0.0-rc10","Details":{"GitCommit":""}},{"Name":"docker-init","Version":"0.18.0","Details":{"GitCommit":""}}],"Version":"19.03.12","ApiVersion":"1.40","MinAPIVersion":"1.12","GitCommit":"v19.03.12","GoVersion":"go1.15.13","Os":"linux","Arch":"amd64","KernelVersion":"5.4.122","Experimental":true,"BuildTime":"1980-01-01T00:00:00.000000000+00:00"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '787'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:34 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/containers/test-container-operator?v=False&link=False&force=False
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:34 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: '{"Tty": false, "OpenStdin": false, "StdinOnce": false, "AttachStdin": false,
+      "AttachStdout": true, "AttachStderr": true, "Cmd": [], "Image": "bash", "NetworkDisabled":
+      false}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '174'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/containers/create?name=test-container-operator
+  response:
+    body:
+      string: '{"Id":"693e9957c8b4fbd8f84953fb584efbffb3e289b854bb767668472d4ebc07d869","Warnings":[]}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '88'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:35 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/version
+  response:
+    body:
+      string: '{"Platform":{"Name":""},"Components":[{"Name":"Engine","Version":"19.03.12","Details":{"ApiVersion":"1.40","Arch":"amd64","BuildTime":"1980-01-01T00:00:00.000000000+00:00","Experimental":"true","GitCommit":"v19.03.12","GoVersion":"go1.15.13","KernelVersion":"5.4.122","MinAPIVersion":"1.12","Os":"linux"}},{"Name":"containerd","Version":"v1.4.6","Details":{"GitCommit":"d71fcd7d8303cbf684402823e425e9dd2e99285d"}},{"Name":"runc","Version":"1.0.0-rc10","Details":{"GitCommit":""}},{"Name":"docker-init","Version":"0.18.0","Details":{"GitCommit":""}}],"Version":"19.03.12","ApiVersion":"1.40","MinAPIVersion":"1.12","GitCommit":"v19.03.12","GoVersion":"go1.15.13","Os":"linux","Arch":"amd64","KernelVersion":"5.4.122","Experimental":true,"BuildTime":"1980-01-01T00:00:00.000000000+00:00"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '787'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:35 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/test-container-operator/json
+  response:
+    body:
+      string: '{"Id":"693e9957c8b4fbd8f84953fb584efbffb3e289b854bb767668472d4ebc07d869","Created":"2021-12-22T03:26:34.992614861Z","Path":"docker-entrypoint.sh","Args":["bash"],"State":{"Status":"created","Running":false,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":0,"ExitCode":0,"Error":"","StartedAt":"0001-01-01T00:00:00Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"","HostnamePath":"","HostsPath":"","LogPath":"","Name":"/test-container-operator","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":null,"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/9cbe9f6c514dbdbae0b4a9d0afc4e0e63be9e5c0dc6bed8cc9f820184da81f3d-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/9cbe9f6c514dbdbae0b4a9d0afc4e0e63be9e5c0dc6bed8cc9f820184da81f3d/merged","UpperDir":"/var/lib/docker/overlay2/9cbe9f6c514dbdbae0b4a9d0afc4e0e63be9e5c0dc6bed8cc9f820184da81f3d/diff","WorkDir":"/var/lib/docker/overlay2/9cbe9f6c514dbdbae0b4a9d0afc4e0e63be9e5c0dc6bed8cc9f820184da81f3d/work"},"Name":"overlay2"},"Mounts":[],"Config":{"Hostname":"693e9957c8b4","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash"],"Image":"bash","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{}},"NetworkSettings":{"Bridge":"","SandboxID":"","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"","Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"","IPPrefixLen":0,"IPv6Gateway":"","MacAddress":"","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"","EndpointID":"","Gateway":"","IPAddress":"","IPPrefixLen":0,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:35 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"message":"No such container: DockerOperator_a71d33f9732598817e8efb5693d985dd"}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '81'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:35 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 404
+      message: Not Found
+- request:
+    body: '{"Tty": false, "OpenStdin": false, "StdinOnce": false, "AttachStdin": false,
+      "AttachStdout": true, "AttachStderr": true, "Env": ["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      "_BASH_VERSION=5.1.12", "_BASH_BASELINE=5.1.8", "_BASH_BASELINE_PATCH=8", "_BASH_LATEST_PATCH=12"],
+      "Cmd": ["bash", "-c", "[[ `cat /some/shared/data` == ''hello'' ]] && for i in
+      {0..10}; do echo $i; sleep 1; done"], "Image": "sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b",
+      "NetworkDisabled": false, "Entrypoint": ["docker-entrypoint.sh"], "HostConfig":
+      {"Binds": ["/tmp/tmp_8ebhm_h:/some/shared/data:ro"], "ContainerIDFile": "",
+      "NetworkMode": "default", "VolumeDriver": "", "VolumesFrom": null, "CapAdd":
+      null, "CapDrop": null, "Capabilities": null, "Dns": null, "DnsOptions": null,
+      "DnsSearch": null, "ExtraHosts": null, "GroupAdd": null, "IpcMode": "private",
+      "Cgroup": "", "Links": null, "OomScoreAdj": 0, "PidMode": "", "Privileged":
+      false, "PublishAllPorts": false, "ReadonlyRootfs": false, "SecurityOpt": null,
+      "UTSMode": "", "UsernsMode": "", "ShmSize": 67108864, "ConsoleSize": [0, 0],
+      "Isolation": "", "CpuShares": 0, "Memory": 0, "NanoCpus": 0, "CgroupParent":
+      "", "BlkioWeight": 0, "BlkioWeightDevice": null, "BlkioDeviceReadBps": null,
+      "BlkioDeviceWriteBps": null, "BlkioDeviceReadIOps": null, "BlkioDeviceWriteIOps":
+      null, "CpuPeriod": 0, "CpuQuota": 0, "CpuRealtimePeriod": 0, "CpuRealtimeRuntime":
+      0, "CpusetCpus": "", "CpusetMems": "", "Devices": null, "DeviceCgroupRules":
+      null, "DeviceRequests": null, "KernelMemory": 0, "KernelMemoryTCP": 0, "MemoryReservation":
+      0, "MemorySwap": 0, "MemorySwappiness": null, "OomKillDisable": false, "PidsLimit":
+      null, "Ulimits": null, "CpuCount": 0, "CpuPercent": 0, "IOMaximumIOps": 0, "IOMaximumBandwidth":
+      0, "MaskedPaths": ["/proc/asound", "/proc/acpi", "/proc/kcore", "/proc/keys",
+      "/proc/latency_stats", "/proc/timer_list", "/proc/timer_stats", "/proc/sched_debug",
+      "/proc/scsi", "/sys/firmware"], "ReadonlyPaths": ["/proc/bus", "/proc/fs", "/proc/irq",
+      "/proc/sys", "/proc/sysrq-trigger"]}, "Labels": {"etna.operators.docker_operator.container":
+      "true"}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2139'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/containers/create?name=DockerOperator_a71d33f9732598817e8efb5693d985dd
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Warnings":[]}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '88'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:35 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 201
+      message: Created
+- request:
+    body: '{"Container": "95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa",
+      "EndpointConfig": {}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '103'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/networks/bridge/connect
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Length:
+      - '0'
+      Date:
+      - Wed, 22 Dec 2021 03:26:35 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: POST
+    uri: http://localhost:8085/v1.40/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/start
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:35 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/logs?stderr=1&stdout=1&timestamps=1&follow=0&tail=all&since=1
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T03:26:35.515948000Z 0\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:35 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:35 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:35 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/logs?stderr=1&stdout=1&timestamps=1&follow=0&tail=all&since=1640143595.0
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T03:26:35.515948000Z 0\n\x01\0\0\0\0\0\0!2021-12-22T03:26:36.516746000Z
+        1\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:36 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:36 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:36 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/logs?stderr=1&stdout=1&timestamps=1&follow=0&tail=all&since=1640143596.0
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T03:26:36.516746000Z 1\n\x01\0\0\0\0\0\0!2021-12-22T03:26:37.517720000Z
+        2\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:37 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/logs?stderr=1&stdout=1&timestamps=1&follow=0&tail=all&since=1640143597.0
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T03:26:37.517720000Z 2\n\x01\0\0\0\0\0\0!2021-12-22T03:26:38.518279000Z
+        3\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:38 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:38 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:38 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/logs?stderr=1&stdout=1&timestamps=1&follow=0&tail=all&since=1640143598.0
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T03:26:38.518279000Z 3\n\x01\0\0\0\0\0\0!2021-12-22T03:26:39.519003000Z
+        4\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:39 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:39 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:39 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/logs?stderr=1&stdout=1&timestamps=1&follow=0&tail=all&since=1640143599.0
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T03:26:39.519003000Z 4\n\x01\0\0\0\0\0\0!2021-12-22T03:26:40.519713000Z
+        5\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:40 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:40 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:40 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/logs?stderr=1&stdout=1&timestamps=1&follow=0&tail=all&since=1640143600.0
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T03:26:40.519713000Z 5\n\x01\0\0\0\0\0\0!2021-12-22T03:26:41.520491000Z
+        6\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:42 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:42 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:42 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/logs?stderr=1&stdout=1&timestamps=1&follow=0&tail=all&since=1640143601.0
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T03:26:41.520491000Z 6\n\x01\0\0\0\0\0\0!2021-12-22T03:26:42.521029000Z
+        7\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:43 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:43 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:43 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/logs?stderr=1&stdout=1&timestamps=1&follow=0&tail=all&since=1640143602.0
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T03:26:42.521029000Z 7\n\x01\0\0\0\0\0\0!2021-12-22T03:26:43.521566000Z
+        8\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:44 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:44 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:44 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/logs?stderr=1&stdout=1&timestamps=1&follow=0&tail=all&since=1640143603.0
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T03:26:43.521566000Z 8\n\x01\0\0\0\0\0\0!2021-12-22T03:26:44.522252000Z
+        9\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:45 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:45 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:45 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/logs?stderr=1&stdout=1&timestamps=1&follow=0&tail=all&since=1640143604.0
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0!2021-12-22T03:26:44.522252000Z 9\n\x01\0\0\0\0\0\0\"2021-12-22T03:26:45.522867000Z
+        10\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:46 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:46 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"running","Running":true,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":7061,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"0001-01-01T00:00:00Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","MacAddress":"02:42:ac:11:00:02","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"6c1109e8a2c16ad1f35d476b5c59b42d048bf282dc5de4feaa4052c466fecc8a","Gateway":"172.17.0.1","IPAddress":"172.17.0.2","IPPrefixLen":16,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"02:42:ac:11:00:02","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:46 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/logs?stderr=1&stdout=1&timestamps=1&follow=0&tail=all&since=1640143605.0
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0\"2021-12-22T03:26:45.522867000Z 10\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:47 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"exited","Running":false,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":0,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"2021-12-22T03:26:46.535471432Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"","Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"","IPPrefixLen":0,"IPv6Gateway":"","MacAddress":"","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"","Gateway":"","IPAddress":"","IPPrefixLen":0,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:47 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"exited","Running":false,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":0,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"2021-12-22T03:26:46.535471432Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"","Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"","IPPrefixLen":0,"IPv6Gateway":"","MacAddress":"","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"","Gateway":"","IPAddress":"","IPPrefixLen":0,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:47 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/logs?stderr=1&stdout=1&timestamps=1&follow=0&tail=all&since=1640143605.0
+  response:
+    body:
+      string: "\x01\0\0\0\0\0\0\"2021-12-22T03:26:45.522867000Z 10\n"
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:48 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: GET
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd/json
+  response:
+    body:
+      string: '{"Id":"95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa","Created":"2021-12-22T03:26:35.129934977Z","Path":"docker-entrypoint.sh","Args":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"State":{"Status":"exited","Running":false,"Paused":false,"Restarting":false,"OOMKilled":false,"Dead":false,"Pid":0,"ExitCode":0,"Error":"","StartedAt":"2021-12-22T03:26:35.513894695Z","FinishedAt":"2021-12-22T03:26:46.535471432Z"},"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","ResolvConfPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/resolv.conf","HostnamePath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hostname","HostsPath":"/var/lib/docker/containers/95de7bab07bbea09228eadb1180e950c8ffa2365d8d7581839f1217c3ae879aa/hosts","LogPath":"","Name":"/DockerOperator_a71d33f9732598817e8efb5693d985dd","RestartCount":0,"Driver":"overlay2","Platform":"linux","MountLabel":"","ProcessLabel":"","AppArmorProfile":"","ExecIDs":null,"HostConfig":{"Binds":["/tmp/tmp_8ebhm_h:/some/shared/data:ro"],"ContainerIDFile":"","LogConfig":{"Type":"journald","Config":{}},"NetworkMode":"default","PortBindings":null,"RestartPolicy":{"Name":"","MaximumRetryCount":0},"AutoRemove":false,"VolumeDriver":"","VolumesFrom":null,"CapAdd":null,"CapDrop":null,"Capabilities":null,"Dns":null,"DnsOptions":null,"DnsSearch":null,"ExtraHosts":null,"GroupAdd":null,"IpcMode":"private","Cgroup":"","Links":null,"OomScoreAdj":0,"PidMode":"","Privileged":false,"PublishAllPorts":false,"ReadonlyRootfs":false,"SecurityOpt":null,"UTSMode":"","UsernsMode":"","ShmSize":67108864,"Runtime":"runc","ConsoleSize":[0,0],"Isolation":"","CpuShares":0,"Memory":0,"NanoCpus":0,"CgroupParent":"","BlkioWeight":0,"BlkioWeightDevice":null,"BlkioDeviceReadBps":null,"BlkioDeviceWriteBps":null,"BlkioDeviceReadIOps":null,"BlkioDeviceWriteIOps":null,"CpuPeriod":0,"CpuQuota":0,"CpuRealtimePeriod":0,"CpuRealtimeRuntime":0,"CpusetCpus":"","CpusetMems":"","Devices":null,"DeviceCgroupRules":null,"DeviceRequests":null,"KernelMemory":0,"KernelMemoryTCP":0,"MemoryReservation":0,"MemorySwap":0,"MemorySwappiness":null,"OomKillDisable":false,"PidsLimit":null,"Ulimits":null,"CpuCount":0,"CpuPercent":0,"IOMaximumIOps":0,"IOMaximumBandwidth":0,"MaskedPaths":["/proc/asound","/proc/acpi","/proc/kcore","/proc/keys","/proc/latency_stats","/proc/timer_list","/proc/timer_stats","/proc/sched_debug","/proc/scsi","/sys/firmware"],"ReadonlyPaths":["/proc/bus","/proc/fs","/proc/irq","/proc/sys","/proc/sysrq-trigger"]},"GraphDriver":{"Data":{"LowerDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393-init/diff:/var/lib/docker/overlay2/6fb72c6c5ab6f219dca8e683bb1ddde64cdac480158c7a6520e5424788e3b18d/diff:/var/lib/docker/overlay2/42967d24f20634c273ef5f31c2255dfc8df7a72c8d730a79998ae61db79c762a/diff:/var/lib/docker/overlay2/c546f7691206fbb1bff5ff3170c9e5fead921c8c809575f96c9e9023df2d14af/diff","MergedDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/merged","UpperDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/diff","WorkDir":"/var/lib/docker/overlay2/6b0d2b51664c475a572623d2523bc46202fedcd6ba165f35e802ae3af42e8393/work"},"Name":"overlay2"},"Mounts":[{"Type":"bind","Source":"/tmp/tmp_8ebhm_h","Destination":"/some/shared/data","Mode":"ro","RW":false,"Propagation":"rprivate"}],"Config":{"Hostname":"95de7bab07bb","Domainname":"","User":"","AttachStdin":false,"AttachStdout":true,"AttachStderr":true,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin","_BASH_VERSION=5.1.12","_BASH_BASELINE=5.1.8","_BASH_BASELINE_PATCH=8","_BASH_LATEST_PATCH=12"],"Cmd":["bash","-c","[[
+        `cat /some/shared/data` == ''hello'' ]] && for i in {0..10}; do echo $i; sleep
+        1; done"],"Image":"sha256:6a03c8e7e2be03e010d21a78c56090566e418e6957a97e5b8906b0c8df7d4e5b","Volumes":null,"WorkingDir":"","Entrypoint":["docker-entrypoint.sh"],"OnBuild":null,"Labels":{"etna.operators.docker_operator.container":"true"}},"NetworkSettings":{"Bridge":"","SandboxID":"c0f09687c29ec2fcf30da407bae1942673f67469c078860c02acf4f59fbae04e","HairpinMode":false,"LinkLocalIPv6Address":"","LinkLocalIPv6PrefixLen":0,"Ports":{},"SandboxKey":"/var/run/docker/netns/c0f09687c29e","SecondaryIPAddresses":null,"SecondaryIPv6Addresses":null,"EndpointID":"","Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"IPAddress":"","IPPrefixLen":0,"IPv6Gateway":"","MacAddress":"","Networks":{"bridge":{"IPAMConfig":null,"Links":null,"Aliases":null,"NetworkID":"da683ffd5ad4ea4af18dff4440b59ac99b7c5669ee8b71cf77a611330a6bc9b6","EndpointID":"","Gateway":"","IPAddress":"","IPPrefixLen":0,"IPv6Gateway":"","GlobalIPv6Address":"","GlobalIPv6PrefixLen":0,"MacAddress":"","DriverOpts":null}}}}
+
+        '
+    headers:
+      Api-Version:
+      - '1.40'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Dec 2021 03:26:48 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+      Transfer-Encoding:
+      - chunked
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - docker-sdk-python/5.0.3
+    method: DELETE
+    uri: http://localhost:8085/v1.40/containers/DockerOperator_a71d33f9732598817e8efb5693d985dd?v=False&link=False&force=False
+  response:
+    body:
+      string: ''
+    headers:
+      Api-Version:
+      - '1.40'
+      Date:
+      - Wed, 22 Dec 2021 03:26:48 GMT
+      Docker-Experimental:
+      - 'true'
+      Ostype:
+      - linux
+      Server:
+      - Docker/19.03.12 (linux)
+    status:
+      code: 204
+      message: No Content
+version: 1
