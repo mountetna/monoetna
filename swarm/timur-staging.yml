@@ -135,10 +135,10 @@ configs:
     external: true
   config:
     external: true
-    name: ${APP_CONFIG:-${APP_NAME}.${ENV}.yml}
+    name: ${APP_CONFIG:-timur.staging.yml}
   env:
     external: true
-    name: ${ENV_CONFIG:-etna.${ENV}.yml}
+    name: ${ENV_CONFIG:-etna.staging.yml}
 
 secrets:
   user-hash-secret:
