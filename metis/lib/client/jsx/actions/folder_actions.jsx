@@ -4,7 +4,7 @@ import {
 } from '../api/folders_api';
 import { errorMessage } from './message_actions';
 
-const addFolders = (folders) => ({ type: 'ADD_FOLDERS', folders });
+const addFolders = (folders, bucket_name) => ({ type: 'ADD_FOLDERS', folders, bucket_name });
 const removeFolders = (folders) => ({ type: 'REMOVE_FOLDERS', folders });
 
 export const createFolder = ({bucket_name, folder_name, parent_folder}) => (dispatch) =>
@@ -56,13 +56,13 @@ export const unprotectFolder = ({bucket_name, folder}) => (dispatch) => {
     );
 }
 
-export const renameFolder = ({bucket_name, folder, new_folder_path}) => (dispatch) => {
+export const renameFolder = ({bucket_name, folder, new_folder_path, new_bucket_name}) => (dispatch) => {
   postRenameFolder(
-    CONFIG.project_name, bucket_name, folder.folder_path, new_folder_path
+    CONFIG.project_name, bucket_name, folder.folder_path, new_folder_path, new_bucket_name
   )
     .then(({folders}) => {
       dispatch(removeFolders([folder]));
-      dispatch(addFolders(folders));
+      dispatch(addFolders(folders, bucket_name));
     })
     .catch(
       errorMessage(dispatch, 'warning', 'Folder renaming failed', error => error)

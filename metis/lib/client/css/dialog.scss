@@ -64,7 +64,8 @@
       }
     }
 
-    .config-dialog {
+    .config-dialog,
+    .move-folder-bucket-dialog {
       width: 300px;
       font-family: $base-font;
       padding: 5px;
@@ -120,6 +121,18 @@
       }
 
       background: white;
+    }
+
+    .move-folder-bucket-dialog {
+      width: 350px;
+      .config-row {
+        .label {
+          flex: 0 0 100px;
+        }
+      }
+      .submit {
+        padding-left: 105px;
+      }
     }
 
     .ingest-dialog {

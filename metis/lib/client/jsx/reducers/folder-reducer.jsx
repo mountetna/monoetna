@@ -1,10 +1,13 @@
 import { folderKey } from 'etna-js/utils/file';
 
 const addFolders = (action, old_folders) => {
-  let { folders } = action;
+  let { folders, bucket_name } = action;
 
   let new_folders = folders.reduce((c, folder) => {
     let key = folderKey(folder);
+
+    if (bucket_name && folder.bucket_name !== bucket_name) return c;
+    
     c[key] = folder;
     return c;
   }, {});

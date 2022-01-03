@@ -37,6 +37,30 @@ const FolderControl = ({folder, current_folder, bucket_name}) => {
     invoke({type: 'TOUCH_FOLDER', folder, bucket_name});
   }, [folder, bucket_name]);
 
+  const moveFolderBucket = useCallback(
+    (newBucketName, newFolderPath) => {
+      invoke({
+        type: 'RENAME_FOLDER',
+        folder,
+        new_folder_path: newFolderPath,
+        new_bucket_name: newBucketName,
+        bucket_name
+      });
+    },
+    [folder, bucket_name]
+  );
+
+  const moveFolderBucketDialog = useCallback(() => {
+    let dialog = {
+      type: 'move-folder-bucket',
+      onSubmit: moveFolderBucket
+    };
+    invoke({
+      type: 'SHOW_DIALOG',
+      dialog
+    });
+  }, [moveFolderBucket]);
+
   let items = folder.read_only
     ? [
         {
@@ -64,6 +88,11 @@ const FolderControl = ({folder, current_folder, bucket_name}) => {
         {
           label: 'Touch folder',
           callback: touchFolder,
+          role: 'editor'
+        },
+        {
+          label: 'Move to bucket',
+          callback: moveFolderBucketDialog,
           role: 'editor'
         }
       ];
