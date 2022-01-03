@@ -71,8 +71,10 @@ services:
       #- staging-metis-hmac
       #- staging-magma-hmac
       - metrics-pw
+      - user-hash-secret
       - source: db-pw
         target: db-password
+      - rollbar-access-token
 
   app_fe:
     environment:
