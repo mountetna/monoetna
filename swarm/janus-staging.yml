@@ -103,6 +103,8 @@ services:
 
           - node.labels.volumes.staging_shibboleth == true
           #- node.labels.volumes.${APP_NAME}_${ENV}_data == true
+    command:
+      - /bin/httpd_with_shibd.sh
 
   app_assets_deployer:
     environment:
