@@ -301,9 +301,10 @@ class Stubs
     end
   end
 
-  def clear
+  def clear(project_name=nil)
     existing_stub_files.each { |stub| File.delete(stub) }
     existing_stub_dirs.each { |stub| FileUtils.rm_r(stub) }
+    FileUtils.rm_r(Dir["#{Metis.instance.config(:data_path)}/#{project_name}/*"]) unless project_name.nil?
     @stubs = []
   end
 

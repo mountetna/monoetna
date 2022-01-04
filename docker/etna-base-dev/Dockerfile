@@ -1,10 +1,10 @@
 FROM development-certs
 
-FROM ruby:2.5.7
+FROM ruby:2.5.9
 WORKDIR /app
 
 ENV DOCKER_VERSION 20.10.6
-ENV RUBY_VERSION 2.5.7
+ENV RUBY_VERSION 2.5.9
 # This is so dumb -- but if BUNDLER_VERSION is set as an environment variable,
 # it causes issues with bundler... bleck.  So, so add an underscore at the end.
 ENV BUNDLER_VERSION_ 2.2.5
@@ -31,6 +31,8 @@ RUN apt-get update \
       postgresql-client-10 \
       rsync \
       sshpass \
+      libvips \
+      libvips-tools \
       --no-install-recommends &&\
     rm -rf /var/lib/apt/lists/*
 

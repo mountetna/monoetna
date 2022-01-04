@@ -1,14 +1,12 @@
 version: '3.8'
 
-# Intended for agents that run in global deploy node, on most or all nodes, for service health purposes.
 services:
   postgres:
     image: postgres:10.12
     environment:
       POSTGRES_DB: 'vulcan'
-      POSTGRES_PASSWORD: "${PRODUCTION_DB_PASSWORD}"
+      POSTGRES_PASSWORD: /run/secrets/password
       POSTGRES_USER: developer
-
     volumes:
       - db:/var/lib/postgresql/data
     deploy:
@@ -16,7 +14,10 @@ services:
         constraints:
           - node.labels.volumes.vulcan_db == true
     networks:
-      - vulcan
+      - db
+    secrets:
+      - source: db-pw
+        target: password
 
   # Exists purely to allow updates to its image via service deployer.
   # Intention is for this to be removed when we move the scheduler to airflow.
@@ -30,21 +31,20 @@ services:
       labels:
         - autoupdate=true
       placement:
+        # This should match the hosts that vulcan are deployed on.
         constraints:
           - node.labels.volumes.vulcan_data == true
 
-
   app:
     environment:
-      APP_NAME: vulcan
-      VULCAN_ENV: production
-      HOST_DIR_MAP: /app/data=/data_change_me_when_done
-      ENV: production
-      ETNA__PRODUCTION_FILE: /app/env.yml
-      ETNA__PRODUCTION__DB__PASSWORD_FILE: /run/secrets/db-password
-      ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN: /run/secrets/rollbar-access-token
-      ETNA__PRODUCTION__USER_HASH_SECRET: /run/secrets/user-hash-secret
-    command: 
+      - APP_NAME=vulcan
+      - VULCAN_ENV=production
+      - ETNA__PRODUCTION_FILE=/app/env.yml
+      - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
+      - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN=/run/secrets/rollbar-access-token
+      - ETNA__PRODUCTION__USER_HASH_SECRET=/run/secrets/user-hash-secret
+      - HOST_DIR_MAP=/app/data=/data_change_me_when_done
+    command:
       - bash
       - -c
       - |
@@ -56,13 +56,7 @@ services:
       - /data_change_me_when_done/vulcan:/app/data/vulcan
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/node_exporter/metrics.prom:/tmp/metrics.prom
-    user: 1502:999 # vulcan:docker
-    healthcheck:
-      interval: 10s
-      retries: 5
-      start_period: 5s
-      test: curl http://localhost:3000
-      timeout: 5s
+    user: 0:999 #1502:999 # vulcan:docker
     deploy:
       update_config:
         parallelism: 1
@@ -72,14 +66,23 @@ services:
       placement:
         constraints:
           - node.labels.volumes.vulcan_data == true
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 1s
+      test: bash -c 'curl http://localhost:3000 || exit 1'
+      timeout: 5s
     configs:
       - source: config
         target: /app/config.yml
       - source: env
         target: /app/env.yml
     networks:
-      - vulcan
-      - prometheus
+      db:
+      prometheus:
+      fe:
+        aliases:
+          - vulcan_app
     secrets:
       - metrics-pw
       - user-hash-secret
@@ -90,17 +93,17 @@ services:
 
   app_fe:
     environment:
-      APP_NAME: vulcan
-      VULCAN_ENV: production
+      - APP_NAME=vulcan
+      - VULCAN_ENV=production
 
     image: etnaagent/vulcan_app_fe:production
     networks:
       - edge_bridge
-      - vulcan
+      - fe
     volumes:
       - app_public:/app/public
       - /data_change_me_when_done/vulcan:/app/data/vulcan:ro
-    user: 0:3000 # vulcan:browser
+    user: 0:3000 # TODO: Can vulcan user be used here?
     configs:
       - source: browser.system.include
         target: /usr/opt/httpd.conf.d/browser.system.include
@@ -132,7 +135,8 @@ services:
       mode: global
       placement:
         max_replicas_per_node: 1
-        constraints: [node.labels.volumes.vulcan_app_public == true]
+        constraints:
+          - node.labels.volumes.vulcan_app_public == true
 
 volumes:
   app_public:
@@ -141,14 +145,15 @@ volumes:
 
 configs:
   browser.system.include:
+    name: ${BROWSER_SYSTEM_INCLUDE:-browser.system.include}
     external: true
   config:
     external: true
-    name: "vulcan.production.yml"
+    name: ${APP_CONFIG:-vulcan.production.yml}
   env:
     external: true
-    name: "etna.production.yml_copy"
-    
+    name: ${ENV_CONFIG:-etna.production.yml}
+
 secrets:
   db-pw:
     external: true
@@ -162,7 +167,8 @@ secrets:
     name: "vulcan-rollbar-token"
 
 networks:
-  vulcan:
+  fe:
+  db:
   edge_bridge:
     external: true
   prometheus:

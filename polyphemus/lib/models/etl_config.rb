@@ -101,7 +101,7 @@ class Polyphemus
           next [ key, secrets.map do |skey, secret|
             [ skey, secret.to_s.empty? ? '' : '***' ]
           end.to_h ]
-        when :id
+        when :output, :id
           next
         else
           case value

@@ -1,0 +1,85 @@
+networks:
+  edge_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: '172.16.238.0/24'
+        - subnet: '2001:3984:3989::/64'
+
+version: '3.4'
+
+volumes:
+  airflow-dags:
+    driver: local
+  airflow-metadata-db:
+    driver: local
+
+x-airflow-env:
+  &airflow-env
+  AIRFLOW__CORE__FERNET_KEY: "tE8Ky3ovcpm0Jphr77anh-F2AICQlK7xD_iXnSkQE7A="
+  AIRFLOW__CORE__EXECUTOR: etna.executors.local_executor.LocalExecutor
+  AIRFLOW__CORE__SQL_ALCHEMY_CONN:  "postgresql://developer:password@airflow_postgres:5432/airflow"
+  AIRFLOW__WEBSERVER__BASE_URL: https://airflow.development.local
+  ETNA_AUTH_COOKIE_NAME: JANUS_DEV_TOKEN
+  ETNA_AUTH_JANUS_URL: https://janus.development.local
+  ETNA_AUTH_PUBLIC_KEY: |
+     -----BEGIN PUBLIC KEY-----
+     MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6pLkfi2RXd3jHWKh9W37
+     k7Nw5aZxIQRCf9b5b0uUIqyk4ODH1Pd4s/hhYq/9c+HT2304NkiqRw4cVOHMgk8N
+     O+a+7F+HgspJZopyEBCJvBloBoPKrpkZv0FeVHYwiDM2kf3GFDzTPBdUSpYJimtn
+     HF29DdEoj6O5xL9uGW97QZ34JYacIeG7GmVGjYnCvA87S0miDUxvGlu40g+VJhND
+     mLXMzWa5vTxyGb4cEQSL6rryVxmBlonG4J41K7A04/7tftKvWrqsCWAfSCusNs8w
+     CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
+     NQIDAQAB
+     -----END PUBLIC KEY-----
+
+services:
+  airflow_postgres:
+    image: "postgres:11"
+    environment:
+      POSTGRES_USER: developer
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow-metadata-db:/var/lib/postgresql/data
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=150"
+
+  airflow_ui:
+    user: airflow
+    image: airflow
+    command: webserver
+    volumes:
+      - ./opt/plugins:/opt/airflow/plugins
+      - ./logs:/opt/airflow/logs
+      - airflow-dags:/opt/airflow/dags
+    environment:
+      <<: *airflow-env
+    networks:
+      - default
+      - edge_net
+
+  airflow_scheduler:
+    image: airflow
+    user: 0:0 # in production this will be the airflow user and docker group
+    command: scheduler
+    volumes:
+      - ./opt/plugins:/opt/airflow/plugins
+      - ./logs:/opt/airflow/logs
+      - airflow-dags:/opt/airflow/dags
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /tmp:/tmp
+    environment:
+      <<: *airflow-env
+
+  airflow_init:
+    image: airflow
+    command: version
+    environment:
+      <<: *airflow-env
+      _AIRFLOW_DB_UPGRADE: 'true'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: etna
+      _AIRFLOW_WWW_USER_PASSWORD: password
