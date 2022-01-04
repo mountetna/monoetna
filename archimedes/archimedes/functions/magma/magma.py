@@ -16,7 +16,7 @@ def question(magma, question, strip_identifiers=True):
 
     return [ v[1] for v in query_result['answer'] ] if strip_identifiers else query_result['answer']
 
-def query_tsv(magma, project_name, queryTerms, user_columns, expand_matrices, transpose):
+def query_tsv(magma, project_name, queryTerms, user_columns=[], expand_matrices=False, transpose=False):
     query_result = magma.query(
         project_name, queryTerms=queryTerms, format="tsv",
         user_columns=user_columns, expand_matrices=expand_matrices, transpose=transpose)
