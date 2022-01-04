@@ -4,7 +4,7 @@
   "lastModified": "Aug 31, 2021",
   "vignette": "### FILLER\n\n# This workflow allows users to create a bar plot from data of their choice, but the data loading step is not yet worked out.",
   "tags": ["general", "plotting", "discrete data"],
-  "image": "umap.png",
+  "image": "barplot.png",
   "displayName": "Bar Plot",
   "description": "Bar Plot workflow: Pick data, then create a barplot"
 }
