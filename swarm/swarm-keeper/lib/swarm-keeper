@@ -175,21 +175,31 @@ function getResourceBy() {
 
   local filterName
   local filtersJson
+  local matchName
+  local exactMatcher
   local result
 
   filterName="$1"
+  matchName="$2"
+  exactMatcher="$3"
   shift
 
-  if [[ -z "$1" ]]; then
-    echo "No $2 $filterName given" 1>&2
+  if [[ -z "$filterName" ]]; then
     return 1
   fi
-  if [[ -z "$2" ]]; then
+  if [[ -z "$matchName" ]]; then
+    return 1
+  fi
+  if [[ -z "$exactMatcher" ]]; then
     return 1
   fi
 
   filtersJson=$(jq -n -c --arg f "$filterName" --arg n "$1" '{($f): [$n]}')
-  result="$(dockerApi GET /$2 "filters==$filtersJson" | jq -r -c '.[0]')"
+  result="$(dockerApi GET /$2 "filters==$filtersJson")" || return 1
+  if [[ -n "$exactMatcher" ]]; then
+    result=$(dig "$result" --arg v1 "$matchName" "map(select($exactMatcher == \$v1))")
+  fi
+  result=$(dig "$result" '.[0]')
   if nonNull "$result"; then
     echo "$result"
   else
@@ -205,12 +215,12 @@ function getImage() {
 
 function getService() {
   set -eo pipefail
-  getResourceBy "name" "$1" "services"
+  getResourceBy "name" "$1" "services" '.Spec.Name'
 }
 
 function getConfig() {
   set -eo pipefail
-  getResourceBy "name" "$1" "configs"
+  getResourceBy "name" "$1" "configs" '.Spec.Name'
 }
 
 function deleteConfig() {
@@ -220,7 +230,8 @@ function deleteConfig() {
   config=$(getResourceBy "name" "$1" "configs" || echo null)
   if nonNull "$config"; then
     echo "Removing config $1"
-    dockerApi DELETE /configs/$(dig "$config" -r '.ID') 1>/dev/null
+    dockerApi DELETE /configs/$(dig "$config" -r '.ID') 1>/dev/null || return 1
+    return 0
   fi
   echo "Config $1 not found, skipping delete."
 }
@@ -310,45 +321,35 @@ function downloadConfig() {
 
   tmp=$(mktemp)
   stack="$1"
-  config="$(getConfig "$stack" "$2")"
+  config="$(getConfig "$stack" "$2")" || return 1
 
   echo "$config" | jq -r '.Spec.Data | @base64d' > $tmp
   echo $tmp
 }
 
-function convergeConfigs() {
-  local i c
-
-  for i in {0..60}; do
-    c=$(findConvergeableConfig)
-    if nonNull "$c"; then
-      convergeConfig "$c"
-    else
-      break
-    fi
-  done
+function findConfigsByCanonicalName() {
+  set -eo pipefail
+  local filtersJson canonName
+  canonName="$1"
+  filtersJson=$(printJson '{name: [$v1]}' "$canonName")
+  dockerApi GET /configs "filters==$filtersJson" | jq --arg v1 "$canonName" 'map(select(.Spec.Name == $v1 or .Spec.Labels.replaces == $v1 or .Spec.Labels.canon == $v1))'
 }
 
-function findConvergeableConfig() {
-  set -eo pipefail
-  local filtersJson
-  filtersJson=$(printJson '{label: ["replaces="]}')
-  dockerApi GET /configs "filters==$filtersJson" | jq 'sort_by(.UpdatedAt) | first'
+function canonicalNameOf() {
+  dig "$1" -r '.Spec.Labels.canon // .Spec.Labels.replaces // .Spec.Name'
 }
 
-function findReplaceTargetsFor() {
+function findCanonicalConfigsOf() {
   set -eo pipefail
-  local filtersJson config canonName
-  config="$1"
-  canonName=$(dig "$config" -r '.Spec.Labels.canon // .Spec.Labels.replaces // .Spec.Name')
-  filtersJson=$(printJson '{label: ["replaces=" + $v1, "canon=" + $v1], name: [$v1]}' "$canonName")
-  dockerApi GET /configs "filters==$filtersJson"
+  local canonName
+  canonName=$(canonicalNameOf "$1")
+  findConfigsByCanonicalName "$canonName"
 }
 
 function updateService() {
   set -eo pipefail
 
-  local service update spec serviceId version update
+  local service spec serviceId version update
 
   service="$1"
   update="$2"
@@ -364,52 +365,36 @@ function updateService() {
 function convergeConfig() {
   set -eo pipefail
 
-  local config configName replaces deployFailed anyDeployFailed
-  local env replaceTargetNames newEnv
+  local config configName deployFailed anyDeployFailed
+  local env replaceTargetNames newEnv stacks
 
   config="$1"
   configName="$(dig "$config" -r '.Spec.Name')"
-  replaces="$(dig "$config" -r '.Spec.Labels.replaces')"
-  replaceTargetNames=$(findReplaceTargetsFor "$config" | jq 'map(.Spec.Name)')
+  replaceTargetNames=$(findCanonicalConfigsOf "$config" | jq 'map(.Spec.Name)')
   anyDeployFailed=
+  stacks="$(listStacks)" || return 1
+
+  echo "Targeting replacement of configs $replaceTargetNames" 1>&2
 
   while IFS=$'\n' read -r stack; do
     deployFailed=
     env=$(dig "$stack" '.Env')
     newEnv=$(dig "$env" --argjson targetNames "$replaceTargetNames" --arg configName "$configName" 'map(if (.value as $v | $targetNames | index($v) >= 0) then .value |= $configName  else . end)')
     if [[ "$newEnv" != "$env" ]]; then
-      updateStackYml  "$stack" "" "$newEnv"
+      updateStackYml  "$stack" "" "$newEnv" || deployFailed=1
       awaitStackDeploy "$stack" || deployFailed=1
       if [[ -n "$deployFailed" ]]; then
         postToSlack "Deployment of config $configName to $(dig "$stack" '.Name') failed, check portainer."
         anyDeployFailed=1
       fi
     fi
-  done <<< "$(listStacks)"
-
-  local canon
-  canon=$(dig "$config" -r '.Spec.Labels.canon')
-
-  if [[ "$canon" == "$configName" ]]; then
-    # If we are the canonical config, having replaced ourself on all available services, we simply disable
-    # our need to converge.
-    echo "Clearing replaces and canon labels from $configName"
-    updateConfigLabels "$config" 'del(.replaces)'
-
-    echo "$replaces has converged into $configName"
-    return 0
-  else
-    echo "Clearing replaces from $configName"
-    updateConfigLabels "$config" 'del(.replaces)'
-  fi
+  done <<< "$stacks"
 
   if [[ -z "$anyDeployFailed" ]]; then
-    echo "Pruning $replaces, it is now undeployed."
-    deleteConfig "$replaces"
-
-    echo "Creating replacement $replaces from $configName"
-    deriveNextConfig "$configName" "$(dig "$config" -r '.Spec.Data')" "$replaces"
+    return 0
   fi
+
+  return 1
 }
 
 function updateConfigLabels() {
@@ -488,7 +473,7 @@ function createConfig() {
 function deriveNextConfig() {
   set -eo pipefail
 
-  local original labels data newConfigId now name canonName
+  local original labels data newConfigId now name
   original=$(getConfig "$1")
   data="$2"
   labels=$(dig "$original" '.Spec.Labels // {}')
@@ -501,8 +486,8 @@ function deriveNextConfig() {
   now=$(date +"%s")
   name=${3:-"${canonName}_${now}"}
 
-  newConfigId=$(createConfig "$name" "$data" "$labels" | jq -r '.ID')
-  withCopiedResourceControls "$original" dockerApi GET /configs/$newConfigId
+  newConfigId=$(createConfig "$name" "$data" "$labels" | jq -r '.ID') || return 1
+  withCopiedResourceControls "$original" dockerApi GET /configs/$newConfigId || return 1
 }
 
 function listUpdateableServiceNames() {
@@ -671,13 +656,31 @@ function runCommand() {
       ;;
 
     portainer-edit-config)
+      originalName="$1"
       doPortainerAuth
-      tmp=$(downloadConfig "$1")
+
+      originalConfig=$(getConfig "$originalName" || echo null)
+      if ! nonNull "$originalConfig"; then
+        configs=$(findConfigsByCanonicalName "$1") || return 1
+        configNames=$(dig "$configs" -r 'map(.Spec.Name)')
+        echo "Could not find config by $originalName, did you mean one of $configNames?"
+        return 1
+      fi
+
+      canonicalName=$(canonicalNameOf "$originalConfig")
+      echo "Found by $canonicalName from $originalConfig by $originalName"
+
+      tmp=$(downloadConfig "$originalName") || return 1
       if editsFile $tmp; then
         echo "Creating config..."
-        deriveNextConfig "$1" "$(encodeData "$(cat $tmp)")"
+        next=$(deriveNextConfig "$originalName" "$(encodeData "$(cat $tmp)")") || return 1
         echo "Deploying config file change..."
-        convergeConfigs
+        convergeConfig "$next" || return 1
+        deleteConfig "$canonicalName" || return 1
+        echo "Redeploying config as $canonicalName..."
+        next=$(deriveNextConfig "$(dig "$next" -r '.Spec.Name')" "$(encodeData "$(cat $tmp)")" "$canonicalName") || return 1
+        convergeConfig "$next" || return 1
+        echo "Success"
       else
         echo "File was not modified, not deploying"
       fi

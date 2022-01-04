@@ -72,11 +72,8 @@ fi
 
 runCommand portainer-deploy-stack swarm/agents.yml
 
-# loadRecording $DIR/edit-config-deploy.recording
-# Setup two configurations that both exist wanting to replace a single config.
-#tmp=$(downloadConfig "polyphemus_known_hosts")
-#createReplacementConfig "polyphemus_known_hosts" "$(encodeData "$(cat $tmp)")"
-#runCommand portainer-edit-config polyphemus_known_hosts
+loadRecording $DIR/edit-config-deploy.recording
+runCommand portainer-edit-config timur.staging.yml
 
 function shaTestHook() {
   if [[ $1 =~ polyphemus-staging_app_fe ]]; then
