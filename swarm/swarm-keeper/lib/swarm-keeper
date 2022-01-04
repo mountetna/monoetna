@@ -177,11 +177,13 @@ function getResourceBy() {
   local filtersJson
   local matchName
   local exactMatcher
+  local resourcesName
   local result
 
   filterName="$1"
   matchName="$2"
-  exactMatcher="$3"
+  resourcesName="$3"
+  exactMatcher="$4"
   shift
 
   if [[ -z "$filterName" ]]; then
@@ -195,7 +197,7 @@ function getResourceBy() {
   fi
 
   filtersJson=$(jq -n -c --arg f "$filterName" --arg n "$1" '{($f): [$n]}')
-  result="$(dockerApi GET /$2 "filters==$filtersJson")" || return 1
+  result="$(dockerApi GET /$resourcesName "filters==$filtersJson")" || return 1
   if [[ -n "$exactMatcher" ]]; then
     result=$(dig "$result" --arg v1 "$matchName" "map(select($exactMatcher == \$v1))")
   fi
@@ -203,7 +205,7 @@ function getResourceBy() {
   if nonNull "$result"; then
     echo "$result"
   else
-    echo "Could not find $2 by $filterName '$1'" 1>&2
+    echo "Could not find $resourcesName by $filterName '$matchName'" 1>&2
     return 1
   fi
 }
@@ -227,7 +229,7 @@ function deleteConfig() {
   set -eo pipefail
   local config
 
-  config=$(getResourceBy "name" "$1" "configs" || echo null)
+  config=$(getConfig "$1" || echo null)
   if nonNull "$config"; then
     echo "Removing config $1"
     dockerApi DELETE /configs/$(dig "$config" -r '.ID') 1>/dev/null || return 1
@@ -474,11 +476,11 @@ function deriveNextConfig() {
   set -eo pipefail
 
   local original labels data newConfigId now name
-  original=$(getConfig "$1")
+  original=$(getConfig "$1") || return 1
   data="$2"
   labels=$(dig "$original" '.Spec.Labels // {}')
-  canonName=$(dig "$labels" '.canon // .replaces')
-  if ! nonNull "$canonName"; then
+  canonName=$(dig "$labels" -r '.canon // .replaces // ""')
+  if [[ -z "$canonName" ]]; then
     canonName="$1"
   fi
 
@@ -668,7 +670,6 @@ function runCommand() {
       fi
 
       canonicalName=$(canonicalNameOf "$originalConfig")
-      echo "Found by $canonicalName from $originalConfig by $originalName"
 
       tmp=$(downloadConfig "$originalName") || return 1
       if editsFile $tmp; then
