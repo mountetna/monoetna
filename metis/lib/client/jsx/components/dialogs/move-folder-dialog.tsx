@@ -4,7 +4,13 @@ import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 
 import ConfigRow from './config-row';
 
-const MoveFolderDialog = ({currentBucketName, onSubmit}) => {
+const MoveFolderDialog = ({
+  currentBucketName,
+  onSubmit
+}: {
+  currentBucketName: string;
+  onSubmit: (bucketName: string, folderPath: string) => void;
+}) => {
   const [bucketName, setBucketName] = useState(currentBucketName);
   const [newFolderPath, setNewFolderPath] = useState('');
   const invoke = useActionInvoker();
@@ -34,7 +40,10 @@ const MoveFolderDialog = ({currentBucketName, onSubmit}) => {
         />
       </ConfigRow>
       <div className='submit'>
-        <span className='button' disabled={!bucketName} onClick={submit}>
+        <span
+          className={`button ${bucketName ? '' : 'disabled'}`}
+          onClick={submit}
+        >
           Move
         </span>
       </div>

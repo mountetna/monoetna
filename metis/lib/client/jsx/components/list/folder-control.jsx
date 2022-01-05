@@ -3,6 +3,7 @@ import {filePath} from 'etna-js/utils/file';
 import MenuControl from '../menu-control';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import {message} from '../../actions/message_actions';
 
 const FolderControl = ({folder, current_folder, bucket_name}) => {
   const invoke = useActionInvoker();
@@ -20,7 +21,11 @@ const FolderControl = ({folder, current_folder, bucket_name}) => {
       'What is the new name of this folder?',
       folder.folder_name
     );
-    if (new_folder_name)
+    if (new_folder_name && new_folder_name.includes("/")) {
+      invoke(
+        message('warning', 'Folder renaming failed', 'Invalid name -- cannot change the folder path')
+      );
+    } else if (new_folder_name)
       invoke({
         type: 'RENAME_FOLDER',
         folder,
