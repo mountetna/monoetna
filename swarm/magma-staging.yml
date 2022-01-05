@@ -74,7 +74,7 @@ services:
       - user-hash-secret
       - source: db-pw
         target: db-password
-      - rollbar-access-token
+#      - rollbar-access-token
 
   app_fe:
     environment:
