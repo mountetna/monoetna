@@ -4,8 +4,17 @@ import MenuControl from '../menu-control';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {message} from '../../actions/message_actions';
+import {Folder, UiControlItem} from '../../types/metis-types';
 
-const FolderControl = ({folder, current_folder, bucket_name}) => {
+const FolderControl = ({
+  folder,
+  current_folder,
+  bucket_name
+}: {
+  folder: Folder;
+  current_folder: string;
+  bucket_name: string;
+}) => {
   const invoke = useActionInvoker();
 
   const unprotectFolder = useCallback(() => {
@@ -23,7 +32,11 @@ const FolderControl = ({folder, current_folder, bucket_name}) => {
     );
     if (includesFolders(new_folder_name)) {
       invoke(
-        message('warning', 'Folder renaming failed', 'Invalid name -- cannot change the folder path')
+        message(
+          'warning',
+          'Folder renaming failed',
+          'Invalid name -- cannot change the folder path'
+        )
       );
     } else if (new_folder_name)
       invoke({
@@ -68,7 +81,7 @@ const FolderControl = ({folder, current_folder, bucket_name}) => {
     });
   }, [moveFolder, bucket_name]);
 
-  let items = folder.read_only
+  let items: UiControlItem[] = folder.read_only
     ? [
         {
           label: 'Unprotect folder',

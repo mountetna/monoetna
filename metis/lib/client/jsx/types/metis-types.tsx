@@ -3,6 +3,7 @@ export type Folder = {
   folder_path: string;
   bucket_name: string;
   project_name: string;
+  read_only: boolean;
 };
 
 export type File = {
@@ -10,4 +11,12 @@ export type File = {
   file_path: string;
   bucket_name: string;
   project_name: string;
+  read_only: boolean;
+  download_url: string;
+};
+
+export type UiControlItem = {
+  label: string;
+  callback: () => void;
+  role: string;
 };

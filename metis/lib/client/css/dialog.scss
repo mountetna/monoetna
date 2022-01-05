@@ -65,7 +65,8 @@
     }
 
     .config-dialog,
-    .move-folder-dialog {
+    .move-folder-dialog,
+    .move-file-dialog {
       width: 300px;
       font-family: $base-font;
       padding: 5px;
@@ -123,7 +124,8 @@
       background: white;
     }
 
-    .move-folder-dialog {
+    .move-folder-dialog,
+    .move-file-dialog {
       width: 350px;
       .config-row {
         .label {

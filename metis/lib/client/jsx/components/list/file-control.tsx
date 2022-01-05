@@ -4,13 +4,14 @@ import {filePath, includesFolders} from 'etna-js/utils/file';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {message} from '../../actions/message_actions';
 import MenuControl from '../menu-control';
+import {File, UiControlItem} from '../../types/metis-types';
 
 const FileControl = ({
   file,
   bucket_name,
   current_folder
 }: {
-  file: any;
+  file: File;
   bucket_name: string;
   current_folder: string;
 }) => {
@@ -77,7 +78,33 @@ const FileControl = ({
     document.body.removeChild(download);
   }, [file]);
 
-  let items: {label: string; role?: string; callback: () => void}[] = [
+  const moveFile = useCallback(
+    (newBucketName, newFilePath) => {
+      invoke({
+        type: 'RENAME_FILE',
+        file,
+        new_file_path: filePath(newFilePath, file.file_name),
+        new_bucket_name: newBucketName,
+        bucket_name,
+        current_folder: current_folder || ''
+      });
+    },
+    [file, bucket_name, current_folder]
+  );
+
+  const moveFileDialog = useCallback(() => {
+    let dialog = {
+      type: 'move-file',
+      onSubmit: moveFile,
+      currentBucketName: bucket_name
+    };
+    invoke({
+      type: 'SHOW_DIALOG',
+      dialog
+    });
+  }, [moveFile, bucket_name]);
+
+  let items: UiControlItem[] = [
     {label: 'Download file', callback: downloadFile, role: 'viewer'},
     {label: 'Copy download link', callback: copyLink, role: 'viewer'},
     {label: 'Copy metis path', callback: copyMetisPath, role: 'viewer'}
@@ -109,6 +136,11 @@ const FileControl = ({
           {
             label: 'Touch file',
             callback: touchFile,
+            role: 'editor'
+          },
+          {
+            label: 'Move file',
+            callback: moveFileDialog,
             role: 'editor'
           }
         ]
