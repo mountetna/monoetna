@@ -4,12 +4,12 @@ import {
 } from '../api/folders_api';
 import { errorMessage } from './message_actions';
 
-const addFolders = (folders, bucket_name) => ({ type: 'ADD_FOLDERS', folders, bucket_name });
+const addFolders = ({folders, bucket_name, current_folder}) => ({ type: 'ADD_FOLDERS', folders, bucket_name, current_folder });
 const removeFolders = (folders) => ({ type: 'REMOVE_FOLDERS', folders });
 
 export const createFolder = ({bucket_name, folder_name, parent_folder}) => (dispatch) =>
   postCreateFolder(CONFIG.project_name, bucket_name, parent_folder ? `${parent_folder}/${folder_name}` : folder_name)
-    .then(({folders}) => dispatch(addFolders(folders)))
+    .then(({folders}) => dispatch(addFolders({folders})))
     .catch(
       errorMessage(dispatch, 'warning', 'Folder creation failed', error => error)
     );
@@ -38,7 +38,7 @@ export const protectFolder = ({bucket_name, folder}) => (dispatch) => {
   postProtectFolder(
     CONFIG.project_name, bucket_name, folder.folder_path
   )
-    .then(({folders}) => dispatch(addFolders(folders)))
+    .then(({folders}) => dispatch(addFolders({folders})))
     .catch(
       errorMessage(dispatch, 'warning', 'Folder protection failed', error => error)
     );
@@ -50,19 +50,19 @@ export const unprotectFolder = ({bucket_name, folder}) => (dispatch) => {
   postUnprotectFolder(
     CONFIG.project_name, bucket_name, folder.folder_path
   )
-    .then(({folders}) => dispatch(addFolders(folders)))
+    .then(({folders}) => dispatch(addFolders({folders})))
     .catch(
       errorMessage(dispatch, 'warning', 'Folder unprotection failed', error => error)
     );
 }
 
-export const renameFolder = ({bucket_name, folder, new_folder_path, new_bucket_name}) => (dispatch) => {
+export const renameFolder = ({bucket_name, folder, new_folder_path, new_bucket_name, current_folder}) => (dispatch) => {
   postRenameFolder(
     CONFIG.project_name, bucket_name, folder.folder_path, new_folder_path, new_bucket_name
   )
     .then(({folders}) => {
       dispatch(removeFolders([folder]));
-      dispatch(addFolders(folders, bucket_name));
+      dispatch(addFolders({folders, bucket_name, current_folder}));
     })
     .catch(
       errorMessage(dispatch, 'warning', 'Folder renaming failed', error => error)
@@ -75,7 +75,7 @@ export const touchFolder = ({bucket_name, folder}) => (dispatch) => {
   )
     .then(({folders}) => {
       dispatch(removeFolders([folder]));
-      dispatch(addFolders(folders));
+      dispatch(addFolders({folders}));
     })
     .catch(
       errorMessage(dispatch, 'warning', 'Folder touching failed', error => error)

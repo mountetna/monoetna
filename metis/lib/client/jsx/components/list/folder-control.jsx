@@ -44,10 +44,11 @@ const FolderControl = ({folder, current_folder, bucket_name}) => {
         folder,
         new_folder_path: newFolderPath,
         new_bucket_name: newBucketName,
-        bucket_name
+        bucket_name,
+        current_folder
       });
     },
-    [folder, bucket_name]
+    [folder, bucket_name, current_folder]
   );
 
   const moveFolderBucketDialog = useCallback(() => {
