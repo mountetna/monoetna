@@ -5,11 +5,11 @@ inputs:
   1_Data_Source_magma_query__queryTerms:
     type: string
     label: "query input"
-    doc: "The set of terms for constructing a magma query towards the data of interest.  Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'query'-chunk presented there!"
+    doc: "The set of terms for constructing a magma query towards the data of interest.  Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'query'-chunk presented in a yellow box there!"
   1_Data_Source_magma_query__user_columns:
     type: string
     label: "user_columns input"
-    doc: "Optional array or comma-separated set of *quoted* strings for renaming columns of the returned data.  Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'user_columns'-chunk presented there!"
+    doc: "Optional array or comma-separated set of *quoted* strings for renaming columns of the returned data.  *Coming Soon* Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'user_columns'-chunk presented there!"
   1_Data_Source_magma_query__expand_matrices:
     type: boolean
     label: "expand_matrices input"

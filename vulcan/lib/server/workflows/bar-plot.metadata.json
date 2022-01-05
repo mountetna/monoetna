@@ -1,7 +1,7 @@
 {
   "projects": ["example", "ipi"],
   "authors": ["Dan Bunis", "Andres Vicente"],
-  "lastModified": "Aug 31, 2021",
+  "lastModified": "Jan 5, 2022",
   "vignette": "# Bar Plot Workflow\n\nThis workflow allows users to create a composition-focused bar plot from data of their choice. At present, that data must come from a 'query' of magma data, but we hope to provide other options in the future.\n\n## Selecting Data via Timur-Query:\n\nThis Data Loading method uses the 'Data Source magma query' Primary Inputs group. The easiest way to establish the proper inputs for querying from magma is to utilize the Timur-Query page. You can use Timur-Query's own documentation to learn how to set up that page to query the data you want. After setting up your query targets there, simply copy the entirety of the text from the yellow box into the 'query input' field. See in-line (?) help text for additional information about other inputs.\n\n## Generating the plot\n\nAfter data is obtained, you can select which columns to use for the x axis groupings, the data whose composition within each group should summarized in the y axis, whether to scale the resulting bars by percentage among each group ('fraction') or absolute counts ('counts'), as well as other advanced options. NOTE: The x and y axis data for a bar plot must be a discrete (not continuous) data type.\n\n#### We plan to make the Timur-Query -> Vulcan workflow transfer process simpler in the future!",
   "tags": ["general", "plotting", "discrete data"],
   "image": "barplot.png",
