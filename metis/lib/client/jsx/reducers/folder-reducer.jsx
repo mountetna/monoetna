@@ -8,6 +8,7 @@ const addFolders = (action, old_folders) => {
 
     if (bucket_name && folder.bucket_name !== bucket_name) return c;
     if (current_folder && !folder.folder_path.startsWith(current_folder)) return c;
+    if (current_folder === "" && folder.folder_path.includes("/")) return c;
     
     c[key] = folder;
     return c;
@@ -33,6 +34,7 @@ const removeFolders = (action, old_folders) => {
     return c;
   }, {});
 
+  console.log('bad_folders', bad_folders, old_folders, action, new_folders)
   return new_folders;
 }
 

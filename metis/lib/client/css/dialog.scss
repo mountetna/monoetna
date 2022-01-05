@@ -65,7 +65,7 @@
     }
 
     .config-dialog,
-    .move-folder-bucket-dialog {
+    .move-folder-dialog {
       width: 300px;
       font-family: $base-font;
       padding: 5px;
@@ -123,7 +123,7 @@
       background: white;
     }
 
-    .move-folder-bucket-dialog {
+    .move-folder-dialog {
       width: 350px;
       .config-row {
         .label {

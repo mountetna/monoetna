@@ -4,9 +4,9 @@ import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 
 import ConfigRow from './config-row';
 
-const MoveFolderBucketDialog = ({onSubmit}) => {
-  const [bucketName, setBucketName] = useState(null);
-  const [newFolderPath, setNewFolderPath] = useState(null);
+const MoveFolderDialog = ({currentBucketName, onSubmit}) => {
+  const [bucketName, setBucketName] = useState(currentBucketName);
+  const [newFolderPath, setNewFolderPath] = useState('');
   const invoke = useActionInvoker();
 
   const submit = useCallback(() => {
@@ -15,8 +15,8 @@ const MoveFolderBucketDialog = ({onSubmit}) => {
   }, [bucketName, newFolderPath]);
 
   return (
-    <div className='move-folder-bucket-dialog'>
-      <div className='title'>Move folder to another bucket</div>
+    <div className='move-folder-dialog'>
+      <div className='title'>Move folder</div>
       <ConfigRow label='Bucket name'>
         <input
           type='text'
@@ -25,20 +25,16 @@ const MoveFolderBucketDialog = ({onSubmit}) => {
           onChange={(e) => setBucketName(e.target.value)}
         />
       </ConfigRow>
-      <ConfigRow label='Folder path'>
+      <ConfigRow label='Parent folder (blank for root)'>
         <input
           type='text'
-          placeholder='E.g. root/child/folder_name'
+          placeholder='E.g. root/child'
           value={newFolderPath}
           onChange={(e) => setNewFolderPath(e.target.value)}
         />
       </ConfigRow>
       <div className='submit'>
-        <span
-          className='button'
-          disabled={!(bucketName || newFolderPath)}
-          onClick={submit}
-        >
+        <span className='button' disabled={!bucketName} onClick={submit}>
           Move
         </span>
       </div>
@@ -46,4 +42,4 @@ const MoveFolderBucketDialog = ({onSubmit}) => {
   );
 };
 
-export default MoveFolderBucketDialog;
+export default MoveFolderDialog;
