@@ -2,7 +2,7 @@
   "projects": ["example", "ipi"],
   "authors": ["Dan Bunis", "Andres Vicente"],
   "lastModified": "Sep 13, 2021",
-  "vignette": "### FILLER\n\n# This workflow allows users to create a y plot from data of their choice, but the data loading step is not yet worked out.",
+  "vignette": "# Y Plot Workflow\n\nThis workflow allows users to create violin and/or box plots from data of their choice. At present, that data must come from a 'query' of magma data, but we hope to provide other options in the future.\n\n## Selecting Data via Timur-Query:\n\nThis Data Loading method uses the 'Data Source magma query' Primary Inputs group. The easiest way to establish the proper inputs for querying from magma is to utilize the Timur-Query page. You can use Timur-Query's own documentation to learn how to set up that page to query the data you want. After setting up your query targets there, simply copy the entirety of the text from the yellow box into the 'query input' field. See in-line (?) help text for additional information about other inputs.\n\n## Generating the plot\n\nAfter data is obtained, you can select which columns to use for the x axis groupings, the y axis values, which data representations (violin plots, box plots, or both), as well as other advanced options. NOTE: The data selected for the x axis must be discrete (not continuous) to establish groupings while the data selected for the y axis must be numeric.\n\n#### We plan to make the Timur-Query -> Vulcan workflow transfer process simpler in the future!",
   "tags": ["general", "plotting", "continuous data"],
   "image": "yplot.png",
   "displayName": "Y Plot",
