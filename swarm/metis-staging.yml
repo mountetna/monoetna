@@ -129,6 +129,7 @@ services:
 
 volumes:
   app_public:
+  thumbnails:
   db:
     name: "${APP_NAME}_${ENV}_db"
 
