@@ -2,11 +2,24 @@ cwlVersion: v1.1
 class: Workflow
 
 inputs:
-  1_Filler__spacer:
-    type: int
-    default: 200
-    label: "Filler - will be replaced with a data load step!"
-    doc: "Does nothing"
+  1_Data_Source_magma_query__queryTerms:
+    type: string
+    label: "query input"
+    doc: "The set of terms for constructing a magma query towards the data of interest.  Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'query'-chunk presented in a yellow box there!"
+  1_Data_Source_magma_query__user_columns:
+    type: string
+    label: "user_columns input"
+    doc: "Optional array or comma-separated set of *quoted* strings for renaming columns of the returned data.  *Coming Soon* Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'user_columns'-chunk presented there!"
+  1_Data_Source_magma_query__expand_matrices:
+    type: boolean
+    label: "expand_matrices input"
+    default: false
+    doc: "Whether to expand matrix attributes into individual columns, with one matrix data point per column."
+  1_Data_Source_magma_query__transpose:
+    type: boolean
+    label: "transpose input"
+    default: false
+    doc: "Whether to transpose the resulting dataframe."
 
 outputs:
   the_plot:
@@ -15,10 +28,13 @@ outputs:
 
 steps:
   get_data:
-    run: scripts/mockDF.cwl
+    run: scripts/VIZ_query_df.cwl
     label: 'Fetch Data'
     in:
-      a: 1_Filler__spacer
+      queryTerms: 1_Data_Source_magma_query__queryTerms
+      user_columns: 1_Data_Source_magma_query__user_columns
+      expand_matrices: 1_Data_Source_magma_query__expand_matrices
+      transpose: 1_Data_Source_magma_query__transpose
     out: [data_frame]
   fill_plot_options:
     run: ui-queries/bar-plotly.cwl
@@ -38,4 +54,4 @@ steps:
     in:
       a: make_plot/plot.json
     out: []
-    label: 'Display Scatter Plot'
+    label: 'Display Bar Plot'
