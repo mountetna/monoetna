@@ -25,7 +25,7 @@ services:
       - ${APP_ENV}=production
       - ETNA__PRODUCTION_FILE=/app/env.yml
       - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
-      - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN=/run/secrets/rollbar-access-token
+      #- ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN=/run/secrets/rollbar-access-token
       - ETNA__PRODUCTION__USER_HASH_SECRET=/run/secrets/user-hash-secret
       - ETNA__PRODUCTION__HMAC_KEYS__METIS_FILE=/run/secrets/staging-metis-hmac
       - ETNA__PRODUCTION__HMAC_KEYS__MAGMA_FILE=/run/secrets/staging-metis-hmac
