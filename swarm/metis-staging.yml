@@ -29,7 +29,7 @@ services:
       - ETNA__PRODUCTION__USER_HASH_SECRET=/run/secrets/user-hash-secret
       - ETNA__PRODUCTION__HMAC_KEYS__METIS_FILE=/run/secrets/staging-metis-hmac
       - ETNA__PRODUCTION__HMAC_KEYS__MAGMA_FILE=/run/secrets/staging-metis-hmac
-      - ETNA__PRODUCTION__BACKUP__CREDENTIALS__AWS_SECRET_ACCESS_KEY_FILE=/run/secrets/metis-aws-backup-key-${ENV}
+      #- ETNA__PRODUCTION__BACKUP__CREDENTIALS__AWS_SECRET_ACCESS_KEY_FILE=/run/secrets/metis-aws-backup-key-${ENV}
     command:
       - bash
       - -c
@@ -77,7 +77,7 @@ services:
       - source: db-pw
         target: db-password
 #      - rollbar-access-token
-      - metis-aws-backup-key-${ENV}
+      #- metis-aws-backup-key-${ENV}
 
   app_fe:
     environment:
