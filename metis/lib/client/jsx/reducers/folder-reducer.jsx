@@ -34,7 +34,6 @@ const removeFolders = (action, old_folders) => {
     return c;
   }, {});
 
-  console.log('bad_folders', bad_folders, old_folders, action, new_folders)
   return new_folders;
 }
 
