@@ -1,9 +1,16 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  createContext,
+  useContext
+} from 'react';
 import Icon from 'etna-js/components/icon';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {json_post, json_get} from 'etna-js/utils/fetch';
 import {isSuperEditor} from 'etna-js/utils/janus';
+import {updateProject} from './api/janus_api';
 
 import TextField from '@material-ui/core/TextField';
 import Table from '@material-ui/core/Table';
@@ -15,10 +22,38 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
 
+import SaveCancel from './save-cancel';
+
 const Project = ({project}) => {
   const [changed, setChanged] = useState(false);
   const [isResource, setIsResource] = useState(project.resource);
-  console.log('isResource', isResource, project);
+
+  const {
+    state: {projects},
+    setProjects
+  } = useContext(ProjectsContext);
+
+  const handleOnCancel = useCallback(() => {
+    setIsResource(project.resource);
+    setChanged(false);
+  }, [project.resource]);
+
+  const handleOnSave = useCallback(() => {
+    updateProject(project.project_name, {
+      resource: isResource
+    }).then(() => {
+      let updatedProjects = [...projects].map((p) => {
+        if (p.project_name === project.project_name) {
+          return {...p, resource: isResource};
+        } else {
+          return {...p};
+        }
+      });
+      setProjects(updatedProjects);
+      setChanged(false);
+    });
+  }, [isResource, project.project_name]);
+
   return (
     <TableRow key={project.project_name}>
       <TableCell>
@@ -30,28 +65,14 @@ const Project = ({project}) => {
           checked={isResource}
           onChange={(e) => {
             setIsResource(e.target.checked);
-            setChanged(e.target.checked !== project.resource);
+            setChanged(true);
           }}
           inputProps={{'aria-label': 'resource project'}}
         />
       </TableCell>
       <TableCell>
         {changed ? (
-          <>
-            <Icon
-              className='approve'
-              icon='save'
-              onClick={() => {
-                onSave({revision, user_email});
-                updateRevision({});
-              }}
-            />
-            <Icon
-              className='cancel'
-              icon='ban'
-              onClick={() => updateRevision({})}
-            />
-          </>
+          <SaveCancel onSave={handleOnSave} onCancel={handleOnCancel} />
         ) : null}
       </TableCell>
     </TableRow>
@@ -137,7 +158,10 @@ const NewProject = ({retrieveAllProjects}) => {
 const JanusAdmin = () => {
   let user = useReduxState((state) => selectUser(state));
 
-  let [projects, setProjects] = useState([]);
+  const {
+    state: {projects},
+    setProjects
+  } = useContext(ProjectsContext);
 
   let retrieveAllProjects = useCallback(() => {
     json_get('/allprojects').then(({projects}) => setProjects(projects));
@@ -145,13 +169,58 @@ const JanusAdmin = () => {
 
   useEffect(retrieveAllProjects, []);
   return (
-    <div id='janus-admin'>
+    <>
       <Projects user={user} projects={projects} />
       {isSuperEditor(user) && (
         <NewProject retrieveAllProjects={retrieveAllProjects} />
       )}
+    </>
+  );
+};
+
+const JanusAdminWrapper = () => {
+  return (
+    <div id='janus-admin'>
+      <ProjectsProvider>
+        <JanusAdmin />
+      </ProjectsProvider>
     </div>
   );
 };
 
-export default JanusAdmin;
+const defaultProjectsContext = {
+  state: {
+    projects: []
+  }
+};
+
+const ProjectsContext = createContext(defaultProjectsContext);
+
+const ProjectsProvider = (props) => {
+  const [state, setState] = useState(
+    props.state || defaultProjectsContext.state
+  );
+
+  const setProjects = useCallback(
+    (projects) => {
+      setState({
+        ...state,
+        projects: [...projects]
+      });
+    },
+    [state]
+  );
+
+  return (
+    <ProjectsContext.Provider
+      value={{
+        state,
+        setProjects
+      }}
+    >
+      {props.children}
+    </ProjectsContext.Provider>
+  );
+};
+
+export default JanusAdminWrapper;
