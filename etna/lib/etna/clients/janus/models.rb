@@ -69,6 +69,18 @@ module Etna
         end
       end
 
+      class JsonResponse
+        attr_reader :raw
+
+        def initialize(raw = '')
+          @raw = raw
+        end
+
+        def json
+          @raw
+        end
+      end
+
       class TokenResponse
         attr_reader :raw
 

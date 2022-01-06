@@ -204,7 +204,7 @@ def stub_janus_setup
   stub_request(:get, /#{JANUS_HOST}\/project\/#{PROJECT}/)
     .to_return({
       status: 200,
-      body: '<html><body>A project</body></html>'
+      body: {project: PROJECT}.to_json
     })
 
   stub_request(:get, /#{JANUS_HOST}\/whoami/)

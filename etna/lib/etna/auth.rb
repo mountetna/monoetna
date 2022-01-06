@@ -77,35 +77,50 @@ module Etna
       return true if route && route.ignore_janus?
 
       # process task tokens
-      require 'pry'
-      binding.pry
-      return valid_task_token?(token) if payload['task']
+      if payload['task']
+        return false unless valid_task_token?(token)
+      end
 
-      # return resource_project?(request) if true
+      if route.project_specific?
+        project_name = request.env['rack.request.params'][:project_name]
+        
+        return false if project_name.nil? || project_name.empty?
+
+        return resource_project?(project_name, token) if !user(payload, token).can_view?(project_name)
+      end
 
       return true
+    end
+
+    def user(payload, token)
+      Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h, token)
     end
 
     def has_janus_config?
       application.config(:janus) && application.config(:janus)[:host]
     end
 
-    def resource_project?(request)
+    def resource_project?(project_name, token)
       return false unless has_janus_config?
 
-      require 'pry'
-      binding.pry
+      janus_client(token).get_project(
+        Etna::Clients::Janus::GetProjectRequest.new(
+          project_name: project_name
+        )
+      ).json[:project][:resource]
+    end
+
+    def janus_client(token)
+      Etna::Clients::Janus.new(
+        token: token,
+        host: application.config(:janus)[:host]
+      )
     end
 
     def valid_task_token?(token)
       return false unless has_janus_config?
 
-      janus_client = Etna::Clients::Janus.new(
-        token: token,
-        host: application.config(:janus)[:host]
-      )
-
-      response = janus_client.validate_task_token
+      response = janus_client(token).validate_task_token
 
       return false unless response.code == '200'
 
@@ -121,7 +136,7 @@ module Etna
         payload, header = application.sign.jwt_decode(token)
 
         return false unless janus_approved?(payload, token, request)
-        return request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h, token)
+        return request.env['etna.user'] = user(payload, token)
       rescue
         # bail out if anything goes wrong
         return false

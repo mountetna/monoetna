@@ -8,14 +8,14 @@ module Etna
   module Clients
     class Janus < Etna::Clients::BaseClient
       def get_project(get_project_request = GetProjectRequest.new)
-        html = nil
+        json = nil
         @etna_client.get(
           "/project/#{get_project_request.project_name}",
           get_project_request) do |res|
-          html = res.body
+            json = JSON.parse(res.body, symbolize_names: true)
         end
 
-        HtmlResponse.new(html)
+        JsonResponse.new(json)
       end
 
       def add_project(add_project_request = AddProjectRequest.new)
