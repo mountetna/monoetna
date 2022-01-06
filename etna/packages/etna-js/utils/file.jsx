@@ -8,3 +8,5 @@ export const filePath = (folder_name, file_name) =>
   `${
     !folder_name ? '' : `${folder_name}/`
   }${!file_name ? '' : file_name}`;
+
+export const includesFolders = (path) => path && path.includes("/");

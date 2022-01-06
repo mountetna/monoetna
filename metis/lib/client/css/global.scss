@@ -79,7 +79,8 @@ a {
   background: #eee;
   color: #444;
 
-  &[disabled] {
+  &[disabled],
+  &.disabled {
     pointer-events: none;
     border: 1px solid #ccc;
     background: #eee;
