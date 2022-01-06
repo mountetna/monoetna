@@ -42,7 +42,7 @@ const Project = ({project}) => {
     updateProject(project.project_name, {
       resource: isResource
     }).then(() => {
-      let updatedProjects = [...projects].map((p) => {
+      let updatedProjects = projects.map((p) => {
         if (p.project_name === project.project_name) {
           return {...p, resource: isResource};
         } else {
