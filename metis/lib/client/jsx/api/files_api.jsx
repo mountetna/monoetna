@@ -15,8 +15,15 @@ export const postProtectFile = (project_name, bucket_name, file_name) =>
 export const postUnprotectFile = (project_name, bucket_name, file_name) =>
   json_post(`${window.location.origin}/${project_name}/file/unprotect/${bucket_name}/${file_name}`);
 
-export const postRenameFile = (project_name, bucket_name, file_name, new_file_path) =>
-  json_post(`${window.location.origin}/${project_name}/file/rename/${bucket_name}/${file_name}`, {new_file_path});
+export const postRenameFile = (project_name, bucket_name, file_name, new_file_path, new_bucket_name) => {
+  let payload = {
+    new_file_path
+  };
+
+  if (new_bucket_name) payload.new_bucket_name = new_bucket_name;
+  return json_post(`${window.location.origin}/${project_name}/file/rename/${bucket_name}/${file_name}`, payload);
+}
+
 
 export const getTouchFile = (project_name, bucket_name, file_name) =>
   json_get(`${window.location.origin}/${project_name}/file/touch/${bucket_name}/${file_name}`);
