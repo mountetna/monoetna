@@ -5,6 +5,7 @@ import {
 import {errorMessage} from './message_actions';
 import {assertIsSome} from "etna-js/utils/asserts";
 import DownZip from 'downzip/src/downzip';
+import {selectFilesInCurrentFolder} from '../selectors/folder-selector';
 
 const downZip = new DownZip({ scope: document.location.pathname });
 const addFiles = (files) => ({type: 'ADD_FILES', files});
@@ -98,13 +99,13 @@ export const unprotectFile = ({file, bucket_name}) => (dispatch) => {
     );
 }
 
-export const renameFile = ({file, new_file_path, bucket_name}) => (dispatch) => {
+export const renameFile = ({file, new_file_path, bucket_name, current_folder, new_bucket_name}) => (dispatch) => {
   postRenameFile(
-    CONFIG.project_name, bucket_name, file.file_path, new_file_path
+    CONFIG.project_name, bucket_name, file.file_path, new_file_path, new_bucket_name
   )
     .then(({files}) => {
       dispatch(removeFiles([file]));
-      dispatch(addFiles(files));
+      dispatch(addFiles(selectFilesInCurrentFolder({files, current_folder, bucket_name})));
     })
     .catch(
       errorMessage(dispatch, 'warning', 'File renaming failed', error => error)

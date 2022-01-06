@@ -9,8 +9,15 @@ export const postProtectFolder = (project_name, bucket_name, folder_name) =>
 export const postUnprotectFolder = (project_name, bucket_name, folder_name) =>
   json_post(`/${project_name}/folder/unprotect/${bucket_name}/${folder_name}`);
 
-export const postRenameFolder = (project_name, bucket_name, folder_name, new_folder_path) =>
-  json_post(`/${project_name}/folder/rename/${bucket_name}/${folder_name}`, {new_folder_path});
+export const postRenameFolder = (project_name, bucket_name, folder_name, new_folder_path, new_bucket_name=null) => {
+  let payload = {
+    new_folder_path
+  };
+
+  if (new_bucket_name) payload.new_bucket_name = new_bucket_name;
+
+  return json_post(`/${project_name}/folder/rename/${bucket_name}/${folder_name}`, payload);
+}
 
 export const deleteFolder = (project_name, bucket_name, folder_name, recursive) =>
 json_delete(`/${project_name}/folder/remove/${bucket_name}/${folder_name}`, recursive ? {recursive: true } : {});

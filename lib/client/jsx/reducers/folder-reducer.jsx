@@ -5,6 +5,7 @@ const addFolders = (action, old_folders) => {
 
   let new_folders = folders.reduce((c, folder) => {
     let key = folderKey(folder);
+
     c[key] = folder;
     return c;
   }, {});

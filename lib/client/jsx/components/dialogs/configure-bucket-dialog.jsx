@@ -1,13 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-const ConfigRow = ({children, label}) =>
-  <div className='config-row'>
-    <div className='label'>{ label }</div>
-    <div className='input'>
-      { children }
-    </div>
-  </div>;
+import ConfigRow from './config-row';
 
 const VALID_EMAIL = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
