@@ -15,3 +15,9 @@ def question(magma, question, strip_identifiers=True):
         raise Exception('No answer to magma query with elements: '+ ','.join(flatten(question)))
 
     return [ v[1] for v in query_result['answer'] ] if strip_identifiers else query_result['answer']
+
+def query_tsv(magma, project_name, queryTerms, user_columns=[], expand_matrices=False, transpose=False):
+    query_result = magma.query(
+        project_name, queryTerms=queryTerms, format="tsv",
+        user_columns=user_columns, expand_matrices=expand_matrices, transpose=transpose)
+    return query_result

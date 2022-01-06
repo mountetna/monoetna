@@ -74,11 +74,19 @@ class Magby(object):
     def query(self,
               projectName: str,
               queryTerms: List,
+              format: str = "json",
+              user_columns: Union[List, str] = [],
+              expand_matrices: bool = False,
+              transpose: bool = False,
               **kwargs) -> Dict:
         '''
         Performs an expressive query to Magma.
         :param projectName: str. Project name in Magma
-        :param queryTerms: List[str]. Query terms to magma. See Magma documentation
+        :param queryTerms: List[str]. Query terms to magma. See Magma documentation for 'query' input.
+        :param format: str. Adjusts the format of the returned data if set to "tsv". See Magma documentation
+        :param user_columns: List[str]. An array of desired column renames. Ignored unless 'formate = "tsv"'. See Magma documentation
+        :param expand_matrices: bool, False by default. Whether to expand matrix attributes into individual columns, with one matrix data point per column. Ignored unless 'formate = "tsv"'.
+        :param transpose: bool, False by default. Whether to transpose the resulting data. Ignored unless 'formate = "tsv"'.
         :param kwargs: Additional kwargs to pass to Magma class. Used for passing requests.Session with custom proxies
                         and other attributes
         :return: Dict
@@ -86,8 +94,15 @@ class Magby(object):
         typeSelection = self._selectFormat('json')
         payload = {
             "project_name": projectName,
-            "query": queryTerms
+            "query": queryTerms,
+            "expand_matrices": expand_matrices,
+            "transpose": transpose
         }
+        if format=="tsv":
+            typeSelection = self._selectFormat('meta')
+            payload['format']="tsv"
+        if user_columns!=[]:
+            payload['user_columns']=user_columns
         magma = self._recordMagmaObj(endpoint='query', fmt=typeSelection[0], **kwargs)
         content, _ = self._call_api(payload, magma)
 
