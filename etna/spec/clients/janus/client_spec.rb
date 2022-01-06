@@ -9,7 +9,7 @@ describe 'Janus Client class' do
     stub_janus_setup
   end
 
-  it 'can fetch a project page' do
+  it 'can fetch project details' do
     test_class.get_project(Etna::Clients::Janus::GetProjectRequest.new(
       project_name: 'test'
     ))
