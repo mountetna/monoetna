@@ -76,10 +76,29 @@ module Etna
       # some routes don't need janus approval
       return true if route && route.ignore_janus?
 
-      # only process task tokens right now
-      return true unless payload['task']
+      # process task tokens
+      require 'pry'
+      binding.pry
+      return valid_task_token?(token) if payload['task']
 
-      return false unless application.config(:janus) && application.config(:janus)[:host]
+      # return resource_project?(request) if true
+
+      return true
+    end
+
+    def has_janus_config?
+      application.config(:janus) && application.config(:janus)[:host]
+    end
+
+    def resource_project?(request)
+      return false unless has_janus_config?
+
+      require 'pry'
+      binding.pry
+    end
+
+    def valid_task_token?(token)
+      return false unless has_janus_config?
 
       janus_client = Etna::Clients::Janus.new(
         token: token,
