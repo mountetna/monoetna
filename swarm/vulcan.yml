@@ -160,11 +160,13 @@ secrets:
     name: "vulcan_production_db_password"
   user-hash-secret:
     external: true
+    name: ${USER_HASH_SECRET:-user-hash-secret}
   metrics-pw:
     external: true
+    name: ${METRICS_PW:-metrics-pw}
   rollbar-access-token:
     external: true
-    name: "vulcan-rollbar-token"
+    name: ${ROLLBAR_ACCESS_TOKEN:-vulcan-rollbar-token}
 
 networks:
   fe:

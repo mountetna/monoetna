@@ -147,12 +147,16 @@ configs:
 secrets:
   user-hash-secret:
     external: true
+    name: ${USER_HASH_SECRET:-user-hash-secret}
   metrics-pw:
     external: true
+    name: ${METRICS_PW:-metrics-pw}
   staging-metis-hmac:
     external: true
+    name: ${STAGING_METIS_HMAC:-staging-metis-hmac}
   staging-magma-hmac:
     external: true
+    name: ${STAGING_MAGMA_HMAC:-staging-magma-hmac}
   db-pw:
     external: true
     name: "${APP_NAME}_${ENV}_db_password"

@@ -277,7 +277,7 @@ function awaitServiceDeploy() {
 
         break
         ;;
-      rollback_completed|rollback_failed|rollback_started)
+      rollback_completed|rollback_failed|rollback_started|rollback_paused)
         break
         ;;
     esac
