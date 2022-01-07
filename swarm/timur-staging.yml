@@ -2,70 +2,54 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:10.12
+    image: postgres:10.19
     environment:
-      POSTGRES_DB: 'vulcan'
-      POSTGRES_PASSWORD: /run/secrets/password
+      POSTGRES_DB: "${APP_NAME}"
+      POSTGRES_PASSWORD_FILE: /run/secrets/password
       POSTGRES_USER: developer
     volumes:
       - db:/var/lib/postgresql/data
     deploy:
       placement:
         constraints:
-          - node.labels.volumes.vulcan_db == true
+          - node.labels.volumes.${APP_NAME}_${ENV}_db == true
     networks:
       - db
     secrets:
       - source: db-pw
         target: password
 
-  # Exists purely to allow updates to its image via service deployer.
-  # Intention is for this to be removed when we move the scheduler to airflow.
-  archimedes:
-    command: 
-      - bash
-      - -c
-      - sleep 1
-    image: etnaagent/archimedes:production
-    deploy:
-      labels:
-        - autoupdate=true
-      placement:
-        # This should match the hosts that vulcan are deployed on.
-        constraints:
-          - node.labels.volumes.vulcan_data == true
-
   app:
     environment:
-      - APP_NAME=vulcan
-      - VULCAN_ENV=production
+      - APP_NAME=${APP_NAME}
+      - ${APP_ENV}=production
       - ETNA__PRODUCTION_FILE=/app/env.yml
       - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
       - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN=/run/secrets/rollbar-access-token
       - ETNA__PRODUCTION__USER_HASH_SECRET=/run/secrets/user-hash-secret
-      - HOST_DIR_MAP=/app/data=/data_change_me_when_done
+      #- ETNA__PRODUCTION__HMAC_KEYS__METIS_FILE=/run/secrets/staging-metis-hmac
+      #- ETNA__PRODUCTION__HMAC_KEYS__MAGMA_FILE=/run/secrets/staging-metis-hmac
     command:
       - bash
       - -c
       - |
         set -e
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
-        exec /bin/deploy.sh migrate 'docker pull etnaagent/archimedes:production' -- /app/bin/puma.sh
-    image: etnaagent/vulcan:production
+        exec /bin/deploy.sh migrate -- /app/bin/puma.sh
+    image: etnaagent/${APP_NAME}:${ENV}
     volumes:
-      - /data_change_me_when_done/vulcan:/app/data/vulcan
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      #- ${DATA_SOURCE}/${APP_NAME}/:/app/data/${APP_NAME}
       - /var/node_exporter/metrics.prom:/tmp/metrics.prom
-    user: 0:999 #1502:999 # vulcan:docker
+    #user: ${APP_UID}:999 # metis:docker
     deploy:
       update_config:
         parallelism: 1
         order: start-first
       labels:
         - autoupdate=true
-      placement:
-        constraints:
-          - node.labels.volumes.vulcan_data == true
+      #placement:
+        #constraints:
+          #- node.labels.volumes.${APP_NAME}_${ENV}_data == true
     healthcheck:
       interval: 10s
       retries: 3
@@ -82,28 +66,30 @@ services:
       prometheus:
       fe:
         aliases:
-          - vulcan_app
+          - ${APP_NAME}_app
     secrets:
+      #- staging-metis-hmac
+      #- staging-magma-hmac
       - metrics-pw
       - user-hash-secret
       - source: db-pw
         target: db-password
-      - rollbar-access-token
-      
+      #- rollbar-access-token
 
   app_fe:
     environment:
-      - APP_NAME=vulcan
-      - VULCAN_ENV=production
-
-    image: etnaagent/vulcan_app_fe:production
+      - APP_NAME=${APP_NAME}
+      - ${APP_ENV}=production
+    image: etnaagent/${APP_NAME}_app_fe:${ENV}
     networks:
       - edge_bridge
       - fe
     volumes:
       - app_public:/app/public
-      - /data_change_me_when_done/vulcan:/app/data/vulcan:ro
-    user: 0:3000 # TODO: Can vulcan user be used here?
+      #- ${DATA_SOURCE}/${APP_NAME}/:/app/data/${APP_NAME}:ro
+    # Notably, apache needs to start as super user but it immediately downgrades
+    # its own user permissions after bootup.  See the includes.
+    user: 0:3000 # su:browser
     configs:
       - source: browser.system.include
         target: /usr/opt/httpd.conf.d/browser.system.include
@@ -114,16 +100,16 @@ services:
         condition: none
       placement:
         constraints:
-        - node.labels.volumes.vulcan_app_public == true
-        - node.labels.volumes.vulcan_data == true
+          - node.labels.volumes.${APP_NAME}_${ENV}_app_public == true
+          #- node.labels.volumes.${APP_NAME}_${ENV}_data == true
 
   app_assets_deployer:
     environment:
-      APP_NAME: vulcan
-      VULCAN_ENV: production
+      - APP_NAME=${APP_NAME}
+      - ${APP_ENV}=production
 
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
-    image: etnaagent/vulcan:production
+    image: etnaagent/${APP_NAME}:${ENV}
     volumes:
       - app_public:/sync-assets:rw
 
@@ -136,12 +122,12 @@ services:
       placement:
         max_replicas_per_node: 1
         constraints:
-          - node.labels.volumes.vulcan_app_public == true
+          - node.labels.volumes.${APP_NAME}_${ENV}_app_public == true
 
 volumes:
   app_public:
   db:
-    name: vulcan_db
+    name: "${APP_NAME}_${ENV}_db"
 
 configs:
   browser.system.include:
@@ -149,24 +135,27 @@ configs:
     external: true
   config:
     external: true
-    name: ${APP_CONFIG:-vulcan.production.yml}
+    name: ${APP_CONFIG:-timur.staging.yml}
   env:
     external: true
-    name: ${ENV_CONFIG:-etna.production.yml}
+    name: ${ENV_CONFIG:-etna.staging.yml}
 
 secrets:
-  db-pw:
-    external: true
-    name: "vulcan_production_db_password"
   user-hash-secret:
     external: true
     name: ${USER_HASH_SECRET:-user-hash-secret}
   metrics-pw:
     external: true
     name: ${METRICS_PW:-metrics-pw}
-  rollbar-access-token:
+  staging-metis-hmac:
     external: true
-    name: ${ROLLBAR_ACCESS_TOKEN:-vulcan-rollbar-token}
+    name: ${STAGING_METIS_HMAC:-staging-metis-hmac}
+  staging-magma-hmac:
+    external: true
+    name: ${STAGING_MAGMA_HMAC:-staging-magma-hmac}
+  db-pw:
+    external: true
+    name: "${APP_NAME}_${ENV}_db_password"
 
 networks:
   fe:

@@ -71,6 +71,7 @@ volumes:
 secrets:
   redis_password:
     external: true
+    name: ${REDIS_PASSWORD:-redis_password}
 
 networks:
   redis:

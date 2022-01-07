@@ -13,8 +13,8 @@ inputs:
   1_Data_Source_magma_query__expand_matrices:
     type: boolean
     label: "expand_matrices input"
-    default: false
-    doc: "Whether to expand matrix attributes into individual columns, with one matrix data point per column."
+    default: true
+    doc: "Whether to expand matrix attributes into individual columns, with one matrix data point per column.  In most cases, you'll want to leave this checked."
   1_Data_Source_magma_query__transpose:
     type: boolean
     label: "transpose input"
