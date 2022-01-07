@@ -16,6 +16,11 @@ describe 'Janus Client class' do
     expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/project\/test/)
   end
 
+  it 'can fetch user projects' do
+    test_class.get_projects()
+    expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/projects/)
+  end
+
   it 'can add a new project' do
     test_class.add_project(Etna::Clients::Janus::AddProjectRequest.new(
       project_name: 'test',
