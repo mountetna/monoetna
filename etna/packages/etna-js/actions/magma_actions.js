@@ -360,7 +360,7 @@ export const requestAnswer = (question, callback = null) => dispatch => {
       else return response;
   }).catch( error => {
     console.error(error);
-    return Promise.reject(error);
+    throw (error);
   });
 }
 
