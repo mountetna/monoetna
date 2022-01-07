@@ -24,8 +24,7 @@ class AdminController < Janus::Controller
       #   all the information.
       {
         project_name: project.project_name,
-        project_name_full: project.project_name_full,
-        resource: project.resource
+        project_name_full: project.project_name_full
       }
     end
 
