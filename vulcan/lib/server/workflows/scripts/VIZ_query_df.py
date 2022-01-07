@@ -19,6 +19,4 @@ tsv_result = query_tsv(magma, project_name,
     expand_matrices=expand_matrices,
     transpose=False)
 
-print(tsv_result)
-
 tsv_result.to_json(output_path("data_frame"))
