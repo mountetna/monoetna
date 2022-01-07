@@ -75,7 +75,7 @@ module Etna
     end
 
     def can_view? project
-      is_superviewer? || has_any_role?(project, :admin, :editor, :viewer)
+      is_superviewer? || has_any_role?(project, :admin, :editor, :viewer) || resource_project?(project)
     end
 
     # superusers - administrators of the Administration group - cannot
@@ -92,6 +92,31 @@ module Etna
 
     def active? project=nil
       permissions.keys.length > 0
+    end
+
+    def resource_project?(project_name)
+      return false unless has_janus_config?
+
+      janus_client(token).get_project(
+        Etna::Clients::Janus::GetProjectRequest.new(
+          project_name: project_name
+        )
+      ).json[:project][:resource]
+    end
+
+    def has_janus_config?
+      application.config(:janus) && application.config(:janus)[:host]
+    end
+
+    def janus_client(token)
+      Etna::Clients::Janus.new(
+        token: token,
+        host: application.config(:janus)[:host]
+      )
+    end
+
+    def application
+      @application ||= Etna::Application.instance
     end
   end
 end

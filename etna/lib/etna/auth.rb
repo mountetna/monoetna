@@ -76,20 +76,10 @@ module Etna
       # some routes don't need janus approval
       return true if route && route.ignore_janus?
 
+      return true unless payload['task']
+
       # process task tokens
-      if payload['task']
-        return false unless valid_task_token?(token)
-      end
-
-      if route.project_specific?
-        project_name = request.env['rack.request.params'][:project_name]
-        
-        return false if project_name.nil? || project_name.empty?
-
-        return resource_project?(project_name, token) if !user(payload, token).can_view?(project_name)
-      end
-
-      return true
+      valid_task_token?(token)
     end
 
     def user(payload, token)
@@ -98,16 +88,6 @@ module Etna
 
     def has_janus_config?
       application.config(:janus) && application.config(:janus)[:host]
-    end
-
-    def resource_project?(project_name, token)
-      return false unless has_janus_config?
-
-      janus_client(token).get_project(
-        Etna::Clients::Janus::GetProjectRequest.new(
-          project_name: project_name
-        )
-      ).json[:project][:resource]
     end
 
     def janus_client(token)

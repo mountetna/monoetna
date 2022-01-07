@@ -18,6 +18,16 @@ module Etna
         JsonResponse.new(json)
       end
 
+      def get_projects()
+        json = nil
+        @etna_client.get(
+          "/projects") do |res|
+            json = JSON.parse(res.body, symbolize_names: true)
+        end
+
+        JsonResponse.new(json)
+      end
+
       def add_project(add_project_request = AddProjectRequest.new)
         @etna_client.post('/add_project', add_project_request) do |res|
           # Redirect, no response data
