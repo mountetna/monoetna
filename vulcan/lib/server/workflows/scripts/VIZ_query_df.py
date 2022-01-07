@@ -11,14 +11,13 @@ def wrap_brackets(str):
 queryTerms = input_json('queryTerms')
 user_columns = json.loads(wrap_brackets(input_var('user_columns')))
 expand_matrices = input_bool('expand_matrices')
-transpose = input_bool('transpose')
 
 magma = connect()
 tsv_result = query_tsv(magma, project_name,
     queryTerms=queryTerms,
     user_columns=user_columns,
     expand_matrices=expand_matrices,
-    transpose=transpose)
+    transpose=False)
 
 print(tsv_result)
 
