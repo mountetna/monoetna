@@ -290,39 +290,17 @@ describe UserController do
         project_name: "tunnel",
         project_name_full: "Tunnel",
         role: "viewer",
-        privileged: true,
-        resource: false
+        privileged: true
       }, {
         project_name: "mirror",
         project_name_full: "Mirror",
         role: "editor",
-        privileged: nil,
-        resource: false
+        privileged: nil
       }, {
         project_name: "gateway",
         project_name_full: "Gateway",
         role: "editor",
-        privileged: nil,
-        resource: false
-      }])
-    end
-
-    it 'includes resource projects' do
-      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
-
-      gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
-      tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
-      mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
-      door = create(:project, project_name: 'door', project_name_full: 'Door', resource: true)
-
-      auth_header(:janus)
-      get('/projects')
-
-      expect(last_response.status).to eq(200)
-      expect(json_body[:projects]).to eq([{
-        project_name: "door",
-        project_name_full: "Door",
-        resource: true
+        privileged: nil
       }])
     end
   end
