@@ -5,7 +5,7 @@ inputs:
   1_Data_Source_magma_query__queryTerms:
     type: string
     label: "query input"
-    doc: "The set of terms for constructing a magma query towards the data of interest.  Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'query'-chunk presented in a yellow box there!"
+    doc: "The set of terms for constructing a magma query towards the data of interest.  Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'query'-chunk presented in a green box there!"
   1_Data_Source_magma_query__user_columns:
     type: string
     label: "user_columns input"
