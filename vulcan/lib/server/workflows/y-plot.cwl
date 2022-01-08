@@ -5,22 +5,17 @@ inputs:
   1_Data_Source_magma_query__queryTerms:
     type: string
     label: "query input"
-    doc: "The set of terms for constructing a magma query towards the data of interest.  Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'query'-chunk presented in a yellow box there!"
+    doc: "The set of terms for constructing a magma query towards the data of interest.  Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'query'-chunk presented in a green box there!"
   1_Data_Source_magma_query__user_columns:
     type: string
     label: "user_columns input"
-    doc: "Optional array or comma-separated set of *quoted* strings for renaming columns of the returned data.  *Coming Soon* Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'user_columns'-chunk presented there!"
+    doc: "Optional comma-separated set of *quoted* strings for renaming columns of the returned data.  Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'user_columns'-chunk presented there!"
   1_Data_Source_magma_query__expand_matrices:
     type: boolean
     label: "expand_matrices input"
     default: true
     doc: "Whether to expand matrix attributes into individual columns, with one matrix data point per column.  In most cases, you'll want to leave this checked."
-  1_Data_Source_magma_query__transpose:
-    type: boolean
-    label: "transpose input"
-    default: false
-    doc: "Whether to transpose the resulting dataframe."
-
+  
 outputs:
   the_plot:
     type: File
@@ -34,7 +29,6 @@ steps:
       queryTerms: 1_Data_Source_magma_query__queryTerms
       user_columns: 1_Data_Source_magma_query__user_columns
       expand_matrices: 1_Data_Source_magma_query__expand_matrices
-      transpose: 1_Data_Source_magma_query__transpose
     out: [data_frame]
   fill_plot_options:
     run: ui-queries/y-plotly.cwl
