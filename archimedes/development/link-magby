@@ -1,0 +1,12 @@
+#! /usr/bin/env bash
+
+set -e
+set -x
+
+MAGBY_SITEPACKAGE_PATH=$(poetry env info -p)/lib/python3.8/site-packages/magby
+
+if ! test -h "$MAGBY_SITEPACKAGE_PATH"; then
+  rm -rf "$MAGBY_SITEPACKAGE_PATH"
+  ln -s /magby/magby/ "$MAGBY_SITEPACKAGE_PATH"
+fi
+
