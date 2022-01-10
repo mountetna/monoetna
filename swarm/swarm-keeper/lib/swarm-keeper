@@ -98,7 +98,7 @@ function findStack() {
   stackId=$(api GET /stacks | jq  --arg n "$1" -c '.[] | select(.Name == $n) | .Id')
 
   if [[ -z "$stackId" ]]; then
-    echo "Could not find stack $1" 1>&2
+    echo "Could not find stack '$1'" 1>&2
     echo "Found these: $(api GET /stacks | jq -r -c '.[] | .Name')" 1>&2
     return 1
   fi
@@ -116,7 +116,7 @@ function downloadStack() {
   stack="$1"
   id="$(dig "$stack" -r '.Id')"
 
-  api GET /stacks/$id/file | jq -r -c '.StackFileContent' > $tmp
+  api GET /stacks/$id/file | jq -r -c '.StackFileContent' > $tmp || return 1
   echo $tmp
 }
 
@@ -225,6 +225,26 @@ function getConfig() {
   getResourceBy "name" "$1" "configs" '.Spec.Name'
 }
 
+function getSecret() {
+  set -eo pipefail
+  getResourceBy "name" "$1" "secrets" '.Spec.Name'
+}
+
+
+function deleteSecret() {
+  set -eo pipefail
+  local secret
+
+  secret=$(getSecret "$1" || echo null)
+  if nonNull "$secret"; then
+    echo "Removing secret $1"
+    dockerApi DELETE /secrets/$(dig "$secret" -r '.ID') 1>/dev/null || return 1
+    return 0
+  fi
+  echo "Secret $1 not found, skipping delete."
+}
+
+
 function deleteConfig() {
   set -eo pipefail
   local config
@@ -241,7 +261,7 @@ function deleteConfig() {
 function awaitServiceDeploy() {
   set -eo pipefail
 
-  local serviceName success service filtersJson status updateStartedAt completed serviceState
+  local serviceName success service filtersJson status updateStartedAt completed serviceState task tasks
 
   serviceName="$1"
   success=
@@ -265,7 +285,8 @@ function awaitServiceDeploy() {
       paused)
         serviceState=
 
-        while IFS=$'\n' read -r task; do
+        IFS=$'\n' readarray -t tasks <<< "$completed"
+        for task in "${tasks[@]}"; do
           serviceState=$(dig "$task" -r '.Status.State')
           if [[ "$serviceState" != "complete" ]]; then
             success=
@@ -273,7 +294,7 @@ function awaitServiceDeploy() {
           fi
 
           success=1
-        done <<< "$completed"
+        done
 
         break
         ;;
@@ -302,7 +323,7 @@ function awaitStackDeploy() {
   endpoint="$(dig "$stack" -r '.EndpointId')"
   stackId="$(dig "$stack" -r '.Id')"
   name="$(dig "$stack" -r '.Name')"
-  services="$(servicesInStack "$stack")"
+  services="$(servicesInStack "$stack")" || return 1
   deployFailed=
 
   echo "Awaiting stack '$name' services to converge..."
@@ -329,23 +350,35 @@ function downloadConfig() {
   echo $tmp
 }
 
-function findConfigsByCanonicalName() {
+function findByCanonicalName() {
   set -eo pipefail
-  local filtersJson canonName
+  local filtersJson canonName resourcesName
   canonName="$1"
+  resourcesName="$2"
   filtersJson=$(printJson '{name: [$v1]}' "$canonName")
-  dockerApi GET /configs "filters==$filtersJson" | jq --arg v1 "$canonName" 'map(select(.Spec.Name == $v1 or .Spec.Labels.replaces == $v1 or .Spec.Labels.canon == $v1))'
+  dockerApi GET /$resourcesName "filters==$filtersJson" | jq --arg v1 "$canonName" 'map(select(.Spec.Name == $v1 or .Spec.Labels.replaces == $v1 or .Spec.Labels.canon == $v1))'
+}
+
+
+function findConfigsByCanonicalName() {
+  findByCanonicalName "$1" "configs"
 }
 
 function canonicalNameOf() {
   dig "$1" -r '.Spec.Labels.canon // .Spec.Labels.replaces // .Spec.Name'
 }
 
-function findCanonicalConfigsOf() {
+function findCanonicalOf() {
   set -eo pipefail
-  local canonName
+  local canonName resourcesName
   canonName=$(canonicalNameOf "$1")
-  findConfigsByCanonicalName "$canonName"
+  resourcesName="$2"
+  findByCanonicalName "$canonName" "$resourcesName"
+}
+
+
+function findCanonicalConfigsOf() {
+  findCanonicalOf "$1" "configs"
 }
 
 function updateService() {
@@ -364,33 +397,35 @@ function updateService() {
   echo "$update" | dockerApi POST /services/$serviceId/update version=="$version" 1>/dev/null
 }
 
-function convergeConfig() {
+function convergeReplacement() {
   set -eo pipefail
 
-  local config configName deployFailed anyDeployFailed
+  local obj targetName deployFailed anyDeployFailed resourcesName
   local env replaceTargetNames newEnv stacks
 
-  config="$1"
-  configName="$(dig "$config" -r '.Spec.Name')"
-  replaceTargetNames=$(findCanonicalConfigsOf "$config" | jq 'map(.Spec.Name)')
+  obj="$1"
+  resourcesName="$2"
+  targetName="$(dig "$obj" -r '.Spec.Name')"
+  replaceTargetNames=$(findCanonicalOf "$obj" "$resourcesName" | jq 'map(.Spec.Name)')
   anyDeployFailed=
   stacks="$(listStacks)" || return 1
+  IFS=$'\n' readarray -t stacks <<< "$stacks"
 
-  echo "Targeting replacement of configs $replaceTargetNames" 1>&2
+  echo "Targeting replacement of $resourcesName $replaceTargetNames" 1>&2
 
-  while IFS=$'\n' read -r stack; do
+  for stack in "${stacks[@]}"; do
     deployFailed=
     env=$(dig "$stack" '.Env')
-    newEnv=$(dig "$env" --argjson targetNames "$replaceTargetNames" --arg configName "$configName" 'map(if (.value as $v | $targetNames | index($v) >= 0) then .value |= $configName  else . end)')
+    newEnv=$(dig "$env" --argjson targetNames "$replaceTargetNames" --arg targetName "$targetName" 'map(if (.value as $v | $targetNames | index($v) >= 0) then .value |= $targetName  else . end)')
     if [[ "$newEnv" != "$env" ]]; then
       updateStackYml  "$stack" "" "$newEnv" || deployFailed=1
       awaitStackDeploy "$stack" || deployFailed=1
       if [[ -n "$deployFailed" ]]; then
-        postToSlack "Deployment of config $configName to $(dig "$stack" '.Name') failed, check portainer."
+        postToSlack "Deployment of $resourcesName $targetName to $(dig "$stack" '.Name') failed, check portainer."
         anyDeployFailed=1
       fi
     fi
-  done <<< "$stacks"
+  done
 
   if [[ -z "$anyDeployFailed" ]]; then
     return 0
@@ -460,16 +495,49 @@ function printJson() {
   jq -n -c "${args[@]}" "$formula"
 }
 
+function createSecret() {
+  set -eo pipefail
+
+  local original labels data now name
+  local name
+  name="$1"
+  data="$2"
+  labels="$3"
+
+  dockerApi POST /secrets/create "Name=$name" "Data=$data" "Labels:=$labels"
+}
+
+
 function createConfig() {
   set -eo pipefail
 
-  local original labels data newConfigId now name
+  local original labels data now name
   local name
   name="$1"
   data="$2"
   labels="$3"
 
   dockerApi POST /configs/create "Name=$name" "Data=$data" "Labels:=$labels"
+}
+
+function deriveNextSecret() {
+  set -eo pipefail
+
+  local original labels data newId now name
+  original=$(getSecret "$1") || return 1
+  data="$2"
+  labels=$(dig "$original" '.Spec.Labels // {}')
+  canonName=$(dig "$labels" -r '.canon // .replaces // ""')
+  if [[ -z "$canonName" ]]; then
+    canonName="$1"
+  fi
+
+  labels=$(mergeJson "$labels" "$(printJson '{replaces: $v1, canon: $v2}' "$1" "$canonName")")
+  now=$(date +"%s")
+  name=${3:-"${canonName}_${now}"}
+
+  newId=$(createSecret "$name" "$data" "$labels" | jq -r '.ID') || return 1
+  withCopiedResourceControls "$original" dockerApi GET /secrets/$newId || return 1
 }
 
 function deriveNextConfig() {
@@ -502,6 +570,18 @@ function listUpdateableServiceNames() {
 function shaOfImageDigest() {
   if [[ "$1" =~ ([^@]*)@(.*) ]]; then
     echo ${BASH_REMATCH[2]}
+  fi
+}
+
+function versionOfStackFilePath() {
+  if [[ "$1" =~ ([^.]*)\.([0-9]+)\.(.*) ]]; then
+    echo ${BASH_REMATCH[2]}
+  fi
+}
+
+function nameOfStackFilePath() {
+  if [[ "$1" =~ ([^.]*)\.(.*) ]]; then
+    echo ${BASH_REMATCH[1]}
   fi
 }
 
@@ -604,9 +684,12 @@ function postToSlack() {
 
 function updateGitSources() {
   set -eo pipefail
-  local name stack
+  local name stack stacks
 
-  while IFS=$'\n' read -r stack; do
+  stacks=$(listStacks) || return 1
+  IFS=$'\n' readarray -t stacks <<< "$stacks"
+
+  for stack in "${stacks[@]}"; do
     name=$(dig "$stack" '.Name')
     echo "Processing $name"
     gitConfig=$(dig "$stack" '.GitConfig')
@@ -619,7 +702,7 @@ function updateGitSources() {
       cd ..
       rm -rf $dir
     fi
-  done <<< "$(listStacks)"
+  done
 }
 
 function runCommand() {
@@ -641,20 +724,91 @@ function runCommand() {
 
     portainer-deploy-stack)
       doPortainerAuth
-      path="$(git ls-tree --full-name --name-only HEAD $1)"
-      stacks="$(listStacks)"
-      while IFS=$'\n' read -r stack; do
-        gitConfig=$(dig "$stack" '.GitConfig')
-        stackPath="$(dig "$gitConfig" -r '.ConfigFilePath')"
-        if [[ "$stackPath" == "$path" ]]; then
-          updateStackYml  "$stack" "$(cat "$1")" || return 1
-          awaitStackDeploy "$stack" || deployFailed=1
-          if [[ -n "$deployFailed" ]]; then
-            echo "Deployment of $path to $(dig "$stack" '.Name') failed, check portainer."
-            anyDeployFailed=1
-          fi
+
+      trueFilePath=
+      if ! [[ -e "$1" ]]; then
+        echo "Could not find file $1, assuming this is a new stack name..."
+        stackFileName=
+        stackName=$1
+      else
+        trueFilePath=$(readlink -f "$1") || return 1
+        stackFileName=$(basename "$trueFilePath")
+        stackName=$(nameOfStackFilePath "$stackFileName")
+      fi
+
+      stack=$(findStack "$stackName")
+      version=$(dig "$stack" -r '.updateDate // .UpdateDate // ""')
+      localVersion=$(versionOfStackFilePath "$stackFileName")
+      echo "Found remote version '$version', local version is '$localVersion'"
+      [[ -z "$version" ]] && return 1
+      conflict=
+
+      if [[ $localVersion == $version ]]; then
+        updateStackYml "$stack" "$(cat $1)" || return 1
+        awaitStackDeploy "$stack" || deployFailed=1
+        if [[ -n "$deployFailed" ]]; then
+          echo "Deployment of $path to $(dig "$stack" '.Name') failed, check portainer."
+          anyDeployFailed=1
         fi
-      done <<< "$stacks"
+        stack=$(findStack "$stackName") || return 1
+        version=$(dig "$stack" -r '.updateDate // .UpdateDate // ""') || return 1
+        echo "$stack" | jq
+      else
+        echo "Local stack version from file was '$localVersion', but remote version was '$version'."
+        conflict=1
+      fi
+
+      curVersionFilePath="$(dirname "$1")/$stackName.$version.yml"
+      echo "Downloading current stack to $curVersionFilePath"
+      cur=$(downloadStack "$stack") || return 1
+      mv $cur "$curVersionFilePath" || return 1
+
+      if [[ -n "$conflict" ]]; then
+        echo "Edit $curVersionFilePath and rerun portainer-deploy-stack"
+
+        if [[ -n "$trueFilePath" ]]; then
+          echo "Compare upstream changes with: diff $trueFilePath $curVersionFilePath"
+          tmp=$(mktemp)
+          diff $trueFilePath $curVersionFilePath > $tmp
+          echo "I've recorded the diff to $tmp for your convenience"
+        fi
+      fi
+
+      if [[ -z "$conflict" ]] && [[ -n "$trueFilePath" ]]; then
+        rm "$trueFilePath"
+      fi
+
+      ln -sf "$(basename $curVersionFilePath)" "$(dirname "$1")/$stackName.yml"
+      ;;
+
+    portainer-swap-secret)
+      originalName="$1"
+      doPortainerAuth
+
+      originalSecret=$(getSecret "$originalName" || echo null)
+      if ! nonNull "$originalSecret"; then
+        secrets=$(findByCanonicalName "$1" "secrets") || return 1
+        secretNames=$(dig "$secrets" -r 'map(.Spec.Name)')
+        echo "Could not find secret by name $originalName, dig you mean one of $secretNames?"
+        return 1
+      fi
+
+      canonicalName=$(canonicalNameOf "$originalSecret")
+
+      tmp=$(mktemp)
+      if editsFile $tmp; then
+        echo "Creating secret..."
+        next=$(deriveNextSecret "$originalName" "$(encodeData "$(cat $tmp)")") || return 1
+        echo "Deploying secret file change..."
+        convergeReplacement "$next" "secrets" || return 1
+        deleteSecret "$canonicalName" || return 1
+        echo "Redeploying secret as $canonicalName..."
+        next=$(deriveNextSecret "$(dig "$next" -r '.Spec.Name')" "$(encodeData "$(cat $tmp)")" "$canonicalName") || return 1
+        convergeReplacement "$next" "secrets" || return 1
+        echo "Success"
+      else
+        echo "File was not modified, not deploying"
+      fi
       ;;
 
     portainer-edit-config)
@@ -676,11 +830,11 @@ function runCommand() {
         echo "Creating config..."
         next=$(deriveNextConfig "$originalName" "$(encodeData "$(cat $tmp)")") || return 1
         echo "Deploying config file change..."
-        convergeConfig "$next" || return 1
+        convergeReplacement "$next" "configs" || return 1
         deleteConfig "$canonicalName" || return 1
         echo "Redeploying config as $canonicalName..."
         next=$(deriveNextConfig "$(dig "$next" -r '.Spec.Name')" "$(encodeData "$(cat $tmp)")" "$canonicalName") || return 1
-        convergeConfig "$next" || return 1
+        convergeReplacement "$next" "configs" || return 1
         echo "Success"
       else
         echo "File was not modified, not deploying"

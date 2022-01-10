@@ -48,6 +48,9 @@ if dockerApi GET /not-a-url; then
   exit 1
 fi
 
+loadRecording $DIR/getSecret.recording
+getSecret user-hash-secret
+
 loadRecording $DIR/getService.recording
 getService airflow_scheduler
 
@@ -62,15 +65,15 @@ function postToSlack() {
   echo "Would have posted to slack: $1"
 }
 
-loadRecording $DIR/deploy-stack.recording
-f=$(downloadStack "$(findStack agents)")
-
-if ! [[ -f "swarm/agents.yml" ]]; then
-  mkdir -p swarm
-  cat "$f" > swarm/agents.yml
-fi
-
-runCommand portainer-deploy-stack swarm/agents.yml
+#loadRecording $DIR/deploy-stack.recording
+#f=$(downloadStack "$(findStack agents)")
+#
+#if ! [[ -f "swarm/agents.yml" ]]; then
+#  mkdir -p swarm
+#  cat "$f" > swarm/agents.yml
+#fi
+#
+#runCommand portainer-deploy-stack swarm/agents.yml
 
 loadRecording $DIR/edit-config-deploy.recording
 runCommand portainer-edit-config timur.staging.yml
