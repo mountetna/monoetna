@@ -76,31 +76,17 @@ module Etna
       # some routes don't need janus approval
       return true if route && route.ignore_janus?
 
+      # only process task tokens right now
       return true unless payload['task']
 
-      # process task tokens
-      valid_task_token?(token)
-    end
+      return false unless application.config(:janus) && application.config(:janus)[:host]
 
-    def user(payload, token)
-      Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h, token)
-    end
-
-    def has_janus_config?
-      application.config(:janus) && application.config(:janus)[:host]
-    end
-
-    def janus_client(token)
-      Etna::Clients::Janus.new(
+      janus_client = Etna::Clients::Janus.new(
         token: token,
         host: application.config(:janus)[:host]
       )
-    end
 
-    def valid_task_token?(token)
-      return false unless has_janus_config?
-
-      response = janus_client(token).validate_task_token
+      response = janus_client.validate_task_token
 
       return false unless response.code == '200'
 
@@ -116,7 +102,7 @@ module Etna
         payload, header = application.sign.jwt_decode(token)
 
         return false unless janus_approved?(payload, token, request)
-        return request.env['etna.user'] = user(payload, token)
+        return request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h, token)
       rescue
         # bail out if anything goes wrong
         return false
