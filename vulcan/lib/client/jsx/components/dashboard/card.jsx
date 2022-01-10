@@ -7,6 +7,9 @@ import ImageMemo from './image_memo';
 
 // To get webpack to pick up the files.
 require('../../../img/umap.png');
+require('../../../img/barplot.png');
+require('../../../img/scatter.png');
+require('../../../img/yplot.png');
 require('../../../img/default.png');
 require('../../../img/add_integers.png');
 

@@ -1,0 +1,115 @@
+function disableMocks() {
+  export PATH=${PATH/$MOCK_PATH/}
+  MOCK_PATH=
+}
+
+function mock() {
+  disableMocks
+
+  for cmd in $@; do
+      echo "Creating record/playback mocks for $cmd..."
+      local dir=$(mktemp -d)
+
+      MOCK_PATH=$dir:$MOCK_PATH
+      echo "#!/usr/bin/env bash
+set -e -o pipefail
+runMock ${dir} ${cmd} \"\$@\"
+      " > $dir/$cmd
+      chmod +x $dir/$cmd
+  done
+
+  export PATH=${MOCK_PATH}${PATH}
+}
+
+function runMock() {
+  set -e
+  set -o pipefail
+  local dir=$1
+  shift
+  local PATH=${PATH/$dir:/}
+
+  local cmd=$1
+  shift
+
+  if [[ -z "$RECORD_FILE" ]]; then
+    $cmd "$@"
+  else
+    local args
+    args=$(printf '%s\n' "$@" | sed -e "s/${RECORD_CENSURE:-xxx}/xxx/g" | jq -R . | jq -s .)
+    local stdout=$(mktemp)
+    local stderr=$(mktemp)
+    local stdin=$(mktemp)
+
+    case ${RECORD_MODE:-playback} in
+      record)
+        if ! [ -t 0 ] ; then
+          cat - > $stdin
+        fi
+
+        local result=127
+        if ! [ -t 0 ]; then
+            if cat $stdin | $cmd "$@" 1> >(tee $stdout) 2> >(tee $stderr >&2); then
+              result=0
+            else
+              result=$?
+            fi
+        else
+            if $cmd "$@" 1> >(tee $stdout) 2> >(tee $stderr >&2); then
+              result=0
+            else
+              result=$?
+            fi
+        fi
+
+        jq -n -c --argjson args "$args" --arg cmd "$cmd" --arg i "$(wc -l $RECORD_FILE)" \
+          --arg stdin "$(cat $stdin)" --arg stdout "$(cat $stdout)" --arg stderr "$(cat $stderr)" --arg result $result \
+          '{cmd: $cmd, args: $args, result: $result, stdin: $stdin, stdout: $stdout, stderr: $stderr, i: $i}' >> $RECORD_FILE
+
+        return $result
+        ;;
+      playback)
+        if ! [ -t 0 ] ; then
+          cat - > $stdin
+        fi
+
+        line=$(cat $RECORD_FILE | jq -c --argjson args "$args" --arg cmd "$cmd" --arg stdin "$(cat $stdin)" \
+          'select(.cmd == $cmd and .args == $args and .stdin == $stdin)' | head -n 1 || true)
+
+        if [[ -z "$line" ]]; then
+          echo "Could not find matching request" 1>&2
+          echo "$cmd
+$args" 1>&2
+          exit 1
+        fi
+
+        cat $RECORD_FILE | grep -F -v "$line" > $RECORD_FILE.tmp
+        mv $RECORD_FILE.tmp $RECORD_FILE
+
+        printf "%s" "$(echo "$line" | jq -r '.stdout')"
+        printf "%s" "$(echo "$line" | jq -r '.stderr')" 1>&2
+        return $(echo "$line" | jq -r '.result')
+        ;;
+      *)
+        exit 1
+        ;;
+    esac
+  fi
+}
+
+function loadRecording() {
+  if [[ -f "$1" ]] && [[ -z "$RERECORD_ALL" ]]; then
+    echo "Starting playback from $1"
+    export RECORD_MODE=playback
+    local tmp=$(mktemp)
+    touch $1
+    cat $1 > $tmp
+    export RECORD_FILE=$tmp
+  else
+    echo "Starting record to $1"
+    export RECORD_MODE=record
+    echo '' > $1
+    export RECORD_FILE=$1
+  fi
+}
+
+export -f runMock

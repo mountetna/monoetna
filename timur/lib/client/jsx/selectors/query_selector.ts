@@ -4,7 +4,8 @@ import {Attribute, Model} from '../models/model_types';
 import {
   EmptyQueryClause,
   QueryColumn,
-  QuerySlice
+  QuerySlice,
+  QueryTableColumn
 } from '../contexts/query/query_types';
 import {QueryGraph} from '../utils/query_graph';
 
@@ -233,4 +234,20 @@ export const queryColumnMatrixHeadings = (column: QueryColumn) => {
       return (slice.clause.operand as string).split(',');
     })
     .flat();
+};
+
+export const isIdentifierQuery = (
+  columns: QueryColumn[] | QueryTableColumn[]
+) => {
+  return columns.length === 1;
+};
+
+export const userColumns = (columns: QueryColumn[]) => {
+  const columnLabels = columns.map(
+    ({display_label}: {display_label: string}) => display_label
+  );
+
+  return isIdentifierQuery(columns)
+    ? [columnLabels[0], columnLabels[0]]
+    : columnLabels;
 };

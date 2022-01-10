@@ -3,6 +3,7 @@ import {
   getTouchFolder
 } from '../api/folders_api';
 import { errorMessage } from './message_actions';
+import {selectFoldersInCurrentFolder} from '../selectors/folder-selector';
 
 const addFolders = (folders) => ({ type: 'ADD_FOLDERS', folders });
 const removeFolders = (folders) => ({ type: 'REMOVE_FOLDERS', folders });
@@ -56,13 +57,13 @@ export const unprotectFolder = ({bucket_name, folder}) => (dispatch) => {
     );
 }
 
-export const renameFolder = ({bucket_name, folder, new_folder_path}) => (dispatch) => {
+export const renameFolder = ({bucket_name, folder, new_folder_path, new_bucket_name, current_folder}) => (dispatch) => {
   postRenameFolder(
-    CONFIG.project_name, bucket_name, folder.folder_path, new_folder_path
+    CONFIG.project_name, bucket_name, folder.folder_path, new_folder_path, new_bucket_name
   )
     .then(({folders}) => {
       dispatch(removeFolders([folder]));
-      dispatch(addFolders(folders));
+      dispatch(addFolders(selectFoldersInCurrentFolder({folders, bucket_name, current_folder})));
     })
     .catch(
       errorMessage(dispatch, 'warning', 'Folder renaming failed', error => error)

@@ -20,7 +20,7 @@ declare module 'etna-js/utils/fetch' {
 }
 
 declare module 'etna-js/hooks/useActionInvoker' {
-  export function useActionInvoker<T extends {type: string}, R = any>(): (
+  export function useActionInvoker<T extends {type: string, [others: string]: any;}, R = any>(): (
     a: T
   ) => R;
 }
@@ -216,6 +216,10 @@ declare module 'etna-js/utils/fetch';
 declare module 'etna-js/contexts/magma-context';
 
 declare module 'etna-js/components/ModalDialogContainer' {
-  export function useModal(): {openModal: any, dismissModal: any};
+  export function useModal(): {openModal: any; dismissModal: any};
+}
 
+declare module 'etna-js/utils/file' {
+  export function filePath(parent: string, file_name: string): string;
+  export function includesFolders(path: string | null): boolean;
 }

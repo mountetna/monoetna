@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+source $DIR/mocker
+source $DIR/swarm-keeper
+
+# These tests were recorded by accessing portainer via a socks proxy on port 9090.
+# But you can adjust this if you connect directly or by other means.  The recordings
+# are required to capture these parameters. TODO: Filter these from the args in recording
+# files?
+export SOCKS=${SOCKS:-127.0.0.1:9090}
+export ENDPOINT=${ENDPOINT:-1}
+
+# Uses 'mocks' to replace invocations to external or non deterministic programs.
+# Run with RERECORD_ALL=1 to force recording of all tests again, or simply delete
+# a particular .recording file to have a new recording.
+# You will need a valid portainer jwt, use bin/portainer-login to generate one into
+# your home directory.  This script will censure the private token so that it is not
+# exposed in the recordings.
+
+mock http date docker git
+
+[[ -f ~/.portainer-auth ]] || echo 'magic-test-auth-token' > ~/.portainer-auth
+export RECORD_CENSURE="$(cat ~/.portainer-auth)"
+doPortainerAuth
+
+loadRecording $DIR/test-stack.recording
+airflow=$(findStack airflow)
+
+loadRecording $DIR/dockerApi-fails.recording
+if dockerApi GET /not-a-url; then
+  exit 1
+fi
+
+loadRecording $DIR/getSecret.recording
+getSecret user-hash-secret
+
+loadRecording $DIR/getService.recording
+getService airflow_scheduler
+
+eval "
+function ${EDITOR:-vim}() {
+  sleep 1
+  touch \$1
+}
+"
+
+function postToSlack() {
+  echo "Would have posted to slack: $1"
+}
+
+#loadRecording $DIR/deploy-stack.recording
+#f=$(downloadStack "$(findStack agents)")
+#
+#if ! [[ -f "swarm/agents.yml" ]]; then
+#  mkdir -p swarm
+#  cat "$f" > swarm/agents.yml
+#fi
+#
+#runCommand portainer-deploy-stack swarm/agents.yml
+
+loadRecording $DIR/edit-config-deploy.recording
+runCommand portainer-edit-config timur.staging.yml
+
+function shaTestHook() {
+  if [[ $1 =~ polyphemus-staging_app_fe ]]; then
+    echo "some-different-sha"
+  else
+    echo "$2"
+  fi
+}
+loadRecording $DIR/watch-update-image-and-prune.recording
+checkAndDeployUpdatedImages
+
+function shaTestHook() {
+  echo "$2"
+}
+loadRecording $DIR/watch-update-image-and-prune-no-deploys.recording
+checkAndDeployUpdatedImages
+
+
+echo "Tests completed successfully!"
