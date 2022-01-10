@@ -27,7 +27,7 @@ const RootView = () => {
   const {my_projects, resourceProjects} = useReduxState((state) => {
     let permissions = selectUserPermissions(state);
     let projects = selectProjects(state);
-    console.log('projects', projects);
+
     let my_projects = Object.values(permissions)
       .map(({project_name, ...perms}) => ({
         project_name,
