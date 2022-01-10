@@ -86,7 +86,12 @@ class Metis
       # Only examine resource project if user does not have explicit permissions
       return false unless has_janus_config?
 
-      janus_client(user.token).is_resource_project?(project_name) && !user.permissions[project_name]
+      begin
+        return janus_client(user.token).is_resource_project?(project_name) && !user.permissions[project_name]
+      rescue Exception
+        # Return false if there are any problems with Janus
+        return false
+      end
     end
 
     def has_janus_config?
