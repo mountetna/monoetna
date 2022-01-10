@@ -342,10 +342,10 @@ EOT
 
 AUTH_USERS = {
   editor: {
-    email: 'metis@olympus.org', name: 'Metis', perm: 'e:athena,backup'
+    email: 'metis@olympus.org', name: 'Metis', perm: 'e:athena,backup', exp: 86401608136635
   },
   viewer: {
-    email: 'athena@olympus.org', name: 'Athena', perm: 'v:athena'
+    email: 'athena@olympus.org', name: 'Athena', perm: 'v:athena', exp: 86401608136635
   },
   admin: {
     email: 'zeus@olympus.org', name: 'Zeus', perm: 'a:athena'
@@ -456,4 +456,16 @@ def replace_stdio(stdin_path, stdout_path)
       end
     }
   }
+end
+
+def stub_janus_projects(project_name='public-resource', is_resource=true)
+  stub_request(:any, /janus.test\/project/).to_return(body: {
+    projects: [{
+      project_name: project_name,
+      resource: is_resource
+    }]
+  }.to_json,
+  headers: {
+    'Content-Type': 'application/json'
+  })
 end

@@ -94,24 +94,14 @@ module Etna
       permissions.keys.length > 0
     end
 
-    def user_projects
-      return [] unless has_janus_config?
-
-      janus_client(token).get_projects.json[:projects]
-    end
-
     def resource_project?(project_name)
       return false unless has_janus_config?
 
-      project = user_projects.select { |p| p.project_name == project_name }.first
-      
-      return false unless project
-
-      project[:resource]
+      janus_client(token).is_resource_project?(project_name)
     end
 
     def has_janus_config?
-      application.config(:janus) && application.config(:janus)[:host]
+      application&.config(:janus) && application.config(:janus)[:host]
     end
 
     def janus_client(token)

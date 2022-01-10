@@ -31,6 +31,11 @@ class Metis
       # Admins can always see the bucket
       return true if user.is_admin?(project_name)
 
+      # Users can access resource project buckets, only if the bucket is set to "viewer"
+      if resource_project?(user, project_name) && ROLES[access.to_sym]
+        return ROLES[access.to_sym] >= ROLES[:viewer]
+      end
+
       # User not allowed if project not in their permissions.
       return false unless user.permissions[project_name]
 
@@ -72,6 +77,31 @@ class Metis
         description: description,
         count: Metis::File.where(bucket: self).count
       }
+    end
+
+    private
+
+    def resource_project?(user, project_name)
+      # Only examine resource project if user does not have explicit permissions
+      return false unless has_janus_config?
+
+      begin
+        return janus_client(user.token).is_resource_project?(project_name) && !user.permissions[project_name]
+      rescue Exception
+        # If there is any problem contacting Janus, we assume not a resource project
+        return false
+      end
+    end
+
+    def has_janus_config?
+      Metis.instance.config(:janus) && Metis.instance.config(:janus)[:host]
+    end
+
+    def janus_client(token)      
+      Etna::Clients::Janus.new(
+        token: token,
+        host: Metis.instance.config(:janus)[:host]
+      )
     end
   end
 end

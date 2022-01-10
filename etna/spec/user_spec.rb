@@ -112,11 +112,37 @@ describe Etna::User do
     end
 
     context 'resource projects' do
+      before(:each) do
+        class Arachne
+          include Etna::Application
+          class Server < Etna::Server; end
+        end
+
+        Arachne::Server.get('/test') { require_param(:project_name); success('') }
+
+        @app = setup_app(
+          Arachne::Server,
+          [ Etna::TestAuth ],
+          {
+            test: {
+              janus: {
+                host: "https://janus.test"
+              }
+            }
+          }
+        )
+      end
+
+      after(:each) do
+        Object.send(:remove_const, :Arachne)
+      end
+
       it "can be viewed even if no explicit permissions" do
         stub_request(:any, /janus.test\/project/).to_return(body: {
-          project: {
+          projects: [{
+            project_name: 'public-resource',
             resource: true
-          }
+          }]
         }.to_json,
         headers: {
           'Content-Type': 'application/json'
@@ -124,69 +150,8 @@ describe Etna::User do
   
         expect(@viewer.can_view?("public-resource")).to eq(true)
         expect(@editor.can_view?("public-resource")).to eq(true)
-        expect(WebMock).to have_requested(:get, %r!janus.test/project/!)
-      end
-
-      it "cannot be edited without explicit permissions" do
-        stub_request(:any, /janus.test\/project/).to_return(body: {
-          project: {
-            resource: true
-          }
-        }.to_json,
-        headers: {
-          'Content-Type': 'application/json'
-        })
-  
-        expect(@viewer.can_edit?("public-resource")).to eq(false)
-        expect(@editor.can_edit?("public-resource")).to eq(false)
-        expect(WebMock).not_to have_requested(:get, %r!janus.test/project/!)
-      end
-
-      it "cannot be admin without explicit permissions" do
-        stub_request(:any, /janus.test\/project/).to_return(body: {
-          project: {
-            resource: true
-          }
-        }.to_json,
-        headers: {
-          'Content-Type': 'application/json'
-        })
-  
-        expect(@viewer.is_admin?("public-resource")).to eq(false)
-        expect(@editor.is_admin?("public-resource")).to eq(false)
-        expect(@admin.is_admin?("public-resource")).to eq(false)
-        expect(WebMock).not_to have_requested(:get, %r!janus.test/project/!)
-      end
-
-      it "can be edited if user has explicit permissions" do
-        stub_request(:any, /janus.test\/project/).to_return(body: {
-          project: {
-            resource: true
-          }
-        }.to_json,
-        headers: {
-          'Content-Type': 'application/json'
-        })
-
-        expect(@viewer.can_edit?("labors")).to eq(false)
-        expect(@editor.can_edit?("labors")).to eq(true)
-        expect(WebMock).not_to have_requested(:get, %r!janus.test/project/!)
-      end
-
-      it "can be admin if user has explicit permissions" do
-        stub_request(:any, /janus.test\/project/).to_return(body: {
-          project: {
-            resource: true
-          }
-        }.to_json,
-        headers: {
-          'Content-Type': 'application/json'
-        })
-
-        expect(@viewer.is_admin?("labors")).to eq(false)
-        expect(@editor.is_admin?("labors")).to eq(false)
-        expect(@admin.is_admin?("labors")).to eq(true)
-        expect(WebMock).not_to have_requested(:get, %r!janus.test/project/!)
+        expect(@admin.can_view?("public-resource")).to eq(true)
+        expect(WebMock).to have_requested(:get, %r!janus.test/projects!).times(3)
       end
     end
   end
