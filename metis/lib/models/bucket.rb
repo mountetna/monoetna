@@ -32,6 +32,7 @@ class Metis
       return true if user.is_admin?(project_name)
 
       # Users can access resource project buckets, only if the bucket is set to "viewer"
+      #  and the user does not have explicit project permissions.
       if resource_project?(user, project_name) && ROLES[access.to_sym]
         return ROLES[access.to_sym] >= ROLES[:viewer]
       end
