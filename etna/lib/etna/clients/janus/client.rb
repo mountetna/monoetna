@@ -87,7 +87,7 @@ module Etna
       end
 
       def is_resource_project?(project_name)
-        project = get_projects.json[:projects].select { |p| p[:project_name] == project_name }.first
+        project = get_projects.json[:projects]&.select { |p| p[:project_name] == project_name }.first
         
         return false unless project
   
