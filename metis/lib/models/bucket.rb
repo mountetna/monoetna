@@ -84,25 +84,10 @@ class Metis
 
     def resource_project?(user, project_name)
       # Only examine resource project if user does not have explicit permissions
-      return false unless has_janus_config?
-
-      begin
-        return janus_client(user.token).is_resource_project?(project_name) && !user.permissions[project_name]
-      rescue Exception
-        # Return false if there are any problems with Janus
-        return false
-      end
-    end
-
-    def has_janus_config?
-      Metis.instance.config(:janus) && Metis.instance.config(:janus)[:host]
-    end
-
-    def janus_client(token)      
-      Etna::Clients::Janus.new(
-        token: token,
-        host: Metis.instance.config(:janus)[:host]
-      )
+      return user.can_view?(project_name) && !user.permissions[project_name]
+    rescue Exception
+      # Return false if there are any problems with Janus
+      return false
     end
   end
 end
