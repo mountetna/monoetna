@@ -55,6 +55,8 @@ def scatter_plotly(
                 px_args['category_orders'] = { color_by: list(reversed( categories )) }
                 if order_when_continuous_color and not discrete_color:
                     px_args['data_frame'] = data_frame.iloc[ list(reversed( order(data_frame[color_by], return_indexes=True) )) ]
+    else:
+        plot_title = _default_to_if_make_and_logic(plot_title, "")
     
     # Make plot
     fig = px.scatter(**px_args)
