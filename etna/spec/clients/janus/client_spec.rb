@@ -21,6 +21,23 @@ describe 'Janus Client class' do
     expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/projects/)
   end
 
+  it 'can check false resource status' do
+    expect(test_class.is_resource_project?(PROJECT)).to eq(false)
+    expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/projects/)
+  end
+
+  it 'can check true resource status' do
+    stub_request(:get, /#{JANUS_HOST}\/projects/)
+      .to_return({
+        status: 200,
+        body: {projects: [{project_name: PROJECT, resource: true}]}.to_json
+    })
+
+
+    expect(test_class.is_resource_project?(PROJECT)).to eq(true)
+    expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/projects/)
+  end
+
   it 'can add a new project' do
     test_class.add_project(Etna::Clients::Janus::AddProjectRequest.new(
       project_name: 'test',
