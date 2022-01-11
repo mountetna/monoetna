@@ -5,12 +5,16 @@ import React, {
   createContext,
   useContext
 } from 'react';
+
+import 'regenerator-runtime/runtime';
+
 import Icon from 'etna-js/components/icon';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {json_post, json_get} from 'etna-js/utils/fetch';
 import {isSuperEditor} from 'etna-js/utils/janus';
 import {updateProject} from './api/janus_api';
+import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 
 import TextField from '@material-ui/core/TextField';
 import Table from '@material-ui/core/Table';
@@ -112,6 +116,19 @@ const NewProject = ({retrieveAllProjects}) => {
   let [newproject, setNewProject] = useState({});
   let [error, setError] = useState(null);
 
+  const [_, addProject] = useAsyncWork(
+    function addProject() {
+      postAddProject(newproject)
+        .then(() => {
+          retrieveAllProjects();
+          setNewProject({});
+          setError(null);
+        })
+        .catch((e) => e.then(({error}) => setError(error)));
+    },
+    {cancelWhenChange: []}
+  );
+
   return (
     <div id='new-project'>
       <div className='title'>New Project</div>
@@ -136,19 +153,7 @@ const NewProject = ({retrieveAllProjects}) => {
           />
         </div>
         <div className='cell submit'>
-          <Icon
-            className='approve'
-            icon='magic'
-            onClick={() =>
-              postAddProject(newproject)
-                .then(() => {
-                  retrieveAllProjects();
-                  setNewProject({});
-                  setError(null);
-                })
-                .catch((e) => e.then(({error}) => setError(error)))
-            }
-          />
+          <Icon className='approve' icon='magic' onClick={addProject} />
         </div>
       </div>
     </div>
