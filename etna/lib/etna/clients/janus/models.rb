@@ -108,12 +108,12 @@ module Etna
           @raw[:project_name_full]
         end
 
-        def role
-          @raw[:role]
+        def permissions
+          @raw[:permissions] || []
         end
 
         def resource
-          @raw[:resource]
+          !!@raw[:resource]
         end
       end
 
