@@ -33,7 +33,6 @@ describe 'Janus Client class' do
         body: {projects: [{project_name: PROJECT, resource: true}]}.to_json
     })
 
-
     expect(test_class.is_resource_project?(PROJECT)).to eq(true)
     expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/projects/)
   end
