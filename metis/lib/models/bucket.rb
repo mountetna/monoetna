@@ -84,10 +84,10 @@ class Metis
 
     def resource_project?(user, project_name)
       # Only examine resource project if user does not have explicit permissions
-      return user.can_view?(project_name) && !user.permissions[project_name]
+      user.can_view?(project_name) && !user.permissions[project_name]
     rescue Exception
       # Return false if there are any problems with Janus
-      return false
+      false
     end
   end
 end
