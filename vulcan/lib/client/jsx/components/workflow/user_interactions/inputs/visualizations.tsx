@@ -213,7 +213,7 @@ function useExtraInputs(options: string[]) {
       'ylab': ['Y-Axis Title'],
       'x_by': ['X-Axis Data', options, false],
       'y_by': ['Y-Axis Data', options, false],
-      'color_by': ['Color Data By', ['make'].concat(options), false],
+      'color_by': ['Color Data', ['make'].concat(options), false],
       'plots': ['Data Representations', ['violin', 'box']],
       'color_order': ['Point render order', ['increasing', 'decreasing', 'unordered']],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
