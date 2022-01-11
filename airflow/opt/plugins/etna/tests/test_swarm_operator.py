@@ -19,6 +19,7 @@ from docker.types import (
 )
 
 from etna import SwarmSharedData
+from etna.operators.docker_operator_base import write_logs_and_yield_last
 from etna.operators.swarm_operator import (
     create_service_definition,
     find_service,
@@ -100,6 +101,45 @@ def test_swarm_cleanup():
     assert len(get_configs()) == 0
     assert len(get_services()) == 0
 
+def test_write_logs_and_yield_last_with_intermittent_errors():
+    def log_message(m: str, i: int) -> bytes:
+        return f'2022-01-11T10:39:26.{str(i).zfill(9)}Z {m}'.encode('utf8')
+
+    def log_response(*args) -> bytes:
+        return b'\n'.join(args)
+
+    response_iter = iter([
+        log_response(
+            log_message("Hello!", 0),
+            log_message("Yum yum", 1),
+            log_message("Okay", 2),
+        ),
+        log_response(
+            log_message("Okay", 1),
+            b'Error grabbing logs: rpc error',
+            log_message("Do not read me!", 5),
+        ),
+        log_response(
+            log_message("Process done", 3),
+        ),
+    ])
+
+    def yield_response(*args):
+        return next(response_iter)
+
+    test_buffer = StringIO()
+    handler = logging.StreamHandler(test_buffer)
+    log = logging.getLogger('test-swarm-operator-logger')
+    log.setLevel(logging.INFO)
+    log.addHandler(handler)
+
+    log_iter = write_logs_and_yield_last(
+        yield_response,
+        log
+    )
+
+    assert next(log_iter) == b'Okay'
+    assert next(log_iter) == b'Process done'
 
 # In order to re-record these tests, you need to
 # 1.  configure your local docker daemon into swarm mode (search this)
