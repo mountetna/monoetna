@@ -15,7 +15,7 @@ module Etna
             json = JSON.parse(res.body, symbolize_names: true)
         end
 
-        JsonResponse.new(json)
+        GetProjectResponse.new(json)
       end
 
       def get_projects()
@@ -25,7 +25,7 @@ module Etna
             json = JSON.parse(res.body, symbolize_names: true)
         end
 
-        JsonResponse.new(json)
+        GetProjectsResponse.new(json)
       end
 
       def add_project(add_project_request = AddProjectRequest.new)
@@ -87,11 +87,11 @@ module Etna
       end
 
       def is_resource_project?(project_name)
-        project = get_projects.json[:projects]&.select { |p| p[:project_name] == project_name }.first
+        project = get_projects.projects&.select { |p| p.project_name == project_name }.first
         
         return false unless project
   
-        project[:resource]
+        project.resource
       end
     end
   end
