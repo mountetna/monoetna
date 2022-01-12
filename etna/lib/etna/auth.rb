@@ -125,7 +125,7 @@ module Etna
           )
         end
         payload[:perm] = permissions.to_string
-      end if (!route.ignore_janus? && route.has_auth?(:can_view?))
+      end if (!route.ignore_janus? && route.has_user_constraint?(:can_view?))
 
       payload
     end
