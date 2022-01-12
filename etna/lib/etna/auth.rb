@@ -112,7 +112,7 @@ module Etna
       application.config(:janus) && application.config(:janus)[:host]
     end
 
-    def set_resource_project_permissions(payload, token, request)
+    def update_payload(payload, token, request)
       route = server.find_route(request)
 
       payload = payload.map{|k,v| [k.to_sym, v]}.to_h
@@ -140,7 +140,7 @@ module Etna
 
         return false unless janus_approved?(payload, token, request)
         return request.env['etna.user'] = Etna::User.new(
-          set_resource_project_permissions(payload, token, request),
+          update_payload(payload, token, request),
           token)
       rescue
         # bail out if anything goes wrong
