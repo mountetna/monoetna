@@ -154,6 +154,10 @@ module Etna
       @auth && @auth[:ignore_janus]
     end
 
+    def project?
+      parts&.include?("project_name")
+    end
+
     private
 
     def application

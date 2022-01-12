@@ -43,7 +43,7 @@ class Janus
 
     get '/allprojects', action: 'admin#projects', auth: { user: { is_superviewer?: true } }
 
-    get '/projects', action: 'user#projects', auth: { user: { active?: true } }
+    get '/projects', action: 'user#projects', auth: { user: { active?: true }, ignore_janus: true }
 
     get '/project/:project_name', action: 'admin#project', auth: { user: { can_edit?: :project_name } }
 

@@ -459,7 +459,7 @@ def replace_stdio(stdin_path, stdout_path)
 end
 
 def stub_janus_projects(project_name='public-resource', is_resource=true)
-  stub_request(:any, /janus.test\/project/).to_return(body: {
+  stub_request(:any, /janus.test\/projects/).to_return(body: {
     projects: [{
       project_name: project_name,
       resource: is_resource
