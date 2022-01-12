@@ -110,50 +110,6 @@ describe Etna::User do
       expect(@editor.permissions).to eq( 'labors' => { role: :editor, restricted: true } )
       expect(@viewer.permissions).to eq( 'labors' => { role: :viewer, restricted: false } )
     end
-
-    context 'resource projects' do
-      before(:each) do
-        class Arachne
-          include Etna::Application
-          class Server < Etna::Server; end
-        end
-
-        Arachne::Server.get('/test') { require_param(:project_name); success('') }
-
-        @app = setup_app(
-          Arachne::Server,
-          [ Etna::TestAuth ],
-          {
-            test: {
-              janus: {
-                host: "https://janus.test"
-              }
-            }
-          }
-        )
-      end
-
-      after(:each) do
-        Object.send(:remove_const, :Arachne)
-      end
-
-      it "can be viewed even if no explicit permissions" do
-        stub_request(:any, /janus.test\/project/).to_return(body: {
-          projects: [{
-            project_name: 'public-resource',
-            resource: true
-          }]
-        }.to_json,
-        headers: {
-          'Content-Type': 'application/json'
-        })
-  
-        expect(@viewer.can_view?("public-resource")).to eq(true)
-        expect(@editor.can_view?("public-resource")).to eq(true)
-        expect(@admin.can_view?("public-resource")).to eq(true)
-        expect(WebMock).to have_requested(:get, %r!janus.test/projects!).times(3)
-      end
-    end
   end
 
   context "flags" do
