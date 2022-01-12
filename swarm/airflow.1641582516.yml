@@ -129,7 +129,6 @@ services:
       - dags:/opt/airflow/dags
       - logs:/opt/airflow/logs
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /tmp:/tmp
     networks:
       - airflow
      
