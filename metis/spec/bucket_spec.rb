@@ -57,37 +57,6 @@ describe Metis::Bucket do
     get('/athena/list/my_bucket/')
     expect(last_response.status).to eq(200)
   end
-
-  context 'resource projects' do
-    before(:each) do
-      @editor = Etna::User.new(
-        email: 'daedalus@two-faces.org',
-        name: 'Daedalus',
-        perm: 'E:labors'
-      )
-      @viewer = Etna::User.new(
-        email: 'deino@graeae.org',
-        name: 'Deino Phorcides',
-        perm: 'v:labors'
-      )
-
-      stub_janus_projects
-    end
-
-    it 'allows users to view bucket, only if bucket has viewer access' do
-      bucket = create(:bucket, project_name: 'public-resource', name: 'my_bucket', access: 'viewer', owner: 'metis')
-
-      expect(bucket.allowed?(@viewer, nil)).to eq(true)
-      expect(bucket.allowed?(@editor, nil)).to eq(true)
-    end
-
-    it 'blocks users if bucket has editor access' do
-      bucket = create(:bucket, project_name: 'public-resource', name: 'my_bucket', access: 'editor', owner: 'metis')
-
-      expect(bucket.allowed?(@viewer, nil)).to eq(false)
-      expect(bucket.allowed?(@editor, nil)).to eq(false)
-    end
-  end
 end
 
 describe BucketController do
