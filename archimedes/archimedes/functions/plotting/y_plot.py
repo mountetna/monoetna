@@ -8,7 +8,7 @@ def y_plotly(
     x_by,
     y_by,
     color_by = "make",
-    plots = ["violin", "box"],
+    plots = "violin and box",
     xlab="make",
     ylab="make",
     plot_title="make",
@@ -31,14 +31,23 @@ def y_plotly(
         }
     
     # Make Plot
-    if "violin" in plots:
+    if plots=="violin and box":
         #use conditional here for checking if box is in plots
-        the_atributes["box"]= "box" in plots
+        the_atributes["box"]=True
         fig = px.violin(
             **the_atributes
             )
-    elif "box" in plots:
+    elif plots=="violin":
+        the_atributes["box"]=False
+        fig = px.violin(
+            **the_atributes
+            )
+    elif plots=="box":
         fig = px.box(
+            **the_atributes
+            )
+    elif plots=="individual points":
+        fig = px.strip(
             **the_atributes
             )
     
