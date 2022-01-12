@@ -66,9 +66,9 @@ module Etna
       "V" => :viewer,
     }
 
-    def initialize(role, project_name)
-      @role_key = role
-      @role = Etna::Role.new(ROLE_NAMES[role.upcase], role == role.upcase)
+    def initialize(role_key, project_name)
+      @role_key = role_key
+      @role = Etna::Role.new(ROLE_NAMES[role_key.upcase], role_key == role_key.upcase)
       @project_name = project_name
     end
 
