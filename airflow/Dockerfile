@@ -8,6 +8,8 @@ RUN airflow db reset --yes
 USER root
 RUN apt-get update
 RUN apt-get install -y bash curl jq git openssh-client ncat
+RUN groupadd --gid 999 docker \
+    && usermod -aG docker airflow
 
 USER airflow
 
