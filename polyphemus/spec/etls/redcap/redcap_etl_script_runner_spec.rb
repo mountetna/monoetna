@@ -404,7 +404,11 @@ describe Polyphemus::RedcapEtlScriptRunner do
         magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
 
         records = redcap_etl.run(magma_client: magma_client)
-
+        
+        # Even though the parent record is attempted to be made,
+        #   it should be removed because it's not an "existing" magma
+        #   record per the fixture.
+        expect(records[:model_one].keys.length).to eq(0)
         expect(records.keys.include?(:model_two)).to eq(true)
         expect(records[:model_two].keys).to eq(["123"])
       end
