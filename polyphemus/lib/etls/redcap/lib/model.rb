@@ -37,6 +37,10 @@ module Redcap
 
         def patch(id, record)
         end
+
+        def ensure_containing_records?
+          false
+        end
       })
     end
 
