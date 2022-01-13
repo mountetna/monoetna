@@ -99,7 +99,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
       copy_redcap_project
     end
 
-    it 'throws exception if salt when not provided' do
+    it 'throws exception if salt not provided' do
       expect {
         Polyphemus::RedcapEtlScriptRunner.new(
           project_name: 'test',
@@ -234,6 +234,10 @@ describe Polyphemus::RedcapEtlScriptRunner do
       expect(records[:model_one][id_000][:graduation_date].start_with?('2021')).to eq(true)
       expect(records[:model_two][id_123][:yesterday]).not_to eq(raw_data_123[:value])
       expect(records[:model_two][id_123][:yesterday].start_with?('2019')).to eq(true)
+
+      # ensure containing records works for model_two
+      injected_parent_id = "#{id_123}-one"
+      expect(records[:model_one][injected_parent_id][:parent]).to eq(injected_parent_id)
     end
 
     it 'specific models' do

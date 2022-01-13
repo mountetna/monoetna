@@ -41,6 +41,10 @@ module Redcap
         def ensure_containing_records?
           false
         end
+
+        def ensure_records(current_records)
+          {}
+        end
       })
     end
 
