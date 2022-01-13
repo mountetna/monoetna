@@ -35,7 +35,7 @@ describe Polyphemus::DbTriageFileNotificationEtl do
   end
 
   it "should process c4 ingested files from the given triage table" do
-    stub_ingest_files([{
+    ingested_files = stub_ingest_files([{
       name: "foo/bar/oligo-test1.txt",
       host: "sftp.example.com",
       updated_at: "2021-01-01 00:00:00",
@@ -71,5 +71,19 @@ describe Polyphemus::DbTriageFileNotificationEtl do
     run_etl_command("test_db_triage_file_notification_etl", "run")
     expect(etl.process_calls.length).to eq(1)
     expect(etl.process_calls.first.last.length).to eq(2)
+
+    etl.process_calls.clear
+    run_etl_command("test_db_triage_file_notification_etl", "run")
+    expect(etl.process_calls.length).to eq(0)
+
+    # simulate 'removing' files from the cat and updating the state.
+    ingested_files.each do |f|
+      # Ensure the update is in the future to prevent race conditions in the test.
+      f.update(removed_from_source: true, updated_at: Time.now + 10.seconds)
+    end
+
+    etl.process_calls.clear
+    run_etl_command("test_db_triage_file_notification_etl", "run")
+    expect(etl.process_calls.length).to eq(0)
   end
 end
