@@ -237,7 +237,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
 
       # ensure containing records works for model_two
       injected_parent_id = "#{id_123}-one"
-      expect(records[:model_one][injected_parent_id][:parent]).to eq(injected_parent_id)
+      expect(records[:model_one][injected_parent_id][:parent]).to eq("#{injected_parent_id}-parent")
     end
 
     it 'specific models' do
