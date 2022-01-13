@@ -726,7 +726,7 @@ function runCommand() {
       doPortainerAuth
 
       trueFilePath=
-      if ! [[ -e "$1" ]]; then
+      if ! [[ -f "$1" ]]; then
         echo "Could not find file $1, assuming this is a new stack name..."
         stackFileName=
         stackName=$1
