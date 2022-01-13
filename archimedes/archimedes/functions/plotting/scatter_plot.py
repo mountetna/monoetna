@@ -18,7 +18,7 @@ def scatter_plotly(
     """
     Produces a scatter plot using plotly.express.scatter based on the pandas 'data_frame' given.
     'x_by', 'y_by' should indicate columns of 'data_frame' to use for x/y axes data.
-    'color_by' should indicate a column of 'data_frame' to use for coloring the data points, OR, default, if left as "make" data points will simply be black.
+    'color_by' should indicate a column of 'data_frame' to use for coloring the data points, OR, default, if left as "make" data points will all be a single color.
     'px_args' should be a dictionary of additional bits to send in the 'plotly.express.scatter' call.
     'size' sets the size of points.  Can be either a number directly or the name of a column of 'data_frame'.
     'color_panel' (string list) sets the colors when 'color_by' references discrete data
