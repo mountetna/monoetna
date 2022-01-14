@@ -19,7 +19,7 @@ inputs:
 outputs:
   the_plot:
     type: File
-    outputSource: plot_scatter/plot.json
+    outputSource: plot_scatter/plot.pdf
 
 steps:
   get_data:
@@ -43,10 +43,10 @@ steps:
     in:
       plot_setup: fill_plot_options/plot_setup
       data_frame: get_data/data_frame
-    out: [plot.json]
+    out: [plot.pdf]
   show_scatter_plot:
     run: ui-outputs/plotly.cwl
     in:
-      a: plot_scatter/plot.json
+      a: plot_scatter/plot.pdf
     out: []
     label: 'Display Scatter Plot'

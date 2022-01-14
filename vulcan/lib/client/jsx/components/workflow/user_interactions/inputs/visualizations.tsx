@@ -138,16 +138,16 @@ const remove_hidden = (vals: DataEnvelope<any>, hide: string[] | null | undefine
 const input_sets: DataEnvelope<DataEnvelope<string[]|DataEnvelope<any>>> = {
   'scatter_plot': {
     'main': ["x_by", "y_by", "color_by"],
-    'adv': ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color'],
+    'adv': ['size', 'plot_title', 'legend_title', 'x_title', 'y_title'],
     //'default_adjust': {'color_by': "make"}
   },
   'bar_plot': {
     'main': ["x_by", "y_by", "scale_by"],
-    'adv': ['plot_title', 'legend_title', 'xlab', 'ylab']
+    'adv': ['plot_title', 'legend_title', 'x_title', 'y_title']
   },
   'y_plot': {
     'main': ["x_by", "y_by", "plots"],
-    'adv': ["color_by", 'plot_title', 'legend_title', 'xlab', 'ylab'],
+    'adv': ["color_by", 'plot_title', 'legend_title', 'x_title', 'y_title'],
     //'default_adjust': {'color_by': "make"}
   }
 }
@@ -161,8 +161,8 @@ const defaults: DataEnvelope<any> = {
   'size': 5,
   'plot_title': 'make',
   'legend_title': 'make',
-  'xlab': 'make',
-  'ylab': 'make',
+  'x_title': 'make',
+  'y_title': 'make',
   'color_order': 'increasing',
   'order_when_continuous_color': false
 };
@@ -209,8 +209,8 @@ function useExtraInputs(options: string[]) {
       // label, then for any extras
       'plot_title': ['Plot Title'],
       'legend_title': ['Legend Title'],
-      'xlab': ['X-Axis Title'],
-      'ylab': ['Y-Axis Title'],
+      'x_title': ['X-Axis Title'],
+      'y_title': ['Y-Axis Title'],
       'x_by': ['X-Axis Data', options, false],
       'y_by': ['Y-Axis Data', options, false],
       'color_by': ['Color Data', ['make'].concat(options), false],
@@ -228,8 +228,8 @@ function useExtraInputs(options: string[]) {
 const comps: DataEnvelope<Function> = {
   'plot_title': stringInput,
   'legend_title': stringInput,
-  'xlab': stringInput,
-  'ylab': stringInput,
+  'x_title': stringInput,
+  'y_title': stringInput,
   'x_by': dropdownInput,
   'y_by': dropdownInput,
   'color_by': dropdownInput,

@@ -12,8 +12,8 @@ def bar_plotly(
     scale_by = 'fraction',
     px_args: dict = {},
     color_panel: list = colors,
-    xlab = "make",
-    ylab = "make",
+    x_title = "make",
+    y_title = "make",
     plot_title = "make",
     legend_title = "make"):
     """
@@ -22,16 +22,16 @@ def bar_plotly(
     'scale_by' can be either "fraction" or "counts" and sets whether the y-axis of the plot will ultimately reflect proportions of 'y_by'-value make-up within each 'x_by' group versus raw counts of 'y_by'-values per group. 
     'px_args' should be a dictionary of additional bits to send in the 'plotly.express.bar' call.
     'color_panel' (string list) sets the colors to assign to the distinct 'y_by'-values.
-    'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
+    'plot_title', 'legend_title', 'x_title', and 'y_title' set titles.
     
     Some additional details: Prior to making a plot, the composition of the 'y_by' values associated with each 'x_by' grouping is calculated and scaled based on the method indicated by the 'scale_by' parameter.
     The resulting summary dataframe is then passed to plotly for plot creation.
     """
 
     # Parse dependent defaults
-    xlab = _default_to_if_make_and_logic(xlab, x_by)
-    ylab = _default_to_if_make_and_logic(ylab, y_by + " " + scale_by) # A little different for this function
-    plot_title = _default_to_if_make_and_logic(plot_title, ylab + " per " + x_by)
+    x_title = _default_to_if_make_and_logic(x_title, x_by)
+    y_title = _default_to_if_make_and_logic(y_title, y_by + " " + scale_by) # A little different for this function
+    plot_title = _default_to_if_make_and_logic(plot_title, y_title + " per " + x_by)
     legend_title = _default_to_if_make_and_logic(legend_title, y_by) # A little different for this function
 
     ### Generate a composition summary dataframe from the input df.
@@ -60,8 +60,8 @@ def bar_plotly(
     # Tweaks
     fig.update_layout(
         title_text=plot_title,
-        xaxis_title=xlab,
-        yaxis_title=ylab,
+        xaxis_title=x_title,
+        yaxis_title=y_title,
         legend_title_text=legend_title,
         legend= {'itemsizing': 'constant'}
     )
