@@ -41,6 +41,13 @@ RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tm
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py > /opt/install-poetry.py
 RUN python /opt/install-poetry.py --version $POETRY_VERSION
 
+# Install R from CRAN repo, to get latest (via https://cran.r-project.org/bin/linux/debian/)
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key '95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7'
+RUN echo 'deb http://cloud.r-project.org/bin/linux/debian buster-cran40/' >> /etc/apt/sources.list
+RUN apt-get update && \
+    apt-get install -y r-base \
+    r-base-dev
+
 # bash improvements for easier working inside the container
 RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
     bash ~/.bash_it/install.sh --silent && \
