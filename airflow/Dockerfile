@@ -26,5 +26,6 @@ RUN pip3 install -r /opt/airflow/requirements.txt
 
 COPY --chown=airflow:0 ./opt/ /opt/airflow/
 COPY --from=1 /mocker /usr/lib/mocker
+RUN pip install /opt/airflow/providers/etna
 
 ENTRYPOINT ["/opt/airflow/entrypoint-with-secret-files.sh"]

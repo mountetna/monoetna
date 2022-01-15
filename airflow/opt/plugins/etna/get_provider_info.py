@@ -1,7 +1,7 @@
 # https://airflow.apache.org/docs/apache-airflow-providers/
 def get_provider_info():
     return {
-        "package-name": "n/a",
+        "package-name": "etna",
         "name": "etna",
         "description": "",
         "connection-types": [

@@ -50,7 +50,8 @@ services:
   airflow_ui:
     user: airflow
     image: airflow
-    command: webserver
+    command: airflow webserver
+    entrypoint: []
     depends_on:
       - airflow_postgres
     volumes:
