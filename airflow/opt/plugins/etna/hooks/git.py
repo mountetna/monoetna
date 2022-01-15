@@ -80,10 +80,23 @@ class GitHook(BaseHook):
         if self.connection.schema != 'https' and self.connection.password:
             # prepare a key.
             with tempfile.NamedTemporaryFile(delete=False) as file:
-                file.write(self.connection.password.encode('utf8'))
+                password = self.connection.password
+                words = password.split(' ')
+                lines = []
+                header = False
 
-            with open(file.name, 'r') as rrr:
-                print(rrr.read())
+                for word in words:
+                    if header:
+                        lines[-1] += " " + word
+                    else:
+                        lines.append(word)
+
+                    if word.startswith('--'):
+                        header = True
+                    if word.endswith('--'):
+                        header = False
+
+                file.write('\n'.join(lines).encode('utf8'))
 
             os.chmod(file.name, stat.S_IRUSR | stat.S_IWUSR)
             return file.name
