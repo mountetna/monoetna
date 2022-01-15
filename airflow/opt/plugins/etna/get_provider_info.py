@@ -1,0 +1,13 @@
+# https://airflow.apache.org/docs/apache-airflow-providers/
+def get_provider_info():
+    return {
+        "package-name": "n/a",
+        "name": "etna",
+        "description": "",
+        "connection-types": [
+            {
+                "connection-type": "git",
+                "hook-class-name": "etna.hooks.git.GitHook",
+            }
+        ]
+    }

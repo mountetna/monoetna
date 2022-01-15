@@ -24,6 +24,7 @@ from airflow.utils.state import State
 from etna.operators.docker_operator import DockerOperator
 from etna.operators.docker_operator_base import SwarmSharedData
 from etna.operators.swarm_operator import DockerSwarmOperator
+from etna.get_provider_info import get_provider_info
 
 system_epoch = datetime(2021, 12, 22, 16, 56, 3, 185905)
 
