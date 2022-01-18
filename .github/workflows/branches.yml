@@ -28,7 +28,6 @@ jobs:
           - archimedes
           - deployer
           - airflow
-          - swarm/swarm-keeper
       fail-fast: false
     steps:
       - uses: actions/checkout@v2
