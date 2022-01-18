@@ -1,7 +1,7 @@
 FROM known_hosts
 FROM bash_mocker
 
-FROM apache/airflow:2.2.2
+FROM apache/airflow:2.2.2-python3.7
 
 # This drops an sqlite database in the base directory which is not used in production,
 # but enables much faster testing since the migrations do not need to be run.
