@@ -14,7 +14,7 @@ class Metis
   class Server < Etna::Server
     get '/', action: 'client#index'
 
-    post '/check', action: 'data_block#check'
+    post '/api/exists', action: 'data_block#exists'
 
     get '/:project_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
     get '/:project_name/browse/:bucket_name', action: 'client#index', auth: { user: { can_view?: :project_name } }

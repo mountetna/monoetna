@@ -1,5 +1,5 @@
 class DataBlockController < Metis::Controller
-  def check
+  def exists
     raise Etna::BadRequest, "Improper md5!" unless @params[:md5s].all? do |md5|
       md5 =~ /^[a-f0-9]{32}$/i
     end

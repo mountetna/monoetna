@@ -159,7 +159,7 @@ describe DataBlockController do
     stubs.clear
   end
 
-  context '#check' do
+  context '#exists' do
     it 'checks for the existence of data blocks by md5' do
       wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
@@ -168,7 +168,7 @@ describe DataBlockController do
       folly_md5 = Digest::MD5.hexdigest(WISDOM.reverse)
 
       token_header(:viewer)
-      json_post('/check', md5s: [
+      json_post('/api/exists', md5s: [
         wisdom_md5,
         folly_md5
       ])
