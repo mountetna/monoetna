@@ -3,7 +3,9 @@ from dataclasses import dataclass
 from datetime import timedelta, datetime
 from typing import Optional, List, Dict, Callable, Set, Mapping, Tuple
 
+import requests.exceptions
 import docker.errors
+from airflow import AirflowException
 from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.utils.strings import get_random_string
 from dateutil import parser
@@ -11,6 +13,7 @@ from docker import types, APIClient
 from docker.types import ConfigReference, Mount, SecretReference, Resources
 
 from etna.operators.docker_operator_base import DockerOperatorBase
+from etna.utils.gater import RetryGater
 
 
 def join_labels(labels: Dict[str, str]) -> List[str]:
@@ -98,6 +101,7 @@ def create_service_from_definition(
                 configs=service_definition.configs,
                 secrets=service_definition.secrets,
             ),
+            log_driver=types.DriverConfig('local'), # Ensures logs are easily recoverable.
             restart_policy=types.RestartPolicy(condition="none"),
             resources=service_definition.resources,
             networks=service_definition.networks,
@@ -175,14 +179,20 @@ class DockerSwarmOperator(DockerOperatorBase):
 
         self.service = self._find_or_create_service(service_definition)
 
-        while not self.cli.tasks(filters={"service": self.service["ID"]}):
+        while not self._get_task():
             self.log.info("Awaiting task to come up...")
             time.sleep(1)
 
-    def _check_task(self) -> Tuple[str, Optional[str]]:
+    def _get_task(self) -> Optional[Mapping]:
         tasks = self.cli.tasks(filters={"service": self.service["ID"]})
         if tasks:
-            status = tasks[0]["Status"]
+            return tasks[0]
+        return None
+
+    def _check_task(self) -> Tuple[str, Optional[str]]:
+        task = self._get_task()
+        if task:
+            status = task["Status"]
             err = status.get("Err")
             state = status["State"]
             return state, err
@@ -193,9 +203,31 @@ class DockerSwarmOperator(DockerOperatorBase):
         is_tty = self.cli.inspect_service(self.service["ID"])["Spec"]["TaskTemplate"][
             "ContainerSpec"
         ].get("TTY", False)
+        task = self._get_task()
 
         def next_log_batch(since: int):
-            return hacky_service_logs(self.cli, self.service["ID"], since, is_tty)
+            if task is None:
+                # _start_task should wait until the task exists before proceeding to invoke the next_log_batch_since.
+                # We also do NOT refresh the task after the initial fetch -- the task could legitimately go away while
+                # reading, but we only care about the historical task identifier.
+                raise AirflowException("Could not logs of service, task was not available before reading logs.")
+
+            gater = RetryGater(5)
+
+            while True:
+                try:
+                    return hacky_task_logs(self.cli, task['ID'], since, is_tty)
+                except requests.exceptions.HTTPError as e:
+                    if e.response.status_code >= 500:
+                        gater.gate(e)
+                        continue
+                    raise e
+                except requests.exceptions.ConnectionError as e:
+                    gater.gate(e)
+                    continue
+                except requests.exceptions.Timeout as e:
+                    gater.gate(e)
+                    continue
 
         return next_log_batch
 
@@ -299,8 +331,8 @@ class DockerSwarmOperator(DockerOperatorBase):
 #      which is not portable when using the vcr requests library, nor is it portable when using an http
 #      adapters or even different python versions.  This is a flaw in the way python http is implemented,
 #      its attempt to hide underlying sockets causes grief (ie: stop hiding resources that are not actually private)
-def hacky_service_logs(
-    cli: APIClient, service_id: str, since: int, is_tty: bool
+def hacky_task_logs(
+    cli: APIClient, task_id: str, since: int, is_tty: bool
 ) -> bytes:
     params = {
         "details": False,
@@ -312,6 +344,8 @@ def hacky_service_logs(
         "tail": "all",
     }
 
-    url = cli._url("/services/{0}/logs", service_id)
+    url = cli._url("/tasks/{0}/logs", task_id)
     res = cli._get(url, params=params, stream=False)
+    res.raise_for_status()
+
     return cli._get_result_tty(False, res, is_tty)

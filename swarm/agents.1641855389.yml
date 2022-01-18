@@ -2,6 +2,17 @@ version: '3.8'
 
 # Intended for agents that run in global deploy node, on most or all nodes, for service health purposes.
 services:
+  # Keeps stuff relatively prune on docker hosts.
+  pruner:
+    image: docker
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    command: docker system prune --all --force
+    deploy:
+      mode: global
+      restart_policy:
+        delay: 24h
+
   swarm-keeper:
     image: etnaagent/swarm-keeper:production
     deploy:

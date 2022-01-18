@@ -10,6 +10,8 @@ from airflow.models import BaseOperator, TaskInstance
 from dateutil import parser
 from docker import APIClient
 
+from etna.utils.gater import RetryGater
+
 
 @dataclass
 class SwarmSharedData:
@@ -115,7 +117,6 @@ class DockerOperatorBase(BaseOperator):
             time.sleep(1)
 
         # Then consume the remaining logs after a task completes, keeping the last log line
-        time.sleep(1)
         last_line: bytes = next(logs_iter)
 
         if err:
@@ -137,47 +138,69 @@ def write_logs_and_yield_last(
     next_batch_since: Callable[[int], bytes],
     log: logging.Logger,
 ) -> Iterator[bytes]:
-    since = [0]
-    last_line: List[bytes] = []
+    since_s = b''
+    since_t = 0
+    last_line: Optional[bytes] = None
+    next_batch_buff: List[bytes] = []
 
-    def process_chunk(buff: bytes) -> bytes:
+    gater = RetryGater(5, exp=1.5)
+
+    while True:
+        buff = next_batch_since(since_t)
+
         lines = buff.split(b"\n")
-        results: List[bytes] = []
+        rpc_error = False
+
         for line in lines:
             if not line:
                 continue
-            date = parser.parse(line[:30])
+
+            if line.startswith(b'Error'):
+                # rpc error incoming.  Attempt a fresh new fetch. do NOT allow a yield after an error
+                # since we need to ensure some sort of conclusion to fetching logs (and if we cannot, we'd rather
+                # timeout or error from connection, not rpc issues).
+                rpc_error = True
+                gater.gate(AirflowException(f"Could not read docker logs, received rpc error: {line.decode('utf8')}"))
+                break
+
+            # We need a 'timestamp' for the since call, but the string associated with the time may have higher precision
+            # that we care about.  We compare using the higher precision string, but pass to the api the int.  This
+            # will result in some overlap of results but we can dedup using the string for comparison.
+            # In theory, logs can be lost if even the string precision is not string enough, but there isn't an easy way
+            # around this since the api lacks a strictly increasing non duplicated value for consuming logs.
+            date_s = line[:30]
+            date = parser.parse(date_s)
             t = time.mktime(date.timetuple())
 
-            # There isn't a way to consume 'since' with a exclusive >, meaning that
-            # between calls to the logs we get overlapping lines on the last since
-            # value passed.  We compare the time and drop those.
-            if t <= since[0]:
+            if date_s <= since_s:
                 continue
 
-            since[0] = t
+            since_t = t
+            since_s = date_s
             line = line[31:]
-            results.append(line)
+            next_batch_buff.append(line)
 
-        if results:
-            if last_line:
+        if rpc_error:
+            continue
+
+        if next_batch_buff:
+            if last_line is not None:
                 try:
-                    log.info(last_line[0].decode())
+                    log.info(last_line.decode())
                 except UnicodeDecodeError:
-                    log.info(last_line[0])
-            last_line.clear()
+                    log.info(last_line)
 
-            for line in results[:-1]:
+            for line in next_batch_buff[:-1]:
                 try:
                     log.info(line.decode())
                 except UnicodeDecodeError:
                     log.info(line)
 
-            last_line.append(results[-1])
+            last_line = next_batch_buff[-1]
+            next_batch_buff = []
 
-        if last_line:
-            return last_line[0]
-        return b""
-
-    while True:
-        yield process_chunk(next_batch_since(since[0]))
+        gater.reset()
+        if last_line is not None:
+            yield last_line
+        else:
+            yield b""
