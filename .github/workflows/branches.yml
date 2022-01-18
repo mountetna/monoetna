@@ -27,6 +27,7 @@ jobs:
           - etna
           - archimedes
           - deployer
+          - airflow
       fail-fast: false
     steps:
       - uses: actions/checkout@v2
