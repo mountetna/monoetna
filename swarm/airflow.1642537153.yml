@@ -86,6 +86,7 @@ services:
     networks:
       - airflow
       - edge_bridge
+      - prometheus
 
   scheduler:
     image: etnaagent/airflow:production
@@ -161,6 +162,8 @@ volumes:
 networks:
   airflow:
   edge_bridge:
+    external: true
+  prometheus:
     external: true
 
 secrets:
