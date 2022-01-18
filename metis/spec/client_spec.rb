@@ -658,4 +658,46 @@ describe MetisShell do
       tmp.unlink
     end
   end
+
+  describe MetisShell::Nuke do
+    it 'nukes a local directory except for missing files' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+      stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: bucket)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      stubs.send(:stub_file,'athena-copy/new/wisdom-copy.txt', WISDOM)
+      stubs.send(:stub_file,'athena-copy/new/helmet-copy.txt', HELMET)
+      stubs.send(:stub_file,'athena-copy/old/folly-copy.txt', WISDOM.reverse)
+
+      MetisShell.new("metis://athena", "nuke", "athena-copy").run
+
+      expect(::File.exists?('athena-copy/old/folly-copy.txt')).to be_truthy
+      expect(::File.exists?('athena-copy/old')).to be_truthy
+      expect(::File.exists?('athena-copy/new')).to be_falsy
+
+      FileUtils.rm_r('athena-copy')
+    end
+
+    it 'nukes a local directory but keeps parent folder' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+      stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: bucket)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      stubs.send(:stub_file,'athena-copy/new/wisdom-copy.txt', WISDOM)
+      stubs.send(:stub_file,'athena-copy/new/helmet-copy.txt', HELMET)
+
+      MetisShell.new("metis://athena", "nuke", "athena-copy").run
+
+      expect(::File.exists?('athena-copy/old')).to be_falsy
+      expect(::File.exists?('athena-copy')).to be_truthy
+
+      FileUtils.rm_r('athena-copy')
+    end
+  end
 end
