@@ -7,11 +7,15 @@ require_relative './server/controllers/bucket_controller'
 require_relative './server/controllers/upload_controller'
 require_relative './server/controllers/download_controller'
 require_relative './server/controllers/client_controller'
+require_relative './server/controllers/data_block_controller'
 require_relative './server/set_uid'
 
 class Metis
   class Server < Etna::Server
     get '/', action: 'client#index'
+
+    post '/check', action: 'data_block#check'
+
     get '/:project_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
     get '/:project_name/browse/:bucket_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
     get '/:project_name/browse/:bucket_name/*folder_name', action: 'client#index', auth: { user: { can_view?: :project_name } }

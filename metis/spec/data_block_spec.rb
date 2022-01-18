@@ -139,3 +139,42 @@ describe Metis::DataBlock do
     end
   end
 end
+
+describe DataBlockController do
+  include Rack::Test::Methods
+
+  def app
+    OUTER_APP
+  end
+
+  before(:each) do
+    default_bucket('athena')
+
+    @metis_uid = Metis.instance.sign.uid
+
+    set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
+  end
+
+  after(:each) do
+    stubs.clear
+  end
+
+  context '#check' do
+    it 'checks for the existence of data blocks by md5' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
+      folly_md5 = Digest::MD5.hexdigest(WISDOM.reverse)
+
+      token_header(:viewer)
+      json_post('/check', md5s: [
+        wisdom_md5,
+        folly_md5
+      ])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body).to eq(found: [ wisdom_md5 ], missing: [ folly_md5])
+    end
+  end
+end
