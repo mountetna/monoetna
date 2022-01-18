@@ -36,6 +36,38 @@ class NotSoRandom(Random):
     def __init__(self, *args):
         super(NotSoRandom, self).__init__(0)
 
+@pytest.fixture()
+def https_git_connection(session):
+    session.query(Connection).filter(Connection.conn_id == 'https_git_connection').delete()
+
+    conn = Connection(
+        conn_id='https_git_connection',
+        conn_type='git',
+        login=os.environ.get('AIRFLOW_GIT_TEST_USER', ''),
+        password=os.environ.get('AIRFLOW_GIT_TEST_PASSWORD', ''),
+        schema='https'
+    )
+
+    session.add(conn)
+    session.commit()
+    return conn
+
+@pytest.fixture()
+def ssh_git_connection(session):
+    password = os.environ.get('AIRFLOW_GIT_TEST_PK', '')
+    session.query(Connection).filter(Connection.conn_id == 'ssh_git_connection').delete()
+
+    conn = Connection(
+        conn_id='ssh_git_connection',
+        conn_type='git',
+        login=os.environ.get('AIRFLOW_GIT_TEST_USER', ''),
+        password=password,
+        schema='ssh'
+    )
+
+    session.add(conn)
+    session.commit()
+    return conn
 
 @pytest.fixture()
 def reset_environment():
