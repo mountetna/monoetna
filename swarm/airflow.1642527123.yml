@@ -47,6 +47,7 @@ services:
       mode: replicated
       labels:
         - autoupdate=true
+        - prometheus_port=9000
       replicas: 1
       placement:
         constraints:
