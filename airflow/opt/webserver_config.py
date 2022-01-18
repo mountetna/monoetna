@@ -63,8 +63,6 @@ NQIDAQAB
 -----END PUBLIC KEY-----""")
 ETNA_AUTH_TOKEN_ALGO = os.environ.get('ETNA_AUTH_TOKEN_ALGO', 'RS256')
 
-logging.info(ETNA_AUTH_PUBLIC_KEY)
-
 # Uncomment to setup Full admin role name
 AUTH_ROLE_ADMIN = 'Admin'
 
