@@ -43,7 +43,7 @@ class EtnaCookieAuthView(AuthView):
             return redirect(
                 self.appbuilder.app.config["ETNA_AUTH_JANUS_URL"]
                 + "/login?"
-                + urlencode(dict(referer=request.url))
+                + urlencode(dict(refer=request.url))
             )
 
         return redirect(self.appbuilder.get_url_for_index)
