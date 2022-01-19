@@ -27,7 +27,7 @@ def config_exists?
 end
 
 def progress_bar(completion, bar_size=20)
-  progress = "+"*(bar_size * completion) + " "*(bar_size*(1-completion)).ceil
+  progress = "+"*(bar_size * completion) + " "*(bar_size*(1-completion)).ceil + "|"
 end
 
 def byte_format(bytes)
@@ -44,8 +44,13 @@ def byte_format(bytes)
   return bytes
 end
 
-def progress(completion, rate, path)
-  "\r#{progress_bar(completion)} #{path} - #{byte_format(rate)}B/s"
+def print_progress(completion, rate, path, verbose=false)
+  if verbose
+    print "\r#{progress_bar(completion)} #{path} - #{byte_format(rate)}B/s"
+  elsif completion == 1.0
+    # non-verbose will only print one line on file completion
+    print "#{path} - #{byte_format(rate)}B/s"
+  end
 end
 
 def metis_path(path)
@@ -502,6 +507,7 @@ EOT
     attr_reader :options
 
     def initialize(shell)
+      @headless = ENV['METIS_headless'] == 'true' ? true : false
       @shell = shell
       @options = {}
     end
@@ -980,10 +986,11 @@ EOT
               io.write chunk
 
               completed += chunk.size
-              print progress(
+              print_progress(
                 size == 0 ? 1 : completed / size,
                 (completed / (Time.now - start)).round(2),
-                file[:file_path]
+                file[:file_path],
+                !@headless
               )
             end
             raise MetisClient::DownloadError, "Incomplete download" unless completed == size
@@ -1110,7 +1117,8 @@ EOT
               current_byte_position: upload.current_byte_position
             )
 
-            puts progress(1, 0, new_file_path)
+            print_progress(1, 0, new_file_path, !@headless)
+            puts
             return
           end
 
@@ -1129,10 +1137,11 @@ EOT
               current_byte_position: current_byte_position
             )
 
-            print progress(
+            print_progress(
               upload.current_byte_position.to_f / upload.file_size,
               (upload.current_byte_position / (Time.now - start).to_f).round(2),
-              new_file_path
+              new_file_path,
+              !@headless
             )
           end
           puts
@@ -1194,7 +1203,11 @@ EOT
       unless files.empty?
         # compute md5sums
         file_md5s = files.map.with_index do |file,i|
-          print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}\r"
+          if @headless
+            print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}\r"
+          else
+            puts "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}"
+          end
           [ file, %x{ md5sum #{file} }.split(' ')[0] ]
         end.to_h
         puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}\n"
@@ -1287,7 +1300,7 @@ EOT
     ^metis:/(?<path>/.*)?$
   !x
 
-  def initialize(path, *args)
+  def initialize(path, client_args, *command_args)
     @token = ENV['TOKEN']
 
     if !@token
@@ -1299,7 +1312,21 @@ EOT
 
     @host = MetisConfig[:metis_host]
 
-    @args = args
+    unless client_args.empty?
+      if client_args[0] == '--headless'
+        # Headless mode assumes all I/O is file-based.
+        # There must be a better way to pass this to Command
+        @headless = true
+        ENV['METIS_headless'] = 'true'
+        # Set this to a really large value so there's no pesky "^M" carraige returns corrupting the output buffer
+        ENV['COLUMNS'] = '1000'
+      else
+        @headless = false
+        ENV['METIS_headless'] = 'false'
+      end
+    end
+
+    @args = command_args
 
     raise 'No metis host selected' if !@host
 
@@ -1489,6 +1516,10 @@ EOT
       MetisShell.log_error(e)
       exit(1) if errexit?
     end
+    if @headless
+      # This will sync the input command and the output result.
+      STDOUT.flush
+    end
   end
 
   VALID_INPUT=/^(?<command>\w+)(?:\s+(?<args>.*))?$/
@@ -1578,7 +1609,23 @@ def start
     MetisSetup.new.run
 
   MetisConfig.instance.config(config)
-  MetisShell.new(ARGV[0], *ARGV[1..-1]).run
+  # Assuming the call format is metis_client [<CLIENT_ARGS>] [PATH] [<COMMAND> <COMMAND_ARGS>]
+  # Client args are --XXX and the first non "^--" is either the PATH or the COMMAND
+  # I'm sure there's a better way to do this
+  first_non_client_idx = ARGV.index{ |x| !x.match(/^--/) }
+  if ARGV.empty?
+    # Nothing to do, pass all defaults
+    MetisShell.new(nil, [], *[]).run
+  elsif first_non_client_idx.nil?
+    # ARGV isn't empty, and there are only client args
+    MetisShell.new(nil, ARGV, *[]).run
+  elsif first_non_client_idx == 0
+    # ARGV isn't empty, but there are no client args
+    MetisShell.new(ARGV[0], [], *ARGV[1..-1]).run
+  else
+    # ARGV isn't empty and there are both client args and non-client args
+    MetisShell.new(ARGV[first_non_client_idx], ARGV[0..(first_non_client_idx-1)], *ARGV[(first_non_client_idx+1)..-1]).run
+  end
   puts
 end
 
