@@ -11,3 +11,8 @@ export const updateUserFlags = ({
 }): Promise<any> => json_post('/flag_user', {email, flags});
 
 export const fetchProjects = (): Promise<any> => json_get('/projects');
+
+export const updateProject = (
+  project_name: string,
+  revisions: {[key: string]: any}
+) => json_post(`/${project_name}`, revisions);

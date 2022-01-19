@@ -32,9 +32,10 @@
     "redux": "^4.0.5",
     "redux-mock-store": "^1.5.4",
     "redux-thunk": "^2.3.0",
+    "regenerator-runtime": "^0.13.9",
     "reselect": "^3.0.1",
     "style-loader": "^1.2.1",
-    "typescript": "^4.2.3",
+    "typescript": "^4.5.4",
     "webworkify-webpack": "^2.1.5"
   },
   "devDependencies": {
@@ -57,7 +58,7 @@
     "eslint-plugin-react": "^6.9.0",
     "extract-text-webpack-plugin": "^3.0.2",
     "file-loader": "^1.1.11",
-    "jest": "^26.1.0",
+    "jest": "^26.6.3",
     "msw": "^0.28.2",
     "nock": "^12.0.3",
     "node-fetch": "^2.6.0",

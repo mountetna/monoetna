@@ -76,21 +76,58 @@ module Etna
       # some routes don't need janus approval
       return true if route && route.ignore_janus?
 
-      # only process task tokens right now
-      return true unless payload['task']
+      # process task tokens
+      payload['task'] ? valid_task_token?(token) : true
+    end
 
-      return false unless application.config(:janus) && application.config(:janus)[:host]
+    def resource_projects(token)
+      return [] unless has_janus_config?
 
-      janus_client = Etna::Clients::Janus.new(
+      janus_client(token).get_projects.projects.select do |project|
+        project.resource
+      end
+    rescue
+      # If encounter any issue with Janus, we'll return no resource projects
+      []
+    end
+
+    def janus_client(token)
+      Etna::Clients::Janus.new(
         token: token,
         host: application.config(:janus)[:host]
       )
+    end
 
-      response = janus_client.validate_task_token
+    def valid_task_token?(token)
+      return false unless has_janus_config?
+
+      response = janus_client(token).validate_task_token
 
       return false unless response.code == '200'
 
       return true
+    end
+
+    def has_janus_config?
+      application.config(:janus) && application.config(:janus)[:host]
+    end
+
+    def update_payload(payload, token, request)
+      route = server.find_route(request)
+
+      payload = payload.map{|k,v| [k.to_sym, v]}.to_h
+      begin      
+        permissions = Etna::Permissions.from_encoded_permissions(payload[:perm])
+
+        resource_projects(token).each do |resource_project|
+          permissions.add_permission(
+            Etna::Permission.new('v', resource_project.project_name)
+          )
+        end
+        payload[:perm] = permissions.to_string
+      end if (!route.ignore_janus? && route.has_user_constraint?(:can_view?))
+
+      payload
     end
 
     def approve_user(request)
@@ -102,7 +139,9 @@ module Etna
         payload, header = application.sign.jwt_decode(token)
 
         return false unless janus_approved?(payload, token, request)
-        return request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h, token)
+        return request.env['etna.user'] = Etna::User.new(
+          update_payload(payload, token, request),
+          token)
       rescue
         # bail out if anything goes wrong
         return false
