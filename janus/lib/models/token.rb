@@ -36,16 +36,9 @@ module Token
           perm.send(k) == v
         end
       end
-      filtered_perms.map do |permission|
-        [ Token.role_key(permission.role, permission.privileged?), permission.project_name ]
-      end.group_by(&:first)
-        .sort_by(&:first)
-        .map do |role_key, project_roles|
-          [
-            role_key,
-            project_roles.map(&:last).sort.join(',')
-          ].join(':')
-      end.join(';')
+      Etna::Permissions.new(filtered_perms.map do |permission|
+        Etna::Permission.new(Token.role_key(permission.role, permission.privileged?), permission.project_name)
+      end).to_string
     end
 
     def create_token!
