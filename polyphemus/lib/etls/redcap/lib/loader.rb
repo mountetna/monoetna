@@ -55,6 +55,12 @@ module Redcap
       end
     end
 
+    def patch_attribute(records, model_name, record_name, att_name, value)
+      records[ model_name.to_sym ] ||= {}
+      records[ model_name.to_sym ][ record_name ] ||= {}
+      records[ model_name.to_sym ][ record_name ][ att_name ] = value
+    end
+
     def patch_tables
       # find any table attributes
       magma_models_wrapper.models.model_keys.each do |model_name|
@@ -69,9 +75,7 @@ module Redcap
                   record[ model_name.to_sym ]
                 end.each do |model_record_name, revisions|
                   temp_id_names = revisions.map(&:first)
-                  records[ model_name.to_sym ] ||= {}
-                  records[ model_name.to_sym ][ model_record_name ] ||= {}
-                  records[ model_name.to_sym ][ model_record_name ][ att_name ] = temp_id_names
+                  patch_attribute(records, model_name, model_record_name, att_name, temp_id_names)
                 end
 
                 # Blank out records that have no data if user specifies a
@@ -84,9 +88,8 @@ module Redcap
                     found_record_names.include?(r)
                   end
                   @records_to_blank[ model_name.to_sym ].each do |model_record_name|
-                    records[ model_name.to_sym ] ||= {}
-                    records[ model_name.to_sym ][ model_record_name ] ||= {}
-                    records[ model_name.to_sym ][ model_record_name ][ att_name ] = [] # empty array in Magma removes existing table records for an attribute
+                    # empty array in Magma removes existing table records for an attribute
+                    patch_attribute(records, model_name, model_record_name, att_name, [])
                   end
                 end
               end

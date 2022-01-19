@@ -85,6 +85,18 @@
             "hidden": false,
             "validation": null,
             "attribute_type": "collection"
+          },
+          "model_with_alternate_id": {
+            "name": "model_with_alternate_id",
+            "attribute_name": "model_with_alternate_id",
+            "model_name": "model_with_alternate_id",
+            "link_model_name": "model_with_alternate_id",
+            "display_name": "Model With Alternate Id",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
           }
         }
       }
@@ -165,6 +177,17 @@
             "hidden": false,
             "validation": null,
             "attribute_type": "table"
+          },
+          "citation": {
+            "name": "citation",
+            "attribute_name": "citation",
+            "display_name": "Citations",
+            "link_model_name": "citation",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
           }
         },
         "parent": "model_one"
