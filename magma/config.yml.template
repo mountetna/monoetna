@@ -6,7 +6,7 @@
     :adapter: postgres
     :user: developer
     :password: password
-  :project_path: ./projects/ipi
+  :project_path: ''
   :host: https://magma.development.local
   :log_file: /dev/stdout
   :log_level: info
