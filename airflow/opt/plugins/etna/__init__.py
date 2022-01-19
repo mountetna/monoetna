@@ -4,10 +4,12 @@ import json
 import tarfile
 from datetime import datetime, timedelta
 from os.path import basename
-from typing import Callable
+from typing import Callable, Mapping, Union
 from typing import Optional, List, Any
 
+import inspect
 from airflow import DAG
+from airflow.decorators import task
 from airflow.exceptions import AirflowNotFoundException, AirflowException
 from airflow.hooks.base import BaseHook
 from airflow.models import DagRun
@@ -17,6 +19,7 @@ from airflow.models.dag import (
     ScheduleIntervalArg,
 )
 from airflow.models.taskinstance import Context, TaskInstance
+from airflow.operators.python import get_current_context
 from airflow.providers.slack.hooks.slack import SlackHook
 from airflow.utils.session import create_session
 from airflow.utils.state import State
@@ -83,6 +86,40 @@ def _notify_slack_dag_callback(dag_status: str) -> DagStateChangeCallback:
     return state_change_callback
 
 
+def inject(fn: Callable, injections: Mapping[str, Any]):
+    sig: inspect.Signature = inspect.signature(fn)
+    parameters = sig.parameters.values()
+    inject_p = {}
+
+    for param in parameters:
+        if param.name in injections:
+            inject_p[param.name] = injections[param.name]
+
+    return fn(**inject_p)
+
+
+# In the future, the 'version' parameter is generated programmatically from the dag by creating
+# a hash of its components (maybe its pickling) in order to determine its "version".  This
+# would also require determining and locking in the service image name and hash before running
+# docker swarm operators.  "Doable".
+def etl(start_date: datetime, interval: timedelta, version: Union[int, str]):
+    def instantiate_dag(fn):
+        return dag(
+            start_date=start_date,
+            schedule_interval=interval,
+            catchup=True,
+            inject_params=dict(
+                start_date="{{ data_interval_start }}",
+                end_date="{{ data_interval_end }}",
+                dag_name="{{ dag.name }}",
+                task_name="{{ ti.name }}",
+            ),
+            version=version,
+        )(fn)
+
+    return instantiate_dag
+
+
 def system_dag(interval: timedelta):
     def instantiate_dag(fn):
         return dag(
@@ -103,6 +140,8 @@ def dag(
     schedule_interval: ScheduleIntervalArg = ScheduleIntervalArgNotSet,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
+    inject_params: Mapping[str, str] = {},
+    version: Union[int, str] = "",
     **kwds,
 ):
     """
@@ -113,7 +152,7 @@ def dag(
 
     def instantiate_dag(fn):
         with DAG(
-            dag_id=fn.__name__,
+            dag_id=fn.__name__ + str(version),
             description=fn.__doc__,
             on_failure_callback=on_failure_callback,
             on_success_callback=on_success_callback,
@@ -122,7 +161,7 @@ def dag(
             schedule_interval=schedule_interval,
             **kwds,
         ) as dag:
-            fn()
+            inject(fn, inject_params)
         return dag
 
     return instantiate_dag
@@ -132,6 +171,7 @@ def run_in_container(
     task_id: str,
     source_container: str,
     command: List[str],
+    env: Mapping[str, str] = dict(),
     input_bytes: Optional[bytes] = None,
     use_compose: bool = True,
     input_file: Optional[str] = None,
@@ -152,6 +192,7 @@ def run_in_container(
         command=command,
         swarm_shared_data=swarm_shared_data,
         serialize_last_output=serialize_last_output,
+        env=env,
     )
 
 
@@ -159,6 +200,7 @@ def run_in_swarm(
     task_id: str,
     source_service: str,
     command: List[str],
+    env: Mapping[str, str] = dict(),
     input_bytes: Optional[bytes] = None,
     input_file: Optional[str] = None,
     input_dir: Optional[str] = None,
@@ -177,6 +219,7 @@ def run_in_swarm(
         include_external_networks=include_external_network,
         swarm_shared_data=swarm_shared_data,
         serialize_last_output=serialize_last_output,
+        env=env,
     )
 
 

@@ -56,7 +56,7 @@ services:
       - airflow_postgres
     volumes:
       - ./opt/plugins:/opt/airflow/plugins
-#      - ./logs:/opt/airflow/logs
+      - ./logs:/opt/airflow/logs
       - airflow-dags:/opt/airflow/dags
     environment:
       <<: *airflow-env
