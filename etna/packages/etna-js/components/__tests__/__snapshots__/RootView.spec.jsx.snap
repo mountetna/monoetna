@@ -31,52 +31,65 @@ exports[`RootView renders 1`] = `
          title 
       </div>
     </div>
-    <div
-      className="project"
-    >
-      <div
-        className="project_name"
-      >
-        <a
-          href="/labors"
+    <div>
+      Your projects:
+      <div>
+        <div
+          className="project"
         >
-          labors
-        </a>
-      </div>
-      <div
-        className="role"
-      >
-        viewer
-        
-      </div>
-      <div
-        className="full_name"
-      >
-        The Twelve Labors of Hercules
+          <div
+            className="project_name"
+          >
+            <a
+              href="/labors"
+            >
+              labors
+            </a>
+          </div>
+          <div
+            className="role"
+          >
+            viewer
+            
+          </div>
+          <div
+            className="full_name"
+          >
+            The Twelve Labors of Hercules
+          </div>
+        </div>
+        <div
+          className="project"
+        >
+          <div
+            className="project_name"
+          >
+            <a
+              href="/wisdom"
+            >
+              wisdom
+            </a>
+          </div>
+          <div
+            className="role"
+          >
+            viewer
+            
+          </div>
+          <div
+            className="full_name"
+          >
+            Athena's Wisdom
+          </div>
+        </div>
       </div>
     </div>
-    <div
-      className="project"
-    >
-      <div
-        className="project_name"
-      >
-        <a
-          href="/wisdom"
-        >
-          wisdom
-        </a>
-      </div>
-      <div
-        className="role"
-      >
-        viewer
-        
-      </div>
-      <div
-        className="full_name"
-      >
-        Athena's Wisdom
+    <div>
+      Resource projects:
+      <div>
+        <span>
+          No resource projects.
+        </span>
       </div>
     </div>
   </div>

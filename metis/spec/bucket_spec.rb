@@ -21,7 +21,6 @@ describe Metis::Bucket do
   end
 
   it 'forbids users from accessing buckets by project role' do
-
     bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
 
     # the admin is always allowed

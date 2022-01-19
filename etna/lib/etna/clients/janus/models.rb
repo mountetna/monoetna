@@ -69,6 +69,54 @@ module Etna
         end
       end
 
+      class GetProjectResponse
+        attr_reader :raw
+
+        def initialize(raw = '')
+          @raw = raw
+        end
+
+        def project
+          Project.new(@raw[:project])
+        end
+      end
+
+      class GetProjectsResponse
+        attr_reader :raw
+
+        def initialize(raw = '')
+          @raw = raw
+        end
+
+        def projects
+          @raw[:projects].map do |project|
+            Project.new(project)
+          end
+        end
+      end
+
+      class Project
+        def initialize(raw = '')
+          @raw = raw
+        end
+
+        def project_name
+          @raw[:project_name]
+        end
+
+        def project_name_full
+          @raw[:project_name_full]
+        end
+
+        def permissions
+          @raw[:permissions] || []
+        end
+
+        def resource
+          !!@raw[:resource]
+        end
+      end
+
       class TokenResponse
         attr_reader :raw
 
