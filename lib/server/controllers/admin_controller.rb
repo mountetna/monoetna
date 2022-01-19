@@ -10,11 +10,7 @@ class AdminController < Janus::Controller
     raise Etna::BadRequest, "No such project #{@params[:project_name]}" unless @project
 
     success_json(
-      project: {
-        project_name: @project.project_name,
-        project_name_full: @project.project_name_full,
-        permissions: @project.permissions.map(&:to_hash)
-      }
+      project: @project.to_hash
     )
   end
 
@@ -24,7 +20,8 @@ class AdminController < Janus::Controller
       #   all the information.
       {
         project_name: project.project_name,
-        project_name_full: project.project_name_full
+        project_name_full: project.project_name_full,
+        resource: project.resource
       }
     end
 
@@ -113,6 +110,17 @@ class AdminController < Janus::Controller
 
     @response.redirect('/')
     @response.finish
+  end
+
+  def update_project
+    @project = Project[project_name: @params[:project_name]]
+
+    raise Etna::BadRequest, "invalid project" if @project.nil?
+
+    @project.update(resource: !!@params[:resource]) unless @params[:resource].nil?
+    @project.refresh
+
+    success_json(@project.to_hash)
   end
 
   def flag_user

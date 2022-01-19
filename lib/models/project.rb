@@ -6,4 +6,13 @@ class Project < Sequel::Model
   def self.valid_name?(project_name)
     project_name =~ /\A#{PROJECT_NAME_MATCH.source}\Z/
   end
+
+  def to_hash
+    {
+      project_name: project_name,
+      project_name_full: project_name_full,
+      permissions: permissions.map(&:to_hash),
+      resource: resource
+    }
+  end
 end
