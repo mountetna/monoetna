@@ -3,7 +3,16 @@ load 'bin/metis_client'
 def expect_output(path, *args)
   expect {
     begin
-      MetisShell.new(path, *args).run
+      MetisShell.new(path, [], *args).run
+    rescue SystemExit
+    end
+  }.to output(yield).to_stdout
+end
+
+def expect_output_headless(path, *args)
+  expect {
+    begin
+      MetisShell.new(path, ["--headless"], *args).run
     rescue SystemExit
     end
   }.to output(yield).to_stdout
@@ -12,7 +21,7 @@ end
 def expect_error(path, *args)
   expect {
     begin
-      MetisShell.new(path, *args).run
+      MetisShell.new(path, [], *args).run
     rescue SystemExit
     end
   }.to output(yield).to_stderr_from_any_process
@@ -623,7 +632,7 @@ describe MetisShell do
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
       stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
 
-      MetisShell.new("metis://athena", "peek", "4", "5", "armor/helmet.jpg").run
+      MetisShell.new("metis://athena", [], "peek", "4", "5", "armor/helmet.jpg").run
 
       expect(WebMock).to have_requested(:get, /https:\/\/metis.test\/athena\/download/).
         with(headers: {
@@ -645,7 +654,7 @@ describe MetisShell do
           body: "partial-chunk"
         })
 
-      MetisShell.new("metis://athena", "peek", "4", "5", "armor/helmet.jpg", tmp.path).run
+      MetisShell.new("metis://athena", [], "peek", "4", "5", "armor/helmet.jpg", tmp.path).run
 
       expect(WebMock).to have_requested(:get, /https:\/\/metis.test\/athena\/download/).
         with(headers: {
@@ -672,7 +681,7 @@ describe MetisShell do
       stubs.send(:stub_file,'athena-copy/new/helmet-copy.txt', HELMET)
       stubs.send(:stub_file,'athena-copy/old/folly-copy.txt', WISDOM.reverse)
 
-      MetisShell.new("metis://athena", "nuke", "athena-copy").run
+      MetisShell.new("metis://athena", [], "nuke", "athena-copy").run
 
       expect(::File.exists?('athena-copy/old/folly-copy.txt')).to be_truthy
       expect(::File.exists?('athena-copy/old')).to be_truthy
@@ -692,7 +701,7 @@ describe MetisShell do
       stubs.send(:stub_file,'athena-copy/new/wisdom-copy.txt', WISDOM)
       stubs.send(:stub_file,'athena-copy/new/helmet-copy.txt', HELMET)
 
-      MetisShell.new("metis://athena", "nuke", "athena-copy").run
+      MetisShell.new("metis://athena", [], "nuke", "athena-copy").run
 
       expect(::File.exists?('athena-copy/old')).to be_falsy
       expect(::File.exists?('athena-copy')).to be_truthy
