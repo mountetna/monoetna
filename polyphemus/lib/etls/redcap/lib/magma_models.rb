@@ -44,8 +44,12 @@ module Redcap
       # From a set of magma models, can only tell if a model
       #    is a table from its parent's definition of the
       #    child attribute.
+      parent_name = parent_model_name(model_name)
+
+      return false unless parent_name
+
       models.model(
-        parent_model_name(model_name)
+        parent_name
       ).template.attributes.attribute(
         model_name.to_s
       ).attribute_type == Etna::Clients::Magma::AttributeType::TABLE
