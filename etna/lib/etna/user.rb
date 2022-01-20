@@ -1,11 +1,7 @@
+require_relative './permissions'
+
 module Etna
   class User
-    ROLE_NAMES = {
-      'A' => :admin,
-      'E' => :editor,
-      'V' => :viewer
-    }
-
     def initialize params, token=nil
       @name, @email, @encoded_permissions, encoded_flags, @task = params.values_at(:name, :email, :perm, :flags, :task)
 
@@ -21,19 +17,7 @@ module Etna
     end
 
     def permissions
-      @permissions ||= @encoded_permissions.split(/\;/).map do |roles|
-        role, projects = roles.split(/:/)
-
-        projects.split(/\,/).reduce([]) do |perms,project_name|
-          perms.push([
-            project_name,
-            {
-              role: ROLE_NAMES[role.upcase],
-              restricted: role == role.upcase
-            }
-          ])
-        end
-      end.inject([],:+).to_h
+      @permissions ||= Etna::Permissions.from_encoded_permissions(@encoded_permissions).to_hash
     end
 
     def has_flag?(flag)
@@ -44,12 +28,6 @@ module Etna
       permissions.keys
     end
 
-    ROLE_MATCH = {
-      admin: /[Aa]/,
-      editor: /[Ee]/,
-      viewer: /[Vv]/,
-      restricted: /[AEV]/,
-    }
     def has_any_role?(project, *roles)
       perm = permissions[project.to_s]
 

@@ -3,7 +3,6 @@ import { json_post, json_get } from 'etna-js/utils/fetch';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import { isAdmin, isSuperuser } from 'etna-js/utils/janus';
-import Icon from 'etna-js/components/icon';
 
 import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
@@ -18,6 +17,8 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
+
+import SaveCancel from './save-cancel';
 
 const useStyles = makeStyles((theme) => ({
   table: {
@@ -46,6 +47,15 @@ const Permission = ({roles, editable, onSave, permission={}, create}) => {
   }, [ permission, revision ]);
 
   const classes = useStyles();
+
+  const handleOnSave = useCallback(() => {
+    onSave({revision,user_email});
+    updateRevision({});
+  }, [revision, user_email]);
+
+  const handleOnCancel = useCallback(() => {
+    updateRevision({});
+  });
 
   return <TableRow>
     <TableCell>
@@ -107,10 +117,7 @@ const Permission = ({roles, editable, onSave, permission={}, create}) => {
     </TableCell>
     <TableCell>
       {
-        Object.keys(revision).length > 0 && <React.Fragment>
-          <Icon className='approve' icon='save' onClick={ () => { onSave({revision,user_email}); updateRevision({}); } } />
-          <Icon className='cancel' icon='ban' onClick={ () => updateRevision({}) }/>
-        </React.Fragment>
+        Object.keys(revision).length > 0 && <SaveCancel onSave={handleOnSave} onCancel={handleOnCancel} />
       }
     </TableCell>
   </TableRow>

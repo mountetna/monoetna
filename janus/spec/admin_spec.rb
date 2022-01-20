@@ -11,7 +11,7 @@ describe AdminController do
 
       gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
       tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
-      mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
+      mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror', resource: true)
     end
 
     it 'prevents access to the list of all projects for non-superusers' do
@@ -29,9 +29,9 @@ describe AdminController do
 
       expect(json_body[:projects]).to eq(
         [
-          { project_name: "gateway", project_name_full: "Gateway"},
-          { project_name: "tunnel", project_name_full: "Tunnel"},
-          { project_name: "mirror", project_name_full: "Mirror"}
+          { project_name: "gateway", project_name_full: "Gateway", resource: false},
+          { project_name: "tunnel", project_name_full: "Tunnel", resource: false},
+          { project_name: "mirror", project_name_full: "Mirror", resource: true}
         ]
       )
     end
@@ -71,6 +71,48 @@ describe AdminController do
       expect(last_response.status).to eq(403)
     end
 
+    it 'viewer cannot set the resource flag' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      auth_header(:viewer)
+      json_post('door', resource: true)
+
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'can set the resource flag' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      expect(door.resource).to eq(false)
+
+      auth_header(:portunus)
+
+      json_post('door', resource: true)
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.resource).to eq(true)
+
+      json_post('door', resource: false)
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.resource).to eq(false)
+    end
+
+    it 'resource flag does not change if not provided in params' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door', resource: true)
+
+      expect(door.resource).to eq(true)
+
+      auth_header(:portunus)
+      json_post('door', arbitrary: false)
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.resource).to eq(true)
+    end
+
     it 'returns a list of permissions for the project' do
       user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
       user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
@@ -103,7 +145,8 @@ describe AdminController do
           }
         ],
         project_name: "door",
-        project_name_full: "Door"
+        project_name_full: "Door",
+        resource: false
       )
     end
   end

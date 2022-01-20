@@ -28,6 +28,8 @@
     :user: developer
     :password: password
     :search_path: [ public ]
+  :janus:
+    :host: https://janus.test
 
 :development:
   :timur:
