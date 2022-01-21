@@ -20,33 +20,53 @@ class Polyphemus
   #   database for newly updated files that have been
   #   flagged for triage ingestion.
   class DbTriageFileBaseEtl < Etl
-    # Subclasses should provide default values here, since commands are constructed
-    def initialize(project_bucket_pairs:, column_name:, limit: 20, timeout: nil)
-      file_cursors = project_bucket_pairs.map do |project_name, bucket_name|
-        DbTriageFileBaseEtlCursor.new(job_name: self.class.name, project_name: project_name, bucket_name: bucket_name).load_from_db
-      end
+    def cursor_group(from_env = false)
+      cursor_group_from_project_bucket_pairs(@project_bucket_pairs, DbTriageFileBaseEtlCursor, from_env)
+    end
 
+    def initialize_query(cursor)
+      raise "subclasses must implement initialize_query"
+    end
+
+    def scanner
+      TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
+        query = initialize_query(cursor)
+        if (end_at = cursor[:batch_end_at])
+          query = query.where {
+            # This is crucial -- we use the <= here which can result in overlapping work executing because
+            # we do not keep cursor state when running batches from the environment, and it is possible for a
+            # process to run precisely at the time precision border between start and end times.
+            # In this extreme edge case, prefer duplication and complication since jobs should be idempotent
+            # anyways.
+            updated_at <= (end_at || Time.at(0)) + 1
+          }
+        end
+
+        query
+      end.result_updated_at do |file|
+        file[:updated_at]
+      end.result_id do |file|
+        "#{file[:host]}://#{file[:name]}"
+      end.execute_batch_find do |query, i|
+        query.limit(@limit * i)
+
+        Polyphemus.instance.db.transaction do
+          Polyphemus.instance.db.run("SET LOCAL statement_timeout = #{@timeout}") if @timeout
+          Polyphemus.instance.db[query.sql].all
+        end
+      end
+    end
+
+    def find_batch(cursor)
+      scanner.find_batch(cursor)
+    end
+
+    def initialize(project_bucket_pairs:, column_name:, limit: 20, timeout: nil)
       @limit = limit
       @timeout = timeout
       @column_name = column_name
-
-      super(
-        cursor_group: EtlCursorGroup.new(file_cursors),
-        scanner: TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
-          initialize_query(cursor)
-        end.result_updated_at do |file|
-          file[:updated_at]
-        end.result_id do |file|
-          "#{file[:host]}://#{file[:name]}"
-        end.execute_batch_find do |query, i|
-          query.limit(@limit * i)
-
-          Polyphemus.instance.db.transaction do
-            Polyphemus.instance.db.run("SET LOCAL statement_timeout = #{@timeout}") if @timeout
-            Polyphemus.instance.db[query.sql].all
-          end
-        end,
-      )
+      @project_bucket_pairs = project_bucket_pairs
+      super
     end
   end
 end
