@@ -107,6 +107,45 @@ class Polyphemus
     end
   end
 
+  class FixedSpanEtlCursor
+    attr_reader :name
+
+    def initialize(
+      name,
+      start_time = ENV['START_TIME'],
+      end_time = ENV['END_TIME']
+    )
+      @name = name
+      @value = {
+        # 2022-01-18T12:45:57-08:00
+        'start_time' => DateTime.parse(start_time),
+        'end_time' => DateTime.parse(end_time),
+      }
+    end
+
+    def reset!(*args, &block)
+      raise "#{self.class.name} does not support cursor reset"
+    end
+
+    def to_s
+      @value.inspect
+    end
+
+    def [](k)
+      value[k.to_s]
+    end
+
+    def []=(k, v)
+      value[k.to_s] = v
+    end
+
+    def load_from_db
+    end
+
+    def save_to_db
+    end
+  end
+
   # A group of etl cursors that can sorted and worked upon in 'oldest first' fashion.
   class EtlCursorGroup
     attr_reader :cursors

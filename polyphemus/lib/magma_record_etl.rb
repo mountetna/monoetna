@@ -3,7 +3,7 @@ require_relative 'etl_cursor'
 require_relative 'time_scan_based_etl_scanner'
 
 class Polyphemus
-  class MagmaRecordEtlCursor < EtlCursor
+  class MagmaRecordEtlCursor < SimpleDelegator
     def initialize(job_name:, project_name:, model_name:)
       raise "project_name cannot be nil" if project_name.nil?
       raise "model_name cannot be nil" if model_name.nil?

@@ -172,9 +172,9 @@ module Etna
           link_attributes.each do |attribute|
             check_key("attribute #{attribute.attribute_name}", attribute.raw, 'link_model_name')
 
-            if attribute.attribute_name != attribute.link_model_name
-              @errors << "Linked model, \"#{attribute.link_model_name}\", does not match attribute #{attribute.attribute_name}, link attribute names must match the model name."
-            end
+            # if attribute.attribute_name != attribute.link_model_name
+            #   @errors << "Linked model, \"#{attribute.link_model_name}\", does not match attribute #{attribute.attribute_name}, link attribute names must match the model name."
+            # end
 
             unless @models.model_keys.include?(attribute.link_model_name)
               @errors << "Linked model, \"#{attribute.link_model_name}\", on attribute #{attribute.attribute_name} does not exist!"

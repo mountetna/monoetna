@@ -29,6 +29,9 @@ class DockerOperatorBase(BaseOperator):
     docker_base_url: str
     env: Mapping[str, str]
 
+    template_fields = ('env',)
+    template_fields_renderers = {'env': 'json'}
+
     def __init__(
         self,
         *args,
