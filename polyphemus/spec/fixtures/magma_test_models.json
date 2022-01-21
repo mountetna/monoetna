@@ -39,6 +39,7 @@
       }
     },
     "model_one": {
+      "documents": {},
       "template": {
         "name": "model_one",
         "identifier": "name",
