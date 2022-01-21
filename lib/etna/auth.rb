@@ -116,6 +116,9 @@ module Etna
       route = server.find_route(request)
 
       payload = payload.map{|k,v| [k.to_sym, v]}.to_h
+
+      return payload unless route
+
       begin      
         permissions = Etna::Permissions.from_encoded_permissions(payload[:perm])
 
@@ -142,7 +145,8 @@ module Etna
         return request.env['etna.user'] = Etna::User.new(
           update_payload(payload, token, request),
           token)
-      rescue
+      rescue => e
+        application.logger.log_error(e)
         # bail out if anything goes wrong
         return false
       end
