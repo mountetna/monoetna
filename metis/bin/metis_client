@@ -1402,6 +1402,13 @@ EOT
       return
     end
 
+    if Readline.get_screen_size[1] == 0
+      # In a non-interactive script, the screen size in [rows, characters] is [0, 0]
+      # This will truncate long input lines (Say the user wants to download a file 10 
+      # folders deep) when piped to a file.
+      # Update columns to an arbitrarily high value.
+      Readline.set_screen_size(0, 1000) 
+    end
     Readline.completion_proc = proc do |string|
       complete(string)
     end
