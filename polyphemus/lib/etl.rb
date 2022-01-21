@@ -40,7 +40,7 @@ class Polyphemus
           Polyphemus.instance.setup_sequel
           Polyphemus.instance.setup_ssh
         end
-      end) unless subclass.const_defined?(:Run)
+      end) unless self.const_defined?(:Run)
 
       subclass.const_set(:FindBatch, Class.new(Etna::Command) do
         usage 'selects a single batch of work for this etl.'
@@ -66,7 +66,7 @@ class Polyphemus
           Polyphemus.instance.setup_sequel
           Polyphemus.instance.setup_ssh
         end
-      end) unless subclass.const_defined?(:FindBatch)
+      end) unless self.const_defined?(:FindBatch)
 
       subclass.const_set(:Reset, Class.new(Etna::Command) do
         usage 'resets the cursor for this etl, so that next processing starts from the beginning of time.'
@@ -90,7 +90,7 @@ class Polyphemus
           Polyphemus.instance.setup_db
           Polyphemus.instance.setup_logger
         end
-      end) unless subclass.const_defined?(:Reset)
+      end) unless self.const_defined?(:Reset)
     end
   end
 

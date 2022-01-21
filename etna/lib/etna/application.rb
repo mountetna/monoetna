@@ -11,6 +11,8 @@ require 'rollbar'
 require 'fileutils'
 
 module Etna::Application
+  include Etna::EnvironmentVariables
+
   def self.included(other)
     other.include Singleton
     other.include Etna::CommandExecutor
@@ -50,47 +52,22 @@ module Etna::Application
     Etna::Application.register(self)
   end
 
-  # a <- b
-  def deep_merge(a, b)
-    if a.is_a?(Hash)
-      if b.is_a?(Hash)
-        b.keys.each do |b_key|
-          a[b_key] = deep_merge(a[b_key], b[b_key])
-        end
-
-        return a
-      end
-    end
-
-    a.nil? ? b : a
-  end
-
   def configure(opts)
-    @config = opts
-
-    # Apply environmental variables of the form "ETNA__x__y__z_FILE"
-    # by reading the given file.
-    prefix = "ETNA__"
-    ENV.keys.select { |k| k.start_with?(prefix) && k.end_with?("_FILE") }.each do |key|
-      path = key.sub(/_FILE/, '').split("__", -1)
-      path.shift # drop the first, just app name
-
-      target = @config
-      while path.length > 1
-        n = path.shift
-        target = (target[n.downcase.to_sym] ||= {})
-      end
-
-      v = YAML.load(File.read(ENV[key]))
-      target[path.last.downcase.to_sym] =
-        deep_merge(target[path.last.downcase.to_sym], v)
-    end
+    @config = load_from_env('ETNA', root: opts, &:load_config_from_env_path)
 
     if (rollbar_config = config(:rollbar)) && rollbar_config[:access_token]
       Rollbar.configure do |config|
         config.access_token = rollbar_config[:access_token]
       end
     end
+  end
+
+  def load_config_from_env_path(path, value)
+    return nil if path.empty?
+    return nil unless path.last.end_with?('_FILE')
+    path.last.sub!(/_FILE$/, '')
+
+    [path.map(&:to_sym), YAML.load(File.read(value))]
   end
 
   def setup_yabeda

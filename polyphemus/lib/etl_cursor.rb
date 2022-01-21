@@ -55,17 +55,6 @@ class Polyphemus
       end
     end
 
-    def self.hash_from_env(env, prefix='ETL_CURSOR_')
-      {'from_env' => true}.tap do |result|
-        env.keys.each do |k|
-          if k.start_with?(prefix)
-            hash_k = k.slice((prefix.length)..-1).downcase
-            result[hash_k] = YAML.load(env[k])
-          end
-        end
-      end
-    end
-
     def reset!(&block)
       load_from_db
       @updated_at = Time.at(0)
