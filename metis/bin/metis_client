@@ -44,11 +44,14 @@ def byte_format(bytes)
   return bytes
 end
 
-def print_progress(completion, rate, path, verbose=false)
-  if verbose
+def print_progress(completion, rate, path)
+  if STDOUT.isatty
+    # Use verbose completion progress when the user is actively looking at,
+    # and waiting for a command to finish.
     print "\r#{progress_bar(completion)} #{path} - #{byte_format(rate)}B/s"
   elsif completion == 1.0
-    # non-verbose will only print one line on file completion
+    # When the user pipes results to a file, only print on completion. This
+    # will drastically reduce the file size.
     print "#{path} - #{byte_format(rate)}B/s"
   end
 end
@@ -507,7 +510,6 @@ EOT
     attr_reader :options
 
     def initialize(shell)
-      @headless = ENV['METIS_headless'] == 'true' ? true : false
       @shell = shell
       @options = {}
     end
@@ -989,8 +991,7 @@ EOT
               print_progress(
                 size == 0 ? 1 : completed / size,
                 (completed / (Time.now - start)).round(2),
-                file[:file_path],
-                !@headless
+                file[:file_path]
               )
             end
             raise MetisClient::DownloadError, "Incomplete download" unless completed == size
@@ -1117,7 +1118,7 @@ EOT
               current_byte_position: upload.current_byte_position
             )
 
-            print_progress(1, 0, new_file_path, !@headless)
+            print_progress(1, 0, new_file_path)
             puts
             return
           end
@@ -1140,8 +1141,7 @@ EOT
             print_progress(
               upload.current_byte_position.to_f / upload.file_size,
               (upload.current_byte_position / (Time.now - start).to_f).round(2),
-              new_file_path,
-              !@headless
+              new_file_path
             )
           end
           puts
@@ -1203,7 +1203,7 @@ EOT
       unless files.empty?
         # compute md5sums
         file_md5s = files.map.with_index do |file,i|
-          if @headless
+          if STDOUT.isatty
             print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}\r"
           else
             puts "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}"
@@ -1300,7 +1300,7 @@ EOT
     ^metis:/(?<path>/.*)?$
   !x
 
-  def initialize(path, client_args=[], *command_args)
+  def initialize(path, *args)
     @token = ENV['TOKEN']
 
     if !@token
@@ -1312,21 +1312,7 @@ EOT
 
     @host = MetisConfig[:metis_host]
 
-    unless client_args.empty?
-      if client_args[0] == '--headless'
-        # Headless mode assumes all I/O is file-based.
-        # There must be a better way to pass this to Command
-        @headless = true
-        ENV['METIS_headless'] = 'true'
-        # Set this to a really large value so there's no pesky "^M" carraige returns corrupting the output buffer
-        ENV['COLUMNS'] = '1000'
-      else
-        @headless = false
-        ENV['METIS_headless'] = 'false'
-      end
-    end
-
-    @args = command_args
+    @args = args
 
     raise 'No metis host selected' if !@host
 
@@ -1516,8 +1502,9 @@ EOT
       MetisShell.log_error(e)
       exit(1) if errexit?
     end
-    if @headless
-      # This will sync the input command and the output result.
+    unless STDOUT.isatty
+      # This will sync the input command and the output result. Making
+      # a logfile more readable/parsable.
       STDOUT.flush
     end
   end
@@ -1609,23 +1596,9 @@ def start
     MetisSetup.new.run
 
   MetisConfig.instance.config(config)
-  # Assuming the call format is metis_client [<CLIENT_ARGS>] [PATH] [<COMMAND> <COMMAND_ARGS>]
-  # Client args are --XXX and the first non "^--" is either the PATH or the COMMAND
-  # I'm sure there's a better way to do this
-  first_non_client_idx = ARGV.index{ |x| !x.match(/^--/) }
-  if ARGV.empty?
-    # Nothing to do, pass all defaults
-    MetisShell.new(nil, [], *[]).run
-  elsif first_non_client_idx.nil?
-    # ARGV isn't empty, and there are only client args
-    MetisShell.new(nil, ARGV, *[]).run
-  elsif first_non_client_idx == 0
-    # ARGV isn't empty, but there are no client args
-    MetisShell.new(ARGV[0], [], *ARGV[1..-1]).run
-  else
-    # ARGV isn't empty and there are both client args and non-client args
-    MetisShell.new(ARGV[first_non_client_idx], ARGV[0..(first_non_client_idx-1)], *ARGV[(first_non_client_idx+1)..-1]).run
-  end
+  
+  MetisShell.new(ARGV[0], *ARGV[1..-1]).run
+  
   puts
 end
 
