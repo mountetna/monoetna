@@ -146,7 +146,7 @@ module Etna
           update_payload(payload, token, request),
           token)
       rescue => e
-        Magma.instance.logger.log_error(e)
+        application.logger.log_error(e)
         # bail out if anything goes wrong
         return false
       end
