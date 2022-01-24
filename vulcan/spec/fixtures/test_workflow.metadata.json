@@ -1,3 +1,4 @@
 {
-  "projects": ["labors", "secret_project"]
+  "projects": ["labors", "secret_project"],
+  "tags": ["demo"]
 }

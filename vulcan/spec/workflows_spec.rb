@@ -121,4 +121,55 @@ describe WorkflowsController do
       expect(last_response.status).to eq(403)
     end
   end
+
+  context '#fetch_for_project' do
+    it 'does not list workflows the user cannot access' do
+      auth_header(:viewer, additional: { perm: "v:not-a-thing"})
+      get("/api/labors/workflows")
+
+      expect(last_response.status).to eq(200)
+      response = JSON.parse(last_response.body)
+
+      workflows = response['workflows'].map { |w| w['name'] }
+      expect(workflows).to eql([])
+    end
+
+    it 'gets a list of workflows for the specific project' do
+      auth_header(:viewer, additional: { perm: "v:labors"})
+      get("/api/labors/workflows")
+      expect(last_response.status).to eq(200)
+
+      response = JSON.parse(last_response.body)
+      workflows = response['workflows'].map { |w| w['name'] }
+
+      expect(workflows).to match_array(['test_concurrent_workflow.cwl', 'test_workflow.cwl'])
+
+      save_last_response_json('project-workflows-response', 'ProjectWorkflowsResponse')
+    end
+
+    it 'can filter project workflows by tag' do
+      auth_header(:viewer, additional: { perm: "v:labors"})
+      get("/api/labors/workflows?tag=demo")
+      expect(last_response.status).to eq(200)
+
+      response = JSON.parse(last_response.body)
+      workflows = response['workflows'].map { |w| w['name'] }
+
+      expect(workflows).to match_array(['test_workflow.cwl'])
+    end
+
+    it 'rejects a non-user' do
+      auth_header(:non_user)
+      get("/api/labors/workflows")
+
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'rejects a user without the right flag' do
+      auth_header(:no_flag)
+      get("/api/labors/workflows")
+
+      expect(last_response.status).to eq(403)
+    end
+  end
 end

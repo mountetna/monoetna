@@ -11,14 +11,18 @@ class Vulcan
       erb_view(:no_auth)
     end
 
-    get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true, has_flag?: 'vulcan' } }
-    get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true, auth: { user: { can_view?: :project_name, has_flag?: 'vulcan' } }
-    post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true, auth: { user: { can_view?: :project_name, has_flag?: 'vulcan' } }
-    post 'api/:project_name/session/:workflow_name', action: 'sessions#submit', as: :submit_view, match_ext: true, auth: { user: { can_view?: :project_name, has_flag?: 'vulcan' } }
-
     with auth: { user: { active?: true, has_flag?: 'vulcan' } } do
+      get 'api/workflows', action: 'workflows#fetch', as: :workflows_view
+      get 'api/:project_name/workflows', action: 'workflows#fetch_for_project'
+      get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true
+      post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true
+      post 'api/:project_name/session/:workflow_name', action: 'sessions#submit', as: :submit_view, match_ext: true
+      get 'api/:project_name/workflow/:workflow_name/session/:key', action: 'sessions#fetch'
+      post 'api/:project_name/workflow/:workflow_name/from_query', action: 'sessions#create_from_query'
 
       # remaining view routes are parsed by the client and must also be set there
+      get '/:project_name/workflow/:session_key', action: 'sessions#render'
+
       get '/:project_name/workflow', as: :workflow do
         erb_view(:client)
       end
