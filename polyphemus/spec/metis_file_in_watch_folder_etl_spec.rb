@@ -30,7 +30,7 @@ describe Polyphemus::MetisFileInWatchFolderEtl do
     def initialize(**args)
       super(
         bucket_watch_configs: [Polyphemus::BucketWatchFoldersConfig.new(bucket_name: 'integral_data', project_name: 'ipi')],
-        **args,
+        scanner: nil, cursor_env: {}, **args,
       )
     end
 

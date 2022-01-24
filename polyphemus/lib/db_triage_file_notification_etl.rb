@@ -6,7 +6,7 @@ class Polyphemus
   #   ingested already.
   class DbTriageFileNotificationEtl < DbTriageFileBaseEtl
     # Batch notifications in groups of 100 files
-    def initialize(project_bucket_pairs:, column_name:, limit: 100, timeout: nil)
+    def initialize(project_bucket_pairs:, column_name:, cursor_env:, scanner:, limit: 100, timeout: nil)
       super
     end
 

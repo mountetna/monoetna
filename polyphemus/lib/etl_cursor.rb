@@ -15,6 +15,23 @@ class Polyphemus
       @version = version
     end
 
+    def load_batch_params(updated_at: nil, batch_end_at: nil)
+      return if updated_at.nil? && batch_end_at.nil?
+      raise "batch_end_at must be set if updated_at is set." if updated_at && !batch_end_at
+      raise "updated_at must be set if batch_end_at is set." if batch_end_at && !updated_at
+
+      if updated_at
+        raise "updated_at was not a Time value!" unless updated_at.is_a?(Time)
+        raise "batch_end_at was not a Time value!" unless batch_end_at.is_a?(Time)
+        @updated_at = updated_at
+        self[:batch_end_at] = batch_end_at
+      end
+    end
+
+    def from_env?
+      !self[:batch_end_at].nil?
+    end
+
     def to_s
       value.inspect
     end
@@ -27,34 +44,6 @@ class Polyphemus
       value[k.to_s] = v
     end
 
-    def self.from_env(env = ENV, prefix='ETL_CURSOR_')
-      value = self.class.hash_from_env(env, prefix)
-      new_k_params = {}
-      new_p_params = []
-
-      self.class.method(:new).parameters.each do |type, p_key|
-        if type == :req || type == :opt
-          if value.include?(p_key.to_s)
-            new_p_params << value[p_key.to_s]
-          elsif type == :req
-            raise "Value #{p_key} must be set in the environment as #{prefix}#{p_key.to_s.upcase}"
-          end
-        elsif type == :keyreq || type == :key
-          if value.include?(p_key.to_s)
-            new_k_params[p_key] = value[p_key.to_s]
-          elsif type == :keyreq
-            raise "Value #{p_key} must be set in the environment as #{prefix}#{p_key.to_s.upcase}"
-          end
-        end
-      end
-
-      self.class.new(*new_p_params, **new_k_params).tap do |cursor|
-        if (updated_at = value['updated_at'])
-          cursor.updated_at = updated_at
-        end
-      end
-    end
-
     def reset!(&block)
       load_from_db
       @updated_at = Time.at(0)
@@ -64,7 +53,7 @@ class Polyphemus
     end
 
     def load_from_db
-      if self[:from_env]
+      if from_env?
         raise "Cursor #{self} was loaded from environment, cannot load from db."
       end
 
@@ -79,7 +68,7 @@ class Polyphemus
     end
 
     def save_to_db
-      if self[:from_env]
+      if from_env?
         raise "Cursor #{self} was loaded from environment, cannot save to db."
       end
 

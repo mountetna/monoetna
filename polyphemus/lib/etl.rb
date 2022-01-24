@@ -118,6 +118,9 @@ class Polyphemus
     # Will use default client based on environment unless override is set in constructor
     include WithEtnaClients
     include WithLogger
+    include ::Etna::Injection::FromHash
+
+    attr_reader :scanner, :cursor_group
 
     def self.inherited(subclass)
       @descendants ||= []
@@ -129,24 +132,17 @@ class Polyphemus
       @descendants + @descendants.map(&:descendants).inject([], &:+)
     end
 
-    def cursor_group_from_project_bucket_pairs(project_bucket_pairs, cursor_class, from_env)
-      EtlCursorGroup.new(project_bucket_pairs.map do |project_name, bucket_name|
-        if from_env
-          cursor_class.from_env
-        else
-          cursor_class.new(job_name: self.class.name, project_name: project_name, bucket_name: bucket_name)
+    def initialize(cursors:, scanner:)
+      @cursor_group = EtlCursorGroup.new(cursors)
+      # Scanner from file if scanner is a hash.
+    end
+
+    def cursors_from_pairs(pairs:, pair_keys:, cls:, cursor_env:)
+      pairs.map do |pair|
+        cls.from_hash(pair_keys.zip(pair).to_h.update(cursor_env), true).tap do |cursor|
+          cursor.load_from_db unless cursor.from_env?
         end
-      end)
-    end
-
-    def cursor_group(from_env = false)
-      # Subclasses should implement.
-      EtlCursorGroup.new
-    end
-
-    def find_batch(cursor)
-      # Subclasses should implement.
-      []
+      end
     end
 
     # To support processing batches adding as inputs
@@ -167,15 +163,15 @@ class Polyphemus
     def process(cursor, batch) end
 
     # Returns true iff a batch was processed as part of this iteration.
-    def run_once(from_env = false, &processor)
+    def run_once(&processor)
       processor = Proc.new(&:process) unless block_given?
 
       logger.info("Starting loop")
-      cursor_group(from_env).with_next do |cursor|
+      cursor_group.with_next do |cursor|
         logger.info("Selecting cursor for #{cursor.name}")
         cursor.load_from_db unless cursor[:from_env]
         logger.info("Finding batch...")
-        batch = find_batch(cursor)
+        batch = scanner.find_batch(cursor)
 
         logger.info("Attempting to process")
         if batch.empty? || processor.call(cursor, batch) == :stop

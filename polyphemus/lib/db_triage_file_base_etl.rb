@@ -3,12 +3,16 @@ require_relative "time_scan_based_etl_scanner"
 
 class Polyphemus
   class DbTriageFileBaseEtlCursor < EtlCursor
-    def initialize(job_name:, project_name:, bucket_name:)
+    def initialize(job_name:, project_name:, bucket_name:, updated_at: nil, batch_end_at: nil)
       raise "project_name cannot be nil" if project_name.nil?
       raise "bucket_name cannot be nil" if bucket_name.nil?
+      raise "batch_end_at must be set if updated_at is set." if updated_at && !batch_end_at
+      raise "updated_at must be set if batch_end_at is set." if batch_end_at && !updated_at
       super("#{job_name}_triage_ingest_#{project_name}_#{bucket_name}")
       self[:project_name] = project_name
       self[:bucket_name] = bucket_name
+
+      load_batch_params(updated_at: updated_at, batch_end_at: batch_end_at)
     end
 
     def reset!
@@ -20,15 +24,31 @@ class Polyphemus
   #   database for newly updated files that have been
   #   flagged for triage ingestion.
   class DbTriageFileBaseEtl < Etl
-    def cursor_group(from_env = false)
-      cursor_group_from_project_bucket_pairs(@project_bucket_pairs, DbTriageFileBaseEtlCursor, from_env)
+    def initialize(project_bucket_pairs:, column_name:, cursor_env:, scanner:, limit: 20, timeout: nil)
+      @limit = limit
+      @timeout = timeout
+      @column_name = column_name
+      @project_bucket_pairs = project_bucket_pairs
+
+      cursors = cursors_from_pairs(
+        pairs: project_bucket_pairs,
+        pair_keys: %w[project_name bucket_name],
+        cls: DbTriageFileBaseEtlCursor,
+        cursor_env: cursor_env
+      )
+
+      if scanner.nil?
+        scanner = build_scanner
+      end
+
+      super(cursors: cursors, scanner: scanner)
     end
 
     def initialize_query(cursor)
       raise "subclasses must implement initialize_query"
     end
 
-    def scanner
+    def build_scanner
       TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
         query = initialize_query(cursor)
         if (end_at = cursor[:batch_end_at])
@@ -36,9 +56,9 @@ class Polyphemus
             # This is crucial -- we use the <= here which can result in overlapping work executing because
             # we do not keep cursor state when running batches from the environment, and it is possible for a
             # process to run precisely at the time precision border between start and end times.
-            # In this extreme edge case, prefer duplication and complication since jobs should be idempotent
+            # In this extreme edge case, prefer possibly duplication ensured completeness since jobs should be idempotent
             # anyways.
-            updated_at <= (end_at || Time.at(0)) + 1
+            updated_at <= end_at + 1
           }
         end
 
@@ -55,18 +75,6 @@ class Polyphemus
           Polyphemus.instance.db[query.sql].all
         end
       end
-    end
-
-    def find_batch(cursor)
-      scanner.find_batch(cursor)
-    end
-
-    def initialize(project_bucket_pairs:, column_name:, limit: 20, timeout: nil)
-      @limit = limit
-      @timeout = timeout
-      @column_name = column_name
-      @project_bucket_pairs = project_bucket_pairs
-      super
     end
   end
 end

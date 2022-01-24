@@ -3,12 +3,8 @@ require_relative "hash_scan_based_etl_scanner"
 
 class Polyphemus
   class MagmaRecordFileEtl < Polyphemus::MagmaRecordEtl
-    def scanner
-      HashScanBasedEtlScanner.new
-    end
-
-    def scanner_definition
-      scanner_def = super
+    def build_scanner
+      scanner_def = HashScanBasedEtlScanner.new
 
       scanner_def.start_batch_state do |cursor|
         # Use query instead of retrieve so we don't have to

@@ -1,5 +1,3 @@
-require_relative 'etls/stub_metis_file_etl'
-require_relative 'etls/stub_magma_record_etl'
 require_relative 'etls/materialize_gne_magma_records_etl'
 require_relative 'etls/sync_gne_metis_files_etl'
 require_relative 'etls/magma/magma_etl_script_runner'

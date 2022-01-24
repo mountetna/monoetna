@@ -26,6 +26,8 @@ describe Polyphemus::MagmaRecordFileEtl do
       super(project_model_pairs: [["ipi", "patient"]],
             limit: 2,
             attribute_names: ["updated_at", "flojo_file_processed"],
+            cursor_env: {},
+            scanner: nil,
             **args)
     end
 

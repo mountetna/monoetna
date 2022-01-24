@@ -20,20 +20,26 @@ class Polyphemus
   # Abstract base class for an ETL that scans Magma for records using the retrieve api.
   class MagmaRecordEtl < Etl
     # Subclasses should provide default values here, since commands are constructed
-    def initialize(project_model_pairs:, magma_client: nil, limit: 20, job_name: self.class.name, attribute_names: 'all')
+    def initialize(project_model_pairs:, cursor_env:, scanner:, magma_client: nil, limit: 20, job_name: self.class.name, attribute_names: 'all')
       logger.info("Reading cursors...")
-      cursors = project_model_pairs.map do |project_name, model_name|
-        MagmaRecordEtlCursor.new(job_name: job_name, project_name: project_name, model_name: model_name).load_from_db
-      end
+
+      cursors = cursors_from_pairs(
+        pairs: project_model_pairs,
+        pair_keys: %w[project_name model_name],
+        cls: MagmaRecordEtlCursor,
+        cursor_env: cursor_env
+      )
+
+      scanner = build_scanner if scanner.nil?
 
       @magma_client = magma_client
       @limit = limit
       @attribute_names = attribute_names
 
-      super(cursor_group: EtlCursorGroup.new(cursors))
+      super(cursors: cursors, scanner: scanner)
     end
 
-    def scanner
+    def build_scanner
       @scanner ||= TimeScanBasedEtlScanner.new.tap do |scanner|
         scanner.start_batch_state do |cursor|
           retrieve_request = Etna::Clients::Magma::RetrievalRequest.new(
@@ -62,6 +68,18 @@ class Polyphemus
     # Subclasses should override if they wish to adjust or add to the params of the retrieve request.
     def prepare_request(cursor, request)
       request.filter = "updated_at>=#{(cursor.updated_at + 1).iso8601}" unless cursor.updated_at.nil?
+
+      if (end_at = cursor[:batch_end_at])
+        request.filter = [
+          request.filter,
+          # This is crucial -- we use the <= here which can result in overlapping work executing because
+          # we do not keep cursor state when running batches from the environment, and it is possible for a
+          # process to run precisely at the time precision border between start and end times.
+          # In this extreme edge case, prefer possibly duplication ensured completeness since jobs should be idempotent
+          # anyways.
+          "updated_at<=#{(end_at + 1).iso8601}"
+        ]
+      end
     end
 
     def find_batch

@@ -4,9 +4,9 @@ require_relative './watch_etl_config'
 class Polyphemus::ProjectWatchFilesEtl < Polyphemus::MetisFileInWatchFolderEtl
   attr_reader :config
 
-  def initialize(config, limit: 20)
+  def initialize(config, limit: 20, cursor_env:, scanner: nil)
     @config = config
-    super(bucket_watch_configs: config.bucket_configs, limit: limit)
+    super(bucket_watch_configs: config.bucket_configs, limit: limit, cursor_env: cursor_env, scanner: scanner)
   end
 
   def process_files(cursor, files, watch_type)

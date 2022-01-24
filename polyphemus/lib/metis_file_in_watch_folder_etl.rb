@@ -5,7 +5,7 @@ class Polyphemus
   class MetisFileInWatchFolderEtl < MetisFileEtl
     attr_reader :bucket_watch_configs
 
-    def initialize(metis_client: nil, bucket_watch_configs: [], limit: 20)
+    def initialize(metis_client: nil, bucket_watch_configs: [], limit: 20, cursor_env:, scanner:)
       pairs = bucket_watch_configs.map(&:cursor_pair)
       raise "bucket_watch_configs have non unique project/bucket combinations" unless pairs.uniq.length == pairs.length
 
@@ -15,6 +15,8 @@ class Polyphemus
         metis_client: metis_client,
         limit: limit,
         file_name_params: {},
+        cursor_env: cursor_env,
+        scanner: scanner,
       )
     end
 

@@ -6,8 +6,8 @@ class Polyphemus::SyncGneMetisFilesEtl < Polyphemus::MetisFileEtl
   include WithSlackNotifications
   BUCKET = 'GNE_composite'
 
-  def initialize
-    super(project_bucket_pairs: [['mvir1', BUCKET]])
+  def initialize(cursor_env: {}, scanner: nil)
+    super(project_bucket_pairs: [['mvir1', BUCKET]], cursor_env: cursor_env, scanner: scanner)
   end
 
   def process(cursor, files)
