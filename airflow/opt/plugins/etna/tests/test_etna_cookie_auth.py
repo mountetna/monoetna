@@ -6,7 +6,7 @@ def test_fresh_login(admin_client):
     assert response.status == "302 FOUND"
     assert (
         response.headers["Location"]
-        == "https://janus.development.local/login?referer=http%3A%2F%2Flocalhost%2Flogin%2F"
+        == "https://janus.development.local/login?refer=http%3A%2F%2Flocalhost%2Flogin%2F"
     )
 
 

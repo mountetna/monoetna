@@ -154,6 +154,10 @@ module Etna
       @auth && @auth[:ignore_janus]
     end
 
+    def has_user_constraint?(constraint)
+      @auth && @auth[:user][constraint]
+    end
+
     private
 
     def application

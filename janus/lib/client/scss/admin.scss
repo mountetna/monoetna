@@ -1,6 +1,13 @@
 #admin-projects {
   @include janus-box;
   @include janus-project;
+
+  .approve {
+    @include janus-icon(dodgerblue);
+  }
+  .cancel {
+    @include janus-icon(forestgreen);
+  }
 }
 
 #new-project {
