@@ -46,6 +46,8 @@ module Etna
 
         target[path.last] = deep_merge(target[path.last], value)
       end
+
+      root
     end
   end
 end
