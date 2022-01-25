@@ -79,6 +79,13 @@ export default function DiffExpSC({
     onChange(some(prevValues));
   };
   
+  const warn =
+    <div>
+      <p></p>
+      IMPORTANT NOTE: The current DE calculation tooling does not have the capability to correct for batch effects. We are currently investigating alternatives.
+      <p></p>
+    </div>
+
   return (
     <div>
       Step 1: Select your DE Question Type:
@@ -91,6 +98,7 @@ export default function DiffExpSC({
       {SubsetComps(value, options, updateValue, doSubset, toggleSubsetting)}
       {DEComps(value, options, updateValue)}
       {GroupComps(value, options, updateValue)}
+      {warn}
     </div>
   );
 
