@@ -19,6 +19,29 @@ define_model("ModelTwo").class_eval do
   def offset_id(record_name)
     record_name
   end
+
+  def patch(id, record)
+    record[:model_one] = id + "-one"
+  end
+
+  def ensure_containing_records?
+    true
+  end
+
+  def ensure_records(current_records)
+    model_one_names = current_records[:model_two].values.map { |r| r[:model_one] }.uniq.compact
+
+    result = current_records[:model_one].dup || {}
+    
+    model_one_names.map do |model_one_name|
+      result[model_one_name] ||= {}
+      result[model_one_name][:parent] = "#{model_one_name}-parent"
+    end
+
+    {
+      model_one: result
+    }
+  end
 end
 
 define_model("Stats").class_eval do

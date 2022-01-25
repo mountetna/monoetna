@@ -78,7 +78,7 @@ export function checkboxInput(
 
 export function dropdownInput(
   key: string = "filler", changeFxn: Function, value: string | null,
-  label: string, options: string[]) {
+  label: string, options: string[], sorted: boolean = true) {
     
     return(
       <div key={key}>
@@ -87,6 +87,7 @@ export function dropdownInput(
           list={options}
           value={value}
           onSelect={(val: string) => changeFxn(val, key)}
+          sorted={sorted}
         />
       </div>
     )

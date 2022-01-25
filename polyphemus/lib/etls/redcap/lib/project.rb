@@ -22,6 +22,8 @@ module Redcap
         results[ model_name ] = {}
 
         results[ model_name ].update(model.load)
+
+        results.update(model.ensure_records(results)) if model.ensure_containing_records?
       end
 
       results
