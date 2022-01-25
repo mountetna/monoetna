@@ -82,7 +82,7 @@ export default function DiffExpSC({
   const warn =
     <div>
       <p></p>
-      IMPORTANT NOTE: The current DE calculation tooling does not have the capability to correct for batch effects. We are currently investigating alternatives.
+      IMPORTANT NOTE: The scanpy DE algorithm cannot correct for batch effects. We are currently investigating alternatives to add such functionality.
       <p></p>
     </div>
 
