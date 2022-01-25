@@ -9,10 +9,21 @@ def y_plotly(
     y_by,
     color_by = "make",
     plots = ["violin", "box"],
+    px_args: dict = {},
+    color_panel: list = colors,
     xlab="make",
     ylab="make",
     plot_title="make",
     legend_title ="make"):
+    """
+    Produces violin and/or box plots using plotly.express.violin, or plotly.express.box, based on the pandas 'data_frame' given.
+    'x_by', 'y_by' should indicate columns of 'data_frame' to use for x/y axes data. 'x_by' should denote discrete groupings, while 'y-by' should denote numerical data.
+    'color_by' can indicate a column of 'data_frame' to use for establishing fill colors of violin/boxplots and can be used to create subgroupings, or highlight supergroupings, of 'x_by' groups. By default, if left as "make", it will be passed the 'x_by' data.
+    'plots' sets which data representations to use, and should be a list containing "violin", "box", or both of these.
+    'px_args' should be a dictionary of additional bits to send in the 'plotly.express.violin' or 'plotly.express.box' call.
+    'color_panel' (string list) sets the colors to use for violin/boxplot fills.
+    'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
+    """
     
     # Parse dependent defaults
     color_by = _default_to_if_make_and_logic(color_by, x_by)
@@ -21,25 +32,23 @@ def y_plotly(
     plot_title = _default_to_if_make_and_logic(plot_title, ylab)
     legend_title = _default_to_if_make_and_logic(legend_title, color_by)
     
-    # Convert from our variables names to px.violin/bar variables names. 
-    the_atributes = {
-        "data_frame": data_frame,
-        "x": x_by,
-        "y": y_by,
-        "color": color_by,
-        "color_discrete_sequence": colors
-        }
+    # Add to px_args and convert from our variables names to px.violin/bar variables names. 
+    px_args["data_frame"] = data_frame
+    px_args["x"] = x_by
+    px_args["y"] = y_by
+    px_args["color"] = color_by
+    px_args["color_discrete_sequence"] = color_panel
     
     # Make Plot
     if "violin" in plots:
         #use conditional here for checking if box is in plots
-        the_atributes["box"]= "box" in plots
+        px_args["box"]= "box" in plots
         fig = px.violin(
-            **the_atributes
+            **px_args
             )
     elif "box" in plots:
         fig = px.box(
-            **the_atributes
+            **px_args
             )
     
     # Tweaks

@@ -9,11 +9,24 @@ def bar_plotly(
     data_frame,
     x_by,
     y_by,
-    scale_by = 'counts',
+    scale_by = 'fraction',
+    px_args: dict = {},
+    color_panel: list = colors,
     xlab = "make",
     ylab = "make",
     plot_title = "make",
     legend_title = "make"):
+    """
+    Produces a stacked bar plot using 'plotly.express.bar' based on the pandas 'data_frame' given, which describes the composition of 'y_by' sets within 'x_by' groupings.
+    'x_by', 'y_by' should indicate columns of 'data_frame' to use for x/y axes data.  Both must point to discrete data.
+    'scale_by' can be either "fraction" or "counts" and sets whether the y-axis of the plot will ultimately reflect proportions of 'y_by'-value make-up within each 'x_by' group versus raw counts of 'y_by'-values per group. 
+    'px_args' should be a dictionary of additional bits to send in the 'plotly.express.bar' call.
+    'color_panel' (string list) sets the colors to assign to the distinct 'y_by'-values.
+    'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
+    
+    Some additional details: Prior to making a plot, the composition of the 'y_by' values associated with each 'x_by' grouping is calculated and scaled based on the method indicated by the 'scale_by' parameter.
+    The resulting summary dataframe is then passed to plotly for plot creation.
+    """
 
     # Parse dependent defaults
     xlab = _default_to_if_make_and_logic(xlab, x_by)
@@ -33,14 +46,16 @@ def bar_plotly(
         else:
             fractions = fractions.append(this)
     summary_df['fraction'] = fractions
+    
+    # Add to px_args and convert from our variables names to px.violin/bar variables names.
+    px_args['data_frame'] = summary_df
+    px_args['x'] = "xgroups"
+    px_args['y'] = scale_by
+    px_args['color'] = "yvals"
+    px_args['color_discrete_sequence'] = color_panel
+    
     ### Make plot
-    fig = px.bar(
-        data_frame = summary_df,
-        x = "xgroups",
-        y = scale_by,
-        color="yvals",
-        color_discrete_sequence = colors
-    )
+    fig = px.bar(**px_args)
 
     # Tweaks
     fig.update_layout(
