@@ -138,7 +138,8 @@ const remove_hidden = (vals: DataEnvelope<any>, hide: string[] | null | undefine
 const input_sets: DataEnvelope<DataEnvelope<string[]|DataEnvelope<any>>> = {
   'scatter_plot': {
     'main': ["x_by", "y_by", "color_by"],
-    'adv': ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color']
+    'adv': ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color'],
+    //'default_adjust': {'color_by': "make"}
   },
   'bar_plot': {
     'main': ["x_by", "y_by", "scale_by"],
@@ -147,7 +148,7 @@ const input_sets: DataEnvelope<DataEnvelope<string[]|DataEnvelope<any>>> = {
   'y_plot': {
     'main': ["x_by", "y_by", "plots"],
     'adv': ["color_by", 'plot_title', 'legend_title', 'xlab', 'ylab'],
-    'default_adjust': {'color_by': "make"}
+    //'default_adjust': {'color_by': "make"}
   }
 }
 
@@ -155,7 +156,7 @@ const defaults: DataEnvelope<any> = {
   'x_by': null,
   'y_by': null,
   'plots': ['box', 'violin'],
-  'color_by': null,
+  'color_by': 'make',
   'scale_by': 'fraction',
   'size': 5,
   'plot_title': 'make',
@@ -210,9 +211,9 @@ function useExtraInputs(options: string[]) {
       'legend_title': ['Legend Title'],
       'xlab': ['X-Axis Title'],
       'ylab': ['Y-Axis Title'],
-      'x_by': ['X-Axis Data', options],
-      'y_by': ['Y-Axis Data', options],
-      'color_by': ['Color Data By', options],
+      'x_by': ['X-Axis Data', options, false],
+      'y_by': ['Y-Axis Data', options, false],
+      'color_by': ['Color Data', ['make'].concat(options), false],
       'plots': ['Data Representations', ['violin', 'box']],
       'color_order': ['Point render order', ['increasing', 'decreasing', 'unordered']],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
