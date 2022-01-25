@@ -24,7 +24,7 @@ class Polyphemus
   #   database for newly updated files that have been
   #   flagged for triage ingestion.
   class DbTriageFileBaseEtl < Etl
-    def initialize(project_bucket_pairs:, column_name:, cursor_env:, scanner:, limit: 20, timeout: nil)
+    def initialize(project_bucket_pairs:, column_name:, cursor_env: {}, scanner: build_scanner, limit: 20, timeout: nil)
       @limit = limit
       @timeout = timeout
       @column_name = column_name
@@ -36,10 +36,6 @@ class Polyphemus
         cls: DbTriageFileBaseEtlCursor,
         cursor_env: cursor_env
       )
-
-      if scanner.nil?
-        scanner = build_scanner
-      end
 
       super(cursors: cursors, scanner: scanner)
     end

@@ -23,8 +23,10 @@ class Polyphemus
   #   the Polyphemus database.
   class RsyncFilesEtl < Etl
     # Subclasses should provide default values here, since commands are constructed
-    def initialize(project_bucket_pairs:, host:, username:, password:, root:, scanner:, cursor_env:)
+    def initialize(project_bucket_pairs:, host:, username:, password:, root:, scanner: build_scanner, cursor_env: {})
       @remote_path = "#{username}@#{host}:#{root}"
+      @password = password
+      @username = username
 
       cursors = cursors_from_pairs(
         pairs: project_bucket_pairs,
@@ -32,8 +34,6 @@ class Polyphemus
         cls: RsyncFilesEtlCursor,
         cursor_env: cursor_env
       )
-
-      scanner = build_scanner if scanner.nil?
 
       super(
         cursors: cursors,
@@ -58,7 +58,7 @@ class Polyphemus
             "--exclude=test",
             "--exclude=Reports",
             "--exclude=Stats",
-            "--rsh=\"/usr/bin/sshpass -p #{password} ssh -l #{username}\""]
+            "--rsh=\"/usr/bin/sshpass -p #{@password} ssh -l #{@username}\""]
         )
 
         raise results.error unless results.success?

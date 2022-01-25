@@ -20,7 +20,7 @@ class Polyphemus
   # Abstract base class for an ETL that scans Magma for records using the retrieve api.
   class MagmaRecordEtl < Etl
     # Subclasses should provide default values here, since commands are constructed
-    def initialize(project_model_pairs:, cursor_env:, scanner:, magma_client: nil, limit: 20, job_name: self.class.name, attribute_names: 'all')
+    def initialize(project_model_pairs:, cursor_env: {}, scanner: build_scanner, magma_client: nil, limit: 20, job_name: self.class.name, attribute_names: 'all')
       logger.info("Reading cursors...")
 
       cursors = cursors_from_pairs(
@@ -29,8 +29,6 @@ class Polyphemus
         cls: MagmaRecordEtlCursor,
         cursor_env: cursor_env
       )
-
-      scanner = build_scanner if scanner.nil?
 
       @magma_client = magma_client
       @limit = limit

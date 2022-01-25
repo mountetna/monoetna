@@ -19,7 +19,7 @@ class Polyphemus
   # Abstract base class for an ETL that scans metis for folders using the find api.
   class MetisFolderEtl < Etl
     # Subclasses should provide default values here, since commands are constructed
-    def initialize(project_bucket_pairs:, metis_client: nil, cursor_env:, scanner:, folder_name_regexes: [], folder_name_globs: [], limit: 20)
+    def initialize(project_bucket_pairs:, metis_client: nil, cursor_env: {}, scanner: build_scanner, folder_name_regexes: [], folder_name_globs: [], limit: 20)
       @metis_client = metis_client
       @limit = limit
       @folder_name_globs = folder_name_globs
@@ -31,8 +31,6 @@ class Polyphemus
         cls: MetisFolderEtlCursor,
         cursor_env: cursor_env
       )
-
-      scanner = build_scanner if scanner.nil?
 
       super(
         cursors: cursors,
