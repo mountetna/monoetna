@@ -31,6 +31,24 @@ module Etna
       end.to_h
     end
 
+    def update_payload(payload, token, request)
+      route = server.find_route(request)
+
+      payload = payload.map{|k,v| [k.to_sym, v]}.to_h
+
+      return payload unless route
+
+      begin      
+        permissions = Etna::Permissions.from_encoded_permissions(payload[:perm])
+
+        # Skip making an actual call to Janus. This behavior is tested in auth_spec
+
+        payload[:perm] = permissions.to_string
+      end if (!route.ignore_janus? && route.has_user_constraint?(:can_view?))
+
+      payload
+    end
+
     def approve_user(request)
       token = auth(request,:etna)
 
@@ -42,7 +60,10 @@ module Etna
       # We do this to support Metis client tests, we pass in tokens with multiple "."-separated parts, so
       #   have to account for that.
       payload = JSON.parse(Base64.decode64(token.split('.')[1]))
-      request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h, token)
+      request.env['etna.user'] = Etna::User.new(
+        update_payload(payload, token, request),
+        token
+      )
     end
 
     def approve_hmac(request)

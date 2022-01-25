@@ -12,14 +12,15 @@ export default function DropdownAutocomplete({
   defaultValue,
   value,
   waitTime,
-  maxItems
+  maxItems,
+  sorted = true
 }) {
   var collator = new Intl.Collator(undefined, {
     numeric: true,
     sensitivity: 'base'
   });
 
-  const sortedList = list.sort(collator.compare);
+  const moddedList = sorted ? list.sort(collator.compare) : list;
 
   const [filteredList, setFilteredList] = useState(null);
   const [showList, setShowList] = useState(false);
@@ -28,7 +29,7 @@ export default function DropdownAutocomplete({
   function filterTheList(value) {
     let re = new RegExp(value);
     setFilteredList(
-      sortedList.filter((item) => item.match(re)).slice(0, maxItems || 10)
+      moddedList.filter((item) => item.match(re)).slice(0, maxItems || 10)
     );
   }
 
@@ -76,7 +77,7 @@ export default function DropdownAutocomplete({
   }, [value]);
 
   useEffect(() => {
-    setFilteredList(sortedList || []);
+    setFilteredList(moddedList || []);
   }, [showList]);
 
   return (
