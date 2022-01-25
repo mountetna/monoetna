@@ -4,6 +4,7 @@ require 'optparse'
 require 'resolv'
 require 'json'
 require 'date'
+require 'set'
 require 'fileutils'
 require 'digest'
 require 'net/http'
@@ -25,21 +26,26 @@ def config_exists?
   ::File.exist?(::File.expand_path(CONFIG_FILE))
 end
 
+def progress_bar(completion, bar_size=20)
+  progress = "+"*(bar_size * completion) + " "*(bar_size*(1-completion)).ceil
+end
 
-def progress(completion, rate, path)
-  bar_size = 20
-
-  progress = "+"*(bar_size * completion) + " "*(bar_size-completion)
-
-  if rate > 1024*1024*1024
-    rate = "#{(rate / 1024/1024/1024).round(2)}G"
-  elsif rate > 1024*1024
-    rate = "#{(rate / 1024/1024).round(2)}M"
-  elsif rate > 1024
-    rate = "#{(rate / 1024).round(2)}k"
+def byte_format(bytes)
+  if bytes > 1024*1024*1024*1024
+    bytes = "#{(bytes / 1024/1024/1024).round(2)}T"
+  elsif bytes > 1024*1024*1024
+    bytes = "#{(bytes / 1024/1024/1024).round(2)}G"
+  elsif bytes > 1024*1024
+    bytes = "#{(bytes / 1024/1024).round(2)}M"
+  elsif bytes > 1024
+    bytes = "#{(bytes / 1024).round(2)}k"
   end
 
-  "\r#{progress} #{path} - #{rate}B/s"
+  return bytes
+end
+
+def progress(completion, rate, path)
+  "\r#{progress_bar(completion)} #{path} - #{byte_format(rate)}B/s"
 end
 
 def metis_path(path)
@@ -404,6 +410,12 @@ class MetisClient < Client
       new_bucket_name: new_bucket_name)
 
     raise MetisClient::Error, "Could not copy file #{file_path} to #{proposed_file_path}\n#{error(response)}" unless response.code == "200"
+  end
+
+  def exists(md5s)
+    response = json_post("/api/exists", md5s: md5s)
+
+    return json_body(response)
   end
 
   private
@@ -1164,6 +1176,54 @@ EOT
 
     def run
       exit
+    end
+  end
+
+  class Nuke < Command
+    usage "nuke <local_directory>"
+
+    def run(local_directory)
+      # collect all files and folders
+      folders, files = Dir[::File.join(local_directory, "**", "*")].partition { |f| ::File.directory?(f) }
+
+      puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
+
+      deleted_files = deleted_folders = 0
+      remaining_size = 0
+
+      unless files.empty?
+        # compute md5sums
+        file_md5s = files.map.with_index do |file,i|
+          print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}\r"
+          [ file, %x{ md5sum #{file} }.split(' ')[0] ]
+        end.to_h
+        puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}\n"
+
+        # check with metis
+        response = @shell.client.exists(file_md5s.values)
+
+        # remove all found files
+        found = ::Set.new(response[:found])
+
+        file_md5s.each do |file, md5|
+          if found.include?(md5)
+            ::File.delete(file)
+            deleted_files += 1
+          else
+            remaining_size += ::File.size(file)
+          end
+        end
+      end
+
+      # remove all empty folders
+      folders.sort.each do |folder|
+        if ::Dir.exists?(folder) && ::Dir.empty?(folder)
+          ::Dir.delete(folder)
+          deleted_folders += 1
+        end
+      end
+      puts "Deleted #{deleted_files} of #{files.length} files, #{deleted_folders} of #{folders.length} folders."
+      puts "Total remaining size: #{byte_format(remaining_size)}"
     end
   end
 

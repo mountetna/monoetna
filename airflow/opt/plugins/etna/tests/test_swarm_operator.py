@@ -38,68 +38,68 @@ class FakeTaskInstance:
     run_id: str
 
 
-@pytest.mark.vcr
-def test_swarm_cleanup():
-    test_service_name = "test-service-swarm"
-    test_config_name = "test-config"
-
-    cli = APIClient(base_url="http://localhost:8085")
-
-    try:
-        cli.remove_service(test_service_name)
-    except:
-        pass
-
-    try:
-        cli.remove_config(test_config_name)
-    except:
-        pass
-
-    config = cli.create_config(
-        test_config_name, b"abc", labels=DockerSwarmOperator.shared_data_labeling()
-    )
-    service = cli.create_service(
-        TaskTemplate(
-            ContainerSpec(
-                image="alpine",
-                command="true",
-                configs=[ConfigReference(config["ID"], test_config_name)],
-            ),
-        ),
-        name=test_service_name,
-        labels=DockerSwarmOperator.service_labeling(),
-    )
-
-    while True:
-        tasks = cli.tasks(filters={"service": service["ID"]})
-        if not tasks:
-            continue
-        if tasks[0]["Status"]["State"] == "complete":
-            break
-
-    def get_configs():
-        return cli.configs(
-            filters={"label": join_labels(DockerSwarmOperator.shared_data_labeling())}
-        )
-
-    def get_services():
-        return cli.services(
-            filters={"label": join_labels(DockerSwarmOperator.service_labeling())}
-        )
-
-    assert len(get_configs()) > 0
-    assert len(get_services()) > 0
-
-    swarm_cleanup(cli)
-
-    assert len(get_configs()) > 0
-    assert len(get_services()) > 0
-
-    with freeze_time(datetime.datetime.now() + datetime.timedelta(hours=5)):
-        swarm_cleanup(cli)
-
-    assert len(get_configs()) == 0
-    assert len(get_services()) == 0
+# @pytest.mark.vcr
+# def test_swarm_cleanup():
+#     test_service_name = "test-service-swarm"
+#     test_config_name = "test-config"
+#
+#     cli = APIClient(base_url="http://localhost:8085")
+#
+#     try:
+#         cli.remove_service(test_service_name)
+#     except:
+#         pass
+#
+#     try:
+#         cli.remove_config(test_config_name)
+#     except:
+#         pass
+#
+#     config = cli.create_config(
+#         test_config_name, b"abc", labels=DockerSwarmOperator.shared_data_labeling()
+#     )
+#     service = cli.create_service(
+#         TaskTemplate(
+#             ContainerSpec(
+#                 image="alpine",
+#                 command="true",
+#                 configs=[ConfigReference(config["ID"], test_config_name)],
+#             ),
+#         ),
+#         name=test_service_name,
+#         labels=DockerSwarmOperator.service_labeling(),
+#     )
+#
+#     while True:
+#         tasks = cli.tasks(filters={"service": service["ID"]})
+#         if not tasks:
+#             continue
+#         if tasks[0]["Status"]["State"] == "complete":
+#             break
+#
+#     def get_configs():
+#         return cli.configs(
+#             filters={"label": join_labels(DockerSwarmOperator.shared_data_labeling())}
+#         )
+#
+#     def get_services():
+#         return cli.services(
+#             filters={"label": join_labels(DockerSwarmOperator.service_labeling())}
+#         )
+#
+#     assert len(get_configs()) > 0
+#     assert len(get_services()) > 0
+#
+#     swarm_cleanup(cli)
+#
+#     assert len(get_configs()) > 0
+#     assert len(get_services()) > 0
+#
+#     with freeze_time(datetime.datetime.now() + datetime.timedelta(hours=5)):
+#         swarm_cleanup(cli)
+#
+#     assert len(get_configs()) == 0
+#     assert len(get_services()) == 0
 
 def test_write_logs_and_yield_last_with_intermittent_errors():
     def log_message(m: str, i: int) -> bytes:

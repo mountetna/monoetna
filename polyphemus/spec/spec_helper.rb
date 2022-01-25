@@ -495,7 +495,7 @@ end
 
 def stub_ingest_files(file_data = nil)
   file_data ?
-    file_data.each do |data|
+    file_data.map do |data|
     create(:ingest_file, **data)
   end : begin
     create(:ingest_file, name: "foo/bar/test1.txt", host: "sftp.example.com", updated_at: "2021-01-01 00:00:00", should_ingest: false)

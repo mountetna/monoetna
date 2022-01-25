@@ -11,8 +11,12 @@ class Polyphemus
     end
 
     def initialize_query(cursor)
+      # Careful, apparently exclude(condA, condB) => exclude where BOTH condA and condB,
+      # but we want exclude where EITHER condA and condB, so we're forced to make two separate calls.
       Polyphemus::IngestFile.exclude(
         @column_name => nil,
+      ).exclude(
+        :removed_from_source => true,
       ).where { updated_at > cursor.updated_at }
     end
   end

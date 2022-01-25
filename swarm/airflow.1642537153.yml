@@ -47,6 +47,7 @@ services:
       mode: replicated
       labels:
         - autoupdate=true
+        - prometheus_port=9000
       replicas: 1
       placement:
         constraints:
@@ -80,11 +81,12 @@ services:
       retries: 5
 
     volumes:
-      - dags:/opt/airflow/dags:ro
+      - dags:/opt/airflow/dags
       - logs:/opt/airflow/logs
     networks:
       - airflow
       - edge_bridge
+      - prometheus
 
   scheduler:
     image: etnaagent/airflow:production
@@ -106,7 +108,7 @@ services:
           - node.labels.volumes.airflow-logs == true
           - node.role == manager
     healthcheck:
-      interval: 10s
+      interval: 60s
       retries: 3
       start_period: 5s
       test: 
@@ -119,7 +121,7 @@ services:
       - --allow-multiple
       - --limit
       - "100"
-      timeout: 15s
+      timeout: 25s
 
     environment:
       AIRFLOW__CORE__EXECUTOR: etna.executors.local_executor.LocalExecutor
@@ -160,6 +162,8 @@ volumes:
 networks:
   airflow:
   edge_bridge:
+    external: true
+  prometheus:
     external: true
 
 secrets:
