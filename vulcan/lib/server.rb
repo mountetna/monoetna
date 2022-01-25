@@ -17,8 +17,8 @@ class Vulcan
       get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true
       post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true
       post 'api/:project_name/session/:workflow_name', action: 'sessions#submit', as: :submit_view, match_ext: true
-      get 'api/:project_name/workflow/:workflow_name/session/:key', action: 'sessions#fetch'
-      post 'api/:project_name/workflow/:workflow_name/from_query', action: 'sessions#create_from_query'
+      get 'api/:project_name/workflows/:workflow_name/session/:key', action: 'sessions#fetch'
+      post 'api/:project_name/workflows/:workflow_name/from_query', action: 'sessions#create_from_query'
 
       # remaining view routes are parsed by the client and must also be set there
       get '/:project_name/workflow/:session_key', action: 'sessions#render'
