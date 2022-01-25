@@ -155,7 +155,7 @@ module Etna
     end
 
     def has_user_constraint?(constraint)
-      @auth && @auth[:user][constraint]
+      @auth && @auth[:user] && @auth[:user][constraint]
     end
 
     private
