@@ -33,12 +33,12 @@ def load_labors_project
   Magma.instance.setup_logger
   Magma.instance.magma_projects.clear
   Magma.instance.load_db_projects
-  #
-  # magma_client = Etna::Clients::LocalMagmaClient.new
-  #
-  # magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
-  #   project_name: "labors",
-  #   actions: [Etna::Clients::Magma::AddProjectAction.new(no_metis_bucket: true)]))
+
+  magma_client = Etna::Clients::LocalMagmaClient.new
+
+  magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
+    project_name: "labors",
+    actions: [Etna::Clients::Magma::AddProjectAction.new(no_metis_bucket: true)]))
 
   # workflow = Etna::Clients::Magma::AddProjectModelsWorkflow.new(magma_client: magma_client)
   # errors = []

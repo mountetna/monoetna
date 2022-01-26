@@ -19,12 +19,8 @@ describe Magma::AddLinkAction do
     setup_metis_bucket_stubs(project_name)
     Magma.instance.magma_projects.delete(project_name.to_sym)
     Object.class_eval { remove_const(:AddLinkTestProject)  if Object.const_defined?(:AddLinkTestProject) }
-    # Magma.instance.magma_projects.clear
-    # Magma.instance.load_models(false)
     expect(Magma::AddProjectAction.new(project_name, user: user).perform).to be_truthy
     Etna::Clients::Magma::AddAttributeAction
-    # Magma.instance.magma_projects.clear
-    # Magma.instance.load_models(false)
     ['model_a', 'model_b'].each do |model_name|
       expect(Magma::AddModelAction.new(
         project_name,
@@ -34,8 +30,6 @@ describe Magma::AddLinkAction do
           parent_model_name: 'project',
           parent_link_type: 'collection'
         }).perform).to be_truthy
-      # Magma.instance.magma_projects.clear
-      # Magma.instance.load_models(false)
     end
   end
 
