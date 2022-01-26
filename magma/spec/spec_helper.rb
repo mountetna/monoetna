@@ -40,6 +40,8 @@ def load_labors_project
     project_name: "labors",
     actions: [Etna::Clients::Magma::AddProjectAction.new(no_metis_bucket: true)]))
 
+  # REPLACE the yaml loading with the csv workflow or similar once support for model dictionaries
+  # exists through the api.
   # workflow = Etna::Clients::Magma::AddProjectModelsWorkflow.new(magma_client: magma_client)
   # errors = []
   #
@@ -63,11 +65,20 @@ def load_labors_project
   Magma.instance.load_models(false)
 
   YAML.load(File.read("./spec/fixtures/labors_model_attributes.yml")).each do |model_name, attributes|
-    Magma.instance.db[:models].insert(
-      project_name: "labors",
-      model_name: model_name,
-      dictionary: attributes.delete("dictionary")
-    )
+    if model_name == 'project'
+      Magma.instance.db[:models].where(
+        project_name: "labors",
+        model_name: model_name,
+      ).update(
+        dictionary: attributes.delete("dictionary")
+      )
+    else
+      Magma.instance.db[:models].insert(
+        project_name: "labors",
+        model_name: model_name,
+        dictionary: attributes.delete("dictionary")
+      )
+    end
 
     attributes.each do |attribute_name, options|
       row = options.merge(
