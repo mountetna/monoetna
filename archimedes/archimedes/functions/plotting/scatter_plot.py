@@ -2,7 +2,7 @@ import plotly.express as px
 
 from plotnine import ggplot, aes, theme_bw, ggtitle, xlab, ylab, facet_wrap, facet_grid, scale_y_continuous, scale_x_continuous, scale_colour_gradient, scale_colour_manual, guides, guide_legend, geom_point, geom_density_2d, scale_shape_manual
 
-from .utils import _default_to_if_make_and_logic
+from .utils import _leave_default_or_null
 from .colors import colors
 from ..list import unique, order
 
@@ -30,10 +30,10 @@ def scatter_plotly(
     """
 
     # Parse dependent defaults
-    x_title = _default_to_if_make_and_logic(x_title, x_by)
-    y_title = _default_to_if_make_and_logic(y_title, y_by)
-    plot_title = _default_to_if_make_and_logic(plot_title, color_by)
-    legend_title = _default_to_if_make_and_logic(legend_title, color_by)
+    x_title = _leave_default_or_null(x_title, x_by)
+    y_title = _leave_default_or_null(y_title, y_by)
+    plot_title = _leave_default_or_null(plot_title, color_by)
+    legend_title = _leave_default_or_null(legend_title, color_by)
 
     # Add to px_args
     px_args['data_frame'] = data_frame
@@ -58,7 +58,7 @@ def scatter_plotly(
                 if order_when_continuous_color and not discrete_color:
                     px_args['data_frame'] = data_frame.iloc[ list(reversed( order(data_frame[color_by], return_indexes=True) )) ]
     else:
-        plot_title = _default_to_if_make_and_logic(plot_title, "")
+        plot_title = _leave_default_or_null(plot_title, "")
     
     # Make plot
     fig = px.scatter(**px_args)
@@ -118,11 +118,11 @@ def scatter_plotnine(
     ):
     
     # Parse dependent defaults
-    x_title = _default_to_if_make_and_logic(x_title, x_by)
-    y_title = _default_to_if_make_and_logic(y_title, y_by)
-    plot_title = _default_to_if_make_and_logic(plot_title, color_by)
-    legend_title = _default_to_if_make_and_logic(legend_title, color_by)
-    legend_shape_title = _default_to_if_make_and_logic(legend_shape_title, shape_by)
+    x_title = _leave_default_or_null(x_title, x_by)
+    y_title = _leave_default_or_null(y_title, y_by)
+    plot_title = _leave_default_or_null(plot_title, color_by)
+    legend_title = _leave_default_or_null(legend_title, color_by)
+    legend_shape_title = _leave_default_or_null(legend_shape_title, shape_by)
     
     ### Start plot, with data and theming
     fig = (ggplot(data_frame) +

@@ -1,7 +1,7 @@
 import plotly.express as px
 import pandas as pd
 
-from .utils import _default_to_if_make_and_logic
+from .utils import _leave_default_or_null
 from .colors import colors
 from ..list import unique, order
 
@@ -29,10 +29,10 @@ def bar_plotly(
     """
 
     # Parse dependent defaults
-    x_title = _default_to_if_make_and_logic(x_title, x_by)
-    y_title = _default_to_if_make_and_logic(y_title, y_by + " " + scale_by) # A little different for this function
-    plot_title = _default_to_if_make_and_logic(plot_title, y_title + " per " + x_by)
-    legend_title = _default_to_if_make_and_logic(legend_title, y_by) # A little different for this function
+    x_title = _leave_default_or_null(x_title, x_by)
+    y_title = _leave_default_or_null(y_title, y_by + " " + scale_by) # A little different for this function
+    plot_title = _leave_default_or_null(plot_title, y_title + " per " + x_by)
+    legend_title = _leave_default_or_null(legend_title, y_by) # A little different for this function
 
     ### Generate a composition summary dataframe from the input df.
     summary_df = pd.DataFrame(data_frame[[x_by, y_by]].value_counts())

@@ -2,7 +2,7 @@ import plotly.express as px
 
 from plotnine import ggplot, aes, theme_bw, ggtitle, geom_jitter, geom_violin, geom_boxplot, scale_fill_manual, xlab, ylab, facet_wrap, facet_grid, position_jitterdodge, position_dodge, geom_hline, element_text, theme, scale_y_continuous, coord_cartesian
 
-from .utils import _default_to_if_make_and_logic
+from .utils import _leave_default_or_null
 from .colors import colors
 
 def y_plotly(
@@ -28,11 +28,11 @@ def y_plotly(
     """
     
     # Parse dependent defaults
-    color_by = _default_to_if_make_and_logic(color_by, x_by)
-    x_title = _default_to_if_make_and_logic(x_title, x_by)
-    y_label = _default_to_if_make_and_logic(y_label, y_by)
-    plot_title = _default_to_if_make_and_logic(plot_title, y_label)
-    legend_title = _default_to_if_make_and_logic(legend_title, color_by)
+    color_by = _leave_default_or_null(color_by, x_by)
+    x_title = _leave_default_or_null(x_title, x_by)
+    y_label = _leave_default_or_null(y_label, y_by)
+    plot_title = _leave_default_or_null(plot_title, y_label)
+    legend_title = _leave_default_or_null(legend_title, color_by)
     
     # Add to px_args and convert from our variables names to px.violin/bar variables names. 
     px_args["data_frame"] = data_frame
@@ -111,14 +111,14 @@ def y_plotnine(
     """
     
     # Parse dependent defaults
-    color_by = _default_to_if_make_and_logic(color_by, x_by)
-    x_title = _default_to_if_make_and_logic(x_title, x_by)
-    y_title = _default_to_if_make_and_logic(y_title, y_by)
-    plot_title = _default_to_if_make_and_logic(plot_title, None)
-    legend_title = _default_to_if_make_and_logic(legend_title, color_by)
-    boxplot_show_outliers = _default_to_if_make_and_logic(boxplot_show_outliers, "jitter" not in plots)
-    boxplot_position_dodge = _default_to_if_make_and_logic(boxplot_position_dodge, violin_width)
-    jitter_position_dodge = _default_to_if_make_and_logic(jitter_position_dodge, boxplot_position_dodge)    
+    color_by = _leave_default_or_null(color_by, x_by)
+    x_title = _leave_default_or_null(x_title, x_by)
+    y_title = _leave_default_or_null(y_title, y_by)
+    plot_title = _leave_default_or_null(plot_title, None)
+    legend_title = _leave_default_or_null(legend_title, color_by)
+    boxplot_show_outliers = _leave_default_or_null(boxplot_show_outliers, "jitter" not in plots)
+    boxplot_position_dodge = _leave_default_or_null(boxplot_position_dodge, violin_width)
+    jitter_position_dodge = _leave_default_or_null(jitter_position_dodge, boxplot_position_dodge)    
     
     # # Trim df if requested
     # if indexes_use!=None:
