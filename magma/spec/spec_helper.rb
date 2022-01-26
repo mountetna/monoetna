@@ -29,6 +29,39 @@ def load_labors_project
   Magma.instance.db[:attributes].truncate
   Magma.instance.db[:models].truncate
 
+  Magma.instance.setup_sequel
+  Magma.instance.setup_logger
+  Magma.instance.magma_projects.clear
+  Magma.instance.load_db_projects
+  #
+  # magma_client = Etna::Clients::LocalMagmaClient.new
+  #
+  # magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
+  #   project_name: "labors",
+  #   actions: [Etna::Clients::Magma::AddProjectAction.new(no_metis_bucket: true)]))
+
+  # workflow = Etna::Clients::Magma::AddProjectModelsWorkflow.new(magma_client: magma_client)
+  # errors = []
+  #
+  # changeset = File.open("./spec/fixtures/labors_models_project_tree.csv", 'r') do |f|
+  #   workflow.prepare_changeset_from_csv(io: f) do |err|
+  #     errors << err
+  #   end
+  # end
+  #
+  # raise "Failed to load labors project, found errors in input csv: #{errors.join('\n')}" unless errors.empty?
+  # sync_workflow = workflow.plan_synchronization(changeset, "labors")
+  # sync_workflow.update_block = Proc.new do |action|
+  #   puts "Executing #{action.action_name} on #{Etna::Clients::Magma::ModelSynchronizationWorkflow.models_affected_by(action)}..."
+  #   Object.class_eval { remove_const(:Labors) if Object.const_defined?(:Labors) }
+  #   Magma.instance.magma_projects.clear
+  #   Magma.instance.load_models(false)
+  # end
+  # sync_workflow.execute_planned!
+
+  Magma.instance.magma_projects.clear
+  Magma.instance.load_models(false)
+
   YAML.load(File.read("./spec/fixtures/labors_model_attributes.yml")).each do |model_name, attributes|
     Magma.instance.db[:models].insert(
       project_name: "labors",
@@ -48,6 +81,9 @@ def load_labors_project
       Magma.instance.db[:attributes].insert(row)
     end
   end
+
+  Magma.instance.magma_projects.clear
+  Magma.instance.load_models(false)
 end
 
 Magma.instance.setup_db

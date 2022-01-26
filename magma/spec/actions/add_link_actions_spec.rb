@@ -12,12 +12,12 @@ describe Magma::AddLinkAction do
       ]
     }
   end
-  let(:project_name) { 'add_link_test_project' }
+  let(:project_name) { "add_link_test_project_#{SecureRandom.hex.gsub(/\d/, '')}" }
   let(:action) { Magma::AddLinkAction.new(project_name, action_params) }
 
   before(:each) do
     setup_metis_bucket_stubs(project_name)
-    Magma.instance.magma_projects.delete(project_name.to_sym)
+    # Magma.instance.magma_projects.delete(project_name.to_sym)
     expect(Magma::AddProjectAction.new(project_name, user: user).perform).to be_truthy
     ['model_a', 'model_b'].each do |model_name|
       expect(Magma::AddModelAction.new(

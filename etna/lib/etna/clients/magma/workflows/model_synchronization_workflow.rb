@@ -29,7 +29,7 @@ module Etna
         end
 
         def execute_planned!
-          @planned_actions.each do |action|
+          planned_actions.each do |action|
             execute_update(action)
           end
         end

@@ -24,6 +24,7 @@ fi
 if [ -n "$UPDATE_STATE" ]; then
   ./bin/${APP_NAME} migrate
 eval "${app_name_capitalized}_ENV=test ./bin/${APP_NAME} migrate"
+echo 1
 fi
 
 mkdir -p /app/data/uploads
