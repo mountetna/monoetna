@@ -53,8 +53,7 @@ module Etna::Application
   end
 
   def configure(opts)
-    @config = load_from_env('ETNA', root: opts, &:load_config_from_env_path)
-    p @config
+    @config = load_from_env('ETNA', root: opts) { |path, value| load_config_from_env_path(path, value) }
 
     if (rollbar_config = config(:rollbar)) && rollbar_config[:access_token]
       Rollbar.configure do |config|
