@@ -95,7 +95,7 @@ describe Magma::Project do
         model_name: "hero",
         attribute_name: "name",
         column_name: "name",
-        type: "string",
+        type: "identifier",
         created_at: Time.now,
         updated_at: Time.now,
         description: "The hero's name"
