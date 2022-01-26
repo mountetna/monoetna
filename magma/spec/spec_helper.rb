@@ -95,6 +95,8 @@ def load_labors_project
 
   Magma.instance.magma_projects.clear
   Magma.instance.load_models(false)
+
+  require_relative './labors/metrics/labor_metrics'
 end
 
 Magma.instance.setup_db

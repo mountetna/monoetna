@@ -1312,14 +1312,14 @@ describe QueryController do
       expect(json_body[:format]).to eq(['labors::prize#id', 'labors::prize#name'])
     end
 
-    # it 'can retrieve metrics' do
-    #   poison = create(:prize, labor: @hydra, name: 'poison', worth: 5)
-    #   poop = create(:prize, labor: @stables, name: 'poop', worth: 0)
-    #   query(['labor', '::all', '::metrics'])
-    #
-    #   answer = Hash[json_body[:answer]]
-    #   expect(answer['Lernean Hydra'][:lucrative][:score]).to eq('success')
-    # end
+    it 'can retrieve metrics' do
+      poison = create(:prize, labor: @hydra, name: 'poison', worth: 5)
+      poop = create(:prize, labor: @stables, name: 'poop', worth: 0)
+      query(['labor', '::all', '::metrics'])
+
+      answer = Hash[json_body[:answer]]
+      expect(answer['Lernean Hydra'][:lucrative][:score]).to eq('success')
+    end
   end
 
   context Magma::StringPredicate do
