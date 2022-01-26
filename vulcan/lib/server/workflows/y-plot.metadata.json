@@ -6,5 +6,10 @@
   "tags": ["general", "plotting", "continuous data"],
   "image": "yplot.png",
   "displayName": "Y Plot",
-  "description": "Y Plot workflow: Pick data, then create a yplot"
+  "description": "Y Plot workflow: Pick data, then create a yplot",
+  "queryInputMap": {
+    "1_Data_Source_magma_query__queryTerms": "query",
+    "1_Data_Source_magma_query__user_columns": "user_columns",
+    "1_Data_Source_magma_query__expand_matrices": "expand_matrices"
+  }
 }

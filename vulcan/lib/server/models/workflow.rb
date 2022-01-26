@@ -15,6 +15,16 @@ module Etna
         self.loader.load(attributes)
       end
 
+      def metadata
+        metadata_file = ::File.join(
+            Vulcan.instance.config(:workflows_folder),
+            workflow_name.sub("cwl", "metadata.json"))
+          
+        return {} unless ::File.exists?(metadata_file)
+
+        JSON.parse(::File.read(metadata_file), symbolize_names: true)
+      end
+
       def find_step(step_name)
         steps.find { |s| s.id == step_name }
       end
