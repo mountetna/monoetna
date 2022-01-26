@@ -13,7 +13,14 @@ ENV DOCKERIZE_VERSION 0.5.0
 ENV NODE_VERSION 12.18.1
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
 ENV RACK_ENV development
-ENV PATH "/app/bin:/app/node_modules/.bin:/app/vendor/bundle/$RUBY_VERSION/bin:$PATH:/home/aspera/.aspera/connect/bin"
+
+# We want the bundle installed into the default location (/vendor/bundle)
+ENV BUNDLE_PATH="/app/vendor/bundle/ruby/$RUBY_MAJOR_VERSION"
+ENV BUNDLE_BIN="$BUNDLE_PATH/bin"
+ENV BUNDLE_SILENCE_ROOT_WARNING=0
+ENV BUNDLE_APP_CONFIG="/app/.bundle"
+ENV BUNDLE_GEMFILE="/app/Gemfile"
+ENV PATH "/app/bin:/app/node_modules/.bin:$BUNDLE_PATH/bin:$PATH:/home/aspera/.aspera/connect/bin"
 
 COPY --from=0 /certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
 RUN chmod 644 /usr/local/share/ca-certificates/devRoot.crt && update-ca-certificates
@@ -47,13 +54,6 @@ RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x6
     && npm install -g yarn
 
 RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
-
-# We want the bundle installed into the default location (/vendor/bundle)
-ENV BUNDLE_PATH="/app/vendor/bundle/ruby/$RUBY_MAJOR_VERSION"
-ENV BUNDLE_BIN="$BUNDLE_PATH/bin"
-ENV BUNDLE_SILENCE_ROOT_WARNING=0
-ENV BUNDLE_APP_CONFIG="/app/.bundle"
-ENV BUNDLE_GEMFILE="/app/Gemfile"
 
 RUN gem install bundler --default -v "=$BUNDLER_VERSION_"
 RUN gem update --system
