@@ -127,20 +127,6 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
               expect(validation_errors[3]).to match(/Invalid attribute_type for attribute project/)
             end
           end
-
-          describe 'with link_model_name that is invalid' do
-            before(:each) do
-              root_model_template.build_attributes.build_attribute('mood_link').tap do |attr|
-                attr.attribute_name = attr.name = 'mood_link'
-                attr.attribute_type = Etna::Clients::Magma::AttributeType::COLLECTION
-                attr.link_model_name = 'mood'
-              end
-            end
-
-            it 'shows that error' do
-              expect(validation_errors[3]).to match(/attribute mood_link has link_model_name/)
-            end
-          end
         end
       end
 

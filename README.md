@@ -16,7 +16,7 @@ of common gnu utils that will cause the command line tools to behave weirdly.
 
 ## Directory Structure
 
-Top Level directories fall into one of three types:
+Top Level directories fall into one of four types:
 
 1. Deployable applications.
    - `metis` `timur` `edge-apache` and others. Generally these applications fall into one of three categories
@@ -32,42 +32,71 @@ Top Level directories fall into one of three types:
    - `docker` contains base images and build logic for our docker based build system.
    - `make-base` contains `*.mk` files to be included by deployable applications and provides default `Makefile` command hooks necessary for the build process.
    - `.github` contains yml files defining our github actions based CI processes.
+4. Swarm Applications
+   - Applications under the `swarm` directory are deployed into infrastructure.  In most ways, they behave like top level directory apps except in one crucial detail:
+these apps do not run their tests in CI during a branch PR.   The intention is that these apps do not change as often as other apps, thus spending CI resources
+building them for every PR is not ideal.  That said, `release-test` is still run for these applications in `staging` and `production` during generation of assets.
+The idea here is that branch build times should be slightly faster since they iterate and change more often than mainline staging and production.
+If you make changes to these applications, you'll want to test and verify locally.  See *Build System* below.
 
-## Docker
+## Build System
 
-Use the `Makefile` at the top of the repo to easily start and stop a set of all etna services that are dockerized.
+The monoetna repo comprises multiple modular applications and libraries that may have one or even more than one different
+final locations.  The build system helps support a consistent interface for generating and deploying our system in this
+modular way using a singular repository.
 
-`make help`
-`make up`
-`make down`
-`make logs`
+Generally, the easiest way to interact with the build tools is through `make` in the repository's top level directory,
+although each project contains its own make file and can be interacted with in its own directory as well.
 
-You will want to use per-project `Makefile`s to access proejct specific databases and bash consoles. eg: `make -C janus help`
+The top level `Makefile` contains several general high level targets, most notably:
 
-This process can unfortunately be very slow, especially on first build, due to the need to install many many dependencies
-between each project and get base images built.  `npm` and `bundle` tend to require heavy, heavy disk and cpu usage
-while processing, so expect to let an initial `make up` run for an hour or more.
+```
+make up # starts the docker-compose.yml processes containing ALL development apps
+make down # stops any and all docker-compose.yml processes associated with this repo
+make update # runs local migrations, gem, npm, poetry installs, and any other local development maintenance tasks.
+make ps # lists the docker-compose processes running.
+```
 
-### Update
+Some tasks are better oriented for running in the context of specific apps.  you can use `make -C magma` for example to
+run commands specifically in a directory (application) context.  A few notable commands useful in application contexts are
 
-Once you've got docker installed and such, you'll want to start by running `make update`.  This command will take a long time,
-as it will first need download many things, build our docker images, start databases, update them, install gems and npm,
-and a bunch of other filesystem intensive tasks.
+```
+make -C metis bash # opens a bash process in the docker-compose context of metis app
+make -C metis start # starts ONLY the metis processes in docker-compose
+make -C metis release-test # runs all tests for metis
+make -C metis release-build # builds all images for metis
+PUSH_IMAGES=1 IMAGE_PREFIX=etnaagent/ IMAGE_POSTFIX=:production make -C metis release # builds and releases metis to production!  Use only for hot deployments.
+```
 
-Subsequently, after pulling a new set of changes or adjusting Gemfile / package.json / Dockerfiles, run `make update` again
-to apply those changes.
-
-`make update` will migrate development and test databases with the current code set.
+Greater detail for the implementation and available commands exists in the `make-base` directory.
 
 ### Builds
 
-See more details on how builds behave and how to change the development environment in the `docker/README.md` file.
+When a branch is pushed to github, CI will execute the contents of `.github/branches.yml`.  Generally, this will execute
+all tests for most (but not all) projects, validating that your changeset is safe to merge.
+
+When your branch is merged into master, `.github/master.yml` will execute a `make release` in the top directory, *thereby
+building EVERY project and pushing the resulting artifacts to dockerhub*.  However, master.yml tags these images with `:staging`,
+so they only effect services which are running in staging mode.
+
+After merging into the `production` branch (usually via a PR from `staging`, but in an emergency you can force push anything to `production` branch),
+`.github/production.yml` will kick off a `make release` that pushes to dockerhub with the tag `:production`.
+
+Services in production are constantly monitoring for image updates in dockerhub matching their tags.  When they find one,
+they will generally automatically pull and update themselves from that new image.
+
+Generally.  But not all services will do this.  Check the service definitions in`swarm/`.  Services whose labels include
+`autoupdate=true` are those that will pull and update automatically from github.  Otherwise, you will need to use the
+portainer ui and force an image pull update there.
 
 ## Environment setup
 
-You'll want to setup your system's `/etc/hosts` file to support mapping subdomain https urls. The docker
-environment runs an apache server that terminates SSL with self signed certs currently. You'll want entries for
-each service like the following:
+When runnin the docker-compose development environment, an apache instance is launched with self signed certs at specific
+local host names given by the configuration in `development-edge-httpd.conf`.  However, for your browser to actually accept
+and resolve these local hostnames, you should configure your system's dns host resolution to accept them.
+
+This can vary by system, but in general, linux like systems should allow direct entry to the `/etc/hosts` file.  You'll
+want to maintain entries like the following based on which services you are testing:
 
 ```
 127.0.0.1 janus.development.local
@@ -100,8 +129,23 @@ make -C janus bash
 ○ → ./bin/janus permit developer@ucsf.edu ipi administrator
 ```
 
-### Seeding timur and magma
-TODO!  A nice way of setting up development timur and magma would be, uh, nice.
+### Duplicating magma schemas
+
+You can copy and apply magma project modeling to your local environment to support testing against production like schemas.
+Firstly, you'll need a properly configured `etna.yml` file for both the production environment and your local environment.
+Next, you'll need the `etna` gem installed on a local ruby.  You can use `bin/reinstall-gem` to do this from your local sources.
+
+```
+# export your production token
+export TOKEN=asjlkjadsf
+
+# Copies production mvir1 into a csv file
+$(gem env path)/bin/etna administrate models copy_template mvir1 --file mvir1_template.csv --environment production
+
+# Swap out for your development janus token here!
+export TOKEN=mkaljerljdas
+$(gem env path)/bin/etna administrate models apply_template mvir1 --file mvir1_template.csv --environment development
+```
 
 ## Debugging issues
 

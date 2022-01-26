@@ -110,7 +110,7 @@ module Etna
         include JsonSerializableStruct
       end
 
-      class AddProjectAction < Struct.new(:action_name, keyword_init: true)
+      class AddProjectAction < Struct.new(:action_name, :no_metis_bucket, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**args)
