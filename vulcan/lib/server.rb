@@ -12,9 +12,16 @@ class Vulcan
     end
 
     get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true, has_flag?: 'vulcan' } }
-    get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true, auth: { user: { can_view?: :project_name, has_flag?: 'vulcan' } }
-    post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true, auth: { user: { can_view?: :project_name, has_flag?: 'vulcan' } }
-    post 'api/:project_name/session/:workflow_name', action: 'sessions#submit', as: :submit_view, match_ext: true, auth: { user: { can_view?: :project_name, has_flag?: 'vulcan' } }
+
+    with auth: { user: { can_view?: :project_name, has_flag?: 'vulcan' } } do
+      get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true
+      post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true
+      post 'api/:project_name/session/:workflow_name', action: 'sessions#submit', as: :submit_view, match_ext: true
+
+      get 'api/:project_name/figures', action: 'figures#fetch'
+      get 'api/:project_name/figure/:figure_id', action: 'figures#get'
+      post 'api/:project_name/figure/:figure_id/update', action: 'figures#update'
+    end
 
     with auth: { user: { active?: true, has_flag?: 'vulcan' } } do
 

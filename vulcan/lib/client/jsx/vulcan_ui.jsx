@@ -11,7 +11,7 @@ const theme = createEtnaTheme("#de5833","#948f8e");
 
 // Components.
 import Browser from './components/browser.tsx';
-import Dashboard from './components/dashboard';
+import FigureList from './components/figure_list';
 import VulcanNav from './components/vulcan_nav';
 import Messages from 'etna-js/components/messages';
 import {selectUser} from 'etna-js/selectors/user-selector';
@@ -32,7 +32,7 @@ const ROUTES = [
   },
   {
     template: ':project_name/',
-    component: Dashboard,
+    component: FigureList,
     mode: ''
   },
   {
