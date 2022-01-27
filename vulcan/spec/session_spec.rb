@@ -99,34 +99,44 @@ describe SessionsController do
     end
 
     context '#from_query' do
-      let(:body_json) { {
-        query: 'a-question'
-      } }
       it 'requires the :query param' do
         make_request("/from_query")
         expect(last_response.status).to eql(422)
       end
 
-      context 'undefined inputQueryMap' do
-        let(:workflow_name) { "test_concurrent_workflow.cwl" }
-
-        it 'initializes workflow session if no inputQueryMap defined in metadata' do
+      context 'with :query' do
+        let(:body_json) { {
+          query: 'a-question'
+        } }  
+              
+        it 'saves to the database' do
+          # expect(Vulcan::Figures.count).to eq(0)
+          make_request("/from_query")
+          expect(last_response.status).to eql(200)
+          # expect(Vulcan::Figures.count).to eq(1)
+        end
+  
+        context 'undefined inputQueryMap' do
+          let(:workflow_name) { "test_concurrent_workflow.cwl" }
+  
+          it 'initializes workflow session if no inputQueryMap defined in metadata' do
+            make_request("/from_query")
+            expect(last_response.status).to eql(200)
+            expect(last_json_response['session']['key']).to_not be_empty
+            expect(last_json_response['session']['workflow_name']).to eql(workflow_name)
+            expect(last_json_response['session']['inputs']).to eql({})
+          end
+        end
+  
+        it 'injects inputs from :query per inputQueryMap, if defined' do
           make_request("/from_query")
           expect(last_response.status).to eql(200)
           expect(last_json_response['session']['key']).to_not be_empty
           expect(last_json_response['session']['workflow_name']).to eql(workflow_name)
-          expect(last_json_response['session']['inputs']).to eql({})
+          expect(last_json_response['session']['inputs']).to eql({
+            "someInt" => "a-question"
+          })
         end
-      end
-
-      it 'injects inputs from :query per inputQueryMap, if defined' do
-        make_request("/from_query")
-        expect(last_response.status).to eql(200)
-        expect(last_json_response['session']['key']).to_not be_empty
-        expect(last_json_response['session']['workflow_name']).to eql(workflow_name)
-        expect(last_json_response['session']['inputs']).to eql({
-          "someInt" => "a-question"
-        })
       end
     end
   end
