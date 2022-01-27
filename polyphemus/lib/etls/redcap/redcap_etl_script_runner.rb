@@ -49,6 +49,19 @@ class Polyphemus
       page[ entry[:model_name] ] [ entry[:record_name ] ] = entry[:record]
     end
 
+    def update_page(page, update)
+      update.each do |model_name, records|
+        records.each do |record_name, record|
+          add_to_page(
+            page,
+            model_name: model_name,
+            record_name: record_name,
+            record: record
+          )
+        end
+      end
+    end
+
     # the page size is approximate
     def paginate(loader, all_records, &block)
       flat_records = all_records.map do |model_name, records|
@@ -94,7 +107,7 @@ class Polyphemus
         add_to_page( page, flat_record )
 
         if page_count > @page_size
-          results.update(yield page)
+          update_page(results, yield(page))
 
           page = {}
           page_count = 0
@@ -102,7 +115,7 @@ class Polyphemus
       end
 
       unless page.empty?
-        results.update(yield page)
+        update_page(results, yield(page))
       end
 
       results
