@@ -7,6 +7,7 @@ class Polyphemus
   class EtlCursor
     attr_reader :value, :name
     attr_accessor :updated_at
+    extend ::Etna::Injection::FromHash
 
     def initialize(name, updated_at = Time.at(0), value = {}, version = 0)
       @name = name

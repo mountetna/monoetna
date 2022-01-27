@@ -11,9 +11,10 @@ module Etna
 
     def self.inject_new(cls, hash, hash_has_string_keys, rest: nil, key_rest: nil, &missing_req_param_cb)
       args, kwds = prep_args(
-        cls.method(:initialize), hash, hash_has_string_keys,
+        cls.instance_method(:initialize), hash, hash_has_string_keys,
         rest: rest, key_rest: key_rest, &missing_req_param_cb
       )
+
       cls.new(*args, **kwds)
     end
 
@@ -38,7 +39,7 @@ module Etna
             end
           end
         elsif type == :keyreq || type == :key
-          if value.include?(h_key)
+          if hash.include?(h_key)
             new_k_params[p_key] = hash[h_key]
           elsif type == :keyreq
             if block_given?
@@ -50,7 +51,7 @@ module Etna
         end
       end
 
-      [new_k_params, new_p_params]
+      [new_p_params, new_k_params]
     end
   end
 end

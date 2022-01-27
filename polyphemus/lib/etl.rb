@@ -118,7 +118,7 @@ class Polyphemus
     # Will use default client based on environment unless override is set in constructor
     include WithEtnaClients
     include WithLogger
-    include ::Etna::Injection::FromHash
+    extend ::Etna::Injection::FromHash
 
     attr_reader :scanner, :cursor_group
 
@@ -139,7 +139,7 @@ class Polyphemus
 
     def cursors_from_pairs(pairs:, pair_keys:, cls:, cursor_env:)
       pairs.map do |pair|
-        cls.from_hash(pair_keys.zip(pair).to_h.update(cursor_env), true).tap do |cursor|
+        cls.from_hash({"job_name" => self.class.name}.update(pair_keys.zip(pair).to_h).update(cursor_env), true).tap do |cursor|
           cursor.load_from_db unless cursor.from_env?
         end
       end
