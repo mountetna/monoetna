@@ -15,10 +15,10 @@ module Etna
         self.loader.load(attributes)
       end
 
-      def metadata
+      def self.metadata(filename, prefix = Vulcan.instance.config(:workflows_folder))
         metadata_file = ::File.join(
-            Vulcan.instance.config(:workflows_folder),
-            workflow_name.sub("cwl", "metadata.json"))
+          prefix,
+          filename.sub("cwl", "metadata.json"))
           
         return {} unless ::File.exists?(metadata_file)
 

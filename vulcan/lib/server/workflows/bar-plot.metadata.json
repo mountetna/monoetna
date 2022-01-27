@@ -8,9 +8,11 @@
   "displayName": "Bar Plot",
   "description": "Bar Plot workflow: Pick data, then create a barplot",
   "icon": "BarChart",
-  "queryInputMap": {
-    "1_Data_Source_magma_query__queryTerms": "query",
-    "1_Data_Source_magma_query__user_columns": "user_columns",
-    "1_Data_Source_magma_query__expand_matrices": "expand_matrices"
+  "inputQueryMap": {
+    "primary_inputs": {
+      "1_Data_Source_magma_query__queryTerms": "query",
+      "1_Data_Source_magma_query__user_columns": "user_columns",
+      "1_Data_Source_magma_query__expand_matrices": "expand_matrices"
+    }
   }
 }

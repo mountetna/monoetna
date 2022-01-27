@@ -34,15 +34,23 @@ class SessionsController < Vulcan::Controller
   def from_query
     require_params(:query)
 
-    workflow = Etna::Cwl::Workflow.from_yaml_file(@params[:workflow_name])
+    metadata = Etna::Cwl::Workflow.metadata(@params[:workflow_name])
 
     inputs = {}
 
     begin
-      workflow.metadata[:queryInputMap].map do |cwlInputName, queryParam|
-        inputs[cwlInputName] = @params[:query][queryParam]
+      metadata[:inputQueryMap].map do |cwlStepName, stepInputsMap|
+        step = cwlStepName == :primary_inputs ? cwlStepName : cwlStepName.to_s
+
+        next unless stepInputsMap.is_a?(Hash)
+
+        stepInputsMap.map do |cwlInputName, queryParam|
+          inputs[[step, cwlInputName.to_s]] = {
+            json_payload: @params[queryParam.to_sym]
+          }
+        end
       end
-    end if workflow.metadata.keys.include?(:queryInputMap)
+    end if metadata.keys.include?(:inputQueryMap)
 
     new_session = Session.new_session_for(
       @params[:project_name],
