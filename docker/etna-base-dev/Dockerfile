@@ -15,12 +15,12 @@ ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCK
 ENV RACK_ENV development
 
 # We want the bundle installed into the default location (/vendor/bundle)
-ENV BUNDLE_PATH="/app/vendor/bundle/ruby/$RUBY_MAJOR_VERSION"
-ENV BUNDLE_BIN="$BUNDLE_PATH/bin"
+ENV BUNDLE_PATH="/app/vendor/bundle"
+ENV BUNDLE_BIN="$BUNDLE_PATH/ruby/$RUBY_MAJOR_VERSION/bin"
 ENV BUNDLE_SILENCE_ROOT_WARNING=0
 ENV BUNDLE_APP_CONFIG="/app/.bundle"
 ENV BUNDLE_GEMFILE="/app/Gemfile"
-ENV PATH "/app/bin:/app/node_modules/.bin:$BUNDLE_PATH/bin:$PATH:/home/aspera/.aspera/connect/bin"
+ENV PATH "/app/bin:/app/node_modules/.bin:$BUNDLE_BIN:$PATH:/home/aspera/.aspera/connect/bin"
 
 COPY --from=0 /certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
 RUN chmod 644 /usr/local/share/ca-certificates/devRoot.crt && update-ca-certificates
@@ -60,7 +60,7 @@ RUN gem update --system
 
 # We also the GEM_PATH to be this BUNDLE_PATH so that ides (Rubymine) will find gems easier.
 ENV GEM_HOME="$BUNDLE_PATH"
-ENV GEM_PATH="/root/.gem/ruby/2.5.0:/usr/local/lib/ruby/gems/2.5.0:/usr/local/bundle:$BUNDLE_PATH"
+ENV GEM_PATH="/root/.gem/ruby/$RUBY_MAJOR_VERSION:/usr/local/lib/ruby/gems/$RUBY_MAJOR_VERSION:/usr/local/bundle:$BUNDLE_PATH/ruby/$RUBY_MAJOR_VERSION"
 
 # bash improvements for easier working inside the container
 RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \

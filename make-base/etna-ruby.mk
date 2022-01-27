@@ -24,7 +24,7 @@ run-image-test::
 			-e APP_NAME=$(app_name) -e RELEASE_TEST=1 -e CI_SECRET=$${CI_SECRET} \
 			-e IS_CI=$${IS_CI} -e WAIT_FOR_DB=1 -e UPDATE_STATE=1 \
 			--network monoetna_default $(fullTag) \
-			/entrypoints/development.sh bundle exec rspec
+			/entrypoints/development.sh rspec
 
 update-ready::
 	docker-compose up -d $(app_db_name)
