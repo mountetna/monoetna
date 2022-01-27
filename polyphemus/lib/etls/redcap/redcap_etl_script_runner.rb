@@ -130,9 +130,6 @@ class Polyphemus
             dry_run: !commit)
           select_documents(magma_client.update_json(update_request))
         end
-      rescue Etna::Error => e
-        require 'pry'
-        binding.pry
       end
 
       logger.write(JSON.pretty_generate(magma_documents))
