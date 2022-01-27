@@ -17,9 +17,10 @@ module Etna
 
     def load_from_env(prefix, root: {}, env: ENV, downcase: true, sep: '__', &path_to_value_mapper)
       env.keys.each do |key|
-        next unless key.start_with?(prefix)
+        next unless key.start_with?(prefix + sep)
 
         path = key.split(sep, -1)
+        path.shift
         if downcase
           path.each(&:downcase!)
         end
@@ -44,7 +45,7 @@ module Etna
           target = (target[n] ||= {})
         end
 
-        target[path.last] = deep_merge(target[path.last], value)
+        target[path.last] = EnvironmentVariables.deep_merge(target[path.last], value)
       end
 
       root

@@ -64,8 +64,8 @@ module Etna::Application
 
   def load_config_from_env_path(path, value)
     return nil if path.empty?
-    return nil unless path.last.end_with?('_FILE')
-    path.last.sub!(/_FILE$/, '')
+    return nil unless path.last.end_with?('_file')
+    path.last.sub!(/_file$/, '')
 
     [path.map(&:to_sym), YAML.load(File.read(value))]
   end
