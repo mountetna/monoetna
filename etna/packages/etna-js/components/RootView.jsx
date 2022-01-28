@@ -57,7 +57,6 @@ const RootView = () => {
           <div className='full_name'> title </div>
         </div>
         <div>
-          Your projects:
           <div>
             {my_projects.length == 0 ? (
               <span>{'No available projects.'}</span>
@@ -67,7 +66,9 @@ const RootView = () => {
           </div>
         </div>
         <div>
-          Resource projects:
+          <p className='section-label'>
+          Resource projects
+          </p>
           <div>
             {resourceProjects.length == 0 ? (
               <span>{'No resource projects.'}</span>

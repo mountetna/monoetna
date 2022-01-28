@@ -4,15 +4,15 @@
 }
 
 .root-view .title {
-margin-left: 0px;
-padding: 5px;
-padding-left: 15px;
+  margin-left: 0px;
+  padding: 5px;
+  padding-left: 15px;
 }
 
 .root-view .project {
   display: flex;
   flex-direction: row;
-  border-bottom: 1px solid rgba(128,128,128,0.2);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
 
   padding: 4px;
 }
@@ -37,4 +37,10 @@ padding-left: 15px;
 
 .root-view .full_name {
   flex: 0 1 auto;
+}
+
+.root-view .section-label {
+  padding-left: 10px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  font-family: 'Cousine', monospace;
 }
