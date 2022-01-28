@@ -10,14 +10,13 @@ config-ready:: $(app_name)_app_fe config.yml Dockerfile
 	@ true
 
 $(app_name)_app_fe:
-	cp -r $(call find_project_file,etna-base,app_fe) $(app_name)_app_fe
-	ln -s ../$(app_name)/$(app_name)_app_fe ../docker/$(app_name)_app_fe
+	if ! [ -e $(app_name)_app_fe ]; then cp -r $(call find_project_file,etna-base,app_fe) $(app_name)_app_fe && ln -s ../$(app_name)/$(app_name)_app_fe ../docker/$(app_name)_app_fe; fi
 
 psql:: docker-ready
 	@ docker-compose run -e PGPASSWORD=password --rm ${app_service_name} psql -h ${app_db_name} -U developer -d ${app_name}_development
 
 Dockerfile:
-	cp $(call find_project_file,etna-base,Dockerfile.etna-ruby.default) Dockerfile
+	if [ ! -e Dockerfile ]; then cp $(call find_project_file,etna-base,Dockerfile.etna-ruby.default) Dockerfile; fi
 
 run-image-test::
 	docker-compose up -d $(app_db_name) || true
@@ -25,7 +24,7 @@ run-image-test::
 			-e APP_NAME=$(app_name) -e RELEASE_TEST=1 -e CI_SECRET=$${CI_SECRET} \
 			-e IS_CI=$${IS_CI} -e WAIT_FOR_DB=1 -e UPDATE_STATE=1 \
 			--network monoetna_default $(fullTag) \
-			/entrypoints/development.sh bundle exec rspec
+			/entrypoints/development.sh rspec
 
 update-ready::
 	docker-compose up -d $(app_db_name)

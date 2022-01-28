@@ -6,7 +6,8 @@
     :adapter: postgres
     :user: developer
     :password: password
-  :project_path: ./projects/ipi
+  :janus:
+    :host: https://janus.development.local
   :host: https://magma.development.local
   :log_file: /dev/stdout
   :log_level: info
@@ -37,7 +38,6 @@
     :adapter: postgres
     :user: developer
     :password: password
-  :project_path: ./spec/labors/
   :host: https://magma.test
   :log_file: /dev/stdout
   :log_level: error
