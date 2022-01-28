@@ -215,8 +215,8 @@ module Etna
         end
 
         def model(model_key)
-          return nil unless raw.include?(model_key)
-          Model.new(raw[model_key])
+          return nil unless raw.include?(model_key.to_s)
+          Model.new(raw[model_key.to_s])
         end
 
         def all
@@ -434,8 +434,8 @@ module Etna
         end
 
         def attribute(attribute_key)
-          return nil unless raw.include?(attribute_key)
-          Attribute.new(raw[attribute_key])
+          return nil unless raw.include?(attribute_key.to_s)
+          Attribute.new(raw[attribute_key.to_s])
         end
 
         def build_attribute(key)

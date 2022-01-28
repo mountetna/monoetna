@@ -35,7 +35,7 @@ define_model("ModelTwo").class_eval do
     
     model_one_names.map do |model_one_name|
       result[model_one_name] ||= {}
-      result[model_one_name][:parent] = "#{model_one_name}-parent"
+      result[model_one_name][:parent_model] = "#{model_one_name}-parent"
     end
 
     {
