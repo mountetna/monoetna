@@ -1,8 +1,11 @@
 import plotly.express as px
+import numpy as np
 
-from plotnine import ggplot, aes, theme_bw, ggtitle, xlab, ylab, facet_wrap, facet_grid, scale_y_continuous, scale_x_continuous, scale_colour_gradient, scale_colour_manual, guides, guide_legend, geom_point, geom_density_2d, scale_shape_manual
+from plotnine import ggplot, aes, theme_bw, ggtitle, xlab, ylab, scale_y_continuous, scale_x_continuous, scale_colour_gradient, scale_colour_manual, guides, guide_legend, geom_point, scale_shape_manual, theme, element_blank
 
-from .utils import _leave_default_or_null
+from .utils import _leave_default_or_null, _is_discrete, _is_continuous, _is_logical, _is_integer, _scale, _all_rows, _which_rows
+from .utils_col_getters import _isCol, _col, _colLevels
+from .utils_plot_mods import _add_contours, _add_splitting, _remove_legend
 from .colors import colors
 from ..list import unique, order
 
@@ -76,56 +79,104 @@ def scatter_plotly(
 
     return fig
 
-def _add_contours(
-    fig, data, x_by, y_by, color, linetype = 1):
-    # Add contours based on the density of cells/samples
-    # (Dim and Scatter plots)
-    
-    return fig + geom_density_2d(
-        data = data,
-        mapping = aes(x = x_by, y = y_by),
-        color = color,
-        linetype = linetype,
-        na_rm = True)
-
 def scatter_plotnine(
-    data_frame, x_by: str, y_by: str,
+    data_frame,
+    x_by: str,
+    y_by: str,
     color_by: str = '',
-    size = 5, color_panel: list = colors,
-    color_order: str = 'increasing',
-    plot_order: str = 'increasing',
-    plot_title: str = "make", legend_title: str = "make",
-    x_title: str = "make", y_title: str = "make",
-    plot_theme = theme_bw(),
-    opacity = 1,
+    shape_by: str = '',
+    split_by = [],
+    size = 1,
+    rows_use = None,
+    show_others = True,
+    color_adjustment = None,
+    color_adj_fxn = None,
+    split_show_all_others = True,
+    opacity: float = 1,
+    color_panel: list = colors,
+    colors = None,
+    split_nrow = None,
+    split_ncol = None,
+    split_adjust = {},
+    shape_panel = ['o','s','^','D','v','*'],
+    # rename_color_groups = None,
+    # rename_shape_groups = None,
     min_color = "#F0E442",
     max_color = "#0072B2",
     min_value = None,
     max_value = None,
-    legend_color_breaks = "make",
-    legend_color_breaks_labels = "make",
-    legend_color_size = 5,
-    split_by = [],
+    plot_order: str = 'unordered',
+    x_title: str = "make",
+    y_title: str = "make",
+    plot_title: str = "make",
+    plot_theme = theme_bw(),
     do_contour = False,
     contour_color = "black",
     contour_linetype = 'solid',
-    shape_by = None,
-    shape_panel = ['o','s','^','D','v','*'], 
+    # add_trajectory_by_groups = None,
+    # add_trajectory_curves = None,
+    # trajectory_group_by = None,
+    # trajectory_arrow_size = 0.15,
+    # do_letter = False,
+    # do_ellipse = False,
+    # do_label = False,
+    # labels_size = 5,
+    # labels_highlight = True,
+    # labels_repel = True,
+    # labels_split_by = "make",
+    legend_show = True,
+    legend_color_title: str = "make",
+    legend_color_size = 5,
+    legend_color_breaks = "make",
+    legend_color_breaks_labels = "make",
     legend_shape_title = "make",
     legend_shape_size = 5,
+    show_grid_lines = True,
     y_scale = scale_y_continuous,
-    x_scale = scale_x_continuous
+    x_scale = scale_x_continuous,
+    data_out = False
     ):
+    
+    df = data_frame.copy()
     
     # Parse dependent defaults
     x_title = _leave_default_or_null(x_title, x_by)
     y_title = _leave_default_or_null(y_title, y_by)
     plot_title = _leave_default_or_null(plot_title, color_by)
-    legend_title = _leave_default_or_null(legend_title, color_by)
+    legend_color_title = _leave_default_or_null(legend_color_title, color_by)
     legend_shape_title = _leave_default_or_null(legend_shape_title, shape_by)
+    if colors!= None:
+        color_panel = color_panel[colors]
+    
+    # Standardize rows vectors
+    all_rows = _all_rows(df)
+    rows_use = _which_rows(rows_use, df)
+    
+    ### Make dataframe edits
+    # Adjustments
+    if color_adjustment!=None or color_adj_fxn!=None:
+        new_color_by = color_by + "-adj"
+        df[new_color_by] = _col(color_by, df, color_adjustment, color_adj_fxn)
+        color_by = new_color_by
+    # Relabels/reorders
+    # if rename_color_groups!=None:
+    #     df[color_by] = _rename_and_or_reorder(
+    #         df[color_by], reorder = None, relabels = rename_color_groups)
+    # if rename_shape_groups!=None:
+    #     df[shape_by] = _rename_and_or_reorder(
+    #         df[shape_by], reorder = None, relabels = rename_shape_groups)
+    # Trim by rows.use, then order if wanted
+    Target_data = df.loc[ rows_use ]
+    Others_data = df.loc[ [i for i in all_rows if i not in rows_use] ]
+    # Reorder for plotting if wanted
+    if plot_order != "unordered":
+        new_order = order(list(Target_data[color_by]), return_indexes=True)
+        if plot_order=="decreasing":
+            new_order = reversed(new_order)
+        Target_data = Target_data.loc[new_order]
     
     ### Start plot, with data and theming
-    fig = (ggplot(data_frame) +
+    fig = (ggplot() +
         ylab(y_title) +
         xlab(x_title) +
         plot_theme +
@@ -138,21 +189,21 @@ def scatter_plotnine(
     
     aes_args = {'x': x_by, 'y': y_by}
     geom_args = {
-        'data': data_frame,
+        'data': Target_data,
         'size': size,
         'alpha': opacity}
     
     if color_by!='':
         aes_args['color'] = color_by
         
-        if isinstance(data_frame[color_by][0], (int, float, complex)):
+        if _is_continuous(df[color_by]):
             scale_args= {
-                'name': legend_title,
+                'name': legend_color_title,
                 'low': min_color,
                 'high': max_color,
                 'limits': (
-                    [min_value,min(data_frame[color_by])][min_value==None]
-                    [max_value,max(data_frame[color_by])][max_value==None])
+                    [min_value,min(df[color_by])][min_value==None]
+                    [max_value,max(df[color_by])][max_value==None])
             }
             if legend_color_breaks!="make":
                 scale_args['breaks'] = legend_color_breaks,
@@ -161,11 +212,11 @@ def scatter_plotnine(
             fig += scale_colour_gradient(**scale_args)
         else:
             fig += scale_colour_manual(
-                name = legend_title,
+                name = legend_color_title,
                 values = color_panel)
             fig += guides(color = guide_legend(override_aes = {'size':legend_color_size}))
     
-    if shape_by!=None:
+    if shape_by!='':
         aes_args['shape'] = shape_by
         fig += scale_shape_manual(
                 values = shape_panel,
@@ -175,19 +226,78 @@ def scatter_plotnine(
         geom_args['shape'] = shape_panel[0]
     
     ### Add Data
+    # Others_data
+    if show_others:
+        if (split_show_all_others and split_by!=[]):
+            Others_data = _rep_all_data_per_facet(Target_data, Others_data, split_by)
+        if Others_data.shape[0] > 0:
+            fig += geom_point(
+                data = Others_data,
+                mapping = aes(x = x_by, y = y_by),
+                size = size,
+                color = "#E5E5E5")
+    # Target_data
     geom_args['mapping'] = aes(**aes_args)
     fig += geom_point(**geom_args)
     
     ### Extra tweaks
     # Faceting
-    if len(split_by)==1:
-        fig += facet_wrap(split_by)
-    if len(split_by)==2:
-        fig += facet_grid(split_by)
+    fig = _add_splitting(fig, split_by, split_nrow, split_ncol, split_adjust)
     # Contours
     if do_contour:
-        fig = _add_contours(fig, data_frame, x_by, y_by, contour_color, contour_linetype)
+        fig = _add_contours(fig, df, x_by, y_by, contour_color, contour_linetype)
+    # Grid lines
+    if not show_grid_lines:
+        fig += theme(panel_grid_major = element_blank(), panel_grid_minor = element_blank())
+    # Legend
+    if not legend_show:
+        fig = _remove_legend(fig)
     
+    if data_out:
+        return {
+            'plot': fig,
+            'Target_data': Target_data,
+            'Others_data': Others_data
+        }
     return fig
     
+def _rep_all_data_per_facet(Target_data, Others_data, split_by):
+    '''
+    To power showing all data points across all plot facets,
+    this function creates a copy of all data points for every facet that will be created.
+    It is intended to be used with the "background" 'Others_data' of scatter_plotnine.
     
+    'Target_data' a pandas DataFrame of the points which will be the main target of the plot.
+        This data frame determines which facets will be shown, so how many replicates of all the data that will be output.
+    'Others_data' a pandas DataFrame of the points which were originally not targeted by the upstream function's 'rows_use'.
+        Represents the only points that would have been shown in gray without faceting.
+        Both 'Target_data' and 'Others_data' should have the same columns as they are splits of the same upstream data frame.
+    'split_by' a list of column names (within Target/Others_data) used for faceting.
+    
+    Details: Target_data and Others_data are recombined into the data frame of all points.
+    Then the facets needed are determined.  Others_data in then turned into a bunch of
+    row-combined replicates of "all"_data in which each replicate has a given facets' information
+    for its 'split_by' columns.  Thus, these points would show up across all facets of the ultimate plot. 
+    '''
+    
+    if split_by==[]:
+        return Others_data
+        
+    all_data = Target_data.append(Others_data).copy()
+    
+    if len(split_by)==1:
+        facets = all_data[split_by[0]]
+    if len(split_by)==2:
+        facets = [str(a)+str(b) for a,b in zip(all_data[split_by[0]], all_data[split_by[1]])]
+    
+    Others_data = all_data.loc[[]]
+    
+    for this_facet in np.unique(facets,True)[1]:
+        new_data = all_data.copy()
+        # Replace facet info
+        for by in split_by:
+            new_data[by] = new_data[by][this_facet]
+        Others_data = Others_data.append(new_data)
+    
+    return Others_data
+

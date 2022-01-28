@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from .utils import DISCRETE_KINDS, CONTINUOUS_KINDS, _is_discrete, _is_continuous, _is_logical, _is_integer, _scale, _all_rows, _which_rows
+from .utils import _is_discrete, _is_continuous, _is_logical, _is_integer, _scale, _all_rows, _which_rows
 
 def _isCol(test, data_frame, return_values=False):
     '''
@@ -8,21 +8,23 @@ def _isCol(test, data_frame, return_values=False):
     A carryover from dittoSeq where the check was of a sub-slot of a different part of multiple object types.
     Might remove, but keeping for now while I port from R to python.
     
-    'test' String or vector of strings, the "potential.metadata.name"(s) to check for.
-    'data_frame' A data.frame.
+    'test' String or vector of strings, the potential coloumn name(s) to check for.
+    'data_frame' A pandas DataFrame.
     'return_values' Logical which sets whether the function returns a logical \code{TRUE}/\code{FALSE} versus the \code{TRUE} \code{test} values . Default = \code{FALSE}
 
     Value: Returns list of bool(s) indicating whether each instance in 'test' is a column of the 'data_frame'.
     Alternatively, returns the values of 'test' that were indeed columns of 'data_frame' if 'return_values = True'.
 
     Examples
-    .isCol("timepoint", df) # True
+    # Need a mockDF loader. Examples won't be complete til then.
+    
+    .isCol("timepoint", df) # [bool], so either [True] or [False]
 
-    # To test if many things are metadata of an data_frame
-    .isCol(["age","groups"], df) # [False, True]
+    # To test if many things are metadata of a data_frame
+    .isCol(["age","groups"], df) # [bool, bool], perhaps: [False, True]
 
     # 'return_values' input is especially useful in these cases.
-    .isCol(["age","groups"], df, return_values = True) # "groups"
+    .isCol(["age","groups"], df, return_values = True) # [<values of test>], e.g.: ["groups"]
     '''
     if (return_values):
         return [t for t in test if _isCol(t, data_frame, return_values=False)[0]]
@@ -39,15 +41,16 @@ def _col(col, data_frame, adjustment = None, adj_fxn = None):
     Returns the values of a column, where values are named by the rownames of data_frame
 
     'col' String, the name of the column to grab.
-    'data_frame' A data.frame.
+    'data_frame' A pandas DataFrame.
     'adjustment' Ignored if the target metadata is not numeric, a recognized string indicating whether numeric data should be used directly (default) versus adjusted to be
         "z-score": scaled with the scale() function to produce a relative-to-mean z-score representation
         "relative.to.max": divided by the maximum expression value to give percent of max values between [0,1]
-    'adj.fxn' A lambda function which takes an array of values and returns an array of the same length.
-        For example, `lambda x: log2(x)`.
+    'adj_fxn' A lambda function which takes an array of values and returns an array of the same length.
+        For example, `lambda x: numpy.log10(x)`.
 
-    Value: A list.
-    @details
+    Value: Pandas Series
+    
+    Details
     Retrieves the values of a metadata slot from \code{object}, or the clustering slot if \code{meta = "ident"} and the \code{object} is a Seurat.
 
     If \code{adjustment} or \code{adj.fxn} are provided, then these requested adjustments are applied to these values (\code{adjustment} first).
@@ -56,13 +59,13 @@ def _col(col, data_frame, adjustment = None, adj_fxn = None):
     Lastly, outputs these values are named as the cells'/samples' names.
     
     examples:
-    example(importDittoBulk, echo = FALSE)
-    ._col("groups", object = myRNA)
+    import numpy as np
+    # Need a mockDF loader. Examples won't be complete til then.
+    ._col("groups", data_frame)
 
-    myRNA$numbers <- seq_len(ncol(myRNA))
-    ._col("numbers", myRNA, adjustment = "z-score")
-    ._col("numbers", myRNA, adj.fxn = as.factor)
-    ._col("numbers", myRNA, adj.fxn = function(x) \{log2(x)\})
+    data_frame['numbers'] = list(range(data_frame.shape[0]))
+    ._col("numbers", data_frame, adjustment = "z-score")
+    ._col("numbers", data_frame, adj_fxn = lambda x: numpy.log10(x))
     '''
     if not _isCol(col, data_frame):
         raise Exception("" + col + " is not a column of 'data_frame'.")
@@ -85,31 +88,18 @@ def _colLevels(col, data_frame, rows_use = None, used_only = True):
     '''
     Gives the distinct values of a column of the given data_frame
     
-    'col' quoted column name name. the data column whose potential values should be retrieved.
-    'data_frame' A data.frame.
+    'col' String. The name of the data column whose potential values should be retrieved.
+    'data_frame' A pandas DataFrame.
     'used_only' (Maybe not be needed for python, but I'm leaving the code til I'm more certain.) TRUE by default, for target metadata that are factors, whether levels nonexistent in the target data should be ignored.
     'rows_use' String vector of cells'/samples' names OR an integer vector specifying the indices of cells/samples which should be included.
+        Alternatively, a Logical vector, the same length as the number of rows in 'data_frame', which sets which cells to include.
     
-    Alternatively, a Logical vector, the same length as the number of cells in the object, which sets which cells to include.
-    @return String vector, the distinct values of a metadata slot (factor or not) among all cells/samples, or for a subset of cells/samples.
-    (Alternatively, returns the distinct values of clustering if \code{meta = "ident"} and the object is a \code{Seurat} object).
-    @seealso
-    \code{\link{meta}} for returning an entire metadata slots of an \code{object}, not just the potential levels
+    Value: Same type as `data_frame[col]`.
     
-    \code{\link{getMetas}} for returning all metadata slots of an \code{object}
-    
-    \code{\link{.isCol}} for testing whether something is the name of a metadata slot
-    @examples
-    _colLevels('str', df1, rows_use = [i == '0' for i in df1['leiden']])
-    example(importDittoBulk, echo = FALSE)
-    
-    metaLevels("clustering", object = myRNA)
-    
-    # Note: Set 'used.only' (default = TRUE) to FALSE to show unused levels
-    #  of metadata that are already factors.  By default, only the in use options
-    #  of a metadata are shown.
-    metaLevels("clustering", myRNA,
-        used.only = FALSE)
+    Examples:
+    # Need a mockDF loader. Examples won't be complete til then.
+    _colLevels('sample', df)
+    _colLevels('sample', df, rows_use = [i == '0' for i in df1['leiden']])
     
     @author Daniel Bunis
     '''
