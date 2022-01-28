@@ -34,6 +34,18 @@
             "hidden": false,
             "validation": null,
             "attribute_type": "identifier"
+          },
+          "model_one": {
+            "name": "model_one",
+            "attribute_name": "model_one",
+            "model_name": "model_one",
+            "link_model_name": "model_one",
+            "display_name": "Model One",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
           }
         }
       }
@@ -44,6 +56,18 @@
         "name": "model_one",
         "identifier": "name",
         "attributes": {
+          "parent_model": {
+            "name": "parent_model",
+            "attribute_name": "parent_model",
+            "model_name": "parent_model",
+            "link_model_name": "parent_model",
+            "display_name": "Parent Model",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
           "birthday": {
             "name": "birthday",
             "attribute_name": "birthday",
