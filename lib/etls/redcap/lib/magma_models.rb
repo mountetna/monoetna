@@ -48,9 +48,13 @@ module Redcap
 
       return false unless parent_name
 
-      models.model(
-        parent_name
-      ).template.attributes.attribute(
+      parent = models.model(
+        parent_model_name(model_name.to_s)
+      )
+
+      return false unless parent
+
+      parent.template.attributes.attribute(
         model_name.to_s
       ).attribute_type == Etna::Clients::Magma::AttributeType::TABLE
     end
