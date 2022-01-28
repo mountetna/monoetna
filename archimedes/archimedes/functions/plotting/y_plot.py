@@ -1,6 +1,6 @@
 import plotly.express as px
 
-from .utils import _default_to_if_make_and_logic
+from .utils import _leave_default_or_null, _which_rows
 from .colors import colors
 
 def y_plotly(
@@ -10,6 +10,8 @@ def y_plotly(
     color_by = "make",
     plots = ["violin", "box"],
     px_args: dict = {},
+    rows_use = None,
+    y_scale = "as is",
     color_panel: list = colors,
     xlab="make",
     ylab="make",
@@ -23,21 +25,29 @@ def y_plotly(
     'px_args' should be a dictionary of additional bits to send in the 'plotly.express.violin' or 'plotly.express.box' call.
     'color_panel' (string list) sets the colors to use for violin/boxplot fills.
     'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
+    'rows_use'
+    'y_scale', String, 'as is' or 'log10'. Controls whether this axes should be log scaled. (Not coded as boolean in anticipation of a static plotter system offering extended options)
     """
     
     # Parse dependent defaults
-    color_by = _default_to_if_make_and_logic(color_by, x_by)
-    xlab = _default_to_if_make_and_logic(xlab, x_by)
-    ylab = _default_to_if_make_and_logic(ylab, y_by)
-    plot_title = _default_to_if_make_and_logic(plot_title, ylab)
-    legend_title = _default_to_if_make_and_logic(legend_title, color_by)
+    color_by = _leave_default_or_null(color_by, x_by)
+    xlab = _leave_default_or_null(xlab, x_by)
+    ylab = _leave_default_or_null(ylab, y_by)
+    plot_title = _leave_default_or_null(plot_title, ylab)
+    legend_title = _leave_default_or_null(legend_title, color_by)
+    
+    # data_frame edits
+    df = data_frame.copy()
+    rows_use = _which_rows(rows_use, data_frame)
+    df = df.loc[rows_use]
     
     # Add to px_args and convert from our variables names to px.violin/bar variables names. 
-    px_args["data_frame"] = data_frame
+    px_args["data_frame"] = df
     px_args["x"] = x_by
     px_args["y"] = y_by
     px_args["color"] = color_by
     px_args["color_discrete_sequence"] = color_panel
+    px_args["log_y"] = y_scale=="log10"
     
     # Make Plot
     if "violin" in plots:
