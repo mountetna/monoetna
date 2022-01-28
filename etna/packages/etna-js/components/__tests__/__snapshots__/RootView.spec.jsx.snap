@@ -32,7 +32,6 @@ exports[`RootView renders 1`] = `
       </div>
     </div>
     <div>
-      Your projects:
       <div>
         <div
           className="project"
@@ -85,7 +84,11 @@ exports[`RootView renders 1`] = `
       </div>
     </div>
     <div>
-      Resource projects:
+      <p
+        className="section-label"
+      >
+        Resource projects
+      </p>
       <div>
         <span>
           No resource projects.
