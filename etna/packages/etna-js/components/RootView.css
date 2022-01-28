@@ -3,7 +3,8 @@
   font-family: 'Open Sans', sans-serif;
 }
 
-.root-view .title {
+.root-view .title,
+.root-view .empty-list {
   margin-left: 0px;
   padding: 5px;
   padding-left: 15px;
@@ -32,15 +33,9 @@
 }
 
 .root-view .role {
-  flex: 0 0 200px;
+  flex: 0 0 300px;
 }
 
 .root-view .full_name {
   flex: 0 1 auto;
-}
-
-.root-view .section-label {
-  padding-left: 10px;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
-  font-family: 'Cousine', monospace;
 }

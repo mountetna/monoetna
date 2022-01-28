@@ -22,6 +22,30 @@ const Project = ({project_name, full_name, role, privileged}) => (
   </div>
 );
 
+const ProjectList = ({title, projects}) => {
+  return (
+    <>
+      <div className='title'>{title}</div>
+      <div className='projects'>
+        <div className='project header'>
+          <div className='project_name'> project_name </div>
+          <div className='role'> role </div>
+          <div className='full_name'> title </div>
+        </div>
+        <div>
+          <div>
+            {projects.length == 0 ? (
+              <span className='empty-list'>{'No available projects.'}</span>
+            ) : (
+              projects.map((project, i) => <Project key={i} {...project} />)
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
 const RootView = () => {
   const invoke = useActionInvoker();
   const {my_projects, resourceProjects} = useReduxState((state) => {
@@ -49,37 +73,8 @@ const RootView = () => {
 
   return (
     <div className='root-view'>
-      <div className='title'>Available Projects</div>
-      <div className='projects'>
-        <div className='project header'>
-          <div className='project_name'> project_name </div>
-          <div className='role'> role </div>
-          <div className='full_name'> title </div>
-        </div>
-        <div>
-          <div>
-            {my_projects.length == 0 ? (
-              <span>{'No available projects.'}</span>
-            ) : (
-              my_projects.map((project, i) => <Project key={i} {...project} />)
-            )}
-          </div>
-        </div>
-        <div>
-          <p className='section-label'>
-          Resource projects
-          </p>
-          <div>
-            {resourceProjects.length == 0 ? (
-              <span>{'No resource projects.'}</span>
-            ) : (
-              resourceProjects.map((project, i) => (
-                <Project key={i} {...project} role='viewer' />
-              ))
-            )}
-          </div>
-        </div>
-      </div>
+      <ProjectList title='Your Projects' projects={my_projects} />
+      <ProjectList title='Resource Projects' projects={resourceProjects} />
     </div>
   );
 };
