@@ -27,6 +27,7 @@ const LogsPane = ({selected, name, project_name}:{selected:string|null,name:stri
     )
   }, []);
 
+
   return <EtlPane mode='logs' selected={selected}>
     <EtlPaneHeader title='Logs'/>
     <div className={classes.editor}>
@@ -44,6 +45,7 @@ const LogsPane = ({selected, name, project_name}:{selected:string|null,name:stri
         onBeforeChange={(editor, data, value) => { }}
       />
     </div>
+    { output && <a href={URL.createObjectURL(new Blob([output], { type: 'text/plain' }))} download={ `log-${project_name}-${name}.txt` }>Download log</a> }
   </EtlPane>
 }
 

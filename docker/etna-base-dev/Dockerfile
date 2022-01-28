@@ -5,14 +5,22 @@ WORKDIR /app
 
 ENV DOCKER_VERSION 20.10.6
 ENV RUBY_VERSION 2.5.9
+ENV RUBY_MAJOR_VERSION 2.5.0
 # This is so dumb -- but if BUNDLER_VERSION is set as an environment variable,
 # it causes issues with bundler... bleck.  So, so add an underscore at the end.
-ENV BUNDLER_VERSION_ 2.2.5
+ENV BUNDLER_VERSION_ 2.3.3
 ENV DOCKERIZE_VERSION 0.5.0
 ENV NODE_VERSION 12.18.1
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
 ENV RACK_ENV development
-ENV PATH "/app/bin:/app/node_modules/.bin:/app/vendor/bundle/$RUBY_VERSION/bin:$PATH:/home/aspera/.aspera/connect/bin"
+
+# We want the bundle installed into the default location (/vendor/bundle)
+ENV BUNDLE_PATH="/app/vendor/bundle"
+ENV BUNDLE_BIN="$BUNDLE_PATH/ruby/$RUBY_MAJOR_VERSION/bin"
+ENV BUNDLE_SILENCE_ROOT_WARNING=0
+ENV BUNDLE_APP_CONFIG="/app/.bundle"
+ENV BUNDLE_GEMFILE="/app/Gemfile"
+ENV PATH "/app/bin:/app/node_modules/.bin:$BUNDLE_BIN:$PATH:/home/aspera/.aspera/connect/bin"
 
 COPY --from=0 /certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
 RUN chmod 644 /usr/local/share/ca-certificates/devRoot.crt && update-ca-certificates
@@ -47,18 +55,12 @@ RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x6
 
 RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
 
-# We want the bundle installed into the default location (/vendor/bundle)
-ENV BUNDLE_PATH="/app/vendor/bundle/$RUBY_VERSION"
-ENV BUNDLE_BIN="$BUNDLE_PATH/bin"
-ENV BUNDLE_SILENCE_ROOT_WARNING=0
-ENV BUNDLE_APP_CONFIG="/app/.bundle"
-
 RUN gem install bundler --default -v "=$BUNDLER_VERSION_"
 RUN gem update --system
 
 # We also the GEM_PATH to be this BUNDLE_PATH so that ides (Rubymine) will find gems easier.
 ENV GEM_HOME="$BUNDLE_PATH"
-ENV GEM_PATH="/root/.gem/ruby/2.5.0:/usr/local/lib/ruby/gems/2.5.0:/usr/local/bundle:$BUNDLE_PATH/ruby/2.5.0"
+ENV GEM_PATH="/root/.gem/ruby/$RUBY_MAJOR_VERSION:/usr/local/lib/ruby/gems/$RUBY_MAJOR_VERSION:/usr/local/bundle:$BUNDLE_PATH/ruby/$RUBY_MAJOR_VERSION"
 
 # bash improvements for easier working inside the container
 RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
