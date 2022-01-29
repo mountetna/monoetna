@@ -37,6 +37,14 @@ class Polyphemus
       )
     end
 
+    def serialize_batch(batch)
+      super(batch.map(&:raw))
+    end
+
+    def deserialize_batch(string)
+      super.map { |f| Etna::Clients::Metis::File.new(f) }
+    end
+
     def build_scanner
       TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
         find_request = Etna::Clients::Metis::FindRequest.new(
@@ -95,7 +103,11 @@ class Polyphemus
     # Subclasses should override if they wish to filter or modify the output
     def execute_request(find_request, i)
       find_request.limit = @limit * i
+
       self.metis_client.find(find_request).files.all
     end
+  end
+
+  class MetisFileTailEtl < MetisFileEtl
   end
 end

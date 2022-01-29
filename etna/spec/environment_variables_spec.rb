@@ -1,8 +1,4 @@
 describe Etna::EnvironmentVariables do
-  class EVTestClass
-    include Etna::EnvironmentVariables
-  end
-
   let(:root) { {} }
   let(:env) { {} }
   let(:prefix) { 'PRE' }
@@ -13,7 +9,7 @@ describe Etna::EnvironmentVariables do
       [path, value]
     end
   end
-  let(:loaded) { EVTestClass.new.load_from_env(prefix, root: root, env: env, downcase: downcase, sep: sep, &value_mapper)}
+  let(:loaded) { Etna::EnvironmentVariables.load_from_env(prefix, root: root, env: env, downcase: downcase, sep: sep, &value_mapper)}
 
   describe 'loading environment variables' do
     before(:each) do

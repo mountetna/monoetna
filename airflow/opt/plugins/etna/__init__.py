@@ -109,15 +109,19 @@ def etl(start_date: datetime, interval: timedelta, version: Union[int, str]):
             schedule_interval=interval,
             catchup=True,
             inject_params=dict(
-                start_date="{{ data_interval_start }}",
-                end_date="{{ data_interval_end }}",
-                dag_name="{{ dag.name }}",
+               start_date="{{ prev_data_interval_end_success }}",
+                 end_date="{{ data_interval_end }}",
+                 dag_name="{{ dag.name }}",
                 task_name="{{ ti.name }}",
+                  version=version,
             ),
             version=version,
         )(fn)
 
     return instantiate_dag
+
+def select_batch(start_date, end_date):
+    pass
 
 
 def system_dag(interval: timedelta):
@@ -125,6 +129,10 @@ def system_dag(interval: timedelta):
         return dag(
             start_date=system_epoch,
             schedule_interval=interval,
+            default_args=dict(
+              owner='administrators',
+              retries=5,
+            ),
             # default_args=dict(
             on_failure_callback=_notify_slack_dag_callback("failed: "),
             # ),

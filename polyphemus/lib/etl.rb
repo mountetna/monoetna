@@ -13,7 +13,6 @@ class Polyphemus
 
     def self.inherited(subclass)
       subclass.include(Etna::CommandExecutor)
-
       subclass.boolean_flags << '--from-environment'
 
       subclass.const_set(:Run, Class.new(Etna::Command) do
@@ -21,10 +20,16 @@ class Polyphemus
         include WithLogger
 
         def etl
-          @etl ||= self.parent.class::EtlClass.new
+          if @from_environment
+            @etl ||= self.parent.class::EtlClass.from_hash(Etna::EnvironmentVariables.load_from_env('ETL') { |path, value| [path, YAML.load(value)] }, true)
+          else
+            @etl ||= self.parent.class::EtlClass.new
+          end
         end
 
         def execute(from_environment: false)
+          @from_environment = from_environment
+
           while true
             break unless etl.run_once
             logger.info("Continuing to process...")
@@ -46,17 +51,42 @@ class Polyphemus
         usage 'selects a single batch of work for this etl.'
         include WithLogger
 
+        # Used in testing.  Not the best, but the commands are singletons which are 'instantiated' from the execute
+        # call, but in our tests we access the .etl before execute is called.
+        def enable_from_environment
+          @from_environment = true
+        end
+
         def etl
-          @etl ||= self.parent.class::EtlClass.new
+          if @from_environment
+            @etl ||= self.parent.class::EtlClass.from_hash(
+              Etna::EnvironmentVariables.load_from_env('ETL') { |path, value| [path, YAML.load(value)] }, true)
+          else
+            @etl ||= self.parent.class::EtlClass.new
+          end
         end
 
         def execute(from_environment: false)
+          @from_environment = from_environment
+
+          batches_by_cursors = {}
+
           while true
-            break unless etl.run_once
+            break unless etl.run_once do |cursor, batch|
+              logger.info("Consuming batch on cursor #{cursor}...")
+              (batches_by_cursors[cursor] ||= []).push(*batch)
+            end
             logger.info("Continuing to process...")
           end
 
-          logger.info("No more work detected, resting")
+          logger.info("No more batches found, outputting result")
+          dump_result(batches_by_cursors.to_a.map do |k, v|
+            [k, serialize_batch(v)]
+          end)
+        end
+
+        def dump_result(result)
+          puts(result.to_json)
         end
 
         def setup(config)
@@ -134,6 +164,7 @@ class Polyphemus
 
     def initialize(cursors:, scanner:)
       @cursor_group = EtlCursorGroup.new(cursors)
+      @scanner = scanner
       # Scanner from file if scanner is a hash.
     end
 
@@ -147,7 +178,7 @@ class Polyphemus
 
     # To support processing batches adding as inputs
     def serialize_batch(batch)
-      batch.to_a.map(&:to_h).to_json
+      batch.to_json
     end
 
     def deserialize_batch(string)
@@ -164,7 +195,7 @@ class Polyphemus
 
     # Returns true iff a batch was processed as part of this iteration.
     def run_once(&processor)
-      processor = Proc.new(&:process) unless block_given?
+      processor = Proc.new { |cursor, batch| process(cursor, batch) } unless block_given?
 
       logger.info("Starting loop")
       cursor_group.with_next do |cursor|

@@ -15,7 +15,7 @@ module Etna
       a.nil? ? b : a
     end
 
-    def load_from_env(prefix, root: {}, env: ENV, downcase: true, sep: '__', &path_to_value_mapper)
+    def self.load_from_env(prefix, root: {}, env: ENV, downcase: true, sep: '__', &path_to_value_mapper)
       env.keys.each do |key|
         next unless key.start_with?(prefix + sep)
 
@@ -34,10 +34,6 @@ module Etna
           root = EnvironmentVariables.deep_merge(root, value)
           next
         end
-
-        # path.shift # drop the prefix.
-        # path = key.sub(/_FILE/, '').split("__", -1)
-        # path.shift # drop the first, just app name
 
         target = root
         while path.length > 1

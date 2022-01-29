@@ -11,8 +11,6 @@ require 'rollbar'
 require 'fileutils'
 
 module Etna::Application
-  include Etna::EnvironmentVariables
-
   def self.included(other)
     other.include Singleton
     other.include Etna::CommandExecutor
@@ -53,7 +51,7 @@ module Etna::Application
   end
 
   def configure(opts)
-    @config = load_from_env('ETNA', root: opts) { |path, value| load_config_from_env_path(path, value) }
+    @config = Etna::EnvironmentVariables.load_from_env('ETNA', root: opts) { |path, value| load_config_from_env_path(path, value) }
 
     if (rollbar_config = config(:rollbar)) && rollbar_config[:access_token]
       Rollbar.configure do |config|
