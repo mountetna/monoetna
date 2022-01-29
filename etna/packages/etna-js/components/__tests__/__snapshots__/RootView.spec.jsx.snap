@@ -7,7 +7,7 @@ exports[`RootView renders 1`] = `
   <div
     className="title"
   >
-    Available Projects
+    Your Projects
   </div>
   <div
     className="projects"
@@ -32,7 +32,6 @@ exports[`RootView renders 1`] = `
       </div>
     </div>
     <div>
-      Your projects:
       <div>
         <div
           className="project"
@@ -84,11 +83,40 @@ exports[`RootView renders 1`] = `
         </div>
       </div>
     </div>
+  </div>
+  <div
+    className="title"
+  >
+    Resource Projects
+  </div>
+  <div
+    className="projects"
+  >
+    <div
+      className="project header"
+    >
+      <div
+        className="project_name"
+      >
+         project_name 
+      </div>
+      <div
+        className="role"
+      >
+         role 
+      </div>
+      <div
+        className="full_name"
+      >
+         title 
+      </div>
+    </div>
     <div>
-      Resource projects:
       <div>
-        <span>
-          No resource projects.
+        <span
+          className="empty-list"
+        >
+          No available projects.
         </span>
       </div>
     </div>
