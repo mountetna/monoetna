@@ -106,6 +106,10 @@ class Polyphemus
 
         add_to_page( page, flat_record )
 
+        flat_record[:extras].each do |extra|
+          add_to_page(page, extra)
+        end
+
         if page_count > @page_size
           update_page(results, yield(page))
 
