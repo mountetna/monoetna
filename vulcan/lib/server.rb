@@ -1,6 +1,7 @@
 require_relative './server/controllers/vulcan_controller'
 require_relative './server/controllers/browse_controller'
 require_relative './server/controllers/workflows_controller'
+require_relative './server/controllers/figure_controller'
 require_relative './server/controllers/data_controller'
 require_relative './server/controllers/sessions_controller'
 
