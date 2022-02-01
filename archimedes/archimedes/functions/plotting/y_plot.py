@@ -26,7 +26,7 @@ def y_plotly(
     'color_panel' (string list) sets the colors to use for violin/boxplot fills.
     'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
     'rows_use'
-    'y_scale', String, 'as is' or 'log10'. Controls whether this axes should be log scaled. (Not coded as boolean in anticipation of a static plotter system offering extended options)
+    'y_scale', String, 'as is', 'log10', or 'log10(val+1)'. Controls whether this axes should be log scaled, and if so, whether 1 should be added to all values first in order to let zeros be okay to plot.
     """
     
     # Parse dependent defaults
@@ -40,6 +40,9 @@ def y_plotly(
     df = data_frame.copy()
     rows_use = _which_rows(rows_use, data_frame)
     df = df.loc[rows_use]
+    if y_scale=="log10(val+1)":
+        y_scale="log10"
+        df['y_by'] += 1
     
     # Add to px_args and convert from our variables names to px.violin/bar variables names. 
     px_args["data_frame"] = df

@@ -221,8 +221,8 @@ function useExtraInputs(options: string[]) {
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
       'size': ['Point Size', 0.1, 50],
       'scale_by': ['Scale Y by counts or fraction?', ['counts', 'fraction']],
-      'x_scale': ['Adjust scaling of the X-Axis?', ['as is', 'log10']],
-      'y_scale': ['Adjust scaling of the Y-Axis?', ['as is', 'log10']]
+      'x_scale': ['Adjust scaling of the X-Axis?', ['as is', 'log10', 'log10(val+1)']],
+      'y_scale': ['Adjust scaling of the Y-Axis?', ['as is', 'log10', 'log10(val+1)']]
     }
   }, [options]);
 

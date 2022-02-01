@@ -28,7 +28,7 @@ def scatter_plotly(
     'color_order' ('increasing', 'decreasing', or 'unordered') sets the ordering of keys in the legend, when 'color_by' references discrete data
     'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
     'rows_use',
-    'x_scale', 'y_scale', String, 'as is' or 'log10'. Controls whether these axes should be log scaled. (Not coded as boolean in anticipation of the static plotter system offering extended options)
+    'x_scale', 'y_scale'. String, 'as is', 'log10', or 'log10(val+1)'. Controls whether these axes should be log scaled, and if so, whether 1 should be added to all values first in order to let zeros be okay to plot.
     """
 
     # Parse dependent defaults
@@ -41,6 +41,12 @@ def scatter_plotly(
     df = data_frame.copy()
     rows_use = _which_rows(rows_use, df)
     df = df.loc[rows_use]
+    if x_scale=="log10(val+1)":
+        df[x_by] += 1
+        x_scale="log10"
+    if y_scale=="log10(val+1)":
+        df[y_by] += 1
+        y_scale="log10"
 
     # Add to px_args
     px_args['data_frame'] = df
