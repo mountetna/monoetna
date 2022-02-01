@@ -95,61 +95,8 @@ def run_script script
 end
 
 FactoryBot.define do
-  factory :view do
+  factory :figure do
     to_create(&:save)
-  end
-
-  factory :manifest do
-    to_create(&:save)
-    project { 'labors' }
-    sequence :name do |n|
-      "manifest #{n}"
-    end
-
-    trait :script do
-      script { '@value = 1 + 1' }
-    end
-
-    trait :public do
-      access { 'public' }
-    end
-
-    trait :private do
-      access { 'private' }
-    end
-  end
-
-  factory :plot do
-    to_create(&:save)
-    project { 'labors' }
-    script { '@test = 1' }
-    sequence :name do |n|
-      "plot #{n}"
-    end
-
-    trait :scatter do
-      plot_type { 'scatter' }
-      configuration { {plot: 'ok'} }
-    end
-
-    trait :public do
-      access { 'public' }
-    end
-
-    trait :private do
-      access { 'private' }
-    end
-  end
-
-  factory :user do
-    to_create(&:save)
-
-    AUTH_USERS.each do |user_type, template|
-      trait user_type do
-        email { template[:email] }
-        name { template[:name] }
-      end
-    end
   end
 end
 
