@@ -3,7 +3,7 @@ require_relative "time_scan_based_etl_scanner"
 
 class Polyphemus
   class DbTriageFileBaseEtlCursor < EtlCursor
-    def initialize(job_name:, project_name:, bucket_name:, updated_at: nil, batch_end_at: nil)
+    def initialize(job_name:, project_name:, bucket_name:)
       raise "project_name cannot be nil" if project_name.nil?
       raise "bucket_name cannot be nil" if bucket_name.nil?
       raise "batch_end_at must be set if updated_at is set." if updated_at && !batch_end_at
@@ -11,8 +11,6 @@ class Polyphemus
       super("#{job_name}_triage_ingest_#{project_name}_#{bucket_name}")
       self[:project_name] = project_name
       self[:bucket_name] = bucket_name
-
-      load_batch_params(updated_at: updated_at, batch_end_at: batch_end_at)
     end
 
     def reset!

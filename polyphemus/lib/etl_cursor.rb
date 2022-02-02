@@ -18,15 +18,12 @@ class Polyphemus
 
     def load_batch_params(updated_at: nil, batch_end_at: nil)
       return if updated_at.nil? && batch_end_at.nil?
-      raise "batch_end_at must be set if updated_at is set." if updated_at && !batch_end_at
-      raise "updated_at must be set if batch_end_at is set." if batch_end_at && !updated_at
+      updated_at = Time.at(0) if updated_at.nil?
 
-      if updated_at
-        raise "updated_at was not a Time value!" unless updated_at.is_a?(Time)
-        raise "batch_end_at was not a Time value!" unless batch_end_at.is_a?(Time)
-        @updated_at = updated_at
-        self[:batch_end_at] = batch_end_at
-      end
+      raise "updated_at was not a Time value!" unless updated_at.is_a?(Time)
+      raise "batch_end_at was not a Time value!" unless batch_end_at.is_a?(Time)
+      @updated_at = updated_at
+      self[:batch_end_at] = batch_end_at
     end
 
     def from_env?

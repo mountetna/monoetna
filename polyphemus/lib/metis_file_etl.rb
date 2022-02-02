@@ -3,12 +3,13 @@ require_relative 'time_scan_based_etl_scanner'
 
 class Polyphemus
   class MetisFileEtlCursor < EtlCursor
-    def initialize(job_name:, project_name:, bucket_name:)
+    def initialize(job_name:, project_name:, bucket_name:, updated_at: nil, batch_end_at: nil)
       raise "project_name cannot be nil" if project_name.nil?
       raise "bucket_name cannot be nil" if bucket_name.nil?
       super("#{job_name}_metis_files_#{project_name}_#{bucket_name}")
       self[:project_name] = project_name
       self[:bucket_name] = bucket_name
+      load_batch_params(updated_at: updated_at, batch_end_at: batch_end_at)
     end
 
     def reset!
@@ -38,7 +39,17 @@ class Polyphemus
     end
 
     def serialize_batch(batch)
-      super(batch.map(&:raw))
+      super(batch.map do |file|
+        file.raw.slice(
+          :file_path,
+          :file_name,
+          :project_name,
+          :bucket_name,
+          :updated_at,
+          :author,
+          :file_hash,
+        )
+      end)
     end
 
     def deserialize_batch(string)

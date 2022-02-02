@@ -69,20 +69,18 @@ class Polyphemus
         def execute(from_environment: false)
           @from_environment = from_environment
 
-          batches_by_cursors = {}
+          batches = []
 
           while true
             break unless etl.run_once do |cursor, batch|
-              logger.info("Consuming batch on cursor #{cursor}...")
-              (batches_by_cursors[cursor] ||= []).push(*batch)
+              logger.info("Consuming #{batch.length} items from #{cursor.updated_at}...")
+              batches.push(*batch)
             end
             logger.info("Continuing to process...")
           end
 
           logger.info("No more batches found, outputting result")
-          dump_result(batches_by_cursors.to_a.map do |k, v|
-            [k, serialize_batch(v)]
-          end)
+          dump_result(etl.serialize_batch(batches))
         end
 
         def dump_result(result)
@@ -200,7 +198,7 @@ class Polyphemus
       logger.info("Starting loop")
       cursor_group.with_next do |cursor|
         logger.info("Selecting cursor for #{cursor.name}")
-        cursor.load_from_db unless cursor[:from_env]
+        cursor.load_from_db unless cursor.from_env?
         logger.info("Finding batch...")
         batch = scanner.find_batch(cursor)
 
@@ -210,7 +208,7 @@ class Polyphemus
           next false
         end
 
-        cursor.save_to_db unless cursor[:from_env]
+        cursor.save_to_db unless cursor.from_env?
         next true
       end
     end

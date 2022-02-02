@@ -1,12 +1,14 @@
+import json
 import logging
 import time
 from dataclasses import dataclass
-from typing import List, Optional, Callable, Any, Mapping, Iterator, Set, Tuple
+from typing import List, Optional, Callable, Any, Mapping, Iterator, Set, Tuple, Union, MutableMapping
 
 import hashlib
 
 from airflow import AirflowException
 from airflow.models import BaseOperator, TaskInstance
+from airflow.models.xcom_arg import XComArg
 from dateutil import parser
 from docker import APIClient
 
@@ -22,12 +24,14 @@ class SwarmSharedData:
 class DockerOperatorBase(BaseOperator):
     terminated_state: Optional[str]
     swarm_shared_data: List[SwarmSharedData]
+    xcom_swarm_shared_data: List[SwarmSharedData]
     command: List[str]
     serialize_last_output: Optional[Callable[[bytes], Any]] = None
     cli: APIClient
     ti: TaskInstance
     docker_base_url: str
     env: Mapping[str, str]
+    xcom_inputs: MutableMapping[str, XComArg]
 
     template_fields = ('env',)
     template_fields_renderers = {'env': 'json'}
@@ -47,12 +51,33 @@ class DockerOperatorBase(BaseOperator):
         self.command = command
         self.docker_base_url = docker_base_url
         self.env = env
+        self.xcom_inputs = {}
+        self.xcom_swarm_shared_data = []
+
         super(DockerOperatorBase, self).__init__(*args, **kwds)
 
     def pre_execute(self, context) -> None:
         super(DockerOperatorBase, self).pre_execute(context)
         self.cli = APIClient(base_url=self.docker_base_url)
         self.ti = context["ti"]
+
+        self.xcom_swarm_shared_data = [
+            SwarmSharedData(
+                data=json.dumps(d.resolve(context)).encode('utf8'),
+                remote_path="/inputs/" + k
+            ) for k, d in self.xcom_inputs.items()
+        ]
+
+    def set_input(self, key: str, value: XComArg) -> "DockerOperatorBase":
+        self[key] = value
+        return self
+
+    def __setitem__(self, key, value):
+        if not isinstance(value, XComArg):
+            raise AirflowException(f"'{key}' was not instance of XComArg!")
+        if not isinstance(key, str):
+            raise AirflowException(f"{self.__class__.__name__} only accepts string index keys")
+        self.xcom_inputs[key] = value
 
     @staticmethod
     def shared_data_labeling():
