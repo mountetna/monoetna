@@ -3,7 +3,6 @@ from datetime import timedelta, datetime
 from typing import Union
 
 from airflow import DAG
-from airflow.decorators import task
 
 from etna import etl, run_in_swarm
 from etna.dags.project_name import project_name_of
@@ -20,7 +19,7 @@ def process_metis_files(loading_dag: DAG, start_date: datetime, interval: timede
     def instantiate_dag(fn):
         @functools.wraps(fn)
         def load_batch_first():
-            return inject(fn, dict(load_batch=AwaitBatches()))
+            return inject(fn, dict(load_batch=AwaitBatches(loading_dag, 'updated_at', task_id='load_metis_file_batch')))
 
         return etl(
             project_name=project_name_of(loading_dag),
