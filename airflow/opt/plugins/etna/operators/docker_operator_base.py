@@ -1,3 +1,4 @@
+import os.path
 import json
 import logging
 import time
@@ -6,6 +7,9 @@ from typing import List, Optional, Callable, Any, Mapping, Iterator, Set, Tuple,
 
 import hashlib
 
+import io
+
+import tarfile
 from airflow import AirflowException
 from airflow.models import BaseOperator, TaskInstance
 from airflow.models.xcom_arg import XComArg
@@ -23,15 +27,16 @@ class SwarmSharedData:
 
 class DockerOperatorBase(BaseOperator):
     terminated_state: Optional[str]
-    swarm_shared_data: List[SwarmSharedData]
-    xcom_swarm_shared_data: List[SwarmSharedData]
+    _swarm_shared_data: List[SwarmSharedData]
     command: List[str]
     serialize_last_output: Optional[Callable[[bytes], Any]] = None
     cli: APIClient
     ti: TaskInstance
     docker_base_url: str
     env: Mapping[str, str]
-    xcom_inputs: MutableMapping[str, XComArg]
+
+    file_inputs: MutableMapping[str, Union[XComArg, str, bytes]]
+    resolved_swarm_shared_data: List[SwarmSharedData]
 
     template_fields = ('env',)
     template_fields_renderers = {'env': 'json'}
@@ -46,13 +51,13 @@ class DockerOperatorBase(BaseOperator):
         env: Mapping[str, str] = dict(),
         **kwds,
     ):
-        self.swarm_shared_data = swarm_shared_data or []
+        self._swarm_shared_data = swarm_shared_data or []
         self.serialize_last_output = serialize_last_output
         self.command = command
         self.docker_base_url = docker_base_url
         self.env = env
-        self.xcom_inputs = {}
-        self.xcom_swarm_shared_data = []
+        self.file_inputs = {}
+        self.resolved_swarm_shared_data = []
 
         super(DockerOperatorBase, self).__init__(*args, **kwds)
 
@@ -61,23 +66,49 @@ class DockerOperatorBase(BaseOperator):
         self.cli = APIClient(base_url=self.docker_base_url)
         self.ti = context["ti"]
 
-        self.xcom_swarm_shared_data = [
-            SwarmSharedData(
-                data=json.dumps(d.resolve(context)).encode('utf8'),
-                remote_path="/inputs/" + k
-            ) for k, d in self.xcom_inputs.items()
-        ]
+        self.resolved_swarm_shared_data = []
+        for path, file_input in self.file_inputs.items():
+            bin: bytes
+            if isinstance(file_input, XComArg):
+                bin = json.dumps(file_input.resolve(context)).encode('utf8')
+            elif isinstance(file_input, bytes):
+                bin = file_input
+            elif isinstance(file_input, str):
+                if not os.path.exists(file_input):
+                    raise AirflowException(f"docker operator input {path} was not a valid path: {file_input}.")
+
+                if os.path.isdir(file_input):
+                    buff = io.BytesIO(b"")
+                    tar = tarfile.open(fileobj=buff)
+                    tar.add(file_input, arcname=os.path.basename(path))
+                    tar.close()
+                    bin = buff.read()
+                else:
+                    bin = open(file_input, "rb").read()
+            else:
+                raise f"Unexpected input to docker operator: Expected XComArg, str, or bytes, found {file_input.__class__.__name__}"
+
+            self.resolved_swarm_shared_data.append(
+                SwarmSharedData(
+                    remote_path=path,
+                    data=bin
+                )
+            )
+
+    @property
+    def swarm_shared_data(self):
+        return self._swarm_shared_data + self.resolved_swarm_shared_data
 
     def set_input(self, key: str, value: XComArg) -> "DockerOperatorBase":
         self[key] = value
         return self
 
     def __setitem__(self, key, value):
-        if not isinstance(value, XComArg):
-            raise AirflowException(f"'{key}' was not instance of XComArg!")
+        if not isinstance(value, XComArg) and not isinstance(value, str) and not isinstance(value, bytes):
+            raise AirflowException(f"'{key}' was not instance of XComArg, str, or bytes!")
         if not isinstance(key, str):
             raise AirflowException(f"{self.__class__.__name__} only accepts string index keys")
-        self.xcom_inputs[key] = value
+        self.file_inputs[key] = value
 
     @staticmethod
     def shared_data_labeling():

@@ -1,3 +1,4 @@
+import contextlib
 import tempfile
 from typing import Dict, Optional
 
@@ -10,6 +11,8 @@ from airflow import AirflowException
 from airflow.hooks.base import BaseHook
 from airflow.hooks.subprocess import SubprocessHook
 from airflow.models import Connection
+
+from etna.hooks.keys import prepared_key_from
 
 
 class GitHook(BaseHook):
@@ -75,33 +78,13 @@ class GitHook(BaseHook):
         self.local_path = local_path
         self.key = None
 
-    @cached_property.cached_property
+    @contextlib.contextmanager
     def key_path(self) -> Optional[str]:
-        if self.connection.schema != 'https' and self.connection.password:
-            # prepare a key.
-            with tempfile.NamedTemporaryFile(delete=False) as file:
-                password = self.connection.password
-                words = password.split(' ')
-                lines = []
-                header = False
-
-                for word in words:
-                    if header:
-                        lines[-1] += " " + word
-                    else:
-                        lines.append(word)
-
-                    if word.startswith('--'):
-                        header = True
-                    if word.endswith('--'):
-                        header = False
-
-                file.write('\n'.join(lines).encode('utf8'))
-
-            os.chmod(file.name, stat.S_IRUSR | stat.S_IWUSR)
-            return file.name
-
-        return None
+        if self.connection.schema != 'https':
+            with prepared_key_from(self.connection) as file_name:
+                yield file_name
+        else:
+            yield None
 
     def get_conn(self) -> Connection:
         return self.get_connection(self.git_conn_id)
@@ -111,25 +94,25 @@ class GitHook(BaseHook):
         return self.get_conn()
 
     def run_git(self, working_dir: str, *command: str):
-        key_file_path = self.key_path
-        process = SubprocessHook()
-        env: Dict[str, str] = dict(**os.environ)
+        with self.key_path() as key_file_path:
+            process = SubprocessHook()
+            env: Dict[str, str] = dict(**os.environ)
 
 
-        with tempfile.NamedTemporaryFile(delete=True) as ask_pass_file:
-            if key_file_path is not None:
-                env["GIT_SSH_COMMAND"] = f"ssh -i {key_file_path} -F /dev/null"
-            elif self.connection.password:
-                os.chmod(ask_pass_file.name, stat.S_IRUSR | stat.S_IXUSR)
-                ask_pass_file.write("!#/usr/bin/env bash")
-                ask_pass_file.write(f"exec echo {self.connection.password}")
-                env["GIT_ASKPASS"] = ask_pass_file.name
+            with tempfile.NamedTemporaryFile(delete=True) as ask_pass_file:
+                if key_file_path is not None:
+                    env["GIT_SSH_COMMAND"] = f"ssh -i {key_file_path} -F /dev/null"
+                elif self.connection.password:
+                    os.chmod(ask_pass_file.name, stat.S_IRUSR | stat.S_IXUSR)
+                    ask_pass_file.write("!#/usr/bin/env bash")
+                    ask_pass_file.write(f"exec echo {self.connection.password}")
+                    env["GIT_ASKPASS"] = ask_pass_file.name
 
-            print(os.environ['PATH'])
-            result = process.run_command(["git"] + list(command), env, cwd=working_dir)
+                print(os.environ['PATH'])
+                result = process.run_command(["git"] + list(command), env, cwd=working_dir)
 
-        if result.exit_code != 0:
-            raise AirflowException(f"git command failed!  Check logs for more information.")
+            if result.exit_code != 0:
+                raise AirflowException(f"git command failed!  Check logs for more information.")
 
     def clone(self):
         os.makedirs(os.path.dirname(self.local_path), exist_ok=True)

@@ -20,6 +20,7 @@ x-airflow-env:
   AIRFLOW__CORE__EXECUTOR: etna.executors.local_executor.LocalExecutor
   AIRFLOW__CORE__SQL_ALCHEMY_CONN:  "postgresql://developer:password@airflow_postgres:5432/airflow"
   AIRFLOW__WEBSERVER__BASE_URL: https://airflow.development.local
+  DEV_MODE: 1 # Enables docker-compose backend
   ETNA_AUTH_COOKIE_NAME: JANUS_DEV_TOKEN
   ETNA_AUTH_JANUS_URL: https://janus.development.local
   ETNA_AUTH_PUBLIC_KEY: |
