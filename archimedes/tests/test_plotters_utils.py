@@ -1,4 +1,4 @@
-from archimedes.functions.plotting.utils import _all_rows, _leave_default_or_null, _which_rows, _is_continuous, _is_discrete, _is_integer, _is_logical
+from archimedes.functions.plotting.utils import _all_rows, _leave_default_or_none, _which_rows, _is_continuous, _is_discrete, _is_integer, _is_logical
 from tests.fixtures.example_df import example_df
 import numpy as np
 
@@ -66,16 +66,16 @@ def test_which_rows():
     assert all(which_rows_ints == should_match)
     
     # other interable = expected as values df.index in df.index order
-    inds = ['0','1','2','3','10']
-    reordered_inds = inds[::-1]
+    indexes = ['0','1','2','3','10']
+    reordered_indexes = indexes[::-1]
     
-    which_rows_inds = _which_rows(inds, df)
-    assert df.loc[which_rows_ints].shape[0] == len(inds)
-    assert all(which_rows_inds == _which_rows(reordered_inds, df))
+    which_rows_indexes = _which_rows(indexes, df)
+    assert df.loc[which_rows_indexes].shape[0] == len(indexes)
+    assert all(which_rows_indexes == _which_rows(reordered_indexes, df))
 
 def test_leave_default_or_null():
-    assert _leave_default_or_null(None, "default")==None
-    assert _leave_default_or_null("make", "default")=="default"
-    assert _leave_default_or_null("make", "default", none_if=True)==None
-    assert _leave_default_or_null("make", "default", default_when="not_me")=="make"
+    assert _leave_default_or_none(None, "default")==None
+    assert _leave_default_or_none("make", "default")=="default"
+    assert _leave_default_or_none("make", "default", none_if=True)==None
+    assert _leave_default_or_none("make", "default", default_when="not_me")=="make"
 
