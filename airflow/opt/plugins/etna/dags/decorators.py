@@ -10,7 +10,7 @@ from airflow.models.dag import (
     ScheduleIntervalArg,
 )
 
-from dags.callbacks import notify_slack_dag_callback
+from etna.dags.callbacks import notify_slack_dag_callback
 from etna.etls.context import batch_start_context_key, batch_end_context_key
 from etna.utils.inject import inject
 

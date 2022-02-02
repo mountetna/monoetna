@@ -4,7 +4,7 @@ from typing import Union
 
 from airflow import DAG
 
-from etna import etl, run_in_swarm
+from etna.dags import etl, run_in_swarm
 from etna.dags.project_name import project_name_of
 from etna.etls.batches import AwaitBatches
 from etna.etls.environment import etl_args

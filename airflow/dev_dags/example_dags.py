@@ -1,6 +1,5 @@
 from datetime import timedelta
-from etna import run_in_container, system_dag
-
+from etna.dags import system_dag, run_in_container
 
 @system_dag(timedelta(days=1))
 def system_dag_example():

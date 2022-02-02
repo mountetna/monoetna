@@ -18,8 +18,7 @@ from docker.types import (
     Placement,
 )
 
-from etna import SwarmSharedData
-from etna.operators.docker_operator_base import write_logs_and_yield_last
+from etna.operators.docker_operator_base import write_logs_and_yield_last, SwarmSharedData
 from etna.operators.swarm_operator import (
     create_service_definition,
     find_service,

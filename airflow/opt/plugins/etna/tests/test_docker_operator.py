@@ -7,7 +7,7 @@ from unittest import mock
 import pytest
 from docker import APIClient
 
-from etna import SwarmSharedData
+from etna.operators import SwarmSharedData
 from etna.operators.docker_operator import DockerOperator
 from etna.tests.conftest import NotSoRandom
 
