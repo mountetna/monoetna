@@ -1,6 +1,6 @@
 import plotly.express as px
 
-from .utils import _leave_default_or_null, _which_rows, _is_discrete
+from .utils import _leave_default_or_none, _which_rows, _is_discrete
 from .colors import colors
 from ..list import unique, order
 
@@ -32,10 +32,10 @@ def scatter_plotly(
     """
 
     # Parse dependent defaults
-    xlab = _leave_default_or_null(xlab, x_by)
-    ylab = _leave_default_or_null(ylab, y_by)
-    plot_title = _leave_default_or_null(plot_title, color_by)
-    legend_title = _leave_default_or_null(legend_title, color_by)
+    xlab = _leave_default_or_none(xlab, x_by)
+    ylab = _leave_default_or_none(ylab, y_by)
+    plot_title = _leave_default_or_none(plot_title, color_by)
+    legend_title = _leave_default_or_none(legend_title, color_by)
     
     # data_frame edits
     df = data_frame.copy()
@@ -73,7 +73,7 @@ def scatter_plotly(
                 if order_when_continuous_color and not discrete_color:
                     px_args['data_frame'] = df.iloc[ list(reversed( order(df[color_by], return_indexes=True) )) ]
     else:
-        plot_title = _leave_default_or_null(plot_title, "")
+        plot_title = _leave_default_or_none(plot_title, "")
     
     # Make plot
     fig = px.scatter(**px_args)

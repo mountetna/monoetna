@@ -1,7 +1,7 @@
 import plotly.express as px
 import pandas as pd
 
-from .utils import _leave_default_or_null, _which_rows
+from .utils import _leave_default_or_none, _which_rows
 from .colors import colors
 from ..list import unique, order
 
@@ -30,10 +30,10 @@ def bar_plotly(
     """
 
     # Parse dependent defaults
-    xlab = _leave_default_or_null(xlab, x_by)
-    ylab = _leave_default_or_null(ylab, y_by + " " + scale_by) # A little different for this function
-    plot_title = _leave_default_or_null(plot_title, ylab + " per " + x_by)
-    legend_title = _leave_default_or_null(legend_title, y_by) # A little different for this function
+    xlab = _leave_default_or_none(xlab, x_by)
+    ylab = _leave_default_or_none(ylab, y_by + " " + scale_by) # A little different for this function
+    plot_title = _leave_default_or_none(plot_title, ylab + " per " + x_by)
+    legend_title = _leave_default_or_none(legend_title, y_by) # A little different for this function
     
     # data_frame edits
     df = data_frame.copy()

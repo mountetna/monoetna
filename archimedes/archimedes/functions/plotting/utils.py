@@ -15,7 +15,7 @@ def _is_logical(nda: np.ndarray):
 def _is_integer(nda: np.ndarray):
     return nda.dtype.kind == 'i'
 
-def _leave_default_or_null(target, default, none_if = False, default_when = "make"):
+def _leave_default_or_none(target, default, none_if = False, default_when = "make"):
     '''
     A system for filling in input defaults whenever a given 'target' input is left with the dafaut value given within the function definition.
     

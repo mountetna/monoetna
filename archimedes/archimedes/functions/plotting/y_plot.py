@@ -1,6 +1,6 @@
 import plotly.express as px
 
-from .utils import _leave_default_or_null, _which_rows
+from .utils import _leave_default_or_none, _which_rows
 from .colors import colors
 
 def y_plotly(
@@ -30,11 +30,11 @@ def y_plotly(
     """
     
     # Parse dependent defaults
-    color_by = _leave_default_or_null(color_by, x_by)
-    xlab = _leave_default_or_null(xlab, x_by)
-    ylab = _leave_default_or_null(ylab, y_by)
-    plot_title = _leave_default_or_null(plot_title, ylab)
-    legend_title = _leave_default_or_null(legend_title, color_by)
+    color_by = _leave_default_or_none(color_by, x_by)
+    xlab = _leave_default_or_none(xlab, x_by)
+    ylab = _leave_default_or_none(ylab, y_by)
+    plot_title = _leave_default_or_none(plot_title, ylab)
+    legend_title = _leave_default_or_none(legend_title, color_by)
     
     # data_frame edits
     df = data_frame.copy()
