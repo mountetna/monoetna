@@ -138,7 +138,7 @@ const remove_hidden = (vals: DataEnvelope<any>, hide: string[] | null | undefine
 const input_sets: DataEnvelope<DataEnvelope<string[]|DataEnvelope<any>>> = {
   'scatter_plot': {
     'main': ["x_by", "y_by", "color_by"],
-    'adv': ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color'],
+    'adv': ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color', 'x_scale', 'y_scale'],
     //'default_adjust': {'color_by': "make"}
   },
   'bar_plot': {
@@ -147,7 +147,7 @@ const input_sets: DataEnvelope<DataEnvelope<string[]|DataEnvelope<any>>> = {
   },
   'y_plot': {
     'main': ["x_by", "y_by", "plots"],
-    'adv': ["color_by", 'plot_title', 'legend_title', 'xlab', 'ylab'],
+    'adv': ["color_by", 'plot_title', 'legend_title', 'xlab', 'ylab', 'y_scale'],
     //'default_adjust': {'color_by': "make"}
   }
 }
@@ -164,7 +164,9 @@ const defaults: DataEnvelope<any> = {
   'xlab': 'make',
   'ylab': 'make',
   'color_order': 'increasing',
-  'order_when_continuous_color': false
+  'order_when_continuous_color': false,
+  'x_scale': 'as is',
+  'y_scale': 'as is'
 };
 
 function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | undefined) {
@@ -218,7 +220,9 @@ function useExtraInputs(options: string[]) {
       'color_order': ['Point render order', ['increasing', 'decreasing', 'unordered']],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
       'size': ['Point Size', 0.1, 50],
-      'scale_by': ['Scale Y by counts or fraction?', ['counts', 'fraction']]
+      'scale_by': ['Scale Y by counts or fraction?', ['counts', 'fraction']],
+      'x_scale': ['Adjust scaling of the X-Axis?', ['as is', 'log10', 'log10(val+1)']],
+      'y_scale': ['Adjust scaling of the Y-Axis?', ['as is', 'log10', 'log10(val+1)']]
     }
   }, [options]);
 
@@ -237,5 +241,7 @@ const comps: DataEnvelope<Function> = {
   'color_order': dropdownInput,
   'order_when_continuous_color': checkboxInput,
   'size': sliderInput,
-  'scale_by': dropdownInput
+  'scale_by': dropdownInput,
+  'x_scale': dropdownInput,
+  'y_scale': dropdownInput
 }
