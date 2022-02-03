@@ -39,10 +39,6 @@ describe MetisShell do
       metis_host: 'metis.test'
     )
 
-    # token = Base64.strict_encode64(
-    #   { email: 'metis@olympus.org', name: "Metis", perm: 'a:athena', exp: 253371439590 }.to_json
-    # )
-    # @long_lived_token = "something.#{token}"
     @long_lived_token = token_with_exp(253371439590)
     ENV['TOKEN'] = @long_lived_token
     stub_request(:any, %r!^https://metis.test/!).to_rack(app)
