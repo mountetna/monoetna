@@ -1,7 +1,7 @@
 import plotly.express as px
 import pandas as pd
 
-from .utils import _default_to_if_make_and_logic
+from .utils import _leave_default_or_none, _which_rows
 from .colors import colors
 from ..list import unique, order
 
@@ -11,6 +11,7 @@ def bar_plotly(
     y_by,
     scale_by = 'fraction',
     px_args: dict = {},
+    rows_use = None,
     color_panel: list = colors,
     xlab = "make",
     ylab = "make",
@@ -29,13 +30,18 @@ def bar_plotly(
     """
 
     # Parse dependent defaults
-    xlab = _default_to_if_make_and_logic(xlab, x_by)
-    ylab = _default_to_if_make_and_logic(ylab, y_by + " " + scale_by) # A little different for this function
-    plot_title = _default_to_if_make_and_logic(plot_title, ylab + " per " + x_by)
-    legend_title = _default_to_if_make_and_logic(legend_title, y_by) # A little different for this function
+    xlab = _leave_default_or_none(xlab, x_by)
+    ylab = _leave_default_or_none(ylab, y_by + " " + scale_by) # A little different for this function
+    plot_title = _leave_default_or_none(plot_title, ylab + " per " + x_by)
+    legend_title = _leave_default_or_none(legend_title, y_by) # A little different for this function
+    
+    # data_frame edits
+    df = data_frame.copy()
+    rows_use = _which_rows(rows_use, df)
+    df = df.loc[rows_use]
 
     ### Generate a composition summary dataframe from the input df.
-    summary_df = pd.DataFrame(data_frame[[x_by, y_by]].value_counts())
+    summary_df = pd.DataFrame(df[[x_by, y_by]].value_counts())
     summary_df = summary_df.reset_index().rename(columns={x_by: 'xgroups', y_by: 'yvals', 0 : "counts"})
     fractions = None
     for k in summary_df.xgroups.unique(): # for each unique value of the xgroup column, refered to now as k
