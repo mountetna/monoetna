@@ -171,7 +171,7 @@ const defaults: DataEnvelope<any> = {
   'order_when_continuous_color': false,
   'x_scale': 'as is',
   'y_scale': 'as is',
-  'rows_use': {'methods':[[null]]}
+  'rows_use': {}
 };
 
 function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | undefined) {

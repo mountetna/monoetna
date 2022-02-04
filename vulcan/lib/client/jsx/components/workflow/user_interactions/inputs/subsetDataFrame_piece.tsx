@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import {DataEnvelope} from './input_types';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import { dropdownInput, MultiselectInput, rangeInput, val_wrap } from './user_input_pieces';
-import { flattenStringOptions } from './monoids';
+import { checkboxInput, dropdownInput, MultiselectInput, rangeInput } from './user_input_pieces';
+import { Button } from '@material-ui/core';
 
 /*
 This script defines a component that behaves like all other 'user_input_pieces'.
@@ -17,89 +17,164 @@ export function subsetDataFrameInput(
     label: string, data_frame: DataEnvelope<any>, sorted = false) {
       
       const values = {...value}
-      
       const columns: string[] = Object.keys(data_frame)
-      
-      const updateColDef = (newColDef: (string|number|null)[], index: number, current_full = values) => {
+      const updateCurrent = (
+        newColDef: (string|number|null)[] | null,
+        newLogic: string | null,
+        index: number,
+        current_full = values
+        ) => {
         let next_full = {...current_full};
-        next_full['methods'][index] = newColDef
-        return next_full
+        if (newColDef) {
+          next_full['methods'][index] = newColDef
+        }
+        if (newLogic && index>0) {
+          next_full['logic'][index-1] = [newLogic]
+        }
+        changeFxn(next_full, key)
       }
       
       const single_definition = (index: number, Def: (string|number|null)[] = [null]) => {
-          
+        
         const updateDef = (newDef: (string|number|null)[], x: string) => {
-          // updateFxn for inner calls which will not include the column_name
+          // updateFxn for inner piece calls which will not include the column_name
+          // 'x' is a dummy variable needed because each piece will send a dummy key in addition the 'newDef' value.
           const col = [Def[0]]
-          changeFxn(updateColDef(col.concat(...newDef), index), key)
+          updateCurrent(col.concat(...newDef), null, index)
         }
         
-        const base = (
-          <div key={key+index}>
-            Target:
+        const clearDef = () => {
+          const full = {...values};
+          // methods
+          let next_methods = full['methods']
+          next_methods.splice(index,1)
+          if (next_methods.length==0) {next_methods = [[null]]}
+          // logic
+          changeFxn(
+            {methods: next_methods},
+            key)
+        }
+        
+        let this_def_comps = null;
+        let def_comp = null;
+        const pick_column = (
+          <div key={key+index} style={{display: 'inline-flex'}}>
+            Feature {" "+(index+1)}:
             <DropdownAutocomplete
               list={columns}
               value={Def[0]}
-              onSelect={(newVal: string) => changeFxn(updateColDef([newVal], index), key)}
+              onSelect={(newVal: string) => updateCurrent([newVal], null, index)}
               sorted={sorted}
             />
-          </div>)
-        
-        if (Def[0]==null) return base;
-        const target_data = Object.values(data_frame[Def[0]])
-        
-        let inner_def = [...Def]
-        inner_def.shift()
-        
-        let def_comps = null;
-                      
-        if (typeof target_data[0] == "number") {
-          if (inner_def.length == 0) {
-            inner_def = ["exactly", null, "below", null]
-          }
-          def_comps = rangeInput(
-            key+index+index, updateDef, inner_def,
-            "Values to target:"
+          </div>
+        )
+        const clear_comp = (
+          <Button onClick={(x) => {clearDef()}}>
+            Clear
+          </Button>
+        )
+        const logic_comp = (index == 0) ? null : 
+          dropdownInput(
+              key+index+index, updateDef, values['logic'][index-1][0] as string,
+              "Combination Logic:", ["and", "not", "or", "or not"], false
             )
+        
+        if (Def[0]!=null) {
+
+          const target_data = Object.values(data_frame[Def[0]])
+          
+          let inner_def = [...Def]
+          inner_def.shift()
+                        
+          if (typeof target_data[0] == "number") {
+            if (inner_def.length == 0) {
+              inner_def = ["exactly", null, "below", null]
+            }
+            def_comp = rangeInput(
+              key+index+index, updateDef, inner_def,
+              ""
+              )
+          }
+          
+          if (typeof target_data[0] == "string") {
+            function onlyUnique(value: any, index: number, self: any) {
+              return self.indexOf(value) === index;
+            }
+            const options = target_data.filter(onlyUnique) as string[];
+            def_comp = MultiselectInput(
+              key+index+index, updateDef, inner_def as string[],
+              "Keep:", options
+              )
+          }
+          
+          if (typeof target_data[0] == "boolean") {
+            let use = ""
+            if (inner_def.length > 0) {
+              use = inner_def[0]
+            }
+            def_comp = dropdownInput(
+              key+index+index, updateDef, use,
+              "", ["True", "False"], false
+              )
+          }
         }
         
-        if (typeof target_data[0] == "string") {
-          function onlyUnique(value: any, index: number, self: any) {
-            return self.indexOf(value) === index;
-          }
-          const options = target_data.filter(onlyUnique) as string[];
-          def_comps = MultiselectInput(
-            key+index+index, updateDef, inner_def as string[],
-            "Values to target:", options
-            )
-        }
-        
-        if (typeof target_data[0] == "boolean") {
-          let use = ""
-          if (inner_def.length > 0) {
-            use = inner_def[0]
-          }
-          def_comps = dropdownInput(
-            key+index+index, updateDef, use,
-            "Values to target:", ["True", "False"], false
-            )
-        }
+        this_def_comps = (
+          <div style={{display: 'inline-flex'}}>
+            <div>
+              {logic_comp}
+              {pick_column}
+              {def_comp}
+            </div>
+            {clear_comp}
+          </div>
+        )
         
         return(
-          <div key={key+index}>
-            {base}
-            {def_comps}
+          <div key={key+index} style={{
+            paddingLeft: "5px",
+            paddingTop: "10px"}}>
+            {this_def_comps}
           </div>
         )
       }
       
+      const startOrClear = (doSubset: boolean, x:any) => {
+        let new_full = {};
+        if (doSubset) {
+          new_full = {
+            'methods':[[null]],
+            'logic':[[]]
+          }
+        }
+        changeFxn(new_full, key)
+      }
+      
+      const base = checkboxInput(
+        key, startOrClear, Object.keys(values).includes('methods'),
+        label)
+      
+      let inner = null;
+      if (values && values['methods']) {
+        inner = (
+          <div>
+            {values['methods'].map((Def, index) => {
+              return single_definition(index, Def)
+              })
+            }
+            <Button onClick={(x) => {updateCurrent([null], "and", values['methods'].length)}}>
+              Add another condition?
+            </Button>
+          </div>
+        )
+      }
+
       return(
         <div key={key}>
-          {label}
-          {values['methods'].map((Def, index) => {
-            return single_definition(index, Def)
-          })}
-          Add another?
+          <p></p>
+          {base}
+          {inner}
+          <p></p>
         </div>
       )
     }
