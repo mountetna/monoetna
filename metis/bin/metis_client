@@ -17,6 +17,7 @@ require 'shellwords'
 require 'singleton'
 
 CONFIG_FILE='~/.metis.json'
+LOG_FILE='~/.metis.log'
 
 def test_env?
   ENV['METIS_ENV'] == 'test'
@@ -121,6 +122,15 @@ class Upload
 end
 
 class Client
+
+  attr_reader :logger
+
+  def initialize(host, token, logger)
+    @host = host
+    @token = token
+    @logger = logger
+  end
+
   # This is duplicated code because we need to refactor Metis client
   #   to use the etna gem clients...
   def token_expired?
@@ -138,14 +148,17 @@ class Client
   private
 
   def get(path, headers=nil)
+    logger.debug("GET #{path}")
     request(path, Net::HTTP::Get, headers)
   end
 
-  def post(path)
+  def post(path, suppress_logging: false)
+    logger.debug("POST #{path}") unless suppress_logging
     request(path, Net::HTTP::Post)
   end
 
   def delete(path)
+    logger.debug("DELETE #{path}")
     request(path, Net::HTTP::Delete)
   end
 
@@ -164,11 +177,6 @@ end
 
 class JanusClient < Client
   class Error < StandardError
-  end
-
-  def initialize(host, token)
-    @host = host
-    @token = token
   end
 
   def refresh_token
@@ -198,11 +206,6 @@ class MetisClient < Client
   end
 
   class DownloadError < StandardError
-  end
-
-  def initialize(host, token)
-    @host = host
-    @token = token
   end
 
   def net_exceptions
@@ -286,7 +289,7 @@ class MetisClient < Client
   def retry_blob(upload_path, upload, blob, retries)
     retries += 1
 
-    print "\rWaiting for server restart"+"."*retries+"\x1b[0K"
+    logger.write("\rWaiting for server restart"+"."*retries+"\x1b[0K")
 
     sleep 15
 
@@ -311,18 +314,18 @@ class MetisClient < Client
       )
     rescue OpenSSL::SSL::SSLError => e
       if e.message =~ /write client hello/
-        puts "SSL error, retrying"
+        logger.write("SSL error, retrying")
         return retry_blob(upload_path, upload, blob, retries)
       end
       raise e
     rescue *net_exceptions  => e
-      puts "Received #{e.class.name}, retrying"
+      logger.write("Received #{e.class.name}, retrying")
       return retry_blob(upload_path, upload, blob, retries)
     end
 
     retry_codes = ['503', '502', '504', '408']
     if retry_codes.include?(response.code)
-      puts "Received response with code #{response.code}, retrying"
+      logger.write("Received response with code #{response.code}, retrying")
       retry_blob(upload_path, upload, blob, retries)
       return
     end
@@ -422,7 +425,7 @@ class MetisClient < Client
 
   def janus
     # Don't memoize because we always will need the current @token value
-    JanusClient.new(@host.gsub("metis", "janus"), @token)
+    JanusClient.new(@host.gsub("metis", "janus"), @token, logger)
   end
 
   def json_post(path, body={})
@@ -440,7 +443,7 @@ class MetisClient < Client
   end
 
   def multipart_post(path, body)
-    req = post(path)
+    req = post(path, suppress_logging: true)
     req.set_form(body, 'multipart/form-data')
     https.request(req)
   end
@@ -989,17 +992,18 @@ EOT
             raise MetisClient::DownloadError, "Incomplete download" unless completed == size
             puts
             download_successful = true
+            @shell.logger.debug("Finished downloading #{actual_file}.")
           end
         rescue MetisClient::DownloadError => e
-          puts "#{e.message}"
+          @shell.logger.write("#{e.message}")
           current_attempt_number += 1
-          MetisShell.log_error(e)
+          @shell.logger.log_error(e)
 
           if current_attempt_number <= max_number_attempts && completed != size
-            puts "DownloadError -- waiting for server to restart the download"
+            @shell.logger.write("DownloadError -- waiting for server to restart the download")
             sleep(30)
           else
-            puts "DownloadError -- max retries reached. Giving up."
+            @shell.logger.write("DownloadError -- max retries reached. Giving up.")
             raise ShellError, e.message
           end
         end
@@ -1136,20 +1140,21 @@ EOT
             )
           end
           puts
+          @shell.logger.debug("Finished uploading #{new_file_path}.")
           break
         rescue MetisClient::UploadError => e
-          puts "#{e.message}"
+          @shell.logger.write("#{e.message}")
           current_attempt_number += 1
 
           if current_attempt_number <= max_number_attempts
-            puts "UploadError -- retrying the upload"
-            MetisShell.log_error(e)
+            @shell.logger.write("UploadError -- retrying the upload")
+            @shell.logger.log_error(e)
             upload = Upload.new(actual_path)
             upload_json = @shell.client.reset_upload(upload_path, upload)
             upload.current_byte_position = 0
           else
-            puts "UploadError -- max retries reached. Giving up."
-            MetisShell.log_error(e)
+            @shell.logger.write("UploadError -- max retries reached. Giving up.")
+            @shell.logger.log_error(e)
           end
         end
       end
@@ -1287,11 +1292,14 @@ EOT
     ^metis:/(?<path>/.*)?$
   !x
 
+  attr_reader :logger
+
   def initialize(path, *args)
     @token = ENV['TOKEN']
+    @logger = Logger.new
 
     if !@token
-      puts "No environment variable TOKEN is set. Set your token with `export TOKEN=<your.janus.token>` before running metis_client."
+      logger.write("No environment variable TOKEN is set. Set your token with `export TOKEN=<your.janus.token>` before running metis_client.")
       exit
     end
 
@@ -1304,7 +1312,7 @@ EOT
     raise 'No metis host selected' if !@host
 
     if client.token_expired?
-      puts "Your token is expired. Please provide a new one in your environment."
+      logger.write("Your token is expired. Please provide a new one in your environment.")
       exit
     end
 
@@ -1423,7 +1431,7 @@ EOT
   end
 
   def client
-    @client ||= MetisClient.new(@host, @token)
+    @client ||= MetisClient.new(@host, @token, logger)
   end
 
   def relative_path(file_path=nil)
@@ -1458,10 +1466,6 @@ EOT
     !!@shell_options[:e]
   end
 
-  def self.log_error(e)
-    STDERR.puts(e.message)
-  end
-
   def run_command(command=nil, *args)
     return if !command
     command = Command.list.find { |c| c.command_name == command.to_s }
@@ -1476,17 +1480,17 @@ EOT
       args = cmd.parse(args)
       cmd.run(*args) unless cmd.done?
     rescue ShellError => e
-      MetisShell.log_error(e)
+      logger.log_error(e)
       exit(1) if errexit?
     rescue MetisClient::Error => e
-      MetisShell.log_error(e)
+      logger.log_error(e)
       exit(1) if errexit?
     rescue ArgumentError => e
       puts(command.usage ? "Usage:\n#{command.usage}" : e.message)
-      MetisShell.log_error(e)
+      logger.log_error(e)
       exit(1) if errexit?
     rescue Net::ReadTimeout => e
-      MetisShell.log_error(e)
+      logger.log_error(e)
       exit(1) if errexit?
     end
   end
@@ -1568,6 +1572,47 @@ class MetisSetup
       end
     end
     value
+  end
+end
+
+class Logger
+  def initialize
+    ::File.delete(log_file) if ::File.exists?(log_file)
+
+    ::File.open(log_file, 'w') do |f|
+      f.puts(utc)
+      f.puts("Client md5: #{`md5sum #{::File.expand_path(__FILE__)}`}")
+    end
+  end
+
+  def log_file
+    ::File.expand_path(LOG_FILE)
+  end
+
+  def utc
+    Time.now.utc.to_s
+  end
+
+  def debug(msg)
+    write_to_log(msg)
+  end
+
+  def write(msg)
+    puts msg
+    write_to_log(msg)
+  end
+
+  def log_error(e)
+    STDERR.puts(e.message)
+    write_to_log(e.message)
+  end
+
+  private
+
+  def write_to_log(msg)
+    ::File.open(log_file, 'a') do |f|
+      f.puts("#{utc}: #{msg}")
+    end
   end
 end
 
