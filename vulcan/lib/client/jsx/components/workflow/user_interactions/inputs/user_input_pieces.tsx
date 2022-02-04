@@ -65,7 +65,6 @@ export function stringInput(
 export function checkboxInput(
   key: string = "filler", changeFxn: Function, value: boolean = false,
   label: string) {
-
     return(
       <BooleanInput
         key={key}
@@ -82,7 +81,7 @@ export function dropdownInput(
   label: string, options: string[], sorted: boolean = true) {
     
     return(
-      <div key={key}>
+      <div key={key} style={{display: 'inline-flex'}}>
         {label}
         <DropdownAutocomplete
           list={options}
@@ -141,30 +140,36 @@ export function rangeInput(
     return(
       <div key={key}>
         {label}
-        From
-        <DropdownAutocomplete
-          list={["exactly","above"]}
-          value={value[0]}
-          onSelect={(newVal: string) => changeFxn(updateSlot(newVal, 0), key)}
-          sorted={false}
-        />
-        <EtnaFloatInput
-          followDefault
-          defaultValue={value[1]}
-          onChange={(newVal: string) => changeFxn(updateSlot(newVal, 1), key)}
-        />
-        {" to "}
-        <DropdownAutocomplete
-          list={["exactly","below"]}
-          value={value[2]}
-          onSelect={(newVal: string) => changeFxn(updateSlot(newVal, 2), key)}
-          sorted={false}
-        />
-        <EtnaFloatInput
-          followDefault
-          defaultValue={value[3]}
-          onChange={(newVal: string) => changeFxn(updateSlot(newVal, 3), key)}
-        />
+        <div style={{display: 'inline-flex'}}>
+          From
+          <DropdownAutocomplete
+            list={["exactly","above"]}
+            value={value[0]}
+            onSelect={(newVal: string) => changeFxn(updateSlot(newVal, 0), key)}
+            sorted={false}
+          />
+          Value
+          <EtnaFloatInput
+            followDefault
+            defaultValue={value[1]}
+            onChange={(newVal: string) => changeFxn(updateSlot(newVal, 1), key)}
+          />
+        </div>
+        <div style={{display: 'inline-flex'}}>
+          To
+          <DropdownAutocomplete
+            list={["exactly","below"]}
+            value={value[2]}
+            onSelect={(newVal: string) => changeFxn(updateSlot(newVal, 2), key)}
+            sorted={false}
+          />
+          value
+          <EtnaFloatInput
+            followDefault
+            defaultValue={value[3]}
+            onChange={(newVal: string) => changeFxn(updateSlot(newVal, 3), key)}
+          />
+        </div>
       </div>
     )
   }
