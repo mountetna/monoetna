@@ -8,6 +8,10 @@ def get_provider_info():
             {
                 "connection-type": "git",
                 "hook-class-name": "etna.hooks.git.GitHook",
+            },
+            {
+                "connection-type": "etna",
+                "hook-class-name": "etna.hooks.etna.EtnaHook",
             }
         ]
     }
