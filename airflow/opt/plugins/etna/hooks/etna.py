@@ -1,17 +1,25 @@
 import base64
 import contextlib
+import dataclasses
 import json
-from typing import Dict, Optional
-
-import os
+import typing
+from datetime import datetime
+from typing import Dict, Optional, List
+from urllib.parse import quote
 
 import cached_property
+import dateutil
 import requests
-import rsa
+from airflow.exceptions import AirflowException
 from airflow.hooks.base import BaseHook
 from airflow.models import Connection
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import padding
 from requests import HTTPError
 from requests.auth import AuthBase
+
+from etna.hooks.keys import prepared_key_from
+from etna.utils.dataclass_utils import DataclassWithNesting
 
 
 class EtnaHook(BaseHook):
@@ -34,13 +42,17 @@ class EtnaHook(BaseHook):
     @staticmethod
     def get_ui_field_behaviour() -> Dict:
         return {
-            "hidden_fields": ['port', 'extra', 'schema', 'login'],
+            "hidden_fields": ['port', 'extra'],
             "relabeling": {
-                'password': 'long lived token to generate task tokens from',
-                'host': 'host part after service name (eg .ucsf.edu, -stage.ucsf.edu, .development.local)'
+                'password': 'RSA key or Janus Token',
+                'host': 'environment host postfix',
+                'schema': 'rsa or token',
+                'login': 'email of janus account (necessary for rsa)'
             },
             'placeholders': {
                 'host': '.ucsf.edu',
+                'schema': 'token',
+                'login': 'you@ucsf.edu'
             }
         }
 
@@ -60,19 +72,9 @@ class EtnaHook(BaseHook):
         """
         return {}
 
-    def __init__(self, etna_conn_id: str, remote_path: str, local_path: Optional[str] = None) -> None:
+    def __init__(self, etna_conn_id: str) -> None:
         super().__init__()
         self.etna_conn_id = etna_conn_id
-        self.remote_path = remote_path
-
-        if local_path is None:
-            local_path = os.path.basename(self.remote_path)
-
-        if not local_path.startswith('/'):
-            local_path = os.path.join(self.root_dir, local_path)
-
-        self.local_path = local_path
-        self.key = None
 
     def get_conn(self) -> Connection:
         return self.get_connection(self.etna_conn_id)
@@ -81,17 +83,50 @@ class EtnaHook(BaseHook):
     def connection(self) -> Connection:
         return self.get_conn()
 
+
+    def get_hostname(self, host_prefix: str):
+        return f"{host_prefix}{self.connection.host or '.ucsf.edu'}"
+
     @contextlib.contextmanager
-    def get_client(self, token: str) -> requests.Session:
+    def get_token_auth(self) -> typing.ContextManager[Optional[AuthBase]]:
+        schema = self.connection.schema or 'token'
+        if schema == 'rsa':
+            with prepared_key_from(self.connection, True) as key_file:
+                with self.get_client(None) as session:
+                    nonce = Janus(session, self.get_hostname('janus')).nonce()
+                yield SigAuth(key_file, self.connection.login, nonce)
+        elif schema == 'token':
+            token = self.connection.password or ''
+            yield TokenAuth(token.encode('utf8'))
+        else:
+            raise AirflowException(f"Connection {self.connection.conn_id} has invalid schema: '{self.connection.schema}'")
+
+    @contextlib.contextmanager
+    def get_task_auth(self, project_name: str, ready_only=True) -> typing.ContextManager[Optional[AuthBase]]:
+        with self.get_token_auth() as token_auth:
+            with self.get_client(token_auth) as session:
+                token = Janus(session, self.get_hostname('janus')).generate_token(project_name, ready_only)
+                yield TokenAuth(token)
+
+    @contextlib.contextmanager
+    def get_client(self, auth: Optional[AuthBase]) -> typing.ContextManager[requests.Session]:
         with requests.Session() as session:
-            session.auth = TokenAuth(token)
+            if auth:
+                session.auth = auth
             session.hooks['response'].append(EtnaHook.assert_status)
             yield session
 
     @contextlib.contextmanager
-    def janus(self, token: str) -> "Janus":
-        with self.get_client(token) as session:
-            yield Janus(session)
+    def metis(self, project_name: str, read_only=True) -> typing.ContextManager["Metis"]:
+        with self.get_task_auth(project_name, read_only) as auth:
+            with self.get_client(auth) as session:
+                yield Metis(session, self.get_hostname('metis'))
+
+    @contextlib.contextmanager
+    def janus(self, project_name: str, read_only=True) -> typing.ContextManager["Janus"]:
+        with self.get_task_auth(project_name, read_only) as auth:
+            with self.get_client(auth) as session:
+                yield Janus(session, self.get_hostname('janus'))
 
     @staticmethod
     def assert_status(response: requests.Response, *args, **kwds):
@@ -119,33 +154,110 @@ class EtnaHook(BaseHook):
         pass
 
 class TokenAuth(AuthBase):
-    def __init__(self, token):
+    token: bytes
+
+    def __init__(self, token: bytes):
         self.token = token
 
     def __call__(self, r: requests.Request) -> requests.Request:
-        r.headers['Authorization'] = f'Etna {self.token}'
+        r.headers['Authorization'] = f'Etna {self.token.decode("ascii")}'
         return r
 
-class NonceAuth(AuthBase):
+class SigAuth(AuthBase):
+    nonce: bytes
+    email: str
+    private_key_file: str
+
     def __init__(self, private_key_file: str, email: str, nonce: bytes):
         self.private_key_file = private_key_file
         self.nonce = nonce
         self.email = email
 
     def __call__(self, r: requests.Request) -> requests.Request:
-        pk = rsa.PrivateKey.load_pkcs1(open(self.private_key_file, 'rb').read())
-        txt_to_sign: bytes = b'.'.join([self.nonce, base64.b64encode(self.email.encode('utf8'))])
-        sig = base64.b64encode(rsa.sign(txt_to_sign, pk, ' SHA-256'))
+        key = serialization.load_pem_private_key(open(self.private_key_file, 'rb').read(), None)
+        txt_to_sign: bytes = b'.'.join([self.nonce, base64.b64encode(self.email.encode('ascii'))])
+        sig = base64.b64encode(key.sign(txt_to_sign, padding.PKCS1v15(
+            # If in the future the server changes to PSS
+            # mgf=padding.MGF1(hashes.SHA256()),
+            # salt_length=padding.PSS.MAX_LENGTH
+        ), hashes.SHA256()))
         together: bytes = b'.'.join([txt_to_sign, sig])
         r.headers['Authorization'] = f'Signed-Nonce {together.decode("ascii")}'
         return r
 
-class Janus:
+def encode_path(*segments: str) -> str:
+    return '/'.join(quote(s) for s in segments)
+
+
+class EtnaClientBase:
     session: requests.Session
+    hostname: str
 
-    def __init__(self, session: requests.Session):
+    def __init__(self, session: requests.Session, hostname: str):
         self.session = session
+        self.hostname = hostname
 
-    def generate_token(self, ready_only = True, token_type = 'task'):
-        pass
+    def prepare_url(self, *path: str):
+        return f"https://{self.hostname}/{encode_path(*path)}"
+
+class Janus(EtnaClientBase):
+    def generate_token(self, project_name: str, ready_only=True, token_type='task') -> bytes:
+        response = self.session.post(self.prepare_url('api', 'tokens', 'generate'), json=dict(
+            token_type=token_type,
+            project_name=project_name,
+            ready_only=ready_only
+        ))
+        return response.content
+
+    def nonce(self) -> bytes:
+        response = self.session.get(self.prepare_url('api', 'tokens', 'nonce'))
+        return response.content
+
+@dataclasses.dataclass
+class File(DataclassWithNesting):
+    file_name: str
+    size: int
+    file_hash: str
+    updated_at: str
+    file_path: str
+    project_name: str
+    bucket_name: str
+    download_path: str
+
+    @property
+    def download_path(self) -> str:
+        return encode_path(self.project_name, 'download', self.bucket_name, self.file_path)
+
+    @property
+    def updated_at_datetime(self) -> datetime:
+        return dateutil.parser.isoparse(self.updated_at)
+
+@dataclasses.dataclass
+class Folder(DataclassWithNesting):
+    folder_path: str
+    project_name: str
+    bucket_name: str
+    folder_name: str
+    updated_at: str
+
+    @property
+    def updated_at_datetime(self) -> datetime:
+        return dateutil.parser.isoparse(self.updated_at)
+
+@dataclasses.dataclass
+class FoldersAndFilesResponse(DataclassWithNesting):
+    folders: List[Folder]
+    files: List[File]
+
+
+class Metis(EtnaClientBase):
+    def list_folder(self, project_name: str, bucket_name: str, folder_path: Optional[str] = None):
+        if folder_path:
+            response = self.session.get(self.prepare_url(project_name, 'list', bucket_name, folder_path))
+        else:
+            response = self.session.get(self.prepare_url(project_name, 'list', bucket_name))
+
+        return FoldersAndFilesResponse(**response.json())
+
+
 

@@ -36,6 +36,48 @@ class NotSoRandom(Random):
     def __init__(self, *args):
         super(NotSoRandom, self).__init__(0)
 
+# Authorization in any vcr is safely masked.
+@pytest.fixture(scope='module')
+def vcr_config():
+    return {"filter_headers": [("authorization", "XXX-Auth")]}
+
+@pytest.fixture()
+def rsa_etna_connection(session):
+    session.query(Connection).filter(Connection.conn_id == 'rsa_etna_connection').delete()
+
+    conn = Connection(
+        conn_id="rsa_etna_connection",
+        conn_type='etna',
+        login=os.environ.get('AIRFLOW_ETNA_TEST_EMAIL', 'zachary.collins@ucsf.edu'),
+        # This RSA key was cycled out after recording the test.  To record e2e again, try providing a new key, and replace it after recording.
+        password=os.environ.get('AIRFLOW_ETNA_TEST_RSA', '-----BEGIN PRIVATE KEY----- MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCX5/oljASRyfxf OG6uST61p5N36U7vsRgs0c2ZwsCfDNhl7drxglIVJRMshg5ZJazxmpMp15yb6u1b Y8iUy1ebPFn1BquuJIvNn2eRhV/zCbfETlbJXGT700jXemrdC8XFe9CCEg/J5lHr PkIEKKxY57LcpmHBHzo4f27Sn1PJzmdYlekSu1gLLbKxUmo2IexKpXmwTjTPViaa JFUsLmC07uzWrXcDo3JTjzz3Pk3KM8c+s9XLAl+ovrqO28vPghB5KzlSW8BCgQDc m0EdljkQIf3WdSNrhpIVUtWYLk29CJExgvY9Ei+8Ulw7gksN7+oDxcQefMNDgxQQ 4WPmClALAgMBAAECggEABy0WTB/JN3nrSjRIRkN/iuVXuhpzeC9NjRB8Pf9NSjY5 IteRuEcHyafut/O9ScjV2rQKr7dX1qXKgL6+Awl4IgU/2qtuANQJJrWZFu7OEZUr 8UIiJ3EN9DePAV7vHXIo7aNjvkFMLaWLySkvxTKGscyATpwtkgn/nhunCJwuQSJE baVCUEXN9OlMOcsTcuVmv4wEeLN+TRfMeMaLyv+WNDI29BZzuzny3qvr52ooYjjr 9HdYF9L+LM+LkuolMQIIy7jcAV0Y1RZ3F+HBQqc7qFOa+zFEQC9byr0+EMryoDU6 ZurPErgr2d3Wqo4g920tIn8TOannU6YXXNVIBrCFAQKBgQDDq1TwuvHFLuE/vXsP PGZUFMehcQS+f2Nm1iP8UIJbhmCCb0gxx2LlTxEiHKSq3AyA2AK3A5VOFQLmZUjM J49Fcv9pkPz2whYqCBk3qqwWCqBkYFmzQmiSaYyE19u7s/FTm67OSrguwPO3Euux /g0UVP4EXzlT0V9dAERYFJxu+wKBgQDGvlAwHOd8zngDkKyWBD8YyyL4RT5MluK+ ZShSHYrYjHRbVG05MIl5Hw1v6VA6DSLLlA//weD/EkS6KRnvhPP3h7AiQkV39OYx l5R25KbNuX6uETVIWcUHb34lQTsipI4YMtWlLKA9q9mjzZEDw/egIN8XAP08DSTK Aa0ujJaWMQKBgQClbwyH5GdZogNMEvYisZyK5m7KrnWmYqo2XkNapu8wVvLuFQxj GgMhgbIotzL6SsY/gWL6PYtU0yr6hRQBmEjoHQyZwr4+G2cF7obzq9eHY0Cs3VG5 4CHt+FOYVbEwiDk3yV8Ih+All3n3hYXFndiNIjcKl0Au/8yzIvClz/dbVQKBgQCP f+q2UqhyXUIakOOMjhRg+ouNZ7HL60Zc4v1yDRKruP5q01Lp8DnS0rEJFRVwVPvC sm265WpnwfEN2Y94ei8Nk1OB6QfvzUxIkoIINqCZ+k2VsacfTnINJFuY2riwEtDm eA367XXmEadbtpn2dhDd9d4e5f/y1Cq0EPHSooA4gQKBgHAx9MMGEIFc2z3Hc9AW E6S1+duQLnv5LBAxK4xgXwNchFNwa7QabXWo3nArKC5P/ORshMZZly5zLXRCX5Cy cf7CTPJJFxVrS7arUBPL4YzqsDzkzmSrpURc+fvZEaiWTnBWhYJPmZjwWl3sKqyY 5hIZhQjPLdvWuYJv4vE5qcMk -----END PRIVATE KEY----- '),
+        schema='rsa',
+        host='.ucsf.edu',
+    )
+
+    session.add(conn)
+    session.commit()
+    return conn
+
+@pytest.fixture()
+def token_etna_connection(session):
+    session.query(Connection).filter(Connection.conn_id == 'rsa_etna_connection').delete()
+
+    conn = Connection(
+        conn_id="rsa_etna_connection",
+        conn_type='etna',
+        login=os.environ.get('AIRFLOW_ETNA_TEST_EMAIL', ''),
+        # Unlike the rsa, there is no client side logic that depends on this, it is safe to leave it empty
+        # outside of recording new tests with new tokens.  It will be filtered from recordings.
+        password=os.environ.get('AIRFLOW_ETNA_TEST_TOKEN', ''),
+        schema='token',
+        host='',
+    )
+
+    session.add(conn)
+    session.commit()
+    return conn
+
 @pytest.fixture()
 def https_git_connection(session):
     session.query(Connection).filter(Connection.conn_id == 'https_git_connection').delete()
