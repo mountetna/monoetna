@@ -133,14 +133,15 @@ export function rangeInput(
   label: string) {
     
     const updateSlot = (newValue: string|number|null, slot: number, current_full = value) => {
-      let next_full = {...current_full}
+      let next_full = [...current_full]
       next_full[slot] = newValue
       return next_full
     }
     
     return(
       <div key={key}>
-        {label + ": From"}
+        {label}
+        From
         <DropdownAutocomplete
           list={["exactly","above"]}
           value={value[0]}
