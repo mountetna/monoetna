@@ -3,6 +3,8 @@ import { json_post, json_get } from 'etna-js/utils/fetch';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import { isAdmin, isSuperuser } from 'etna-js/utils/janus';
+import { useActionInvoker } from 'etna-js/hooks/useActionInvoker';
+import {showMessages} from 'etna-js/actions/message_actions';
 
 import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
@@ -136,7 +138,7 @@ const displayPermissions = (permissions, filter) => (
 );
 
 const ProjectView = ({project_name}) => {
-  const [error, setError] = useState();
+  const invoke = useActionInvoker();
 
   let user = useReduxState( state => selectUser(state) );
   let [ project, setProject ] = useState({});
@@ -177,7 +179,7 @@ const ProjectView = ({project_name}) => {
           ).filter(_=>_).join(', ')
         }
       </div>
-      {error && <div className='error'>Error: {error}</div>}
+
       <TableContainer className={classes.table} component={Paper}>
         <Table aria-label='project users'>
           <TableHead>
@@ -205,10 +207,7 @@ const ProjectView = ({project_name}) => {
                 permission={p}
                 editable={editable}
                 roles={roles}
-                onSave={({revision, user_email}) => {
-                  setError();
-                  postUpdatePermission(project_name, user_email, revision).then(() => retrieveProject()).catch((e) => e.then(({error}) => setError(error)))
-                }}
+                onSave={({revision, user_email}) => postUpdatePermission(project_name, user_email, revision).then(() => retrieveProject()).catch((e) => e.then(({error}) => invoke(showMessages([error]))))}
               />
             )
           }
@@ -217,10 +216,7 @@ const ProjectView = ({project_name}) => {
               create={true}
               editable={true}
               roles={['viewer', 'editor']} 
-              onSave={({revision}) => {
-                setError();
-                postAddUser(project_name, revision).then(() => retrieveProject()).catch((e) => e.then(({error}) => setError(error)))
-              }} />
+              onSave={({revision}) => postAddUser(project_name, revision).then(() => retrieveProject()).catch((e) => e.then(({error}) => invoke(showMessages([error]))))} />
           }
           </TableBody>
         </Table>
