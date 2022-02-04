@@ -136,6 +136,8 @@ const displayPermissions = (permissions, filter) => (
 );
 
 const ProjectView = ({project_name}) => {
+  const [error, setError] = useState();
+
   let user = useReduxState( state => selectUser(state) );
   let [ project, setProject ] = useState({});
   let [ filter, setFilter ] = useState(null);
@@ -175,7 +177,7 @@ const ProjectView = ({project_name}) => {
           ).filter(_=>_).join(', ')
         }
       </div>
-
+      {error && <div className='error'>Error: {error}</div>}
       <TableContainer className={classes.table} component={Paper}>
         <Table aria-label='project users'>
           <TableHead>
@@ -203,7 +205,10 @@ const ProjectView = ({project_name}) => {
                 permission={p}
                 editable={editable}
                 roles={roles}
-                onSave={({revision, user_email}) => postUpdatePermission(project_name, user_email, revision).then(() => retrieveProject())}
+                onSave={({revision, user_email}) => {
+                  setError();
+                  postUpdatePermission(project_name, user_email, revision).then(() => retrieveProject()).catch((e) => e.then(({error}) => setError(error)))
+                }}
               />
             )
           }
@@ -212,7 +217,10 @@ const ProjectView = ({project_name}) => {
               create={true}
               editable={true}
               roles={['viewer', 'editor']} 
-              onSave={({revision}) => postAddUser(project_name, revision).then(() => retrieveProject()).catch()} />
+              onSave={({revision}) => {
+                setError();
+                postAddUser(project_name, revision).then(() => retrieveProject()).catch((e) => e.then(({error}) => setError(error)))
+              }} />
           }
           </TableBody>
         </Table>
