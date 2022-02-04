@@ -6,6 +6,9 @@ from airflow.models.xcom import BaseXCom
 
 # "Just like" normal XCom, but allows for values that execute custom logic on read, allowing for
 # external references or custom logic.
+from serde.json import to_json
+
+
 class EtnaDeferredXCom:
     def execute(self):
         return None
@@ -18,7 +21,8 @@ class EtnaXCom(BaseXCom):
     def serialize_value(value: Any):
         if isinstance(value, EtnaDeferredXCom):
             return pickle.dumps(value)
-        return BaseXCom.serialize_value(value)
+        # Enables dataclass serialization
+        return to_json(value).encode('UTF-8')
 
     @staticmethod
     def deserialize_value(result: "EtnaXCom") -> Any:

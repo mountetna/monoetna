@@ -11,7 +11,7 @@ import io
 
 import tarfile
 from airflow import AirflowException
-from airflow.models import BaseOperator, TaskInstance
+from airflow.models import BaseOperator, TaskInstance, XCom
 from airflow.models.xcom_arg import XComArg
 from dateutil import parser
 from docker import APIClient
@@ -70,7 +70,7 @@ class DockerOperatorBase(BaseOperator):
         for path, file_input in self.file_inputs.items():
             bin: bytes
             if isinstance(file_input, XComArg):
-                bin = json.dumps(file_input.resolve(context)).encode('utf8')
+                bin = XCom.serialize_value(file_input.resolve(context))
             elif isinstance(file_input, bytes):
                 bin = file_input
             elif isinstance(file_input, str):

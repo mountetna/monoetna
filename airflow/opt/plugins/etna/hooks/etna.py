@@ -6,6 +6,7 @@ import typing
 from datetime import datetime
 from typing import Dict, Optional, List
 from urllib.parse import quote
+from serde import serialize, deserialize
 
 import cached_property
 import dateutil
@@ -17,9 +18,9 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from requests import HTTPError
 from requests.auth import AuthBase
+from serde.json import from_json
 
 from etna.hooks.keys import prepared_key_from
-from etna.utils.dataclass_utils import DataclassWithNesting
 
 
 class EtnaHook(BaseHook):
@@ -166,15 +167,15 @@ class TokenAuth(AuthBase):
 class SigAuth(AuthBase):
     nonce: bytes
     email: str
-    private_key_file: str
+    private_key: bytes
 
     def __init__(self, private_key_file: str, email: str, nonce: bytes):
-        self.private_key_file = private_key_file
+        self.private_key = open(private_key_file, 'rb').read()
         self.nonce = nonce
         self.email = email
 
     def __call__(self, r: requests.Request) -> requests.Request:
-        key = serialization.load_pem_private_key(open(self.private_key_file, 'rb').read(), None)
+        key = serialization.load_pem_private_key(self.private_key, None)
         txt_to_sign: bytes = b'.'.join([self.nonce, base64.b64encode(self.email.encode('ascii'))])
         sig = base64.b64encode(key.sign(txt_to_sign, padding.PKCS1v15(
             # If in the future the server changes to PSS
@@ -213,8 +214,10 @@ class Janus(EtnaClientBase):
         response = self.session.get(self.prepare_url('api', 'tokens', 'nonce'))
         return response.content
 
+@serialize
+@deserialize
 @dataclasses.dataclass
-class File(DataclassWithNesting):
+class File:
     file_name: str
     size: int
     file_hash: str
@@ -232,8 +235,10 @@ class File(DataclassWithNesting):
     def updated_at_datetime(self) -> datetime:
         return dateutil.parser.isoparse(self.updated_at)
 
+@serialize
+@deserialize
 @dataclasses.dataclass
-class Folder(DataclassWithNesting):
+class Folder:
     folder_path: str
     project_name: str
     bucket_name: str
@@ -244,11 +249,12 @@ class Folder(DataclassWithNesting):
     def updated_at_datetime(self) -> datetime:
         return dateutil.parser.isoparse(self.updated_at)
 
+@serialize
+@deserialize
 @dataclasses.dataclass
-class FoldersAndFilesResponse(DataclassWithNesting):
+class FoldersAndFilesResponse:
     folders: List[Folder]
     files: List[File]
-
 
 class Metis(EtnaClientBase):
     def list_folder(self, project_name: str, bucket_name: str, folder_path: Optional[str] = None):
@@ -256,8 +262,22 @@ class Metis(EtnaClientBase):
             response = self.session.get(self.prepare_url(project_name, 'list', bucket_name, folder_path))
         else:
             response = self.session.get(self.prepare_url(project_name, 'list', bucket_name))
+        return from_json(FoldersAndFilesResponse, response.content)
 
-        return FoldersAndFilesResponse(**response.json())
+    def find(self, project_name: str, bucket_name: str, params: List[typing.Mapping],
+             limit: Optional[int] = None, offset: Optional[int] = None, hide_paths=False):
+        args = dict(
+            params=params,
+            hide_paths=hide_paths
+        )
+
+        if limit:
+            args['limit'] = limit
+        if offset is not None:
+            args['offset'] = offset
+
+        response = self.session.post(self.prepare_url(project_name, 'find', bucket_name), json=args)
+        return from_json(FoldersAndFilesResponse, response.content)
 
 
 
