@@ -1577,8 +1577,6 @@ end
 
 class Logger
   def initialize
-    ::File.delete(log_file) if ::File.exists?(log_file)
-
     ::File.open(log_file, 'w') do |f|
       f.puts(utc)
       f.puts("Client md5: #{`md5sum #{::File.expand_path(__FILE__)}`}")
