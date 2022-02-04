@@ -40,7 +40,7 @@ def test_metis_files_etl_e2e(token_etna_connection: Connection):
         load_files()
     load_metis_files_etl_dag: DAG
 
-    @etl('mvir1', datetime(2020, 1, 1), timedelta(minutes=15), 1)
+    @etl('mvir1', datetime(2020, 1, 1), timedelta(minutes=5), 1)
     def process_some_metis_files_data():
         await_data_task = AwaitBatches(task_id='await_data', loader_dag=load_metis_files_etl_dag, element_class=Folder)
         output_task = run_on_docker('output_batch', 'polyphemus_app', ['cat', '/inputs/batch'], output_json=True)
@@ -51,10 +51,9 @@ def test_metis_files_etl_e2e(token_etna_connection: Connection):
     run_dag(load_metis_files_etl_dag, t(), t(4))
     files = XCom.get_one(dag_id=load_metis_files_etl_dag.dag_id, execution_date=t())
     assert len(files) > 0
-    run_dag(load_metis_files_etl_dag, t(5), t(9))
-    files = XCom.get_one(dag_id=load_metis_files_etl_dag.dag_id, execution_date=t(5))
+    run_dag(load_metis_files_etl_dag, t(6), t(9))
+    files = XCom.get_one(dag_id=load_metis_files_etl_dag.dag_id, execution_date=t(6))
     assert len(files) == 0
 
-    run_dag(process_some_metis_files_data, t(1), t(4))
-    files = XCom.get_one(dag_id=process_some_metis_files_data.dag_id, execution_date=t(1))
-    assert len(files) > 0
+    run_dag(process_some_metis_files_data, t(0), t(4))
+    files = XCom.get_one(dag_id=process_some_metis_files_data.dag_id, execution_date=t(0))

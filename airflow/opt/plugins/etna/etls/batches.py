@@ -8,6 +8,7 @@ from airflow.models import TaskInstance, XCom
 from airflow.sensors.base import BaseSensorOperator
 from airflow.triggers.temporal import TimeDeltaTrigger
 from airflow.utils.session import provide_session
+from airflow.utils.timezone import utc
 from serde.json import from_json
 from sqlalchemy.orm import Session
 
@@ -29,14 +30,11 @@ class AwaitBatches(BaseSensorOperator):
 
     def execute(self, context):
         return self.check_or_complete(context)
-        # self.defer(trigger=TimeDeltaTrigger(timedelta(minutes=1)), method_name="check_or_complete")
 
     @provide_session
     def check_or_complete(self, context, event=None, session: Session=None):
         ti: TaskInstance = context['ti']
         start, end = get_batch_range(context)
-        if ti.execution_date < datetime.now() + timedelta(seconds=self.timeout or 60 * 60):
-            raise AirflowException(f"Timeout awaiting loaded batch from dag {self.loader_dag.dag_id}")
 
         # Make sure that we have processed 'past' the current end point, so that our data should be complete.
         filters = [
@@ -50,17 +48,27 @@ class AwaitBatches(BaseSensorOperator):
         row = session.query(XCom).filter(*filters).order_by(XCom.execution_date.asc()).limit(1).first()
 
         if not row:
+            if datetime.utcnow().replace(tzinfo=utc) > (
+                    ti.execution_date + timedelta(seconds=self.timeout or 3600)).replace(tzinfo=utc):
+                raise AirflowException(f"Timeout awaiting loaded batch from dag {self.loader_dag.dag_id}")
             self.defer(trigger=TimeDeltaTrigger(timedelta(minutes=1)), method_name="check_or_complete")
 
         upper = row.execution_date
 
-        # Make sure that we have processed 'past' the current end point, so that our data should be complete.
-        row = session.query(XCom).filter(
+        filters = [
             XCom.dag_id == self.loader_dag.dag_id,
             XCom.execution_date <= start
-        ).order_by(XCom.execution_date.asc()).limit(1).first()
+        ]
+
+        if self.loader_task_id:
+            filters.append(XCom.task_id == self.loader_task_id)
+
+        row = session.query(XCom).filter(*filters).order_by(XCom.execution_date.desc()).limit(1).first()
 
         if not row:
+            if datetime.utcnow().replace(tzinfo=utc) > (
+                    ti.execution_date + timedelta(seconds=self.timeout or 3600)).replace(tzinfo=utc):
+                raise AirflowException(f"Timeout awaiting loaded batch from dag {self.loader_dag.dag_id}")
             self.defer(trigger=TimeDeltaTrigger(timedelta(minutes=1)), method_name="check_or_complete")
 
         lower = row.execution_date

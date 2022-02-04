@@ -2,12 +2,13 @@ from datetime import datetime, timedelta
 from typing import Tuple
 
 from airflow.models.taskinstance import Context
+from airflow.utils.timezone import utc
 
 batch_start_context_key = 'prev_data_interval_end_success'
 batch_end_context_key = 'data_interval_end'
 
 def get_batch_range(context: Context, inclusive=True) -> Tuple[datetime, datetime]:
-    start_date = context[batch_start_context_key] or datetime(2010, 1, 1)
+    start_date = context[batch_start_context_key] or datetime(2010, 1, 1).replace(tzinfo=utc)
     start_date = start_date.replace(microsecond=0)
 
     end_date = context[batch_end_context_key]
