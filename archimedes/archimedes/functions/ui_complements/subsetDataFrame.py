@@ -10,7 +10,7 @@ def subsetDF_index_targets(data_frame, conditions):
     '''
     
     if "methods" not in conditions.keys() or "logic" not in conditions.keys():
-        raise Exception("Subsetting 'conditions' are not formatted properly.")
+        raise Exception("Subsetting conditions are not formatted properly.")
     
     def interpret_method(method: List[str]):
         if method[0]==np.NaN:
@@ -39,7 +39,7 @@ def subsetDF_index_targets(data_frame, conditions):
             return [a==match for a in target_data]
         
         # Remainder = String data
-        if len(method)>=2:
+        if len(method)<2:
             raise Exception("A numeric subsetting condition for string-type data is not formatted properly.")
         return [a in method[1:] for a in target_data]
     
