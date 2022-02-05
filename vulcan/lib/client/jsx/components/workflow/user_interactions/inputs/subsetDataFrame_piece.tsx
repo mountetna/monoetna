@@ -110,7 +110,7 @@ export function subsetDataFrameInput(
           if (typeof target_data[0] == "boolean") {
             let use = ""
             if (inner_def.length > 0) {
-              use = inner_def[0]
+              use = inner_def[0] as string
             }
             def_comp = dropdownInput(
               key+index+index, updateDef, use,
