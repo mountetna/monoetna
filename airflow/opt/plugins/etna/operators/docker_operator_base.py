@@ -193,6 +193,9 @@ class DockerOperatorBase(BaseOperator):
                 self.log.info(last_line)
 
 
+LOG_LINE_BATCH_SIZE=16384 # 16K
+MAX_BATCH_SIZE=160
+LOG_TIMESTAMP_LEN=30
 def write_logs_and_yield_last(
     next_batch_since: Callable[[int], bytes],
     log: logging.Logger,
@@ -227,7 +230,7 @@ def write_logs_and_yield_last(
             # will result in some overlap of results but we can dedup using the string for comparison.
             # In theory, logs can be lost if even the string precision is not string enough, but there isn't an easy way
             # around this since the api lacks a strictly increasing non duplicated value for consuming logs.
-            date_s = line[:30]
+            date_s = line[:LOG_TIMESTAMP_LEN]
             date = parser.parse(date_s)
             t = time.mktime(date.timetuple())
 
@@ -237,6 +240,19 @@ def write_logs_and_yield_last(
             since_t = t
             since_s = date_s
             line = line[31:]
+
+            # log messages > 16K are broken into batches without newline separation, but including the timestamp
+            # header which must be removed.
+            if len(line) > LOG_LINE_BATCH_SIZE:
+                line_segments = []
+                offset = 0
+                for i in range(0, MAX_BATCH_SIZE):
+                    if offset > len(line):
+                        break
+                    line_segments.append(line[offset:offset + LOG_LINE_BATCH_SIZE])
+                    offset += LOG_LINE_BATCH_SIZE + LOG_TIMESTAMP_LEN + 1
+                line = b''.join(line_segments)
+
             next_batch_buff.append(line)
 
         if rpc_error:

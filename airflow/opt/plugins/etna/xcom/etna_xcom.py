@@ -26,6 +26,13 @@ class EtnaXCom(BaseXCom):
 
     @staticmethod
     def deserialize_value(result: "EtnaXCom") -> Any:
+        # orm_deserialize_value deferred loading of pickled object.
+        if isinstance(result.value, str):
+            result.value = result._original_value
+        # Already been deserialized.
+        if not isinstance(result.value, bytes):
+            return result.value
+
         result = BaseXCom.deserialize_value(result)
         if isinstance(result, EtnaDeferredXCom):
             return result.execute()
@@ -34,5 +41,6 @@ class EtnaXCom(BaseXCom):
     def orm_deserialize_value(self) -> Any:
         result = BaseXCom.deserialize_value(self)
         if isinstance(result, EtnaDeferredXCom):
+            self._original_value = self.value
             return str(result)
         return BaseXCom.deserialize_value(self)

@@ -269,7 +269,6 @@ class DockerSwarmOperator(DockerOperatorBase):
                 shared_data.data,
                 self.shared_data_labeling(),
             )
-            print(config)
 
             configs.append(
                 ConfigReference(

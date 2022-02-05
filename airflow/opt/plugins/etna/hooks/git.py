@@ -108,7 +108,6 @@ class GitHook(BaseHook):
                     ask_pass_file.write(f"exec echo {self.connection.password}")
                     env["GIT_ASKPASS"] = ask_pass_file.name
 
-                print(os.environ['PATH'])
                 result = process.run_command(["git"] + list(command), env, cwd=working_dir)
 
             if result.exit_code != 0:

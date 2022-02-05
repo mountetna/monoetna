@@ -6,6 +6,9 @@ import typing
 from datetime import datetime
 from typing import Dict, Optional, List
 from urllib.parse import quote
+
+from airflow import DAG
+from airflow.operators.python import get_current_context
 from serde import serialize, deserialize
 
 import cached_property
@@ -20,6 +23,7 @@ from requests import HTTPError
 from requests.auth import AuthBase
 from serde.json import from_json
 
+from etna.dags.project_name import project_name_of
 from etna.hooks.keys import prepared_key_from
 
 
@@ -88,26 +92,27 @@ class EtnaHook(BaseHook):
     def get_hostname(self, host_prefix: str):
         return f"{host_prefix}{self.connection.host or '.ucsf.edu'}"
 
-    @contextlib.contextmanager
-    def get_token_auth(self) -> typing.ContextManager[Optional[AuthBase]]:
+    def get_token_auth(self) -> AuthBase:
         schema = self.connection.schema or 'token'
         if schema == 'rsa':
             with prepared_key_from(self.connection, True) as key_file:
                 with self.get_client(None) as session:
                     nonce = Janus(session, self.get_hostname('janus')).nonce()
-                yield SigAuth(key_file, self.connection.login, nonce)
+                return SigAuth(key_file, self.connection.login, nonce)
         elif schema == 'token':
             token = self.connection.password or ''
-            yield TokenAuth(token.encode('utf8'))
+            return TokenAuth(token.encode('utf8'))
         else:
             raise AirflowException(f"Connection {self.connection.conn_id} has invalid schema: '{self.connection.schema}'")
 
-    @contextlib.contextmanager
-    def get_task_auth(self, project_name: str, ready_only=True) -> typing.ContextManager[Optional[AuthBase]]:
-        with self.get_token_auth() as token_auth:
-            with self.get_client(token_auth) as session:
-                token = Janus(session, self.get_hostname('janus')).generate_token(project_name, ready_only)
-                yield TokenAuth(token)
+    def get_task_auth(self, project_name: Optional[str]=None, ready_only=True) -> "TokenAuth":
+        if project_name is None:
+            dag: DAG = get_current_context()['dag']
+            project_name = project_name_of(dag)
+        token_auth = self.get_token_auth()
+        with self.get_client(token_auth) as session:
+            token = Janus(session, self.get_hostname('janus')).generate_token(project_name, ready_only)
+        return TokenAuth(token, project_name)
 
     @contextlib.contextmanager
     def get_client(self, auth: Optional[AuthBase]) -> typing.ContextManager[requests.Session]:
@@ -118,16 +123,16 @@ class EtnaHook(BaseHook):
             yield session
 
     @contextlib.contextmanager
-    def metis(self, project_name: str, read_only=True) -> typing.ContextManager["Metis"]:
-        with self.get_task_auth(project_name, read_only) as auth:
-            with self.get_client(auth) as session:
-                yield Metis(session, self.get_hostname('metis'))
+    def metis(self, project_name: Optional[str] = None, read_only=True) -> typing.ContextManager["Metis"]:
+        auth = self.get_task_auth(project_name, read_only)
+        with self.get_client(auth) as session:
+            yield Metis(session, self.get_hostname('metis'))
 
     @contextlib.contextmanager
-    def janus(self, project_name: str, read_only=True) -> typing.ContextManager["Janus"]:
-        with self.get_task_auth(project_name, read_only) as auth:
-            with self.get_client(auth) as session:
-                yield Janus(session, self.get_hostname('janus'))
+    def janus(self, project_name: Optional[str] = None, read_only=True) -> typing.ContextManager["Janus"]:
+        auth = self.get_task_auth(project_name, read_only)
+        with self.get_client(auth) as session:
+            yield Janus(session, self.get_hostname('janus'))
 
     @staticmethod
     def assert_status(response: requests.Response, *args, **kwds):
@@ -156,9 +161,11 @@ class EtnaHook(BaseHook):
 
 class TokenAuth(AuthBase):
     token: bytes
+    project_scope: Optional[str]
 
-    def __init__(self, token: bytes):
+    def __init__(self, token: bytes, project_scope: Optional[str]=None):
         self.token = token
+        self.project_scope = project_scope
 
     def __call__(self, r: requests.Request) -> requests.Request:
         r.headers['Authorization'] = f'Etna {self.token.decode("ascii")}'
@@ -200,6 +207,11 @@ class EtnaClientBase:
 
     def prepare_url(self, *path: str):
         return f"https://{self.hostname}/{encode_path(*path)}"
+
+    def get_project_scope(self) -> Optional[str]:
+        if isinstance(self.session.auth, TokenAuth):
+            return self.session.auth.project_scope
+        return None
 
 class Janus(EtnaClientBase):
     def generate_token(self, project_name: str, ready_only=True, token_type='task') -> bytes:

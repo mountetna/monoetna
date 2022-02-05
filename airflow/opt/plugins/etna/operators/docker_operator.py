@@ -5,6 +5,7 @@ import docker.errors
 from airflow import AirflowException
 from docker import APIClient
 from docker.models.containers import Container
+from docker.types import LogConfig, HostConfig
 
 from etna.operators.docker_operator_base import DockerOperatorBase
 
@@ -64,6 +65,10 @@ class DockerOperator(DockerOperatorBase):
         if binds is None:
             binds = []
             new_host_config["Binds"] = binds
+
+        # new_host_config["log_config"]
+        # HostConfig()
+        # LogConfig
 
         for data in self.swarm_shared_data:
             with tempfile.NamedTemporaryFile(delete=False) as file:
