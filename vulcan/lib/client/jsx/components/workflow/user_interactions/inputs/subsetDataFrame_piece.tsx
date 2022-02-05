@@ -36,9 +36,13 @@ export function subsetDataFrameInput(
       
       const single_definition = (index: number, Def: (string|number|null)[] = [null]) => {
         
+        // updateFxns for inner piece calls
+        // 'x' is a dummy variable needed because each piece will send a dummy key in addition the 'newDef' value.
+        const updateLogic = (newLogic: string|null, x: string) => {
+          updateCurrent(null, newLogic, index)
+        }
         const updateDef = (newDef: (string|number|null)[], x: string) => {
-          // updateFxn for inner piece calls which will not include the column_name
-          // 'x' is a dummy variable needed because each piece will send a dummy key in addition the 'newDef' value.
+          // Inners will not have the column_name
           const col = [Def[0]]
           updateCurrent(col.concat(...newDef), null, index)
         }
@@ -75,8 +79,8 @@ export function subsetDataFrameInput(
         )
         const logic_comp = (index == 0) ? null : 
           dropdownInput(
-              key+index+index, updateDef, values['logic'][index-1][0] as string,
-              "Combination Logic:", ["and", "not", "or", "or not"], false
+              key+index+index+index, updateLogic, values['logic'][index-1][0] as string,
+              "Combination Logic:", ["and", "or"], false
             )
         
         if (Def[0]!=null) {
@@ -168,7 +172,6 @@ export function subsetDataFrameInput(
           </div>
         )
       }
-
       return(
         <div key={key}>
           <p></p>
