@@ -31,7 +31,7 @@ def subsetDF_index_targets(data_frame, conditions):
             return [a and b for a,b in zip(left, right)]
         
         if _is_logical(target_data):
-            if len(method)!=2:
+            if len(method)!=2 or not method[1].lower() in ["true", "false"]:
                 raise Exception("A numeric subsetting condition for logical-type data is not formatted properly.")
             match = False
             if method[1].lower()=="true":
