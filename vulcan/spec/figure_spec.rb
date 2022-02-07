@@ -10,10 +10,41 @@ describe FigureController do
   context '#fetch' do
     it 'returns a list of figures' do
       auth_header(:viewer)
-      get("/api/athena/figures")
+      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
+      get("/api/labors/figures")
 
       expect(last_response.status).to eq(200)
-      expect(json_body[:figures]).to eql(["test_concurrent_workflow.cwl"])
+      expect(json_body[:figures].first[:title]).to eql(figure.title)
+    end
+  end
+
+  context '#get' do
+    it 'returns a figure by id' do
+      auth_header(:viewer)
+      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
+      get("/api/labors/figure/#{figure.id}")
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:title]).to eql(figure.title)
+    end
+  end
+  context '#create' do
+    it 'creates a new figure' do
+      auth_header(:viewer)
+      contents = {
+        title: 'Lion of Nemea',
+        workflow_name: 'reubens',
+        inputs: { a: 'b' }
+      }
+      post("/api/labors/figure/create", contents)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body).to include(
+        contents.merge(
+          project_name: "labors"
+        )
+      )
+
     end
   end
 end

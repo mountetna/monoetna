@@ -36,14 +36,14 @@ const ROUTES = [
     mode: ''
   },
   {
-    name: 'workflows',
-    template: ':project_name/workflow',
+    name: 'new_figure',
+    template: ':project_name/figure/new/:workflow_name',
     component: Browser,
     mode: 'workflow'
   },
   {
-    name: 'workflow',
-    template: ':projectName/workflow/:workflowName',
+    name: 'figure',
+    template: ':project_name/figure/:figure_id',
     component: Browser,
     mode: 'workflow'
   }

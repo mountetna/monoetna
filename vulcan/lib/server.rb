@@ -19,26 +19,21 @@ class Vulcan
       post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true
       post 'api/:project_name/session/:workflow_name', action: 'sessions#submit', as: :submit_view, match_ext: true
 
-      get 'api/:project_name/figures', action: 'figures#fetch'
-      get 'api/:project_name/figure/:figure_id', action: 'figures#get'
-      post 'api/:project_name/figure/:figure_id/update', action: 'figures#update'
+      get 'api/:project_name/figures', action: 'figure#fetch'
+      get 'api/:project_name/figure/:figure_id', action: 'figure#get'
+      post 'api/:project_name/figure/create', action: 'figure#create'
+      post 'api/:project_name/figure/:figure_id/update', action: 'figure#update'
     end
 
     with auth: { user: { active?: true, has_flag?: 'vulcan' } } do
+      # remaining view routes are parsed by the client and must be set there
+      get '/:project_name', as: :project_root do erb_view(:client) end
 
-      # remaining view routes are parsed by the client and must also be set there
-      get '/:project_name/workflow', as: :workflow do
-        erb_view(:client)
-      end
-
-      get '/:project_name/workflow/*view_path', as: :workflow_view do
-        erb_view(:client)
-      end
+      get '/:project_name/*client_path', as: :client_view do erb_view(:client) end
     end
 
     # root path
     get '/', as: :root do erb_view(:client) end
-    get '/:project_name', as: :root do erb_view(:client) end
 
     def initialize
       super
