@@ -9,10 +9,13 @@ interface Props {
   projectName: string,
 }
 
-export default function Browser({workflowName, projectName}: Props) {
+export default function Browser({workflow_name, project_name, figure_id}: Props) {
   return (
     <main className='vulcan-browser browser'>
-      <WorkflowManager workflowName={workflowName} projectName={projectName}/>
+      <WorkflowManager
+        workflowName={workflow_name}
+        figureId={figure_id}
+        projectName={project_name}/>
     </main>
   );
 }

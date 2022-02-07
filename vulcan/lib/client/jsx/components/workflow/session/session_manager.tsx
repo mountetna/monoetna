@@ -2,6 +2,10 @@ import React, {useCallback, useContext} from 'react';
 import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
 
+import Breadcrumbs from '@material-ui/core/Breadcrumbs';
+import Typography from '@material-ui/core/Typography';
+import Link from '@material-ui/core/Link';
+
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import {clearCommittedStepPending, setSession} from '../../../actions/vulcan_actions';
 import InputFeed from './input_feed';
@@ -14,6 +18,7 @@ import {useWorkflow} from '../../../contexts/workflow_context';
 import {readTextFile, downloadBlob} from 'etna-js/utils/blob';
 import { defaultSession } from '../../../reducers/vulcan_reducer';
 import {VulcanSession} from "../../../api_types";
+import { json_post } from 'etna-js/utils/fetch';
 
 const modalStyles = {
   content: {
@@ -42,7 +47,25 @@ export default function SessionManager() {
 
   const saveSession = useCallback(() => {
     if (hasPendingEdits) {
-      if (!confirm('You have unfilled inputs and/or uncommitted changes. Unfilled inputs will be left out of the saved state. Uncommited changes will be reset to their previously committed values. Proceed?')) {
+      if (!confirm('Pending edits will be discarded when saving. Proceed?')) {
+        return;
+      }
+    }
+
+    let params = { ...session }
+
+    if (!params.title) {
+      params.title = prompt('Set a title for this figure');
+      if (!params.title) return;
+    }
+
+    json_post(`/api/${params.project_name}/figure/create`, params)
+
+  }, [hasPendingEdits, session, name]);
+
+  const saveSessionToBlob = useCallback(() => {
+    if (hasPendingEdits) {
+      if (!confirm('Pending edits will be discarded when saving. Proceed?')) {
         return;
       }
     }
@@ -88,9 +111,11 @@ export default function SessionManager() {
   return (
     <div className='session-manager'>
       <div className='session-header'>
-        <span className='session-workflow-name'>
-          {workflow.description || name} - {session.project_name}
-        </span>
+        <Breadcrumbs className='session-workflow-name'>
+          <Link href={`/${session.project_name}`}>{session.project_name}</Link>
+          <Typography>{workflow.displayName}</Typography> 
+          <Typography>{session.title || 'Untitled'}</Typography>
+        </Breadcrumbs>
         {workflow.vignette && (
           <React.Fragment>
             <FlatButton
@@ -128,24 +153,8 @@ export default function SessionManager() {
           className='header-btn save'
           icon='save'
           label='Save'
-          title='Save workflow parameters to file'
+          title='Save current workflow parameters to current figure'
           onClick={saveSession}
-          disabled={running}
-        />
-        <FlatButton
-          className='header-btn open'
-          icon='folder-open'
-          label='Open'
-          title='Load workflow parameters from file'
-          onClick={openSession}
-          disabled={running}
-        />
-        <FlatButton
-          className='header-btn reset'
-          icon='undo'
-          label='Reset'
-          title='Reset to the default workflow parameters'
-          onClick={resetSession}
           disabled={running}
         />
       </div>

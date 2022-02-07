@@ -94,8 +94,24 @@ def run_script script
   manifest.instance_variable_get('@return_vars')
 end
 
+def create_figure(params)
+  now = DateTime.now
+  create(
+    :figure,
+    {
+      id: 1,
+      project_name: 'labors',
+      workflow_name: 'workflow',
+      inputs: {},
+      title: 'title',
+      created_at: now,
+      updated_at: now
+    }.update(params)
+  )
+end
+
 FactoryBot.define do
-  factory :figure do
+  factory :figure, class: Vulcan::Figure do
     to_create(&:save)
   end
 end

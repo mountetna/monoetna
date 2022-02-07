@@ -32,7 +32,8 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: '5px'
   },
   header: {
-    cursor: 'pointer'
+    cursor: 'pointer',
+    padding: '10px'
   }
 }));
 
