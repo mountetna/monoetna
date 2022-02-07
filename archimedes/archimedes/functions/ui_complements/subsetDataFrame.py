@@ -58,10 +58,11 @@ def subsetDF_index_targets(data_frame, conditions):
         return out        
     logic = conditions['logic']
     ands = [[0]]
-    for i in range(len(logic)):
-        if logic[i]==["and"]:
-            ands[len(ands)-1].append(i+1)
-        else:
-            ands.append([i+1])
+    if logic[0]!=[]:
+        for i in range(len(logic)):
+            if logic[i]==["and"]:
+                ands[len(ands)-1].append(i+1)
+            elif logic[i]==["or"]:
+                ands.append([i+1])
     and_calls = list(map(lambda this: map_by_2s(combine_ands, [raw_calls[i] for i in this]), ands))
     return _which_rows(map_by_2s(combine_ors, and_calls), data_frame)
