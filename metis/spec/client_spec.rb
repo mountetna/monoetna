@@ -25,6 +25,13 @@ describe MetisShell do
     OUTER_APP
   end
 
+  def token_with_exp(exp)
+    token = Base64.strict_encode64(
+      { email: 'metis@olympus.org', name: "Metis", perm: 'a:athena', exp: exp }.to_json
+    )
+    "something.#{token}"
+  end
+
   before(:each) do
     MetisConfig.instance.config(
       metis_uid: SecureRandom.hex,
@@ -32,10 +39,7 @@ describe MetisShell do
       metis_host: 'metis.test'
     )
 
-    token = Base64.strict_encode64(
-      { email: 'metis@olympus.org', name: "Metis", perm: 'a:athena', exp: 253371439590 }.to_json
-    )
-    @long_lived_token = "something.#{token}"
+    @long_lived_token = token_with_exp(253371439590)
     ENV['TOKEN'] = @long_lived_token
     stub_request(:any, %r!^https://metis.test/!).to_rack(app)
 
@@ -48,10 +52,7 @@ describe MetisShell do
 
   describe MetisShell do
     it 'tells user if token is expired' do
-      token = Base64.strict_encode64(
-        { email: 'metis@olympus.org', name: "Metis", perm: 'a:athena', exp: 1000 }.to_json
-      )
-      ENV['TOKEN'] = "something.#{token}"
+      ENV['TOKEN'] = token_with_exp(1000)
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       expect_output("metis://athena", "ls") { %r!expired!}
     end
@@ -59,10 +60,7 @@ describe MetisShell do
     it 'refreshes the token if close to expiring' do
       frozen_time = 1000
       Timecop.freeze(DateTime.strptime(frozen_time.to_s, "%s"))
-      token = Base64.strict_encode64(
-        { email: 'metis@olympus.org', name: "Metis", perm: 'a:athena', exp: frozen_time + 1000 }.to_json
-      )
-      ENV['TOKEN'] = "something.#{token}"
+      ENV['TOKEN'] = token_with_exp(2000)
 
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       expect_output("metis://athena", "ls") { %r!armor/!}
@@ -77,10 +75,7 @@ describe MetisShell do
     it 'does not refresh the token if not close to expiring' do
       frozen_time = 1000
       Timecop.freeze(DateTime.strptime(frozen_time.to_s, "%s"))
-      token = Base64.strict_encode64(
-        { email: 'metis@olympus.org', name: "Metis", perm: 'a:athena', exp: frozen_time + 100000 }.to_json
-      )
-      full_future_token = "something.#{token}"
+      full_future_token = token_with_exp(frozen_time + 100000)
       ENV['TOKEN'] = full_future_token
 
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
@@ -88,6 +83,31 @@ describe MetisShell do
 
       expect(WebMock).not_to have_requested(:get, "https://janus.test/refresh_token")
       expect(ENV["TOKEN"]).to eq(full_future_token)
+
+      Timecop.return
+    end
+
+    it 'refreshes the token if feeding in commands from stdin' do
+      frozen_time = 1000
+      Timecop.freeze(DateTime.strptime(frozen_time.to_s, "%s"))
+
+      ENV['TOKEN'] = token_with_exp(2000)
+
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+
+      with_temp_stdio do |stdin, stdout|
+        stdin.write("project athena\n")
+        stdin.write("ls\n")
+        stdin.flush
+
+        shell = MetisShell.new("metis:://athena/armor")
+        replace_stdio(stdin.path, stdout.path) do
+          shell.run
+        end
+        expect(WebMock).to have_requested(:get, "https://janus.test/refresh_token")
+
+        expect(ENV["TOKEN"]).to eq(@long_lived_token)
+      end
 
       Timecop.return
     end
