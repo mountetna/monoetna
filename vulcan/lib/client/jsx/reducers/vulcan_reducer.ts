@@ -146,7 +146,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
     case 'CHECK_CHANGES_READY':
       const stepName = withDefault(action.step,null)
       let ready: boolean;
-      if (stepName == null || stepName == 'primary_inputs') {
+      if (stepName == null) {
         ready = false;
       } else {
         const stepNum = state.status[0].findIndex(
@@ -192,7 +192,6 @@ function filterStaleInputs(state: VulcanState,
       if (hashesOfSteps[stepStatus.name] !== stepStatus.hash) {
         const step = stepOfStatus(stepStatus, workflow);
         if (!step) continue;
-
         allExpectedOutputSources(step).forEach(outputSource => {
           if (newState === state) {
             newState = {...state, session: {...state.session, inputs: {...state.session.inputs}}};
