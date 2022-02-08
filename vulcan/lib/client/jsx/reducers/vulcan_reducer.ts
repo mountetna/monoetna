@@ -2,7 +2,8 @@ import {
   VulcanAction
 } from '../actions/vulcan_actions';
 import {
-  defaultSessionStatusResponse, SessionStatusResponse, StepStatus, Workflow, WorkflowsResponse
+  defaultSessionStatusResponse, SessionStatusResponse, StepStatus, Workflow, WorkflowsResponse,
+  PRIMARY_INPUTS
 } from "../api_types";
 import {allExpectedOutputSources, filterEmptyValues, statusOfStep, stepOfStatus} from "../selectors/workflow_selectors";
 import {mapSome, Maybe, some, withDefault} from "../selectors/maybe";
@@ -146,7 +147,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
     case 'CHECK_CHANGES_READY':
       const stepName = withDefault(action.step,null)
       let ready: boolean;
-      if (stepName == null || stepName == 'primary_inputs') {
+      if (stepName == null || stepName === PRIMARY_INPUTS) {
         ready = false;
       } else {
         const stepNum = state.status[0].findIndex(

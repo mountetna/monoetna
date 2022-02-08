@@ -19,6 +19,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import IconButton from '@material-ui/core/IconButton';
 import {makeStyles} from '@material-ui/core/styles';
+import {PRIMARY_INPUTS} from '../../../api_types';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -34,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
 export default function PrimaryInputs() {
   const {commitSessionInputChanges, dispatch} = useContext(VulcanContext);
 
-  return <WithBufferedInputs commitSessionInputChanges={commitSessionInputChanges} dispatch={dispatch} stepName='primary_inputs'>
+  return <WithBufferedInputs commitSessionInputChanges={commitSessionInputChanges} dispatch={dispatch} stepName={PRIMARY_INPUTS}>
     <PrimaryInputsInner/>
   </WithBufferedInputs>
 }
