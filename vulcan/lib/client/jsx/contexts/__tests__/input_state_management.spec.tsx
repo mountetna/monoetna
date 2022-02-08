@@ -5,6 +5,7 @@ import {useContext} from "react";
 import {VulcanContext} from "../vulcan_context";
 import {addValidationErrors, setBufferedInput, setInputs} from "../../actions/vulcan_actions";
 import {BufferedInputsContext, WithBufferedInputs} from "../input_state_management";
+import {PRIMARY_INPUTS} from '../../api_types';
 
 describe('useDataBuffering', () => {
   beforeEach(() => {
@@ -71,7 +72,7 @@ describe('useDataBuffering', () => {
     });
 
     describe('for primary inputs', () => {
-      stepName.replace(() => 'primary_inputs');
+      stepName.replace(() => PRIMARY_INPUTS);
 
       it('pushes those into the session.inputs, then executes a poll', async () => {
         const {stateRef} = contextData.value;
