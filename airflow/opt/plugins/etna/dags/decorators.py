@@ -1,6 +1,10 @@
+import functools
+import re
+
+from airflow.decorators import task
 from pendulum import datetime
 from datetime import timedelta
-from typing import Mapping, Union
+from typing import Mapping, Union, List
 from typing import Optional
 
 from airflow import DAG
@@ -12,7 +16,60 @@ from airflow.models.dag import (
 
 from etna.dags.callbacks import notify_slack_dag_callback
 from etna.etls.context import batch_start_context_key, batch_end_context_key
+from etna.etls.metis import load_metis_folders_batch
+from etna.hooks.etna import Folder, EtnaHook
 from etna.utils.inject import inject
+from etna.xcom.etna_xcom import pickled
+
+
+def metis_folder_etl(
+        project_name: str,
+        bucket_name: str,
+        start_date: datetime,
+        version: Union[int, str],
+        propagate_folder_updates=True,
+        hook: Optional[EtnaHook] = None,
+        inject_params: Mapping[str, str] = {},
+):
+    if hook is None:
+        hook = EtnaHook.for_project(project_name)
+
+    interval = timedelta(minutes=5)
+
+    def instantiate_dag(fn):
+        @functools.wraps(fn)
+        def setup_tail():
+            @task
+            def tail_folders() -> List[Folder]:
+                with hook.metis() as metis:
+                    return pickled(load_metis_folders_batch(metis, bucket_name))
+
+            @task
+            def propagate_folder_updated_at(folders: List[Folder]):
+                with hook.metis() as metis:
+                    for folder in folders:
+                        children = metis.list_folder(project_name, bucket_name, folder.folder_path).folders
+                        for child in children:
+                            if child.updated_at_datetime < folder.updated_at_datetime:
+                                metis.touch_folder(project_name, bucket_name, child.folder_path)
+
+            folders = tail_folders()
+
+            if propagate_folder_updates:
+                propagate_folder_updated_at(folders)
+
+            return inject(fn, dict(tail_folders=folders, project_name=project_name, bucket_name=bucket_name,
+                                   **inject_params))
+
+        return etl(
+            project_name=project_name,
+            start_date=start_date,
+            interval=interval,
+            version=version,
+        )(setup_tail)
+
+    return instantiate_dag
+
 
 def dag(
         on_failure_callback: Optional[DagStateChangeCallback] = None,
@@ -47,7 +104,8 @@ def dag(
     return instantiate_dag
 
 
-def etl(project_name: str, start_date: datetime, interval: timedelta, version: Union[int, str], inject_params: Mapping = {}):
+def etl(project_name: str, start_date: datetime, interval: timedelta, version: Union[int, str],
+        inject_params: Mapping = {}):
     def instantiate_dag(fn):
         return dag(
             start_date=start_date,
@@ -68,7 +126,9 @@ def etl(project_name: str, start_date: datetime, interval: timedelta, version: U
 
     return instantiate_dag
 
+
 system_epoch = datetime(2021, 12, 22, 16, 56, 3, 185905)
+
 
 # A dag context
 def system_dag(interval: timedelta):

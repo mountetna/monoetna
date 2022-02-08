@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, TypeVar, cast, Generic
 
 import pickle
 from airflow.models.xcom import BaseXCom
@@ -15,6 +15,17 @@ class EtnaDeferredXCom:
 
     def __str__(self):
         return f"<{self.__class__.__name__}>"
+
+T = TypeVar("T")
+def pickled(v: T) -> T:
+    return cast(T, _Pickled(v))
+
+# Explicit pickling
+class _Pickled(EtnaDeferredXCom):
+    def __init__(self, value):
+        self.value = value
+    def execute(self):
+        return self.value
 
 class EtnaXCom(BaseXCom):
     @staticmethod

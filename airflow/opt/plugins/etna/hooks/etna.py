@@ -21,7 +21,7 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from requests import HTTPError
 from requests.auth import AuthBase
-from serde.json import from_json
+from serde.json import from_json, to_json
 
 from etna.dags.project_name import project_name_of
 from etna.hooks.keys import prepared_key_from
@@ -81,13 +81,16 @@ class EtnaHook(BaseHook):
         super().__init__()
         self.etna_conn_id = etna_conn_id
 
+    @classmethod
+    def for_project(cls, project_name):
+        return cls(f"etna_{project_name}")
+
     def get_conn(self) -> Connection:
         return self.get_connection(self.etna_conn_id)
 
     @cached_property.cached_property
     def connection(self) -> Connection:
         return self.get_conn()
-
 
     def get_hostname(self, host_prefix: str):
         return f"{host_prefix}{self.connection.host or '.ucsf.edu'}"
@@ -103,9 +106,10 @@ class EtnaHook(BaseHook):
             token = self.connection.password or ''
             return TokenAuth(token.encode('utf8'))
         else:
-            raise AirflowException(f"Connection {self.connection.conn_id} has invalid schema: '{self.connection.schema}'")
+            raise AirflowException(
+                f"Connection {self.connection.conn_id} has invalid schema: '{self.connection.schema}'")
 
-    def get_task_auth(self, project_name: Optional[str]=None, ready_only=True) -> "TokenAuth":
+    def get_task_auth(self, project_name: Optional[str] = None, ready_only=True) -> "TokenAuth":
         if project_name is None:
             dag: DAG = get_current_context()['dag']
             project_name = project_name_of(dag)
@@ -134,6 +138,12 @@ class EtnaHook(BaseHook):
         with self.get_client(auth) as session:
             yield Janus(session, self.get_hostname('janus'))
 
+    @contextlib.contextmanager
+    def magma(self, project_name: Optional[str] = None, read_only=True) -> typing.ContextManager["Magma"]:
+        auth = self.get_task_auth(project_name, read_only)
+        with self.get_client(auth) as session:
+            yield Magma(session, self.get_hostname('magma'))
+
     @staticmethod
     def assert_status(response: requests.Response, *args, **kwds):
         if 200 <= response.status_code < 300:
@@ -159,17 +169,19 @@ class EtnaHook(BaseHook):
     def generate_task_token(self):
         pass
 
+
 class TokenAuth(AuthBase):
     token: bytes
     project_scope: Optional[str]
 
-    def __init__(self, token: bytes, project_scope: Optional[str]=None):
+    def __init__(self, token: bytes, project_scope: Optional[str] = None):
         self.token = token
         self.project_scope = project_scope
 
     def __call__(self, r: requests.Request) -> requests.Request:
         r.headers['Authorization'] = f'Etna {self.token.decode("ascii")}'
         return r
+
 
 class SigAuth(AuthBase):
     nonce: bytes
@@ -193,6 +205,7 @@ class SigAuth(AuthBase):
         r.headers['Authorization'] = f'Signed-Nonce {together.decode("ascii")}'
         return r
 
+
 def encode_path(*segments: str) -> str:
     return '/'.join(quote(s) for s in segments)
 
@@ -213,6 +226,7 @@ class EtnaClientBase:
             return self.session.auth.project_scope
         return None
 
+
 class Janus(EtnaClientBase):
     def generate_token(self, project_name: str, ready_only=True, token_type='task') -> bytes:
         response = self.session.post(self.prepare_url('api', 'tokens', 'generate'), json=dict(
@@ -226,18 +240,20 @@ class Janus(EtnaClientBase):
         response = self.session.get(self.prepare_url('api', 'tokens', 'nonce'))
         return response.content
 
+
 @serialize
 @deserialize
 @dataclasses.dataclass
 class File:
-    file_name: str
-    size: int
-    file_hash: str
-    updated_at: str
-    file_path: str
-    project_name: str
-    bucket_name: str
-    download_path: str
+    id: int = 0
+    file_name: str = ""
+    size: int = 0
+    file_hash: str = ""
+    updated_at: str = ""
+    file_path: str = ""
+    project_name: str = ""
+    bucket_name: str = ""
+    download_path: str = ""
 
     @property
     def download_path(self) -> str:
@@ -247,19 +263,22 @@ class File:
     def updated_at_datetime(self) -> datetime:
         return dateutil.parser.isoparse(self.updated_at)
 
+
 @serialize
 @deserialize
 @dataclasses.dataclass
 class Folder:
-    folder_path: str
-    project_name: str
-    bucket_name: str
-    folder_name: str
-    updated_at: str
+    id: int = 0
+    folder_path: str = ""
+    project_name: str = ""
+    bucket_name: str = ""
+    folder_name: str = ""
+    updated_at: str = ""
 
     @property
     def updated_at_datetime(self) -> datetime:
         return dateutil.parser.isoparse(self.updated_at)
+
 
 @serialize
 @deserialize
@@ -268,8 +287,21 @@ class FoldersAndFilesResponse:
     folders: List[Folder]
     files: List[File]
 
+
+@serialize
+@deserialize
+@dataclasses.dataclass
+class FoldersResponse:
+    folders: List[Folder]
+
+
 class Metis(EtnaClientBase):
-    def list_folder(self, project_name: str, bucket_name: str, folder_path: Optional[str] = None):
+    def touch_folder(self, project_name: str, bucket_name: str, folder_path: str) -> FoldersResponse:
+        response = self.session.get(self.prepare_url(project_name, 'folder', 'touch', bucket_name, folder_path))
+        return from_json(FoldersResponse, response.content)
+
+    def list_folder(self, project_name: str, bucket_name: str,
+                    folder_path: Optional[str] = None) -> FoldersAndFilesResponse:
         if folder_path:
             response = self.session.get(self.prepare_url(project_name, 'list', bucket_name, folder_path))
         else:
@@ -277,7 +309,7 @@ class Metis(EtnaClientBase):
         return from_json(FoldersAndFilesResponse, response.content)
 
     def find(self, project_name: str, bucket_name: str, params: List[typing.Mapping],
-             limit: Optional[int] = None, offset: Optional[int] = None, hide_paths=False):
+             limit: Optional[int] = None, offset: Optional[int] = None, hide_paths=False) -> FoldersAndFilesResponse:
         args = dict(
             params=params,
             hide_paths=hide_paths
@@ -291,5 +323,81 @@ class Metis(EtnaClientBase):
         response = self.session.post(self.prepare_url(project_name, 'find', bucket_name), json=args)
         return from_json(FoldersAndFilesResponse, response.content)
 
+@serialize
+@deserialize
+@dataclasses.dataclass
+class Attribute:
+    attribute_type: str = ""
+    link_model_name: Optional[str] = None
+    match: Optional[str] = None
+    restricted: Optional[bool] = None
+    hidden: Optional[bool] = None
+
+@serialize
+@deserialize
+@dataclasses.dataclass
+class Template:
+    attributes: Dict[str, Attribute]
+    name: str = ""
+    identifier: str = ""
+    version: int = 0
+    parent: str = ""
+
+@serialize
+@deserialize
+@dataclasses.dataclass
+class Model:
+    documents: Dict[str, Dict[str, typing.Any]]
+    template: Optional[Template] = None
+    count: int = 0
+
+@serialize
+@deserialize
+@dataclasses.dataclass
+class RetrievalResponse:
+    models: Dict[str, Model]
 
 
+@serialize
+@deserialize
+@dataclasses.dataclass
+class UpdateRequest:
+    revisions: Dict[str, Dict[str, Dict[str, typing.Any]]]
+    project_name: str = ""
+    dry_run: bool = False
+
+    def update_record(self, model_name: str, record_name: str, attrs: Dict[str, typing.Any]) -> Dict[str, typing.Any]:
+        record = self.revisions.setdefault(model_name, {}).setdefault(record_name, {})
+        record.update(**attrs)
+        return record
+
+    def append_table(self, parent_model_name: str, parent_record_name: str, model_name: str, attrs: Dict[str, typing.Any], attribute_name: str):
+        parent_revision = self.update_record(parent_model_name, parent_record_name, {})
+        table = parent_revision.setdefault(attribute_name, [])
+        id = f"::{model_name}{len(self.revisions.setdefault(model_name, {})) + 1}"
+        table.append(id)
+        self.update_record(model_name, id, attrs)
+        return id
+
+class Magma(EtnaClientBase):
+    def retrieve(self, project_name: str, model_name='all', attribute_names='all',
+                 record_names: Optional[List[str]] = None, page: Optional[int] = None, page_size: Optional[int] = None,
+                 order: Optional[str] = None, filter: Optional[str] = None, hide_templates=True) -> RetrievalResponse:
+        args = dict(project_name=project_name, model_name=model_name, attribute_names=attribute_names, hide_templates=hide_templates)
+        if record_names is not None:
+            args['record_names'] = record_names
+        if page is not None:
+            args['page'] = page
+        if page_size is not None:
+            args['page_size'] = page_size
+        if order is not None:
+            args['order'] = order
+        if filter is not None:
+            args['filter'] = filter
+
+        response = self.session.post(self.prepare_url('retrieve'), json=args)
+        return from_json(RetrievalResponse, response.content)
+
+    def update(self, update: UpdateRequest):
+        response = self.session.post(self.prepare_url('update'), data=to_json(update))
+        return from_json(RetrievalResponse, response.content)

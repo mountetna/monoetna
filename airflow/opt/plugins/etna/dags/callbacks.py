@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from airflow.exceptions import AirflowNotFoundException, AirflowException
 from airflow.hooks.base import BaseHook
@@ -10,9 +10,12 @@ from airflow.utils.state import State
 
 from airflow.models.taskinstance import Context, TaskInstance
 
-def find_first_valid_connection(*options: str) -> str:
+def find_first_valid_connection(*options: Optional[str]) -> str:
     last_e = None
     for option in options:
+        if option is None:
+            continue
+
         try:
             BaseHook.get_connection(option)
             return option

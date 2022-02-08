@@ -108,6 +108,8 @@ class DockerOperatorBase(BaseOperator):
             raise AirflowException(f"'{key}' was not instance of XComArg, str, or bytes!")
         if not isinstance(key, str):
             raise AirflowException(f"{self.__class__.__name__} only accepts string index keys")
+        if isinstance(value, XComArg):
+            self.set_upstream(value)
         self.file_inputs[key] = value
 
     @staticmethod
