@@ -41,8 +41,6 @@ export const OUTPUT_COMPONENT = {
   RAW: 'raw'
 };
 
-export const PRIMARY_INPUTS = 'primary_inputs';
-
 export const defaultWorkflowsResponse = {
   workflows: [] as Workflow[],
 }

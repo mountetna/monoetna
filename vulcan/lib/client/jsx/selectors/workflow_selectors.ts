@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import {
-  OUTPUT_COMPONENT, RUN, PRIMARY_INPUTS, STATUS, StepStatus, Workflow, WorkflowStep,
+  OUTPUT_COMPONENT, RUN, SessionStatusResponse, STATUS, StepInput, StepStatus, Workflow, WorkflowInput, WorkflowStep,
 } from "../api_types";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {
@@ -162,7 +162,7 @@ export function allExpectedOutputSources(step: WorkflowStep | WorkflowStepGroup)
 
 export function allSourcesForStepName(name: string, workflow: Workflow | null): string[] {
   if (!workflow) return [];
-  if (name === PRIMARY_INPUTS) return allWorkflowPrimaryInputSources(workflow);
+  if (name == 'primary_inputs') return allWorkflowPrimaryInputSources(workflow);
   const step = stepOfStatus(name, workflow);
   if (!step) return [];
   return allExpectedOutputSources(step);
