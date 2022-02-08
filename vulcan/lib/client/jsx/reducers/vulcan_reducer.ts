@@ -192,6 +192,7 @@ function filterStaleInputs(state: VulcanState,
       if (hashesOfSteps[stepStatus.name] !== stepStatus.hash) {
         const step = stepOfStatus(stepStatus, workflow);
         if (!step) continue;
+
         allExpectedOutputSources(step).forEach(outputSource => {
           if (newState === state) {
             newState = {...state, session: {...state.session, inputs: {...state.session.inputs}}};
