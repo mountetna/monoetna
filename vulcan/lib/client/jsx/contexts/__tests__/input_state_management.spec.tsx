@@ -15,7 +15,7 @@ describe('useDataBuffering', () => {
     jest.useRealTimers();
   })
 
-  const stepName = setupBefore(() => null as string | null);
+  const stepName = setupBefore(() => '' as string);
   const integrated = setupBefore(() => integrateElement((hook, {dispatch, commitSessionInputChanges}) =>
     <WithBufferedInputs stepName={stepName.value} dispatch={dispatch}
                         commitSessionInputChanges={commitSessionInputChanges}>
@@ -71,6 +71,8 @@ describe('useDataBuffering', () => {
     });
 
     describe('for primary inputs', () => {
+      stepName.replace(() => 'primary_inputs');
+
       it('pushes those into the session.inputs, then executes a poll', async () => {
         const {stateRef} = contextData.value;
         const {inputs} = bufferInputsContextData.value;

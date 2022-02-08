@@ -160,9 +160,9 @@ export function allExpectedOutputSources(step: WorkflowStep | WorkflowStepGroup)
   }
 }
 
-export function allSourcesForStepName(name: string | null, workflow: Workflow | null): string[] {
+export function allSourcesForStepName(name: string, workflow: Workflow | null): string[] {
   if (!workflow) return [];
-  if (!name) return allWorkflowPrimaryInputSources(workflow);
+  if (name == 'primary_inputs') return allWorkflowPrimaryInputSources(workflow);
   const step = stepOfStatus(name, workflow);
   if (!step) return [];
   return allExpectedOutputSources(step);

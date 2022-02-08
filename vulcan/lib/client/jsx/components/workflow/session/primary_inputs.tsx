@@ -34,7 +34,7 @@ const useStyles = makeStyles((theme) => ({
 export default function PrimaryInputs() {
   const {commitSessionInputChanges, dispatch} = useContext(VulcanContext);
 
-  return <WithBufferedInputs commitSessionInputChanges={commitSessionInputChanges} dispatch={dispatch} stepName={null}>
+  return <WithBufferedInputs commitSessionInputChanges={commitSessionInputChanges} dispatch={dispatch} stepName='primary_inputs'>
     <PrimaryInputsInner/>
   </WithBufferedInputs>
 }

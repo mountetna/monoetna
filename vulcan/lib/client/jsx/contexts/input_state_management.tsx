@@ -15,7 +15,7 @@ import {VulcanContext} from "./vulcan_context";
 import Button from '@material-ui/core/Button';
 
 export const defaultInputStateManagement = {
-  commitSessionInputChanges(stepName: string | null, inputs: DataEnvelope<Maybe<any>>) {
+  commitSessionInputChanges(stepName: string, inputs: DataEnvelope<Maybe<any>>) {
     return false;
   }
 }
@@ -37,7 +37,7 @@ export function WithBufferedInputs({
 }: PropsWithChildren<{
   commitSessionInputChanges: typeof defaultInputStateManagement.commitSessionInputChanges,
   dispatch: Dispatch<VulcanAction>,
-  stepName: string | null,
+  stepName: string,
 }>) {
   const {stateRef, state} = useContext(VulcanContext);
   const inputsRef = useRef({} as DataEnvelope<Maybe<any>>);
