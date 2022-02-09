@@ -100,26 +100,25 @@ def enable_task_backfill(op: BaseOperator):
         dag_id: Optional[str] = None,
         key: str = XCOM_RETURN_KEY,
         include_prior_dates: Optional[bool] = None,
-    ) -> None:
+    ):
         ti: TaskInstance = context['ti']
 
         if dag_id is None:
             dag_id = ti.dag_id
 
-        if task_ids:
-            task_id = task_ids[0]
-        else:
-            task_id = ti.task_id
+        if not task_ids:
+            task_ids = [ti.task_id]
 
         start, stop = _get_batch_range(context)
-        return BatchReferenceResult(dag_id, task_id, start, stop).execute()
+
+        return [BatchReferenceResult(dag_id, task_id, start, stop).execute() for task_id in task_ids]
 
     def xcom_push(
             context: Any,
             key: str,
             value: Any,
             execution_date: Optional[datetime] = None,
-    ) -> None:
+    ):
         ti: TaskInstance = context['ti']
 
         if execution_date is None:
@@ -134,6 +133,7 @@ def enable_task_backfill(op: BaseOperator):
         )
 
     def execute(context: Context):
+        ti: TaskInstance = context['ti']
         start, stop = _get_batch_range(context)
         dag_start, dag_stop = _get_dag_batch_range(context)
 
@@ -141,7 +141,7 @@ def enable_task_backfill(op: BaseOperator):
             context[batch_start_context_key] = start
             context[batch_end_context_key] = stop
 
-            result = op.execute(context)
+            result = ti.task.__class__.execute(ti.task, context)
         finally:
             context[batch_start_context_key] = dag_start
             context[batch_end_context_key] = dag_stop

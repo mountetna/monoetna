@@ -112,7 +112,13 @@ def dag(
 
 def etl(project_name: str, start_date: datetime, interval: timedelta, version: Union[int, str],
         inject_params: Mapping = {}):
+
     def instantiate_dag(fn):
+        nonlocal start_date
+
+        # Stagger all etl start dates so as to reduce congestion.
+        start_date += timedelta(seconds=abs(hash(fn.__name__)) % interval.seconds)
+
         new_dag: DAG = dag(
             start_date=start_date,
             schedule_interval=interval,

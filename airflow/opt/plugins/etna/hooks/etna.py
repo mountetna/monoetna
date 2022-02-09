@@ -257,16 +257,14 @@ class MagmaFileEntry:
 @deserialize
 @dataclasses.dataclass
 class File:
-    id: int = 0
     file_name: str = ""
-    size: int = 0
     file_hash: str = ""
     updated_at: str = ""
-    file_path: str = ""
+    file_path: Optional[str] = ""
     folder_id: Optional[int] = None
     project_name: str = ""
     bucket_name: str = ""
-    download_path: str = ""
+    download_url: Optional[str] = ""
 
     @property
     def as_magma_file_attribute(self) -> MagmaFileEntry:
@@ -307,13 +305,18 @@ class FoldersAndFilesResponse:
     folders: List[Folder]
     files: List[File]
 
+    def empty(self):
+        return not self.folders and not self.files
+
+    def extend(self, other: "FoldersAndFilesResponse"):
+        self.folders.extend(other.folders)
+        self.files.extend(other.files)
 
 @serialize
 @deserialize
 @dataclasses.dataclass
 class FoldersResponse:
     folders: List[Folder]
-
 
 class Metis(EtnaClientBase):
     def touch_folder(self, project_name: str, bucket_name: str, folder_path: str) -> FoldersResponse:
@@ -328,20 +331,33 @@ class Metis(EtnaClientBase):
             response = self.session.get(self.prepare_url(project_name, 'list', bucket_name))
         return from_json(FoldersAndFilesResponse, response.content)
 
+    batch_size = 1000
+
     def find(self, project_name: str, bucket_name: str, params: List[typing.Mapping],
              limit: Optional[int] = None, offset: Optional[int] = None, hide_paths=False) -> FoldersAndFilesResponse:
+        if not limit:
+            limit = self.batch_size
+        if not offset:
+            offset = 0
+
         args = dict(
             params=params,
-            hide_paths=hide_paths
+            hide_paths=hide_paths,
+            limit=limit,
+            offset=offset,
         )
 
-        if limit:
-            args['limit'] = limit
-        if offset is not None:
-            args['offset'] = offset
+        result = FoldersAndFilesResponse(folders=[], files=[])
+        while True:
+            response = self.session.post(self.prepare_url(project_name, 'find', bucket_name), json=args)
+            response_obj = from_json(FoldersAndFilesResponse, response.content)
+            if response_obj.empty():
+                break
 
-        response = self.session.post(self.prepare_url(project_name, 'find', bucket_name), json=args)
-        return from_json(FoldersAndFilesResponse, response.content)
+            args['offset'] += max(len(response_obj.files), len(response_obj.folders))
+            result.extend(response_obj)
+
+        return result
 
 
 @serialize
@@ -388,7 +404,7 @@ class RetrievalResponse:
         return True
 
     def extend(self, other: "RetrievalResponse"):
-        for model_name, model in other.models:
+        for model_name, model in other.models.items():
             if model_name in self.models:
                 self.models[model_name].count += model.count
                 self.models[model_name].documents.update(model.documents)
@@ -424,7 +440,7 @@ class Magma(EtnaClientBase):
                  record_names: Optional[List[str]] = None, page: Optional[int] = None, page_size: Optional[int] = None,
                  order: Optional[str] = None, filter: Optional[str] = None, hide_templates=True) -> RetrievalResponse:
         if page is None:
-            page = 0
+            page = 1
         if page_size is None:
             page_size = self.batch_size
 
@@ -440,7 +456,12 @@ class Magma(EtnaClientBase):
 
         def consume_pages():
             while True:
-                r = self.session.post(self.prepare_url('retrieve'), json=args)
+                try:
+                    r = self.session.post(self.prepare_url('retrieve'), json=args)
+                except HTTPError as e:
+                    if e.response.status_code == 422:
+                        if b'not found' in e.response.content:
+                            break
                 paged = from_json(RetrievalResponse, r.content)
 
                 if paged.empty():
@@ -452,7 +473,7 @@ class Magma(EtnaClientBase):
         if record_names is not None:
             for record_name_batch in batch_iterable(record_names, self.batch_size):
                 args['record_names'] = record_name_batch
-                args['page'] = 0
+                args['page'] = 1
                 consume_pages()
         else:
             consume_pages()
