@@ -33,14 +33,14 @@ def subsetDF_index_targets(data_frame, conditions):
         # Logical data
         if _is_logical(target_data):
             if len(method)!=2 or not method[1].lower() in ["true", "false"]:
-                raise Exception("A numeric subsetting condition for logical-type data is not formatted properly.")
+                raise Exception("A subsetting condition for logical-type data was left incomplete.")
             match = False
             if method[1].lower()=="true":
                 match = True
             return [a==match for a in target_data]
         # Remainder = String data
         if len(method)<2:
-            raise Exception("A numeric subsetting condition for string-type data is not formatted properly.")
+            raise Exception("A subsetting condition for string-type data was left incomplete, or a condition targetting an unimplemented data type was left in place.")
         return [a in method[1:] for a in target_data]
     raw_calls = list(map(interpret_method, conditions['methods']))
     

@@ -12,12 +12,12 @@ It's a piece that recieves, as additional inputs:
  - 'sorted' = whether column name dropdowns should be alphanumerically sorted versus left in the same order as they are in the 'data_frame'.
 */
 
-
 export function subsetDataFrameInput(
   key: string = "filler", changeFxn: Function, value: DataEnvelope<(string|number|null)[][]> = {},
-  label: string, data_frame: DataEnvelope<any>, sorted = false, color: PropTypes.Color = "primary") {
+  label: string, data_frame_ori: DataEnvelope<any>, sorted = false, color: PropTypes.Color = "primary") {
     
   const values = {...value}
+  const data_frame = {...data_frame_ori}
   
   const startOrClear = (doSubset: boolean, x:any) => {
     const new_full = (doSubset) ? {
@@ -102,13 +102,26 @@ const singleMethod = (
   
   const clearDef = () => {
     const full = {...values};
-    // methods
+    // methods (Current at index, must remain/become [[null]] or lose current)
     let next_methods = full['methods']
     next_methods.splice(index,1)
-    if (next_methods.length==0) {next_methods = [[null]]}
-    // logic
+    if (next_methods.length==0) {
+      next_methods = [[null]]
+    }
+    // logic (Current at index-1, must remain/become [[]], lose current, or lose next if clicked for 1st def)
+    let next_logic = full['logic']
+    if (next_logic.length == 1) {
+      next_logic = [[]]
+    } else {
+      if (index==0) {
+        next_logic.splice(index,1)
+      }
+      if (index>0) {
+        next_logic.splice(index-1,1)
+      }
+    }
     overallChangeFxn(
-      {methods: next_methods},
+      {methods: next_methods, logic: next_logic},
       key)
   }
   
