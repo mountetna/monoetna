@@ -4,8 +4,10 @@ import json
 import os
 import tarfile
 from os.path import basename
-from typing import Callable, Mapping
+from typing import Callable, Mapping, Union, Type
 from typing import Optional, List, Any
+
+from serde.json import from_json
 
 from etna.operators.docker_operator import DockerOperator
 from etna.operators.docker_operator_base import SwarmSharedData, DockerOperatorBase
@@ -56,7 +58,10 @@ def run_in_swarm(
 def _prepare_input_outputs(output_b64, output_json):
     serialize_last_output: Optional[Callable[[bytes], Any]] = None
     if output_json:
-        serialize_last_output = json.loads
+        if isinstance(output_json, type):
+            serialize_last_output = lambda bytes: from_json(type, bytes.encode('utf8'))
+        else:
+            serialize_last_output = json.loads
     elif output_b64:
         serialize_last_output = base64.b64decode
     return serialize_last_output
@@ -68,7 +73,7 @@ def run_in_container(
         command: List[str],
         env: Mapping[str, str] = dict(),
         use_compose: bool = True,
-        output_json: bool = False,
+        output_json: Union[bool, Type] = False,
         output_b64: bool = False,
         docker_base_url="unix://var/run/docker.sock",
 ) -> DockerOperator:

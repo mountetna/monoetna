@@ -2,6 +2,7 @@ import base64
 import contextlib
 import dataclasses
 import json
+import os.path
 import typing
 from datetime import datetime
 from typing import Dict, Optional, List
@@ -23,8 +24,9 @@ from requests import HTTPError
 from requests.auth import AuthBase
 from serde.json import from_json, to_json
 
-from etna.dags.project_name import project_name_of
+from etna.dags.project_name import get_project_name
 from etna.hooks.keys import prepared_key_from
+from etna.utils.batching import batch_iterable
 
 
 class EtnaHook(BaseHook):
@@ -82,7 +84,9 @@ class EtnaHook(BaseHook):
         self.etna_conn_id = etna_conn_id
 
     @classmethod
-    def for_project(cls, project_name):
+    def for_project(cls, project_name: Optional[str] = None):
+        if project_name is None:
+            project_name = get_project_name()
         return cls(f"etna_{project_name}")
 
     def get_conn(self) -> Connection:
@@ -112,7 +116,7 @@ class EtnaHook(BaseHook):
     def get_task_auth(self, project_name: Optional[str] = None, ready_only=True) -> "TokenAuth":
         if project_name is None:
             dag: DAG = get_current_context()['dag']
-            project_name = project_name_of(dag)
+            project_name = get_project_name(dag)
         token_auth = self.get_token_auth()
         with self.get_client(token_auth) as session:
             token = Janus(session, self.get_hostname('janus')).generate_token(project_name, ready_only)
@@ -244,6 +248,14 @@ class Janus(EtnaClientBase):
 @serialize
 @deserialize
 @dataclasses.dataclass
+class MagmaFileEntry:
+    path: str = ""
+    original_filename: str = ""
+
+
+@serialize
+@deserialize
+@dataclasses.dataclass
 class File:
     id: int = 0
     file_name: str = ""
@@ -251,9 +263,17 @@ class File:
     file_hash: str = ""
     updated_at: str = ""
     file_path: str = ""
+    folder_id: Optional[int] = None
     project_name: str = ""
     bucket_name: str = ""
     download_path: str = ""
+
+    @property
+    def as_magma_file_attribute(self) -> MagmaFileEntry:
+        return MagmaFileEntry(
+            path=f"metis://{self.project_name}/{self.bucket_name}/{self.file_path}",
+            original_filename=self.file_name or os.path.basename(self.file_path)
+        )
 
     @property
     def download_path(self) -> str:
@@ -323,6 +343,7 @@ class Metis(EtnaClientBase):
         response = self.session.post(self.prepare_url(project_name, 'find', bucket_name), json=args)
         return from_json(FoldersAndFilesResponse, response.content)
 
+
 @serialize
 @deserialize
 @dataclasses.dataclass
@@ -332,6 +353,7 @@ class Attribute:
     match: Optional[str] = None
     restricted: Optional[bool] = None
     hidden: Optional[bool] = None
+
 
 @serialize
 @deserialize
@@ -343,6 +365,7 @@ class Template:
     version: int = 0
     parent: str = ""
 
+
 @serialize
 @deserialize
 @dataclasses.dataclass
@@ -351,12 +374,26 @@ class Model:
     template: Optional[Template] = None
     count: int = 0
 
+
 @serialize
 @deserialize
 @dataclasses.dataclass
 class RetrievalResponse:
     models: Dict[str, Model]
 
+    def empty(self):
+        for model in self.models.values():
+            if model.count:
+                return False
+        return True
+
+    def extend(self, other: "RetrievalResponse"):
+        for model_name, model in other.models:
+            if model_name in self.models:
+                self.models[model_name].count += model.count
+                self.models[model_name].documents.update(model.documents)
+            else:
+                self.models[model_name] = model
 
 @serialize
 @deserialize
@@ -366,12 +403,14 @@ class UpdateRequest:
     project_name: str = ""
     dry_run: bool = False
 
-    def update_record(self, model_name: str, record_name: str, attrs: Dict[str, typing.Any]) -> Dict[str, typing.Any]:
+    def update_record(self, model_name: str, record_name: str, attrs: Dict[str, typing.Any] = dict()) -> Dict[
+        str, typing.Any]:
         record = self.revisions.setdefault(model_name, {}).setdefault(record_name, {})
         record.update(**attrs)
         return record
 
-    def append_table(self, parent_model_name: str, parent_record_name: str, model_name: str, attrs: Dict[str, typing.Any], attribute_name: str):
+    def append_table(self, parent_model_name: str, parent_record_name: str, model_name: str,
+                     attrs: Dict[str, typing.Any], attribute_name: str):
         parent_revision = self.update_record(parent_model_name, parent_record_name, {})
         table = parent_revision.setdefault(attribute_name, [])
         id = f"::{model_name}{len(self.revisions.setdefault(model_name, {})) + 1}"
@@ -379,25 +418,50 @@ class UpdateRequest:
         self.update_record(model_name, id, attrs)
         return id
 
+
 class Magma(EtnaClientBase):
     def retrieve(self, project_name: str, model_name='all', attribute_names='all',
                  record_names: Optional[List[str]] = None, page: Optional[int] = None, page_size: Optional[int] = None,
                  order: Optional[str] = None, filter: Optional[str] = None, hide_templates=True) -> RetrievalResponse:
-        args = dict(project_name=project_name, model_name=model_name, attribute_names=attribute_names, hide_templates=hide_templates)
-        if record_names is not None:
-            args['record_names'] = record_names
-        if page is not None:
-            args['page'] = page
-        if page_size is not None:
-            args['page_size'] = page_size
+        if page is None:
+            page = 0
+        if page_size is None:
+            page_size = self.batch_size
+
+        args = dict(project_name=project_name, model_name=model_name, attribute_names=attribute_names,
+                    hide_templates=hide_templates, page=page, page_size=page_size)
+
         if order is not None:
             args['order'] = order
         if filter is not None:
             args['filter'] = filter
 
-        response = self.session.post(self.prepare_url('retrieve'), json=args)
-        return from_json(RetrievalResponse, response.content)
+        response = RetrievalResponse(models={})
 
+        def consume_pages():
+            while True:
+                r = self.session.post(self.prepare_url('retrieve'), json=args)
+                paged = from_json(RetrievalResponse, r.content)
+
+                if paged.empty():
+                    break
+
+                response.extend(paged)
+                args['page'] += 1
+
+        if record_names is not None:
+            for record_name_batch in batch_iterable(record_names, self.batch_size):
+                args['record_names'] = record_name_batch
+                args['page'] = 0
+                consume_pages()
+        else:
+            consume_pages()
+
+        return response
+
+    batch_size = 100
+
+    # TODO: Support batched update, breaking down the request into viable chunks
     def update(self, update: UpdateRequest):
         response = self.session.post(self.prepare_url('update'), data=to_json(update))
         return from_json(RetrievalResponse, response.content)

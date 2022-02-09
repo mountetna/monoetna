@@ -1,5 +1,5 @@
 import functools
-import re
+import os.path
 
 from airflow.decorators import task
 from pendulum import datetime
@@ -15,19 +15,19 @@ from airflow.models.dag import (
 )
 
 from etna.dags.callbacks import notify_slack_dag_callback
-from etna.etls.context import batch_start_context_key, batch_end_context_key
-from etna.etls.metis import load_metis_folders_batch
-from etna.hooks.etna import Folder, EtnaHook
+from etna.etls.batches import batch_end_context_key, enable_task_backfill
+from etna.etls.metis import load_metis_folders_batch, load_metis_files_batch
+from etna.hooks.etna import Folder, EtnaHook, File
 from etna.utils.inject import inject
 from etna.xcom.etna_xcom import pickled
 
 
-def metis_folder_etl(
+def metis_etl(
         project_name: str,
         bucket_name: str,
         start_date: datetime,
         version: Union[int, str],
-        propagate_folder_updates=True,
+        propagate_updates=True,
         hook: Optional[EtnaHook] = None,
         inject_params: Mapping[str, str] = {},
 ):
@@ -45,6 +45,11 @@ def metis_folder_etl(
                     return pickled(load_metis_folders_batch(metis, bucket_name))
 
             @task
+            def tail_files() -> List[File]:
+                with hook.metis() as metis:
+                    return pickled(load_metis_files_batch(metis, bucket_name))
+
+            @task
             def propagate_folder_updated_at(folders: List[Folder]):
                 with hook.metis() as metis:
                     for folder in folders:
@@ -54,11 +59,12 @@ def metis_folder_etl(
                                 metis.touch_folder(project_name, bucket_name, child.folder_path)
 
             folders = tail_folders()
+            files = tail_files()
 
-            if propagate_folder_updates:
+            if propagate_updates:
                 propagate_folder_updated_at(folders)
 
-            return inject(fn, dict(tail_folders=folders, project_name=project_name, bucket_name=bucket_name,
+            return inject(fn, dict(tail_folders=folders, tail_files=files, project_name=project_name, bucket_name=bucket_name,
                                    **inject_params))
 
         return etl(
@@ -107,12 +113,11 @@ def dag(
 def etl(project_name: str, start_date: datetime, interval: timedelta, version: Union[int, str],
         inject_params: Mapping = {}):
     def instantiate_dag(fn):
-        return dag(
+        new_dag: DAG = dag(
             start_date=start_date,
             schedule_interval=interval,
             catchup=True,
             inject_params=dict(
-                batch_start_date="{{ " + batch_start_context_key + " }}",
                 batch_end_date="{{ " + batch_end_context_key + " }}",
                 version=version,
                 **inject_params
@@ -123,6 +128,11 @@ def etl(project_name: str, start_date: datetime, interval: timedelta, version: U
             ),
             version=version,
         )(fn)
+
+        for op in new_dag.tasks:
+            enable_task_backfill(op)
+
+        return new_dag
 
     return instantiate_dag
 
