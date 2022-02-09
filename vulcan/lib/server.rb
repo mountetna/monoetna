@@ -17,7 +17,6 @@ class Vulcan
       post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true
       post 'api/:project_name/session/:workflow_name', action: 'sessions#submit', as: :submit_view, match_ext: true
       get 'api/:project_name/workflows/:workflow_name/session/:key', action: 'sessions#fetch', match_ext: true
-      post 'api/:project_name/session/:workflow_name/from_query', action: 'sessions#from_query', match_ext: true
       get 'api/:project_name/workflows', action: 'workflows#fetch_for_project'
       
       # remaining view routes are parsed by the client and must also be set there

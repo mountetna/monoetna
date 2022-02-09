@@ -31,41 +31,6 @@ class SessionsController < Vulcan::Controller
     raise Etna::BadRequest.new(e.message)
   end
 
-  def from_query
-    require_params(:query)
-
-    metadata = Etna::Cwl::Workflow.metadata(@params[:workflow_name])
-
-    inputs = {}
-
-    begin
-      metadata[:inputQueryMap].map do |cwlStepName, stepInputsMap|
-        step = cwlStepName == :primary_inputs ? cwlStepName : cwlStepName.to_s
-
-        next unless stepInputsMap.is_a?(Hash)
-
-        stepInputsMap.map do |cwlInputName, queryParam|
-          inputs[[step, cwlInputName.to_s]] = {
-            json_payload: @params[queryParam.to_sym]
-          }
-        end
-      end
-    end if metadata.keys.include?(:inputQueryMap)
-
-    new_session = Session.new_session_for(
-      @params[:project_name],
-      @params[:workflow_name],
-      SecureRandom.uuid.hex.to_s,
-      inputs
-    )
-
-    # new_session.save_to_db
-
-    success_json({
-      session: new_session.as_json
-    })
-  end
-
   def status
     success_json(status_payload)
   end

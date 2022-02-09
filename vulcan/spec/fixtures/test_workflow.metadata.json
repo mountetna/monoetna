@@ -1,9 +1,4 @@
 {
   "projects": ["labors", "secret_project"],
-  "tags": ["demo"],
-  "inputQueryMap": {
-    "primary_inputs": {
-      "someInt": "query"
-    }
-  }
+  "tags": ["demo"]
 }
