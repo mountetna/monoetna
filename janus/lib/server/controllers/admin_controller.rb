@@ -64,7 +64,7 @@ class AdminController < Janus::Controller
     require_params(:email, :name, :role)
     @project = Project[project_name: @params[:project_name]]
 
-    @email = @params[:email].downcase
+    @email = @params[:email].downcase.strip
 
     raise Etna::Forbidden, 'Cannot set admin role!' if @params[:role] == 'administrator'
 

@@ -374,6 +374,33 @@ describe AdminController do
       expect(user2.email).to eq('portunus@two-faces.org')
     end
 
+    it 'strips leading and trailing whitespace from an e-mail' do
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+      perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
+
+      auth_header(:janus)
+      json_post('add_user/door', email: ' portunus@two-faces.org ', name: 'Portunus', role: 'editor', affiliation: "ILWU")
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location']).to eq('/door')
+
+      expect(Permission.count).to eq(2)
+      expect(User.count).to eq(2)
+
+      perm2 = Permission.last
+      user2 = User.last
+      expect(perm2).not_to be_privileged
+      expect(perm2.user).to eq(user2)
+      expect(perm2.project).to eq(door)
+      expect(perm2.role).to eq('editor')
+      expect(perm2.affiliation).to eq('ILWU')
+
+      expect(user2.name).to eq('Portunus')
+      expect(user2.email).to eq('portunus@two-faces.org')
+    end
+
     it 'allows an admin to add an existing user to a project' do
       user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
       user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')

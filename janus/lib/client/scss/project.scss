@@ -31,4 +31,13 @@
       @include janus-header;
     }
   }
+
+  .error {
+    display: inline-block;
+    background: rgba(255,0,0,0.1);
+    color: darkred;
+    font-size: 0.7em;
+    padding: 3px;
+    margin: 2px;
+  }
 }
