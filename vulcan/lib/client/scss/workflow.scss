@@ -199,7 +199,6 @@
       flex: 0 0 500px;
 
       .step-user-input {
-        padding: 10px;
 
         .step-name {
           flex: 1 1 auto;
@@ -454,79 +453,6 @@
 .vulcan-dashboard {
   display: flex;
   font-family: $body_font;
-
-  .workflow-card {
-    margin: 2rem;
-    border: 1px solid lightgray;
-    box-shadow: 0 0 0 15px #eee, 0 0 4px 15px #aaa;
-    width: 300px;
-    height: 400px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-
-    .workflow-card-image {
-      height: 60%;
-      overflow: hidden;
-      margin: 0;
-      border-top-left-radius: 2px;
-      border-top-right-radius: 2px;
-
-      img {
-        display: block;
-        width: 150%;
-        margin: -25%;
-      }
-    }
-
-    .workflow-card-description {
-      display: flex;
-      flex-direction: column;
-      font-size: 12px;
-      flex: 1;
-      border-top: 1px solid lightgray;
-
-      .row {
-        flex: 1;
-        display: flex;
-        display: flex;
-        &:not(:last-of-type) {
-          .item_name {
-            border-bottom: $thin_rule;
-          }
-          .item_view {
-            border-bottom: $thin_rule;
-          }
-        }
-
-        .label {
-          cursor: default;
-          border-right: 1px solid forestgreen;
-          display: inline-block;
-          flex: 0 0 140px;
-          padding-right: 8px;
-          padding-top: 4px;
-          text-align: right;
-          color: darkblue;
-
-          .card-tags {
-            font-size: 1em;
-          }
-        }
-
-        .value {
-          display: inline-block;
-          padding: 4px 8px;
-          box-sizing: border-box;
-          flex: 1;
-
-          .sub_item {
-            border-bottom: $thin_rule;
-          }
-        }
-      }
-    }
-  }
 }
 
 .markdown {
