@@ -5,6 +5,9 @@ import {maybeOfNullable, some, withDefault} from "../../../../selectors/maybe";
 import {flattenStringOptions, StringOptions} from "./monoids";
 import {useMemoized} from "../../../../selectors/workflow_selectors";
 import { useSetsDefault } from './useSetsDefault';
+import TextField from '@material-ui/core/TextField';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+
 
 export default function SelectAutocompleteInput({data, onChange, ...props}: WithInputParams<{}, string | null, StringOptions>) {
   /*
@@ -17,21 +20,21 @@ export default function SelectAutocompleteInput({data, onChange, ...props}: With
 
   return (
     <div>
-      <DropdownAutocomplete
-      onSelect={(e: string | null) => {
-        onChange(maybeOfNullable(e));
-      }}
-      list={options}
-      value={value}
-      maxItems={30}
-    />
-    {suggestion}
+      <Autocomplete
+        disablePortal
+        value={value}
+        onChange={(event:any, e: string | null) => 
+          onChange(maybeOfNullable(e))}
+        options={options}
+        renderInput={(params:any) => <TextField {...params} label/>}
+      />
+      {suggestion}
     </div>
   );
 };
 
 function pullRecommendation<T extends DataEnvelope<any>>(data: T | null | undefined): [T | null | undefined, string | null] {
-  
+  // Make the recommendation part of the autocomplete into the 'label' of renderInput
   if (data != null) {
   
     let data_use = {...data};

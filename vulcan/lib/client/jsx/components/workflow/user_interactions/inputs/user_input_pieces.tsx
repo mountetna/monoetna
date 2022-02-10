@@ -6,6 +6,9 @@ import MultiselectStringInput from './multiselect_string';
 import { Slider } from '@material-ui/core';
 import StringInput from './string';
 import BooleanInput from './boolean';
+import {FloatInput as EtnaFloatInput} from 'etna-js/components/inputs/numeric_input';
+import TextField from '@material-ui/core/TextField';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v}
@@ -82,12 +85,13 @@ export function dropdownInput(
     
     return(
       <div key={key}>
-        {label}
-        <DropdownAutocomplete
-          list={options}
+        <Autocomplete
+          disablePortal
           value={value}
-          onSelect={(val: string) => changeFxn(val, key)}
-          sorted={sorted}
+          onChange={(event:any, val: string) => changeFxn(val, key)}
+          id={key}
+          options={options}
+          renderInput={(params:any) => <TextField {...params} label={label} />}
         />
       </div>
     )
