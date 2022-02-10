@@ -10,6 +10,8 @@ import FlagsView from './flags/flags-view';
 
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 
+import {Notifications} from 'etna-js/components/Notifications';
+import Messages from 'etna-js/components/messages';
 import { createEtnaTheme } from 'etna-js/style/theme';
 
 const theme = createEtnaTheme("#3684fd","#77c");
@@ -53,7 +55,9 @@ const JanusUI = () => {
   return (
     <ThemeProvider theme={theme}>
       <div id='janus-group'>
+        <Notifications />
         <JanusNav/>
+        <Messages />
         <Component {...params}/>
       </div>
     </ThemeProvider>
