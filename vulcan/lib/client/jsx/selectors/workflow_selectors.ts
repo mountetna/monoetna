@@ -10,7 +10,7 @@ import {useMemo} from "react";
 import {mapSome, Maybe, maybeOfNullable, withDefault} from "./maybe";
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
-    workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
+    workflow && workflow.name ? workflow.name : null;
 
 export function workflowByName(name: string, state: VulcanState): Workflow | undefined {
   return state.workflows.find(w => workflowName(w) === name);

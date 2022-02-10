@@ -9,6 +9,7 @@ class Session < Etna::Cwl
     @attributes = attributes
     @project_name = attributes['project_name']
     @workflow_name = attributes['workflow_name']
+    @workflow_name += ".cwl" unless @workflow_name =~ /\.cwl$/
     @key = attributes['key']
     @inputs = attributes['inputs']
   end
