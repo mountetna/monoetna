@@ -127,11 +127,7 @@ describe WorkflowsController do
       auth_header(:viewer, additional: { perm: "v:not-a-thing"})
       get("/api/labors/workflows")
 
-      expect(last_response.status).to eq(200)
-      response = JSON.parse(last_response.body)
-
-      workflows = response['workflows'].map { |w| w['name'] }
-      expect(workflows).to eql([])
+      expect(last_response.status).to eq(403)
     end
 
     it 'gets a list of workflows for the specific project' do
