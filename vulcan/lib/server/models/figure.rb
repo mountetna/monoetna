@@ -12,6 +12,7 @@ class Vulcan
         project_name: project_name,
         workflow_name: workflow_name,
         inputs: inputs,
+        author: author,
         title: title,
         created_at: created_at.iso8601,
         updated_at: updated_at.iso8601
