@@ -18,6 +18,7 @@ class Vulcan
       get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true
       post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true
       post 'api/:project_name/session/:workflow_name', action: 'sessions#submit', as: :submit_view, match_ext: true
+      get 'api/:project_name/workflows', action: 'workflows#fetch_for_project'
 
       get 'api/:project_name/figures', action: 'figure#fetch'
       get 'api/:project_name/figure/:figure_id', action: 'figure#get'
