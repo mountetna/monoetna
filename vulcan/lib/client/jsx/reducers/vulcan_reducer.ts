@@ -31,7 +31,7 @@ export const defaultVulcanState = {
   // If a buffered step was filled in while remaining 'pending'
   committedStepPending: false,
 
-  session: defaultSession,
+  session: undefined,
   outputs: defaultSessionStatusResponse.outputs,
   validationErrors: defaultValidationErrors,
   pollingState: 0,
@@ -58,8 +58,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       return {
         ...state,
         workflow: action.workflow,
-        data: defaultData,
-        session: {...defaultSession, workflow_name: action.workflow.name, project_name: action.projectName},
+        data: defaultData
       };
     case 'SET_STATUS':
       // When a submitting step is given, filter stale inputs that result from submitting a change
@@ -91,7 +90,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       // Ignore sessions not for this workflow, project combination. safety guard.
       // The project name and workflow names are locked in via the set workflow action.
       const sessionWorkflow = state.workflow;
-      if (!sessionWorkflow || action.session.workflow_name !== sessionWorkflow.name || action.session.project_name !== state.session.project_name) {
+      if (!sessionWorkflow || action.session.workflow_name !== sessionWorkflow.name) {
         console.warn('Cannot set session, project name / workflow name does not match.')
         return state;
       }

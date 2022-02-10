@@ -11,10 +11,10 @@ class FigureController < Vulcan::Controller
   def get
     figure = Vulcan::Figure.where(
       project_name: @params[:project_name],
-      id: @params[:figure_id]
-    ).first
+      figure_id: @params[:figure_id]
+    ).order(:updated_at).first
 
-    raise Etna::FileNotFound unless figure
+    raise Etna::NotFound unless figure
 
     success_json(figure.to_hash)
   end
@@ -23,7 +23,8 @@ class FigureController < Vulcan::Controller
     now = DateTime.now
     figure = Vulcan::Figure.create(
       {
-        id: Vulcan::Figure.next_id,
+        figure_id: Vulcan::Figure.next_id,
+        author: @user.name,
         created_at: now,
         updated_at: now,
       }.update(
@@ -34,6 +35,26 @@ class FigureController < Vulcan::Controller
           :title
         )
       )
+    )
+
+    success_json(figure.to_hash)
+  end
+
+  def update
+    figure = Vulcan::Figure.where(
+      project_name: @params[:project_name],
+      figure_id: @params[:figure_id]
+    ).first
+
+    raise Etna::NotFound unless figure
+
+    figure.update(
+        @params.slice(
+          :project_name,
+          :workflow_name,
+          :inputs,
+          :title
+        )
     )
 
     success_json(figure.to_hash)

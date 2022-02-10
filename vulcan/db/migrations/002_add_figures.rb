@@ -1,7 +1,9 @@
 Sequel.migration do
   up do
     create_table(:figures) do
-      Integer :id, null: false
+      primary_key :id
+
+      Integer :figure_id, null: false
 
       String :author, null: false
       String :title, null: false

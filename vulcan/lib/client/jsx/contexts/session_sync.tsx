@@ -45,7 +45,7 @@ export function useSessionSync(state: MutableRefObject<VulcanState>,
     submittingStep: Maybe<string> = null,
   ) {
     dispatch(startPolling());
-    if (!state.current.session.workflow_name) {
+    if (!state.current.session || !state.current.session.workflow_name) {
       return;
     }
 

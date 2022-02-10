@@ -54,7 +54,7 @@ const CreateFigure = ({handleClose, open, project_name}) => {
   const invoke = useActionInvoker();
 
   const visitNewFigure = useCallback((workflow) => {
-    invoke(pushLocation(`/${project_name}/figure/new/${workflowName(workflow)}`));
+    invoke(pushLocation(`/${project_name}/figure/new/${workflow.displayName}`));
   }, [invoke])
 
   const close = useCallback( () => {
@@ -86,7 +86,8 @@ const CreateFigure = ({handleClose, open, project_name}) => {
 
 const figureStyles = makeStyles( theme => ({
   figure: {
-    maxWidth: 350
+    width: 350,
+    marginRight: 20
   },
   image: {
     cursor: 'pointer'
@@ -103,7 +104,7 @@ const Figure = ({figure}) => {
   const classes = figureStyles();
 
   const visitFigure = useCallback((figure) => {
-    invoke(pushLocation(`/${figure.project_name}/figure/${figure.id}`));
+    invoke(pushLocation(`/${figure.project_name}/figure/${figure.figure_id}`));
   }, [invoke]);
 
   const [ menuAnchor, setMenuAnchor ] = useState(null);
@@ -170,12 +171,14 @@ export default function FigureList({project_name}) {
   return (
     <main className={classes.figures}>
       <Grid container direction='column'>
-        <Grid item container className={classes.title}><Typography variant='h5'>{project_name}</Typography></Grid>
+        <Grid item className={classes.title}><Typography variant='h5'>{project_name}</Typography></Grid>
+        <Grid container direction='row'>
         {
           figures ? figures.map(
-            (figure,i) => <Figure figure={figure}/>
+            (figure,i) => <Figure key={i} figure={figure}/>
           ) : null
         }
+        </Grid>
         <Grid><Button variant='contained' onClick={() => setShowCreateFigure(true)} variant="text">Create Figure</Button></Grid>
         <CreateFigure
           project_name={project_name}

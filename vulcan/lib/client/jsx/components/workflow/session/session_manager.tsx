@@ -1,9 +1,15 @@
-import React, {useCallback, useContext} from 'react';
+import React, {useCallback, useEffect, useState, useContext} from 'react';
 import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
 
+import {makeStyles} from '@material-ui/core/styles';
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import {pushLocation} from 'etna-js/actions/location_actions';
+
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
+import TextField from '@material-ui/core/TextField';
 import Link from '@material-ui/core/Link';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
@@ -19,6 +25,7 @@ import {readTextFile, downloadBlob} from 'etna-js/utils/blob';
 import { defaultSession } from '../../../reducers/vulcan_reducer';
 import {VulcanSession} from "../../../api_types";
 import { json_post } from 'etna-js/utils/fetch';
+import {Debouncer} from 'etna-js/utils/debouncer';
 
 const modalStyles = {
   content: {
@@ -31,12 +38,22 @@ const modalStyles = {
   }
 };
 
+const useStyles = makeStyles( theme => ({
+  title: {
+    width: '800px'
+  }
+}));
+
 export default function SessionManager() {
   const {state, dispatch, showErrors, requestPoll, cancelPolling} = useContext(VulcanContext);
   const {workflow, hasPendingEdits, complete} = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
   const {session, committedStepPending} = state;
+
+  const invoke = useActionInvoker();
+
+  const classes = useStyles();
 
   const name = workflowName(workflow);
   const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
@@ -59,8 +76,13 @@ export default function SessionManager() {
       if (!params.title) return;
     }
 
-    json_post(`/api/${params.project_name}/figure/create`, params)
-
+    if (params.figure_id) {
+      json_post(`/api/${params.project_name}/figure/${params.figure_id}/update`, params)
+    } else {
+      json_post(`/api/${params.project_name}/figure/create`, params).then(
+        figure => invoke(pushLocation(`/${figure.project_name}/figure/${figure.figure_id}`))
+      )
+    }
   }, [hasPendingEdits, session, name]);
 
   const saveSessionToBlob = useCallback(() => {
@@ -100,13 +122,31 @@ export default function SessionManager() {
       }
       dispatch(setSession(newSession));
       requestPoll();
-    }, [session.workflow_name, session.project_name, dispatch, requestPoll]
+    }, [session, dispatch, requestPoll]
   );
 
   const running = state.pollingState > 0;
   const disableRunButton = complete || running || (hasPendingEdits && !committedStepPending);
 
-  if (!name) return null;
+  const [localTitle, setLocalTitle] = useState('');
+
+  const { title } = session || {};
+
+  useEffect(() => { setLocalTitle(title) }, [title]);
+
+  const [debouncer, setDebouncer] = useState(new Debouncer({windowMs: 200}));
+
+  const debouncedSetTitle = useCallback(
+    (newTitle: any) => {
+      setLocalTitle(newTitle);
+      debouncer.ready(() => {
+        dispatch(setSession({...session, title: newTitle}));
+      });
+    },
+    [ session, debouncer ]
+  );
+
+  if (!name || !session) return null;
 
   return (
     <div className='session-manager'>
@@ -114,7 +154,12 @@ export default function SessionManager() {
         <Breadcrumbs className='session-workflow-name'>
           <Link href={`/${session.project_name}`}>{session.project_name}</Link>
           <Typography>{workflow.displayName}</Typography> 
-          <Typography>{session.title || 'Untitled'}</Typography>
+          <Grid container className={classes.title}><TextField fullWidth value={localTitle}
+            margin='none'
+            InputProps={{ disableUnderline: true }}
+            variant='standard'
+            onChange={ e => debouncedSetTitle(e.target.value) }
+            placeholder='Untitled'/></Grid>
         </Breadcrumbs>
         {workflow.vignette && (
           <React.Fragment>

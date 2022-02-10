@@ -99,9 +99,10 @@ def create_figure(params)
   create(
     :figure,
     {
-      id: 1,
+      figure_id: 1,
       project_name: 'labors',
       workflow_name: 'workflow',
+      author: 'author',
       inputs: {},
       title: 'title',
       created_at: now,
