@@ -3,6 +3,7 @@ import {DataEnvelope} from './input_types';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import { checkboxInput, dropdownInput, MultiselectInput, rangeInput } from './user_input_pieces';
 import { Button, PropTypes } from '@material-ui/core';
+import DeleteIcon from '@material-ui/icons/Delete';
 
 /*
 This script defines a component that behaves like all other 'user_input_pieces'.
@@ -47,7 +48,9 @@ export function subsetDataFrameInput(
     label)
   
   const meat = (values && values['methods']) ? (
-    <div>
+    <div style={{
+      paddingLeft: "5px",
+      paddingTop: "2px",}}>
       {values['methods'].map((def, index) => {
         return singleMethod(
           def, index, data_frame, updateCurrent, changeFxn, key, values, sorted, color)
@@ -63,10 +66,8 @@ export function subsetDataFrameInput(
   // console.log(values);
   return(
     <div key={key}>
-      <p></p>
       {base}
       {meat}
-      <p></p>
     </div>
   )
 }
@@ -133,7 +134,7 @@ const singleMethod = (
     <Button
       color={color}
       onClick={(x) => {clearDef()}}>
-      Clear
+      <DeleteIcon fontSize="small"/>
     </Button>
   )
   const logic_comp = (index == 0) ? null : 
@@ -147,8 +148,6 @@ const singleMethod = (
   return(
     <div key={key+index}
       style={{
-        paddingLeft: "5px",
-        paddingTop: "10px",
         display: 'inline-flex'}}>
       <div>
         {logic_comp}

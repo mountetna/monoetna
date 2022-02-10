@@ -14,7 +14,7 @@ def subsetDF_index_targets(data_frame, conditions):
     
     # Parse when each condition is True/False.
     def interpret_method(method: List[str]):
-        if method[0]==np.NaN:
+        if method[0] is None or method[0]==np.NaN:
             raise Exception("A subsetting condition is incomplete.")
         target_data = data_frame[method[0]]
         # Numeric data

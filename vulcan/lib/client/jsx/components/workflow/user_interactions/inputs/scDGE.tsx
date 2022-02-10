@@ -74,8 +74,9 @@ export default function DiffExpSC({
         "method", setDEMethod, value['method'],
         "Step 1: Select your DE Question Type: ",
         Object.keys(method_labels), true)}
+      <hr/>
       {subsetDataFrameInput(
-        "subset", updateValue, value['subset'], "Step 2: Focus on / remove certain cells? ",
+        "subset", updateValue, value['subset'], "Step 2: Subset by features to focus on certain cells? ",
         {...allData}, false, "secondary")}
       {DEComps(value, options, updateValue)}
       {GroupComps(value, options, updateValue)}
