@@ -24,11 +24,13 @@ export default function WorkflowManager({workflowName, figureId, projectName}: {
   useEffect(() => {
     if (workflows.length && projectName) {
       getLocalSession(workflowName, figureId, projectName).then((session) => {
-        let workflow;
+        let workflow, workflowname;
 
         cancelPolling();
 
         if (session) {
+          workflowname = session.workflow_name;
+          console.log({workflowname});
           workflow = workflowByName(session.workflow_name, state);
           dispatch(setWorkflow(workflow, projectName));
           dispatch(setSession(session));
@@ -37,12 +39,16 @@ export default function WorkflowManager({workflowName, figureId, projectName}: {
             json_get(`/api/${projectName}/figure/${figureId}`).then(
               figure => {
                 figure.key = `${figure.project_name}/${figure.figure_id}`;
+                workflowname = figure.workflow_name;
+                console.log({workflowname});
                 workflow = workflowByName(figure.workflow_name, state);
                 dispatch(setWorkflow(workflow, projectName));
                 dispatch(setSession(figure));
               }
             )
           } else {
+            workflowname = `${workflowName}.cwl`;
+            console.log({workflowname});
             workflow = workflowByName(`${workflowName}.cwl`, state);
             dispatch(setWorkflow(workflow, projectName));
             let session = {

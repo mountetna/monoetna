@@ -134,7 +134,7 @@ export default function SessionManager() {
 
   useEffect(() => { setLocalTitle(title) }, [title]);
 
-  const [debouncer, setDebouncer] = useState(new Debouncer({windowMs: 200}));
+  const [debouncer, setDebouncer] = useState(new Debouncer({windowMs: 800}));
 
   const debouncedSetTitle = useCallback(
     (newTitle: any) => {
