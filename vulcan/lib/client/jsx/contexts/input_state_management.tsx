@@ -131,7 +131,7 @@ export function useInputStateManagement(invoke: ReturnType<typeof useActionInvok
       mapSome(inputs[source] || null, inner => newInputs[source] = inner);
     })
     dispatch(setInputs(newInputs))
-    requestPoll(false, maybeOfNullable(stepName));
+    requestPoll(false, some(stepName as string))
     return true;
   }, [dispatch, requestPoll, stateRef, validateInputs]);
 
