@@ -228,7 +228,7 @@ function useExtraInputs(options: string[], full_data: DataEnvelope<any>) {
       'scale_by': ['Scale Y by counts or fraction?', ['counts', 'fraction']],
       'x_scale': ['Adjust scaling of the X-Axis?', ['as is', 'log10', 'log10(val+1)']],
       'y_scale': ['Adjust scaling of the Y-Axis?', ['as is', 'log10', 'log10(val+1)']],
-      'rows_use': ['Focus on a subset of the incoming data?', full_data, false, "Secondary"]
+      'rows_use': ['Focus on a subset of the incoming data?', full_data, false, "secondary"]
     }
   }, [options, full_data]);
 
