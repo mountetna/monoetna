@@ -16,10 +16,10 @@ export default function BooleanInput({onChange, label, data, ...props}: WithInpu
     />
 
   if (label) {
-    return <div className='checkbox-input-option' style={{display: 'inline-flex'}}>
+    return <label className='checkbox-input-option' style={{display: 'inline-flex'}}>
       {inner}
       {label}
-    </div>;
+    </label>;
   }
 
   return inner;
