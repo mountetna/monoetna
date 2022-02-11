@@ -68,6 +68,25 @@ export default function DiffExpSC({
       <p></p>
     </div>
 
+  // Bringing pre-subsetDataFrameInput value-structure up-to-date.
+  let SubsetComps = null;
+  if (value) {
+    if (value['subset']) {
+    SubsetComps = subsetDataFrameInput(
+      "subset", updateValue, value['subset'], "Step 2: Subset by features to focus on certain cells? ",
+      {...allData}, false, "secondary")
+    } else {
+      let new_subset = ( !(value['subset_meta'] && value['subset_use'])) ? {} : {
+        'methods': value['subset_meta'].concat(value['subset_use']),
+        'logic': [[]]
+      }
+      let prevValues = {...value}
+      delete value['subset_meta']
+      delete value['subset_use']
+      updateValue({}, 'subset', prevValues)
+    }
+  }
+
   return (
     <div>
       {dropdownInput(
@@ -75,9 +94,7 @@ export default function DiffExpSC({
         "Step 1: Select your DE Question Type: ",
         Object.keys(method_labels), true)}
       <hr/>
-      {subsetDataFrameInput(
-        "subset", updateValue, value['subset'], "Step 2: Subset by features to focus on certain cells? ",
-        {...allData}, false, "secondary")}
+      {SubsetComps}
       {DEComps(value, options, updateValue)}
       {GroupComps(value, options, updateValue)}
       {warn}
