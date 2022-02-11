@@ -27,19 +27,24 @@ def test_filter_by_root_directory():
     result = filter_by_record_directory([
         Folder(folder_path="bulk_RNASeq/raw/abcdef"),
         File(file_path="bulk_RNASeq/raw/abcdef/myfile.txt"),
-    ], re.compile(r'bulk_RNASeq/[^/]*'))
+        File(file_path="bulk_RNASeq/raw/abcdef2/myfile.txt"),
+    ], re.compile(r'bulk_RNASeq/raw/[^/]*'))
 
-    assert result[0].root_path == 'bulk_RNASeq/raw'
-    assert result[0].record_name == 'raw'
-    assert result[0].match_subpath == 'abcdef'
+    assert result[0].root_path == 'bulk_RNASeq/raw/abcdef'
+    assert result[0].record_name == 'abcdef'
+    assert result[0].match_subpath == ''
     assert result[0].match_full_path == 'bulk_RNASeq/raw/abcdef'
     assert result[0].folder_path == 'bulk_RNASeq/raw/abcdef'
+    assert result[0].match_file is None
+    assert result[0].match_folder is not None
 
-    assert result[1].root_path == 'bulk_RNASeq/raw'
-    assert result[1].record_name == 'raw'
-    assert result[1].match_subpath == 'abcdef/myfile.txt'
-    assert result[1].match_full_path == 'bulk_RNASeq/raw/abcdef/myfile.txt'
-    assert result[1].folder_path == 'bulk_RNASeq/raw/abcdef'
+    assert result[1].root_path == 'bulk_RNASeq/raw/abcdef2'
+    assert result[1].record_name == 'abcdef2'
+    assert result[1].match_subpath == 'myfile.txt'
+    assert result[1].match_full_path == 'bulk_RNASeq/raw/abcdef2/myfile.txt'
+    assert result[1].folder_path == 'bulk_RNASeq/raw/abcdef2'
+    assert result[1].match_file is not None
+    assert result[1].match_folder is None
 
 
 #

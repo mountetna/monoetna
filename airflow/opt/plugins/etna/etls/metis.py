@@ -63,6 +63,8 @@ class MatchedAtRoot:
 
     @property
     def match_full_path(self) -> str:
+        if not self.match_subpath:
+            return self.root_path
         return '/'.join([self.root_path, self.match_subpath])
 
 def link(model_name, attribute_name, dry_run=True, hook: Optional[EtnaHook] = None):

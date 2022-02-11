@@ -71,8 +71,8 @@ def vcr_config():
 
     EtnaHook.get_client = _get_client
 
-    # Authorization in any vcr is safely masked, and requests are matched on body.
-    return {"filter_headers": [("authorization", "XXX-Auth")], "match_on": ['method', 'scheme', 'host', 'port', 'query', 'body']}
+    # Authorization in any vcr is safely masked
+    return {"filter_headers": [("authorization", "XXX-Auth")]}
 
 # def match_body(r1: BaseRequest, r2: BaseRequest):
 #     return r1.re
