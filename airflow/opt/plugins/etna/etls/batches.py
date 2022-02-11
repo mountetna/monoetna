@@ -147,7 +147,7 @@ def enable_task_backfill(op: BaseOperator):
 
         if stop < dag_stop:
             # Keep reprocessing to catchup
-            raise AirflowRescheduleException(datetime.utcnow())
+            raise AirflowRescheduleException(datetime.utcnow().replace(tzinfo=utc))
 
         return result
 
