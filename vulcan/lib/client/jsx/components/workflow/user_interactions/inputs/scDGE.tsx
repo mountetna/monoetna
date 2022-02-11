@@ -13,6 +13,7 @@ import { joinNesting, StringOptions } from './monoids';
 import { useMemoized } from '../../../../selectors/workflow_selectors';
 import { val_wrap, MultiselectInput, dropdownInput } from './user_input_pieces';
 import { subsetDataFrameInput } from './subsetDataFrame_piece';
+import { Button } from '@material-ui/core';
 
 /*
 This input is closely tied to a python script for running scanpy-based differential expression.
@@ -76,14 +77,22 @@ export default function DiffExpSC({
       "subset", updateValue, value['subset'], "Step 2: Subset by features to focus on certain cells? ",
       {...allData}, false, "secondary")
     } else {
-      let new_subset = ( !(value['subset_meta'] && value['subset_use'])) ? {} : {
-        'methods': value['subset_meta'].concat(value['subset_use']),
-        'logic': [[]]
+      const updateOldSubset = () => {
+        let new_subset = ( !(value['subset_meta'] && value['subset_use'])) ? {} : {
+          'methods': [ [value['subset_meta']].concat(value['subset_use']) ],
+          'logic': [[]]
+        }
+        let prevValues = {...value}
+        delete prevValues['subset_meta']
+        delete prevValues['subset_use']
+        updateValue(new_subset, 'subset', prevValues)
       }
-      let prevValues = {...value}
-      delete value['subset_meta']
-      delete value['subset_use']
-      updateValue({}, 'subset', prevValues)
+      SubsetComps = 
+        <Button
+          color={"primary"}
+          onClick={(x) => {updateOldSubset()}}>
+          Step 2: Subset... UPDATE NEEDED. Click to update.
+        </Button>
     }
   }
 
