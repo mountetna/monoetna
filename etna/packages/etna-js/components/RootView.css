@@ -3,16 +3,17 @@
   font-family: 'Open Sans', sans-serif;
 }
 
-.root-view .title {
-margin-left: 0px;
-padding: 5px;
-padding-left: 15px;
+.root-view .title,
+.root-view .empty-list {
+  margin-left: 0px;
+  padding: 5px;
+  padding-left: 15px;
 }
 
 .root-view .project {
   display: flex;
   flex-direction: row;
-  border-bottom: 1px solid rgba(128,128,128,0.2);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
 
   padding: 4px;
 }
@@ -32,7 +33,7 @@ padding-left: 15px;
 }
 
 .root-view .role {
-  flex: 0 0 200px;
+  flex: 0 0 300px;
 }
 
 .root-view .full_name {

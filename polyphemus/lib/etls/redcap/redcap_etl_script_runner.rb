@@ -20,7 +20,7 @@ class Polyphemus
     attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :dateshift_salt, :mode
 
     # Override initialize, user won't be passing in a filename directly as with other ETLs.
-    def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:, mode: 'default', config:)
+    def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:, mode: 'default', config:, page_size: 20000)
       raise "No dateshift_salt provided, please provide one." unless dateshift_salt
       raise "Mode must be \"default\", \"existing\", or \"strict\"." unless ['default', 'existing', 'strict'].include?(mode)
       raise "Must provide at least one REDCap token." unless redcap_tokens && redcap_tokens.length > 0
@@ -41,6 +41,88 @@ class Polyphemus
       @magma_host = magma_host
       @dateshift_salt = dateshift_salt
       @mode = mode # operating mode: nil, "strict", "existing"
+      @page_size = page_size
+    end
+
+    def add_to_page(page, entry)
+      page[ entry[:model_name] ] ||= {}
+      page[ entry[:model_name] ] [ entry[:record_name ] ] = entry[:record]
+    end
+
+    def update_page(page, update)
+      update.each do |model_name, records|
+        records.each do |record_name, record|
+          add_to_page(
+            page,
+            model_name: model_name,
+            record_name: record_name,
+            record: record
+          )
+        end
+      end
+    end
+
+    # the page size is approximate
+    def paginate(loader, all_records, &block)
+      flat_records = all_records.map do |model_name, records|
+        next if loader.magma_models_wrapper.is_table?(model_name)
+
+        records.map do |record_name, record|
+          flat = {
+            model_name: model_name,
+            record_name: record_name,
+            record: record
+          }
+
+          extras = []
+          record.each do |attribute_name, value|
+            att = loader.magma_models_wrapper.models.model(model_name).template.attributes.attribute(attribute_name)
+
+            if att.attribute_type == 'table'
+              value.each do |table_entry_name|
+                table_record = all_records[ att.link_model_name.to_sym ][table_entry_name]
+                extras.push(
+                  {
+                    model_name: att.link_model_name.to_sym,
+                    record_name: table_entry_name,
+                    record: table_record
+                  }
+                )
+              end
+            end
+          end
+
+          flat[:extras] = extras
+
+          flat
+        end
+      end.compact.flatten(1).shuffle
+
+      page_count = 0
+      page = {}
+      results = {}
+      flat_records.each do |flat_record|
+        page_count += 1 + flat_record[:extras].size
+
+        add_to_page( page, flat_record )
+
+        flat_record[:extras].each do |extra|
+          add_to_page(page, extra)
+        end
+
+        if page_count > @page_size
+          update_page(results, yield(page))
+
+          page = {}
+          page_count = 0
+        end
+      end
+
+      unless page.empty?
+        update_page(results, yield(page))
+      end
+
+      results
     end
 
     def run(magma_client:, commit: false, logger: STDOUT)
@@ -57,11 +139,15 @@ class Polyphemus
       logger.write("\n==== DRY RUN! ====\n") if !commit
       logger.write("Posting revisions.\n")
 
-      update_request = Etna::Clients::Magma::UpdateRequest.new(
-        project_name: @project_name,
-        revisions: all_records,
-        dry_run: !commit)
-      magma_documents = select_documents(magma_client.update_json(update_request))
+      begin
+        magma_documents = paginate(loader, all_records) do |records|
+          update_request = Etna::Clients::Magma::UpdateRequest.new(
+            project_name: @project_name,
+            revisions: records,
+            dry_run: !commit)
+          select_documents(magma_client.update_json(update_request))
+        end
+      end
 
       logger.write(JSON.pretty_generate(magma_documents))
       logger.write("\n")

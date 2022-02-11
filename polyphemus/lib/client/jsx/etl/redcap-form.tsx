@@ -352,7 +352,10 @@ const AddAttribute = ({open,close,update,script,modelName}:{
 
   const { models } = useContext(MagmaContext);
 
-  const attribute_names = Object.keys(models[modelName]?.template?.attributes || {});
+  const attribute_names = Object.values(models[modelName]?.template?.attributes || {})
+    .filter((a: any) => !a.hidden)
+    .map((a: any) => a.name)
+    .sort();
 
   return <Dialog open={open} onClose={close}>
     <DialogTitle>Add Attribute</DialogTitle>

@@ -1,6 +1,6 @@
 import plotly.express as px
 
-from .utils import _default_to_if_make_and_logic
+from .utils import _leave_default_or_none, _which_rows, _is_discrete
 from .colors import colors
 from ..list import unique, order
 
@@ -8,6 +8,8 @@ def scatter_plotly(
     data_frame, x_by: str, y_by: str,
     color_by: str = "make",
     px_args: dict = {},
+    rows_use = None,
+    x_scale = "as is", y_scale = "as is",
     size = 5, color_panel: list = colors,
     color_order: str = 'increasing',
     order_when_continuous_color: bool = False,
@@ -25,38 +27,53 @@ def scatter_plotly(
     'order_when_continuous_color'  sets the ordering of data points from back to front.
     'color_order' ('increasing', 'decreasing', or 'unordered') sets the ordering of keys in the legend, when 'color_by' references discrete data
     'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
+    'rows_use',
+    'x_scale', 'y_scale'. String, 'as is', 'log10', or 'log10(val+1)'. Controls whether these axes should be log scaled, and if so, whether 1 should be added to all values first in order to let zeros be okay to plot.
     """
 
     # Parse dependent defaults
-    xlab = _default_to_if_make_and_logic(xlab, x_by)
-    ylab = _default_to_if_make_and_logic(ylab, y_by)
-    plot_title = _default_to_if_make_and_logic(plot_title, color_by)
-    legend_title = _default_to_if_make_and_logic(legend_title, color_by)
+    xlab = _leave_default_or_none(xlab, x_by)
+    ylab = _leave_default_or_none(ylab, y_by)
+    plot_title = _leave_default_or_none(plot_title, color_by)
+    legend_title = _leave_default_or_none(legend_title, color_by)
+    
+    # data_frame edits
+    df = data_frame.copy()
+    rows_use = _which_rows(rows_use, df)
+    df = df.loc[rows_use]
+    if x_scale=="log10(val+1)":
+        df[x_by] += 1
+        x_scale="log10"
+    if y_scale=="log10(val+1)":
+        df[y_by] += 1
+        y_scale="log10"
 
     # Add to px_args
-    px_args['data_frame'] = data_frame
+    px_args['data_frame'] = df
     px_args['x'] = x_by
     px_args['y'] = y_by
     px_args['color_discrete_sequence'] = color_panel
     px_args['hover_data'] = hover_data
+    px_args["log_x"] = x_scale=="log10"
+    px_args["log_y"] = y_scale=="log10"
     
     # Set coloring if given data to color by
     if color_by!="make":
         px_args['color'] = color_by
         # Also set plotting/legend key order
-        discrete_color = any(map(lambda x: isinstance(x, (str, bool)), data_frame[color_by]))
+        discrete_color = _is_discrete(df[color_by])
         if (color_order == 'increasing' or color_order == 'decreasing'):
-            categories = order(unique(data_frame[color_by]))
+            categories = order(unique(df[color_by]))
             if (color_order == 'increasing'):
                 px_args['category_orders'] = { color_by: categories }
                 if order_when_continuous_color and not discrete_color:
-                    px_args['data_frame'] = data_frame.iloc[ order(data_frame[color_by], return_indexes=True) ]
+                    px_args['data_frame'] = df.iloc[ order(df[color_by], return_indexes=True) ]
             else:
                 px_args['category_orders'] = { color_by: list(reversed( categories )) }
                 if order_when_continuous_color and not discrete_color:
-                    px_args['data_frame'] = data_frame.iloc[ list(reversed( order(data_frame[color_by], return_indexes=True) )) ]
+                    px_args['data_frame'] = df.iloc[ list(reversed( order(df[color_by], return_indexes=True) )) ]
     else:
-        plot_title = _default_to_if_make_and_logic(plot_title, "")
+        plot_title = _leave_default_or_none(plot_title, "")
     
     # Make plot
     fig = px.scatter(**px_args)
