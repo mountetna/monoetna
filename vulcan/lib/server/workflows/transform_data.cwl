@@ -19,7 +19,7 @@ inputs:
 outputs:
   the_plot:
     type: File
-    outputSource: transform_data/updated_data_frame
+    outputSource: transform_data/updated_data
 
 steps:
   get_data:
@@ -36,10 +36,10 @@ steps:
     doc: "Manipulate your data frame as needed."
     in:
       data_frame: get_data/data_frame
-    out: [updated_data_frame]
+    out: [updated_data]
   show_plot:
     run: ui-outputs/link.cwl
     in:
-      a: transform_data/updated_data_frame
+      a: transform_data/updated_data
     out: []
     label: 'Download your final data frame'

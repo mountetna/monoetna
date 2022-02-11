@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {HotTable} from '@handsontable/react';
 import {HyperFormula} from 'hyperformula';
 import Paper from '@material-ui/core/Paper';
@@ -6,19 +6,30 @@ import EditIcon from '@material-ui/icons/Edit';
 import SaveIcon from '@material-ui/icons/Save';
 import CancelIcon from '@material-ui/icons/Cancel';
 import Button from '@material-ui/core/Button';
+import {makeStyles} from '@material-ui/core/styles';
 
 import {useModal} from 'etna-js/components/ModalDialogContainer';
+import {joinNesting} from './monoids';
 import {WithInputParams, DataEnvelope} from './input_types';
 import {useSetsDefault} from './useSetsDefault';
-import {isSome, Maybe} from '../../../../selectors/maybe';
+import {some, Maybe} from '../../../../selectors/maybe';
+import {useMemoized} from '../../../../selectors/workflow_selectors';
+
+const useStyles = makeStyles((theme) => ({
+  dialog: {
+    maxWidth: '90vw',
+    maxHeight: '90vh'
+  }
+}));
 
 function DataTransformationModal({
   data,
   onChange
 }: {
   data: any[][];
-  onChange: (data: Maybe<any[][]>) => void;
+  onChange: (data: Maybe<{[key: string]: any}>) => void;
 }) {
+  const classes = useStyles();
   // TODO: For some reason calling up this Modal resets the Material UI
   //   theme???
 
@@ -144,7 +155,7 @@ function DataTransformationModal({
   ];
 
   return (
-    <Paper>
+    <Paper className={classes.dialog}>
       <HotTable
         ref={hotTableComponent}
         settings={{
@@ -187,7 +198,13 @@ function DataTransformationModal({
             // hotTableComponent.current.hotInstance.getSourceData()
             //   returns the raw formulas, unrendered, which we could
             //   set as input values to preserve any transformations.
-            onChange(hotTableComponent.current.hotInstance.getSourceData());
+            let newData = hotTableComponent.current.hotInstance.getSourceData();
+
+            onChange(
+              some({
+                updated_data: newData
+              })
+            );
           }
 
           dismissModal();
@@ -202,61 +219,79 @@ function DataTransformationModal({
   );
 }
 
+export function toJson(
+  input: any[][]
+): Maybe<DataEnvelope<{[key: string]: any}>> {
+  const headers = input[0];
+  let payload = headers.reduce((acc, header) => {
+    acc[header] = {};
+
+    return acc;
+  }, {});
+
+  return input.slice(1).reduce((acc, values, rowIndex) => {
+    values.forEach((value, index) => {
+      let header = headers[index];
+      acc[header][rowIndex.toString()] = value;
+    });
+
+    return acc;
+  }, payload);
+}
+
 export function toNestedArray(
   input: DataEnvelope<{[key: string]: any}>
 ): any[][] {
   const numColumns = Object.keys(input).length;
   if (numColumns === 0) return [[]];
 
-  const numRows = Object.keys(input.values[0]).length;
+  const numRows = Object.keys(Object.values(input)[0]).length;
 
-  return input.entries.reduce(
+  // Assume the input data is well-formed and rectangular.
+  return Object.entries(input).reduce(
     (
       acc: any[][],
       [columnHeading, rowData]: [string, {[key: string]: any}]
     ) => {
-      // Assume the input data is well-formed and rectangular.
-
-      if (0 < acc.length && acc.length < 1 + Object.keys(rowData).length) {
+      if (Object.keys(rowData).length !== numRows) {
         throw new Error('Input data is malformed and not rectangular');
-      } else if (acc.length === 0) {
-        for (var i = 0; i < numRows; i++) {
-          acc.push([]);
-        }
       }
 
       acc[0].push(columnHeading);
 
       for (var i = 0; i < numRows; i++) {
-        acc[i + 1].push(rowData[i]);
+        acc[i + 1].push(rowData[i.toString()]);
       }
 
       return acc;
     },
-    []
+    [...new Array(1 + numRows)].map(() => [])
   );
 }
 
 export default function DataTransformationInput({
   onChange,
+  data,
   ...props
 }: WithInputParams<
   {label?: string},
   {[key: string]: any},
   {[key: string]: any}
 >) {
-  const value = toNestedArray(useSetsDefault({}, props.value, onChange));
+  const originalDF = toNestedArray(useMemoized(joinNesting, data));
+  useSetsDefault({updated_data: originalDF}, props.value, onChange);
   const {openModal} = useModal();
 
   return (
     <>
       <div>
-        Your data has {value.length} rows and {value[0].length} columns.
+        Your data has {originalDF.length} rows and {originalDF[0].length}{' '}
+        columns.
       </div>
       <Button
         onClick={() => {
           openModal(
-            <DataTransformationModal data={value} onChange={onChange} />
+            <DataTransformationModal data={originalDF} onChange={onChange} />
           );
         }}
         color='primary'
