@@ -25,6 +25,7 @@ export const TYPE = {
   BAR_PLOTLY: 'bar-plotly',
   Y_PLOTLY: 'y-plotly',
   DIFF_EXP_SC: 'diff-exp-sc',
+  DATA_TRANSFORMATION: 'data-transformation'
 };
 
 // CWL Step RUN Sentinels

@@ -1,0 +1,9 @@
+{
+  "projects": ["example"],
+  "authors": ["Cole Shaw"],
+  "lastModified": "Feb 10, 2022",
+  "vignette": "WIP",
+  "tags": ["general", "plotting", "continuous data"],
+  "displayName": "Data Manipulation",
+  "description": "Manipulate data in Vulcan"
+}
