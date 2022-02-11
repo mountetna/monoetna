@@ -4,12 +4,13 @@ require_relative 'time_scan_based_etl_scanner'
 
 class Polyphemus
   class MagmaRecordEtlCursor < EtlCursor
-    def initialize(job_name:, project_name:, model_name:)
+    def initialize(job_name:, project_name:, model_name:, updated_at: nil, batch_end_at: nil)
       raise "project_name cannot be nil" if project_name.nil?
       raise "model_name cannot be nil" if model_name.nil?
       super("#{job_name}_magma_records__#{project_name}_#{model_name}")
       self[:project_name] = project_name
       self[:model_name] = model_name
+      load_batch_params(updated_at: updated_at, batch_end_at: batch_end_at)
     end
 
     def reset!
@@ -38,7 +39,7 @@ class Polyphemus
     end
 
     def build_scanner
-      @scanner ||= TimeScanBasedEtlScanner.new.tap do |scanner|
+      TimeScanBasedEtlScanner.new.tap do |scanner|
         scanner.start_batch_state do |cursor|
           retrieve_request = Etna::Clients::Magma::RetrievalRequest.new(
             project_name: cursor[:project_name],
@@ -75,7 +76,7 @@ class Polyphemus
       end
     end
 
-    def find_batch
+    def find_batch(cursor)
       super.map { |r| r.values.first }
     end
   end

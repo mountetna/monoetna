@@ -191,6 +191,10 @@ class Polyphemus
     # the batch.
     def process(cursor, batch) end
 
+    def find_batch(cursor)
+      scanner.find_batch(cursor)
+    end
+
     # Returns true iff a batch was processed as part of this iteration.
     def run_once(&processor)
       processor = Proc.new { |cursor, batch| process(cursor, batch) } unless block_given?
@@ -200,7 +204,7 @@ class Polyphemus
         logger.info("Selecting cursor for #{cursor.name}")
         cursor.load_from_db unless cursor.from_env?
         logger.info("Finding batch...")
-        batch = scanner.find_batch(cursor)
+        batch = find_batch(cursor)
 
         logger.info("Attempting to process")
         if batch.empty? || processor.call(cursor, batch) == :stop
