@@ -41,7 +41,7 @@ class Polyphemus
     end
 
     def build_scanner
-      SCANNER_CLASS.new.tap do |scanner|
+      self.class::SCANNER_CLASS.new.tap do |scanner|
         scanner.start_batch_state do |cursor|
           retrieve_request = Etna::Clients::Magma::RetrievalRequest.new(
             project_name: cursor[:project_name],

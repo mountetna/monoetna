@@ -78,10 +78,10 @@ services:
     environment:
       <<: *airflow-env
 
-  airflow_scheduler:
+  airflow_triggerer:
     image: airflow
     user: 0:0 # in production this will be the airflow user and docker group
-    command: trigger
+    command: triggerer
     volumes:
       - ./opt/plugins:/opt/airflow/plugins
       - ./logs:/opt/airflow/logs

@@ -35,7 +35,7 @@ services:
       start_period: 2s
 
   ui:
-    image: etnaagent/airflow:production
+    image: etnaagent/airflow:dev
     command: webserver
     secrets:
       - airflow-postgres-password
@@ -89,8 +89,54 @@ services:
       - edge_bridge
       - prometheus
 
+  triggerer:
+    image: etnaagent/airflow:dev
+    command: triggerer
+    secrets:
+      - airflow-postgres-password
+      - airflow-fernet-key
+    deploy:
+      mode: replicated
+      update_config:
+        parallelism: 1
+        order: start-first
+      labels:
+        - autoupdate=true
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.volumes.airflow-dags == true
+          - node.labels.volumes.airflow-logs == true
+          - node.role == manager
+    healthcheck:
+      interval: 60s
+      retries: 3
+      start_period: 5s
+      test: 
+      - CMD
+      - /opt/airflow/entrypoint-with-secret-files.sh
+      - jobs
+      - check
+      - --job-type
+      - TriggererJob
+      - --allow-multiple
+      - --limit
+      - "100"
+      timeout: 25s
+
+    environment:
+      AIRFLOW__CORE__EXECUTOR: etna.executors.local_executor.LocalExecutor
+      AIRFLOW__WEBSERVER__BASE_URL: https://airflow.dsco.ucsf.edu
+
+    volumes:
+      - dags:/opt/airflow/dags
+      - logs:/opt/airflow/logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - airflow
+
   scheduler:
-    image: etnaagent/airflow:production
+    image: etnaagent/airflow:dev
     command: scheduler
     secrets:
       - airflow-postgres-password
@@ -136,7 +182,7 @@ services:
       - airflow
      
   init:
-    image: etnaagent/airflow:production
+    image: etnaagent/airflow:dev
     command: version
     environment:
       _AIRFLOW_DB_UPGRADE: 'true'
