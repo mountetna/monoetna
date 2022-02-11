@@ -20,6 +20,8 @@ class Polyphemus
 
   # Abstract base class for an ETL that scans Magma for records using the retrieve api.
   class MagmaRecordEtl < Etl
+    SCANNER_CLASS = TimeScanBasedEtlScanner
+
     # Subclasses should provide default values here, since commands are constructed
     def initialize(project_model_pairs:, cursor_env: {}, scanner: build_scanner, magma_client: nil, limit: 20, job_name: self.class.name, attribute_names: 'all')
       logger.info("Reading cursors...")
@@ -39,7 +41,7 @@ class Polyphemus
     end
 
     def build_scanner
-      TimeScanBasedEtlScanner.new.tap do |scanner|
+      SCANNER_CLASS.new.tap do |scanner|
         scanner.start_batch_state do |cursor|
           retrieve_request = Etna::Clients::Magma::RetrievalRequest.new(
             project_name: cursor[:project_name],
