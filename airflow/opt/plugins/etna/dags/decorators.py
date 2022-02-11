@@ -72,7 +72,7 @@ def metis_etl(
                 propagate_folder_updated_at(folders)
 
             return inject(fn, dict(tail_folders=folders, tail_files=files, project_name=project_name, bucket_name=bucket_name,
-                                   **inject_params))
+                                   hook=hook, **inject_params))
 
         return etl(
             project_name=project_name,

@@ -78,7 +78,7 @@ services:
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8080/health" ]
       interval: 10s
-      timeout: 10s
+      timeout: 30s
       retries: 5
 
     volumes:
@@ -110,7 +110,7 @@ services:
           - node.role == manager
     healthcheck:
       interval: 60s
-      retries: 3
+      retries: 5
       start_period: 5s
       test: 
       - CMD
@@ -122,7 +122,7 @@ services:
       - --allow-multiple
       - --limit
       - "100"
-      timeout: 25s
+      timeout: 45s
 
     environment:
       AIRFLOW__CORE__EXECUTOR: etna.executors.local_executor.LocalExecutor
@@ -156,7 +156,7 @@ services:
           - node.role == manager
     healthcheck:
       interval: 60s
-      retries: 3
+      retries: 5
       start_period: 5s
       test: 
       - CMD
@@ -168,7 +168,7 @@ services:
       - --allow-multiple
       - --limit
       - "100"
-      timeout: 25s
+      timeout: 45s
 
     environment:
       AIRFLOW__CORE__EXECUTOR: etna.executors.local_executor.LocalExecutor

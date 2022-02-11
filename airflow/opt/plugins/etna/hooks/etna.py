@@ -36,9 +36,9 @@ class EtnaHook(BaseHook):
     """
 
     conn_name_attr = 'etna_conn_id'
-    default_conn_name = 'git_default'
-    conn_type = 'git'
-    hook_name = 'Git Checkout'
+    default_conn_name = 'etna_default'
+    conn_type = 'etna'
+    hook_name = 'Etna Connection'
     root_dir = '/opt/airflow/dags/repos'
 
     remote_path: str
