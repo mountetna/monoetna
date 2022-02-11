@@ -17,8 +17,8 @@ import {useMemoized} from '../../../../selectors/workflow_selectors';
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
-    maxWidth: '90vw',
-    maxHeight: '90vh'
+    width: '90vw',
+    height: '90vh'
   }
 }));
 
@@ -169,12 +169,6 @@ function DataTransformationModal({
           },
           contextMenu: {
             items: {
-              col_left: {
-                name: 'Insert column to left'
-              },
-              col_right: {
-                name: 'Insert column to right'
-              },
               undo: {},
               redo: {},
               clear_column: {}
@@ -200,11 +194,7 @@ function DataTransformationModal({
             //   set as input values to preserve any transformations.
             let newData = hotTableComponent.current.hotInstance.getSourceData();
 
-            onChange(
-              some({
-                updated_data: newData
-              })
-            );
+            onChange(some(toJson(newData)));
           }
 
           dismissModal();
@@ -219,9 +209,7 @@ function DataTransformationModal({
   );
 }
 
-export function toJson(
-  input: any[][]
-): Maybe<DataEnvelope<{[key: string]: any}>> {
+export function toJson(input: any[][]): DataEnvelope<{[key: string]: any}> {
   const headers = input[0];
   let payload = headers.reduce((acc, header) => {
     acc[header] = {};
@@ -278,8 +266,9 @@ export default function DataTransformationInput({
   {[key: string]: any},
   {[key: string]: any}
 >) {
-  const originalDF = toNestedArray(useMemoized(joinNesting, data));
-  useSetsDefault({updated_data: originalDF}, props.value, onChange);
+  const originalData = useMemoized(joinNesting, data);
+  const originalDF = toNestedArray(originalData);
+  useSetsDefault(originalData, props.value, onChange);
   const {openModal} = useModal();
 
   return (
