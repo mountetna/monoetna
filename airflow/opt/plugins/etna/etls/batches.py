@@ -1,13 +1,8 @@
-import math
-from bisect import bisect_left, bisect_right
 from datetime import timedelta, datetime
-from typing import Optional, Any, Tuple, Generic, TypeVar, List, Union, Callable
+from typing import Optional, Any, Tuple, Generic, TypeVar, List
 
 import dateutil.parser
-from airflow import DAG
-from airflow.decorators import task
-from airflow.decorators.base import task_decorator_factory
-from airflow.exceptions import AirflowRescheduleException
+from airflow.exceptions import AirflowRescheduleException, AirflowException
 from airflow.models import TaskInstance, XCom, BaseOperator, DagRun, Variable, XCOM_RETURN_KEY
 from airflow.models.taskinstance import Context
 from airflow.models.xcom_arg import XComArg
@@ -194,15 +189,7 @@ class BatchReferenceResult(EtnaDeferredXCom, Generic[T]):
         Attempts to find the batched dataset belonging to to XComs sourced from the dask_id and task_id given
         in the constructor that belongs within the time range provided by upper and lower (incl both ends).
         To this end, it tries to select XCom entries that belong within the 'best' bounds that can be determined
-        from available data.  If there is available data, an empty list is returned.
-
-        When the given batch range does not perfectly align to data sets (when intervals change, for instance),
-        this function will also sort and filter by 'updated_at' to ensure all entries belong to given range.
-
-        Note: BatchReferenceResult.execute itself cannot 'ensure' that all data that should be available
-        for the batch within the ranges is, that is up to the tasks themselves and the caller who
-        invokes this class.  It will 'best effort' find the correct bounds for xcoms data to select as
-        part of its batch.
+        from available data.  That data is then joined together and returned.
         """
         lower = self._find_xcom_bound(session, XCom.execution_date <= self.lower, False) or \
                 self._find_xcom_bound(session, XCom.execution_date > self.lower, True)
@@ -214,16 +201,15 @@ class BatchReferenceResult(EtnaDeferredXCom, Generic[T]):
 
         xcoms = session.query(XCom).filter(
             XCom.dag_id == self.source_dag_id,
+            XCom.task_id == self.source_task_id,
             XCom.execution_date >= lower,
             XCom.execution_date <= upper,
-        ).all()
+        ).with_entities(XCom.value).order_by(XCom.execution_date).all()
 
         result = []
         for xcom in xcoms:
-            result.extend([(dateutil.parser.isoparse(
-                r[self.batch_ordering_key] if isinstance(r, dict) else getattr(r, self.batch_ordering_key)), id(r), r)
-                           for r in XCom.deserialize_value(xcom)])
-        result.sort(key=lambda row: row[1])
-        left = bisect_left(result, (lower, 0, {}))
-        right = bisect_right(result, (upper, math.inf, {}))
-        return [r[2] for r in result[left:right]]
+            next_in = XCom.deserialize_value(xcom)
+            if not isinstance(next_in, list):
+                raise AirflowException(f"tasks inside etl should return None or a list, found {type(next_in)} from {self.source_task_id}/{self.source_task_id}")
+            result.extend(next_in)
+        return result

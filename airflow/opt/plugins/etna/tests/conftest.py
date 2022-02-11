@@ -1,4 +1,6 @@
+import contextlib
 import functools
+import logging
 import os
 from random import Random
 from unittest.mock import patch
@@ -30,16 +32,53 @@ from airflow.utils.db import add_default_pool_if_not_exists, create_default_conn
 from airflow.utils.session import create_session
 from airflow.www.app import purge_cached_app, create_app
 from flask_appbuilder.security.sqla.models import User, PermissionView
+from requests import Session
+from urllib3 import connectionpool
+from vcr.patch import CassettePatcherBuilder
+from vcr.stubs import VCRFakeSocket
+
+from etna.hooks.etna import EtnaHook
 
 
 class NotSoRandom(Random):
     def __init__(self, *args):
         super(NotSoRandom, self).__init__(0)
 
-# Authorization in any vcr is safely masked.
 @pytest.fixture(scope='module')
 def vcr_config():
-    return {"filter_headers": [("authorization", "XXX-Auth")]}
+    vcr_log = logging.getLogger("vcr")
+    vcr_log.setLevel(logging.WARNING)
+
+    class ForceNeverReuseConnectionSession(Session):
+        def __init__(self, create_session, auth):
+            self.create_session = create_session
+            super(ForceNeverReuseConnectionSession, self).__init__()
+            self.auth = auth
+
+        def __call__(self):
+            return self
+
+        def request(self, *args, **kwds):
+            with self.create_session() as session:
+                response = session.request(*args, **kwds)
+                response.content
+                return response
+
+    get_client = EtnaHook.get_client
+    @contextlib.contextmanager
+    def _get_client(self, auth):
+        yield ForceNeverReuseConnectionSession(lambda: get_client(self, auth), auth)
+
+    EtnaHook.get_client = _get_client
+
+    # Authorization in any vcr is safely masked, and requests are matched on body.
+    return {"filter_headers": [("authorization", "XXX-Auth")], "match_on": ['method', 'scheme', 'host', 'port', 'query', 'body']}
+
+# def match_body(r1: BaseRequest, r2: BaseRequest):
+#     return r1.re
+#
+# def pytest_recording_configure(config, vcr):
+#     vcr.register_matcher("body", match_body)
 
 @pytest.fixture()
 def rsa_etna_connection(session):

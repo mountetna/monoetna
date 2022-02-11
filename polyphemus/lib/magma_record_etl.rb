@@ -70,11 +70,6 @@ class Polyphemus
       if (end_at = cursor[:batch_end_at])
         request.filter = [
           request.filter,
-          # This is crucial -- we use the <= here which can result in overlapping work executing because
-          # we do not keep cursor state when running batches from the environment, and it is possible for a
-          # process to run precisely at the time precision border between start and end times.
-          # In this extreme edge case, prefer possibly duplication ensured completeness since jobs should be idempotent
-          # anyways.
           "updated_at<=#{(end_at + 1).iso8601}"
         ]
       end

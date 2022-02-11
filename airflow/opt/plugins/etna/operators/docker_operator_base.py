@@ -196,7 +196,7 @@ class DockerOperatorBase(BaseOperator):
 
 
 LOG_LINE_BATCH_SIZE=16384 # 16K
-MAX_BATCH_SIZE=160
+MAX_BATCH_SIZE=500 # 16K * 500 ~= 8mb
 LOG_TIMESTAMP_LEN=30
 def write_logs_and_yield_last(
     next_batch_since: Callable[[int], bytes],

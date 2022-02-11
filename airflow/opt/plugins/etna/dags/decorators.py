@@ -2,6 +2,7 @@ import functools
 import os.path
 
 from airflow.decorators import task
+from airflow.operators.python import get_current_context
 from pendulum import datetime
 from datetime import timedelta
 from typing import Mapping, Union, List
@@ -15,9 +16,10 @@ from airflow.models.dag import (
 )
 
 from etna.dags.callbacks import notify_slack_dag_callback
-from etna.etls.batches import batch_end_context_key, enable_task_backfill
+from etna.etls.batches import batch_end_context_key, enable_task_backfill, get_batch_range, LOWEST_BOUND
 from etna.etls.metis import load_metis_folders_batch, load_metis_files_batch
 from etna.hooks.etna import Folder, EtnaHook, File
+from etna.utils.batching import batch_iterable
 from etna.utils.inject import inject
 from etna.xcom.etna_xcom import pickled
 
@@ -34,7 +36,7 @@ def metis_etl(
     if hook is None:
         hook = EtnaHook.for_project(project_name)
 
-    interval = timedelta(minutes=5)
+    interval = timedelta(hours=1)
 
     def instantiate_dag(fn):
         @functools.wraps(fn)
@@ -49,8 +51,13 @@ def metis_etl(
                 with hook.metis() as metis:
                     return pickled(load_metis_files_batch(metis, bucket_name))
 
-            @task
+            @task(do_xcom_push=False)
             def propagate_folder_updated_at(folders: List[Folder]):
+                # For new etl startup, this step is not necessary.
+                lower, _ = get_batch_range(get_current_context())
+                if lower == LOWEST_BOUND:
+                    return
+
                 with hook.metis() as metis:
                     for folder in folders:
                         children = metis.list_folder(project_name, bucket_name, folder.folder_path).folders
