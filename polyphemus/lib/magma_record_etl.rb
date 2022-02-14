@@ -77,9 +77,5 @@ class Polyphemus
         ]
       end
     end
-
-    def find_batch(cursor)
-      super.map { |r| r.values.first }
-    end
   end
 end

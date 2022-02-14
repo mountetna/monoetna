@@ -20,18 +20,38 @@ batch_end_context_key = 'data_interval_end'
 # A theoretical floor for date ranges.
 LOWEST_BOUND = datetime(2010, 1, 1).replace(tzinfo=utc)
 
+def _lower_bound_key(context: Context):
+    ti: TaskInstance = context['ti']
+    return f"{ti.dag_id}-{ti.task_id}-lower-bound"
+
 # Used to determine where this particular task's batch processing was last able to successfully complete.
 # Tasks added into the system after a dag has been run will use this value to help backfill themselves on dagruns
 # they did not participate in.
 def _get_task_lower_bound(context: Context):
     ti: TaskInstance = context['ti']
-    lower = Variable.get(f"{ti.dag_id}-{ti.task_id}-lower-bound", LOWEST_BOUND.isoformat())
+    lower = Variable.get(_lower_bound_key(context))
     return dateutil.parser.isoparse(lower)
 
-# After, and only after, a task completes within a given batch range, should this be given.
-def _set_task_lower_bound(context: Context, end: datetime):
+# After, and only after, a task completes and pushes its XCom result within a given batch range, should this be invoked.
+# Attempts to update the task's lower bound unless the current lower bound is already higher.  Attempts to do so transactionally
+# so as to not destructively update over another task's work.
+@provide_session
+def _maybe_set_task_lower_bound(context: Context, end: datetime, session: Session = None):
     ti: TaskInstance = context['ti']
-    Variable.set(f"{ti.dag_id}-{ti.task_id}-lower-bound", end.isoformat())
+    key = _lower_bound_key(context)
+    cur = Variable.get(key, None)
+
+    if cur is None:
+        # Ensure concurrent transactional writes either are cleared from our write, or fail us.
+        Variable.delete(key, session=session)
+        Variable.set(key, end.isoformat())
+    else:
+        cur_date = dateutil.parser.isoparse(cur)
+        if end > cur_date:
+            session.query(Variable).filter(Variable.key == key, Variable._val == cur).update({
+                Variable._val: end.isoformat()
+            })
+    session.flush()
 
 def _get_dag_batch_range(context: Context) -> Tuple[datetime, datetime]:
     ti: TaskInstance = context['ti']
@@ -132,6 +152,11 @@ def enable_task_backfill(op: BaseOperator):
         start, stop = _get_batch_range(context)
         dag_start, dag_stop = _get_dag_batch_range(context)
 
+        # Happens during backfill of task when a task instance in the past is scheduled or restarted after
+        # progress is made on the far end.
+        if dag_start >= dag_stop:
+            return []
+
         try:
             context[batch_start_context_key] = start
             context[batch_end_context_key] = stop
@@ -143,7 +168,7 @@ def enable_task_backfill(op: BaseOperator):
 
         if op.do_xcom_push:
             xcom_push(context, XCOM_RETURN_KEY, result, start)
-        _set_task_lower_bound(context, stop)
+        _maybe_set_task_lower_bound(context, stop)
 
         if stop < dag_stop:
             # Keep reprocessing to catchup
