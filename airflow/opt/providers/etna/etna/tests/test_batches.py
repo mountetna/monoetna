@@ -4,7 +4,7 @@ from airflow import DAG
 from airflow.models import TaskInstance
 from airflow.operators.dummy import DummyOperator
 
-from etna.etls.batches import maybe_set_task_lower_bound, get_task_lower_bound, LOWEST_BOUND
+from etna.etls.etl_task_batching import get_task_lower_bound, maybe_set_task_lower_bound, LOWEST_BOUND
 
 
 def test_maybe_set_task_lower_bound():

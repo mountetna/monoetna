@@ -1,30 +1,15 @@
-from typing import List, Optional
+from typing import List
 
-from airflow.exceptions import AirflowNotFoundException, AirflowException
-from airflow.hooks.base import BaseHook
+from airflow.exceptions import AirflowException
 from airflow.models import DagRun
 from airflow.models.dag import DagStateChangeCallback
+from airflow.models.taskinstance import Context, TaskInstance
 from airflow.providers.slack.hooks.slack import SlackHook
 from airflow.utils.session import create_session
 from airflow.utils.state import State
 
-from airflow.models.taskinstance import Context, TaskInstance
+from etna.hooks.connections import find_first_valid_connection
 
-def find_first_valid_connection(*options: Optional[str]) -> str:
-    last_e = None
-    for option in options:
-        if option is None:
-            continue
-
-        try:
-            BaseHook.get_connection(option)
-            return option
-        except AirflowNotFoundException as e:
-            last_e = e
-    if last_e:
-        raise last_e
-
-    raise AirflowNotFoundException("No connection option present!")
 
 def notify_slack_dag_callback(dag_status: str) -> DagStateChangeCallback:
     def state_change_callback(context: Context):

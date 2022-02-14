@@ -2,7 +2,7 @@ from airflow.models import Connection
 from unittest import mock
 
 from etna.hooks.git import GitHook
-from etna.tests.conftest import NotSoRandom
+from .conftest import NotSoRandom
 
 
 @mock.patch("tempfile._Random", NotSoRandom)

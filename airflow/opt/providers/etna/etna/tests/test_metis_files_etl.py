@@ -1,19 +1,12 @@
 import re
-from datetime import datetime, timedelta
-from typing import List, Tuple
-from unittest import mock
+from datetime import datetime
 
 from airflow import DAG
-from airflow.decorators import task
 from airflow.executors.debug_executor import DebugExecutor
-from airflow.models import Connection, XCom
-from airflow.utils.timezone import utc
 
-from etna.hooks.etna import EtnaHook, Folder, File
-from etna.operators import run_in_container
-from etna.tests.conftest import NotSoRandom
+from etna.hooks.etna import Folder, File
+from etna.etls.metis import filter_by_record_directory
 
-from etna import pickled, filter_by_exists_in_timur, filter_by_record_directory, MatchedAtRoot, link, list_contents_of_matches, metis_etl
 
 def run_dag(dag: DAG, execution_date: datetime, end_date: datetime):
     dag.run(

@@ -10,7 +10,7 @@ from airflow.utils.session import provide_session
 from airflow.utils.timezone import utc
 from sqlalchemy.orm import Session
 
-from etna.xcom.etna_xcom import EtnaDeferredXCom
+from etna.xcom import EtnaDeferredXCom
 
 T = TypeVar("T")
 

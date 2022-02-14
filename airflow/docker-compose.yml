@@ -56,7 +56,7 @@ services:
     depends_on:
       - airflow_postgres
     volumes:
-      - ./opt/plugins:/opt/airflow/plugins
+      - ./opt/providers:/opt/airflow/providers
       - ./logs:/opt/airflow/logs
       - airflow-dags:/opt/airflow/dags
     environment:
@@ -70,7 +70,7 @@ services:
     user: 0:0 # in production this will be the airflow user and docker group
     command: scheduler
     volumes:
-      - ./opt/plugins:/opt/airflow/plugins
+      - ./opt/providers:/opt/airflow/providers
       - ./logs:/opt/airflow/logs
       - airflow-dags:/opt/airflow/dags
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -83,7 +83,7 @@ services:
     user: 0:0 # in production this will be the airflow user and docker group
     command: triggerer
     volumes:
-      - ./opt/plugins:/opt/airflow/plugins
+      - ./opt/providers:/opt/airflow/providers
       - ./logs:/opt/airflow/logs
       - airflow-dags:/opt/airflow/dags
       - /var/run/docker.sock:/var/run/docker.sock:ro

@@ -28,7 +28,8 @@ from urllib3 import Retry
 
 from etna.dags.project_name import get_project_name
 from etna.hooks.keys import prepared_key_from
-from etna.utils.batching import batch_iterable
+from etna.utils.iterables import batch_iterable
+
 
 class EtnaHook(BaseHook):
     """

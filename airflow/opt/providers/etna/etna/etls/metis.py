@@ -15,9 +15,9 @@ from airflow.operators.python import get_current_context
 from serde import serialize, deserialize
 
 from etna.dags.project_name import get_project_name
-from etna.etls.batches import get_batch_range
-from etna.hooks.etna import Metis, Folder, File, Magma, EtnaHook, UpdateRequest
-from etna.utils.batching import batch_iterable
+from etna.etls.etl_task_batching import get_batch_range
+from etna.hooks.etna import File, Folder, UpdateRequest, EtnaHook, Magma, Metis
+from etna.utils.iterables import batch_iterable
 
 
 @serialize

@@ -9,6 +9,7 @@ from airflow.models.xcom import BaseXCom
 from serde.json import to_json
 
 
+
 class EtnaDeferredXCom:
     def execute(self):
         return None
@@ -17,6 +18,7 @@ class EtnaDeferredXCom:
         return f"<{self.__class__.__name__}>"
 
 T = TypeVar("T")
+
 def pickled(v: T) -> T:
     return cast(T, _Pickled(v))
 

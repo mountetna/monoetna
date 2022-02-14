@@ -1,5 +1,5 @@
 from datetime import timedelta
-from etna import system_dag, run_on_docker
+from providers.etna.etna import system_dag, run_on_docker
 
 @system_dag(timedelta(days=1))
 def system_dag_example():

@@ -1,11 +1,8 @@
-import datetime
 import json
 import logging
 from dataclasses import dataclass
 from io import StringIO
 from unittest import mock
-
-from freezegun import freeze_time
 
 import pytest
 from docker import APIClient
@@ -25,8 +22,6 @@ from etna.operators.swarm_operator import (
     create_service_from_definition,
     find_local_network_ids,
     DockerSwarmOperator,
-    swarm_cleanup,
-    join_labels,
 )
 
 

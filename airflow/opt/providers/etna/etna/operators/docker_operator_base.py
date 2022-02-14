@@ -11,7 +11,7 @@ import io
 
 import tarfile
 from airflow import AirflowException
-from airflow.models import BaseOperator, TaskInstance, XCom
+from airflow.models import TaskInstance, XCom, BaseOperator
 from airflow.models.xcom_arg import XComArg
 from dateutil import parser
 from docker import APIClient

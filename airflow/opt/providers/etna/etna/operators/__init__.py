@@ -9,9 +9,9 @@ from typing import Optional, List, Any
 
 from serde.json import from_json
 
-from etna.operators.docker_operator import DockerOperator
-from etna.operators.docker_operator_base import SwarmSharedData, DockerOperatorBase
-from etna.operators.swarm_operator import DockerSwarmOperator
+from .docker_operator import DockerOperator
+from .docker_operator_base import  DockerOperatorBase
+from .swarm_operator import DockerSwarmOperator
 
 
 def run_on_docker(

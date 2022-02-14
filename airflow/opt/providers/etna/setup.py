@@ -12,12 +12,12 @@ setup(
         ]
     },
     license='Apache License 2.0',
-    packages=[],
-    # packages=[
-    #     'etna', 'etna.xcom', 'etna.auth', 'etna.executors', 'etna.hooks',
-    #     'etna.operators', 'etna.utils', 'etna.operators', 'etna.dags',
-    #     'etna.etls'
-    # ],
+    # packages=[],
+    packages=[
+        'etna', 'etna.xcom', 'etna.auth', 'etna.executors', 'etna.hooks',
+        'etna.operators', 'etna.utils', 'etna.operators', 'etna.dags',
+        'etna.etls'
+    ],
     # install_requires=['apache-airflow>=2.2'],
     # setup_requires=['setuptools', 'wheel'],
     python_requires='>=3.7'

@@ -19,6 +19,7 @@ RUN groupadd --gid 999 docker \
 
 USER airflow
 
+ENV PYTHONPATH="/opt/airflow/:$PYTHONPATH"
 COPY --chown=airflow:0 --from=0 /known_hosts /opt/airflow/.ssh/known_hosts
 RUN chmod 0700 /opt/airflow/.ssh
 COPY --chown=airflow:0 ./opt/requirements.txt /opt/airflow/

@@ -5,7 +5,6 @@ import docker.errors
 from airflow import AirflowException
 from docker import APIClient
 from docker.models.containers import Container
-from docker.types import LogConfig, HostConfig
 
 from etna.operators.docker_operator_base import DockerOperatorBase
 
