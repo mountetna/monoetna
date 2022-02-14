@@ -1,15 +1,16 @@
 import React, {useRef, useState} from 'react';
 import {HotTable} from '@handsontable/react';
 import {HyperFormula} from 'hyperformula';
-import Paper from '@material-ui/core/Paper';
 import EditIcon from '@material-ui/icons/Edit';
 import SaveIcon from '@material-ui/icons/Save';
 import CancelIcon from '@material-ui/icons/Cancel';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogActions from '@material-ui/core/DialogActions';
 import {makeStyles} from '@material-ui/core/styles';
 
-import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {joinNesting} from './monoids';
 import {WithInputParams, DataEnvelope} from './input_types';
 import {useSetsDefault} from './useSetsDefault';
@@ -32,6 +33,7 @@ function DataTransformationModal({
   onChange: (data: Maybe<{[key: string]: any}>) => void;
   onClose: () => void;
 }) {
+  const [dialogWidth, setDialogWidth] = useState('500px');
   const classes = useStyles();
 
   const hotTableComponent = useRef<any>(null);
@@ -42,72 +44,78 @@ function DataTransformationModal({
   });
 
   return (
-    <Paper className={classes.dialog}>
-      <HotTable
-        ref={hotTableComponent}
-        settings={{
-          data: data,
-          colHeaders: true,
-          rowHeaders: true,
-          height: 'auto',
-          licenseKey: 'non-commercial-and-evaluation',
-          formulas: {
-            engine: hyperformulaInstance
-          },
-          contextMenu: {
-            items: {
-              col_left: {
-                name: 'Insert column to left',
-                disabled: () =>
-                  hotTableComponent.current.hotInstance.getSelectedLast()[1] ==
-                  0
-              },
-              col_right: {
-                name: 'Insert column to right',
-                disabled: false
-              },
-              remove_col: {},
-              undo: {},
-              redo: {},
-              clear_column: {}
+    <>
+      <DialogTitle>Transform your data</DialogTitle>
+      <DialogContent>
+        <HotTable
+          ref={hotTableComponent}
+          settings={{
+            data: data,
+            colHeaders: true,
+            rowHeaders: true,
+            height: 'auto',
+            width: 'auto',
+            licenseKey: 'non-commercial-and-evaluation',
+            formulas: {
+              engine: hyperformulaInstance
+            },
+            contextMenu: {
+              items: {
+                col_left: {
+                  name: 'Insert column to left',
+                  disabled: () =>
+                    hotTableComponent.current.hotInstance.getSelectedLast()[1] ==
+                    0
+                },
+                col_right: {
+                  name: 'Insert column to right',
+                  disabled: false
+                },
+                remove_col: {},
+                undo: {},
+                redo: {},
+                clear_column: {}
+              }
             }
-          }
-        }}
-      />
-      <Button
-        onClick={onClose}
-        startIcon={<CancelIcon />}
-        color='secondary'
-        variant='contained'
-      >
-        Cancel
-      </Button>
-      <Button
-        onClick={() => {
-          if (hotTableComponent.current) {
-            // hotTableComponent.current.hotInstance.getSourceData()
-            //   returns the raw formulas, unrendered, which we could
-            //   set as input values to preserve any transformations.
-            const sourceData = hotTableComponent.current.hotInstance.getSourceData();
-            const data = hotTableComponent.current.hotInstance.getData();
+          }}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button
+          onClick={onClose}
+          startIcon={<CancelIcon />}
+          color='secondary'
+          variant='contained'
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={() => {
+            if (hotTableComponent.current) {
+              // hotTableComponent.current.hotInstance.getSourceData()
+              //   returns the raw formulas, unrendered, which we could
+              //   set as input values to preserve any transformations.
+              const sourceData = hotTableComponent.current.hotInstance.getSourceData();
+              const data = hotTableComponent.current.hotInstance.getData();
 
-            onChange(
-              some({
-                source_data: toJson(sourceData),
-                data: toJson(data)
-              })
-            );
-          }
+              onChange(
+                some({
+                  source_data: toJson(sourceData),
+                  data: toJson(data)
+                })
+              );
+            }
 
-          onClose();
-        }}
-        startIcon={<SaveIcon />}
-        color='primary'
-        variant='contained'
-      >
-        Save
-      </Button>
-    </Paper>
+            onClose();
+          }}
+          startIcon={<SaveIcon />}
+          color='primary'
+          variant='contained'
+        >
+          Save
+        </Button>
+      </DialogActions>
+    </>
   );
 }
 
@@ -195,7 +203,7 @@ export default function DataTransformationInput({
       <div>
         Your data frame has {value.length} rows and {value[0].length} columns.
       </div>
-      <Dialog open={open} onClose={handleOnClose}>
+      <Dialog open={open} onClose={handleOnClose} maxWidth='xl'>
         <DataTransformationModal
           data={value}
           onChange={onChange}

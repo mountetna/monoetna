@@ -551,3 +551,11 @@
 .htContextMenu.handsontable.htMenu {
   z-index: 99999;
 }
+
+.MuiDialog-container {
+  .handsontable {
+    .wtHolder {
+      width: auto !important;
+    }
+  }
+}
