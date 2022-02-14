@@ -137,6 +137,7 @@ declare module 'etna-js/components/Notifications' {
 declare module 'etna-js/components/ModalDialogContainer' {
   import {ReactElement} from "react";
   export function ModalDialogContainer(props: any): ReactElement;
+  export function useModal(): {openModal: any; dismissModal: any};
 }
 
 declare module 'etna-js/components/messages' {
@@ -212,4 +213,3 @@ declare module 'etna-js/spec/helpers' {
     request?: Object | string
   }): Promise<void>
 }
-

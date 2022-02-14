@@ -35,6 +35,7 @@ import {stepOfSource} from "../../../../selectors/workflow_selectors";
 import AllOutputValuesNotEmptyValidator from "./validators/all_output_values_not_empty_validator"
 import DiffExpSC from './scDGE';
 import DataTransformation from './data_transformation';
+import AllInnerKeysNotNullValidator from './validators/all_inner_keys_not_null_validator';
 
 const components: {[k: string]: [InputBackendComponent<any, any, any>, InputValidator<any, any>]} = {};
 function configureComponent<Value, DataElement>(
@@ -59,7 +60,7 @@ configureComponent(TYPE.SCATTER_PLOTLY, ScatterPlotly, AllOutputValuesNotEmptyVa
 configureComponent(TYPE.BAR_PLOTLY, BarPlotly, AllOutputValuesNotEmptyValidator);
 configureComponent(TYPE.Y_PLOTLY, YPlotly, AllOutputValuesNotEmptyValidator);
 configureComponent(TYPE.DIFF_EXP_SC, DiffExpSC, AllOutputValuesNotEmptyValidator);
-configureComponent(TYPE.DATA_TRANSFORMATION, DataTransformation, AllOutputValuesNotEmptyValidator);
+configureComponent(TYPE.DATA_TRANSFORMATION, DataTransformation, AllInnerKeysNotNullValidator);
 
 configureComponent(TYPE.SINGLE_DROPDOWN_MULTICHECKBOX, SingleDropdownMulticheckbox, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_MULTISELECT_STRING_ALL, MultipleInput(MultiselectStringInput), AllInnerValuesNotEmptyValidator)
@@ -85,7 +86,9 @@ export default function UserInput({
   const {onChange, data, value, source, label} = input;
 
   useEffect(() => {
+    console.log('Validator', Validator, data, value)
     const errors = Validator({ data, value });
+    console.log('errors', errors)
     if (errors.length > 0) {
       dispatch(
         addValidationErrors(stepOfSource(source) || null, label, errors)

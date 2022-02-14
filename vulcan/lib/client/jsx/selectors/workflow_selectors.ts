@@ -136,6 +136,10 @@ export function allDataNonEmpty(data: ([any] | null)[]) {
   return data.every(v => v && inputValueNonEmpty(v[0]));
 }
 
+export function isNullish(value: any) {
+  return value == null || value === 'null' || value === '';
+}
+
 export function dataOfSource(source: string, workflow: Workflow | null, status: VulcanState['status'], data: VulcanState['data'], session: VulcanState['session']): [any] | null {
   if (!workflow) return null;
   const [originalStepName, outputName] = splitSource(source);
