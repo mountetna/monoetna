@@ -285,10 +285,12 @@ export default function DataTransformationInput({
   {[key: string]: any}
 >) {
   const originalData = useMemoized(joinNesting, data);
+
+  if (!originalData) return <div>No data frame!</div>;
+
   const originalDF = toNestedArray(originalData);
   const {openModal} = useModal();
 
-  console.log('props.value', props.value, originalData);
   const value = toNestedArray(
     useSetsDefault(
       {
@@ -299,9 +301,6 @@ export default function DataTransformationInput({
       onChange
     )?.source_data
   );
-  console.log('value', value);
-
-  if (!originalData) return <div>No data frame</div>;
 
   return (
     <>
@@ -312,7 +311,7 @@ export default function DataTransformationInput({
       <Button
         onClick={() => {
           openModal(
-            <DataTransformationModal data={value || [[]]} onChange={onChange} />
+            <DataTransformationModal data={value} onChange={onChange} />
           );
         }}
         color='primary'
