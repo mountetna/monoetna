@@ -19,7 +19,7 @@ inputs:
 outputs:
   the_plot:
     type: File
-    outputSource: transform_data/updated_data
+    outputSource: transform_data/data
 
 steps:
   get_data:
@@ -36,10 +36,13 @@ steps:
     doc: "Manipulate your data frame as needed."
     in:
       data_frame: get_data/data_frame
-    out: [updated_data]
+    # data will be a Hash with keys for "data" and "source_data".
+    #   `data` is the rendered, final value after parsing formulas.
+    #   `source_data` is the original values, including formula text.
+    out: [data]
   show_plot:
     run: ui-outputs/link.cwl
     in:
-      a: transform_data/updated_data
+      a: transform_data/data
     out: []
     label: 'Download your final data frame'

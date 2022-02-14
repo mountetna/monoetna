@@ -169,6 +169,16 @@ function DataTransformationModal({
           },
           contextMenu: {
             items: {
+              col_left: {
+                name: 'Insert column to left',
+                disabled: () =>
+                  hotTableComponent.current.hotInstance.getSelectedLast()[1] ==
+                  0
+              },
+              col_right: {
+                name: 'Insert column to right',
+                disabled: false
+              },
               undo: {},
               redo: {},
               clear_column: {}
@@ -192,9 +202,15 @@ function DataTransformationModal({
             // hotTableComponent.current.hotInstance.getSourceData()
             //   returns the raw formulas, unrendered, which we could
             //   set as input values to preserve any transformations.
-            let newData = hotTableComponent.current.hotInstance.getSourceData();
+            const sourceData = hotTableComponent.current.hotInstance.getSourceData();
+            const data = hotTableComponent.current.hotInstance.getData();
 
-            onChange(some(toJson(newData)));
+            onChange(
+              some({
+                source_data: toJson(sourceData),
+                data: toJson(data)
+              })
+            );
           }
 
           dismissModal();
@@ -268,13 +284,20 @@ export default function DataTransformationInput({
 >) {
   const originalData = useMemoized(joinNesting, data);
   const originalDF = toNestedArray(originalData);
-  useSetsDefault(originalData, props.value, onChange);
+  useSetsDefault(
+    {
+      data: originalData,
+      source_data: originalData
+    },
+    props.value,
+    onChange
+  );
   const {openModal} = useModal();
 
   return (
     <>
       <div>
-        Your data has {originalDF.length} rows and {originalDF[0].length}{' '}
+        Your data frame has {originalDF.length} rows and {originalDF[0].length}{' '}
         columns.
       </div>
       <Button
