@@ -12,7 +12,7 @@ import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {joinNesting} from './monoids';
 import {WithInputParams, DataEnvelope} from './input_types';
 import {useSetsDefault} from './useSetsDefault';
-import {some, Maybe} from '../../../../selectors/maybe';
+import {some, Maybe, isSome} from '../../../../selectors/maybe';
 import {useMemoized} from '../../../../selectors/workflow_selectors';
 
 const useStyles = makeStyles((theme) => ({
@@ -246,6 +246,8 @@ export function toJson(input: any[][]): DataEnvelope<{[key: string]: any}> {
 export function toNestedArray(
   input: DataEnvelope<{[key: string]: any}>
 ): any[][] {
+  if (!input) return [[]];
+
   const numColumns = Object.keys(input).length;
   if (numColumns === 0) return [[]];
 
@@ -284,15 +286,22 @@ export default function DataTransformationInput({
 >) {
   const originalData = useMemoized(joinNesting, data);
   const originalDF = toNestedArray(originalData);
-  useSetsDefault(
-    {
-      data: originalData,
-      source_data: originalData
-    },
-    props.value,
-    onChange
-  );
   const {openModal} = useModal();
+
+  console.log('props.value', props.value, originalData);
+  const value = toNestedArray(
+    useSetsDefault(
+      {
+        data: originalData,
+        source_data: originalData
+      },
+      props.value,
+      onChange
+    )?.source_data
+  );
+  console.log('value', value);
+
+  if (!originalData) return <div>No data frame</div>;
 
   return (
     <>
@@ -303,7 +312,7 @@ export default function DataTransformationInput({
       <Button
         onClick={() => {
           openModal(
-            <DataTransformationModal data={originalDF} onChange={onChange} />
+            <DataTransformationModal data={value || [[]]} onChange={onChange} />
           );
         }}
         color='primary'
