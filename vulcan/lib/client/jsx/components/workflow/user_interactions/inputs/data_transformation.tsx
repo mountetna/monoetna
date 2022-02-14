@@ -299,7 +299,7 @@ export default function DataTransformationInput({
       },
       props.value,
       onChange
-    )?.source_data
+    ).source_data
   );
 
   return (
