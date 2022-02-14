@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {HotTable} from '@handsontable/react';
 import {HyperFormula} from 'hyperformula';
 import Paper from '@material-ui/core/Paper';
@@ -6,6 +6,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import SaveIcon from '@material-ui/icons/Save';
 import CancelIcon from '@material-ui/icons/Cancel';
 import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
 import {makeStyles} from '@material-ui/core/styles';
 
 import {useModal} from 'etna-js/components/ModalDialogContainer';
@@ -24,18 +25,16 @@ const useStyles = makeStyles((theme) => ({
 
 function DataTransformationModal({
   data,
-  onChange
+  onChange,
+  onClose
 }: {
   data: any[][];
   onChange: (data: Maybe<{[key: string]: any}>) => void;
+  onClose: () => void;
 }) {
   const classes = useStyles();
-  // TODO: For some reason calling up this Modal resets the Material UI
-  //   theme???
 
   const hotTableComponent = useRef<any>(null);
-  const {dismissModal} = useModal();
-
   const hyperformulaInstance = HyperFormula.buildEmpty({
     // to use an external HyperFormula instance,
     // initialize it with the `'internal-use-in-handsontable'` license key
@@ -76,7 +75,7 @@ function DataTransformationModal({
         }}
       />
       <Button
-        onClick={dismissModal}
+        onClick={onClose}
         startIcon={<CancelIcon />}
         color='secondary'
         variant='contained'
@@ -100,7 +99,7 @@ function DataTransformationModal({
             );
           }
 
-          dismissModal();
+          onClose();
         }}
         startIcon={<SaveIcon />}
         color='primary'
@@ -171,11 +170,14 @@ export default function DataTransformationInput({
   {[key: string]: any},
   {[key: string]: any}
 >) {
+  const [open, setOpen] = useState(false);
   const originalData = useMemoized(joinNesting, data);
 
-  if (!originalData) return <div>No data frame!</div>;
+  function handleOnClose() {
+    setOpen(false);
+  }
 
-  const {openModal} = useModal();
+  if (!originalData) return <div>No data frame!</div>;
 
   const value = toNestedArray(
     useSetsDefault(
@@ -193,11 +195,16 @@ export default function DataTransformationInput({
       <div>
         Your data frame has {value.length} rows and {value[0].length} columns.
       </div>
+      <Dialog open={open} onClose={handleOnClose}>
+        <DataTransformationModal
+          data={value}
+          onChange={onChange}
+          onClose={handleOnClose}
+        />
+      </Dialog>
       <Button
         onClick={() => {
-          openModal(
-            <DataTransformationModal data={value} onChange={onChange} />
-          );
+          setOpen(true);
         }}
         color='primary'
         startIcon={<EditIcon />}

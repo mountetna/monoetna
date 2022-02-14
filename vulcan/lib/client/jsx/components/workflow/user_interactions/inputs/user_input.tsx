@@ -86,9 +86,7 @@ export default function UserInput({
   const {onChange, data, value, source, label} = input;
 
   useEffect(() => {
-    console.log('Validator', Validator, data, value)
     const errors = Validator({ data, value });
-    console.log('errors', errors)
     if (errors.length > 0) {
       dispatch(
         addValidationErrors(stepOfSource(source) || null, label, errors)
