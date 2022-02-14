@@ -27,17 +27,15 @@ def _lower_bound_key(context: Context):
 # Used to determine where this particular task's batch processing was last able to successfully complete.
 # Tasks added into the system after a dag has been run will use this value to help backfill themselves on dagruns
 # they did not participate in.
-def _get_task_lower_bound(context: Context):
-    ti: TaskInstance = context['ti']
-    lower = Variable.get(_lower_bound_key(context))
+def get_task_lower_bound(context: Context):
+    lower = Variable.get(_lower_bound_key(context), LOWEST_BOUND.isoformat())
     return dateutil.parser.isoparse(lower)
 
 # After, and only after, a task completes and pushes its XCom result within a given batch range, should this be invoked.
 # Attempts to update the task's lower bound unless the current lower bound is already higher.  Attempts to do so transactionally
 # so as to not destructively update over another task's work.
 @provide_session
-def _maybe_set_task_lower_bound(context: Context, end: datetime, session: Session = None):
-    ti: TaskInstance = context['ti']
+def maybe_set_task_lower_bound(context: Context, end: datetime, session: Session = None):
     key = _lower_bound_key(context)
     cur = Variable.get(key, None)
 
@@ -66,7 +64,7 @@ def get_batch_range(context: Context) -> Tuple[datetime, datetime]:
 def _get_batch_range(context: Context, session: Session = None) -> Tuple[datetime, datetime]:
     """
     Selects a processing time range such that if this task is 'behind' the dag run, the time range will instead
-    include a past time range based on the last known successful processing according to _get_task_lower_bound
+    include a past time range based on the last known successful processing according to get_task_lower_bound
     (A Variable) and the dag run that follows it.  Net result is that the date range will assist in backfilling a task.
 
     One should only use this function in conjunction with BackfillingTaskOperator that should wrap another, existing
@@ -78,7 +76,7 @@ def _get_batch_range(context: Context, session: Session = None) -> Tuple[datetim
     """
     # Tasks can be added to a dag after the fact, but need to perform catchup broader than the dag's own lower bound.
     # We keep a running variable of task specific lower bounds in order to manage this.
-    task_lower_bound: datetime = _get_task_lower_bound(context)
+    task_lower_bound: datetime = get_task_lower_bound(context)
     dag_lower, dag_upper = _get_dag_batch_range(context)
 
     # If our task state is not behind the dagrun, use the dag run's configuration.
@@ -168,7 +166,7 @@ def enable_task_backfill(op: BaseOperator):
 
         if op.do_xcom_push:
             xcom_push(context, XCOM_RETURN_KEY, result, start)
-        _maybe_set_task_lower_bound(context, stop)
+        maybe_set_task_lower_bound(context, stop)
 
         if stop < dag_stop:
             # Keep reprocessing to catchup

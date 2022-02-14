@@ -33,6 +33,7 @@ from airflow.utils.session import create_session
 from airflow.www.app import purge_cached_app, create_app
 from flask_appbuilder.security.sqla.models import User, PermissionView
 from requests import Session
+from sqlalchemy.orm import scoped_session, sessionmaker
 from urllib3 import connectionpool
 from vcr.patch import CassettePatcherBuilder
 from vcr.stubs import VCRFakeSocket
@@ -43,6 +44,44 @@ from etna.hooks.etna import EtnaHook
 class NotSoRandom(Random):
     def __init__(self, *args):
         super(NotSoRandom, self).__init__(0)
+
+@pytest.fixture()
+def session_a():
+    from airflow.settings import engine
+    Session = scoped_session(
+        sessionmaker(
+            autocommit=False,
+            autoflush=False,
+            bind=engine,
+            expire_on_commit=False,
+        )
+    )
+    session = Session()
+
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+@pytest.fixture()
+def session_b():
+    from airflow.settings import engine
+    Session = scoped_session(
+        sessionmaker(
+            autocommit=False,
+            autoflush=False,
+            bind=engine,
+            expire_on_commit=False,
+        )
+    )
+    session = Session()
+
+    try:
+        yield session
+    finally:
+        session.close()
+
 
 @pytest.fixture(scope='module')
 def vcr_config():
