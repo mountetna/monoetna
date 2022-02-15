@@ -35,32 +35,29 @@ export default function WorkflowManager({
   useEffect(() => {
     if (workflows.length && projectName) {
       getLocalSession(workflowName, projectName, figureId).then((session) => {
-        let workflow = workflowByName(workflowName, state);
+        let workflow: Workflow;
         cancelPolling();
 
-        if (!workflow) return;
-
         if (session) {
+          workflow = workflowByName(session.workflow_name, state);
           dispatch(setWorkflow(workflow, projectName));
           dispatch(setSession(session));
+        } else if (figureId) {
+          json_get(`/api/${projectName}/figure/${figureId}`).then(
+            (figureResponse) => {
+              if (workflow) dispatch(setWorkflow(workflow, projectName));
+              dispatch(setSessionAndFigure(figureResponse));
+            }
+          );
         } else {
-          if (figureId) {
-            json_get(`/api/${projectName}/figure/${figureId}`).then(
-              (figureResponse) => {
-                if (workflow) dispatch(setWorkflow(workflow, projectName));
-                dispatch(setSessionAndFigure(figureResponse));
-              }
-            );
-          } else {
-            dispatch(setWorkflow(workflow, projectName));
-            let session = {
-              ...defaultSession,
-              workflow_name: `${workflowName}.cwl`,
-              project_name: projectName
-            };
-            console.log({workflow, session});
-            dispatch(setSession(session));
-          }
+          dispatch(setWorkflow(workflow, projectName));
+          let session = {
+            ...defaultSession,
+            workflow_name: `${workflowName}.cwl`,
+            project_name: projectName
+          };
+          console.log({workflow, session});
+          dispatch(setSession(session));
         }
 
         requestPoll();
