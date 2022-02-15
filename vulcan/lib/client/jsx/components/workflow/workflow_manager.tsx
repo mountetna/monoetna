@@ -2,15 +2,26 @@ import React, {useContext, useEffect, useState} from 'react';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {defaultSession} from '../../reducers/vulcan_reducer';
-import {localStorageKey} from '../../contexts/session_storage';
 import {workflowByName} from '../../selectors/workflow_selectors';
 
 import SessionManager from './session/session_manager';
 import StepsList from './steps/steps_list';
-import {setSession, setWorkflow} from "../../actions/vulcan_actions";
-import { json_get } from 'etna-js/utils/fetch';
+import {
+  setSession,
+  setWorkflow,
+  setSessionAndFigure
+} from '../../actions/vulcan_actions';
+import {json_get} from 'etna-js/utils/fetch';
 
-export default function WorkflowManager({workflowName, figureId, projectName}: { workflowName: string, projectName: string }) {
+export default function WorkflowManager({
+  workflowName,
+  figureId,
+  projectName
+}: {
+  workflowName: string;
+  projectName: string;
+  figureId: number;
+}) {
   const {
     state,
     dispatch,
@@ -19,43 +30,34 @@ export default function WorkflowManager({workflowName, figureId, projectName}: {
     requestPoll
   } = useContext(VulcanContext);
 
-  const { workflows } = state;
+  const {workflows} = state;
 
   useEffect(() => {
     if (workflows.length && projectName) {
-      getLocalSession(workflowName, figureId, projectName).then((session) => {
-        let workflow, workflowname;
-
+      getLocalSession(workflowName, projectName, figureId).then((session) => {
+        let workflow = workflowByName(workflowName, state);
         cancelPolling();
 
+        if (!workflow) return;
+
         if (session) {
-          workflowname = session.workflow_name;
-          console.log({workflowname});
-          workflow = workflowByName(session.workflow_name, state);
           dispatch(setWorkflow(workflow, projectName));
           dispatch(setSession(session));
         } else {
           if (figureId) {
             json_get(`/api/${projectName}/figure/${figureId}`).then(
-              figure => {
-                figure.key = `${figure.project_name}/${figure.figure_id}`;
-                workflowname = figure.workflow_name;
-                console.log({workflowname});
-                workflow = workflowByName(figure.workflow_name, state);
-                dispatch(setWorkflow(workflow, projectName));
-                dispatch(setSession(figure));
+              (figureResponse) => {
+                if (workflow) dispatch(setWorkflow(workflow, projectName));
+                dispatch(setSessionAndFigure(figureResponse));
               }
-            )
+            );
           } else {
-            workflowname = `${workflowName}.cwl`;
-            console.log({workflowname});
-            workflow = workflowByName(`${workflowName}.cwl`, state);
             dispatch(setWorkflow(workflow, projectName));
             let session = {
               ...defaultSession,
               workflow_name: `${workflowName}.cwl`,
               project_name: projectName
-            }
+            };
             console.log({workflow, session});
             dispatch(setSession(session));
           }
@@ -72,8 +74,8 @@ export default function WorkflowManager({workflowName, figureId, projectName}: {
 
   return (
     <div className='workflow-manager'>
-      <SessionManager/>
-      <StepsList/>
+      <SessionManager />
+      <StepsList />
     </div>
   );
 }

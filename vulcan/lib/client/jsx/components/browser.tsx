@@ -5,17 +5,26 @@ import 'regenerator-runtime/runtime';
 import WorkflowManager from './workflow/workflow_manager';
 
 interface Props {
-  workflowName: string,
-  projectName: string,
+  workflowName: string;
+  projectName: string;
 }
 
-export default function Browser({workflow_name, project_name, figure_id}: Props) {
+export default function Browser({
+  workflow_name,
+  project_name,
+  figure_id
+}: {
+  workflow_name: string;
+  project_name: string;
+  figure_id: number;
+}) {
   return (
     <main className='vulcan-browser browser'>
       <WorkflowManager
         workflowName={workflow_name}
         figureId={figure_id}
-        projectName={project_name}/>
+        projectName={project_name}
+      />
     </main>
   );
 }
