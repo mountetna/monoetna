@@ -19,8 +19,8 @@ import {useMemoized} from '../../../../selectors/workflow_selectors';
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
-    width: '90vw',
-    height: '90vh'
+    maxWidth: '90vw',
+    maxHeight: '90vh'
   }
 }));
 
@@ -33,7 +33,6 @@ function DataTransformationModal({
   onChange: (data: Maybe<{[key: string]: any}>) => void;
   onClose: () => void;
 }) {
-  const [dialogWidth, setDialogWidth] = useState('500px');
   const classes = useStyles();
 
   const hotTableComponent = useRef<any>(null);
@@ -46,7 +45,7 @@ function DataTransformationModal({
   return (
     <>
       <DialogTitle>Transform your data</DialogTitle>
-      <DialogContent>
+      <DialogContent className={classes.dialog}>
         <HotTable
           ref={hotTableComponent}
           settings={{
@@ -54,7 +53,6 @@ function DataTransformationModal({
             colHeaders: true,
             rowHeaders: true,
             height: 'auto',
-            width: 'auto',
             licenseKey: 'non-commercial-and-evaluation',
             formulas: {
               engine: hyperformulaInstance
@@ -62,14 +60,10 @@ function DataTransformationModal({
             contextMenu: {
               items: {
                 col_left: {
-                  name: 'Insert column to left',
-                  disabled: () =>
-                    hotTableComponent.current.hotInstance.getSelectedLast()[1] ==
-                    0
+                  name: 'Insert column to left'
                 },
                 col_right: {
-                  name: 'Insert column to right',
-                  disabled: false
+                  name: 'Insert column to right'
                 },
                 remove_col: {},
                 undo: {},
@@ -93,7 +87,7 @@ function DataTransformationModal({
           onClick={() => {
             if (hotTableComponent.current) {
               // hotTableComponent.current.hotInstance.getSourceData()
-              //   returns the raw formulas, unrendered, which we could
+              //   returns the raw formulas, unrendered, which we
               //   set as input values to preserve any transformations.
               const sourceData = hotTableComponent.current.hotInstance.getSourceData();
               const data = hotTableComponent.current.hotInstance.getData();
