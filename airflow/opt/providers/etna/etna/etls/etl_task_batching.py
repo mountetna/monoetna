@@ -11,6 +11,9 @@ batch_end_context_key = 'data_interval_end'
 LOWEST_BOUND = datetime(2010, 1, 1).replace(tzinfo=utc)
 
 def get_batch_range(context: Context) -> Tuple[datetime, datetime]:
-    start_date = context[batch_start_context_key] or LOWEST_BOUND
+    if context['prev_execution_date'] is not None:
+        start_date = context[batch_start_context_key]
+    else:
+        start_date = LOWEST_BOUND
     end_date = context[batch_end_context_key]
     return start_date, end_date

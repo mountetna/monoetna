@@ -215,19 +215,22 @@ def _load_metis_files_and_folders_batch(
     if project_name is None:
         raise AirflowException("load_metis_files_and_folders_batch could not determine project_name from scope.")
 
+    log = logging.getLogger('airflow.task')
+    log.info(f"Searching for metis data from {start.isoformat(timespec='seconds')} to {end.isoformat(timespec='seconds')}")
+
     response = metis.find(
         project_name, bucket_name, [
             dict(
                 type=type,
                 attribute='updated_at',
                 predicate='>=',
-                value=start.replace(tzinfo=timezone.utc).isoformat(timespec='seconds')
+                value=start.isoformat(timespec='seconds')
             ),
             dict(
                 type=type,
                 attribute='updated_at',
                 predicate='<=',
-                value=end.replace(tzinfo=timezone.utc).isoformat(timespec='seconds')
+                value=end.isoformat(timespec='seconds')
             ),
         ]
     )
