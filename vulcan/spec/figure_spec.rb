@@ -28,7 +28,7 @@ describe FigureController do
       expect(json_body[:title]).to eql(figure.title)
     end
   end
-  context '#update' do
+  context '#create' do
     it 'creates a new figure' do
       auth_header(:viewer)
       contents = {

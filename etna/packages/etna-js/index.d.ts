@@ -20,9 +20,10 @@ declare module 'etna-js/utils/fetch' {
 }
 
 declare module 'etna-js/hooks/useActionInvoker' {
-  export function useActionInvoker<T extends {type: string, [others: string]: any;}, R = any>(): (
-    a: T
-  ) => R;
+  export function useActionInvoker<
+    T extends {type: string; [others: string]: any},
+    R = any
+  >(): (a: T) => R;
 }
 
 declare module 'etna-js/actions/message_actions' {
@@ -30,14 +31,101 @@ declare module 'etna-js/actions/message_actions' {
     type: 'SHOW_MESSAGES';
     messages: string[];
   };
+  export function dismissMessages(): {type: 'DISMISS_MESSAGES'};
 }
 
 declare module 'etna-js/utils/cancellable' {
+  export type CancelOrResult<T> = {result?: T; cancelled?: true};
   export class Cancellable {
     race<T>(p: Promise<T>): Promise<{result?: T; cancelled?: true}>;
-
     cancel(): void;
+    async run<Result, P>(
+      gen: AsyncGenerator<Result, P>
+    ): Promise<{result?: Result; cancelled?: true}>;
   }
+  export function cancelledAsMaybe<T>(cancelled: {
+    result?: T;
+    cancelled?: true;
+  }): [T] | null;
+  export type AsyncGenerator<Result, P> = Generator<Promise<P>, Result, P>;
+}
+
+declare module 'etna-js/utils/cancellable_helpers' {
+  import {Cancellable, AsyncGenerator} from 'etna-js/utils/cancellable';
+
+  export function useWithContext(
+    fn: (context: Cancellable) => void,
+    deps: any[] = []
+  );
+  export function useAsync<Result>(
+    fn: () => AsyncGenerator<Result, any>,
+    deps: any[] = [],
+    cleanup: () => void = () => null
+  ): [[Result] | null, [any] | null];
+  export function useAsyncCallback<Result, Args extends any[]>(
+    fn: (...args: Args) => AsyncGenerator<Result, any>,
+    deps: any[] = [],
+    cleanup: () => void = () => null
+  ): [
+    (...args: Args) => Promise<{result?: Result; cancelled?: true}>,
+    () => void
+  ];
+
+  export function* runAsync<T>(fn: () => Promise<T>): AsyncGenerator<T, T>;
+  export function* runPromise<T>(v: Promise<T>): AsyncGenerator<T, T>;
+  export function* runGen<T>(
+    v: Generator<unknown, T, unknown>
+  ): AsyncGenerator<T, T>;
+}
+
+declare module 'etna-js/utils/retryable' {
+  import {AsyncGenerator} from 'etna-js/utils/cancellable';
+
+  export async function withRetries<T>(
+    b: () => Promise<T>,
+    isRetryable?: (e: any) => number,
+    maxRetries?: number
+  ): Promise<T>;
+  export function runAttempts<T>(
+    b: () => Promise<T>,
+    isRetryable?: (e: any) => number,
+    maxRetries?: number
+  ): AsyncGenerator<T, any>;
+}
+
+declare module 'etna-js/utils/semaphore' {
+  export class Trigger<T = void> {
+    public resolve(v: T): void;
+    public reject(e: any): void;
+    public promise: Promise<T>;
+  }
+
+  export class UnbufferedChannel<T = void> {
+    closed: boolean;
+    public send(v: T): void;
+    public reject(e: any): void;
+    receive(): Promise<T>;
+    close(v: T): void;
+  }
+
+  export class BufferedChannel<T = void> extends UnbufferedChannel<T> {
+    constructor(bufferSize = 0);
+    drainPending(): Iterable<Promise<T>>;
+    buffer: V[];
+  }
+
+  export class Semaphore {
+    async ready<T>(work: () => Promise<T>): Promise<T>;
+  }
+}
+
+declare module 'etna-js/utils/blob' {
+  export function readTextFile(accept: string): Promise<string>;
+  export function downloadBlob(params: {
+    data: string;
+    filename?: string;
+    contentType?: string;
+  }): void;
 }
 
 declare module 'javascript-color-gradient' {
@@ -66,6 +154,32 @@ declare module 'etna-js/utils/colors' {
 
 declare module 'etna-js/utils/markdown' {
   export = function (md: string): string {};
+}
+
+declare module 'etna-js/components/flat-button' {
+  export = function FlatButton(params: {
+    className?: string;
+    icon?: string;
+    disabled?: boolean;
+    title?: string;
+    label?: string;
+    onClick?: () => void;
+  }): any {};
+}
+
+declare module 'etna-js/components/Notifications' {
+  import {ReactElement} from 'react';
+  export function Notifications(props: any): ReactElement;
+}
+
+declare module 'etna-js/components/ModalDialogContainer' {
+  import {ReactElement} from 'react';
+  export function ModalDialogContainer(props: any): ReactElement;
+}
+
+declare module 'etna-js/components/messages' {
+  import {ReactElement} from 'react';
+  export = function Messages(props: any): ReactElement {};
 }
 
 declare module 'etna-js/components/icon' {
@@ -103,6 +217,10 @@ declare module 'etna-js/components/inputs/dropdown_autocomplete_wrapper' {
 
 declare module 'etna-js/components/inputs/slow_text_input' {
   export default function SlowTextInput(...args: any[]): any;
+}
+
+declare module 'etna-js/components/inputs/text_input' {
+  export default function TextInput(...args: any[]): any;
 }
 
 declare module 'etna-js/components/inputs/select_input' {
@@ -222,4 +340,11 @@ declare module 'etna-js/components/ModalDialogContainer' {
 declare module 'etna-js/utils/file' {
   export function filePath(parent: string, file_name: string): string;
   export function includesFolders(path: string | null): boolean;
+}
+
+declare module 'etna-js/actions/location_actions' {
+  export function pushLocation(link: string): {
+    type: 'UPDATE_LOCATION';
+    link: string;
+  };
 }
