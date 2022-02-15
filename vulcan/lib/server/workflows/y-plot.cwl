@@ -33,7 +33,7 @@ steps:
   fill_plot_options:
     run: ui-queries/y-plotly.cwl
     label: 'Set plot options'
-    doc: "Selections here adjust the plot that will be created. 'X-Axis Data' and 'Y-Axis Data' dropdowns present column names of your chosen data as their options. Note on 'make': Any text left as, or selection of, 'make' refers the visualization machinery to fill in the associated feature with a default value. For example, for 'X-Axis Title', leaving this text input as 'make' will let this title be filled in with its default, which we've defined to be whatever you selected from the 'X-Axis Data' dropdown."
+    doc: "Selections here adjust the plot that will be created. 'X-Axis Data' and 'Y-Axis Data' dropdowns present column names of your chosen data as their options. For addtional details, see https://mountetna.github.io/vulcan.html#the-setup-gui which is also clickably linked within this workflow's 'vignette'. Note on 'make': Any text left as, or selection of, 'make' refers the visualization machinery to fill in the associated feature with a default value. For example, for 'X-Axis Title', leaving this text input as 'make' will let this title be filled in with its default, which we've defined to be whatever you selected from the 'X-Axis Data' dropdown."
     in:
       data_frame: get_data/data_frame
     out: [plot_setup]
