@@ -24,7 +24,7 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: '90vw',
     maxHeight: '90vh'
   },
-  subtitle: {}
+  subtitle: {display: 'inline'}
 }));
 
 function DataTransformationModal({
@@ -47,19 +47,20 @@ function DataTransformationModal({
 
   return (
     <>
-      <DialogTitle>Transform your data</DialogTitle>
+      <DialogTitle>
+        Transform your data (
+        <Typography className={classes.subtitle}>
+          <Link
+            target='_blank'
+            rel='noreferrer'
+            href='https://handsontable.github.io/hyperformula/guide/built-in-functions.html'
+          >
+            Supported functions
+          </Link>
+        </Typography>
+        )
+      </DialogTitle>
       <DialogContent className={classes.dialog}>
-        <div>
-          <Typography className={classes.subtitle}>
-            <Link
-              target='_blank'
-              rel='noreferrer'
-              href='https://handsontable.github.io/hyperformula/guide/built-in-functions.html'
-            >
-              Supported functions
-            </Link>
-          </Typography>
-        </div>
         <HotTable
           ref={hotTableComponent}
           settings={{
