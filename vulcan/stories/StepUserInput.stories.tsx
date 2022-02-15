@@ -143,7 +143,17 @@ export const DataTransformation = Template.bind({});
 DataTransformation.args = {
   type: TYPE.DATA_TRANSFORMATION,
   cwlParams: {
-    'data_frame': [['record_name_01', 1, 0.25, 'data'],
-                   ['record_name_02', 200, 1.111, '=IF(A2>100, 1, 0)']],
+    'data_frame': {
+      'record_name_01': {
+        '0': 1,
+        '1': 0.25,
+        '2': 'data'
+      },
+      'record_name_02': {
+        '0': 200,
+        '1': 1.111,
+        '2': '=IF(A2>100, 1, 0)'
+      }
+    }
   }
 }
