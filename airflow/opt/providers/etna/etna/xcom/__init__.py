@@ -1,1 +1,1 @@
-from .etna_xcom import EtnaXCom, EtnaDeferredXCom
+from .etna_xcom import EtnaXCom, EtnaXComValue

@@ -10,7 +10,7 @@ from serde.json import to_json
 
 
 
-class EtnaDeferredXCom:
+class EtnaXComValue:
     def execute(self):
         return None
 
@@ -23,16 +23,21 @@ def pickled(v: T) -> T:
     return cast(T, _Pickled(v))
 
 # Explicit pickling
-class _Pickled(EtnaDeferredXCom):
+class _Pickled(EtnaXComValue):
     def __init__(self, value):
         self.value = value
+
     def execute(self):
         return self.value
+
+    def __str__(self):
+        if isinstance(self.value, list):
+            return f"{len(self.value)} result(s)"
 
 class EtnaXCom(BaseXCom):
     @staticmethod
     def serialize_value(value: Any):
-        if isinstance(value, EtnaDeferredXCom):
+        if isinstance(value, EtnaXComValue):
             return pickle.dumps(value)
         # Enables dataclass serialization
         return to_json(value).encode('UTF-8')
@@ -47,13 +52,13 @@ class EtnaXCom(BaseXCom):
             return result.value
 
         result = BaseXCom.deserialize_value(result)
-        if isinstance(result, EtnaDeferredXCom):
+        if isinstance(result, EtnaXComValue):
             return result.execute()
         return result
 
     def orm_deserialize_value(self) -> Any:
         result = BaseXCom.deserialize_value(self)
-        if isinstance(result, EtnaDeferredXCom):
+        if isinstance(result, EtnaXComValue):
             self._original_value = self.value
             return str(result)
         return BaseXCom.deserialize_value(self)
