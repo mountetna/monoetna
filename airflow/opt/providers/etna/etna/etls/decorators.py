@@ -7,7 +7,7 @@ from airflow.decorators import task
 from airflow.operators.python import get_current_context
 
 from etna.dags.decorators import dag
-from etna.etls.etl_task_batching import enable_task_backfill, batch_end_context_key, get_batch_range, LOWEST_BOUND
+from etna.etls.etl_task_batching import batch_end_context_key, get_batch_range, LOWEST_BOUND, batch_start_context_key
 from etna.etls.metis import load_metis_folders_batch, load_metis_files_batch
 from etna.hooks.etna import EtnaHook, Folder, File
 from etna.utils.inject import inject
@@ -87,19 +87,18 @@ def etl(project_name: str, start_date: datetime, interval: timedelta, version: U
             schedule_interval=interval,
             catchup=True,
             inject_params=dict(
+                batch_start_date="{{ " + batch_start_context_key + " }}",
                 batch_end_date="{{ " + batch_end_context_key + " }}",
                 version=version,
                 **inject_params
             ),
             default_args=dict(
                 owner=project_name,
-                retries=5,
+                depends_on_past=True,
+                retries=3,
             ),
             version=version,
         )(fn)
-
-        for op in new_dag.tasks:
-            enable_task_backfill(op)
 
         return new_dag
 

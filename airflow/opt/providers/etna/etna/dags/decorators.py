@@ -10,6 +10,7 @@ from airflow.models.dag import (
     ScheduleIntervalArg,
 )
 
+from etna.dags.callbacks import notify_slack_dag_callback
 from etna.utils.inject import inject
 
 
@@ -59,10 +60,10 @@ def system_dag(interval: timedelta):
             schedule_interval=interval,
             default_args=dict(
                 owner='administration',
-                retries=5,
+                retries=3,
             ),
             # default_args=dict(
-            on_failure_callback=notify_slack_dag_callback("failed: "),
+            # on_failure_callback=notify_slack_dag_callback("failed: "),
             # ),
             catchup=False,
         )(fn)

@@ -15,7 +15,7 @@ def notify_slack_dag_callback(dag_status: str) -> DagStateChangeCallback:
     def state_change_callback(context: Context):
         task_instance: TaskInstance = context["task_instance"]
         conn_id = find_first_valid_connection(
-            f"slack_notifications_{task_instance.dag_id}", "slack_notifications"
+            "errors_slack"
         )
 
         with create_session() as session:
