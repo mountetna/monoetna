@@ -1,3 +1,4 @@
+from archimedes.functions.ui_complements import subsetDF_index_targets
 from archimedes.functions.dataflow import input_json, input_var, input_path, output_path
 from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.utils import pandas as pd
@@ -68,11 +69,11 @@ setup = input_json('setup')
 method = setup['method']
 de_meta = setup['de_meta']
 
-## Subset if there are subset inputs in 'setup'
-if 'subset_meta' in setup.keys():
-    subset_meta = setup['subset_meta']
-    subset_use = ensure_list(setup['subset_use'])
-    scdata = scdata[scdata.obs[subset_meta].isin(subset_use)]
+## Subset if there is a subsetting method in 'setup'
+if setup['subset'] != {}:
+    cells_use = subsetDF_index_targets(scdata.obs, setup['subset'])
+    # raise Exception(len(cells_use), len(scdata.obs_names))
+    scdata = scdata[ [i for i in scdata.obs_names if i in cells_use] ]
 
 ## Run DE
 # Method 1:

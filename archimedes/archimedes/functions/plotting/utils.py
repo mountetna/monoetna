@@ -63,7 +63,7 @@ def _which_rows(rows_use, data_frame):
     Note: The return will always be in the same order as indexes exist in data_frame.index, regardless of the order of 'rows_use' values.
     '''
     all_rows = _all_rows(data_frame)
-    if rows_use==None:
+    if rows_use is None:
         return all_rows
     
     r_use = np.array(rows_use)
