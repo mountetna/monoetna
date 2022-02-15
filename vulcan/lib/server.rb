@@ -24,9 +24,7 @@ class Vulcan
       get 'api/:project_name/figure/:figure_id', action: 'figure#get'
       post 'api/:project_name/figure/create', action: 'figure#create'
       post 'api/:project_name/figure/:figure_id/update', action: 'figure#update'
-    end
 
-    with auth: { user: { active?: true, has_flag?: 'vulcan' } } do
       # remaining view routes are parsed by the client and must be set there
       get '/:project_name', as: :project_root do erb_view(:client) end
 
