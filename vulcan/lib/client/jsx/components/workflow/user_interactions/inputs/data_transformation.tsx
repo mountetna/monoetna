@@ -9,6 +9,8 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogActions from '@material-ui/core/DialogActions';
+import Typography from '@material-ui/core/Typography';
+import Link from '@material-ui/core/Link';
 import {makeStyles} from '@material-ui/core/styles';
 
 import {joinNesting} from './monoids';
@@ -21,7 +23,8 @@ const useStyles = makeStyles((theme) => ({
   dialog: {
     maxWidth: '90vw',
     maxHeight: '90vh'
-  }
+  },
+  subtitle: {}
 }));
 
 function DataTransformationModal({
@@ -46,6 +49,17 @@ function DataTransformationModal({
     <>
       <DialogTitle>Transform your data</DialogTitle>
       <DialogContent className={classes.dialog}>
+        <div>
+          <Typography className={classes.subtitle}>
+            <Link
+              target='_blank'
+              rel='noreferrer'
+              href='https://handsontable.github.io/hyperformula/guide/built-in-functions.html'
+            >
+              Supported functions
+            </Link>
+          </Typography>
+        </div>
         <HotTable
           ref={hotTableComponent}
           settings={{

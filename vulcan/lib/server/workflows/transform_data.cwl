@@ -33,7 +33,7 @@ steps:
   transform_data:
     run: ui-queries/data-transformation.cwl
     label: 'Transform your data'
-    doc: "Manipulate your data frame as needed."
+    doc: "Manipulate your data frame as needed. Right click for an interactions menu where you can add/remove columns. Start a cell with '=' to create functions in an Excel-like manner."
     in:
       data_frame: get_data/data_frame
     # data will be a Hash with keys for "data" and "source_data".
