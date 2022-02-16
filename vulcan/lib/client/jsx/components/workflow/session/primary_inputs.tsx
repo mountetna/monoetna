@@ -64,6 +64,7 @@ function PrimaryInputsInner() {
     getInputSpecifications(Object.entries(workflow.inputs), workflow), [workflow]);
 
   let groupedInputs = useMemo(() => {
+    console.log("calling groupedInputs", inputs, state.session)
     return inputSpecifications.reduce((result, spec) => {
       let groupName = inputGroupName(spec.name) || "Inputs";
       result[groupName] = result[groupName] || [];

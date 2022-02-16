@@ -16,9 +16,10 @@ import {
   setSessionAndFigure
 } from '../../actions/vulcan_actions';
 import {json_get} from 'etna-js/utils/fetch';
-import {VulcanSession} from '../../api_types';
+import {VulcanFigure, VulcanSession} from '../../api_types';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
+import {BufferedInputsContext} from '../../contexts/input_state_management';
 
 export default function WorkflowManager({
   workflowName,
@@ -36,9 +37,8 @@ export default function WorkflowManager({
     cancelPolling,
     requestPoll
   } = useContext(VulcanContext);
+  const {setInputs, commitInputs} = useContext(BufferedInputsContext);
   const invoke = useActionInvoker();
-
-  const {workflows} = state;
 
   const handleErrorResponse = useCallback(
     (err: Promise<any>) => {
@@ -48,10 +48,11 @@ export default function WorkflowManager({
   );
 
   const initializeFromSession = useCallback(
-    (session: VulcanSession) => {
-      const workflow = workflowByName(session.workflow_name, state);
+    (localSession: VulcanSession & VulcanFigure) => {
+      console.log('localSession', localSession);
+      const workflow = workflowByName(localSession.workflow_name, state);
       if (workflow) dispatch(setWorkflow(workflow, projectName));
-      dispatch(setSession(session));
+      dispatch(setSessionAndFigure(localSession));
     },
     [projectName, dispatch, state]
   );
@@ -60,13 +61,16 @@ export default function WorkflowManager({
     (figureId: number) => {
       json_get(`/api/${projectName}/figure/${figureId}`)
         .then((figureResponse) => {
+          console.log('figureResponse', figureResponse);
           const workflow = workflowByName(figureResponse.workflow_name, state);
           if (workflow) dispatch(setWorkflow(workflow, projectName));
           dispatch(setSessionAndFigure(figureResponse));
+          setInputs({inputs: {...figureResponse.inputs}});
+          commitInputs();
         })
         .catch(handleErrorResponse);
     },
-    [projectName, state, dispatch, handleErrorResponse]
+    [projectName, state, dispatch, handleErrorResponse, setInputs, commitInputs]
   );
 
   const initializeNewSession = useCallback(() => {

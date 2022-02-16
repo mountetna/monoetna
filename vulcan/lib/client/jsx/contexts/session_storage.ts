@@ -1,5 +1,5 @@
 import {useEffect, useCallback, MutableRefObject} from 'react';
-import {SessionStatusResponse, Workflow} from '../api_types';
+import {SessionStatusResponse, VulcanFigure, Workflow} from '../api_types';
 import {VulcanState} from '../reducers/vulcan_reducer';
 import {
   allWorkflowPrimaryInputSources,
@@ -24,7 +24,7 @@ export const defaultSessionStorageHelpers = {
     workflow_name: string,
     project_name: string,
     figure_id: number
-  ): Promise<SessionStatusResponse['session'] | null> {
+  ): Promise<SessionStatusResponse['session'] & VulcanFigure | null> {
     return Promise.resolve(null);
   }
 };
@@ -43,7 +43,7 @@ export function useLocalSessionStorage(
         figure_id: figure.figure_id,
         workflow_name: session.workflow_name,
         project_name: session.project_name
-      }), JSON.stringify(session));
+      }), JSON.stringify({...session, ...figure}));
     }
   }, [session, storage, figure]);
 
@@ -55,7 +55,7 @@ export function useLocalSessionStorage(
       if (!storedSession) return Promise.resolve(null);
 
       try {
-        const parsedSession: VulcanState['session'] = JSON.parse(storedSession);
+        const parsedSession: VulcanState['session'] & VulcanFigure = JSON.parse(storedSession);
         if (parsedSession.project_name !== project_name)
           return Promise.resolve(null);
         return Promise.resolve(parsedSession);
