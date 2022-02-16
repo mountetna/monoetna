@@ -146,9 +146,9 @@ Each plot type has its own dedicated workflow and an associated vignette where a
 
 Often, you will see inputs filled in by default with 'make'.  'make' is our chosen fill-in for telling the system to "Use the default option," so leaving such inputs as 'make' will let our system fill in that setting with an intuitive default.  Such inputs may be adjusted, or not, as needed.
 
-We use a single system to serve the Plot Configuration Interface for all plot types.  Thus, even though each plot type requires distinct sets of data mappings and offers a distinct set of advanced options, you can be sure that when a given input does shows up, its behaviour within this interface will be the same across all plot types!
+We use a single system to serve the Plot Configuration Interface for all plot types.  Thus, even though each plot type requires distinct sets of data mappings and offers a distinct set of advanced options, you can be sure that when a given input does show up, its behaviour within this interface will be the same across all plot types!
 
-Below is a table explaining each input and how to use them:
+The below table lists all potential inputs and how to use them:
 
 | Label within the Plot Configuration Interface | Plot Types which use these inputs | Purpose & How to use |
 | ---- |---| ----------- |
