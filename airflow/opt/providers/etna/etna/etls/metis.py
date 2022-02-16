@@ -4,7 +4,8 @@ import itertools
 import logging
 import re
 from datetime import timezone
-from typing import Union, Literal, List, Optional, Tuple, Callable, Dict
+from logging import Logger
+from typing import Union, Literal, List, Optional, Tuple, Callable, Dict, Any, Iterable
 
 import os.path
 
@@ -14,9 +15,10 @@ from airflow.models.taskinstance import Context
 from airflow.operators.python import get_current_context
 from serde import serialize, deserialize
 
+from etna.xcom.etna_xcom import pickled
 from etna.dags.project_name import get_project_name
 from etna.etls.etl_task_batching import get_batch_range
-from etna.hooks.etna import File, Folder, UpdateRequest, EtnaHook, Magma, Metis
+from etna.hooks.etna import File, Folder, UpdateRequest, EtnaHook, Magma, Metis, Template, Model
 from etna.utils.iterables import batch_iterable
 
 
@@ -67,61 +69,113 @@ class MatchedAtRoot:
             return self.root_path
         return '/'.join([self.root_path, self.match_subpath])
 
-def link(model_name, attribute_name, dry_run=True, hook: Optional[EtnaHook] = None):
-    def wrapper(fn: Callable):
+
+
+class link:
+    project_name: str
+    log: Logger
+    version: int
+    dry_run: bool
+    _hook: Optional[EtnaHook]
+    model_name: Optional[str]
+    attribute_name: Optional[str]
+
+    def __init__(self, model_name: Optional[str] = None, attribute_name: Optional[str] = None, version=1, dry_run=True, hook: Optional[EtnaHook] = None):
+        self._hook = hook
+        self.dry_run = dry_run
+        self.version = version
+        self.attribute_name = attribute_name
+        self.model_name = model_name
+        self.log = logging.getLogger('airflow.task')
+
+    @property
+    def project_name(self):
+        return get_project_name()
+
+    @property
+    def hook(self):
+        return self._hook or EtnaHook.for_project(self.project_name)
+
+    def __call__(self, fn: Callable):
         @functools.wraps(fn)
         def new_task(*args, **kwds):
-            nonlocal hook
-            project_name = get_project_name()
-
-            log = logging.getLogger('airflow.task')
-
-            if hook is None:
-                hook = EtnaHook.for_project(project_name)
-
-            with hook.magma(read_only=False) as magma:
-                log.info('retrieving model...')
+            result: List[MatchedAtRoot] = []
+            with self.hook.magma(read_only=False) as magma:
+                self.log.info('retrieving model...')
                 response = magma.retrieve(
-                    project_name=project_name, model_name=model_name,
-                    attribute_names=[attribute_name], record_names=[],
+                    project_name=self.project_name, model_name=self.model_name or 'all',
+                    attribute_names=[self.attribute_name] if self.attribute_name else 'all', record_names=[],
                     hide_templates=False
                 )
 
-                template = response.models[model_name].template
-
-                if attribute_name not in template.attributes:
-                    raise AirflowException(f"Attribute '{attribute_name}' could not be linked in '{model_name}', as it does not exist.")
-                attribute = template.attributes[attribute_name]
-
-                log.info('running linking function...')
+                self.log.info('running linking function...')
                 for cur_batch in batch_iterable(fn(*args, **kwds), 50):
-                    update: UpdateRequest = UpdateRequest(revisions={}, project_name=project_name, dry_run=dry_run)
-                    for match, files in cur_batch:
-                        if match.record_name in update.revisions:
-                            log.warning(f"Found multiple matches for record '{match.record_name}': {' '.join(f.file_path for f in files)}")
+                    result.extend(self._process_link_batch(magma, response.models, cur_batch))
 
-                        record = update.update_record(model_name, match.record_name)
+            return pickled(result)
 
-                        if attribute.attribute_type == "file_collection":
-                            record.setdefault(attribute_name, [])
+        new_task.__name__ = f"{fn.__name__}_{self.version}{'_dry_run' if self.dry_run else ''}"
+        return task()(new_task)
 
-                        for file in files:
-                            log.info(f"Found match for record #{match.record_name} on {file.file_path}")
-                            if attribute.attribute_type == "file":
-                                if attribute_name in record:
-                                    log.warning("Multiple files for single file collection!")
-                                record[attribute_name] = file.as_magma_file_attribute
-                            elif attribute.attribute_type == "file_collection":
-                                record[attribute_name].append(file.as_magma_file_attribute)
-                        update.update_record(model_name, match.record_name)
+    def _apply_update_attr(self, match: MatchedAtRoot, update: UpdateRequest, models: Dict[str, Model], model_name: str, attribute_name: str, value: Any):
+        if model_name not in models:
+            raise AirflowException(f"Model '{model_name}' could not be linked, as it does not exist.")
+        template = models[model_name].template
 
-                    log.info("Executing magma update")
-                    magma.update(update)
+        if attribute_name not in template.attributes:
+            raise AirflowException(
+                f"Attribute '{attribute_name}' could not be linked in '{model_name}', as it does not exist.")
+        attribute = template.attributes[attribute_name]
 
-        new_task.__name__ = f"{fn.__name__}{'_dry_run' if dry_run else ''}"
-        return task(do_xcom_push=False)(new_task)
+        if attribute.attribute_type == "file":
+            if not isinstance(value, list):
+                value = [value]
 
-    return wrapper
+            for file in value:
+                if not isinstance(file, File):
+                    raise AirflowException(f"Attribute '{attribute_name}' expects a file or list of files to link against")
+                update.update_record(model_name, match.record_name, {attribute_name: file.as_magma_file_attribute})
+        elif attribute.attribute_type == "file_collection":
+            if not isinstance(value, list):
+                value = [value]
+            file_links = []
+            update.update_record(model_name, match.record_name, {attribute_name: file_links})
+            for file in value:
+                if not isinstance(file, File):
+                    raise AirflowException(f"Attribute '{attribute_name}' expects a file or list of files to link against")
+                file_links.append(file.as_magma_file_attribute)
+        else:
+            update.update_record(model_name, match.record_name, {attribute_name: value})
+
+    def _apply_update_model(self, match: MatchedAtRoot, update: UpdateRequest, models: Dict[str, Model], model_name: str, value: Any):
+        if not self.attribute_name:
+            if not isinstance(value, dict):
+                raise AirflowException(
+                    f"Could not process linking for '{str(value)}', expected dictionary mapping attribute_name to value")
+            for attribute_name, v in value.items():
+                self._apply_update_attr(match, update, models, model_name, attribute_name, v)
+        else:
+            self._apply_update_attr(match, update, models, model_name, self.attribute_name, value)
+
+        pass
+
+    def _process_link_batch(self, magma: Magma, models: Dict[str, Model], batch: Iterable[Tuple[MatchedAtRoot, Any]]) -> List[MatchedAtRoot]:
+        result: List[MatchedAtRoot] = []
+        update: UpdateRequest = UpdateRequest(revisions={}, project_name=self.project_name, dry_run=self.dry_run)
+        for match, value in batch:
+            result.append(match)
+            if not self.model_name:
+                if not isinstance(value, dict):
+                    raise AirflowException(f"Could not process linking for '{str(value)}', expected dictionary mapping model_names to updates")
+                for model_name, v in value.items():
+                    self._apply_update_model(match, update, models, model_name, v)
+            else:
+                self._apply_update_model(match, update, models, self.model_name, value)
+
+        self.log.info("Executing batched magma update")
+        magma.update(update)
+        return result
+
 
 def list_contents_of_matches(metis: Metis, matching: List[MatchedAtRoot]) -> List[Tuple[MatchedAtRoot, List[File]]]:
     return [
@@ -193,21 +247,25 @@ def filter_by_record_directory(
 
     return list(result.values())
 
+
 # Increment this to force a reload of all metis cursor data.
 metis_batch_loading_version = 1
 
-def load_metis_files_batch(metis: Metis, bucket_name: str, project_name: Optional[str]=None) -> List[File]:
+
+def load_metis_files_batch(metis: Metis, bucket_name: str, project_name: Optional[str] = None) -> List[File]:
     return _load_metis_files_and_folders_batch(metis, bucket_name, 'file', project_name)
 
-def load_metis_folders_batch(metis: Metis, bucket_name: str, project_name: Optional[str]=None) -> List[Folder]:
+
+def load_metis_folders_batch(metis: Metis, bucket_name: str, project_name: Optional[str] = None) -> List[Folder]:
     return _load_metis_files_and_folders_batch(metis, bucket_name, 'folder', project_name)
+
 
 def _load_metis_files_and_folders_batch(
         metis: Metis,
         bucket_name: str,
         type: Union[Literal['file'], Literal['folder']],
-        project_name: Optional[str]=None
-    ) -> Union[List[File], List[Folder]]:
+        project_name: Optional[str] = None
+) -> Union[List[File], List[Folder]]:
     context: Context = get_current_context()
     start, end = get_batch_range(context)
 
@@ -216,7 +274,8 @@ def _load_metis_files_and_folders_batch(
         raise AirflowException("load_metis_files_and_folders_batch could not determine project_name from scope.")
 
     log = logging.getLogger('airflow.task')
-    log.info(f"Searching for metis data from {start.isoformat(timespec='seconds')} to {end.isoformat(timespec='seconds')}")
+    log.info(
+        f"Searching for metis data from {start.isoformat(timespec='seconds')} to {end.isoformat(timespec='seconds')}")
 
     response = metis.find(
         project_name, bucket_name, [

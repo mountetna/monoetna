@@ -1,13 +1,13 @@
 from typing import Any, TypeVar, cast, Generic
 
 import pickle
+
 from airflow.models.xcom import BaseXCom
 
 
 # "Just like" normal XCom, but allows for values that execute custom logic on read, allowing for
 # external references or custom logic.
 from serde.json import to_json
-
 
 
 class EtnaXComValue:
