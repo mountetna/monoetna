@@ -11,7 +11,7 @@ const localStorageKey = ({
   project_name,
   workflow_name
 }: {
-  figure_id?: number;
+  figure_id?: number | null;
   project_name: string;
   workflow_name: string;
 }) =>
@@ -35,13 +35,17 @@ export function useLocalSessionStorage(
   props: {storage?: typeof localStorage} = {}
 ): typeof defaultSessionStorageHelpers {
   const storage = props.storage || localStorage;
-  const {session, workflow} = state;
+  const {session, workflow, figure} = state;
 
   useEffect(() => {
-    if (storage && session) {
-      storage.setItem(localStorageKey(session), JSON.stringify(session));
+    if (storage && session && figure) {
+      storage.setItem(localStorageKey({
+        figure_id: figure.figure_id,
+        workflow_name: session.workflow_name,
+        project_name: session.project_name
+      }), JSON.stringify(session));
     }
-  }, [session, storage]);
+  }, [session, storage, figure]);
 
   const getLocalSession = useCallback(
     (workflow_name: string, project_name: string, figure_id: number) => {

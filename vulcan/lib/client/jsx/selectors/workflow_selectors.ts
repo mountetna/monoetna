@@ -425,3 +425,7 @@ export function selectFigure(
     author: figureResponse.author
   };
 }
+
+export function isNullish(value: any) {
+  return value == null || value === 'null' || value === '';
+}

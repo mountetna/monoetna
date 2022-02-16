@@ -1,6 +1,7 @@
 // Framework libraries.
-import React from 'react';
+import React, {useContext} from 'react';
 import 'regenerator-runtime/runtime';
+import {VulcanContext} from '../contexts/vulcan_context';
 
 import WorkflowManager from './workflow/workflow_manager';
 
@@ -18,6 +19,12 @@ export default function Browser({
   project_name: string;
   figure_id: number;
 }) {
+  const {
+    state: {workflows}
+  } = useContext(VulcanContext);
+
+  if (workflows.length === 0 || !project_name) return null;
+
   return (
     <main className='vulcan-browser browser'>
       <WorkflowManager

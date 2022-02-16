@@ -70,7 +70,7 @@ export function bindInputSpecification(input: InputSpecification,
   const stepName = stepOfSource(input.source);
   const step = stepName && stepOfStatus(stepName, workflow);
   const inputData = stepName && step && stepInputDataRaw(step, status, data, session) || {};
-  console.log('buffered', buffered, input, session.inputs)
+
   return {
     ...input,
     onChange(v: Maybe<unknown>) {

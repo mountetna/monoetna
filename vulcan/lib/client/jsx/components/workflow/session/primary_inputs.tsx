@@ -56,7 +56,6 @@ function PrimaryInputsInner() {
     })
 
     if (Object.keys(withDefaults).length > 0) {
-      console.log('setting buffered inputs', {...inputs, ...withDefaults})
       setInputs(inputs => ({...inputs, ...withDefaults}));
     }
   }, [inputs, session.inputs, setInputs, workflow.inputs])
@@ -80,7 +79,6 @@ function PrimaryInputsInner() {
     }, {} as {[k: string]: BoundInputSpecification[]});
   }, [inputSpecifications, inputs, setInputs, state.data, state.session, state.status, workflow]);
 
-  console.log('in primary inputs', inputs, session, groupedInputs)
   const [ expanded, setExpanded ] = useState('');
 
   const [ open, setOpen ] = useState(false);

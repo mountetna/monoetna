@@ -48,6 +48,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function SessionManager() {
+  const [localTitle, setLocalTitle] = useState('');
   const [saving, setSaving] = useState(false);
   const {state, dispatch, showErrors, requestPoll, cancelPolling} = useContext(
     VulcanContext
@@ -68,12 +69,15 @@ export default function SessionManager() {
   const run = useCallback(() => {
     requestPoll(true);
     dispatch(clearCommittedStepPending());
-  }, [requestPoll]);
+  }, [requestPoll, dispatch]);
   const stop = useCallback(() => cancelPolling(), [cancelPolling]);
 
-  const handleErrorResponse = (err: Promise<any>) => {
-    err.then((e: any) => invoke(showMessages(e.errors || [e.error])));
-  };
+  const handleErrorResponse = useCallback(
+    (err: Promise<any>) => {
+      err.then((e: any) => invoke(showMessages(e.errors || [e.error])));
+    },
+    [invoke]
+  );
   const cancelSaving = () => {
     setSaving(false);
   };
@@ -114,7 +118,7 @@ export default function SessionManager() {
         .catch(handleErrorResponse)
         .finally(cancelSaving);
     }
-  }, [hasPendingEdits, session, name, figure]);
+  }, [hasPendingEdits, session, name, figure, invoke, handleErrorResponse]);
 
   const saveSessionToBlob = useCallback(() => {
     if (hasPendingEdits) {
@@ -171,13 +175,9 @@ export default function SessionManager() {
   const disableRunButton =
     complete || running || (hasPendingEdits && !committedStepPending);
 
-  const [localTitle, setLocalTitle] = useState('');
-
-  const {title} = figure || {};
-
   useEffect(() => {
-    if (title) setLocalTitle(title);
-  }, [title]);
+    if (figure.title) setLocalTitle(figure.title);
+  }, [figure.title]);
 
   const [debouncer, setDebouncer] = useState(new Debouncer({windowMs: 800}));
 
@@ -188,7 +188,7 @@ export default function SessionManager() {
         dispatch(setFigure({...figure, title: newTitle}));
       });
     },
-    [figure, debouncer]
+    [figure, debouncer, dispatch]
   );
 
   if (!name || !session) return null;
