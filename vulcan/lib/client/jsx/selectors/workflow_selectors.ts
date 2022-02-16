@@ -21,11 +21,14 @@ import {mapSome, Maybe, maybeOfNullable, withDefault} from './maybe';
 export const workflowName = (workflow: Workflow | null | undefined) =>
   workflow && workflow.name ? workflow.name : null;
 
+export const cwlName = (name: string) =>
+  name ? (name.match(/.*\.cwl$/) ? name : `${name}.cwl`) : null;
+
 export function workflowByName(
   name: string,
   state: VulcanState
 ): Workflow | undefined {
-  return state.workflows.find((w) => workflowName(w) === name);
+  return state.workflows.find((w) => workflowName(w) === cwlName(name));
 }
 
 export function stepOfStatus(

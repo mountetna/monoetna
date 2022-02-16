@@ -2,7 +2,7 @@ import React, {useContext, useEffect, useState} from 'react';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {defaultSession} from '../../reducers/vulcan_reducer';
-import {workflowByName} from '../../selectors/workflow_selectors';
+import {cwlName, workflowByName} from '../../selectors/workflow_selectors';
 
 import SessionManager from './session/session_manager';
 import StepsList from './steps/steps_list';
@@ -12,6 +12,7 @@ import {
   setSessionAndFigure
 } from '../../actions/vulcan_actions';
 import {json_get} from 'etna-js/utils/fetch';
+import {BufferedInputsContext} from '../../contexts/input_state_management';
 
 export default function WorkflowManager({
   workflowName,
@@ -29,34 +30,36 @@ export default function WorkflowManager({
     cancelPolling,
     requestPoll
   } = useContext(VulcanContext);
+  const {setInputs} = useContext(BufferedInputsContext);
 
   const {workflows} = state;
 
   useEffect(() => {
     if (workflows.length && projectName) {
       getLocalSession(workflowName, projectName, figureId).then((session) => {
-        let workflow: Workflow;
+        let workflow = workflowByName(workflowName, state);
         cancelPolling();
 
         if (session) {
-          workflow = workflowByName(session.workflow_name, state);
-          dispatch(setWorkflow(workflow, projectName));
+          if (workflow) dispatch(setWorkflow(workflow, projectName));
           dispatch(setSession(session));
         } else if (figureId) {
           json_get(`/api/${projectName}/figure/${figureId}`).then(
             (figureResponse) => {
+              workflow = workflowByName(figureResponse.workflow_name, state);
               if (workflow) dispatch(setWorkflow(workflow, projectName));
               dispatch(setSessionAndFigure(figureResponse));
+              console.log('calling set inputs for buffer');
+              // setInputs((inputs) => ({...inputs, ...figureResponse.inputs}));
             }
           );
         } else {
-          dispatch(setWorkflow(workflow, projectName));
+          if (workflow) dispatch(setWorkflow(workflow, projectName));
           let session = {
             ...defaultSession,
-            workflow_name: `${workflowName}.cwl`,
+            workflow_name: cwlName(workflowName) || workflowName,
             project_name: projectName
           };
-          console.log({workflow, session});
           dispatch(setSession(session));
         }
 

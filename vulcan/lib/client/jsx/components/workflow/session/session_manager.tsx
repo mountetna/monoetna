@@ -5,6 +5,7 @@ import FlatButton from 'etna-js/components/flat-button';
 import {makeStyles} from '@material-ui/core/styles';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {pushLocation} from 'etna-js/actions/location_actions';
+import {showMessages} from 'etna-js/actions/message_actions';
 
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import Typography from '@material-ui/core/Typography';
@@ -47,6 +48,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function SessionManager() {
+  const [saving, setSaving] = useState(false);
   const {state, dispatch, showErrors, requestPoll, cancelPolling} = useContext(
     VulcanContext
   );
@@ -69,6 +71,13 @@ export default function SessionManager() {
   }, [requestPoll]);
   const stop = useCallback(() => cancelPolling(), [cancelPolling]);
 
+  const handleErrorResponse = (err: Promise<any>) => {
+    err.then((e: any) => invoke(showMessages(e.errors || [e.error])));
+  };
+  const cancelSaving = () => {
+    setSaving(false);
+  };
+
   const saveSession = useCallback(() => {
     if (hasPendingEdits) {
       if (!confirm('Pending edits will be discarded when saving. Proceed?')) {
@@ -76,29 +85,36 @@ export default function SessionManager() {
       }
     }
 
-    let params = {...figure};
+    let params = {
+      ...figure,
+      workflow_name: name,
+      inputs: {...session.inputs}
+    };
 
     if (!params.title) {
       params.title = prompt('Set a title for this figure');
       if (!params.title) return;
     }
 
+    setSaving(true);
     if (params.figure_id) {
       json_post(
         `/api/${session.project_name}/figure/${params.figure_id}/update`,
         params
-      );
+      )
+        .catch(handleErrorResponse)
+        .finally(cancelSaving);
     } else {
-      json_post(
-        `/api/${session.project_name}/figure/create`,
-        params
-      ).then((figure) =>
-        invoke(
-          pushLocation(`/${figure.project_name}/figure/${figure.figure_id}`)
+      json_post(`/api/${session.project_name}/figure/create`, params)
+        .then((figure) =>
+          invoke(
+            pushLocation(`/${figure.project_name}/figure/${figure.figure_id}`)
+          )
         )
-      );
+        .catch(handleErrorResponse)
+        .finally(cancelSaving);
     }
-  }, [hasPendingEdits, session, name]);
+  }, [hasPendingEdits, session, name, figure]);
 
   const saveSessionToBlob = useCallback(() => {
     if (hasPendingEdits) {
@@ -237,7 +253,7 @@ export default function SessionManager() {
           label='Save'
           title='Save current workflow parameters to current figure'
           onClick={saveSession}
-          disabled={running}
+          disabled={running || saving}
         />
       </div>
       <div className='session-feed-container'>

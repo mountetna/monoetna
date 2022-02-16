@@ -38,7 +38,7 @@ describe('useSessionStorage', () => {
 
   const reloadedSession = awaitBefore(async () => {
     const {getLocalSession} = contextData.value;
-    return await getLocalSession(workflowHelpers.value.workflow, nextSession.value.project_name);
+    return await getLocalSession(workflowHelpers.value.workflow.name, nextSession.value.project_name, -1);
   })
 
   it('does not save the session without a workflow being set', () => {

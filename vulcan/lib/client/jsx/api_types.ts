@@ -46,6 +46,7 @@ export const defaultWorkflowsResponse = {
 };
 
 export type WorkflowsResponse = typeof defaultWorkflowsResponse;
+export type ProjectWorkflowsResponse = typeof defaultWorkflowsResponse;
 
 export interface StepInput {
   id: string;
@@ -103,6 +104,7 @@ export interface Workflow {
   authors?: string[];
   displayName?: string;
   description?: string;
+  tags?: string[];
 }
 
 export const defaultWorkflow: Workflow = {

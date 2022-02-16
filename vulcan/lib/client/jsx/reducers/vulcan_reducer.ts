@@ -120,7 +120,9 @@ export default function VulcanReducer(
         action.session.workflow_name !== sessionWorkflow.name
       ) {
         console.warn(
-          'Cannot set session, project name / workflow name does not match.'
+          'Cannot set session, project name / workflow name does not match.',
+          sessionWorkflow,
+          action
         );
         return state;
       }
