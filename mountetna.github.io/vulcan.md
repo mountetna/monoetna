@@ -132,7 +132,7 @@ Plot-types currently available are:
 | --- | --- | --- |
 | <img src="assets/images/vulcan/scatter.png" title="Scatter Plot Example" height="250"/> | <img src="assets/images/vulcan/yplot.png" alt="Y Plot Example" height="250"/> | <img src="assets/images/vulcan/barplot.png" alt="Bar Plot Example" height="250"/>|
 
-Each plot type has its own dedicated workflow and an associated vignette where additional deatils may be given about specifics of how particular plots are made.
+Each plot type has its own dedicated workflow and an associated vignette where additional details may be given about how particular plots are made.
 
 #### The Plot Configuration Interface
 
