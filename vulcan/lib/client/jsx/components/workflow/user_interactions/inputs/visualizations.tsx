@@ -10,6 +10,7 @@ import { some } from '../../../../selectors/maybe';
 import { Button, Slider } from '@material-ui/core';
 import { pick } from 'lodash';
 import { key_wrap, stringInput, dropdownInput, MultiselectInput, checkboxInput, sliderInput } from './user_input_pieces';
+import { subsetDataFrameInput } from './subsetDataFrame_piece';
 
 /*
 This UI is closely tied to archimedes/functions/plotting/*_plotly functions.
@@ -55,20 +56,23 @@ function VisualizationUI({
   const value = useSetsDefault(defaultValue, props.value, onChange);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const options: string[] = useMemo(() => {
-    if (data == null) return [];
-    if (data['data_frame'] == null) return [];
-
-    // return data['data_options'] || nulled_vals(data['data_frame']);
-    return Object.keys(data['data_frame'])
+  const data_frame: DataEnvelope<any> = useMemo(() => {
+    if (data == null) return {};
+    if (data['data_frame'] == null) return {};
+    return data['data_frame']
   }, [data]);
+  
+  const columns: string[] = useMemo(() => {
+    if (data_frame == null || data_frame == {}) return [];
+    return Object.keys(data_frame)
+  }, [data_frame]);
 
   const updateValue = (newValue: any, key: string, prevValues = {...value}) => {
     prevValues[key] = newValue;
     onChange(some(prevValues));
   };
 
-  const extra_inputs = useExtraInputs(options);
+  const extra_inputs = useExtraInputs(columns, data_frame);
 
   // Component set constructor
   const component_use = (key: string, value: any, extra_inputs: any) => {
@@ -138,16 +142,16 @@ const remove_hidden = (vals: DataEnvelope<any>, hide: string[] | null | undefine
 const input_sets: DataEnvelope<DataEnvelope<string[]|DataEnvelope<any>>> = {
   'scatter_plot': {
     'main': ["x_by", "y_by", "color_by"],
-    'adv': ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color', 'x_scale', 'y_scale'],
+    'adv': ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color', 'x_scale', 'y_scale', 'rows_use']
     //'default_adjust': {'color_by': "make"}
   },
   'bar_plot': {
     'main': ["x_by", "y_by", "scale_by"],
-    'adv': ['plot_title', 'legend_title', 'xlab', 'ylab']
+    'adv': ['plot_title', 'legend_title', 'xlab', 'ylab', 'rows_use']
   },
   'y_plot': {
     'main': ["x_by", "y_by", "plots"],
-    'adv': ["color_by", 'plot_title', 'legend_title', 'xlab', 'ylab', 'y_scale'],
+    'adv': ["color_by", 'plot_title', 'legend_title', 'xlab', 'ylab', 'y_scale', 'rows_use']
     //'default_adjust': {'color_by': "make"}
   }
 }
@@ -166,7 +170,8 @@ const defaults: DataEnvelope<any> = {
   'color_order': 'increasing',
   'order_when_continuous_color': false,
   'x_scale': 'as is',
-  'y_scale': 'as is'
+  'y_scale': 'as is',
+  'rows_use': {}
 };
 
 function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | undefined) {
@@ -205,7 +210,7 @@ function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | unde
 return initial_vals;
 }
 
-function useExtraInputs(options: string[]) {
+function useExtraInputs(options: string[], full_data: DataEnvelope<any>) {
   const extra_inputs: DataEnvelope<any[]> = useMemo(() => {
     return {
       // label, then for any extras
@@ -222,9 +227,10 @@ function useExtraInputs(options: string[]) {
       'size': ['Point Size', 0.1, 50],
       'scale_by': ['Scale Y by counts or fraction?', ['counts', 'fraction']],
       'x_scale': ['Adjust scaling of the X-Axis?', ['as is', 'log10', 'log10(val+1)']],
-      'y_scale': ['Adjust scaling of the Y-Axis?', ['as is', 'log10', 'log10(val+1)']]
+      'y_scale': ['Adjust scaling of the Y-Axis?', ['as is', 'log10', 'log10(val+1)']],
+      'rows_use': ['Focus on a subset of the incoming data?', full_data, false, "secondary"]
     }
-  }, [options]);
+  }, [options, full_data]);
 
   return extra_inputs;
 }
@@ -243,5 +249,6 @@ const comps: DataEnvelope<Function> = {
   'size': sliderInput,
   'scale_by': dropdownInput,
   'x_scale': dropdownInput,
-  'y_scale': dropdownInput
+  'y_scale': dropdownInput,
+  'rows_use': subsetDataFrameInput
 }
