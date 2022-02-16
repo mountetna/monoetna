@@ -124,21 +124,33 @@ requires further input from the user to continue.
 
 ### Visualization Workflows
 
-Some of the most basic, yet likely to be most used workflows of the Vulcan arsenal, these workflows consist of just a few steps where the first is a data query piece (which can be filled in via a [Timur-Query](https://mountetna.github.io/timur.html#query)) followed by a user input step where the user can establish how their plot should be generated.
+Some of the most basic, yet likely to be most used workflows of the Vulcan arsenal, these workflows consist of just a few steps where the first is a data query piece (which can be filled in via a [Timur-Query](https://mountetna.github.io/timur.html#query)) followed by a user input step where the user configures how their plot should be generated.
 
-Each visualization workflow has its own associated 'vignette' where additional deatils may be given about specifics of how particular plots are made, but all visualization workflows rely on a universal plot setup interface.
+Plot-types currently available are:
 
-#### The Setup GUI
+| Scatter | Y (integrated violin and boxplots) | Bar |
+| --- | --- | --- |
+| <img src="assets/images/vulcan/scatter.png" title="Scatter Plot Example" height="250"/> | <img src="assets/images/vulcan/yplot.png" alt="Y Plot Example" height="250"/> | <img src="assets/images/vulcan/barplot.png" alt="Bar Plot Example" height="250"/>|
 
-A single system serves the graphical user interface (GUI) for mapping data to axes, colors, etc and for allowing users to make tweaks to how their plot will show up. Thus, although there are some differences in the exact set of inputs that apply to each plot type, when a given input does show up, it will always work the same way!
+Each plot type has its own dedicated workflow and an associated vignette where additional deatils may be given about specifics of how particular plots are made.
 
-'Main' inputs, which the user must fill in in order for a plot to be produced, are always shown within the GUI. On the other hand, 'Advanced' inputs are hidden behind a 'Show Advanced Options' button, to save space and to reduce visual complexity, unless the user clicks that button.
+#### The Plot Configuration Interface
 
-Below is a table explaining each input and how to use them.
+**Main Options:** Before a plot can be made from a given set of data, vulcan must be told what parts of the data to map to axes, colors, etc. The "main" inputs of the configuration interface fill in such mappings and are always displayed.  For example, when setting up a scatter plot you would see:
 
-A quick note about "make" options: Often you will see string fields or other inputs filled in with the default string 'make'.  In these cases leaving that input as is will let our system fill in that input with an intuitive default. These inputs do not need to be adjusted, but they can be given alternative options.
+<img src="assets/images/vulcan/scatter-configuration-main.png" alt="Scatter Plot Configuration, main inputs">
 
-| Label in the UI | Plot Contexts which use these inputs | Purpose & How to use |
+**Advanced Options:** Within the same interface, a set of 'Advanced Options' allow additional tweaks to be made to how the plot will show up, but these are hidden behind a button by default.  Clicking the "Show Advanced Options" button of the configuration interface for a scatter plot will reveal:
+
+<img src="assets/images/vulcan/scatter-configuration-advanced.png" alt="Scatter Plot Example, all inputs">
+
+Often, you will see inputs filled in by default with 'make'.  'make' is our chosen fill-in for telling the system to "Use the default option," so leaving such inputs as 'make' will let our system fill in that setting with an intuitive default.  Such inputs may be adjusted, or not, as needed.
+
+We use a single system to serve the Plot Configuration Interface for all plot types.  Thus, even though each plot type requires distinct sets of data mappings and offers a distinct set of advanced options, you can be sure that when a given input does shows up, its behaviour within this interface will be the same across all plot types!
+
+Below is a table explaining each input and how to use them:
+
+| Label within the Plot Configuration Interface | Plot Types which use these inputs | Purpose & How to use |
 | ---- |---| ----------- |
 | X-Axis Data, Y-Axis Data | All | These dropdowns present column names of the incoming data for the user to select which column to use for the X and Y axes. |
 | Color Data | Scatter & Y | This dropdown presents column names of the incoming data for the user to select which column to use for coloring points. It also injects an option of 'make', the default, which translates to 'all one color' for scatter plots or 'the X-Axis Data selection' for Y Plots |
