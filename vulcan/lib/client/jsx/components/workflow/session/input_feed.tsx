@@ -32,8 +32,6 @@ export default function InputFeed() {
 
   let errorSteps = erroredSteps(workflow, status);
 
-  console.log('input_feed', completed, nextUiSteps, groupedSteps);
-
   return (
     <div className='session-input-feed'>
       <PrimaryInputs />

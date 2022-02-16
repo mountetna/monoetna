@@ -46,8 +46,10 @@ export default function WorkflowManager({
       const workflow = workflowByName(localSession.workflow_name, state);
       if (workflow) dispatch(setWorkflow(workflow, projectName));
       dispatch(setSessionAndFigure(localSession));
+
+      requestPoll();
     },
-    [projectName, dispatch, state]
+    [projectName, dispatch, state, requestPoll]
   );
 
   const initializeFromFigure = useCallback(
@@ -55,12 +57,10 @@ export default function WorkflowManager({
       json_get(`/api/${projectName}/figure/${figureId}`)
         .then((figureResponse) => {
           initializeFromSession(figureResponse);
-
-          requestPoll();
         })
         .catch(handleErrorResponse);
     },
-    [projectName, handleErrorResponse, initializeFromSession, requestPoll]
+    [projectName, handleErrorResponse, initializeFromSession]
   );
 
   const initializeNewSession = useCallback(() => {
@@ -85,8 +85,6 @@ export default function WorkflowManager({
       } else {
         initializeNewSession();
       }
-
-      requestPoll();
     });
   }, []);
 
