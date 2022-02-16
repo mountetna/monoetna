@@ -2,11 +2,7 @@ import React, {useCallback, useContext, useEffect, useState} from 'react';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {defaultSession} from '../../reducers/vulcan_reducer';
-import {
-  cwlName,
-  isNullish,
-  workflowByName
-} from '../../selectors/workflow_selectors';
+import {cwlName, workflowByName} from '../../selectors/workflow_selectors';
 
 import SessionManager from './session/session_manager';
 import StepsList from './steps/steps_list';
@@ -19,7 +15,6 @@ import {json_get} from 'etna-js/utils/fetch';
 import {VulcanFigure, VulcanSession} from '../../api_types';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
-import {BufferedInputsContext} from '../../contexts/input_state_management';
 
 export default function WorkflowManager({
   workflowName,
@@ -37,7 +32,6 @@ export default function WorkflowManager({
     cancelPolling,
     requestPoll
   } = useContext(VulcanContext);
-  const {setInputs, commitInputs} = useContext(BufferedInputsContext);
   const invoke = useActionInvoker();
 
   const handleErrorResponse = useCallback(
@@ -49,7 +43,6 @@ export default function WorkflowManager({
 
   const initializeFromSession = useCallback(
     (localSession: VulcanSession & VulcanFigure) => {
-      console.log('localSession', localSession);
       const workflow = workflowByName(localSession.workflow_name, state);
       if (workflow) dispatch(setWorkflow(workflow, projectName));
       dispatch(setSessionAndFigure(localSession));
@@ -61,16 +54,13 @@ export default function WorkflowManager({
     (figureId: number) => {
       json_get(`/api/${projectName}/figure/${figureId}`)
         .then((figureResponse) => {
-          console.log('figureResponse', figureResponse);
-          const workflow = workflowByName(figureResponse.workflow_name, state);
-          if (workflow) dispatch(setWorkflow(workflow, projectName));
-          dispatch(setSessionAndFigure(figureResponse));
-          setInputs({inputs: {...figureResponse.inputs}});
-          commitInputs();
+          initializeFromSession(figureResponse);
+
+          requestPoll();
         })
         .catch(handleErrorResponse);
     },
-    [projectName, state, dispatch, handleErrorResponse, setInputs, commitInputs]
+    [projectName, handleErrorResponse, initializeFromSession, requestPoll]
   );
 
   const initializeNewSession = useCallback(() => {
@@ -88,7 +78,7 @@ export default function WorkflowManager({
     getLocalSession(workflowName, projectName, figureId).then((session) => {
       cancelPolling();
 
-      if (session && workflowName !== session.workflow_name) {
+      if (session) {
         initializeFromSession(session);
       } else if (figureId) {
         initializeFromFigure(figureId);
@@ -106,7 +96,7 @@ export default function WorkflowManager({
 
   return (
     <div className='workflow-manager'>
-      <SessionManager />
+      <SessionManager key={state.session.key} />
       <StepsList />
     </div>
   );

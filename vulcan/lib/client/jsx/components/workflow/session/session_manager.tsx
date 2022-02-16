@@ -176,7 +176,6 @@ export default function SessionManager() {
     complete || running || (hasPendingEdits && !committedStepPending);
 
   useEffect(() => {
-    console.log('figure', figure);
     if (figure.title) setLocalTitle(figure.title);
   }, [figure]);
 
