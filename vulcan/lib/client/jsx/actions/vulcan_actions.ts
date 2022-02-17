@@ -2,11 +2,12 @@ import {
   SessionStatusResponse,
   VulcanFigure,
   VulcanFigureSession,
+  VulcanSession,
   Workflow,
   WorkflowsResponse
 } from '../api_types';
-import {InputValidator} from '../components/workflow/user_interactions/inputs/input_types';
 import {Maybe} from '../selectors/maybe';
+import {selectFigure, selectSession} from '../selectors/workflow_selectors';
 
 function actionObject<T extends string, P>(type: T, payload: P): {type: T} & P {
   return {...payload, type};
@@ -40,7 +41,17 @@ export function setFigure(figure: VulcanFigure) {
 }
 
 export function setSessionAndFigure(figureSession: VulcanFigureSession) {
-  return actionObject('SET_SESSION_AND_FIGURE', {figureSession});
+  return setSessionAndFigureSeparately(
+    selectFigure(figureSession),
+    selectSession(figureSession)
+  );
+}
+
+export function setSessionAndFigureSeparately(
+  figure: VulcanFigure,
+  session: VulcanSession
+) {
+  return actionObject('SET_SESSION_AND_FIGURE', {figure, session});
 }
 
 // Fully replaces the inputs state.
@@ -115,4 +126,5 @@ export type VulcanAction =
   | ReturnType<typeof checkCommittedStepPending>
   | ReturnType<typeof clearCommittedStepPending>
   | ReturnType<typeof setFigure>
-  | ReturnType<typeof setSessionAndFigure>;
+  | ReturnType<typeof setSessionAndFigure>
+  | ReturnType<typeof setSessionAndFigureSeparately>;

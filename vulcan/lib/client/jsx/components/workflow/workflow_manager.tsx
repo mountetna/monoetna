@@ -3,17 +3,27 @@ import * as _ from 'lodash';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {defaultSession} from '../../reducers/vulcan_reducer';
-import {cwlName, workflowByName} from '../../selectors/workflow_selectors';
+import {
+  cwlName,
+  selectFigure,
+  selectSession,
+  workflowByName
+} from '../../selectors/workflow_selectors';
 
 import SessionManager from './session/session_manager';
 import StepsList from './steps/steps_list';
 import {
   setSession,
   setWorkflow,
-  setSessionAndFigure
+  setSessionAndFigure,
+  setSessionAndFigureSeparately
 } from '../../actions/vulcan_actions';
 import {json_get} from 'etna-js/utils/fetch';
-import {VulcanFigureSession} from '../../api_types';
+import {
+  VulcanFigure,
+  VulcanFigureSession,
+  VulcanSession
+} from '../../api_types';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
 
@@ -43,10 +53,10 @@ export default function WorkflowManager({
   );
 
   const initializeFromSession = useCallback(
-    (localSession: VulcanFigureSession) => {
-      const workflow = workflowByName(localSession.workflow_name, state);
+    (session: VulcanSession, figure: VulcanFigure) => {
+      const workflow = workflowByName(session.workflow_name, state);
       if (workflow) dispatch(setWorkflow(workflow, projectName));
-      dispatch(setSessionAndFigure(localSession));
+      dispatch(setSessionAndFigureSeparately(figure, session));
 
       requestPoll();
     },
@@ -67,7 +77,10 @@ export default function WorkflowManager({
               'You have an edited, local version of that figure. Discard it?'
             );
           }
-          initializeFromSession(fromDatabase ? figureResponse : localSession);
+          initializeFromSession(
+            selectSession(fromDatabase ? figureResponse : localSession),
+            selectFigure(figureResponse)
+          );
         })
         .catch(handleErrorResponse);
     },
@@ -86,19 +99,24 @@ export default function WorkflowManager({
   }, [workflowName, state, projectName, dispatch]);
 
   useEffect(() => {
-    getLocalSession(workflowName, projectName, figureId).then((session) => {
-      cancelPolling();
+    getLocalSession(workflowName, projectName, figureId).then(
+      (localSession) => {
+        cancelPolling();
 
-      if (session && !figureId) {
-        initializeFromSession(session);
-      } else if (figureId) {
-        initializeFromFigure(figureId, session);
-      } else {
-        initializeNewSession();
+        if (localSession && !figureId) {
+          initializeFromSession(
+            selectSession(localSession),
+            selectFigure(localSession)
+          );
+        } else if (figureId) {
+          initializeFromFigure(figureId, localSession);
+        } else {
+          initializeNewSession();
+        }
+
+        requestPoll();
       }
-
-      requestPoll();
-    });
+    );
   }, []);
 
   if (!state.workflow) {
