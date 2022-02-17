@@ -5,8 +5,8 @@ import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {pushLocation} from 'etna-js/actions/location_actions';
 
 import {VulcanContext} from '../contexts/vulcan_context';
-import WorkflowCard from '../components/dashboard/card';
-import Figure from '../components/figure';
+import WorkflowCard from './dashboard/card';
+import Figure from './figure';
 
 import ImageList from '@material-ui/core/ImageList';
 import ImageListItem from '@material-ui/core/ImageListItem';
@@ -20,6 +20,7 @@ import Typography from '@material-ui/core/Typography';
 
 import {makeStyles} from '@material-ui/core/styles';
 import {json_get} from 'etna-js/utils/fetch';
+import {VulcanFigureSession, Workflow} from '../api_types';
 
 const createFigureStyles = makeStyles((theme) => ({
   none: {
@@ -33,15 +34,27 @@ const createFigureStyles = makeStyles((theme) => ({
   }
 }));
 
-const CreateFigure = ({handleClose, open, project_name}) => {
+const CreateFigure = ({
+  handleClose,
+  open,
+  project_name
+}: {
+  open: boolean;
+  project_name: string;
+  handleClose: () => void;
+}) => {
   let {state} = useContext(VulcanContext);
   const {workflows} = state;
 
-  const [selectedWorkflow, selectWorkflow] = useState(null);
+  const [selectedWorkflow, setSelectedWorkflow] = useState(
+    null as Workflow | null
+  );
   const classes = createFigureStyles();
 
   const projectWorkflows = workflows
-    ? workflows.filter(({projects}) => projects.includes(project_name))
+    ? workflows.filter(
+        ({projects}) => projects && projects.includes(project_name)
+      )
     : [];
 
   const invoke = useActionInvoker();
@@ -54,12 +67,12 @@ const CreateFigure = ({handleClose, open, project_name}) => {
         )
       );
     },
-    [invoke]
+    [invoke, project_name]
   );
 
   const close = useCallback(() => {
     handleClose();
-    selectWorkflow(null);
+    setSelectedWorkflow(null);
   }, [handleClose]);
 
   return (
@@ -78,7 +91,7 @@ const CreateFigure = ({handleClose, open, project_name}) => {
                   workflow={w}
                   key={ind}
                   onClick={() =>
-                    selectWorkflow(selectedWorkflow == w ? null : w)
+                    setSelectedWorkflow(selectedWorkflow == w ? null : w)
                   }
                 />
               </ImageListItem>
@@ -118,16 +131,18 @@ const figureListStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function FigureList({project_name}) {
+export default function FigureList({project_name}: {project_name: string}) {
   const invoke = useActionInvoker();
-  const [figures, setFigures] = useState(null);
+  const [figureSessions, setFigureSessions] = useState(
+    [] as VulcanFigureSession[]
+  );
   const [showCreateFigure, setShowCreateFigure] = useState(false);
 
   const classes = figureListStyles();
 
   useEffect(() => {
     json_get(`/api/${project_name}/figures`).then(({figures}) =>
-      setFigures(figures)
+      setFigureSessions(figures)
     );
   }, []);
 
@@ -138,16 +153,14 @@ export default function FigureList({project_name}) {
           <Typography variant='h5'>{project_name}</Typography>
         </Grid>
         <Grid container direction='row'>
-          {figures
-            ? figures.map((figure, i) => <Figure key={i} figure={figure} />)
+          {figureSessions
+            ? figureSessions.map((figureSession, i) => (
+                <Figure key={i} figureSession={figureSession} />
+              ))
             : null}
         </Grid>
         <Grid>
-          <Button
-            variant='contained'
-            onClick={() => setShowCreateFigure(true)}
-            variant='text'
-          >
+          <Button onClick={() => setShowCreateFigure(true)} variant='text'>
             Create Figure
           </Button>
         </Grid>

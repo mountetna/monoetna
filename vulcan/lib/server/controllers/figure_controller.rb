@@ -59,5 +59,18 @@ class FigureController < Vulcan::Controller
 
     success_json(figure.to_hash)
   end
+
+  def delete
+    figure = Vulcan::Figure.where(
+      project_name: @params[:project_name],
+      figure_id: @params[:figure_id]
+    ).first
+
+    raise Etna::NotFound unless figure
+
+    figure.delete
+
+    success_json(figure.to_hash)
+  end
 end
 

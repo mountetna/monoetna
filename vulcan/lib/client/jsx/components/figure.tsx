@@ -15,6 +15,7 @@ import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 import {VulcanContext} from '../contexts/vulcan_context';
+import {VulcanFigureSession} from '../api_types';
 
 const figureStyles = makeStyles((theme) => ({
   figure: {
@@ -38,34 +39,37 @@ const figureStyles = makeStyles((theme) => ({
   }
 }));
 
-const authorInitials = ({author}) => {
-  let names = author.split(/\s+/).filter((n) => /^[A-Z]/.test(n));
+const authorInitials = ({author}: VulcanFigureSession) => {
+  if (!author) return '';
+
+  let names = author.split(/\s+/).filter((n: string) => /^[A-Z]/.test(n));
   return names.length > 1
     ? [names[0][0], names[names.length - 1][0]].join('')
     : names[0][0];
 };
 
-const Figure = ({figure}) => {
+const Figure = ({figureSession}: {figureSession: VulcanFigureSession}) => {
   const invoke = useActionInvoker();
   let {state} = useContext(VulcanContext);
   const {workflows} = state;
 
   const workflow = workflows
-    ? workflows.find((w) => w.name == figure.workflow_name)
+    ? workflows.find((w) => w.name == figureSession.workflow_name)
     : null;
 
   const classes = figureStyles();
 
-  const visitFigure = useCallback(
-    (figure) => {
-      invoke(
-        pushLocation(`/${figure.project_name}/figure/${figure.figure_id}`)
-      );
-    },
-    [invoke]
-  );
+  const visitFigure = useCallback(() => {
+    invoke(
+      pushLocation(
+        `/${figureSession.project_name}/figure/${figureSession.figure_id}`
+      )
+    );
+  }, [invoke, figureSession]);
 
-  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [menuAnchor, setMenuAnchor] = useState(
+    null as HTMLButtonElement | null
+  );
 
   const handleClose = () => {
     setMenuAnchor(null);
@@ -84,9 +88,9 @@ const Figure = ({figure}) => {
         <MenuItem onClick={handleClose}>Remove</MenuItem>
       </Menu>
       <CardHeader
-        title={figure.title}
+        title={figureSession.title}
         titleTypographyProps={{variant: 'h6', className: classes.title}}
-        subheader={figure.workflow_name.replace('.cwl', '')}
+        subheader={figureSession.workflow_name.replace('.cwl', '')}
         action={
           <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)}>
             <MoreVertIcon />
@@ -95,15 +99,17 @@ const Figure = ({figure}) => {
       />
       <CardMedia
         className={classes.image}
-        onClick={() => visitFigure(figure)}
+        onClick={visitFigure}
         component='img'
         height='140'
         image={`/images/${workflow ? workflow.image : 'default.png'}`}
-        title={figure.title}
+        title={figureSession.title || ''}
       />
       <CardContent>
-        <Tooltip title={figure.author}>
-          <Avatar className={classes.author}>{authorInitials(figure)}</Avatar>
+        <Tooltip title={figureSession.author || ''}>
+          <Avatar className={classes.author}>
+            {authorInitials(figureSession)}
+          </Avatar>
         </Tooltip>
       </CardContent>
     </Card>
