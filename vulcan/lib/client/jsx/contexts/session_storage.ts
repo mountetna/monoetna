@@ -23,8 +23,8 @@ export const defaultSessionStorageHelpers = {
   getLocalSession(
     workflow_name: string,
     project_name: string,
-    figure_id: number
-  ): Promise<SessionStatusResponse['session'] & VulcanFigure | null> {
+    figure_id: number | null
+  ): Promise<(SessionStatusResponse['session'] & VulcanFigure) | null> {
     return Promise.resolve(null);
   }
 };
@@ -39,23 +39,28 @@ export function useLocalSessionStorage(
 
   useEffect(() => {
     if (storage && session && figure && workflow) {
-      storage.setItem(localStorageKey({
-        figure_id: figure.figure_id,
-        workflow_name: session.workflow_name,
-        project_name: session.project_name
-      }), JSON.stringify({...session, ...figure}));
+      storage.setItem(
+        localStorageKey({
+          figure_id: figure.figure_id,
+          workflow_name: session.workflow_name,
+          project_name: session.project_name
+        }),
+        JSON.stringify({...figure, ...session})
+      );
     }
   }, [session, storage, figure, workflow]);
 
   const getLocalSession = useCallback(
-    (workflow_name: string, project_name: string, figure_id: number) => {
+    (workflow_name: string, project_name: string, figure_id: number | null) => {
       let storedSession: any = storage.getItem(
         localStorageKey({workflow_name, figure_id, project_name})
       );
       if (!storedSession) return Promise.resolve(null);
 
       try {
-        const parsedSession: VulcanState['session'] & VulcanFigure = JSON.parse(storedSession);
+        const parsedSession: VulcanState['session'] & VulcanFigure = JSON.parse(
+          storedSession
+        );
         if (parsedSession.project_name !== project_name)
           return Promise.resolve(null);
         return Promise.resolve(parsedSession);
