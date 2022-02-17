@@ -154,6 +154,7 @@ export type SessionStatusResponse = typeof defaultSessionStatusResponse;
 
 export interface VulcanFigure {
   figure_id: number | null;
+  inputs: {[k: string]: any};
   title?: string | null;
   author?: string;
 }
@@ -161,5 +162,6 @@ export interface VulcanFigure {
 export type VulcanFigureResponse = VulcanSession & VulcanFigure;
 
 export const defaultFigure = {
-  figure_id: null
-}
+  figure_id: null,
+  inputs: {}
+};

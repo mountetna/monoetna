@@ -42,7 +42,7 @@ export function createSessionFixture(workflow_name: string, session: Partial<Vul
     }
 }
 
-export function createStoredSessionFixture(workflow_name: string, session: Partial<VulcanSession> = {}, figure: Partial<VulcanFigure> = {}): VulcanSession {
+export function createStoredSessionFixture(workflow_name: string, session: Partial<VulcanSession> = {}, figure: Partial<VulcanFigure> = {}): VulcanSession & VulcanFigure {
     return {
         ...defaultSession,
         ...defaultFigure,

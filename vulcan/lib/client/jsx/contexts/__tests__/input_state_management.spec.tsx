@@ -10,12 +10,14 @@ import {VulcanContext} from '../vulcan_context';
 import {
   addValidationErrors,
   setBufferedInput,
-  setInputs
+  setInputs,
+  setSession
 } from '../../actions/vulcan_actions';
 import {
   BufferedInputsContext,
   WithBufferedInputs
 } from '../input_state_management';
+import {createSessionFixture} from '../../test_utils/fixtures';
 
 describe('useDataBuffering', () => {
   beforeEach(() => {
@@ -55,8 +57,13 @@ describe('useDataBuffering', () => {
     workflowHelpers.value.setWorkflow('test');
   });
 
+  const testSession = setupBefore(() =>
+    createSessionFixture('test', {project_name: 'test'})
+  );
+
   const setupSession = awaitBefore(async () => {
-    workflowHelpers.value.setSession({workflow_name: 'test'});
+    await testSession.ensure();
+    contextData.value.dispatch(setSession(testSession.value));
   });
 
   const setupPrimaryInputs = awaitBefore(async () => {

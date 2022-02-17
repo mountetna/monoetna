@@ -5,6 +5,7 @@ import {
   setupBefore
 } from '../../test_utils/integration';
 import {
+  createSessionFixture,
   createStepStatusFixture,
   createUpdatedStatusFixture,
   createUpdatedStatusResponseFixture
@@ -13,6 +14,7 @@ import {useWorkflowUtils} from '../../test_utils/workflow_utils';
 import {useContext} from 'react';
 import {VulcanContext} from '../vulcan_context';
 import {act} from 'react-test-renderer';
+import {setSession} from '../../actions/vulcan_actions';
 
 describe('useSessionSync', () => {
   beforeEach(() => {
@@ -37,11 +39,16 @@ describe('useSessionSync', () => {
     integrated.value.runHook(() => useContext(VulcanContext))
   );
 
+  const testSession = setupBefore(() =>
+    createSessionFixture('test', {project_name: 'test'})
+  );
+
   awaitBefore(async () => {
     workflowHelpers.value.setWorkflow('test');
-    workflowHelpers.value.setSession({workflow_name: 'test'});
     workflowHelpers.value.addStep('astep');
     workflowHelpers.value.setStatus('astep', 'complete');
+    await testSession.ensure();
+    contextData.value.dispatch(setSession(testSession.value));
   });
 
   const pollStarted = awaitBefore(async () => {
@@ -65,7 +72,7 @@ describe('useSessionSync', () => {
 
       it('polls every 3 seconds until there remain no running steps', async () => {
         const {stateRef} = contextData.value;
-        console.log(stateRef);
+
         expect(stateRef.current.pollingState).toBeGreaterThan(0);
         await postMock.value.respond(() =>
           createUpdatedStatusResponseFixture(stateRef.current, {

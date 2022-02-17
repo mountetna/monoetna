@@ -3,15 +3,19 @@ import {
   setStatus,
   setWorkflow,
   VulcanAction,
-  setSession
+  setSession,
+  setSessionAndFigure
 } from '../actions/vulcan_actions';
 import {
+  defaultFigure,
   defaultStepStatus,
   defaultWorkflow,
   defaultWorkflowInput,
   defaultWorkflowStep,
   StatusString,
   StepStatus,
+  VulcanFigure,
+  VulcanFigureResponse,
   VulcanSession,
   Workflow,
   WorkflowInput,
@@ -25,7 +29,11 @@ import VulcanReducer, {
 } from '../reducers/vulcan_reducer';
 import {VulcanContext} from '../contexts/vulcan_context';
 import {useContext, useState} from 'react';
-import {splitSource, statusOfStep} from '../selectors/workflow_selectors';
+import {
+  selectFigure,
+  splitSource,
+  statusOfStep
+} from '../selectors/workflow_selectors';
 
 export function useWorkflowUtils(): WorkflowUtils {
   const {dispatch, stateRef} = useContext(VulcanContext);
@@ -47,7 +55,6 @@ export function workflowUtilsBuilder() {
 export class WorkflowUtils {
   public workflow: Readonly<Workflow> = defaultWorkflow;
   public steps: {[k: string]: WorkflowStep} = {};
-  public session: Readonly<VulcanSession> = defaultSession;
 
   constructor(
     private dispatch: (action: VulcanAction) => void,
@@ -75,10 +82,16 @@ export class WorkflowUtils {
     this.dispatch(setWorkflow(this.workflow, projectName));
   }
 
-  setSession(session: Partial<VulcanSession> = {}) {
-    this.session = {...this.session, ...session};
-    this.dispatch(setSession(this.session));
-  }
+  // setFigure(figureResponse: Partial<VulcanFigureResponse> = {}) {
+  //   const fullResponse = {
+  //     ...this.figure,
+  //     ...this.session,
+  //     ...figureResponse
+  //   };
+  //   console.log('fullResponse', fullResponse);
+  //   this.figure = selectFigure(fullResponse);
+  //   this.dispatch(setSessionAndFigure(fullResponse));
+  // }
 
   addStep(name: string, attributes: Partial<WorkflowStep> = {}) {
     const step = {...defaultWorkflowStep, name, ...attributes};
