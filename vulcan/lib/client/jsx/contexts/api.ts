@@ -95,7 +95,10 @@ export function useApi(
 
   const vulcanGet = useCallback(
     (endpoint: string) => {
-      return rawVulcanGet(endpoint).then(checkStatus);
+      return rawVulcanGet(endpoint)
+        .then(checkStatus)
+        .then(handleFetchSuccess)
+        .catch(handleFetchError);
     },
     [rawVulcanGet]
   );
@@ -117,7 +120,9 @@ export function useApi(
       return vulcanPost(
         vulcanPath(ROUTES.submit(session.project_name, session.workflow_name)),
         session
-      );
+      )
+        .then(handleFetchSuccess)
+        .catch(handleFetchError);
     },
     [vulcanPath, vulcanPost]
   );
@@ -133,7 +138,9 @@ export function useApi(
       return vulcanPost(
         vulcanPath(ROUTES.status(session.project_name, session.workflow_name)),
         session
-      );
+      )
+        .then(handleFetchSuccess)
+        .catch(handleFetchError);
     },
     [vulcanPath, vulcanPost]
   );

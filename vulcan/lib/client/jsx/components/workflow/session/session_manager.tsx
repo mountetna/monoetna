@@ -83,9 +83,9 @@ export default function SessionManager() {
   const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   const run = useCallback(() => {
-    requestPoll(true);
+    showErrors(requestPoll(true));
     dispatch(clearCommittedStepPending());
-  }, [requestPoll, dispatch]);
+  }, [requestPoll, dispatch, showErrors]);
   const stop = useCallback(() => cancelPolling(), [cancelPolling]);
 
   const cancelSaving = () => {

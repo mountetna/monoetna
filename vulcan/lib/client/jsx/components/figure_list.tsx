@@ -19,7 +19,7 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
 import {makeStyles} from '@material-ui/core/styles';
-import {VulcanFigureSession, Workflow} from '../api_types';
+import {VulcanFigure, VulcanFigureSession, Workflow} from '../api_types';
 import {showMessages} from 'etna-js/actions/message_actions';
 
 const createFigureStyles = makeStyles((theme) => ({
@@ -132,7 +132,13 @@ const figureListStyles = makeStyles((theme) => ({
 }));
 
 export default function FigureList({project_name}: {project_name: string}) {
-  const {showErrors, fetchFigures} = useContext(VulcanContext);
+  const {
+    showErrors,
+    fetchFigures,
+    createFigure,
+    updateFigure,
+    deleteFigure
+  } = useContext(VulcanContext);
 
   const [figureSessions, setFigureSessions] = useState(
     [] as VulcanFigureSession[]
@@ -147,6 +153,64 @@ export default function FigureList({project_name}: {project_name: string}) {
     );
   }, [showErrors, fetchFigures, project_name]);
 
+  const handleOnCopy = useCallback(
+    (figure: VulcanFigureSession) => {
+      const copy = {
+        ...figure,
+        figure_id: null,
+        title: `${figure.title} - copy`
+      };
+      showErrors(
+        createFigure(project_name, copy).then((newFigure) => {
+          setFigureSessions([...figureSessions].concat([newFigure]));
+        })
+      );
+    },
+    [showErrors, createFigure, project_name, figureSessions]
+  );
+
+  const handleOnRename = useCallback(
+    (figure: VulcanFigureSession) => {
+      const newTitle = prompt(
+        'Please enter a new figure title',
+        figure.title || ''
+      );
+      showErrors(
+        updateFigure(project_name, {
+          ...figure,
+          title: newTitle
+        }).then((updatedFigure) => {
+          const updated = figureSessions.map((oldFigure) => {
+            if (oldFigure.figure_id === updatedFigure.figure_id) {
+              return updatedFigure;
+            }
+
+            return oldFigure;
+          });
+
+          setFigureSessions(updated);
+        })
+      );
+    },
+    [showErrors, updateFigure, project_name, figureSessions]
+  );
+
+  const handleOnRemove = useCallback(
+    (figure: VulcanFigureSession) => {
+      if (!figure.figure_id) return;
+
+      showErrors(
+        deleteFigure(project_name, figure.figure_id).then(() => {
+          const updated = figureSessions.filter((oldFigure) => {
+            return oldFigure.figure_id !== figure.figure_id;
+          });
+          setFigureSessions(updated);
+        })
+      );
+    },
+    [showErrors, deleteFigure, project_name, figureSessions]
+  );
+
   return (
     <main className={classes.figures}>
       <Grid container direction='column'>
@@ -156,7 +220,13 @@ export default function FigureList({project_name}: {project_name: string}) {
         <Grid container direction='row'>
           {figureSessions
             ? figureSessions.map((figureSession, i) => (
-                <Figure key={i} figureSession={figureSession} />
+                <Figure
+                  key={i}
+                  figureSession={figureSession}
+                  onCopy={() => handleOnCopy(figureSession)}
+                  onRename={() => handleOnRename(figureSession)}
+                  onRemove={() => handleOnRemove(figureSession)}
+                />
               ))
             : null}
         </Grid>
