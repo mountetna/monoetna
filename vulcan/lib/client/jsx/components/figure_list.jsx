@@ -67,7 +67,10 @@ const CreateFigure = ({handleClose, open, project_name}) => {
       <DialogTitle>Select a workflow</DialogTitle>
       <DialogContent dividers>
         {projectWorkflows.length ? (
-          <ImageList rowHeight='auto' cols={Math.min(projectWorkflows.length, 3)}>
+          <ImageList
+            rowHeight='auto'
+            cols={Math.min(projectWorkflows.length, 3)}
+          >
             {projectWorkflows.map((w, ind) => (
               <ImageListItem key={ind}>
                 <WorkflowCard
@@ -82,16 +85,6 @@ const CreateFigure = ({handleClose, open, project_name}) => {
             ))}
           </ImageList>
         ) : (
-          // <Grid className={classes.workflows} container direction='column'>
-          //   {projectWorkflows.map((w, ind) => (
-          //     <WorkflowCard
-          //       className={selectedWorkflow == w ? classes.selected : null}
-          //       workflow={w}
-          //       key={ind}
-          //       onClick={() => selectWorkflow(selectedWorkflow == w ? null : w)}
-          //     />
-          //   ))}
-          // </Grid>
           <Grid item className={classes.none}>
             <em>No workflows</em>
           </Grid>

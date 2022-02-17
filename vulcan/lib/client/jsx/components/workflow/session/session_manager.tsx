@@ -37,6 +37,7 @@ import {defaultSession} from '../../../reducers/vulcan_reducer';
 import {VulcanSession} from '../../../api_types';
 import {json_post} from 'etna-js/utils/fetch';
 import {Debouncer} from 'etna-js/utils/debouncer';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const modalStyles = {
   content: {
@@ -223,20 +224,22 @@ export default function SessionManager() {
           <Link href={`/${session.project_name}`}>{session.project_name}</Link>
           <Typography>{workflow.displayName}</Typography>
           <Grid container className={classes.title}>
-            <TextField
-              fullWidth
-              value={localTitle}
-              margin='none'
-              InputProps={{
-                disableUnderline: true,
-                inputProps: {
-                  className: classes.titleText
-                }
-              }}
-              variant='standard'
-              onChange={(e) => debouncedSetTitle(e.target.value)}
-              placeholder='Untitled'
-            />
+            <Tooltip title={localTitle}>
+              <TextField
+                fullWidth
+                value={localTitle}
+                margin='none'
+                InputProps={{
+                  disableUnderline: true,
+                  inputProps: {
+                    className: classes.titleText
+                  }
+                }}
+                variant='standard'
+                onChange={(e) => debouncedSetTitle(e.target.value)}
+                placeholder='Untitled'
+              />
+            </Tooltip>
           </Grid>
         </Breadcrumbs>
         {workflow.vignette && (

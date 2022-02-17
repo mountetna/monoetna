@@ -7,7 +7,7 @@ import {
   StepInput,
   StepStatus,
   VulcanFigure,
-  VulcanFigureResponse,
+  VulcanFigureSession,
   VulcanSession,
   Workflow,
   WorkflowInput,
@@ -406,7 +406,7 @@ export function useMemoized<P1, R>(f: (p1: P1) => R, p1: P1): R {
 }
 
 export function selectSession(
-  figureResponse: VulcanFigureResponse
+  figureResponse: VulcanFigureSession
 ): VulcanSession {
   return {
     project_name: figureResponse.project_name,
@@ -417,7 +417,7 @@ export function selectSession(
 }
 
 export function selectFigure(
-  figureResponse: VulcanFigureResponse
+  figureResponse: VulcanFigureSession
 ): VulcanFigure {
   return {
     figure_id: figureResponse.figure_id,

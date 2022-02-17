@@ -14,9 +14,6 @@ import {
   defaultWorkflowStep,
   StatusString,
   StepStatus,
-  VulcanFigure,
-  VulcanFigureResponse,
-  VulcanSession,
   Workflow,
   WorkflowInput,
   WorkflowStep
@@ -81,17 +78,6 @@ export class WorkflowUtils {
     this.workflow = {...this.workflow, ...workflow, name, projects};
     this.dispatch(setWorkflow(this.workflow, projectName));
   }
-
-  // setFigure(figureResponse: Partial<VulcanFigureResponse> = {}) {
-  //   const fullResponse = {
-  //     ...this.figure,
-  //     ...this.session,
-  //     ...figureResponse
-  //   };
-  //   console.log('fullResponse', fullResponse);
-  //   this.figure = selectFigure(fullResponse);
-  //   this.dispatch(setSessionAndFigure(fullResponse));
-  // }
 
   addStep(name: string, attributes: Partial<WorkflowStep> = {}) {
     const step = {...defaultWorkflowStep, name, ...attributes};

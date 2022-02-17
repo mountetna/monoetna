@@ -1,4 +1,5 @@
 import React, {useCallback, useContext, useEffect, useState} from 'react';
+import * as _ from 'lodash';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {defaultSession} from '../../reducers/vulcan_reducer';
@@ -12,7 +13,7 @@ import {
   setSessionAndFigure
 } from '../../actions/vulcan_actions';
 import {json_get} from 'etna-js/utils/fetch';
-import {VulcanFigure, VulcanSession} from '../../api_types';
+import {VulcanFigureSession} from '../../api_types';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
 
@@ -42,7 +43,7 @@ export default function WorkflowManager({
   );
 
   const initializeFromSession = useCallback(
-    (localSession: VulcanSession & VulcanFigure) => {
+    (localSession: VulcanFigureSession) => {
       const workflow = workflowByName(localSession.workflow_name, state);
       if (workflow) dispatch(setWorkflow(workflow, projectName));
       dispatch(setSessionAndFigure(localSession));
@@ -53,10 +54,20 @@ export default function WorkflowManager({
   );
 
   const initializeFromFigure = useCallback(
-    (figureId: number) => {
+    (figureId: number, localSession: VulcanFigureSession | null) => {
       json_get(`/api/${projectName}/figure/${figureId}`)
         .then((figureResponse) => {
-          initializeFromSession(figureResponse);
+          let fromDatabase = true;
+
+          if (
+            localSession &&
+            !_.isEqual(localSession.inputs, figureResponse.inputs)
+          ) {
+            fromDatabase = confirm(
+              'You have an edited, local version of that figure. Discard it?'
+            );
+          }
+          initializeFromSession(fromDatabase ? figureResponse : localSession);
         })
         .catch(handleErrorResponse);
     },
@@ -78,10 +89,10 @@ export default function WorkflowManager({
     getLocalSession(workflowName, projectName, figureId).then((session) => {
       cancelPolling();
 
-      if (session) {
+      if (session && !figureId) {
         initializeFromSession(session);
       } else if (figureId) {
-        initializeFromFigure(figureId);
+        initializeFromFigure(figureId, session);
       } else {
         initializeNewSession();
       }

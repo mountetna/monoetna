@@ -152,7 +152,6 @@ describe('useSessionStorage', () => {
       );
       reloadedSession.replace(async (factory) => {
         const {getLocalSession} = contextData.value;
-        console.log('getting local session');
         return await getLocalSession(
           workflowHelpers.value.workflow.name,
           userSession.value.project_name,

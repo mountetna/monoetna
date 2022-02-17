@@ -159,7 +159,7 @@ export interface VulcanFigure {
   author?: string;
 }
 
-export type VulcanFigureResponse = VulcanSession & VulcanFigure;
+export type VulcanFigureSession = VulcanSession & VulcanFigure;
 
 export const defaultFigure = {
   figure_id: null,
