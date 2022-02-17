@@ -52,7 +52,7 @@ export default function WorkflowManager({
     [invoke]
   );
 
-  const initializeFromSession = useCallback(
+  const initializeFromSessionAndFigure = useCallback(
     (session: VulcanSession, figure: VulcanFigure) => {
       const workflow = workflowByName(session.workflow_name, state);
       if (workflow) dispatch(setWorkflow(workflow, projectName));
@@ -77,14 +77,14 @@ export default function WorkflowManager({
               'You have an edited, local version of that figure. Discard it?'
             );
           }
-          initializeFromSession(
+          initializeFromSessionAndFigure(
             selectSession(fromDatabase ? figureResponse : localSession),
             selectFigure(figureResponse)
           );
         })
         .catch(handleErrorResponse);
     },
-    [projectName, handleErrorResponse, initializeFromSession]
+    [projectName, handleErrorResponse, initializeFromSessionAndFigure]
   );
 
   const initializeNewSession = useCallback(() => {
@@ -104,7 +104,7 @@ export default function WorkflowManager({
         cancelPolling();
 
         if (localSession && !figureId) {
-          initializeFromSession(
+          initializeFromSessionAndFigure(
             selectSession(localSession),
             selectFigure(localSession)
           );
