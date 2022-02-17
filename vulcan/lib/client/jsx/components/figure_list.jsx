@@ -67,7 +67,7 @@ const CreateFigure = ({handleClose, open, project_name}) => {
       <DialogTitle>Select a workflow</DialogTitle>
       <DialogContent dividers>
         {projectWorkflows.length ? (
-          <ImageList rowHeight='auto' cols={3}>
+          <ImageList rowHeight='auto' cols={Math.min(projectWorkflows.length, 3)}>
             {projectWorkflows.map((w, ind) => (
               <ImageListItem key={ind}>
                 <WorkflowCard

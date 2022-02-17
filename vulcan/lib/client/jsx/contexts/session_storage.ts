@@ -38,14 +38,14 @@ export function useLocalSessionStorage(
   const {session, workflow, figure} = state;
 
   useEffect(() => {
-    if (storage && session && figure) {
+    if (storage && session && figure && workflow) {
       storage.setItem(localStorageKey({
         figure_id: figure.figure_id,
         workflow_name: session.workflow_name,
         project_name: session.project_name
       }), JSON.stringify({...session, ...figure}));
     }
-  }, [session, storage, figure]);
+  }, [session, storage, figure, workflow]);
 
   const getLocalSession = useCallback(
     (workflow_name: string, project_name: string, figure_id: number) => {

@@ -22,7 +22,7 @@ export default function Browser({
   const {
     state: {workflows}
   } = useContext(VulcanContext);
-
+  console.log('here', workflows, project_name);
   if (workflows.length === 0 || !project_name) return null;
 
   return (

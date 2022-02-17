@@ -85,6 +85,8 @@ export default function WorkflowManager({
       } else {
         initializeNewSession();
       }
+
+      requestPoll();
     });
   }, []);
 

@@ -5,7 +5,7 @@ import {setSession, setWorkflow} from "../../actions/vulcan_actions";
 import {useWorkflowUtils} from "../../test_utils/workflow_utils";
 import {useContext} from "react";
 import {VulcanContext} from "../vulcan_context";
-import {createSessionFixture} from "../../test_utils/fixtures";
+import {createSessionFixture, createStoredSessionFixture} from "../../test_utils/fixtures";
 
 describe('useSessionStorage', () => {
 
@@ -21,7 +21,7 @@ describe('useSessionStorage', () => {
   const contextData = setupBefore(() => integrated.value.runHook(() => useContext(VulcanContext)));
 
   const beforeSessionUpdate = awaitBefore(async () => {})
-  const nextSession = setupBefore(() => createSessionFixture('test', {project_name: 'test'}));
+  const nextSession = setupBefore(() => createStoredSessionFixture('test', {project_name: 'test'}));
   const sessionUpdate = awaitBefore(async() => {
     await beforeSessionUpdate.ensure();
     await nextSession.ensure();
@@ -38,7 +38,7 @@ describe('useSessionStorage', () => {
 
   const reloadedSession = awaitBefore(async () => {
     const {getLocalSession} = contextData.value;
-    return await getLocalSession(workflowHelpers.value.workflow.name, nextSession.value.project_name, -1);
+    return await getLocalSession(workflowHelpers.value.workflow.name, nextSession.value.project_name, null);
   })
 
   it('does not save the session without a workflow being set', () => {
@@ -57,7 +57,8 @@ describe('useSessionStorage', () => {
 
     it('stores the session', async () => {
       expect(sessionKeys.value).toEqual([
-        "test/test.session"
+        "/figure/new/",
+        "test/figure/new/test"
       ])
       expect(reloadedSession.value).toEqual(nextSession.value);
     })
@@ -78,6 +79,7 @@ describe('useSessionStorage', () => {
 
       it('updates that value', async () => {
         expect(reloadedSession.value).toEqual({
+          figure_id: null,
           inputs: {},
           key: "abcdef",
           project_name: "test",
@@ -98,6 +100,7 @@ describe('useSessionStorage', () => {
 
         it('stores that session in a separate key', () => {
           expect(reloadedSession.value).toEqual({
+            figure_id: null,
             inputs: {},
             key: "abcdef",
             project_name: "test2",
