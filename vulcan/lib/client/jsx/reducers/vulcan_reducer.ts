@@ -32,7 +32,8 @@ export const defaultSession: SessionStatusResponse['session'] = {
   inputs: {}
 };
 const defaultFigure: VulcanFigure = {
-  figure_id: null
+  figure_id: null,
+  inputs: {}
 };
 const defaultValidationErrors: [string | null, string, string[]][] = [];
 

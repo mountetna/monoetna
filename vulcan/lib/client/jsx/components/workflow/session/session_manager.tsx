@@ -1,4 +1,11 @@
-import React, {useCallback, useEffect, useState, useContext} from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+  useContext,
+  useMemo
+} from 'react';
+import * as _ from 'lodash';
 import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
 
@@ -17,7 +24,8 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 import {
   clearCommittedStepPending,
   setSession,
-  setFigure
+  setFigure,
+  setSessionAndFigure
 } from '../../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
@@ -44,6 +52,10 @@ const modalStyles = {
 const useStyles = makeStyles((theme) => ({
   title: {
     width: '800px'
+  },
+  titleText: {
+    textOverflow: 'ellipsis',
+    overflow: 'hidden'
   }
 }));
 
@@ -106,6 +118,9 @@ export default function SessionManager() {
         `/api/${session.project_name}/figure/${params.figure_id}/update`,
         params
       )
+        .then((figureResponse) => {
+          setSessionAndFigure(figureResponse);
+        })
         .catch(handleErrorResponse)
         .finally(cancelSaving);
     } else {
@@ -191,6 +206,14 @@ export default function SessionManager() {
     [figure, debouncer, dispatch]
   );
 
+  const inputsChanged = useMemo(() => {
+    return !_.isEqual(figure.inputs, session.inputs);
+  }, [figure, session]);
+
+  const canSave = useMemo(() => {
+    return inputsChanged && !(running || saving);
+  }, [running, saving, inputsChanged]);
+
   if (!name || !session) return null;
 
   return (
@@ -204,7 +227,12 @@ export default function SessionManager() {
               fullWidth
               value={localTitle}
               margin='none'
-              InputProps={{disableUnderline: true}}
+              InputProps={{
+                disableUnderline: true,
+                inputProps: {
+                  className: classes.titleText
+                }
+              }}
               variant='standard'
               onChange={(e) => debouncedSetTitle(e.target.value)}
               placeholder='Untitled'
@@ -253,7 +281,7 @@ export default function SessionManager() {
           label='Save'
           title='Save current workflow parameters to current figure'
           onClick={saveSession}
-          disabled={running || saving}
+          disabled={!canSave}
         />
       </div>
       <div className='session-feed-container'>

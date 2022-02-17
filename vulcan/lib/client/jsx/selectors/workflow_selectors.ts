@@ -422,6 +422,7 @@ export function selectFigure(
   return {
     figure_id: figureResponse.figure_id,
     title: figureResponse.title,
-    author: figureResponse.author
+    author: figureResponse.author,
+    inputs: {...figureResponse.inputs}
   };
 }
