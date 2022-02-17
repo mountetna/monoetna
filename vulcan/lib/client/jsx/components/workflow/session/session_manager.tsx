@@ -52,7 +52,7 @@ const modalStyles = {
 
 const useStyles = makeStyles((theme) => ({
   title: {
-    width: '800px'
+    '&:last-child': {flex: '1 1 auto'}
   },
   titleText: {
     textOverflow: 'ellipsis',
@@ -220,27 +220,30 @@ export default function SessionManager() {
   return (
     <div className='session-manager'>
       <div className='session-header'>
-        <Breadcrumbs className='session-workflow-name'>
+        <Breadcrumbs
+          className='session-workflow-name'
+          classes={{
+            li: classes.title
+          }}
+        >
           <Link href={`/${session.project_name}`}>{session.project_name}</Link>
           <Typography>{workflow.displayName}</Typography>
-          <Grid container className={classes.title}>
-            <Tooltip title={localTitle}>
-              <TextField
-                fullWidth
-                value={localTitle}
-                margin='none'
-                InputProps={{
-                  disableUnderline: true,
-                  inputProps: {
-                    className: classes.titleText
-                  }
-                }}
-                variant='standard'
-                onChange={(e) => debouncedSetTitle(e.target.value)}
-                placeholder='Untitled'
-              />
-            </Tooltip>
-          </Grid>
+          <Tooltip title={localTitle}>
+            <TextField
+              fullWidth
+              value={localTitle}
+              margin='none'
+              InputProps={{
+                disableUnderline: true,
+                inputProps: {
+                  className: classes.titleText
+                }
+              }}
+              variant='standard'
+              onChange={(e) => debouncedSetTitle(e.target.value)}
+              placeholder='Untitled'
+            />
+          </Tooltip>
         </Breadcrumbs>
         {workflow.vignette && (
           <React.Fragment>
