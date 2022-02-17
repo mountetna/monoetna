@@ -3,7 +3,7 @@ import {
   setStatus,
   setWorkflow,
   VulcanAction,
-  setWorkflows
+  setSession
 } from '../actions/vulcan_actions';
 import {
   defaultStepStatus,
@@ -12,12 +12,14 @@ import {
   defaultWorkflowStep,
   StatusString,
   StepStatus,
+  VulcanSession,
   Workflow,
   WorkflowInput,
   WorkflowStep
 } from '../api_types';
 import {createStepStatusFixture, createUpdatedStatusFixture} from './fixtures';
 import VulcanReducer, {
+  defaultSession,
   defaultVulcanState,
   VulcanState
 } from '../reducers/vulcan_reducer';
@@ -43,9 +45,9 @@ export function workflowUtilsBuilder() {
 }
 
 export class WorkflowUtils {
-  public workflows: Workflow[] = [];
   public workflow: Readonly<Workflow> = defaultWorkflow;
   public steps: {[k: string]: WorkflowStep} = {};
+  public session: Readonly<VulcanSession> = defaultSession;
 
   constructor(
     private dispatch: (action: VulcanAction) => void,
@@ -63,16 +65,6 @@ export class WorkflowUtils {
     return this;
   }
 
-  setWorkflows(workflows: Partial<Workflow>[] = []) {
-    this.workflows = workflows.map((workflow) => {
-      return {
-        ...defaultWorkflow,
-        ...workflow
-      };
-    });
-    this.dispatch(setWorkflows(this.workflows));
-  }
-
   setWorkflow(
     name: string,
     workflow: Partial<Workflow> = {},
@@ -81,6 +73,11 @@ export class WorkflowUtils {
   ) {
     this.workflow = {...this.workflow, ...workflow, name, projects};
     this.dispatch(setWorkflow(this.workflow, projectName));
+  }
+
+  setSession(session: Partial<VulcanSession> = {}) {
+    this.session = {...this.session, ...session};
+    this.dispatch(setSession(this.session));
   }
 
   addStep(name: string, attributes: Partial<WorkflowStep> = {}) {

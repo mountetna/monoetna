@@ -48,7 +48,6 @@ export function useSessionSync(state: MutableRefObject<VulcanState>,
     if (!state.current.session || !state.current.session.workflow_name) {
       return;
     }
-
     const baseWork = post ? postInputs(state.current.session) : pollStatus(state.current.session);
     const response = yield* runPromise(showErrors(baseWork));
     updateFromSessionResponse(response, dispatch, submittingStep);

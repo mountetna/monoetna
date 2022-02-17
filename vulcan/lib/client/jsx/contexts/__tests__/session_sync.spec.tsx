@@ -38,12 +38,8 @@ describe('useSessionSync', () => {
   );
 
   awaitBefore(async () => {
-    workflowHelpers.value.setWorkflows([
-      {
-        name: 'test'
-      }
-    ]);
     workflowHelpers.value.setWorkflow('test');
+    workflowHelpers.value.setSession({workflow_name: 'test'});
     workflowHelpers.value.addStep('astep');
     workflowHelpers.value.setStatus('astep', 'complete');
   });
