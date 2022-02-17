@@ -1,7 +1,7 @@
 import {
   SessionStatusResponse,
   VulcanFigure,
-  VulcanFigureResponse,
+  VulcanFigureSession,
   Workflow,
   WorkflowsResponse
 } from '../api_types';
@@ -39,8 +39,8 @@ export function setFigure(figure: VulcanFigure) {
   return actionObject('SET_FIGURE', {figure});
 }
 
-export function setSessionAndFigure(figureResponse: VulcanFigureResponse) {
-  return actionObject('SET_SESSION_AND_FIGURE', {figureResponse});
+export function setSessionAndFigure(figureSession: VulcanFigureSession) {
+  return actionObject('SET_SESSION_AND_FIGURE', {figureSession});
 }
 
 // Fully replaces the inputs state.

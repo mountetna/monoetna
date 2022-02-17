@@ -220,7 +220,7 @@ export default function VulcanReducer(
       const currentWorkflow = state.workflow;
       if (
         !currentWorkflow ||
-        action.figureResponse.workflow_name !== currentWorkflow.name
+        action.figureSession.workflow_name !== currentWorkflow.name
       ) {
         console.warn(
           'Cannot set session, project name / workflow name does not match.',
@@ -232,8 +232,8 @@ export default function VulcanReducer(
 
       return {
         ...state,
-        session: {...selectSession(action.figureResponse)},
-        figure: {...selectFigure(action.figureResponse)},
+        session: {...selectSession(action.figureSession)},
+        figure: {...selectFigure(action.figureSession)},
         bufferedSteps: []
       };
 
