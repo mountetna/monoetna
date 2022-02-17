@@ -123,7 +123,7 @@ function PrimaryInputsInner() {
         className={classes.header}
         container
         alignItems='center'
-        justify='space-between'
+        justifyContent='space-between'
         onClick={() => setOpen(!open)}
       >
         <Grid item>
