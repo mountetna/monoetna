@@ -64,5 +64,38 @@ describe FigureController do
         workflow_name: "reubens"
       )
     end
+
+    it 'throws exception for unknown figure' do
+      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
+      auth_header(:viewer)
+      contents = { title: 'Hercules Fighting the Nemean Lion' }
+      post("/api/labors/figure/999999999/update", contents)
+
+      expect(last_response.status).to eq(404)
+    end
+  end
+
+  context '#delete' do
+    it 'deletes an existing figure' do
+      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
+
+      expect(Vulcan::Figure.count).to eq(1)
+      auth_header(:viewer)
+      delete("/api/labors/figure/#{figure.figure_id}")
+
+      expect(last_response.status).to eq(200)
+      expect(Vulcan::Figure.count).to eq(0)
+    end
+
+    it 'throws exception for unknown figure' do
+      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
+
+      expect(Vulcan::Figure.count).to eq(1)
+      auth_header(:viewer)
+      delete("/api/labors/figure/99999999")
+
+      expect(last_response.status).to eq(404)
+      expect(Vulcan::Figure.count).to eq(1)
+    end
   end
 end
