@@ -15,17 +15,14 @@ import StepsList from './steps/steps_list';
 import {
   setSession,
   setWorkflow,
-  setSessionAndFigure,
   setSessionAndFigureSeparately
 } from '../../actions/vulcan_actions';
-import {json_get} from 'etna-js/utils/fetch';
 import {
   VulcanFigure,
   VulcanFigureSession,
   VulcanSession
 } from '../../api_types';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {showMessages} from 'etna-js/actions/message_actions';
 
 export default function WorkflowManager({
   workflowName,
@@ -41,16 +38,11 @@ export default function WorkflowManager({
     dispatch,
     getLocalSession,
     cancelPolling,
-    requestPoll
+    requestPoll,
+    showErrors,
+    fetchFigure
   } = useContext(VulcanContext);
   const invoke = useActionInvoker();
-
-  const handleErrorResponse = useCallback(
-    (err: Promise<any>) => {
-      err.then((e: any) => invoke(showMessages(e.errors || [e.error])));
-    },
-    [invoke]
-  );
 
   const initializeFromSessionAndFigure = useCallback(
     (session: VulcanSession, figure: VulcanFigure) => {
@@ -65,8 +57,8 @@ export default function WorkflowManager({
 
   const initializeFromFigure = useCallback(
     (figureId: number, localSession: VulcanFigureSession | null) => {
-      json_get(`/api/${projectName}/figure/${figureId}`)
-        .then((figureResponse) => {
+      showErrors(
+        fetchFigure(projectName, figureId).then((figureResponse) => {
           let fromDatabase = true;
 
           if (
@@ -77,14 +69,17 @@ export default function WorkflowManager({
               'You have an edited, local version of that figure. Discard it?'
             );
           }
+
           initializeFromSessionAndFigure(
-            selectSession(fromDatabase ? figureResponse : localSession),
+            selectSession(
+              !fromDatabase && localSession ? localSession : figureResponse
+            ),
             selectFigure(figureResponse)
           );
         })
-        .catch(handleErrorResponse);
+      );
     },
-    [projectName, handleErrorResponse, initializeFromSessionAndFigure]
+    [projectName, showErrors, fetchFigure, initializeFromSessionAndFigure]
   );
 
   const initializeNewSession = useCallback(() => {

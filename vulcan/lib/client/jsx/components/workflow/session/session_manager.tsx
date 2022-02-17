@@ -12,11 +12,9 @@ import FlatButton from 'etna-js/components/flat-button';
 import {makeStyles} from '@material-ui/core/styles';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {pushLocation} from 'etna-js/actions/location_actions';
-import {showMessages} from 'etna-js/actions/message_actions';
 
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import Typography from '@material-ui/core/Typography';
-import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import Link from '@material-ui/core/Link';
 
@@ -34,8 +32,7 @@ import {workflowName} from '../../../selectors/workflow_selectors';
 import {useWorkflow} from '../../../contexts/workflow_context';
 import {readTextFile, downloadBlob} from 'etna-js/utils/blob';
 import {defaultSession} from '../../../reducers/vulcan_reducer';
-import {VulcanSession} from '../../../api_types';
-import {json_post} from 'etna-js/utils/fetch';
+import {VulcanFigureSession, VulcanSession} from '../../../api_types';
 import {Debouncer} from 'etna-js/utils/debouncer';
 import Tooltip from '@material-ui/core/Tooltip';
 
@@ -63,9 +60,15 @@ const useStyles = makeStyles((theme) => ({
 export default function SessionManager() {
   const [localTitle, setLocalTitle] = useState('');
   const [saving, setSaving] = useState(false);
-  const {state, dispatch, showErrors, requestPoll, cancelPolling} = useContext(
-    VulcanContext
-  );
+  const {
+    state,
+    dispatch,
+    showErrors,
+    requestPoll,
+    cancelPolling,
+    updateFigure,
+    createFigure
+  } = useContext(VulcanContext);
   const {workflow, hasPendingEdits, complete} = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
@@ -85,12 +88,6 @@ export default function SessionManager() {
   }, [requestPoll, dispatch]);
   const stop = useCallback(() => cancelPolling(), [cancelPolling]);
 
-  const handleErrorResponse = useCallback(
-    (err: Promise<any>) => {
-      err.then((e: any) => invoke(showMessages(e.errors || [e.error])));
-    },
-    [invoke]
-  );
   const cancelSaving = () => {
     setSaving(false);
   };
@@ -115,26 +112,35 @@ export default function SessionManager() {
 
     setSaving(true);
     if (params.figure_id) {
-      json_post(
-        `/api/${session.project_name}/figure/${params.figure_id}/update`,
-        params
-      )
-        .then((figureResponse) => {
-          setSessionAndFigure(figureResponse);
-        })
-        .catch(handleErrorResponse)
-        .finally(cancelSaving);
+      showErrors(
+        updateFigure(session.project_name, params)
+          .then((figureResponse) => {
+            dispatch(setSessionAndFigure(figureResponse));
+          })
+          .finally(cancelSaving)
+      );
     } else {
-      json_post(`/api/${session.project_name}/figure/create`, params)
-        .then((figure) =>
-          invoke(
-            pushLocation(`/${figure.project_name}/figure/${figure.figure_id}`)
+      showErrors(
+        createFigure(session.project_name, params)
+          .then((figure: VulcanFigureSession) =>
+            invoke(
+              pushLocation(`/${figure.project_name}/figure/${figure.figure_id}`)
+            )
           )
-        )
-        .catch(handleErrorResponse)
-        .finally(cancelSaving);
+          .finally(cancelSaving)
+      );
     }
-  }, [hasPendingEdits, session, name, figure, invoke, handleErrorResponse]);
+  }, [
+    hasPendingEdits,
+    session,
+    name,
+    figure,
+    invoke,
+    createFigure,
+    updateFigure,
+    showErrors,
+    dispatch
+  ]);
 
   const saveSessionToBlob = useCallback(() => {
     if (hasPendingEdits) {

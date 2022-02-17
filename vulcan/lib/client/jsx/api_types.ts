@@ -165,3 +165,7 @@ export const defaultFigure = {
   figure_id: null,
   inputs: {}
 };
+
+export interface FiguresResponse {
+  figures: VulcanFigureSession[];
+}

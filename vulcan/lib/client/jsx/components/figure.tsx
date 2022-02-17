@@ -48,7 +48,17 @@ const authorInitials = ({author}: VulcanFigureSession) => {
     : names[0][0];
 };
 
-const Figure = ({figureSession}: {figureSession: VulcanFigureSession}) => {
+const Figure = ({
+  figureSession,
+  onCopy,
+  onRename,
+  onRemove
+}: {
+  figureSession: VulcanFigureSession;
+  onCopy: () => void;
+  onRename: () => void;
+  onRemove: () => void;
+}) => {
   const invoke = useActionInvoker();
   let {state} = useContext(VulcanContext);
   const {workflows} = state;
@@ -75,6 +85,21 @@ const Figure = ({figureSession}: {figureSession: VulcanFigureSession}) => {
     setMenuAnchor(null);
   };
 
+  const handleOnCopy = useCallback(() => {
+    onCopy();
+    handleClose();
+  }, [onCopy]);
+
+  const handleOnRename = useCallback(() => {
+    onRename();
+    handleClose();
+  }, [onRename]);
+
+  const handleOnRemove = useCallback(() => {
+    onRemove();
+    handleClose();
+  }, [onRemove]);
+
   return (
     <Card className={classes.figure}>
       <Menu
@@ -83,9 +108,9 @@ const Figure = ({figureSession}: {figureSession: VulcanFigureSession}) => {
         anchorEl={menuAnchor}
         onClose={handleClose}
       >
-        <MenuItem onClick={handleClose}>Copy</MenuItem>
-        <MenuItem onClick={handleClose}>Rename</MenuItem>
-        <MenuItem onClick={handleClose}>Remove</MenuItem>
+        <MenuItem onClick={handleOnCopy}>Copy</MenuItem>
+        <MenuItem onClick={handleOnRename}>Rename</MenuItem>
+        <MenuItem onClick={handleOnRemove}>Remove</MenuItem>
       </Menu>
       <CardHeader
         title={figureSession.title}

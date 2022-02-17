@@ -229,7 +229,6 @@ export default function VulcanReducer(
         );
         return state;
       }
-
       return {
         ...state,
         session: {...action.session},

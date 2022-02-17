@@ -19,8 +19,8 @@ import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
 import {makeStyles} from '@material-ui/core/styles';
-import {json_get} from 'etna-js/utils/fetch';
 import {VulcanFigureSession, Workflow} from '../api_types';
+import {showMessages} from 'etna-js/actions/message_actions';
 
 const createFigureStyles = makeStyles((theme) => ({
   none: {
@@ -132,7 +132,8 @@ const figureListStyles = makeStyles((theme) => ({
 }));
 
 export default function FigureList({project_name}: {project_name: string}) {
-  const invoke = useActionInvoker();
+  const {showErrors, fetchFigures} = useContext(VulcanContext);
+
   const [figureSessions, setFigureSessions] = useState(
     [] as VulcanFigureSession[]
   );
@@ -141,10 +142,10 @@ export default function FigureList({project_name}: {project_name: string}) {
   const classes = figureListStyles();
 
   useEffect(() => {
-    json_get(`/api/${project_name}/figures`).then(({figures}) =>
-      setFigureSessions(figures)
+    showErrors(
+      fetchFigures(project_name).then(({figures}) => setFigureSessions(figures))
     );
-  }, []);
+  }, [showErrors, fetchFigures, project_name]);
 
   return (
     <main className={classes.figures}>
