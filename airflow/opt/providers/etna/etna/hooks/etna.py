@@ -6,6 +6,7 @@ import os.path
 import typing
 from datetime import datetime
 from typing import Dict, Optional, List
+import re
 from urllib.parse import quote
 
 from airflow import DAG
@@ -232,6 +233,11 @@ class EtnaClientBase:
         self.session = session
         self.hostname = hostname
 
+    @property
+    def auth_token(self) -> Optional[bytes]:
+        if isinstance(self.session.auth, TokenAuth):
+            return self.session.auth.token
+
     def prepare_url(self, *path: str):
         return f"https://{self.hostname}/{encode_path(*path)}"
 
@@ -279,9 +285,13 @@ class File:
     @property
     def as_magma_file_attribute(self) -> MagmaFileEntry:
         return MagmaFileEntry(
-            path=f"metis://{self.project_name}/{self.bucket_name}/{self.file_path}",
+            path=self.as_metis_url,
             original_filename=self.file_name or os.path.basename(self.file_path)
         )
+
+    @property
+    def as_metis_url(self):
+        return f"metis://{self.project_name}/{self.bucket_name}/{self.file_path}"
 
     @property
     def download_path(self) -> str:
@@ -340,6 +350,24 @@ class Metis(EtnaClientBase):
         else:
             response = self.session.get(self.prepare_url(project_name, 'list', bucket_name))
         return from_json(FoldersAndFilesResponse, response.content)
+
+    def download_file(self, file: File):
+        return self.download_metis_url(file.download_url)
+
+    METIS_URL_REGEX = re.compile(r'^metis://(?P<project_name>[^/]+)/(?P<bucket_name>[^/]+)/(?P<file_path>.*)')
+    def download_metis_url(self, metis_url: str):
+        match = self.METIS_URL_REGEX.match(metis_url)
+        if not match:
+            raise ValueError(f"{repr(metis_url)} is not a valid metis url, must match {self.METIS_URL_REGEX}")
+
+    def authorize_download(self, project_name: str, bucket_name: str, file_path: str):
+        pass
+
+    def download_url(self, url: str, encoding='utf8', chunk_type: typing.Union[typing.Literal['line'], int] = 1024):
+        response = self.session.get(url, stream=True)
+        if chunk_type == 'line':
+            return response.iter_lines()
+        return response.iter_content(chunk_type)
 
     batch_size = 1000
 

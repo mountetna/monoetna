@@ -10,7 +10,8 @@ import re
 timepoint_regex = re.compile(r'^(?P<timepoint>MVIR1-HS\d+-DN?\d+)[A-Z]+.*')
 patient_regex = re.compile(r'^(?P<patient>MVIR1-HS\d+)-D.*')
 day_regex = re.compile(r'.*-DN?(?P<day>\d+)$')
-bulk_rna_seq_record_regex = re.compile(r'^bulk_RNASeq/raw/[^/]*')
+raw_bulk_rna_seq_record_regex = re.compile(r'^bulk_RNASeq/raw/[^/]*')
+processed_bulk_rna_seq_record_regex = re.compile(r'^bulk_RNASeq/processed/[^/]*')
 
 def link_rna_seq_with_timepoint(matches):
     for match in matches:
@@ -41,8 +42,15 @@ def link_rna_seq_with_timepoint(matches):
 @metis_etl('mvir1', 'data', version=13)
 def mvir1_data_metis_etl(helpers: MetisEtlHelpers):
     with TaskGroup("bulk_rna_seq_raw"):
-        matches = helpers.find_record_folders('rna_seq', bulk_rna_seq_record_regex)
+        matches = helpers.find_record_folders('rna_seq', raw_bulk_rna_seq_record_regex)
         matches = link(dry_run=True)(link_rna_seq_with_timepoint)(matches)
         listed_matches = helpers.list_match_folders(matches)
 
         helpers.link_matching_files(listed_matches, 'raw_fastq_files', file_regex=re.compile(r'.*\.fastq\.gz$'), dry_run=True)
+
+    with TaskGroup("bulk_rna_seq_processed"):
+        matches = helpers.find_record_folders('rna_seq', processed_bulk_rna_seq_record_regex)
+        matches = helpers.filter_by_timur(matches)
+        listed_matches = helpers.list_match_folders(matches)
+
+        # helpers.link_matching_file(listed_matches, )

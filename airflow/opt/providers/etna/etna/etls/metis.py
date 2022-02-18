@@ -25,7 +25,7 @@ from etna.xcom.etna_xcom import pickled
 @serialize
 @deserialize
 @dataclasses.dataclass
-class MatchedAtRoot:
+class MatchedRecordFolder:
     root_path: str
     record_name: str
     model_name: str
@@ -107,7 +107,7 @@ class link:
     def __call__(self, fn: Callable):
         @functools.wraps(fn)
         def new_task(*args, **kwds):
-            result: List[MatchedAtRoot] = []
+            result: List[MatchedRecordFolder] = []
             with self.hook.magma(read_only=False) as magma:
                 self.log.info('retrieving model...')
                 response = magma.retrieve(
@@ -129,9 +129,9 @@ class link:
 
         return task()(new_task)
 
-    def _process_link_batch(self, magma: Magma, models: Dict[str, Model], batch: Iterable[Tuple[MatchedAtRoot, Any]]) -> \
-    List[MatchedAtRoot]:
-        result: List[MatchedAtRoot] = []
+    def _process_link_batch(self, magma: Magma, models: Dict[str, Model], batch: Iterable[Tuple[MatchedRecordFolder, Any]]) -> \
+    List[MatchedRecordFolder]:
+        result: List[MatchedRecordFolder] = []
         update: UpdateRequest = UpdateRequest(revisions={}, project_name=self.project_name, dry_run=self.dry_run)
         for match, value in batch:
             if self.dry_run:
@@ -156,7 +156,7 @@ class link:
         return result
 
 
-def list_contents_of_matches(metis: Metis, matching: List[MatchedAtRoot]) -> List[Tuple[MatchedAtRoot, List[File]]]:
+def list_contents_of_matches(metis: Metis, matching: List[MatchedRecordFolder]) -> List[Tuple[MatchedRecordFolder, List[File]]]:
     return [
         (m, metis.list_folder(m.project_name, m.bucket_name, m.folder_path).files)
         for m in matching
@@ -173,11 +173,11 @@ class RecordFolderSelectorPipeline:
         self.source = source
         self.helpers = helpers
 
-    def then_filter(self, other: Union[Callable[[List[MatchedAtRoot]], List[MatchedAtRoot]], DockerOperatorBase]):
+    def then_filter(self, other: Union[Callable[[List[MatchedRecordFolder]], List[MatchedRecordFolder]], DockerOperatorBase]):
         if isinstance(other, DockerOperatorBase):
             other['/matches'] = self.source
             if other.serialize_last_output is None:
-                other.serialize_last_output = lambda bytes: from_json(List[Tuple[MatchedAtRoot, Dict]],
+                other.serialize_last_output = lambda bytes: from_json(List[Tuple[MatchedRecordFolder, Dict]],
                                                                       bytes.encode('utf8'))
             output = XComArg(other)
 
@@ -197,7 +197,7 @@ class MetisEtlHelpers:
     def link_matching_file(self, listed_record_matches: XComArg, attr_name: str, regex: re.Pattern,
                            dry_run=True) -> XComArg:
         @link(attr_name, dry_run=dry_run, task_id=f"link_{attr_name}")
-        def do_link(listed_matches: List[Tuple[MatchedAtRoot, List[File]]]):
+        def do_link(listed_matches: List[Tuple[MatchedRecordFolder, List[File]]]):
             for match, files in listed_matches:
                 for file in files:
                     if regex.match(file.file_name):
@@ -208,7 +208,7 @@ class MetisEtlHelpers:
     def link_matching_files(self, listed_record_matches: XComArg, attr_name: str, file_regex: re.Pattern,
                             folder_path_regex: re.Pattern = re.compile(r'^$'), dry_run=True) -> XComArg:
         @link(attr_name, dry_run=dry_run, task_id=f"link_{attr_name}")
-        def do_link(listed_matches: List[Tuple[MatchedAtRoot, List[File]]]):
+        def do_link(listed_matches: List[Tuple[MatchedRecordFolder, List[File]]]):
             for match, files in listed_matches:
                 if folder_path_regex.match(match.match_folder_subpath):
                     matched_files = [f for f in files if file_regex.match(f.file_name)]
@@ -244,7 +244,7 @@ class MetisEtlHelpers:
 
 def filter_by_exists_in_timur(
         magma: Magma,
-        matched: List[MatchedAtRoot],
+        matched: List[MatchedRecordFolder],
 ):
     if not matched:
         return []
@@ -269,8 +269,8 @@ def filter_by_record_directory(
         directory_regex: re.Pattern,
         model_name: str,
         corrected_record_name: Callable[[str], str] = lambda x: x,
-) -> List[MatchedAtRoot]:
-    result: Dict[str, MatchedAtRoot] = {}
+) -> List[MatchedRecordFolder]:
+    result: Dict[str, MatchedRecordFolder] = {}
 
     for file_or_folder in files_or_folders:
         path = ''
@@ -298,7 +298,7 @@ def filter_by_record_directory(
                 continue
 
         root_path = path[:end]
-        match = MatchedAtRoot(
+        match = MatchedRecordFolder(
             root_path=root_path,
             record_name=corrected_record_name(os.path.basename(root_path)),
             match_file=file,

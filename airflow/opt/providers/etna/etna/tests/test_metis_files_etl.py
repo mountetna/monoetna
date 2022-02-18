@@ -21,7 +21,7 @@ def test_filter_by_root_directory():
         Folder(folder_path="bulk_RNASeq/raw/abcdef"),
         File(file_path="bulk_RNASeq/raw/abcdef/myfile.txt"),
         File(file_path="bulk_RNASeq/raw/abcdef2/myfile.txt"),
-    ], re.compile(r'bulk_RNASeq/raw/[^/]*'))
+    ], re.compile(r'bulk_RNASeq/raw/[^/]*'), 'model')
 
     assert result[0].root_path == 'bulk_RNASeq/raw/abcdef'
     assert result[0].record_name == 'abcdef'
