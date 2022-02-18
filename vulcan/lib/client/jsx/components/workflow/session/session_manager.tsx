@@ -121,13 +121,14 @@ export default function SessionManager() {
       );
     } else {
       showErrors(
-        createFigure(session.project_name, params)
-          .then((figure: VulcanFigureSession) =>
+        createFigure(session.project_name, params).then(
+          (figure: VulcanFigureSession) => {
+            cancelSaving();
             invoke(
               pushLocation(`/${figure.project_name}/figure/${figure.figure_id}`)
-            )
-          )
-          .finally(cancelSaving)
+            );
+          }
+        )
       );
     }
   }, [

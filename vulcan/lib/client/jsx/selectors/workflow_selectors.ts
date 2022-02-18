@@ -14,7 +14,10 @@ import {
   WorkflowStep
 } from '../api_types';
 import {VulcanState} from '../reducers/vulcan_reducer';
-import {WorkflowStepGroup} from '../components/workflow/user_interactions/inputs/input_types';
+import {
+  DataEnvelope,
+  WorkflowStepGroup
+} from '../components/workflow/user_interactions/inputs/input_types';
 import {useMemo} from 'react';
 import {mapSome, Maybe, maybeOfNullable, withDefault} from './maybe';
 
@@ -425,4 +428,37 @@ export function selectFigure(
     author: figureResponse.author,
     inputs: {...figureResponse.inputs}
   };
+}
+
+export function mergeInputsWithDefaults(
+  workflowInputs: Workflow['inputs'],
+  sessionInputs: VulcanSession['inputs'],
+  currentInputs: VulcanSession['inputs']
+) {
+  let withDefaults: DataEnvelope<Maybe<any>> = {};
+  Object.keys(workflowInputs).forEach((inputName) => {
+    if (!(inputName in sessionInputs) && !(inputName in currentInputs)) {
+      withDefaults[inputName] = maybeOfNullable(
+        workflowInputs[inputName].default
+      );
+    }
+  });
+
+  return withDefaults;
+}
+
+export function defaultInputs(workflow: Workflow) {
+  return Object.entries(
+    mergeInputsWithDefaults(workflow.inputs, {}, {})
+  ).reduce(
+    (
+      acc: DataEnvelope<Maybe<any>>,
+      [inputName, value]: [string, Maybe<any>]
+    ) => {
+      acc[inputName] = withDefault(value, null);
+
+      return acc;
+    },
+    {}
+  );
 }

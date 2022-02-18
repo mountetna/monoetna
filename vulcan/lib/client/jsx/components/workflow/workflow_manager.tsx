@@ -5,6 +5,7 @@ import {VulcanContext} from '../../contexts/vulcan_context';
 import {defaultSession} from '../../reducers/vulcan_reducer';
 import {
   cwlName,
+  defaultInputs,
   selectFigure,
   selectSession,
   workflowByName
@@ -18,11 +19,11 @@ import {
   setSessionAndFigureSeparately
 } from '../../actions/vulcan_actions';
 import {
+  defaultFigure,
   VulcanFigure,
   VulcanFigureSession,
   VulcanSession
 } from '../../api_types';
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 
 export default function WorkflowManager({
   workflowName,
@@ -42,15 +43,14 @@ export default function WorkflowManager({
     showErrors,
     fetchFigure
   } = useContext(VulcanContext);
-  const invoke = useActionInvoker();
 
   const initializeFromSessionAndFigure = useCallback(
-    (session: VulcanSession, figure: VulcanFigure) => {
+    (session: VulcanSession, figure: VulcanFigure, post: boolean = false) => {
       const workflow = workflowByName(session.workflow_name, state);
       if (workflow) dispatch(setWorkflow(workflow, projectName));
       dispatch(setSessionAndFigureSeparately(figure, session));
 
-      requestPoll();
+      requestPoll(post);
     },
     [projectName, dispatch, state, requestPoll]
   );
@@ -74,7 +74,8 @@ export default function WorkflowManager({
             selectSession(
               !fromDatabase && localSession ? localSession : figureResponse
             ),
-            selectFigure(figureResponse)
+            selectFigure(figureResponse),
+            true
           );
         })
       );
@@ -93,23 +94,58 @@ export default function WorkflowManager({
     dispatch(setSession(session));
   }, [workflowName, state, projectName, dispatch]);
 
+  const initializeFromStoredSession = useCallback(
+    (localSession: VulcanFigureSession) => {
+      const workflow = workflowByName(localSession.workflow_name, state);
+      if (!workflow) {
+        initializeNewSession();
+        return;
+      }
+
+      dispatch(setWorkflow(workflow, projectName));
+      const defaults = defaultInputs(workflow);
+
+      let useStoredSession = true;
+
+      if (
+        !_.isEqual(defaults, localSession.inputs) &&
+        Object.keys(localSession.inputs) >= Object.keys(defaults)
+      ) {
+        useStoredSession = confirm(
+          'You have an edited, unsaved version of this workflow. Load it, instead of the default version?'
+        );
+      }
+
+      if (useStoredSession) {
+        initializeFromSessionAndFigure(
+          selectSession(localSession),
+          defaultFigure
+        );
+      } else {
+        initializeNewSession();
+      }
+    },
+    [
+      projectName,
+      state,
+      dispatch,
+      initializeFromSessionAndFigure,
+      initializeNewSession
+    ]
+  );
+
   useEffect(() => {
     getLocalSession(workflowName, projectName, figureId).then(
       (localSession) => {
         cancelPolling();
 
         if (localSession && !figureId) {
-          initializeFromSessionAndFigure(
-            selectSession(localSession),
-            selectFigure(localSession)
-          );
+          initializeFromStoredSession(localSession);
         } else if (figureId) {
           initializeFromFigure(figureId, localSession);
         } else {
           initializeNewSession();
         }
-
-        requestPoll();
       }
     );
   }, []);

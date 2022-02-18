@@ -8,7 +8,10 @@ import React, {
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
-import {inputGroupName} from '../../../selectors/workflow_selectors';
+import {
+  inputGroupName,
+  mergeInputsWithDefaults
+} from '../../../selectors/workflow_selectors';
 import InputGroup from './input_group';
 import {
   bindInputSpecification,
@@ -65,14 +68,11 @@ function PrimaryInputsInner() {
 
   // Ensure defaults are set.
   useEffect(() => {
-    let withDefaults: DataEnvelope<Maybe<any>> = {};
-    Object.keys(workflow.inputs).forEach((inputName) => {
-      if (!(inputName in session.inputs) && !(inputName in inputs)) {
-        withDefaults[inputName] = maybeOfNullable(
-          workflow.inputs[inputName].default
-        );
-      }
-    });
+    let withDefaults: DataEnvelope<Maybe<any>> = mergeInputsWithDefaults(
+      workflow.inputs,
+      session.inputs,
+      inputs
+    );
 
     if (Object.keys(withDefaults).length > 0) {
       setInputs((inputs) => ({...inputs, ...withDefaults}));

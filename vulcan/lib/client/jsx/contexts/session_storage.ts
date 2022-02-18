@@ -1,15 +1,11 @@
-import {useEffect, useCallback, MutableRefObject} from 'react';
+import {useEffect, useCallback} from 'react';
 import {
   SessionStatusResponse,
   VulcanFigure,
-  VulcanFigureSession,
-  Workflow
+  VulcanFigureSession
 } from '../api_types';
 import {VulcanState} from '../reducers/vulcan_reducer';
-import {
-  allWorkflowPrimaryInputSources,
-  inputValueNonEmpty
-} from '../selectors/workflow_selectors';
+import {cwlName} from '../selectors/workflow_selectors';
 
 const localStorageKey = ({
   figure_id,
@@ -22,7 +18,7 @@ const localStorageKey = ({
 }) =>
   figure_id
     ? `${project_name}/figure/${figure_id}`
-    : `${project_name}/figure/new/${workflow_name}`;
+    : `${project_name}/figure/new/${cwlName(workflow_name)}`;
 
 export const defaultSessionStorageHelpers = {
   getLocalSession(
