@@ -45,12 +45,12 @@ export default function WorkflowManager({
   } = useContext(VulcanContext);
 
   const initializeFromSessionAndFigure = useCallback(
-    (session: VulcanSession, figure: VulcanFigure, post: boolean = false) => {
+    (session: VulcanSession, figure: VulcanFigure) => {
       const workflow = workflowByName(session.workflow_name, state);
       if (workflow) dispatch(setWorkflow(workflow, projectName));
       dispatch(setSessionAndFigureSeparately(figure, session));
 
-      requestPoll(post);
+      requestPoll();
     },
     [projectName, dispatch, state, requestPoll]
   );
@@ -74,8 +74,7 @@ export default function WorkflowManager({
             selectSession(
               !fromDatabase && localSession ? localSession : figureResponse
             ),
-            selectFigure(figureResponse),
-            false
+            selectFigure(figureResponse)
           );
         })
       );
