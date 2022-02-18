@@ -47,14 +47,21 @@ export function YPlotly({
   return VisualizationUI({data, onChange, value}, "y_plot")
 }
 
+export function AnyPlotly({
+  data, onChange, value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, "")
+}
+
 function VisualizationUI({
   data, onChange, ...props
-}: WithInputParams<{}, DataEnvelope<any>, any>, plotType: string) {
+}: WithInputParams<{}, DataEnvelope<any>, any>, setPlotType: string = '') {
   const preset = useMemo(() => data && data['preset'], [data]);
   const hide = useMemo(() => preset && Object.keys(preset), [preset]);
-  const defaultValue = whichDefaults(plotType, preset);
+  const defaultValue = whichDefaults(setPlotType, preset);
   const value = useSetsDefault(defaultValue, props.value, onChange);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const plotType = (value && value['plot_type']) ? value['plot_type'] as string : '';
 
   const data_frame: DataEnvelope<any> = useMemo(() => {
     if (data == null) return {};
@@ -66,6 +73,10 @@ function VisualizationUI({
     if (data_frame == null || data_frame == {}) return [];
     return Object.keys(data_frame)
   }, [data_frame]);
+  
+  const updatePlotType = (newType: string, key: string) => {
+    onChange(some(whichDefaults(newType, preset)))
+  }
 
   const updateValue = (newValue: any, key: string, prevValues = {...value}) => {
     prevValues[key] = newValue;
@@ -83,42 +94,55 @@ function VisualizationUI({
     )
   };
 
-  // Advanced Options Button
+  // Plot Options
   const base = useMemo(() => {
-    return Object.keys(remove_hidden(
-      key_wrap(input_sets[plotType]['main'] as string[]), hide
-    ))
-  }, [hide])
+    return (plotType!='') ? input_sets[plotType]['main'] as string[] : [] as string[]
+  }, [plotType])
+  
+  const shownSetupValues = useMemo(() => {
+    let initial = showAdvanced ? {...value} : pick(value, ...base)
+    if (Object.keys(initial).includes('plot_type')) {delete initial['plot_type']}
+    return remove_hidden(initial, hide);
+  }, [value, showAdvanced, hide])
   
   const showHide: string = useMemo(() => {
     return (showAdvanced ? 'Hide' : 'Show')
   }, [showAdvanced])
-
-  function toggleAdvanced() {
-    setShowAdvanced(!showAdvanced)
-  }
-
-  const shownValues = useMemo(() => {
-    let initial = showAdvanced ? value : pick(value, ...base)
-    return remove_hidden(initial, hide);
-  }, [value, showAdvanced, hide])
   
-  // console.log(props.value);
-  
-  return (
-    <div>
-      {Object.entries(shownValues).map(([key, val]) => {
-        return component_use(key, val, extra_inputs[key])
-      })}
+  let inner = null;
+  if (plotType != '') {
+    
+    inner = (
       <div>
+        {Object.entries(shownSetupValues).map(([key, val]) => {
+          return component_use(key, val, extra_inputs[key])
+        })}
         <Button
           variant="contained"
           color="primary"
-          onClick={() => {toggleAdvanced()}}
+          onClick={() => {setShowAdvanced(!showAdvanced)}}
           >
           {showHide} Advanced Options
         </Button>
       </div>
+    )
+  }
+  
+  const pickPlot = (setPlotType!='') ? null : (
+    <div>
+      {dropdownInput(
+      'plot_type', updatePlotType, plotType, "Plot Type:",
+      Object.keys(input_sets), false)}
+      <hr/>
+    </div>
+  )
+  
+  console.log(props.value);
+  
+  return (
+    <div>
+      {pickPlot}
+      {inner}
     </div>
   );
 
@@ -128,7 +152,7 @@ const remove_hidden = (vals: DataEnvelope<any>, hide: string[] | null | undefine
   
   let values = {...vals};
 
-  if (hide == null || hide.length === 0) {
+  if (hide == null || hide.length === 0 || values.length === 0) {
     return values;
   }
   
@@ -175,39 +199,36 @@ const defaults: DataEnvelope<any> = {
 };
 
 function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | undefined) {
-  const initial_vals: DataEnvelope<any> = useMemo(() => {
+  if (plotType == '') return {plot_type: plotType}
+    
+  const inputs = input_sets[plotType]['main'].concat(input_sets[plotType]['adv'])
+
+  let initial_vals = {...defaults};
   
-    const inputs = input_sets[plotType]['main'].concat(input_sets[plotType]['adv'])
-
-    let initial_vals = {...defaults};
-    
-    // Remove input:value pairs that aren't in this Viz type
-    const def_keys = Object.keys(defaults);
-    for (let ind = 0; ind < def_keys.length; ind++) {
-      if (!inputs.includes(def_keys[ind])) delete initial_vals[def_keys[ind]];
+  // Remove input:value pairs that aren't in this Viz type
+  const def_keys = Object.keys(defaults);
+  for (let ind = 0; ind < def_keys.length; ind++) {
+    if (!inputs.includes(def_keys[ind])) delete initial_vals[def_keys[ind]];
+  }
+  
+  // Replace any values if different default given for this plot type
+  if (input_sets[plotType]['default_adjust'] != null) {
+    const new_def_keys = Object.keys(input_sets[plotType]['default_adjust'])
+    const new_def_vals = Object.values(input_sets[plotType]['default_adjust'])
+    for (let ind = 0; ind < new_def_keys.length; ind++) {
+      initial_vals[new_def_keys[ind]]=new_def_vals[ind];
     }
-    
-    // Replace any values if different default given for this plot type
-    if (input_sets[plotType]['default_adjust'] != null) {
-      const new_def_keys = Object.keys(input_sets[plotType]['default_adjust'])
-      const new_def_vals = Object.values(input_sets[plotType]['default_adjust'])
-      for (let ind = 0; ind < new_def_keys.length; ind++) {
-        initial_vals[new_def_keys[ind]]=new_def_vals[ind];
-      }
-    }
+  }
 
-    // Add preset values / replace any default values.
-    if (preset != null) {
-      const pre_keys = Object.keys(preset);
-      for (let ind = 0; ind < pre_keys.length; ind++) {
-        initial_vals[pre_keys[ind]] = preset[pre_keys[ind]];
-      }
+  // Add preset values / replace any default values.
+  if (preset != null) {
+    const pre_keys = Object.keys(preset);
+    for (let ind = 0; ind < pre_keys.length; ind++) {
+      initial_vals[pre_keys[ind]] = preset[pre_keys[ind]];
     }
-    
-    return initial_vals;
-  }, [plotType, preset])
+  }
 
-return initial_vals;
+  return {plot_type: plotType, ...initial_vals};
 }
 
 function useExtraInputs(options: string[], full_data: DataEnvelope<any>) {

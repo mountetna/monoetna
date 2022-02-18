@@ -24,6 +24,7 @@ export const TYPE = {
   SCATTER_PLOTLY: 'scatter-plotly',
   BAR_PLOTLY: 'bar-plotly',
   Y_PLOTLY: 'y-plotly',
+  ANY_VIZ: 'any-viz',
   DIFF_EXP_SC: 'diff-exp-sc',
 };
 
