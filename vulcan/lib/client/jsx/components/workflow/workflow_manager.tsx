@@ -75,7 +75,7 @@ export default function WorkflowManager({
               !fromDatabase && localSession ? localSession : figureResponse
             ),
             selectFigure(figureResponse),
-            true
+            false
           );
         })
       );

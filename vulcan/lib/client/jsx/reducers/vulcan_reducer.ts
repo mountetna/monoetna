@@ -210,12 +210,6 @@ export default function VulcanReducer(
         committedStepPending: false
       };
 
-    case 'SET_FIGURE':
-      return {
-        ...state,
-        figure: {...action.figure}
-      };
-
     case 'SET_SESSION_AND_FIGURE':
       const currentWorkflow = state.workflow;
       if (

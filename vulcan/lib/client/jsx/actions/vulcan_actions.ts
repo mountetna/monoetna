@@ -36,10 +36,6 @@ export function setSession(session: SessionStatusResponse['session']) {
   return actionObject('SET_SESSION', {session});
 }
 
-export function setFigure(figure: VulcanFigure) {
-  return actionObject('SET_FIGURE', {figure});
-}
-
 export function setSessionAndFigure(figureSession: VulcanFigureSession) {
   return setSessionAndFigureSeparately(
     selectFigure(figureSession),
@@ -125,6 +121,5 @@ export type VulcanAction =
   | ReturnType<typeof clearBufferedInput>
   | ReturnType<typeof checkCommittedStepPending>
   | ReturnType<typeof clearCommittedStepPending>
-  | ReturnType<typeof setFigure>
   | ReturnType<typeof setSessionAndFigure>
   | ReturnType<typeof setSessionAndFigureSeparately>;

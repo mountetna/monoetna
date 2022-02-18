@@ -22,7 +22,6 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 import {
   clearCommittedStepPending,
   setSession,
-  setFigure,
   setSessionAndFigure
 } from '../../../actions/vulcan_actions';
 import InputFeed from './input_feed';
@@ -33,7 +32,6 @@ import {useWorkflow} from '../../../contexts/workflow_context';
 import {readTextFile, downloadBlob} from 'etna-js/utils/blob';
 import {defaultSession} from '../../../reducers/vulcan_reducer';
 import {VulcanFigureSession, VulcanSession} from '../../../api_types';
-import {Debouncer} from 'etna-js/utils/debouncer';
 import Tooltip from '@material-ui/core/Tooltip';
 
 const modalStyles = {
@@ -58,7 +56,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function SessionManager() {
-  const [localTitle, setLocalTitle] = useState('');
   const [saving, setSaving] = useState(false);
   const {
     state,
@@ -73,6 +70,8 @@ export default function SessionManager() {
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
   const {session, figure, committedStepPending} = state;
+
+  const [localTitle, setLocalTitle] = useState(figure.title);
 
   const invoke = useActionInvoker();
 
@@ -102,7 +101,8 @@ export default function SessionManager() {
     let params = {
       ...figure,
       workflow_name: name,
-      inputs: {...session.inputs}
+      inputs: {...session.inputs},
+      title: localTitle
     };
 
     if (!params.title) {
@@ -140,7 +140,8 @@ export default function SessionManager() {
     createFigure,
     updateFigure,
     showErrors,
-    dispatch
+    dispatch,
+    localTitle
   ]);
 
   const saveSessionToBlob = useCallback(() => {
@@ -202,25 +203,17 @@ export default function SessionManager() {
     if (figure.title) setLocalTitle(figure.title);
   }, [figure]);
 
-  const [debouncer, setDebouncer] = useState(new Debouncer({windowMs: 800}));
-
-  const debouncedSetTitle = useCallback(
-    (newTitle: any) => {
-      setLocalTitle(newTitle);
-      debouncer.ready(() => {
-        dispatch(setFigure({...figure, title: newTitle}));
-      });
-    },
-    [figure, debouncer, dispatch]
-  );
-
   const inputsChanged = useMemo(() => {
     return !_.isEqual(figure.inputs, session.inputs);
   }, [figure, session]);
 
+  const titleChanged = useMemo(() => {
+    return localTitle !== figure.title;
+  }, [figure, localTitle]);
+
   const canSave = useMemo(() => {
-    return inputsChanged && !(running || saving);
-  }, [running, saving, inputsChanged]);
+    return (titleChanged || inputsChanged) && !(running || saving);
+  }, [running, saving, inputsChanged, titleChanged]);
 
   if (!name || !session) return null;
 
@@ -235,7 +228,7 @@ export default function SessionManager() {
         >
           <Link href={`/${session.project_name}`}>{session.project_name}</Link>
           <Typography>{workflow.displayName}</Typography>
-          <Tooltip title={localTitle}>
+          <Tooltip title={localTitle || ''}>
             <TextField
               fullWidth
               value={localTitle}
@@ -247,7 +240,7 @@ export default function SessionManager() {
                 }
               }}
               variant='standard'
-              onChange={(e) => debouncedSetTitle(e.target.value)}
+              onChange={(e) => setLocalTitle(e.target.value)}
               placeholder='Untitled'
             />
           </Tooltip>
