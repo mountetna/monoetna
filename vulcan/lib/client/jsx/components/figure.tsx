@@ -86,18 +86,18 @@ const Figure = ({
   };
 
   const handleOnCopy = useCallback(() => {
-    onCopy();
     handleClose();
+    onCopy();
   }, [onCopy]);
 
   const handleOnRename = useCallback(() => {
-    onRename();
     handleClose();
+    onRename();
   }, [onRename]);
 
   const handleOnRemove = useCallback(() => {
-    onRemove();
     handleClose();
+    onRemove();
   }, [onRemove]);
 
   return (
