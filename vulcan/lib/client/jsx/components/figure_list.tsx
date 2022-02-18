@@ -1,4 +1,10 @@
-import React, {useCallback, useContext, useState, useEffect} from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useState,
+  useEffect,
+  useMemo
+} from 'react';
 import 'regenerator-runtime/runtime';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
@@ -51,11 +57,13 @@ const CreateFigure = ({
   );
   const classes = createFigureStyles();
 
-  const projectWorkflows = workflows
-    ? workflows.filter(
-        ({projects}) => projects && projects.includes(project_name)
-      )
-    : [];
+  const projectWorkflows = useMemo(() => {
+    return workflows
+      ? workflows.filter(
+          ({projects}) => projects && projects.includes(project_name)
+        )
+      : [];
+  }, [workflows, project_name]);
 
   const invoke = useActionInvoker();
 
@@ -75,15 +83,16 @@ const CreateFigure = ({
     setSelectedWorkflow(null);
   }, [handleClose]);
 
+  const numColumns = useMemo(() => {
+    return Math.min(projectWorkflows.length, 4);
+  }, [projectWorkflows]);
+
   return (
     <Dialog onClose={close} open={open} maxWidth='xl'>
       <DialogTitle>Select a workflow</DialogTitle>
       <DialogContent dividers>
         {projectWorkflows.length ? (
-          <ImageList
-            rowHeight='auto'
-            cols={Math.min(projectWorkflows.length, 3)}
-          >
+          <ImageList rowHeight='auto' cols={numColumns}>
             {projectWorkflows.map((w, ind) => (
               <ImageListItem key={ind}>
                 <WorkflowCard
