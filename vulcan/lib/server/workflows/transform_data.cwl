@@ -36,10 +36,7 @@ steps:
     doc: "Manipulate your data frame as needed. Right click for an interactions menu where you can add/remove columns. Start a cell with '=' to create functions in an Excel-like manner."
     in:
       data_frame: get_data/data_frame
-    # data will be a Hash with keys for "data" and "source_data".
-    #   `data` is the rendered, final value after parsing formulas.
-    #   `source_data` is the original values, including formula text.
-    out: [data]
+    out: [data, source_data]
   show_plot:
     run: ui-outputs/link.cwl
     in:

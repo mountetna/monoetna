@@ -31,7 +31,7 @@ function StepUserInputInner({ specs, hideLabel }: {specs: InputSpecification[], 
   const stepInputs: BoundInputSpecification[] = useMemo(() => specs
     .map(spec => bindInputSpecification(spec, workflow, status, session, data, inputs, setInputs)),
     [specs, workflow, status, session, data, inputs, setInputs])
-
+  console.log('stepInputs', stepInputs);
   return (
     <React.Fragment>
       {stepInputs.map((input, index) => {
