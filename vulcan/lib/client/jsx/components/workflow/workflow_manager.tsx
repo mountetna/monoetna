@@ -105,24 +105,24 @@ export default function WorkflowManager({
       dispatch(setWorkflow(workflow, projectName));
       const defaults = defaultInputs(workflow);
 
-      let useStoredSession = true;
+      let discardStoredSession = true;
 
       if (
         !_.isEqual(defaults, localSession.inputs) &&
         Object.keys(localSession.inputs) >= Object.keys(defaults)
       ) {
-        useStoredSession = confirm(
-          'You have an edited, unsaved version of this workflow. Load it, instead of the default version?'
+        discardStoredSession = confirm(
+          'You have an edited, unsaved version of this workflow. Discard it?'
         );
       }
 
-      if (useStoredSession) {
+      if (discardStoredSession) {
+        initializeNewSession();
+      } else {
         initializeFromSessionAndFigure(
           selectSession(localSession),
           defaultFigure
         );
-      } else {
-        initializeNewSession();
       }
     },
     [
