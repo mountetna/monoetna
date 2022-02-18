@@ -73,8 +73,8 @@ describe('useSessionStorage', () => {
 
     it('stores the session', async () => {
       expect(sessionKeys.value).toEqual([
-        '/figure/new/',
-        'test/figure/new/test'
+        '/figure/new/null',
+        'test/figure/new/test.cwl'
       ]);
       expect(reloadedSession.value).toEqual(nextSession.value);
     });
