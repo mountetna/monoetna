@@ -2,7 +2,8 @@ import {useEffect, useCallback} from 'react';
 import {
   SessionStatusResponse,
   VulcanFigure,
-  VulcanFigureSession
+  VulcanFigureSession,
+  VulcanSession
 } from '../api_types';
 import {VulcanState} from '../reducers/vulcan_reducer';
 import {cwlName} from '../selectors/workflow_selectors';
@@ -27,7 +28,12 @@ export const defaultSessionStorageHelpers = {
     figure_id: number | null
   ): Promise<(SessionStatusResponse['session'] & VulcanFigure) | null> {
     return Promise.resolve(null);
-  }
+  },
+  clearLocalSession(
+    workflow_name: string,
+    project_name: string,
+    figure_id: number | null
+  ): void {}
 };
 
 // invoked every time
@@ -72,7 +78,23 @@ export function useLocalSessionStorage(
     [storage]
   );
 
+  const clearLocalSession = (
+    workflow_name: string,
+    project_name: string,
+    figure_id: number | null
+  ) => {
+    storage.setItem(
+      localStorageKey({
+        figure_id: figure.figure_id,
+        workflow_name: session.workflow_name,
+        project_name: session.project_name
+      }),
+      JSON.stringify({})
+    );
+  };
+
   return {
-    getLocalSession
+    getLocalSession,
+    clearLocalSession
   };
 }

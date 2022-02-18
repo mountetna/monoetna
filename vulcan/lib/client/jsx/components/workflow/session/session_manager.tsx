@@ -64,7 +64,8 @@ export default function SessionManager() {
     requestPoll,
     cancelPolling,
     updateFigure,
-    createFigure
+    createFigure,
+    clearLocalSession
   } = useContext(VulcanContext);
   const {workflow, hasPendingEdits, complete} = useWorkflow();
 
@@ -124,6 +125,7 @@ export default function SessionManager() {
         createFigure(session.project_name, params).then(
           (figure: VulcanFigureSession) => {
             cancelSaving();
+            clearLocalSession(figure.workflow_name, figure.project_name, null);
             invoke(
               pushLocation(`/${figure.project_name}/figure/${figure.figure_id}`)
             );
@@ -141,7 +143,8 @@ export default function SessionManager() {
     updateFigure,
     showErrors,
     dispatch,
-    localTitle
+    localTitle,
+    clearLocalSession
   ]);
 
   const saveSessionToBlob = useCallback(() => {
