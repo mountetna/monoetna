@@ -19,7 +19,7 @@ def run_on_docker(
         source_service: str,
         command: List[str],
         env: Mapping[str, str] = dict(),
-        output_json: bool = False,
+        output_json: Union[bool, Type] = False,
         output_b64: bool = False,
         docker_base_url="unix://var/run/docker.sock",
 ) -> DockerOperatorBase:
@@ -36,7 +36,7 @@ def run_in_swarm(
         command: List[str],
         env: Mapping[str, str] = dict(),
         include_external_network: bool = False,
-        output_json: bool = False,
+        output_json: Union[bool, Type] = False,
         output_b64: bool = False,
         docker_base_url="unix://var/run/docker.sock",
 ) -> DockerSwarmOperator:
@@ -59,7 +59,7 @@ def _prepare_input_outputs(output_b64, output_json):
     serialize_last_output: Optional[Callable[[bytes], Any]] = None
     if output_json:
         if isinstance(output_json, type):
-            serialize_last_output = lambda bytes: from_json(type, bytes.encode('utf8'))
+            serialize_last_output = lambda bytes: from_json(output_json, bytes.encode('utf8'))
         else:
             serialize_last_output = json.loads
     elif output_b64:

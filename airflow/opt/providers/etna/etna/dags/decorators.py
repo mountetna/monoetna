@@ -13,6 +13,7 @@ from airflow.models.dag import (
 from etna.dags.callbacks import notify_slack_dag_callback
 from etna.utils.inject import inject
 
+system_epoch = datetime(2021, 12, 22, 16, 56, 3, 185905)
 
 def dag(
         on_failure_callback: Optional[DagStateChangeCallback] = None,
@@ -24,12 +25,6 @@ def dag(
         version: Union[int, str] = "",
         **kwds,
 ):
-    """
-    Creates a dag by running the wrapped function in a dag context whose dag_id will be the function's name,
-    and whose description will be its doc string.
-    :return: Dah'ya like dags?
-    """
-
     def instantiate_dag(fn):
         with DAG(
                 dag_id=fn.__name__ + str(version),
@@ -47,12 +42,6 @@ def dag(
     return instantiate_dag
 
 
-
-
-system_epoch = datetime(2021, 12, 22, 16, 56, 3, 185905)
-
-
-# A dag context
 def system_dag(interval: timedelta):
     def instantiate_dag(fn):
         return dag(

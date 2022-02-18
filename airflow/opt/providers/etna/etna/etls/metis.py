@@ -1,25 +1,25 @@
 import dataclasses
 import functools
-import itertools
 import logging
+import os.path
 import re
-from datetime import timezone
 from logging import Logger
 from typing import Union, Literal, List, Optional, Tuple, Callable, Dict, Any, Iterable
-
-import os.path
 
 from airflow.decorators import task
 from airflow.exceptions import AirflowException
 from airflow.models.taskinstance import Context
+from airflow.models.xcom_arg import XComArg
 from airflow.operators.python import get_current_context
 from serde import serialize, deserialize
+from serde.json import from_json
 
-from etna.xcom.etna_xcom import pickled
 from etna.dags.project_name import get_project_name
 from etna.etls.etl_task_batching import get_batch_range
-from etna.hooks.etna import File, Folder, UpdateRequest, EtnaHook, Magma, Metis, Template, Model
+from etna.hooks.etna import File, Folder, UpdateRequest, EtnaHook, Magma, Metis, Model
+from etna.operators import DockerOperatorBase
 from etna.utils.iterables import batch_iterable
+from etna.xcom.etna_xcom import pickled
 
 
 @serialize
@@ -28,6 +28,7 @@ from etna.utils.iterables import batch_iterable
 class MatchedAtRoot:
     root_path: str
     record_name: str
+    model_name: str
     match_file: Optional[File]
     match_folder: Optional[Folder]
 
@@ -43,6 +44,11 @@ class MatchedAtRoot:
             return self.match_file.project_name
         return self.match_folder.project_name
 
+    def as_update(self, attrs: Dict[str, Any]):
+        req = UpdateRequest(project_name=self.project_name)
+        req.update_record(self.model_name, self.record_name, attrs)
+        return req
+
     @property
     def bucket_name(self) -> str:
         if self.match_file:
@@ -54,6 +60,10 @@ class MatchedAtRoot:
         if self.match_file:
             return os.path.dirname(self.match_file.file_path)
         return self.match_folder.folder_path
+
+    @property
+    def match_folder_subpath(self) -> str:
+        return self.folder_path[len(self.root_path) + 1:]
 
     @property
     def match_subpath(self) -> str:
@@ -70,26 +80,24 @@ class MatchedAtRoot:
         return '/'.join([self.root_path, self.match_subpath])
 
 
-
 class link:
-    project_name: str
+    task_id: Optional[str]
     log: Logger
     version: int
     dry_run: bool
     _hook: Optional[EtnaHook]
-    model_name: Optional[str]
     attribute_name: Optional[str]
 
-    def __init__(self, model_name: Optional[str] = None, attribute_name: Optional[str] = None, version=1, dry_run=True, hook: Optional[EtnaHook] = None):
+    def __init__(self, attribute_name: Optional[str] = None, dry_run=True, hook: Optional[EtnaHook] = None,
+                 task_id: Optional[str] = None):
+        self.task_id = task_id
         self._hook = hook
         self.dry_run = dry_run
-        self.version = version
         self.attribute_name = attribute_name
-        self.model_name = model_name
         self.log = logging.getLogger('airflow.task')
 
     @property
-    def project_name(self):
+    def project_name(self) -> str:
         return get_project_name()
 
     @property
@@ -103,7 +111,7 @@ class link:
             with self.hook.magma(read_only=False) as magma:
                 self.log.info('retrieving model...')
                 response = magma.retrieve(
-                    project_name=self.project_name, model_name=self.model_name or 'all',
+                    project_name=self.project_name, model_name='all',
                     attribute_names=[self.attribute_name] if self.attribute_name else 'all', record_names=[],
                     hide_templates=False
                 )
@@ -114,63 +122,34 @@ class link:
 
             return pickled(result)
 
-        new_task.__name__ = f"{fn.__name__}_{self.version}{'_dry_run' if self.dry_run else ''}"
+        if self.task_id:
+            fn.__name__ = self.task_id
+
+        new_task.__name__ = f"{fn.__name__}_{'_dry_run' if self.dry_run else ''}"
+
         return task()(new_task)
 
-    def _apply_update_attr(self, match: MatchedAtRoot, update: UpdateRequest, models: Dict[str, Model], model_name: str, attribute_name: str, value: Any):
-        if model_name not in models:
-            raise AirflowException(f"Model '{model_name}' could not be linked, as it does not exist.")
-        template = models[model_name].template
-
-        if attribute_name not in template.attributes:
-            raise AirflowException(
-                f"Attribute '{attribute_name}' could not be linked in '{model_name}', as it does not exist.")
-        attribute = template.attributes[attribute_name]
-
-        if attribute.attribute_type == "file":
-            if not isinstance(value, list):
-                value = [value]
-
-            for file in value:
-                if not isinstance(file, File):
-                    raise AirflowException(f"Attribute '{attribute_name}' expects a file or list of files to link against")
-                update.update_record(model_name, match.record_name, {attribute_name: file.as_magma_file_attribute})
-        elif attribute.attribute_type == "file_collection":
-            if not isinstance(value, list):
-                value = [value]
-            file_links = []
-            update.update_record(model_name, match.record_name, {attribute_name: file_links})
-            for file in value:
-                if not isinstance(file, File):
-                    raise AirflowException(f"Attribute '{attribute_name}' expects a file or list of files to link against")
-                file_links.append(file.as_magma_file_attribute)
-        else:
-            update.update_record(model_name, match.record_name, {attribute_name: value})
-
-    def _apply_update_model(self, match: MatchedAtRoot, update: UpdateRequest, models: Dict[str, Model], model_name: str, value: Any):
-        if not self.attribute_name:
-            if not isinstance(value, dict):
-                raise AirflowException(
-                    f"Could not process linking for '{str(value)}', expected dictionary mapping attribute_name to value")
-            for attribute_name, v in value.items():
-                self._apply_update_attr(match, update, models, model_name, attribute_name, v)
-        else:
-            self._apply_update_attr(match, update, models, model_name, self.attribute_name, value)
-
-        pass
-
-    def _process_link_batch(self, magma: Magma, models: Dict[str, Model], batch: Iterable[Tuple[MatchedAtRoot, Any]]) -> List[MatchedAtRoot]:
+    def _process_link_batch(self, magma: Magma, models: Dict[str, Model], batch: Iterable[Tuple[MatchedAtRoot, Any]]) -> \
+    List[MatchedAtRoot]:
         result: List[MatchedAtRoot] = []
         update: UpdateRequest = UpdateRequest(revisions={}, project_name=self.project_name, dry_run=self.dry_run)
         for match, value in batch:
-            result.append(match)
-            if not self.model_name:
-                if not isinstance(value, dict):
-                    raise AirflowException(f"Could not process linking for '{str(value)}', expected dictionary mapping model_names to updates")
-                for model_name, v in value.items():
-                    self._apply_update_model(match, update, models, model_name, v)
+            if self.dry_run:
+                pass
+
+            if isinstance(value, UpdateRequest):
+                pass
+            elif self.attribute_name is not None:
+                value = match.as_update({self.attribute_name: value})
             else:
-                self._apply_update_model(match, update, models, self.model_name, value)
+                raise AirflowException(
+                    f"Cannot link {value}, attribute_name must be set or UpdateRequest returned from linking function.")
+
+            for error_message in value.validate(models):
+                raise AirflowException(error_message)
+
+            update.extend(value)
+            result.append(match)
 
         self.log.info("Executing batched magma update")
         magma.update(update)
@@ -184,27 +163,111 @@ def list_contents_of_matches(metis: Metis, matching: List[MatchedAtRoot]) -> Lis
     ]
 
 
+class RecordFolderSelectorPipeline:
+    model_name: str
+    helpers: "MetisEtlHelpers"
+    source: XComArg
+
+    def __init__(self, helpers: "MetisEtlHelpers", source: XComArg, model_name: str):
+        self.model_name = model_name
+        self.source = source
+        self.helpers = helpers
+
+    def then_filter(self, other: Union[Callable[[List[MatchedAtRoot]], List[MatchedAtRoot]], DockerOperatorBase]):
+        if isinstance(other, DockerOperatorBase):
+            other['/matches'] = self.source
+            if other.serialize_last_output is None:
+                other.serialize_last_output = lambda bytes: from_json(List[Tuple[MatchedAtRoot, Dict]],
+                                                                      bytes.encode('utf8'))
+            output = XComArg(other)
+
+            link()
+
+        return self
+
+
+class MetisEtlHelpers:
+    hook: EtnaHook
+
+    def __init__(self, tail_folders, tail_files, hook: EtnaHook):
+        self.hook = hook
+        self.tail_files = tail_files
+        self.tail_folders = tail_folders
+
+    def link_matching_file(self, listed_record_matches: XComArg, attr_name: str, regex: re.Pattern,
+                           dry_run=True) -> XComArg:
+        @link(attr_name, dry_run=dry_run, task_id=f"link_{attr_name}")
+        def do_link(listed_matches: List[Tuple[MatchedAtRoot, List[File]]]):
+            for match, files in listed_matches:
+                for file in files:
+                    if regex.match(file.file_name):
+                        yield match, file
+
+        return do_link(listed_record_matches)
+
+    def link_matching_files(self, listed_record_matches: XComArg, attr_name: str, file_regex: re.Pattern,
+                            folder_path_regex: re.Pattern = re.compile(r'^$'), dry_run=True) -> XComArg:
+        @link(attr_name, dry_run=dry_run, task_id=f"link_{attr_name}")
+        def do_link(listed_matches: List[Tuple[MatchedAtRoot, List[File]]]):
+            for match, files in listed_matches:
+                if folder_path_regex.match(match.match_folder_subpath):
+                    matched_files = [f for f in files if file_regex.match(f.file_name)]
+                    yield match, matched_files
+
+        return do_link(listed_record_matches)
+
+    def find_record_folders(self, model_name: str, regex: re.Pattern,
+                            corrected_record_name: Callable[[str], str] = lambda x: x) -> XComArg:
+        @task
+        def find_record_folders(folders, files):
+            return pickled(filter_by_record_directory(folders + files, regex, model_name=model_name,
+                                                      corrected_record_name=corrected_record_name))
+
+        return find_record_folders(self.tail_folders, self.tail_files)
+
+    def filter_by_timur(self, matches: XComArg) -> XComArg:
+        @task
+        def filter_by_timur(matches):
+            with self.hook.magma() as magma:
+                return pickled(filter_by_exists_in_timur(magma, matches))
+
+        return filter_by_timur(matches)
+
+    def list_match_folders(self, matches: XComArg):
+        @task
+        def list_match_folders(matches):
+            with self.hook.metis() as metis:
+                return pickled(list_contents_of_matches(metis, matches))
+
+        return list_match_folders(matches)
+
+
 def filter_by_exists_in_timur(
         magma: Magma,
         matched: List[MatchedAtRoot],
-        model_name: str,
 ):
     if not matched:
         return []
 
     project_name = matched[0].project_name
-    record_names = [m.record_name for m in matched]
+    matched_by_model_name = {}
+    for m in matched:
+        matched_by_model_name.setdefault(m.model_name, []).append(m)
 
-    response = magma.retrieve(project_name,
-                              model_name=model_name,
-                              attribute_names='identifier',
-                              record_names=record_names)
-    return [m for m in matched if m.record_name in response.models[model_name].documents]
+    return [
+        m for model_name, matches in matched_by_model_name
+        for response in [magma.retrieve(project_name,
+                                        model_name=model_name,
+                                        attribute_names='identifier',
+                                        record_names=[m.record_name for m in matches])]
+        for m in matches if m.model_name in response.models[model_name].documents
+    ]
 
 
 def filter_by_record_directory(
         files_or_folders: List[Union[File, Folder]],
         directory_regex: re.Pattern,
+        model_name: str,
         corrected_record_name: Callable[[str], str] = lambda x: x,
 ) -> List[MatchedAtRoot]:
     result: Dict[str, MatchedAtRoot] = {}
@@ -235,15 +298,18 @@ def filter_by_record_directory(
                 continue
 
         root_path = path[:end]
-        if root_path in result:
-            continue
-
-        result[root_path] = MatchedAtRoot(
+        match = MatchedAtRoot(
             root_path=root_path,
             record_name=corrected_record_name(os.path.basename(root_path)),
             match_file=file,
             match_folder=folder,
+            model_name=model_name,
         )
+
+        if match.folder_path in result:
+            continue
+
+        result[match.folder_path] = match
 
     return list(result.values())
 

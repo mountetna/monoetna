@@ -425,12 +425,33 @@ class RetrievalResponse:
 @deserialize
 @dataclasses.dataclass
 class UpdateRequest:
-    revisions: Dict[str, Dict[str, Dict[str, typing.Any]]]
+    revisions: Dict[str, Dict[str, Dict[str, typing.Any]]] = dataclasses.field(default_factory=dict)
     project_name: str = ""
     dry_run: bool = False
 
-    def update_record(self, model_name: str, record_name: str, attrs: Dict[str, typing.Any] = dict()) -> Dict[
-        str, typing.Any]:
+    def extend(self, other: "UpdateRequest"):
+        for model_name, docs in other.revisions.items():
+            for record_name, revision in docs.items():
+                self.update_record(model_name, record_name, revision)
+
+    # TODO: Add more basic validations?
+    def validate(self, models: Dict[str, Model]) -> typing.Iterable[str]:
+        for model_name, docs in self.revisions.items():
+            if model_name not in models:
+                yield f"Model '{model_name}' does not exist"
+                continue
+
+            template = models[model_name].template
+            for record_name, revision in docs.items():
+                for attr, value in revision.items():
+                    if attr not in template.attributes:
+                        yield f"Model '{model_name}', Attribute '{attr}' does not exist"
+                        continue
+
+
+
+    def update_record(self, model_name: str, record_name: str, attrs: Dict[str, typing.Any] = dict()) -> Dict[str, typing.Any]:
+        attrs = {k: normalize_for_magma(v) for k, v in attrs.items()}
         record = self.revisions.setdefault(model_name, {}).setdefault(record_name, {})
         record.update(**attrs)
         return record
@@ -505,3 +526,13 @@ class Magma(EtnaClientBase):
     def update(self, update: UpdateRequest):
         response = self.session.post(self.prepare_url('update'), data=to_json(update), headers={"Content-Type": "application/json"})
         return from_json(RetrievalResponse, response.content)
+
+
+def normalize_for_magma(value):
+    if isinstance(value, File):
+        return value.as_magma_file_attribute
+
+    if isinstance(value, list):
+        return [normalize_for_magma(v) for v in value]
+
+    return value
