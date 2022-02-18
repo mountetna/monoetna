@@ -122,27 +122,27 @@ enable the "Run" button.
 Upon running, the workflow will run until it completes, encounters an error, or
 requires further input from the user to continue.
 
-### Visualization Workflows
+### Visualization with Vulcan
 
-Some of the most basic, yet likely to be most used workflows of the Vulcan arsenal, these workflows consist of just a few steps where the first is a data query piece (which can be filled in via a [Timur-Query](https://mountetna.github.io/timur.html#query)) followed by a user input step where the user configures how their plot should be generated.
+One of the most basic, yet likely to be most used workflow of the Vulcan arsenal, is the Standard Visualization Workflow. This workflow consist of just a few steps where the first is a data query piece (which can be filled in via a [Timur-Query](https://mountetna.github.io/timur.html#query)) followed by a user input step where the user picks a plot type, then configures how to generate it.
 
-Plot-types currently available are:
+#### The Plot Configuration Interface
+
+**Plot Type Selection:** The first step is picking a plot type from among the available options:
 
 | Scatter | Y (integrated violin and boxplots) | Bar |
 | --- | --- | --- |
-| <img src="assets/images/vulcan/scatter.png" title="Scatter Plot Example" height="250"/> | <img src="assets/images/vulcan/yplot.png" alt="Y Plot Example" height="250"/> | <img src="assets/images/vulcan/barplot.png" alt="Bar Plot Example" height="250"/>|
-
-Each plot type has its own dedicated workflow and an associated vignette where additional details may be given about how particular plots are made.
-
-#### The Plot Configuration Interface
+| <img src="assets/images/vulcan/scatter.png" title="Scatter Plot Example" height="250"/> | <img src="assets/images/vulcan/yplot.png" alt="Y Plot Example" height="250"/> | <img src="assets/images/vulcan/barplot.png" alt="Bar Plot Example" height="250"/> |
 
 **Main Options:** Before a plot can be made from a given set of data, vulcan must be told what parts of the data to map to axes, colors, etc. The "main" inputs of the configuration interface fill in such mappings and are always displayed.  For example, when setting up a scatter plot you would see:
 
 <img src="assets/images/vulcan/scatter-configuration-main.png" alt="Scatter Plot Configuration, main inputs">
+{:.image}
 
 **Advanced Options:** Within the same interface, a set of 'Advanced Options' allow additional tweaks to be made to how the plot will show up, but these are hidden behind a button by default.  Clicking the "Show Advanced Options" button of the configuration interface for a scatter plot will reveal:
 
 <img src="assets/images/vulcan/scatter-configuration-advanced.png" alt="Scatter Plot Example, all inputs">
+{:.image}
 
 Often, you will see inputs filled in by default with 'make'.  'make' is our chosen fill-in for telling the system to "Use the default option," so leaving such inputs as 'make' will let our system fill in that setting with an intuitive default.  Such inputs may be adjusted, or not, as needed.
 
