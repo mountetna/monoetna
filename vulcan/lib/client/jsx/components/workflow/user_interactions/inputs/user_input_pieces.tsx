@@ -27,7 +27,7 @@ export function key_wrap(k: string[]) {
 They are named based on types of input methods.
 Overall Output Structure Requirement:
   - It is assumed that the overarching widget will produce an output consisting of a hash of key/value pairs.
-Some "pieces" have additional inputs, but the first 4 are always:
+Some "pieces" have additional inputs, but the first 4 are ALWAYS:
   - key = the output key or name of the value element that this component should fill in. Also used as the component's key for the DOM
   - changeFxn = a function, which should be defined inside the larger ui-component in which these pieces are used.
       This funciton should take in 1) the new value and 2) the target 'key' / value elements' name, then utilize onChange to log the update.
@@ -67,7 +67,6 @@ export function stringInput(
 export function checkboxInput(
   key: string = "filler", changeFxn: Function, value: boolean = false,
   label: string) {
-
     return(
       <BooleanInput
         key={key}
@@ -128,5 +127,52 @@ export function sliderInput(
             valueLabelDisplay="auto"
           />
         </div>
+    )
+  }
+
+export function rangeInput(
+  key: string = "filler", changeFxn: Function, value: (string|number|null)[] = ["exactly", null, "below", null],
+  label: string) {
+    
+    const updateSlot = (newValue: string|number|null, slot: number, current_full = value) => {
+      let next_full = [...current_full]
+      next_full[slot] = newValue
+      return next_full
+    }
+    
+    return(
+      <div key={key}>
+        {label}
+        <div style={{display: 'inline-flex'}}>
+          From
+          <DropdownAutocomplete
+            list={["exactly","above"]}
+            value={value[0]}
+            onSelect={(newVal: string) => changeFxn(updateSlot(newVal, 0), key)}
+            sorted={false}
+          />
+          Value
+          <EtnaFloatInput
+            followDefault
+            defaultValue={value[1]}
+            onChange={(newVal: string) => changeFxn(updateSlot(newVal, 1), key)}
+          />
+        </div>
+        <div style={{display: 'inline-flex'}}>
+          To
+          <DropdownAutocomplete
+            list={["exactly","below"]}
+            value={value[2]}
+            onSelect={(newVal: string) => changeFxn(updateSlot(newVal, 2), key)}
+            sorted={false}
+          />
+          value
+          <EtnaFloatInput
+            followDefault
+            defaultValue={value[3]}
+            onChange={(newVal: string) => changeFxn(updateSlot(newVal, 3), key)}
+          />
+        </div>
+      </div>
     )
   }

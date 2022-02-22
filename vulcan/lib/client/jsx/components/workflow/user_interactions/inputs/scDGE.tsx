@@ -12,6 +12,8 @@ import BooleanInput from './boolean';
 import { joinNesting, StringOptions } from './monoids';
 import { useMemoized } from '../../../../selectors/workflow_selectors';
 import { val_wrap, MultiselectInput, dropdownInput } from './user_input_pieces';
+import { subsetDataFrameInput } from './subsetDataFrame_piece';
+import { Button } from '@material-ui/core';
 
 /*
 This input is closely tied to a python script for running scanpy-based differential expression.
@@ -34,7 +36,7 @@ Output:
 export default function DiffExpSC({
   data, onChange, ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  const value = useSetsDefault({method: null}, props.value, onChange);
+  const value = useSetsDefault({method: null, subset: {}}, props.value, onChange);
   const allData = useMemoized(joinNesting, data);
   const options: DataEnvelope<StringOptions> = useMemo(() => {
     let opts: DataEnvelope<StringOptions> = {}
@@ -48,29 +50,10 @@ export default function DiffExpSC({
     return opts;
   }, [data])
   
-  const [doSubset, setSubset] = useState(false);
-  const addSubset = (vals = {...value}) => {
-    vals['subset_meta'] = null
-    vals['subset_use'] = null
-    onChange(some(vals));
-  }
-  const removeSubset = (vals = {...value}) => {
-    if (Object.keys(vals).includes('subset_meta')) delete vals['subset_meta']
-    if (Object.keys(vals).includes('subset_use')) delete vals['subset_use']
-    onChange(some(vals));
-  }
-  function toggleSubsetting(subset: boolean) {
-    if (!subset) removeSubset();
-    if (subset) addSubset();
-    setSubset(subset)
-  }
-  
-  const setDEMethod = (method: string, vals = {...value}) => {
-    let newVals = {...output_sets[method]}
-    if (doSubset) {
-      newVals['subset_meta'] = vals['subset_meta']
-      newVals['subset_use'] = vals['subset_use']
-    }
+  const setDEMethod = (label: string, x: string, label_tags = method_labels, vals = {...value}) => {
+    // x = filler for 'key' provided by input piece which will not match the current aims.
+    let newVals = {...output_sets[label_tags[label]]}
+    newVals['subset'] = vals['subset']
     onChange(some(newVals));
   }
   
@@ -78,7 +61,7 @@ export default function DiffExpSC({
     prevValues[key] = newValue;
     onChange(some(prevValues));
   };
-  
+
   const warn =
     <div>
       <p></p>
@@ -86,16 +69,41 @@ export default function DiffExpSC({
       <p></p>
     </div>
 
+  // Bringing pre-subsetDataFrameInput value-structure up-to-date.
+  let SubsetComps = null;
+  if (value) {
+    if (value['subset']) {
+    SubsetComps = subsetDataFrameInput(
+      "subset", updateValue, value['subset'], "Step 2: Subset by features to focus on certain cells? ",
+      {...allData}, false, "secondary")
+    } else {
+      const updateOldSubset = () => {
+        let new_subset = ( !(value['subset_meta'] && value['subset_use'])) ? {} : {
+          'methods': [ [value['subset_meta']].concat(value['subset_use']) ],
+          'logic': [[]]
+        }
+        let prevValues = {...value}
+        delete prevValues['subset_meta']
+        delete prevValues['subset_use']
+        updateValue(new_subset, 'subset', prevValues)
+      }
+      SubsetComps = 
+        <Button
+          color={"primary"}
+          onClick={(x) => {updateOldSubset()}}>
+          Step 2: Subset... UPDATE NEEDED. Click to update.
+        </Button>
+    }
+  }
+
   return (
     <div>
-      Step 1: Select your DE Question Type:
-      <DropdownAutocomplete
-          list={Object.keys(method_labels)}
-          value={value['method']}
-          onSelect={(val: string) => setDEMethod(method_labels[val])}
-        />
-      
-      {SubsetComps(value, options, updateValue, doSubset, toggleSubsetting)}
+      {dropdownInput(
+        "method", setDEMethod, value['method'],
+        "Step 1: Select your DE Question Type: ",
+        Object.keys(method_labels), true)}
+      <hr/>
+      {SubsetComps}
       {DEComps(value, options, updateValue)}
       {GroupComps(value, options, updateValue)}
       {warn}
@@ -129,47 +137,6 @@ const output_sets: DataEnvelope<DataEnvelope<string|string[]|null>> = {
     'group_meta': null,
     'group_use': null
   }
-}
-
-const SubsetComps = (vals: DataEnvelope<any>, opts: DataEnvelope<StringOptions>, changeFxn: Function, doSubset: boolean, toggleSubsetting: any) => {
-  
-  const comps = useMemo(() => {
-    const base =
-      <div>
-        <hr/> 
-        {"Step 2: Focus on / remove certain cells? "}
-        <div>
-          <BooleanInput
-            key='doSubset'
-            label='Subset'
-            value={maybeOfNullable(doSubset)}
-            data={val_wrap(doSubset)}
-            onChange={ value => toggleSubsetting(withDefault(value, false))}
-          />
-        </div>
-      </div>
-    
-    let value_select = null;
-    if (Object.keys(vals).includes('subset_meta')) {
-      if (Object.keys(opts).length>0 && vals['subset_meta']!=null) {
-        value_select = MultiselectInput(
-          'subset_use', changeFxn, vals['subset_use'],
-          'Labels to keep', opts[(vals['subset_meta'])] as string[])
-      }
-      return(
-        <div>
-          {base}
-          {dropdownInput(
-            'subset_meta', changeFxn, vals['subset_meta'],
-            "Subset by:", Object.keys(opts))}
-          {value_select}
-        </div>
-      )
-    }
-    return(base)
-  }, [vals, opts])
-  
-  return comps
 }
 
 const DEComps = (
