@@ -2,7 +2,7 @@ import time
 
 
 class RetryGater:
-    def __init__(self, max: int, f = 1, exp = 2):
+    def __init__(self, max: int, f=1, exp=2):
         self.max = max
         self.i = 0
         self.last = 0

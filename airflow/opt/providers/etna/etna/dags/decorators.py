@@ -15,26 +15,27 @@ from etna.utils.inject import inject
 
 system_epoch = datetime(2021, 12, 22, 16, 56, 3, 185905)
 
+
 def dag(
-        on_failure_callback: Optional[DagStateChangeCallback] = None,
-        on_success_callback: Optional[DagStateChangeCallback] = None,
-        schedule_interval: ScheduleIntervalArg = ScheduleIntervalArgNotSet,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-        inject_params: Mapping[str, str] = {},
-        version: Union[int, str] = "",
-        **kwds,
+    on_failure_callback: Optional[DagStateChangeCallback] = None,
+    on_success_callback: Optional[DagStateChangeCallback] = None,
+    schedule_interval: ScheduleIntervalArg = ScheduleIntervalArgNotSet,
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    inject_params: Mapping[str, str] = {},
+    version: Union[int, str] = "",
+    **kwds,
 ):
     def instantiate_dag(fn):
         with DAG(
-                dag_id=fn.__name__ + str(version),
-                description=fn.__doc__,
-                on_failure_callback=on_failure_callback,
-                on_success_callback=on_success_callback,
-                start_date=start_date,
-                end_date=end_date,
-                schedule_interval=schedule_interval,
-                **kwds,
+            dag_id=fn.__name__ + str(version),
+            description=fn.__doc__,
+            on_failure_callback=on_failure_callback,
+            on_success_callback=on_success_callback,
+            start_date=start_date,
+            end_date=end_date,
+            schedule_interval=schedule_interval,
+            **kwds,
         ) as dag:
             inject(fn, inject_params)
         return dag
@@ -48,7 +49,7 @@ def system_dag(interval: timedelta):
             start_date=system_epoch,
             schedule_interval=interval,
             default_args=dict(
-                owner='administration',
+                owner="administration",
                 retries=3,
             ),
             # default_args=dict(

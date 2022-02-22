@@ -14,9 +14,7 @@ from etna.hooks.connections import find_first_valid_connection
 def notify_slack_dag_callback(dag_status: str) -> DagStateChangeCallback:
     def state_change_callback(context: Context):
         task_instance: TaskInstance = context["task_instance"]
-        conn_id = find_first_valid_connection(
-            "errors_slack"
-        )
+        conn_id = find_first_valid_connection("errors_slack")
 
         with create_session() as session:
             task_instance = session.merge(task_instance)
@@ -43,7 +41,7 @@ def notify_slack_dag_callback(dag_status: str) -> DagStateChangeCallback:
             "username": conn.login or "Airflow",
             "text": f"Dag {task_instance.dag_id} {dag_status}{reason}!{failed_message}",
             "icon_url": conn.schema
-                        or "https://raw.githubusercontent.com/apache/airflow/main/airflow/www/static/pin_100.png",
+            or "https://raw.githubusercontent.com/apache/airflow/main/airflow/www/static/pin_100.png",
         }
 
         slack.call("chat.postMessage", json=api_params)

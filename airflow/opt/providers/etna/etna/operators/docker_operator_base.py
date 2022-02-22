@@ -1,9 +1,21 @@
+import functools
 import os.path
 import json
 import logging
 import time
 from dataclasses import dataclass
-from typing import List, Optional, Callable, Any, Mapping, Iterator, Set, Tuple, Union, MutableMapping
+from typing import (
+    List,
+    Optional,
+    Callable,
+    Any,
+    Mapping,
+    Iterator,
+    Set,
+    Tuple,
+    Union,
+    MutableMapping,
+)
 
 import hashlib
 
@@ -34,12 +46,13 @@ class DockerOperatorBase(BaseOperator):
     ti: TaskInstance
     docker_base_url: str
     env: Mapping[str, str]
+    args: List[str]
 
     file_inputs: MutableMapping[str, Union[XComArg, str, bytes]]
     resolved_swarm_shared_data: List[SwarmSharedData]
 
-    template_fields = ('env',)
-    template_fields_renderers = {'env': 'json'}
+    template_fields = ("env",)
+    template_fields_renderers = {"env": "json"}
 
     def __init__(
         self,
@@ -58,8 +71,22 @@ class DockerOperatorBase(BaseOperator):
         self.env = env
         self.file_inputs = {}
         self.resolved_swarm_shared_data = []
+        self.args = []
 
         super(DockerOperatorBase, self).__init__(*args, **kwds)
+
+    def accepts(self, *file_names: str):
+        self.args = list(file_names)
+        return self
+
+    def __call__(self, *args):
+        if len(args) != len(self.args):
+            raise TypeError(
+                f"docker operator should use .accepts to match inputs size, configured for {self.args} but got {len(args)}"
+            )
+        for xarg, file_arg in zip(args, self.args):
+            self[file_arg] = xarg
+        return XComArg(self)
 
     def pre_execute(self, context) -> None:
         super(DockerOperatorBase, self).pre_execute(context)
@@ -75,7 +102,9 @@ class DockerOperatorBase(BaseOperator):
                 bin = file_input
             elif isinstance(file_input, str):
                 if not os.path.exists(file_input):
-                    raise AirflowException(f"docker operator input {path} was not a valid path: {file_input}.")
+                    raise AirflowException(
+                        f"docker operator input {path} was not a valid path: {file_input}."
+                    )
 
                 if os.path.isdir(file_input):
                     buff = io.BytesIO(b"")
@@ -89,10 +118,7 @@ class DockerOperatorBase(BaseOperator):
                 raise f"Unexpected input to docker operator: Expected XComArg, str, or bytes, found {file_input.__class__.__name__}"
 
             self.resolved_swarm_shared_data.append(
-                SwarmSharedData(
-                    remote_path=path,
-                    data=bin
-                )
+                SwarmSharedData(remote_path=path, data=bin)
             )
 
     @property
@@ -104,12 +130,24 @@ class DockerOperatorBase(BaseOperator):
         return self
 
     def __setitem__(self, key, value):
-        if not isinstance(value, XComArg) and not isinstance(value, str) and not isinstance(value, bytes):
-            raise AirflowException(f"'{key}' was not instance of XComArg, str, or bytes!")
+        if (
+            not isinstance(value, XComArg)
+            and not isinstance(value, str)
+            and not isinstance(value, bytes)
+        ):
+            raise AirflowException(
+                f"'{key}' was not instance of XComArg, str, or bytes!"
+            )
         if not isinstance(key, str):
-            raise AirflowException(f"{self.__class__.__name__} only accepts string index keys")
+            raise AirflowException(
+                f"{self.__class__.__name__} only accepts string index keys"
+            )
         if isinstance(value, XComArg):
             self.set_upstream(value)
+        if not key.startswith("/") or len(key) < 2:
+            raise AirflowException(
+                f"Key {key} is an invalid docker operator argument, must be a absolute path."
+            )
         self.file_inputs[key] = value
 
     @staticmethod
@@ -195,14 +233,16 @@ class DockerOperatorBase(BaseOperator):
                 self.log.info(last_line)
 
 
-LOG_LINE_BATCH_SIZE=16384 # 16K
-MAX_BATCH_SIZE=500 # 16K * 500 ~= 8mb
-LOG_TIMESTAMP_LEN=30
+LOG_LINE_BATCH_SIZE = 16384  # 16K
+MAX_BATCH_SIZE = 500  # 16K * 500 ~= 8mb
+LOG_TIMESTAMP_LEN = 30
+
+
 def write_logs_and_yield_last(
     next_batch_since: Callable[[int], bytes],
     log: logging.Logger,
 ) -> Iterator[bytes]:
-    since_s = b''
+    since_s = b""
     since_t = 0
     last_line: Optional[bytes] = None
     next_batch_buff: List[bytes] = []
@@ -219,12 +259,16 @@ def write_logs_and_yield_last(
             if not line:
                 continue
 
-            if line.startswith(b'Error'):
+            if line.startswith(b"Error"):
                 # rpc error incoming.  Attempt a fresh new fetch. do NOT allow a yield after an error
                 # since we need to ensure some sort of conclusion to fetching logs (and if we cannot, we'd rather
                 # timeout or error from connection, not rpc issues).
                 rpc_error = True
-                gater.gate(AirflowException(f"Could not read docker logs, received rpc error: {line.decode('utf8')}"))
+                gater.gate(
+                    AirflowException(
+                        f"Could not read docker logs, received rpc error: {line.decode('utf8')}"
+                    )
+                )
                 break
 
             # We need a 'timestamp' for the since call, but the string associated with the time may have higher precision
@@ -251,9 +295,9 @@ def write_logs_and_yield_last(
                 for i in range(0, MAX_BATCH_SIZE):
                     if offset > len(line):
                         break
-                    line_segments.append(line[offset:offset + LOG_LINE_BATCH_SIZE])
+                    line_segments.append(line[offset : offset + LOG_LINE_BATCH_SIZE])
                     offset += LOG_LINE_BATCH_SIZE + LOG_TIMESTAMP_LEN + 1
-                line = b''.join(line_segments)
+                line = b"".join(line_segments)
 
             next_batch_buff.append(line)
 

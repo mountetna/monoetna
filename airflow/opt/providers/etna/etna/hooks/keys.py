@@ -11,7 +11,9 @@ from airflow.models import Connection
 
 
 @contextlib.contextmanager
-def prepared_key_from(connection: Connection, assert_password_non_empty=False) -> ContextManager[Optional[str]]:
+def prepared_key_from(
+    connection: Connection, assert_password_non_empty=False
+) -> ContextManager[Optional[str]]:
     """
     Attempts to create an ssh compatible key file from the password field of a connection.
     Use this with a context eg:
@@ -28,7 +30,7 @@ def prepared_key_from(connection: Connection, assert_password_non_empty=False) -
         # prepare a key.
         with tempfile.NamedTemporaryFile() as file:
             password = connection.password
-            words = password.split(' ')
+            words = password.split(" ")
             lines = []
             header = False
 
@@ -38,16 +40,18 @@ def prepared_key_from(connection: Connection, assert_password_non_empty=False) -
                 else:
                     lines.append(word)
 
-                if word.startswith('--'):
+                if word.startswith("--"):
                     header = True
-                if word.endswith('--'):
+                if word.endswith("--"):
                     header = False
 
-            file.write('\n'.join(lines).encode('utf8'))
+            file.write("\n".join(lines).encode("utf8"))
             os.chmod(file.name, stat.S_IRUSR | stat.S_IWUSR)
             file.flush()
             yield file.name
     else:
         if assert_password_non_empty:
-            raise AirflowException(f"RSA key was not set for connection '{connection.conn_id}'")
+            raise AirflowException(
+                f"RSA key was not set for connection '{connection.conn_id}'"
+            )
         yield None

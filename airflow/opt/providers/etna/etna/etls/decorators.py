@@ -7,20 +7,29 @@ from airflow.decorators import task
 from airflow.operators.python import get_current_context
 
 from etna.dags.decorators import dag, system_epoch
-from etna.etls.etl_task_batching import batch_end_context_key, get_batch_range, LOWEST_BOUND, batch_start_context_key
-from etna.etls.metis import load_metis_folders_batch, load_metis_files_batch, MetisEtlHelpers
+from etna.etls.etl_task_batching import (
+    batch_end_context_key,
+    get_batch_range,
+    LOWEST_BOUND,
+    batch_start_context_key,
+)
+from etna.etls.metis import (
+    load_metis_folders_batch,
+    load_metis_files_batch,
+    MetisEtlHelpers,
+)
 from etna.hooks.etna import EtnaHook, Folder, File
 from etna.utils.inject import inject
 from etna.xcom.etna_xcom import pickled
 
 
 def metis_etl(
-        project_name: str,
-        bucket_name: str,
-        version: Union[int, str],
-        propagate_updates=True,
-        hook: Optional[EtnaHook] = None,
-        inject_params: Mapping[str, str] = {},
+    project_name: str,
+    bucket_name: str,
+    version: Union[int, str],
+    propagate_updates=True,
+    hook: Optional[EtnaHook] = None,
+    inject_params: Mapping[str, str] = {},
 ):
     if hook is None:
         hook = EtnaHook.for_project(project_name)
@@ -49,10 +58,14 @@ def metis_etl(
 
                 with hook.metis() as metis:
                     for folder in folders:
-                        children = metis.list_folder(project_name, bucket_name, folder.folder_path).folders
+                        children = metis.list_folder(
+                            project_name, bucket_name, folder.folder_path
+                        ).folders
                         for child in children:
                             if child.updated_at_datetime < folder.updated_at_datetime:
-                                metis.touch_folder(project_name, bucket_name, child.folder_path)
+                                metis.touch_folder(
+                                    project_name, bucket_name, child.folder_path
+                                )
 
             folders = tail_folders()
             files = tail_files()
@@ -62,8 +75,18 @@ def metis_etl(
 
             helpers = MetisEtlHelpers(tail_folders=folders, tail_files=files, hook=hook)
 
-            return inject(fn, dict(tail_folders=folders, tail_files=files, project_name=project_name, bucket_name=bucket_name,
-                                   helpers=helpers, hook=hook, **inject_params))
+            return inject(
+                fn,
+                dict(
+                    tail_folders=folders,
+                    tail_files=files,
+                    project_name=project_name,
+                    bucket_name=bucket_name,
+                    helpers=helpers,
+                    hook=hook,
+                    **inject_params
+                ),
+            )
 
         return etl(
             project_name=project_name,
@@ -73,7 +96,13 @@ def metis_etl(
 
     return instantiate_dag
 
-def etl(project_name: str, interval: timedelta, version: Union[int, str], inject_params: Mapping = {}):
+
+def etl(
+    project_name: str,
+    interval: timedelta,
+    version: Union[int, str],
+    inject_params: Mapping = {},
+):
     def instantiate_dag(fn):
         start_date = system_epoch
         # Stagger start times for etls

@@ -2,6 +2,7 @@ from typing import Iterable, TypeVar, List
 
 T = TypeVar("T")
 
+
 def batch_iterable(iter: Iterable[T], batch_size: int) -> Iterable[Iterable[T]]:
     cur_batch: List[T] = []
     for item in iter:

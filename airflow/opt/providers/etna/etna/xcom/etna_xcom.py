@@ -17,10 +17,13 @@ class EtnaXComValue:
     def __str__(self):
         return f"<{self.__class__.__name__}>"
 
+
 T = TypeVar("T")
+
 
 def pickled(v: T) -> T:
     return cast(T, _Pickled(v))
+
 
 # Explicit pickling
 class _Pickled(EtnaXComValue):
@@ -34,13 +37,14 @@ class _Pickled(EtnaXComValue):
         if isinstance(self.value, list):
             return f"{len(self.value)} result(s)"
 
+
 class EtnaXCom(BaseXCom):
     @staticmethod
     def serialize_value(value: Any):
         if isinstance(value, EtnaXComValue):
             return pickle.dumps(value)
         # Enables dataclass serialization
-        return to_json(value).encode('UTF-8')
+        return to_json(value).encode("UTF-8")
 
     @staticmethod
     def deserialize_value(result: "EtnaXCom") -> Any:

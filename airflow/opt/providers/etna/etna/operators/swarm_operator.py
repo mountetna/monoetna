@@ -101,7 +101,9 @@ def create_service_from_definition(
                 configs=service_definition.configs,
                 secrets=service_definition.secrets,
             ),
-            log_driver=types.DriverConfig('local'), # Ensures logs are easily recoverable.
+            log_driver=types.DriverConfig(
+                "local"
+            ),  # Ensures logs are easily recoverable.
             restart_policy=types.RestartPolicy(condition="none"),
             resources=service_definition.resources,
             networks=service_definition.networks,
@@ -210,13 +212,15 @@ class DockerSwarmOperator(DockerOperatorBase):
                 # _start_task should wait until the task exists before proceeding to invoke the next_log_batch_since.
                 # We also do NOT refresh the task after the initial fetch -- the task could legitimately go away while
                 # reading, but we only care about the historical task identifier.
-                raise AirflowException("Could not logs of service, task was not available before reading logs.")
+                raise AirflowException(
+                    "Could not logs of service, task was not available before reading logs."
+                )
 
             gater = RetryGater(5)
 
             while True:
                 try:
-                    return hacky_task_logs(self.cli, task['ID'], since, is_tty)
+                    return hacky_task_logs(self.cli, task["ID"], since, is_tty)
                 except requests.exceptions.HTTPError as e:
                     if e.response.status_code >= 500:
                         gater.gate(e)
@@ -330,9 +334,7 @@ class DockerSwarmOperator(DockerOperatorBase):
 #      which is not portable when using the vcr requests library, nor is it portable when using an http
 #      adapters or even different python versions.  This is a flaw in the way python http is implemented,
 #      its attempt to hide underlying sockets causes grief (ie: stop hiding resources that are not actually private)
-def hacky_task_logs(
-    cli: APIClient, task_id: str, since: int, is_tty: bool
-) -> bytes:
+def hacky_task_logs(cli: APIClient, task_id: str, since: int, is_tty: bool) -> bytes:
     params = {
         "details": False,
         "follow": False,

@@ -2,6 +2,7 @@ from typing import Callable, Mapping, Any
 
 import inspect
 
+
 def inject(fn: Callable, injections: Mapping[str, Any]):
     sig: inspect.Signature = inspect.signature(fn)
     parameters = sig.parameters.values()
@@ -15,4 +16,3 @@ def inject(fn: Callable, injections: Mapping[str, Any]):
             break
 
     return fn(**inject_p)
-
