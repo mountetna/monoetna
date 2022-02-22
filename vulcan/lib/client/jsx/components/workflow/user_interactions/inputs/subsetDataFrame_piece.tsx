@@ -22,7 +22,7 @@ export function subsetDataFramePiece(
   
   const startOrClear = (doSubset: boolean, x:any) => {
     const new_full = (doSubset) ? {
-      'methods':[[null]],
+      'methods':[emptyMethod],
       'logic':[[]]
     } : {}
     changeFxn(new_full, key)
@@ -59,7 +59,7 @@ export function subsetDataFramePiece(
       <br></br>
       <Button
         color={color}
-        onClick={(x) => {updateCurrent([null], "and", values['methods'].length)}}>
+        onClick={(x) => {updateCurrent(emptyMethod, "and", values['methods'].length)}}>
         Add another condition?
       </Button>
     </div>
@@ -73,8 +73,10 @@ export function subsetDataFramePiece(
   )
 }
 
+const emptyMethod = ['']
+
 const singleMethod = (
-  def: (string|number|null)[] = [null],
+  def: (string|number|null)[] = emptyMethod,
   index: number,
   data_frame: DataEnvelope<any>,
   updateCurrent: Function,
@@ -104,11 +106,11 @@ const singleMethod = (
   
   const clearDef = () => {
     const full = {...values};
-    // methods (Current at index, must remain/become [[null]] or lose current)
+    // methods (Current at index, must remain/become [emptyMethod] or lose current)
     let next_methods = full['methods']
     next_methods.splice(index,1)
     if (next_methods.length==0) {
-      next_methods = [[null]]
+      next_methods = [emptyMethod]
     }
     // logic (Current at index-1, must remain/become [[]], lose current, or lose next if clicked for 1st def)
     let next_logic = full['logic']
@@ -128,7 +130,7 @@ const singleMethod = (
   }
   
   const pick_column = dropdownPiece(
-    key+index, updateDefColumn, def[0] as string|null,
+    key+index, updateDefColumn, def[0] as string,
     "Condition " + (index+1) + ", Feature:", columns, sorted
   )
   const clear_comp = (
@@ -168,12 +170,12 @@ function targetSelectionComponent(
   index: number
   ) {
     
-  if (def[0]==null) return null
+  if (def[0]==emptyMethod[0]) return null
   
   let inner_def = [...def]
   inner_def.shift()
   
-  const target_data = Object.values(data_frame[def[0]])              
+  const target_data = Object.values(data_frame[def[0] as string])
   
   if (typeof target_data[0] == "number") {
     return rangePiece(
