@@ -11,8 +11,8 @@ import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplet
 import BooleanInput from './boolean';
 import { joinNesting, StringOptions } from './monoids';
 import { useMemoized } from '../../../../selectors/workflow_selectors';
-import { val_wrap, MultiselectInput, dropdownInput } from './user_input_pieces';
-import { subsetDataFrameInput } from './subsetDataFrame_piece';
+import { val_wrap, MultiselectPiece, dropdownPiece } from './user_input_pieces';
+import { subsetDataFramePiece } from './subsetDataFrame_piece';
 import { Button } from '@material-ui/core';
 
 /*
@@ -73,7 +73,7 @@ export default function DiffExpSC({
   let SubsetComps = null;
   if (value) {
     if (value['subset']) {
-    SubsetComps = subsetDataFrameInput(
+    SubsetComps = subsetDataFramePiece(
       "subset", updateValue, value['subset'], "Step 2: Subset by features to focus on certain cells? ",
       {...allData}, false, "secondary")
     } else {
@@ -98,7 +98,7 @@ export default function DiffExpSC({
 
   return (
     <div>
-      {dropdownInput(
+      {dropdownPiece(
         "method", setDEMethod, value['method'],
         "Step 1: Select your DE Question Type: ",
         Object.keys(method_labels), true)}
@@ -151,12 +151,12 @@ const DEComps = (
       let value_select_2 = null;
       if (Object.keys(opts).length>0 && vals['de_meta']!=null) {
         if (Object.keys(vals).includes('de_group_1')) {
-          value_select_1 = MultiselectInput(
+          value_select_1 = MultiselectPiece(
             'de_group_1', changeFxn, vals['de_group_1'],
             'Labels to include in Set-1', opts[(vals['de_meta'])] as string[])
         }
         if (Object.keys(vals).includes('de_group_2')) {
-          value_select_2 = MultiselectInput(
+          value_select_2 = MultiselectPiece(
             'de_group_2', changeFxn, vals['de_group_2'],
             'Labels to include in Set-2', opts[(vals['de_meta'])] as string[])
         }
@@ -166,7 +166,7 @@ const DEComps = (
         <div>
           <hr/>
           {"Step 3: What labels do you want to compare? "}
-          {dropdownInput(
+          {dropdownPiece(
             'de_meta', changeFxn, vals['de_meta'],
             'DiffExp by:', Object.keys(opts))}
           {value_select_1}
@@ -191,7 +191,7 @@ const GroupComps = (
       let value_select = null;
       if (Object.keys(opts).length>0 && vals['group_meta']!=null) {
         if (Object.keys(vals).includes('group_use')) {
-          value_select = MultiselectInput(
+          value_select = MultiselectPiece(
             'group_use', changeFxn, vals['group_use'],
             'Labels to target', opts[(vals['group_meta'])] as string[])
         }
@@ -201,7 +201,7 @@ const GroupComps = (
         <div>
           <hr/>
           {"Step 4: Within what comparison groups?"}
-          {dropdownInput(
+          {dropdownPiece(
             'group_meta', changeFxn, vals['group_meta'],
             'Group by:', Object.keys(opts))}
           {value_select}

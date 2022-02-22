@@ -9,8 +9,8 @@ import { useSetsDefault } from './useSetsDefault';
 import { some } from '../../../../selectors/maybe';
 import { Button, Slider } from '@material-ui/core';
 import { pick } from 'lodash';
-import { key_wrap, stringInput, dropdownInput, MultiselectInput, checkboxInput, sliderInput } from './user_input_pieces';
-import { subsetDataFrameInput } from './subsetDataFrame_piece';
+import { key_wrap, stringPiece, dropdownPiece, MultiselectPiece, checkboxPiece, sliderPiece } from './user_input_pieces';
+import { subsetDataFramePiece } from './subsetDataFrame_piece';
 
 /*
 This UI is closely tied to archimedes/functions/plotting/*_plotly functions.
@@ -236,19 +236,19 @@ function useExtraInputs(options: string[], full_data: DataEnvelope<any>) {
 }
 
 const comps: DataEnvelope<Function> = {
-  'plot_title': stringInput,
-  'legend_title': stringInput,
-  'xlab': stringInput,
-  'ylab': stringInput,
-  'x_by': dropdownInput,
-  'y_by': dropdownInput,
-  'color_by': dropdownInput,
-  'plots': MultiselectInput,
-  'color_order': dropdownInput,
-  'order_when_continuous_color': checkboxInput,
-  'size': sliderInput,
-  'scale_by': dropdownInput,
-  'x_scale': dropdownInput,
-  'y_scale': dropdownInput,
-  'rows_use': subsetDataFrameInput
+  'plot_title': stringPiece,
+  'legend_title': stringPiece,
+  'xlab': stringPiece,
+  'ylab': stringPiece,
+  'x_by': dropdownPiece,
+  'y_by': dropdownPiece,
+  'color_by': dropdownPiece,
+  'plots': MultiselectPiece,
+  'color_order': dropdownPiece,
+  'order_when_continuous_color': checkboxPiece,
+  'size': sliderPiece,
+  'scale_by': dropdownPiece,
+  'x_scale': dropdownPiece,
+  'y_scale': dropdownPiece,
+  'rows_use': subsetDataFramePiece
 }

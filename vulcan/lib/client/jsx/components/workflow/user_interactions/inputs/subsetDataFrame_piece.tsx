@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import {DataEnvelope} from './input_types';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import { checkboxInput, dropdownInput, MultiselectInput, rangeInput } from './user_input_pieces';
+import { checkboxPiece, dropdownPiece, MultiselectPiece, rangePiece } from './user_input_pieces';
 import { Button, PropTypes } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
@@ -13,7 +13,7 @@ It's a piece that recieves, as additional inputs:
  - 'sorted' = whether column name dropdowns should be alphanumerically sorted versus left in the same order as they are in the 'data_frame'.
 */
 
-export function subsetDataFrameInput(
+export function subsetDataFramePiece(
   key: string = "filler", changeFxn: Function, value: DataEnvelope<(string|number|null)[][]> = {},
   label: string, data_frame_ori: DataEnvelope<any>, sorted = false, color: PropTypes.Color = "primary") {
     
@@ -43,7 +43,7 @@ export function subsetDataFrameInput(
     changeFxn(next_full, key)
   }
   
-  const base = checkboxInput(
+  const base = checkboxPiece(
     key, startOrClear, Object.keys(values).includes('methods'),
     label)
   
@@ -56,6 +56,7 @@ export function subsetDataFrameInput(
           def, index, data_frame, updateCurrent, changeFxn, key, values, sorted, color)
         })
       }
+      <br></br>
       <Button
         color={color}
         onClick={(x) => {updateCurrent([null], "and", values['methods'].length)}}>
@@ -126,9 +127,9 @@ const singleMethod = (
       key)
   }
   
-  const pick_column = dropdownInput(
+  const pick_column = dropdownPiece(
     key+index, updateDefColumn, def[0] as string|null,
-    "Feature " + (index+1) + ":", columns, sorted
+    "Condition " + (index+1) + ", Feature:", columns, sorted
   )
   const clear_comp = (
     <Button
@@ -138,7 +139,7 @@ const singleMethod = (
     </Button>
   )
   const logic_comp = (index == 0) ? null : 
-    dropdownInput(
+    dropdownPiece(
         key+index+index+index, updateLogic, values['logic'][index-1][0] as string,
         "Combination Logic:", ["and", "or"], false
       )
@@ -175,7 +176,7 @@ function targetSelectionComponent(
   const target_data = Object.values(data_frame[def[0]])              
   
   if (typeof target_data[0] == "number") {
-    return rangeInput(
+    return rangePiece(
       key+index+index, updateFxn,
       (inner_def.length > 0) ? inner_def : ["exactly", null, "below", null],
       ""
@@ -187,14 +188,14 @@ function targetSelectionComponent(
       return self.indexOf(value) === index;
     }
     const options = target_data.filter(onlyUnique) as string[];
-    return MultiselectInput(
+    return MultiselectPiece(
       key+index+index, updateFxn,
       inner_def as string[],
       "Keep:", options
       )
   }
   if (typeof target_data[0] == "boolean") {
-    return dropdownInput(
+    return dropdownPiece(
       key+index+index, updateFxn,
       (inner_def.length > 0) ? inner_def[0] as string : "",
       "Keep:", ["True", "False"], false

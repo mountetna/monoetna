@@ -35,17 +35,19 @@ Some "pieces" have additional inputs, but the first 4 are ALWAYS:
   - label = a text label to be displayed with this component
 */
 
-export function stringInput(
+export function stringPiece(
   key: string = "filler", changeFxn: Function, value: string = "filler",
   label: string = 'hello') {
     return (
-      <StringInput
-        key={key}
-        label={label}
-        data={val_wrap(value)}
-        value={maybeOfNullable(value)}
-        onChange={(newValue) => changeFxn(withDefault(newValue,'make'), key)}
-      />
+      <div style={{paddingTop:6, minWidth:200}}>
+        <TextField
+          key={key}
+          value={value}
+          label={label}
+          variant="outlined"
+          onChange={(event) => changeFxn(event.target.value, key)}
+        />
+      </div>
     )
   };
 
@@ -64,7 +66,7 @@ export function stringInput(
 //     )
 //   }
 
-export function checkboxInput(
+export function checkboxPiece(
   key: string = "filler", changeFxn: Function, value: boolean = false,
   label: string) {
     return(
@@ -78,25 +80,23 @@ export function checkboxInput(
     )
   }
 
-export function dropdownInput(
+export function dropdownPiece(
   key: string = "filler", changeFxn: Function, value: string | null,
   label: string, options: string[], sorted: boolean = true) {
     
     return(
-      <div key={key}>
-        <Autocomplete
-          disablePortal
-          value={value}
-          onChange={(event:any, val: string) => changeFxn(val, key)}
-          id={key}
-          options={options}
-          renderInput={(params:any) => <TextField {...params} label={label} />}
-        />
-      </div>
+      <Autocomplete
+        style={{minWidth: 200, paddingTop: 6}}
+        value={value}
+        onChange={(event:any, val: string) => changeFxn(val, key)}
+        id={key}
+        options={options}
+        renderInput={(params:any) => <TextField {...params} label={label} variant="outlined"/>}
+      />
     )
   }
 
-export function MultiselectInput(
+export function MultiselectPiece(
   key: string = "filler", changeFxn: Function, value: string[] | null,
   label: string, options: string[]) {
     
@@ -112,7 +112,7 @@ export function MultiselectInput(
     )
   }
 
-export function sliderInput(
+export function sliderPiece(
   key: string = "filler", changeFxn: Function, value: number,
   label: string, min: number = 0.1, max: number = 20) {
 
@@ -130,7 +130,7 @@ export function sliderInput(
     )
   }
 
-export function rangeInput(
+export function rangePiece(
   key: string = "filler", changeFxn: Function, value: (string|number|null)[] = ["exactly", null, "below", null],
   label: string) {
     
