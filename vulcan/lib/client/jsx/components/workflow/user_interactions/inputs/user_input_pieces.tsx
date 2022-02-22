@@ -81,7 +81,7 @@ export function checkboxPiece(
   }
 
 export function dropdownPiece(
-  key: string = "filler", changeFxn: Function, value: string | null,
+  key: string = "filler", changeFxn: Function, value: string,
   label: string, options: string[], sorted: boolean = true) {
     
     return(
