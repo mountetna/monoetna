@@ -1,4 +1,5 @@
 import React from 'react';
+import { some } from '../../../../../selectors/maybe';
 import {toNestedArray, toJson} from '../data_transformation';
 
 describe('toNestedArray', () => {
@@ -15,7 +16,7 @@ describe('toNestedArray', () => {
         '2': 'xyz'
       }
     };
-    const output = toNestedArray(inputDF);
+    const output = toNestedArray(some(inputDF));
 
     expect(output).toEqual([
       ['col1', 'col2'],
