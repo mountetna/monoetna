@@ -13,17 +13,15 @@ export const checkStatus = (response) => {
   }
 };
 
-export const base_json_fetch = (method) => (
-  path,
-  params,
-  headers = {'Content-type': 'application/json'}
-) =>
-  fetch(path, {
-    method,
-    credentials: 'include',
-    headers,
-    ...(params && {body: JSON.stringify(params)})
-  }).then(checkStatus);
+export const base_json_fetch =
+  (method) =>
+  (path, params, headers = {'Content-type': 'application/json'}) =>
+    fetch(path, {
+      method,
+      credentials: 'include',
+      headers,
+      ...(params && {body: JSON.stringify(params)})
+    }).then(checkStatus);
 
 export const json_post = base_json_fetch('POST');
 
