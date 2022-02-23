@@ -17,6 +17,8 @@ def __getattr__(name):
         get_project_slack_hook,
     )
     from .hooks.etna import UpdateRequest
+    __all__ = list(locals().keys())
+    __version__ = '0.0.1'
 
     return locals()[name]
 

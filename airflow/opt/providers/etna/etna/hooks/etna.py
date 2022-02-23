@@ -625,8 +625,8 @@ class UploadResponse:
 @dataclasses.dataclass
 class Upload:
     file: typing.IO
+    file_size: int
     upload_path: str
-    size: int
 
     cur: int = 0
 
@@ -662,12 +662,12 @@ class Upload:
     def next_blob_size(self):
         return min(
             self.MAX_BLOB_SIZE if self.cur > 0 else self.INITIAL_BLOB_SIZE,
-            self.size - self.cur,
+            self.file_size - self.cur,
         )
 
     @property
     def is_complete(self):
-        return self.cur >= self.size
+        return self.cur >= self.file_size
 
     @property
     def next_blob_hash(self):
@@ -720,10 +720,6 @@ class Upload:
 
         self.last_bytes = b"".join(data)
         return self.last_bytes
-
-    @property
-    def upload_path(self):
-        return re.compile(r"^https://[^/]*?/").sub("/", self.url)
 
 
 @serialize

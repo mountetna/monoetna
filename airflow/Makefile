@@ -11,3 +11,6 @@ run-image-test::
 
 black:
 	docker run -u 0:0 -v $(pwd)/opt/providers:/opt/airflow/providers --rm $(baseTag) bash -c '$$@' -- black /opt/airflow/providers/etna
+
+pydoc: $(shell readlink -m $(shell dirname $(firstword $(MAKEFILE_LIST))))/image-release.marker
+	docker run -u 0:0 -v $(pwd)/opt/providers:/opt/airflow/providers --rm $(baseTag) bash -c '$$@' -- pydoc -w etna
