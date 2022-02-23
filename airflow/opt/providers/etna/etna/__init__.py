@@ -16,7 +16,7 @@ def __getattr__(name):
         get_project_slack_hook,
     )
     from .hooks.etna import UpdateRequest
-    __all__ = list(k for k in locals().keys() if k != 'name')
+    __all__ = list(k for k in locals().keys() if k != 'name') + ['dags', 'operators', 'etls', 'xcom', 'hooks']
     __version__ = '0.0.1'
     __date__ = datetime(2022, 2, 22)
 

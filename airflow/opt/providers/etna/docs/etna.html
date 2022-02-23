@@ -18,8 +18,18 @@
         <input id="togglestate" type="checkbox" aria-hidden="true" tabindex="-1">
         <div>
 
+            <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
+                   pattern=".+" required>
 
 
+        <h2>Submodules</h2>
+        <ul>
+                <li><a href="etna/dags.html">etna.dags</a></li>
+                <li><a href="etna/operators.html">etna.operators</a></li>
+                <li><a href="etna/etls.html">etna.etls</a></li>
+                <li><a href="etna/xcom.html">etna.xcom</a></li>
+                <li><a href="etna/hooks.html">etna.hooks</a></li>
+        </ul>
 
         <h2>API Documentation</h2>
             <ul class="memberlist">
@@ -156,7 +166,7 @@ etna    </h1>
         <span class="n">get_project_slack_hook</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="kn">from</span> <span class="nn">.hooks.etna</span> <span class="kn">import</span> <span class="n">UpdateRequest</span>
-    <span class="n">__all__</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span>
+    <span class="n">__all__</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;dags&#39;</span><span class="p">,</span> <span class="s1">&#39;operators&#39;</span><span class="p">,</span> <span class="s1">&#39;etls&#39;</span><span class="p">,</span> <span class="s1">&#39;xcom&#39;</span><span class="p">,</span> <span class="s1">&#39;hooks&#39;</span><span class="p">]</span>
     <span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;0.0.1&#39;</span>
     <span class="n">__date__</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">22</span><span class="p">)</span>
 
@@ -236,7 +246,7 @@ etna    </h1>
     output_json: Union[bool, Type] = False,
     output_b64: bool = False,
     docker_base_url=&#39;unix://var/run/docker.sock&#39;
-) -&gt; <a href="#operators.docker_operator_base.DockerOperatorBase">etna.operators.docker_operator_base.DockerOperatorBase</a></span>:
+) -&gt; <a href="etna/operators/docker_operator_base.html#DockerOperatorBase">etna.operators.docker_operator_base.DockerOperatorBase</a></span>:
     </div>
 
             <details>
@@ -286,7 +296,7 @@ etna    </h1>
     bucket_name: str,
     version: Union[int, str],
     propagate_updates=True,
-    hook: Union[<a href="#hooks.etna.EtnaHook">etna.hooks.etna.EtnaHook</a>, NoneType] = None,
+    hook: Union[<a href="etna/hooks/etna.html#EtnaHook">etna.hooks.etna.EtnaHook</a>, NoneType] = None,
     inject_params: Mapping[str, str] = {}
 )</span>:
     </div>
@@ -488,7 +498,7 @@ etna    </h1>
             <span class="name">link</span><span class="signature">(
     attribute_name: Union[str, NoneType] = None,
     dry_run=True,
-    hook: Union[<a href="#hooks.etna.EtnaHook">etna.hooks.etna.EtnaHook</a>, NoneType] = None,
+    hook: Union[<a href="etna/hooks/etna.html#EtnaHook">etna.hooks.etna.EtnaHook</a>, NoneType] = None,
     task_id: Union[str, NoneType] = None
 )</span>
     </div>
@@ -658,7 +668,7 @@ etna    </h1>
             <span class="name">MetisEtlHelpers</span><span class="signature">(
     tail_folders: airflow.models.xcom_arg.XComArg,
     tail_files: airflow.models.xcom_arg.XComArg,
-    hook: <a href="#hooks.etna.EtnaHook">etna.hooks.etna.EtnaHook</a>
+    hook: <a href="etna/hooks/etna.html#EtnaHook">etna.hooks.etna.EtnaHook</a>
 )</span>
     </div>
 
@@ -707,7 +717,7 @@ etna    </h1>
     self,
     listed_record_matches: airflow.models.xcom_arg.XComArg,
     regex: re.Pattern,
-    processor: Callable[[<a href="#hooks.etna.Metis">etna.hooks.etna.Metis</a>, <a href="#etls.metis.MatchedRecordFolder">etna.etls.metis.MatchedRecordFolder</a>, <a href="#hooks.etna.File">etna.hooks.etna.File</a>], <a href="#hooks.etna.UpdateRequest">etna.hooks.etna.UpdateRequest</a>],
+    processor: Callable[[<a href="etna/hooks/etna.html#Metis">etna.hooks.etna.Metis</a>, <a href="etna/etls/metis.html#MatchedRecordFolder">etna.etls.metis.MatchedRecordFolder</a>, <a href="etna/hooks/etna.html#File">etna.hooks.etna.File</a>], <a href="etna/hooks/etna.html#UpdateRequest">etna.hooks.etna.UpdateRequest</a>],
     dry_run=True
 ) -&gt; airflow.models.xcom_arg.XComArg</span>:
     </div>
@@ -957,7 +967,7 @@ etna    </h1>
 
         
             <span class="def">def</span>
-            <span class="name">get_etna_hook</span><span class="signature">() -&gt; <a href="#hooks.etna.EtnaHook">etna.hooks.etna.EtnaHook</a></span>:
+            <span class="name">get_etna_hook</span><span class="signature">() -&gt; <a href="etna/hooks/etna.html#EtnaHook">etna.hooks.etna.EtnaHook</a></span>:
     </div>
 
             <details>
@@ -976,7 +986,7 @@ etna    </h1>
 
         
             <span class="def">def</span>
-            <span class="name">get_git_hook</span><span class="signature">(remote_path: str) -&gt; <a href="#hooks.git.GitHook">etna.hooks.git.GitHook</a></span>:
+            <span class="name">get_git_hook</span><span class="signature">(remote_path: str) -&gt; <a href="etna/hooks/git.html#GitHook">etna.hooks.git.GitHook</a></span>:
     </div>
 
             <details>
@@ -1123,7 +1133,7 @@ etna    </h1>
 
         
             <span class="def">def</span>
-            <span class="name">extend</span><span class="signature">(self, other: <a href="#hooks.etna.UpdateRequest">etna.hooks.etna.UpdateRequest</a>)</span>:
+            <span class="name">extend</span><span class="signature">(self, other: <a href="etna/hooks/etna.html#UpdateRequest">etna.hooks.etna.UpdateRequest</a>)</span>:
     </div>
 
             <details>
@@ -1144,7 +1154,7 @@ etna    </h1>
 
         
             <span class="def">def</span>
-            <span class="name">validate</span><span class="signature">(self, models: Dict[str, <a href="#hooks.etna.Model">etna.hooks.etna.Model</a>]) -&gt; Iterable[str]</span>:
+            <span class="name">validate</span><span class="signature">(self, models: Dict[str, <a href="etna/hooks/etna.html#Model">etna.hooks.etna.Model</a>]) -&gt; Iterable[str]</span>:
     </div>
 
             <details>
@@ -1237,5 +1247,182 @@ etna    </h1>
                             </div>
                 </section>
     </main>
-</body>
+<script>
+    function escapeHTML(html) {
+        return document.createElement('div').appendChild(document.createTextNode(html)).parentNode.innerHTML;
+    }
+
+    const originalContent = document.querySelector("main.pdoc");
+    let currentContent = originalContent;
+
+    function setContent(innerHTML) {
+        let elem;
+        if (innerHTML) {
+            elem = document.createElement("main");
+            elem.classList.add("pdoc");
+            elem.innerHTML = innerHTML;
+        } else {
+            elem = originalContent;
+        }
+        if (currentContent !== elem) {
+            currentContent.replaceWith(elem);
+            currentContent = elem;
+        }
+    }
+
+    function getSearchTerm() {
+        return (new URL(window.location)).searchParams.get("search");
+    }
+
+    const searchBox = document.querySelector(".pdoc input[type=search]");
+    searchBox.addEventListener("input", function () {
+        let url = new URL(window.location);
+        if (searchBox.value.trim()) {
+            url.hash = "";
+            url.searchParams.set("search", searchBox.value);
+        } else {
+            url.searchParams.delete("search");
+        }
+        history.replaceState("", "", url.toString());
+        onInput();
+    });
+    window.addEventListener("popstate", onInput);
+
+
+    let search, searchErr;
+
+    async function initialize() {
+        try {
+            search = await new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+                script.type = "text/javascript";
+                script.async = true;
+                script.onload = () => resolve(window.pdocSearch);
+                script.onerror = (e) => reject(e);
+                script.src = "search.js";
+                document.getElementsByTagName("head")[0].appendChild(script);
+            });
+        } catch (e) {
+            console.error("Cannot fetch pdoc search index");
+            searchErr = "Cannot fetch search index.";
+        }
+        onInput();
+
+        document.querySelector("nav.pdoc").addEventListener("click", e => {
+            if (e.target.hash) {
+                searchBox.value = "";
+                searchBox.dispatchEvent(new Event("input"));
+            }
+        });
+    }
+
+    function onInput() {
+        setContent((() => {
+            const term = getSearchTerm();
+            if (!term) {
+                return null
+            }
+            if (searchErr) {
+                return `<h3>Error: ${searchErr}</h3>`
+            }
+            if (!search) {
+                return "<h3>Searching...</h3>"
+            }
+
+            window.scrollTo({top: 0, left: 0, behavior: 'auto'});
+
+            const results = search(term);
+
+            let html;
+            if (results.length === 0) {
+                html = `No search results for '${escapeHTML(term)}'.`
+            } else {
+                html = `<h4>${results.length} search result${results.length > 1 ? "s" : ""} for '${escapeHTML(term)}'.</h4>`;
+            }
+            for (let result of results.slice(0, 10)) {
+                let doc = result.doc;
+                let url = `${doc.modulename.replaceAll(".", "/")}.html`;
+                if (doc.qualname) {
+                    url += `#${doc.qualname}`;
+                }
+
+                let heading;
+                switch (result.doc.type) {
+                    case "function":
+                        heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span><span class="signature">${doc.signature}:</span>`;
+                        break;
+                    case "class":
+                        heading = `<span class="def">class</span> <span class="name">${doc.fullname}</span>`;
+                        if (doc.bases)
+                            heading += `<wbr>(<span class="base">${doc.bases}</span>)`;
+                        heading += `:`;
+                        break;
+                    case "variable":
+                        heading = `<span class="name">${doc.fullname}</span>`;
+                        if (doc.annotation)
+                            heading += `<span class="annotation">${doc.annotation}</span>`;
+                        if (doc.default_value)
+                            heading += `<span class="default_value">${doc.default_value}</span>`;
+                        break;
+                    default:
+                        heading = `<span class="name">${doc.fullname}</span>`;
+                        break;
+                }
+                html += `
+                        <section class="search-result">
+                        <a href="${url}" class="attr ${doc.type}">${heading}</a>
+                        <div class="docstring">${doc.doc}</div>
+                        </section>
+                    `;
+
+            }
+            return html;
+        })());
+    }
+
+    if (getSearchTerm()) {
+        initialize();
+        searchBox.value = getSearchTerm();
+        onInput();
+    } else {
+        searchBox.addEventListener("focus", initialize, {once: true});
+    }
+
+    searchBox.addEventListener("keydown", e => {
+        if (["ArrowDown", "ArrowUp", "Enter"].includes(e.key)) {
+            let focused = currentContent.querySelector(".search-result.focused");
+            if (!focused) {
+                currentContent.querySelector(".search-result").classList.add("focused");
+            } else if (
+                e.key === "ArrowDown"
+                && focused.nextElementSibling
+                && focused.nextElementSibling.classList.contains("search-result")
+            ) {
+                focused.classList.remove("focused");
+                focused.nextElementSibling.classList.add("focused");
+                focused.nextElementSibling.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                    inline: "nearest"
+                });
+            } else if (
+                e.key === "ArrowUp"
+                && focused.previousElementSibling
+                && focused.previousElementSibling.classList.contains("search-result")
+            ) {
+                focused.classList.remove("focused");
+                focused.previousElementSibling.classList.add("focused");
+                focused.previousElementSibling.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                    inline: "nearest"
+                });
+            } else if (
+                e.key === "Enter"
+            ) {
+                focused.querySelector("a").click();
+            }
+        }
+    });
+</script></body>
 </html>
