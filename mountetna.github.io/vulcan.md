@@ -152,9 +152,9 @@ The below table lists all potential inputs and how to use them:
 
 | Label within the Plot Configuration Interface | Plot Types which use these inputs | Purpose & How to use |
 | ---- |---| ----------- |
-| X-Axis Data, Y-Axis Data | All | These dropdowns present column names of the incoming data for the user to select which column to use for the X and Y axes. |
+| X-Axis Data, Y-Axis Data | All | These dropdowns present column names of the incoming data for the user to select which column to use for the X and Y axes. Whereas for Scatter and Y Plots these data are utilized directly, for Bar Plots, plotted data are compositional summaries of Y-Axis Data values per X-Axis Data groups. |
 | Color Data | Scatter & Y | This dropdown presents column names of the incoming data for the user to select which column to use for coloring points. It also injects an option of 'make', the default, which translates to 'all one color' for scatter plots or 'the X-Axis Data selection' for Y Plots |
-| Scale Y by counts or fraction? | Bar | This dropdown allows users to pick whether the y-axis of the resultant Bar Plot will be in proportaion to raw 'counts' per group, or by 'fraction' composition of each group in which every bar will have a height of 1. |
+| Scale Y by counts or fraction? | Bar | This dropdown allows users to pick whether the y-axis of the resultant Bar Plot will be in proportion to raw 'counts' per group, or to 'fraction' composition of each group in which every bar will have a height of 1. |
 | Data Representations | Y | The multi-select ui for this input allows users to select which visual representations of their data to show in the plot: either violin plots, box plots, or both. |
 | Plot Title, Legend Title, X-Axis Title, Y-Axis Title | All | String inputs which allow the user to provide custom titles. |
 | Point render order | Scatter | When 'Color Data' is given a discrete data column, this dropdown -- of 'increasing', 'decreasing', or 'unordered' -- determines both the order by which colors get asigned to groups and their plotting order from back-to-front. |
