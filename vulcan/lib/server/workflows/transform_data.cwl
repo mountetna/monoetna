@@ -37,9 +37,15 @@ steps:
     in:
       data_frame: get_data/data_frame
     out: [data, source_data]
-  show_plot:
+  show_data:
     run: ui-outputs/link.cwl
     in:
       a: transform_data/data
     out: []
     label: 'Download your final data frame'
+  show_source_data:
+    run: ui-outputs/link.cwl
+    in:
+      a: transform_data/source_data
+    out: []
+    label: 'Download the source of your final data frame'
