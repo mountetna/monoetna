@@ -212,7 +212,7 @@ export default function DataTransformationInput({
   return (
     <>
       <div>
-        Your data frame has {value.length} rows and {value[0].length} columns.
+        Your data frame has {value.length - 1} rows and {value[0].length} columns.
       </div>
       <Dialog open={open} onClose={handleOnClose} maxWidth='xl'>
         <DataTransformationModal
