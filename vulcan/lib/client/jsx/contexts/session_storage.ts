@@ -1,45 +1,100 @@
-import {useEffect, useCallback, MutableRefObject} from "react";
-import {SessionStatusResponse, Workflow} from "../api_types";
-import {VulcanState} from "../reducers/vulcan_reducer";
-import {allWorkflowPrimaryInputSources, inputValueNonEmpty} from "../selectors/workflow_selectors";
+import {useEffect, useCallback} from 'react';
+import {
+  SessionStatusResponse,
+  VulcanFigure,
+  VulcanFigureSession,
+  VulcanSession
+} from '../api_types';
+import {VulcanState} from '../reducers/vulcan_reducer';
+import {cwlName} from '../selectors/workflow_selectors';
 
-const localStorageKey = (workflow: Workflow, projectName: string) => `${projectName}/${workflow.name}.session`;
+const localStorageKey = ({
+  figure_id,
+  project_name,
+  workflow_name
+}: {
+  figure_id?: number | null;
+  project_name: string;
+  workflow_name: string;
+}) =>
+  figure_id
+    ? `${project_name}/figure/${figure_id}`
+    : `${project_name}/figure/new/${cwlName(workflow_name)}`;
 
 export const defaultSessionStorageHelpers = {
-  getLocalSession(workflow: Workflow, projectName: string): Promise<SessionStatusResponse['session'] | null> {
+  getLocalSession(
+    workflow_name: string,
+    project_name: string,
+    figure_id: number | null
+  ): Promise<(SessionStatusResponse['session'] & VulcanFigure) | null> {
     return Promise.resolve(null);
-  }
-}
+  },
+  clearLocalSession(
+    workflow_name: string,
+    project_name: string,
+    figure_id: number | null
+  ): void {}
+};
 
-export function useLocalSessionStorage(state: VulcanState,
-  props: { storage?: typeof localStorage } = {}
+// invoked every time
+export function useLocalSessionStorage(
+  state: VulcanState,
+  props: {storage?: typeof localStorage} = {}
 ): typeof defaultSessionStorageHelpers {
-
   const storage = props.storage || localStorage;
-  const {session, workflow} = state;
+  const {session, workflow, figure} = state;
 
   useEffect(() => {
-    if (workflow && workflow.name && storage && session.workflow_name === workflow.name) {
-      storage.setItem(localStorageKey(workflow, session.project_name), JSON.stringify(session));
+    if (storage && session && figure && workflow) {
+      storage.setItem(
+        localStorageKey({
+          figure_id: figure.figure_id,
+          workflow_name: session.workflow_name,
+          project_name: session.project_name
+        }),
+        JSON.stringify({...figure, ...session})
+      );
     }
-  }, [session, workflow, storage])
+  }, [session, storage, figure, workflow]);
 
-  const getLocalSession = useCallback((workflow: Workflow, projectName: string) => {
-    let storedSession: any = storage.getItem(localStorageKey(workflow, projectName));
-    if (!storedSession) return Promise.resolve(null);
+  const getLocalSession = useCallback(
+    (workflow_name: string, project_name: string, figure_id: number | null) => {
+      let storedSession: any = storage.getItem(
+        localStorageKey({workflow_name, figure_id, project_name})
+      );
+      if (!storedSession) return Promise.resolve(null);
 
-    try {
-      const parsedSession: VulcanState['session'] = JSON.parse(storedSession);
-      if (parsedSession.project_name !== projectName) return Promise.resolve(null);
-      return Promise.resolve(parsedSession);
-    } catch (e) {
-      // No guarantees that the stored session is really valid, gracefully clear that session in that case.
-      console.error(e);
-      return Promise.resolve(null);
-    }
-  }, [storage]);
+      try {
+        const parsedSession: VulcanFigureSession = JSON.parse(storedSession);
+        if (parsedSession.project_name !== project_name)
+          return Promise.resolve(null);
+        return Promise.resolve(parsedSession);
+      } catch (e) {
+        // No guarantees that the stored session is really valid, gracefully clear that session in that case.
+        console.error(e);
+        return Promise.resolve(null);
+      }
+    },
+    [storage]
+  );
+
+  const clearLocalSession = (
+    workflow_name: string,
+    project_name: string,
+    figure_id: number | null
+  ) => {
+    storage.setItem(
+      localStorageKey({
+        figure_id: figure.figure_id,
+        workflow_name: session.workflow_name,
+        project_name: session.project_name
+      }),
+      JSON.stringify({})
+    );
+  };
 
   return {
     getLocalSession,
-  }
+    clearLocalSession
+  };
 }

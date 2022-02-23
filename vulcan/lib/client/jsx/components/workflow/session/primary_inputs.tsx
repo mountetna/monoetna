@@ -1,15 +1,30 @@
-import React, {useState, useCallback, useContext, useEffect, useMemo} from 'react';
+import React, {
+  useState,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo
+} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
-import {inputGroupName} from '../../../selectors/workflow_selectors';
+import {
+  inputGroupName,
+  mergeInputsWithDefaults
+} from '../../../selectors/workflow_selectors';
 import InputGroup from './input_group';
 import {
-  bindInputSpecification, BoundInputSpecification, DataEnvelope, getInputSpecifications
-} from "../user_interactions/inputs/input_types";
-import {useWorkflow} from "../../../contexts/workflow_context";
-import {Maybe, maybeOfNullable} from "../../../selectors/maybe";
-import {BufferedInputsContext, WithBufferedInputs} from "../../../contexts/input_state_management";
+  bindInputSpecification,
+  BoundInputSpecification,
+  DataEnvelope,
+  getInputSpecifications
+} from '../user_interactions/inputs/input_types';
+import {useWorkflow} from '../../../contexts/workflow_context';
+import {Maybe, maybeOfNullable} from '../../../selectors/maybe';
+import {
+  BufferedInputsContext,
+  WithBufferedInputs
+} from '../../../contexts/input_state_management';
 import Collapse from '@material-ui/core/Collapse';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
@@ -34,11 +49,16 @@ const useStyles = makeStyles((theme) => ({
 export default function PrimaryInputs() {
   const {commitSessionInputChanges, dispatch} = useContext(VulcanContext);
 
-  return <WithBufferedInputs commitSessionInputChanges={commitSessionInputChanges} dispatch={dispatch} stepName={null}>
-    <PrimaryInputsInner/>
-  </WithBufferedInputs>
+  return (
+    <WithBufferedInputs
+      commitSessionInputChanges={commitSessionInputChanges}
+      dispatch={dispatch}
+      stepName={null}
+    >
+      <PrimaryInputsInner />
+    </WithBufferedInputs>
+  );
 }
-
 
 function PrimaryInputsInner() {
   const {state} = useContext(VulcanContext);
@@ -48,70 +68,94 @@ function PrimaryInputsInner() {
 
   // Ensure defaults are set.
   useEffect(() => {
-    let withDefaults: DataEnvelope<Maybe<any>> = {};
-    Object.keys(workflow.inputs).forEach(inputName => {
-      if (!(inputName in session.inputs) && !(inputName in inputs)) {
-        withDefaults[inputName] = maybeOfNullable(workflow.inputs[inputName].default);
-      }
-    })
+    let withDefaults: DataEnvelope<Maybe<any>> = mergeInputsWithDefaults(
+      workflow.inputs,
+      session.inputs,
+      inputs
+    );
 
     if (Object.keys(withDefaults).length > 0) {
-      setInputs(inputs => ({...inputs, ...withDefaults}));
+      setInputs((inputs) => ({...inputs, ...withDefaults}));
     }
-  }, [inputs, session.inputs, setInputs, workflow.inputs])
+  }, [inputs, session.inputs, setInputs, workflow.inputs]);
 
-  const inputSpecifications = useMemo(() =>
-    getInputSpecifications(Object.entries(workflow.inputs), workflow), [workflow]);
+  const inputSpecifications = useMemo(
+    () => getInputSpecifications(Object.entries(workflow.inputs), workflow),
+    [workflow]
+  );
 
   let groupedInputs = useMemo(() => {
     return inputSpecifications.reduce((result, spec) => {
-      let groupName = inputGroupName(spec.name) || "Inputs";
+      let groupName = inputGroupName(spec.name) || 'Inputs';
       result[groupName] = result[groupName] || [];
-      result[groupName].push(bindInputSpecification(spec,
-        workflow,
-        state.status,
-        state.session,
-        state.data,
-        inputs,
-        setInputs,
-      ));
+      result[groupName].push(
+        bindInputSpecification(
+          spec,
+          workflow,
+          state.status,
+          state.session,
+          state.data,
+          inputs,
+          setInputs
+        )
+      );
       return result;
     }, {} as {[k: string]: BoundInputSpecification[]});
-  }, [inputSpecifications, inputs, setInputs, state.data, state.session, state.status, workflow]);
+  }, [
+    inputSpecifications,
+    inputs,
+    setInputs,
+    state.data,
+    state.session,
+    state.status,
+    workflow
+  ]);
 
-  const [ expanded, setExpanded ] = useState('');
+  const [expanded, setExpanded] = useState('');
 
-  const [ open, setOpen ] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const classes = useStyles();
 
   return (
     <Card className={classes.card}>
-        <Grid className={classes.header} container alignItems='center' justify='space-between' onClick={ () => setOpen(!open) }>
-          <Grid item>
-            <Typography variant='h6'>Primary Inputs</Typography>
-          </Grid>
-          <Grid item>
-            <IconButton size='small'>
-              { open ? <ExpandLessIcon fontSize='small'/> : <ExpandMoreIcon fontSize='small'/>}
-            </IconButton>
-          </Grid>
+      <Grid
+        className={classes.header}
+        container
+        alignItems='center'
+        justifyContent='space-between'
+        onClick={() => setOpen(!open)}
+      >
+        <Grid item>
+          <Typography variant='h6'>Primary Inputs</Typography>
         </Grid>
-        <Collapse in={ open }>
-          {Object.keys(groupedInputs)
-            .sort()
-            .map((groupName, index) => {
-              return (
-                <InputGroup
-                  expanded={ expanded == groupName }
-                  select={ () => setExpanded(expanded == groupName ? '' : groupName) }
-                  groupName={groupName.split('_').slice(1).join(' ')}
-                  key={index}
-                  inputs={groupedInputs[groupName]}
-                />
-              );
-            })}
-        </Collapse>
+        <Grid item>
+          <IconButton size='small'>
+            {open ? (
+              <ExpandLessIcon fontSize='small' />
+            ) : (
+              <ExpandMoreIcon fontSize='small' />
+            )}
+          </IconButton>
+        </Grid>
+      </Grid>
+      <Collapse in={open}>
+        {Object.keys(groupedInputs)
+          .sort()
+          .map((groupName, index) => {
+            return (
+              <InputGroup
+                expanded={expanded == groupName}
+                select={() =>
+                  setExpanded(expanded == groupName ? '' : groupName)
+                }
+                groupName={groupName.split('_').slice(1).join(' ')}
+                key={index}
+                inputs={groupedInputs[groupName]}
+              />
+            );
+          })}
+      </Collapse>
     </Card>
   );
 }
