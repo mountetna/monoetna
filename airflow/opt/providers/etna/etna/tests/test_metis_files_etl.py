@@ -73,29 +73,29 @@ def find_batch_start(
 
 
 # @mock.patch("tempfile._Random", NotSoRandom)
-def test_metis_files_etl_e2e(token_etna_connection: Connection):
-    hook = EtnaHook(token_etna_connection.conn_id)
-
-    record_matches_task_id: str = ""
-
-    @metis_etl("mvir1", "data", 1, hook=hook)
-    def test_loading_metis_files(helpers: MetisEtlHelpers):
-        nonlocal record_matches_task_id
-        matches = helpers.find_record_folders(
-            "rna_seq", re.compile(r"^bulk_RNASeq/raw/[^/]*")
-        )
-        matches = helpers.filter_by_timur(matches)
-        matches = helpers.list_match_folders(matches)
-
-        record_matches_task_id = matches.operator.task_id
-
-    test_loading_metis_files: DAG
-
-    start_date = find_batch_start(hook, "mvir1", "data", "bulk_RNASeq/raw")
-    end_date = start_date + timedelta(days=1)
-    run_dag(test_loading_metis_files, start_date, end_date)
-
-    results = get_all_results(
-        end_date, test_loading_metis_files, record_matches_task_id
-    )
-    assert len(results) > 0
+# def test_metis_files_etl_e2e(token_etna_connection: Connection):
+#     hook = EtnaHook(token_etna_connection.conn_id)
+#
+#     record_matches_task_id: str = ""
+#
+#     @metis_etl("mvir1", "data", 1, hook=hook)
+#     def test_loading_metis_files(helpers: MetisEtlHelpers):
+#         nonlocal record_matches_task_id
+#         matches = helpers.find_record_folders(
+#             "rna_seq", re.compile(r"^bulk_RNASeq/raw/[^/]*")
+#         )
+#         matches = helpers.filter_by_timur(matches)
+#         matches = helpers.list_match_folders(matches)
+#
+#         record_matches_task_id = matches.operator.task_id
+#
+#     test_loading_metis_files: DAG
+#
+#     start_date = find_batch_start(hook, "mvir1", "data", "bulk_RNASeq/raw")
+#     end_date = start_date + timedelta(days=1)
+#     run_dag(test_loading_metis_files, start_date, end_date)
+#
+#     results = get_all_results(
+#         end_date, test_loading_metis_files, record_matches_task_id
+#     )
+#     assert len(results) > 0

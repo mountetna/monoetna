@@ -1,11 +1,10 @@
+from datetime import datetime
+
 def __getattr__(name):
     from .dags.decorators import system_dag
     from .operators import run_on_docker
     from .etls.decorators import metis_etl
     from .etls.metis import (
-        filter_by_record_directory,
-        filter_by_exists_in_timur,
-        list_contents_of_matches,
         link,
         MetisEtlHelpers,
     )
@@ -17,10 +16,16 @@ def __getattr__(name):
         get_project_slack_hook,
     )
     from .hooks.etna import UpdateRequest
-    __all__ = list(locals().keys())
+    __all__ = list(k for k in locals().keys() if k != 'name')
     __version__ = '0.0.1'
+    __date__ = datetime(2022, 2, 22)
 
-    return locals()[name]
+    for k, v in locals().items():
+        globals()[k] = v
+
+    if name in locals():
+        return locals()[name]
+    raise AttributeError(f"{name} does not exist in etna")
 
 
 # trick the static checker.
@@ -29,9 +34,6 @@ if globals().get("notathing", False):
     from .operators import run_on_docker
     from .etls.decorators import metis_etl
     from .etls.metis import (
-        filter_by_record_directory,
-        filter_by_exists_in_timur,
-        list_contents_of_matches,
         link,
         MetisEtlHelpers,
     )
