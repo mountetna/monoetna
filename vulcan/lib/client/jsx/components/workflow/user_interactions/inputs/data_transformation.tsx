@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {HotTable} from '@handsontable/react';
 import {HyperFormula} from 'hyperformula';
 import EditIcon from '@material-ui/icons/Edit';
@@ -39,11 +39,15 @@ function DataTransformationModal({
   const classes = useStyles();
 
   const hotTableComponent = useRef<any>(null);
-  const hyperformulaInstance = HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable'
-  });
+  const hyperformulaInstance = useMemo(
+    () =>
+      HyperFormula.buildEmpty({
+        // to use an external HyperFormula instance,
+        // initialize it with the `'internal-use-in-handsontable'` license key
+        licenseKey: 'internal-use-in-handsontable'
+      }),
+    []
+  );
 
   return (
     <>
@@ -212,7 +216,8 @@ export default function DataTransformationInput({
   return (
     <>
       <div>
-        Your data frame has {value.length - 1} rows and {value[0].length} columns.
+        Your data frame has {value.length - 1} rows and {value[0].length}{' '}
+        columns.
       </div>
       <Dialog open={open} onClose={handleOnClose} maxWidth='xl'>
         <DataTransformationModal
