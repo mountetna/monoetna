@@ -184,6 +184,9 @@ export default function FigureList({project_name}: {project_name: string}) {
         'Please enter a new figure title',
         figure.title || ''
       );
+
+      if (!newTitle) return;
+
       showErrors(
         updateFigure(project_name, {
           ...figure,
