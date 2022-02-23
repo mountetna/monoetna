@@ -1,10 +1,15 @@
 {
-  "projects": ["example"],
+  "projects": ["example", "ipi"],
   "authors": ["Dan Bunis", "Andres Vicente"],
   "lastModified": "Jan 7, 2022",
   "vignette": "# Y Plot Workflow\n\nThis workflow allows users to create violin and/or box plots from data of their choice. At present, that data must come from a 'query' of magma data, but we hope to provide other options in the future.\n\n## Selecting Data via Timur-Query:\n\nThis Data Loading method uses the 'Data Source magma query' Primary Inputs group. The easiest way to establish the proper inputs for querying from magma is to utilize the Timur-Query page. You can use Timur-Query's own documentation to learn how to set up that page to query the data you want. After setting up your query targets there: \n\n- 'query input': Copy here the 'query:' portion of the Query page's green box.\n- 'user_columns input': Copy here the 'user_columns:' portion of Query page's green box.\n- 'expand_matrices input': [Recommendation = leave as is.] This input defaults to True both here and in the Query page (where it exists as a slider button below the green box). Normally, you will want to leave it True as the non-expanded format is less accessible to the visualization machinery here.\n\n## Generating the plot\n\nAfter data is obtained, a new user input widget will show up in which you can select which columns to use for the x axis groupings, the y axis values, and which data representations (violin plots, box plots, or both), as well as other advanced options. NOTE: The data selected for the x axis must be discrete (not continuous) to establish groupings while the data selected for the y axis must be numeric.\n\n#### We plan to make the Timur-Query -> Vulcan workflow transfer process simpler in the future!",
   "tags": ["general", "plotting", "continuous data"],
   "image": "yplot.png",
   "displayName": "Y Plot",
-  "description": "Y Plot workflow: Pick data, then create a yplot"
+  "description": "Y Plot workflow: Pick data, then create a yplot",
+  "inputQueryMap": {
+    "1_Data_Source_magma_query__queryTerms": "query",
+    "1_Data_Source_magma_query__user_columns": "user_columns",
+    "1_Data_Source_magma_query__expand_matrices": "expand_matrices"
+  }
 }

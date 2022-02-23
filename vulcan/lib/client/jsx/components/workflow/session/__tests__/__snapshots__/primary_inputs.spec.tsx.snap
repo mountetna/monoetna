@@ -7,7 +7,7 @@ Array [
       className="MuiPaper-root MuiCard-root makeStyles-card-1 MuiPaper-elevation1 MuiPaper-rounded"
     >
       <div
-        className="MuiGrid-root makeStyles-header-2 MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-xs-space-between"
+        className="MuiGrid-root makeStyles-header-2 MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
         onClick={[Function]}
       >
         <div
@@ -60,7 +60,7 @@ Array [
         </div>
       </div>
       <div
-        className="MuiCollapse-container MuiCollapse-hidden"
+        className="MuiCollapse-root MuiCollapse-hidden"
         style={
           Object {
             "minHeight": "0px",
@@ -106,7 +106,7 @@ Array [
                 </div>
               </div>
               <div
-                className="MuiCollapse-container MuiCollapse-hidden"
+                className="MuiCollapse-root MuiCollapse-hidden"
                 style={
                   Object {
                     "minHeight": "0px",
