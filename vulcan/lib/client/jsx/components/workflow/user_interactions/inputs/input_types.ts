@@ -75,14 +75,12 @@ export function bindInputSpecification(input: InputSpecification,
   return {
     ...input,
     onChange(v: Maybe<unknown>) {
-      console.log('v', v, input.type, collapsesOutputs(input.type));
       if (collapsesOutputs(input.type) && isSome(v)) {
         const values = Object.entries(withDefault(v, {}) as any).reduce((acc: {[key: string]: unknown}, [key, value]) => {
           acc[`${input.name}/${key}`] = value;
 
           return acc;
         }, {});
-        console.log('values', values);
         setInputs(inputs => ({...inputs, ...values as any}))
       } else {
         setInputs(inputs => ({...inputs, [input.source]: v}))

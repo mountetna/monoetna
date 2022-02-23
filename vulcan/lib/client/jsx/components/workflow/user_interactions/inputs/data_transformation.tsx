@@ -16,7 +16,7 @@ import {makeStyles} from '@material-ui/core/styles';
 import {joinNesting} from './monoids';
 import {WithInputParams, DataEnvelope} from './input_types';
 import {useSetsDefault} from './useSetsDefault';
-import {some, Maybe, withDefault} from '../../../../selectors/maybe';
+import {some, Maybe, withDefault, isSome} from '../../../../selectors/maybe';
 import {useMemoized} from '../../../../selectors/workflow_selectors';
 
 const useStyles = makeStyles((theme) => ({
@@ -107,12 +107,10 @@ function DataTransformationModal({
               const sourceData = hotTableComponent.current.hotInstance.getSourceData();
               const data = hotTableComponent.current.hotInstance.getData();
 
-              console.log('sourceData', sourceData, data);
-
               onChange(
                 some({
-                  source_data: toJson(sourceData),
-                  data: toJson(data)
+                  source_data: some(toJson(sourceData)),
+                  data: some(toJson(data))
                 })
               );
             }
@@ -149,17 +147,19 @@ export function toJson(input: any[][]): DataEnvelope<{[key: string]: any}> {
 }
 
 export function toNestedArray(
-  input: DataEnvelope<{[key: string]: any}>
+  input: Maybe<DataEnvelope<{[key: string]: any}>>
 ): any[][] {
-  if (!input) return [[]];
+  if (!isSome(input)) return [[]];
 
-  const numColumns = Object.keys(input).length;
+  const inner = Array.isArray(input) ? withDefault(input, {}) : input;
+
+  const numColumns = Object.keys(inner).length;
   if (numColumns === 0) return [[]];
 
-  const numRows = Object.keys(Object.values(input)[0]).length;
+  const numRows = Object.keys(Object.values(inner)[0]).length;
 
   // Assume the input data is well-formed and rectangular.
-  return Object.entries(input).reduce(
+  return Object.entries(inner).reduce(
     (
       acc: any[][],
       [columnHeading, rowData]: [string, {[key: string]: any}]
@@ -196,13 +196,11 @@ export default function DataTransformationInput({
     setOpen(false);
   }
 
-  console.log('props', props);
-
   const value = toNestedArray(
     useSetsDefault(
       {
-        data: originalData,
-        source_data: originalData
+        data: some(originalData),
+        source_data: some(originalData)
       },
       props.value,
       onChange
