@@ -1,10 +1,11 @@
 import * as React from 'react';
 import {Workflow, WorkflowInput, WorkflowStep} from '../../../../api_types';
-import {Maybe, some} from "../../../../selectors/maybe";
+import {Maybe, some, isSome, withDefault} from "../../../../selectors/maybe";
 import {Dispatch} from "react";
 import {VulcanAction} from "../../../../actions/vulcan_actions";
 import {VulcanState} from "../../../../reducers/vulcan_reducer";
 import {
+  collapsesOutputs,
   sourceNamesOfStep, stepInputDataRaw, stepOfSource, stepOfStatus, uiQueryOfStep
 } from "../../../../selectors/workflow_selectors";
 import {defaultBufferedInputs} from "../../../../contexts/input_state_management";
@@ -74,13 +75,41 @@ export function bindInputSpecification(input: InputSpecification,
   return {
     ...input,
     onChange(v: Maybe<unknown>) {
-      setInputs(inputs => ({...inputs, [input.source]: v}))
+      console.log('v', v, input.type, collapsesOutputs(input.type));
+      if (collapsesOutputs(input.type) && isSome(v)) {
+        const values = Object.entries(withDefault(v, {}) as any).reduce((acc: {[key: string]: unknown}, [key, value]) => {
+          acc[`${input.name}/${key}`] = value;
+
+          return acc;
+        }, {});
+        console.log('values', values);
+        setInputs(inputs => ({...inputs, ...values as any}))
+      } else {
+        setInputs(inputs => ({...inputs, [input.source]: v}))
+      }
     },
     data: inputData,
-    value: input.source in buffered ? buffered[input.source] :
-      input.source in session.inputs ? some(session.inputs[input.source]) :
+    value: input.source in buffered ?
+        collapsesOutputs(input.type) ?
+          collapseInputValues(input.name, buffered) :
+          buffered[input.source] :
+      input.source in session.inputs ?
+        collapsesOutputs(input.type) ?
+          collapseInputValues(input.name, session.inputs) :
+          some(session.inputs[input.source]) :
         null,
   };
+}
+
+function collapseInputValues(stepName: string, inputs: typeof defaultBufferedInputs.inputs | VulcanState['session']['inputs']): Maybe<unknown> {
+  const stepPrefix = `${stepName}/`;
+  return some(Object.keys(inputs).filter((inputName: string) => {
+    return inputName.startsWith(stepPrefix)
+  }).reduce((acc: {[key: string]: unknown}, inputName) => {
+    const outputName = inputName.replace(stepPrefix, '');
+    acc[outputName as any] = inputs[inputName];
+    return acc;
+  }, {}));
 }
 
 export type WorkflowStepGroup = { label: string, steps: WorkflowStep[] }

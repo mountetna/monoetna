@@ -28,6 +28,11 @@ export const TYPE = {
   DATA_TRANSFORMATION: 'data-transformation'
 };
 
+// Types that collapse multiple outputs into a single UI widget
+export const COLLAPSE_OUTPUTS_TYPES = {
+  DATA_TRANSFORMATION: 'data-transformation'
+}
+
 // CWL Step RUN Sentinels
 export const RUN = {
   UI_QUERY: 'ui-queries/',

@@ -98,8 +98,7 @@ export default function UserInput({
       dispatch(removeValidationErrors(errors))
     };
   }, [dispatch, Validator, value, source, label, data]);
-
-
+  console.log('input', input);
   return (
     <div className='view_item'>
       {!hideLabel ? (

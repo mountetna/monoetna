@@ -1,9 +1,10 @@
 import * as _ from 'lodash';
 import {
-  OUTPUT_COMPONENT, RUN, SessionStatusResponse, STATUS, StepInput, StepStatus, Workflow, WorkflowInput, WorkflowStep,
+  OUTPUT_COMPONENT, RUN, TYPE, STATUS, StepInput, StepStatus, Workflow, WorkflowInput, WorkflowStep, COLLAPSE_OUTPUTS_TYPES,
 } from "../api_types";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {
+  InputSpecification,
    WorkflowStepGroup
 } from "../components/workflow/user_interactions/inputs/input_types";
 import {useMemo} from "react";
@@ -224,7 +225,19 @@ export const sourceNameOfReference = (ref: [string, string]) => {
 }
 
 export const sourceNamesOfStep = (step: WorkflowStep) => {
+  if (stepCollapsesOutputs(step))
+    // Assign one output here so that any downloaded input data is grabbed.
+    return [sourceNameOfReference([step.name, step.out[0]])];
+
   return step.out.map(name => sourceNameOfReference([step.name, name]))
+}
+
+export const stepCollapsesOutputs = (step: WorkflowStep) => {
+  return uiQueryOfStep(step) && collapsesOutputs(uiQueryOfStep(step) as string);
+}
+
+export const collapsesOutputs = (inputType: string) => {
+  return Object.values(COLLAPSE_OUTPUTS_TYPES).includes(inputType);
 }
 
 export function missingOutputsForStep(step: WorkflowStep, inputs: VulcanState['session']['inputs']): { [k: string]: null } {

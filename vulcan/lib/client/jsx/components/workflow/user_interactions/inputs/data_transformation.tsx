@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {HotTable} from '@handsontable/react';
 import {HyperFormula} from 'hyperformula';
 import EditIcon from '@material-ui/icons/Edit';
@@ -16,7 +16,7 @@ import {makeStyles} from '@material-ui/core/styles';
 import {joinNesting} from './monoids';
 import {WithInputParams, DataEnvelope} from './input_types';
 import {useSetsDefault} from './useSetsDefault';
-import {some, Maybe} from '../../../../selectors/maybe';
+import {some, Maybe, withDefault} from '../../../../selectors/maybe';
 import {useMemoized} from '../../../../selectors/workflow_selectors';
 
 const useStyles = makeStyles((theme) => ({
@@ -107,6 +107,8 @@ function DataTransformationModal({
               const sourceData = hotTableComponent.current.hotInstance.getSourceData();
               const data = hotTableComponent.current.hotInstance.getData();
 
+              console.log('sourceData', sourceData, data);
+
               onChange(
                 some({
                   source_data: toJson(sourceData),
@@ -194,7 +196,7 @@ export default function DataTransformationInput({
     setOpen(false);
   }
 
-  if (!originalData) return <div>No data frame!</div>;
+  console.log('props', props);
 
   const value = toNestedArray(
     useSetsDefault(
@@ -206,6 +208,8 @@ export default function DataTransformationInput({
       onChange
     ).source_data
   );
+
+  if (!originalData) return <div>No data frame!</div>;
 
   return (
     <>
