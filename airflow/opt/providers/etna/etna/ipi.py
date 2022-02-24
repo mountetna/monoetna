@@ -225,11 +225,11 @@ def ipi_data_metis_etl(helpers: MetisEtlHelpers):
         )
         listed_matches = helpers.list_match_folders(matches)
 
-        @link(dry_run=True)
-        def process_rna_seq_attributes(listed_matches):
-            for match, files in listed_matches:
-                for file in files:
-                    if file.file_name == "rnaseq_table.tsv":
-                        pass
-
-        process_rna_seq_attributes(listed_matches)
+        # @link(dry_run=True)
+        # def process_rna_seq_attributes(listed_matches):
+        #     for match, files in listed_matches:
+        #         for file in files:
+        #             if file.file_name == "rnaseq_table.tsv":
+        #                 pass
+        #
+        # process_rna_seq_attributes(listed_matches)
