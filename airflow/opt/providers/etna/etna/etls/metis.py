@@ -192,12 +192,18 @@ class MetisEtlHelpers:
         self.tail_files = tail_files
         self.tail_folders = tail_folders
 
-    def prepare_task_token(self) -> Callable[[bool], XComArg]:
-        @task
+    def prepare_task_token(self, read_only: bool) -> XComArg:
+        """
+        Returns an XComArg that can be used to pass a task token into other tasks.
+        Generally, this is used with `run_on_docker` to pass a task token into an input
+        file.
+        """
+        type = "read" if read_only else "write"
+        @task(task_id=f"prepare_{type}_task_token")
         def prepare_task_token(read_only):
             return self.hook.get_task_auth(read_only=read_only).token
 
-        return prepare_task_token
+        return prepare_task_token(read_only)
 
     def process_and_link_matching_file(
         self,
@@ -206,6 +212,25 @@ class MetisEtlHelpers:
         processor: Callable[[Metis, MatchedRecordFolder, File], UpdateRequest],
         dry_run=True,
     ) -> XComArg:
+        """
+        Creates a task that follows the listed set of record match folders and calls the given
+        processor function with a metis client, matched record folder, and file when a file from
+        the listed_record_matches set matches the given regex.  The processor function can return
+        an UpdateRequest based on the contents of the processed file.
+
+        eg:
+
+        ```
+        def my_processor(metis, match, file):
+          with metis.open_file(file) as file_reader:
+            csv_reader = csv.reader(file_reader)
+            return match.as_update(csv_reader)
+
+        matches = helpers.find_record_folders('rna_seq', rna_seq_folder_regex)
+        listed_matches = helpers.list_match_folders(matches)
+        helpers.process_and_link_matching_file(listed_matches, re.compile(r'.*gene_counts\.tsv$'), my_processor)
+        ```
+        """
         @link(dry_run=dry_run, task_id=processor.__name__)
         def do_link(listed_matches: List[Tuple[MatchedRecordFolder, List[File]]]):
             with self.hook.metis(read_only=False) as metis:

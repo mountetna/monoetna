@@ -31,6 +31,17 @@ def metis_etl(
     hook: Optional[EtnaHook] = None,
     inject_params: Mapping[str, str] = {},
 ):
+    """
+    A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.
+
+    This decorator is the main entry point for processing metis files with an etl.  The decorated function receives
+    a number of useful XComArg objects and a helpers object to help set up metis tasks based on consuming changes
+    scoped to the given project_name, bucket_name pair.
+
+    1.  tail_folders -- an XComArg object that will resolve into a list of Folder objects inside tasks and link functions.
+    2.  tail_files -- Similar to tail_folders, but with File objects.
+    3.  helpers -- a MetisEtlHelpers object that contains useful functions for common etl processing.
+    """
     if hook is None:
         hook = EtnaHook.for_project(project_name)
 

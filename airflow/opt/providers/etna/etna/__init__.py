@@ -1,3 +1,16 @@
+"""
+`etna` is a collection of airflow related utilities for interacting with
+and processing data inside the DSCOLabs Data Library project.
+
+These utilities are meant to supplement those provided directly by the `airflow`
+python library, whose basic interfaces and behaviors are compatible and composable
+with all the utilities here within.  https://airflow.apache.org/docs/
+
+The top level module exports many common utilities needed by an average etl,
+while individual inner packages may contain implementations, interfaces, and
+granular functions for nuanced use cases.
+"""
+
 from datetime import datetime
 
 def __getattr__(name):
