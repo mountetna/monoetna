@@ -24,7 +24,8 @@ export const TYPE = {
   SCATTER_PLOTLY: 'scatter-plotly',
   BAR_PLOTLY: 'bar-plotly',
   Y_PLOTLY: 'y-plotly',
-  DIFF_EXP_SC: 'diff-exp-sc'
+  ANY_VIZ: 'any-viz',
+  DIFF_EXP_SC: 'diff-exp-sc',
 };
 
 // CWL Step RUN Sentinels
