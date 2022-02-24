@@ -2,6 +2,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Literal, Union, List
 
+import pytest
 from airflow import DAG
 from airflow.executors.debug_executor import DebugExecutor
 from airflow.models import Connection, XCom
@@ -19,6 +20,7 @@ def run_dag(dag: DAG, execution_date: datetime, end_date: datetime):
         start_date=execution_date,
         end_date=end_date,
         verbose=True,
+        ignore_first_depends_on_past=True,
     )
 
 
@@ -73,29 +75,30 @@ def find_batch_start(
 
 
 # @mock.patch("tempfile._Random", NotSoRandom)
-# def test_metis_files_etl_e2e(token_etna_connection: Connection):
-#     hook = EtnaHook(token_etna_connection.conn_id)
-#
-#     record_matches_task_id: str = ""
-#
-#     @metis_etl("mvir1", "data", 1, hook=hook)
-#     def test_loading_metis_files(helpers: MetisEtlHelpers):
-#         nonlocal record_matches_task_id
-#         matches = helpers.find_record_folders(
-#             "rna_seq", re.compile(r"^bulk_RNASeq/raw/[^/]*")
-#         )
-#         matches = helpers.filter_by_timur(matches)
-#         matches = helpers.list_match_folders(matches)
-#
-#         record_matches_task_id = matches.operator.task_id
-#
-#     test_loading_metis_files: DAG
-#
-#     start_date = find_batch_start(hook, "mvir1", "data", "bulk_RNASeq/raw")
-#     end_date = start_date + timedelta(days=1)
-#     run_dag(test_loading_metis_files, start_date, end_date)
-#
-#     results = get_all_results(
-#         end_date, test_loading_metis_files, record_matches_task_id
-#     )
-#     assert len(results) > 0
+@pytest.mark.vcr
+def test_metis_files_etl_e2e(reset_db, token_etna_connection: Connection):
+    hook = EtnaHook(token_etna_connection.conn_id)
+
+    record_matches_task_id: str = ""
+
+    @metis_etl("mvir1", "data", 1, hook=hook)
+    def test_loading_metis_files(helpers: MetisEtlHelpers):
+        nonlocal record_matches_task_id
+        matches = helpers.find_record_folders(
+            "rna_seq", re.compile(r"^bulk_RNASeq/raw/[^/]*")
+        )
+        matches = helpers.filter_by_timur(matches)
+        matches = helpers.list_match_folders(matches)
+
+        record_matches_task_id = matches.operator.task_id
+
+    test_loading_metis_files: DAG
+
+    start_date = find_batch_start(hook, "mvir1", "data", "bulk_RNASeq/raw")
+    end_date = start_date + timedelta(days=1, minutes=1)
+    run_dag(test_loading_metis_files, start_date, end_date)
+
+    results = get_all_results(
+        end_date, test_loading_metis_files, record_matches_task_id
+    )
+    assert len(results) > 0

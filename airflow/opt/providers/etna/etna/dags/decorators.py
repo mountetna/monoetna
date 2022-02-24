@@ -13,7 +13,7 @@ from airflow.models.dag import (
 from etna.dags.callbacks import notify_slack_dag_callback
 from etna.utils.inject import inject
 
-system_epoch = datetime(2021, 12, 22, 16, 56, 3, 185905)
+system_epoch = datetime(2000, 1, 1)
 
 
 def dag(

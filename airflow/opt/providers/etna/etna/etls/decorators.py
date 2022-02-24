@@ -34,7 +34,7 @@ def metis_etl(
     if hook is None:
         hook = EtnaHook.for_project(project_name)
 
-    interval = timedelta(hours=1)
+    interval = timedelta(days=1)
 
     def instantiate_dag(fn):
         @functools.wraps(fn)
@@ -49,12 +49,13 @@ def metis_etl(
                 with hook.metis() as metis:
                     return pickled(load_metis_files_batch(metis, bucket_name))
 
-            @task(do_xcom_push=False)
+            @task
             def propagate_folder_updated_at(folders: List[Folder]):
+                result: List[str] = []
                 # For new etl startup, this step is not necessary.
                 lower, _ = get_batch_range(get_current_context())
                 if lower == LOWEST_BOUND:
-                    return
+                    return []
 
                 with hook.metis() as metis:
                     for folder in folders:
@@ -63,9 +64,11 @@ def metis_etl(
                         ).folders
                         for child in children:
                             if child.updated_at_datetime < folder.updated_at_datetime:
+                                result.append(child.folder_path)
                                 metis.touch_folder(
                                     project_name, bucket_name, child.folder_path
                                 )
+                return result
 
             folders = tail_folders()
             files = tail_files()
@@ -106,7 +109,7 @@ def etl(
     def instantiate_dag(fn):
         start_date = system_epoch
         # Stagger start times for etls
-        start_date += timedelta(seconds=hash(fn.__name__) % interval.seconds)
+        start_date += timedelta(seconds=hash(fn.__name__) % int(interval.total_seconds()))
 
         new_dag: DAG = dag(
             start_date=start_date,

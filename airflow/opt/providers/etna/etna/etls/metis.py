@@ -297,20 +297,22 @@ def filter_by_exists_in_timur(
     for m in matched:
         matched_by_model_name.setdefault(m.model_name, []).append(m)
 
-    return [
-        m
-        for model_name, matches in matched_by_model_name
-        for response in [
-            magma.retrieve(
-                project_name,
-                model_name=model_name,
-                attribute_names="identifier",
-                record_names=[m.record_name for m in matches],
-            )
-        ]
-        for m in matches
-        if m.model_name in response.models[model_name].documents
-    ]
+    result: List[MatchedRecordFolder] = []
+
+    for model_name, matches in matched_by_model_name.items():
+        response = magma.retrieve(
+            project_name,
+            model_name=model_name,
+            attribute_names="identifier",
+            record_names=[m.record_name for m in matches],
+        )
+        result.extend(
+            m
+            for m in matches
+            if m.record_name in response.models[model_name].documents
+        )
+
+    return result
 
 
 def filter_by_record_directory(

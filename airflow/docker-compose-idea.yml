@@ -10,7 +10,8 @@ services:
       USE_MOCKS: 1
       DEV_MODE: 1
     volumes:
-      - ./opt/plugins:/opt/airflow/plugins
+      - ./opt/providers:/opt/airflow/providers
+      - ./opt/providers/etna/etna:/home/airflow/.local/lib/python3.8/site-packages/etna/
       - ./opt/entrypoint-with-secret-files.sh:/opt/airflow/entrypoint-with-secret-files.sh
       - ./opt/entrypoint-with-netcat.sh:/opt/airflow/entrypoint-with-netcat.sh
       - /var/run/docker.sock:/var/run/docker.sock:ro
