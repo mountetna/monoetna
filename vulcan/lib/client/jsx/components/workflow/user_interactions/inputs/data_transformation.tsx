@@ -113,8 +113,8 @@ function DataTransformationModal({
 
               onChange(
                 some({
-                  source_data: some(toJson(sourceData)),
-                  data: some(toJson(data))
+                  source_data: some(nestedArrayToDataFrameJson(sourceData)),
+                  data: some(nestedArrayToDataFrameJson(data))
                 })
               );
             }
@@ -132,7 +132,9 @@ function DataTransformationModal({
   );
 }
 
-export function toJson(input: any[][]): DataEnvelope<{[key: string]: any}> {
+export function nestedArrayToDataFrameJson(
+  input: any[][]
+): DataEnvelope<{[key: string]: any}> {
   const headers = input[0];
   let payload = headers.reduce((acc, header) => {
     acc[header] = {};
@@ -150,7 +152,7 @@ export function toJson(input: any[][]): DataEnvelope<{[key: string]: any}> {
   }, payload);
 }
 
-export function toNestedArray(
+export function dataFrameJsonToNestedArray(
   input: Maybe<DataEnvelope<{[key: string]: any}>>
 ): any[][] {
   if (!isSome(input)) return [[]];
@@ -200,7 +202,7 @@ export default function DataTransformationInput({
     setOpen(false);
   }
 
-  const value = toNestedArray(
+  const value = dataFrameJsonToNestedArray(
     useSetsDefault(
       {
         data: some(originalData),

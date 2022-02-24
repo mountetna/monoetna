@@ -6,8 +6,8 @@ import {
 
 import {Maybe, some} from '../../../../../selectors/maybe';
 import DataTransformationInput, {
-  toNestedArray,
-  toJson
+  dataFrameJsonToNestedArray,
+  nestedArrayToDataFrameJson
 } from '../data_transformation';
 import {DataEnvelope} from '../input_types';
 import {
@@ -20,7 +20,7 @@ import {
 import {ReactTestInstance} from 'react-test-renderer';
 import ReactDOM from 'react-dom';
 
-describe('toNestedArray', () => {
+describe('dataFrameJsonToNestedArray', () => {
   it('can reformat the data', () => {
     const inputDF = {
       col1: {
@@ -34,7 +34,7 @@ describe('toNestedArray', () => {
         '2': 'xyz'
       }
     };
-    const output = toNestedArray(some(inputDF));
+    const output = dataFrameJsonToNestedArray(some(inputDF));
 
     expect(output).toEqual([
       ['col1', 'col2'],
@@ -45,7 +45,7 @@ describe('toNestedArray', () => {
   });
 });
 
-describe('toJson', () => {
+describe('nestedArrayToDataFrameJson', () => {
   it('can reformat the data', () => {
     const input = [
       ['col1', 'col2'],
@@ -54,7 +54,7 @@ describe('toJson', () => {
       [10, 'xyz']
     ];
 
-    const output = toJson(input);
+    const output = nestedArrayToDataFrameJson(input);
 
     expect(output).toEqual({
       col1: {
