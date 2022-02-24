@@ -7,8 +7,7 @@ import {isSome, withDefault} from '../../../../../selectors/maybe';
 import {isNullish} from '../../../../../selectors/workflow_selectors';
 
 const _AllInnerKeysNotNullValidator = (
-  input: ValidationInputSpecification<DataEnvelope<any>, DataEnvelope<any>>,
-  innerKeyName = 'data'
+  input: ValidationInputSpecification<DataEnvelope<any>, DataEnvelope<any>>
 ): string[] => {
   // input.value should be nested hash, like
   // {data: {[key: string]: any}, sourceData: {[key: string]: any}}
@@ -16,19 +15,25 @@ const _AllInnerKeysNotNullValidator = (
   if (!isSome(input.value)) return ['Input value is null.'];
 
   const innerHash = withDefault(input.value, {});
+  const innerKeys = Object.keys(innerHash);
 
-  if (!innerHash.hasOwnProperty(innerKeyName))
-    return [`Inner hash missing key ${innerKeyName}.`];
+  if (innerKeys.length === 0) return ['Inner hash is empty!'];
 
-  const nullKeys = Object.keys(innerHash[innerKeyName]).filter(isNullish);
+  if (innerKeys.some((key) => isNullish(innerHash[key])))
+    return ['Contains undefined inner hashes.'];
 
-  if (nullKeys.length > 0) {
-    let noun = nullKeys.length > 1 ? 'keys' : 'key';
+  let errors: string[] = [];
 
-    return [`Found ${nullKeys.length} null ${noun}.`];
-  }
+  innerKeys.forEach((key) => {
+    const nullKeys = Object.keys(innerHash[key]).filter(isNullish);
 
-  return [];
+    if (nullKeys.length > 0) {
+      let noun = nullKeys.length > 1 ? 'keys' : 'key';
+
+      errors.push(`Found ${nullKeys.length} null ${noun}.`);
+    }
+  });
+  return errors;
 };
 
 export const AllInnerKeysNotNullValidator: InputValidator<

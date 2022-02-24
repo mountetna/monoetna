@@ -6,7 +6,7 @@ import {VulcanAction} from "../../../../actions/vulcan_actions";
 import {VulcanState} from "../../../../reducers/vulcan_reducer";
 import {
   collapsesOutputs,
-  sourceNamesOfStep, stepInputDataRaw, stepOfSource, stepOfStatus, uiQueryOfStep
+  sourceNamesOfStep, splitSource, stepInputDataRaw, stepOfSource, stepOfStatus, stepOutputs, uiQueryOfStep
 } from "../../../../selectors/workflow_selectors";
 import {defaultBufferedInputs} from "../../../../contexts/input_state_management";
 
@@ -75,12 +75,44 @@ export function bindInputSpecification(input: InputSpecification,
   return {
     ...input,
     onChange(v: Maybe<unknown>) {
-      if (collapsesOutputs(input.type) && isSome(v)) {
-        const values = Object.entries(withDefault(v, {}) as any).reduce((acc: {[key: string]: unknown}, [key, value]) => {
-          acc[`${input.name}/${key}`] = value;
+      if (collapsesOutputs(input.type) && isSome(v) && step) {
+        const authoredOutputs = stepOutputs(step);
+        
+        let values: {[key: string]: any} = {};
+        const userValue: {[key: string]: any} = withDefault(v, {}) as any;
+        // First, look for authored outputs that appear in the userValue object
+        const [withValues, withoutValues] = authoredOutputs.reduce((acc, authoredOutput) => {
+          let [_, outputName] = splitSource(authoredOutput);
+          
+          acc[userValue.hasOwnProperty(outputName) ? 0 : 1].push(authoredOutput);
 
           return acc;
-        }, {});
+        }, [[] as string[], [] as string[]])
+        
+        withValues.forEach((authoredOutput) => {
+          let [_, outputName] = splitSource(authoredOutput);
+            // Widget has specified a Hash that explicitly matches
+            //   the CWL output names.
+            values[authoredOutput] = userValue[outputName as any];
+        })
+
+        // Next, any remaining, unassigned outputs are picked
+        //   from the unassigned userValue keys as if we were popping
+        //   values off a queue.
+        const unassignedValueKeys = Object.keys(userValue).filter((key: string) => {
+          return !values.hasOwnProperty(key)
+        }).sort();
+        
+        withoutValues.forEach((authoredOutput, index) => {
+          values[authoredOutput] = userValue[unassignedValueKeys[index] as any];
+        });
+
+        // Any unassigned values in `userValue` are discarded at this point.
+        // Warn in the console. Should we warn the user more visibly?
+        if (unassignedValueKeys.length > withoutValues.length) {
+          console.warn("UI input returned values not assigned in CWL.", unassignedValueKeys.slice(withoutValues.length))
+        }
+
         setInputs(inputs => ({...inputs, ...values as any}))
       } else {
         setInputs(inputs => ({...inputs, [input.source]: v}))

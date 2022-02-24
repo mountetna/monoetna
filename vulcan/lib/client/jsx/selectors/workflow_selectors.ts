@@ -292,12 +292,16 @@ export const sourceNameOfReference = (ref: [string, string]) => {
   return ref.join('/');
 };
 
+export const stepOutputs = (step: WorkflowStep) => {
+  return step.out.map(name => sourceNameOfReference([step.name, name]))
+}
+
 export const sourceNamesOfStep = (step: WorkflowStep) => {
   if (stepCollapsesOutputs(step))
     // Assign one output here so that any downloaded input data is grabbed.
     return [sourceNameOfReference([step.name, step.out[0]])];
 
-  return step.out.map(name => sourceNameOfReference([step.name, name]))
+  return stepOutputs(step);
 }
 
 export const stepCollapsesOutputs = (step: WorkflowStep) => {

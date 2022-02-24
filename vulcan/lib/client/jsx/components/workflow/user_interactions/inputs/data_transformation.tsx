@@ -202,18 +202,40 @@ export default function DataTransformationInput({
     setOpen(false);
   }
 
-  const value = dataFrameJsonToNestedArray(
-    useSetsDefault(
-      {
-        data: some(originalData),
-        source_data: some(originalData)
-      },
-      props.value,
-      onChange
-    ).source_data
+  const inputValue = useSetsDefault(
+    {
+      data: some(originalData),
+      source_data: some(originalData)
+    },
+    props.value,
+    onChange
   );
 
-  if (!originalData) return <div>No data frame!</div>;
+  let value;
+
+  if (inputValue.hasOwnProperty('source_data')) {
+    // This should work the same as the first `if` in the following block,
+    //   but will leave it here to be explicit.
+    value = inputValue.source_data;
+  } else {
+    // If the workflow author has named their CWL outputs differently, we really don't
+    //   know which one is the source_data. Given that the
+    //   UI component uses "data" and "source_data", and
+    //   "source_data" comes second alphabetically, we first attempt to
+    //   use the second inputValue key if present. If only one key,
+    //   we default to the first value.
+    const inputKeys = Object.keys(inputValue).sort();
+    if (inputKeys.length > 1) {
+      value = inputValue[inputKeys[1]];
+    } else {
+      value = inputValue[inputKeys[0]];
+    }
+  }
+
+  value = dataFrameJsonToNestedArray(value);
+
+  if (!originalData || value.length === 0 || value[0].length === 0)
+    return <div>No data frame!</div>;
 
   return (
     <>

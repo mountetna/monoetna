@@ -36,6 +36,13 @@ describe('AllInnerKeysNotNullValidator', () => {
     expect(AllInnerKeysNotNullValidator(input).length > 0).toEqual(true);
   });
 
+  it('reports errors for hashes with undefined values', () => {
+    input.value = some({
+      data: undefined
+    });
+    expect(AllInnerKeysNotNullValidator(input).length > 0).toEqual(true);
+  });
+
   it('reports no errors for well-formed hash', () => {
     input.value = some({data: {column1: {'1': 1, '0': 0}}});
     expect(AllInnerKeysNotNullValidator(input).length === 0).toEqual(true);
