@@ -137,7 +137,7 @@ function VisualizationUI({
     </div>
   )
   
-  console.log(props.value);
+  // console.log(props.value);
   
   return (
     <div>
