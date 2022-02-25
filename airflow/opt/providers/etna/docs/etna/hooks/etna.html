@@ -700,7 +700,7 @@
             <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_task_auth</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ready_only</span><span class="o">=</span><span class="kc">True</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TokenAuth&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">project_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">dag</span><span class="p">:</span> <span class="n">DAG</span> <span class="o">=</span> <span class="n">get_current_context</span><span class="p">()[</span><span class="s2">&quot;dag&quot;</span><span class="p">]</span>
@@ -708,7 +708,7 @@
         <span class="n">token_auth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token_auth</span><span class="p">()</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_client</span><span class="p">(</span><span class="n">token_auth</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
             <span class="n">token</span> <span class="o">=</span> <span class="n">Janus</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;janus&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">generate_token</span><span class="p">(</span>
-                <span class="n">project_name</span><span class="p">,</span> <span class="n">ready_only</span>
+                <span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">TokenAuth</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">project_name</span><span class="p">)</span>
 
@@ -1584,7 +1584,7 @@
             <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_task_auth</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ready_only</span><span class="o">=</span><span class="kc">True</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TokenAuth&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">project_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">dag</span><span class="p">:</span> <span class="n">DAG</span> <span class="o">=</span> <span class="n">get_current_context</span><span class="p">()[</span><span class="s2">&quot;dag&quot;</span><span class="p">]</span>
@@ -1592,7 +1592,7 @@
         <span class="n">token_auth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token_auth</span><span class="p">()</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_client</span><span class="p">(</span><span class="n">token_auth</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
             <span class="n">token</span> <span class="o">=</span> <span class="n">Janus</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;janus&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">generate_token</span><span class="p">(</span>
-                <span class="n">project_name</span><span class="p">,</span> <span class="n">ready_only</span>
+                <span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">TokenAuth</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">project_name</span><span class="p">)</span>
 
@@ -1937,14 +1937,14 @@ for the efficiency of imports.</p>
             <span class="name">get_task_auth</span><span class="signature">(
     self,
     project_name: Union[str, NoneType] = None,
-    ready_only=True
+    read_only=True
 ) -&gt; <a href="#TokenAuth">etna.hooks.etna.TokenAuth</a></span>:
     </div>
 
             <details>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">get_task_auth</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ready_only</span><span class="o">=</span><span class="kc">True</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TokenAuth&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">project_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">dag</span><span class="p">:</span> <span class="n">DAG</span> <span class="o">=</span> <span class="n">get_current_context</span><span class="p">()[</span><span class="s2">&quot;dag&quot;</span><span class="p">]</span>
@@ -1952,7 +1952,7 @@ for the efficiency of imports.</p>
         <span class="n">token_auth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_token_auth</span><span class="p">()</span>
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_client</span><span class="p">(</span><span class="n">token_auth</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
             <span class="n">token</span> <span class="o">=</span> <span class="n">Janus</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;janus&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">generate_token</span><span class="p">(</span>
-                <span class="n">project_name</span><span class="p">,</span> <span class="n">ready_only</span>
+                <span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">TokenAuth</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">project_name</span><span class="p">)</span>
 </pre></div>

@@ -5,7 +5,8 @@ from airflow.utils.task_group import TaskGroup
 from etna import (
     metis_etl,
     link,
-    MetisEtlHelpers, UpdateRequest,
+    MetisEtlHelpers,
+    UpdateRequest,
 )
 import re
 
@@ -46,9 +47,13 @@ def link_rna_seq_with_timepoint(matches):
         )
         yield match, update
 
-def process_gene_count_matrix(metis: Metis, match: MatchedRecordFolder, file: File) -> UpdateRequest:
+
+def process_gene_count_matrix(
+    metis: Metis, match: MatchedRecordFolder, file: File
+) -> UpdateRequest:
     with metis.open_file(file) as file:
         return match.as_update(produce_gene_matrix(file))
+
 
 def produce_gene_matrix(gene_tab: io.BufferedReader):
     hook = EtnaHook.for_project()
@@ -57,29 +62,41 @@ def produce_gene_matrix(gene_tab: io.BufferedReader):
 
 # produce_gene_matrix(io.BytesIO(b"asdfasdfadsf"))
 
-def process_marked_dup_metrics(metis: Metis, match: MatchedRecordFolder, file: File) -> UpdateRequest:
+
+def process_marked_dup_metrics(
+    metis: Metis, match: MatchedRecordFolder, file: File
+) -> UpdateRequest:
     with metis.open_file(file) as metis_file:
         return match.as_update(produce_marked_dup_metric(metis_file, file.file_path))
+
 
 def produce_marked_dup_metric(marked_file: io.BufferedReader, file_path: str):
     line = marked_file.readline()
     while line:
         line = line.strip()
-        if b'PERCENT_DUPLICATION' in line:
-            dup_index = line.split(b'\t').index(b'PERCENT_DUPLICATION')
+        if b"PERCENT_DUPLICATION" in line:
+            dup_index = line.split(b"\t").index(b"PERCENT_DUPLICATION")
             break
         line = marked_file.readline()
     else:
-        raise ValueError(f"Could not find PERCENT_DUPLICATION header in marked dup metrics file: {file_path}")
+        raise ValueError(
+            f"Could not find PERCENT_DUPLICATION header in marked dup metrics file: {file_path}"
+        )
 
-    data_line = marked_file.readline().strip().split(b'\t')
+    data_line = marked_file.readline().strip().split(b"\t")
     if len(data_line) <= dup_index:
-        raise ValueError(f"Could not PERCENT_DUPLICATION value entry in marked dup metrics file: {file_path}")
+        raise ValueError(
+            f"Could not PERCENT_DUPLICATION value entry in marked dup metrics file: {file_path}"
+        )
 
     return dict(duplication_pct=float(data_line[dup_index]))
 
+
 # An example output tested
-assert produce_marked_dup_metric(io.BytesIO(b"""
+assert (
+    produce_marked_dup_metric(
+        io.BytesIO(
+            b"""
 ## htsjdk.samtools.metrics.StringHeader
 # MarkDuplicates INPUT=[Alignments/STAR211025_121627/415-1001-D4-RLT1out/Aligned.sortedByCoord.out.bam] OUTPUT=Alignments/STAR211025_121627/415-1001-D4-RLT1out/Aligned.sortedByCoord.duplicateRemoved.out.bam METRICS_FILE=Alignments/STAR211025_121627/415-1001-D4-RLT1out/marked_dup_metrics.txt REMOVE_DUPLICATES=true ASSUME_SORTED=true TMP_DIR=[Alignments/STAR211025_121627/415-1001-D4-RLT1out]    MAX_SEQUENCES_FOR_DISK_READ_ENDS_MAP=50000 MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=8000 SORTING_COLLECTION_SIZE_RATIO=0.25 TAG_DUPLICATE_SET_MEMBERS=false REMOVE_SEQUENCING_DUPLICATES=false TAGGING_POLICY=DontTag CLEAR_DT=true DUPLEX_UMI=false ADD_PG_TAG_TO_READS=true DUPLICATE_SCORING_STRATEGY=SUM_OF_BASE_QUALITIES PROGRAM_RECORD_ID=MarkDuplicates PROGRAM_GROUP_NAME=MarkDuplicates READ_NAME_REGEX=<optimized capture of last three ':' separated fields as numeric values> OPTICAL_DUPLICATE_PIXEL_DISTANCE=100 MAX_OPTICAL_DUPLICATE_SET_SIZE=300000 VERBOSITY=INFO QUIET=false VALIDATION_STRINGENCY=STRICT COMPRESSION_LEVEL=5 MAX_RECORDS_IN_RAM=500000 CREATE_INDEX=false CREATE_MD5_FILE=false GA4GH_CLIENT_SECRETS=client_secrets.json USE_JDK_DEFLATER=false USE_JDK_INFLATER=false
 ## htsjdk.samtools.metrics.StringHeader
@@ -93,7 +110,13 @@ Unknown Library	0	32863893	0	0	0	18525954	461915	0.563718	16764564
 BIN	CoverageMult	all_sets	optical_sets	non_optical_sets
 1.0	1.0046	11473929	0	11650466
 2.0	1.146061	1919006	288694	1788982
-"""), '') == dict(duplication_pct=float(b'0.563718'))
+"""
+        ),
+        "",
+    )
+    == dict(duplication_pct=float(b"0.563718"))
+)
+
 
 @metis_etl("mvir1", "data", version=13)
 def mvir1_data_metis_etl(helpers: MetisEtlHelpers):
@@ -116,7 +139,19 @@ def mvir1_data_metis_etl(helpers: MetisEtlHelpers):
         matches = helpers.filter_by_timur(matches)
         listed_matches = helpers.list_match_folders(matches)
 
-        helpers.link_matching_file(listed_matches, 'genome_alignment', re.compile(r'.*\.bam$'))
+        helpers.link_matching_file(
+            listed_matches, "genome_alignment", re.compile(r".*\.bam$")
+        )
 
-        helpers.process_and_link_matching_file(listed_matches, re.compile('.*\.tab'), process_gene_count_matrix, dry_run=True)
-        helpers.process_and_link_matching_file(listed_matches, re.compile('.*marked_dup_metrics\.txt$'), process_marked_dup_metrics, dry_run=True)
+        helpers.process_and_link_matching_file(
+            listed_matches,
+            re.compile(".*\.tab"),
+            process_gene_count_matrix,
+            dry_run=True,
+        )
+        helpers.process_and_link_matching_file(
+            listed_matches,
+            re.compile(".*marked_dup_metrics\.txt$"),
+            process_marked_dup_metrics,
+            dry_run=True,
+        )

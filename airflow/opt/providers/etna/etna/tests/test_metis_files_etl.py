@@ -1,17 +1,20 @@
 import re
 from datetime import datetime, timedelta
-from typing import Literal, Union, List
+from unittest import mock
 
 import pytest
 from airflow import DAG
+from airflow.decorators import task
 from airflow.executors.debug_executor import DebugExecutor
 from airflow.models import Connection, XCom
+from requests import Session
 
 from etna import metis_etl, MetisEtlHelpers
-from etna.etls.etl_task_batching import LOWEST_BOUND
 
-from etna.hooks.etna import Folder, File, EtnaHook
+from etna.hooks.etna import Folder, File, EtnaHook, Magma, TokenAuth
 from etna.etls.metis import filter_by_record_directory
+from .conftest import NotSoRandom
+from ..operators import run_in_container
 
 
 def run_dag(dag: DAG, execution_date: datetime, end_date: datetime):
@@ -74,7 +77,6 @@ def find_batch_start(
         return folders[0].updated_at_datetime
 
 
-# @mock.patch("tempfile._Random", NotSoRandom)
 @pytest.mark.vcr
 def test_metis_files_etl_e2e(reset_db, token_etna_connection: Connection):
     hook = EtnaHook(token_etna_connection.conn_id)
@@ -102,3 +104,33 @@ def test_metis_files_etl_e2e(reset_db, token_etna_connection: Connection):
         end_date, test_loading_metis_files, record_matches_task_id
     )
     assert len(results) > 0
+
+
+@pytest.mark.vcr
+@mock.patch("tempfile._Random", NotSoRandom)
+def test_docker_callable_with_task_token(reset_db, token_etna_connection: Connection):
+    hook = EtnaHook(token_etna_connection.conn_id)
+
+    @metis_etl("mvir1", "data", 1, hook=hook)
+    def test_docker_callable(helpers: MetisEtlHelpers):
+        token_through_cat = run_in_container(
+            "do_work",
+            "polyphemus_app",
+            ["cat", "/task_token"],
+            output_json=True,
+            docker_base_url="http://localhost:8085",
+        ).accepts("/task_token")(helpers.prepare_task_token(read_only=True))
+
+        @task
+        def use_token(token: str):
+            with Session() as session:
+                session.auth = TokenAuth(token.encode("ascii"), "mvir1")
+                Magma(session, "magma.ucsf.edu").retrieve("mvir1")
+
+        use_token(token_through_cat)
+
+    test_docker_callable: DAG
+
+    run_dag(
+        test_docker_callable, datetime(2010, 1, 1, 1, 0), datetime(2010, 1, 1, 1, 1, 1)
+    )

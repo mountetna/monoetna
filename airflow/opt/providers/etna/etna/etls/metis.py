@@ -17,7 +17,16 @@ from serde.json import from_json
 
 from etna.dags.project_name import get_project_name
 from etna.etls.etl_task_batching import get_batch_range
-from etna.hooks.etna import File, Folder, UpdateRequest, EtnaHook, Magma, Metis, Model, Template
+from etna.hooks.etna import (
+    File,
+    Folder,
+    UpdateRequest,
+    EtnaHook,
+    Magma,
+    Metis,
+    Model,
+    Template,
+)
 from etna.operators import DockerOperatorBase
 from etna.utils.inject import inject
 from etna.utils.iterables import batch_iterable
@@ -200,9 +209,10 @@ class MetisEtlHelpers:
         file.
         """
         type = "read" if read_only else "write"
+
         @task(task_id=f"prepare_{type}_task_token")
         def prepare_task_token(read_only):
-            return self.hook.get_task_auth(read_only=read_only).token
+            return self.hook.get_task_auth(read_only=read_only).token.decode("ascii")
 
         return prepare_task_token(read_only)
 
@@ -234,9 +244,12 @@ class MetisEtlHelpers:
         helpers.process_and_link_matching_file(listed_matches, re.compile(r'.*gene_counts\.tsv$'), my_processor)
         ```
         """
+
         @link(dry_run=dry_run, task_id=processor.__name__)
         def do_link(listed_matches: List[Tuple[MatchedRecordFolder, List[File]]]):
-            with self.hook.magma(project_name=get_project_name(), read_only=True) as magma:
+            with self.hook.magma(
+                project_name=get_project_name(), read_only=True
+            ) as magma:
                 models = magma.retrieve(get_project_name(), hide_templates=False).models
                 with self.hook.metis(read_only=False) as metis:
                     for match, files in listed_matches:
@@ -246,17 +259,38 @@ class MetisEtlHelpers:
                                 if match.model_name in models:
                                     template = models[match.model_name].template
 
-                                yield match, inject(processor, dict(metis=metis, file=file, match=match, template=template))
+                                yield match, inject(
+                                    processor,
+                                    dict(
+                                        metis=metis,
+                                        file=file,
+                                        match=match,
+                                        template=template,
+                                    ),
+                                )
 
         return do_link(listed_record_matches)
 
     def link_matching_file(
         self,
+        # an XComArg that lists MatchedRecordFolder and Files, usually the result of helpers.list_match_folders
         listed_record_matches: XComArg,
+        # the attribute of each MatchedRecordFolder to link any matching file
         attr_name: str,
+        # A regex to match against any file name inside of a MatchedRecordFolder, resulting files will be linked.
         regex: re.Pattern,
+        # By default, the linking process validates with magma but does not commit.  set dry_run=False to commit.
         dry_run=True,
     ) -> XComArg:
+        """
+        Creates a task that iterates the provided listed_record_matches (the result of a helpers.list_match_folders
+        call), searching for files whose file_name matches the given regex, linking the file path to the given
+        match's record in magma at the given attr_name attribute.
+
+        Notably, when multiple files are found, the -last- file detected will be used in magma.  If you intend to link
+        several matching files, use link_matching_files for attributes that are file_collection.
+        """
+
         @link(attr_name, dry_run=dry_run, task_id=f"link_{attr_name}")
         def do_link(listed_matches: List[Tuple[MatchedRecordFolder, List[File]]]):
             for match, files in listed_matches:
@@ -271,9 +305,19 @@ class MetisEtlHelpers:
         listed_record_matches: XComArg,
         attr_name: str,
         file_regex: re.Pattern,
+        # This regex is matched first against the folder subpath within the matched record folder before linking all matching files (including none)
         folder_path_regex: re.Pattern = re.compile(r"^$"),
         dry_run=True,
     ) -> XComArg:
+        """
+        Like link_matching_file, except for two key points:
+        1.  all matches found are linked together as a file collection
+        2.  An additional argument, folder_path_regex, is matched against the folder before linking.
+            Because listed_record_matches ONLY sees a single directory's contents at a time, this
+            folder_path_regex ensures the correct folder is selected before linking, in case multiple
+            child directories exist for a matched record folder.
+        """
+
         @link(attr_name, dry_run=dry_run, task_id=f"link_{attr_name}")
         def do_link(listed_matches: List[Tuple[MatchedRecordFolder, List[File]]]):
             for match, files in listed_matches:
@@ -285,10 +329,26 @@ class MetisEtlHelpers:
 
     def find_record_folders(
         self,
+        # The model for which these matches represent identifiers for.
         model_name: str,
+        # A regex used to match the folder path of any file or folder matched.  The part of the path that matches
+        # this regex is used as the MatchedRecordFolder's root, the record name being determined by taking the last
+        # path segment of the match.
         regex: re.Pattern,
+        # A function that should map the matched directory name to an expected record name in magma
+        # Ideally, matched folders are correct magma record names, but if some transformation is necessary,
+        # this function can be specified.
         corrected_record_name: Callable[[str], str] = lambda x: x,
     ) -> XComArg:
+        """
+        Creates a task that produces a list of MatchedRecordFolders by finding any file or folder change that is
+        found inside a folder given by the provided regex.
+
+        This function should be called to identify folders that have a 1:1 mapping to a magma model + record combination.
+        Doing so allows many linking convenience functions that can determine the record name by the containing folder's
+        name.
+        """
+
         @task
         def find_record_folders(folders, files):
             return pickled(
@@ -303,6 +363,11 @@ class MetisEtlHelpers:
         return find_record_folders(self.tail_folders, self.tail_files)
 
     def filter_by_timur(self, matches: XComArg) -> XComArg:
+        """
+        Creates a task that first validates the model / record name of the provided record folder matches already exist
+        in magma / timur, ensuring that any incorrectly named folder does not accidentally become a magma record.
+        """
+
         @task
         def filter_by_timur(matches):
             with self.hook.magma() as magma:
@@ -311,6 +376,15 @@ class MetisEtlHelpers:
         return filter_by_timur(matches)
 
     def list_match_folders(self, matches: XComArg):
+        """
+        Creates a task that lists the contents of the given MatchedRecordFolders.  For instance, if a single file
+        is added to a record folder, the entire contents of that record folder are listed for use by downstream
+        linkers.  this is important when linking multiple files in a collection, or processing that involves
+        reading in multiple files that exist in the same record folder.
+
+        The resulting XComArg will provide a value to any consuming task a value of List[Tuple[MatchedRecordFolder, List[File]]]
+        """
+
         @task
         def list_match_folders(matches):
             with self.hook.metis() as metis:
@@ -322,7 +396,11 @@ class MetisEtlHelpers:
 def filter_by_exists_in_timur(
     magma: Magma,
     matched: List[MatchedRecordFolder],
-):
+) -> List[MatchedRecordFolder]:
+    """
+    Underlying function that implements helpers.filter_by_timur, takes a magma client and a list of matched record folders,
+    and returns the list of matches that have a backing record in magma.
+    """
     if not matched:
         return []
 
@@ -341,9 +419,7 @@ def filter_by_exists_in_timur(
             record_names=[m.record_name for m in matches],
         )
         result.extend(
-            m
-            for m in matches
-            if m.record_name in response.models[model_name].documents
+            m for m in matches if m.record_name in response.models[model_name].documents
         )
 
     return result
@@ -355,6 +431,11 @@ def filter_by_record_directory(
     model_name: str,
     corrected_record_name: Callable[[str], str] = lambda x: x,
 ) -> List[MatchedRecordFolder]:
+    """
+    Underlying implementation that backs helpers.find_record_folders, searching a list of File and Folder objects
+    for any whose file_path matches the directory regex, and creating MatchedRecordFolders for each unique folder_path
+    found in this way.
+    """
     result: Dict[str, MatchedRecordFolder] = {}
 
     for file_or_folder in files_or_folders:

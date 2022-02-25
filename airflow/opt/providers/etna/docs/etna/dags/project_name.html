@@ -59,6 +59,12 @@
 
 
 <span class="k">def</span> <span class="nf">get_project_name</span><span class="p">(</span><span class="n">dag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DAG</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Utility function that retrieves the current project context that a task may be executing in.</span>
+<span class="sd">    Note that this function may only be called _inside of an executing task_, such as a @link decorated</span>
+<span class="sd">    function or a @task decorated function.  A DAG&#39;s project is determined by the first owner entry, which</span>
+<span class="sd">    is set by most utilities in the etna library automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">dag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">dag</span> <span class="o">=</span> <span class="n">get_current_context</span><span class="p">()[</span><span class="s2">&quot;dag&quot;</span><span class="p">]</span>
     <span class="n">parts</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">owner</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
@@ -83,6 +89,12 @@
             <details>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_project_name</span><span class="p">(</span><span class="n">dag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DAG</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Utility function that retrieves the current project context that a task may be executing in.</span>
+<span class="sd">    Note that this function may only be called _inside of an executing task_, such as a @link decorated</span>
+<span class="sd">    function or a @task decorated function.  A DAG&#39;s project is determined by the first owner entry, which</span>
+<span class="sd">    is set by most utilities in the etna library automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">dag</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">dag</span> <span class="o">=</span> <span class="n">get_current_context</span><span class="p">()[</span><span class="s2">&quot;dag&quot;</span><span class="p">]</span>
     <span class="n">parts</span> <span class="o">=</span> <span class="n">dag</span><span class="o">.</span><span class="n">owner</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
@@ -95,7 +107,12 @@
 
         </details>
 
-    
+            <div class="docstring"><p>Utility function that retrieves the current project context that a task may be executing in.
+Note that this function may only be called _inside of an executing task_, such as a @link decorated
+function or a @task decorated function.  A DAG's project is determined by the first owner entry, which
+is set by most utilities in the etna library automatically.</p>
+</div>
+
 
                 </section>
     </main>

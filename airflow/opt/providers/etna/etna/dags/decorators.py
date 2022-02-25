@@ -39,6 +39,7 @@ def dag(
     to 'inject' parameters into the callable.  Generally not used directly, use other more specific decorators
     such as system_dag or metis_etl.
     """
+
     def instantiate_dag(fn):
         with DAG(
             dag_id=fn.__name__ + str(version),
@@ -62,6 +63,7 @@ def system_dag(interval: timedelta) -> Callable[[Callable], DAG]:
     using any tasks instantiated within the function.  For use with 'system'
     level dags whose owner should be 'administration'.
     """
+
     def instantiate_dag(fn):
         return dag(
             start_date=system_epoch,

@@ -120,7 +120,9 @@ def etl(
     def instantiate_dag(fn):
         start_date = system_epoch
         # Stagger start times for etls
-        start_date += timedelta(seconds=hash(fn.__name__) % int(interval.total_seconds()))
+        start_date += timedelta(
+            seconds=hash(fn.__name__) % int(interval.total_seconds())
+        )
 
         new_dag: DAG = dag(
             start_date=start_date,

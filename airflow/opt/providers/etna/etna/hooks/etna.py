@@ -124,7 +124,7 @@ class EtnaHook(BaseHook):
             )
 
     def get_task_auth(
-        self, project_name: Optional[str] = None, ready_only=True
+        self, project_name: Optional[str] = None, read_only=True
     ) -> "TokenAuth":
         if project_name is None:
             dag: DAG = get_current_context()["dag"]
@@ -132,7 +132,7 @@ class EtnaHook(BaseHook):
         token_auth = self.get_token_auth()
         with self.get_client(token_auth) as session:
             token = Janus(session, self.get_hostname("janus")).generate_token(
-                project_name, ready_only
+                project_name, read_only
             )
         return TokenAuth(token, project_name)
 

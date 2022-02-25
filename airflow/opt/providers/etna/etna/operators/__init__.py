@@ -77,7 +77,7 @@ def _prepare_input_outputs(output_b64, output_json):
         else:
             serialize_last_output = json.loads
     elif output_b64:
-        serialize_last_output = base64.b64decode
+        serialize_last_output = lambda bytes: bytes.decode("ascii")
     return serialize_last_output
 
 

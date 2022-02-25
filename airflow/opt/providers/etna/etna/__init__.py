@@ -13,6 +13,7 @@ granular functions for nuanced use cases.
 
 from datetime import datetime
 
+
 def __getattr__(name):
     from .dags.decorators import system_dag
     from .operators import run_on_docker
@@ -29,8 +30,15 @@ def __getattr__(name):
         get_project_slack_hook,
     )
     from .hooks.etna import UpdateRequest
-    __all__ = list(k for k in locals().keys() if k != 'name') + ['dags', 'operators', 'etls', 'xcom', 'hooks']
-    __version__ = '0.0.1'
+
+    __all__ = list(k for k in locals().keys() if k != "name") + [
+        "dags",
+        "operators",
+        "etls",
+        "xcom",
+        "hooks",
+    ]
+    __version__ = "0.0.1"
     __date__ = datetime(2022, 2, 22)
 
     for k, v in locals().items():
