@@ -81,14 +81,14 @@ export function checkboxPiece(
   }
 
 export function dropdownPiece(
-  key: string = "filler", changeFxn: Function, value: string,
+  key: string = "filler", changeFxn: Function, value: string | null,
   label: string, options: string[], sorted: boolean = true) {
     
     return(
       <Autocomplete
         style={{minWidth: 200, paddingTop: 6}}
         value={value}
-        onChange={(event:any, val: string) => changeFxn(val, key)}
+        onChange={(event:any, val: string | null) => changeFxn(val, key)}
         id={key}
         options={options}
         renderInput={(params:any) => <TextField {...params} label={label} variant="outlined"/>}
