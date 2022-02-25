@@ -130,7 +130,7 @@ function VisualizationUI({
   
   const pickPlot = (setPlotType!='') ? null : (
     <div>
-      {dropdownInput(
+      {dropdownPiece(
       'plot_type', updatePlotType, plotType, "Plot Type:",
       Object.keys(input_sets), false)}
       <hr/>
