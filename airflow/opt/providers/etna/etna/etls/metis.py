@@ -17,8 +17,9 @@ from serde.json import from_json
 
 from etna.dags.project_name import get_project_name
 from etna.etls.etl_task_batching import get_batch_range
-from etna.hooks.etna import File, Folder, UpdateRequest, EtnaHook, Magma, Metis, Model
+from etna.hooks.etna import File, Folder, UpdateRequest, EtnaHook, Magma, Metis, Model, Template
 from etna.operators import DockerOperatorBase
+from etna.utils.inject import inject
 from etna.utils.iterables import batch_iterable
 from etna.xcom.etna_xcom import pickled
 
@@ -209,19 +210,21 @@ class MetisEtlHelpers:
         self,
         listed_record_matches: XComArg,
         regex: re.Pattern,
-        processor: Callable[[Metis, MatchedRecordFolder, File], UpdateRequest],
+        processor: Callable[[], UpdateRequest],
         dry_run=True,
     ) -> XComArg:
         """
         Creates a task that follows the listed set of record match folders and calls the given
-        processor function with a metis client, matched record folder, and file when a file from
-        the listed_record_matches set matches the given regex.  The processor function can return
-        an UpdateRequest based on the contents of the processed file.
+        processor function to provide an UpdateRequest object as a result of matching files from
+        the listed match record folder.
+
+        The decorated function can receive arguments named metis, file, match, or template,
+        each being either a MetisClient, File, MatchedRecordFolder, or Template respectively.
 
         eg:
 
         ```
-        def my_processor(metis, match, file):
+        def my_processor(metis, template, match, file):
           with metis.open_file(file) as file_reader:
             csv_reader = csv.reader(file_reader)
             return match.as_update(csv_reader)
@@ -233,11 +236,17 @@ class MetisEtlHelpers:
         """
         @link(dry_run=dry_run, task_id=processor.__name__)
         def do_link(listed_matches: List[Tuple[MatchedRecordFolder, List[File]]]):
-            with self.hook.metis(read_only=False) as metis:
-                for match, files in listed_matches:
-                    for file in files:
-                        if regex.match(file.file_name):
-                            yield match, processor(metis, match, file)
+            with self.hook.magma(project_name=get_project_name(), read_only=True) as magma:
+                models = magma.retrieve(get_project_name(), hide_templates=False).models
+                with self.hook.metis(read_only=False) as metis:
+                    for match, files in listed_matches:
+                        for file in files:
+                            if regex.match(file.file_name):
+                                template: Template = None
+                                if match.model_name in models:
+                                    template = models[match.model_name].template
+
+                                yield match, inject(processor, dict(metis=metis, file=file, match=match, template=template))
 
         return do_link(listed_record_matches)
 
