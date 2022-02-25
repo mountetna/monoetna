@@ -321,6 +321,9 @@
                         <li>
                                 <a class="variable" href="#Attribute.hidden">hidden</a>
                         </li>
+                        <li>
+                                <a class="variable" href="#Attribute.validation">validation</a>
+                        </li>
                 </ul>
 
             </li>
@@ -974,14 +977,34 @@
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">from_json</span><span class="p">(</span><span class="n">FoldersAndFilesResponse</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">open_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">File</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_url</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">download_url</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">open_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">File</span><span class="p">,</span> <span class="n">binary_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        See open_url, this method opens the given file&#39;s download_url using that method</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_url</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">download_url</span><span class="p">,</span> <span class="n">binary_mode</span><span class="p">)</span>
 
-    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
-    <span class="k">def</span> <span class="nf">open_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">open_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">binary_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Opens the given url for download into a context as a python io (file like) object.</span>
+<span class="sd">        By default, when binary_mode is False, the underlying io object yields decoded strings using utf-8.</span>
+<span class="sd">        Otherwise, the provided io object yields bytes objects.</span>
+
+<span class="sd">        Note:  Ideally, this method is used in combination with &#39;with&#39; syntax in python, so that the underlying</span>
+<span class="sd">        data stream is closed after usage.  This is especially performant when code only needs to access a small</span>
+<span class="sd">        subset of the data.</span>
+
+<span class="sd">        eg:</span>
+<span class="sd">        ```</span>
+<span class="sd">        with metis.open_url(file.download_url) as open_file:</span>
+<span class="sd">          for line in csv.reader(open_file):</span>
+<span class="sd">             break</span>
+<span class="sd">        ```</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">iterable_to_stream</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">DEFAULT_BUFFER_SIZE</span><span class="p">))</span>
-        <span class="n">response</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">io_obj</span> <span class="o">=</span> <span class="n">iterable_to_stream</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">DEFAULT_BUFFER_SIZE</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">binary_mode</span><span class="p">:</span>
+            <span class="n">io_obj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">io_obj</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf8&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">io_obj</span>
 
     <span class="k">def</span> <span class="nf">authorize_upload</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span>
@@ -1142,6 +1165,7 @@
     <span class="n">match</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">restricted</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">hidden</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">validation</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
 
 
 <span class="nd">@serialize</span>
@@ -1159,7 +1183,7 @@
 <span class="nd">@deserialize</span>
 <span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
-    <span class="n">documents</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]</span>
+    <span class="n">documents</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">template</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Template</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -1168,7 +1192,7 @@
 <span class="nd">@deserialize</span>
 <span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
 <span class="k">class</span> <span class="nc">RetrievalResponse</span><span class="p">:</span>
-    <span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Model</span><span class="p">]</span>
+    <span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Model</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
@@ -3024,14 +3048,34 @@ for the efficiency of imports.</p>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">from_json</span><span class="p">(</span><span class="n">FoldersAndFilesResponse</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">open_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">File</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_url</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">download_url</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">open_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">File</span><span class="p">,</span> <span class="n">binary_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        See open_url, this method opens the given file&#39;s download_url using that method</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_url</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">download_url</span><span class="p">,</span> <span class="n">binary_mode</span><span class="p">)</span>
 
-    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
-    <span class="k">def</span> <span class="nf">open_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">open_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">binary_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Opens the given url for download into a context as a python io (file like) object.</span>
+<span class="sd">        By default, when binary_mode is False, the underlying io object yields decoded strings using utf-8.</span>
+<span class="sd">        Otherwise, the provided io object yields bytes objects.</span>
+
+<span class="sd">        Note:  Ideally, this method is used in combination with &#39;with&#39; syntax in python, so that the underlying</span>
+<span class="sd">        data stream is closed after usage.  This is especially performant when code only needs to access a small</span>
+<span class="sd">        subset of the data.</span>
+
+<span class="sd">        eg:</span>
+<span class="sd">        ```</span>
+<span class="sd">        with metis.open_url(file.download_url) as open_file:</span>
+<span class="sd">          for line in csv.reader(open_file):</span>
+<span class="sd">             break</span>
+<span class="sd">        ```</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">iterable_to_stream</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">DEFAULT_BUFFER_SIZE</span><span class="p">))</span>
-        <span class="n">response</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">io_obj</span> <span class="o">=</span> <span class="n">iterable_to_stream</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">DEFAULT_BUFFER_SIZE</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">binary_mode</span><span class="p">:</span>
+            <span class="n">io_obj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">io_obj</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf8&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">io_obj</span>
 
     <span class="k">def</span> <span class="nf">authorize_upload</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span>
@@ -3257,42 +3301,79 @@ for the efficiency of imports.</p>
             <span class="def">def</span>
             <span class="name">open_file</span><span class="signature">(
     self,
-    file: <a href="#File">etna.hooks.etna.File</a>
-) -&gt; AbstractContextManager[_io.BufferedReader]</span>:
+    file: <a href="#File">etna.hooks.etna.File</a>,
+    binary_mode=False
+) -&gt; _io.BufferedReader</span>:
     </div>
 
             <details>
             <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">open_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">File</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_url</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">download_url</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">open_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">File</span><span class="p">,</span> <span class="n">binary_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        See open_url, this method opens the given file&#39;s download_url using that method</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_url</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">download_url</span><span class="p">,</span> <span class="n">binary_mode</span><span class="p">)</span>
 </pre></div>
 
         </details>
 
-    
+            <div class="docstring"><p>See open_url, this method opens the given file's download_url using that method</p>
+</div>
+
 
                             </div>
                             <div id="Metis.open_url" class="classattr">
                                         <div class="attr function"><a class="headerlink" href="#Metis.open_url">#&nbsp;&nbsp</a>
 
-                <div class="decorator">@contextlib.contextmanager</div>
-
+        
             <span class="def">def</span>
-            <span class="name">open_url</span><span class="signature">(self, url: str) -&gt; AbstractContextManager[_io.BufferedReader]</span>:
+            <span class="name">open_url</span><span class="signature">(self, url: str, binary_mode=False) -&gt; _io.BufferedReader</span>:
     </div>
 
             <details>
             <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span>    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
-    <span class="k">def</span> <span class="nf">open_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">]:</span>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">open_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">binary_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Opens the given url for download into a context as a python io (file like) object.</span>
+<span class="sd">        By default, when binary_mode is False, the underlying io object yields decoded strings using utf-8.</span>
+<span class="sd">        Otherwise, the provided io object yields bytes objects.</span>
+
+<span class="sd">        Note:  Ideally, this method is used in combination with &#39;with&#39; syntax in python, so that the underlying</span>
+<span class="sd">        data stream is closed after usage.  This is especially performant when code only needs to access a small</span>
+<span class="sd">        subset of the data.</span>
+
+<span class="sd">        eg:</span>
+<span class="sd">        ```</span>
+<span class="sd">        with metis.open_url(file.download_url) as open_file:</span>
+<span class="sd">          for line in csv.reader(open_file):</span>
+<span class="sd">             break</span>
+<span class="sd">        ```</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">iterable_to_stream</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">DEFAULT_BUFFER_SIZE</span><span class="p">))</span>
-        <span class="n">response</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">io_obj</span> <span class="o">=</span> <span class="n">iterable_to_stream</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">DEFAULT_BUFFER_SIZE</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">binary_mode</span><span class="p">:</span>
+            <span class="n">io_obj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">io_obj</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf8&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">io_obj</span>
 </pre></div>
 
         </details>
 
-    
+            <div class="docstring"><p>Opens the given url for download into a context as a python io (file like) object.
+By default, when binary_mode is False, the underlying io object yields decoded strings using utf-8.
+Otherwise, the provided io object yields bytes objects.</p>
+
+<p>Note:  Ideally, this method is used in combination with 'with' syntax in python, so that the underlying
+data stream is closed after usage.  This is especially performant when code only needs to access a small
+subset of the data.</p>
+
+<p>eg:</p>
+
+<pre><code>with metis.open_url(file.download_url) as open_file:
+  for line in csv.reader(open_file):
+     break
+</code></pre>
+</div>
+
 
                             </div>
                             <div id="Metis.authorize_upload" class="classattr">
@@ -3622,11 +3703,12 @@ for the efficiency of imports.</p>
     <span class="n">match</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">restricted</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">hidden</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">validation</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
 </pre></div>
 
         </details>
 
-            <div class="docstring"><p>Attribute(attribute_type: str = '', link_model_name: Union[str, NoneType] = None, match: Union[str, NoneType] = None, restricted: Union[bool, NoneType] = None, hidden: Union[bool, NoneType] = None)</p>
+            <div class="docstring"><p>Attribute(attribute_type: str = '', link_model_name: Union[str, NoneType] = None, match: Union[str, NoneType] = None, restricted: Union[bool, NoneType] = None, hidden: Union[bool, NoneType] = None, validation: Any = None)</p>
 </div>
 
 
@@ -3639,7 +3721,8 @@ for the efficiency of imports.</p>
     link_model_name: Union[str, NoneType] = None,
     match: Union[str, NoneType] = None,
     restricted: Union[bool, NoneType] = None,
-    hidden: Union[bool, NoneType] = None
+    hidden: Union[bool, NoneType] = None,
+    validation: Any = None
 )</span>
     </div>
 
@@ -3691,6 +3774,16 @@ for the efficiency of imports.</p>
                                             <div class="attr variable"><a class="headerlink" href="#Attribute.hidden">#&nbsp;&nbsp</a>
 
         <span class="name">hidden</span><span class="annotation">: Union[bool, NoneType]</span><span class="default_value"> = None</span>
+    </div>
+
+    
+    
+
+                            </div>
+                            <div id="Attribute.validation" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#Attribute.validation">#&nbsp;&nbsp</a>
+
+        <span class="name">validation</span><span class="annotation">: Any</span><span class="default_value"> = None</span>
     </div>
 
     
@@ -3793,14 +3886,14 @@ for the efficiency of imports.</p>
             <details>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span><span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
-    <span class="n">documents</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]</span>
+    <span class="n">documents</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">template</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Template</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 </pre></div>
 
         </details>
 
-            <div class="docstring"><p>Model(documents: Dict[str, Dict[str, Any]], template: Union[<a href="#Template">etna.hooks.etna.Template</a>, NoneType] = None, count: int = 0)</p>
+            <div class="docstring"><p>Model(documents: Dict[str, Dict[str, Any]] = <factory>, template: Union[<a href="#Template">etna.hooks.etna.Template</a>, NoneType] = None, count: int = 0)</p>
 </div>
 
 
@@ -3809,7 +3902,7 @@ for the efficiency of imports.</p>
 
         
             <span class="name">Model</span><span class="signature">(
-    documents: Dict[str, Dict[str, Any]],
+    documents: Dict[str, Dict[str, Any]] = &lt;factory&gt;,
     template: Union[<a href="#Template">etna.hooks.etna.Template</a>, NoneType] = None,
     count: int = 0
 )</span>
@@ -3852,7 +3945,7 @@ for the efficiency of imports.</p>
             <details>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span><span class="k">class</span> <span class="nc">RetrievalResponse</span><span class="p">:</span>
-    <span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Model</span><span class="p">]</span>
+    <span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Model</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
@@ -3871,7 +3964,7 @@ for the efficiency of imports.</p>
 
         </details>
 
-            <div class="docstring"><p>RetrievalResponse(models: Dict[str, <a href="#Model">etna.hooks.etna.Model</a>])</p>
+            <div class="docstring"><p>RetrievalResponse(models: Dict[str, <a href="#Model">etna.hooks.etna.Model</a>] = <factory>)</p>
 </div>
 
 
@@ -3879,7 +3972,7 @@ for the efficiency of imports.</p>
                                         <div class="attr function"><a class="headerlink" href="#RetrievalResponse.__init__">#&nbsp;&nbsp</a>
 
         
-            <span class="name">RetrievalResponse</span><span class="signature">(models: Dict[str, <a href="#Model">etna.hooks.etna.Model</a>])</span>
+            <span class="name">RetrievalResponse</span><span class="signature">(models: Dict[str, <a href="#Model">etna.hooks.etna.Model</a>] = &lt;factory&gt;)</span>
     </div>
 
     

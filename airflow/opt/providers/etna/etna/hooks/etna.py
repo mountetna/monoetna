@@ -398,14 +398,34 @@ class Metis(EtnaClientBase):
             )
         return from_json(FoldersAndFilesResponse, response.content)
 
-    def open_file(self, file: File) -> typing.ContextManager[io.BufferedReader]:
-        return self.open_url(file.download_url)
+    def open_file(self, file: File, binary_mode=False) -> io.BufferedReader:
+        """
+        See open_url, this method opens the given file's download_url using that method
+        """
+        return self.open_url(file.download_url, binary_mode)
 
-    @contextlib.contextmanager
-    def open_url(self, url: str) -> typing.ContextManager[io.BufferedReader]:
+    def open_url(self, url: str, binary_mode=False) -> io.BufferedReader:
+        """
+        Opens the given url for download into a context as a python io (file like) object.
+        By default, when binary_mode is False, the underlying io object yields decoded strings using utf-8.
+        Otherwise, the provided io object yields bytes objects.
+
+        Note:  Ideally, this method is used in combination with 'with' syntax in python, so that the underlying
+        data stream is closed after usage.  This is especially performant when code only needs to access a small
+        subset of the data.
+
+        eg:
+        ```
+        with metis.open_url(file.download_url) as open_file:
+          for line in csv.reader(open_file):
+             break
+        ```
+        """
         response = self.session.get(url, stream=True)
-        yield iterable_to_stream(response.iter_content(io.DEFAULT_BUFFER_SIZE))
-        response.close()
+        io_obj = iterable_to_stream(response.iter_content(io.DEFAULT_BUFFER_SIZE))
+        if not binary_mode:
+            io_obj = io.TextIOWrapper(io_obj, encoding='utf8')
+        return io_obj
 
     def authorize_upload(
         self, project_name: str, bucket_name: str, file_path: str
@@ -566,6 +586,7 @@ class Attribute:
     match: Optional[str] = None
     restricted: Optional[bool] = None
     hidden: Optional[bool] = None
+    validation: typing.Any = None
 
 
 @serialize
@@ -583,7 +604,7 @@ class Template:
 @deserialize
 @dataclasses.dataclass
 class Model:
-    documents: Dict[str, Dict[str, typing.Any]]
+    documents: Dict[str, Dict[str, typing.Any]] = dataclasses.field(default_factory=dict)
     template: Optional[Template] = None
     count: int = 0
 
@@ -592,7 +613,7 @@ class Model:
 @deserialize
 @dataclasses.dataclass
 class RetrievalResponse:
-    models: Dict[str, Model]
+    models: Dict[str, Model] = dataclasses.field(default_factory=dict)
 
     def empty(self):
         for model in self.models.values():
