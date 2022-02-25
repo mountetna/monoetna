@@ -31,15 +31,15 @@ steps:
       expand_matrices: 1_Data_Source_magma_query__expand_matrices
     out: [data_frame]
   fill_plot_options:
-    run: ui-queries/y-plotly.cwl
+    run: ui-queries/any-viz.cwl
     label: 'Set plot options'
-    doc: "Selections here adjust the plot that will be created. 'X-Axis Data' and 'Y-Axis Data' dropdowns present column names of your chosen data as their options. Note on 'make': Any text left as, or selection of, 'make' refers the visualization machinery to fill in the associated feature with a default value. For example, for 'X-Axis Title', leaving this text input as 'make' will let this title be filled in with its default, which we've defined to be whatever you selected from the 'X-Axis Data' dropdown."
+    doc: "Selections here pick the plot type and how it should be generated. For addtional details, see https://mountetna.github.io/vulcan.html#the-setup-gui which is clickably linked within this workflow's 'vignette'."
     in:
       data_frame: get_data/data_frame
     out: [plot_setup]
   make_plot:
-    run: scripts/make_yplot.cwl
-    label: 'Create Y Plot'
+    run: scripts/make_plot.cwl
+    label: 'Create Plot'
     in:
       plot_setup: fill_plot_options/plot_setup
       data_frame: get_data/data_frame
@@ -49,4 +49,4 @@ steps:
     in:
       a: make_plot/plot.json
     out: []
-    label: 'Display Y Plot'
+    label: 'Display Plot'
