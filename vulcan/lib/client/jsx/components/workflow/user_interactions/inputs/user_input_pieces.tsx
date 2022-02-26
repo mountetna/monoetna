@@ -37,17 +37,16 @@ Some "pieces" have additional inputs, but the first 4 are ALWAYS:
 
 export function stringPiece(
   key: string = "filler", changeFxn: Function, value: string = "filler",
-  label: string = 'hello') {
+  label: string = 'hello', minWidth: number = 200) {
     return (
-      <div style={{paddingTop:6, minWidth:200}}>
-        <TextField
-          key={key}
-          value={value}
-          label={label}
-          variant="outlined"
-          onChange={(event) => changeFxn(event.target.value, key)}
-        />
-      </div>
+      <TextField
+        key={key}
+        value={value}
+        label={label}
+        variant="outlined"
+        onChange={(event) => changeFxn(event.target.value, key)}
+        style={{paddingTop:6, minWidth:minWidth}}
+      />
     )
   };
 
