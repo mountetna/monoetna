@@ -585,6 +585,7 @@ class Attribute:
     link_model_name: Optional[str] = None
     match: Optional[str] = None
     restricted: Optional[bool] = None
+    read_only: Optional[bool] = None
     hidden: Optional[bool] = None
     validation: typing.Any = None
 

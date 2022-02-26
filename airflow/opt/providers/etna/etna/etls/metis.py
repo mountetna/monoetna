@@ -1,15 +1,18 @@
 import dataclasses
+import difflib
 import functools
 import io
+import json
 import logging
 import os.path
 import re
 from logging import Logger
 from typing import Union, Literal, List, Optional, Tuple, Callable, Dict, Any, Iterable
 
+from airflow import DAG
 from airflow.decorators import task
 from airflow.exceptions import AirflowException
-from airflow.models.taskinstance import Context
+from airflow.models.taskinstance import Context, TaskInstance
 from airflow.models.xcom_arg import XComArg
 from airflow.operators.python import get_current_context
 from serde import serialize, deserialize
@@ -25,7 +28,7 @@ from etna.hooks.etna import (
     Magma,
     Metis,
     Model,
-    Template,
+    Template, RetrievalResponse,
 )
 from etna.operators import DockerOperatorBase
 from etna.utils.inject import inject
@@ -98,6 +101,7 @@ class link:
     dry_run: bool
     _hook: Optional[EtnaHook]
     attribute_name: Optional[str]
+    debug_bucket: Optional[str]
 
     def __init__(
         self,
@@ -105,12 +109,14 @@ class link:
         dry_run=True,
         hook: Optional[EtnaHook] = None,
         task_id: Optional[str] = None,
+        debug_bucket: Optional[str] = None,
     ):
         self.task_id = task_id
         self._hook = hook
         self.dry_run = dry_run
         self.attribute_name = attribute_name
         self.log = logging.getLogger("airflow.task")
+        self.debug_bucket = debug_bucket
 
     @property
     def project_name(self) -> str:
@@ -129,10 +135,6 @@ class link:
                 response = magma.retrieve(
                     project_name=self.project_name,
                     model_name="all",
-                    attribute_names=[self.attribute_name]
-                    if self.attribute_name
-                    else "all",
-                    record_names=[],
                     hide_templates=False,
                 )
 
@@ -181,9 +183,57 @@ class link:
             result.append(match)
 
         self.log.info("Executing batched magma update")
+        self._upload_debug(update, models)
         magma.update(update)
         return result
 
+    def _upload_debug(self, update: UpdateRequest, models: Dict[str, Model]):
+        context = get_current_context()
+        dag: DAG = context['dag']
+        ti: TaskInstance = context['ti']
+
+        if not self.debug_bucket:
+            return
+
+        records: RetrievalResponse = RetrievalResponse()
+        with self.hook.magma() as magma:
+            with self.hook.metis() as metis:
+                for model_name, revisions in update.revisions.items():
+                    records.extend(magma.retrieve(get_project_name(), model_name=model_name, record_names=revisions.keys()))
+
+                for identifier, revision in revisions.items():
+                    existing = records.models[model_name].documents.get(identifier, {})
+                    # Compare the subset of attributes that actually exist in this revision
+                    # against what might already exist for that record.
+                    # Order the attributes based on the template to ensure cleaner diff as well.
+                    exisiting_diffable = dict()
+                    revision_diffable = dict()
+
+                    for attr_name in models[model_name].template.attributes.keys():
+                        if attr_name in revision:
+                            if attr_name in existing:
+                                exisiting_diffable[attr_name] = existing[attr_name]
+                            revision_diffable[attr_name] = revision[attr_name]
+
+
+                    payload: str = "\n".join(difflib.Differ().compare(
+                        json.dumps(exisiting_diffable, indent=2),
+                        json.dumps(revision_diffable, indent=2),
+                    ))
+
+                    if not payload:
+                        continue
+
+                    payload_bytes = payload.encode('utf8')
+                    file = io.BytesIO(payload_bytes)
+                    for upload in metis.upload_file(
+                            get_project_name(dag),
+                            self.debug_bucket,
+                            f"link/{dag.dag_id}/{ti.task_id}/{ti.run_id}/{model_name}/{identifier}.json",
+                            file,
+                            size=len(payload_bytes)
+                        ):
+                        pass
 
 def list_contents_of_matches(
     metis: Metis, matching: List[MatchedRecordFolder]

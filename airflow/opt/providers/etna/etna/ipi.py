@@ -1,16 +1,20 @@
 from typing import List, Tuple, Dict
 
+from airflow.decorators import task
 from airflow.utils.task_group import TaskGroup
 
 from etna import (
     metis_etl,
     link,
-    MetisEtlHelpers,
+    MetisEtlHelpers, pickled, get_project_name,
 )
 import re
 
 from etna.etls.metis import MatchedRecordFolder
-from etna.hooks.etna import File, Attribute
+from etna.hooks.etna import File, Attribute, UpdateRequest
+import csv
+import json
+import os.path
 
 timepoint_regex = re.compile(r"^(?P<timepoint>MVIR1-HS\d+-DN?\d+)[A-Z]+.*")
 patient_regex = re.compile(r"^(?P<patient>MVIR1-HS\d+)-D.*")
@@ -31,74 +35,41 @@ def correct_ipi_record_name(name):
         match = non_pool_identifier_tri_regex.match(name)
         if match:
             name = (
-                match.groups(1).replace("_", ".")
-                + match.groups(2).lower()
-                + match.groups(3)
+                    match.groups(1).replace("_", ".")
+                    + match.groups(2).lower()
+                    + match.groups(3)
             )
     return name
 
 
 assert (
-    correct_ipi_record_name("IPIPOOL001_P1_scRNA_XVIPBMC")
-    == "IPIPOOL001.P1.scrna.xvipbmc"
+        correct_ipi_record_name("IPIPOOL001_P1_scRNA_XVIPBMC")
+        == "IPIPOOL001.P1.scrna.xvipbmc"
 )
 assert (
-    correct_ipi_record_name("IPILUNG094.N1.scrna.CD45_enriched")
-    == "IPILUNG094.N1.scrna.CD45_enriched"
+        correct_ipi_record_name("IPILUNG094.N1.scrna.CD45_enriched")
+        == "IPILUNG094.N1.scrna.CD45_enriched"
 )
 assert (
-    correct_ipi_record_name("IPIPOOL001_P1_scRNA_XVIPBMC")
-    == "IPIPOOL001.P1.scrna.xvipbmc"
+        correct_ipi_record_name("IPIPOOL001_P1_scRNA_XVIPBMC")
+        == "IPIPOOL001.P1.scrna.xvipbmc"
 )
 
-
-def sc_file_linkers(helpers: MetisEtlHelpers, listed_matches):
-    helpers.link_matching_file(
-        listed_matches, "cite_antibody_key", re.compile(r"^ADT_keep_features\.list$")
-    )
-    helpers.link_matching_file(
-        listed_matches, "mux_index_key", re.compile(r"^IDX_map\.tsx$")
-    )
-    helpers.link_matching_file(
-        listed_matches,
-        "processed_robject_rdata",
-        re.compile(r".*_scTransformed_processed\.RData$"),
-    )
-    helpers.link_matching_file(
-        listed_matches, "processed_umap", re.compile(r".*_umap\.pdf$")
-    )
-    helpers.link_matching_file(
-        listed_matches, "processing_pipeline_parameters", re.compile(r"^cutoffs\.yml$")
-    )
-    helpers.link_matching_file(
-        listed_matches,
-        "filtered_counts_h5",
-        re.compile(r"^filtered_feature_bc_matrix\.h5$"),
-    )
-    helpers.link_matching_file(
-        listed_matches, "raw_counts_h5", re.compile(r"^raw_feature_bc_matrix\.h5$")
-    )
-    helpers.link_matching_file(
-        listed_matches, "tenx_aligned_bam", re.compile(r"^possorted_genome_bam\.bam$")
-    )
-    helpers.link_matching_file(
-        listed_matches,
-        "tenx_aligned_bam_index",
-        re.compile(r"^possorted_genome_bam\.bam\.bai$"),
-    )
-    helpers.link_matching_file(
-        listed_matches, "tenx_cloupe_file", re.compile(r"^cloupe\.cloupe$")
-    )
-    helpers.link_matching_file(
-        listed_matches, "tenx_metrics_csv", re.compile(r"^metrics_summary\.csv$")
-    )
-    helpers.link_matching_file(
-        listed_matches, "tenx_molecule_info_h5", re.compile(r"^molecule_info\.h5$")
-    )
-    helpers.link_matching_file(
-        listed_matches, "tenx_web_summary", re.compile(r"^web_summary\.html$")
-    )
-
+sc_file_linkers = dict(
+    cite_antibody_key=r"^ADT_keep_features\.list$",
+    mux_index_key=r"^IDX_map\.tsx$",
+    processed_robject_rdata=r".*_scTransformed_processed\.RData$",
+    processed_umap=r".*_umap\.pdf$",
+    processing_pipeline_parameters=r"^cutoffs\.yml$",
+    filtered_counts_h5=r"^filtered_feature_bc_matrix\.h5$",
+    raw_counts_h5=r"^raw_feature_bc_matrix\.h5$",
+    tenx_aligned_bam=r"^raw_feature_bc_matrix\.h5$",
+    tenx_aligned_bam_index=r"^possorted_genome_bam\.bam\.bai$",
+    tenx_cloupe_file=r"^cloupe\.cloupe$",
+    tenx_metrics_csv=r"^metrics_summary\.csv$",
+    tenx_molecule_info_h5=r"^molecule_info\.h5$",
+    tenx_web_summary=r"^web_summary\.html$",
+)
 
 chem_version_regex = re.compile(r".*/(v1_chemistry|v2_chemistry|v3_chemistry)/.*")
 prime_regex = re.compile(r".*/(3prime_|5prime_).*")
@@ -136,7 +107,7 @@ def link_specimen_and_chemistry(matches: List[MatchedRecordFolder]):
         )
 
 
-class MagmaRnaSeq:
+class RnaSeqAttrTable:
     attributes: Dict[str, Attribute]
     raw: dict
 
@@ -157,6 +128,149 @@ class MagmaRnaSeq:
         "compartment",
     }
 
+    @property
+    def tube_name(self):
+        return RnaSeq.true_tube_name(self.raw[''])
+
+    attr_name_mapping: Dict[str, str] = dict(
+        cell_number="cell_count",
+        duplication_pct="duplication_rate",
+        ribosomal_read_count="reads",
+        input_read_count="input_reads",
+        uniq_map_read_count="uniq_map_reads",
+        multimap_gt20_read_count="multimapp_gt20_reads",
+        chimeric_read_count="chimeric_reads",
+        chromosomal_read_count="chromosomal",
+        mitochondrial_read_count="mitochondrial",
+        median_5prime_bias="median_5p_bias",
+        median_3prime_bias="median_3p_bias",
+        eisenberg_score="EHK",
+        expressed_eisenberg_genes="expressed_EHK_genes",
+    )
+
+    @property
+    def raw_mean_length(self):
+        parts = self.raw["raw_mean_length"].split(",")
+        return (float(parts[0]) + float(parts[-1])) / 2
+
+    @property
+    def filtered_mean_length(self):
+        parts = self.raw["filtered_mean_length"].split(",")
+        return (float(parts[0]) + float(parts[-1])) / 2
+
+    @property
+    def compartment(self):
+        value = self.raw['compartment']
+        if value in self.valid_compartment_values:
+            return value
+
+        match = re.compile('(.*[^\d]+)(\d+)$').match(value)
+        if match:
+            maybe_value = match.group(1)
+            if maybe_value in self.valid_compartment_values:
+                return maybe_value
+
+        return "other"
+
+    @property
+    def valid_compartment_values(self):
+        return self.attributes['compartment'].validation['value']
+
+    @property
+    def as_revision(self):
+        result = {}
+
+        for attr_name in self.attributes.keys():
+            if self.should_skip(attr_name):
+                continue
+            result[attr_name] = self.get_value_for_attr_name(attr_name)
+
+        return result
+
+    def should_skip(self, attr_name):
+        if attr_name not in self.attributes:
+            return True
+
+        attr: Attribute = self.attributes[attr_name]
+        if attr.hidden:
+            return True
+
+        if attr.restricted:
+            return True
+
+        if attr.read_only:
+            return True
+
+        if attr.link_model_name:
+            return True
+
+        if attr_name in self.ATTRIBUTES_TO_SKIP:
+            return True
+
+        if RnaSeq.is_control(self.tube_name) and attr_name in self.CONTROL_ATTRIBUTES_TO_SKIP:
+            return True
+
+        return False
+
+    def get_value_for_attr_name(self, attr_name):
+        if attr_name in self.attr_name_mapping:
+            attr_name = self.attr_name_mapping[attr_name]
+
+        if attr_name == "raw_mean_length":
+            value = self.raw_mean_length
+        elif attr_name == "filtered_mean_length":
+            value = self.filtered_mean_length
+        elif attr_name == "compartment":
+            value = self.compartment
+        else:
+            value = self.raw[attr_name]
+
+        if attr_name in self.attributes:
+            if self.attributes[attr_name].attribute_type == 'float':
+                value = float(value)
+            if self.attributes[attr_name].attribute_type == 'integer':
+                value = int(value)
+
+        return value
+
+
+class RnaSeq:
+    renames: Dict[str, str] = json.loads(open(
+        os.path.join(os.path.dirname(__file__), 'ipi_bulk_rna_renames.json')
+    ).read())
+
+    @staticmethod
+    def control_name_of_rna_seq_tube(tube_name: str) -> str:
+        control, plate, *_ = tube_name.split(".")
+        _, control_type, *_ = control.split("_")
+        control_type: str
+        plate: str
+
+        if 'jurkat' in control_type.lower():
+            return f"Control_Jurkat.{plate.capitalize()}"
+        return f"Control_UHR.{plate.capitalize()}"
+
+    @staticmethod
+    def is_control(tube_name: str):
+        return 'control' in tube_name.lower()
+
+    @staticmethod
+    def is_non_cancer_sample(tube_name: str):
+        return 'NASH' in tube_name or 'NAFLD' in tube_name
+
+    @staticmethod
+    def true_tube_name(tube_name: str):
+        if RnaSeq.is_control(tube_name):
+            return RnaSeq.control_name_of_rna_seq_tube(tube_name)
+
+        if tube_name in RnaSeq.renames:
+            return RnaSeq.renames[tube_name]
+
+        return tube_name
+
+
+assert RnaSeq.true_tube_name('CONTROL_jurkat.plate1') == 'Control_Jurkat.Plate1'
+assert RnaSeq.true_tube_name('CONTROL_uhr.plate2') == 'Control_UHR.Plate2'
 
 single_cell_root = r"^single_cell_[^/]*"
 # Pools are nested
@@ -165,8 +279,27 @@ pool_root = r".*/IPIPOOL[^/]+/IPIPOOL[^/]+"
 non_pool_root = r".*/IPI((?!POOL)[^/])+"
 
 
+def process_gene_table(file_reader, gene_names, attr_name):
+    update: UpdateRequest = UpdateRequest()
+    for row in csv.DictReader(file_reader, delimiter='\t'):
+        for key in row.keys():
+            if key == 'gene_id':
+                continue
+            tube_name = RnaSeq.true_tube_name(key)
+
+            if RnaSeq.is_non_cancer_sample(tube_name):
+                continue
+
+            row = update.update_record('rna_seq', tube_name, {})
+            matrix = row.setdefault(attr_name, [0.0] * len(gene_names))
+            if row['gene_id'] in gene_names:
+                matrix[gene_names.index(row['gene_id'])] = float(row[key])
+
+    return update
+
+
 @metis_etl("ipi", "data", 11)
-def ipi_data_metis_etl(helpers: MetisEtlHelpers):
+def ipi_data_metis_etl(helpers: MetisEtlHelpers, tail_files):
     with TaskGroup("sc_rna_seq_pool_raw"):
         matches = helpers.find_record_folders(
             "sc_rna_seq_pool",
@@ -191,7 +324,8 @@ def ipi_data_metis_etl(helpers: MetisEtlHelpers):
         matches = helpers.filter_by_timur(matches)
         matches = link(dry_run=False)(link_specimen_and_chemistry)(matches)
         listed_matches = helpers.list_match_folders(matches)
-        sc_file_linkers(helpers, listed_matches)
+        for attr, matcher in sc_file_linkers.items():
+            helpers.link_matching_file(listed_matches, attr, re.compile(matcher), dry_run=False)
 
     with TaskGroup("sc_rna_seq_raw"):
         matches = helpers.find_record_folders(
@@ -211,25 +345,53 @@ def ipi_data_metis_etl(helpers: MetisEtlHelpers):
     with TaskGroup("sc_rna_seq_processed"):
         matches = helpers.find_record_folders(
             "sc_rna_seq",
-            re.compile(f"{single_cell_root}/processed/{pool_root}"),
+            re.compile(f"{single_cell_root}/processed/{non_pool_root}"),
             corrected_record_name=correct_ipi_record_name,
         )
         matches = helpers.filter_by_timur(matches)
         matches = link(dry_run=False)(link_specimen_and_chemistry)(matches)
         listed_matches = helpers.list_match_folders(matches)
-        sc_file_linkers(helpers, listed_matches)
+        for attr, matcher in sc_file_linkers.items():
+            helpers.link_matching_file(listed_matches, attr, re.compile(matcher), dry_run=False)
 
     with TaskGroup("rna_seq_bulk"):
-        matches = helpers.find_record_folders(
-            "-", re.compile(r"^bulkRNASeq/processed/[^/]*/results")
-        )
-        listed_matches = helpers.list_match_folders(matches)
+        @link()
+        def process_gene_count_and_tpm_tables(files):
+            file_regex = re.compile(r'^bulkRNASeq/processed/[^/]*/results/gene_(counts|tpm)_table\.tsv')
+            with helpers.hook.magma() as magma:
+                attributes = magma.retrieve(get_project_name(), 'rna_seq', hide_templates=False).models[
+                    'rna_seq'].template.attributes
+                gene_names = attributes['gene_counts'].validation['value']
+            for metis_file in files:
+                if not file_regex.match(metis_file.file_path):
+                    continue
+                attr_name: str = metis_file.file_name.replace("_table.tsv", "")
 
-        # @link(dry_run=True)
-        # def process_rna_seq_attributes(listed_matches):
-        #     for match, files in listed_matches:
-        #         for file in files:
-        #             if file.file_name == "rnaseq_table.tsv":
-        #                 pass
-        #
-        # process_rna_seq_attributes(listed_matches)
+                with helpers.hook.metis() as metis:
+                    with metis.open_file(metis_file) as file_reader:
+                        yield metis_file, process_gene_table(file_reader, gene_names, attr_name)
+
+        process_gene_count_and_tpm_tables(tail_files)
+
+        @link()
+        def process_attr_table(files):
+            file_regex = re.compile(r'^bulkRNASeq/processed/[^/]*/results/rnaseq_table\.tsv')
+            with helpers.hook.magma() as magma:
+                attributes = magma.retrieve(get_project_name(), 'rna_seq', hide_templates=False).models[
+                    'rna_seq'].template.attributes
+            with helpers.hook.metis() as metis:
+                for metis_file in files:
+                    if not file_regex.match(metis_file.file_path):
+                        continue
+
+                    update: UpdateRequest = UpdateRequest()
+                    with metis.open_file(metis_file) as file_reader:
+                        # Discard first line
+                        file_reader.readline()
+
+                        for row in csv.DictReader(file_reader, delimiter='\t'):
+                            table = RnaSeqAttrTable(row, attributes)
+                            update.update_record('rna_seq', table.tube_name, table.as_revision)
+                    yield metis_file, update
+
+        process_attr_table(tail_files)
