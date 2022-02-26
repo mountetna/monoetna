@@ -138,11 +138,10 @@ BatchSelection.args = {
   }
 }
 
-export const BatchSelection2 = Template.bind({});
-BatchSelection2.args = {
+export const manyOptionDropdown = Template.bind({});
+manyOptionDropdown.args = {
   type: TYPE.SELECT_AUTOCOMPLETE,
   cwlParams:  {
-    'batch_options': require('./human_genes_list.json'),
-    'recommendation': ['1', '2', '3']
+    'options': require('./human_genes_list.json')
   }
 }
