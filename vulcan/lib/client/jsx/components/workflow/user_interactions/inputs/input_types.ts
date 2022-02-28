@@ -36,7 +36,7 @@ export interface BoundInputSpecification<Value = unknown, DataElement = unknown>
 
   data?: DataEnvelope<DataElement> | undefined | null;
 
-  numOutputs: number;
+  numOutputs?: number;
 }
 
 export function getInputSpecifications(
@@ -165,7 +165,7 @@ export type WithInputParams<Params extends {}, Value, DataElement = unknown> = P
   onChange: (v: Maybe<Value>, destructure?: boolean) => void;
   value: Maybe<Value>;
   data: DataEnvelope<DataElement> | undefined | null;
-  numOutputs: number;
+  numOutputs?: number;
 }
 
 export interface ValidationInputSpecification<Value = unknown, DataElement = unknown> {
