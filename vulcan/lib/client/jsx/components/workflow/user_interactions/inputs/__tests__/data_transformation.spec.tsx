@@ -14,8 +14,7 @@ import {
   clickNode,
   findAllByClassName,
   matchesTextPredicate,
-  matchesTypePredicate,
-  text
+  matchesTypePredicate
 } from '../../../../../test_utils/rendered';
 import {ReactTestInstance} from 'react-test-renderer';
 import ReactDOM from 'react-dom';

@@ -131,7 +131,7 @@ export function bindInputSpecification(input: InputSpecification,
   };
 }
 
-function collapseInputValues(
+export function collapseInputValues(
   stepName: string | undefined,
   inputName: string,
   inputs: typeof defaultBufferedInputs.inputs | VulcanState['session']['inputs'],
