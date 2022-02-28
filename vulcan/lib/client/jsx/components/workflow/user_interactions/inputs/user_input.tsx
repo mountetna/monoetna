@@ -1,4 +1,4 @@
-import React, {Dispatch, useContext, useEffect, useMemo} from 'react';
+import React, {Dispatch, useContext, useEffect} from 'react';
 
 import {defaultContext, VulcanContext} from '../../../../contexts/vulcan_context';
 import {
@@ -31,7 +31,7 @@ import {
 } from './validators/all_inner_values_not_empty_validator';
 import MultipleInput from "./multiple_input";
 import SingleDropdownMulticheckbox from "./single_dropdown_multicheckbox";
-import {stepOfSource, stepOfStatus, stepOutputs} from "../../../../selectors/workflow_selectors";
+import {stepOfSource} from "../../../../selectors/workflow_selectors";
 import AllOutputValuesNotEmptyValidator from "./validators/all_output_values_not_empty_validator"
 import DiffExpSC from './scDGE';
 import DataTransformation from './data_transformation';
