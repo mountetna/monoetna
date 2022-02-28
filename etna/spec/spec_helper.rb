@@ -195,49 +195,43 @@ def stub_upload_file(params={})
 end
 
 def stub_janus_setup
-  stub_request(:get, /#{JANUS_HOST}\/refresh_token/)
+  stub_request(:post, %r!#{JANUS_HOST}/api/tokens/generate!)
     .to_return({
       status: 200,
       body: 'a token for you!'
     })
 
-  stub_request(:get, /#{JANUS_HOST}\/project\/#{PROJECT}/)
+  stub_request(:get, %r!#{JANUS_HOST}/api/admin/#{PROJECT}/info!)
     .to_return({
       status: 200,
       body: {project: PROJECT}.to_json
     })
 
-  stub_request(:get, /#{JANUS_HOST}\/projects/)
+  stub_request(:get, %r!#{JANUS_HOST}/api/user/projects!)
     .to_return({
       status: 200,
       body: {projects: [{project_name: PROJECT}]}.to_json
   })
 
-  stub_request(:get, /#{JANUS_HOST}\/whoami/)
+  stub_request(:get, %r!#{JANUS_HOST}/whoami!)
     .to_return({
       status: 200,
       body: '{"email": "janus@twofaces.org"}'
     })
 
-  stub_request(:post, /#{JANUS_HOST}\/add_project/)
+  stub_request(:post, %r!#{JANUS_HOST}/api/admin/add_project!)
     .to_return({
       status: 302
     })
 
-  stub_request(:post, /#{JANUS_HOST}\/add_user/)
+  stub_request(:post, %r!#{JANUS_HOST}/api/admin/#{PROJECT}/add_user!)
     .to_return({
       status: 302
     })
 
-  stub_request(:post, /#{JANUS_HOST}\/update_permission/)
+  stub_request(:post, %r!#{JANUS_HOST}/api/admin/#{PROJECT}/update_permission!)
     .to_return({
       status: 302
-    })
-
-  stub_request(:get, /#{JANUS_HOST}\/viewer_token/)
-    .to_return({
-      status: 200,
-      body: 'a view-only token for you!'
     })
 end
 

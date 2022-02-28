@@ -27,7 +27,7 @@ const KeysSettings = ({user}) => {
   let [ pem, setPemText ] = useState(null);
 
   let uploadKey = useCallback(
-    () => json_post('/update_key', { pem }).then(
+    () => json_post('/api/user/update_key', { pem }).then(
       ({user}) => { setUser(user); setError(null); }
     ).catch(
       e => e.then( ({error}) => setError(error) )
@@ -102,7 +102,7 @@ const JanusSettings = () => {
 
   useEffect(
     () => {
-      json_get('/user').then(({user}) => setUser(user))
+      json_get('/api/user/info').then(({user}) => setUser(user))
     }, []
   );
 

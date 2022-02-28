@@ -32,10 +32,10 @@ const mockState = {
 };
 
 const handlers = [
-  rest.post('/flag_user', (req, res, ctx) => {
+  rest.post('/api/admin/flag_user', (req, res, ctx) => {
     return res(ctx.json({}));
   }),
-  rest.get('/users', (req, res, ctx) => {
+  rest.get('/api/users', (req, res, ctx) => {
     return res(ctx.json({users: mockUsers}));
   })
 ];
@@ -103,7 +103,7 @@ describe('AddRemove', () => {
 
   it('reports errors to the user', async () => {
     server.use(
-      rest.post('/flag_user', (req, res, ctx) => {
+      rest.post('/api/admin/flag_user', (req, res, ctx) => {
         // Respond with "422 Error" status for this test.
         return res(
           ctx.status(422),

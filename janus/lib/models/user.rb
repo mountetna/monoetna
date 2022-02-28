@@ -75,10 +75,6 @@ class User < Sequel::Model
     token_builder.create_task_token!(project_name, **kwds)
   end
 
-  def create_viewer_token!
-    token_builder.create_viewer_token!
-  end
-
   def valid_signature?(text, signature)
     return nil unless public_key
 
