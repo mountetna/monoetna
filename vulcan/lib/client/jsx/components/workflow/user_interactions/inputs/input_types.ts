@@ -123,20 +123,21 @@ export function bindInputSpecification(input: InputSpecification,
     },
     data: inputData,
     value: input.source in buffered ?
-          collapseInputValues(input.name, buffered, true) :
+        collapseInputValues(stepName, input.name, buffered, true) :
       input.source in session.inputs ?
-        some(collapseInputValues(input.name, session.inputs, false)) :
+        some(collapseInputValues(stepName, input.name, session.inputs, false)) :
       null,
     numOutputs: stepOutputs(stepOfStatus(input.name, workflow)).length
   };
 }
 
 function collapseInputValues(
-  stepName: string,
+  stepName: string | undefined,
+  inputName: string,
   inputs: typeof defaultBufferedInputs.inputs | VulcanState['session']['inputs'],
   fromBuffer: boolean
 ): Maybe<unknown> {
-  const stepPrefixRegex = new RegExp(`^${stepName}\/?`);
+  const stepPrefixRegex = new RegExp(stepName ? `^${inputName}\/` : `^${inputName}$`);
   const matchingInputs = Object.keys(inputs).filter((inputName: string) =>
     inputName.match(stepPrefixRegex)
   );
@@ -150,6 +151,7 @@ function collapseInputValues(
 
       return acc;
     }, {} as Maybe<{[key: string]: unknown}>);
+
     return fromBuffer ? some(groupedInputs) : groupedInputs;
   } else if (matchingInputs.length === 1) {
     return inputs[matchingInputs[0]];
