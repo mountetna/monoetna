@@ -48,6 +48,34 @@ module Etna
       return handle_error(error) if error
     end
 
+    def try_stream(content_type, &block)
+      if @request.env['rack.hijack?']
+        @request.env['rack.hijack'].call
+        stream = @request.env['rack.hijack_io']
+
+        headers = [
+          "HTTP/1.1 200 OK",
+          "Content-Type: #{content_type}"
+        ]
+        stream.write(headers.map { |header| header + "\r\n" }.join)
+        stream.write("\r\n")
+        stream.flush
+
+        Thread.new do
+          block.call(stream)
+        ensure
+          stream.close
+        end
+
+        # IO is now streaming and will be processed by above thread.
+        @response.close
+      else
+        @response['Content-Type'] = content_type
+        block.call(@response)
+        @response.finish
+      end
+    end
+
     def require_params(*params)
       missing_params = params.reject{|p| @params.key?(p) }
       raise Etna::BadRequest, "Missing param #{missing_params.join(', ')}" unless missing_params.empty?
