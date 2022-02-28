@@ -189,6 +189,7 @@ export function dataFrameJsonToNestedArray(
 export default function DataTransformationInput({
   onChange,
   data,
+  numOutputs,
   ...props
 }: WithInputParams<
   {label?: string},
@@ -202,19 +203,28 @@ export default function DataTransformationInput({
     setOpen(false);
   }
 
+  const destructureOnChange = useCallback(
+    (v: Maybe<{[key: string]: any}>) => {
+      onChange(v, true);
+    },
+    [onChange]
+  );
+
   const inputValue = useSetsDefault(
     {
       data: some(originalData),
       source_data: some(originalData)
     },
     props.value,
-    onChange
+    destructureOnChange
   );
 
   let value;
 
-  if (inputValue.hasOwnProperty('source_data')) {
-    // This should work the same as the first `if` in the following block,
+  if (numOutputs === 1) {
+    value = inputValue;
+  } else if (inputValue.hasOwnProperty('source_data')) {
+    // This should work the same as the next `else` block,
     //   but will leave it here to be explicit.
     value = inputValue.source_data;
   } else {
@@ -246,7 +256,7 @@ export default function DataTransformationInput({
       <Dialog open={open} onClose={handleOnClose} maxWidth='xl'>
         <DataTransformationModal
           data={value}
-          onChange={onChange}
+          onChange={destructureOnChange}
           onClose={handleOnClose}
         />
       </Dialog>

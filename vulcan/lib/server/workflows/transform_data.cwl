@@ -36,7 +36,7 @@ steps:
     doc: "Manipulate your data frame as needed. Right click for an interactions menu where you can add/remove columns. Start a cell with '=' to create functions in an Excel-like manner."
     in:
       data_frame: get_data/data_frame
-    out: [data, source_data]
+    out: [source_data, data]
   show_data:
     run: ui-outputs/link.cwl
     in:

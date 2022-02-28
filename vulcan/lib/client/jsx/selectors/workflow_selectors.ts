@@ -1,6 +1,5 @@
 import * as _ from 'lodash';
 import {
-  COLLAPSE_OUTPUTS_TYPES,
   OUTPUT_COMPONENT,
   RUN,
   SessionStatusResponse,
@@ -292,24 +291,21 @@ export const sourceNameOfReference = (ref: [string, string]) => {
   return ref.join('/');
 };
 
-export const stepOutputs = (step: WorkflowStep) => {
+export const stepOutputs = (step: WorkflowStep | undefined | '') => {
+  if (!step) return [];
+
   return step.out.map(name => sourceNameOfReference([step.name, name]))
 }
 
 export const sourceNamesOfStep = (step: WorkflowStep) => {
-  if (stepCollapsesOutputs(step))
-    // Assign one output here so that any downloaded input data is grabbed.
-    return [sourceNameOfReference([step.name, step.out[0]])];
+  // return stepOutputs(step); Originally this...
 
-  return stepOutputs(step);
-}
+  if (step.out.length === 0) return [];
 
-export const stepCollapsesOutputs = (step: WorkflowStep) => {
-  return uiQueryOfStep(step) && collapsesOutputs(uiQueryOfStep(step) as string);
-}
-
-export const collapsesOutputs = (inputType: string) => {
-  return Object.values(COLLAPSE_OUTPUTS_TYPES).includes(inputType);
+  // Assign one output per CWL step so that any downloaded input data is grabbed.
+  // But only take one output so that the input widget itself is not
+  //   rendered multiple times in the UI.
+  return [sourceNameOfReference([step.name, step.out[0]])];
 }
 
 export function missingOutputsForStep(step: WorkflowStep, inputs: VulcanState['session']['inputs']): { [k: string]: null } {

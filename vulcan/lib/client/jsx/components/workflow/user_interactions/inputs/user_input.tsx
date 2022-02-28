@@ -1,4 +1,4 @@
-import React, {Dispatch, useContext, useEffect} from 'react';
+import React, {Dispatch, useContext, useEffect, useMemo} from 'react';
 
 import {defaultContext, VulcanContext} from '../../../../contexts/vulcan_context';
 import {
@@ -31,7 +31,7 @@ import {
 } from './validators/all_inner_values_not_empty_validator';
 import MultipleInput from "./multiple_input";
 import SingleDropdownMulticheckbox from "./single_dropdown_multicheckbox";
-import {stepOfSource} from "../../../../selectors/workflow_selectors";
+import {stepOfSource, stepOfStatus, stepOutputs} from "../../../../selectors/workflow_selectors";
 import AllOutputValuesNotEmptyValidator from "./validators/all_output_values_not_empty_validator"
 import DiffExpSC from './scDGE';
 import DataTransformation from './data_transformation';
@@ -84,7 +84,7 @@ export default function UserInput({
 }) {
   const [InputComponent, Validator] = backendComponentOf(input.type);
   const {dispatch} = useContext(VulcanContext);
-  const {onChange, data, value, source, label} = input;
+  const {onChange, data, value, source, label, numOutputs} = input;
 
   useEffect(() => {
     const errors = Validator({ data, value });
@@ -114,7 +114,11 @@ export default function UserInput({
               its interface correctly in all cases.
            */}
           <VulcanContext.Provider value={defaultContext}>
-            <InputComponent key={input.label} onChange={onChange} data={data} value={value} />
+            <InputComponent key={input.label}
+              onChange={onChange}
+              data={data}
+              value={value}
+              numOutputs={numOutputs} />
           </VulcanContext.Provider>
         </InputHelp>
       </div>

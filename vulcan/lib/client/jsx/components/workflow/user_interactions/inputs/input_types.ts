@@ -5,7 +5,6 @@ import {Dispatch} from "react";
 import {VulcanAction} from "../../../../actions/vulcan_actions";
 import {VulcanState} from "../../../../reducers/vulcan_reducer";
 import {
-  collapsesOutputs,
   sourceNamesOfStep, splitSource, stepInputDataRaw, stepOfSource, stepOfStatus, stepOutputs, uiQueryOfStep
 } from "../../../../selectors/workflow_selectors";
 import {defaultBufferedInputs} from "../../../../contexts/input_state_management";
@@ -33,9 +32,11 @@ export interface InputSpecification {
 export interface BoundInputSpecification<Value = unknown, DataElement = unknown> extends InputSpecification {
   value: Maybe<Value>;
 
-  onChange(v: Maybe<Value>): void;
+  onChange(v: Maybe<Value>, destructure?: boolean): void;
 
   data?: DataEnvelope<DataElement> | undefined | null;
+
+  numOutputs: number;
 }
 
 export function getInputSpecifications(
@@ -74,8 +75,8 @@ export function bindInputSpecification(input: InputSpecification,
 
   return {
     ...input,
-    onChange(v: Maybe<unknown>) {
-      if (collapsesOutputs(input.type) && isSome(v) && step) {
+    onChange(v: Maybe<unknown>, destructure: boolean = false) {
+      if (destructure) {
         const authoredOutputs = stepOutputs(step);
         
         let values: {[key: string]: any} = {};
@@ -99,12 +100,14 @@ export function bindInputSpecification(input: InputSpecification,
         // Next, any remaining, unassigned outputs are picked
         //   from the unassigned userValue keys as if we were popping
         //   values off a queue.
+        const usedValueKeys = Object.keys(values).map((k) => splitSource(k)[1]);
         const unassignedValueKeys = Object.keys(userValue).filter((key: string) => {
-          return !values.hasOwnProperty(key)
+          return !usedValueKeys.includes(key)
         }).sort();
         
         withoutValues.forEach((authoredOutput, index) => {
-          values[authoredOutput] = userValue[unassignedValueKeys[index] as any];
+          if (unassignedValueKeys[index])
+            values[authoredOutput] = userValue[unassignedValueKeys[index] as any];
         });
 
         // Any unassigned values in `userValue` are discarded at this point.
@@ -112,7 +115,7 @@ export function bindInputSpecification(input: InputSpecification,
         if (unassignedValueKeys.length > withoutValues.length) {
           console.warn("UI input returned values not assigned in CWL.", unassignedValueKeys.slice(withoutValues.length))
         }
-
+        
         setInputs(inputs => ({...inputs, ...values as any}))
       } else {
         setInputs(inputs => ({...inputs, [input.source]: v}))
@@ -120,35 +123,49 @@ export function bindInputSpecification(input: InputSpecification,
     },
     data: inputData,
     value: input.source in buffered ?
-        collapsesOutputs(input.type) ?
-          collapseInputValues(input.name, buffered) :
-          buffered[input.source] :
+          collapseInputValues(input.name, buffered, true) :
       input.source in session.inputs ?
-        collapsesOutputs(input.type) ?
-          collapseInputValues(input.name, session.inputs) :
-          some(session.inputs[input.source]) :
-        null,
+        some(collapseInputValues(input.name, session.inputs, false)) :
+      null,
+    numOutputs: stepOutputs(stepOfStatus(input.name, workflow)).length
   };
 }
 
-function collapseInputValues(stepName: string, inputs: typeof defaultBufferedInputs.inputs | VulcanState['session']['inputs']): Maybe<unknown> {
-  const stepPrefix = `${stepName}/`;
-  return some(Object.keys(inputs).filter((inputName: string) => {
-    return inputName.startsWith(stepPrefix)
-  }).reduce((acc: {[key: string]: unknown}, inputName) => {
-    const outputName = inputName.replace(stepPrefix, '');
-    acc[outputName as any] = inputs[inputName];
-    return acc;
-  }, {}));
+function collapseInputValues(
+  stepName: string,
+  inputs: typeof defaultBufferedInputs.inputs | VulcanState['session']['inputs'],
+  fromBuffer: boolean
+): Maybe<unknown> {
+  const stepPrefixRegex = new RegExp(`^${stepName}\/?`);
+  const matchingInputs = Object.keys(inputs).filter((inputName: string) =>
+    inputName.match(stepPrefixRegex)
+  );
+
+  if (matchingInputs.length > 1) {
+    const groupedInputs = matchingInputs.reduce((acc: Maybe<{[key: string]: unknown}>, inputName) => {
+      if (!acc) return some({}); // should never return this? Here to make TSC happy.
+
+      const outputName = inputName.replace(stepPrefixRegex, '');
+      acc[outputName as any] = inputs[inputName];
+
+      return acc;
+    }, {} as Maybe<{[key: string]: unknown}>);
+    return fromBuffer ? some(groupedInputs) : groupedInputs;
+  } else if (matchingInputs.length === 1) {
+    return inputs[matchingInputs[0]];
+  }
+
+  return null;
 }
 
 export type WorkflowStepGroup = { label: string, steps: WorkflowStep[] }
 
 export type InputBackendComponent<Params extends {} = {}, Value = unknown, DataElement = unknown> = (p: WithInputParams<Params, Value, DataElement>) => React.ReactElement | null;
 export type WithInputParams<Params extends {}, Value, DataElement = unknown> = Params & {
-  onChange: (v: Maybe<Value>) => void;
+  onChange: (v: Maybe<Value>, destructure?: boolean) => void;
   value: Maybe<Value>;
   data: DataEnvelope<DataElement> | undefined | null;
+  numOutputs: number;
 }
 
 export interface ValidationInputSpecification<Value = unknown, DataElement = unknown> {
