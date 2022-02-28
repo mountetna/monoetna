@@ -202,13 +202,15 @@ describe('DataTransformationInput', () => {
               '0': 1,
               '1': 0.25,
               '2': 'data',
-              '3': 'abc1232'
+              '3': 'abc1232',
+              '4': '000'
             },
             record_name_02: {
               '0': 200,
               '1': 1.111,
               '2': '=IF(A2>100, 1, 0)',
-              '3': '-9.9'
+              '3': '-9.9',
+              '4': '111'
             }
           }),
           b: some({
@@ -216,13 +218,15 @@ describe('DataTransformationInput', () => {
               '0': 1,
               '1': 0.25,
               '2': 'data',
-              '3': 2
+              '3': 2,
+              '4': 'abc'
             },
             record_name_02: {
               '0': 200,
               '1': 1.111,
               '2': '=IF(A2>100, 1, 0)',
-              '3': '=1+1'
+              '3': '=1+1',
+              '4': '=1*9'
             }
           })
         }) as Maybe<DataEnvelope<{[key: string]: any}>>;
@@ -233,7 +237,7 @@ describe('DataTransformationInput', () => {
 
         expect(
           matchesTextPredicate(
-            'Your data frame has 4 rows and 2 columns.Edit data frame'
+            'Your data frame has 5 rows and 2 columns.Edit data frame'
           )(node.root)
         ).toEqual(true);
       });
@@ -292,13 +296,15 @@ describe('DataTransformationInput', () => {
               '0': 1,
               '1': 0.25,
               '2': 'data',
-              '3': 'abc1232'
+              '3': 'abc1232',
+              '4': '000'
             },
             record_name_02: {
               '0': 200,
               '1': 1.111,
               '2': '=IF(A2>100, 1, 0)',
-              '3': '-9.9'
+              '3': '-9.9',
+              '4': '111'
             }
           },
           b: {
@@ -306,13 +312,15 @@ describe('DataTransformationInput', () => {
               '0': 1,
               '1': 0.25,
               '2': 'data',
-              '3': 2
+              '3': 2,
+              '4': 'abc'
             },
             record_name_02: {
               '0': 200,
               '1': 1.111,
               '2': '=IF(A2>100, 1, 0)',
-              '3': '=1+1'
+              '3': '=1+1',
+              '4': '=1*9'
             }
           }
         }) as Maybe<DataEnvelope<{[key: string]: any}>>;
@@ -323,7 +331,7 @@ describe('DataTransformationInput', () => {
 
         expect(
           matchesTextPredicate(
-            'Your data frame has 4 rows and 2 columns.Edit data frame'
+            'Your data frame has 5 rows and 2 columns.Edit data frame'
           )(node.root)
         ).toEqual(true);
       });
