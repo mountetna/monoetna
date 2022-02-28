@@ -81,11 +81,11 @@ export function checkboxPiece(
 
 export function dropdownPiece(
   key: string = "filler", changeFxn: Function, value: string | null,
-  label: string, options: string[], sorted: boolean = true) {
+  label: string, options: string[], sorted: boolean = true, minWidth: number = 200) {
     
     return(
       <Autocomplete
-        style={{minWidth: 200, paddingTop: 6}}
+        style={{minWidth: minWidth, paddingTop: 6}}
         value={value}
         onChange={(event:any, val: string | null) => changeFxn(val, key)}
         id={key}
@@ -144,18 +144,25 @@ export function rangePiece(
         {label}
         <div style={{display: 'inline-flex'}}>
           From
-          <DropdownAutocomplete
-            list={["exactly","above"]}
+          <Autocomplete
+            disablePortal
+            disableClearable
             value={value[0]}
-            onSelect={(newVal: string) => changeFxn(updateSlot(newVal, 0), key)}
-            sorted={false}
+            label={undefined}
+            onChange={(event:any, e: string | null) => 
+              changeFxn(updateSlot(event.target.value, 0), key)}
+            options={["exactly","above"]}
+            style={{minWidth: 120}}
+            renderInput={(params:any) => <TextField {...params} variant="outlined"/>}
           />
-          Value
-          <EtnaFloatInput
-            followDefault
-            defaultValue={value[1]}
-            onChange={(newVal: string) => changeFxn(updateSlot(newVal, 1), key)}
-          />
+          <TextField
+            value={value[1]}
+            label="Min-value"
+            type="number"
+            variant="outlined"
+            onChange={(event: any) => changeFxn(updateSlot(event.target.value, 1), key)}
+            size="small"
+          />;
         </div>
         <div style={{display: 'inline-flex'}}>
           To

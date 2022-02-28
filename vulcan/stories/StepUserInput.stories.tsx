@@ -65,6 +65,14 @@ DiffExpSC.args = {
   }
 };
 
+export const Visualization = Template.bind({});
+Visualization.args = {
+  type: TYPE.ANY_VIZ,
+  cwlParams: {
+      'data_frame': require('./mockDF.json')
+  }
+};
+
 export const ScatterPlotlyFULL = Template.bind({});
 ScatterPlotlyFULL.args = {
   type: TYPE.SCATTER_PLOTLY,
