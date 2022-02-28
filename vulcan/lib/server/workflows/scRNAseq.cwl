@@ -281,7 +281,7 @@ steps:
       preset: prep_umap_plot_data/preset
     out: [plot_setup]
   make_umap:
-    run: scripts/make_scatter.cwl
+    run: scripts/make_plot.cwl
     label: 'Create UMAP plot'
     in:
       plot_setup: user_plot_setup/plot_setup
