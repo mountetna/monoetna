@@ -197,7 +197,7 @@ class link:
 
         records: RetrievalResponse = RetrievalResponse()
         with self.hook.magma() as magma:
-            with self.hook.metis() as metis:
+            with self.hook.metis(read_only=False) as metis:
                 for model_name, revisions in update.revisions.items():
                     records.extend(magma.retrieve(get_project_name(), model_name=model_name, record_names=revisions.keys()))
 

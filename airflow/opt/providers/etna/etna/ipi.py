@@ -1,17 +1,17 @@
-from typing import List, Tuple, Dict
 
-from airflow.decorators import task
+from typing import List, Dict
+
 from airflow.utils.task_group import TaskGroup
 
 from etna import (
     metis_etl,
     link,
-    MetisEtlHelpers, pickled, get_project_name,
+    MetisEtlHelpers, get_project_name,
 )
 import re
 
 from etna.etls.metis import MatchedRecordFolder
-from etna.hooks.etna import File, Attribute, UpdateRequest
+from etna.hooks.etna import Attribute, UpdateRequest
 import csv
 import json
 import os.path
@@ -30,14 +30,14 @@ def correct_ipi_record_name(name):
         name = name.replace("_", ".")
         match = pool_identifier_tri_regex.match(name)
         if match:
-            name = match.groups(1) + match.groups(2).lower()
+            name = match.group(1) + match.group(2).lower()
     else:
         match = non_pool_identifier_tri_regex.match(name)
         if match:
             name = (
-                    match.groups(1).replace("_", ".")
-                    + match.groups(2).lower()
-                    + match.groups(3)
+                    match.group(1).replace("_", ".")
+                    + match.group(2).lower()
+                    + match.group(3)
             )
     return name
 
@@ -298,7 +298,7 @@ def process_gene_table(file_reader, gene_names, attr_name):
     return update
 
 
-@metis_etl("ipi", "data", 11)
+@metis_etl("ipi", "data", 12)
 def ipi_data_metis_etl(helpers: MetisEtlHelpers, tail_files):
     with TaskGroup("sc_rna_seq_pool_raw"):
         matches = helpers.find_record_folders(
@@ -355,7 +355,7 @@ def ipi_data_metis_etl(helpers: MetisEtlHelpers, tail_files):
             helpers.link_matching_file(listed_matches, attr, re.compile(matcher), dry_run=False)
 
     with TaskGroup("rna_seq_bulk"):
-        @link()
+        @link(dry_run=True, debug_bucket="airflow_debug")
         def process_gene_count_and_tpm_tables(files):
             file_regex = re.compile(r'^bulkRNASeq/processed/[^/]*/results/gene_(counts|tpm)_table\.tsv')
             with helpers.hook.magma() as magma:
@@ -373,7 +373,7 @@ def ipi_data_metis_etl(helpers: MetisEtlHelpers, tail_files):
 
         process_gene_count_and_tpm_tables(tail_files)
 
-        @link()
+        @link(dry_run=True, debug_bucket="airflow_debug")
         def process_attr_table(files):
             file_regex = re.compile(r'^bulkRNASeq/processed/[^/]*/results/rnaseq_table\.tsv')
             with helpers.hook.magma() as magma:
