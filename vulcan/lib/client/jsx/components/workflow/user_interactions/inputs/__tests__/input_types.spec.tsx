@@ -29,7 +29,7 @@ describe('collapseInputValues', () => {
     it('does not wrap singleton inputs with some', () => {
       const result = collapseInputValues('aStep', 'aStep', bufferInputs, true);
 
-      expect(result).toEqual(['blah']);
+      expect(result).toEqual(some('blah'));
     });
 
     it('does not group primary inputs with similar names', () => {
@@ -40,7 +40,7 @@ describe('collapseInputValues', () => {
         true
       );
 
-      expect(result).toEqual([false]);
+      expect(result).toEqual(some(false));
     });
   });
 
