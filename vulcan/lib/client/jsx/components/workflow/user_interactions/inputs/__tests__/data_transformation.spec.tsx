@@ -193,6 +193,51 @@ describe('DataTransformationInput', () => {
         )(node.root)
       ).toEqual(true);
     });
+
+    describe('with differently-named CWL outputs', () => {
+      value.replace(() => {
+        return some({
+          a: some({
+            record_name_01: {
+              '0': 1,
+              '1': 0.25,
+              '2': 'data',
+              '3': 'abc1232'
+            },
+            record_name_02: {
+              '0': 200,
+              '1': 1.111,
+              '2': '=IF(A2>100, 1, 0)',
+              '3': '-9.9'
+            }
+          }),
+          b: some({
+            record_name_01: {
+              '0': 1,
+              '1': 0.25,
+              '2': 'data',
+              '3': 2
+            },
+            record_name_02: {
+              '0': 200,
+              '1': 1.111,
+              '2': '=IF(A2>100, 1, 0)',
+              '3': '=1+1'
+            }
+          })
+        }) as Maybe<DataEnvelope<{[key: string]: any}>>;
+      });
+
+      it('correctly renders', async () => {
+        const {node} = integrated.value;
+
+        expect(
+          matchesTextPredicate(
+            'Your data frame has 4 rows and 2 columns.Edit data frame'
+          )(node.root)
+        ).toEqual(true);
+      });
+    });
   });
 
   describe('with a committed input.value', () => {
@@ -237,6 +282,51 @@ describe('DataTransformationInput', () => {
           'Your data frame has 4 rows and 2 columns.Edit data frame'
         )(node.root)
       ).toEqual(true);
+    });
+
+    describe('with differently-named CWL outputs', () => {
+      value.replace(() => {
+        return some({
+          a: {
+            record_name_01: {
+              '0': 1,
+              '1': 0.25,
+              '2': 'data',
+              '3': 'abc1232'
+            },
+            record_name_02: {
+              '0': 200,
+              '1': 1.111,
+              '2': '=IF(A2>100, 1, 0)',
+              '3': '-9.9'
+            }
+          },
+          b: {
+            record_name_01: {
+              '0': 1,
+              '1': 0.25,
+              '2': 'data',
+              '3': 2
+            },
+            record_name_02: {
+              '0': 200,
+              '1': 1.111,
+              '2': '=IF(A2>100, 1, 0)',
+              '3': '=1+1'
+            }
+          }
+        }) as Maybe<DataEnvelope<{[key: string]: any}>>;
+      });
+
+      it('correctly renders', async () => {
+        const {node} = integrated.value;
+
+        expect(
+          matchesTextPredicate(
+            'Your data frame has 4 rows and 2 columns.Edit data frame'
+          )(node.root)
+        ).toEqual(true);
+      });
     });
   });
 
