@@ -1,9 +1,15 @@
 {
-  "projects": ["example"],
+  "projects": ["example", "ipi"],
   "authors": ["Cole Shaw"],
   "lastModified": "Feb 10, 2022",
   "vignette": "WIP",
   "tags": ["general", "plotting", "continuous data"],
   "displayName": "Data Manipulation",
-  "description": "Manipulate data in Vulcan"
+  "description": "Manipulate data in Vulcan",
+  "queryAction": "Tweak data first",
+  "inputQueryMap": {
+    "1_Data_Source_magma_query__queryTerms": "query",
+    "1_Data_Source_magma_query__user_columns": "user_columns",
+    "1_Data_Source_magma_query__expand_matrices": "expand_matrices"
+  }
 }

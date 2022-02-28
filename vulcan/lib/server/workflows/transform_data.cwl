@@ -19,7 +19,7 @@ inputs:
 outputs:
   the_plot:
     type: File
-    outputSource: transform_data/data
+    outputSource: transform_data/calculated_data
 
 steps:
   get_data:
@@ -36,17 +36,17 @@ steps:
     doc: "Manipulate your data frame as needed. Right click for an interactions menu where you can add/remove columns. Start a cell with '=' to create functions in an Excel-like manner."
     in:
       data_frame: get_data/data_frame
-    out: [source_data, data]
+    out: [formulaic_data, calculated_data]
   show_data:
     run: ui-outputs/link.cwl
     in:
-      a: transform_data/data
+      a: transform_data/calculated_data
     out: []
     label: 'Download your final data frame'
   show_source_data:
     run: ui-outputs/link.cwl
     in:
-      a: transform_data/source_data
+      a: transform_data/formulaic_data
     out: []
     label: 'Download the source of your final data frame'
   fill_plot_options:
@@ -54,14 +54,14 @@ steps:
     label: 'Set plot options'
     doc: "Selections here pick the plot type and how it should be generated. For addtional details, see https://mountetna.github.io/vulcan.html#the-setup-gui which is clickably linked within this workflow's 'vignette'."
     in:
-      data_frame: transform_data/data
+      data_frame: transform_data/calculated_data
     out: [plot_setup]
   make_plot:
     run: scripts/make_plot.cwl
     label: 'Create Plot'
     in:
       plot_setup: fill_plot_options/plot_setup
-      data_frame: transform_data/data
+      data_frame: transform_data/calculated_data
     out: [plot.json]
   show_plot:
     run: ui-outputs/plotly.cwl

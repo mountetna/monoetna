@@ -113,8 +113,8 @@ function DataTransformationModal({
 
               onChange(
                 some({
-                  source_data: some(nestedArrayToDataFrameJson(sourceData)),
-                  data: some(nestedArrayToDataFrameJson(data))
+                  formulaic_data: some(nestedArrayToDataFrameJson(sourceData)),
+                  calculated_data: some(nestedArrayToDataFrameJson(data))
                 })
               );
             }
@@ -212,8 +212,8 @@ export default function DataTransformationInput({
 
   const inputValue = useSetsDefault(
     {
-      data: some(originalData),
-      source_data: some(originalData)
+      calculated_data: some(originalData),
+      formulaic_data: some(originalData)
     },
     props.value,
     destructureOnChange
@@ -223,14 +223,14 @@ export default function DataTransformationInput({
 
   if (numOutputs === 1) {
     value = inputValue;
-  } else if (inputValue.hasOwnProperty('source_data')) {
+  } else if (inputValue.hasOwnProperty('formulaic_data')) {
     // This should work the same as the next `else` block,
     //   but will leave it here to be explicit.
-    value = inputValue.source_data;
+    value = inputValue.formulaic_data;
   } else {
     // If the workflow author has named their CWL outputs differently, we really don't
     //   know which one is the source_data. Given that the
-    //   UI component uses "data" and "source_data", and
+    //   UI component uses "calculated_data" and "source_data", and
     //   "source_data" comes second alphabetically, we first attempt to
     //   use the second inputValue key if present. If only one key,
     //   we default to the first value.

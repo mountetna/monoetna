@@ -117,11 +117,11 @@ describe('DataTransformationInput', () => {
     ).toEqual(true);
   });
 
-  it('correctly initializes the default value as nested data / source_data hash', async () => {
+  it('correctly initializes the default value as nested calculated_data / formulaic_data hash', async () => {
     const {node} = integrated.value;
     expect(onChange.value).toHaveBeenCalledWith(
       some({
-        data: some({
+        calculated_data: some({
           record_name_01: {
             '0': 1,
             '1': 0.25,
@@ -133,7 +133,7 @@ describe('DataTransformationInput', () => {
             '2': '=IF(A2>100, 1, 0)'
           }
         }),
-        source_data: some({
+        formulaic_data: some({
           record_name_01: {
             '0': 1,
             '1': 0.25,
@@ -153,7 +153,7 @@ describe('DataTransformationInput', () => {
   describe('with a buffered input.value', () => {
     value.replace(() => {
       return some({
-        data: some({
+        calculated_data: some({
           record_name_01: {
             '0': 1,
             '1': 0.25,
@@ -167,7 +167,7 @@ describe('DataTransformationInput', () => {
             '3': '-9.9'
           }
         }),
-        source_data: some({
+        formulaic_data: some({
           record_name_01: {
             '0': 1,
             '1': 0.25,
@@ -247,7 +247,7 @@ describe('DataTransformationInput', () => {
   describe('with a committed input.value', () => {
     value.replace(() => {
       return some({
-        data: {
+        calculated_data: {
           record_name_01: {
             '0': 1,
             '1': 0.25,
@@ -261,7 +261,7 @@ describe('DataTransformationInput', () => {
             '3': '-9.9'
           }
         },
-        source_data: {
+        formulaic_data: {
           record_name_01: {
             '0': 1,
             '1': 0.25,
