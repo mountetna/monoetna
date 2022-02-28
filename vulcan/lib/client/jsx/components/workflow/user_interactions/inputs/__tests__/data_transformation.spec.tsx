@@ -98,6 +98,7 @@ describe('DataTransformationInput', () => {
         onChange={onChange.value}
         value={value.value}
         data={data.value}
+        numOutputs={2}
       />
     )
   );
@@ -144,7 +145,8 @@ describe('DataTransformationInput', () => {
             '2': '=IF(A2>100, 1, 0)'
           }
         })
-      })
+      }),
+      true
     );
   });
 
