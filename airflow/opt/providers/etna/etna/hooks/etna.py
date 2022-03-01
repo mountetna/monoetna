@@ -319,7 +319,6 @@ class TailNode:
     parent_id: Optional[int] = None
     file_hash: Optional[str] = None
     archive_id: Optional[int] = None
-    download_url: Optional[str] = None
 
     @property
     def updated_at_datetime(self) -> datetime:
@@ -357,7 +356,6 @@ class TailResultContainer:
                 folder_id=node.parent_id,
                 project_name=self.project_name,
                 bucket_name=self.bucket_name,
-                download_url=node.download_url
             ))
 
         return result
@@ -481,11 +479,25 @@ class Metis(EtnaClientBase):
             )
         return from_json(FoldersAndFilesResponse, response.content)
 
+    def authorize_download(self, project_name: str, bucket_name: str, file_path: str) -> str:
+        response = self.session.post(self.prepare_url('authorize', 'download'), json=dict(
+            project_name=project_name,
+            bucket_name=bucket_name,
+            file_path=file_path,
+        ))
+
+        return response.json()['download_url']
+
     def open_file(self, file: File, binary_mode=False) -> io.BufferedReader:
         """
-        See open_url, this method opens the given file's download_url using that method
+        See open_url, this method opens the given file's download_url using that method.
+        If the given file does not have a download_url set, it will fetch one using `authorize_download`.
         """
-        return self.open_url(file.download_url, binary_mode)
+        download_url = file.download_url
+        if not download_url:
+            download_url = self.authorize_download(file.project_name, file.bucket_name, file.file_path)
+
+        return self.open_url(download_url, binary_mode)
 
     def open_url(self, url: str, binary_mode=False) -> io.BufferedReader:
         """

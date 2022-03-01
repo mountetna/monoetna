@@ -568,26 +568,13 @@ def _load_metis_files_and_folders_batch(
         f"Searching for metis data from {start.isoformat(timespec='seconds')} to {end.isoformat(timespec='seconds')}"
     )
 
-    response = metis.find(
-        project_name,
-        bucket_name,
-        [
-            dict(
-                type=type,
-                attribute="updated_at",
-                predicate=">=",
-                value=start.isoformat(timespec="seconds"),
-            ),
-            dict(
-                type=type,
-                attribute="updated_at",
-                predicate="<=",
-                value=end.isoformat(timespec="seconds"),
-            ),
-        ],
-    )
+    tail_type: Union[Literal['files'], Literal['folders']] = 'files'
+    if type == 'folder':
+        tail_type = 'folders'
+
+    files, folders = metis.tail(project_name, bucket_name, tail_type, start, end)
 
     if type == "file":
-        return response.files
+        return files
     else:
-        return response.folders
+        return folders

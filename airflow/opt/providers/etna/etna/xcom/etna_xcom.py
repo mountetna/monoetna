@@ -1,14 +1,17 @@
-from typing import Any, TypeVar, cast, Generic
+"""
+Improves upon the base airflow xcom with
+1. lzma compression of xcom values
+2. Ability to subclass EtnaXComValue to support
+    a. custom string summary in UI
+    b. custom deferred value expansion via execute
+"""
+
+from typing import Any, TypeVar, cast
 
 import pickle
+import lzma
 
 from airflow.models.xcom import BaseXCom
-
-
-# "Just like" normal XCom, but allows for values that execute custom logic on read, allowing for
-# external references or custom logic.
-from serde.json import to_json
-
 
 class EtnaXComValue:
     def execute(self):
@@ -22,6 +25,8 @@ T = TypeVar("T")
 
 
 def pickled(v: T) -> T:
+    if isinstance(v, EtnaXComValue):
+        return v
     return cast(T, _Pickled(v))
 
 
@@ -41,10 +46,9 @@ class _Pickled(EtnaXComValue):
 class EtnaXCom(BaseXCom):
     @staticmethod
     def serialize_value(value: Any):
-        if isinstance(value, EtnaXComValue):
-            return pickle.dumps(value)
-        # Enables dataclass serialization
-        return to_json(value).encode("UTF-8")
+        if not isinstance(value, EtnaXComValue):
+            value = pickled(value)
+        return lzma.compress(pickle.dumps(value))
 
     @staticmethod
     def deserialize_value(result: "EtnaXCom") -> Any:
@@ -55,14 +59,14 @@ class EtnaXCom(BaseXCom):
         if not isinstance(result.value, bytes):
             return result.value
 
-        result = BaseXCom.deserialize_value(result)
+        result = pickle.loads(lzma.decompress(result.value))
         if isinstance(result, EtnaXComValue):
             return result.execute()
         return result
 
     def orm_deserialize_value(self) -> Any:
-        result = BaseXCom.deserialize_value(self)
+        result = pickle.loads(lzma.decompress(self.value))
         if isinstance(result, EtnaXComValue):
             self._original_value = self.value
             return str(result)
-        return BaseXCom.deserialize_value(self)
+        return self.value
