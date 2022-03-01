@@ -5,13 +5,41 @@ describe DownloadController do
     OUTER_APP
   end
 
+  context '#authorize' do
+    before(:each) do
+      stubs.clear('thumbnails')
+      @tips = "1. Burn the hydra's neck after cutting.\n2. Use a river to clean the stables."
+      @location = stubs.create_file('athena', 'files', 'readme_hercules.txt', @tips)
+      default_bucket('athena')
+      create_file('athena', 'readme_hercules.txt', @tips)
+    end
+
+    after(:each) do
+      stubs.clear('thumbnails')
+    end
+
+    it 'creates an hmac download url for the given requested file path' do
+      token_header(:viewer)
+
+      json_post('/authorize/download', {
+        file_path: 'readme_hercules.txt',
+        project_name: 'athena',
+        bucket_name: 'files'
+      })
+
+      url = json_body[:download_url]
+      get(url)
+
+      expect(last_response.status).to eq(200)
+      expect(last_response.headers['X-Sendfile']).to eq(@location)
+    end
+  end
+
   context '#download' do
     before(:each) do
       stubs.clear('thumbnails')
       @tips = "1. Burn the hydra's neck after cutting.\n2. Use a river to clean the stables."
-
       @location = stubs.create_file('labors', 'files', 'readme_hercules.txt', @tips)
-
       default_bucket('labors')
     end
 
