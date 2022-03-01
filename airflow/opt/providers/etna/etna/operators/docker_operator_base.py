@@ -27,6 +27,7 @@ from airflow.models import TaskInstance, XCom, BaseOperator
 from airflow.models.xcom_arg import XComArg
 from dateutil import parser
 from docker import APIClient
+from serde.json import to_json
 
 from etna.utils.gater import RetryGater
 
@@ -97,7 +98,7 @@ class DockerOperatorBase(BaseOperator):
         for path, file_input in self.file_inputs.items():
             bin: bytes
             if isinstance(file_input, XComArg):
-                bin = XCom.serialize_value(file_input.resolve(context))
+                bin = to_json(file_input.resolve(context)).encode('utf8')
             elif isinstance(file_input, bytes):
                 bin = file_input
             elif isinstance(file_input, str):

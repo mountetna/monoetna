@@ -262,7 +262,8 @@ class MetisEtlHelpers:
 
         @task(task_id=f"prepare_{type}_task_token")
         def prepare_task_token(read_only):
-            return self.hook.get_task_auth(read_only=read_only).token.decode("ascii")
+            token = self.hook.get_task_auth(read_only=read_only).token.decode("utf8")
+            return token
 
         return prepare_task_token(read_only)
 

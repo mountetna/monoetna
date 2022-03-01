@@ -53,7 +53,7 @@ class EtnaXCom(BaseXCom):
     @staticmethod
     def deserialize_value(result: "EtnaXCom") -> Any:
         # orm_deserialize_value deferred loading of pickled object.
-        if isinstance(result.value, str):
+        if isinstance(result.value, str) and hasattr(result, '_original_value'):
             result.value = result._original_value
         # Already been deserialized.
         if not isinstance(result.value, bytes):

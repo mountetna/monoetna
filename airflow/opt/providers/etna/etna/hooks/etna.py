@@ -336,6 +336,7 @@ class TailResultContainer:
         self.parents = {}
         self.bucket_name = bucket_name
         self.project_name = project_name
+        self.path_cache = {}
 
     def add(self, node: TailNode):
         if node.type == 'parent':
@@ -377,18 +378,21 @@ class TailResultContainer:
         return result
 
     def resolve_path(self, node: TailNode):
-        if node.id not in self.path_cache:
-            if node.parent_id is None:
-                self.path_cache[node.id] = node.node_name
-            else:
-                parent = self.parents.get(node.parent_id)
-                if parent is None:
-                    return None
-                parent_path = self.resolve_path(parent)
-                if parent_path is None:
-                    return None
-                self.path_cache[node.id] = f"{parent_path}/{node.node_name}"
-        return self.path_cache[node.id]
+        if node.parent_id is None:
+            return node.node_name
+
+        resolved = self.path_cache.get(node.id)
+
+        if resolved is None:
+            parent = self.parents.get(node.parent_id)
+            if parent is None:
+                return None
+            parent_path = self.resolve_path(parent)
+            if parent_path is None:
+                return None
+            self.path_cache[node.id] = resolved = f"{parent_path}/{node.node_name}"
+
+        return resolved
 
 @serialize
 @deserialize
@@ -649,7 +653,6 @@ class Metis(EtnaClientBase):
 
         response = self.session.post(self.prepare_url(project_name, 'tail', bucket_name), json=args, stream=True)
         for line in response.iter_lines():
-            print(line)
             if line:
                 container.add(from_json(TailNode, line))
 
