@@ -100,6 +100,30 @@ module Token
       @token = token
     end
 
+    def valid_token?
+      begin
+        payload, header = Janus.instance.sign.jwt_decode(@token)
+        return true
+      rescue
+        return false
+      end
+    end
+
+    def valid_permissions?
+      valid_roles? && valid_projects?
+    end
+
+    def valid_roles?
+      permissions.all? { |perm| perm[:role] =~ /^[AaEeVv]$/ }
+    end
+
+    def valid_projects?
+      project_names = permissions.map{|p| p[:projects]}.flatten
+      found_project_names = Project.where(project_name: project_names).select_map(:project_name)
+
+      (project_names - found_project_names).empty?
+    end
+
     def valid_task_token?(janus_user)
       # the task flag is required
       return false unless payload[:task]

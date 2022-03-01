@@ -18,6 +18,7 @@ class Janus
 
     get '/api/tokens/nonce', action: 'authorization#time_signature', auth: { noauth: true }
     post '/api/tokens/generate', action: 'authorization#generate', auth: { noauth: true }
+    post '/api/tokens/build', action: 'authorization#build', auth: { user: { is_superuser?: true } }
     post '/api/tokens/validate_task', action: 'authorization#validate_task', auth: { ignore_janus: true }
 
     get '/api/admin/:project_name/info', action: 'admin#project', auth: { user: { can_edit?: :project_name } }
