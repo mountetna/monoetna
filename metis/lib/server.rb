@@ -26,6 +26,7 @@ class Metis
     post '/authorize/download', action: 'download#authorize', auth: { user: { can_view?: :project_name } }
     get '/:project_name/download/:bucket_name/*file_path', action: 'download#download', auth: { hmac: true }, as: :download
 
+    post '/:project_name/tail/:bucket_name', action: 'bucket#tail', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/:bucket_name/*folder_path', action: 'folder#list', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/:bucket_name', action: 'folder#list', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list_all_folders/:bucket_name', action: 'folder#list_all_folders', auth: { user: { can_view?: :project_name } }
