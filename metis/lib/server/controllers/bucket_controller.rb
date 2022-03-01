@@ -65,6 +65,56 @@ class BucketController < Metis::Controller
     return success_json(response)
   end
 
+  def tail
+    bucket = require_bucket
+    batch_start = @params[:batch_start]
+    batch_end = @params[:batch_end]
+    type = @params[:type]
+    begin
+      batch_start = DateTime.parse(batch_start)
+      batch_end = DateTime.parse(batch_end)
+    rescue
+      raise Etna::BadRequest, 'Invalid batch end or start'
+    end
+    raise Etna::BadRequest, "Invalid type, must be one of 'folders' or 'files'" unless ['folders', 'files'].include?(type)
+
+    try_stream('application/x-json-stream') do |stream|
+      if type == 'files'
+        head_query = <<QUERY
+    SELECT 
+      'file' as type, files.id as id, files.folder_id as parent_id, files.file_name as node_name, files.updated_at, files.created_at, data_blocks.md5_hash as file_hash, data_blocks.archive_id
+    FROM files
+    JOIN data_blocks ON data_blocks.id = files.data_block_id
+    WHERE files.updated_at >= :start AND files.updated_at <= :end AND files.bucket_id = :bucket_id
+QUERY
+      else
+        head_query = <<QUERY
+    SELECT 
+      'folder' as type, folders.id as id, folder_id as parent_id, folder_name as node_name, updated_at, created_at, NULL as file_hash, NULL as archive_id
+    FROM folders
+    WHERE folders.updated_at >= :start AND folders.updated_at <= :end AND folders.bucket_id = :bucket_id
+QUERY
+      end
+
+      results = Metis.instance.db[<<QUERY, {start: batch_start, end: batch_end, bucket_id: bucket.id}]
+  WITH RECURSIVE tail_nodes AS (
+#{head_query}
+    UNION
+    SELECT
+      'parent' as type, folders.id as id, folders.folder_id as parent_id, folders.folder_name as node_name, folders.updated_at, folders.created_at, NULL as file_hash, NULL as archive_id
+    FROM folders
+      JOIN tail_nodes ON folders.id = tail_nodes.parent_id
+  )
+  SELECT * FROM tail_nodes
+QUERY
+      results.stream.each do |row|
+        JSON.dump(row, stream)
+        stream.write("\n")
+      end
+    end
+  end
+
+
   def find
     bucket = require_bucket
     require_params(:project_name, :params)
