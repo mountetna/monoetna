@@ -73,7 +73,7 @@ export function subsetDataFramePiece(
   )
 }
 
-const emptyMethod = ['']
+const emptyMethod = [null]
 
 const singleMethod = (
   def: (string|number|null)[] = emptyMethod,

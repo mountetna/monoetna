@@ -16,29 +16,26 @@ export default function SelectAutocompleteInput({data, onChange, ...props}: With
   */
   const [data_use, suggestion] = useMemoized(pullRecommendation, data)
   const options = useMemoized(flattenStringOptions, data_use);
-  const value = useSetsDefault("", props.value, onChange);
+  const value = useSetsDefault(null, props.value, onChange);
 
   return (
-    <div>
-      <Autocomplete
-        disablePortal
-        value={value}
-        onChange={(event:any, e: string | null) => 
-          onChange(maybeOfNullable(e))}
-        options={options}
-        renderInput={(params:any) => <TextField {...params} label/>}
-      />
-      {suggestion}
-    </div>
+    <Autocomplete
+      disablePortal
+      value={value}
+      onChange={(event:any, e: string | null) => 
+        onChange(maybeOfNullable(e))}
+      options={options}
+      renderInput={(params:any) => <TextField {...params} label={suggestion} variant="outlined"/>}
+    />
   );
 };
 
-function pullRecommendation<T extends DataEnvelope<any>>(data: T | null | undefined): [T | null | undefined, string | null] {
+function pullRecommendation<T extends DataEnvelope<any>>(data: T | null | undefined): [T | null | undefined, string | undefined] {
   // Make the recommendation part of the autocomplete into the 'label' of renderInput
   if (data != null) {
   
     let data_use = {...data};
-    let suggestion = null;
+    let suggestion = undefined;
       if (Object.keys(data).includes('recommendation')) {
         // Allow multi-recommendation?
         const rec = Array.isArray(data['recommendation']) ? data['recommendation'][0] : data['recommendation'];
@@ -48,5 +45,5 @@ function pullRecommendation<T extends DataEnvelope<any>>(data: T | null | undefi
     return [data_use, suggestion]
     
   }
-  return [data, null]
+  return [data, undefined]
 }

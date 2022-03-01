@@ -6,12 +6,10 @@ import * as _ from 'lodash';
 
 import {DataEnvelope, WithInputParams} from './input_types';
 import { useSetsDefault } from './useSetsDefault';
-import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
-import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import BooleanInput from './boolean';
+import { some } from '../../../../selectors/maybe';
 import { joinNesting, StringOptions } from './monoids';
 import { useMemoized } from '../../../../selectors/workflow_selectors';
-import { val_wrap, MultiselectPiece, dropdownPiece } from './user_input_pieces';
+import { MultiselectPiece, dropdownPiece } from './user_input_pieces';
 import { subsetDataFramePiece } from './subsetDataFrame_piece';
 import { Button } from '@material-ui/core';
 
