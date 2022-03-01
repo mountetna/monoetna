@@ -649,7 +649,9 @@ class Metis(EtnaClientBase):
 
         response = self.session.post(self.prepare_url(project_name, 'tail', bucket_name), json=args, stream=True)
         for line in response.iter_lines():
-            container.add(from_json(TailNode, line))
+            print(line)
+            if line:
+                container.add(from_json(TailNode, line))
 
         return container.resolve_files(), container.resolve_folders()
 
