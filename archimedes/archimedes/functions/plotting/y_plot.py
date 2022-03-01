@@ -42,7 +42,7 @@ def y_plotly(
     df = df.loc[rows_use]
     if y_scale=="log10(val+1)":
         y_scale="log10"
-        df['y_by'] += 1
+        df[y_by] += 1
     
     # Add to px_args and convert from our variables names to px.violin/bar variables names. 
     px_args["data_frame"] = df
