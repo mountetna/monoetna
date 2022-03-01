@@ -2,11 +2,12 @@ import {setStatus, setWorkflow, setWorkflows, VulcanAction} from "../actions/vul
 import {workflowsResponse} from "./fixtures/workflows-response";
 import {statusWithoutDownloads} from "./fixtures/status-without-downloads";
 import {
+    defaultFigure,
     defaultSessionStatusResponse,
     defaultStepStatus,
     defaultWorkflowStep,
     SessionStatusResponse,
-    StepStatus, VulcanSession,
+    StepStatus, VulcanFigure, VulcanSession,
     Workflow,
     WorkflowsResponse,
     WorkflowStep
@@ -37,6 +38,16 @@ export function createSessionFixture(workflow_name: string, session: Partial<Vul
     return {
         ...defaultSession,
         ...session,
+        workflow_name,
+    }
+}
+
+export function createStoredSessionFixture(workflow_name: string, session: Partial<VulcanSession> = {}, figure: Partial<VulcanFigure> = {}): VulcanSession & VulcanFigure {
+    return {
+        ...defaultSession,
+        ...defaultFigure,
+        ...session,
+        ...figure,
         workflow_name,
     }
 }

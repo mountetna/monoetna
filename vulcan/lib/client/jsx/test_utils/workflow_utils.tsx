@@ -1,20 +1,36 @@
-import {setDownloadedData, setStatus, setWorkflow, VulcanAction} from "../actions/vulcan_actions";
 import {
+  setDownloadedData,
+  setStatus,
+  setWorkflow,
+  VulcanAction,
+  setSession,
+  setSessionAndFigure
+} from '../actions/vulcan_actions';
+import {
+  defaultFigure,
   defaultStepStatus,
   defaultWorkflow,
   defaultWorkflowInput,
   defaultWorkflowStep,
-  StatusString, StepStatus,
+  StatusString,
+  StepStatus,
   Workflow,
   WorkflowInput,
   WorkflowStep
-} from "../api_types";
-import {createStepStatusFixture, createUpdatedStatusFixture} from "./fixtures";
-import VulcanReducer, {defaultVulcanState, VulcanState} from "../reducers/vulcan_reducer";
-import {VulcanContext} from "../contexts/vulcan_context";
-import {useContext, useState} from "react";
-import {splitSource, statusOfStep} from "../selectors/workflow_selectors";
-import {Step} from "@material-ui/core";
+} from '../api_types';
+import {createStepStatusFixture, createUpdatedStatusFixture} from './fixtures';
+import VulcanReducer, {
+  defaultSession,
+  defaultVulcanState,
+  VulcanState
+} from '../reducers/vulcan_reducer';
+import {VulcanContext} from '../contexts/vulcan_context';
+import {useContext, useState} from 'react';
+import {
+  selectFigure,
+  splitSource,
+  statusOfStep
+} from '../selectors/workflow_selectors';
 
 export function useWorkflowUtils(): WorkflowUtils {
   const {dispatch, stateRef} = useContext(VulcanContext);
@@ -25,7 +41,7 @@ export function useWorkflowUtils(): WorkflowUtils {
 }
 
 export function workflowUtilsBuilder() {
-  const stateRef = { current: defaultVulcanState };
+  const stateRef = {current: defaultVulcanState};
   return new WorkflowUtils(dispatch, stateRef);
 
   function dispatch(action: VulcanAction) {
@@ -35,10 +51,12 @@ export function workflowUtilsBuilder() {
 
 export class WorkflowUtils {
   public workflow: Readonly<Workflow> = defaultWorkflow;
-  public steps: { [k: string]: WorkflowStep } = {};
+  public steps: {[k: string]: WorkflowStep} = {};
 
-  constructor(private dispatch: (action: VulcanAction) => void, private stateRef: { current: VulcanState },) {
-  }
+  constructor(
+    private dispatch: (action: VulcanAction) => void,
+    private stateRef: {current: VulcanState}
+  ) {}
 
   get status() {
     return this.stateRef.current.status;
@@ -51,10 +69,11 @@ export class WorkflowUtils {
     return this;
   }
 
-  setWorkflow(name: string,
+  setWorkflow(
+    name: string,
     workflow: Partial<Workflow> = {},
     projects = workflow.projects || this.workflow.projects || [name],
-    projectName = projects[0] || "test"
+    projectName = projects[0] || 'test'
   ) {
     this.workflow = {...this.workflow, ...workflow, name, projects};
     this.dispatch(setWorkflow(this.workflow, projectName));
@@ -71,17 +90,25 @@ export class WorkflowUtils {
     }
 
     this.steps[name] = step;
-    workflow = {...workflow, steps: [workflow.steps[0].map(s => s.name !== name ? s : step)]};
+    workflow = {
+      ...workflow,
+      steps: [workflow.steps[0].map((s) => (s.name !== name ? s : step))]
+    };
     this.setWorkflow(workflow.name, workflow);
     return step;
   }
 
-  setStatus(step: WorkflowStep | string, statusPart: StatusString | Partial<StepStatus>) {
-    const stepName = typeof step !== "string" ? step.name : step;
-    const stepStatus: Partial<StepStatus> = typeof statusPart === "string" ? {status: statusPart} : statusPart;
+  setStatus(
+    step: WorkflowStep | string,
+    statusPart: StatusString | Partial<StepStatus>
+  ) {
+    const stepName = typeof step !== 'string' ? step.name : step;
+    const stepStatus: Partial<StepStatus> =
+      typeof statusPart === 'string' ? {status: statusPart} : statusPart;
     const status = createStepStatusFixture({name: stepName, ...stepStatus});
 
-    const updatedStatus = createUpdatedStatusFixture(this.workflow,
+    const updatedStatus = createUpdatedStatusFixture(
+      this.workflow,
       this.stateRef.current.status,
       status
     );
@@ -98,28 +125,40 @@ export class WorkflowUtils {
     return input;
   }
 
-
   /*
      Note -- this method will force a setStatus update to a 'complete' status with either the existing or a new
      url constructed for the purpose of this sourceName.
    */
-  forceDownloadedData(sourceName: string | [string, string], value: any, curStatus = this.stateRef.current.status) {
+  forceDownloadedData(
+    sourceName: string | [string, string],
+    value: any,
+    curStatus = this.stateRef.current.status
+  ) {
     const workflow = this.workflow;
     let url: string | undefined;
-    const [stepName, outputName] = typeof sourceName === "string" ? splitSource(sourceName) : sourceName;
+    const [stepName, outputName] =
+      typeof sourceName === 'string' ? splitSource(sourceName) : sourceName;
     if (!stepName) throw new Error('Cannot setData for primary inputs');
 
-    let status = statusOfStep(stepName, this.stateRef.current.status) || defaultStepStatus;
+    let status =
+      statusOfStep(stepName, this.stateRef.current.status) || defaultStepStatus;
     const {downloads} = status;
     if (downloads) {
-      url = downloads[outputName]
+      url = downloads[outputName];
     }
-    if (!url) url = "https://" + sourceName;
+    if (!url) url = 'https://' + sourceName;
 
     // TODO: Set the inputs hash
-    const newStatus = createUpdatedStatusFixture(workflow, curStatus, createStepStatusFixture({
-      ...status, name: stepName, status: 'complete', downloads: {...status.downloads, [outputName]: url}
-    }));
+    const newStatus = createUpdatedStatusFixture(
+      workflow,
+      curStatus,
+      createStepStatusFixture({
+        ...status,
+        name: stepName,
+        status: 'complete',
+        downloads: {...status.downloads, [outputName]: url}
+      })
+    );
 
     this.dispatch(setStatus(newStatus, null));
     this.dispatch(setDownloadedData(url, value));
