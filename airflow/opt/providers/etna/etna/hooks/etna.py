@@ -308,6 +308,89 @@ class MagmaFileEntry:
     path: str = ""
     original_filename: str = ""
 
+@serialize
+@deserialize
+@dataclasses.dataclass
+class TailNode:
+    id: int = 0
+    type: str = "file"
+    node_name: str = ""
+    updated_at: str = ""
+    parent_id: Optional[int] = None
+    file_hash: Optional[str] = None
+    archive_id: Optional[int] = None
+    download_url: Optional[str] = None
+
+    @property
+    def updated_at_datetime(self) -> datetime:
+        return dateutil.parser.isoparse(self.updated_at)
+
+class TailResultContainer:
+    bucket_name: str
+    project_name: str
+    nodes: typing.List[TailNode]
+    parents: typing.Dict[int, TailNode]
+    path_cache: typing.Dict[int, str]
+
+    def __init__(self, bucket_name: str, project_name: str):
+        self.nodes = []
+        self.parents = {}
+        self.bucket_name = bucket_name
+        self.project_name = project_name
+
+    def add(self, node: TailNode):
+        if node.type == 'parent':
+            self.parents[node.id] = node
+        else:
+            self.nodes.append(node)
+
+    def resolve_files(self) -> List["File"]:
+        result = []
+        for node in self.nodes:
+            if node.type != 'file':
+                continue
+            result.append(File(
+                file_name=node.node_name,
+                file_hash=node.file_hash,
+                updated_at=node.updated_at,
+                file_path=self.resolve_path(node),
+                folder_id=node.parent_id,
+                project_name=self.project_name,
+                bucket_name=self.bucket_name,
+                download_url=node.download_url
+            ))
+
+        return result
+
+    def resolve_folders(self) -> List["Folder"]:
+        result = []
+        for node in self.nodes:
+            if node.type != 'folder':
+                continue
+            result.append(Folder(
+                folder_name=node.node_name,
+                updated_at=node.updated_at,
+                folder_path=self.resolve_path(node),
+                id=node.id,
+                project_name=self.project_name,
+                bucket_name=self.bucket_name,
+            ))
+
+        return result
+
+    def resolve_path(self, node: TailNode):
+        if node.id not in self.path_cache:
+            if node.parent_id is None:
+                self.path_cache[node.id] = node.node_name
+            else:
+                parent = self.parents.get(node.parent_id)
+                if parent is None:
+                    return None
+                parent_path = self.resolve_path(parent)
+                if parent_path is None:
+                    return None
+                self.path_cache[node.id] = f"{parent_path}/{node.node_name}"
+        return self.path_cache[node.id]
 
 @serialize
 @deserialize
@@ -536,6 +619,27 @@ class Metis(EtnaClientBase):
         )
         response_obj = from_json(FoldersAndFilesResponse, response.content)
         return response_obj
+
+    def tail(
+            self,
+            project_name: str,
+            bucket_name: str,
+            type: typing.Union[typing.Literal['folders'], typing.Literal['files']],
+            batch_start: datetime,
+            batch_end: datetime,
+     ) -> typing.Tuple[List[File], List[Folder]]:
+        container = TailResultContainer(bucket_name, project_name)
+        args = dict(
+            batch_start=batch_start.isoformat(timespec="seconds"),
+            batch_end=batch_end.isoformat(timespec="seconds"),
+            type=type,
+        )
+
+        response = self.session.post(self.prepare_url(project_name, 'tail', bucket_name), json=args, stream=True)
+        for line in response.iter_lines():
+            container.add(from_json(TailNode, line))
+
+        return container.resolve_files(), container.resolve_folders()
 
     def find(
         self,
