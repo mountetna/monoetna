@@ -373,6 +373,7 @@ class TailResultContainer:
                 id=node.id,
                 project_name=self.project_name,
                 bucket_name=self.bucket_name,
+                folder_id=node.parent_id,
             ))
 
         return result
@@ -433,6 +434,7 @@ class Folder:
     bucket_name: str = ""
     folder_name: str = ""
     updated_at: str = ""
+    folder_id: int = 0
 
     @property
     def updated_at_datetime(self) -> datetime:
@@ -641,15 +643,22 @@ class Metis(EtnaClientBase):
             project_name: str,
             bucket_name: str,
             type: typing.Union[typing.Literal['folders'], typing.Literal['files']],
-            batch_start: datetime,
-            batch_end: datetime,
+            batch_start: Optional[datetime] = None,
+            batch_end: Optional[datetime] = None,
+            folder_id: Optional[int] = None,
      ) -> typing.Tuple[List[File], List[Folder]]:
         container = TailResultContainer(bucket_name, project_name)
-        args = dict(
-            batch_start=batch_start.isoformat(timespec="seconds"),
-            batch_end=batch_end.isoformat(timespec="seconds"),
-            type=type,
-        )
+        if batch_start and batch_end:
+            args = dict(
+                batch_start=batch_start.isoformat(timespec="seconds"),
+                batch_end=batch_end.isoformat(timespec="seconds"),
+                type=type,
+            )
+        else:
+            args = dict(
+                folder_id=folder_id,
+                type=type,
+            )
 
         response = self.session.post(self.prepare_url(project_name, 'tail', bucket_name), json=args, stream=True)
         for line in response.iter_lines():

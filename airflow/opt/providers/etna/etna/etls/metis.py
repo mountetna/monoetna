@@ -76,6 +76,12 @@ class MatchedRecordFolder:
         return self.match_folder.folder_path
 
     @property
+    def folder_id(self) -> int:
+        if self.match_file:
+            return self.match_file.folder_id
+        return self.match_folder.folder_id
+
+    @property
     def match_folder_subpath(self) -> str:
         return self.folder_path[len(self.root_path) + 1 :]
 
@@ -234,15 +240,6 @@ class link:
                             size=len(payload_bytes)
                         ):
                         pass
-
-def list_contents_of_matches(
-    metis: Metis, matching: List[MatchedRecordFolder]
-) -> List[Tuple[MatchedRecordFolder, List[File]]]:
-    return [
-        (m, metis.list_folder(m.project_name, m.bucket_name, m.folder_path).files)
-        for m in matching
-    ]
-
 
 class MetisEtlHelpers:
     hook: EtnaHook
@@ -439,7 +436,10 @@ class MetisEtlHelpers:
         @task
         def list_match_folders(matches):
             with self.hook.metis() as metis:
-                return pickled(list_contents_of_matches(metis, matches))
+                return [
+                    (m, metis.tail(m.project_name, m.bucket_name, 'files', folder_id=m.folder_id)[0])
+                    for m in matches
+                ]
 
         return list_match_folders(matches)
 
