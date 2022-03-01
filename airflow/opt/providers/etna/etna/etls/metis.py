@@ -199,7 +199,7 @@ class link:
         with self.hook.magma() as magma:
             with self.hook.metis(read_only=False) as metis:
                 for model_name, revisions in update.revisions.items():
-                    records.extend(magma.retrieve(get_project_name(), model_name=model_name, record_names=revisions.keys()))
+                    records.extend(magma.retrieve(get_project_name(), model_name=model_name, record_names=list(revisions.keys())))
 
                 for identifier, revision in revisions.items():
                     existing = records.models[model_name].documents.get(identifier, {})

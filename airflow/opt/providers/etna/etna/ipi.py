@@ -1,4 +1,3 @@
-
 from typing import List, Dict
 
 from airflow.utils.task_group import TaskGroup
@@ -188,6 +187,9 @@ class RnaSeqAttrTable:
         return result
 
     def should_skip(self, attr_name):
+        if attr_name not in self.raw:
+            return True
+
         if attr_name not in self.attributes:
             return True
 
@@ -290,8 +292,8 @@ def process_gene_table(file_reader, gene_names, attr_name):
             if RnaSeq.is_non_cancer_sample(tube_name):
                 continue
 
-            row = update.update_record('rna_seq', tube_name, {})
-            matrix = row.setdefault(attr_name, [0.0] * len(gene_names))
+            revision = update.update_record('rna_seq', tube_name, {})
+            matrix = revision.setdefault(attr_name, [0.0] * len(gene_names))
             if row['gene_id'] in gene_names:
                 matrix[gene_names.index(row['gene_id'])] = float(row[key])
 
