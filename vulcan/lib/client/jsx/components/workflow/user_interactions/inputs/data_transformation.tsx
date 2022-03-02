@@ -15,7 +15,6 @@ import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 import {makeStyles} from '@material-ui/core/styles';
 
-import AntSwitch from 'etna-js/components/inputs/ant_switch';
 import {joinNesting} from './monoids';
 import {WithInputParams, DataEnvelope} from './input_types';
 import {useSetsDefault} from './useSetsDefault';
@@ -200,6 +199,7 @@ export default function DataTransformationInput({
   {[key: string]: any}
 >) {
   const [open, setOpen] = useState(false);
+  const [isTransformed, setIsTransformed] = useState(false);
 
   const originalData = useMemoized(joinNesting, data);
 
@@ -222,10 +222,6 @@ export default function DataTransformationInput({
   }, [originalData]);
 
   const inputValue = useSetsDefault(rawData, props.value, destructureOnChange);
-
-  const [transformedData, setTransformedData] = useState(
-    inputValue as Maybe<{[key: string]: any}>
-  );
 
   let value: any;
 
@@ -250,12 +246,6 @@ export default function DataTransformationInput({
     }
   }
 
-  // const [useTransformed, setUseTransformed] = useState(
-  //   !_.isEqual(rawData, value)
-  // );
-
-  const [isTransformed, setIsTransformed] = useState(false);
-
   useEffect(() => {
     const transformed = !_.isEqual(
       some(nestedArrayToDataFrameJson(value)),
@@ -267,16 +257,6 @@ export default function DataTransformationInput({
   const handleOnRevert = useCallback(() => {
     destructureOnChange(some(rawData));
   }, [rawData]);
-
-  // const handleAntSwitch = useCallback(() => {
-  //   if (useTransformed && rawData) {
-  //     destructureOnChange(some(rawData));
-  //   } else if (!useTransformed && transformedData) {
-  //     destructureOnChange(transformedData);
-  //   }
-  //   destructureOnChange(useTransformed ? some(rawData) : transformedData);
-  //   setUseTransformed(!useTransformed);
-  // }, [useTransformed, rawData, transformedData, destructureOnChange]);
 
   value = dataFrameJsonToNestedArray(value);
 
@@ -319,13 +299,6 @@ export default function DataTransformationInput({
           </Button>
         </>
       ) : null}
-      {/* <AntSwitch
-        checked={useTransformed}
-        onChange={handleAntSwitch}
-        name='use-raw-or-transformed'
-        leftOption='Raw data'
-        rightOption='Transformed data'
-      /> */}
     </>
   );
 }
