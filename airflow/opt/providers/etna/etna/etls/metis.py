@@ -2,6 +2,7 @@ import dataclasses
 import difflib
 import functools
 import io
+import itertools
 import json
 import logging
 import os.path
@@ -77,9 +78,15 @@ class MatchedRecordFolder:
 
     @property
     def folder_id(self) -> int:
+        """
+        The folder id that was matched inside of a record folder.
+        Note, this is NOT necessarily the id of the record folder itself, but either
+        1.  the id of the folder found inside the record folder match or
+        2.  the id of the parent folder of the file found inside the record folder (which, could be the record folder)
+        """
         if self.match_file:
             return self.match_file.folder_id
-        return self.match_folder.folder_id
+        return self.match_folder.id
 
     @property
     def match_folder_subpath(self) -> str:
@@ -440,9 +447,15 @@ class MetisEtlHelpers:
 
         @task
         def list_match_folders(matches):
+            if not matches:
+                return []
+
+            project_name = matches[0].project_name
+            bucket_name = matches[0].bucket_name
             with self.hook.metis() as metis:
+                files_by_parent_id = { k: list(v) for k, v in itertools.groupby(metis.tail(project_name, bucket_name, 'files', folder_id=[m.folder_id for m in matches])[0], key=lambda file: file.folder_id) }
                 return [
-                    (m, metis.tail(m.project_name, m.bucket_name, 'files', folder_id=m.folder_id)[0])
+                    (m, files_by_parent_id[m.folder_id])
                     for m in matches
                 ]
 

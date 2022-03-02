@@ -650,7 +650,7 @@ class Metis(EtnaClientBase):
             type: typing.Union[typing.Literal['folders'], typing.Literal['files']],
             batch_start: Optional[datetime] = None,
             batch_end: Optional[datetime] = None,
-            folder_id: Optional[int] = None,
+            folder_id: Optional[typing.Union[int, typing.List[int]]] = None,
      ) -> typing.Tuple[List[File], List[Folder]]:
         container = TailResultContainer(bucket_name, project_name)
         if batch_start and batch_end:
