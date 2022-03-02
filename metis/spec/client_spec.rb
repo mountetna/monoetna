@@ -43,7 +43,7 @@ describe MetisShell do
     ENV['TOKEN'] = @long_lived_token
     stub_request(:any, %r!^https://metis.test/!).to_rack(app)
 
-    stub_request(:get, "https://janus.test/refresh_token")
+    stub_request(:post, "https://janus.test/api/tokens/generate")
       .to_return({
         status: 200,
         body: @long_lived_token
@@ -65,7 +65,7 @@ describe MetisShell do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       expect_output("metis://athena", "ls") { %r!armor/!}
 
-      expect(WebMock).to have_requested(:get, "https://janus.test/refresh_token")
+      expect(WebMock).to have_requested(:post, "https://janus.test/api/tokens/generate")
 
       expect(ENV["TOKEN"]).to eq(@long_lived_token)
 
@@ -104,7 +104,7 @@ describe MetisShell do
         replace_stdio(stdin.path, stdout.path) do
           shell.run
         end
-        expect(WebMock).to have_requested(:get, "https://janus.test/refresh_token")
+        expect(WebMock).to have_requested(:post, "https://janus.test/api/tokens/generate")
 
         expect(ENV["TOKEN"]).to eq(@long_lived_token)
       end

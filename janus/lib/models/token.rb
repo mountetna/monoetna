@@ -41,12 +41,18 @@ module Token
       end).to_string
     end
 
-    def create_token!
+    def create_token!(expires: nil, payload: nil)
       # Time is in seconds, nil = no expiration
-      expires = Time.now.utc + Janus.instance.config(:token_life)
+      unless expires
+        expires = Time.now.utc + Janus.instance.config(:token_life)
+      end
+
+      unless payload
+        payload = jwt_payload
+      end
 
       Janus.instance.sign.jwt_token(
-        jwt_payload.merge(exp: expires.to_i)
+        payload.merge(exp: expires.to_i)
       )
     end
 
@@ -56,19 +62,20 @@ module Token
     end
 
     def create_task_token!(project_name, read_only: false)
-      # Time is in seconds, nil = no expiration
-      expires = Time.now.utc + Janus.instance.config(:task_token_life)
-
-      payload = jwt_payload(filters: { project_name: project_name }).merge(exp: expires.to_i)
+      payload = jwt_payload(filters: { project_name: project_name })
 
       # ensure read only
-
       if read_only
         payload[:perm] = "v:#{project_name}"
-      elsif payload[:perm] =~ /^[Aa]/
-        # degrade admin permissions
+      end
+
+      # degrade admin permissions
+      if payload[:perm] =~ /^[Aa]/
         payload[:perm] = payload[:perm].sub(/^[Aa]/) { |c| c == 'A' ? 'E' : 'e' }
-      elsif @janus_user.supereditor?
+      end
+
+      # permit supereditor
+      if @janus_user.supereditor?
         payload[:perm] = "e:#{project_name}"
       end
 
@@ -80,17 +87,10 @@ module Token
       # set task flag
       payload[:task] = true
 
-      Janus.instance.sign.jwt_token(
-        payload
-      )
-    end
-
-    def create_viewer_token!
       # Time is in seconds, nil = no expiration
-      expires = Time.now.utc + Janus.instance.config(:token_life)
-
-      Janus.instance.sign.jwt_token(
-        jwt_payload(filters: { role: 'viewer'}).merge(exp: expires.to_i)
+      create_token!(
+        expires: Time.now.utc + Janus.instance.config(:task_token_life),
+        payload: payload
       )
     end
   end
@@ -98,6 +98,30 @@ module Token
   class Checker
     def initialize(token)
       @token = token
+    end
+
+    def valid_token?
+      begin
+        payload, header = Janus.instance.sign.jwt_decode(@token)
+        return true
+      rescue
+        return false
+      end
+    end
+
+    def valid_permissions?
+      valid_roles? && valid_projects?
+    end
+
+    def valid_roles?
+      permissions.all? { |perm| perm[:role] =~ /^[AaEeVv]$/ }
+    end
+
+    def valid_projects?
+      project_names = permissions.map{|p| p[:projects]}.flatten
+      found_project_names = Project.where(project_name: project_names).select_map(:project_name)
+
+      (project_names - found_project_names).empty?
     end
 
     def valid_task_token?(janus_user)

@@ -31,8 +31,8 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const postUpdatePermission = (project_name, email, revision) => json_post(`/update_permission/${project_name}`, {email, ...revision});
-const postAddUser = (project_name, {email, name, role}) => json_post(`/add_user/${project_name}`, {email, name, role});
+const postUpdatePermission = (project_name, email, revision) => json_post(`/api/admin/${project_name}/update_permission`, {email, ...revision});
+const postAddUser = (project_name, {email, name, role}) => json_post(`/api/admin/${project_name}/add_user`, {email, name, role});
 
 const Permission = ({roles, editable, onSave, permission={}, create}) => {
   let {user_email, user_name, role, affiliation, privileged} = permission;
@@ -146,7 +146,7 @@ const ProjectView = ({project_name}) => {
 
   let retrieveProject = useCallback(
     () => {
-      json_get(`/project/${project_name}`)
+      json_get(`/api/admin/${project_name}/info`)
         .then(({project}) => setProject(project))
     }, [project_name, setProject]
   );

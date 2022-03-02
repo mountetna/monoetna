@@ -5,11 +5,14 @@ import {selectUser} from 'etna-js/selectors/user-selector';
 import { json_get, json_post } from 'etna-js/utils/fetch';
 import { copyText } from 'etna-js/utils/copy';
 
+import TokenBuilder from './token-builder.jsx';
+
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import {makeStyles} from '@material-ui/core/styles';
+import { isSuperuser } from 'etna-js/utils/janus';
 
 const useStyles = makeStyles((theme) => ({
   text: {
@@ -27,7 +30,7 @@ const KeysSettings = ({user}) => {
   let [ pem, setPemText ] = useState(null);
 
   let uploadKey = useCallback(
-    () => json_post('/update_key', { pem }).then(
+    () => json_post('/api/user/update_key', { pem }).then(
       ({user}) => { setUser(user); setError(null); }
     ).catch(
       e => e.then( ({error}) => setError(error) )
@@ -102,13 +105,14 @@ const JanusSettings = () => {
 
   useEffect(
     () => {
-      json_get('/user').then(({user}) => setUser(user))
+      json_get('/api/user/info').then(({user}) => setUser(user))
     }, []
   );
 
   return <div id='janus-settings'>
     <KeysSettings user={ janusUser }/>
     <TaskTokenSettings user={ user }/>
+    { isSuperuser(user) && <TokenBuilder user={ user }/> }
   </div>;
 }
 

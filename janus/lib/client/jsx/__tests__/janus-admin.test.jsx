@@ -28,7 +28,7 @@ describe('JanusAdmin', () => {
     const initialStubs = [
       stubUrl({
         verb: 'get',
-        path: '/allprojects',
+	path: '/api/admin/projects',
         status: 200,
         response: {
           projects: [
