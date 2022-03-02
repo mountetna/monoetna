@@ -9,7 +9,10 @@ def encode_as_multipart(v: Any) -> Dict:
     result = {}
 
     if not isinstance(v, dict):
-        v = to_dict(v)
+        if hasattr(v, 'to_dict'):
+            v = v.to_dict()
+        else:
+            v = to_dict(v)
 
     for k, v in _encode_as_multipart(v, "", True):
         result[k] = v
@@ -39,4 +42,4 @@ def _encode_as_multipart(
         if isinstance(v, bytes):
             yield base_key, ("blob", v, "application/octet-stream")
         else:
-            yield base_key, str(v)
+            yield base_key, (None, str(v))

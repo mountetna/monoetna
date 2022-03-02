@@ -5,7 +5,7 @@ Improves upon the base airflow xcom with
     a. custom string summary in UI
     b. custom deferred value expansion via execute
 """
-
+import logging
 from typing import Any, TypeVar, cast
 
 import pickle
@@ -48,7 +48,11 @@ class EtnaXCom(BaseXCom):
     def serialize_value(value: Any):
         if not isinstance(value, EtnaXComValue):
             value = pickled(value)
-        return lzma.compress(pickle.dumps(value))
+        log = logging.getLogger('airflow.task')
+        log.info('Compressing pickled value...')
+        compressed = lzma.compress(pickle.dumps(value))
+        log.info('Compression complete.')
+        return compressed
 
     @staticmethod
     def deserialize_value(result: "EtnaXCom") -> Any:

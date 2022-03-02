@@ -188,8 +188,8 @@ class link:
             update.extend(value)
             result.append(match)
 
-        self.log.info("Executing batched magma update")
         self._upload_debug(update, models)
+        self.log.info("Executing batched magma update")
         magma.update(update)
         return result
 
@@ -201,11 +201,13 @@ class link:
         if not self.debug_bucket:
             return
 
+        self.log.info('Starting debug upload')
         records: RetrievalResponse = RetrievalResponse()
         with self.hook.magma() as magma:
             with self.hook.metis(read_only=False) as metis:
                 for model_name, revisions in update.revisions.items():
                     records.extend(magma.retrieve(get_project_name(), model_name=model_name, record_names=list(revisions.keys())))
+                self.log.info('prepared all revisions by model_name')
 
                 for identifier, revision in revisions.items():
                     existing = records.models[model_name].documents.get(identifier, {})
@@ -221,6 +223,7 @@ class link:
                                 exisiting_diffable[attr_name] = existing[attr_name]
                             revision_diffable[attr_name] = revision[attr_name]
 
+                    self.log.info('preparing diff')
 
                     payload: str = "\n".join(difflib.Differ().compare(
                         json.dumps(exisiting_diffable, indent=2),
@@ -232,6 +235,8 @@ class link:
 
                     payload_bytes = payload.encode('utf8')
                     file = io.BytesIO(payload_bytes)
+
+                    self.log.info('starting upload')
                     for upload in metis.upload_file(
                             get_project_name(dag),
                             self.debug_bucket,
@@ -239,7 +244,7 @@ class link:
                             file,
                             size=len(payload_bytes)
                         ):
-                        pass
+                        self.log.info('uploading...')
 
 class MetisEtlHelpers:
     hook: EtnaHook

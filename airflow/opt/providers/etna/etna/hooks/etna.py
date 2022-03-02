@@ -445,8 +445,8 @@ class Folder:
 @deserialize
 @dataclasses.dataclass
 class FoldersAndFilesResponse:
-    folders: List[Folder]
-    files: List[File]
+    folders: List[Folder] = dataclasses.field(default_factory=list)
+    files: List[File] = dataclasses.field(default_factory=list)
 
     def empty(self):
         return not self.folders and not self.files
@@ -579,7 +579,7 @@ class Metis(EtnaClientBase):
         if len(dest_path) > 1:
             self.create_folder(project_name, bucket_name, os.path.dirname(dest_path))
         authorization = self.authorize_upload(project_name, bucket_name, dest_path)
-        upload = Upload(file=file, size=size, upload_path=authorization.upload_path)
+        upload = Upload(file=file, file_size=size, upload_path=authorization.upload_path)
         return self.upload_parts(upload, uuid.uuid4().hex, max_retries)
 
     def upload_parts(
@@ -590,7 +590,7 @@ class Metis(EtnaClientBase):
             self.start_upload(
                 UploadStartRequest(
                     upload_path=upload.upload_path,
-                    file_size=upload.size,
+                    file_size=upload.file_size,
                     next_blob_size=upload.next_blob_size,
                     next_blob_hash=upload.next_blob_hash,
                     metis_uid=metis_uid,
@@ -599,16 +599,21 @@ class Metis(EtnaClientBase):
             )
         )
 
-        while unsent_zero_byte_file and not upload.is_complete:
+        while unsent_zero_byte_file or not upload.is_complete:
             try:
+                current_byte_position = upload.cur
+                blob_data = upload.read_next_blob()
+
+                upload.advance_position()
+
                 self.upload_blob(
                     UploadBlobRequest(
                         upload_path=upload.upload_path,
                         next_blob_size=upload.next_blob_size,
                         next_blob_hash=upload.next_blob_hash,
-                        blob_data=upload.read_next_blob(),
+                        blob_data=blob_data,
                         metis_uid=metis_uid,
-                        current_byte_position=upload.cur,
+                        current_byte_position=current_byte_position,
                     )
                 )
 
@@ -798,7 +803,7 @@ class Upload:
             )
         return None
 
-    UPLOAD_PATH_REGEX = re.compile(r"https://.*/([^/]+)/upload/([^/]+)/(.+)")
+    UPLOAD_PATH_REGEX = re.compile(r"/([^/]+)/upload/([^/]+)/?([^?]*)")
 
     @property
     def as_metis_url(self) -> Optional[str]:
@@ -808,6 +813,16 @@ class Upload:
             bucket_name = match.group(2)
             path = match.group(3)
             return f"metis://{project_name}/{bucket_name}/{path}"
+        return None
+
+    @property
+    def as_file(self) -> Optional[File]:
+        match = self.UPLOAD_PATH_REGEX.match(self.upload_path)
+        if match:
+            project_name = match.group(1)
+            bucket_name = match.group(2)
+            path = match.group(3)
+            return File(file_name=os.path.basename(path), file_path=path, project_name=project_name, bucket_name=bucket_name)
         return None
 
     @property
@@ -832,6 +847,9 @@ class Upload:
     def resume_from(self, upload_response: UploadResponse):
         self.cur = upload_response.current_byte_position
 
+    def advance_position(self):
+        self.cur += self.next_blob_size
+
     def read_next_blob(self) -> bytes:
         next_left = self.cur
         next_right = self.cur + self.next_blob_size
@@ -839,9 +857,13 @@ class Upload:
         # Advance the position, if we've resumed to a specific place that needs skipping to.
         # We are merely reading data to catch up to our expected left position.
         if next_right < self.read_position:
-            raise ValueError(
-                "Upload source stream requires restart, upload has failed."
-            )
+            if self.file.seekable():
+                self.file.seek(next_left)
+                self.read_position = next_left
+            else:
+                raise ValueError(
+                    "Upload source stream requires restart, upload has failed."
+                )
         elif self.read_position < next_left:
             bytes_to_read = next_left - self.read_position
             data = self.file.read(bytes_to_read)
@@ -887,8 +909,6 @@ class UploadStartRequest:
     reset: bool = False
 
 
-@serialize
-@deserialize
 @dataclasses.dataclass
 class UploadBlobRequest:
     file_size: int = 0
@@ -899,6 +919,9 @@ class UploadBlobRequest:
     next_blob_size: int = 0
     next_blob_hash: str = ""
     current_byte_position: int = 0
+
+    def to_dict(self):
+        return self.__dict__
 
 
 @serialize
