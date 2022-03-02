@@ -209,52 +209,47 @@ class link:
             return
 
         self.log.info('Starting debug upload')
-        records: RetrievalResponse = RetrievalResponse()
         with self.hook.magma() as magma:
             with self.hook.metis(read_only=False) as metis:
                 for model_name, revisions in update.revisions.items():
-                    self.log.info(f"Prepping identifiers for {model_name}, found {len(revisions)}")
-                    response = magma.retrieve(get_project_name(), model_name=model_name, record_names=list(revisions.keys()))
-                    self.log.info(f"Found existing records")
-                    records.extend(response)
-                self.log.info('prepared all revisions by model_name')
+                    for revision_batch in batch_iterable(revisions.keys(), 100):
+                        self.log.info(f"Prepping identifiers for {model_name}, found {len(revision_batch)}")
+                        response = magma.retrieve(get_project_name(), model_name=model_name, record_names=revision_batch)
+                        self.log.info(f"Processing batch...")
 
-                for identifier, revision in revisions.items():
-                    existing = records.models[model_name].documents.get(identifier, {})
-                    # Compare the subset of attributes that actually exist in this revision
-                    # against what might already exist for that record.
-                    # Order the attributes based on the template to ensure cleaner diff as well.
-                    exisiting_diffable = dict()
-                    revision_diffable = dict()
+                        for identifier, revision in response.models[model_name].documents.items():
+                            existing = update.models[model_name].documents.get(identifier, {})
+                            # Compare the subset of attributes that actually exist in this revision
+                            # against what might already exist for that record.
+                            # Order the attributes based on the template to ensure cleaner diff as well.
+                            exisiting_diffable = dict()
+                            revision_diffable = dict()
 
-                    for attr_name in models[model_name].template.attributes.keys():
-                        if attr_name in revision:
-                            if attr_name in existing:
-                                exisiting_diffable[attr_name] = existing[attr_name]
-                            revision_diffable[attr_name] = revision[attr_name]
+                            for attr_name in models[model_name].template.attributes.keys():
+                                if attr_name in revision:
+                                    if attr_name in existing:
+                                        exisiting_diffable[attr_name] = existing[attr_name]
+                                    revision_diffable[attr_name] = revision[attr_name]
 
-                    self.log.info('preparing diff')
+                            payload: str = "\n".join(difflib.Differ().compare(
+                                json.dumps(exisiting_diffable, indent=2),
+                                json.dumps(revision_diffable, indent=2),
+                            ))
 
-                    payload: str = "\n".join(difflib.Differ().compare(
-                        json.dumps(exisiting_diffable, indent=2),
-                        json.dumps(revision_diffable, indent=2),
-                    ))
+                            if not payload:
+                                continue
 
-                    if not payload:
-                        continue
+                            payload_bytes = payload.encode('utf8')
+                            file = io.BytesIO(payload_bytes)
 
-                    payload_bytes = payload.encode('utf8')
-                    file = io.BytesIO(payload_bytes)
-
-                    self.log.info('starting upload')
-                    for upload in metis.upload_file(
-                            get_project_name(dag),
-                            self.debug_bucket,
-                            f"link/{dag.dag_id}/{ti.task_id}/{ti.run_id}/{model_name}/{identifier}.json",
-                            file,
-                            size=len(payload_bytes)
-                        ):
-                        self.log.info('uploading...')
+                            for upload in metis.upload_file(
+                                    get_project_name(dag),
+                                    self.debug_bucket,
+                                    f"link/{dag.dag_id}/{ti.task_id}/{ti.run_id}/{model_name}/{identifier}.json",
+                                    file,
+                                    size=len(payload_bytes)
+                                ):
+                                pass
 
 class MetisEtlHelpers:
     hook: EtnaHook
