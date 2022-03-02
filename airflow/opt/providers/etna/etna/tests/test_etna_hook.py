@@ -49,3 +49,12 @@ def test_e2e_upload_to_metis_and_download(token_etna_connection: Connection):
             result = download.read()
 
     assert payload == result
+
+@pytest.mark.vcr
+def test_e2e_magma_record_names_fetch(token_etna_connection: Connection):
+    hook = EtnaHook(token_etna_connection.conn_id)
+
+    with hook.magma('ipi') as magma:
+        all_keys = list(magma.retrieve('ipi', 'rna_seq', attribute_names=['tube_name'], record_names='all').models['rna_seq'].documents.keys())
+        assert len(all_keys) == 4048
+        assert len(magma.retrieve('ipi', 'rna_seq', attribute_names=['tube_name'], record_names=all_keys).models['rna_seq'].documents) == len(all_keys)

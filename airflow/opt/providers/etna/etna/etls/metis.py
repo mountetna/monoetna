@@ -213,7 +213,10 @@ class link:
         with self.hook.magma() as magma:
             with self.hook.metis(read_only=False) as metis:
                 for model_name, revisions in update.revisions.items():
-                    records.extend(magma.retrieve(get_project_name(), model_name=model_name, record_names=list(revisions.keys())))
+                    self.log.info(f"Prepping identifiers for {model_name}, found {len(revisions)}")
+                    response = magma.retrieve(get_project_name(), model_name=model_name, record_names=list(revisions.keys()))
+                    self.log.info(f"Found existing records")
+                    records.extend(response)
                 self.log.info('prepared all revisions by model_name')
 
                 for identifier, revision in revisions.items():
@@ -455,7 +458,7 @@ class MetisEtlHelpers:
             with self.hook.metis() as metis:
                 files_by_parent_id = { k: list(v) for k, v in itertools.groupby(metis.tail(project_name, bucket_name, 'files', folder_id=[m.folder_id for m in matches])[0], key=lambda file: file.folder_id) }
                 return [
-                    (m, files_by_parent_id[m.folder_id])
+                    (m, files_by_parent_id.get(m.folder_id) or [])
                     for m in matches
                 ]
 

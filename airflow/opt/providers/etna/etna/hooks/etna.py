@@ -744,6 +744,14 @@ class Model:
     template: Optional[Template] = None
     count: int = 0
 
+    def empty(self):
+        return len(self.documents) == 0
+
+    def extend(self, other: "Model"):
+        if other.template:
+            self.template = other.template
+        self.count = other.count
+        self.documents.update(other.documents)
 
 @serialize
 @deserialize
@@ -753,17 +761,13 @@ class RetrievalResponse:
 
     def empty(self):
         for model in self.models.values():
-            if model.count:
+            if not model.empty():
                 return False
         return True
 
     def extend(self, other: "RetrievalResponse"):
         for model_name, model in other.models.items():
-            if model_name in self.models:
-                self.models[model_name].count += model.count
-                self.models[model_name].documents.update(model.documents)
-            else:
-                self.models[model_name] = model
+            self.models.setdefault(model_name, Model()).extend(model)
 
 
 @serialize
@@ -1045,7 +1049,7 @@ class Magma(EtnaClientBase):
 
         return response
 
-    batch_size = 100
+    batch_size = 300
 
     # TODO: Support batched update, breaking down the request into viable chunks
     def update(self, update: UpdateRequest):
