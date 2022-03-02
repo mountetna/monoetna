@@ -26,7 +26,10 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: '90vw',
     maxHeight: '90vh'
   },
-  subtitle: {display: 'inline'}
+  subtitle: {display: 'inline'},
+  button: {
+    margin: '1rem'
+  }
 }));
 
 function DataTransformationModal({
@@ -201,6 +204,8 @@ export default function DataTransformationInput({
   const [open, setOpen] = useState(false);
   const [isTransformed, setIsTransformed] = useState(false);
 
+  const classes = useStyles();
+
   const originalData = useMemoized(joinNesting, data);
 
   function handleOnClose() {
@@ -267,7 +272,8 @@ export default function DataTransformationInput({
     <>
       <div>
         Your data frame has {value.length - 1} rows and {value[0].length}{' '}
-        columns.
+        columns. You can preview or edit the data frame now, or just click
+        "Commit" to accept the raw data.
       </div>
       <Dialog open={open} onClose={handleOnClose} maxWidth='xl'>
         <DataTransformationModal
@@ -277,6 +283,7 @@ export default function DataTransformationInput({
         />
       </Dialog>
       <Button
+        className={classes.button}
         onClick={() => {
           setOpen(true);
         }}
@@ -288,14 +295,15 @@ export default function DataTransformationInput({
       </Button>
       {isTransformed ? (
         <>
-          <div>You have modified the data frame.</div>
+          <div>** You have modified the data frame. **</div>
           <Button
+            className={classes.button}
             onClick={handleOnRevert}
             color='secondary'
             startIcon={<RestoreIcon />}
             variant='contained'
           >
-            Revert to raw data?
+            Revert to raw data
           </Button>
         </>
       ) : null}
