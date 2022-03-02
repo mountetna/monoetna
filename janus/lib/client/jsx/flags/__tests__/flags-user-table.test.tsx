@@ -38,10 +38,10 @@ const mockState = {
 };
 
 const handlers = [
-  rest.get('/users', (req, res, ctx) => {
+  rest.get('/api/users', (req, res, ctx) => {
     return res(ctx.json({users: mockUsers}));
   }),
-  rest.get('/projects', (req, res, ctx) => {
+  rest.get('/api/user/projects', (req, res, ctx) => {
     return res(ctx.json({projects: mockProjects}));
   })
 ];

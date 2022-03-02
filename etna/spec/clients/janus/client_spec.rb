@@ -13,12 +13,12 @@ describe 'Janus Client class' do
     test_class.get_project(Etna::Clients::Janus::GetProjectRequest.new(
       project_name: 'test'
     ))
-    expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/project\/test/)
+    expect(WebMock).to have_requested(:get, %r!#{JANUS_HOST}/api/admin/test!)
   end
 
   it 'can fetch user projects' do
     test_class.get_projects()
-    expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/projects/)
+    expect(WebMock).to have_requested(:get, %r!#{JANUS_HOST}/api/user/projects!)
   end
 
   it 'can add a new project' do
@@ -26,7 +26,7 @@ describe 'Janus Client class' do
       project_name: 'test',
       project_name_full: 'TestProject1'
     ))
-    expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/add_project/)
+    expect(WebMock).to have_requested(:post, %r!#{JANUS_HOST}/api/admin/add_project!)
   end
 
   it 'can add a new user to a project' do
@@ -37,7 +37,7 @@ describe 'Janus Client class' do
       affiliation: 'None'
     ))
 
-    expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/add_user\/test/)
+    expect(WebMock).to have_requested(:post, %r!#{JANUS_HOST}/api/admin/test/add_user!)
   end
 
   it 'can update permission for a project' do
@@ -48,18 +48,12 @@ describe 'Janus Client class' do
       affiliation: 'None'
     ))
 
-    expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/update_permission\/test/)
+    expect(WebMock).to have_requested(:post, %r!#{JANUS_HOST}/api/admin/test/update_permission!)
   end
 
   it 'can refresh a user\'s token' do
     response = test_class.refresh_token(Etna::Clients::Janus::RefreshTokenRequest.new)
-    expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/refresh_token/)
+    expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/api\/tokens\/generate/)
     expect(response.token).to eq('a token for you!')
-  end
-
-  it 'can fetch a viewer-only version of a user\'s token' do
-    response = test_class.viewer_token(Etna::Clients::Janus::ViewerTokenRequest.new)
-    expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/viewer_token/)
-    expect(response.token).to eq('a view-only token for you!')
   end
 end

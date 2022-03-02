@@ -28,22 +28,6 @@ class UserController < Janus::Controller
     success_json(user: @janus_user.to_hash)
   end
 
-  def refresh_token
-    @janus_user = User[email: @user.email]
-
-    raise Etna::Forbidden, 'User not found' unless @janus_user
-
-    success(@janus_user.create_token!)
-  end
-
-  def viewer_token
-    @janus_user = User[email: @user.email]
-
-    raise Etna::Forbidden, 'User not found' unless @janus_user
-
-    success(@janus_user.create_viewer_token!)
-  end
-
   def projects
     @janus_user = User[email: @user.email]
 
