@@ -8,6 +8,10 @@ import VulcanUI from './vulcan_ui';
 import {VulcanStore} from './vulcan_store';
 import * as Cookies from 'etna-js/utils/cookies';
 
+import { registerAllModules } from 'handsontable/registry';
+
+registerAllModules();
+
 class VulcanApplication {
   constructor(props, container_id) {
     // create the store

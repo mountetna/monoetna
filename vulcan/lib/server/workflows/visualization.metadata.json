@@ -2,7 +2,7 @@
   "projects": ["example", "ipi"],
   "authors": ["Dan Bunis"],
   "lastModified": "Feb 18, 2022",
-  "vignette": "# The Standard Visualization Workflow\n\nThis workflow allows users to create a plot type of their choice from data library data of their choice.\n\n## Step 1) Selecting Data via Timur-Query:\n\nThis Data Loading method utilizes the 'Data Source magma query' Primary Inputs group. Users can fill in these inputs manually, but the recommended method is to build your query in the Timur-Query page ([documentation](https://mountetna.github.io/query.html)), then click the `Plot` button to have the relevant inputs filled in automatically.\n\n## (Under construction) Optional Step 1.5) Make Data Adjustments\n\n Tooling is in the works and will be available soon!\n\n## Step 2) Configuring the plot\n\nAfter data is obtained, the Plot Configuration Interface will appear. First choose your plot type from the similarly named dropdown, then additional inputs will show up which allow you to set what data to use for axes, colors, etc. and as other advanced options.\n\nFor additional details regarding individual inputs of the Plot Configuration Interface, see https://mountetna.github.io/vulcan.html#the-plot-configuration-interface.\n\n## We are currently working on:\n\n- An Excel-like data adjustment interface where users will be able to add columns and make manual edits to their queried data.\n- User interface improvements.\n- Additional Visualization Features",
+  "vignette": "# The Standard Visualization Workflow\n\nThis workflow allows users to create a plot type of their choice from data library data of their choice.\n\n## Step 1) Selecting Data via Timur-Query:\n\nThis Data Loading method utilizes the 'Data Source magma query' Primary Inputs group. Users can fill in these inputs manually, but the recommended method is to build your query in the Timur-Query page ([documentation](https://mountetna.github.io/query.html)), then click the `Plot` button to have the relevant inputs filled in automatically.\n\n## Optional Step 2) Making Data Adjustments\n\n You can preview your data frame and make adjustments to it, using a spreadsheet-like interface. A subset of Excel [functions are supported](https://handsontable.github.io/hyperformula/guide/built-in-functions.html#overview).\n\n## Step 3) Configuring the plot\n\nAfter data is obtained, the Plot Configuration Interface will appear. First choose your plot type from the similarly named dropdown, then additional inputs will show up which allow you to set what data to use for axes, colors, etc. and as other advanced options.\n\nFor additional details regarding individual inputs of the Plot Configuration Interface, see https://mountetna.github.io/vulcan.html#the-plot-configuration-interface.\n\n## We are currently working on:\n\n- User interface improvements.\n- Additional Visualization Features",
   "tags": ["general", "plotting"],
   "image": "scatter.png",
   "displayName": "Visualization",
@@ -11,5 +11,6 @@
     "1_Data_Source_magma_query__queryTerms": "query",
     "1_Data_Source_magma_query__user_columns": "user_columns",
     "1_Data_Source_magma_query__expand_matrices": "expand_matrices"
-  }
+  },
+  "queryAction": "Visualize directly"
 }
