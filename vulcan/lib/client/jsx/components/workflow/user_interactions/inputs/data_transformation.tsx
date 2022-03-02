@@ -1,9 +1,11 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import * as _ from 'lodash';
 import {HotTable} from '@handsontable/react';
 import {HyperFormula} from 'hyperformula';
 import EditIcon from '@material-ui/icons/Edit';
 import SaveIcon from '@material-ui/icons/Save';
 import CancelIcon from '@material-ui/icons/Cancel';
+import RestoreIcon from '@material-ui/icons/Restore';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
@@ -13,6 +15,7 @@ import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 import {makeStyles} from '@material-ui/core/styles';
 
+import AntSwitch from 'etna-js/components/inputs/ant_switch';
 import {joinNesting} from './monoids';
 import {WithInputParams, DataEnvelope} from './input_types';
 import {useSetsDefault} from './useSetsDefault';
@@ -197,6 +200,7 @@ export default function DataTransformationInput({
   {[key: string]: any}
 >) {
   const [open, setOpen] = useState(false);
+
   const originalData = useMemoized(joinNesting, data);
 
   function handleOnClose() {
@@ -210,16 +214,20 @@ export default function DataTransformationInput({
     [onChange]
   );
 
-  const inputValue = useSetsDefault(
-    {
+  const rawData = useMemo(() => {
+    return {
       calculated_data: some(originalData),
       formulaic_data: some(originalData)
-    },
-    props.value,
-    destructureOnChange
+    };
+  }, [originalData]);
+
+  const inputValue = useSetsDefault(rawData, props.value, destructureOnChange);
+
+  const [transformedData, setTransformedData] = useState(
+    inputValue as Maybe<{[key: string]: any}>
   );
 
-  let value;
+  let value: any;
 
   if (numOutputs === 1) {
     value = inputValue;
@@ -241,6 +249,34 @@ export default function DataTransformationInput({
       value = inputValue[inputKeys[0]];
     }
   }
+
+  // const [useTransformed, setUseTransformed] = useState(
+  //   !_.isEqual(rawData, value)
+  // );
+
+  const [isTransformed, setIsTransformed] = useState(false);
+
+  useEffect(() => {
+    const transformed = !_.isEqual(
+      some(nestedArrayToDataFrameJson(value)),
+      rawData.formulaic_data
+    );
+    if (transformed !== isTransformed) setIsTransformed(transformed);
+  }, [value, rawData, isTransformed]);
+
+  const handleOnRevert = useCallback(() => {
+    destructureOnChange(some(rawData));
+  }, [rawData]);
+
+  // const handleAntSwitch = useCallback(() => {
+  //   if (useTransformed && rawData) {
+  //     destructureOnChange(some(rawData));
+  //   } else if (!useTransformed && transformedData) {
+  //     destructureOnChange(transformedData);
+  //   }
+  //   destructureOnChange(useTransformed ? some(rawData) : transformedData);
+  //   setUseTransformed(!useTransformed);
+  // }, [useTransformed, rawData, transformedData, destructureOnChange]);
 
   value = dataFrameJsonToNestedArray(value);
 
@@ -268,8 +304,28 @@ export default function DataTransformationInput({
         startIcon={<EditIcon />}
         variant='contained'
       >
-        Edit data frame
+        Review or edit data frame
       </Button>
+      {isTransformed ? (
+        <>
+          <div>You have modified the data frame.</div>
+          <Button
+            onClick={handleOnRevert}
+            color='secondary'
+            startIcon={<RestoreIcon />}
+            variant='contained'
+          >
+            Revert to raw data?
+          </Button>
+        </>
+      ) : null}
+      {/* <AntSwitch
+        checked={useTransformed}
+        onChange={handleAntSwitch}
+        name='use-raw-or-transformed'
+        leftOption='Raw data'
+        rightOption='Transformed data'
+      /> */}
     </>
   );
 }
