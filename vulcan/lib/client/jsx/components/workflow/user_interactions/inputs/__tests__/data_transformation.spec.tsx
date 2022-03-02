@@ -14,7 +14,8 @@ import {
   clickNode,
   findAllByClassName,
   matchesTextPredicate,
-  matchesTypePredicate
+  matchesTypePredicate,
+  text
 } from '../../../../../test_utils/rendered';
 import {ReactTestInstance} from 'react-test-renderer';
 import ReactDOM from 'react-dom';
@@ -109,10 +110,10 @@ describe('DataTransformationInput', () => {
 
   it('includes a brief description of the data frame size', async () => {
     const {node} = integrated.value;
-
+    console.log(text(node.root));
     expect(
       matchesTextPredicate(
-        'Your data frame has 3 rows and 2 columns.Edit data frame'
+        'Your data frame has 3 rows and 2 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame'
       )(node.root)
     ).toEqual(true);
   });
@@ -186,10 +187,10 @@ describe('DataTransformationInput', () => {
 
     it('correctly renders', async () => {
       const {node} = integrated.value;
-
+      console.log(text(node.root));
       expect(
         matchesTextPredicate(
-          'Your data frame has 4 rows and 2 columns.Edit data frame'
+          'Your data frame has 4 rows and 2 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
         )(node.root)
       ).toEqual(true);
     });
@@ -237,7 +238,7 @@ describe('DataTransformationInput', () => {
 
         expect(
           matchesTextPredicate(
-            'Your data frame has 5 rows and 2 columns.Edit data frame'
+            'Your data frame has 5 rows and 2 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
           )(node.root)
         ).toEqual(true);
       });
@@ -283,7 +284,7 @@ describe('DataTransformationInput', () => {
 
       expect(
         matchesTextPredicate(
-          'Your data frame has 4 rows and 2 columns.Edit data frame'
+          'Your data frame has 4 rows and 2 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
         )(node.root)
       ).toEqual(true);
     });
@@ -331,7 +332,7 @@ describe('DataTransformationInput', () => {
 
         expect(
           matchesTextPredicate(
-            'Your data frame has 5 rows and 2 columns.Edit data frame'
+            'Your data frame has 5 rows and 2 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
           )(node.root)
         ).toEqual(true);
       });
