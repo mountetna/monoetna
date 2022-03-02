@@ -34,6 +34,7 @@ class Metis
         existing_uid = request.cookies[metis.config(:metis_uid_name)]
 
         return [ status, headers, body ] if valid_uid?(existing_uid)
+        return [ status, headers, body ] if env['rack.hijack_io']
 
         return cookie_response(body, status, headers)
       end
