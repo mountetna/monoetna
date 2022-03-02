@@ -20,8 +20,10 @@ const useStyles = makeStyles((theme) => ({
   workflows: {
     padding: '15px'
   },
-  none: {
-    color: '#f44'
+  tableHeader: {
+    paddingLeft: '1rem',
+    fontSize: '1rem',
+    color: '#de5833'
   }
 }));
 
@@ -52,7 +54,9 @@ export default function Dashboard({project_name}) {
           <Typography variant='h5'>{project_name}</Typography>
         </Grid>
         <Grid item container>
-          <Typography variant='h6'>Available Workflows</Typography>
+          <Typography variant='h6' className={classes.tableHeader}>
+            Available Workflows
+          </Typography>
         </Grid>
         <Grid item container className={classes.workflows}>
           <WorkflowsTable project_name={project_name} />

@@ -94,6 +94,7 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
       getRowId={(row) => row.name}
       pageSize={20}
       onRowClick={(params, e) => {}}
+      hideFooterSelectedRowCount={true}
     />
   );
 }
