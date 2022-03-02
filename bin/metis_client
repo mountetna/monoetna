@@ -180,13 +180,18 @@ class JanusClient < Client
   end
 
   def refresh_token
-    get_request("/refresh_token").body
+    post_request("/api/tokens/generate").body
   end
 
   private
 
   def get_request(path)
     req = get(path)
+    https.request(req)
+  end
+
+  def post_request(path)
+    req = post(path)
     https.request(req)
   end
 
