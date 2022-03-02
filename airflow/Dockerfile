@@ -26,6 +26,7 @@ RUN pip3 install -r /opt/airflow/requirements.txt
 
 COPY --chown=airflow:0 ./opt/ /opt/airflow/
 COPY --from=1 /mocker /usr/lib/mocker
+RUN pip uninstall -y apache-airflow-providers-google apache-airflow-providers-grpc apache-airflow-providers-hashicorp apache-airflow-providers-microsoft-azure apache-airflow-providers-sendgrid apache-airflow-providers-elasticsearch apache-airflow-providers-cncf-kubernetes apache-airflow-providers-celery
 RUN pip install /opt/airflow/providers/etna
 
 ENTRYPOINT ["/opt/airflow/entrypoint-with-secret-files.sh"]
