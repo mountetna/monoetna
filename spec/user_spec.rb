@@ -23,30 +23,6 @@ describe User do
     expect(payload['perm']).to eq('V:tunnel;e:gateway,mirror')
   end
 
-  it 'returns a JWT with only viewer permissions' do
-    user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
-    gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
-    tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
-    mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
-
-    # the JWT will include a string encoding these permissions
-    perm = create(:permission, project: tunnel, user: user, role: 'viewer', privileged: true)
-    perm = create(:permission, project: mirror, user: user, role: 'editor')
-    perm = create(:permission, project: gateway, user: user, role: 'editor')
-
-    token = user.create_viewer_token!
-
-    expect(token).to match(%r!^[\w\-,]+\.[\w\-,]+\.[\w\-,]+$!)
-
-    payload, headers = Janus.instance.sign.jwt_decode(token)
-
-    expect(payload['email']).to eq(user.email)
-    expect(payload['name']).to eq(user.name)
-
-    # The permissions are grouped by role (a,e,v) with upper case for privileged access
-    expect(payload['perm']).to eq('V:tunnel')
-  end
-
   it 'expires the JWT' do
     now = Time.now
     Timecop.freeze(now)
@@ -114,7 +90,7 @@ describe UserController do
       rsa_key = OpenSSL::PKey::RSA.generate(2048)
 
       auth_header(:janus)
-      post('/update_key', pem: rsa_key.public_key.to_s)
+      post('/api/user/update_key', pem: rsa_key.public_key.to_s)
 
       user.refresh
       expect(last_response.status).to eq(200)
@@ -125,7 +101,7 @@ describe UserController do
       user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
 
       auth_header(:janus)
-      post('/update_key', pem: 'I am the very model of a modern major-general')
+      post('/api/user/update_key', pem: 'I am the very model of a modern major-general')
 
       # Janus complains
       expect(last_response.status).to eq(422)
@@ -141,7 +117,7 @@ describe UserController do
       rsa_key = OpenSSL::PKey::RSA.generate(1024)
 
       auth_header(:janus)
-      post('/update_key', pem: rsa_key.public_key.to_s)
+      post('/api/user/update_key', pem: rsa_key.public_key.to_s)
 
       # Janus complains
       expect(last_response.status).to eq(422)
@@ -157,7 +133,7 @@ describe UserController do
       dsa_key = OpenSSL::PKey::DSA.generate(2048)
 
       auth_header(:janus)
-      post('/update_key', pem: dsa_key.public_key.to_s)
+      post('/api/user/update_key', pem: dsa_key.public_key.to_s)
 
       # Janus complains
       expect(last_response.status).to eq(422)
@@ -173,7 +149,7 @@ describe UserController do
       rsa_key = OpenSSL::PKey::RSA.generate(2048)
 
       auth_header(:janus)
-      post('/update_key', pem: rsa_key.to_s)
+      post('/api/user/update_key', pem: rsa_key.to_s)
 
       # Janus complains
       expect(last_response.status).to eq(422)
@@ -188,7 +164,7 @@ describe UserController do
       rsa_key = OpenSSL::PKey::RSA.generate(2048)
 
       auth_header(:janus)
-      post('/update_key', pem: rsa_key.public_key.to_s)
+      post('/api/user/update_key', pem: rsa_key.public_key.to_s)
 
       # Janus complains
       expect(last_response.status).to eq(403)
@@ -199,7 +175,7 @@ describe UserController do
       user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
       rsa_key = OpenSSL::PKey::RSA.generate(2048)
 
-      post('/update_key', pem: rsa_key.public_key.to_s)
+      post('/api/user/update_key', pem: rsa_key.public_key.to_s)
 
       # Janus complains
       expect(last_response.status).to eq(401)
@@ -208,63 +184,6 @@ describe UserController do
       # The user's key is unset
       user.refresh
       expect(user.public_key).to be_nil
-    end
-  end
-
-  context '#refresh_token' do
-    it 'generates a new user token' do
-      user = create(:user, name: 'Zeus Almighty', email: 'zeus@olympus.org')
-
-      auth_header(:zeus)
-      get('/refresh_token')
-
-      expect(last_response.status).to eq(200)
-      expect(last_response.body).not_to eq('')
-    end
-
-    it 'non-superusers can also generate a token' do
-      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
-
-      auth_header(:janus)
-      get('/refresh_token')
-
-      expect(last_response.status).to eq(200)
-      expect(last_response.body).not_to eq('')
-    end
-  end
-
-  context '#viewer_token' do
-    it 'generates a new viewer-only token' do
-      user = create(:user, name: 'Zeus Almighty', email: 'zeus@olympus.org')
-      gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
-      tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
-      mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
-
-      # the JWT will include a string encoding these permissions
-      perm = create(:permission, project: tunnel, user: user, role: 'viewer', privileged: true)
-      perm = create(:permission, project: mirror, user: user, role: 'editor')
-      perm = create(:permission, project: gateway, user: user, role: 'editor')
-      auth_header(:zeus)
-      get('/viewer_token')
-
-      expect(last_response.status).to eq(200)
-      expect(last_response.body).not_to eq('')
-
-      token = last_response.body
-
-      payload, headers = Janus.instance.sign.jwt_decode(token)
-
-      # The permissions are grouped by role (a,e,v) with upper case for privileged access
-      expect(payload['perm']).to eq('V:tunnel')
-    end
-
-    it 'non-superusers cannot generate viewer-only tokens' do
-      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
-
-      auth_header(:janus)
-      get('/viewer_token')
-
-      expect(last_response.status).to eq(403)
     end
   end
 
@@ -283,7 +202,7 @@ describe UserController do
       perm = create(:permission, project: gateway, user: user, role: 'editor')
 
       auth_header(:janus)
-      get('/projects')
+      get('/api/user/projects')
 
       expect(last_response.status).to eq(200)
       expect(json_body[:projects]).to eq([{
@@ -316,7 +235,7 @@ describe UserController do
       door = create(:project, project_name: 'door', project_name_full: 'Door', resource: true)
 
       auth_header(:janus)
-      get('/projects')
+      get('/api/user/projects')
 
       expect(last_response.status).to eq(200)
       expect(json_body[:projects]).to eq([{
@@ -334,7 +253,7 @@ describe UserController do
 
       auth_header(:janus)
 
-      get('/user')
+      get('/api/user/info')
 
       expect(last_response.status).to eq(200)
       expect(json_body[:user]).to match(
@@ -362,7 +281,7 @@ describe UserController do
 
       auth_header(:zeus)
 
-      get('/users')
+      get('/api/users')
 
       expect(last_response.status).to eq(200)
       expect(json_body[:users].length).to eq(2)
@@ -383,7 +302,7 @@ describe UserController do
 
       auth_header(:janus)
 
-      get('/users')
+      get('/api/users')
 
       expect(last_response.status).to eq(403)
     end

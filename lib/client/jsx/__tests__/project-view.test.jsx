@@ -9,7 +9,7 @@ describe('ProjectView', () => {
   const setRole = (role) => {
     stubUrl({
       verb: 'get',
-      path: '/project/ports',
+      path: '/api/admin/ports/info',
       status: 200,
       response: {
         project: {

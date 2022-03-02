@@ -17,14 +17,14 @@ describe AdminController do
     it 'prevents access to the list of all projects for non-superusers' do
       # ordinary user cannot
       auth_header(:janus)
-      get('/allprojects')
+      get('/api/admin/projects')
 
       expect(last_response.status).to eq(403)
     end
 
     it 'returns a list of all projects' do
       auth_header(:superuser)
-      get('/allprojects')
+      get('/api/admin/projects')
       expect(last_response.status).to eq(200)
 
       expect(json_body[:projects]).to eq(
@@ -38,26 +38,26 @@ describe AdminController do
   end
 
   context '#project' do
-    it 'returns a project view to the admin' do
+    it 'returns project data to the admin' do
       user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator')
 
       auth_header(:janus)
-      get('/door')
+      get('/api/admin/door/info')
 
       expect(last_response.status).to eq(200)
     end
 
-    it 'forbids the project view to viewers' do
+    it 'forbids the project data to viewers' do
       user = create(:user, name: 'Lar Familiaris', email: 'lar@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'viewer')
 
       auth_header(:lar)
-      get('/door')
+      get('/api/admin/door/info')
 
       expect(last_response.status).to eq(403)
     end
@@ -66,7 +66,7 @@ describe AdminController do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
 
       auth_header(:viewer)
-      get('/door')
+      get('/api/admin/door/info')
 
       expect(last_response.status).to eq(403)
     end
@@ -75,7 +75,7 @@ describe AdminController do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
 
       auth_header(:viewer)
-      json_post('door', resource: true)
+      json_post('/api/admin/door/update', resource: true)
 
       expect(last_response.status).to eq(403)
     end
@@ -85,15 +85,15 @@ describe AdminController do
 
       expect(door.resource).to eq(false)
 
-      auth_header(:portunus)
+      auth_header(:zeus)
 
-      json_post('door', resource: true)
+      json_post('/api/admin/door/update', resource: true)
 
       expect(last_response.status).to eq(200)
       door.refresh
       expect(door.resource).to eq(true)
 
-      json_post('door', resource: false)
+      json_post('/api/admin/door/update', resource: false)
 
       expect(last_response.status).to eq(200)
       door.refresh
@@ -105,8 +105,8 @@ describe AdminController do
 
       expect(door.resource).to eq(true)
 
-      auth_header(:portunus)
-      json_post('door', arbitrary: false)
+      auth_header(:zeus)
+      json_post('/api/admin/door/update', arbitrary: false)
 
       expect(last_response.status).to eq(200)
       door.refresh
@@ -122,7 +122,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'editor')
 
       auth_header(:janus)
-      get('/project/door')
+      get('/api/admin/door/info')
 
       expect(last_response.status).to eq(200)
       expect(json_body[:project]).to match(
@@ -161,7 +161,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'editor')
 
       auth_header(:janus)
-      json_post('update_permission/door', email: 'portunus@two-faces.org', role: 'viewer')
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', role: 'viewer')
 
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/door')
@@ -179,7 +179,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'editor')
 
       auth_header(:janus)
-      json_post('update_permission/door', email: 'portunus@two-faces.org', affiliation: 'ILWU')
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', affiliation: 'ILWU')
 
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/door')
@@ -197,7 +197,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'editor')
 
       auth_header(:janus)
-      json_post('update_permission/door', email: 'portunus@two-faces.org', privileged: true)
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', privileged: true)
 
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/door')
@@ -215,7 +215,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'editor', privileged: true)
 
       auth_header(:janus)
-      json_post('update_permission/door', email: 'portunus@two-faces.org', privileged: false)
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', privileged: false)
 
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/door')
@@ -233,7 +233,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'editor')
 
       auth_header(:portunus)
-      json_post('update_permission/door', email: 'portunus@two-faces.org', role: 'viewer')
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', role: 'viewer')
 
       expect(last_response.status).to eq(403)
 
@@ -250,7 +250,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'editor')
 
       auth_header(:portunus)
-      json_post('update_permission/door', email: 'portunus@two-faces.org', affiliation: 'ILWU')
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', affiliation: 'ILWU')
 
       expect(last_response.status).to eq(403)
 
@@ -267,7 +267,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'editor')
 
       auth_header(:portunus)
-      json_post('update_permission/door', email: 'portunus@two-faces.org', privileged: true)
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', privileged: true)
 
       expect(last_response.status).to eq(403)
 
@@ -284,7 +284,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'administrator')
 
       auth_header(:janus)
-      json_post('update_permission/door', email: 'portunus@two-faces.org', role: 'editor')
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', role: 'editor')
 
       expect(last_response.status).to eq(403)
 
@@ -301,7 +301,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'editor')
 
       auth_header(:superuser)
-      json_post('update_permission/door', email: 'portunus@two-faces.org', role: 'administrator')
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', role: 'administrator')
 
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/door')
@@ -319,7 +319,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'administrator')
 
       auth_header(:superuser)
-      json_post('update_permission/door', email: 'portunus@two-faces.org', role: 'editor')
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', role: 'editor')
 
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/door')
@@ -337,7 +337,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'editor')
 
       auth_header(:janus)
-      json_post('update_permission/door', email: 'portunus@two-faces.org', role: 'disabled')
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', role: 'disabled')
 
       expect(last_response.status).to eq(302)
 
@@ -354,7 +354,7 @@ describe AdminController do
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
 
       auth_header(:janus)
-      json_post('add_user/door', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor', affiliation: "ILWU")
+      json_post('/api/admin/door/add_user', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor', affiliation: "ILWU")
 
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/door')
@@ -381,7 +381,7 @@ describe AdminController do
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
 
       auth_header(:janus)
-      json_post('add_user/door', email: ' portunus@two-faces.org ', name: 'Portunus', role: 'editor', affiliation: "ILWU")
+      json_post('/api/admin/door/add_user', email: ' portunus@two-faces.org ', name: 'Portunus', role: 'editor', affiliation: "ILWU")
 
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/door')
@@ -409,7 +409,7 @@ describe AdminController do
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
 
       auth_header(:janus)
-      json_post('add_user/door', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor')
+      json_post('/api/admin/door/add_user', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor')
 
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/door')
@@ -437,7 +437,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'viewer', privileged: false)
 
       auth_header(:janus)
-      json_post('add_user/door', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
+      json_post('/api/admin/door/add_user', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
 
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/door')
@@ -466,7 +466,7 @@ describe AdminController do
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
 
       auth_header(:janus)
-      json_post('add_user/door', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
+      json_post('/api/admin/door/add_user', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
 
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/door')
@@ -493,7 +493,7 @@ describe AdminController do
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
 
       auth_header(:janus)
-      json_post('add_user/door', email: 'portunus@two-faces.org', name: 'Portunus', role: 'administrator')
+      json_post('/api/admin/door/add_user', email: 'portunus@two-faces.org', name: 'Portunus', role: 'administrator')
 
       expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('Cannot set admin role!')
@@ -510,7 +510,7 @@ describe AdminController do
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
 
       auth_header(:janus)
-      json_post('add_user/door', email: 'portunus.two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
+      json_post('/api/admin/door/add_user', email: 'portunus.two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Badly formed email address')
@@ -528,7 +528,7 @@ describe AdminController do
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
 
       auth_header(:janus)
-      json_post('add_user/door', email: 'Portunus@two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
+      json_post('/api/admin/door/add_user', email: 'Portunus@two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
 
       expect(last_response.status).to eq(302)
 
@@ -547,7 +547,7 @@ describe AdminController do
       #perm2 = create(:permission, project: door, user: user2, role: 'editor')
 
       auth_header(:portunus)
-      json_post('add_user/door', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor')
+      json_post('/api/admin/door/add_user', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor')
 
       expect(last_response.status).to eq(403)
 
@@ -561,7 +561,7 @@ describe AdminController do
   context '#add_project' do
     it 'allows a superuser to add a new project' do
       auth_header(:superuser)
-      json_post('add_project', project_name: 'door', project_name_full: "Doors")
+      json_post('/api/admin/add_project', project_name: 'door', project_name_full: "Doors")
 
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/')
@@ -574,7 +574,7 @@ describe AdminController do
 
     it 'does not allow admins to add a new project' do
       auth_header(:janus)
-      json_post('add_project', project_name: 'door', project_name_full: "Doors")
+      json_post('/api/admin/add_project', project_name: 'door', project_name_full: "Doors")
 
       expect(last_response.status).to eq(403)
 
@@ -584,7 +584,7 @@ describe AdminController do
     it 'requires a well-formed project_name' do
       auth_header(:superuser)
       [ 'Doors', "Doo\nrs", ' doors', 'doors	' , '1x_door', 'pg_door', 'door_2_project'].each do |name|
-        json_post('add_project', project_name: name, project_name_full: name)
+        json_post('/api/admin/add_project', project_name: name, project_name_full: name)
 
         expect(last_response.status).to eq(422)
         expect(json_body[:error]).to match(/project_name should be like/)
@@ -595,7 +595,7 @@ describe AdminController do
 
     it 'requires some project_name_full' do
       auth_header(:superuser)
-      json_post('add_project', project_name: 'door', project_name_full: '')
+      json_post('/api/admin/add_project', project_name: 'door', project_name_full: '')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('project_name_full cannot be empty')
@@ -609,7 +609,7 @@ describe AdminController do
       user = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       auth_header(:superuser)
-      json_post('flag_user', email: 'portunus@two-faces.org', flags: [ 'doors' ])
+      json_post('/api/admin/flag_user', email: 'portunus@two-faces.org', flags: [ 'doors' ])
 
       # the flags are set
       expect(last_response.status).to eq(200)
@@ -624,7 +624,7 @@ describe AdminController do
       user = create(:user, name: 'Portunus', email: 'portunus@two-faces.org', flags: [ 'doors' ])
 
       auth_header(:superuser)
-      json_post('flag_user', email: 'portunus@two-faces.org', flags: nil)
+      json_post('/api/admin/flag_user', email: 'portunus@two-faces.org', flags: nil)
 
       # the flags are set
       expect(last_response.status).to eq(200)
@@ -639,7 +639,7 @@ describe AdminController do
       user = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       auth_header(:superuser)
-      json_post('flag_user', email: 'portunus@two-faces.org', flags: [ 'lll', 2 ])
+      json_post('/api/admin/flag_user', email: 'portunus@two-faces.org', flags: [ 'lll', 2 ])
 
       expect(last_response.status).to eq(422)
 
@@ -652,7 +652,7 @@ describe AdminController do
       user = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       auth_header(:portunus)
-      json_post('flag_user', email: 'portunus@two-faces.org', flags: [ 'doors' ])
+      json_post('/api/admin/flag_user', email: 'portunus@two-faces.org', flags: [ 'doors' ])
 
       expect(last_response.status).to eq(403)
 

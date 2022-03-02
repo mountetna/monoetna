@@ -22,7 +22,7 @@ describe('JanusSettings', () => {
     const initialStubs = [
       stubUrl({
         verb: 'get',
-        path: '/user',
+	path: '/api/user/info',
         status: 200,
         response: {
           user: {

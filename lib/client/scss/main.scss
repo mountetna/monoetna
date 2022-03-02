@@ -26,6 +26,22 @@
   }
 
 }
+
+#token-builder-group {
+  @include janus-box;
+  .item {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1.0em;
+    display: flex;
+    button {
+      margin-left: 5px;
+    }
+  }
+  .error {
+    color: red;
+    margin: 15px 15px 0px;
+  }
+}
 #keys-group {
   @include janus-box;
   .item {

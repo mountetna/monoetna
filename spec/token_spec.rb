@@ -319,4 +319,61 @@ describe "Token Generation" do
       expect(last_response.status).to eq(401)
     end
   end
+
+end
+
+
+describe "Token Building" do
+  include Rack::Test::Methods
+
+  def app
+    OUTER_APP
+  end
+
+  before(:each) do
+    @user = create(
+      :user,
+      email: 'janus@mount.etna',
+      name: 'Janus'
+    )
+    door = create(:project, project_name: 'door', project_name_full: 'Door')
+  end
+
+  it "builds a token as specified" do
+    auth_header(:superuser)
+    post(
+      '/api/tokens/build',
+      email: 'janus@mount.etna',
+      perm: 'e:door',
+      exp: (Time.now.utc + 600).to_i
+    )
+
+    expect(last_response.status).to eq(200)
+  end
+
+  it "won't build an invalid token" do
+    auth_header(:superuser)
+    post(
+      '/api/tokens/build',
+      email: 'janus@mount.etna',
+      perm: 'e:chair',
+      exp: (Time.now.utc + 600).to_i
+    )
+
+    expect(last_response.status).to eq(422)
+    expect(json_body[:error]).to eq('Cannot make a token with invalid permissions!')
+  end
+
+  it "won't build an expired token" do
+    auth_header(:superuser)
+    post(
+      '/api/tokens/build',
+      email: 'janus@mount.etna',
+      perm: 'e:chair',
+      exp: (Time.now.utc + -600).to_i
+    )
+
+    expect(last_response.status).to eq(422)
+    expect(json_body[:error]).to eq('Cannot make a token with invalid permissions!')
+  end
 end
