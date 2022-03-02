@@ -86,6 +86,8 @@ class BucketController < Metis::Controller
 
     if folder_id.nil?
       ["head.folder_id IS NULL", {}]
+    elsif folder_id.is_a?(Array)
+      ["head.folder_id IN :folder_ids", {folder_ids: folder_id.map(&:to_i)}]
     else
       ["head.folder_id = :folder_id", {folder_id: folder_id.to_i}]
     end
