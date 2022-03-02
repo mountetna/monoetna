@@ -1,9 +1,9 @@
 {
-  "projects": ["example", "ipi"],
+  "projects": ["example"],
   "authors": ["Cole Shaw"],
   "lastModified": "Feb 10, 2022",
   "vignette": "# Data Manipulation & Plotting Workflow\n\nThis workflow allows users to edit a data frame using a spreadsheet-like interface, and then visualize it with a Vulcan plotting tool.",
-  "tags": ["general", "plotting"],
+  "tags": ["demo", "testing"],
   "displayName": "Data Manipulation & Plot",
   "description": "Edit data in Vulcan before plotting it.",
   "queryAction": "Tweak data first",
