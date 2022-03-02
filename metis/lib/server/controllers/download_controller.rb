@@ -2,6 +2,8 @@ class DownloadController < Metis::Controller
   # This is the endpoint that allows you to make a download.
   # You may call this with a token
   def authorize
+    bucket = require_bucket
+    success_json(download_url: Metis::File.download_url(@request, bucket.project_name, bucket.name, @params[:file_path]))
   end
 
   def download

@@ -78,6 +78,187 @@ describe BucketController do
     expect(stubs.contents(:athena)).to be_empty
   end
 
+  context '#tail' do
+    def json_lines
+      last_response.body.split("\n").map { |l| JSON.parse(l) }
+    end
+
+    def create_tree(tree, bucket, parent_folder = nil)
+      tree.each do |name, value|
+        if value[:type] == 'folder'
+          f = create_folder(bucket.project_name, name, bucket: bucket, folder: parent_folder, updated_at: value[:updated_at])
+          Metis::Folder.where(id: f.id).update(updated_at: value[:updated_at])
+          if value[:children]
+            create_tree(value[:children], bucket, f)
+          end
+        else
+          f = create_file(bucket.project_name, name, name, bucket: bucket, folder: parent_folder, updated_at: value[:updated_at])
+          Metis::File.where(id: f.id).update(updated_at: value[:updated_at])
+        end
+      end
+    end
+
+    def file_node(i)
+      {
+        type: 'file',
+        updated_at: @epoch + i,
+      }
+    end
+
+    def folder_node(i, children)
+      {
+        type: 'folder',
+        updated_at: @epoch + i,
+        children: children
+      }
+    end
+
+    before(:each) do
+      @epoch = DateTime.now
+      @bucket1 = create(:bucket, project_name: 'athena', name: 'test-bucket', owner: 'metis', access: 'viewer')
+      @bucket2 = create(:bucket, project_name: 'athena-2', name: 'test-bucket', owner: 'metis', access: 'viewer')
+      @bucket3 = create(:bucket, project_name: 'athena', name: 'test-bucket-2', owner: 'metis', access: 'viewer')
+
+      create_tree({
+        'a' => file_node(100),
+        'b' => folder_node(100, {
+          'c' => folder_node(300, {
+            'd' => file_node(200),
+          }),
+          'e' => folder_node(500, {
+            'f' => file_node(600),
+            'g' => file_node(50),
+            'h' => folder_node(250, {
+              'i' => folder_node(900, {
+                'j' => file_node(20),
+              }),
+              'k' => file_node(100),
+            }),
+          }),
+          'l' => file_node(30),
+        }),
+        'm' => folder_node(550, {}),
+        'n' => folder_node(350, {
+          'o' => file_node(60)
+        }),
+      }, @bucket1)
+
+      create_tree({
+        'nota' => file_node(60),
+      }, @bucket2)
+
+      create_tree({
+        'notb' => file_node(60),
+      }, @bucket3)
+    end
+
+    describe 'for folders' do
+      it 'can select the full dataset' do
+        token_header(:viewer)
+
+        json_post('/athena/tail/test-bucket', {
+          batch_start: (@epoch.iso8601),
+          batch_end: (@epoch + 1000).iso8601,
+          type: 'folders'
+        })
+
+        lines = json_lines
+        # Parent folders here are yielded and not deduped to distinguish them from when they belong
+        # and do not belong to the original query set.
+        expect(lines.map { |h| h['node_name'] }.sort).to eql([
+          "b", "b", "c", "e", "e", "h", "h", "i", "m", "n"
+        ])
+
+        expect(lines.first.keys.sort).to eql([
+          "archive_id",
+          "created_at",
+          "file_hash",
+          "id",
+          "node_name",
+          "parent_id",
+          "type",
+          "updated_at"
+        ])
+      end
+
+      it 'can select a smart subset based on the given batch range' do
+        token_header(:viewer)
+
+        json_post('/athena/tail/test-bucket', {
+          batch_start: (@epoch + 200).iso8601,
+          batch_end: (@epoch + 500).iso8601,
+          type: 'folders'
+        })
+
+        lines = json_lines
+        expect(lines.map { |h| h['node_name'] }.sort).to eql(["b", "c", "e", "h", "n"])
+      end
+
+      it 'can fetch by folder id' do
+        token_header(:viewer)
+
+        json_post('/athena/tail/test-bucket', {
+          folder_id: Metis::Folder.from_path(@bucket1, 'b/e').last.id,
+          type: 'folders'
+        })
+
+        lines = json_lines
+        expect(lines.map { |h| h['node_name'] }.sort).to eql(["b", "e", "h"])
+      end
+    end
+
+    describe 'for files' do
+      it 'can select the full dataset' do
+        token_header(:viewer)
+
+        json_post('/athena/tail/test-bucket', {
+          batch_start: (@epoch.iso8601),
+          batch_end: (@epoch + 1000).iso8601,
+          type: 'files'
+        })
+
+        lines = json_lines
+        expect(lines.map { |h| h['node_name'] }.sort).to eql(("a".."o").to_a - ["m"])
+
+        expect(lines.first.keys.sort).to eql([
+          "archive_id",
+          "created_at",
+          "file_hash",
+          "id",
+          "node_name",
+          "parent_id",
+          "type",
+          "updated_at"
+        ])
+      end
+
+      it 'can select a smart subset based on the given batch range' do
+        token_header(:viewer)
+
+        json_post('/athena/tail/test-bucket', {
+          batch_start: (@epoch + 200).iso8601,
+          batch_end: (@epoch + 500).iso8601,
+          type: 'files'
+        })
+
+        lines = json_lines
+        expect(lines.map { |h| h['node_name'] }.sort).to eql(["b", "c", "d"])
+      end
+
+      it 'can fetch by folder id' do
+        token_header(:viewer)
+
+        json_post('/athena/tail/test-bucket', {
+          folder_id: Metis::Folder.from_path(@bucket1, 'b/e').last.id,
+          type: 'files'
+        })
+
+        lines = json_lines
+        expect(lines.map { |h| h['node_name'] }.sort).to eql(["b", "e", "f", "g"])
+      end
+    end
+  end
+
   context '#list' do
     it 'returns a list of buckets for the current project' do
       bucket1 = create( :bucket, project_name: 'athena', name: 'files', access: 'viewer', owner: 'metis' )
