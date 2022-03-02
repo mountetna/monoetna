@@ -106,6 +106,7 @@ export interface Workflow {
   displayName?: string;
   description?: string;
   tags?: string[];
+  lastModified?: string;
 }
 
 export const defaultWorkflow: Workflow = {
