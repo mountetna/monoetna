@@ -1,7 +1,7 @@
 PATH
   remote: /etna
   specs:
-    etna (0.1.43)
+    etna (0.1.44)
       concurrent-ruby
       curb
       jwt
@@ -30,7 +30,7 @@ GEM
     concurrent-ruby (1.1.9)
     crack (0.4.5)
       rexml
-    curb (0.9.11)
+    curb (1.0.0)
     database_cleaner (1.8.5)
     debase (0.2.4.1)
       debase-ruby_core_source (>= 0.10.2)
