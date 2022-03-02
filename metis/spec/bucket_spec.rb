@@ -256,6 +256,18 @@ describe BucketController do
         lines = json_lines
         expect(lines.map { |h| h['node_name'] }.sort).to eql(["b", "e", "f", "g"])
       end
+
+      it 'can fetch by folder ids' do
+        token_header(:viewer)
+
+        json_post('/athena/tail/test-bucket', {
+          folder_id: [Metis::Folder.from_path(@bucket1, 'b/e').last.id, Metis::Folder.from_path(@bucket1, 'n').last.id],
+          type: 'files'
+        })
+
+        lines = json_lines
+        expect(lines.map { |h| h['node_name'] }.sort).to eql(["b", "e", "f", "g", "n", "o"])
+      end
     end
   end
 
