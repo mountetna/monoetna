@@ -114,7 +114,7 @@ class link:
     dry_run: bool
     _hook: Optional[EtnaHook]
     attribute_name: Optional[str]
-    debug_bucket: Optional[str]
+    validate_record_update: Optional[Callable[[Any, Any, List[str]], bool]]
 
     def __init__(
         self,
@@ -122,14 +122,14 @@ class link:
         dry_run=True,
         hook: Optional[EtnaHook] = None,
         task_id: Optional[str] = None,
-        debug_bucket: Optional[str] = None,
+        validate_record_update: Optional[Callable[[Any, Any, List[str]], bool]] = None
     ):
         self.task_id = task_id
         self._hook = hook
         self.dry_run = dry_run
         self.attribute_name = attribute_name
         self.log = logging.getLogger("airflow.task")
-        self.debug_bucket = debug_bucket
+        self.validate_record_update = validate_record_update
 
     @property
     def project_name(self) -> str:
@@ -195,61 +195,44 @@ class link:
             update.extend(value)
             result.append(match)
 
-        self._upload_debug(update, models)
+        self.log.info("Validating update...")
+        self._validate_update(magma, update, models)
         self.log.info("Executing batched magma update")
         magma.update(update)
         return result
 
-    def _upload_debug(self, update: UpdateRequest, models: Dict[str, Model]):
-        context = get_current_context()
-        dag: DAG = context['dag']
-        ti: TaskInstance = context['ti']
-
-        if not self.debug_bucket:
+    def _validate_update(self, magma: Magma, update: UpdateRequest, models: Dict[str, Model]):
+        if not self.validate_record_update:
             return
 
-        self.log.info('Starting debug upload')
-        with self.hook.magma() as magma:
-            with self.hook.metis(read_only=False) as metis:
-                for model_name, revisions in update.revisions.items():
-                    for revision_batch in batch_iterable(revisions.keys(), 100):
-                        self.log.info(f"Prepping identifiers for {model_name}, found {len(revision_batch)}")
-                        response = magma.retrieve(get_project_name(), model_name=model_name, record_names=revision_batch)
-                        self.log.info(f"Processing batch...")
+        for model_name, revisions in update.revisions.items():
+            for revision_batch in batch_iterable(revisions.keys(), 100):
+                response = magma.retrieve(get_project_name(), model_name=model_name, record_names=revision_batch)
 
-                        for identifier, revision in response.models[model_name].documents.items():
-                            existing = update.models[model_name].documents.get(identifier, {})
-                            # Compare the subset of attributes that actually exist in this revision
-                            # against what might already exist for that record.
-                            # Order the attributes based on the template to ensure cleaner diff as well.
-                            exisiting_diffable = dict()
-                            revision_diffable = dict()
+                for identifier in revision_batch:
+                    revision = update.revisions[model_name].get(identifier, {})
+                    existing = response.models[model_name].documents.get(identifier, {})
+                    # Compare the subset of attributes that actually exist in this revision
+                    # against what might already exist for that record.
+                    # Order the attributes based on the template to ensure cleaner diff as well.
+                    exisiting_diffable = dict()
+                    revision_diffable = dict()
 
-                            for attr_name in models[model_name].template.attributes.keys():
-                                if attr_name in revision:
-                                    if attr_name in existing:
-                                        exisiting_diffable[attr_name] = existing[attr_name]
-                                    revision_diffable[attr_name] = revision[attr_name]
+                    for attr_name in models[model_name].template.attributes.keys():
+                        if attr_name in revision:
+                            if attr_name in existing:
+                                exisiting_diffable[attr_name] = existing[attr_name]
+                            revision_diffable[attr_name] = revision[attr_name]
 
-                            payload: str = "\n".join(difflib.Differ().compare(
-                                json.dumps(exisiting_diffable, indent=2),
-                                json.dumps(revision_diffable, indent=2),
-                            ))
+                    diffset = list(difflib.Differ().compare(
+                        json.dumps(exisiting_diffable, indent=2).splitlines(True),
+                        json.dumps(revision_diffable, indent=2).splitlines(True),
+                    ))
 
-                            if not payload:
-                                continue
+                    if not self.validate_record_update(exisiting_diffable, revision_diffable, diffset):
+                        diff_str = '\n'.join(diffset)
+                        raise ValueError(f"Update on {model_name}/{identifier} failed, diffset was:\n {diff_str}")
 
-                            payload_bytes = payload.encode('utf8')
-                            file = io.BytesIO(payload_bytes)
-
-                            for upload in metis.upload_file(
-                                    get_project_name(dag),
-                                    self.debug_bucket,
-                                    f"link/{dag.dag_id}/{ti.task_id}/{ti.run_id}/{model_name}/{identifier}.json",
-                                    file,
-                                    size=len(payload_bytes)
-                                ):
-                                pass
 
 class MetisEtlHelpers:
     hook: EtnaHook

@@ -294,10 +294,14 @@ def process_gene_table(file_reader, gene_names, attr_name):
 
             revision = update.update_record('rna_seq', tube_name, {})
             matrix = revision.setdefault(attr_name, [0.0] * len(gene_names))
-            if row['gene_id'] in gene_names:
+            if row['gene_id'] in gene_names and row[key] is not None:
                 matrix[gene_names.index(row['gene_id'])] = float(row[key])
 
     return update
+
+
+def ensure_update_empty(existing, revision, diff):
+    return not diff
 
 
 @metis_etl("ipi", "data", 12)
@@ -357,7 +361,7 @@ def ipi_data_metis_etl(helpers: MetisEtlHelpers, tail_files):
             helpers.link_matching_file(listed_matches, attr, re.compile(matcher), dry_run=False)
 
     with TaskGroup("rna_seq_bulk"):
-        @link(dry_run=True, debug_bucket="airflow_debug")
+        @link(dry_run=True, validate_record_update=ensure_update_empty)
         def process_gene_count_and_tpm_tables(files):
             file_regex = re.compile(r'^bulkRNASeq/processed/[^/]*/results/gene_(counts|tpm)_table\.tsv')
             with helpers.hook.magma() as magma:
@@ -375,7 +379,7 @@ def ipi_data_metis_etl(helpers: MetisEtlHelpers, tail_files):
 
         process_gene_count_and_tpm_tables(tail_files)
 
-        @link(dry_run=True, debug_bucket="airflow_debug")
+        @link(dry_run=True, validate_record_update=ensure_update_empty)
         def process_attr_table(files):
             file_regex = re.compile(r'^bulkRNASeq/processed/[^/]*/results/rnaseq_table\.tsv')
             with helpers.hook.magma() as magma:
@@ -393,6 +397,8 @@ def ipi_data_metis_etl(helpers: MetisEtlHelpers, tail_files):
 
                         for row in csv.DictReader(file_reader, delimiter='\t'):
                             table = RnaSeqAttrTable(row, attributes)
+                            if RnaSeq.is_non_cancer_sample(table.tube_name):
+                                continue
                             update.update_record('rna_seq', table.tube_name, table.as_revision)
                     yield metis_file, update
 
