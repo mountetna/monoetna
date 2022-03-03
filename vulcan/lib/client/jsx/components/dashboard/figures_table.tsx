@@ -79,12 +79,15 @@ export default function FiguresTable({
 
   useEffect(() => {
     if (workflowName) {
+      setFilteredFigureSessions(
+        allFigureSessions.filter(
+          (figure) => figure.workflow_name === workflowName
+        )
+      );
     } else {
       setFilteredFigureSessions([...allFigureSessions]);
     }
   }, [workflowName, allFigureSessions]);
-
-  const getFigure = useCallback((figureId: number) => {}, [allFigureSessions]);
 
   const handleOnCopy = useCallback(
     (figure: VulcanFigureSession) => {

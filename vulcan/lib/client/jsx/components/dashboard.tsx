@@ -1,17 +1,13 @@
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useState} from 'react';
 import 'regenerator-runtime/runtime';
-
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {pushLocation} from 'etna-js/actions/location_actions';
-
-import {VulcanContext} from '../contexts/vulcan_context';
-import WorkflowsTable from './dashboard/workflows_table';
-import {workflowName} from '../selectors/workflow_selectors';
-import FiguresTable from './dashboard/figures_table';
 
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
+
+import {Workflow} from '../api_types';
+import WorkflowsTable from './dashboard/workflows_table';
+import FiguresTable from './dashboard/figures_table';
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -28,25 +24,11 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function Dashboard({project_name}) {
-  const invoke = useActionInvoker();
-  let {state} = useContext(VulcanContext);
-  const {workflows} = state;
-
-  const classes = useStyles();
-
-  const visitWorkflow = useCallback(
-    (workflow) => {
-      invoke(
-        pushLocation(`/${project_name}/workflow/${workflowName(workflow)}`)
-      );
-    },
-    [invoke]
+export default function Dashboard({project_name}: {project_name: string}) {
+  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(
+    null
   );
-
-  const projectWorkflows = workflows
-    ? workflows.filter(({projects}) => projects.includes(project_name))
-    : [];
+  const classes = useStyles();
 
   return (
     <main className='vulcan-dashboard'>
@@ -60,7 +42,10 @@ export default function Dashboard({project_name}) {
           </Typography>
         </Grid>
         <Grid item className={classes.workflows}>
-          <WorkflowsTable project_name={project_name} />
+          <WorkflowsTable
+            project_name={project_name}
+            onSelectWorkflow={(workflow) => setSelectedWorkflow(workflow)}
+          />
         </Grid>
         <Grid item>
           <Typography variant='h6' className={classes.tableHeader}>
@@ -68,7 +53,10 @@ export default function Dashboard({project_name}) {
           </Typography>
         </Grid>
         <Grid item className={classes.workflows}>
-          <FiguresTable project_name={project_name} />
+          <FiguresTable
+            project_name={project_name}
+            workflowName={selectedWorkflow?.name}
+          />
         </Grid>
       </Grid>
     </main>

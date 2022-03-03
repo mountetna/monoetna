@@ -23,6 +23,8 @@ import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
 import ImageMemo from './image_memo';
+import {Workflow} from '../../api_types';
+import {_getEditorInstance} from 'handsontable/editors';
 
 // To get webpack to pick up the files.
 require('../../../img/umap.png');
@@ -49,7 +51,13 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function WorkflowsTable({project_name}: {project_name: string}) {
+export default function WorkflowsTable({
+  project_name,
+  onSelectWorkflow
+}: {
+  project_name: string;
+  onSelectWorkflow: (workflow: Workflow | null) => void;
+}) {
   const [selectionModel, setSelectionModel] = useState<GridRowId[]>([]);
   const invoke = useActionInvoker();
   let {state} = useContext(VulcanContext);
@@ -188,7 +196,14 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
       getRowId={(row) => row.name}
       pageSize={20}
       onRowClick={(params, e) => {
-        // Here, call prop to filter out saved figures?
+        if (
+          selectionModel.length === 0 ||
+          !selectionModel.includes(params.id)
+        ) {
+          onSelectWorkflow(params.row as Workflow);
+        } else {
+          onSelectWorkflow(null);
+        }
       }}
       hideFooterSelectedRowCount={true}
       onSelectionModelChange={(model: GridSelectionModel) => {
