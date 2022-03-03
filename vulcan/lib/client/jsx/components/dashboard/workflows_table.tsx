@@ -13,7 +13,8 @@ import {
   GridValueFormatterParams,
   GridRowId,
   GridSelectionModel,
-  GridColumnHeaderParams
+  GridColumnHeaderParams,
+  GridAlignment
 } from '@material-ui/data-grid';
 import {makeStyles} from '@material-ui/core/styles';
 
@@ -90,7 +91,10 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
       },
       renderHeader: (params: GridColumnHeaderParams) => <></>,
       hideSortIcons: true,
-      disableColumnMenu: true
+      disableColumnMenu: true,
+      resizable: false,
+      editable: false,
+      align: 'center' as GridAlignment
     },
     {
       field: 'displayName',
@@ -156,7 +160,12 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
             <EditIcon />
           </IconButton> */}
         </>
-      )
+      ),
+      align: 'center' as GridAlignment,
+      hideSortIcons: true,
+      disableColumnMenu: true,
+      resizable: false,
+      editable: false
     }
   ];
 
