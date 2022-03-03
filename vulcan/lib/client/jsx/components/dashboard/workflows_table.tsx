@@ -169,9 +169,13 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
     }
   ];
 
+  const collator = new Intl.Collator(undefined, {
+    numeric: true,
+    sensitivity: 'base'
+  });
   const rows = useMemo(() => {
     return projectWorkflows.sort((a, b) =>
-      (a.displayName || a.name).localeCompare(b.displayName || b.name)
+      collator.compare(a.displayName || a.name, b.displayName || b.name)
     );
   }, [projectWorkflows]);
 

@@ -7,6 +7,7 @@ import {pushLocation} from 'etna-js/actions/location_actions';
 import {VulcanContext} from '../contexts/vulcan_context';
 import WorkflowsTable from './dashboard/workflows_table';
 import {workflowName} from '../selectors/workflow_selectors';
+import FiguresTable from './dashboard/figures_table';
 
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
@@ -53,13 +54,21 @@ export default function Dashboard({project_name}) {
         <Grid item container className={classes.title}>
           <Typography variant='h5'>{project_name}</Typography>
         </Grid>
-        <Grid item container>
+        <Grid item>
           <Typography variant='h6' className={classes.tableHeader}>
             Available Workflows
           </Typography>
         </Grid>
-        <Grid item container className={classes.workflows}>
+        <Grid item className={classes.workflows}>
           <WorkflowsTable project_name={project_name} />
+        </Grid>
+        <Grid item>
+          <Typography variant='h6' className={classes.tableHeader}>
+            Saved Figures
+          </Typography>
+        </Grid>
+        <Grid item className={classes.workflows}>
+          <FiguresTable project_name={project_name} />
         </Grid>
       </Grid>
     </main>

@@ -6,135 +6,26 @@ import React, {
   useMemo
 } from 'react';
 import 'regenerator-runtime/runtime';
+import moment from 'moment-timezone';
 
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {pushLocation} from 'etna-js/actions/location_actions';
-
-import {VulcanContext} from '../../contexts/vulcan_context';
-
-import ImageList from '@material-ui/core/ImageList';
-import ImageListItem from '@material-ui/core/ImageListItem';
-import Grid from '@material-ui/core/Grid';
-import Dialog from '@material-ui/core/Dialog';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Button from '@material-ui/core/Button';
-import Typography from '@material-ui/core/Typography';
 import {
-    DataGrid,
-    GridCellParams,
-    GridValueFormatterParams,
-    GridRowId,
-    GridSelectionModel,
-    GridColumnHeaderParams
-  } from '@material-ui/data-grid';
-
+  DataGrid,
+  GridCellParams,
+  GridColumnHeaderParams,
+  GridAlignment,
+  GridValueFormatterParams
+} from '@material-ui/data-grid';
 import {makeStyles} from '@material-ui/core/styles';
-import {VulcanFigure, VulcanFigureSession, Workflow} from '../../api_types';
-import {showMessages} from 'etna-js/actions/message_actions';
+import Chip from '@material-ui/core/Chip';
 
-const createFigureStyles = makeStyles((theme) => ({
-  none: {
-    color: '#f44'
-  },
-  workflows: {},
-  selected: {
-    border: '1px solid red',
-    background: 'rgba(100,0,0,0.1)',
-    boxShadow: '0 0 0 15px #fee, 0 0 4px 15px #faa'
-  }
-}));
+import {pushLocation} from 'etna-js/actions/location_actions';
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 
-const CreateFigure = ({
-  handleClose,
-  open,
-  project_name
-}: {
-  open: boolean;
-  project_name: string;
-  handleClose: () => void;
-}) => {
-  let {state} = useContext(VulcanContext);
-  const {workflows} = state;
-
-  const [selectedWorkflow, setSelectedWorkflow] = useState(
-    null as Workflow | null
-  );
-  const classes = createFigureStyles();
-
-  const projectWorkflows = useMemo(() => {
-    return workflows
-      ? workflows.filter(
-          ({projects}) => projects && projects.includes(project_name)
-        )
-      : [];
-  }, [workflows, project_name]);
-
-  const invoke = useActionInvoker();
-
-  const visitNewFigure = useCallback(
-    (workflow) => {
-      invoke(
-        pushLocation(
-          `/${project_name}/figure/new/${workflow.name.replace('.cwl', '')}`
-        )
-      );
-    },
-    [invoke, project_name]
-  );
-
-  const close = useCallback(() => {
-    handleClose();
-    setSelectedWorkflow(null);
-  }, [handleClose]);
-
-  const numColumns = useMemo(() => {
-    return Math.min(projectWorkflows.length, 4);
-  }, [projectWorkflows]);
-
-  return (
-    <Dialog onClose={close} open={open} maxWidth='xl'>
-      <DialogTitle>Select a workflow</DialogTitle>
-      <DialogContent dividers>
-        {projectWorkflows.length ? (
-          <ImageList rowHeight='auto' cols={numColumns}>
-            {projectWorkflows.map((w, ind) => (
-              <ImageListItem key={ind}>
-                <WorkflowCard
-                  className={selectedWorkflow == w ? classes.selected : null}
-                  workflow={w}
-                  key={ind}
-                  onClick={() =>
-                    setSelectedWorkflow(selectedWorkflow == w ? null : w)
-                  }
-                />
-              </ImageListItem>
-            ))}
-          </ImageList>
-        ) : (
-          <Grid item className={classes.none}>
-            <em>No workflows</em>
-          </Grid>
-        )}
-      </DialogContent>
-      <DialogActions>
-        {selectedWorkflow && (
-          <Typography variant='body1'>
-            {selectedWorkflow.displayName}
-          </Typography>
-        )}
-        <Button
-          variant='contained'
-          disabled={!selectedWorkflow}
-          onClick={() => visitNewFigure(selectedWorkflow)}
-        >
-          Create Figure
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
+import FigureMenu from './figure_menu';
+import {VulcanContext} from '../../contexts/vulcan_context';
+import ImageMemo from './image_memo';
+import {VulcanFigureSession} from '../../api_types';
+import {workflowByName} from '../../selectors/workflow_selectors';
 
 const figureListStyles = makeStyles((theme) => ({
   title: {
@@ -143,23 +34,37 @@ const figureListStyles = makeStyles((theme) => ({
   },
   figures: {
     padding: '15px'
+  },
+  thumbnail: {
+    maxWidth: '32px',
+    maxHeight: '32px'
   }
 }));
 
-export default function FiguresTable({project_name}: {project_name: string}) {
+export default function FiguresTable({
+  project_name,
+  workflowName
+}: {
+  project_name: string;
+  workflowName?: string;
+}) {
   const {
     showErrors,
     fetchFigures,
     createFigure,
     updateFigure,
-    deleteFigure
+    deleteFigure,
+    state
   } = useContext(VulcanContext);
 
-  const [figureSessions, setFigureSessions] = useState(
-    [] as VulcanFigureSession[]
-  );
-  const [showCreateFigure, setShowCreateFigure] = useState(false);
+  const [allFigureSessions, setAllFigureSessions] = useState<
+    VulcanFigureSession[]
+  >([]);
+  const [filteredFigureSessions, setFilteredFigureSessions] = useState<
+    VulcanFigureSession[]
+  >([]);
 
+  const invoke = useActionInvoker();
   const classes = figureListStyles();
 
   useEffect(() => {
@@ -167,10 +72,19 @@ export default function FiguresTable({project_name}: {project_name: string}) {
       fetchFigures(
         project_name
       ).then(({figures}: {figures: VulcanFigureSession[]}) =>
-        setFigureSessions(figures)
+        setAllFigureSessions(figures)
       )
     );
   }, [showErrors, fetchFigures, project_name]);
+
+  useEffect(() => {
+    if (workflowName) {
+    } else {
+      setFilteredFigureSessions([...allFigureSessions]);
+    }
+  }, [workflowName, allFigureSessions]);
+
+  const getFigure = useCallback((figureId: number) => {}, [allFigureSessions]);
 
   const handleOnCopy = useCallback(
     (figure: VulcanFigureSession) => {
@@ -181,11 +95,11 @@ export default function FiguresTable({project_name}: {project_name: string}) {
       };
       showErrors(
         createFigure(project_name, copy).then((newFigure) => {
-          setFigureSessions([...figureSessions].concat([newFigure]));
+          setAllFigureSessions([...allFigureSessions].concat([newFigure]));
         })
       );
     },
-    [showErrors, createFigure, project_name, figureSessions]
+    [showErrors, createFigure, project_name, allFigureSessions]
   );
 
   const handleOnRename = useCallback(
@@ -202,7 +116,7 @@ export default function FiguresTable({project_name}: {project_name: string}) {
           ...figure,
           title: newTitle
         }).then((updatedFigure) => {
-          const updated = figureSessions.map((oldFigure) => {
+          const updated = allFigureSessions.map((oldFigure) => {
             if (oldFigure.figure_id === updatedFigure.figure_id) {
               return updatedFigure;
             }
@@ -210,30 +124,142 @@ export default function FiguresTable({project_name}: {project_name: string}) {
             return oldFigure;
           });
 
-          setFigureSessions(updated);
+          setAllFigureSessions(updated);
         })
       );
     },
-    [showErrors, updateFigure, project_name, figureSessions]
+    [showErrors, updateFigure, project_name, allFigureSessions]
   );
 
   const handleOnRemove = useCallback(
     (figure: VulcanFigureSession) => {
       if (!figure.figure_id) return;
-
       showErrors(
         deleteFigure(project_name, figure.figure_id).then(() => {
-          const updated = figureSessions.filter((oldFigure) => {
+          const updated = allFigureSessions.filter((oldFigure) => {
             return oldFigure.figure_id !== figure.figure_id;
           });
-          setFigureSessions(updated);
+          setAllFigureSessions(updated);
         })
       );
     },
-    [showErrors, deleteFigure, project_name, figureSessions]
+    [showErrors, deleteFigure, project_name, allFigureSessions]
   );
 
-  return (
+  const visitFigure = useCallback(
+    (figureId: number) => {
+      invoke(pushLocation(`/${project_name}/figure/${figureId}`));
+    },
+    [invoke]
+  );
 
+  const columns = [
+    {
+      field: 'workflow',
+      flex: 1,
+      renderCell: (params: GridCellParams) => {
+        const workflow = workflowByName(params.value as string, state);
+        return (
+          <ImageMemo
+            className={classes.thumbnail}
+            src={`/images/${workflow?.image || 'default.png'}`}
+            alt='Figure thumbnail'
+          />
+        );
+      },
+      renderHeader: (params: GridColumnHeaderParams) => <></>,
+      hideSortIcons: true,
+      disableColumnMenu: true,
+      resizable: false,
+      editable: false,
+      align: 'center' as GridAlignment
+    },
+    {
+      field: 'title',
+      headerName: 'Title',
+      flex: 2
+    },
+    {
+      field: 'author',
+      headerName: 'Author',
+      flex: 2
+    },
+    {
+      field: 'workflow_name',
+      headerName: 'Workflow',
+      flex: 2,
+      valueFormatter: (params: GridValueFormatterParams) => {
+        const workflow = workflowByName(params.value as string, state);
+        return workflow?.displayName || workflow?.name;
+      }
+    },
+    {
+      field: 'updated_at',
+      headerName: 'Last Modified',
+      flex: 2,
+      valueFormatter: (params: GridValueFormatterParams) => {
+        return moment
+          .utc(params.value as string)
+          .tz(moment.tz.guess())
+          .format('MMM D, YYYY');
+      }
+    },
+    {
+      field: 'tags',
+      headerName: 'Tags',
+      renderCell: (params: GridCellParams) => {
+        return (
+          <>
+            {((params.value || []) as string[]).map(
+              (tag: string, index: number) => {
+                return <Chip key={index} label={tag} />;
+              }
+            )}
+          </>
+        );
+      },
+      flex: 2
+    },
+    {
+      field: 'actions',
+      type: 'actions',
+      flex: 1,
+      renderHeader: (params: GridColumnHeaderParams) => <></>,
+      renderCell: (params: GridCellParams) => (
+        <FigureMenu
+          figureId={params.id as number}
+          onCopy={() => handleOnCopy(params.row as VulcanFigureSession)}
+          onRename={() => handleOnRename(params.row as VulcanFigureSession)}
+          onRemove={() => handleOnRemove(params.row as VulcanFigureSession)}
+        />
+      ),
+      align: 'center' as GridAlignment,
+      hideSortIcons: true,
+      disableColumnMenu: true,
+      resizable: false,
+      editable: false
+    }
+  ];
+
+  const rows = useMemo(() => {
+    return filteredFigureSessions.sort((a, b) => {
+      if (null == a.figure_id) return -1;
+      if (null == b.figure_id) return 1;
+      return a.figure_id - b.figure_id;
+    });
+  }, [filteredFigureSessions]);
+
+  return (
+    <DataGrid
+      autoHeight={true}
+      rows={rows}
+      columns={columns}
+      getRowId={(row) => row.figure_id}
+      pageSize={20}
+      onRowClick={(params, e) => {
+        visitFigure(params.id as number);
+      }}
+      hideFooterSelectedRowCount={true}
+    />
   );
 }
