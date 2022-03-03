@@ -1,10 +1,10 @@
-import React, {useContext, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import * as _ from 'lodash';
 import 'regenerator-runtime/runtime';
 
 import Chip from '@material-ui/core/Chip';
-import Button from '@material-ui/core/Button';
-import AddIcon from '@material-ui/icons/Add';
+import IconButton from '@material-ui/core/IconButton';
+import InsertChartIcon from '@material-ui/icons/InsertChart';
 import EditIcon from '@material-ui/icons/Edit';
 import {
   DataGrid,
@@ -59,6 +59,10 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
         projects?.includes(project_name)
       )
     : [];
+
+  const handleCreateFigure = useCallback(() => {}, []);
+
+  const handleEditWorkflow = useCallback(() => {}, []);
 
   const columns = [
     {
@@ -121,19 +125,25 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
       type: 'actions',
       flex: 1,
       renderHeader: (params: GridColumnHeaderParams) => <></>,
-      renderCell: (params: GridCellParams) => [
-        <GridActionsCellItem
-          icon={<AddIcon />}
-          label='Create figure'
-          onClick={deleteUser(params.id)}
-        />,
-        <GridActionsCellItem
-          icon={<EditIcon />}
-          label='Edit workflow'
-          onClick={toggleAdmin(params.id)}
-          showInMenu
-        />
-      ]
+      renderCell: (params: GridCellParams) => (
+        <>
+          <IconButton
+            aria-label='Create figure'
+            onClick={handleCreateFigure}
+            color='primary'
+          >
+            <InsertChartIcon />
+          </IconButton>
+          {/* <IconButton
+            aria-label='Edit workflow'
+            disabled
+            onClick={handleEditWorkflow}
+            color='secondary'
+          >
+            <EditIcon />
+          </IconButton> */}
+        </>
+      )
     }
   ];
 
