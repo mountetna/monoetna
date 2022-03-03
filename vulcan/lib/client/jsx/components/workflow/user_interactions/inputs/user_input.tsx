@@ -34,6 +34,8 @@ import SingleDropdownMulticheckbox from "./single_dropdown_multicheckbox";
 import {stepOfSource} from "../../../../selectors/workflow_selectors";
 import AllOutputValuesNotEmptyValidator from "./validators/all_output_values_not_empty_validator"
 import DiffExpSC from './scDGE';
+import DataTransformation from './data_transformation';
+import AllInnerKeysNotNullValidator from './validators/all_inner_keys_not_null_validator';
 import PlusSubsetValidator from './validators/PlusSubsetValidator';
 
 const components: {[k: string]: [InputBackendComponent<any, any, any>, InputValidator<any, any>]} = {};
@@ -55,6 +57,7 @@ configureComponent(TYPE.CHECKBOXES, CheckboxesInput, NotEmptyValidator);
 configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, StronglyNotEmptyValidator);
 configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
+configureComponent(TYPE.DATA_TRANSFORMATION, DataTransformation, AllInnerKeysNotNullValidator);
 configureComponent(TYPE.SCATTER_PLOTLY, ScatterPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
 configureComponent(TYPE.BAR_PLOTLY, BarPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
 configureComponent(TYPE.Y_PLOTLY, YPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
@@ -82,7 +85,7 @@ export default function UserInput({
 }) {
   const [InputComponent, Validator] = backendComponentOf(input.type);
   const {dispatch} = useContext(VulcanContext);
-  const {onChange, data, value, source, label} = input;
+  const {onChange, data, value, source, label, numOutputs} = input;
 
   useEffect(() => {
     const errors = Validator({ data, value });
@@ -96,7 +99,6 @@ export default function UserInput({
       dispatch(removeValidationErrors(errors))
     };
   }, [dispatch, Validator, value, source, label, data]);
-
 
   return (
     <div className='view_item'>
@@ -113,7 +115,11 @@ export default function UserInput({
               its interface correctly in all cases.
            */}
           <VulcanContext.Provider value={defaultContext}>
-            <InputComponent key={input.label} onChange={onChange} data={data} value={value} />
+            <InputComponent key={input.label}
+              onChange={onChange}
+              data={data}
+              value={value}
+              numOutputs={numOutputs} />
           </VulcanContext.Provider>
         </InputHelp>
       </div>
