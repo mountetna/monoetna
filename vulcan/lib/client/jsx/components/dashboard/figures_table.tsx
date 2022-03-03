@@ -21,7 +21,7 @@ import Chip from '@material-ui/core/Chip';
 import {pushLocation} from 'etna-js/actions/location_actions';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 
-import FigureMenu from './figure_menu';
+import TableMenu from './table_menu';
 import {VulcanContext} from '../../contexts/vulcan_context';
 import ImageMemo from './image_memo';
 import {VulcanFigureSession} from '../../api_types';
@@ -229,7 +229,7 @@ export default function FiguresTable({
       flex: 1,
       renderHeader: (params: GridColumnHeaderParams) => <></>,
       renderCell: (params: GridCellParams) => (
-        <FigureMenu
+        <TableMenu
           figureId={params.id as number}
           onCopy={() => handleOnCopy(params.row as VulcanFigureSession)}
           onRename={() => handleOnRename(params.row as VulcanFigureSession)}

@@ -5,7 +5,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 
-export default function FigureMenu({
+export default function TableMenu({
   figureId,
   onCopy,
   onRename,
