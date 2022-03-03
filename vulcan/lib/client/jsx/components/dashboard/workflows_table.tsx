@@ -3,6 +3,9 @@ import * as _ from 'lodash';
 import 'regenerator-runtime/runtime';
 
 import Chip from '@material-ui/core/Chip';
+import Button from '@material-ui/core/Button';
+import AddIcon from '@material-ui/icons/Add';
+import EditIcon from '@material-ui/icons/Edit';
 import {
   DataGrid,
   GridCellParams,
@@ -60,7 +63,6 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
   const columns = [
     {
       field: 'image',
-      headerName: '',
       flex: 1,
       renderCell: (params: GridCellParams) => {
         return (
@@ -71,7 +73,9 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
           />
         );
       },
-      renderHeader: (params: GridColumnHeaderParams) => <></>
+      renderHeader: (params: GridColumnHeaderParams) => <></>,
+      hideSortIcons: true,
+      disableColumnMenu: true
     },
     {
       field: 'displayName',
@@ -111,6 +115,25 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
         );
       },
       flex: 2
+    },
+    {
+      field: 'actions',
+      type: 'actions',
+      flex: 1,
+      renderHeader: (params: GridColumnHeaderParams) => <></>,
+      renderCell: (params: GridCellParams) => [
+        <GridActionsCellItem
+          icon={<AddIcon />}
+          label='Create figure'
+          onClick={deleteUser(params.id)}
+        />,
+        <GridActionsCellItem
+          icon={<EditIcon />}
+          label='Edit workflow'
+          onClick={toggleAdmin(params.id)}
+          showInMenu
+        />
+      ]
     }
   ];
 
