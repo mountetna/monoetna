@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import 'regenerator-runtime/runtime';
 
 import Chip from '@material-ui/core/Chip';
+import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import InsertChartIcon from '@material-ui/icons/InsertChart';
 import EditIcon from '@material-ui/icons/Edit';
@@ -48,7 +49,6 @@ const useStyles = makeStyles((theme) => ({
 
 export default function WorkflowsTable({project_name}: {project_name: string}) {
   const [selectionModel, setSelectionModel] = useState<GridRowId[]>([]);
-  const invoke = useActionInvoker();
   let {state} = useContext(VulcanContext);
   const {workflows} = state;
 
@@ -127,13 +127,15 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
       renderHeader: (params: GridColumnHeaderParams) => <></>,
       renderCell: (params: GridCellParams) => (
         <>
-          <IconButton
-            aria-label='Create figure'
-            onClick={handleCreateFigure}
-            color='primary'
-          >
-            <InsertChartIcon />
-          </IconButton>
+          <Tooltip title='Create figure'>
+            <IconButton
+              aria-label='Create figure'
+              onClick={handleCreateFigure}
+              color='primary'
+            >
+              <InsertChartIcon />
+            </IconButton>
+          </Tooltip>
           {/* <IconButton
             aria-label='Edit workflow'
             disabled
@@ -161,7 +163,9 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
       columns={columns}
       getRowId={(row) => row.name}
       pageSize={20}
-      onRowClick={(params, e) => {}}
+      onRowClick={(params, e) => {
+        // Here, call prop to filter out saved figures?
+      }}
       hideFooterSelectedRowCount={true}
       onSelectionModelChange={(model: GridSelectionModel) => {
         setSelectionModel(_.isEqual(selectionModel, model) ? [] : model);
