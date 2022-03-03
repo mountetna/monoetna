@@ -17,6 +17,7 @@ import {
 } from '@material-ui/data-grid';
 import {makeStyles} from '@material-ui/core/styles';
 
+import {pushLocation} from 'etna-js/actions/location_actions';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
@@ -49,6 +50,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function WorkflowsTable({project_name}: {project_name: string}) {
   const [selectionModel, setSelectionModel] = useState<GridRowId[]>([]);
+  const invoke = useActionInvoker();
   let {state} = useContext(VulcanContext);
   const {workflows} = state;
 
@@ -60,7 +62,16 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
       )
     : [];
 
-  const handleCreateFigure = useCallback(() => {}, []);
+  const handleCreateFigure = useCallback(
+    (workflowName: string) => {
+      invoke(
+        pushLocation(
+          `/${project_name}/figure/new/${workflowName.replace('.cwl', '')}`
+        )
+      );
+    },
+    [invoke, project_name]
+  );
 
   const handleEditWorkflow = useCallback(() => {}, []);
 
@@ -130,7 +141,7 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
           <Tooltip title='Create figure'>
             <IconButton
               aria-label='Create figure'
-              onClick={handleCreateFigure}
+              onClick={() => handleCreateFigure(params.id as string)}
               color='primary'
             >
               <InsertChartIcon />
