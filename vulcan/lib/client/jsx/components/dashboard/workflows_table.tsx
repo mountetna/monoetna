@@ -82,7 +82,7 @@ export default function WorkflowsTable({project_name}: {project_name: string}) {
       field: 'authors',
       headerName: 'Authors',
       valueFormatter: (params: GridValueFormatterParams) => {
-        return ((params.value || []) as string[]).join(',');
+        return ((params.value || []) as string[]).join(', ');
       },
       flex: 2
     },
