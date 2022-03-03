@@ -11,7 +11,6 @@ const theme = createEtnaTheme("#de5833","#948f8e");
 
 // Components.
 import Browser from './components/browser.tsx';
-import FigureList from './components/figure_list';
 import Dashboard from './components/dashboard';
 import VulcanNav from './components/vulcan_nav';
 import Messages from 'etna-js/components/messages';
