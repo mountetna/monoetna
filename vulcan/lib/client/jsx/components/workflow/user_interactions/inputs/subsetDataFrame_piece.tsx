@@ -180,7 +180,7 @@ function targetSelectionComponent(
   if (typeof target_data[0] == "number") {
     return rangePiece(
       key+index+index, updateFxn,
-      (inner_def.length > 0) ? inner_def : ["exactly", null, "below", null],
+      (inner_def.length > 0) ? inner_def : undefined,
       ""
       )
   }
@@ -199,7 +199,7 @@ function targetSelectionComponent(
   if (typeof target_data[0] == "boolean") {
     return dropdownPiece(
       key+index+index, updateFxn,
-      (inner_def.length > 0) ? inner_def[0] as string : "",
+      (inner_def.length > 0) ? inner_def[0] as string : undefined,
       "Keep:", ["True", "False"], false
       )
   }

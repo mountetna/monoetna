@@ -50,18 +50,18 @@ export function YPlotly({
 export function AnyPlotly({
   data, onChange, value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, "")
+  return VisualizationUI({data, onChange, value}, null)
 }
 
 function VisualizationUI({
   data, onChange, ...props
-}: WithInputParams<{}, DataEnvelope<any>, any>, setPlotType: string = '') {
+}: WithInputParams<{}, DataEnvelope<any>, any>, setPlotType: string | null = null) {
   const preset = useMemo(() => data && data['preset'], [data]);
   const hide = useMemo(() => preset && Object.keys(preset), [preset]);
   const defaultValue = whichDefaults(setPlotType, preset);
   const value = useSetsDefault(defaultValue, props.value, onChange);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const plotType = (value && value['plot_type']) ? value['plot_type'] as string : '';
+  const plotType = (value && value['plot_type']) ? value['plot_type'] as string : null;
 
   const data_frame: DataEnvelope<any> = useMemo(() => {
     if (data == null) return {};
@@ -96,7 +96,7 @@ function VisualizationUI({
 
   // Plot Options
   const base = useMemo(() => {
-    return (plotType!='') ? input_sets[plotType]['main'] as string[] : [] as string[]
+    return (plotType!=null) ? input_sets[plotType]['main'] as string[] : [] as string[]
   }, [plotType])
   
   const shownSetupValues = useMemo(() => {
@@ -110,7 +110,7 @@ function VisualizationUI({
   }, [showAdvanced])
   
   let inner = null;
-  if (plotType != '') {
+  if (plotType != null) {
     
     inner = (
       <div>
@@ -128,7 +128,7 @@ function VisualizationUI({
     )
   }
   
-  const pickPlot = (setPlotType!='') ? null : (
+  const pickPlot = (setPlotType!=null) ? null : (
     <div>
       {dropdownPiece(
       'plot_type', updatePlotType, plotType, "Plot Type:",
@@ -198,8 +198,8 @@ const defaults: DataEnvelope<any> = {
   'rows_use': {}
 };
 
-function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | undefined) {
-  if (plotType == '') return {plot_type: plotType}
+function whichDefaults(plotType: string|null, preset: DataEnvelope<any> | null | undefined) {
+  if (plotType == null) return {plot_type: plotType}
     
   const inputs = input_sets[plotType]['main'].concat(input_sets[plotType]['adv'])
 

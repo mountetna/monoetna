@@ -1,14 +1,12 @@
 import React from 'react';
 import {DataEnvelope} from './input_types';
-import { maybeOfNullable, some, withDefault, Maybe, mapSome } from '../../../../selectors/maybe';
-import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
+import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
 import MultiselectStringInput from './multiselect_string';
 import { Slider } from '@material-ui/core';
 import StringInput from './string';
 import BooleanInput from './boolean';
-import {FloatInput as EtnaFloatInput} from 'etna-js/components/inputs/numeric_input';
-import TextField from '@material-ui/core/TextField';
-import Autocomplete from '@material-ui/lab/Autocomplete';
+import SelectAutocompleteInput from './select_autocomplete';
+import FloatInput from './float';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v}
@@ -36,37 +34,37 @@ Some "pieces" have additional inputs, but the first 4 are ALWAYS:
 */
 
 export function stringPiece(
-  key: string = "filler", changeFxn: Function, value: string = "filler",
-  label: string = 'hello', minWidth: number = 200) {
+  key: string, changeFxn: Function, value: string = "",
+  label: string | undefined = undefined, minWidth: number = 150) {
     return (
-      <TextField
+      <StringInput
         key={key}
-        value={value}
         label={label}
-        variant="outlined"
-        onChange={(event) => changeFxn(event.target.value, key)}
-        style={{paddingTop:6, minWidth:minWidth}}
+        value={maybeOfNullable(value)}
+        data={val_wrap(value)}
+        minWidth={minWidth}
+        onChange={ value => changeFxn(withDefault(value,""), key)}
       />
     )
   };
 
-// export function nestableDropdownInput(
-//   key: string = "filler", changeFxn: Function, value: string | null,
-//   label: string, options: DataEnvelope<null>) {
-//    
-//     return(
-//       <NestedSelectAutocompleteInput
-//         key={key}
-//         label={label}
-//         data={{options}} 
-//         value={maybeOfNullable(value)}
-//         onChange={(val) => changeFxn(withDefault(val, null), key)}
-//       />
-//     )
-//   }
+export function floatPiece(
+  key: string, changeFxn: Function, value: number|null = null,
+  label: string | undefined = undefined, minWidth: number = 150) {
+    return (
+      <FloatInput
+        key={key}
+        label={label}
+        value={maybeOfNullable(value)}
+        data={val_wrap(value)}
+        minWidth={minWidth}
+        onChange={ value => changeFxn(withDefault(value,null), key)}
+      />
+    )
+  };
 
 export function checkboxPiece(
-  key: string = "filler", changeFxn: Function, value: boolean = false,
+  key: string, changeFxn: Function, value: boolean = false,
   label: string) {
     return(
       <BooleanInput
@@ -80,23 +78,22 @@ export function checkboxPiece(
   }
 
 export function dropdownPiece(
-  key: string = "filler", changeFxn: Function, value: string | null,
-  label: string, options: string[], sorted: boolean = true, minWidth: number = 200) {
-    
+  key: string, changeFxn: Function, value: string | null = null,
+  label: string|undefined, options: string[], sorted: boolean = true, minWidth: number = 200) {
     return(
-      <Autocomplete
-        style={{minWidth: minWidth, paddingTop: 6}}
-        value={value}
-        onChange={(event:any, val: string | null) => changeFxn(val, key)}
-        id={key}
-        options={options}
-        renderInput={(params:any) => <TextField {...params} label={label} variant="outlined"/>}
+      <SelectAutocompleteInput
+        key={key}
+        label={label}
+        value={some(value)}
+        data={val_wrap(options)}
+        minWidth={minWidth}
+        onChange={ (value) => changeFxn(withDefault(value,null), key) }
       />
     )
   }
 
 export function MultiselectPiece(
-  key: string = "filler", changeFxn: Function, value: string[] | null,
+  key: string, changeFxn: Function, value: string[] | null = null,
   label: string, options: string[]) {
     
     return(
@@ -112,7 +109,7 @@ export function MultiselectPiece(
   }
 
 export function sliderPiece(
-  key: string = "filler", changeFxn: Function, value: number,
+  key: string, changeFxn: Function, value: number,
   label: string, min: number = 0.1, max: number = 20) {
 
     return(
@@ -130,9 +127,8 @@ export function sliderPiece(
   }
 
 export function rangePiece(
-  key: string = "filler", changeFxn: Function, value: (string|number|null)[] = ["exactly", null, "below", null],
+  key: string, changeFxn: Function, value: (string|number|null)[] = ["exactly", null, "below", null],
   label: string) {
-    
     const updateSlot = (newValue: string|number|null, slot: number, current_full = value) => {
       let next_full = [...current_full]
       next_full[slot] = newValue
@@ -142,42 +138,23 @@ export function rangePiece(
     return(
       <div key={key}>
         {label}
-        <div style={{display: 'inline-flex'}}>
-          From
-          <Autocomplete
-            disablePortal
-            disableClearable
-            value={value[0]}
-            label={undefined}
-            onChange={(event:any, e: string | null) => 
-              changeFxn(updateSlot(event.target.value, 0), key)}
-            options={["exactly","above"]}
-            style={{minWidth: 120}}
-            renderInput={(params:any) => <TextField {...params} variant="outlined"/>}
-          />
-          <TextField
-            value={value[1]}
-            label="Min-value"
-            type="number"
-            variant="outlined"
-            onChange={(event: any) => changeFxn(updateSlot(event.target.value, 1), key)}
-            size="small"
-          />;
+        <div style={{display: 'inline-flex', paddingTop:8}}>
+          From:
+          {dropdownPiece(
+            key+'_lower_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue, 0), key), value[0] as string,
+            undefined, ["exactly","above"], true, 120)}
+          {floatPiece(
+            key+'_lower_value', (newValue: number | null) => changeFxn(updateSlot(newValue, 1), key), value[1] as number,
+            'Min-value', 120)}
         </div>
-        <div style={{display: 'inline-flex'}}>
-          To
-          <DropdownAutocomplete
-            list={["exactly","below"]}
-            value={value[2]}
-            onSelect={(newVal: string) => changeFxn(updateSlot(newVal, 2), key)}
-            sorted={false}
-          />
-          value
-          <EtnaFloatInput
-            followDefault
-            defaultValue={value[3]}
-            onChange={(newVal: string) => changeFxn(updateSlot(newVal, 3), key)}
-          />
+        <div style={{display: 'inline-flex', paddingTop:8}}>
+          To:
+          {dropdownPiece(
+            key+'_upper_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue, 2), key), value[2] as string,
+            undefined, ["exactly","below"], true, 120)}
+          {floatPiece(
+            key+'_upper_value', (newValue: number | null) => changeFxn(updateSlot(newValue, 3), key), value[3] as number,
+            'Max-value', 120)}
         </div>
       </div>
     )
