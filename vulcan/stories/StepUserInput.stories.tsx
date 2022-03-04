@@ -153,3 +153,11 @@ manyOptionDropdown.args = {
     'options': require('./human_genes_list.json')
   }
 }
+
+export const dropdownCheckboxes = Template.bind({});
+dropdownCheckboxes.args = {
+  type: TYPE.SINGLE_DROPDOWN_MULTICHECKBOX,
+  cwlParams:  {
+    'a': {experiment: ['1', '2'], tissue: ['a', 'b']}
+  }
+}

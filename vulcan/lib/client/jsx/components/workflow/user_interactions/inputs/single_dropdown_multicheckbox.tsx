@@ -9,6 +9,8 @@ import {Maybe, some} from "../../../../selectors/maybe";
 import {joinNesting} from "./monoids";
 import {useMemoized} from "../../../../selectors/workflow_selectors";
 import {useSetsDefault} from "./useSetsDefault";
+import { TextField } from '@material-ui/core';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 function DropdownCheckboxCombo({
   dropdownValue,
@@ -28,10 +30,19 @@ function DropdownCheckboxCombo({
   return (
     <React.Fragment>
       <div>
-        <DropdownAutocomplete
+        <Autocomplete
+          disablePortal
+          disableClearable
           value={dropdownValue}
-          onSelect={handleSelect}
-          list={dropdownOptions}
+          onChange={(event:any, e: string) => 
+            handleSelect(e)}
+          options={dropdownOptions}
+          renderInput={(params:any) => (
+            <TextField 
+              {...params}
+              variant="outlined"
+              size="small"/>
+            )}
         />
       </div>
       <div className='checkbox-input-wrapper'>
