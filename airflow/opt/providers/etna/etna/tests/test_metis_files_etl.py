@@ -12,7 +12,7 @@ from requests import Session
 from etna import metis_etl, MetisEtlHelpers
 
 from etna.hooks.etna import Folder, File, EtnaHook, Magma, TokenAuth
-from etna.etls.metis import filter_by_record_directory
+from etna.etls.metis import filter_by_record_directory, MatchedRecordFolder
 from .conftest import NotSoRandom
 from ..operators import run_in_container
 
@@ -36,6 +36,23 @@ def get_all_results(end_date: datetime, dag: DAG, task_id: str):
     )
     xcoms = xcoms.with_entities(XCom.value)
     return [y for x in xcoms for y in XCom.deserialize_value(x)]
+
+def test_match_record_folder_parent():
+    parent_match = MatchedRecordFolder(
+        root_path="a/b/c",
+        record_name="a",
+        model_name="mode",
+    )
+
+    match = MatchedRecordFolder(
+        root_path="a/b/c",
+        record_name="a",
+        model_name="mode",
+    )
+
+    match.match_parent = parent_match
+    assert match.match_parent == parent_match
+
 
 
 def test_filter_by_root_directory():

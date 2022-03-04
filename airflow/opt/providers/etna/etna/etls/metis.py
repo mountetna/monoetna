@@ -48,7 +48,7 @@ class MatchedRecordFolder:
 
     # serde does not directly support recursive json structures currently, this attribute
     # simply buffers the raw dictionary for the `match_parent` attribute below.
-    match_parent_raw: Optional[Dict[str, Any]] = None
+    match_parent_raw: Optional[Any] = None
 
     @property
     def match_parent(self) -> Optional["MatchedRecordFolder"]:

@@ -56,7 +56,7 @@ assert (
 
 rna_seq_processed_file_linkers = dict(
     cram=r".*\.deduplicated\.cram$",
-    cram_index=r"*\.deduplicated\.cram\.crai$",
+    cram_index=r".*\.deduplicated\.cram\.crai$",
     junction=r".*\.junction$",
     unmapped_fastqs=r".*\.fastq\.gz$",
 )
@@ -383,7 +383,7 @@ def ipi_data_metis_etl(helpers: MetisEtlHelpers, tail_files):
         with TaskGroup("plate"):
             plate_matches = helpers.find_record_folders('rna_seq_plate', re.compile(r'^bulkRNASeq/processed/plate\d+[^/]*'), corrected_record_name=plate_name_of_bulk_rna_seq_folder)
 
-            @link(dry_run=True, attribute_name='project_name', validate_record_update=ensure_update_empty)
+            @link(dry_run=True, attribute_name='project', validate_record_update=ensure_update_empty)
             def create_plates_and_set_project_name(matches):
                 for match in matches:
                     yield match, "UCSF Immunoprofiler"
@@ -413,9 +413,10 @@ def ipi_data_metis_etl(helpers: MetisEtlHelpers, tail_files):
                         ))
 
                 link_sample_plate_and_rna_seq(non_control_rna_seq_matches)
+                listed_non_control = helpers.list_match_folders(non_control_rna_seq_matches)
 
                 for attr, matcher in rna_seq_processed_file_linkers.items():
-                    helpers.link_matching_file(helpers.list_match_folders(non_control_rna_seq_matches), attr, re.compile(matcher), dry_run=True)
+                    helpers.link_matching_file(listed_non_control, attr, re.compile(matcher), dry_run=True)
 
             with TaskGroup("control_rna_seq"):
                 control_rna_seq_matches = helpers.find_record_folders('rna_seq', re.compile(r'^output/control_[^/]*', re.IGNORECASE),
@@ -430,9 +431,10 @@ def ipi_data_metis_etl(helpers: MetisEtlHelpers, tail_files):
                         ))
 
                 link_plate_and_rna_seq(control_rna_seq_matches)
+                listed_control = helpers.list_match_folders(control_rna_seq_matches)
 
                 for attr, matcher in rna_seq_processed_file_linkers.items():
-                    helpers.link_matching_file(helpers.list_match_folders(control_rna_seq_matches), attr,
+                    helpers.link_matching_file(listed_control, attr,
                                                re.compile(matcher), dry_run=True)
 
         @link(dry_run=True, validate_record_update=ensure_update_empty)

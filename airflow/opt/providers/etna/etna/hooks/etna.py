@@ -382,18 +382,14 @@ class TailResultContainer:
         if node.parent_id is None:
             return node.node_name
 
-        resolved = self.path_cache.get(node.id)
+        parent_path = self.path_cache.get(node.parent_id)
 
-        if resolved is None:
-            parent = self.parents.get(node.parent_id)
-            if parent is None:
-                return None
+        if parent_path is None:
+            parent = self.parents[node.parent_id]
             parent_path = self.resolve_path(parent)
-            if parent_path is None:
-                return None
-            self.path_cache[node.id] = resolved = f"{parent_path}/{node.node_name}"
+            self.path_cache[node.parent_id] = parent_path
 
-        return resolved
+        return f"{parent_path}/{node.node_name}"
 
 @serialize
 @deserialize
