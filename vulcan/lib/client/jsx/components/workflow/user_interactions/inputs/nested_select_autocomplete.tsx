@@ -1,15 +1,16 @@
 // Input component that takes nested object
 //   and shows the keys one level at a time.
 // Returns the last "Leaf" that the user selects.
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import * as _ from 'lodash';
 
-import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import {WithInputParams} from "./input_types";
-import {mapSome, some, withDefault} from "../../../../selectors/maybe";
+import {some} from "../../../../selectors/maybe";
 import {useMemoized} from "../../../../selectors/workflow_selectors";
 import {joinNesting} from "./monoids";
 import {useSetsDefault} from "./useSetsDefault";
+import TextField from '@material-ui/core/TextField';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 function getPath(options: OptionSet, leaf: string): string[] {
   for (let [key, value] of Object.entries(options)) {
@@ -50,17 +51,23 @@ function LeafOptions({
 }) {
   if (!options) return null;
 
-  return (
-    <DropdownAutocomplete
+  return(
+    <Autocomplete
       key={`${depth}-${options.slice(0, 5).join('-')}`}
-      onSelect={(e: any) => {
-        handleSelect(e, depth);
-      }}
-      list={options}
-      defaultValue={null}
-      maxItems={30}
+      disablePortal
+      disableClearable
+      onChange={(event:any, e: string | null) => 
+        handleSelect(e, depth)}
+      options={options}
+      // style={{minWidth: minWidth, paddingTop: disp_label ? 8 : 0}}
+      renderInput={(params:any) => (
+        <TextField 
+          {...params}
+          variant="outlined"
+          size="small"/>
+        )}
     />
-  );
+  )
 }
 
 type OptionSet = {[k: string]: null | OptionSet};
@@ -113,14 +120,21 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
         {path.map((value, index) => {
               const options = getOptions(path.slice(0, index), allOptions);
               return (
-                <DropdownAutocomplete
+                <Autocomplete
                   key={index}
-                  onSelect={(e: string | null) => {
-                    handleSelect(e, index);
-                  }}
-                  list={options}
+                  disablePortal
+                  disableClearable
+                  onChange={(event:any, e: string | null) => 
+                    handleSelect(e, index)}
+                  options={options}
                   value={value}
-                  maxItems={30}
+                  // style={{minWidth: minWidth, paddingTop: disp_label ? 8 : 0}}
+                  renderInput={(params:any) => (
+                    <TextField 
+                      {...params}
+                      variant="outlined"
+                      size="small"/>
+                    )}
                 />
               );
             })
