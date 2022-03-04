@@ -44,10 +44,17 @@ def test_filter_by_root_directory():
             Folder(folder_path="bulk_RNASeq/raw/abcdef"),
             File(file_path="bulk_RNASeq/raw/abcdef/myfile.txt"),
             File(file_path="bulk_RNASeq/raw/abcdef2/myfile.txt"),
+            File(file_path="bulk_RNASeq/raw/abcdef2/abc/myfile.txt"),
+            File(file_path="bulk_RNASeq/raw/abcdef2/abcd/myfile.txt"),
+            File(file_path="bulk_RNASeq/raw/abcdef2/def/myfile.txt"),
+            File(file_path="bulk_RNASeq/notraw/abcdef"),
+            File(file_path="bulk_RNASeq/raw/file.txt"),
         ],
         re.compile(r"bulk_RNASeq/raw/[^/]*"),
         "model",
     )
+
+    assert len(result) == 5
 
     assert result[0].root_path == "bulk_RNASeq/raw/abcdef"
     assert result[0].record_name == "abcdef"
@@ -56,6 +63,7 @@ def test_filter_by_root_directory():
     assert result[0].folder_path == "bulk_RNASeq/raw/abcdef"
     assert result[0].match_file is None
     assert result[0].match_folder is not None
+    assert result[0].model_name == 'model'
 
     assert result[1].root_path == "bulk_RNASeq/raw/abcdef2"
     assert result[1].record_name == "abcdef2"
@@ -64,6 +72,20 @@ def test_filter_by_root_directory():
     assert result[1].folder_path == "bulk_RNASeq/raw/abcdef2"
     assert result[1].match_file is not None
     assert result[1].match_folder is None
+    assert result[1].model_name == 'model'
+
+    result = filter_by_record_directory(result, re.compile(r'^abc'), 'model2')
+
+    assert len(result) == 1
+
+    assert result[0].root_path == "bulk_RNASeq/raw/abcdef2/abc"
+    assert result[0].record_name == "abc"
+    assert result[0].match_subpath == "myfile.txt"
+    assert result[0].match_full_path == "bulk_RNASeq/raw/abcdef2/abc/myfile.txt"
+    assert result[0].folder_path == "bulk_RNASeq/raw/abcdef2/abc"
+    assert result[0].match_file is not None
+    assert result[0].match_folder is None
+    assert result[0].model_name == 'model2'
 
 
 def find_batch_start(

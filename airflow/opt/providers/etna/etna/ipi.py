@@ -54,6 +54,13 @@ assert (
         == "IPIPOOL001.P1.scrna.xvipbmc"
 )
 
+rna_seq_processed_file_linkers = dict(
+    cram=r".*\.deduplicated\.cram$",
+    cram_index=r"*\.deduplicated\.cram\.crai$",
+    junction=r".*\.junction$",
+    unmapped_fastqs=r".*\.fastq\.gz$",
+)
+
 sc_file_linkers = dict(
     cite_antibody_key=r"^ADT_keep_features\.list$",
     mux_index_key=r"^IDX_map\.tsx$",
@@ -215,6 +222,7 @@ class RnaSeqAttrTable:
         return False
 
     def get_value_for_attr_name(self, attr_name):
+        orig_attr_name = attr_name
         if attr_name in self.attr_name_mapping:
             attr_name = self.attr_name_mapping[attr_name]
 
@@ -224,13 +232,16 @@ class RnaSeqAttrTable:
             value = self.filtered_mean_length
         elif attr_name == "compartment":
             value = self.compartment
+        elif attr_name == 'tube_name':
+            value = self.tube_name
         else:
             value = self.raw[attr_name]
 
-        if attr_name in self.attributes:
-            if self.attributes[attr_name].attribute_type == 'float':
+        if orig_attr_name in self.attributes:
+            attr_type = self.attributes[orig_attr_name].attribute_type
+            if attr_type == 'float':
                 value = float(value)
-            if self.attributes[attr_name].attribute_type == 'integer':
+            if attr_type == 'integer':
                 value = int(value)
 
         return value
@@ -254,7 +265,7 @@ class RnaSeq:
 
     @staticmethod
     def is_control(tube_name: str):
-        return 'control' in tube_name.lower()
+        return tube_name.lower().startswith('control_')
 
     @staticmethod
     def is_non_cancer_sample(tube_name: str):
@@ -301,8 +312,16 @@ def process_gene_table(file_reader, gene_names, attr_name):
 
 
 def ensure_update_empty(existing, revision, diff):
+    if revision.get('identifier') in {'IPICRC041.T3.rna.live', 'IPILUNG008.T1.rna.live'}:
+        return True
     return not diff
 
+bulk_rna_seq_plate_regex = re.compile(r'(plate\d+)_.*')
+def plate_name_of_bulk_rna_seq_folder(record_name: str) -> str:
+    match = bulk_rna_seq_plate_regex.match(record_name)
+    return match.group(1).capitalize()
+
+assert plate_name_of_bulk_rna_seq_folder("plate123_rnaseq_new") == "Plate123"
 
 @metis_etl("ipi", "data", 12)
 def ipi_data_metis_etl(helpers: MetisEtlHelpers, tail_files):
@@ -361,6 +380,61 @@ def ipi_data_metis_etl(helpers: MetisEtlHelpers, tail_files):
             helpers.link_matching_file(listed_matches, attr, re.compile(matcher), dry_run=False)
 
     with TaskGroup("rna_seq_bulk"):
+        with TaskGroup("plate"):
+            plate_matches = helpers.find_record_folders('rna_seq_plate', re.compile(r'^bulkRNASeq/processed/plate\d+[^/]*'), corrected_record_name=plate_name_of_bulk_rna_seq_folder)
+
+            @link(dry_run=True, attribute_name='project_name', validate_record_update=ensure_update_empty)
+            def create_plates_and_set_project_name(matches):
+                for match in matches:
+                    yield match, "UCSF Immunoprofiler"
+
+            plate_matches = create_plates_and_set_project_name(plate_matches)
+
+            with TaskGroup("non_control_rna_seq"):
+                non_control_rna_seq_matches = helpers.find_record_folders('rna_seq', re.compile(r'^output/IPI[^/]*\.[A-Z]+\d\.[^/]*'),
+                                                              corrected_record_name=RnaSeq.true_tube_name,
+                                                              source=plate_matches)
+
+                @link(dry_run=True, validate_record_update=ensure_update_empty)
+                def link_sample_plate_and_rna_seq(matches):
+                    for match in matches:
+                        match: MatchedRecordFolder
+
+                        if RnaSeq.is_non_cancer_sample(match.record_name):
+                            continue
+
+                        parts = match.record_name.split('.')
+                        if len(parts) < 3:
+                            continue
+                        sample = '.'.join(parts[:2])
+                        yield match, match.as_update(dict(
+                            rna_seq_plate=match.match_parent.record_name,
+                            sample=sample,
+                        ))
+
+                link_sample_plate_and_rna_seq(non_control_rna_seq_matches)
+
+                for attr, matcher in rna_seq_processed_file_linkers.items():
+                    helpers.link_matching_file(helpers.list_match_folders(non_control_rna_seq_matches), attr, re.compile(matcher), dry_run=True)
+
+            with TaskGroup("control_rna_seq"):
+                control_rna_seq_matches = helpers.find_record_folders('rna_seq', re.compile(r'^output/control_[^/]*', re.IGNORECASE),
+                                                                          corrected_record_name=RnaSeq.control_name_of_rna_seq_tube,
+                                                                          source=plate_matches)
+
+                @link(dry_run=True, validate_record_update=ensure_update_empty)
+                def link_plate_and_rna_seq(matches):
+                    for match in matches:
+                        yield match, match.as_update(dict(
+                            rna_seq_plate=match.match_parent.record_name,
+                        ))
+
+                link_plate_and_rna_seq(control_rna_seq_matches)
+
+                for attr, matcher in rna_seq_processed_file_linkers.items():
+                    helpers.link_matching_file(helpers.list_match_folders(control_rna_seq_matches), attr,
+                                               re.compile(matcher), dry_run=True)
+
         @link(dry_run=True, validate_record_update=ensure_update_empty)
         def process_gene_count_and_tpm_tables(files):
             file_regex = re.compile(r'^bulkRNASeq/processed/[^/]*/results/gene_(counts|tpm)_table\.tsv')

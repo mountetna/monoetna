@@ -16,7 +16,7 @@ from airflow.exceptions import AirflowException
 from airflow.models.taskinstance import Context, TaskInstance
 from airflow.models.xcom_arg import XComArg
 from airflow.operators.python import get_current_context
-from serde import serialize, deserialize
+from serde import serialize, deserialize, from_dict, to_dict
 from serde.json import from_json
 
 from etna.dags.project_name import get_project_name
@@ -36,7 +36,6 @@ from etna.utils.inject import inject
 from etna.utils.iterables import batch_iterable
 from etna.xcom.etna_xcom import pickled
 
-
 @serialize
 @deserialize
 @dataclasses.dataclass
@@ -44,8 +43,24 @@ class MatchedRecordFolder:
     root_path: str
     record_name: str
     model_name: str
-    match_file: Optional[File]
-    match_folder: Optional[Folder]
+    match_file: Optional[File] = None
+    match_folder: Optional[Folder] = None
+
+    # serde does not directly support recursive json structures currently, this attribute
+    # simply buffers the raw dictionary for the `match_parent` attribute below.
+    match_parent_raw: Optional[Dict[str, Any]] = None
+
+    @property
+    def match_parent(self) -> Optional["MatchedRecordFolder"]:
+        if self.match_parent_raw is not None:
+            return from_dict(MatchedRecordFolder, self.match_parent_raw)
+
+    @match_parent.setter
+    def match_parent(self, v: Any):
+        if v is not None:
+            self.match_parent_raw = to_dict(v)
+        else:
+            self.match_parent_raw = None
 
     @property
     def updated_at(self):
@@ -105,7 +120,6 @@ class MatchedRecordFolder:
         if not self.match_subpath:
             return self.root_path
         return "/".join([self.root_path, self.match_subpath])
-
 
 class link:
     task_id: Optional[str]
@@ -192,8 +206,15 @@ class link:
             for error_message in value.validate(models):
                 raise AirflowException(error_message)
 
+            updated_names = [
+                f"{model_name}/{identifier}"
+                for model_name, mr in value.revisions.items()
+                for identifier in mr
+            ]
+
             update.extend(value)
             result.append(match)
+            self.log.info(f"Updates to {updated_names} found in {match}")
 
         self.log.info("Validating update...")
         self._validate_update(magma, update, models)
@@ -205,9 +226,12 @@ class link:
         if not self.validate_record_update:
             return
 
+        differ = difflib.Differ()
         for model_name, revisions in update.revisions.items():
             for revision_batch in batch_iterable(revisions.keys(), 100):
                 response = magma.retrieve(get_project_name(), model_name=model_name, record_names=revision_batch)
+                disconnected_response = magma.retrieve(get_project_name(), model_name=model_name, record_names=revision_batch, show_disconnected=True)
+                response.extend(disconnected_response)
 
                 for identifier in revision_batch:
                     revision = update.revisions[model_name].get(identifier, {})
@@ -217,20 +241,26 @@ class link:
                     # Order the attributes based on the template to ensure cleaner diff as well.
                     exisiting_diffable = dict()
                     revision_diffable = dict()
+                    unequal_attrs = []
 
                     for attr_name in models[model_name].template.attributes.keys():
                         if attr_name in revision:
+                            revision_diffable[attr_name] = a = revision[attr_name]
                             if attr_name in existing:
-                                exisiting_diffable[attr_name] = existing[attr_name]
-                            revision_diffable[attr_name] = revision[attr_name]
+                                exisiting_diffable[attr_name] = b = existing[attr_name]
+                                if a != b:
+                                    unequal_attrs.append(attr_name)
+                            else:
+                                unequal_attrs.append(attr_name)
 
-                    diffset = list(difflib.Differ().compare(
-                        json.dumps(exisiting_diffable, indent=2).splitlines(True),
-                        json.dumps(revision_diffable, indent=2).splitlines(True),
-                    ))
+                    revision_diffable['identifier'] = identifier
+                    exisiting_diffable['identifier'] = identifier
 
-                    if not self.validate_record_update(exisiting_diffable, revision_diffable, diffset):
-                        diff_str = '\n'.join(diffset)
+                    if not self.validate_record_update(exisiting_diffable, revision_diffable, unequal_attrs):
+                        diff_str = '\n'.join(differ.compare(
+                            json.dumps(exisiting_diffable, indent=2).splitlines(True),
+                            json.dumps(revision_diffable, indent=2).splitlines(True),
+                        ))
                         raise ValueError(f"Update on {model_name}/{identifier} failed, diffset was:\n {diff_str}")
 
 
@@ -380,28 +410,50 @@ class MetisEtlHelpers:
         # Ideally, matched folders are correct magma record names, but if some transformation is necessary,
         # this function can be specified.
         corrected_record_name: Callable[[str], str] = lambda x: x,
+
+        # When not provided, all the bucket's files and folders are used as the source search directories.
+        # When provided, this may by a subset of files, such as an existing set of List[MatchedRecordFolder].
+        # In that case, the XComArg returned by this function will include `match_parent` set.
+        source: Optional[XComArg] = None
     ) -> XComArg:
         """
-        Creates a task that produces a list of MatchedRecordFolders by finding any file or folder change that is
-        found inside a folder given by the provided regex.
+        Creates a task that Searches for folders that match the given a regex creates MatchedRecordFolder
+        entries with the name of the directory at the far end of the match and the given model name.  The match must
+        occur at a folder boundary, so for instance, r'abc/def' does not match 'abc/defg' but does match 'abc/def/c'.
+        The directory matched by the last path segment of the regex is considered a 'record name' belonging to the given
+        model_name, allowing other convenience methods to process and filter with that assumption.
 
-        This function should be called to identify folders that have a 1:1 mapping to a magma model + record combination.
-        Doing so allows many linking convenience functions that can determine the record name by the containing folder's
-        name.
+        `source` should be used when processing inner record folders, with the outer record matches XComArg being passed.
+        In that case, you should use a `with TaskGroup('---')` surrounding this task to distinguish the inner task name
+        from the outer one.
         """
 
-        @task
-        def find_record_folders(folders, files):
-            return pickled(
-                filter_by_record_directory(
-                    folders + files,
-                    regex,
-                    model_name=model_name,
-                    corrected_record_name=corrected_record_name,
+        if source is None:
+            @task
+            def find_record_folders(folders, files):
+                return pickled(
+                    filter_by_record_directory(
+                        folders + files,
+                        regex,
+                        model_name=model_name,
+                        corrected_record_name=corrected_record_name,
+                    )
                 )
-            )
 
-        return find_record_folders(self.tail_folders, self.tail_files)
+            return find_record_folders(self.tail_folders, self.tail_files)
+        else:
+            @task
+            def find_record_folders(source):
+                return pickled(
+                    filter_by_record_directory(
+                        source,
+                        regex,
+                        model_name=model_name,
+                        corrected_record_name=corrected_record_name,
+                        )
+                )
+
+            return find_record_folders(source)
 
     def filter_by_timur(self, matches: XComArg) -> XComArg:
         """
@@ -476,7 +528,7 @@ def filter_by_exists_in_timur(
 
 
 def filter_by_record_directory(
-    files_or_folders: List[Union[File, Folder]],
+    files_or_folders: List[Union[File, Folder, MatchedRecordFolder]],
     directory_regex: re.Pattern,
     model_name: str,
     corrected_record_name: Callable[[str], str] = lambda x: x,
@@ -490,14 +542,21 @@ def filter_by_record_directory(
 
     for file_or_folder in files_or_folders:
         path = ""
-        file = None
-        folder = None
+        file: Optional[File] = None
+        folder: Optional[Folder] = None
+        match_parent: Optional[MatchedRecordFolder] = None
+
         if isinstance(file_or_folder, File):
-            path = file_or_folder.file_path
+            path = os.path.dirname(file_or_folder.file_path)
             file = file_or_folder
         if isinstance(file_or_folder, Folder):
             path = file_or_folder.folder_path
             folder = file_or_folder
+        if isinstance(file_or_folder, MatchedRecordFolder):
+            path = file_or_folder.match_folder_subpath
+            file = file_or_folder.match_file
+            folder = file_or_folder.match_folder
+            match_parent = file_or_folder
 
         m = directory_regex.match(path)
         if not m:
@@ -514,6 +573,9 @@ def filter_by_record_directory(
                 continue
 
         root_path = path[:end]
+        if match_parent is not None:
+            root_path = f"{match_parent.root_path}/{root_path}"
+
         match = MatchedRecordFolder(
             root_path=root_path,
             record_name=corrected_record_name(os.path.basename(root_path)),
@@ -521,6 +583,8 @@ def filter_by_record_directory(
             match_folder=folder,
             model_name=model_name,
         )
+
+        match.match_parent = match_parent
 
         if match.folder_path in result:
             continue
@@ -578,3 +642,5 @@ def _load_metis_files_and_folders_batch(
         return files
     else:
         return folders
+
+# [2022-03-03, 14:01:37 PST] {metis.py:203} INFO - Updates to ['rna_seq/Control_Jurkat.Plate29', 'rna_seq/IPICRC041.T2.rna.live', 'rna_seq/IPICRC041.T2.rna.myeloid', 'rna_seq/IPICRC041.T2.rna.stroma', 'rna_seq/IPICRC041.T2.rna.tcell', 'rna_seq/IPICRC041.T2.rna.treg', 'rna_seq/IPICRC041.T2.rna.tumor', 'rna_seq/IPICRC041.T3.rna.live', 'rna_seq/IPICRC041.T3.rna.myeloid', 'rna_seq/IPICRC041.T3.rna.tcell', 'rna_seq/IPICRC041.T3.rna.treg', 'rna_seq/IPICRC050.T1.rna.live', 'rna_seq/IPICRC050.T1.rna.tcell', 'rna_seq/IPICRC050.T1.rna.tumor', 'rna_seq/IPICRC058.N1.rna.live', 'rna_seq/IPICRC060.N1.rna.live', 'rna_seq/IPICRC083.N1.rna.epcam', 'rna_seq/IPICRC083.N1.rna.live', 'rna_seq/IPICRC083.N1.rna.tcell', 'rna_seq/IPICRC088.N1.rna.live', 'rna_seq/IPICRC088.N1.rna.stroma', 'rna_seq/IPICRC088.N1.rna.tcell', 'rna_seq/IPICRC088.N1.rna.tumor', 'rna_seq/IPICRC094.N1.rna.live', 'rna_seq/IPICRC094.N1.rna.stroma', 'rna_seq/IPICRC094.N1.rna.tcell', 'rna_seq/IPICRC094.N1.rna.tumor', 'rna_seq/IPICRC099.N1.rna.epcam', 'rna_seq/IPICRC103.N2.rna.myeloid', 'rna_seq/IPICRC103.N2.rna.tcell', 'rna_seq/IPICRC104.T1.rna.treg', 'rna_seq/IPICRC104.T1.rna.tumor', 'rna_seq/IPICRC107.N1.rna.epcam', 'rna_seq/IPICRC107.T1.rna.treg', 'rna_seq/IPICRC109.N2.rna.live', 'rna_seq/IPICRC109.N2.rna.tcell', 'rna_seq/IPICRC109.N2.rna.tumor', 'rna_seq/IPICRC109.T2.rna.live', 'rna_seq/IPICRC109.T2.rna.tcell', 'rna_seq/IPICRC111.N1.rna.tcell', 'rna_seq/IPICRC111.T1.rna.stroma', 'rna_seq/IPICRC112.T2.rna.myeloid', 'rna_seq/IPICRC112.T2.rna.tcell', 'rna_seq/IPICRC116.N2.rna.myeloid', 'rna_seq/IPICRC116.N2.rna.tumor', 'rna_seq/IPICRC116.T2.rna.live', 'rna_seq/IPICRC117.N1.rna.live', 'rna_seq/IPICRC117.N1.rna.myeloid', 'rna_seq/IPICRC117.N1.rna.tcell', 'rna_seq/IPICRC117.N1.rna.tumor', 'rna_seq/IPICRC117.T1.rna.live', 'rna_seq/IPICRC117.T1.rna.myeloid', 'rna_seq/IPICRC117.T1.rna.tcell', 'rna_seq/IPICRC120.T2.rna.tcell', 'rna_seq/IPICRC125.T1.rna.treg', 'rna_seq/IPIHNSC066.T1.rna.live', 'rna_seq/IPIHNSC066.T1.rna.stroma', 'rna_seq/IPIHNSC066.T1.rna.tcell', 'rna_seq/IPIHNSC066.T1.rna.tumor', 'rna_seq/IPIHNSC091.T1.rna.live', 'rna_seq/IPIHNSC091.T1.rna.myeloid', 'rna_seq/IPIHNSC091.T1.rna.tcell', 'rna_seq/IPIHNSC091.T1.rna.treg', 'rna_seq/IPIHNSC093.T1.rna.myeloid', 'rna_seq/IPIHNSC093.T1.rna.treg', 'rna_seq/IPIHNSC093.T1.rna.tumor', 'rna_seq/IPIHNSC095.T1.rna.live', 'rna_seq/IPIHNSC095.T1.rna.tcell', 'rna_seq/IPIHNSC097.T1.rna.live', 'rna_seq/IPIHNSC097.T1.rna.myeloid', 'rna_seq/IPIHNSC097.T1.rna.treg', 'rna_seq/IPIHNSC102.T1.rna.live', 'rna_seq/IPIHNSC102.T1.rna.myeloid', 'rna_seq/IPIHNSC102.T1.rna.tcell', 'rna_seq/IPIHNSC102.T1.rna.tumor', 'rna_seq/IPIMEL317.T1.rna.tcell', 'rna_seq/IPIMEL317.T1.rna.tumor', 'rna_seq/IPIMEL323.N1.rna.live', 'rna_seq/IPIMEL323.N1.rna.myeloid', 'rna_seq/IPIMEL323.N1.rna.tcell', 'rna_seq/IPIMEL337.T2.rna.myeloid', 'rna_seq/IPIMELB004.T2.rna.live', 'rna_seq/IPIMELB004.T2.rna.myeloid', 'rna_seq/IPIMELB004.T2.rna.tcell', 'rna_seq/IPIMELB004.T2.rna.treg', 'rna_seq/IPIMELB004.T2.rna.tumor', 'rna_seq/IPIPDAC050.T1.rna.tcell', 'rna_seq/IPISRC028.T1.rna.stroma', 'rna_seq/IPISRC028.T1.rna.tcell', 'rna_seq/IPISRC030.T1.rna.myeloid', 'rna_seq/IPISRC030.T1.rna.stroma', 'rna_seq/IPISRC030.T1.rna.tcell', 'rna_seq/IPISRC030.T1.rna.tumor', 'rna_seq/IPISRC032.T1.rna.live'] found in metis://ipi/data/bulkRNASeq/processed/plate29_rnaseq_new/results/rnaseq_table.tsv

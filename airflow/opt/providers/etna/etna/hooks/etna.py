@@ -408,6 +408,9 @@ class File:
     bucket_name: str = ""
     download_url: Optional[str] = ""
 
+    def __str__(self):
+        return self.as_metis_url
+
     @property
     def as_magma_file_attribute(self) -> MagmaFileEntry:
         return MagmaFileEntry(
@@ -993,6 +996,7 @@ class Magma(EtnaClientBase):
         order: Optional[str] = None,
         filter: Optional[str] = None,
         hide_templates=True,
+        show_disconnected=False,
     ) -> RetrievalResponse:
         args = dict(
             project_name=project_name,
@@ -1000,6 +1004,7 @@ class Magma(EtnaClientBase):
             attribute_names=attribute_names,
             hide_templates=hide_templates,
             record_names=record_names,
+            show_disconnected=show_disconnected,
         )
 
         if page is None and record_names:
