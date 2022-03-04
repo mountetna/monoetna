@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Nav from 'etna-js/components/Nav';
 import {selectUser} from 'etna-js/selectors/user-selector';
-import {isSuperViewer, isSuperEditor} from 'etna-js/utils/janus';
+import {isSuperViewer, isSuperEditor } from 'etna-js/utils/janus';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 const Logo = () => <div id='logo'/>;

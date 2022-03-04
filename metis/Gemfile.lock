@@ -1,7 +1,7 @@
 PATH
   remote: /etna
   specs:
-    etna (0.1.43)
+    etna (0.1.44)
       concurrent-ruby
       curb
       jwt
@@ -30,7 +30,7 @@ GEM
     concurrent-ruby (1.1.9)
     crack (0.4.5)
       rexml
-    curb (0.9.11)
+    curb (1.0.0)
     database_cleaner (1.8.5)
     debase (0.2.4.1)
       debase-ruby_core_source (>= 0.10.2)
@@ -114,6 +114,9 @@ GEM
     ruby-vips (2.1.4)
       ffi (~> 1.12)
     sequel (5.51.0)
+    sequel_pg (1.14.0)
+      pg (>= 0.18.0, != 1.2.0)
+      sequel (>= 4.38.0)
     simplecov (0.21.2)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
@@ -161,6 +164,7 @@ DEPENDENCIES
   rspec
   ruby-vips
   sequel
+  sequel_pg
   simplecov
   timecop
   webmock

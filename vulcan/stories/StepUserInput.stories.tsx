@@ -15,6 +15,7 @@ interface Parameterization {
   type: string
 }
 
+
 function ParameterizedStepUserInput({cwlParams = {}, type}: Parameterization) {
   const utils = useWorkflowUtils();
   const [step, setState] = useState(null as Maybe<WorkflowStep>);
@@ -159,5 +160,24 @@ dropdownCheckboxes.args = {
   type: TYPE.SINGLE_DROPDOWN_MULTICHECKBOX,
   cwlParams:  {
     'a': {experiment: ['1', '2'], tissue: ['a', 'b']}
+  }
+}
+    
+export const DataTransformation = Template.bind({});
+DataTransformation.args = {
+  type: TYPE.DATA_TRANSFORMATION,
+  cwlParams: {
+    'data_frame': {
+      'record_name_01': {
+        '0': 1,
+        '1': 0.25,
+        '2': 'data'
+      },
+      'record_name_02': {
+        '0': 200,
+        '1': 1.111,
+        '2': '=IF(A2>100, 1, 0)'
+      }
+    }
   }
 }

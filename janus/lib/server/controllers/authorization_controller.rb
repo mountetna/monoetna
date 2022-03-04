@@ -90,6 +90,33 @@ class AuthorizationController < Janus::Controller
     return success(user.create_token!)
   end
 
+  def build
+    require_params(:email, :perm, :exp)
+
+    @janus_user = User[email: @params[:email] ]
+
+    raise Etna::BadRequest, 'User not found' unless @janus_user
+
+    token = Janus.instance.sign.jwt_token(
+      {
+        email: @janus_user.email,
+        name: @janus_user.name,
+        perm: @params[:perm],
+        flags: @janus_user.flags&.join(';'),
+        exp: @params[:exp].to_i
+      }
+    )
+    
+    checker = Token::Checker.new(token)
+
+    # forbid bad permissions
+    raise Etna::BadRequest, "Cannot make a token with invalid permissions!" unless checker.valid_permissions?
+
+    raise Etna::BadRequest, "Token is invalid!" unless checker.valid_token?
+
+    success(token)
+  end
+
   def validate_task
     @janus_user = User[email: @user.email]
 

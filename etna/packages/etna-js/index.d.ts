@@ -28,6 +28,10 @@ declare module 'etna-js/hooks/useActionInvoker' {
   >(): (a: T) => R;
 }
 
+declare module 'etna-js/hooks/useFeatureFlag' {
+  export function useFeatureFlag(a: string): boolean;
+}
+
 declare module 'etna-js/actions/message_actions' {
   export function showMessages(messages: string[]): {
     type: 'SHOW_MESSAGES';
