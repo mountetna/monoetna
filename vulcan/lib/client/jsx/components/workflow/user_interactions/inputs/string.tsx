@@ -12,6 +12,7 @@ export default function StringInput({onChange, label, minWidth, data, ...props}:
     <div style={{paddingTop:6}}>
       <TextField
         value={value}
+        multiline
         label={label}
         variant="outlined"
         InputLabelProps={{ shrink: true }}
