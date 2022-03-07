@@ -22,12 +22,12 @@ function MultiLineOutput(iterator) {
 }
 import {makeStyles} from '@material-ui/core/styles';
 
-const useStyles = makeStyles( theme => ({
+const useStyles = makeStyles((theme) => ({
   card: {
     margin: '2rem',
     border: '1px solid lightgray',
     boxShadow: '0 0 0 15px #eee, 0 0 4px 15px #aaa',
-    width: '240px',
+    width: '300px',
     height: '300px',
     cursor: 'pointer',
     display: 'flex',
@@ -64,8 +64,7 @@ const useStyles = makeStyles( theme => ({
     paddingRight: '8px',
     paddingTop: '4px',
     textAlign: 'right',
-    color: 'darkblue',
-
+    color: 'darkblue'
   },
   cardtags: {
     fontSize: '1em'
@@ -100,7 +99,9 @@ export default function Card({workflow, className, onClick}) {
         </div>
         <div className={classes.row}>
           <div className={classes.label}>Authors</div>
-          <div className={classes.value}>{MultiLineOutput(workflow.authors)}</div>
+          <div className={classes.value}>
+            {MultiLineOutput(workflow.authors)}
+          </div>
         </div>
         <div className={classes.row}>
           <div className={classes.label}>Last Modified</div>
@@ -108,7 +109,7 @@ export default function Card({workflow, className, onClick}) {
         </div>
         <div className={classes.row}>
           <div className={classes.label}>
-            <Icon className='card-tags' icon='tags'/> Tags
+            <Icon className='card-tags' icon='tags' /> Tags
           </div>
           <div className={classes.value}>{MultiLineOutput(workflow.tags)}</div>
         </div>

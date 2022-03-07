@@ -6,8 +6,8 @@ import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
 
 import {Workflow} from '../api_types';
-import WorkflowsTable from './dashboard/workflows_table';
-import FiguresTable from './dashboard/figures_table';
+import WorkflowsCarousel from './dashboard/workflows_carousel';
+import FiguresGrid from './dashboard/figures_grid';
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -19,8 +19,8 @@ const useStyles = makeStyles((theme) => ({
   },
   tableHeader: {
     paddingLeft: '1rem',
-    fontSize: '1rem',
-    color: '#de5833'
+    fontSize: '1.25rem',
+    fontWeight: 'bold'
   }
 }));
 
@@ -42,7 +42,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
           </Typography>
         </Grid>
         <Grid item className={classes.workflows}>
-          <WorkflowsTable
+          <WorkflowsCarousel
             project_name={project_name}
             onSelectWorkflow={(workflow) => setSelectedWorkflow(workflow)}
           />
@@ -53,7 +53,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
           </Typography>
         </Grid>
         <Grid item className={classes.workflows}>
-          <FiguresTable
+          <FiguresGrid
             project_name={project_name}
             workflowName={selectedWorkflow?.name}
           />
