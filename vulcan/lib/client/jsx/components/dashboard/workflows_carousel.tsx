@@ -23,6 +23,7 @@ export default function WorkflowsCarousel({
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(
     null
   );
+
   let {state} = useContext(VulcanContext);
   const {workflows} = state;
 
@@ -31,17 +32,6 @@ export default function WorkflowsCarousel({
         projects?.includes(project_name)
       )
     : [];
-
-  // const handleCreateFigure = useCallback(
-  //   (workflowName: string) => {
-  //     invoke(
-  //       pushLocation(
-  //         `/${project_name}/figure/new/${workflowName.replace('.cwl', '')}`
-  //       )
-  //     );
-  //   },
-  //   [invoke, project_name]
-  // );
 
   const collator = new Intl.Collator(undefined, {
     numeric: true,
@@ -80,7 +70,7 @@ export default function WorkflowsCarousel({
         return (
           <Grid item key={index}>
             <WorkflowCard
-              className=''
+              selected={selectedWorkflow?.name === workflow.name}
               workflow={workflow}
               onClick={() => handleOnSelectWorkflow(workflow)}
             />

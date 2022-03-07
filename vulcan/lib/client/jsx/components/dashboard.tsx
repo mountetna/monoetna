@@ -38,13 +38,16 @@ export default function Dashboard({project_name}: {project_name: string}) {
           <Typography variant='h5'>{project_name}</Typography>
         </Grid>
         <Grid item container>
-          <Grid item>
+          <Grid item xs={6} justifyContent='flex-start' alignItems='center'>
             <Typography variant='h6' className={classes.tableHeader}>
               Available Workflows
             </Typography>
           </Grid>
-          <Grid item>
-            <WorkflowControls workflow={selectedWorkflow} />
+          <Grid item xs={6} justifyContent='flex-end' alignItems='center'>
+            <WorkflowControls
+              workflow={selectedWorkflow}
+              project_name={project_name}
+            />
           </Grid>
         </Grid>
         <Grid item className={classes.workflows}>

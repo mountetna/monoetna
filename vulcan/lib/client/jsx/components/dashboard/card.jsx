@@ -33,6 +33,16 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     flexDirection: 'column'
   },
+  selectedCard: {
+    margin: '2rem',
+    border: '1px solid lightgray',
+    boxShadow: '0 0 0 5px darkgray, 0 0 4px 20px darkgray',
+    width: '300px',
+    height: '300px',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column'
+  },
   image: {
     height: '60%',
     overflow: 'hidden',
@@ -80,10 +90,13 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function Card({workflow, className, onClick}) {
+export default function Card({workflow, onClick, selected}) {
   const classes = useStyles();
   return (
-    <div className={`${className} ${classes.card}`} onClick={onClick}>
+    <div
+      className={selected ? classes.selectedCard : classes.card}
+      onClick={onClick}
+    >
       <figure className={classes.image}>
         <ImageMemo
           src={`/images/${workflow.image || 'default.png'}`}
