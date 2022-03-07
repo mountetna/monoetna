@@ -26,6 +26,13 @@ const figureStyles = makeStyles((theme) => ({
     borderTop: '1px solid #eee',
     borderBottom: '1px solid #eee'
   },
+  defaultImage: {
+    cursor: 'pointer',
+    borderTop: '1px solid #eee',
+    borderBottom: '1px solid #eee',
+    opacity: 0.5,
+    filter: 'grayscale(100%)'
+  },
   author: {
     height: '30px',
     width: '30px',
@@ -123,7 +130,9 @@ const Figure = ({
         }
       />
       <CardMedia
-        className={classes.image}
+        className={
+          figureSession?.thumbnail ? classes.image : classes.defaultImage
+        }
         onClick={visitFigure}
         component='img'
         height='140'

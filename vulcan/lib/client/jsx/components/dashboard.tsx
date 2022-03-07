@@ -8,6 +8,7 @@ import {makeStyles} from '@material-ui/core/styles';
 import {Workflow} from '../api_types';
 import WorkflowsCarousel from './dashboard/workflows_carousel';
 import FiguresGrid from './dashboard/figures_grid';
+import WorkflowControls from './dashboard/workflow_controls';
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -36,10 +37,15 @@ export default function Dashboard({project_name}: {project_name: string}) {
         <Grid item container className={classes.title}>
           <Typography variant='h5'>{project_name}</Typography>
         </Grid>
-        <Grid item>
-          <Typography variant='h6' className={classes.tableHeader}>
-            Available Workflows
-          </Typography>
+        <Grid item container>
+          <Grid item>
+            <Typography variant='h6' className={classes.tableHeader}>
+              Available Workflows
+            </Typography>
+          </Grid>
+          <Grid item>
+            <WorkflowControls workflow={selectedWorkflow} />
+          </Grid>
         </Grid>
         <Grid item className={classes.workflows}>
           <WorkflowsCarousel
