@@ -17,6 +17,7 @@ import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 import Link from '@material-ui/core/Link';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import {
@@ -32,7 +33,7 @@ import {useWorkflow} from '../../../contexts/workflow_context';
 import {readTextFile, downloadBlob} from 'etna-js/utils/blob';
 import {defaultSession} from '../../../reducers/vulcan_reducer';
 import {VulcanFigureSession, VulcanSession} from '../../../api_types';
-import Tooltip from '@material-ui/core/Tooltip';
+import useUserHooks from '../../useUserHooks';
 
 const modalStyles = {
   content: {
@@ -68,6 +69,7 @@ export default function SessionManager() {
     clearLocalSession
   } = useContext(VulcanContext);
   const {workflow, hasPendingEdits, complete} = useWorkflow();
+  const {canEdit} = useUserHooks();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
   const {session, figure, committedStepPending} = state;
@@ -144,6 +146,36 @@ export default function SessionManager() {
     showErrors,
     dispatch,
     localTitle,
+    clearLocalSession
+  ]);
+
+  const copyFigure = useCallback(() => {
+    let params = {
+      ...figure,
+      workflow_name: name,
+      inputs: {...session.inputs}
+    };
+
+    delete params.figure_id;
+
+    showErrors(
+      createFigure(session.project_name, params).then(
+        (figure: VulcanFigureSession) => {
+          cancelSaving();
+          clearLocalSession(figure.workflow_name, figure.project_name, null);
+          invoke(
+            pushLocation(`/${figure.project_name}/figure/${figure.figure_id}`)
+          );
+        }
+      )
+    );
+  }, [
+    figure,
+    name,
+    session,
+    showErrors,
+    invoke,
+    pushLocation,
     clearLocalSession
   ]);
 
@@ -284,14 +316,24 @@ export default function SessionManager() {
             disabled={disableRunButton}
           />
         )}
-        <FlatButton
-          className='header-btn save'
-          icon='save'
-          label='Save'
-          title='Save current workflow parameters to current figure'
-          onClick={saveSession}
-          disabled={!canSave}
-        />
+        {canEdit(figure) ? (
+          <FlatButton
+            className='header-btn save'
+            icon='save'
+            label='Save'
+            title='Save current workflow parameters to current figure'
+            onClick={saveSession}
+            disabled={!canSave}
+          />
+        ) : (
+          <FlatButton
+            className='header-btn copy'
+            icon='copy'
+            label='Copy'
+            title='Copy current workflow parameters to new figure'
+            onClick={copyFigure}
+          />
+        )}
       </div>
       <div className='session-feed-container'>
         <InputFeed />

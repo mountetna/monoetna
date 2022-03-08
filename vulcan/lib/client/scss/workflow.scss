@@ -168,6 +168,9 @@
       &.save {
         color: green;
       }
+      &.copy {
+        color: green;
+      }
       &.open {
         color: dodgerblue;
       }
@@ -199,7 +202,6 @@
       flex: 0 0 500px;
 
       .step-user-input {
-
         .step-name {
           flex: 1 1 auto;
         }
