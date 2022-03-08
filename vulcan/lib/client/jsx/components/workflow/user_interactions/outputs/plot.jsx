@@ -34,8 +34,7 @@ const PlotOutput = ({data: plots}) => {
                 zerolinewidth: 1,
                 linecolor: '#000'
               },
-              width: 800,
-              height: 800,
+              autosize: true,
               paper_bgcolor: '#fff',
               plot_bgcolor: '#f0f0f0'
             }}
