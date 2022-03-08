@@ -71,7 +71,7 @@ export default function FiguresTable({
         setAllFigureSessions(figures)
       )
     );
-  }, [showErrors, fetchFigures, project_name]);
+  }, []);
 
   const handleOnCopy = useCallback(
     (figure: VulcanFigureSession) => {
