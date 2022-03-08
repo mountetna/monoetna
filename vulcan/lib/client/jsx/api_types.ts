@@ -161,6 +161,7 @@ export interface VulcanFigure {
   title?: string | null;
   author?: string;
   thumbnail?: string;
+  tags?: string[];
 }
 
 export type VulcanFigureSession = VulcanSession & VulcanFigure;
