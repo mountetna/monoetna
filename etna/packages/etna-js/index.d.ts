@@ -244,7 +244,7 @@ declare module 'etna-js/components/link' {
 }
 
 declare module 'etna-js/hooks/useReduxState' {
-  export function useReduxState(callback: Function): any;
+  export function useReduxState(callback?: Function): any;
 }
 
 declare module 'etna-js/spec/helpers' {
