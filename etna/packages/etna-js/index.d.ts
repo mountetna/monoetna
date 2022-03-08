@@ -244,7 +244,7 @@ declare module 'etna-js/components/link' {
 }
 
 declare module 'etna-js/hooks/useReduxState' {
-  export function useReduxState(): any;
+  export function useReduxState(callback: Function): any;
 }
 
 declare module 'etna-js/spec/helpers' {
@@ -280,6 +280,10 @@ declare module 'etna-js/selectors/magma' {
   export function selectModelNames(state: any): string[];
   export function selectModels(state: any): any;
   export function selectTemplate(state: any, model_name: string): any;
+}
+
+declare module 'etna-js/selectors/user-selector' {
+  export function selectUser(state: any): any;
 }
 
 declare module 'etna-js/actions/magma_actions' {

@@ -14,6 +14,8 @@ import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 
+import {selectUser} from 'etna-js/selectors/user-selector';
+import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {VulcanFigureSession} from '../../api_types';
 
@@ -66,6 +68,7 @@ const Figure = ({
   onRename: () => void;
   onRemove: () => void;
 }) => {
+  const user = useReduxState((state: any) => selectUser(state));
   const invoke = useActionInvoker();
   let {state} = useContext(VulcanContext);
   const {workflows} = state;
@@ -116,8 +119,12 @@ const Figure = ({
         onClose={handleClose}
       >
         <MenuItem onClick={handleOnCopy}>Copy</MenuItem>
-        <MenuItem onClick={handleOnRename}>Rename</MenuItem>
-        <MenuItem onClick={handleOnRemove}>Remove</MenuItem>
+        {user.name === figureSession.author ? (
+          <>
+            <MenuItem onClick={handleOnRename}>Rename</MenuItem>
+            <MenuItem onClick={handleOnRemove}>Remove</MenuItem>
+          </>
+        ) : null}
       </Menu>
       <CardHeader
         title={figureSession.title}

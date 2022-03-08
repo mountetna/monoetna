@@ -49,8 +49,7 @@ export default function FiguresTable({
     fetchFigures,
     createFigure,
     updateFigure,
-    deleteFigure,
-    state
+    deleteFigure
   } = useContext(VulcanContext);
 
   const [searchString, setSearchString] = useState('');
@@ -137,6 +136,7 @@ export default function FiguresTable({
   const hasTag = useCallback(
     (figure: VulcanFigureSession) => {
       if (0 === tags.length) return true;
+      if (!figure.tags || 0 === figure.tags.length) return false;
 
       return (figure.tags?.filter((t) => tags.includes(t)) || []).length > 0;
     },
@@ -158,9 +158,13 @@ export default function FiguresTable({
   );
 
   useEffect(() => {
-    let results = allFigureSessions.filter(
-      (figure) => matchesSearch(figure) && hasTag(figure)
-    );
+    let results = allFigureSessions
+      .filter((figure) => matchesSearch(figure) && hasTag(figure))
+      .sort((a, b) => {
+        if (null == a.figure_id) return -1;
+        if (null == b.figure_id) return 1;
+        return a.figure_id - b.figure_id;
+      });
 
     if (workflowName) {
       setFilteredFigureSessions(
@@ -171,23 +175,16 @@ export default function FiguresTable({
     }
   }, [allFigureSessions, matchesSearch, hasTag, workflowName]);
 
-  const filteredFigures = useMemo(() => {
-    return filteredFigureSessions.sort((a, b) => {
-      if (null == a.figure_id) return -1;
-      if (null == b.figure_id) return 1;
-      return a.figure_id - b.figure_id;
-    });
-  }, [filteredFigureSessions]);
-
   const allTags = useMemo(() => {
     return [
       ...new Set(
-        filteredFigures.reduce((acc: string[], f) => acc.concat(f.tags || []), [
-          'public'
-        ])
+        allFigureSessions.reduce(
+          (acc: string[], f) => acc.concat(f.tags || []),
+          ['public']
+        )
       )
     ];
-  }, [filteredFigures]);
+  }, [allFigureSessions]);
 
   return (
     <Grid container direction='column'>
@@ -237,18 +234,20 @@ export default function FiguresTable({
           rowHeight={330}
           className={classes.figures}
         >
-          {filteredFigures.map((figure: VulcanFigureSession, index: number) => {
-            return (
-              <ImageListItem key={index}>
-                <FigureCard
-                  figureSession={figure}
-                  onCopy={() => handleOnCopy(figure)}
-                  onRemove={() => handleOnRemove(figure)}
-                  onRename={() => handleOnRename(figure)}
-                />
-              </ImageListItem>
-            );
-          })}
+          {filteredFigureSessions.map(
+            (figure: VulcanFigureSession, index: number) => {
+              return (
+                <ImageListItem key={index}>
+                  <FigureCard
+                    figureSession={figure}
+                    onCopy={() => handleOnCopy(figure)}
+                    onRemove={() => handleOnRemove(figure)}
+                    onRename={() => handleOnRename(figure)}
+                  />
+                </ImageListItem>
+              );
+            }
+          )}
         </ImageList>
       </Grid>
     </Grid>
