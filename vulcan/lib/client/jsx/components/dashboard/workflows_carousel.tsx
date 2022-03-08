@@ -9,9 +9,18 @@ import 'regenerator-runtime/runtime';
 
 import Grid from '@material-ui/core/Grid';
 
+import {makeStyles} from '@material-ui/core/styles';
+
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {Workflow} from '../../api_types';
 import WorkflowCard from './card';
+
+const useStyles = makeStyles((theme) => ({
+  workflows: {
+    width: '100%',
+    padding: '15px'
+  }
+}));
 
 export default function WorkflowsCarousel({
   project_name,
@@ -24,6 +33,7 @@ export default function WorkflowsCarousel({
     null
   );
 
+  const classes = useStyles();
   let {state} = useContext(VulcanContext);
   const {workflows} = state;
 
@@ -60,11 +70,11 @@ export default function WorkflowsCarousel({
 
   return (
     <Grid
+      className={classes.workflows}
       container
-      justifyContent='center'
+      justifyContent='space-evenly'
       alignItems='center'
       alignContent='center'
-      spacing={10}
     >
       {sortedWorkflows.map((workflow: Workflow, index: number) => {
         return (

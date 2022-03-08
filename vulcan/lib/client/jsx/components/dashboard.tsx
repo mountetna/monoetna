@@ -15,9 +15,7 @@ const useStyles = makeStyles((theme) => ({
     padding: '10px 15px 5px',
     color: '#444'
   },
-  workflows: {
-    padding: '15px'
-  },
+  workflows: {},
   tableHeader: {
     paddingLeft: '1rem',
     fontSize: '1.25rem',
@@ -37,18 +35,14 @@ export default function Dashboard({project_name}: {project_name: string}) {
         <Grid item container className={classes.title}>
           <Typography variant='h5'>{project_name}</Typography>
         </Grid>
-        <Grid item container>
-          <Grid item xs={6} justifyContent='flex-start' alignItems='center'>
-            <Typography variant='h6' className={classes.tableHeader}>
-              Available Workflows
-            </Typography>
-          </Grid>
-          <Grid item xs={6} justifyContent='flex-end' alignItems='center'>
-            <WorkflowControls
-              workflow={selectedWorkflow}
-              project_name={project_name}
-            />
-          </Grid>
+        <Grid item container justifyContent='space-between'>
+          <Typography variant='h6' className={classes.tableHeader}>
+            Available Workflows
+          </Typography>
+          <WorkflowControls
+            workflow={selectedWorkflow}
+            project_name={project_name}
+          />
         </Grid>
         <Grid item className={classes.workflows}>
           <WorkflowsCarousel

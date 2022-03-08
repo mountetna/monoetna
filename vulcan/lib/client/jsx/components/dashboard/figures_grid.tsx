@@ -12,24 +12,18 @@ import ImageListItem from '@material-ui/core/ImageListItem';
 
 import {makeStyles} from '@material-ui/core/styles';
 
-import {pushLocation} from 'etna-js/actions/location_actions';
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {VulcanFigureSession} from '../../api_types';
 import FigureCard from './figure';
 
-const figureListStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme) => ({
   title: {
     padding: '10px 0px',
     color: '#444'
   },
   figures: {
-    padding: '15px'
-  },
-  thumbnail: {
-    maxWidth: '32px',
-    maxHeight: '32px'
+    padding: '15px',
+    width: '100vw'
   }
 }));
 
@@ -56,8 +50,7 @@ export default function FiguresTable({
     VulcanFigureSession[]
   >([]);
 
-  const invoke = useActionInvoker();
-  const classes = figureListStyles();
+  const classes = useStyles();
 
   useEffect(() => {
     showErrors(
@@ -150,11 +143,7 @@ export default function FiguresTable({
   }, [filteredFigureSessions]);
 
   return (
-    <ImageList
-      cols={Math.min(filteredFigures.length, 5)}
-      gap={60}
-      rowHeight={330}
-    >
+    <ImageList cols={5} gap={30} rowHeight={330} className={classes.figures}>
       {filteredFigures.map((figure: VulcanFigureSession, index: number) => {
         return (
           <ImageListItem key={index}>
