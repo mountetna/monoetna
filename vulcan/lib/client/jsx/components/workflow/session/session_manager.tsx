@@ -32,7 +32,11 @@ import {workflowName} from '../../../selectors/workflow_selectors';
 import {useWorkflow} from '../../../contexts/workflow_context';
 import {readTextFile, downloadBlob} from 'etna-js/utils/blob';
 import {defaultSession} from '../../../reducers/vulcan_reducer';
-import {VulcanFigureSession, VulcanSession} from '../../../api_types';
+import {
+  VulcanFigure,
+  VulcanFigureSession,
+  VulcanSession
+} from '../../../api_types';
 import useUserHooks from '../../useUserHooks';
 
 const modalStyles = {
@@ -94,6 +98,63 @@ export default function SessionManager() {
     setSaving(false);
   };
 
+  const handleSaveOrCreate = useCallback(
+    (figure: VulcanFigure) => {
+      let params = {
+        ...figure,
+        workflow_name: name,
+        inputs: {...session.inputs},
+        title: localTitle
+      };
+
+      if (!params.title) {
+        params.title = prompt('Set a title for this figure');
+        if (!params.title) return;
+      }
+
+      setSaving(true);
+      if (params.figure_id) {
+        showErrors(
+          updateFigure(session.project_name, params)
+            .then((figureResponse) => {
+              dispatch(setSessionAndFigure(figureResponse));
+            })
+            .finally(cancelSaving)
+        );
+      } else {
+        showErrors(
+          createFigure(session.project_name, params).then(
+            (figure: VulcanFigureSession) => {
+              cancelSaving();
+              clearLocalSession(
+                figure.workflow_name,
+                figure.project_name,
+                null
+              );
+              invoke(
+                pushLocation(
+                  `/${figure.project_name}/figure/${figure.figure_id}`
+                )
+              );
+            }
+          )
+        );
+      }
+    },
+    [
+      name,
+      localTitle,
+      session,
+      cancelSaving,
+      showErrors,
+      updateFigure,
+      invoke,
+      dispatch,
+      clearLocalSession,
+      pushLocation
+    ]
+  );
+
   const saveSession = useCallback(() => {
     if (hasPendingEdits) {
       if (!confirm('Pending edits will be discarded when saving. Proceed?')) {
@@ -101,83 +162,18 @@ export default function SessionManager() {
       }
     }
 
-    let params = {
-      ...figure,
-      workflow_name: name,
-      inputs: {...session.inputs},
-      title: localTitle
-    };
-
-    if (!params.title) {
-      params.title = prompt('Set a title for this figure');
-      if (!params.title) return;
-    }
-
-    setSaving(true);
-    if (params.figure_id) {
-      showErrors(
-        updateFigure(session.project_name, params)
-          .then((figureResponse) => {
-            dispatch(setSessionAndFigure(figureResponse));
-          })
-          .finally(cancelSaving)
-      );
-    } else {
-      showErrors(
-        createFigure(session.project_name, params).then(
-          (figure: VulcanFigureSession) => {
-            cancelSaving();
-            clearLocalSession(figure.workflow_name, figure.project_name, null);
-            invoke(
-              pushLocation(`/${figure.project_name}/figure/${figure.figure_id}`)
-            );
-          }
-        )
-      );
-    }
-  }, [
-    hasPendingEdits,
-    session,
-    name,
-    figure,
-    invoke,
-    createFigure,
-    updateFigure,
-    showErrors,
-    dispatch,
-    localTitle,
-    clearLocalSession
-  ]);
+    handleSaveOrCreate(figure);
+  }, [hasPendingEdits, handleSaveOrCreate, figure]);
 
   const copyFigure = useCallback(() => {
-    let params = {
-      ...figure,
-      workflow_name: name,
-      inputs: {...session.inputs}
+    let clone = {
+      ...figure
     };
 
-    delete params.figure_id;
+    delete clone.figure_id;
 
-    showErrors(
-      createFigure(session.project_name, params).then(
-        (figure: VulcanFigureSession) => {
-          cancelSaving();
-          clearLocalSession(figure.workflow_name, figure.project_name, null);
-          invoke(
-            pushLocation(`/${figure.project_name}/figure/${figure.figure_id}`)
-          );
-        }
-      )
-    );
-  }, [
-    figure,
-    name,
-    session,
-    showErrors,
-    invoke,
-    pushLocation,
-    clearLocalSession
-  ]);
+    handleSaveOrCreate(clone);
+  }, [figure, handleSaveOrCreate]);
 
   const saveSessionToBlob = useCallback(() => {
     if (hasPendingEdits) {
@@ -332,6 +328,7 @@ export default function SessionManager() {
             label='Copy'
             title='Copy current workflow parameters to new figure'
             onClick={copyFigure}
+            disabled={!canSave}
           />
         )}
       </div>
