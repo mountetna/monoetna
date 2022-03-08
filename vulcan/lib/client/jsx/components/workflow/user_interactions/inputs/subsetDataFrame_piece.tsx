@@ -131,7 +131,7 @@ const singleMethod = (
   
   const pick_column = dropdownPiece(
     key+index, updateDefColumn, def[0] as string,
-    "Condition " + (index+1) + ", Feature:", columns, sorted
+    "Condition " + (index+1) + ", Feature", columns, sorted
   )
   const clear_comp = (
     <Button
@@ -143,7 +143,7 @@ const singleMethod = (
   const logic_comp = (index == 0) ? null : 
     dropdownPiece(
         key+index+index+index, updateLogic, values['logic'][index-1][0] as string,
-        "Combination Logic:", ["and", "or"], false
+        "Combination Logic", ["and", "or"], false
       )
   const def_comp = targetSelectionComponent(
     def, data_frame, updateDefTargets, key, index)

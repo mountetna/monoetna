@@ -96,9 +96,10 @@ export default function DiffExpSC({
 
   return (
     <div>
+      Step 1: Select your DE Question Type:
       {dropdownPiece(
         "method", setDEMethod, value['method'],
-        "Step 1: Select your DE Question Type: ",
+        "DE Method",
         Object.keys(method_labels), true)}
       <hr/>
       {SubsetComps}
@@ -166,7 +167,7 @@ const DEComps = (
           {"Step 3: What labels do you want to compare? "}
           {dropdownPiece(
             'de_meta', changeFxn, vals['de_meta'],
-            'DiffExp by:', Object.keys(opts))}
+            'DE by:', Object.keys(opts))}
           {value_select_1}
           {value_select_2}
         </div>
