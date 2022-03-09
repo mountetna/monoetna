@@ -30,19 +30,12 @@ steps:
       user_columns: 1_Data_Source_magma_query__user_columns
       expand_matrices: 1_Data_Source_magma_query__expand_matrices
     out: [data_frame]
-  review_data:
-    run: ui-queries/data-transformation.cwl
-    label: 'Review your data frame'
-    doc: "Review and edit your data frame as needed. Right click for an interactions menu where you can add/remove columns. Start a cell with '=' to create functions in an Excel-like manner."
-    in:
-      data_frame: get_data/data_frame
-    out: [formulaic_data, calculated_data]
   fill_plot_options:
     run: ui-queries/any-viz.cwl
     label: 'Set plot options'
     doc: "Selections here pick the plot type and how it should be generated. For addtional details, see https://mountetna.github.io/vulcan.html#the-setup-gui which is clickably linked within this workflow's 'vignette'."
     in:
-      data_frame: review_data/calculated_data
+      data_frame: get_data/data_frame
     out: [plot_setup]
   make_plot:
     run: scripts/make_plot.cwl
