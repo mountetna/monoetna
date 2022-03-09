@@ -78,6 +78,7 @@ export default function SessionManager() {
   const [modalIsOpen, setIsOpen] = React.useState(false);
   const {session, figure, committedStepPending} = state;
 
+  const [tags, setTags] = useState<string[]>(figure.tags || []);
   const [localTitle, setLocalTitle] = useState(figure.title);
 
   const invoke = useActionInvoker();
@@ -104,7 +105,8 @@ export default function SessionManager() {
         ...figure,
         workflow_name: name,
         inputs: {...session.inputs},
-        title: localTitle
+        title: localTitle,
+        tags: [...tags]
       };
 
       if (!params.title) {
@@ -145,6 +147,7 @@ export default function SessionManager() {
       name,
       localTitle,
       session,
+      tags,
       cancelSaving,
       showErrors,
       updateFigure,
@@ -242,12 +245,22 @@ export default function SessionManager() {
     return localTitle !== figure.title;
   }, [figure, localTitle]);
 
+  const tagsChanged = useMemo(() => {
+    return !_.isEqual(tags, figure.tags);
+  }, [figure, tags]);
+
   const canSave = useMemo(() => {
-    return (titleChanged || inputsChanged) && !(running || saving);
-  }, [running, saving, inputsChanged, titleChanged]);
+    return (
+      (titleChanged || inputsChanged || tagsChanged) && !(running || saving)
+    );
+  }, [running, saving, inputsChanged, titleChanged, tagsChanged]);
+
+  const editor = useMemo(() => canEdit(figure) || !figure.figure_id, [figure]);
+
+  const isPublic = useMemo(() => (tags || []).includes('public'), [tags]);
 
   if (!name || !session) return null;
-
+  console.log('tags', tags, isPublic, figure);
   return (
     <div className='session-manager'>
       <div className='session-header'>
@@ -312,7 +325,7 @@ export default function SessionManager() {
             disabled={disableRunButton}
           />
         )}
-        {canEdit(figure) ? (
+        {editor ? (
           <FlatButton
             className='header-btn save'
             icon='save'
@@ -331,6 +344,15 @@ export default function SessionManager() {
             disabled={!canSave}
           />
         )}
+        {editor ? (
+          <FlatButton
+            className='header-btn public-private'
+            icon={`${isPublic ? 'lock' : 'unlock'}`}
+            label={`Make ${isPublic ? 'private' : 'public'}`}
+            title={`Make the current figure ${isPublic ? 'private' : 'public'}`}
+            onClick={() => setTags(isPublic ? [] : ['public'])}
+          />
+        ) : null}
       </div>
       <div className='session-feed-container'>
         <InputFeed />
