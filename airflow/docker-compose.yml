@@ -20,6 +20,7 @@ x-airflow-env:
   AIRFLOW__CORE__EXECUTOR: etna.executors.local_executor.LocalExecutor
   AIRFLOW__CORE__SQL_ALCHEMY_CONN:  "postgresql://developer:password@airflow_postgres:5432/airflow"
   AIRFLOW__WEBSERVER__BASE_URL: https://airflow.development.local
+  DEV_MODE: 1 # Enables docker-compose backend
   ETNA_AUTH_COOKIE_NAME: JANUS_DEV_TOKEN
   ETNA_AUTH_JANUS_URL: https://janus.development.local
   ETNA_AUTH_PUBLIC_KEY: |
@@ -55,8 +56,8 @@ services:
     depends_on:
       - airflow_postgres
     volumes:
-      - ./opt/plugins:/opt/airflow/plugins
-#      - ./logs:/opt/airflow/logs
+      - ./opt/providers:/opt/airflow/providers
+      - ./logs:/opt/airflow/logs
       - airflow-dags:/opt/airflow/dags
     environment:
       <<: *airflow-env
@@ -69,7 +70,20 @@ services:
     user: 0:0 # in production this will be the airflow user and docker group
     command: scheduler
     volumes:
-      - ./opt/plugins:/opt/airflow/plugins
+      - ./opt/providers:/opt/airflow/providers
+      - ./logs:/opt/airflow/logs
+      - airflow-dags:/opt/airflow/dags
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /tmp:/tmp
+    environment:
+      <<: *airflow-env
+
+  airflow_triggerer:
+    image: airflow
+    user: 0:0 # in production this will be the airflow user and docker group
+    command: triggerer
+    volumes:
+      - ./opt/providers:/opt/airflow/providers
       - ./logs:/opt/airflow/logs
       - airflow-dags:/opt/airflow/dags
       - /var/run/docker.sock:/var/run/docker.sock:ro

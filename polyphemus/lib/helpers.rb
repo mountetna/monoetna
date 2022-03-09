@@ -28,6 +28,10 @@ module WithEtnaClients
       token: token,
       host: Polyphemus.instance.config(:metis, environment)[:host])
   end
+
+  def metis_client=(client)
+    @metis_client = client if Polyphemus.instance.test?
+  end
 end
 
 module WithLogger

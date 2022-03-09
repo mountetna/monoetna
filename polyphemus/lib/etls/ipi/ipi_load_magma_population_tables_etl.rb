@@ -1,8 +1,13 @@
 require_relative "../../magma_record_file_etl"
 
 class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordFileEtl
-  def initialize
-    super(project_model_pairs: [["ipi", "patient"]], attribute_names: ["updated_at", "flojo_file_processed"])
+  def initialize(cursor_env: {}, scanner: nil)
+    super(
+      project_model_pairs: [["ipi", "patient"]],
+      attribute_names: ["updated_at", "flojo_file_processed"],
+      cursor_env: cursor_env,
+      scanner: scanner
+    )
   end
 
   def process(cursor, records)

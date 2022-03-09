@@ -135,6 +135,7 @@ def setup_base_vcr(spec_helper_dir, server: nil, application: nil)
 end
 
 def prepare_vcr_secret
+  p ENV
   secret = ENV["CI_SECRET"]
 
   if (secret.nil? || secret.empty?) && ENV['IS_CI'] != '1'
