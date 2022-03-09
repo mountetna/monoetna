@@ -260,7 +260,7 @@ export default function SessionManager() {
   const isPublic = useMemo(() => (tags || []).includes('public'), [tags]);
 
   if (!name || !session) return null;
-  console.log('tags', tags, isPublic, figure);
+
   return (
     <div className='session-manager'>
       <div className='session-header'>
