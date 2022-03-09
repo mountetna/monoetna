@@ -1,3 +1,4 @@
+
 describe IpiHelper do
   before(:each) do
     copy_renaming_project
