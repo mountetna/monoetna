@@ -46,6 +46,7 @@ const StepIcon = ({
 }) => {
   let {state} = useContext(VulcanContext);
   const {workflow, status} = state;
+  const classes = useStyles();
   if (!workflow) return null;
   const statusStr = statusStringOfStepOrGroupedStep(step, workflow, status);
   const label = labelOfStepOrGroupedStep(step);
@@ -53,7 +54,6 @@ const StepIcon = ({
 
   let IconComponent:IconClass = STATUS.RUNNING === statusStr ? AnimatedClock : icon_config.icon;
 
-  const classes = useStyles();
   return <Tooltip title={label}>
     <IconComponent className={`${classes[ statusStr ]} ${classes.icon}`}/>
   </Tooltip>

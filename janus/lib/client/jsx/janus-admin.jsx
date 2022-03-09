@@ -110,7 +110,7 @@ const Projects = ({projects}) => (
   </div>
 );
 
-const postAddProject = (project) => json_post('/add_project', project);
+const postAddProject = (project) => json_post('/api/admin/add_project', project);
 
 const NewProject = ({retrieveAllProjects}) => {
   let [newproject, setNewProject] = useState({});
@@ -169,7 +169,7 @@ const JanusAdmin = () => {
   } = useContext(ProjectsContext);
 
   let retrieveAllProjects = useCallback(() => {
-    json_get('/allprojects').then(({projects}) => setProjects(projects));
+    json_get('/api/admin/projects').then(({projects}) => setProjects(projects));
   }, [setProjects]);
 
   useEffect(retrieveAllProjects, []);

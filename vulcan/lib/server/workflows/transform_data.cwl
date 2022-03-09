@@ -19,7 +19,7 @@ inputs:
 outputs:
   the_plot:
     type: File
-    outputSource: make_plot/plot.json
+    outputSource: transform_data/calculated_data
 
 steps:
   get_data:
@@ -30,30 +30,22 @@ steps:
       user_columns: 1_Data_Source_magma_query__user_columns
       expand_matrices: 1_Data_Source_magma_query__expand_matrices
     out: [data_frame]
-  review_data:
+  transform_data:
     run: ui-queries/data-transformation.cwl
-    label: 'Review your data frame'
-    doc: "Review and edit your data frame as needed. Right click for an interactions menu where you can add/remove columns. Start a cell with '=' to create functions in an Excel-like manner."
+    label: 'Transform your data'
+    doc: "Manipulate your data frame as needed. Right click for an interactions menu where you can add/remove columns. Start a cell with '=' to create functions in an Excel-like manner."
     in:
       data_frame: get_data/data_frame
     out: [formulaic_data, calculated_data]
-  fill_plot_options:
-    run: ui-queries/any-viz.cwl
-    label: 'Set plot options'
-    doc: "Selections here pick the plot type and how it should be generated. For addtional details, see https://mountetna.github.io/vulcan.html#the-setup-gui which is clickably linked within this workflow's 'vignette'."
+  show_data:
+    run: ui-outputs/link.cwl
     in:
-      data_frame: review_data/calculated_data
-    out: [plot_setup]
-  make_plot:
-    run: scripts/make_plot.cwl
-    label: 'Create Plot'
-    in:
-      plot_setup: fill_plot_options/plot_setup
-      data_frame: review_data/calculated_data
-    out: [plot.json]
-  show_plot:
-    run: ui-outputs/plotly.cwl
-    in:
-      a: make_plot/plot.json
+      a: transform_data/calculated_data
     out: []
-    label: 'Display Plot'
+    label: 'Download your final data frame'
+  show_source_data:
+    run: ui-outputs/link.cwl
+    in:
+      a: transform_data/formulaic_data
+    out: []
+    label: 'Download the source of your final data frame'

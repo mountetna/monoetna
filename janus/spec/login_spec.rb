@@ -59,13 +59,13 @@ describe AuthorizationController do
     end
 
     it 'complains without credentials' do
-      json_post( 'validate-login', {} )
+      json_post( 'api/validate-login', {} )
       expect(last_response.status).to eq(422)
     end
 
     it 'validates a password' do
       form_post(
-        'validate-login', 
+        'api/validate-login', 
         email: @user.email,
         password: 'bassboard',
         refer: @refer
@@ -75,7 +75,7 @@ describe AuthorizationController do
 
     it 'sets a cookie with the token on success' do
       form_post(
-        'validate-login', 
+        'api/validate-login', 
         email: @user.email,
         password: 'password',
         refer: @refer
@@ -103,7 +103,7 @@ describe AuthorizationController do
     context 'cookie expiration time' do
       it 'sets the expiration time on the cookie correctly for a new token' do
         form_post(
-          'validate-login', 
+          'api/validate-login', 
           email: @user.email,
           password: 'password',
           refer: @refer
@@ -126,7 +126,7 @@ describe AuthorizationController do
         end
         set_cookie([ Janus.instance.config(:token_name), token ].join('='))
         form_post(
-          'validate-login', 
+          'api/validate-login', 
           email: @user.email,
           password: 'password',
           refer: @refer
@@ -141,7 +141,7 @@ describe AuthorizationController do
 
     it 'redirects to refer with credentials' do
       form_post(
-        'validate-login', 
+        'api/validate-login', 
         email: @user.email,
         password: @password,
         refer: @refer
@@ -154,7 +154,7 @@ describe AuthorizationController do
     it 'sets a cookie with credentials' do
       refer = JANUS_URL
       form_post(
-        'validate-login', 
+        'api/validate-login', 
         email: @user.email,
         password: @password,
         refer: refer

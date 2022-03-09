@@ -181,13 +181,11 @@ export function allDataNonEmpty(data: ([any] | null)[]) {
   return data.every((v) => v && inputValueNonEmpty(v[0]));
 }
 
-export function dataOfSource(
-  source: string,
-  workflow: Workflow | null,
-  status: VulcanState['status'],
-  data: VulcanState['data'],
-  session: VulcanState['session']
-): [any] | null {
+export function isNullish(value: any) {
+  return value == null || value === 'null' || value === '';
+}
+
+export function dataOfSource(source: string, workflow: Workflow | null, status: VulcanState['status'], data: VulcanState['data'], session: VulcanState['session']): [any] | null {
   if (!workflow) return null;
   const [originalStepName, outputName] = splitSource(source);
   const originalStep = originalStepName
@@ -293,15 +291,25 @@ export const sourceNameOfReference = (ref: [string, string]) => {
   return ref.join('/');
 };
 
-export const sourceNamesOfStep = (step: WorkflowStep) => {
-  return step.out.map((name) => sourceNameOfReference([step.name, name]));
-};
+export const stepOutputs = (step: WorkflowStep | undefined | '') => {
+  if (!step) return [];
 
-export function missingOutputsForStep(
-  step: WorkflowStep,
-  inputs: VulcanState['session']['inputs']
-): {[k: string]: null} {
-  const result: {[k: string]: null} = {};
+  return step.out.map(name => sourceNameOfReference([step.name, name]))
+}
+
+export const sourceNamesOfStep = (step: WorkflowStep) => {
+  // return stepOutputs(step); Originally this...
+
+  if (step.out.length === 0) return [];
+
+  // Assign one output per CWL step so that any downloaded input data is grabbed.
+  // But only take one output so that the input widget itself is not
+  //   rendered multiple times in the UI.
+  return [sourceNameOfReference([step.name, step.out[0]])];
+}
+
+export function missingOutputsForStep(step: WorkflowStep, inputs: VulcanState['session']['inputs']): { [k: string]: null } {
+  const result: { [k: string]: null } = {};
 
   step.out.forEach((outputName) => {
     const source = sourceNameOfReference([step.name, outputName]);
