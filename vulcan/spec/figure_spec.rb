@@ -46,6 +46,24 @@ describe FigureController do
       )
 
     end
+
+    it 'creates a new figure with tags' do
+      auth_header(:viewer)
+      contents = {
+        title: 'Lion of Nemea',
+        workflow_name: 'reubens',
+        inputs: { a: 'b' },
+        tags: ['public']
+      }
+      post("/api/labors/figure/create", contents)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body).to include(
+        contents.merge(
+          project_name: "labors"
+        )
+      )
+    end
   end
 
   context '#update' do
@@ -72,6 +90,22 @@ describe FigureController do
       post("/api/labors/figure/999999999/update", contents)
 
       expect(last_response.status).to eq(404)
+    end
+
+    it 'updates an existing figure with tags' do
+      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
+      auth_header(:viewer)
+      contents = { tags: ['private'] }
+      post("/api/labors/figure/#{figure.figure_id}/update", contents)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body).to include(
+        figure_id: 1,
+        inputs: {},
+        project_name: "labors",
+        tags: ['private'],
+        workflow_name: "reubens"
+      )
     end
   end
 
