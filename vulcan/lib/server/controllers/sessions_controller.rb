@@ -33,6 +33,9 @@ class SessionsController < Vulcan::Controller
 
   def status
     success_json(status_payload)
+  rescue => e
+    Vulcan.instance.logger.log_error(e)
+    raise Etna::BadRequest.new(e.message)
   end
 
   def status_payload(build_target_cache: {})

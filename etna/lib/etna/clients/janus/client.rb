@@ -10,8 +10,7 @@ module Etna
       def get_project(get_project_request = GetProjectRequest.new)
         json = nil
         @etna_client.get(
-          "/project/#{get_project_request.project_name}",
-          get_project_request) do |res|
+          "/api/admin/#{get_project_request.project_name}/info") do |res|
             json = JSON.parse(res.body, symbolize_names: true)
         end
 
@@ -20,23 +19,22 @@ module Etna
 
       def get_projects()
         json = nil
-        @etna_client.get(
-          "/projects") do |res|
-            json = JSON.parse(res.body, symbolize_names: true)
+        @etna_client.get('/api/user/projects') do |res|
+          json = JSON.parse(res.body, symbolize_names: true)
         end
 
         GetProjectsResponse.new(json)
       end
 
       def add_project(add_project_request = AddProjectRequest.new)
-        @etna_client.post('/add_project', add_project_request) do |res|
+        @etna_client.post('/api/admin/add_project', add_project_request) do |res|
           # Redirect, no response data
         end
       end
 
       def add_user(add_user_request = AddUserRequest.new)
         @etna_client.post(
-          "/add_user/#{add_user_request.project_name}",
+          "/api/admin/#{add_user_request.project_name}/add_user",
           add_user_request) do |res|
           # Redirect, no response data
         end
@@ -44,7 +42,7 @@ module Etna
 
       def update_permission(update_permission_request = UpdatePermissionRequest.new)
         @etna_client.post(
-          "/update_permission/#{update_permission_request.project_name}",
+          "/api/admin/#{update_permission_request.project_name}/update_permission",
           update_permission_request) do |res|
           # Redirect, no response data
         end
@@ -52,16 +50,7 @@ module Etna
 
       def refresh_token(refresh_token_request = RefreshTokenRequest.new)
         token = nil
-        @etna_client.get('/refresh_token', refresh_token_request) do |res|
-          token = res.body
-        end
-
-        TokenResponse.new(token)
-      end
-
-      def viewer_token(viewer_token_request = ViewerTokenRequest.new)
-        token = nil
-        @etna_client.get('/viewer_token', viewer_token_request) do |res|
+        @etna_client.post('/api/tokens/generate') do |res|
           token = res.body
         end
 
