@@ -9,7 +9,13 @@ import * as _ from 'lodash';
 import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
 
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
 import {makeStyles} from '@material-ui/core/styles';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {pushLocation} from 'etna-js/actions/location_actions';
 
@@ -38,6 +44,7 @@ import {
   VulcanSession
 } from '../../../api_types';
 import useUserHooks from '../../useUserHooks';
+import Button from '@material-ui/core/Button';
 
 const modalStyles = {
   content: {
@@ -57,6 +64,12 @@ const useStyles = makeStyles((theme) => ({
   titleText: {
     textOverflow: 'ellipsis',
     overflow: 'hidden'
+  },
+  tags: {
+    padding: '12.5px !important'
+  },
+  editTags: {
+    width: '600px'
   }
 }));
 
@@ -79,6 +92,7 @@ export default function SessionManager() {
   const {session, figure, committedStepPending} = state;
 
   const [tags, setTags] = useState<string[]>(figure.tags || []);
+  const [openTagEditor, setOpenTagEditor] = useState(false);
   const [localTitle, setLocalTitle] = useState(figure.title);
 
   const invoke = useActionInvoker();
@@ -229,6 +243,10 @@ export default function SessionManager() {
     requestPoll();
   }, [session, dispatch, requestPoll]);
 
+  const handleCloseEditTags = useCallback(() => {
+    setOpenTagEditor(false);
+  }, []);
+
   const running = state.pollingState > 0;
   const disableRunButton =
     complete || running || (hasPendingEdits && !committedStepPending);
@@ -326,14 +344,67 @@ export default function SessionManager() {
           />
         )}
         {editor ? (
-          <FlatButton
-            className='header-btn save'
-            icon='save'
-            label='Save'
-            title='Save current workflow parameters to current figure'
-            onClick={saveSession}
-            disabled={!canSave}
-          />
+          <>
+            <FlatButton
+              className='header-btn save'
+              icon='save'
+              label='Save'
+              title='Save current workflow parameters to current figure'
+              onClick={saveSession}
+              disabled={!canSave}
+            />
+            <FlatButton
+              className='header-btn public-private'
+              icon={`${isPublic ? 'lock' : 'unlock'}`}
+              label={`Make ${isPublic ? 'private' : 'public'}`}
+              title={`Make the current figure ${
+                isPublic ? 'private' : 'public'
+              }`}
+              onClick={() => setTags(isPublic ? [] : ['public'])}
+            />
+            <FlatButton
+              className='header-btn edit-tags'
+              icon='tags'
+              label='Edit tags'
+              title='Edit tags'
+              onClick={() => setOpenTagEditor(true)}
+            />
+            <Dialog
+              maxWidth='md'
+              open={openTagEditor}
+              onClose={handleCloseEditTags}
+            >
+              <DialogTitle id='tag-editor'>Edit Tags</DialogTitle>
+              <DialogContent className={classes.editTags}>
+                <Autocomplete
+                  fullWidth
+                  multiple
+                  freeSolo
+                  className='figure-edit-tag-autocomplete'
+                  classes={{
+                    input: classes.tags
+                  }}
+                  defaultValue={tags}
+                  id='figure-edit-tags-filter'
+                  options={tags}
+                  renderInput={(params: any) => (
+                    <TextField {...params} label='Tags' variant='outlined' />
+                  )}
+                  renderOption={(option, state) => <span>{option}</span>}
+                  filterOptions={(options, state) => {
+                    let regex = new RegExp(state.inputValue);
+                    return options.filter((o) => regex.test(o));
+                  }}
+                  onChange={(e, v) => setTags(v)}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseEditTags} color='primary'>
+                  Close
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </>
         ) : (
           <FlatButton
             className='header-btn copy'
@@ -344,15 +415,6 @@ export default function SessionManager() {
             disabled={!canSave}
           />
         )}
-        {editor ? (
-          <FlatButton
-            className='header-btn public-private'
-            icon={`${isPublic ? 'lock' : 'unlock'}`}
-            label={`Make ${isPublic ? 'private' : 'public'}`}
-            title={`Make the current figure ${isPublic ? 'private' : 'public'}`}
-            onClick={() => setTags(isPublic ? [] : ['public'])}
-          />
-        ) : null}
       </div>
       <div className='session-feed-container'>
         <InputFeed />

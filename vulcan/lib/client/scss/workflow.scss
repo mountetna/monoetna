@@ -177,6 +177,9 @@
       &.reset {
         color: dodgerblue;
       }
+      &.edit-tags {
+        color: dodgerblue;
+      }
 
       &.disabled {
         &:hover {
@@ -484,6 +487,14 @@
   .handsontable {
     .wtHolder {
       width: auto !important;
+    }
+  }
+}
+
+.figure-edit-tag-autocomplete {
+  label {
+    &:not(.MuiInputLabel-shrink) {
+      padding-top: 7px;
     }
   }
 }
