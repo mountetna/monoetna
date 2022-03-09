@@ -14,7 +14,6 @@ export default function StringInput({onChange, label, minWidth, data, ...props}:
         value={value}
         multiline
         label={label}
-        variant="outlined"
         InputLabelProps={{ shrink: true }}
         onChange={(event) => onChange(some(event.target.value))}
         size="small"
