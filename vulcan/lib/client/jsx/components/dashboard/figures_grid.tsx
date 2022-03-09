@@ -16,7 +16,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
-import {VulcanFigure, VulcanFigureSession} from '../../api_types';
+import {VulcanFigureSession} from '../../api_types';
 import FigureCard from './figure';
 import Grid from '@material-ui/core/Grid';
 
