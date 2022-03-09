@@ -17,6 +17,7 @@ services:
     command: echo initialized
     image: etna-base
     volumes:
+      - /home/home/etna.yml:/root/etna.yml
       - .:/app:cached
       - etna-app-gems:/app/vendor/bundle:rw
       - ../docker/etna-base/entrypoints:/entrypoints:ro
