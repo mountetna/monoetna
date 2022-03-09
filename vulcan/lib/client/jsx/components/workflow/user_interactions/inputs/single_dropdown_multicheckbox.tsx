@@ -40,7 +40,6 @@ function DropdownCheckboxCombo({
           renderInput={(params:any) => (
             <TextField 
               {...params}
-              variant="outlined"
               size="small"/>
             )}
         />

@@ -63,7 +63,6 @@ function LeafOptions({
       renderInput={(params:any) => (
         <TextField 
           {...params}
-          variant="outlined"
           size="small"/>
         )}
     />
@@ -132,7 +131,6 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
                   renderInput={(params:any) => (
                     <TextField 
                       {...params}
-                      variant="outlined"
                       size="small"/>
                     )}
                 />

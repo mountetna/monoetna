@@ -32,7 +32,6 @@ export default function SelectAutocompleteInput({data, label, minWidth, clearabl
         <TextField 
           {...params}
           label={disp_label}
-          variant="outlined"
           size="small"
           InputLabelProps={{ shrink: true }}/>
         )}
