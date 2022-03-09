@@ -42,7 +42,7 @@ steps:
     label: 'Create Plot'
     in:
       plot_setup: fill_plot_options/plot_setup
-      data_frame: review_data/calculated_data
+      data_frame: get_data/data_frame
     out: [plot.json]
   show_plot:
     run: ui-outputs/plotly.cwl
