@@ -1,0 +1,173 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.26.0
+    method: GET
+    uri: https://janus.ucsf.edu/api/tokens/nonce
+  response:
+    body:
+      string: MjAyMi0wMi0wNFQwMTo0MDoyOCswMDowMC44OWZjYTFmYzQxNmVjYzI3ODU0ZTAxODFiNGNiYjUwNTkwNjlhMmE3NDBjM2ExYWY3ZTg3Mzc2N2Q2ZjUzOWFl
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Length:
+      - '120'
+      Content-Type:
+      - text/plain; charset=UTF-8
+      Date:
+      - Fri, 04 Feb 2022 01:40:28 GMT
+      Keep-Alive:
+      - timeout=5, max=100
+      Server:
+      - Apache
+      Service-Worker-Allowed:
+      - /
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"token_type": "task", "project_name": "mvir1", "ready_only": true}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '67'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.26.0
+      authorization:
+      - XXX-Auth
+    method: POST
+    uri: https://janus.ucsf.edu/api/tokens/generate
+  response:
+    body:
+      string: eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6InphY2hhcnkuY29sbGluc0B1Y3NmLmVkdSIsIm5hbWUiOiJaYWNoYXJ5IENvbGxpbnMiLCJwZXJtIjoiZTptdmlyMSIsImZsYWdzIjoiaW5nZXN0O3Z1bGNhbjt0aW11cmFkdmFuY2VkIiwiZXhwIjoxNjQ0NTQzNjMyLCJ0YXNrIjp0cnVlfQ.WtdlRpgsF85DNmNMS7VvJhquh99MqhnistCmMT7NfVwbJu993id1CFmt3LmwNQufhD0Tn6kfdeaSkS2tyd2xkbwFIe6OtigFk-TrgVIQRvW0TsljL4lGQmmS9Yz6dpUcB7rs8iaoHj_sTy5lygsFgpovk47NHxWWQ-neEvuydYhkbPKTgJVNj260b0yClQ2ukQuYdIzRUBB8OPkCtHOFmU4LrCBO-NWDt85TpbHEWTffQE3oK2K86d355t9zm5wg3Kol7HIzq5S_iPcoym5BFl4WiHQVETPbtSPrL6r3y5p57l6BKxumnCTygoFyYNw0mBkCU23HePIMyaNmsu-j2s5-X8D1kOr0O_ANjAWSh4pkW2Hlm88mTm3EW6Wtfen0UxrTTsfb_IjvpdGJJaByWjkLa1RQF8QObdyf0TANx1Eva3J0CZrbpLKQW1Xrvw6mKnSA_z6xGx_wrrMz74wPjLmc-Q_NNYkf8o_B6ZBfKwgpKsq4POxKC7W6OR96HoATHlAy5cr671gTNsgfUHQ0ZppqXHZ4Jqau5-h-RsdlKfjj4tmwbCSycerg7qGcUUW3nRuDkzmjGADIqhMC0oOyCOjqQeq9ZwlpNyE5KJzcQOWdp2lyj2mr0J7aWZkGV6EV8NtW4AlWPfOp4cz548rDWpodT7RBV0834iiiWxy4Hho
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Length:
+      - '899'
+      Content-Type:
+      - text/plain; charset=UTF-8
+      Date:
+      - Fri, 04 Feb 2022 01:40:32 GMT
+      Keep-Alive:
+      - timeout=5, max=100
+      Server:
+      - Apache
+      Service-Worker-Allowed:
+      - /
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.26.0
+      authorization:
+      - XXX-Auth
+    method: GET
+    uri: https://metis.ucsf.edu/mvir1/list/data
+  response:
+    body:
+      string: '{"files":[],"folders":[{"folder_name":"bulk_RNASeq","bucket_name":"data","folder_path":"bulk_RNASeq","project_name":"mvir1","read_only":false,"updated_at":"2020-09-03T02:59:24+00:00","created_at":"2020-09-03T02:59:24+00:00","author":"arjunarkal.rao@ucsf.edu|Arjun
+        Rao","id":50423},{"folder_name":"cytof","bucket_name":"data","folder_path":"cytof","project_name":"mvir1","read_only":false,"updated_at":"2020-07-08T16:20:12+00:00","created_at":"2020-07-08T16:20:12+00:00","author":"leonard.lupin-jimenez@ucsf.edu|Leonard
+        Lupin-Jimenez","id":47628},{"folder_name":"cytokine","bucket_name":"data","folder_path":"cytokine","project_name":"mvir1","read_only":false,"updated_at":"2020-07-29T15:26:29+00:00","created_at":"2020-07-29T15:26:29+00:00","author":"gabriela.fragiadakis@ucsf.edu|Gabriela
+        Fragiadakis","id":49533},{"folder_name":"PhIP_Seq","bucket_name":"data","folder_path":"PhIP_Seq","project_name":"mvir1","read_only":false,"updated_at":"2021-04-21T23:47:21+00:00","created_at":"2021-04-21T23:47:21+00:00","author":"arjunarkal.rao@ucsf.edu|Arjun
+        Rao","id":92121},{"folder_name":"single_cell_BCR","bucket_name":"data","folder_path":"single_cell_BCR","project_name":"mvir1","read_only":false,"updated_at":"2020-11-23T13:22:13+00:00","created_at":"2020-11-23T13:22:13+00:00","author":"arjunarkal.rao@ucsf.edu|Arjun
+        Rao","id":58747},{"folder_name":"single_cell_CITE","bucket_name":"data","folder_path":"single_cell_CITE","project_name":"mvir1","read_only":false,"updated_at":"2020-11-23T13:22:04+00:00","created_at":"2020-11-23T13:22:04+00:00","author":"arjunarkal.rao@ucsf.edu|Arjun
+        Rao","id":58745},{"folder_name":"single_cell_GEX","bucket_name":"data","folder_path":"single_cell_GEX","project_name":"mvir1","read_only":false,"updated_at":"2020-05-01T11:07:08+00:00","created_at":"2020-05-01T11:07:08+00:00","author":"arjunarkal.rao@ucsf.edu|Arjun
+        Rao","id":2772},{"folder_name":"single_cell_TCR","bucket_name":"data","folder_path":"single_cell_TCR","project_name":"mvir1","read_only":false,"updated_at":"2020-11-23T13:22:10+00:00","created_at":"2020-11-23T13:22:10+00:00","author":"arjunarkal.rao@ucsf.edu|Arjun
+        Rao","id":58746},{"folder_name":"Whole_Genome_Seq","bucket_name":"data","folder_path":"Whole_Genome_Seq","project_name":"mvir1","read_only":false,"updated_at":"2021-06-07T20:30:06+00:00","created_at":"2021-06-07T20:30:06+00:00","author":"arjunarkal.rao@ucsf.edu|Arjun
+        Rao","id":100844}]}'
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Length:
+      - '2402'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 04 Feb 2022 01:40:36 GMT
+      Keep-Alive:
+      - timeout=5, max=100
+      Server:
+      - Apache
+      Service-Worker-Allowed:
+      - /
+      Set-Cookie:
+      - METIS_UID=73935ea2fabb06970d6a35ca634a77d9; domain=ucsf.edu; path=/; expires=Sat,
+        05 Feb 2022 01:40:36 GMT; secure; SameSite=Strict
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Cookie:
+      - METIS_UID=73935ea2fabb06970d6a35ca634a77d9
+      User-Agent:
+      - python-requests/2.26.0
+      authorization:
+      - XXX-Auth
+    method: GET
+    uri: https://metis.ucsf.edu/mvir1/list/data/bulk_RNASeq
+  response:
+    body:
+      string: '{"files":[],"folders":[{"folder_name":"metadata","bucket_name":"data","folder_path":"bulk_RNASeq/metadata","project_name":"mvir1","read_only":false,"updated_at":"2021-06-04T23:31:36+00:00","created_at":"2021-06-04T23:31:36+00:00","author":"arjunarkal.rao@ucsf.edu|Arjun
+        Rao","id":100498},{"folder_name":"processed","bucket_name":"data","folder_path":"bulk_RNASeq/processed","project_name":"mvir1","read_only":false,"updated_at":"2020-09-03T02:59:43+00:00","created_at":"2020-09-03T02:59:43+00:00","author":"arjunarkal.rao@ucsf.edu|Arjun
+        Rao","id":50425},{"folder_name":"raw","bucket_name":"data","folder_path":"bulk_RNASeq/raw","project_name":"mvir1","read_only":false,"updated_at":"2020-09-03T02:59:27+00:00","created_at":"2020-09-03T02:59:27+00:00","author":"arjunarkal.rao@ucsf.edu|Arjun
+        Rao","id":50424}]}'
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Length:
+      - '809'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 04 Feb 2022 01:40:36 GMT
+      Keep-Alive:
+      - timeout=5, max=99
+      Server:
+      - Apache
+      Service-Worker-Allowed:
+      - /
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+    status:
+      code: 200
+      message: OK
+version: 1

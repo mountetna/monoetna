@@ -22,12 +22,22 @@ function MultiLineOutput(iterator) {
 }
 import {makeStyles} from '@material-ui/core/styles';
 
-const useStyles = makeStyles( theme => ({
+const useStyles = makeStyles((theme) => ({
   card: {
     margin: '2rem',
     border: '1px solid lightgray',
     boxShadow: '0 0 0 15px #eee, 0 0 4px 15px #aaa',
-    width: '240px',
+    width: '260px',
+    height: '300px',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column'
+  },
+  selectedCard: {
+    margin: '2rem',
+    border: '1px solid lightgray',
+    boxShadow: '0 0 0 15px darkgray, 0 0 4px 15px darkgray',
+    width: '260px',
     height: '300px',
     cursor: 'pointer',
     display: 'flex',
@@ -64,8 +74,7 @@ const useStyles = makeStyles( theme => ({
     paddingRight: '8px',
     paddingTop: '4px',
     textAlign: 'right',
-    color: 'darkblue',
-
+    color: 'darkblue'
   },
   cardtags: {
     fontSize: '1em'
@@ -81,10 +90,13 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-export default function Card({workflow, className, onClick}) {
+export default function Card({workflow, onClick, selected}) {
   const classes = useStyles();
   return (
-    <div className={`${className} ${classes.card}`} onClick={onClick}>
+    <div
+      className={selected ? classes.selectedCard : classes.card}
+      onClick={onClick}
+    >
       <figure className={classes.image}>
         <ImageMemo
           src={`/images/${workflow.image || 'default.png'}`}
@@ -100,7 +112,9 @@ export default function Card({workflow, className, onClick}) {
         </div>
         <div className={classes.row}>
           <div className={classes.label}>Authors</div>
-          <div className={classes.value}>{MultiLineOutput(workflow.authors)}</div>
+          <div className={classes.value}>
+            {MultiLineOutput(workflow.authors)}
+          </div>
         </div>
         <div className={classes.row}>
           <div className={classes.label}>Last Modified</div>
@@ -108,7 +122,7 @@ export default function Card({workflow, className, onClick}) {
         </div>
         <div className={classes.row}>
           <div className={classes.label}>
-            <Icon className='card-tags' icon='tags'/> Tags
+            <Icon className='card-tags' icon='tags' /> Tags
           </div>
           <div className={classes.value}>{MultiLineOutput(workflow.tags)}</div>
         </div>

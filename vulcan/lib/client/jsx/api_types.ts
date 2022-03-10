@@ -26,7 +26,7 @@ export const TYPE = {
   Y_PLOTLY: 'y-plotly',
   DIFF_EXP_SC: 'diff-exp-sc',
   DATA_TRANSFORMATION: 'data-transformation',
-  ANY_VIZ: 'any-viz',
+  ANY_VIZ: 'any-viz'
 };
 
 // CWL Step RUN Sentinels
@@ -107,6 +107,7 @@ export interface Workflow {
   displayName?: string;
   description?: string;
   tags?: string[];
+  lastModified?: string;
 }
 
 export const defaultWorkflow: Workflow = {
@@ -155,10 +156,12 @@ export const defaultSessionStatusResponse = {
 export type SessionStatusResponse = typeof defaultSessionStatusResponse;
 
 export interface VulcanFigure {
-  figure_id: number | null;
+  figure_id?: number | null;
   inputs: {[k: string]: any};
   title?: string | null;
   author?: string;
+  thumbnail?: string;
+  tags?: string[];
 }
 
 export type VulcanFigureSession = VulcanSession & VulcanFigure;
