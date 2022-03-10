@@ -177,6 +177,7 @@ describe('useSessionStorage', () => {
             b: 'abdef'
           },
           key: 'session-key',
+          tags: [],
           project_name: 'test3',
           workflow_name: 'test'
         });

@@ -23,41 +23,50 @@ class Polyphemus
   #   the Polyphemus database.
   class RsyncFilesEtl < Etl
     # Subclasses should provide default values here, since commands are constructed
-    def initialize(project_bucket_pairs:, host:, username:, password:, root:)
-      file_cursors = project_bucket_pairs.map do |project_name, bucket_name|
-        RsyncFilesEtlCursor.new(job_name: self.class.name, project_name: project_name, bucket_name: bucket_name).load_from_db
-      end
+    def initialize(project_bucket_pairs:, host:, username:, password:, root:, scanner: build_scanner, cursor_env: {})
+      @remote_path = "#{username}@#{host}:#{root}"
+      @password = password
+      @username = username
 
-      remote_path = "#{username}@#{host}:#{root}"
+      cursors = cursors_from_pairs(
+        pairs: project_bucket_pairs,
+        pair_keys: %w[project_name bucket_name],
+        cls: RsyncFilesEtlCursor,
+        cursor_env: cursor_env
+      )
 
       super(
-        cursor_group: EtlCursorGroup.new(file_cursors),
-        scanner: FilenameScanBasedEtlScanner.new.result_updated_at do |change|
-          change.timestamp
-        end.result_id do |change|
-          "#{host}://#{change.filename}"
-        end.execute_batch_find do
-          # RSync just lists everything at once, so
-          #   we don't increment or batch any requests.
-          results = Rsync.run(
-            remote_path,
-            ".",
-            ["-avzh",
-             "--dry-run",
-             "--itemize-changes",
-             "--exclude=test",
-             "--exclude=Reports",
-             "--exclude=Stats",
-             "--rsh=\"/usr/bin/sshpass -p #{password} ssh -l #{username}\""]
-          )
-
-          raise results.error unless results.success?
-
-          results.changes.select do |change|
-            :file == change.file_type
-          end
-        end,
+        cursors: cursors,
+        scanner: scanner,
       )
+    end
+
+    def build_scanner
+      FilenameScanBasedEtlScanner.new.result_updated_at do |change|
+        change.timestamp
+      end.result_id do |change|
+        "#{host}://#{change.filename}"
+      end.execute_batch_find do
+        # RSync just lists everything at once, so
+        #   we don't increment or batch any requests.
+        results = Rsync.run(
+          @remote_path,
+          ".",
+          ["-avzh",
+            "--dry-run",
+            "--itemize-changes",
+            "--exclude=test",
+            "--exclude=Reports",
+            "--exclude=Stats",
+            "--rsh=\"/usr/bin/sshpass -p #{@password} ssh -l #{@username}\""]
+        )
+
+        raise results.error unless results.success?
+
+        results.changes.select do |change|
+          :file == change.file_type
+        end
+      end
     end
   end
 end

@@ -434,7 +434,8 @@ export function selectFigure(
     figure_id: figureResponse.figure_id,
     title: figureResponse.title,
     author: figureResponse.author,
-    inputs: {...figureResponse.inputs}
+    inputs: {...figureResponse.inputs},
+    tags: [...(figureResponse.tags || [])]
   };
 }
 

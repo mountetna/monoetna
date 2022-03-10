@@ -18,10 +18,12 @@ if [ -n "$USE_MOCKS" ]; then
 #  if [ -f "$AIRFLOW_GIT_TEST_PK_FILE" ]; then
 #    export RECORD_CENSURE="${}"
 #  fi
-  loadRecording /opt/airflow/plugins/etna/tests/pytest.recording
+  loadRecording /opt/airflow/providers/etna/etna/tests/pytest.recording
   echo $PATH
 fi
 
+
+cp /opt/airflow/.airflowignore $(airflow config get-value core dags_folder)/.airflowignore
 
 echo $@
 exec /entrypoint $@

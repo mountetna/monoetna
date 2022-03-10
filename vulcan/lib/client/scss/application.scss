@@ -11,34 +11,34 @@
  * file per style scope.
  */
 
-@import "~code-mirror/codemirror";
+@import '~code-mirror/codemirror';
 
-@import "globals";
-@import "button";
-@import "logo";
-@import "navbar";
-@import "messages";
-@import "browser";
-@import "attribute";
-@import "datepicker";
-@import "project";
-@import "spectrum";
-@import "search";
-@import "help";
-@import "metrics";
-@import "activity";
-@import "manifest";
-@import "dropdown";
-@import "list_selector";
-@import "toggle";
-@import "predicate";
-@import "home_page";
-@import "plots";
-@import "plotter";
-@import "workflow";
-@import "table";
-@import "panel";
-@import "clock";
+@import 'globals';
+@import 'button';
+@import 'logo';
+@import 'navbar';
+@import 'messages';
+@import 'browser';
+@import 'attribute';
+@import 'datepicker';
+@import 'project';
+@import 'spectrum';
+@import 'search';
+@import 'help';
+@import 'metrics';
+@import 'activity';
+@import 'manifest';
+@import 'dropdown';
+@import 'list_selector';
+@import 'toggle';
+@import 'predicate';
+@import 'home_page';
+@import 'plots';
+@import 'plotter';
+@import 'workflow';
+@import 'table';
+@import 'panel';
+@import 'clock';
 
 body {
   padding: 0px;
@@ -48,6 +48,7 @@ body {
 #root {
   height: 100%;
   width: 100%;
+  scrollbar-gutter: stable both-edges;
 
   #ui-container {
     height: 100%;
@@ -56,10 +57,10 @@ body {
 }
 
 a {
-	text-decoration: none;
-	color: darkgoldenrod;
+  text-decoration: none;
+  color: darkgoldenrod;
 }
 
 #browse {
-	padding-left: 150px;
+  padding-left: 150px;
 }

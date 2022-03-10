@@ -9,7 +9,13 @@ import * as _ from 'lodash';
 import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
 
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
 import {makeStyles} from '@material-ui/core/styles';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {pushLocation} from 'etna-js/actions/location_actions';
 
@@ -17,6 +23,7 @@ import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 import Link from '@material-ui/core/Link';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import {
@@ -31,8 +38,13 @@ import {workflowName} from '../../../selectors/workflow_selectors';
 import {useWorkflow} from '../../../contexts/workflow_context';
 import {readTextFile, downloadBlob} from 'etna-js/utils/blob';
 import {defaultSession} from '../../../reducers/vulcan_reducer';
-import {VulcanFigureSession, VulcanSession} from '../../../api_types';
-import Tooltip from '@material-ui/core/Tooltip';
+import {
+  VulcanFigure,
+  VulcanFigureSession,
+  VulcanSession
+} from '../../../api_types';
+import useUserHooks from '../../useUserHooks';
+import Button from '@material-ui/core/Button';
 
 const modalStyles = {
   content: {
@@ -52,6 +64,12 @@ const useStyles = makeStyles((theme) => ({
   titleText: {
     textOverflow: 'ellipsis',
     overflow: 'hidden'
+  },
+  tags: {
+    padding: '12.5px !important'
+  },
+  editTags: {
+    width: '600px'
   }
 }));
 
@@ -68,10 +86,13 @@ export default function SessionManager() {
     clearLocalSession
   } = useContext(VulcanContext);
   const {workflow, hasPendingEdits, complete} = useWorkflow();
+  const {canEdit} = useUserHooks();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
   const {session, figure, committedStepPending} = state;
 
+  const [tags, setTags] = useState<string[]>(figure.tags || []);
+  const [openTagEditor, setOpenTagEditor] = useState(false);
   const [localTitle, setLocalTitle] = useState(figure.title);
 
   const invoke = useActionInvoker();
@@ -92,6 +113,65 @@ export default function SessionManager() {
     setSaving(false);
   };
 
+  const handleSaveOrCreate = useCallback(
+    (figure: VulcanFigure) => {
+      let params = {
+        ...figure,
+        workflow_name: name,
+        inputs: {...session.inputs},
+        title: localTitle,
+        tags: [...tags]
+      };
+
+      if (!params.title) {
+        params.title = prompt('Set a title for this figure');
+        if (!params.title) return;
+      }
+
+      setSaving(true);
+      if (params.figure_id) {
+        showErrors(
+          updateFigure(session.project_name, params)
+            .then((figureResponse) => {
+              dispatch(setSessionAndFigure(figureResponse));
+            })
+            .finally(cancelSaving)
+        );
+      } else {
+        showErrors(
+          createFigure(session.project_name, params).then(
+            (figure: VulcanFigureSession) => {
+              cancelSaving();
+              clearLocalSession(
+                figure.workflow_name,
+                figure.project_name,
+                null
+              );
+              invoke(
+                pushLocation(
+                  `/${figure.project_name}/figure/${figure.figure_id}`
+                )
+              );
+            }
+          )
+        );
+      }
+    },
+    [
+      name,
+      localTitle,
+      session,
+      tags,
+      cancelSaving,
+      showErrors,
+      updateFigure,
+      invoke,
+      dispatch,
+      clearLocalSession,
+      pushLocation
+    ]
+  );
+
   const saveSession = useCallback(() => {
     if (hasPendingEdits) {
       if (!confirm('Pending edits will be discarded when saving. Proceed?')) {
@@ -99,53 +179,18 @@ export default function SessionManager() {
       }
     }
 
-    let params = {
-      ...figure,
-      workflow_name: name,
-      inputs: {...session.inputs},
-      title: localTitle
+    handleSaveOrCreate(figure);
+  }, [hasPendingEdits, handleSaveOrCreate, figure]);
+
+  const copyFigure = useCallback(() => {
+    let clone = {
+      ...figure
     };
 
-    if (!params.title) {
-      params.title = prompt('Set a title for this figure');
-      if (!params.title) return;
-    }
+    delete clone.figure_id;
 
-    setSaving(true);
-    if (params.figure_id) {
-      showErrors(
-        updateFigure(session.project_name, params)
-          .then((figureResponse) => {
-            dispatch(setSessionAndFigure(figureResponse));
-          })
-          .finally(cancelSaving)
-      );
-    } else {
-      showErrors(
-        createFigure(session.project_name, params).then(
-          (figure: VulcanFigureSession) => {
-            cancelSaving();
-            clearLocalSession(figure.workflow_name, figure.project_name, null);
-            invoke(
-              pushLocation(`/${figure.project_name}/figure/${figure.figure_id}`)
-            );
-          }
-        )
-      );
-    }
-  }, [
-    hasPendingEdits,
-    session,
-    name,
-    figure,
-    invoke,
-    createFigure,
-    updateFigure,
-    showErrors,
-    dispatch,
-    localTitle,
-    clearLocalSession
-  ]);
+    handleSaveOrCreate(clone);
+  }, [figure, handleSaveOrCreate]);
 
   const saveSessionToBlob = useCallback(() => {
     if (hasPendingEdits) {
@@ -198,6 +243,10 @@ export default function SessionManager() {
     requestPoll();
   }, [session, dispatch, requestPoll]);
 
+  const handleCloseEditTags = useCallback(() => {
+    setOpenTagEditor(false);
+  }, []);
+
   const running = state.pollingState > 0;
   const disableRunButton =
     complete || running || (hasPendingEdits && !committedStepPending);
@@ -214,9 +263,19 @@ export default function SessionManager() {
     return localTitle !== figure.title;
   }, [figure, localTitle]);
 
+  const tagsChanged = useMemo(() => {
+    return !_.isEqual(tags, figure.tags);
+  }, [figure, tags]);
+
   const canSave = useMemo(() => {
-    return (titleChanged || inputsChanged) && !(running || saving);
-  }, [running, saving, inputsChanged, titleChanged]);
+    return (
+      (titleChanged || inputsChanged || tagsChanged) && !(running || saving)
+    );
+  }, [running, saving, inputsChanged, titleChanged, tagsChanged]);
+
+  const editor = useMemo(() => canEdit(figure) || !figure.figure_id, [figure]);
+
+  const isPublic = useMemo(() => (tags || []).includes('public'), [tags]);
 
   if (!name || !session) return null;
 
@@ -284,14 +343,78 @@ export default function SessionManager() {
             disabled={disableRunButton}
           />
         )}
-        <FlatButton
-          className='header-btn save'
-          icon='save'
-          label='Save'
-          title='Save current workflow parameters to current figure'
-          onClick={saveSession}
-          disabled={!canSave}
-        />
+        {editor ? (
+          <>
+            <FlatButton
+              className='header-btn save'
+              icon='save'
+              label='Save'
+              title='Save current workflow parameters to current figure'
+              onClick={saveSession}
+              disabled={!canSave}
+            />
+            <FlatButton
+              className='header-btn public-private'
+              icon={`${isPublic ? 'lock' : 'unlock'}`}
+              label={`Make ${isPublic ? 'private' : 'public'}`}
+              title={`Make the current figure ${
+                isPublic ? 'private' : 'public'
+              }`}
+              onClick={() => setTags(isPublic ? [] : ['public'])}
+            />
+            <FlatButton
+              className='header-btn edit-tags'
+              icon='tags'
+              label='Edit tags'
+              title='Edit tags'
+              onClick={() => setOpenTagEditor(true)}
+            />
+            <Dialog
+              maxWidth='md'
+              open={openTagEditor}
+              onClose={handleCloseEditTags}
+            >
+              <DialogTitle id='tag-editor'>Edit Tags</DialogTitle>
+              <DialogContent className={classes.editTags}>
+                <Autocomplete
+                  fullWidth
+                  multiple
+                  freeSolo
+                  className='figure-edit-tag-autocomplete'
+                  classes={{
+                    input: classes.tags
+                  }}
+                  defaultValue={tags}
+                  id='figure-edit-tags-filter'
+                  options={tags}
+                  renderInput={(params: any) => (
+                    <TextField {...params} label='Tags' variant='outlined' />
+                  )}
+                  renderOption={(option, state) => <span>{option}</span>}
+                  filterOptions={(options, state) => {
+                    let regex = new RegExp(state.inputValue);
+                    return options.filter((o) => regex.test(o));
+                  }}
+                  onChange={(e, v) => setTags(v)}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseEditTags} color='primary'>
+                  Close
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </>
+        ) : (
+          <FlatButton
+            className='header-btn copy'
+            icon='copy'
+            label='Copy'
+            title='Copy current workflow parameters to new figure'
+            onClick={copyFigure}
+            disabled={!canSave}
+          />
+        )}
       </div>
       <div className='session-feed-container'>
         <InputFeed />
