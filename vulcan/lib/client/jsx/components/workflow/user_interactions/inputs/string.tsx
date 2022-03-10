@@ -17,7 +17,7 @@ export default function StringInput({onChange, label, minWidth, data, ...props}:
         InputLabelProps={{ shrink: true }}
         onChange={(event) => onChange(some(event.target.value))}
         size="small"
-        style={{minWidth: minWidth || 200}}
+        style={{minWidth: minWidth || 200, paddingTop: label ? 8 : 0}}
       />
     </div>
   )

@@ -49,7 +49,7 @@ export function subsetDataFramePiece(
   
   const meat = (values && values['methods']) ? (
     <div style={{
-      paddingLeft: "5px",
+      paddingLeft: "15px",
       paddingTop: "2px",}}>
       {values['methods'].map((def, index) => {
         return singleMethod(
