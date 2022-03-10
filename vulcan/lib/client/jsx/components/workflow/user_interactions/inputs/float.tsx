@@ -22,7 +22,7 @@ export function NumberInput(
       const parsed = parser(event.target.value)
       if (isNaN(parsed)) {
         setInputState({text: event.target.value, hasError: true})
-        onChange(null)
+        onChange([null])
       } else {
         setInputState({text: event.target.value, hasError: false})
         onChange(some(parsed))
@@ -36,9 +36,10 @@ export function NumberInput(
     error={inputState.hasError}
     onChange={onNewFloat}
     size="small"
-    style={{minWidth: minWidth || 200}}
+    style={{minWidth: minWidth || 200, paddingTop: label ? 8 : 0}}
   />;
 };
+
 function parseIntBetter(s: string){
   const parsed = parseInt(s, 10);
   return parsed + "" == s ? parsed : NaN;
