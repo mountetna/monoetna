@@ -7,9 +7,9 @@ import * as _ from 'lodash';
 import {DataEnvelope, WithInputParams} from './input_types';
 import { useSetsDefault } from './useSetsDefault';
 import { some } from '../../../../selectors/maybe';
-import { Button, Slider } from '@material-ui/core';
+import { Accordion, AccordionDetails, AccordionSummary, Grid, Typography } from '@material-ui/core';
 import { pick } from 'lodash';
-import { key_wrap, stringPiece, dropdownPiece, MultiselectPiece, checkboxPiece, sliderPiece } from './user_input_pieces';
+import { stringPiece, dropdownPiece, MultiselectPiece, checkboxPiece, sliderPiece } from './user_input_pieces';
 import { subsetDataFramePiece } from './subsetDataFrame_piece';
 
 /*
@@ -95,49 +95,57 @@ function VisualizationUI({
   };
 
   // Plot Options
-  const base = useMemo(() => {
-    return (plotType!=null) ? input_sets[plotType]['main'] as string[] : [] as string[]
-  }, [plotType])
-  
-  const shownSetupValues = useMemo(() => {
-    let initial = showAdvanced ? {...value} : pick(value, ...base)
-    if (Object.keys(initial).includes('plot_type')) {delete initial['plot_type']}
-    return remove_hidden(initial, hide);
-  }, [value, showAdvanced, hide])
-  
-  const showHide: string = useMemo(() => {
-    return (showAdvanced ? 'Hide' : 'Show')
-  }, [showAdvanced])
-  
-  let inner = null;
-  if (plotType != null) {
-    
-    inner = (
-      <div>
-        {Object.entries(shownSetupValues).map(([key, val]) => {
-          return component_use(key, val, extra_inputs[key])
-        })}
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => {setShowAdvanced(!showAdvanced)}}
-          >
-          {showHide} Advanced Options
-        </Button>
-      </div>
-    )
-  }
-  
   const pickPlot = (setPlotType!=null) ? null : (
     <div>
       {dropdownPiece(
       'plot_type', updatePlotType, plotType, "Plot Type",
       Object.keys(input_sets), false)}
-      <hr/>
     </div>
   )
   
-  // console.log(props.value);
+  const shownSetupValues = useMemo(() => {
+    if (plotType==null) return {}
+    const initial = {...value}
+    if (Object.keys(initial).includes('plot_type')) {delete initial['plot_type']}
+    return remove_hidden(initial, hide);
+  }, [value, showAdvanced, hide])
+  console.log('shownSetupValues', shownSetupValues)
+  
+  function InputWrapper({title, values}: {title:string, values: DataEnvelope<any>}) {
+    const [open, setOpen] = useState(title=='primary features')
+    return (
+      <Accordion elevation={0} expanded={open} onChange={ () => setOpen(!open) }>
+        <AccordionSummary
+          style={{background: '#eee', cursor: 'pointer', minHeight: '32px',  height: '32px'}}>
+          <Typography>{title}</Typography>
+        </AccordionSummary>
+        <AccordionDetails
+          style={{padding: 0, borderBottom: '1px solid #eee'}}>
+          <Grid container direction='column'>
+          {Object.entries(values).map(([key, val]) => {
+            return component_use(key, val, extra_inputs[key])
+          })}
+          </Grid>
+        </AccordionDetails>
+      </Accordion>
+    )
+  }
+  
+  let inner = null;
+  if (plotType != null) {
+    
+    inner = (
+      <Grid container direction='column'>
+        {Object.entries(input_sets[plotType]).map(([group_name, val]) => {
+          const group_values: DataEnvelope<any> = pick(shownSetupValues,val)
+          console.log('group_values', group_values)
+          return (Object.keys(group_values).length > 0) ? <InputWrapper title={group_name} values={group_values}/> : null
+        })}
+      </Grid>
+    )
+  }
+  
+  console.log(props.value);
   
   return (
     <div>
@@ -163,19 +171,25 @@ const remove_hidden = (vals: DataEnvelope<any>, hide: string[] | null | undefine
   return values;
 };
 
-const input_sets: DataEnvelope<DataEnvelope<string[]|DataEnvelope<any>>> = {
+const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   'scatter_plot': {
-    'main': ["x_by", "y_by", "color_by"],
-    'adv': ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color', 'x_scale', 'y_scale', 'rows_use']
+    'primary features': ["x_by", "y_by", "color_by", 'size'],
+    'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    'point rendering': ['color_order', 'order_when_continuous_color'],
+    'coordinates': ['x_scale', 'y_scale'],
+    'data focus': ['rows_use']
     //'default_adjust': {'color_by': "make"}
   },
   'bar_plot': {
-    'main': ["x_by", "y_by", "scale_by"],
-    'adv': ['plot_title', 'legend_title', 'xlab', 'ylab', 'rows_use']
+    'primary features': ["x_by", "y_by", "scale_by"],
+    'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    'data focus': ['rows_use']
   },
   'y_plot': {
-    'main': ["x_by", "y_by", "plots"],
-    'adv': ["color_by", 'plot_title', 'legend_title', 'xlab', 'ylab', 'y_scale', 'rows_use']
+    'primary features': ["x_by", "y_by", "plots", "color_by"],
+    'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    'coordinates': ['y_scale'],
+    'data focus': ['rows_use']
     //'default_adjust': {'color_by': "make"}
   }
 }
@@ -200,8 +214,8 @@ const defaults: DataEnvelope<any> = {
 
 function whichDefaults(plotType: string|null, preset: DataEnvelope<any> | null | undefined) {
   if (plotType == null) return {plot_type: plotType}
-    
-  const inputs = input_sets[plotType]['main'].concat(input_sets[plotType]['adv'])
+  
+  const inputs = Object.values(input_sets[plotType]).flat()
 
   let initial_vals = {...defaults};
   
@@ -211,14 +225,15 @@ function whichDefaults(plotType: string|null, preset: DataEnvelope<any> | null |
     if (!inputs.includes(def_keys[ind])) delete initial_vals[def_keys[ind]];
   }
   
-  // Replace any values if different default given for this plot type
-  if (input_sets[plotType]['default_adjust'] != null) {
-    const new_def_keys = Object.keys(input_sets[plotType]['default_adjust'])
-    const new_def_vals = Object.values(input_sets[plotType]['default_adjust'])
-    for (let ind = 0; ind < new_def_keys.length; ind++) {
-      initial_vals[new_def_keys[ind]]=new_def_vals[ind];
-    }
-  }
+  // // Replace any values if different default given for this plot type
+  // Broken during a redesign, but should be restorable easily!
+  // if (input_sets[plotType]['default_adjust'] != null) {
+  //   const new_def_keys = Object.keys(input_sets[plotType]['default_adjust'])
+  //   const new_def_vals = Object.values(input_sets[plotType]['default_adjust'])
+  //   for (let ind = 0; ind < new_def_keys.length; ind++) {
+  //     initial_vals[new_def_keys[ind]]=new_def_vals[ind];
+  //   }
+  // }
 
   // Add preset values / replace any default values.
   if (preset != null) {
