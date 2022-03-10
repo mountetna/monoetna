@@ -167,7 +167,7 @@ describe Etna::Server do
 
     header(*Etna::TestAuth.token_header(
       email: 'janus@two-faces.org',
-      perm: 'e:labors'
+      perm: 'e:labors',
     ))
     get('/test?project_name=labors')
 

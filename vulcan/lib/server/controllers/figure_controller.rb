@@ -28,15 +28,9 @@ class FigureController < Vulcan::Controller
         created_at: now,
         updated_at: now,
       }.update(
-        @params.slice(
-          :project_name,
-          :workflow_name,
-          :inputs,
-          :title
-        )
+        @params.slice(*figure_params)
       )
     )
-
     success_json(figure.to_hash)
   end
 
@@ -49,12 +43,7 @@ class FigureController < Vulcan::Controller
     raise Etna::NotFound unless figure
 
     figure.update(
-        @params.slice(
-          :project_name,
-          :workflow_name,
-          :inputs,
-          :title
-        )
+        @params.slice(*figure_params)
     )
 
     success_json(figure.to_hash)
@@ -71,6 +60,18 @@ class FigureController < Vulcan::Controller
     figure.delete
 
     success_json(figure.to_hash)
+  end
+
+  private
+
+  def figure_params
+    [
+      :project_name,
+      :workflow_name,
+      :inputs,
+      :title,
+      :tags
+    ]
   end
 end
 

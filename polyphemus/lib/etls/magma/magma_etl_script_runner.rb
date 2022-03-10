@@ -37,6 +37,7 @@ class Polyphemus
     end
   end
 
+  # TODO: Nuke all of this, fold the ipi flojo processing into airflow instead.
   class MagmaRecordScriptEtl < Polyphemus::MagmaRecordEtl
     def initialize(**args)
       super(**{project_model_pairs: [[script_runner.project_name, script_runner.model_name]]}.update(args))

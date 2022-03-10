@@ -11,6 +11,16 @@ describe Polyphemus::MetisFileEtl do
     etl_command.subcommands['test_metis_etl']
   end
 
+  def with_env(env)
+    old_env = ENV.to_h.dup
+    begin
+      ENV.update(env)
+      yield
+    ensure
+      ENV.clear.update(old_env)
+    end
+  end
+
   def run_etl_command(*args)
     cmd, args, kwds = etl_command.find_command(*args)
     cmd.execute(*args, **kwds)
@@ -34,6 +44,40 @@ describe Polyphemus::MetisFileEtl do
     def process(cursor, files)
       @process_calls ||= []
       @process_calls << [cursor.updated_at.dup, cursor.value.dup, files.dup]
+    end
+  end
+
+  describe 'for the tail etl' do
+    let(:etl_executor) do
+      etl_command.subcommands['metis_file_tail_etl']
+    end
+
+    def setup_client(metis_client)
+      etl_executor.subcommands['find_batch'].enable_from_environment
+      allow(etl_executor.subcommands['find_batch'].etl).to receive(:metis_client).and_return(metis_client)
+    end
+
+    it 'should select metis files from the env output a serialized version of each cursors batch' do
+      VCR.use_cassette('metis_file_etl_find_batch.e2e') do
+        with_env({
+          'ETL__LIMIT' => '100',
+          'ETL__PROJECT_BUCKET_PAIRS' => [['ipi', 'data'], ['mvir1', 'data']].to_json,
+          # Adjust these when re-recording to get a decent batch
+          'ETL__CURSOR_ENV__UPDATED_AT' => '2021-11-24T22:50:00-00:00',
+          'ETL__CURSOR_ENV__BATCH_END_AT' => '2021-11-24T22:52:00-00:00',
+        }) do
+          find_batch = etl_executor.subcommands['find_batch']
+          find_batch.enable_from_environment
+          # allow(find_batch).to receive(:dump_result)
+          metis_client = Etna::Clients::Metis.new(host: 'https://metis.ucsf.edu', token: ENV['TOKEN'] || TEST_TOKEN)
+          setup_client(metis_client)
+
+          run_etl_command('metis_file_tail_etl', 'find_batch', '--from-environment')
+
+          # TODO: Add expectations for the range selection
+          # expect(find_batch).to have_received(:dump_result)
+        end
+      end
     end
   end
 

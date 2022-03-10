@@ -1,1 +1,0 @@
-from etna.hooks.git import GitHook
