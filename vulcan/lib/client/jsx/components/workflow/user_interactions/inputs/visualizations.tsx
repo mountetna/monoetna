@@ -60,7 +60,7 @@ function VisualizationUI({
   const hide = useMemo(() => preset && Object.keys(preset), [preset]);
   const defaultValue = whichDefaults(setPlotType, preset);
   const value = useSetsDefault(defaultValue, props.value, onChange);
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [expandedDrawers, setExpandedDrawers] = useState(['primary features']);
   const plotType = (value && value['plot_type']) ? value['plot_type'] as string : null;
 
   const data_frame: DataEnvelope<any> = useMemo(() => {
@@ -108,19 +108,27 @@ function VisualizationUI({
     const initial = {...value}
     if (Object.keys(initial).includes('plot_type')) {delete initial['plot_type']}
     return remove_hidden(initial, hide);
-  }, [value, showAdvanced, hide])
+  }, [value, hide])
   console.log('shownSetupValues', shownSetupValues)
   
+  function toggleDrawerExpansion(drawerTitle: string) {
+    if (expandedDrawers.includes(drawerTitle)) {
+      setExpandedDrawers(expandedDrawers.filter(t => t!=drawerTitle))
+    } else {
+      setExpandedDrawers(expandedDrawers.concat(drawerTitle))
+    }
+  }
+  
   function InputWrapper({title, values}: {title:string, values: DataEnvelope<any>}) {
-    const [open, setOpen] = useState(title=='primary features')
+    const open = useMemo(() => expandedDrawers.includes(title), [expandedDrawers])
     return (
-      <Accordion elevation={0} expanded={open} onChange={ () => setOpen(!open) }>
+      <Accordion elevation={0} expanded={open} onChange={ () => toggleDrawerExpansion(title) }>
         <AccordionSummary
           style={{background: '#eee', cursor: 'pointer', minHeight: '32px',  height: '32px'}}>
           <Typography>{title}</Typography>
         </AccordionSummary>
         <AccordionDetails
-          style={{padding: 0, borderBottom: '1px solid #eee'}}>
+          style={{padding: 0, paddingLeft: 15, borderBottom: '1px solid #eee'}}>
           <Grid container direction='column'>
           {Object.entries(values).map(([key, val]) => {
             return component_use(key, val, extra_inputs[key])
