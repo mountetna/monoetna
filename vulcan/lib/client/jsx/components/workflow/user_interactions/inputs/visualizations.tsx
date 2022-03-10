@@ -1,7 +1,7 @@
 // Input component that takes nested object
 //   and shows the keys one level at a time.
 // Returns the last "Leaf" that the user selects.
-import React, {useMemo, useState} from 'react';
+import React, {Dispatch, PropsWithChildren, useMemo, useState} from 'react';
 import * as _ from 'lodash';
 
 import {DataEnvelope, WithInputParams} from './input_types';
@@ -73,6 +73,15 @@ function VisualizationUI({
     if (data_frame == null || data_frame == {}) return [];
     return Object.keys(data_frame)
   }, [data_frame]);
+
+  const extra_inputs = useExtraInputs(columns, data_frame);
+  
+  const shownSetupValues = useMemo(() => {
+    if (plotType==null) return {}
+    const initial = {...value}
+    if (Object.keys(initial).includes('plot_type')) {delete initial['plot_type']}
+    return remove_hidden(initial, hide);
+  }, [value, hide])
   
   const updatePlotType = (newType: string, key: string) => {
     onChange(some(whichDefaults(newType, preset)))
@@ -82,34 +91,6 @@ function VisualizationUI({
     prevValues[key] = newValue;
     onChange(some(prevValues));
   };
-
-  const extra_inputs = useExtraInputs(columns, data_frame);
-
-  // Component set constructor
-  const component_use = (key: string, value: any, extra_inputs: any) => {
-    
-    const comp_use: Function = comps[key]
-    return(
-      comp_use(key, updateValue, value, ...extra_inputs)
-    )
-  };
-
-  // Plot Options
-  const pickPlot = (setPlotType!=null) ? null : (
-    <div>
-      {dropdownPiece(
-      'plot_type', updatePlotType, plotType, "Plot Type",
-      Object.keys(input_sets), false)}
-    </div>
-  )
-  
-  const shownSetupValues = useMemo(() => {
-    if (plotType==null) return {}
-    const initial = {...value}
-    if (Object.keys(initial).includes('plot_type')) {delete initial['plot_type']}
-    return remove_hidden(initial, hide);
-  }, [value, hide])
-  console.log('shownSetupValues', shownSetupValues)
   
   function toggleDrawerExpansion(drawerTitle: string) {
     if (expandedDrawers.includes(drawerTitle)) {
@@ -118,45 +99,35 @@ function VisualizationUI({
       setExpandedDrawers(expandedDrawers.concat(drawerTitle))
     }
   }
+
+  // Components
+  const pickPlot = (setPlotType!=null) ? null : (
+    <div>
+      {dropdownPiece(
+      'plot_type', updatePlotType, plotType, "Plot Type",
+      Object.keys(input_sets), false)}
+    </div>
+  )
   
-  function InputWrapper({title, values}: {title:string, values: DataEnvelope<any>}) {
-    const open = useMemo(() => expandedDrawers.includes(title), [expandedDrawers])
-    return (
-      <Accordion elevation={0} expanded={open} onChange={ () => toggleDrawerExpansion(title) }>
-        <AccordionSummary
-          style={{background: '#eee', cursor: 'pointer', minHeight: '32px',  height: '32px'}}>
-          <Typography>{title}</Typography>
-        </AccordionSummary>
-        <AccordionDetails
-          style={{padding: 0, paddingLeft: 15, borderBottom: '1px solid #eee'}}>
-          <Grid container direction='column'>
-          {Object.entries(values).map(([key, val]) => {
-            return component_use(key, val, extra_inputs[key])
+  const inner = (plotType == null) ? null : (
+    <Grid container direction='column'>
+      {Object.entries(input_sets[plotType]).map(([group_name, val]) => {
+        const group_values: DataEnvelope<any> = pick(shownSetupValues,val)
+        const open = expandedDrawers.includes(group_name);
+        console.log('group_values', group_values)
+        return (Object.keys(group_values).length > 0) ? <InputWrapper key={group_name} title={group_name} values={group_values} open={open} toggleOpen={toggleDrawerExpansion}>
+          {Object.entries(group_values).map(([key, val]) => {
+            return <ComponentUse key={key} k={key} value={val} extra_inputs={extra_inputs[key]} updateValue={updateValue}/>
           })}
-          </Grid>
-        </AccordionDetails>
-      </Accordion>
-    )
-  }
-  
-  let inner = null;
-  if (plotType != null) {
-    
-    inner = (
-      <Grid container direction='column'>
-        {Object.entries(input_sets[plotType]).map(([group_name, val]) => {
-          const group_values: DataEnvelope<any> = pick(shownSetupValues,val)
-          console.log('group_values', group_values)
-          return (Object.keys(group_values).length > 0) ? <InputWrapper title={group_name} values={group_values}/> : null
-        })}
-      </Grid>
-    )
-  }
+          </InputWrapper> : null
+      })}
+    </Grid>
+  )
   
   console.log(props.value);
   
   return (
-    <div>
+    <div key='VizUI'>
       {pickPlot}
       {inner}
     </div>
@@ -296,3 +267,28 @@ const comps: DataEnvelope<Function> = {
   'y_scale': dropdownPiece,
   'rows_use': subsetDataFramePiece
 }
+
+function InputWrapper({title, values, open, toggleOpen, children}: PropsWithChildren<{title:string, values: DataEnvelope<any>, open: boolean, toggleOpen: Dispatch<string>}>) {
+  return (
+    <Accordion elevation={0} expanded={open} onChange={ () => toggleOpen(title) }>
+      <AccordionSummary
+        style={{background: '#eee', cursor: 'pointer', minHeight: '32px',  height: '32px'}}>
+        <Typography>{title}</Typography>
+      </AccordionSummary>
+      <AccordionDetails
+        style={{padding: 0, paddingLeft: 15, borderBottom: '1px solid #eee'}}>
+        <Grid container direction='column'>
+          {children}
+        </Grid>
+      </AccordionDetails>
+    </Accordion>
+  )
+}
+
+const ComponentUse = ({k, value, extra_inputs, updateValue}: {k: string, value: any, extra_inputs: any, updateValue: Function}) => {
+    
+  const comp_use: Function = comps[k]
+  return(
+    comp_use(k, updateValue, value, ...extra_inputs)
+  )
+};
