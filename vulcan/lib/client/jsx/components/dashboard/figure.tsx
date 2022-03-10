@@ -1,4 +1,10 @@
-import React, {useCallback, useContext, useState, useEffect} from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useState,
+  useEffect,
+  useMemo
+} from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
@@ -14,18 +20,25 @@ import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 
-import {VulcanContext} from '../contexts/vulcan_context';
-import {VulcanFigureSession} from '../api_types';
+import {VulcanContext} from '../../contexts/vulcan_context';
+import {VulcanFigureSession} from '../../api_types';
+import useUserHooks from '../useUserHooks';
 
 const figureStyles = makeStyles((theme) => ({
   figure: {
-    width: 350,
-    marginRight: 20
+    border: '1px solid #eee'
   },
   image: {
     cursor: 'pointer',
     borderTop: '1px solid #eee',
     borderBottom: '1px solid #eee'
+  },
+  defaultImage: {
+    cursor: 'pointer',
+    borderTop: '1px solid #eee',
+    borderBottom: '1px solid #eee',
+    opacity: 0.5,
+    filter: 'grayscale(100%)'
   },
   author: {
     height: '30px',
@@ -35,7 +48,8 @@ const figureStyles = makeStyles((theme) => ({
   title: {
     textOverflow: 'ellipsis',
     overflow: 'hidden',
-    width: '250px'
+    width: '250px',
+    height: '2rem'
   }
 }));
 
@@ -62,6 +76,8 @@ const Figure = ({
   const invoke = useActionInvoker();
   let {state} = useContext(VulcanContext);
   const {workflows} = state;
+
+  const {canEdit} = useUserHooks();
 
   const workflow = workflows
     ? workflows.find((w) => w.name == figureSession.workflow_name)
@@ -100,17 +116,22 @@ const Figure = ({
     onRemove();
   }, [onRemove]);
 
+  const editor = useMemo(() => canEdit(figureSession), [
+    figureSession,
+    canEdit
+  ]);
+
   return (
     <Card className={classes.figure}>
       <Menu
-        id='simple-menu'
+        id={`${figureSession.figure_id}-dropdown-menu`}
         open={Boolean(menuAnchor)}
         anchorEl={menuAnchor}
         onClose={handleClose}
       >
         <MenuItem onClick={handleOnCopy}>Copy</MenuItem>
-        <MenuItem onClick={handleOnRename}>Rename</MenuItem>
-        <MenuItem onClick={handleOnRemove}>Remove</MenuItem>
+        {editor ? <MenuItem onClick={handleOnRename}>Rename</MenuItem> : null}
+        {editor ? <MenuItem onClick={handleOnRemove}>Remove</MenuItem> : null}
       </Menu>
       <CardHeader
         title={figureSession.title}
@@ -123,7 +144,9 @@ const Figure = ({
         }
       />
       <CardMedia
-        className={classes.image}
+        className={
+          figureSession?.thumbnail ? classes.image : classes.defaultImage
+        }
         onClick={visitFigure}
         component='img'
         height='140'

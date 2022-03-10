@@ -1,8 +1,8 @@
-@import "globals";
+@import 'globals';
 
 .project {
   .header {
-    >span {
+    > span {
       display: none;
     }
   }
@@ -18,11 +18,11 @@
                   display: none;
                 }
                 .item_view {
-                    background-color: transparent;
-                    padding: 20px 0px;
-                    margin: 0px;
-                    color: seagreen;
-                    font-size: 20px;
+                  background-color: transparent;
+                  padding: 20px 0px;
+                  margin: 0px;
+                  color: seagreen;
+                  font-size: 20px;
                 }
               }
             }
@@ -66,3 +66,10 @@
   }
 }
 
+.figure-tag-autocomplete {
+  label {
+    &:not(.MuiInputLabel-shrink) {
+      padding-top: 7px;
+    }
+  }
+}
