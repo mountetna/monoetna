@@ -3,9 +3,9 @@ import {WithInputParams} from './input_types';
 import {some, withDefault} from "../../../../selectors/maybe";
 import {useSetsDefault} from "./useSetsDefault";
 import {selectDefaultBoolean} from "./monoids";
-import { Checkbox, FormControlLabel } from '@material-ui/core';
+import { Checkbox, FormControlLabel, FormControlLabelProps } from '@material-ui/core';
 
-export default function BooleanInput({onChange, label, data, ...props}: WithInputParams<{label?: string}, boolean, boolean>) {
+export default function BooleanInput({onChange, label, labelPlacement='end', data, ...props}: WithInputParams<{label?: string, labelPlacement?: FormControlLabelProps["labelPlacement"]}, boolean, boolean>) {
   const value = useSetsDefault(selectDefaultBoolean(data), props.value, onChange);
   const onCheck = useCallback((e: ChangeEvent<HTMLInputElement>) => onChange(some(!value)), [onChange, value]);
 
@@ -17,7 +17,7 @@ export default function BooleanInput({onChange, label, data, ...props}: WithInpu
 
   if (label) {
     return (
-      <FormControlLabel control={inner} label={label}/>
+      <FormControlLabel control={inner} label={label} labelPlacement={labelPlacement}/>
     );
   }
 
