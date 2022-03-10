@@ -19,34 +19,41 @@ class Polyphemus
   # Abstract base class for an ETL that scans metis for folders using the find api.
   class MetisFolderEtl < Etl
     # Subclasses should provide default values here, since commands are constructed
-    def initialize(project_bucket_pairs:, metis_client: nil, folder_name_regexes: [], folder_name_globs: [], limit: 20)
-      folder_cursors = project_bucket_pairs.map do |project_name, bucket_name|
-        MetisFolderEtlCursor.new(job_name: self.class.name, project_name: project_name, bucket_name: bucket_name).load_from_db
-      end
-
+    def initialize(project_bucket_pairs:, metis_client: nil, cursor_env: {}, scanner: build_scanner, folder_name_regexes: [], folder_name_globs: [], limit: 20)
       @metis_client = metis_client
       @limit = limit
       @folder_name_globs = folder_name_globs
       @folder_name_regexes = folder_name_regexes
 
-      super(
-        cursor_group: EtlCursorGroup.new(folder_cursors),
-        scanner: TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
-          find_request = Etna::Clients::Metis::FindRequest.new(
-            project_name: cursor[:project_name],
-            bucket_name: cursor[:bucket_name],
-          )
-          prepare_find_request(cursor, find_request)
-          find_request
-        end.result_updated_at do |folder|
-          folder.updated_at
-        end.result_id do |folder|
-          folder.folder_path
-        end.execute_batch_find do |find_request, i|
-          find_request.limit = @limit * i
-          self.metis_client.find(find_request).folders.all
-        end,
+      cursors = cursors_from_pairs(
+        pairs: project_bucket_pairs,
+        pair_keys: %w[project_name bucket_name],
+        cls: MetisFolderEtlCursor,
+        cursor_env: cursor_env
       )
+
+      super(
+        cursors: cursors,
+        scanner: scanner
+      )
+    end
+
+    def build_scanner
+      TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
+        find_request = Etna::Clients::Metis::FindRequest.new(
+          project_name: cursor[:project_name],
+          bucket_name: cursor[:bucket_name],
+        )
+        prepare_find_request(cursor, find_request)
+        find_request
+      end.result_updated_at do |folder|
+        folder.updated_at
+      end.result_id do |folder|
+        folder.folder_path
+      end.execute_batch_find do |find_request, i|
+        find_request.limit = @limit * i
+        self.metis_client.find(find_request).folders.all
+      end
     end
 
     # Subclasses should override if they wish to adjust or add to the params of the find request.
@@ -57,6 +64,16 @@ class Polyphemus
         predicate: ">=",
         value: (cursor.updated_at + 1).iso8601,
       )) unless cursor.updated_at.nil?
+
+      if (end_at = cursor[:batch_end_at])
+        find_request.add_param(Etna::Clients::Metis::FindParam.new(
+          type: 'folder',
+          attribute: 'updated_at',
+          predicate: '<=',
+          value: (end_at + 1).iso8601,
+        ))
+      end
+
       begin
         @folder_name_globs.each do |glob|
           find_request.add_param(Etna::Clients::Metis::FindParam.new(
