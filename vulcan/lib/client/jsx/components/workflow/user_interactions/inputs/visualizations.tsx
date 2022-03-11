@@ -9,7 +9,7 @@ import { useSetsDefault } from './useSetsDefault';
 import { some } from '../../../../selectors/maybe';
 import { Accordion, AccordionDetails, AccordionSummary, Grid, Typography } from '@material-ui/core';
 import { pick } from 'lodash';
-import { stringPiece, dropdownPiece, MultiselectPiece, checkboxPiece, sliderPiece } from './user_input_pieces';
+import { key_wrap, stringPiece, dropdownPiece, multiselectPiece, checkboxPiece, sliderPiece } from './user_input_pieces';
 import { subsetDataFramePiece } from './subsetDataFrame_piece';
 
 /*
@@ -258,7 +258,7 @@ const comps: DataEnvelope<Function> = {
   'x_by': dropdownPiece,
   'y_by': dropdownPiece,
   'color_by': dropdownPiece,
-  'plots': MultiselectPiece,
+  'plots': multiselectPiece,
   'color_order': dropdownPiece,
   'order_when_continuous_color': checkboxPiece,
   'size': sliderPiece,

@@ -2,7 +2,7 @@ import React from 'react';
 import {DataEnvelope} from './input_types';
 import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
 import MultiselectStringInput from './multiselect_string';
-import { Slider } from '@material-ui/core';
+import { InputLabel, Slider } from '@material-ui/core';
 import StringInput from './string';
 import BooleanInput from './boolean';
 import SelectAutocompleteInput from './select_autocomplete';
@@ -92,16 +92,18 @@ export function dropdownPiece(
     )
   }
 
-export function MultiselectPiece(
+export function multiselectPiece(
   key: string, changeFxn: Function, value: string[] | null = null,
   label: string, options: string[]) {
     
     return(
-      <div key={key}>
-        {label}
+      <div key={key} style={{paddingTop: 8}}>
+        <InputLabel htmlFor={'multiselect-'+key} shrink>{label}</InputLabel>
         <MultiselectStringInput
+          key={'multiselect-'+key}
           data={{'0': options}}
-          value={value ? some(value) : null}
+          value={maybeOfNullable(value)}
+          onClear={() => changeFxn([], key)}
           onChange={(val: Maybe<string[]>) => changeFxn(withDefault(val, null), key)}
         />
       </div>
@@ -113,9 +115,10 @@ export function sliderPiece(
   label: string, min: number = 0.1, max: number = 20) {
 
     return(
-        <div key={key}>
-          {label}
+        <div key={key} style={{paddingTop: 8}}>
+          <InputLabel htmlFor={'slider-'+key} shrink>{label}</InputLabel>
           <Slider
+            key={'slider-'+key}
             value={value}
             onChange={(event, newValue) => changeFxn(newValue as number, key)}
             min={min}
@@ -137,16 +140,15 @@ export function rangePiece(
     
     return(
       <div key={key}>
-        {label}
-        <div style={{display: 'inline-flex', paddingTop:8}}>
+        <div style={{display: 'inline-flex'}}>
           {dropdownPiece(
             key+'_lower_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue, 0), key), value[0] as string,
-            "From", ["exactly","above"], true, 120)}
+            label + ", From", ["exactly","above"], true, 120)}
           {floatPiece(
             key+'_lower_value', (newValue: number | null) => changeFxn(updateSlot(newValue, 1), key), value[1] as number,
             'Min-value', 120)}
         </div>
-        <div style={{display: 'inline-flex', paddingTop:8}}>
+        <div style={{display: 'inline-flex'}}>
           {dropdownPiece(
             key+'_upper_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue, 2), key), value[2] as string,
             "To", ["exactly","below"], true, 120)}

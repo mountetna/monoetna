@@ -9,7 +9,7 @@ export default function StringInput({onChange, label, minWidth, data, ...props}:
   const value = useSetsDefault(selectDefaultString(data), props.value, onChange);
   
   return (
-    <div style={{paddingTop:6}}>
+    <div style={{paddingTop: label ? 8 : 0}}>
       <TextField
         value={value}
         multiline
@@ -17,7 +17,7 @@ export default function StringInput({onChange, label, minWidth, data, ...props}:
         InputLabelProps={{ shrink: true }}
         onChange={(event) => onChange(some(event.target.value))}
         size="small"
-        style={{minWidth: minWidth || 200, paddingTop: label ? 8 : 0}}
+        style={{minWidth: minWidth || 200}}
       />
     </div>
   )

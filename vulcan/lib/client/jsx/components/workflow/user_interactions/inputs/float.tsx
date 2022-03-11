@@ -30,14 +30,18 @@ export function NumberInput(
     },
     [onChange]) // todo: better typing for event
   
-  return <TextField
-    value={inputState.text}
-    label={label}
-    error={inputState.hasError}
-    onChange={onNewFloat}
-    size="small"
-    style={{minWidth: minWidth || 200, paddingTop: label ? 8 : 0}}
-  />;
+  return (
+    <div style={{paddingTop: label ? 8 : 0}}>
+      <TextField
+        value={inputState.text}
+        label={label}
+        error={inputState.hasError}
+        onChange={onNewFloat}
+        size="small"
+        style={{minWidth: minWidth || 200}}
+      />
+    </div>
+  )
 };
 
 function parseIntBetter(s: string){
