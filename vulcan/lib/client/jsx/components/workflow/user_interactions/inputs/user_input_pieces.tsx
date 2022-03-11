@@ -2,7 +2,7 @@ import React from 'react';
 import {DataEnvelope} from './input_types';
 import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
 import MultiselectStringInput from './multiselect_string';
-import { Slider } from '@material-ui/core';
+import { InputLabel, Slider } from '@material-ui/core';
 import StringInput from './string';
 import BooleanInput from './boolean';
 import SelectAutocompleteInput from './select_autocomplete';
@@ -97,9 +97,10 @@ export function multiselectPiece(
   label: string, options: string[]) {
     
     return(
-      <div key={key}>
-        {label}
+      <div key={key} style={{paddingTop: 8}}>
+        <InputLabel htmlFor={'multiselect-'+key} shrink>{label}</InputLabel>
         <MultiselectStringInput
+          key={'multiselect-'+key}
           data={{'0': options}}
           value={maybeOfNullable(value)}
           onClear={() => changeFxn([], key)}
@@ -114,9 +115,10 @@ export function sliderPiece(
   label: string, min: number = 0.1, max: number = 20) {
 
     return(
-        <div key={key}>
-          {label}
+        <div key={key} style={{paddingTop: 8}}>
+          <InputLabel htmlFor={'slider-'+key} shrink>{label}</InputLabel>
           <Slider
+            key={'slider-'+key}
             value={value}
             onChange={(event, newValue) => changeFxn(newValue as number, key)}
             min={min}
