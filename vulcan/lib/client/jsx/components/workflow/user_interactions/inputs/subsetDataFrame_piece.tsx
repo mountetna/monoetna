@@ -155,7 +155,9 @@ const singleMethod = (
       <div>
         {logic_comp}
         {pick_column}
-        {def_comp}
+        <div style={{paddingLeft:10}}>
+          {def_comp}
+        </div>
       </div>
       {clear_comp}
     </div>
@@ -181,7 +183,7 @@ function targetSelectionComponent(
     return rangePiece(
       key+index+index, updateFxn,
       (inner_def.length > 0) ? inner_def : undefined,
-      ""
+      "Values to keep"
       )
   }
   if (typeof target_data[0] == "string") {
@@ -193,14 +195,14 @@ function targetSelectionComponent(
     return multiselectPiece(
       key+index+index, updateFxn,
       inner_def as string[],
-      "Keep:", options
+      "Values to keep", options
       )
   }
   if (typeof target_data[0] == "boolean") {
     return dropdownPiece(
       key+index+index, updateFxn,
       (inner_def.length > 0) ? inner_def[0] as string : undefined,
-      "Keep:", ["True", "False"], false
+      "Value to keep", ["True", "False"], false
       )
   }
   return(

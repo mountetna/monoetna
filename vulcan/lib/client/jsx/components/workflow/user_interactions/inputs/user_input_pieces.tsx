@@ -140,16 +140,15 @@ export function rangePiece(
     
     return(
       <div key={key}>
-        {label}
-        <div style={{display: 'inline-flex', paddingTop:8}}>
+        <div style={{display: 'inline-flex'}}>
           {dropdownPiece(
             key+'_lower_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue, 0), key), value[0] as string,
-            "From", ["exactly","above"], true, 120)}
+            label + ", From", ["exactly","above"], true, 120)}
           {floatPiece(
             key+'_lower_value', (newValue: number | null) => changeFxn(updateSlot(newValue, 1), key), value[1] as number,
             'Min-value', 120)}
         </div>
-        <div style={{display: 'inline-flex', paddingTop:8}}>
+        <div style={{display: 'inline-flex'}}>
           {dropdownPiece(
             key+'_upper_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue, 2), key), value[2] as string,
             "To", ["exactly","below"], true, 120)}
