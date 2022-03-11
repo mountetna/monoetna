@@ -92,7 +92,7 @@ export function dropdownPiece(
     )
   }
 
-export function MultiselectPiece(
+export function multiselectPiece(
   key: string, changeFxn: Function, value: string[] | null = null,
   label: string, options: string[]) {
     
@@ -101,7 +101,8 @@ export function MultiselectPiece(
         {label}
         <MultiselectStringInput
           data={{'0': options}}
-          value={value ? some(value) : null}
+          value={maybeOfNullable(value)}
+          onClear={() => changeFxn([], key)}
           onChange={(val: Maybe<string[]>) => changeFxn(withDefault(val, null), key)}
         />
       </div>

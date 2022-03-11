@@ -9,7 +9,7 @@ import { useSetsDefault } from './useSetsDefault';
 import { some } from '../../../../selectors/maybe';
 import { joinNesting, StringOptions } from './monoids';
 import { useMemoized } from '../../../../selectors/workflow_selectors';
-import { MultiselectPiece, dropdownPiece } from './user_input_pieces';
+import { multiselectPiece, dropdownPiece } from './user_input_pieces';
 import { subsetDataFramePiece } from './subsetDataFrame_piece';
 import { Button } from '@material-ui/core';
 
@@ -150,12 +150,12 @@ const DEComps = (
       let value_select_2 = null;
       if (Object.keys(opts).length>0 && vals['de_meta']!=null) {
         if (Object.keys(vals).includes('de_group_1')) {
-          value_select_1 = MultiselectPiece(
+          value_select_1 = multiselectPiece(
             'de_group_1', changeFxn, vals['de_group_1'],
             'Labels to include in Set-1', opts[(vals['de_meta'])] as string[])
         }
         if (Object.keys(vals).includes('de_group_2')) {
-          value_select_2 = MultiselectPiece(
+          value_select_2 = multiselectPiece(
             'de_group_2', changeFxn, vals['de_group_2'],
             'Labels to include in Set-2', opts[(vals['de_meta'])] as string[])
         }
@@ -190,7 +190,7 @@ const GroupComps = (
       let value_select = null;
       if (Object.keys(opts).length>0 && vals['group_meta']!=null) {
         if (Object.keys(vals).includes('group_use')) {
-          value_select = MultiselectPiece(
+          value_select = multiselectPiece(
             'group_use', changeFxn, vals['group_use'],
             'Labels to target', opts[(vals['group_meta'])] as string[])
         }

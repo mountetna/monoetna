@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import {DataEnvelope} from './input_types';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import { checkboxPiece, dropdownPiece, MultiselectPiece, rangePiece } from './user_input_pieces';
+import { checkboxPiece, dropdownPiece, multiselectPiece, rangePiece } from './user_input_pieces';
 import { Button, PropTypes } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
@@ -190,7 +190,7 @@ function targetSelectionComponent(
       return self.indexOf(value) === index;
     }
     const options = target_data.filter(onlyUnique) as string[];
-    return MultiselectPiece(
+    return multiselectPiece(
       key+index+index, updateFxn,
       inner_def as string[],
       "Keep:", options
