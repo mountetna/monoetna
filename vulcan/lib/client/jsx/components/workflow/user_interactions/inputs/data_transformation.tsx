@@ -14,12 +14,14 @@ import DialogActions from '@material-ui/core/DialogActions';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 import {makeStyles} from '@material-ui/core/styles';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import {joinNesting} from './monoids';
 import {WithInputParams, DataEnvelope} from './input_types';
 import {useSetsDefault} from './useSetsDefault';
 import {some, Maybe, withDefault, isSome} from '../../../../selectors/maybe';
 import {useMemoized} from '../../../../selectors/workflow_selectors';
+import useHandsonTable from './use_handson_table';
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
@@ -54,6 +56,17 @@ function DataTransformationModal({
     []
   );
 
+  const columnWidths = useMemo(() => {
+    let widths = new Array(data[0].length).fill(150);
+    widths[0] = 200;
+
+    return widths;
+  }, [data]);
+
+  function truncate(data: any[][]) {
+    return data.slice(0, 40).map((inner) => inner.slice(0, 15));
+  }
+
   return (
     <>
       <DialogTitle>
@@ -73,7 +86,17 @@ function DataTransformationModal({
         <HotTable
           ref={hotTableComponent}
           settings={{
-            data: data,
+            viewportRowRenderingOffset: 10,
+            viewportColumnRenderingOffset: 10,
+            colWidths: columnWidths,
+            autoRowSize: false,
+            autoColumnSize: false,
+            data: truncate(data),
+            afterLoadData: (sourceData, initialLoad) => {
+              if (hotTableComponent.current) {
+                hotTableComponent.current.hotInstance.updateData(data);
+              }
+            },
             colHeaders: true,
             rowHeaders: true,
             height: 'auto',
@@ -191,6 +214,8 @@ export function dataFrameJsonToNestedArray(
   );
 }
 
+useHandsonTable();
+
 export default function DataTransformationInput({
   onChange,
   data,
@@ -202,10 +227,10 @@ export default function DataTransformationInput({
   {[key: string]: any}
 >) {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [isTransformed, setIsTransformed] = useState(false);
 
   const classes = useStyles();
-
   const originalData = useMemoized(joinNesting, data);
 
   function handleOnClose() {
@@ -275,7 +300,18 @@ export default function DataTransformationInput({
         columns. You can preview or edit the data frame now, or just click
         "Commit" to accept the raw data.
       </div>
-      <Dialog open={open} onClose={handleOnClose} maxWidth='xl'>
+      <Dialog
+        open={open}
+        onClose={handleOnClose}
+        maxWidth='xl'
+        TransitionProps={{
+          onEntered: () => {
+            setLoading(false);
+          }
+        }}
+        disableAutoFocus={true}
+        disableEnforceFocus={true}
+      >
         <DataTransformationModal
           data={value}
           onChange={destructureOnChange}
@@ -286,9 +322,11 @@ export default function DataTransformationInput({
         className={classes.button}
         onClick={() => {
           setOpen(true);
+          setLoading(true);
         }}
         color='primary'
-        startIcon={<EditIcon />}
+        disabled={loading}
+        startIcon={loading ? <CircularProgress size={24} /> : <EditIcon />}
         variant='contained'
       >
         Review or edit data frame
