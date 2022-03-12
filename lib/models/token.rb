@@ -72,10 +72,8 @@ module Token
       # degrade admin permissions
       if payload[:perm] =~ /^[Aa]/
         payload[:perm] = payload[:perm].sub(/^[Aa]/) { |c| c == 'A' ? 'E' : 'e' }
-      end
-
-      # permit supereditor
-      if @janus_user.supereditor?
+        # permit supereditor
+      elsif @janus_user.supereditor?
         payload[:perm] = "e:#{project_name}"
       end
 
