@@ -21,7 +21,6 @@ export default function SelectAutocompleteInput({data, label, minWidth, clearabl
 
   return (
     <Autocomplete
-      disablePortal
       disableClearable={clearable}
       value={value}
       onChange={(event:any, e: string | null) => 
