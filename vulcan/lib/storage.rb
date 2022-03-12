@@ -244,6 +244,15 @@ class Vulcan
       def should_build?(storage)
         is_buildable?(storage) && !is_built?(storage)
       end
+
+      def downloads(storage)
+        build_outputs.map do |output_name, sf|
+          [
+            output_name,
+            storage.data_url(project_name: sf.project_name, cell_hash: sf.cell_hash, data_filename: sf.data_filename)
+          ]
+        end.to_h
+      end
     end
 
     class MaterialSource

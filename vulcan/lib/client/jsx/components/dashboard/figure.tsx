@@ -62,6 +62,8 @@ const authorInitials = ({author}: VulcanFigureSession) => {
     : names[0][0];
 };
 
+const figureImage = (workflow, figure) => figure.thumbnails.length > 0 ? figure.thumbnails[0] : `/images/${workflow ? workflow.image : 'default.png'}`;
+
 const Figure = ({
   figureSession,
   onCopy,
@@ -121,6 +123,8 @@ const Figure = ({
     canEdit
   ]);
 
+  const image = figureImage(workflow, figureSession);
+
   return (
     <Card className={classes.figure}>
       <Menu
@@ -145,12 +149,12 @@ const Figure = ({
       />
       <CardMedia
         className={
-          figureSession?.thumbnail ? classes.image : classes.defaultImage
+          image == 'default.png' ? classes.defaultImage : classes.image
         }
         onClick={visitFigure}
         component='img'
         height='140'
-        image={`/images/${workflow ? workflow.image : 'default.png'}`}
+        image={image}
         title={figureSession.title || ''}
       />
       <CardContent>
