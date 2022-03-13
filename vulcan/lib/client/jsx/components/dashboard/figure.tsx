@@ -62,10 +62,10 @@ const authorInitials = ({author}: VulcanFigureSession) => {
     : names[0][0];
 };
 
-const figureImage = (workflow:Workflow|null, figure:VulcanFigureSession):string => (
-  figure.thumbnails && figure.thumbnails.length > 0
-    ? figure.thumbnails[0]
-    : `/images/${workflow ? workflow.image : 'default.png'}`
+const figureImage = (workflow:Workflow|null, figure:VulcanFigureSession):[Boolean,string] => (
+  figure.thumbnails && (figure.thumbnails.length > 0)
+    ? [ false, figure.thumbnails[0] ]
+    : [ true, `/images/${workflow ? workflow.image : 'default.png'}` ]
 );
 
 const Figure = ({
@@ -127,7 +127,7 @@ const Figure = ({
     canEdit
   ]);
 
-  const image = figureImage(workflow, figureSession);
+  const [ defaultImage, image ] = figureImage(workflow, figureSession);
 
   return (
     <Card className={classes.figure}>
@@ -153,7 +153,7 @@ const Figure = ({
       />
       <CardMedia
         className={
-          image == 'default.png' ? classes.defaultImage : classes.image
+          defaultImage ? classes.defaultImage : classes.image
         }
         onClick={visitFigure}
         component='img'
