@@ -12,17 +12,19 @@ class Vulcan
 
     def thumbnails(storage:)
       return [] unless storage
+      
       cache = {}
 
       session.workflow.steps.map do |step|
         case step.ui_output_name
         when 'plotly.cwl'
-          Vulcan.instance.logger.warn("finding thumbnail")
           step_target = session.orchestration.build_target_for(step.id, cache)
 
           next unless step_target.input_files.length > 1
 
           thumbnail = step_target.input_files[1]
+
+          next unless ::File.exists?(thumbnail.data_path(storage))
 
           next storage.data_url(
             project_name: thumbnail.project_name,

@@ -1,10 +1,25 @@
 require_relative '../lib/server/controllers/figure_controller'
 
 describe Vulcan::Figure do
-  it 'returns a list of thumbnails' do
-      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'test_workflow')
+  before(:each) do
+    clear_store
+  end
 
-      expect(figure.thumbnails(storage: Vulcan::Storage.new)).to eq(['https://vulcan.test/api/labors/data/abee47d3ee8ba11e3fc2706d8d258e9e586465b4/thumb.png'])
+  it 'returns a list of thumbnails' do
+    store(
+      'abee47d3ee8ba11e3fc2706d8d258e9e586465b4',
+      'thumb.png',
+      'thumbnail'
+    )
+    figure = create_figure(title: 'Lion of Nemea', workflow_name: 'test_workflow')
+
+    expect(figure.thumbnails(storage: Vulcan::Storage.new)).to eq(['https://vulcan.test/api/labors/data/abee47d3ee8ba11e3fc2706d8d258e9e586465b4/thumb.png'])
+  end
+
+  it 'ignores unbuilt thumbnails' do
+    figure = create_figure(title: 'Lion of Nemea', workflow_name: 'test_workflow')
+
+    expect(figure.thumbnails(storage: Vulcan::Storage.new)).to eq([])
   end
 end
 

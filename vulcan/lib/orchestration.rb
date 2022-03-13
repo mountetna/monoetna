@@ -326,21 +326,13 @@ class Vulcan
           raise "Step #{step_name} has no backing definition."
         end
 
-        options = {
+        Storage::BuildTarget.new(
           project_name: session.project_name,
           session_key: session.key,
           input_files: input_files,
           output_filenames: output_filenames,
           script: script
-        }
-
-        r = Storage::BuildTarget.new(**options)
-
-        options[:input_files] = options[:input_files].map(&:as_json)
-
-        Vulcan.instance.logger.warn(options.to_json)
-
-        r
+        )
       end
     end
 
