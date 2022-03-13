@@ -21,7 +21,7 @@ import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
-import {VulcanFigureSession} from '../../api_types';
+import {Workflow, VulcanFigureSession} from '../../api_types';
 import useUserHooks from '../useUserHooks';
 
 const figureStyles = makeStyles((theme) => ({
@@ -62,7 +62,11 @@ const authorInitials = ({author}: VulcanFigureSession) => {
     : names[0][0];
 };
 
-const figureImage = (workflow, figure) => figure.thumbnails.length > 0 ? figure.thumbnails[0] : `/images/${workflow ? workflow.image : 'default.png'}`;
+const figureImage = (workflow:Workflow|null, figure:VulcanFigureSession):string => (
+  figure.thumbnails && figure.thumbnails.length > 0
+    ? figure.thumbnails[0]
+    : `/images/${workflow ? workflow.image : 'default.png'}`
+);
 
 const Figure = ({
   figureSession,
@@ -82,7 +86,7 @@ const Figure = ({
   const {canEdit} = useUserHooks();
 
   const workflow = workflows
-    ? workflows.find((w) => w.name == figureSession.workflow_name)
+    ? (workflows.find((w) => w.name == figureSession.workflow_name) || null)
     : null;
 
   const classes = figureStyles();

@@ -292,7 +292,7 @@ steps:
     label: 'Display UMAP'
     in:
       a: make_umap/plot.json
-      a: make_umap/plot.png
+      b: make_umap/plot.png
     out: []
   downloadRawData:
     run: ui-outputs/link.cwl
