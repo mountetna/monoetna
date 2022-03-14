@@ -31,6 +31,9 @@ const useStyles = makeStyles((theme) => ({
   subtitle: {display: 'inline'},
   button: {
     margin: '1rem'
+  },
+  loading: {
+    marginLeft: '1rem'
   }
 }));
 
@@ -43,6 +46,7 @@ function DataTransformationModal({
   onChange: (data: Maybe<{[key: string]: any}>) => void;
   onClose: () => void;
 }) {
+  const [loading, setLoading] = useState(true);
   const classes = useStyles();
 
   const hotTableComponent = useRef<any>(null);
@@ -81,6 +85,7 @@ function DataTransformationModal({
           </Link>
         </Typography>
         )
+        <CircularProgress size={16} className={classes.loading} />
       </DialogTitle>
       <DialogContent className={classes.dialog}>
         <HotTable
@@ -96,6 +101,9 @@ function DataTransformationModal({
               if (hotTableComponent.current) {
                 hotTableComponent.current.hotInstance.updateData(data);
               }
+            },
+            afterUpdateData: () => {
+              setLoading(false);
             },
             colHeaders: true,
             rowHeaders: true,
@@ -214,8 +222,6 @@ export function dataFrameJsonToNestedArray(
   );
 }
 
-useHandsonTable();
-
 export default function DataTransformationInput({
   onChange,
   data,
@@ -229,6 +235,10 @@ export default function DataTransformationInput({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isTransformed, setIsTransformed] = useState(false);
+
+  useEffect(() => {
+    useHandsonTable();
+  }, []);
 
   const classes = useStyles();
   const originalData = useMemoized(joinNesting, data);
