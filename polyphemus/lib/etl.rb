@@ -163,7 +163,6 @@ class Polyphemus
     def initialize(cursors:, scanner:)
       @cursor_group = EtlCursorGroup.new(cursors)
       @scanner = scanner
-      # Scanner from file if scanner is a hash.
     end
 
     def cursors_from_pairs(pairs:, pair_keys:, cls:, cursor_env:)
