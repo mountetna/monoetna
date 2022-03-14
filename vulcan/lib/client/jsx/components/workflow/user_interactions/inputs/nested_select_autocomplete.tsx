@@ -71,24 +71,32 @@ function LeafOptions({
     [],
   );
   
+  function determineHelperText(filteredOptions: typeof optionsLeaf) {
+    if (filteredOptions.length>maxOptions) {
+      setHelperText(filteredOptions.length + " options, only " + maxOptions + " shown")
+    } else if (filteredOptions.length==0) {
+      setHelperText("no matching options")
+    } else {
+      setHelperText(undefined)
+    }
+  }
+  
   useEffect(() => {
     if (options_in.length>1000) {
       getOptionsDelayed(inputState, options_in, (filteredOptions: typeof optionsLeaf) => {
         console.log('calculating options - slow')
         setLoadingOptions(false)
+        determineHelperText(filteredOptions)
         setOptionsLeaf(filteredOptions.splice(0,maxOptions-1))
       });
     } else {
       console.log('calculating options - fast')
-      setOptionsLeaf(filterOptions(inputState, options_in))
+      const filteredOptions = filterOptions(inputState, options_in)
+      determineHelperText(filteredOptions)
+      setOptionsLeaf(filteredOptions)
     }
-    if (optionsLeaf.length>maxOptions) {
-      setHelperText(optionsLeaf.length + " options, only " + maxOptions + " shown")
-    } else if (optionsLeaf.length==0) {
-      setHelperText("no matching options")
-    } else {
-      setHelperText(undefined)
-    }
+    console.log('at check for text', optionsLeaf.length)
+
   }, [inputState, getOptionsDelayed, options_in]);
 
   return(

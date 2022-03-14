@@ -35,23 +35,29 @@ export default function SelectAutocompleteInput(
     [],
   );
   
+  function determineHelperText(filteredOptions: typeof optionsLeaf) {
+    if (filteredOptions.length>maxOptions) {
+      setHelperText(filteredOptions.length + " options, only " + maxOptions + " shown")
+    } else if (filteredOptions.length==0) {
+      setHelperText("no matching options")
+    } else {
+      setHelperText(undefined)
+    }
+  }
+  
   useEffect(() => {
     if (options_in.length>1000) {
       getOptionsDelayed(inputState, options_in, (filteredOptions: typeof options) => {
         console.log('calculating options - slow')
         setLoadingOptions(false)
+        determineHelperText(filteredOptions)
         setOptions(filteredOptions.splice(0,maxOptions-1))
       });
     } else {
       console.log('calculating options - fast')
-      setOptions(filterOptions(inputState, options_in))
-    }
-    if (options.length>maxOptions) {
-      setHelperText(options.length + " options, only " + maxOptions + " shown")
-    } else if (options.length==0) {
-      setHelperText("no matching options")
-    } else {
-      setHelperText(undefined)
+      const filteredOptions = filterOptions(inputState, options_in)
+      determineHelperText(filteredOptions)
+      setOptions(filteredOptions)
     }
   }, [inputState, getOptionsDelayed, options_in]);
   // console.log('inputState',inputState)
