@@ -2,11 +2,12 @@ import re
 from datetime import datetime
 from typing import Generator, Iterable, Tuple, Dict
 
-from airflow.models import DagBag, XCom
+from airflow.models import DagBag, XCom, BaseOperator
 from prometheus_client import REGISTRY, Metric
 from prometheus_client.metrics_core import GaugeMetricFamily
 from prometheus_client.samples import Sample
 from pytz import utc
+
 
 rollup_label_metric_re = re.compile(r'label:(.*)')
 
@@ -22,11 +23,16 @@ class RollupMetricsCollector:
 
     def collect(self) -> Generator[Metric, None, None]:
         bag = DagBag(read_dags_from_db=True)
+        bag.collect_dags_from_db()
         for dag_name, dag in bag.dags.items():
             if 'rollup' not in dag.tags:
                 continue
 
             for task_id in dag.task_ids:
+                task = dag.get_task(task_id)
+                if task.task_type != 'RollupXcomOperator':
+                    continue
+
                 metric = GaugeMetricFamily(
                     f"{dag_name}_{task_id}",
                     dag.description or f"Quantity pulled from {dag_name}.{task_id}",

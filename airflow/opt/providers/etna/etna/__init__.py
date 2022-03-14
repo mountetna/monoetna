@@ -15,7 +15,7 @@ from datetime import datetime
 
 
 def __getattr__(name):
-    from .dags.decorators import system_dag
+    from .dags.decorators import system_dag, dag, rollup_dag
     from .operators import run_on_docker
     from .etls.decorators import metis_etl
     from .etls.metis import (
@@ -30,6 +30,7 @@ def __getattr__(name):
         get_project_slack_hook,
     )
     from .hooks.etna import UpdateRequest
+    from .operators.rollup_xcom_operator import rollup
 
     __all__ = list(k for k in locals().keys() if k != "name") + [
         "dags",
@@ -51,7 +52,7 @@ def __getattr__(name):
 
 # trick the static checker.
 if globals().get("notathing", False):
-    from .dags.decorators import system_dag
+    from .dags.decorators import system_dag, dag, rollup_dag
     from .operators import run_on_docker
     from .etls.decorators import metis_etl
     from .etls.metis import (
@@ -66,3 +67,4 @@ if globals().get("notathing", False):
         get_project_slack_hook,
     )
     from .hooks.etna import UpdateRequest
+    from .operators.rollup_xcom_operator import rollup
