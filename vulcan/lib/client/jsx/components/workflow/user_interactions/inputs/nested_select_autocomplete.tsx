@@ -9,9 +9,9 @@ import {some} from "../../../../selectors/maybe";
 import {useMemoized} from "../../../../selectors/workflow_selectors";
 import {joinNesting} from "./monoids";
 import {useSetsDefault} from "./useSetsDefault";
-import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { debounce } from 'lodash';
+import { InputLabel, TextField } from '@material-ui/core';
 
 function getPath(options: OptionSet, leaf: string): string[] {
   for (let [key, value] of Object.entries(options)) {
@@ -55,7 +55,6 @@ function LeafOptions({
   maxOptions?: number;
 }) {
   if (!options_in) return null;
-  console.log('options to '+depth+' level:', options_in.length)
   const [optionsLeaf, setOptionsLeaf] = useState(options_in as typeof options_in);
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [helperText, setHelperText] = useState(undefined as string | undefined);
@@ -84,18 +83,17 @@ function LeafOptions({
   useEffect(() => {
     if (options_in.length>1000) {
       getOptionsDelayed(inputState, options_in, (filteredOptions: typeof optionsLeaf) => {
-        console.log('calculating options - slow')
+        // console.log('calculating options - slow')
         setLoadingOptions(false)
         determineHelperText(filteredOptions)
         setOptionsLeaf(filteredOptions.splice(0,maxOptions-1))
       });
     } else {
-      console.log('calculating options - fast')
+      // console.log('calculating options - fast')
       const filteredOptions = filterOptions(inputState, options_in)
       determineHelperText(filteredOptions)
       setOptionsLeaf(filteredOptions)
     }
-    console.log('at check for text', optionsLeaf.length)
 
   }, [inputState, getOptionsDelayed, options_in]);
 
@@ -132,11 +130,15 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
   const value = useSetsDefault(null, props.value, onChange)
   const allOptions = useMemoized(joinNesting, data);
   const [path, setPath] = useState([] as string[]);
+  const [lastNonNull, setLastNonNull] = useState(value!=null) // Used for ensuring a re-render will happen if the value gets reset to 'null' externally (with the 'reset' button)
   
   useEffect(() => {
-    if (value && value != null) {
+    if (value) {
       const updatedPath = getPath(allOptions, value);
       setPath(updatedPath);
+    } else if (lastNonNull) {
+      // value is now null, so any current path should be emptied
+      setPath([]); setLastNonNull(false)
     }
   }, [allOptions, value])
 
@@ -154,6 +156,7 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
       if (getOptions(updatedPath, allOptions) == null) {
         // If we are updating a leaf
         onChange(some(value));
+        setLastNonNull(true)
       } else {
         // Otherwise a leaf has not been selected.
         onChange(null);
@@ -162,16 +165,12 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
     [allOptions, path, onChange]
   );
 
-  let lab
-  if (label) {
-    lab = label;
-  } else {
-    lab = null;
-  }
-  console.log('value', value)
+  // const lab = (label) ? 
+  //   <InputLabel shrink>{label}</InputLabel> : null;
+
   return (
     <div>
-      {lab}
+      {/* {lab} */}
       <div>
         {path.map((value, index) => {
               const options = getOptions(path.slice(0, index), allOptions);
