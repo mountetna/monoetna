@@ -3,6 +3,48 @@ interactions:
     body: '{"token_type": "task", "project_name": "mvir1", "ready_only": true}'
     headers:
       Accept:
+        - '*/*'
+      Accept-Encoding:
+        - gzip, deflate
+      Connection:
+        - keep-alive
+      Content-Length:
+        - '67'
+      Content-Type:
+        - application/json
+      User-Agent:
+        - python-requests/2.26.0
+      authorization:
+        - XXX-Auth
+    method: POST
+    uri: https://janus.ucsf.edu/api/tokens/generate
+  response:
+    body:
+      string: eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6InphY2hhcnkuY29sbGluc0B1Y3NmLmVkdSIsIm5hbWUiOiJaYWNoYXJ5IENvbGxpbnMiLCJwZXJtIjoiZTptdmlyMSIsImZsYWdzIjoiaW5nZXN0O3Z1bGNhbjt0aW11cmFkdmFuY2VkO3F1ZXJ5cGxvdCIsImV4cCI6MTY0Njg1MDQ5MCwidGFzayI6dHJ1ZX0.rX6ZIbgxEdTowBKyfVTty6ZSTBdh83jPvQ-9kFIEdwHbWB3nzPIxjw8Jo5FqsXbPT33-_TYTd6Am__baO0EVGwxflW5ggjiapPcc0joy7zfqMletDY9dAwLa07gwtXXDk3Ncn8X1gmPeR3CKxgwQBh7zDjJ4IRnab68LVCnvog5u9NSONtyoBeIzP_9hNsYbGA8P_xxV0_JDl-uZuf4gHVOA1RDtsArvHtJfjCpTgct6_5_J2RrQcVeow5wG3sov2IV7zuAxcL2xKHVhjXeYR5FkLEixVjyOJj_jSskazrci7DFbm62OMtJGfk2MYLkMngW_9uUaVQWPwRC57BEaa6OMWkC5hs21XvAxPg6o7HVb-TbJ9bMI7IeBcOVt_5BDKFVcQIvR6ieigFR1ZlcL9D0VGgQFD_Exp2BochnXNcrzzIgQZmzkWbpP6u-43XYHcon-RgmwBBemOaKGddlFPdL2Uh4vwGeoeJXBE4HbNJRb97xtpU-TFjm1TT9KmztGpHOe6i1q476h_tTxJ7sVvukAQNkTaOPeewfjGOfU82HAT7VrvoMwdKQK07t_PFneXZCyvTPE1uDcuiEsK19VzHpB_sud7YsTTEhvOBKJ7Fb7qulGsvgBcUr7XR_IVNQPtCfrbv6TdX5TpUWDY0pOFXQ3tsUUMppOaaBFlwm0jmI
+    headers:
+      Connection:
+        - Keep-Alive
+      Content-Length:
+        - '912'
+      Content-Type:
+        - text/plain; charset=UTF-8
+      Date:
+        - Wed, 02 Mar 2022 18:28:10 GMT
+      Keep-Alive:
+        - timeout=5, max=100
+      Server:
+        - Apache
+      Service-Worker-Allowed:
+        - /
+      Strict-Transport-Security:
+        - max-age=31536000; includeSubDomains
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"token_type": "task", "project_name": "mvir1", "ready_only": true}'
+    headers:
+      Accept:
       - '*/*'
       Accept-Encoding:
       - gzip, deflate
