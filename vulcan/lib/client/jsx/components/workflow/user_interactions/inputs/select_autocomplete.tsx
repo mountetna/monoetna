@@ -25,7 +25,7 @@ export default function SelectAutocompleteInput(
   const [helperText, setHelperText] = useState(undefined as string | undefined);
   const [inputState, setInputState] = React.useState(dispValue(value));
   const getOptionsDelayed = useCallback(
-    debounce((text, callback) => {
+    debounce((text, options_in, callback) => {
       // console.log('inputState',inputState)
       // console.log('value',value)
       // console.log('options',options)
@@ -37,7 +37,7 @@ export default function SelectAutocompleteInput(
   
   useEffect(() => {
     if (options_in.length>1000) {
-      getOptionsDelayed(inputState, (filteredOptions: typeof options) => {
+      getOptionsDelayed(inputState, options_in, (filteredOptions: typeof options) => {
         console.log('calculating options - slow')
         setLoadingOptions(false)
         setOptions(filteredOptions.splice(0,maxOptions-1))
@@ -81,7 +81,7 @@ export default function SelectAutocompleteInput(
         <TextField 
           {...params}
           helperText={helperText}
-          error={inputState!=value}
+          error={inputState!=dispValue(value)}
           label={disp_label}
           size="small"
           InputLabelProps={{ shrink: true }}/>

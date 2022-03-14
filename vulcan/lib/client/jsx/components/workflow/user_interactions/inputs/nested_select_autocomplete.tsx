@@ -11,6 +11,7 @@ import {joinNesting} from "./monoids";
 import {useSetsDefault} from "./useSetsDefault";
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
+import { debounce } from 'lodash';
 
 function getPath(options: OptionSet, leaf: string): string[] {
   for (let [key, value] of Object.entries(options)) {
@@ -41,28 +42,76 @@ function getOptions(
 }
 
 function LeafOptions({
-  options,
+  options_in,
+  value,
   depth,
-  handleSelect
+  handleSelect,
+  maxOptions=100,
 }: {
-  options: string[] | null;
+  options_in: string[] | null;
+  value: string | null;
   depth: number;
   handleSelect: (value: string | null, depth: number) => void;
+  maxOptions?: number;
 }) {
-  if (!options) return null;
+  if (!options_in) return null;
+  console.log('options to '+depth+' level:', options_in.length)
+  const [optionsLeaf, setOptionsLeaf] = useState(options_in as typeof options_in);
+  const [loadingOptions, setLoadingOptions] = useState(false);
+  const [helperText, setHelperText] = useState(undefined as string | undefined);
+  const [inputState, setInputState] = React.useState(dispValue(value));
+  const getOptionsDelayed = useCallback(
+    debounce((text, options_in, callback) => {
+      // console.log('inputState',inputState)
+      // console.log('value',value)
+      // console.log('options',options)
+      setLoadingOptions(true); setOptionsLeaf([]);
+      getOptionsAsync(text, [...options_in]).then(callback);
+    }, 200),
+    [],
+  );
+  
+  useEffect(() => {
+    if (options_in.length>1000) {
+      getOptionsDelayed(inputState, options_in, (filteredOptions: typeof optionsLeaf) => {
+        console.log('calculating options - slow')
+        setLoadingOptions(false)
+        setOptionsLeaf(filteredOptions.splice(0,maxOptions-1))
+      });
+    } else {
+      console.log('calculating options - fast')
+      setOptionsLeaf(filterOptions(inputState, options_in))
+    }
+    if (optionsLeaf.length>maxOptions) {
+      setHelperText(optionsLeaf.length + " options, only " + maxOptions + " shown")
+    } else if (optionsLeaf.length==0) {
+      setHelperText("no matching options")
+    } else {
+      setHelperText(undefined)
+    }
+  }, [inputState, getOptionsDelayed, options_in]);
 
   return(
     <Autocomplete
-      key={`${depth}-${options.slice(0, 5).join('-')}`}
-      disablePortal
+      key={`${depth}-${options_in.slice(0, 5).join('-')}`}
+      // disablePortal
       disableClearable
+      clearOnBlur={false}
+      value={value}
       onChange={(event:any, e: string | null) => 
         handleSelect(e, depth)}
-      options={options}
-      // style={{minWidth: minWidth, paddingTop: disp_label ? 8 : 0}}
+      inputValue={inputState}
+      onInputChange={(event: any, newInputState: string) => 
+        setInputState(newInputState)}
+      options={optionsLeaf}
+      // disable filtering on client
+      filterOptions={(x: typeof optionsLeaf) => x}
+      loading={loadingOptions}
       renderInput={(params:any) => (
         <TextField 
           {...params}
+          helperText={helperText}
+          error={inputState!=dispValue(value)}
           size="small"/>
         )}
     />
@@ -71,13 +120,13 @@ function LeafOptions({
 
 type OptionSet = {[k: string]: null | OptionSet};
 
-export default function NestedSelectAutocompleteInput({ label, data, onChange, ...props }: WithInputParams<{label?: string}, string, OptionSet>) {
-  const value = useSetsDefault("", props.value, onChange)
+export default function NestedSelectAutocompleteInput({ label, data, onChange, ...props }: WithInputParams<{label?: string}, string|null, OptionSet>) {
+  const value = useSetsDefault(null, props.value, onChange)
   const allOptions = useMemoized(joinNesting, data);
   const [path, setPath] = useState([] as string[]);
   
   useEffect(() => {
-    if (value && value != "") {
+    if (value && value != null) {
       const updatedPath = getPath(allOptions, value);
       setPath(updatedPath);
     }
@@ -111,7 +160,7 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
   } else {
     lab = null;
   }
-
+  console.log('value', value)
   return (
     <div>
       {lab}
@@ -121,8 +170,9 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
               return (
                 <Autocomplete
                   key={index}
-                  disablePortal
+                  // disablePortal
                   disableClearable
+                  clearOnBlur={false}
                   onChange={(event:any, e: string | null) => 
                     handleSelect(e, index)}
                   options={options}
@@ -140,7 +190,8 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
       </div>
       <div>
         <LeafOptions
-          options={getOptions(path, allOptions)}
+          options_in={getOptions(path, allOptions)}
+          value={value}
           depth={path.length}
           handleSelect={handleSelect}
         />
@@ -148,3 +199,25 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
     </div>
   );
 };
+
+const getOptionsAsync = (query: string, options: string[]) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(
+        filterOptions(query, options),
+      );
+    }, 3000);
+  });
+};
+
+function filterOptions(query: string, options: string[]) {
+  return options.filter(
+    (o) => {
+      return (query==null) ? true : o.indexOf(query) > -1
+    },
+  )
+}
+
+function dispValue(value: string|null) {
+  return (value==null) ? '' : value
+}
