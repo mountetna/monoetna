@@ -51,10 +51,8 @@ const PlotWithEffects = ({
   );
 
   return (
-    <div style={{width: '100%', height: '100%'}} ref={plotRef}>
+    <div ref={plotRef}>
       <Plot
-        style={{width: '100%', height: '100%'}}
-        useResizeHandler={true}
         data={updatedData}
         layout={layout}
         config={config}
