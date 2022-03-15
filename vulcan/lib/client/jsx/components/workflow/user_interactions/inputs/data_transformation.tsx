@@ -280,9 +280,9 @@ export default function DataTransformationInput({
     value = inputValue.formulaic_data;
   } else {
     // If the workflow author has named their CWL outputs differently, we really don't
-    //   know which one is the source_data. Given that the
-    //   UI component uses "calculated_data" and "source_data", and
-    //   "source_data" comes second alphabetically, we first attempt to
+    //   know which one is the formulaic_data. Given that the
+    //   UI component uses "calculated_data" and "formulaic_data", and
+    //   "formulaic_data" comes second alphabetically, we first attempt to
     //   use the second inputValue key if present. If only one key,
     //   we default to the first value.
     const inputKeys = Object.keys(inputValue).sort();
