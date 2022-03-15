@@ -67,9 +67,16 @@ function DataTransformationModal({
     return widths;
   }, [data]);
 
+  const maxRows = 40;
+  const maxCols = 15;
+
   function truncate(data: any[][]) {
-    return data.slice(0, 40).map((inner) => inner.slice(0, 15));
+    return data.slice(0, maxRows).map((inner) => inner.slice(0, maxCols));
   }
+
+  const largeData = useMemo(() => {
+    return data.length > maxRows || data[0].length > maxCols;
+  }, [data]);
 
   return (
     <>
@@ -85,7 +92,9 @@ function DataTransformationModal({
           </Link>
         </Typography>
         )
-        <CircularProgress size={16} className={classes.loading} />
+        {loading && largeData ? (
+          <CircularProgress size={16} className={classes.loading} />
+        ) : null}
       </DialogTitle>
       <DialogContent className={classes.dialog}>
         <HotTable
@@ -98,7 +107,7 @@ function DataTransformationModal({
             autoColumnSize: false,
             data: truncate(data),
             afterLoadData: (sourceData, initialLoad) => {
-              if (hotTableComponent.current) {
+              if (hotTableComponent.current && largeData) {
                 hotTableComponent.current.hotInstance.updateData(data);
               }
             },
@@ -236,9 +245,7 @@ export default function DataTransformationInput({
   const [loading, setLoading] = useState(false);
   const [isTransformed, setIsTransformed] = useState(false);
 
-  useEffect(() => {
-    useHandsonTable();
-  }, []);
+  useHandsonTable();
 
   const classes = useStyles();
   const originalData = useMemoized(joinNesting, data);
@@ -296,7 +303,7 @@ export default function DataTransformationInput({
 
   const handleOnRevert = useCallback(() => {
     destructureOnChange(some(rawData));
-  }, [rawData]);
+  }, [rawData, destructureOnChange]);
 
   value = dataFrameJsonToNestedArray(value);
 
