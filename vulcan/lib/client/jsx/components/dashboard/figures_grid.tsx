@@ -27,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
   },
   figures: {
     padding: '15px',
-    width: '100vw'
+    width: 'calc(100vw - 30px)'
   },
   controls: {
     padding: '15px'
@@ -183,10 +183,10 @@ export default function FiguresTable({
         <ImageList
           cols={5}
           gap={30}
-          rowHeight={330}
+          rowHeight={390}
           className={classes.figures}
         >
-          {filteredFigureSessions.map(
+          {new Array(10).fill(filteredFigureSessions).flat().map(
             (figure: VulcanFigureSession, index: number) => {
               return (
                 <ImageListItem key={index}>
