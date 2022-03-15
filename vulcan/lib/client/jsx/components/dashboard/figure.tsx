@@ -157,7 +157,7 @@ const Figure = ({
         }
         onClick={visitFigure}
         component='img'
-        height='140'
+        height='200'
         image={image}
         title={figureSession.title || ''}
       />

@@ -24,7 +24,7 @@ import Tag from '../tag';
 const useStyles = makeStyles((theme) => ({
   controls: {
     padding: '15px',
-    width: 'auto',
+    width: '100%',
     flex: '1 1 auto'
   },
   tagauto: {
