@@ -7,7 +7,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 
 import { createEtnaTheme } from 'etna-js/style/theme';
 
-const theme = createEtnaTheme("#de5833","#948f8e");
+const theme = createEtnaTheme("#ffaa44","#948f8e");
 
 // Components.
 import Browser from './components/browser.tsx';
