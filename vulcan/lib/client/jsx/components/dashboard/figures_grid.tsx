@@ -39,10 +39,14 @@ const useStyles = makeStyles((theme) => ({
 
 export default function FiguresTable({
   project_name,
-  workflowName
+  workflowName,
+  tags,
+  searchString
 }: {
   project_name: string;
   workflowName?: string;
+  tags?: string;
+  searchString?: string;
 }) {
   const {
     showErrors,
@@ -52,8 +56,6 @@ export default function FiguresTable({
     deleteFigure
   } = useContext(VulcanContext);
 
-  const [searchString, setSearchString] = useState('');
-  const [tags, setTags] = useState<string[]>(['public']);
   const [allFigureSessions, setAllFigureSessions] = useState<
     VulcanFigureSession[]
   >([]);
@@ -175,58 +177,8 @@ export default function FiguresTable({
     }
   }, [allFigureSessions, matchesSearch, hasTag, workflowName]);
 
-  const allTags = useMemo(() => {
-    return [
-      ...new Set(
-        allFigureSessions.reduce(
-          (acc: string[], f) => acc.concat(f.tags || []),
-          ['public']
-        )
-      )
-    ];
-  }, [allFigureSessions]);
-
   return (
     <Grid container direction='column'>
-      <Grid item container className={classes.controls} spacing={6}>
-        <Grid item xs={4}>
-          <TextField
-            fullWidth
-            label='Search'
-            variant='outlined'
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon />
-                </InputAdornment>
-              )
-            }}
-            onChange={(e) => setSearchString(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={4}>
-          <Autocomplete
-            fullWidth
-            multiple
-            className='figure-tag-autocomplete'
-            classes={{
-              input: classes.tags
-            }}
-            defaultValue={['public']}
-            id='figure-tags-filter'
-            options={allTags.sort()}
-            renderInput={(params: any) => (
-              <TextField {...params} label='Tags' variant='outlined' />
-            )}
-            renderOption={(option, state) => <span>{option}</span>}
-            filterOptions={(options, state) => {
-              let regex = new RegExp(state.inputValue);
-              return options.filter((o) => regex.test(o));
-            }}
-            onChange={(e, v) => setTags(v)}
-          />
-        </Grid>
-      </Grid>
       <Grid item>
         <ImageList
           cols={5}

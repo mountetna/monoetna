@@ -36,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
   selectedCard: {
     margin: '2rem',
     border: '1px solid lightgray',
-    boxShadow: '0 0 0 15px darkgray, 0 0 4px 15px darkgray',
+    boxShadow: '0 0 0 15px #ffc060, 0 0 15px 13px #fcc',
     width: '260px',
     height: '300px',
     cursor: 'pointer',

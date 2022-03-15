@@ -45,6 +45,7 @@ import {
 } from '../../../api_types';
 import useUserHooks from '../../useUserHooks';
 import Button from '@material-ui/core/Button';
+import Tag from '../../tag';
 
 const modalStyles = {
   content: {
@@ -390,6 +391,11 @@ export default function SessionManager() {
                   renderInput={(params: any) => (
                     <TextField {...params} label='Tags' variant='outlined' />
                   )}
+                  renderTags={
+                    (tags, getTagProps) => tags.map(
+                      (tag, index) => <Tag {...getTagProps({ index })} label={tag} />
+                    )
+                  }
                   renderOption={(option, state) => <span>{option}</span>}
                   filterOptions={(options, state) => {
                     let regex = new RegExp(state.inputValue);
