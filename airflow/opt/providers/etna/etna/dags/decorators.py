@@ -49,6 +49,7 @@ def dag(
             start_date=start_date,
             end_date=end_date,
             schedule_interval=schedule_interval,
+            max_active_runs=1,
             **kwds,
         ) as dag:
             inject(fn, inject_params)
@@ -56,12 +57,9 @@ def dag(
 
     return instantiate_dag
 
-
-def system_dag(interval: timedelta) -> Callable[[Callable], DAG]:
+def rollup_dag(interval: timedelta, labels: List[str]) -> Callable[[Callable], DAG]:
     """
-    Decorator that converts the decorator function into a DAG by the same name
-    using any tasks instantiated within the function.  For use with 'system'
-    level dags whose owner should be 'administration'.
+    `system_dag` variant that sets the dag's labels so that a rollup of it's XCom values are used
     """
 
     def instantiate_dag(fn):
@@ -70,7 +68,27 @@ def system_dag(interval: timedelta) -> Callable[[Callable], DAG]:
             schedule_interval=interval,
             default_args=dict(
                 owner="administration",
-                retries=3,
+                retries=10,
+            ),
+            tags=["rollup"] + [f"label:{l}" for l in labels],
+            catchup=False,
+        )(fn)
+
+    return instantiate_dag
+
+
+def system_dag(interval: timedelta) -> Callable[[Callable], DAG]:
+    """
+    `dag` variant that sets the owner to 'administration' and a high number of retries.
+    """
+
+    def instantiate_dag(fn):
+        return dag(
+            start_date=system_epoch,
+            schedule_interval=interval,
+            default_args=dict(
+                owner="administration",
+                retries=10,
             ),
             # default_args=dict(
             # on_failure_callback=notify_slack_dag_callback("failed: "),

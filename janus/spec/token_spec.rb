@@ -260,6 +260,20 @@ describe "Token Generation" do
         # there is only one project on the token, with reduced permissions
         expect(payload["perm"]).to eq('E:gateway')
       end
+
+      it 'respects read_only' do
+        admin = create(:project, project_name: 'administration', project_name_full: 'Administration')
+        perm = create(:permission, project: admin, user: @user, role: 'editor')
+        perm = create(:permission, project: @gateway, user: @user, role: 'administrator', privileged: true)
+        header('Authorization', "Etna #{@user.create_token!}")
+        post('/api/tokens/generate', project_name: 'gateway', token_type: 'task', read_only: true)
+        expect(last_response.status).to eq(200)
+
+        payload, header = Janus.instance.sign.jwt_decode(last_response.body)
+
+        # there is only one project on the token, with reduced permissions
+        expect(payload["perm"]).to eq('v:gateway')
+      end
     end
 
     it 'validates a task token' do
