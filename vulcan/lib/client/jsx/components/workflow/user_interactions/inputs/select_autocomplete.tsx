@@ -10,8 +10,8 @@ import { debounce } from 'lodash';
 
 
 export default function SelectAutocompleteInput(
-  {data, label, minWidth, maxOptions=100, clearable=true, onChange, ...props}: WithInputParams<
-  {label?: string, minWidth?: number, clearable?: boolean, maxOptions?:number}, string | null, StringOptions>) {
+  {data, label, minWidth, maxOptions=100, disableClearable=true, onChangeOverride, onChange, ...props}: WithInputParams<
+  {label?: string, minWidth?: number, disableClearable?: boolean, maxOptions?:number, onChangeOverride?: (event: any, e: string|null) => void}, string | null, StringOptions>) {
   /*
   Creates a searchable dropdown selection input box from concatenated values of the 'data' hash.
   Special Case: If any data key is "recommendation", a line of text will display the values of this recommendation to the user.
@@ -20,68 +20,64 @@ export default function SelectAutocompleteInput(
   const options_in = useMemoized(flattenStringOptions, data_use);
   const value = useSetsDefault(null, props.value, onChange);
   const disp_label = useMemo( () => {return suggestion ? suggestion : label}, [suggestion, label]);
-  const [options, setOptions] = useState(options_in as typeof options_in);
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [helperText, setHelperText] = useState(undefined as string | undefined);
   const [inputState, setInputState] = React.useState(dispValue(value));
+  const [options, setOptionsFull] = useState({
+    filtered: options_in,
+    display: options_in
+    });
+  function setOptions(filteredOptions: string[]) {
+    setOptionsFull({
+      filtered: filteredOptions,
+      display: filteredOptions.splice(0,maxOptions-1)})
+  }
   const getOptionsDelayed = useCallback(
     debounce((text, options_in, callback) => {
-      // console.log('inputState',inputState)
-      // console.log('value',value)
-      // console.log('options',options)
-      setLoadingOptions(true); setOptions([]);
       getOptionsAsync(text, [...options_in]).then(callback);
     }, 200),
     [],
   );
   
-  function determineHelperText(filteredOptions: typeof optionsLeaf) {
-    if (filteredOptions.length>maxOptions) {
-      setHelperText(filteredOptions.length + " options, only " + maxOptions + " shown")
-    } else if (filteredOptions.length==0) {
-      setHelperText("no matching options")
-    } else {
-      setHelperText(undefined)
-    }
-  }
-  
   useEffect(() => {
+    // Shown from all options when user has made their selection (current text = current value)
+    const query = (inputState!=value) ? inputState : ''
+    
     if (options_in.length>1000) {
-      getOptionsDelayed(inputState, options_in, (filteredOptions: typeof options) => {
+      setLoadingOptions(true); setOptions([]);
+      getOptionsDelayed(query, options_in, (filteredOptions: string[]) => {
         console.log('calculating options - slow')
         setLoadingOptions(false)
-        determineHelperText(filteredOptions)
-        setOptions(filteredOptions.splice(0,maxOptions-1))
+        setOptions(filteredOptions)
       });
     } else {
       console.log('calculating options - fast')
-      const filteredOptions = filterOptions(inputState, options_in)
-      determineHelperText(filteredOptions)
-      setOptions(filteredOptions)
+      setOptions(filterOptions(query, options_in))
     }
-  }, [inputState, getOptionsDelayed, options_in]);
-  // console.log('inputState',inputState)
-  // console.log('value',value)
-  // console.log('options',options)
+  }, [inputState, getOptionsDelayed, options_in, value]);
+  
+  useEffect(() => {
+    determineHelperText(setHelperText, options.filtered, loadingOptions, maxOptions, inputState, value)
+  }, [options, inputState, value, maxOptions, loadingOptions, setHelperText])
+  
+  const onChangeAction = useCallback((event: any, e: string|null) => {
+    (onChangeOverride) ? onChangeOverride(event, e) : onChange(maybeOfNullable(e))
+  }, [onChangeOverride, onChange])
+  
   return (
     <Autocomplete
-      disableClearable={clearable}
+      disableClearable={disableClearable}
       clearOnBlur={true}
-      options={options}
+      options={options.display}
       // disable filtering on client
       filterOptions={(x: typeof options) => x}
       loading={loadingOptions}
       value={value}
-      onChange={(event: any, newInputState: string | null) => {
-        // console.log('inputState',inputState)
-        // console.log('value',value)
-        onChange(maybeOfNullable(newInputState))
-      }}
+      onChange={onChangeAction}
       inputValue={inputState}
       onInputChange={(event: any, newInputState: string) => {
         setInputState(newInputState)
       }}
-      ListboxProps={{style:{paddingTop: helperText ? 0 : 20}}}
       style={{minWidth: minWidth, paddingTop: disp_label ? 8 : 0}}
       renderInput={(params:any) => (
         <TextField 
@@ -114,24 +110,48 @@ function pullRecommendation<T extends DataEnvelope<any>>(data: T | null | undefi
   return [data, undefined]
 }
 
-const getOptionsAsync = (query: string, options: string[]) => {
+function dispValue(value: string|null) {
+  return (value==null) ? '' : value
+}
+
+const getOptionsAsync = (query: string, opts: string[]) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(
-        filterOptions(query, options),
+        filterOptions(query, opts),
       );
     }, 3000);
   });
 };
 
-function filterOptions(query: string, options: string[]) {
-  return options.filter(
+function filterOptions(query: string, opts: string[]) {
+  return opts.filter(
     (o) => {
       return (query==null) ? true : o.indexOf(query) > -1
     },
   )
 }
 
-function dispValue(value: string|null) {
-  return (value==null) ? '' : value
+function determineHelperText(
+  setHelperText: React.Dispatch<React.SetStateAction<string | undefined>>,
+  filteredOptions: string[],
+  loadingOptions: boolean,
+  maxOptions: number,
+  typed: string,
+  saved: string | null)
+{
+  
+  if (loadingOptions || typed=='') {
+    return
+  } else if (saved == null || typed!=saved) {
+    if (filteredOptions.length>maxOptions) {
+      setHelperText(filteredOptions.length + " options, only " + maxOptions + " shown")
+    } else if (filteredOptions.length==0) {
+      setHelperText("no matching options")
+    } else {
+      setHelperText(undefined)
+    }
+  } else {
+    setHelperText(undefined)
+  }
 }
