@@ -36,11 +36,13 @@ const KeysSettings = ({user, setUser}) => {
   let uploadKey = useCallback(
     () => {
       setDisabled(true);
-      return json_post('/api/user/update_key', { pem }).then(
-        ({user}) => { setUser(user); setError('Saved!'); }
-    ).catch(
-      e => e.then( ({error}) => setError(error) )
-    ).finally(() => setDisabled(false))}, [pem]
+      return json_post('/api/user/update_key', { pem })
+      .then(
+          ({user}) => { setUser(user); setError('Saved!'); }
+      ).catch(
+        e => e.then( ({error}) => setError(error) )
+      ).finally(() => setDisabled(false))
+    }, [pem]
   );
 
   return <div id='keys-group'>
