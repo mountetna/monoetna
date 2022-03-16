@@ -28,8 +28,9 @@ import useUserHooks from '../useUserHooks';
 import Tag from '../tag';
 
 const figureStyles = makeStyles((theme) => ({
-  card: {
-    paddingBottom: '14px'
+  content: {
+    width: '100%',
+    height: '100%'
   },
   figure: {
     border: '1px solid #eee',
@@ -62,18 +63,18 @@ const figureStyles = makeStyles((theme) => ({
   },
   tags: {
     maxWidth: '225px',
-    height: '65px',
+    maxHeight: '65px',
     overflow: 'hidden',
     position: 'relative',
     '&:after': {
       content: "''",
       position: 'absolute',
       zIndex: 1,
-      bottom: 0,
+      top: 0,
       left: 0,
-      backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255, 0), rgba(255,255,255, 1) 90%)',
+      backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255, 0), rgba(255,255,255,0) 90%, rgba(255,255,255, 1) 100%)',
       width: '100%',
-      height: '10px'
+      height: '65px'
     },
     '&:hover': {
       overflow: 'visible',
@@ -200,8 +201,8 @@ const Figure = ({
         image={image}
         title={figureSession.title || ''}
       />
-      <CardContent className={classes.card}>
-        <Grid alignItems='center' justify='space-between' container>
+      <CardContent style={{ width: '280px', height: '65px', padding: '10px' }} >
+        <Grid alignItems='center' justify='space-between' container className={classes.content}>
           <Grid item xs={1}>
             <Tooltip title={figureSession.author || ''}>
               <Avatar className={classes.author}>
