@@ -77,7 +77,7 @@ export default function FiguresControls({
 
   return (
     <Grid item container className={classes.controls} spacing={6}>
-      <Grid item xs={4}>
+      <Grid item xs={6}>
         <TextField
           fullWidth
           label='Search'
@@ -92,7 +92,7 @@ export default function FiguresControls({
           onChange={(e) => setSearchString(e.target.value)}
         />
       </Grid>
-      <Grid item xs={4}>
+      <Grid item xs={6}>
         <Autocomplete
           fullWidth
           multiple

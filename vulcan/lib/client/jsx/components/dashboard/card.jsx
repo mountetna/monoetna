@@ -4,6 +4,8 @@ import Icon from 'etna-js/components/icon';
 
 import {workflowName} from '../../selectors/workflow_selectors';
 import ImageMemo from './image_memo';
+import Tag from '../tag';
+import Typography from '@material-ui/core/Typography';
 
 // To get webpack to pick up the files.
 require('../../../img/umap.png');
@@ -105,26 +107,24 @@ export default function Card({workflow, onClick, selected}) {
       </figure>
       <div className={classes.description}>
         <div className={classes.row}>
-          <div className={classes.label}>Name</div>
           <div className={classes.value}>
+            <Typography variant='subtitle1'>
             {workflow.displayName || workflowName(workflow)}
+            </Typography>
           </div>
         </div>
         <div className={classes.row}>
-          <div className={classes.label}>Authors</div>
           <div className={classes.value}>
-            {MultiLineOutput(workflow.authors)}
+            { workflow.authors.join(', ') }
           </div>
         </div>
         <div className={classes.row}>
-          <div className={classes.label}>Last Modified</div>
           <div className={classes.value}>{workflow.lastModified}</div>
         </div>
         <div className={classes.row}>
-          <div className={classes.label}>
-            <Icon className='card-tags' icon='tags' /> Tags
-          </div>
-          <div className={classes.value}>{MultiLineOutput(workflow.tags)}</div>
+          <div className={classes.value}>{
+            workflow.tags.map( t => <Tag key={t} label={t}/>)
+          }</div>
         </div>
       </div>
     </div>

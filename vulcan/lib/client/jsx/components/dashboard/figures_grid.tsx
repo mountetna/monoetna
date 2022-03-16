@@ -21,20 +21,6 @@ import FigureCard from './figure';
 import Grid from '@material-ui/core/Grid';
 
 const useStyles = makeStyles((theme) => ({
-  title: {
-    padding: '10px 0px',
-    color: '#444'
-  },
-  figures: {
-    padding: '15px',
-    width: 'calc(100vw - 30px)'
-  },
-  controls: {
-    padding: '15px'
-  },
-  tags: {
-    padding: '12.5px !important'
-  }
 }));
 
 export default function FiguresTable({
@@ -178,30 +164,19 @@ export default function FiguresTable({
   }, [allFigureSessions, matchesSearch, hasTag, workflowName]);
 
   return (
-    <Grid container direction='column'>
-      <Grid item>
-        <ImageList
-          cols={5}
-          gap={30}
-          rowHeight={390}
-          className={classes.figures}
-        >
-          {new Array(10).fill(filteredFigureSessions).flat().map(
-            (figure: VulcanFigureSession, index: number) => {
-              return (
-                <ImageListItem key={index}>
-                  <FigureCard
-                    figureSession={figure}
-                    onCopy={() => handleOnCopy(figure)}
-                    onRemove={() => handleOnRemove(figure)}
-                    onRename={() => handleOnRename(figure)}
-                  />
-                </ImageListItem>
-              );
-            }
-          )}
-        </ImageList>
-      </Grid>
+    <Grid justify='space-between' container direction='row'>
+      {filteredFigureSessions.map(
+        (figure: VulcanFigureSession, index: number) => {
+          return (
+              <FigureCard
+                figureSession={figure}
+                onCopy={() => handleOnCopy(figure)}
+                onRemove={() => handleOnRemove(figure)}
+                onRename={() => handleOnRename(figure)}
+              />
+          );
+        }
+      )}
     </Grid>
   );
 }
