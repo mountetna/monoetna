@@ -169,6 +169,29 @@ a user is an email address. They may also have a first and last name. You may op
 
 Some users will want to set a public key to allow them to generate a janus token via the `/generate` endpoint (see above). You may set this key using the `add_user_key` command and a public key file. Keys must be in PEM format and must be RSA keys.
 
+To create a public / private key pair, you can use the following commands:
+
+```
+$ openssl genrsa -out privatekey.pem 2048
+$ openssl rsa -in privatekey.pem -out publickey.pem -pubout -outform PEM
+```
+
+And the resulting file (`publickey.pem`) should look like:
+
+```
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArzKDJ1+08l3y12nMzYz3
+h3xo4n/4FZ+jrnWTsPa4F6OxYo9J1E0PBjHLbSIvbIMjNcf5OTywzjzDS8Hh6P20
+5fPD5pdUcGfF1u7WkFYGEYI3X6oCRZeSUR1x/u0lLHEwWDdKGZaIeyic4gWGEaF4
+G55FSt01FszgOnt1Gq/JCtnlblKzp4jjvNWcMkLeXWjxP91R5XzRDbMjx/dM8Ke9
+U2+ZRoibtEm5n0FpLVC0A31lm3XfLAGi7H1Ynle/oz8OafTGTbTJ7ipsC354AVQ6
++qg2GQdJj6tyIda9/2TB0u1faqcYbuWO6uz3HuEPO0MS94GdEYktr6UisRsZ6F/Z
+OQIDAQAB
+-----END PUBLIC KEY-----
+```
+
+You can then paste that key into the Janus `Settings` page, in the textarea for your SSH key.
+
 ### Creating a project
 
 You may add a new project with the `add_project` command.  The project_name is `snake_cased` and is the primary referrent for the project throughout Etna applications.  Most Etna applications will not acknowledge a project if there is no corresponding Janus project entry.
