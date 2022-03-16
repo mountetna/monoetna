@@ -8,7 +8,7 @@ const colors = ['#f77189', '#ce9032', '#97a431', '#32b166', '#36ada4', '#39a7d0'
 //const colors = ['#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f', '#e5c494', '#b3b3b3']
 
 
-const Tag = (props) => {
+const Tag = (props:any) => {
   const backgroundColor = colors[ parseInt( hash(props.label).slice(0,8), 16) % colors.length ]
   return <Chip style={{backgroundColor}} {...props}/>;
 }

@@ -125,7 +125,7 @@ export default function SessionManager() {
       };
 
       if (!params.title) {
-        params.title = prompt('Set a title for this figure');
+        params.title = prompt('Set a title for this figure') || undefined;
         if (!params.title) return;
       }
 

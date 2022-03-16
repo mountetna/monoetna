@@ -21,6 +21,9 @@ import FigureCard from './figure';
 import Grid from '@material-ui/core/Grid';
 
 const useStyles = makeStyles((theme) => ({
+  figures: {
+    boxShadow: '0 0 15px 0px #f5f5f5 inset'
+  }
 }));
 
 export default function FiguresTable({
@@ -31,7 +34,7 @@ export default function FiguresTable({
 }: {
   project_name: string;
   workflowName?: string;
-  tags?: string;
+  tags?: string[];
   searchString?: string;
 }) {
   const {
@@ -123,8 +126,8 @@ export default function FiguresTable({
 
   const hasTag = useCallback(
     (figure: VulcanFigureSession) => {
-      if (0 === tags.length) return true;
       if (!figure.tags || 0 === figure.tags.length) return false;
+      if (!tags || 0 === tags.length) return true;
 
       return (figure.tags?.filter((t) => tags.includes(t)) || []).length > 0;
     },
@@ -164,7 +167,7 @@ export default function FiguresTable({
   }, [allFigureSessions, matchesSearch, hasTag, workflowName]);
 
   return (
-    <Grid container direction='row'>
+    <Grid className={classes.figures} container direction='row'>
       {filteredFigureSessions.map(
         (figure: VulcanFigureSession, index: number) => {
           return (
