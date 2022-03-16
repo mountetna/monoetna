@@ -164,7 +164,7 @@ export default function FiguresTable({
   }, [allFigureSessions, matchesSearch, hasTag, workflowName]);
 
   return (
-    <Grid justify='space-between' container direction='row'>
+    <Grid container direction='row'>
       {filteredFigureSessions.map(
         (figure: VulcanFigureSession, index: number) => {
           return (
