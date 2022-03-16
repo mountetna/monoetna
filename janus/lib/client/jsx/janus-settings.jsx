@@ -17,6 +17,9 @@ import { isSuperuser } from 'etna-js/utils/janus';
 const useStyles = makeStyles((theme) => ({
   text: {
     width: '300px'
+  },
+  keyText: {
+    width: '650px'
   }
 }));
 
@@ -31,7 +34,7 @@ const KeysSettings = ({user}) => {
 
   let uploadKey = useCallback(
     () => json_post('/api/user/update_key', { pem }).then(
-      ({user}) => { setUser(user); setError(null); }
+        ({user}) => { setUser(user); setError(null); }
     ).catch(
       e => e.then( ({error}) => setError(error) )
     ), [pem]
@@ -52,7 +55,8 @@ const KeysSettings = ({user}) => {
     }
     <div className='item'>
       <TextField 
-        className={classes.text}
+        multiline
+        className={classes.keyText}
         onChange={ e => setPemText(e.target.value) }
         placeholder='Paste 2048+ bit RSA key in PEM format'/>
       <Button onClick={uploadKey}>Upload Key</Button>
