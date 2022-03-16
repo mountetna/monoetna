@@ -139,6 +139,7 @@ def etl(
                 depends_on_past=True,
                 retries=3,
             ),
+            tags=[project_name, 'etl'],
             version=version,
         )(fn)
 
