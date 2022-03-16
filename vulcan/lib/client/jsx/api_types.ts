@@ -160,7 +160,7 @@ export interface VulcanFigure {
   inputs: {[k: string]: any};
   title?: string | null;
   author?: string;
-  thumbnail?: string;
+  thumbnails?: string[];
   tags?: string[];
 }
 

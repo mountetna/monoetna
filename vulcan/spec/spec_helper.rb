@@ -48,6 +48,22 @@ AUTH_USERS = {
 
 PROJECT = "labors"
 
+def store(hash, filename, data)
+  storage = Vulcan::Storage.new
+
+  path = storage.data_path(project_name: PROJECT, cell_hash: hash, data_filename: filename)
+  ::FileUtils.mkdir_p(::File.dirname(path))
+  ::File.write(path, data)
+  path
+end
+
+def clear_store
+  storage = Vulcan::Storage.new
+
+  FileUtils.rm_rf(storage.data_root) if ::File.exist?(storage.data_root)
+end
+
+
 def auth_header(user_type, task: false, additional: {})
   user = AUTH_USERS[user_type].dup
   user[:task] = task if task
@@ -79,19 +95,6 @@ RSpec.configure do |config|
     #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
     Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
   end
-end
-
-
-def run_script script
-  txt = script
-
-  manifest = Archimedes::Manifest.new(
-    'xyzzy',
-    'timur',
-    txt
-  )
-  manifest.payload
-  manifest.instance_variable_get('@return_vars')
 end
 
 def create_figure(params)

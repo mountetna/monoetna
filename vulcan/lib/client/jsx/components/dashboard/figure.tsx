@@ -21,7 +21,7 @@ import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
-import {VulcanFigureSession} from '../../api_types';
+import {Workflow, VulcanFigureSession} from '../../api_types';
 import useUserHooks from '../useUserHooks';
 
 const figureStyles = makeStyles((theme) => ({
@@ -62,6 +62,12 @@ const authorInitials = ({author}: VulcanFigureSession) => {
     : names[0][0];
 };
 
+const figureImage = (workflow:Workflow|null, figure:VulcanFigureSession):[Boolean,string] => (
+  figure.thumbnails && (figure.thumbnails.length > 0)
+    ? [ false, figure.thumbnails[0] ]
+    : [ true, `/images/${workflow ? workflow.image : 'default.png'}` ]
+);
+
 const Figure = ({
   figureSession,
   onCopy,
@@ -80,7 +86,7 @@ const Figure = ({
   const {canEdit} = useUserHooks();
 
   const workflow = workflows
-    ? workflows.find((w) => w.name == figureSession.workflow_name)
+    ? (workflows.find((w) => w.name == figureSession.workflow_name) || null)
     : null;
 
   const classes = figureStyles();
@@ -121,6 +127,8 @@ const Figure = ({
     canEdit
   ]);
 
+  const [ defaultImage, image ] = figureImage(workflow, figureSession);
+
   return (
     <Card className={classes.figure}>
       <Menu
@@ -145,12 +153,12 @@ const Figure = ({
       />
       <CardMedia
         className={
-          figureSession?.thumbnail ? classes.image : classes.defaultImage
+          defaultImage ? classes.defaultImage : classes.image
         }
         onClick={visitFigure}
         component='img'
         height='140'
-        image={`/images/${workflow ? workflow.image : 'default.png'}`}
+        image={image}
         title={figureSession.title || ''}
       />
       <CardContent>
