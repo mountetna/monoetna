@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 
 // import editors
 import {
@@ -32,25 +32,27 @@ import {
 import {registerLanguageDictionary, enUS} from 'handsontable/i18n';
 
 export default function useHandsonTable() {
-  // register individual translations
-  registerLanguageDictionary(enUS);
+  useEffect(() => {
+    // register individual translations
+    registerLanguageDictionary(enUS);
 
-  // register individual editors
-  registerEditor(BaseEditor);
-  registerEditor(HandsontableEditor);
-  registerEditor(TextEditor);
+    // register individual editors
+    registerEditor(BaseEditor);
+    registerEditor(HandsontableEditor);
+    registerEditor(TextEditor);
 
-  // register individual renderers
-  registerRenderer(baseRenderer);
-  registerRenderer(textRenderer);
+    // register individual renderers
+    registerRenderer(baseRenderer);
+    registerRenderer(textRenderer);
 
-  // register individual cell types
-  registerCellType(TextCellType);
+    // register individual cell types
+    registerCellType(TextCellType);
 
-  // register individual plugins
-  registerPlugin(ContextMenu);
-  registerPlugin(CopyPaste);
-  registerPlugin(DragToScroll);
-  registerPlugin(Formulas);
-  registerPlugin(UndoRedo);
+    // register individual plugins
+    registerPlugin(ContextMenu);
+    registerPlugin(CopyPaste);
+    registerPlugin(DragToScroll);
+    registerPlugin(Formulas);
+    registerPlugin(UndoRedo);
+  }, []);
 }
