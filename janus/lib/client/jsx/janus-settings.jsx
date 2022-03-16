@@ -25,6 +25,7 @@ const useStyles = makeStyles((theme) => ({
 
 const KeysSettings = ({user, setUser}) => {
   let [ error, setError ] = useState(null);
+  const [disabled, setDisabled] = useState(false);
 
   const classes = useStyles();
 
@@ -33,11 +34,13 @@ const KeysSettings = ({user, setUser}) => {
   let [ pem, setPemText ] = useState(null);
 
   let uploadKey = useCallback(
-    () => json_post('/api/user/update_key', { pem }).then(
-        ({user}) => { setUser(user); setError('Saved!'); setPemText(null); }
+    () => {
+      setDisabled(true);
+      return json_post('/api/user/update_key', { pem }).then(
+        ({user}) => { setUser(user); setError('Saved!'); }
     ).catch(
       e => e.then( ({error}) => setError(error) )
-    ), [pem]
+    ).finally(() => setDisabled(false))}, [pem]
   );
 
   return <div id='keys-group'>
@@ -59,7 +62,7 @@ const KeysSettings = ({user, setUser}) => {
         className={classes.keyText}
         onChange={ e => setPemText(e.target.value) }
         placeholder='Paste 2048+ bit RSA key in PEM format'/>
-      <Button onClick={uploadKey}>Upload Key</Button>
+      <Button onClick={uploadKey} disabled={disabled}>Upload Key</Button>
       { error && <span className='error'>{error}</span> }
     </div>
   </div>
