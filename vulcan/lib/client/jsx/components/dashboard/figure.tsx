@@ -33,7 +33,8 @@ const figureStyles = makeStyles((theme) => ({
   },
   figure: {
     border: '1px solid #eee',
-    margin: '25px'
+    margin: '25px',
+    width: '300px'
   },
   image: {
     cursor: 'pointer',
@@ -210,7 +211,7 @@ const Figure = ({
           </Grid>
           <Grid item xs={11} container className={classes.tags}>
           {
-            figureSession.tags.map(
+            (figureSession.tags || []).map(
               (tag,index) => <Tag className={classes.tag} key={index} label={tag}/>
             )
           }
