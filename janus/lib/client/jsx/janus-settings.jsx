@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const KeysSettings = ({user}) => {
+const KeysSettings = ({user, setUser}) => {
   let [ error, setError ] = useState(null);
 
   const classes = useStyles();
@@ -34,7 +34,7 @@ const KeysSettings = ({user}) => {
 
   let uploadKey = useCallback(
     () => json_post('/api/user/update_key', { pem }).then(
-        ({user}) => { setUser(user); setError(null); }
+        ({user}) => { setUser(user); setError('Saved!'); setPemText(null); }
     ).catch(
       e => e.then( ({error}) => setError(error) )
     ), [pem]
@@ -114,7 +114,7 @@ const JanusSettings = () => {
   );
 
   return <div id='janus-settings'>
-    <KeysSettings user={ janusUser }/>
+    <KeysSettings user={ janusUser } setUser={setUser} />
     <TaskTokenSettings user={ user }/>
     { isSuperuser(user) && <TokenBuilder user={ user }/> }
   </div>;
