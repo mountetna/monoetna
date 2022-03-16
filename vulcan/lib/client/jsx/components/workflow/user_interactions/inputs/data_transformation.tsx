@@ -21,7 +21,7 @@ import {WithInputParams, DataEnvelope} from './input_types';
 import {useSetsDefault} from './useSetsDefault';
 import {some, Maybe, withDefault, isSome} from '../../../../selectors/maybe';
 import {useMemoized} from '../../../../selectors/workflow_selectors';
-import useHandsonTable from './use_handson_table';
+import useHandsonTable from './useHandsonTable';
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
