@@ -11,18 +11,26 @@ describe('JanusSettings', () => {
   beforeEach(() => {
     store = mockStore({
       user: {
-	email: "janus@two-faces.org",
-	name: "Janus Bifrons",
-	permissions: { }
+        email: "janus@two-faces.org",
+        name: "Janus Bifrons",
+        permissions: { }
       }
     });
   });
+
+  const createNodeMock = element => {
+    if (element.type === "textarea") {
+      return document.createElement("textarea");
+    } else {
+      return null;
+    }
+  };
 
   it('renders', async () => {
     const initialStubs = [
       stubUrl({
         verb: 'get',
-	path: '/api/user/info',
+	      path: '/api/user/info',
         status: 200,
         response: {
           user: {
@@ -37,7 +45,8 @@ describe('JanusSettings', () => {
     let component = create(
       <Provider store={store}>
         <JanusSettings/>
-      </Provider>
+      </Provider>,
+      { createNodeMock }
     );
 
     await act( async () => {
