@@ -17,11 +17,15 @@ import { isSuperuser } from 'etna-js/utils/janus';
 const useStyles = makeStyles((theme) => ({
   text: {
     width: '300px'
+  },
+  keyText: {
+    width: '650px'
   }
 }));
 
-const KeysSettings = ({user}) => {
+const KeysSettings = ({user, setUser}) => {
   let [ error, setError ] = useState(null);
+  const [disabled, setDisabled] = useState(false);
 
   const classes = useStyles();
 
@@ -30,11 +34,15 @@ const KeysSettings = ({user}) => {
   let [ pem, setPemText ] = useState(null);
 
   let uploadKey = useCallback(
-    () => json_post('/api/user/update_key', { pem }).then(
-      ({user}) => { setUser(user); setError(null); }
-    ).catch(
-      e => e.then( ({error}) => setError(error) )
-    ), [pem]
+    () => {
+      setDisabled(true);
+      return json_post('/api/user/update_key', { pem })
+      .then(
+          ({user}) => { setUser(user); setError('Saved!'); }
+      ).catch(
+        e => e.then( ({error}) => setError(error) )
+      ).finally(() => setDisabled(false))
+    }, [pem]
   );
 
   return <div id='keys-group'>
@@ -52,10 +60,11 @@ const KeysSettings = ({user}) => {
     }
     <div className='item'>
       <TextField 
-        className={classes.text}
+        multiline
+        className={classes.keyText}
         onChange={ e => setPemText(e.target.value) }
         placeholder='Paste 2048+ bit RSA key in PEM format'/>
-      <Button onClick={uploadKey}>Upload Key</Button>
+      <Button onClick={uploadKey} disabled={disabled}>Upload Key</Button>
       { error && <span className='error'>{error}</span> }
     </div>
   </div>
@@ -110,7 +119,7 @@ const JanusSettings = () => {
   );
 
   return <div id='janus-settings'>
-    <KeysSettings user={ janusUser }/>
+    <KeysSettings user={ janusUser } setUser={setUser} />
     <TaskTokenSettings user={ user }/>
     { isSuperuser(user) && <TokenBuilder user={ user }/> }
   </div>;

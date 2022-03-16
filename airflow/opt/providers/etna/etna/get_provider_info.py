@@ -1,5 +1,10 @@
 # https://airflow.apache.org/docs/apache-airflow-providers/
+from etna.metrics.rollup_metrics import register_rollup_metrics
+
+
 def get_provider_info():
+    register_rollup_metrics()
+
     return {
         "package-name": "etna",
         "name": "etna",
