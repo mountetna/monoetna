@@ -25,7 +25,7 @@ class RollupMetricsCollector:
         bag = DagBag(read_dags_from_db=True)
         bag.collect_dags_from_db()
         for dag_name, dag in bag.dags.items():
-            if 'rollup' not in dag.tags:
+            if dag.tags is None or 'rollup' not in dag.tags:
                 continue
 
             for task_id in dag.task_ids:

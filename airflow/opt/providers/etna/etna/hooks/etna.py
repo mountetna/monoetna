@@ -286,12 +286,12 @@ class EtnaClientBase:
 
 class Janus(EtnaClientBase):
     def generate_token(
-        self, project_name: str, ready_only=True, token_type="task"
+        self, project_name: str, read_only=True, token_type="task"
     ) -> bytes:
         response = self.session.post(
             self.prepare_url("api", "tokens", "generate"),
             json=dict(
-                token_type=token_type, project_name=project_name, ready_only=ready_only
+                token_type=token_type, project_name=project_name, read_only=read_only
             ),
         )
         return response.content

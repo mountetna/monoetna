@@ -67,12 +67,10 @@ module Token
       # ensure read only
       if read_only
         payload[:perm] = "v:#{project_name}"
-      end
-
       # degrade admin permissions
-      if payload[:perm] =~ /^[Aa]/
+      elsif payload[:perm] =~ /^[Aa]/
         payload[:perm] = payload[:perm].sub(/^[Aa]/) { |c| c == 'A' ? 'E' : 'e' }
-        # permit supereditor
+      # permit supereditor
       elsif @janus_user.supereditor?
         payload[:perm] = "e:#{project_name}"
       end
