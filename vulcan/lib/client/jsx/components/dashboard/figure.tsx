@@ -72,7 +72,7 @@ const figureStyles = makeStyles((theme) => ({
       left: 0,
       backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255, 0), rgba(255,255,255, 1) 90%)',
       width: '100%',
-      height: '15px'
+      height: '10px'
     },
     '&:hover': {
       overflow: 'visible',

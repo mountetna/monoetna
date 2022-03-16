@@ -135,7 +135,7 @@ export default function FiguresTable({
     (figure: VulcanFigureSession) => {
       if (!searchString || '' === searchString) return true;
 
-      const regex = new RegExp(searchString);
+      const regex = new RegExp(searchString, 'i');
       return (
         figure.title?.match(regex) ||
         figure.author?.match(regex) ||
