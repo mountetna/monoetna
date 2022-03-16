@@ -19,14 +19,21 @@ import Avatar from '@material-ui/core/Avatar';
 import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import Grid from '@material-ui/core/Grid';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {Workflow, VulcanFigureSession} from '../../api_types';
 import useUserHooks from '../useUserHooks';
 
+import Tag from '../tag';
+
 const figureStyles = makeStyles((theme) => ({
+  card: {
+    paddingBottom: '14px'
+  },
   figure: {
-    border: '1px solid #eee'
+    border: '1px solid #eee',
+    margin: '25px'
   },
   image: {
     cursor: 'pointer',
@@ -48,8 +55,36 @@ const figureStyles = makeStyles((theme) => ({
   title: {
     textOverflow: 'ellipsis',
     overflow: 'hidden',
-    width: '250px',
-    height: '2rem'
+    height: '2rem',
+    whiteSpace: 'nowrap',
+    maxWidth: '225px'
+  },
+  tags: {
+    maxWidth: '225px',
+    height: '65px',
+    overflow: 'hidden',
+    position: 'relative',
+    '&:after': {
+      content: "''",
+      position: 'absolute',
+      zIndex: 1,
+      bottom: 0,
+      left: 0,
+      backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255, 0), rgba(255,255,255, 1) 90%)',
+      width: '100%',
+      height: '15px'
+    },
+    '&:hover': {
+      overflow: 'visible',
+      zIndex: 2
+    },
+    '&:hover::after': {
+      content: '',
+      backgroundImage: 'none'
+    }
+  },
+  tag: {
+    marginBottom: '5px'
   }
 }));
 
@@ -143,8 +178,11 @@ const Figure = ({
       </Menu>
       <CardHeader
         title={figureSession.title}
-        titleTypographyProps={{variant: 'h6', className: classes.title}}
+        titleTypographyProps={{variant: 'subtitle1',
+          title: figureSession.title,
+          className: classes.title}}
         subheader={figureSession.workflow_name.replace('.cwl', '')}
+        subheaderTypographyProps={{variant: 'subtitle2'}}
         action={
           <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)}>
             <MoreVertIcon />
@@ -161,12 +199,23 @@ const Figure = ({
         image={image}
         title={figureSession.title || ''}
       />
-      <CardContent>
-        <Tooltip title={figureSession.author || ''}>
-          <Avatar className={classes.author}>
-            {authorInitials(figureSession)}
-          </Avatar>
-        </Tooltip>
+      <CardContent className={classes.card}>
+        <Grid alignItems='center' justify='space-between' container>
+          <Grid item xs={1}>
+            <Tooltip title={figureSession.author || ''}>
+              <Avatar className={classes.author}>
+                {authorInitials(figureSession)}
+              </Avatar>
+            </Tooltip>
+          </Grid>
+          <Grid item xs={11} container className={classes.tags}>
+          {
+            figureSession.tags.map(
+              (tag,index) => <Tag className={classes.tag} key={index} label={tag}/>
+            )
+          }
+          </Grid>
+        </Grid>
       </CardContent>
     </Card>
   );
