@@ -108,9 +108,11 @@ const EtlConfig = ({
 
   const postUpdate = useCallback(
     (update: any) => {
-      setMode(null);
       return json_post(`/api/etl/${project_name}/update/${name}`, update)
-        .then((etl) => onUpdate(etl))
+        .then((etl) => {
+          setMode(null);
+          onUpdate(etl);
+        })
         .catch((r) => r.then(({error}: {error: string}) => setError(error)));
     },
     [project_name, name]
@@ -187,8 +189,12 @@ const EtlConfig = ({
             </Grid>
           </Grid>
         </CardActions>
+        {error && (
+          <Grid item className={classes.error}>
+            <Typography>{error}</Typography>
+          </Grid>
+        )}
         <ConfigurePane
-          error={error}
           name={name}
           project_name={project_name}
           selected={mode}
@@ -197,7 +203,6 @@ const EtlConfig = ({
           update={postUpdate}
         />
         <RunPane
-          error={error}
           selected={mode}
           run_interval={run_interval}
           update={postUpdate}
@@ -208,7 +213,6 @@ const EtlConfig = ({
         <RemovePane selected={mode} update={postUpdate} />
         <LogsPane selected={mode} name={name} project_name={project_name} />
         <SecretsPane
-          error={error}
           selected={mode}
           update={postUpdate}
           keys={job ? job.secrets : null}

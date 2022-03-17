@@ -129,14 +129,12 @@ const RunPane = ({
   params,
   param_opts,
   selected,
-  error,
   config
 }: {
   run_interval: number;
   params: any;
   param_opts: any;
   update: Function;
-  error: string;
   selected: string | null;
   config: any;
 }) => {
@@ -182,7 +180,7 @@ const RunPane = ({
 
   return (
     <EtlPane mode='run' selected={selected}>
-      <EtlPaneHeader title='Run' error={error}>
+      <EtlPaneHeader title='Run'>
         <Grid className={classes.runbar} spacing={1} container>
           <Grid item>
             <Button

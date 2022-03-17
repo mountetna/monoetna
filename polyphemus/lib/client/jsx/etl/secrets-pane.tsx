@@ -24,13 +24,11 @@ const SecretsPane = ({
   selected,
   keys,
   update,
-  error,
   secrets
 }: {
   selected: string | null;
   keys: string[] | null;
   update: Function;
-  error: string;
   secrets: any;
 }) => {
   const classes = useStyles();
@@ -46,7 +44,7 @@ const SecretsPane = ({
 
   return (
     <EtlPane mode='secrets' selected={selected}>
-      <EtlPaneHeader title='Secrets' error={error} />
+      <EtlPaneHeader title='Secrets' />
       <Grid container className={classes.table}>
         {keys &&
           keys.map((key) => (
