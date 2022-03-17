@@ -100,6 +100,15 @@ const Param = ({
           onChange={(e, v) => update(name, v.join(','))}
         />
       );
+    } else {
+      return (
+        <TextField
+          size='small'
+          fullWidth
+          value={value == undefined ? '' : value}
+          onChange={(e) => update(name, e.target.value)}
+        />
+      );
     }
   } else if (opts == 'string') {
     return (
