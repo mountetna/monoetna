@@ -9,13 +9,14 @@ class Polyphemus
         params: {
           mode: [ {
             value: 'default',
+            default: true,
             label: 'copy REDCap data'
           }, {
             value: 'strict',
-            label: 'copy REDCap data and delete Magma records not in REDCap'
+            label: 'copy REDCap data and delete Magma records not in this run'
           }, {
             value: 'existing',
-            label: 'only copy records that exist in Magma'
+            label: 'only copy REDCap records that currently exist in Magma'
           } ],
           model_names: 'string',
           commit: 'boolean'

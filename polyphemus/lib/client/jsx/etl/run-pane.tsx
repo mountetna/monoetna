@@ -45,6 +45,7 @@ type Value = undefined | string | boolean;
 type SelectParam = {
   value: string;
   label: string;
+  default?: boolean;
 };
 
 const Param = ({
@@ -59,9 +60,10 @@ const Param = ({
   update: (name: string, value: string | boolean) => void;
 }) => {
   if (Array.isArray(opts)) {
+    const defaultOption = opts.find((o) => o.default);
     return (
       <Select
-        value={value || ''}
+        value={value || defaultOption?.value || ''}
         onChange={(e) => update(name, e.target.value as string)}
       >
         {opts.map((opt) => (
@@ -146,7 +148,9 @@ const RunPane = ({
           Object.keys(param_opts).sort(),
           Object.keys(newParams).sort()
         )) &&
-      Object.values(newParams).every((v) => v != null && v !== '')
+      Object.values(newParams).every(
+        (v) => v != null && v !== '' && !_.isEqual(v, [])
+      )
     );
   }, [nonBooleanParamOpts, param_opts, newParams]);
 
@@ -226,7 +230,6 @@ const RunPane = ({
                     value={newParams && (newParams[param_name] as Value)}
                     opts={param_opts[param_name]}
                     update={(name, value) => {
-                      console.log({name, value});
                       setParams({...newParams, [name]: value});
                     }}
                   />
