@@ -15,14 +15,6 @@ describe('SelectAutocompleteInput', () => {
   // Check that helperText is generated when display < maxOptions
   // Check that value is null when nothing selected, but proper once an option is selected
   // Check that onChange can be overwritten
-  function getOptions(component: ReactWrapper) {
-    return component
-      .state('options');
-  }
-
-  function renderedText(component: ReactWrapper, subcomponent: any) {
-    return component.find(subcomponent).text();
-  }
 
   beforeEach(() => {
     onChange = jest.fn();
