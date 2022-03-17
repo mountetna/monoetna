@@ -76,6 +76,7 @@ const useStyles = makeStyles((theme) => ({
     color: 'green'
   },
   error: {
+    paddingLeft: '0.5rem',
     color: 'red'
   },
   pending: {
