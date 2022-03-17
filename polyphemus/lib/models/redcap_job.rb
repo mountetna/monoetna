@@ -7,7 +7,16 @@ class Polyphemus
         name: "redcap",
         schema: Redcap::Loader.to_schema,
         params: {
-          mode: [ 'default', 'strict', 'existing' ],
+          mode: [ {
+            value: 'default',
+            label: 'copy REDCap data'
+          }, {
+            value: 'strict',
+            label: 'copy REDCap data and delete Magma records not in REDCap'
+          }, {
+            value: 'existing',
+            label: 'only copy records that exist in Magma'
+          } ],
           model_names: 'string',
           commit: 'boolean'
         },
