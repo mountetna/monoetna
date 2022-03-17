@@ -30,7 +30,7 @@ export default function SelectAutocompleteInput(
   function setOptions(filteredOptions: string[]) {
     setOptionsFull({
       filtered: filteredOptions,
-      display: filteredOptions.splice(0,maxOptions-1)})
+      display: [...filteredOptions].splice(0,maxOptions)})
   }
   const getOptionsDelayed = useCallback(
     debounce((text, options_in, callback) => {
@@ -57,8 +57,8 @@ export default function SelectAutocompleteInput(
   }, [inputState, getOptionsDelayed, options_in, value]);
   
   useEffect(() => {
-    determineHelperText(setHelperText, options.filtered, loadingOptions, maxOptions, inputState, value)
-  }, [options, inputState, value, maxOptions, loadingOptions, setHelperText])
+    determineHelperText(setHelperText, options.filtered, options_in, loadingOptions, maxOptions, inputState, value)
+  }, [options, options_in, inputState, value, maxOptions, loadingOptions, setHelperText])
   
   const onChangeAction = useCallback((event: any, e: string|null) => {
     (onChangeOverride) ? onChangeOverride(event, e) : onChange(maybeOfNullable(e))
@@ -135,17 +135,18 @@ function filterOptions(query: string, opts: string[]) {
 function determineHelperText(
   setHelperText: React.Dispatch<React.SetStateAction<string | undefined>>,
   filteredOptions: string[],
+  allOptions: string[],
   loadingOptions: boolean,
   maxOptions: number,
   typed: string,
   saved: string | null)
 {
   
-  if (loadingOptions || typed=='') {
+  if (loadingOptions) {
     return
   } else if (saved == null || typed!=saved) {
     if (filteredOptions.length>maxOptions) {
-      setHelperText(filteredOptions.length + " options, only " + maxOptions + " shown")
+      setHelperText(allOptions.length + " options, only " + maxOptions + " shown")
     } else if (filteredOptions.length==0) {
       setHelperText("no matching options")
     } else {
