@@ -33,9 +33,10 @@ steps:
     in:
       a: firstAdd/sum
       b: pickANum/num
-    out: [sum]
+    out: [sum, thumb.png]
   aPlot:
-    run: ui-outputs/plotter.cwl
+    run: ui-outputs/plotly.cwl
     in:
       a: finalStep/sum
+      b: finalStep/thumb.png
     out: []

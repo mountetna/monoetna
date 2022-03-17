@@ -135,6 +135,16 @@ module Etna
         }
       end
 
+      def status_json(storage:, build_target_cache:, orchestration:)
+        bt = orchestration.build_target_for(id, build_target_cache)
+
+        orchestration.scheduler.status(storage: storage, build_target: bt, step: self).update({
+          name: id,
+          hash: bt.cell_hash,
+          downloads: (!ui_output? && bt.is_built?(storage)) ? bt.downloads(storage) : nil
+        })
+      end
+
       def input_as_json(input)
         {
             id: input.id,
@@ -182,7 +192,11 @@ module Etna
       end
 
       def ui_behavior?
-        ui_query_name || ui_output_name
+        ui_query_name || ui_output?
+      end
+
+      def ui_output?
+        !!ui_output_name
       end
     end
 

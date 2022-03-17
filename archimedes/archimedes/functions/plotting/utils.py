@@ -1,7 +1,27 @@
 import numpy as np
+import plotly.io as pio
+import json
+
+from ..dataflow import output_path
+
+
 
 DISCRETE_KINDS = 'ObUS'
 CONTINUOUS_KINDS = 'ifuc'
+
+def output_plotly(fig, json_file, png_file):
+    with open(output_path(json_file), 'w') as output_file:
+        json.dump(json.loads(pio.to_json(fig)), output_file)
+    fig.update_layout(showlegend=False,margin=dict(l=0,r=0,t=0,b=0))
+    fig.update_xaxes(visible=False)
+    fig.update_yaxes(visible=False)
+    pio.write_image(
+        fig,
+        file=output_path(png_file),
+        format='png',
+        width=300,
+        height=200
+        )
 
 def _is_discrete(nda: np.ndarray):
     return nda.dtype.kind in DISCRETE_KINDS
