@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { json_post } from 'etna-js/utils/fetch';
+import React, {useState, useCallback} from 'react';
+import {json_post} from 'etna-js/utils/fetch';
 
 import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
@@ -31,19 +31,19 @@ import ConfigurePane from './configure-pane';
 import RemovePane from './remove-pane';
 import LogsPane from './logs-pane';
 import SecretsPane from './secrets-pane';
-import { formatTime, runTime } from './run-state';
+import {formatTime, runTime} from './run-state';
 
-const StatusIcon = ({status}:{status:string}) => {
-  let IconComponent:any;
+const StatusIcon = ({status}: {status: string}) => {
+  let IconComponent: any;
   if (status == 'completed') IconComponent = CheckIcon;
   else if (status == 'error') IconComponent = ErrorIcon;
   else if (status == 'pending') IconComponent = ScheduleIcon;
   else return null;
-  
-  return <IconComponent size='small'/>
-}
 
-const useStyles = makeStyles( theme => ({
+  return <IconComponent size='small' />;
+};
+
+const useStyles = makeStyles((theme) => ({
   title: {
     color: 'goldenrod',
     justifyContent: 'flex-end',
@@ -61,7 +61,7 @@ const useStyles = makeStyles( theme => ({
   },
   etl: {
     border: '1px solid #ccc',
-    marginBottom: '15px',
+    marginBottom: '15px'
   },
   savebar: {
     justifyContent: 'space-between'
@@ -86,74 +86,137 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-const EtlConfig = ({project_name, etl,name,config,status,secrets,params,output,run_interval,ran_at,job,onUpdate}: Etl & {job:Job|undefined,onUpdate:Function}) => {
-  const [ mode, setMode ] = useState<string | null>(null);
-  const [ error, setError ] = useState('');
-  const toggleMode = (m:string) => mode == m ? setMode(null) : setMode(m);
+const EtlConfig = ({
+  project_name,
+  etl,
+  name,
+  config,
+  status,
+  secrets,
+  params,
+  output,
+  run_interval,
+  ran_at,
+  job,
+  onUpdate
+}: Etl & {job: Job | undefined; onUpdate: Function}) => {
+  const [mode, setMode] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const toggleMode = (m: string) => (mode == m ? setMode(null) : setMode(m));
 
-  const classes:any = useStyles();
+  const classes: any = useStyles();
 
-  const postUpdate = (update:any) => json_post(
-    `/api/etl/${project_name}/update/${name}`, update
-  ).then( etl => onUpdate(etl) ).catch(
-    r => r.then(({error}:{error:string}) => setError(error))
+  const postUpdate = useCallback(
+    (update: any) => {
+      setMode(null);
+      return json_post(`/api/etl/${project_name}/update/${name}`, update)
+        .then((etl) => onUpdate(etl))
+        .catch((r) => r.then(({error}: {error: string}) => setError(error)));
+    },
+    [project_name, name]
   );
 
-  return <Card className={classes.etl} elevation={0} key={etl}>
-    <CardContent>
-      <Typography className={classes.heading}>
-        { name }
-      </Typography>
+  return (
+    <Card className={classes.etl} elevation={0} key={etl}>
+      <CardContent>
+        <Typography className={classes.heading}>{name}</Typography>
 
-      <CardActions>
-        <Grid direction='row' container>
-          <Grid direction='column' container item xs={9}>
-            <Grid direction='row' className={classes.statusline} container>
-              <Grid container className={classes.title} item>
-                <Typography>Last Ran</Typography>
+        <CardActions>
+          <Grid direction='row' container>
+            <Grid direction='column' container item xs={9}>
+              <Grid direction='row' className={classes.statusline} container>
+                <Grid container className={classes.title} item>
+                  <Typography>Last Ran</Typography>
+                </Grid>
+                <Grid item className={classes.values}>
+                  <Typography>
+                    {ran_at ? formatTime(ran_at) : 'never'}
+                  </Typography>
+                </Grid>
               </Grid>
-              <Grid item className={classes.values}>
-                <Typography>{ran_at ? formatTime(ran_at) : 'never'}</Typography>
+              <Grid direction='row' className={classes.statusline} container>
+                <Grid container className={classes.title}>
+                  <Typography>Last Status</Typography>
+                </Grid>
+                <Grid
+                  className={`${classes.values} ${classes[status]}`}
+                  direction='row'
+                  item
+                  container
+                >
+                  <Grid item>
+                    <StatusIcon status={status} />
+                  </Grid>
+                  <Grid item>
+                    <Typography>{status || 'none'}</Typography>
+                  </Grid>
+                </Grid>
+              </Grid>
+              <Grid direction='row' className={classes.statusline} container>
+                <Grid container className={classes.title} item>
+                  <Typography>Next Run</Typography>
+                </Grid>
+                <Grid item className={classes.values}>
+                  <Typography>{runTime(ran_at, run_interval)} </Typography>
+                </Grid>
               </Grid>
             </Grid>
-            <Grid direction='row' className={classes.statusline} container>
-              <Grid container className={classes.title}>
-                <Typography>Last Status</Typography>
-              </Grid>
-              <Grid className={`${classes.values} ${classes[status]}`} direction='row' item container>
-                <Grid item><StatusIcon status={status}/></Grid>
-                <Grid item><Typography>{ status || 'none' }</Typography></Grid>
-              </Grid>
-            </Grid>
-            <Grid direction='row' className={classes.statusline} container>
-              <Grid container className={classes.title} item>
-                <Typography>Next Run</Typography>
-              </Grid>
-              <Grid item className={ classes.values }>
-                <Typography>{runTime(ran_at, run_interval)} </Typography>
-              </Grid>
+            <Grid
+              item
+              container
+              direction='row'
+              className={classes.buttons}
+              alignItems='center'
+              xs={3}
+            >
+              <EtlButton selected={mode} mode='run' onClick={toggleMode}>
+                <PlayArrowIcon />
+              </EtlButton>
+              <EtlButton selected={mode} mode='logs' onClick={toggleMode}>
+                <LibraryBooksIcon />
+              </EtlButton>
+              <EtlButton selected={mode} mode='configure' onClick={toggleMode}>
+                <SettingsIcon />
+              </EtlButton>
+              <EtlButton selected={mode} mode='secrets' onClick={toggleMode}>
+                <LockIcon />
+              </EtlButton>
+              <EtlButton selected={mode} mode='remove' onClick={toggleMode}>
+                <DeleteIcon />
+              </EtlButton>
             </Grid>
           </Grid>
-          <Grid item container
-            direction='row'
-            className={classes.buttons}
-            alignItems='center'
-            xs={3}>
-            <EtlButton selected={mode} mode='run' onClick={ toggleMode }><PlayArrowIcon/></EtlButton>
-            <EtlButton selected={mode} mode='logs' onClick={ toggleMode }><LibraryBooksIcon/></EtlButton>
-            <EtlButton selected={mode} mode='configure' onClick={ toggleMode }><SettingsIcon/></EtlButton>
-            <EtlButton selected={mode} mode='secrets' onClick={ toggleMode }><LockIcon/></EtlButton>
-            <EtlButton selected={mode} mode='remove' onClick={ toggleMode }><DeleteIcon/></EtlButton>
-          </Grid>
-        </Grid>
-      </CardActions>
-      <ConfigurePane error={error} name={name} project_name={project_name} selected={mode} config={config} job={job} update={postUpdate}/>
-      <RunPane error={error} selected={mode} run_interval={run_interval} update={postUpdate} params={params} param_opts={ job ? job.params : null } />
-      <RemovePane selected={mode} update={postUpdate}/>
-      <LogsPane selected={mode} name={name} project_name={project_name}/>
-      <SecretsPane error={error} selected={mode} update={postUpdate} keys={ job ? job.secrets : null} secrets={secrets}/>
-    </CardContent>
-  </Card>
-}
+        </CardActions>
+        <ConfigurePane
+          error={error}
+          name={name}
+          project_name={project_name}
+          selected={mode}
+          config={config}
+          job={job}
+          update={postUpdate}
+        />
+        <RunPane
+          error={error}
+          selected={mode}
+          run_interval={run_interval}
+          update={postUpdate}
+          config={config}
+          params={params}
+          param_opts={job ? job.params : null}
+        />
+        <RemovePane selected={mode} update={postUpdate} />
+        <LogsPane selected={mode} name={name} project_name={project_name} />
+        <SecretsPane
+          error={error}
+          selected={mode}
+          update={postUpdate}
+          keys={job ? job.secrets : null}
+          secrets={secrets}
+        />
+      </CardContent>
+    </Card>
+  );
+};
 
 export default EtlConfig;

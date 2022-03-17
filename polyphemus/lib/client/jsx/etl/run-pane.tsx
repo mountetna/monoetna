@@ -11,6 +11,7 @@ import Typography from '@material-ui/core/Typography';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import {makeStyles} from '@material-ui/core/styles';
 import EtlPane, {EtlPaneHeader} from './etl-pane';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {
   RUN_ONCE,
@@ -44,38 +45,63 @@ type Value = undefined | string | boolean;
 
 type SelectParam = {
   value: string;
-  label: string;
+  description: string;
   default?: boolean;
+};
+
+type ComplexParam = {
+  type: string;
+  value: string;
 };
 
 const Param = ({
   value,
   opts,
   name,
-  update
+  update,
+  config
 }: {
   value: Value;
-  opts: SelectParam[] | 'string' | 'boolean';
+  opts: SelectParam[] | ComplexParam | 'string' | 'boolean';
   name: string;
   update: (name: string, value: string | boolean) => void;
+  config: any;
 }) => {
   if (Array.isArray(opts)) {
     const defaultOption = opts.find((o) => o.default);
+
+    useEffect(() => {
+      if (defaultOption) update(name, defaultOption.value);
+    }, [defaultOption]);
+
     return (
       <Select
-        value={value || defaultOption?.value || ''}
+        value={value || ''}
         onChange={(e) => update(name, e.target.value as string)}
       >
         {opts.map((opt) => (
           <MenuItem key={opt.value} value={opt.value}>
-            {`${opt.value}${opt.label ? ` - ${opt.label}` : ''}`}
+            {`${opt.value}${opt.description ? ` - ${opt.description}` : ''}`}
           </MenuItem>
         ))}
       </Select>
     );
-  }
-
-  if (opts == 'string') {
+  } else if (_.isObject(opts)) {
+    if (opts.type && opts.type === 'options' && opts.value === 'model_names') {
+      const modelNames = ['all'].concat(Object.keys(config).sort());
+      return (
+        <Autocomplete
+          multiple
+          fullWidth
+          id={name}
+          options={modelNames}
+          defaultValue={(value as string)?.split(',') || []}
+          renderInput={(params) => <TextField {...params} variant='standard' />}
+          onChange={(e, v) => update(name, v.join(','))}
+        />
+      );
+    }
+  } else if (opts == 'string') {
     return (
       <TextField
         size='small'
@@ -84,9 +110,7 @@ const Param = ({
         onChange={(e) => update(name, e.target.value)}
       />
     );
-  }
-
-  if (opts == 'boolean') {
+  } else if (opts == 'boolean') {
     return (
       <Switch
         size='small'
@@ -105,7 +129,8 @@ const RunPane = ({
   params,
   param_opts,
   selected,
-  error
+  error,
+  config
 }: {
   run_interval: number;
   params: any;
@@ -113,6 +138,7 @@ const RunPane = ({
   update: Function;
   error: string;
   selected: string | null;
+  config: any;
 }) => {
   const [runState, setRunState] = useState(getRunState(RUN_ONCE));
   const [runIntervalTime, setRunIntervalTime] = useState(
@@ -226,6 +252,7 @@ const RunPane = ({
                 </Grid>
                 <Grid item xs={5}>
                   <Param
+                    config={config}
                     name={param_name}
                     value={newParams && (newParams[param_name] as Value)}
                     opts={param_opts[param_name]}
