@@ -159,6 +159,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
         >
           <div
             class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+            title=""
           >
             remove
           </div>
@@ -186,6 +187,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
         >
           <div
             class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+            title=""
           >
             each
           </div>
@@ -268,6 +270,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
         >
           <div
             class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+            title="The \`invert\` option constructs the REDCap id from the Magma record name; only used for biospecimens where the ID is unknown in REDCap."
           >
             invert
           </div>
@@ -310,6 +313,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
         >
           <div
             class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+            title="\`identifier_fields\` must be specified when the REDCap form provides the Timur record name."
           >
             identifier_fields
           </div>
@@ -338,6 +342,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
         >
           <div
             class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+            title=""
           >
             scripts
           </div>
