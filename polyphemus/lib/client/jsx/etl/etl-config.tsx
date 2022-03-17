@@ -112,6 +112,7 @@ const EtlConfig = ({
         .then((etl) => {
           setMode(null);
           onUpdate(etl);
+          setError('');
         })
         .catch((r) => r.then(({error}: {error: string}) => setError(error)));
     },
