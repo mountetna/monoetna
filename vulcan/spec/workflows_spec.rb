@@ -91,16 +91,18 @@ describe WorkflowsController do
                       {"id"=>"b", "source"=>"pickANum/num"}],
                   "doc" => nil,
                   "label"=>nil,
-                  "out" => ["sum"],
+                  "out" => ["sum", "thumb.png"],
                   "name" => "finalStep",
                   "run"=>"scripts/add.cwl"},
               {
-                  "in" => [{"id"=>"a", "source"=>"finalStep/sum"}],
+                  "in" => [{"id"=>"a", "source"=>"finalStep/sum"},
+                           {"id"=>"b", "source"=>"finalStep/thumb.png"}],
                   "doc" => nil,
                   "label"=>nil,
                   "name"=>"aPlot",
                   "out"=>[],
-                  "run"=>"ui-outputs/plotter.cwl"}
+                  "run"=>"ui-outputs/plotly.cwl"}
+
           ],
       ])
 

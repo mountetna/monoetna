@@ -50,10 +50,11 @@ steps:
     in:
       plot_setup: fill_plot_options/plot_setup
       data_frame: review_data/calculated_data
-    out: [plot.json]
+    out: [plot.json, plot.png]
   show_plot:
     run: ui-outputs/plotly.cwl
     in:
       a: make_plot/plot.json
+      b: make_plot/plot.png
     out: []
     label: 'Display Plot'

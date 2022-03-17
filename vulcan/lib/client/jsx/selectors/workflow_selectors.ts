@@ -422,7 +422,7 @@ export function selectSession(
   return {
     project_name: figureResponse.project_name,
     workflow_name: figureResponse.workflow_name,
-    key: `${figureResponse.project_name}/${figureResponse.figure_id}`,
+    key: figureResponse.key,
     inputs: {...figureResponse.inputs}
   };
 }

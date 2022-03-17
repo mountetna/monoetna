@@ -331,7 +331,7 @@ class Vulcan
           session_key: session.key,
           input_files: input_files,
           output_filenames: output_filenames,
-          script: script,
+          script: script
         )
       end
     end
