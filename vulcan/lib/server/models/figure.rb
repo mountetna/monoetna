@@ -15,6 +15,8 @@ class Vulcan
       
       cache = {}
 
+      require 'pry'
+      binding.pry
       session.workflow.steps.map do |step|
         case step.ui_output_name
         when 'plotly.cwl'

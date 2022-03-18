@@ -15,6 +15,10 @@ outputs:
   the_result:
     type: int
     outputSource: finalStep/sum
+  thumbnail:
+    type: File
+    format: image.pnt
+    outputSource: finalStep/thumb.png
 
 steps:
   firstAdd:

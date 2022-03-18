@@ -20,6 +20,10 @@ outputs:
   the_plot:
     type: File
     outputSource: make_plot/plot.json
+  thumbnail:
+    type: File
+    format: image/png
+    outputSource: make_plot/plot.png
 
 steps:
   get_data:
