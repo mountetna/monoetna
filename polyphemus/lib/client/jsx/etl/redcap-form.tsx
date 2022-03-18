@@ -249,7 +249,7 @@ const ValueRow = ({
   else if (opts.enum)
     valueComponent = (
       <Select value={value} onChange={(e) => update(e.target.value)}>
-        {opts.enum.map((v: string) => (
+        {opts.enum.sort().map((v: string) => (
           <MenuItem key={v} value={v}>
             {v}
           </MenuItem>
@@ -990,7 +990,7 @@ const AddModel = ({
           <MenuItem value=''>
             <em>None</em>
           </MenuItem>
-          {model_names.map((att_name) => (
+          {model_names.sort().map((att_name) => (
             <MenuItem key={att_name} value={att_name}>
               {att_name}
             </MenuItem>
@@ -1068,7 +1068,7 @@ const RedcapForm = ({
             value={tab}
             onChange={(e, tab) => setTab(tab)}
           >
-            {modelNames.map((modelName) => (
+            {modelNames.sort().map((modelName) => (
               <Tab label={modelName} key={modelName} />
             ))}
           </Tabs>
