@@ -1,5 +1,28 @@
 require_relative '../lib/server/controllers/figure_controller'
 
+describe Vulcan::Figure do
+  before(:each) do
+    clear_store
+  end
+
+  it 'returns a list of thumbnails' do
+    store(
+      'abee47d3ee8ba11e3fc2706d8d258e9e586465b4',
+      'thumb.png',
+      'thumbnail'
+    )
+    figure = create_figure(title: 'Lion of Nemea', workflow_name: 'test_workflow')
+
+    expect(figure.thumbnails(storage: Vulcan::Storage.new)).to eq(['https://vulcan.test/api/labors/data/abee47d3ee8ba11e3fc2706d8d258e9e586465b4/thumb.png'])
+  end
+
+  it 'ignores unbuilt thumbnails' do
+    figure = create_figure(title: 'Lion of Nemea', workflow_name: 'test_workflow')
+
+    expect(figure.thumbnails(storage: Vulcan::Storage.new)).to eq([])
+  end
+end
+
 describe FigureController do
   include Rack::Test::Methods
 
@@ -10,7 +33,7 @@ describe FigureController do
   context '#fetch' do
     it 'returns a list of figures' do
       auth_header(:viewer)
-      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
+      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'test_workflow')
       get("/api/labors/figures")
 
       expect(last_response.status).to eq(200)
@@ -21,13 +44,14 @@ describe FigureController do
   context '#get' do
     it 'returns a figure by id' do
       auth_header(:viewer)
-      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
+      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'test_workflow')
       get("/api/labors/figure/#{figure.figure_id}")
 
       expect(last_response.status).to eq(200)
       expect(json_body[:title]).to eql(figure.title)
     end
   end
+
   context '#create' do
     it 'creates a new figure' do
       auth_header(:viewer)
