@@ -14,12 +14,14 @@ import DialogActions from '@material-ui/core/DialogActions';
 import Typography from '@material-ui/core/Typography';
 import Link from '@material-ui/core/Link';
 import {makeStyles} from '@material-ui/core/styles';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import {joinNesting} from './monoids';
 import {WithInputParams, DataEnvelope} from './input_types';
 import {useSetsDefault} from './useSetsDefault';
 import {some, Maybe, withDefault, isSome} from '../../../../selectors/maybe';
 import {useMemoized} from '../../../../selectors/workflow_selectors';
+import useHandsonTable from './useHandsonTable';
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
@@ -29,6 +31,9 @@ const useStyles = makeStyles((theme) => ({
   subtitle: {display: 'inline'},
   button: {
     margin: '1rem'
+  },
+  loading: {
+    marginLeft: '1rem'
   }
 }));
 
@@ -41,6 +46,7 @@ function DataTransformationModal({
   onChange: (data: Maybe<{[key: string]: any}>) => void;
   onClose: () => void;
 }) {
+  const [loading, setLoading] = useState(true);
   const classes = useStyles();
 
   const hotTableComponent = useRef<any>(null);
@@ -53,6 +59,24 @@ function DataTransformationModal({
       }),
     []
   );
+
+  const columnWidths = useMemo(() => {
+    let widths = new Array(data[0].length).fill(150);
+    widths[0] = 200;
+
+    return widths;
+  }, [data]);
+
+  const maxRows = 40;
+  const maxCols = 15;
+
+  function truncate(data: any[][]) {
+    return data.slice(0, maxRows).map((inner) => inner.slice(0, maxCols));
+  }
+
+  const largeData = useMemo(() => {
+    return data.length > maxRows || data[0].length > maxCols;
+  }, [data]);
 
   return (
     <>
@@ -68,12 +92,28 @@ function DataTransformationModal({
           </Link>
         </Typography>
         )
+        {loading && largeData ? (
+          <CircularProgress size={16} className={classes.loading} />
+        ) : null}
       </DialogTitle>
       <DialogContent className={classes.dialog}>
         <HotTable
           ref={hotTableComponent}
           settings={{
-            data: data,
+            viewportRowRenderingOffset: 10,
+            viewportColumnRenderingOffset: 10,
+            colWidths: columnWidths,
+            autoRowSize: false,
+            autoColumnSize: false,
+            data: truncate(data),
+            afterLoadData: (sourceData, initialLoad) => {
+              if (hotTableComponent.current && largeData) {
+                hotTableComponent.current.hotInstance.updateData(data);
+              }
+            },
+            afterUpdateData: () => {
+              setLoading(false);
+            },
             colHeaders: true,
             rowHeaders: true,
             height: 'auto',
@@ -202,10 +242,12 @@ export default function DataTransformationInput({
   {[key: string]: any}
 >) {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [isTransformed, setIsTransformed] = useState(false);
 
-  const classes = useStyles();
+  useHandsonTable();
 
+  const classes = useStyles();
   const originalData = useMemoized(joinNesting, data);
 
   function handleOnClose() {
@@ -238,9 +280,9 @@ export default function DataTransformationInput({
     value = inputValue.formulaic_data;
   } else {
     // If the workflow author has named their CWL outputs differently, we really don't
-    //   know which one is the source_data. Given that the
-    //   UI component uses "calculated_data" and "source_data", and
-    //   "source_data" comes second alphabetically, we first attempt to
+    //   know which one is the formulaic_data. Given that the
+    //   UI component uses "calculated_data" and "formulaic_data", and
+    //   "formulaic_data" comes second alphabetically, we first attempt to
     //   use the second inputValue key if present. If only one key,
     //   we default to the first value.
     const inputKeys = Object.keys(inputValue).sort();
@@ -261,7 +303,7 @@ export default function DataTransformationInput({
 
   const handleOnRevert = useCallback(() => {
     destructureOnChange(some(rawData));
-  }, [rawData]);
+  }, [rawData, destructureOnChange]);
 
   value = dataFrameJsonToNestedArray(value);
 
@@ -275,7 +317,18 @@ export default function DataTransformationInput({
         columns. You can preview or edit the data frame now, or just click
         "Commit" to accept the raw data.
       </div>
-      <Dialog open={open} onClose={handleOnClose} maxWidth='xl'>
+      <Dialog
+        open={open}
+        onClose={handleOnClose}
+        maxWidth='xl'
+        TransitionProps={{
+          onEntered: () => {
+            setLoading(false);
+          }
+        }}
+        disableAutoFocus={true}
+        disableEnforceFocus={true}
+      >
         <DataTransformationModal
           data={value}
           onChange={destructureOnChange}
@@ -286,9 +339,11 @@ export default function DataTransformationInput({
         className={classes.button}
         onClick={() => {
           setOpen(true);
+          setLoading(true);
         }}
         color='primary'
-        startIcon={<EditIcon />}
+        disabled={loading}
+        startIcon={loading ? <CircularProgress size={24} /> : <EditIcon />}
         variant='contained'
       >
         Review or edit data frame
