@@ -12,7 +12,6 @@ import {Workflow} from '../../api_types';
 
 const useStyles = makeStyles((theme) => ({
   controls: {
-    marginRight: '1rem'
   }
 }));
 
