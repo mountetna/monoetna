@@ -18,7 +18,8 @@ import WorkflowCard from './card';
 const useStyles = makeStyles((theme) => ({
   workflows: {
     width: '100%',
-    padding: '15px'
+    padding: '5px',
+    boxShadow: '0 0 15px 0px #f5f5f5 inset'
   }
 }));
 
@@ -72,9 +73,6 @@ export default function WorkflowsCarousel({
     <Grid
       className={classes.workflows}
       container
-      justifyContent='space-evenly'
-      alignItems='center'
-      alignContent='center'
     >
       {sortedWorkflows.map((workflow: Workflow, index: number) => {
         return (
