@@ -1,4 +1,6 @@
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useState, useCallback} from 'react';
+
+import 'regenerator-runtime/runtime';
 import {json_post} from 'etna-js/utils/fetch';
 
 import Typography from '@material-ui/core/Typography';
@@ -6,24 +8,15 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import {makeStyles} from '@material-ui/core/styles';
 import CardActions from '@material-ui/core/CardActions';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
-import Button from '@material-ui/core/Button';
 import SettingsIcon from '@material-ui/icons/Settings';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooksRounded';
 import PlayArrowIcon from '@material-ui/icons/PlayArrowRounded';
 import DeleteIcon from '@material-ui/icons/Delete';
 import LockIcon from '@material-ui/icons/Lock';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMoreRounded';
 import CheckIcon from '@material-ui/icons/Check';
 import ErrorIcon from '@material-ui/icons/ErrorOutline';
 import ScheduleIcon from '@material-ui/icons/Schedule';
-import Box from '@material-ui/core/Box';
-import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import MenuItem from '@material-ui/core/MenuItem';
 import Grid from '@material-ui/core/Grid';
-import Collapse from '@material-ui/core/Collapse';
 
 import EtlButton from './etl-button';
 import RunPane from './run-pane';
@@ -32,6 +25,7 @@ import RemovePane from './remove-pane';
 import LogsPane from './logs-pane';
 import SecretsPane from './secrets-pane';
 import {formatTime, runTime} from './run-state';
+import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 
 const StatusIcon = ({status}: {status: string}) => {
   let IconComponent: any;
@@ -73,9 +67,10 @@ const useStyles = makeStyles((theme) => ({
     borderBottom: '1px solid #eee'
   },
   completed: {
-    color: 'green'
+    color: 'green',
+    paddingLeft: '0.5rem'
   },
-  message: {
+  error: {
     paddingLeft: '0.5rem',
     color: 'red'
   },
@@ -103,26 +98,31 @@ const EtlConfig = ({
 }: Etl & {job: Job | undefined; onUpdate: Function}) => {
   const [mode, setMode] = useState<string | null>(null);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const clearMessages = useCallback(() => {
+    setMessage('');
+    setError('');
+  }, []);
+
   const toggleMode = (m: string) => {
     mode == m ? setMode(null) : setMode(m);
-    setMessage('');
+    clearMessages();
   };
 
   const classes: any = useStyles();
 
-  const postUpdate = useCallback(
-    (update: any) => {
-      setMessage('');
+  const [_, postUpdate] = useAsyncWork(
+    function postUpdate(update: any) {
+      clearMessages();
       return json_post(`/api/etl/${project_name}/update/${name}`, update)
         .then((etl) => {
           onUpdate(etl);
           setMessage('Saved!');
         })
-        .catch((r) =>
-          r.then(({message}: {message: string}) => setMessage(message))
-        );
+        .catch((r) => r.then(({error}: {error: string}) => setError(error)));
     },
-    [project_name, name]
+    {cancelWhenChange: []}
   );
 
   return (
@@ -196,9 +196,9 @@ const EtlConfig = ({
             </Grid>
           </Grid>
         </CardActions>
-        {message && (
-          <Grid item className={classes.message}>
-            <Typography>{message}</Typography>
+        {(error || message) && (
+          <Grid item className={error ? classes.error : classes.completed}>
+            <Typography>{error || message}</Typography>
           </Grid>
         )}
         <ConfigurePane
