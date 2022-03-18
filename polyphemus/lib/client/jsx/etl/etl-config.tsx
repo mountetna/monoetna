@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {json_post} from 'etna-js/utils/fetch';
 
 import Typography from '@material-ui/core/Typography';
@@ -36,7 +36,7 @@ import {formatTime, runTime} from './run-state';
 const StatusIcon = ({status}: {status: string}) => {
   let IconComponent: any;
   if (status == 'completed') IconComponent = CheckIcon;
-  else if (status == 'error') IconComponent = ErrorIcon;
+  else if (status == 'message') IconComponent = ErrorIcon;
   else if (status == 'pending') IconComponent = ScheduleIcon;
   else return null;
 
@@ -75,7 +75,7 @@ const useStyles = makeStyles((theme) => ({
   completed: {
     color: 'green'
   },
-  error: {
+  message: {
     paddingLeft: '0.5rem',
     color: 'red'
   },
@@ -102,20 +102,25 @@ const EtlConfig = ({
   onUpdate
 }: Etl & {job: Job | undefined; onUpdate: Function}) => {
   const [mode, setMode] = useState<string | null>(null);
-  const [error, setError] = useState('');
-  const toggleMode = (m: string) => (mode == m ? setMode(null) : setMode(m));
+  const [message, setMessage] = useState('');
+  const toggleMode = (m: string) => {
+    mode == m ? setMode(null) : setMode(m);
+    setMessage('');
+  };
 
   const classes: any = useStyles();
 
   const postUpdate = useCallback(
     (update: any) => {
+      setMessage('');
       return json_post(`/api/etl/${project_name}/update/${name}`, update)
         .then((etl) => {
-          setMode(null);
           onUpdate(etl);
-          setError('');
+          setMessage('Saved!');
         })
-        .catch((r) => r.then(({error}: {error: string}) => setError(error)));
+        .catch((r) =>
+          r.then(({message}: {message: string}) => setMessage(message))
+        );
     },
     [project_name, name]
   );
@@ -191,9 +196,9 @@ const EtlConfig = ({
             </Grid>
           </Grid>
         </CardActions>
-        {error && (
-          <Grid item className={classes.error}>
-            <Typography>{error}</Typography>
+        {message && (
+          <Grid item className={classes.message}>
+            <Typography>{message}</Typography>
           </Grid>
         )}
         <ConfigurePane

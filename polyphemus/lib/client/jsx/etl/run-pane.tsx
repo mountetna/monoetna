@@ -95,9 +95,15 @@ const Param = ({
           fullWidth
           id={name}
           options={modelNames}
-          defaultValue={(value as string)?.split(',') || []}
+          value={'' === value ? [] : (value as string)?.split(',') || []}
           renderInput={(params) => <TextField {...params} variant='standard' />}
-          onChange={(e, v) => update(name, v.join(','))}
+          onChange={(e, v) => {
+            if (v.includes('all')) {
+              update(name, 'all');
+            } else {
+              update(name, v.join(','));
+            }
+          }}
         />
       );
     } else {
