@@ -10,8 +10,8 @@ import {useMemoized} from "../../../../selectors/workflow_selectors";
 import {joinNesting} from "./monoids";
 import {useSetsDefault} from "./useSetsDefault";
 import Autocomplete from '@material-ui/lab/Autocomplete';
-import { debounce } from 'lodash';
 import { InputLabel, TextField } from '@material-ui/core';
+import SelectAutocompleteInput from './select_autocomplete';
 
 function getPath(options: OptionSet, leaf: string): string[] {
   for (let [key, value] of Object.entries(options)) {
@@ -55,71 +55,16 @@ function LeafOptions({
   maxOptions?: number;
 }) {
   if (!options_in) return null;
-  const [optionsLeaf, setOptionsLeaf] = useState(options_in as typeof options_in);
-  const [loadingOptions, setLoadingOptions] = useState(false);
-  const [helperText, setHelperText] = useState(undefined as string | undefined);
-  const [inputState, setInputState] = React.useState(dispValue(value));
-  const getOptionsDelayed = useCallback(
-    debounce((text, options_in, callback) => {
-      // console.log('inputState',inputState)
-      // console.log('value',value)
-      // console.log('options',options)
-      setLoadingOptions(true); setOptionsLeaf([]);
-      getOptionsAsync(text, [...options_in]).then(callback);
-    }, 200),
-    [],
-  );
-  
-  function determineHelperText(filteredOptions: typeof optionsLeaf) {
-    if (filteredOptions.length>maxOptions) {
-      setHelperText(filteredOptions.length + " options, only " + maxOptions + " shown")
-    } else if (filteredOptions.length==0) {
-      setHelperText("no matching options")
-    } else {
-      setHelperText(undefined)
-    }
-  }
-  
-  useEffect(() => {
-    if (options_in.length>1000) {
-      getOptionsDelayed(inputState, options_in, (filteredOptions: typeof optionsLeaf) => {
-        // console.log('calculating options - slow')
-        setLoadingOptions(false)
-        determineHelperText(filteredOptions)
-        setOptionsLeaf(filteredOptions.splice(0,maxOptions-1))
-      });
-    } else {
-      // console.log('calculating options - fast')
-      const filteredOptions = filterOptions(inputState, options_in)
-      determineHelperText(filteredOptions)
-      setOptionsLeaf(filteredOptions)
-    }
-
-  }, [inputState, getOptionsDelayed, options_in]);
-
-  return(
-    <Autocomplete
+  return (
+    <SelectAutocompleteInput
       key={`${depth}-${options_in.slice(0, 5).join('-')}`}
-      // disablePortal
-      disableClearable
-      clearOnBlur={false}
-      value={value}
-      onChange={(event:any, e: string | null) => 
-        handleSelect(e, depth)}
-      inputValue={inputState}
-      onInputChange={(event: any, newInputState: string) => 
-        setInputState(newInputState)}
-      options={optionsLeaf}
-      // disable filtering on client
-      filterOptions={(x: typeof optionsLeaf) => x}
-      loading={loadingOptions}
-      renderInput={(params:any) => (
-        <TextField 
-          {...params}
-          helperText={helperText}
-          error={inputState!=dispValue(value)}
-          size="small"/>
-        )}
+      onChange={(v) => {}}
+      onChangeOverride={
+        (event:any, e: string|null) => handleSelect(e, depth)
+      }
+      value={some(value)}
+      data={{a: options_in}}
+      maxOptions={maxOptions}
     />
   )
 }
@@ -167,29 +112,25 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
 
   // const lab = (label) ? 
   //   <InputLabel shrink>{label}</InputLabel> : null;
-
+  console.log(value)
+  console.log(path)
   return (
     <div>
       {/* {lab} */}
       <div>
         {path.map((value, index) => {
+          console.log(index)
               const options = getOptions(path.slice(0, index), allOptions);
               return (
-                <Autocomplete
+                (options==null) ? null :
+                <SelectAutocompleteInput
                   key={index}
-                  // disablePortal
-                  disableClearable
-                  clearOnBlur={false}
-                  onChange={(event:any, e: string | null) => 
-                    handleSelect(e, index)}
-                  options={options}
-                  value={value}
-                  // style={{minWidth: minWidth, paddingTop: disp_label ? 8 : 0}}
-                  renderInput={(params:any) => (
-                    <TextField 
-                      {...params}
-                      size="small"/>
-                    )}
+                  onChange={(v) => {}}
+                  onChangeOverride={
+                    (event:any, e: string|null) => handleSelect(e, index)
+                  }
+                  value={some(value)}
+                  data={{a: options}}
                 />
               );
             })
@@ -206,25 +147,3 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
     </div>
   );
 };
-
-const getOptionsAsync = (query: string, options: string[]) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(
-        filterOptions(query, options),
-      );
-    }, 3000);
-  });
-};
-
-function filterOptions(query: string, options: string[]) {
-  return options.filter(
-    (o) => {
-      return (query==null) ? true : o.indexOf(query) > -1
-    },
-  )
-}
-
-function dispValue(value: string|null) {
-  return (value==null) ? '' : value
-}
