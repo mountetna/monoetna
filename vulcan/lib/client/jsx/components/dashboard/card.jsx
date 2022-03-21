@@ -85,7 +85,8 @@ const useStyles = makeStyles((theme) => ({
     display: 'inline-block',
     padding: '4px 8px',
     boxSizing: 'border-box',
-    flex: 1
+    flex: 1,
+    marginBottom: '4px'
   },
   sub_item: {
     borderBottom: '1px solid #eee'
@@ -109,22 +110,22 @@ export default function Card({workflow, onClick, selected}) {
         <div className={classes.row}>
           <div className={classes.value}>
             <Typography variant='subtitle1'>
-            {workflow.displayName || workflowName(workflow)}
+              {workflow.displayName || workflowName(workflow)}
             </Typography>
           </div>
         </div>
         <div className={classes.row}>
-          <div className={classes.value}>
-            { workflow.authors.join(', ') }
-          </div>
+          <div className={classes.value}>{workflow.authors.join(', ')}</div>
         </div>
         <div className={classes.row}>
           <div className={classes.value}>{workflow.lastModified}</div>
         </div>
         <div className={classes.row}>
-          <div className={classes.value}>{
-            workflow.tags.map( t => <Tag key={t} label={t}/>)
-          }</div>
+          <div className={classes.value}>
+            {workflow.tags.map((t) => (
+              <Tag key={t} label={t} />
+            ))}
+          </div>
         </div>
       </div>
     </div>
