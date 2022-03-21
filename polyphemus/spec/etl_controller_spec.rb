@@ -173,12 +173,12 @@ describe EtlController do
         params: {}
       )
 
-      new_params = { problem: 'bogus', zippit: true }
+      new_params = { problem: 'bogus', zippit: true, select_one: ["all"] }
       auth_header(:editor)
       json_post('/api/etl/labors/update/Dummy ETL', params: new_params)
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Problem must be in: present, absent; no such param zippit')
+      expect(json_body[:error]).to eq('Problem must be in: present, absent; no such param zippit; select_one must be a comma-separated string')
       expect(Polyphemus::EtlConfig.count).to eq(1)
       etl.refresh
       expect(etl.params.to_h).to eq({})
