@@ -158,6 +158,7 @@ const RunPane = ({
     getRunIntervalTime(RUN_ONCE)
   );
   const [newParams, setParams] = useState<any>({});
+  const [lastSavedParams, setLastSavedParams] = useState<any>({});
 
   useEffect(() => {
     setParams(params);
@@ -193,16 +194,25 @@ const RunPane = ({
     );
   }, [nonBooleanParamOpts, param_opts, newParams]);
 
+  const savePayload = useCallback(() => {
+    return {run_interval: runValue(), params: newParams};
+  }, [runValue, newParams]);
+
+  const formUnchanged = useMemo(() => {
+    return _.isEqual(savePayload(), lastSavedParams);
+  }, [savePayload, lastSavedParams]);
+
   return (
     <EtlPane mode='run' selected={selected}>
       <EtlPaneHeader title='Run'>
         <Grid className={classes.runbar} spacing={1} container>
           <Grid item>
             <Button
-              onClick={() =>
-                update({run_interval: runValue(), params: newParams})
-              }
-              disabled={!formValid}
+              onClick={() => {
+                setLastSavedParams(savePayload());
+                update(savePayload());
+              }}
+              disabled={!formValid || formUnchanged}
             >
               Save
             </Button>
