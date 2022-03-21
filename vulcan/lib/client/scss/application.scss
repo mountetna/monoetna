@@ -40,6 +40,10 @@
 @import 'panel';
 @import 'clock';
 
+html {
+  overflow-y: scroll;
+}
+
 body {
   padding: 0px;
   margin: 0px;
