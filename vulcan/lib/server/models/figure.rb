@@ -3,7 +3,7 @@ class Vulcan
     plugin :timestamps, update_on_create: true
 
     def self.next_id
-      Vulcan.instance.db.get{nextval('figures_ids')}
+      Vulcan.instance.db.get { nextval("figures_ids") }
     end
 
     def session
@@ -12,30 +12,34 @@ class Vulcan
 
     def thumbnails(storage:)
       return [] unless storage
-      
+
       cache = {}
 
-      require 'pry'
-      binding.pry
-      session.workflow.steps.map do |step|
-        case step.ui_output_name
-        when 'plotly.cwl'
-          step_target = session.orchestration.build_target_for(step.id, cache)
+      begin
+        workflow = session.workflow
+      rescue Etna::Cwl::WorkflowNotFound
+        return []
+      end
 
-          next unless step_target.input_files.length > 1
+      workflow.outputs.select do |output|
+        output.format == "image/png"
+      end.map do |output|
+        step_name = output.outputSource.first
+        output_name = output.outputSource.last
 
-          thumbnail = step_target.input_files[1]
+        step_target = session.orchestration.build_target_for(step_name, cache)
 
-          next unless ::File.exists?(thumbnail.data_path(storage))
+        next unless step_target.build_outputs.key?(output_name)
 
-          next storage.data_url(
-            project_name: thumbnail.project_name,
-            cell_hash: thumbnail.cell_hash,
-            data_filename: thumbnail.data_filename
-          )
-        else
-          next
-        end
+        thumbnail = step_target.build_outputs[output_name]
+
+        next unless ::File.exists?(thumbnail.data_path(storage))
+
+        next storage.data_url(
+               project_name: thumbnail.project_name,
+               cell_hash: thumbnail.cell_hash,
+               data_filename: thumbnail.data_filename,
+             )
       end.compact
     end
 
@@ -51,7 +55,7 @@ class Vulcan
         tags: tags,
         thumbnails: thumbnails(storage: storage),
         created_at: created_at.iso8601,
-        updated_at: updated_at.iso8601
+        updated_at: updated_at.iso8601,
       }
     end
   end

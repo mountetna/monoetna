@@ -17,7 +17,7 @@ outputs:
     outputSource: finalStep/sum
   thumbnail:
     type: File
-    format: image.pnt
+    format: image/png
     outputSource: finalStep/thumb.png
 
 steps:
