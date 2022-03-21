@@ -10,13 +10,13 @@ class Polyphemus
           mode: [ {
             value: 'default',
             default: true,
-            description: 'copy REDCap data'
+            description: 'update existing and append new records'
           }, {
             value: 'strict',
-            description: 'copy REDCap data and delete Magma records not in this run'
+            description: 'iscard all existing records and append new records'
           }, {
             value: 'existing',
-            description: 'only copy REDCap records that currently exist in Magma'
+            description: 'only update existing records'
           } ],
           model_names: {
             type: 'options',
