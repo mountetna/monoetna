@@ -17,9 +17,6 @@ inputs:
     doc: "Whether to expand matrix attributes into individual columns, with one matrix data point per column.  In most cases, you'll want to leave this checked."
 
 outputs:
-  the_plot:
-    type: File
-    outputSource: make_plot/plot.json
   thumbnail:
     type: File
     format: image/png
@@ -59,6 +56,5 @@ steps:
     run: ui-outputs/plotly.cwl
     in:
       a: make_plot/plot.json
-      b: make_plot/plot.png
     out: []
     label: 'Display Plot'
