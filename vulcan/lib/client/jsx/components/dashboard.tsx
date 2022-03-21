@@ -8,6 +8,7 @@ import {makeStyles} from '@material-ui/core/styles';
 import {Workflow} from '../api_types';
 import WorkflowsCarousel from './dashboard/workflows_carousel';
 import FiguresGrid from './dashboard/figures_grid';
+import FiguresControls from './dashboard/figures_controls';
 import WorkflowControls from './dashboard/workflow_controls';
 
 const useStyles = makeStyles((theme) => ({
@@ -19,7 +20,12 @@ const useStyles = makeStyles((theme) => ({
   tableHeader: {
     paddingLeft: '1rem',
     fontSize: '1.25rem',
-    fontWeight: 'bold'
+    borderBottom: '1px solid #eee',
+    borderTop: '1px solid #eee',
+    alignItems: 'center',
+    minHeight: '88px'
+  },
+  headerTitle: {
   }
 }));
 
@@ -29,38 +35,51 @@ export default function Dashboard({project_name}: {project_name: string}) {
   );
   const classes = useStyles();
 
+  const [searchString, setSearchString] = useState('');
+  const [tags, setTags] = useState<string[]>(['public']);
+
   return (
     <main className='vulcan-dashboard'>
       <Grid container direction='column'>
         <Grid item container className={classes.title}>
-          <Typography variant='h5'>{project_name}</Typography>
+          <Typography color='primary' variant='h5'>{project_name}</Typography>
         </Grid>
-        <Grid item container justifyContent='space-between'>
-          <Typography variant='h6' className={classes.tableHeader}>
-            Available Workflows
-          </Typography>
-          <WorkflowControls
-            workflow={selectedWorkflow}
-            project_name={project_name}
-          />
+        <Grid item container className={classes.tableHeader}>
+          <Grid item xs={2}>
+            <Typography color='secondary' variant='h6' className={classes.headerTitle}>
+              Workflows
+            </Typography>
+          </Grid>
+          <Grid item xs={10}>
+            <WorkflowControls
+              workflow={selectedWorkflow}
+              project_name={project_name}
+            />
+          </Grid>
         </Grid>
-        <Grid item className={classes.workflows}>
-          <WorkflowsCarousel
-            project_name={project_name}
-            onSelectWorkflow={(workflow) => setSelectedWorkflow(workflow)}
-          />
+        <WorkflowsCarousel
+          project_name={project_name}
+          onSelectWorkflow={(workflow) => setSelectedWorkflow(workflow)}
+        />
+        <Grid item container className={classes.tableHeader}>
+          <Grid item xs={2}>
+            <Typography color='secondary' variant='h6' className={classes.headerTitle}>
+              Figures
+            </Typography>
+          </Grid>
+          <Grid item xs={10}>
+            <FiguresControls
+              setSearchString={setSearchString}
+              setTags={setTags}
+              project_name={project_name} />
+            </Grid>
         </Grid>
-        <Grid item>
-          <Typography variant='h6' className={classes.tableHeader}>
-            Saved Figures
-          </Typography>
-        </Grid>
-        <Grid item className={classes.workflows}>
-          <FiguresGrid
-            project_name={project_name}
-            workflowName={selectedWorkflow?.name}
-          />
-        </Grid>
+        <FiguresGrid
+          project_name={project_name}
+          workflowName={selectedWorkflow?.name}
+          tags={tags}
+          searchString={searchString}
+        />
       </Grid>
     </main>
   );
