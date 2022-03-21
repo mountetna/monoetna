@@ -358,3 +358,10 @@ declare module 'etna-js/actions/location_actions' {
     link: string;
   };
 }
+
+declare module 'etna-js/hooks/useAsyncWork' {
+  export default function useAsyncWork(
+    f: Function,
+    opts: any
+  ): [loading: boolean, wrapper: Function, awaitNextRender: Function];
+}
