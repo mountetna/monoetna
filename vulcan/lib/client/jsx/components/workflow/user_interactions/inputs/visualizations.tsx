@@ -186,8 +186,8 @@ const defaults: DataEnvelope<any> = {
   'ylab': 'make',
   'color_order': 'increasing',
   'order_when_continuous_color': false,
-  'x_scale': 'as is',
-  'y_scale': 'as is',
+  'x_scale': 'linear',
+  'y_scale': 'linear',
   'rows_use': {}
 };
 
@@ -241,8 +241,8 @@ function useExtraInputs(options: string[], full_data: DataEnvelope<any>) {
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
       'size': ['Point Size', 0.1, 50],
       'scale_by': ['Scale Y by counts or fraction', ['counts', 'fraction']],
-      'x_scale': ['Adjust scaling of the X-Axis', ['as is', 'log10', 'log10(val+1)']],
-      'y_scale': ['Adjust scaling of the Y-Axis', ['as is', 'log10', 'log10(val+1)']],
+      'x_scale': ['Adjust scaling of the X-Axis', ['linear', 'log10', 'log10(val+1)']],
+      'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
       'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"]
     }
   }, [options, full_data]);
