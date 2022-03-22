@@ -4,7 +4,9 @@ require_relative './vulcan_controller'
 class FigureController < Vulcan::Controller
   def fetch
     success_json(
-      figures: Vulcan::Figure.where(project_name: @params[:project_name]).all.map(&:to_hash)
+      figures: Vulcan::Figure.where(project_name: @params[:project_name]).all.map do |f|
+        f.to_hash(storage: storage)
+      end
     )
   end
 
@@ -16,7 +18,7 @@ class FigureController < Vulcan::Controller
 
     raise Etna::NotFound unless figure
 
-    success_json(figure.to_hash)
+    success_json(figure.to_hash(storage: storage))
   end
 
   def create

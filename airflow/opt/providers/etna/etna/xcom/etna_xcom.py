@@ -41,6 +41,7 @@ class _Pickled(EtnaXComValue):
     def __str__(self):
         if isinstance(self.value, list):
             return f"{len(self.value)} result(s)"
+        return str(self.value)
 
 
 class EtnaXCom(BaseXCom):

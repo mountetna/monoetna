@@ -5,18 +5,11 @@ describe DataController do
 
   let(:storage) { Vulcan::Storage.new }
   before(:each) do
-    FileUtils.rm_rf(storage.data_root) if ::File.exist?(storage.data_root)
+    clear_store
   end
 
   def app
     OUTER_APP
-  end
-
-  def store(hash, filename, data)
-    path = storage.data_path(project_name: PROJECT, cell_hash: hash, data_filename: filename)
-    ::FileUtils.mkdir_p(::File.dirname(path))
-    ::File.write(path, data)
-    path
   end
 
   context '#fetch' do

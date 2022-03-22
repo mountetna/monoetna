@@ -1,5 +1,5 @@
-from archimedes.functions.dataflow import output_path, input_path, json, input_json
-from archimedes.functions.plotting import pio, scatter_plotly, y_plotly, bar_plotly
+from archimedes.functions.dataflow import input_path, json, input_json
+from archimedes.functions.plotting import output_plotly, scatter_plotly, y_plotly, bar_plotly
 from archimedes.functions.utils import pandas as pd
 from archimedes.functions.ui_complements import subsetDF_index_targets
 
@@ -19,8 +19,6 @@ viz_fxn = {
 plot_setup.pop('plot_type')
 
 # Make & output plot
-fig = viz_fxn(
-    df, **plot_setup)
+fig = viz_fxn(df, **plot_setup)
 
-with open(output_path('plot.json'), 'w') as output_file:
-    json.dump(json.loads(pio.to_json(fig)), output_file)
+output_plotly(fig, json_file='plot.json', png_file='plot.png')

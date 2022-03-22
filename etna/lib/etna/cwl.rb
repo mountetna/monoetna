@@ -559,6 +559,14 @@ module Etna
       def id
         @attributes['id']
       end
+
+      def type
+        @attributes['type']
+      end
+
+      def format
+        @attributes['format']
+      end
     end
 
     class WorkflowInputParameter < Cwl
