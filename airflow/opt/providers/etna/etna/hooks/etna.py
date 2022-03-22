@@ -990,7 +990,7 @@ class Magma(EtnaClientBase):
         page: Optional[int] = None,
         page_size: Optional[int] = None,
         order: Optional[str] = None,
-        filter: Optional[str] = None,
+        filter: Optional[typing.Union[str, List[str]]] = None,
         hide_templates=True,
         show_disconnected=False,
     ) -> RetrievalResponse:
