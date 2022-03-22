@@ -25,8 +25,7 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
     minHeight: '88px'
   },
-  headerTitle: {
-  }
+  headerTitle: {}
 }));
 
 export default function Dashboard({project_name}: {project_name: string}) {
@@ -42,11 +41,17 @@ export default function Dashboard({project_name}: {project_name: string}) {
     <main className='vulcan-dashboard'>
       <Grid container direction='column'>
         <Grid item container className={classes.title}>
-          <Typography color='primary' variant='h5'>{project_name}</Typography>
+          <Typography color='primary' variant='h5'>
+            {project_name}
+          </Typography>
         </Grid>
         <Grid item container className={classes.tableHeader}>
           <Grid item xs={2}>
-            <Typography color='secondary' variant='h6' className={classes.headerTitle}>
+            <Typography
+              color='secondary'
+              variant='h6'
+              className={classes.headerTitle}
+            >
               Workflows
             </Typography>
           </Grid>
@@ -63,7 +68,11 @@ export default function Dashboard({project_name}: {project_name: string}) {
         />
         <Grid item container className={classes.tableHeader}>
           <Grid item xs={2}>
-            <Typography color='secondary' variant='h6' className={classes.headerTitle}>
+            <Typography
+              color='secondary'
+              variant='h6'
+              className={classes.headerTitle}
+            >
               Figures
             </Typography>
           </Grid>
@@ -71,8 +80,9 @@ export default function Dashboard({project_name}: {project_name: string}) {
             <FiguresControls
               setSearchString={setSearchString}
               setTags={setTags}
-              project_name={project_name} />
-            </Grid>
+              project_name={project_name}
+            />
+          </Grid>
         </Grid>
         <FiguresGrid
           project_name={project_name}
