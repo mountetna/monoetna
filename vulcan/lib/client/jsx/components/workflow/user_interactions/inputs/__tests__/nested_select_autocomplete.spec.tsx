@@ -49,7 +49,7 @@ describe('NestedSelectAutocompleteInput', () => {
   }
 
   async function clickIconWrapper(component: ReactTestInstance, idx: number) {
-    await clickNode(component, includesClassNamePredicate('icon-wrapper'), idx);
+    await clickNode(component, includesClassNamePredicate('MuiAutocomplete-popupIndicator'), idx);
   }
 
   async function clickLi(component: ReactTestInstance, idx: number) {
@@ -85,7 +85,6 @@ describe('NestedSelectAutocompleteInput', () => {
 
     expect(node.root.findAllByType('input').length).toEqual(2);
     expect(getSelectedOption(node.root)).toEqual('option2');
-
 
     // Click the second drop-down again
     await clickIconWrapper(node.root, 1);
