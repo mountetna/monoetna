@@ -9,19 +9,39 @@ from etna.etls.etl_task_batching import get_batch_range
 from etna import (
     metis_etl,
     link,
-    MetisEtlHelpers, get_project_name, rollup_dag,
+    MetisEtlHelpers, get_project_name, rollup_dag, rollup,
 )
 import re
 
-from etna.etls.metis import MatchedRecordFolder
-from etna.hooks.etna import Attribute, UpdateRequest, EtnaHook
-import csv
-import json
-import os.path
+from etna.hooks.etna import EtnaHook, Folder, File
 
 from etna.metrics.rollup_metrics import Rollup
 
 completion_metric_labels = ['attribute_name', 'attribute_type', 'model_name', 'project_name']
+
+class MetisDataRollup(Rollup):
+    project_name: str
+    bucket_name: str
+    folders: List[Folder]
+    files: List[File]
+
+    def __init__(self, project_name: str, bucket_name: str):
+        self.project_name = project_name
+        self.bucket_name = bucket_name
+        self.folders = []
+        self.files = []
+
+    def measure(self) -> Iterable[Tuple[Dict[str, str], int]]:
+        for file in files:
+            pass
+
+    def concat(self, other: "MetisDataRollup") -> "MetisDataRollup":
+        if self.project_name != other.project_name or self.bucket_name != other.bucket_name:
+            raise ValueError('Cannot rollup metis data from different buckets')
+
+        result = MetisDataRollup(self.project_name, self.bucket_name)
+
+        return result
 
 class MagmaCompletionRollup(Rollup):
     project_name: str
@@ -53,6 +73,9 @@ class MagmaCompletionRollup(Rollup):
     def complete_attribute_record_ids(self, model_name: str, attribute_name: str) -> set:
         return self.complete_attributes.setdefault(model_name, {}).setdefault(attribute_name, set())
 
+    def incomplete_attribute_record_ids(self, model_name: str, attribute_name: str) -> set:
+        return self.sampled_record_ids.get(model_name, set()) - self.complete_attribute_record_ids(model_name, attribute_name)
+
     def attribute_type(self, model_name: str, attribute_name: str, default_type: str) -> str:
         return self.attribute_types.setdefault(model_name, {}).setdefault(attribute_name, default_type)
 
@@ -61,10 +84,45 @@ class MagmaCompletionRollup(Rollup):
         if self.project_name != other.project_name:
             raise ValueError(f"Projects {self.project_name} and {other.project_name} cannot be concatenated")
 
+        result.all_record_ids = other.all_record_ids
+        result.attribute_types = other.attribute_types
+        result.complete_attributes = self.complete_attributes.copy()
+
+        for model_name, model_attribute_types in self.attribute_types.items():
+            for attribute_name, attribute_type in model_attribute_types.items():
+                for id in other.complete_attribute_record_ids(model_name, attribute_name):
+                    result.complete_attribute_record_ids(model_name, attribute_name).add(id)
+
+                for id in other.incomplete_attribute_record_ids(model_name, attribute_name):
+                    result.complete_attribute_record_ids(model_name, attribute_name).remove(id)
+
         return result
 
+def collect_metis_metrics(project_name: str, bucket_name: str):
+    etna_hook = EtnaHook.for_project(project_name)
 
-def measure_completion_metrics(project_name: str):
+    def process_project_metis_data():
+        @task
+        def gather_updates():
+            rollup = MetisDataRollup(project_name, bucket_name)
+
+            with etna_hook.metis(project_name) as metis:
+                start, end = get_batch_range(get_current_context())
+                files, _ = metis.tail(project_name, bucket_name, 'files', batch_start=start, batch_end=end)
+                _, folders = metis.tail(project_name, bucket_name, 'folders', batch_start=start, batch_end=end)
+                rollup.files.extend(files)
+                rollup.folders.extend(folders)
+
+            return rollup
+
+        @rollup
+        def concat_metis_rollups(a: MetisDataRollup, b: MetisDataRollup) -> MetisDataRollup:
+            return a.concat(b)
+
+    process_project_metis_data.__name__ = f"process_{project_name}_metis_data"
+    rollup_dag(timedelta(minutes=5), completion_metric_labels)(process_project_metis_data)
+
+def collect_completion_metrics(project_name: str):
     etna_hook = EtnaHook.for_project(project_name)
 
     def process_project_magma_completion():
@@ -116,6 +174,10 @@ def measure_completion_metrics(project_name: str):
                             completed = rollup.complete_attribute_record_ids(model_name, attribute_name)
                             if record.get(attribute_name) is not None:
                                 completed.add(record_name)
+
+        @rollup
+        def concat_magma_completion_rollups(a: MagmaCompletionRollup, b: MagmaCompletionRollup) -> MagmaCompletionRollup:
+            return a.concat(b)
 
     process_project_magma_completion.__name__ = f"process_{project_name}_completion_metrics"
     rollup_dag(timedelta(minutes=5), completion_metric_labels)(process_project_magma_completion)
