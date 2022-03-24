@@ -123,6 +123,10 @@ outputs:
   the_data:
     type: File
     outputSource: Finalize_Output_Object/umap_workflow_anndata.h5ad
+  thumbnail:
+    type: File
+    format: image/png
+    outputSource: make_plot/plot.png
 
 steps:
   projectData:
@@ -292,7 +296,6 @@ steps:
     label: 'Display UMAP'
     in:
       a: make_umap/plot.json
-      b: make_umap/plot.png
     out: []
   downloadRawData:
     run: ui-outputs/link.cwl
