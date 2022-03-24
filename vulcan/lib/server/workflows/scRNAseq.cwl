@@ -126,7 +126,7 @@ outputs:
   thumbnail:
     type: File
     format: image/png
-    outputSource: make_plot/plot.png
+    outputSource: make_umap/plot.png
 
 steps:
   projectData:
