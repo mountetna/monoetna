@@ -39,6 +39,56 @@ class Metis
     end
   end
 
+  class ManualUpload < Etna::Command
+    string_flags << "--project_name"
+    string_flags << "--bucket_name"
+    string_flags << "--path"
+
+    def execute(file, project_name:, bucket_name:, path:)
+      bucket = Metis::Bucket.find(project_name: project_name, name: bucket_name)
+      db = Metis::DataBlock.create_from(::File.basename(file), file, true)
+      folder_id = Metis::Folder.mkdir_p(bucket, path, project_name, 'etna.agent@ucsf.edu|system').map(&:id).last
+
+      Metis::File.create(
+        project_name: project_name,
+        file_name: ::File.basename(file),
+        folder_id: folder_id,
+        bucket: bucket,
+        author: 'etna.agent@ucsf.edu|system',
+        data_block: db
+      )
+
+      puts "Done!"
+    end
+
+    def setup(config)
+      super
+      Metis.instance.setup_db
+      Metis.instance.load_models
+    end
+  end
+
+  class BackfillSize < Etna::Command
+    def execute
+      i = 0
+      Metis::DataBlock.where(size: nil).each do |db|
+        db.update(size: db.actual_size || 0)
+
+        i += 1
+        if i % 100 == 0
+          puts "Processed #{i}"
+        end
+        puts "Processed #{i}"
+      end
+    end
+
+    def setup(config)
+      super
+      Metis.instance.setup_db
+      Metis.instance.load_models
+    end
+  end
+
   class Schema < Etna::Command
     usage "Show the current database schema."
 

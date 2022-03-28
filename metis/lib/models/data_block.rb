@@ -20,9 +20,11 @@ class Metis
 
     def self.create_from(file_name, location, copy = false)
       # we don't know the true md5 so we use a random value
+      size = ::File.size(location)
       data_block = create(
         md5_hash: "#{TEMP_PREFIX}#{Metis.instance.sign.uid}",
-        description: "Originally for #{file_name}"
+        description: "Originally for #{file_name}",
+        size: size,
       )
 
       data_block.set_file_data(location, copy)
