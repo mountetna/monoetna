@@ -67,13 +67,6 @@ function DataTransformationModal({
     return widths;
   }, [data]);
 
-  const maxRows = 40;
-  const maxCols = 15;
-
-  function truncate(data: any[][]) {
-    return data.slice(0, maxRows).map((inner) => inner.slice(0, maxCols));
-  }
-
   const largeData = useMemo(() => {
     return data.length > maxRows || data[0].length > maxCols;
   }, [data]);
@@ -100,17 +93,10 @@ function DataTransformationModal({
         <HotTable
           ref={hotTableComponent}
           settings={{
-            viewportRowRenderingOffset: 10,
-            viewportColumnRenderingOffset: 10,
             colWidths: columnWidths,
             autoRowSize: false,
             autoColumnSize: false,
-            data: truncate(data),
-            afterLoadData: (sourceData, initialLoad) => {
-              if (hotTableComponent.current && largeData) {
-                hotTableComponent.current.hotInstance.updateData(data);
-              }
-            },
+            data: data,
             afterUpdateData: () => {
               setLoading(false);
             },
