@@ -67,10 +67,6 @@ function DataTransformationModal({
     return widths;
   }, [data]);
 
-  const largeData = useMemo(() => {
-    return data.length > maxRows || data[0].length > maxCols;
-  }, [data]);
-
   return (
     <>
       <DialogTitle>
@@ -85,21 +81,17 @@ function DataTransformationModal({
           </Link>
         </Typography>
         )
-        {loading && largeData ? (
-          <CircularProgress size={16} className={classes.loading} />
-        ) : null}
       </DialogTitle>
       <DialogContent className={classes.dialog}>
         <HotTable
           ref={hotTableComponent}
           settings={{
+            viewportRowRenderingOffset: 10,
+            viewportColumnRenderingOffset: 10,
             colWidths: columnWidths,
             autoRowSize: false,
             autoColumnSize: false,
             data: data,
-            afterUpdateData: () => {
-              setLoading(false);
-            },
             colHeaders: true,
             rowHeaders: true,
             height: 'auto',
