@@ -20,6 +20,7 @@ magby = {path = "../magby"}
 plotly = "^4.14.3"
 leidenalg = "^0.8.3"
 harmonypy = "^0.0.5"
+kaleido = "0.2.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

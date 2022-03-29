@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"token_type": "task", "project_name": "ipi", "ready_only": true}'
+    body: '{"token_type": "task", "project_name": "ipi", "read_only": true}'
     headers:
       Accept:
       - '*/*'

@@ -356,7 +356,7 @@ end
 
 def stub_magma_update_dry_run
   stub_request(:post, /#{MAGMA_HOST}\/update$/).
-  to_return(lambda { |request| 
+  to_return(lambda { |request|
     {
       headers: {
         'Content-Type': 'application/json'
@@ -366,7 +366,7 @@ def stub_magma_update_dry_run
       }.to_json
     }
   })
-end 
+end
 
 def redcap_choices(*choices)
   choices.map.with_index do |c, i|
@@ -540,8 +540,9 @@ def create_dummy_job
           additionalProperties: false
         },
         params: {
-          problem: [ 'present', 'absent' ],
+          problem: [ {value: 'present'}, {value: 'absent'} ],
           whippit: 'boolean',
+          select_one: {type: 'options', value: 'choices'}
         },
         secrets: [ :rumor, :password ]
       }

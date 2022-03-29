@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"token_type": "task", "project_name": "mvir1", "ready_only": true}'
+    body: '{"token_type": "task", "project_name": "mvir1", "read_only": true}'
     headers:
       Accept:
       - '*/*'
@@ -42,7 +42,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"token_type": "task", "project_name": "mvir1", "ready_only": true}'
+    body: '{"token_type": "task", "project_name": "mvir1", "read_only": true}'
     headers:
       Accept:
       - '*/*'
@@ -127,7 +127,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"token_type": "task", "project_name": "mvir1", "ready_only": true}'
+    body: '{"token_type": "task", "project_name": "mvir1", "read_only": true}'
     headers:
       Accept:
       - '*/*'
