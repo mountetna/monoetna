@@ -158,9 +158,9 @@ export type SessionStatusResponse = typeof defaultSessionStatusResponse;
 export interface VulcanFigure {
   figure_id?: number | null;
   inputs: {[k: string]: any};
-  title?: string | null;
+  title?: string;
   author?: string;
-  thumbnail?: string;
+  thumbnails?: string[];
   tags?: string[];
 }
 

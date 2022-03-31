@@ -9,17 +9,23 @@ module Etna
       "#{os.first}/#{os.last}"
     end
 
+    class WorkflowNotFound < Exception
+    end
+
     class Workflow < Cwl
       def self.from_yaml_file(filename, prefix = Vulcan.instance.config(:workflows_folder))
-        attributes = YAML.safe_load(::File.read(File.join(prefix, filename)))
+        full_path = File.join(prefix, filename)
+        raise WorkflowNotFound.new("File not found: #{filename}") unless ::File.exists?(full_path)
+        attributes = YAML.safe_load(::File.read(full_path))
         self.loader.load(attributes)
       end
 
       def self.metadata(filename, prefix = Vulcan.instance.config(:workflows_folder))
         metadata_file = ::File.join(
           prefix,
-          filename.sub("cwl", "metadata.json"))
-          
+          filename.sub("cwl", "metadata.json")
+        )
+
         return {} unless ::File.exists?(metadata_file)
 
         JSON.parse(::File.read(metadata_file), symbolize_names: true)
@@ -37,14 +43,14 @@ module Etna
 
       def as_steps_json(name)
         {
-            class: "Workflow",
-            cwlVersion: @attributes['cwlVersion'],
-            name: name,
-            inputs: @attributes['inputs'].map(&:as_steps_inputs_json_pair).to_h,
-            outputs: @attributes['outputs'].map(&:as_steps_output_json_pair).to_h,
-            steps: Vulcan::Orchestration.serialize_step_path(self).map do |path|
-              path.map { |step_name| self.find_step(step_name)&.as_step_json }.select { |v| v }
-            end
+          class: "Workflow",
+          cwlVersion: @attributes["cwlVersion"],
+          name: name,
+          inputs: @attributes["inputs"].map(&:as_steps_inputs_json_pair).to_h,
+          outputs: @attributes["outputs"].map(&:as_steps_output_json_pair).to_h,
+          steps: Vulcan::Orchestration.serialize_step_path(self).map do |path|
+            path.map { |step_name| self.find_step(step_name)&.as_step_json }.select { |v| v }
+          end,
         }
       end
 
@@ -87,16 +93,16 @@ module Etna
 
     class WorkflowInputParameter < Cwl
       def source
-        [ :primary_inputs, self.id ]
+        [:primary_inputs, self.id]
       end
 
       def as_steps_inputs_json_pair
         [self.id, {
-            label: @attributes['label'],
-            type: @attributes['type'],
-            format: @attributes['format'],
-            default: @attributes['default'],
-            doc: @attributes['doc']
+          label: @attributes["label"],
+          type: @attributes["type"],
+          format: @attributes["format"],
+          default: @attributes["default"],
+          doc: @attributes["doc"],
         }]
       end
     end
@@ -104,16 +110,16 @@ module Etna
     class WorkflowOutputParameter < Cwl
       def as_steps_output_json_pair
         [self.id, {
-            outputSource: output_source_as_string,
-            label: @attributes['label'],
-            type: @attributes['type'],
-            default: @attributes['default'],
-            format: @attributes['format'],
+          outputSource: output_source_as_string,
+          label: @attributes["label"],
+          type: @attributes["type"],
+          default: @attributes["default"],
+          format: @attributes["format"],
         }]
       end
 
       def output_source_as_string
-        Etna::Cwl.source_as_string(@attributes['outputSource'])
+        Etna::Cwl.source_as_string(@attributes["outputSource"])
       end
     end
 
@@ -126,19 +132,29 @@ module Etna
 
       def as_step_json
         {
-            name: @attributes['id'],
-            run: @attributes['run'].id,
-            in: @attributes['in'].map { |i| input_as_json(i) },
-            out: @attributes['out'].map(&:id),
-            label: @attributes['label'],
-            doc: @attributes['doc']
+          name: @attributes["id"],
+          run: @attributes["run"].id,
+          in: @attributes["in"].map { |i| input_as_json(i) },
+          out: @attributes["out"].map(&:id),
+          label: @attributes["label"],
+          doc: @attributes["doc"],
         }
+      end
+
+      def status_json(storage:, build_target_cache:, orchestration:)
+        bt = orchestration.build_target_for(id, build_target_cache)
+
+        orchestration.scheduler.status(storage: storage, build_target: bt, step: self).update({
+          name: id,
+          hash: bt.cell_hash,
+          downloads: (!ui_output? && bt.is_built?(storage)) ? bt.downloads(storage) : nil,
+        })
       end
 
       def input_as_json(input)
         {
-            id: input.id,
-            source: Etna::Cwl.source_as_string(input.source),
+          id: input.id,
+          source: Etna::Cwl.source_as_string(input.source),
         }
       end
 
@@ -152,7 +168,7 @@ module Etna
       end
 
       def script_name
-        run = @attributes['run']
+        run = @attributes["run"]
         return nil if run.nil?
 
         if run.is_a?(Operation)
@@ -162,7 +178,7 @@ module Etna
       end
 
       def ui_query_name
-        run = @attributes['run']
+        run = @attributes["run"]
         return nil if run.nil?
 
         if run.is_a?(Operation)
@@ -172,7 +188,7 @@ module Etna
       end
 
       def ui_output_name
-        run = @attributes['run']
+        run = @attributes["run"]
         return nil if run.nil?
 
         if run.is_a?(Operation)
@@ -182,7 +198,11 @@ module Etna
       end
 
       def ui_behavior?
-        ui_query_name || ui_output_name
+        ui_query_name || ui_output?
+      end
+
+      def ui_output?
+        !!ui_output_name
       end
     end
 

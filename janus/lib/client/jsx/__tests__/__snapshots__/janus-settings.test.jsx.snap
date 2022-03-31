@@ -25,16 +25,16 @@ exports[`JanusSettings renders 1`] = `
       className="item"
     >
       <div
-        className="MuiFormControl-root MuiTextField-root makeStyles-text-1"
+        className="MuiFormControl-root MuiTextField-root makeStyles-keyText-2"
       >
         <div
-          className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+          className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
           onClick={[Function]}
         >
-          <input
+          <textarea
             aria-invalid={false}
             autoFocus={false}
-            className="MuiInputBase-input MuiInput-input"
+            className="MuiInputBase-input MuiInput-input MuiInputBase-inputMultiline MuiInput-inputMultiline"
             disabled={false}
             onAnimationStart={[Function]}
             onBlur={[Function]}
@@ -42,7 +42,30 @@ exports[`JanusSettings renders 1`] = `
             onFocus={[Function]}
             placeholder="Paste 2048+ bit RSA key in PEM format"
             required={false}
-            type="text"
+            rows={1}
+            style={
+              Object {
+                "height": -4,
+                "overflow": "hidden",
+              }
+            }
+          />
+          <textarea
+            aria-hidden={true}
+            className="MuiInputBase-input MuiInput-input MuiInputBase-inputMultiline MuiInput-inputMultiline"
+            readOnly={true}
+            style={
+              Object {
+                "height": 0,
+                "left": 0,
+                "overflow": "hidden",
+                "position": "absolute",
+                "top": 0,
+                "transform": "translateZ(0)",
+                "visibility": "hidden",
+              }
+            }
+            tabIndex={-1}
           />
         </div>
       </div>

@@ -21,28 +21,21 @@ import FigureCard from './figure';
 import Grid from '@material-ui/core/Grid';
 
 const useStyles = makeStyles((theme) => ({
-  title: {
-    padding: '10px 0px',
-    color: '#444'
-  },
   figures: {
-    padding: '15px',
-    width: '100vw'
-  },
-  controls: {
-    padding: '15px'
-  },
-  tags: {
-    padding: '12.5px !important'
+    boxShadow: '0 0 15px 0px #f5f5f5 inset'
   }
 }));
 
-export default function FiguresTable({
+export default function FiguresGrid({
   project_name,
-  workflowName
+  workflowName,
+  tags,
+  searchString
 }: {
   project_name: string;
   workflowName?: string;
+  tags?: string[];
+  searchString?: string;
 }) {
   const {
     showErrors,
@@ -52,8 +45,6 @@ export default function FiguresTable({
     deleteFigure
   } = useContext(VulcanContext);
 
-  const [searchString, setSearchString] = useState('');
-  const [tags, setTags] = useState<string[]>(['public']);
   const [allFigureSessions, setAllFigureSessions] = useState<
     VulcanFigureSession[]
   >([]);
@@ -135,7 +126,7 @@ export default function FiguresTable({
 
   const hasTag = useCallback(
     (figure: VulcanFigureSession) => {
-      if (0 === tags.length) return true;
+      if (!tags || 0 === tags.length) return true;
       if (!figure.tags || 0 === figure.tags.length) return false;
 
       return (figure.tags?.filter((t) => tags.includes(t)) || []).length > 0;
@@ -147,7 +138,7 @@ export default function FiguresTable({
     (figure: VulcanFigureSession) => {
       if (!searchString || '' === searchString) return true;
 
-      const regex = new RegExp(searchString);
+      const regex = new RegExp(searchString, 'i');
       return (
         figure.title?.match(regex) ||
         figure.author?.match(regex) ||
@@ -175,81 +166,21 @@ export default function FiguresTable({
     }
   }, [allFigureSessions, matchesSearch, hasTag, workflowName]);
 
-  const allTags = useMemo(() => {
-    return [
-      ...new Set(
-        allFigureSessions.reduce(
-          (acc: string[], f) => acc.concat(f.tags || []),
-          ['public']
-        )
-      )
-    ];
-  }, [allFigureSessions]);
-
   return (
-    <Grid container direction='column'>
-      <Grid item container className={classes.controls} spacing={6}>
-        <Grid item xs={4}>
-          <TextField
-            fullWidth
-            label='Search'
-            variant='outlined'
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon />
-                </InputAdornment>
-              )
-            }}
-            onChange={(e) => setSearchString(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={4}>
-          <Autocomplete
-            fullWidth
-            multiple
-            className='figure-tag-autocomplete'
-            classes={{
-              input: classes.tags
-            }}
-            defaultValue={['public']}
-            id='figure-tags-filter'
-            options={allTags.sort()}
-            renderInput={(params: any) => (
-              <TextField {...params} label='Tags' variant='outlined' />
-            )}
-            renderOption={(option, state) => <span>{option}</span>}
-            filterOptions={(options, state) => {
-              let regex = new RegExp(state.inputValue);
-              return options.filter((o) => regex.test(o));
-            }}
-            onChange={(e, v) => setTags(v)}
-          />
-        </Grid>
-      </Grid>
-      <Grid item>
-        <ImageList
-          cols={5}
-          gap={30}
-          rowHeight={330}
-          className={classes.figures}
-        >
-          {filteredFigureSessions.map(
-            (figure: VulcanFigureSession, index: number) => {
-              return (
-                <ImageListItem key={index}>
-                  <FigureCard
-                    figureSession={figure}
-                    onCopy={() => handleOnCopy(figure)}
-                    onRemove={() => handleOnRemove(figure)}
-                    onRename={() => handleOnRename(figure)}
-                  />
-                </ImageListItem>
-              );
-            }
-          )}
-        </ImageList>
-      </Grid>
+    <Grid className={classes.figures} container direction='row'>
+      {filteredFigureSessions.map(
+        (figure: VulcanFigureSession, index: number) => {
+          return (
+            <FigureCard
+              key={index}
+              figureSession={figure}
+              onCopy={() => handleOnCopy(figure)}
+              onRemove={() => handleOnRemove(figure)}
+              onRename={() => handleOnRename(figure)}
+            />
+          );
+        }
+      )}
     </Grid>
   );
 }

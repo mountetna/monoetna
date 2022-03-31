@@ -123,6 +123,10 @@ outputs:
   the_data:
     type: File
     outputSource: Finalize_Output_Object/umap_workflow_anndata.h5ad
+  thumbnail:
+    type: File
+    format: image/png
+    outputSource: make_umap/plot.png
 
 steps:
   projectData:
@@ -286,7 +290,7 @@ steps:
     in:
       plot_setup: user_plot_setup/plot_setup
       data_frame: prep_umap_plot_data/data_frame
-    out: [plot.json]
+    out: [plot.json, plot.png]
   show_umap_plot:
     run: ui-outputs/plotly.cwl
     label: 'Display UMAP'

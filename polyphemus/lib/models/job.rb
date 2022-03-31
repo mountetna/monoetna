@@ -39,8 +39,13 @@ class Polyphemus
           value_opts = job_params[param]
           case value_opts
           when Array
-            unless value_opts.include?(value)
-              errors.push("#{param} must be in: #{value_opts.join(', ')}")
+            options = value_opts.map { |v| v[:value] }
+            unless options.include?(value)
+              errors.push("#{param} must be in: #{options.join(', ')}")
+            end
+          when Hash
+            unless value.is_a?(String)
+              errors.push("#{param} must be a comma-separated string")
             end
           when 'string'
             unless value.is_a?(String)

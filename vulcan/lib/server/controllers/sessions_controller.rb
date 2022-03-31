@@ -23,61 +23,18 @@ class SessionsController < Vulcan::Controller
   end
 
   def submit
-    orchestration.load_json_inputs!(storage)
-    scheduler.schedule_more!(orchestration: orchestration, token: create_task_token, storage: storage)
-    success_json(status_payload)
+    session.run!(storage: storage, token: create_task_token)
+    success_json(session.status(storage: storage))
   rescue => e
     Vulcan.instance.logger.log_error(e)
     raise Etna::BadRequest.new(e.message)
   end
 
   def status
-    success_json(status_payload)
+    success_json(session.status(storage: storage))
   rescue => e
     Vulcan.instance.logger.log_error(e)
     raise Etna::BadRequest.new(e.message)
-  end
-
-  def status_payload(build_target_cache: {})
-    {
-      session: session.as_json,
-      status: all_steps_status(build_target_cache: build_target_cache),
-      outputs: step_status_json(step_name: :primary_outputs, build_target_cache: build_target_cache).slice(:status, :downloads)
-    }
-  end
-
-  def all_steps_status(build_target_cache:)
-    orchestration.serialized_step_path.map do |paths|
-      paths.map do |step_name|
-        step = orchestration.workflow.find_step(step_name)
-        next nil if step.nil?
-        step_status_json(step_name: step.id, build_target_cache: build_target_cache)
-      end.select { |v| v }
-    end
-  end
-
-  def step_status_json(step_name:, build_target_cache:)
-    step = workflow.find_step(step_name)
-    ui_output = step&.ui_output_name
-    bt = orchestration.build_target_for(step_name, build_target_cache)
-
-    scheduler.status(storage: storage, build_target: bt, step: step).update({
-      name: step_name,
-      hash: bt.cell_hash,
-      downloads: step_has_downloads?(bt, ui_output) ? bt.build_outputs.map do |output_name, sf|
-        [
-          output_name,
-          storage.data_url(project_name: sf.project_name, cell_hash: sf.cell_hash, data_filename: sf.data_filename),
-        ]
-      end.to_h : nil
-    })
-  end
-
-  def step_has_downloads?(bt, ui_output)
-    # UI Sinks (plot, download data, etc), will not have outputs
-    #   defined, only inputs. So there are no downloads.
-    return false if ui_output
-    bt.is_built?(storage)
   end
 
   def create_task_token

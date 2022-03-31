@@ -9,7 +9,6 @@ import {some} from "../../../../selectors/maybe";
 import {useMemoized} from "../../../../selectors/workflow_selectors";
 import {joinNesting} from "./monoids";
 import {useSetsDefault} from "./useSetsDefault";
-import Autocomplete from '@material-ui/lab/Autocomplete';
 import { InputLabel, TextField } from '@material-ui/core';
 import SelectAutocompleteInput from './select_autocomplete';
 
@@ -75,15 +74,11 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
   const value = useSetsDefault(null, props.value, onChange)
   const allOptions = useMemoized(joinNesting, data);
   const [path, setPath] = useState([] as string[]);
-  const [lastNonNull, setLastNonNull] = useState(value!=null) // Used for ensuring a re-render will happen if the value gets reset to 'null' externally (with the 'reset' button)
   
   useEffect(() => {
-    if (value) {
+    if (value!=null) {
       const updatedPath = getPath(allOptions, value);
       setPath(updatedPath);
-    } else if (lastNonNull) {
-      // value is now null, so any current path should be emptied
-      setPath([]); setLastNonNull(false)
     }
   }, [allOptions, value])
 
@@ -101,7 +96,6 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
       if (getOptions(updatedPath, allOptions) == null) {
         // If we are updating a leaf
         onChange(some(value));
-        setLastNonNull(true)
       } else {
         // Otherwise a leaf has not been selected.
         onChange(null);
@@ -112,14 +106,13 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
 
   // const lab = (label) ? 
   //   <InputLabel shrink>{label}</InputLabel> : null;
-  console.log(value)
-  console.log(path)
+  console.log({value})
+  console.log({path})
   return (
     <div>
       {/* {lab} */}
       <div>
         {path.map((value, index) => {
-          console.log(index)
               const options = getOptions(path.slice(0, index), allOptions);
               return (
                 (options==null) ? null :

@@ -7,8 +7,21 @@ class Polyphemus
         name: "redcap",
         schema: Redcap::Loader.to_schema,
         params: {
-          mode: [ 'default', 'strict', 'existing' ],
-          model_names: 'string',
+          mode: [ {
+            value: 'default',
+            default: true,
+            description: 'update existing and append new records'
+          }, {
+            value: 'strict',
+            description: 'iscard all existing records and append new records'
+          }, {
+            value: 'existing',
+            description: 'only update existing records'
+          } ],
+          model_names: {
+            type: 'options',
+            value: 'model_names'
+          },
           commit: 'boolean'
         },
         secrets: [ :redcap_tokens ]

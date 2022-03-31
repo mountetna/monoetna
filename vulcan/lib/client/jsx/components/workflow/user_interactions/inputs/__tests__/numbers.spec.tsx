@@ -29,7 +29,7 @@ describe('FloatInput', () => {
       value: null,
       label: 'Abcdef',
       name: 'doesnotmatter',
-      data: { null },
+      data: { null: null },
       onChange,
       source: '',
     };
@@ -95,7 +95,7 @@ describe('IntegerInput', () => {
       value: null,
       label: 'Abcdef',
       name: 'doesnotmatter',
-      data: { null },
+      data: { null: null  },
       onChange,
       source: '',
     };

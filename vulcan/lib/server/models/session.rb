@@ -35,11 +35,52 @@ class Session < Etna::Cwl
     loader.load(json)
   end
 
+  def self.from_figure(figure)
+    self.from_json(figure.to_hash)
+  end
+
   def as_json
     super.tap do |result|
       result['inputs'] = result['inputs'].map do |k, v|
         [Etna::Cwl.source_as_string(k), v[:json_payload]]
       end.to_h
+    end
+  end
+
+  def run!(storage:, token:)
+    orchestration.load_json_inputs!(storage)
+    orchestration.scheduler.schedule_more!(orchestration: orchestration, token: token, storage: storage)
+  end
+
+  def status(storage:, build_target_cache: {})
+    {
+      session: self.as_json,
+      status: all_steps_status(storage: storage, build_target_cache: build_target_cache),
+      outputs: primary_output_status(storage: storage, build_target_cache: build_target_cache)
+    }
+  end
+
+  def primary_output_status(storage:, build_target_cache:)
+    orchestration.build_target_for(:primary_outputs, build_target_cache).tap do |bt|
+      return orchestration.scheduler.status(storage: storage, build_target: bt, step: nil).update({
+        downloads: bt.is_built?(storage) ? bt.downloads(storage) : nil
+      })
+    end
+  end
+
+  def all_steps_status(storage:, build_target_cache:)
+    orchestration.serialized_step_path.map do |paths|
+      paths.map do |step_name|
+        step = workflow.find_step(step_name)
+
+        next if step.nil?
+
+        step.status_json(
+          storage: storage,
+          orchestration: orchestration,
+          build_target_cache: build_target_cache
+        )
+      end.compact
     end
   end
 
