@@ -7,12 +7,13 @@ Sequel.migration do
       end
     end
     alter_table(:data_blocks) do
-      set_column_type :size, :bigint, null: false
+      set_column_type :size, :bigint
+      set_column_not_null :size
     end
   end
   down do
     alter_table(:data_blocks) do
-      set_column_type :size, Integer, null: true
+      set_column_type :size, Integer
     end
   end
 end
