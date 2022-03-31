@@ -181,7 +181,7 @@ class Metis
         file_hash: file_hash,
         archive_id: data_block.archive_id,
         read_only: read_only?,
-        size: data_block.actual_size,
+        size: data_block.size,
       }
 
       if with_path
