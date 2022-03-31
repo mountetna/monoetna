@@ -62,9 +62,17 @@ jobs:
         with:
           ruby-version: 2.7.1
 
+      - name: Get mimemagic database
+        run: |
+          cd etna
+          wget https://gitlab.freedesktop.org/xdg/shared-mime-info/uploads/0440063a2e6823a4b1a6fb2f2af8350f/shared-mime-info-2.0.tar.xz
+          tar -xf shared-mime-info-2.0.tar.xz
+          dir
+
       - name: "Install dependencies"
         run: |
           cd etna
+          setx FREEDESKTOP_MIME_TYPES_PATH "%CD%/shared-mime-info-2.0"
           bundle install
 
       - name: "Set up Perl"
