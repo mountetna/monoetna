@@ -70,7 +70,7 @@ export default function SelectAutocompleteInput(
       clearOnBlur={true}
       options={options.display}
       // disable filtering on client
-      filterOptions={() => options.filtered}
+      filterOptions={(options: string[]) => options}
       loading={loadingOptions}
       value={value}
       onChange={onChangeAction}
