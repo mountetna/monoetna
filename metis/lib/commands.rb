@@ -78,7 +78,6 @@ class Metis
         if i % 100 == 0
           puts "Processed #{i}"
         end
-        puts "Processed #{i}"
       end
     end
 
