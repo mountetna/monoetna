@@ -45,3 +45,75 @@ jobs:
           IMAGES_POSTFIX: :master
         run: |
           make -C ${{ matrix.test-app }} release
+  perform-release-windows:
+    runs-on: windows-2019
+#    needs: create-release
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ilammy/setup-nasm@v1
+      - uses: actions/checkout@v2
+
+      - name: "Install libraries"
+        run: |
+          choco install --no-progress squashfs
+          choco install wget
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7.1
+
+      - name: "Install dependencies"
+        run: |
+          cd etna
+          bundle install
+
+      - name: "Set up Perl"
+        run: |
+          choco install strawberryperl
+          echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
+
+      - name: "Inspect Windows Environment"
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.vs }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          echo on
+          wmic OS get OSArchitecture
+          echo %PROCESSOR_ARCHITECTURE%
+          set
+          systeminfo
+          where perl
+          perl -V
+          where nmake
+          where mksquashfs
+          mksquashfs -version
+          where ruby
+          ruby -v
+          where bundle
+          bundle -v
+        shell: cmd
+
+      - name: Get ruby-packer
+        run: |
+          wget https://github.com/pmq20/ruby-packer/releases/download/windows-x64/rubyc.exe
+          dir
+          copy rubyc.exe C:\strawberry\c\bin\rubyc.exe
+          del rubyc.exe
+          rubyc.exe -v
+
+      - name: Build executable
+        run: |
+          cd etna
+          dir
+          mkdir bin
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          rubyc.exe bin\etna -o bin\etna.exe --tmpdir=C:\rubyc_tm
+
+
+#      - name: Upload Release Asset
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ needs.create-release.outputs.upload_url }}
+#          asset_path: ./build/dist/cross-compile-demo.zip
+#          asset_name: cross-compile-demo_windows_amd64.zip
+#          asset_content_type: application/zip
