@@ -7,13 +7,8 @@ import {
 } from '../../../../../test_utils/integration';
 import {Maybe, some} from '../../../../../selectors/maybe';
 import {act, ReactTestInstance} from 'react-test-renderer';
-import {
-  clickNode,
-  includesClassNamePredicate,
-  matchesTextPredicate,
-  matchesTypePredicate,
-  text
-} from '../../../../../test_utils/rendered';
+import {matchesTypePredicate} from '../../../../../test_utils/rendered';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 describe('NestedSelectAutocompleteInput', () => {
   const onChange = setupBefore(() => jest.fn());
@@ -50,84 +45,75 @@ describe('NestedSelectAutocompleteInput', () => {
     )
   );
 
-  async function clickDropdownOption(
+  function getSelectedOption(component: ReactTestInstance, index: number) {
+    return component.findAll(matchesTypePredicate(Autocomplete))[index].props
+      .value;
+  }
+
+  function getDropdownOptions(component: ReactTestInstance, index: number) {
+    return component.findAll(matchesTypePredicate(Autocomplete))[index].props
+      .options;
+  }
+
+  async function clickAutocompleteOption(
     component: ReactTestInstance,
-    optionText: string
+    index: number,
+    optionIndex: number
   ) {
+    const autocomplete = component.findAll(matchesTypePredicate(Autocomplete))[
+      index
+    ];
+
+    const options = autocomplete.props.options;
+
     await act(async () => {
-      component.find(matchesTextPredicate(optionText)).props.onClick();
+      autocomplete.props.onChange(null, options[optionIndex]);
     });
   }
 
-  async function clickIconWrapper(component: ReactTestInstance, idx: number) {
-    await clickNode(
-      component,
-      includesClassNamePredicate('MuiAutocomplete-popupIndicator'),
-      idx
-    );
-  }
-
-  async function clickLi(component: ReactTestInstance, idx: number) {
-    await clickNode(component, matchesTypePredicate('li'), idx);
-  }
-
-  function getSelectedOption(component: ReactTestInstance) {
-    return component.findAllByType('input')[0].props.value;
-  }
-
-  fit('correctly manages child(ren) selects', async () => {
+  it('correctly manages child(ren) selects', async () => {
     const {node} = integrated.value;
 
     expect(node.root.findAllByType('input').length).toEqual(1);
-    await clickIconWrapper(node.root, 0);
-    await clickLi(node.root, 0);
 
-    expect(getSelectedOption(node.root)).toEqual('option1');
+    await clickAutocompleteOption(node.root, 0, 0);
+
+    expect(getSelectedOption(node.root, 0)).toEqual('option1');
     expect(node.root.findAllByType('input').length).toEqual(2);
 
-    await clickIconWrapper(node.root, -1);
-
-    expect(node.root.findAllByType('li').map((li) => text(li))).toEqual([
+    expect(getDropdownOptions(node.root, 1)).toEqual([
       'suboption1',
       'suboption2'
     ]);
 
-    await clickIconWrapper(node.root, 0);
-    // Close the second drop-down
-    await clickIconWrapper(node.root, 1);
-    // second item in the first drop-down
-    await clickDropdownOption(node.root, 'option2');
+    await clickAutocompleteOption(node.root, 0, 1);
 
     expect(node.root.findAllByType('input').length).toEqual(2);
-    expect(getSelectedOption(node.root)).toEqual('option2');
+    expect(getSelectedOption(node.root, 0)).toEqual('option2');
 
-    // Click the second drop-down again
-    await clickIconWrapper(node.root, 1);
-
-    expect(node.root.findAllByType('li').map(text)).toEqual(['another1']);
+    expect(getDropdownOptions(node.root, 1)).toEqual(['another1']);
   });
 
   it('returns leaf value or null if not leaf', async () => {
     const {node} = integrated.value;
     expect(node.root.findAllByType('input').length).toEqual(1);
-    await clickIconWrapper(node.root, 0);
-    await clickLi(node.root, 0);
+    await clickAutocompleteOption(node.root, 0, 0);
     expect(onChange.value).toBeCalledWith(null);
+    expect(node.root.findAllByType('input').length).toEqual(2);
 
-    await clickIconWrapper(node.root, -1);
-    await clickDropdownOption(node.root, 'suboption1');
+    await clickAutocompleteOption(node.root, 1, 0);
+    expect(node.root.findAllByType('input').length).toEqual(2);
     expect(onChange.value).toBeCalledWith(some('suboption1'));
 
-    await clickIconWrapper(node.root, -1);
-    await clickDropdownOption(node.root, 'suboption2');
-
+    await clickAutocompleteOption(node.root, 1, 1);
+    expect(node.root.findAllByType('input').length).toEqual(3);
     expect(onChange.value).toBeCalledWith(null);
   });
 
   describe('with a given value', () => {
     value.replace(() => some('stepchild1'));
 
-    it('can find an existing path when given a value', () => {
+    it('can find an existing path when given a value', async () => {
       const {node} = integrated.value;
 
       expect(node.root.findAllByType('input').length).toEqual(3);
@@ -144,8 +130,7 @@ describe('NestedSelectAutocompleteInput', () => {
       const {node} = integrated.value;
 
       expect(node.root.findAllByType('input').length).toEqual(3);
-      await clickIconWrapper(node.root, 0);
-      await clickLi(node.root, 0);
+      await clickAutocompleteOption(node.root, 0, 0);
       expect(node.root.findAllByType('input').length).toEqual(2);
     });
   });
