@@ -6,4 +6,4 @@ from .scatter_plot import scatter_plotly
 from .bar_plot import bar_plotly
 from .y_plot import y_plotly
 
-from .utils import output_plotly
+from .utils import output_plotly, output_dataframe_and_types

@@ -70,7 +70,9 @@ export const Visualization = Template.bind({});
 Visualization.args = {
   type: TYPE.ANY_VIZ,
   cwlParams: {
-      'data_frame': require('./mockDF.json')
+      'data_frame': require('./mockDF.json'),
+      'continuous_cols': require('./mockDF_cont_cols.json'),
+      'discrete_cols': require('./mockDF_disc_cols.json')
   }
 };
 
@@ -78,7 +80,9 @@ export const ScatterPlotlyFULL = Template.bind({});
 ScatterPlotlyFULL.args = {
   type: TYPE.SCATTER_PLOTLY,
   cwlParams: {
-      'data_frame': require('./mockDF.json')
+      'data_frame': require('./mockDF.json'),
+      'continuous_cols': require('./mockDF_cont_cols.json'),
+      'discrete_cols': require('./mockDF_disc_cols.json')
   }
 };
 
@@ -86,7 +90,9 @@ export const BarPlotlyFULL = Template.bind({});
 BarPlotlyFULL.args = {
   type: TYPE.BAR_PLOTLY,
   cwlParams: {
-      'data_frame': require('./mockDF.json')
+      'data_frame': require('./mockDF.json'),
+      'continuous_cols': require('./mockDF_cont_cols.json'),
+      'discrete_cols': require('./mockDF_disc_cols.json')
   }
 };
 
@@ -94,7 +100,9 @@ export const YPlotlyFULL = Template.bind({});
 YPlotlyFULL.args = {
   type: TYPE.Y_PLOTLY,
   cwlParams: {
-      'data_frame': require('./mockDF.json')
+      'data_frame': require('./mockDF.json'),
+      'continuous_cols': require('./mockDF_cont_cols.json'),
+      'discrete_cols': require('./mockDF_disc_cols.json')
   }
 };
 

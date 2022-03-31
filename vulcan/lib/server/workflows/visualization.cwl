@@ -30,7 +30,7 @@ steps:
       queryTerms: 1_Data_Source_magma_query__queryTerms
       user_columns: 1_Data_Source_magma_query__user_columns
       expand_matrices: 1_Data_Source_magma_query__expand_matrices
-    out: [data_frame]
+    out: [data_frame, continuous_cols, discrete_cols]
   review_data:
     run: ui-queries/data-transformation.cwl
     label: 'Review your data frame'
@@ -44,6 +44,8 @@ steps:
     doc: "Selections here pick the plot type and how it should be generated. For addtional details, see https://mountetna.github.io/vulcan.html#the-setup-gui which is clickably linked within this workflow's 'vignette'."
     in:
       data_frame: review_data/calculated_data
+      continuous_cols: get_data/continuous_cols
+      discrete_cols: get_data/discrete_cols
     out: [plot_setup]
   make_plot:
     run: scripts/make_plot.cwl

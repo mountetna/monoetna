@@ -23,8 +23,11 @@ Major design notes:
 
 Input structure:
   'data_frame': A hash representing the data_frame that will be used to make a plot. keys = column names, values = data points. 
+  'continuous_cols': A vector of column names of data_frame which contain continuous data.
+  'discrete_cols': A vector of column names of data_frame which contain continuous data.
   (optional) 'preset': A hash where keys = input_names that should be hidden from the user & values = the preset value that should be used for that input. E.g. The x_by and y_by inputs are hardset within the umap workflow as '0' and '1', so a user has no choice here and should not be able to adjust those fields!
-
+Note: 'data_frame', 'continuous_cols', and 'discrete_cols' can all be generated in the upstream python script by passing the dataframe through 'output_dataframe_and_types()' of from archimedes.functions.plotting.
+  
 Output Structure:
   A hash (dict once in python) of input-name (key) + value pairs that can be splatted, along with the accompanying DataFrame, into a visualization funciton in archimedes.
 */
@@ -73,8 +76,19 @@ function VisualizationUI({
     if (data_frame == null || data_frame == {}) return [];
     return Object.keys(data_frame)
   }, [data_frame]);
+  
+  const continuous_columns: string[] = useMemo(() => {
+    if (data == null) return [];
+    if (data['continuous_cols'] == null) return columns; // Should build a warning here instead?
+    return data['continuous_cols']
+  }, [data]);
+  const discrete_columns: string[] = useMemo(() => {
+    if (data == null) return [];
+    if (data['discrete_cols'] == null) return columns; // Should build a warning here instead?
+    return data['discrete_cols']
+  }, [data]);
 
-  const extra_inputs = useExtraInputs(columns, data_frame);
+  const extra_inputs = useExtraInputs(columns, data_frame, plotType, continuous_columns, discrete_columns);
   
   const shownSetupValues = useMemo(() => {
     if (plotType==null) return {}
@@ -173,6 +187,21 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   }
 }
 
+const input_constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = {
+  'scatter_plot': {
+    'x_by': "continuous",
+    'y_by': "continuous"
+  },
+  'bar_plot': {
+    'x_by': "discrete",
+    'y_by': "discrete"
+  },
+  'y_plot': {
+    'x_by': "discrete",
+    'y_by': "continuous"
+  }
+}
+
 const defaults: DataEnvelope<any> = {
   'x_by': null,
   'y_by': null,
@@ -225,7 +254,22 @@ function whichDefaults(plotType: string|null, preset: DataEnvelope<any> | null |
   return {plot_type: plotType, ...initial_vals};
 }
 
-function useExtraInputs(options: string[], full_data: DataEnvelope<any>) {
+function useExtraInputs(
+  options: string[], full_data: DataEnvelope<any>,
+  plot_type: string | null,
+  continuous: string[], discrete: string[],
+  constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = input_constraints
+  ) {
+  
+  function get_options(input_name: string) {
+    if (plot_type==null) return options
+    if (Object.keys(constraints[plot_type]).includes(input_name)) {
+      if (constraints[plot_type][input_name]=="continuous") return continuous
+      if (constraints[plot_type][input_name]=="discrete") return discrete
+    }
+    return options
+  }
+  
   const extra_inputs: DataEnvelope<any[]> = useMemo(() => {
     return {
       // label, then for any extras
@@ -233,9 +277,9 @@ function useExtraInputs(options: string[], full_data: DataEnvelope<any>) {
       'legend_title': ['Legend Title'],
       'xlab': ['X-Axis Title'],
       'ylab': ['Y-Axis Title'],
-      'x_by': ['X-Axis Data', options, false],
-      'y_by': ['Y-Axis Data', options, false],
-      'color_by': ['Color Data', ['make'].concat(options), false],
+      'x_by': ['X-Axis Data', get_options('x_by'), false],
+      'y_by': ['Y-Axis Data', get_options('y_by'), false],
+      'color_by': ['Color Data', ['make'].concat(get_options('color_by')), false],
       'plots': ['Data Representations', ['violin', 'box']],
       'color_order': ['Point render order', ['increasing', 'decreasing', 'unordered']],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
@@ -245,7 +289,7 @@ function useExtraInputs(options: string[], full_data: DataEnvelope<any>) {
       'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
       'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"]
     }
-  }, [options, full_data]);
+  }, [options, full_data, plot_type]);
 
   return extra_inputs;
 }
