@@ -72,7 +72,7 @@ jobs:
       - name: "Install dependencies"
         run: |
           cd etna
-          setx FREEDESKTOP_MIME_TYPES_PATH "%CD%/shared-mime-info-2.0"
+          set FREEDESKTOP_MIME_TYPES_PATH="%CD%/shared-mime-info-2.0"
           bundle install
 
       - name: "Set up Perl"
