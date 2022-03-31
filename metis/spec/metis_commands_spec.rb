@@ -119,7 +119,8 @@ describe 'Metis Commands' do
 
         @zero_hash_data_block = create(:data_block,
           description: 'zero-byte hash',
-          md5_hash: zero_hash
+          md5_hash: zero_hash,
+          size: 0
         )
         stubs.create_file('athena', 'files', @zero_hash_data_block.md5_hash, '')
 
