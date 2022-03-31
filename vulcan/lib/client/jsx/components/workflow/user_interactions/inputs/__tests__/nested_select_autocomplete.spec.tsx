@@ -1,15 +1,19 @@
 import React from 'react';
 import NestedSelectAutocompleteInput from '../nested_select_autocomplete';
 import {DataEnvelope} from '../input_types';
-import {integrateElement, setupBefore} from "../../../../../test_utils/integration";
-import {Maybe, some} from "../../../../../selectors/maybe";
-import {act, ReactTestInstance} from "react-test-renderer";
+import {
+  integrateElement,
+  setupBefore
+} from '../../../../../test_utils/integration';
+import {Maybe, some} from '../../../../../selectors/maybe';
+import {act, ReactTestInstance} from 'react-test-renderer';
 import {
   clickNode,
   includesClassNamePredicate,
-  matchesTextPredicate, matchesTypePredicate,
+  matchesTextPredicate,
+  matchesTypePredicate,
   text
-} from "../../../../../test_utils/rendered";
+} from '../../../../../test_utils/rendered';
 
 describe('NestedSelectAutocompleteInput', () => {
   const onChange = setupBefore(() => jest.fn());
@@ -37,19 +41,30 @@ describe('NestedSelectAutocompleteInput', () => {
   });
 
   const integrated = setupBefore(() =>
-    integrateElement(<NestedSelectAutocompleteInput
-      onChange={onChange.value} value={value.value} data={data.value}/>))
+    integrateElement(
+      <NestedSelectAutocompleteInput
+        onChange={onChange.value}
+        value={value.value}
+        data={data.value}
+      />
+    )
+  );
 
-  async function clickDropdownOption(component: ReactTestInstance, optionText: string) {
+  async function clickDropdownOption(
+    component: ReactTestInstance,
+    optionText: string
+  ) {
     await act(async () => {
-      component
-        .find(matchesTextPredicate(optionText))
-        .props.onClick();
-    })
+      component.find(matchesTextPredicate(optionText)).props.onClick();
+    });
   }
 
   async function clickIconWrapper(component: ReactTestInstance, idx: number) {
-    await clickNode(component, includesClassNamePredicate('MuiAutocomplete-popupIndicator'), idx);
+    await clickNode(
+      component,
+      includesClassNamePredicate('MuiAutocomplete-popupIndicator'),
+      idx
+    );
   }
 
   async function clickLi(component: ReactTestInstance, idx: number) {
@@ -60,7 +75,7 @@ describe('NestedSelectAutocompleteInput', () => {
     return component.findAllByType('input')[0].props.value;
   }
 
-  it('correctly manages child(ren) selects', async () => {
+  fit('correctly manages child(ren) selects', async () => {
     const {node} = integrated.value;
 
     expect(node.root.findAllByType('input').length).toEqual(1);
@@ -116,13 +131,11 @@ describe('NestedSelectAutocompleteInput', () => {
       const {node} = integrated.value;
 
       expect(node.root.findAllByType('input').length).toEqual(3);
-      expect(node.root.findAllByType('input').map((i) => i.props.value)).toEqual([
-        'option2',
-        'another1',
-        'stepchild1'
-      ]);
+      expect(
+        node.root.findAllByType('input').map((i) => i.props.value)
+      ).toEqual(['option2', 'another1', 'stepchild1']);
     });
-  })
+  });
 
   describe('with a stepchild set as a value', () => {
     value.replace(() => some('stepchild1'));
@@ -135,5 +148,5 @@ describe('NestedSelectAutocompleteInput', () => {
       await clickLi(node.root, 0);
       expect(node.root.findAllByType('input').length).toEqual(2);
     });
-  })
+  });
 });
