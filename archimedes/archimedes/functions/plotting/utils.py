@@ -37,8 +37,7 @@ def _is_logical(nda: np.ndarray):
 def _is_integer(nda: np.ndarray):
     return nda.dtype.kind == 'i'
 
-def output_dataframe_and_types(df, df_out_name, continuous_out_name, discrete_out_name):
-    df.to_json(output_path(df_out_name))
+def output_column_types(df, continuous_out_name, discrete_out_name):
     disc_cols = []
     cont_cols = []
     for col in df.columns:

@@ -2,7 +2,6 @@ from archimedes.functions.dataflow import output_path, input_json, input_var, in
 from archimedes.functions.utils import json
 from archimedes.functions.magma import connect, query_tsv
 from archimedes.functions.environment import project_name
-from archimedes.functions.plotting import output_dataframe_and_types
 
 def wrap_brackets(str):
     if not (str.startswith("[") and str.endswith("]")):
@@ -20,4 +19,4 @@ tsv_result = query_tsv(magma, project_name,
     expand_matrices=expand_matrices,
     transpose=False)
 
-output_dataframe_and_types(tsv_result, "data_frame", "continuous_cols", "discrete_cols")
+tsv_result.to_json(output_path("data_frame"))
