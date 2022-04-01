@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"token_type": "task", "project_name": "mvir1", "read_only": true}'
+    body: '{"token_type": "task", "project_name": "mvir1", "read_only": false}'
     headers:
       Accept:
         - '*/*'
@@ -42,7 +42,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"token_type": "task", "project_name": "mvir1", "read_only": true}'
+    body: '{"token_type": "task", "project_name": "mvir1", "read_only": false}'
     headers:
       Accept:
       - '*/*'
@@ -1324,7 +1324,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"token_type": "task", "project_name": "mvir1", "read_only": true}'
+    body: '{"token_type": "task", "project_name": "mvir1", "read_only": false}'
     headers:
       Accept:
       - '*/*'
@@ -3368,7 +3368,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"token_type": "task", "project_name": "mvir1", "read_only": true}'
+    body: '{"token_type": "task", "project_name": "mvir1", "read_only": false}'
     headers:
       Accept:
       - '*/*'
@@ -8161,7 +8161,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"token_type": "task", "project_name": "mvir1", "read_only": true}'
+    body: '{"token_type": "task", "project_name": "mvir1", "read_only": false}'
     headers:
       Accept:
       - '*/*'
@@ -10205,7 +10205,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"token_type": "task", "project_name": "mvir1", "read_only": true}'
+    body: '{"token_type": "task", "project_name": "mvir1", "read_only": false}'
     headers:
       Accept:
       - '*/*'
@@ -14998,7 +14998,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"token_type": "task", "project_name": "mvir1", "read_only": true}'
+    body: '{"token_type": "task", "project_name": "mvir1", "read_only": false}'
     headers:
       Accept:
       - '*/*'
@@ -15132,7 +15132,7 @@ interactions:
       code: 422
       message: Unprocessable Entity
 - request:
-    body: '{"token_type": "task", "project_name": "mvir1", "read_only": true}'
+    body: '{"token_type": "task", "project_name": "mvir1", "read_only": false}'
     headers:
       Accept:
       - '*/*'
@@ -15266,7 +15266,7 @@ interactions:
       code: 422
       message: Unprocessable Entity
 - request:
-    body: '{"token_type": "task", "project_name": "mvir1", "read_only": true}'
+    body: '{"token_type": "task", "project_name": "mvir1", "read_only": false}'
     headers:
       Accept:
       - '*/*'
@@ -15438,7 +15438,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"token_type": "task", "project_name": "mvir1", "read_only": true}'
+    body: '{"token_type": "task", "project_name": "mvir1", "read_only": false}'
     headers:
       Accept:
       - '*/*'
