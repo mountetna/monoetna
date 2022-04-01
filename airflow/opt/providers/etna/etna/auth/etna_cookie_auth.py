@@ -107,11 +107,53 @@ class EtnaSecurityManager(AirflowSecurityManager):
         cond = DagModel.tags.any(DagTag.name == project_name)
         dags_query = dags_query.filter(cond)
 
+        project_permissions = [
+            # From standard Viewer
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_AUDIT_LOG),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_DAG),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_DAG_DEPENDENCIES),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_DAG_CODE),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_DAG_RUN),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_IMPORT_ERROR),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_JOB),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_TASK_INSTANCE),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_TASK_LOG),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_WEBSITE),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_BROWSE_MENU),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_DAG_DEPENDENCIES),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_DAG_RUN),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_JOB),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_AUDIT_LOG),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_TASK_INSTANCE),
+            (permissions.ACTION_CAN_ACCESS_MENU, "Etna Airflow Docs"),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_DOCS),
+
+            # From standard User
+            (permissions.ACTION_CAN_EDIT, permissions.RESOURCE_DAG),
+            (permissions.ACTION_CAN_CREATE, permissions.RESOURCE_TASK_INSTANCE),
+            (permissions.ACTION_CAN_EDIT, permissions.RESOURCE_TASK_INSTANCE),
+            (permissions.ACTION_CAN_CREATE, permissions.RESOURCE_DAG_RUN),
+            (permissions.ACTION_CAN_EDIT, permissions.RESOURCE_DAG_RUN),
+        ]
+
         for dag in dags_query.all():
-            perm_view = self.add_permission_view_menu(
+            project_permissions.append((
                 permissions.ACTION_CAN_READ,
                 resource_name_for_dag(dag.dag_id),
-            )
-            self.add_permission_role(role, perm_view)
+            ))
+
+        # Convert to Permissions
+        project_permissions = [self.add_permission_view_menu(*p) for p in project_permissions]
+
+        # Remove any old permissions on the role
+        for role_perm in role.permissions:
+            if (role_perm not in project_permissions):
+                self.remove_permission_from_role(role, role_perm)
+
+        # Add new permissions to role
+        for project_perm in project_permissions:
+            self.add_permission_role(
+                role,
+                project_perm)
 
         return role
