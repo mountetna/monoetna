@@ -61,6 +61,7 @@ services:
       - airflow-dags:/opt/airflow/dags
     environment:
       <<: *airflow-env
+      PYTHONPATH: /opt/airflow
     networks:
       - default
       - edge_net
