@@ -1037,7 +1037,7 @@ const RedcapForm = ({
     if (job) setSchema(job.schema);
   }, [job]);
 
-  const modelNames = Object.keys(config);
+  const modelNames = Object.keys(config).sort();
 
   const [tab, setTab] = useState(0);
 
@@ -1068,7 +1068,7 @@ const RedcapForm = ({
             value={tab}
             onChange={(e, tab) => setTab(tab)}
           >
-            {modelNames.sort().map((modelName) => (
+            {modelNames.map((modelName) => (
               <Tab label={modelName} key={modelName} />
             ))}
           </Tabs>
