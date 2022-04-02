@@ -131,8 +131,12 @@ class EtnaHook(BaseHook):
             project_name = get_project_name(dag)
         token_auth = self.get_token_auth()
         with self.get_client(token_auth) as session:
+            # Unfortunately, 'read only' here becomes a viewer token, which does not have
+            # read permission to many buckets.  Unfortunately, read_only does not mean 'can read',
+            # it means 'cannot write, but also likely cannot read.'
+            # We are forced then to always create read_only=False tokens for now.
             token = Janus(session, self.get_hostname("janus")).generate_token(
-                project_name, read_only
+                project_name, False
             )
         return TokenAuth(token, project_name)
 

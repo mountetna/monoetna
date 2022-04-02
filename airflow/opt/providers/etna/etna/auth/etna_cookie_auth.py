@@ -104,7 +104,7 @@ class EtnaSecurityManager(AirflowSecurityManager):
             role = self.add_role(role_name)
 
         dags_query = self.get_session.query(DagModel)
-        cond = DagModel.tags.any(DagTag.name == f"project_{project_name}")
+        cond = DagModel.tags.any(DagTag.name == project_name)
         dags_query = dags_query.filter(cond)
 
         for dag in dags_query.all():

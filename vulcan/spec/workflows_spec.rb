@@ -64,6 +64,13 @@ describe WorkflowsController do
               "label" => nil,
               "outputSource" => "finalStep/sum",
               "type" => "int",
+          },
+          "thumbnail" => {
+              "default" => nil,
+              "format" => "image/png",
+              "label" => nil,
+              "outputSource" => "finalStep/thumb.png",
+              "type" => "File"
           }
       })
 
