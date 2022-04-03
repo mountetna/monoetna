@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function FiguresTable({
+export default function FiguresGrid({
   project_name,
   workflowName,
   tags,
@@ -126,8 +126,8 @@ export default function FiguresTable({
 
   const hasTag = useCallback(
     (figure: VulcanFigureSession) => {
-      if (!figure.tags || 0 === figure.tags.length) return false;
       if (!tags || 0 === tags.length) return true;
+      if (!figure.tags || 0 === figure.tags.length) return false;
 
       return (figure.tags?.filter((t) => tags.includes(t)) || []).length > 0;
     },
@@ -171,12 +171,13 @@ export default function FiguresTable({
       {filteredFigureSessions.map(
         (figure: VulcanFigureSession, index: number) => {
           return (
-              <FigureCard
-                figureSession={figure}
-                onCopy={() => handleOnCopy(figure)}
-                onRemove={() => handleOnRemove(figure)}
-                onRename={() => handleOnRename(figure)}
-              />
+            <FigureCard
+              key={index}
+              figureSession={figure}
+              onCopy={() => handleOnCopy(figure)}
+              onRemove={() => handleOnRemove(figure)}
+              onRename={() => handleOnRename(figure)}
+            />
           );
         }
       )}

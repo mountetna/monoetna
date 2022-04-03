@@ -72,7 +72,8 @@ const figureStyles = makeStyles((theme) => ({
       zIndex: 1,
       top: 0,
       left: 0,
-      backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255, 0), rgba(255,255,255,0) 90%, rgba(255,255,255, 1) 100%)',
+      backgroundImage:
+        'linear-gradient(to bottom, rgba(255,255,255, 0), rgba(255,255,255,0) 90%, rgba(255,255,255, 1) 100%)',
       width: '100%',
       height: '65px'
     },
@@ -99,11 +100,16 @@ const authorInitials = ({author}: VulcanFigureSession) => {
     : names[0][0];
 };
 
-const figureImage = (workflow:Workflow|null, figure:VulcanFigureSession):[Boolean,string] => (
-  figure.thumbnails && (figure.thumbnails.length > 0)
-    ? [ false, figure.thumbnails[0] ]
-    : [ true, `/images/${workflow ? workflow.image : 'default.png'}` ]
-);
+const figureImage = (
+  workflow: Workflow | null,
+  figure: VulcanFigureSession
+): [Boolean, string] =>
+  figure.thumbnails && figure.thumbnails.length > 0
+    ? [false, figure.thumbnails[0]]
+    : [
+        true,
+        `/images/${workflow && workflow.image ? workflow.image : 'default.png'}`
+      ];
 
 const Figure = ({
   figureSession,
@@ -123,7 +129,7 @@ const Figure = ({
   const {canEdit} = useUserHooks();
 
   const workflow = workflows
-    ? (workflows.find((w) => w.name == figureSession.workflow_name) || null)
+    ? workflows.find((w) => w.name == figureSession.workflow_name) || null
     : null;
 
   const classes = figureStyles();
@@ -164,7 +170,7 @@ const Figure = ({
     canEdit
   ]);
 
-  const [ defaultImage, image ] = figureImage(workflow, figureSession);
+  const [defaultImage, image] = figureImage(workflow, figureSession);
 
   return (
     <Card className={classes.figure}>
@@ -180,9 +186,11 @@ const Figure = ({
       </Menu>
       <CardHeader
         title={figureSession.title}
-        titleTypographyProps={{variant: 'subtitle1',
+        titleTypographyProps={{
+          variant: 'subtitle1',
           title: figureSession.title,
-          className: classes.title}}
+          className: classes.title
+        }}
         subheader={figureSession.workflow_name.replace('.cwl', '')}
         subheaderTypographyProps={{variant: 'subtitle2'}}
         action={
@@ -192,17 +200,20 @@ const Figure = ({
         }
       />
       <CardMedia
-        className={
-          defaultImage ? classes.defaultImage : classes.image
-        }
+        className={defaultImage ? classes.defaultImage : classes.image}
         onClick={visitFigure}
         component='img'
         height='200'
         image={image}
         title={figureSession.title || ''}
       />
-      <CardContent style={{ width: '280px', height: '65px', padding: '10px' }} >
-        <Grid alignItems='center' justify='space-between' container className={classes.content}>
+      <CardContent style={{width: '280px', height: '65px', padding: '10px'}}>
+        <Grid
+          alignItems='center'
+          justifyContent='space-between'
+          container
+          className={classes.content}
+        >
           <Grid item xs={1}>
             <Tooltip title={figureSession.author || ''}>
               <Avatar className={classes.author}>
@@ -211,11 +222,9 @@ const Figure = ({
             </Tooltip>
           </Grid>
           <Grid item xs={11} container className={classes.tags}>
-          {
-            (figureSession.tags || []).map(
-              (tag,index) => <Tag className={classes.tag} key={index} label={tag}/>
-            )
-          }
+            {(figureSession.tags || []).map((tag, index) => (
+              <Tag className={classes.tag} key={index} label={tag} />
+            ))}
           </Grid>
         </Grid>
       </CardContent>
