@@ -15,6 +15,8 @@ from werkzeug.wrappers import Response as WerkzeugResponse
 
 from etna.auth.etna_user import EtnaUser
 
+from plugins.etna.plugin import ETNA_DOCS_MENU_TITLE
+
 
 def deserialize_etna_user(payload: str, algo: str, key: str) -> EtnaUser:
     user_json = jwt.decode(
@@ -125,7 +127,7 @@ class EtnaSecurityManager(AirflowSecurityManager):
             (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_JOB),
             (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_AUDIT_LOG),
             (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_TASK_INSTANCE),
-            (permissions.ACTION_CAN_ACCESS_MENU, "Etna Airflow Docs"),
+            (permissions.ACTION_CAN_ACCESS_MENU, ETNA_DOCS_MENU_TITLE),
             (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_DOCS),
 
             # From standard User
