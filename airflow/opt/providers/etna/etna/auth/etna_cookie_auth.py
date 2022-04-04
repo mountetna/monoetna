@@ -15,7 +15,7 @@ from werkzeug.wrappers import Response as WerkzeugResponse
 
 from etna.auth.etna_user import EtnaUser
 
-from plugins.etna.plugin import ETNA_DOCS_MENU_TITLE
+from plugins.etna.etna_docs_plugin import ETNA_DOCS_MENU_TITLE
 
 
 def deserialize_etna_user(payload: str, algo: str, key: str) -> EtnaUser:
