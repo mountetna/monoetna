@@ -976,7 +976,7 @@ const AddModel = ({
 
   const {models} = useContext(MagmaContext);
 
-  const model_names = diff(Object.keys(models), Object.keys(config));
+  const model_names = diff(Object.keys(models), Object.keys(config)).sort();
 
   return (
     <Dialog open={open} onClose={close}>
@@ -990,7 +990,7 @@ const AddModel = ({
           <MenuItem value=''>
             <em>None</em>
           </MenuItem>
-          {model_names.sort().map((att_name) => (
+          {model_names.map((att_name) => (
             <MenuItem key={att_name} value={att_name}>
               {att_name}
             </MenuItem>
@@ -1037,7 +1037,7 @@ const RedcapForm = ({
     if (job) setSchema(job.schema);
   }, [job]);
 
-  const modelNames = Object.keys(config);
+  const modelNames = Object.keys(config).sort();
 
   const [tab, setTab] = useState(0);
 
@@ -1068,7 +1068,7 @@ const RedcapForm = ({
             value={tab}
             onChange={(e, tab) => setTab(tab)}
           >
-            {modelNames.sort().map((modelName) => (
+            {modelNames.map((modelName) => (
               <Tab label={modelName} key={modelName} />
             ))}
           </Tabs>
