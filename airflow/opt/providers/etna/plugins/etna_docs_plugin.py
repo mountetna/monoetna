@@ -17,8 +17,7 @@ appbuilder_mitem_toplevel = {
 docs_blueprint = Blueprint(
     "etna_plugin_docs_blueprint",
     __name__,
-    template_folder='templates',
-    static_folder='static/docs',
+    static_folder='/opt/airflow/providers/etna/docs',
     static_url_path=ETNA_DOCS_STATIC_PATH)
 
 
