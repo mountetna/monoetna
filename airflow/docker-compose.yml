@@ -51,9 +51,7 @@ services:
   airflow_ui:
     user: airflow
     image: airflow
-    command:
-      - "airflow"
-      - "webserver"
+    command: airflow webserver
     entrypoint: []
     depends_on:
       - airflow_postgres
