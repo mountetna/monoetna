@@ -32,16 +32,15 @@ def _is_logical(nda: np.ndarray):
 def _is_integer(nda: np.ndarray):
     return nda.dtype.kind == 'i'
 
-def output_column_types(df, continuous_out_name, discrete_out_name):
-    disc_cols = []
-    cont_cols = []
-    for col in df.columns:
-        if _is_discrete(df[col]):
-            disc_cols.append(col)
-        if _is_continuous(df[col]):
-            cont_cols.append(col)
-    output_json(disc_cols, discrete_out_name)
-    output_json(cont_cols, continuous_out_name)
+def _scale(y):
+    '''
+    Centers and scales a vector of numeric values to have mean=0 and stdev=1
+    'y' and numeric vector of at least length > 1.
+    '''
+    x = y.copy()
+    x -= x.mean()
+    x /= x.std()
+    return x
 
 def _leave_default_or_none(target, default, none_if = False, default_when = "make"):
     '''
