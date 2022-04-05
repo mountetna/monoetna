@@ -1,12 +1,7 @@
 import numpy as np
-from ..dataflow.path import output_json
 import plotly.io as pio
-import pandas as pd
 import json
-
-from ..dataflow import output_path
-
-
+from ..dataflow import output_path, output_json
 
 DISCRETE_KINDS = 'ObUS'
 CONTINUOUS_KINDS = 'ifuc'
