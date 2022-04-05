@@ -67,4 +67,4 @@ if globals().get("notathing", False):
         get_project_slack_hook,
     )
     from .hooks.etna import UpdateRequest
-    from .operators.rollup_xcom_operator import Rollup
+    from .operators.rollup_xcom_operator import rollup
