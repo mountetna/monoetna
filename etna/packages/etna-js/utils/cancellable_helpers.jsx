@@ -3,14 +3,10 @@ import {Cancellable, cancelledAsMaybe} from "./cancellable";
 import {useState, useEffect, useCallback} from 'react';
 
 export function useAsyncCallback(fn, deps, cleanup = () => null) {
-  const [_, setContext] = useState(() => new Cancellable());
+  const context = useContext(new Cancellable());
   const cancel = useCallback(() => {
-    const newCancellable = new Cancellable();
-    setContext(running => {
-      running.cancel();
-      return newCancellable;
-    })
-
+    context.cancellable.cancel();
+    const newCancellable = context.cancellable = new Cancellable();
     return newCancellable;
   }, []);
 
