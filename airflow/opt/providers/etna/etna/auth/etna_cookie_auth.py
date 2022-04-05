@@ -14,8 +14,7 @@ from flask_login import login_user
 from werkzeug.wrappers import Response as WerkzeugResponse
 
 from etna.auth.etna_user import EtnaUser
-
-from providers.etna.plugins.etna_docs_plugin import ETNA_DOCS_MENU_TITLE
+from etna.plugins.etna_docs_plugin import ETNA_DOCS_MENU_TITLE
 
 
 def deserialize_etna_user(payload: str, algo: str, key: str) -> EtnaUser:

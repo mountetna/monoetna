@@ -111,7 +111,9 @@
 
         
             <span class="def">def</span>
-            <span class="name">notify_slack_dag_callback</span><span class="signature">(dag_status: str) -&gt; Callable[[Dict[str, Any]], NoneType]</span>:
+            <span class="name">notify_slack_dag_callback</span><span class="signature">(
+    dag_status: str
+) -&gt; Callable[[airflow.utils.context.Context], NoneType]</span>:
     </div>
 
             <details>

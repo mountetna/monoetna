@@ -26,9 +26,3 @@ class EtnaDocsPlugin(AirflowPlugin):
 
     appbuilder_menu_items = [appbuilder_mitem_toplevel]
     flask_blueprints = [docs_blueprint]
-
-    def on_load(*args, **kwargs):
-        # ... perform Plugin boot actions
-        logging.error("here I have been loaded")
-        logging.error(args)
-        logging.error(docs_blueprint)
