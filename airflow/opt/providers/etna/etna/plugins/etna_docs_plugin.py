@@ -1,9 +1,6 @@
 from airflow.plugins_manager import AirflowPlugin
 from flask import Blueprint
 
-import logging
-
-
 ETNA_DOCS_MENU_TITLE = "Etna Airflow Docs"
 ETNA_DOCS_STATIC_PATH = "/static/docs"
 

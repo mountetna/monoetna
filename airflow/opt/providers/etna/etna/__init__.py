@@ -67,8 +67,4 @@ if globals().get("notathing", False):
         get_project_slack_hook,
     )
     from .hooks.etna import UpdateRequest
-    from .operators.rollup_xcom_operator import rollup
-
-    from airflow.models.dag import DAG
-    from airflow.models.taskinstance import TaskInstanceKey
-    from airflow.utils.task_group import TaskGroup
+    from .operators.rollup_xcom_operator import Rollup
