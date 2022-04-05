@@ -54,7 +54,6 @@ services:
     command:
       - "airflow"
       - "webserver"
-      - "-d"
     entrypoint: []
     depends_on:
       - airflow_postgres
