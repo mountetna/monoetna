@@ -83,7 +83,7 @@ def y_plotnine(
     color_by = "make",
     plots = ["violin", "box", "jitter"],
     split_by = [],
-    # indexes_use = None,
+    rows_use = None,
     color_panel: list = colors,
     boxplot_fill = True,
     boxplot_width = 0.2,
@@ -103,8 +103,8 @@ def y_plotnine(
     line_color = "black",
     y_scale = scale_y_continuous,
     y_breaks = None,
-    y_min = None,
-    y_max = None,
+    y_min = "make",
+    y_max = "make",
     x_labels_rotate = True,
     x_title="make",
     y_title="make",
@@ -133,9 +133,10 @@ def y_plotnine(
     boxplot_position_dodge = _leave_default_or_none(boxplot_position_dodge, violin_width)
     jitter_position_dodge = _leave_default_or_none(jitter_position_dodge, boxplot_position_dodge)    
     
-    # # Trim df if requested
-    # if indexes_use!=None:
-    #     indexes_use=_which_indexes(indexes_use, data_frame)
+    # data_frame edits
+    df = data_frame.copy()
+    rows_use = _which_rows(rows_use, data_frame)
+    df = df.loc[rows_use]
     
     ### Start Plot, with data and theming
     fig = ( ggplot(data_frame, aes(x = x_by, y = y_by, fill = color_by)) +
@@ -144,17 +145,17 @@ def y_plotnine(
         xlab(x_title) + ylab(y_title)
         )
     
-    if plot_title!=None:
+    if plot_title is not None:
         fig += ggtitle(plot_title)
         
-    if y_breaks!=None:
+    if y_breaks is not None:
         fig += y_scale(breaks = y_breaks)
     else:
         fig += y_scale()
         
-    if y_min==None:
+    if y_min!="make":
         y_min = min(data_frame[y_by])
-    if y_max==None:
+    if y_max!="make":
         y_max = max(data_frame[y_by])
     fig += coord_cartesian(ylim=(y_min,y_max))
     
