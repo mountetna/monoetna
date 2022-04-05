@@ -409,7 +409,8 @@ end
 def create_file(project_name, file_name, contents, params={})
   data_block = create(:data_block,
     description: file_name,
-    md5_hash: params.delete(:md5_hash) || Digest::MD5.hexdigest(contents)
+    md5_hash: params.delete(:md5_hash) || Digest::MD5.hexdigest(contents),
+    size: contents.length,
   )
 
   create( :file,
