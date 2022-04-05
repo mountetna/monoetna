@@ -3,7 +3,7 @@ from etna.plugins.impersonate_user_view import impersonate_user_view
 
 
 impersonate_package = {
-    "name": "Impersonate",
+    "name": "Impersonate User",
     "category": "Admin",
     "view": impersonate_user_view,
 }
