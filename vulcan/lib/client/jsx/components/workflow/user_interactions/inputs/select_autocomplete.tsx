@@ -46,12 +46,12 @@ export default function SelectAutocompleteInput(
     if (options_in.length>1000) {
       setLoadingOptions(true); setOptions([]);
       getOptionsDelayed(query, options_in, (filteredOptions: string[]) => {
-        console.log('calculating options - slow')
+        // console.log('calculating options - slow')
         setLoadingOptions(false)
         setOptions(filteredOptions)
       });
     } else {
-      console.log('calculating options - fast')
+      // console.log('calculating options - fast')
       setOptions(filterOptions(query, options_in))
     }
   }, [inputState, getOptionsDelayed, options_in, value]);
