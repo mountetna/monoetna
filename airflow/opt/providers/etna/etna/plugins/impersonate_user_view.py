@@ -46,7 +46,7 @@ try:
             impersonator.roles = subject_roles
             self.appbuilder.sm.update_user(impersonator)
 
-            flash(f"Done -- you have the same Airflow permissions as {form.email.data}. Logout to reset your permissions.", 'info')
+            flash(f"Done -- you have the same Airflow permissions as {subject.first_name}. Logout to reset your permissions.", 'info')
 
     impersonate_user_view = ImpersonateUserView()
 
