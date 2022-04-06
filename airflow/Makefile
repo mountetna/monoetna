@@ -1,3 +1,6 @@
+release::
+	$(MAKE) pdoc
+
 include ../make-base/stubs.mk
 include ../make-base/docker-compose.mk
 app_service_name:=airflow_ui
@@ -14,6 +17,3 @@ black:
 
 pdoc: $(shell readlink -m $(shell dirname $(firstword $(MAKEFILE_LIST))))/image-release.marker
 	docker run -u 0:0 -v $(pwd)/opt/providers:/opt/airflow/providers --rm $(baseTag) bash -c '$$@' -- pdoc -o /opt/airflow/providers/etna/docs etna
-
-release-build::
-	$(MAKE) pdoc
