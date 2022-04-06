@@ -1,12 +1,12 @@
 import React from 'react';
 import {DataEnvelope} from './input_types';
-import { maybeOfNullable, some, withDefault, Maybe, mapSome } from '../../../../selectors/maybe';
-import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
+import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
 import MultiselectStringInput from './multiselect_string';
-import { Slider } from '@material-ui/core';
+import { InputLabel, Slider } from '@material-ui/core';
 import StringInput from './string';
 import BooleanInput from './boolean';
-import {FloatInput as EtnaFloatInput} from 'etna-js/components/inputs/numeric_input';
+import SelectAutocompleteInput from './select_autocomplete';
+import FloatInput from './float';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v}
@@ -33,37 +33,38 @@ Some "pieces" have additional inputs, but the first 4 are ALWAYS:
   - label = a text label to be displayed with this component
 */
 
-export function stringInput(
-  key: string = "filler", changeFxn: Function, value: string = "filler",
-  label: string = 'hello') {
+export function stringPiece(
+  key: string, changeFxn: Function, value: string = "",
+  label: string | undefined = undefined, minWidth: number = 150) {
     return (
       <StringInput
         key={key}
         label={label}
-        data={val_wrap(value)}
         value={maybeOfNullable(value)}
-        onChange={(newValue) => changeFxn(withDefault(newValue,'make'), key)}
+        data={val_wrap(value)}
+        minWidth={minWidth}
+        onChange={ value => changeFxn(withDefault(value,""), key)}
       />
     )
   };
 
-// export function nestableDropdownInput(
-//   key: string = "filler", changeFxn: Function, value: string | null,
-//   label: string, options: DataEnvelope<null>) {
-//    
-//     return(
-//       <NestedSelectAutocompleteInput
-//         key={key}
-//         label={label}
-//         data={{options}} 
-//         value={maybeOfNullable(value)}
-//         onChange={(val) => changeFxn(withDefault(val, null), key)}
-//       />
-//     )
-//   }
+export function floatPiece(
+  key: string, changeFxn: Function, value: number|null = null,
+  label: string | undefined = undefined, minWidth: number = 150) {
+    return (
+      <FloatInput
+        key={key}
+        label={label}
+        value={some(value)}
+        data={val_wrap(value)}
+        minWidth={minWidth}
+        onChange={ value => changeFxn(withDefault(value,null), key)}
+      />
+    )
+  };
 
-export function checkboxInput(
-  key: string = "filler", changeFxn: Function, value: boolean = false,
+export function checkboxPiece(
+  key: string, changeFxn: Function, value: boolean = false,
   label: string) {
     return(
       <BooleanInput
@@ -76,47 +77,48 @@ export function checkboxInput(
     )
   }
 
-export function dropdownInput(
-  key: string = "filler", changeFxn: Function, value: string | null,
-  label: string, options: string[], sorted: boolean = true) {
-    
+export function dropdownPiece(
+  key: string, changeFxn: Function, value: string | null = null,
+  label: string|undefined, options: string[], sorted: boolean = true, minWidth: number = 200) {
     return(
-      <div key={key} style={{display: 'inline-flex'}}>
-        {label}
-        <DropdownAutocomplete
-          list={options}
-          value={value}
-          onSelect={(val: string) => changeFxn(val, key)}
-          sorted={sorted}
-        />
-      </div>
+      <SelectAutocompleteInput
+        key={key}
+        label={label}
+        value={some(value)}
+        data={val_wrap(options)}
+        minWidth={minWidth}
+        onChange={ (value) => changeFxn(withDefault(value,null), key) }
+      />
     )
   }
 
-export function MultiselectInput(
-  key: string = "filler", changeFxn: Function, value: string[] | null,
+export function multiselectPiece(
+  key: string, changeFxn: Function, value: string[] | null = null,
   label: string, options: string[]) {
     
     return(
-      <div key={key}>
-        {label}
+      <div key={key} style={{paddingTop: 8}}>
+        <InputLabel htmlFor={'multiselect-'+key} shrink>{label}</InputLabel>
         <MultiselectStringInput
+          key={'multiselect-'+key}
           data={{'0': options}}
-          value={value ? some(value) : null}
+          value={maybeOfNullable(value)}
+          onClear={() => changeFxn([], key)}
           onChange={(val: Maybe<string[]>) => changeFxn(withDefault(val, null), key)}
         />
       </div>
     )
   }
 
-export function sliderInput(
-  key: string = "filler", changeFxn: Function, value: number,
+export function sliderPiece(
+  key: string, changeFxn: Function, value: number,
   label: string, min: number = 0.1, max: number = 20) {
 
     return(
-        <div key={key}>
-          {label}
+        <div key={key} style={{paddingTop: 8}}>
+          <InputLabel htmlFor={'slider-'+key} shrink>{label}</InputLabel>
           <Slider
+            key={'slider-'+key}
             value={value}
             onChange={(event, newValue) => changeFxn(newValue as number, key)}
             min={min}
@@ -127,10 +129,9 @@ export function sliderInput(
     )
   }
 
-export function rangeInput(
-  key: string = "filler", changeFxn: Function, value: (string|number|null)[] = ["exactly", null, "below", null],
+export function rangePiece(
+  key: string, changeFxn: Function, value: (string|number|null)[] = ["exactly", null, "below", null],
   label: string) {
-    
     const updateSlot = (newValue: string|number|null, slot: number, current_full = value) => {
       let next_full = [...current_full]
       next_full[slot] = newValue
@@ -139,36 +140,21 @@ export function rangeInput(
     
     return(
       <div key={key}>
-        {label}
         <div style={{display: 'inline-flex'}}>
-          From
-          <DropdownAutocomplete
-            list={["exactly","above"]}
-            value={value[0]}
-            onSelect={(newVal: string) => changeFxn(updateSlot(newVal, 0), key)}
-            sorted={false}
-          />
-          Value
-          <EtnaFloatInput
-            followDefault
-            defaultValue={value[1]}
-            onChange={(newVal: string) => changeFxn(updateSlot(newVal, 1), key)}
-          />
+          {dropdownPiece(
+            key+'_lower_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue, 0), key), value[0] as string,
+            label + ", From", ["exactly","above"], true, 120)}
+          {floatPiece(
+            key+'_lower_value', (newValue: number | null) => changeFxn(updateSlot(newValue, 1), key), value[1] as number,
+            'Min-value', 120)}
         </div>
         <div style={{display: 'inline-flex'}}>
-          To
-          <DropdownAutocomplete
-            list={["exactly","below"]}
-            value={value[2]}
-            onSelect={(newVal: string) => changeFxn(updateSlot(newVal, 2), key)}
-            sorted={false}
-          />
-          value
-          <EtnaFloatInput
-            followDefault
-            defaultValue={value[3]}
-            onChange={(newVal: string) => changeFxn(updateSlot(newVal, 3), key)}
-          />
+          {dropdownPiece(
+            key+'_upper_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue, 2), key), value[2] as string,
+            "To", ["exactly","below"], true, 120)}
+          {floatPiece(
+            key+'_upper_value', (newValue: number | null) => changeFxn(updateSlot(newValue, 3), key), value[3] as number,
+            'Max-value', 120)}
         </div>
       </div>
     )
