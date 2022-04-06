@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import {DataEnvelope} from './input_types';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import { checkboxInput, dropdownInput, MultiselectInput, rangeInput } from './user_input_pieces';
+import { checkboxPiece, dropdownPiece, multiselectPiece, rangePiece } from './user_input_pieces';
 import { Button, PropTypes } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
@@ -13,7 +13,7 @@ It's a piece that recieves, as additional inputs:
  - 'sorted' = whether column name dropdowns should be alphanumerically sorted versus left in the same order as they are in the 'data_frame'.
 */
 
-export function subsetDataFrameInput(
+export function subsetDataFramePiece(
   key: string = "filler", changeFxn: Function, value: DataEnvelope<(string|number|null)[][]> = {},
   label: string, data_frame_ori: DataEnvelope<any>, sorted = false, color: PropTypes.Color = "primary") {
     
@@ -22,7 +22,7 @@ export function subsetDataFrameInput(
   
   const startOrClear = (doSubset: boolean, x:any) => {
     const new_full = (doSubset) ? {
-      'methods':[[null]],
+      'methods':[emptyMethod],
       'logic':[[]]
     } : {}
     changeFxn(new_full, key)
@@ -43,22 +43,23 @@ export function subsetDataFrameInput(
     changeFxn(next_full, key)
   }
   
-  const base = checkboxInput(
+  const base = checkboxPiece(
     key, startOrClear, Object.keys(values).includes('methods'),
     label)
   
   const meat = (values && values['methods']) ? (
     <div style={{
-      paddingLeft: "5px",
+      paddingLeft: "15px",
       paddingTop: "2px",}}>
       {values['methods'].map((def, index) => {
         return singleMethod(
           def, index, data_frame, updateCurrent, changeFxn, key, values, sorted, color)
         })
       }
+      <br></br>
       <Button
         color={color}
-        onClick={(x) => {updateCurrent([null], "and", values['methods'].length)}}>
+        onClick={(x) => {updateCurrent(emptyMethod, "and", values['methods'].length)}}>
         Add another condition?
       </Button>
     </div>
@@ -72,8 +73,10 @@ export function subsetDataFrameInput(
   )
 }
 
+const emptyMethod = [null]
+
 const singleMethod = (
-  def: (string|number|null)[] = [null],
+  def: (string|number|null)[] = emptyMethod,
   index: number,
   data_frame: DataEnvelope<any>,
   updateCurrent: Function,
@@ -103,11 +106,11 @@ const singleMethod = (
   
   const clearDef = () => {
     const full = {...values};
-    // methods (Current at index, must remain/become [[null]] or lose current)
+    // methods (Current at index, must remain/become [emptyMethod] or lose current)
     let next_methods = full['methods']
     next_methods.splice(index,1)
     if (next_methods.length==0) {
-      next_methods = [[null]]
+      next_methods = [emptyMethod]
     }
     // logic (Current at index-1, must remain/become [[]], lose current, or lose next if clicked for 1st def)
     let next_logic = full['logic']
@@ -126,9 +129,9 @@ const singleMethod = (
       key)
   }
   
-  const pick_column = dropdownInput(
-    key+index, updateDefColumn, def[0] as string|null,
-    "Feature " + (index+1) + ":", columns, sorted
+  const pick_column = dropdownPiece(
+    key+index, updateDefColumn, def[0] as string,
+    "Condition " + (index+1) + ", Feature", columns, sorted
   )
   const clear_comp = (
     <Button
@@ -138,9 +141,9 @@ const singleMethod = (
     </Button>
   )
   const logic_comp = (index == 0) ? null : 
-    dropdownInput(
+    dropdownPiece(
         key+index+index+index, updateLogic, values['logic'][index-1][0] as string,
-        "Combination Logic:", ["and", "or"], false
+        "Combination Logic", ["and", "or"], false
       )
   const def_comp = targetSelectionComponent(
     def, data_frame, updateDefTargets, key, index)
@@ -152,7 +155,9 @@ const singleMethod = (
       <div>
         {logic_comp}
         {pick_column}
-        {def_comp}
+        <div style={{paddingLeft:10}}>
+          {def_comp}
+        </div>
       </div>
       {clear_comp}
     </div>
@@ -167,18 +172,18 @@ function targetSelectionComponent(
   index: number
   ) {
     
-  if (def[0]==null) return null
+  if (def[0]==emptyMethod[0]) return null
   
   let inner_def = [...def]
   inner_def.shift()
   
-  const target_data = Object.values(data_frame[def[0]])              
+  const target_data = Object.values(data_frame[def[0] as string])
   
   if (typeof target_data[0] == "number") {
-    return rangeInput(
+    return rangePiece(
       key+index+index, updateFxn,
-      (inner_def.length > 0) ? inner_def : ["exactly", null, "below", null],
-      ""
+      (inner_def.length > 0) ? inner_def : undefined,
+      "Values to keep"
       )
   }
   if (typeof target_data[0] == "string") {
@@ -187,17 +192,17 @@ function targetSelectionComponent(
       return self.indexOf(value) === index;
     }
     const options = target_data.filter(onlyUnique) as string[];
-    return MultiselectInput(
+    return multiselectPiece(
       key+index+index, updateFxn,
       inner_def as string[],
-      "Keep:", options
+      "Values to keep", options
       )
   }
   if (typeof target_data[0] == "boolean") {
-    return dropdownInput(
+    return dropdownPiece(
       key+index+index, updateFxn,
-      (inner_def.length > 0) ? inner_def[0] as string : "",
-      "Keep:", ["True", "False"], false
+      (inner_def.length > 0) ? inner_def[0] as string : undefined,
+      "Value to keep", ["True", "False"], false
       )
   }
   return(

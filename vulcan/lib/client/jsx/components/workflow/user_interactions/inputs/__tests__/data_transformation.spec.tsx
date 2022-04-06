@@ -110,7 +110,6 @@ describe('DataTransformationInput', () => {
 
   it('includes a brief description of the data frame size', async () => {
     const {node} = integrated.value;
-    console.log(text(node.root));
     expect(
       matchesTextPredicate(
         'Your data frame has 3 rows and 2 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame'
@@ -187,7 +186,6 @@ describe('DataTransformationInput', () => {
 
     it('correctly renders', async () => {
       const {node} = integrated.value;
-      console.log(text(node.root));
       expect(
         matchesTextPredicate(
           'Your data frame has 4 rows and 2 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
