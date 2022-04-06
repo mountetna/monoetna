@@ -24,12 +24,12 @@ try:
 
         @has_access
         def form_get(self, form):
-            def sort_user_email(u):
-                return u.email
+            def sort_user_name(u):
+                return u.first_name
 
             users = self.appbuilder.sm.get_all_users()
-            users.sort(key=sort_user_email)
-            form.username.choices = [(u.email, u.email) for u in users]
+            users.sort(key=sort_user_name)
+            form.username.choices = [(u.email, u.first_name) for u in users]
 
         @has_access
         def form_post(self, form):
