@@ -38,12 +38,20 @@ steps:
     in:
       data_frame: get_data/data_frame
     out: [formulaic_data, calculated_data]
+  assess_data:
+    run: scripts/VIZ_prep_df.cwl
+    label: 'Determine column types'
+    in:
+      data_frame: review_data/calculated_data
+    out: [continuous_cols, discrete_cols]
   fill_plot_options:
     run: ui-queries/any-viz.cwl
     label: 'Set plot options'
     doc: "Selections here pick the plot type and how it should be generated. For addtional details, see https://mountetna.github.io/vulcan.html#the-setup-gui which is clickably linked within this workflow's 'vignette'."
     in:
       data_frame: review_data/calculated_data
+      continuous_cols: assess_data/continuous_cols
+      discrete_cols: assess_data/discrete_cols
     out: [plot_setup]
   make_plot:
     run: scripts/make_plot.cwl

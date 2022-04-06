@@ -1,16 +1,12 @@
 import 'regenerator-runtime';
 import {Cancellable, cancelledAsMaybe} from "./cancellable";
-import {useState, useEffect, useCallback} from 'react';
+import {useState, useEffect, useCallback, useRef} from 'react';
 
 export function useAsyncCallback(fn, deps, cleanup = () => null) {
-  const [_, setContext] = useState(() => new Cancellable());
+  const context = useRef(new Cancellable());
   const cancel = useCallback(() => {
-    const newCancellable = new Cancellable();
-    setContext(running => {
-      running.cancel();
-      return newCancellable;
-    })
-
+    context.current.cancel();
+    const newCancellable = context.current = new Cancellable();
     return newCancellable;
   }, []);
 

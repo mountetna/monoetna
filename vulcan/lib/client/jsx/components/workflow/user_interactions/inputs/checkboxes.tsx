@@ -29,6 +29,7 @@ export default function CheckboxesInput({data, onChange, ...props}: WithInputPar
             label={option}
             data={null}
             key={index}
+            labelPlacement='end'
             value={some(value.includes(option))}
             onChange={() => handleClickOption(option)}
           />
