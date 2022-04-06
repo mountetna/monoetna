@@ -15,6 +15,7 @@ from werkzeug.wrappers import Response as WerkzeugResponse
 
 from etna.auth.etna_user import EtnaUser
 from etna.plugins.etna_docs_plugin import ETNA_DOCS_MENU_TITLE
+from airflow_code_editor.commons import MENU_LABEL as CODE_EDITOR_MENU_LABEL
 
 
 def deserialize_etna_user(payload: str, algo: str, key: str) -> EtnaUser:
@@ -126,7 +127,6 @@ class EtnaSecurityManager(AirflowSecurityManager):
             (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_JOB),
             (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_AUDIT_LOG),
             (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_TASK_INSTANCE),
-            (permissions.ACTION_CAN_ACCESS_MENU, ETNA_DOCS_MENU_TITLE),
             (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_DOCS),
 
             # From standard User
@@ -135,6 +135,13 @@ class EtnaSecurityManager(AirflowSecurityManager):
             (permissions.ACTION_CAN_EDIT, permissions.RESOURCE_TASK_INSTANCE),
             (permissions.ACTION_CAN_CREATE, permissions.RESOURCE_DAG_RUN),
             (permissions.ACTION_CAN_EDIT, permissions.RESOURCE_DAG_RUN),
+
+            # From standard Operator
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_ADMIN_MENU),
+
+            # For plugins
+            (permissions.ACTION_CAN_ACCESS_MENU, ETNA_DOCS_MENU_TITLE),
+            (permissions.ACTION_CAN_ACCESS_MENU, CODE_EDITOR_MENU_LABEL),
         ]
 
         for dag in dags_query.all():
