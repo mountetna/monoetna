@@ -58,11 +58,9 @@ services:
     volumes:
       - ./opt/providers:/opt/airflow/providers
       - ./logs:/opt/airflow/logs
-      - ./opt/plugins:/opt/airflow/plugins
       - airflow-dags:/opt/airflow/dags
     environment:
       <<: *airflow-env
-      PYTHONPATH: /opt/airflow
     networks:
       - default
       - edge_net
