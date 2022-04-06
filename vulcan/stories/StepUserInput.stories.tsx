@@ -66,11 +66,23 @@ DiffExpSC.args = {
   }
 };
 
+export const Visualization = Template.bind({});
+Visualization.args = {
+  type: TYPE.ANY_VIZ,
+  cwlParams: {
+      'data_frame': require('./mockDF.json'),
+      'continuous_cols': require('./mockDF_cont_cols.json'),
+      'discrete_cols': require('./mockDF_disc_cols.json')
+  }
+};
+
 export const ScatterPlotlyFULL = Template.bind({});
 ScatterPlotlyFULL.args = {
   type: TYPE.SCATTER_PLOTLY,
   cwlParams: {
-      'data_frame': require('./mockDF.json')
+      'data_frame': require('./mockDF.json'),
+      'continuous_cols': require('./mockDF_cont_cols.json'),
+      'discrete_cols': require('./mockDF_disc_cols.json')
   }
 };
 
@@ -78,7 +90,9 @@ export const BarPlotlyFULL = Template.bind({});
 BarPlotlyFULL.args = {
   type: TYPE.BAR_PLOTLY,
   cwlParams: {
-      'data_frame': require('./mockDF.json')
+      'data_frame': require('./mockDF.json'),
+      'continuous_cols': require('./mockDF_cont_cols.json'),
+      'discrete_cols': require('./mockDF_disc_cols.json')
   }
 };
 
@@ -86,7 +100,9 @@ export const YPlotlyFULL = Template.bind({});
 YPlotlyFULL.args = {
   type: TYPE.Y_PLOTLY,
   cwlParams: {
-      'data_frame': require('./mockDF.json')
+      'data_frame': require('./mockDF.json'),
+      'continuous_cols': require('./mockDF_cont_cols.json'),
+      'discrete_cols': require('./mockDF_disc_cols.json')
   }
 };
 
@@ -139,6 +155,22 @@ BatchSelection.args = {
   }
 }
 
+export const manyOptionDropdown = Template.bind({});
+manyOptionDropdown.args = {
+  type: TYPE.SELECT_AUTOCOMPLETE,
+  cwlParams:  {
+    'options': require('./human_genes_list.json')
+  }
+}
+
+export const dropdownCheckboxes = Template.bind({});
+dropdownCheckboxes.args = {
+  type: TYPE.SINGLE_DROPDOWN_MULTICHECKBOX,
+  cwlParams:  {
+    'a': {experiment: ['1', '2'], tissue: ['a', 'b']}
+  }
+}
+    
 export const DataTransformation = Template.bind({});
 DataTransformation.args = {
   type: TYPE.DATA_TRANSFORMATION,

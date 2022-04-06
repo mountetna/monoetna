@@ -145,12 +145,48 @@ Array [
                                 <div
                                   className="input-help-children-wrapper"
                                 >
-                                  <input
-                                    checked={true}
-                                    className="text_box"
-                                    onChange={[Function]}
-                                    type="checkbox"
-                                  />
+                                  <span
+                                    aria-disabled={false}
+                                    className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-5 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-checked-6 Mui-checked MuiIconButton-colorSecondary"
+                                    onBlur={[Function]}
+                                    onDragLeave={[Function]}
+                                    onFocus={[Function]}
+                                    onKeyDown={[Function]}
+                                    onKeyUp={[Function]}
+                                    onMouseDown={[Function]}
+                                    onMouseLeave={[Function]}
+                                    onMouseUp={[Function]}
+                                    onTouchEnd={[Function]}
+                                    onTouchMove={[Function]}
+                                    onTouchStart={[Function]}
+                                    tabIndex={null}
+                                  >
+                                    <span
+                                      className="MuiIconButton-label"
+                                    >
+                                      <input
+                                        aria-label="controlled"
+                                        checked={true}
+                                        className="PrivateSwitchBase-input-8"
+                                        data-indeterminate={false}
+                                        onChange={[Function]}
+                                        type="checkbox"
+                                      />
+                                      <svg
+                                        aria-hidden={true}
+                                        className="MuiSvgIcon-root"
+                                        focusable="false"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                                        />
+                                      </svg>
+                                    </span>
+                                    <span
+                                      className="MuiTouchRipple-root"
+                                    />
+                                  </span>
                                 </div>
                                 <div
                                   className="help-icon-wrapper"
@@ -184,12 +220,48 @@ Array [
                                 <div
                                   className="input-help-children-wrapper"
                                 >
-                                  <input
-                                    checked={false}
-                                    className="text_box"
-                                    onChange={[Function]}
-                                    type="checkbox"
-                                  />
+                                  <span
+                                    aria-disabled={false}
+                                    className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-5 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                                    onBlur={[Function]}
+                                    onDragLeave={[Function]}
+                                    onFocus={[Function]}
+                                    onKeyDown={[Function]}
+                                    onKeyUp={[Function]}
+                                    onMouseDown={[Function]}
+                                    onMouseLeave={[Function]}
+                                    onMouseUp={[Function]}
+                                    onTouchEnd={[Function]}
+                                    onTouchMove={[Function]}
+                                    onTouchStart={[Function]}
+                                    tabIndex={null}
+                                  >
+                                    <span
+                                      className="MuiIconButton-label"
+                                    >
+                                      <input
+                                        aria-label="controlled"
+                                        checked={false}
+                                        className="PrivateSwitchBase-input-8"
+                                        data-indeterminate={false}
+                                        onChange={[Function]}
+                                        type="checkbox"
+                                      />
+                                      <svg
+                                        aria-hidden={true}
+                                        className="MuiSvgIcon-root"
+                                        focusable="false"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                                        />
+                                      </svg>
+                                    </span>
+                                    <span
+                                      className="MuiTouchRipple-root"
+                                    />
+                                  </span>
                                 </div>
                                 <div
                                   className="help-icon-wrapper"
@@ -223,12 +295,41 @@ Array [
                                 <div
                                   className="input-help-children-wrapper"
                                 >
-                                  <input
-                                    onChange={[Function]}
-                                    onKeyPress={[Function]}
-                                    type="text"
-                                    value={1.2}
-                                  />
+                                  <div
+                                    style={
+                                      Object {
+                                        "paddingTop": 0,
+                                      }
+                                    }
+                                  >
+                                    <div
+                                      className="MuiFormControl-root MuiTextField-root"
+                                      style={
+                                        Object {
+                                          "minWidth": 200,
+                                        }
+                                      }
+                                    >
+                                      <div
+                                        className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl MuiInputBase-marginDense MuiInput-marginDense"
+                                        onClick={[Function]}
+                                      >
+                                        <input
+                                          aria-invalid={false}
+                                          autoFocus={false}
+                                          className="MuiInputBase-input MuiInput-input MuiInputBase-inputMarginDense MuiInput-inputMarginDense"
+                                          disabled={false}
+                                          onAnimationStart={[Function]}
+                                          onBlur={[Function]}
+                                          onChange={[Function]}
+                                          onFocus={[Function]}
+                                          required={false}
+                                          type="text"
+                                          value="0"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
                                 <div
                                   className="help-icon-wrapper"
@@ -262,12 +363,41 @@ Array [
                                 <div
                                   className="input-help-children-wrapper"
                                 >
-                                  <input
-                                    onChange={[Function]}
-                                    onKeyPress={[Function]}
-                                    type="text"
-                                    value={0}
-                                  />
+                                  <div
+                                    style={
+                                      Object {
+                                        "paddingTop": 0,
+                                      }
+                                    }
+                                  >
+                                    <div
+                                      className="MuiFormControl-root MuiTextField-root"
+                                      style={
+                                        Object {
+                                          "minWidth": 200,
+                                        }
+                                      }
+                                    >
+                                      <div
+                                        className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl MuiInputBase-marginDense MuiInput-marginDense"
+                                        onClick={[Function]}
+                                      >
+                                        <input
+                                          aria-invalid={false}
+                                          autoFocus={false}
+                                          className="MuiInputBase-input MuiInput-input MuiInputBase-inputMarginDense MuiInput-inputMarginDense"
+                                          disabled={false}
+                                          onAnimationStart={[Function]}
+                                          onBlur={[Function]}
+                                          onChange={[Function]}
+                                          onFocus={[Function]}
+                                          required={false}
+                                          type="text"
+                                          value="0"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
                                 <div
                                   className="help-icon-wrapper"
@@ -301,12 +431,41 @@ Array [
                                 <div
                                   className="input-help-children-wrapper"
                                 >
-                                  <input
-                                    onChange={[Function]}
-                                    onKeyPress={[Function]}
-                                    type="text"
-                                    value={1}
-                                  />
+                                  <div
+                                    style={
+                                      Object {
+                                        "paddingTop": 0,
+                                      }
+                                    }
+                                  >
+                                    <div
+                                      className="MuiFormControl-root MuiTextField-root"
+                                      style={
+                                        Object {
+                                          "minWidth": 200,
+                                        }
+                                      }
+                                    >
+                                      <div
+                                        className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl MuiInputBase-marginDense MuiInput-marginDense"
+                                        onClick={[Function]}
+                                      >
+                                        <input
+                                          aria-invalid={false}
+                                          autoFocus={false}
+                                          className="MuiInputBase-input MuiInput-input MuiInputBase-inputMarginDense MuiInput-inputMarginDense"
+                                          disabled={false}
+                                          onAnimationStart={[Function]}
+                                          onBlur={[Function]}
+                                          onChange={[Function]}
+                                          onFocus={[Function]}
+                                          required={false}
+                                          type="text"
+                                          value="0"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
                                 <div
                                   className="help-icon-wrapper"
@@ -340,12 +499,41 @@ Array [
                                 <div
                                   className="input-help-children-wrapper"
                                 >
-                                  <input
-                                    onChange={[Function]}
-                                    onKeyPress={[Function]}
-                                    type="text"
-                                    value={0}
-                                  />
+                                  <div
+                                    style={
+                                      Object {
+                                        "paddingTop": 0,
+                                      }
+                                    }
+                                  >
+                                    <div
+                                      className="MuiFormControl-root MuiTextField-root"
+                                      style={
+                                        Object {
+                                          "minWidth": 200,
+                                        }
+                                      }
+                                    >
+                                      <div
+                                        className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl MuiInputBase-marginDense MuiInput-marginDense"
+                                        onClick={[Function]}
+                                      >
+                                        <input
+                                          aria-invalid={false}
+                                          autoFocus={false}
+                                          className="MuiInputBase-input MuiInput-input MuiInputBase-inputMarginDense MuiInput-inputMarginDense"
+                                          disabled={false}
+                                          onAnimationStart={[Function]}
+                                          onBlur={[Function]}
+                                          onChange={[Function]}
+                                          onFocus={[Function]}
+                                          required={false}
+                                          type="text"
+                                          value="0"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
                                 <div
                                   className="help-icon-wrapper"

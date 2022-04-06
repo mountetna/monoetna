@@ -9,7 +9,7 @@ def scatter_plotly(
     color_by: str = "make",
     px_args: dict = {},
     rows_use = None,
-    x_scale = "as is", y_scale = "as is",
+    x_scale = "linear", y_scale = "linear",
     size = 5, color_panel: list = colors,
     color_order: str = 'increasing',
     order_when_continuous_color: bool = False,
@@ -28,7 +28,7 @@ def scatter_plotly(
     'color_order' ('increasing', 'decreasing', or 'unordered') sets the ordering of keys in the legend, when 'color_by' references discrete data
     'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
     'rows_use',
-    'x_scale', 'y_scale'. String, 'as is', 'log10', or 'log10(val+1)'. Controls whether these axes should be log scaled, and if so, whether 1 should be added to all values first in order to let zeros be okay to plot.
+    'x_scale', 'y_scale'. String, 'linear', 'log10', or 'log10(val+1)'. Controls whether these axes should be log scaled, and if so, whether 1 should be added to all values first in order to let zeros be okay to plot.
     """
 
     # Parse dependent defaults
