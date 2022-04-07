@@ -1,9 +1,10 @@
 from airflow.plugins_manager import AirflowPlugin
 
+
 from etna.hooks.git import GitHook
 
 
-class EtnaPlugin(AirflowPlugin):
-    name = "etna_plugin"
+class GitHookPlugin(AirflowPlugin):
+    name = "githook_plugin"
 
     hooks = [GitHook]
