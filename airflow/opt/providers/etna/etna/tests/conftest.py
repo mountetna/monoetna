@@ -271,7 +271,6 @@ def dont_initialize_flask_app_submodules(_func=None, *, skip_all_except=None):
             "sync_appbuilder_roles",
             "init_jinja_globals",
             "init_xframe_protection",
-            "init_permanent_session",
             "init_appbuilder",
         ]
 
@@ -345,6 +344,14 @@ def app(examples_dag_bag):
             "role": security_manager.find_role("Viewer"),
             "password": "test_viewer_password",
         },
+        {
+            "username": "test_project_viewer",
+            "first_name": "test_project_viewer_first_name",
+            "last_name": "test_project_viewer_last_name",
+            "email": "test_project_viewer@fab.org",
+            "role": security_manager.sync_project_role("test"),
+            "password": "test_project_viewer_password",
+        },
     ]
 
     for user_dict in test_users:
@@ -357,6 +364,15 @@ def app(examples_dag_bag):
 @pytest.fixture()
 def admin_client(app):
     return app.test_client()
+
+
+@pytest.fixture()
+def reset_admin_role(app):
+    yield
+    user = app.appbuilder.sm.find_user(username='test_admin')
+    admin_role = app.appbuilder.sm.find_role('Admin')
+    user.roles = [admin_role]
+    app.appbuilder.sm.update_user(user)
 
 
 def clear_users():
