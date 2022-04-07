@@ -15,3 +15,4 @@ def test_user_project_permissions(app):
     assert(to_text(permissions.ACTION_CAN_ACCESS_MENU, ETNA_DOCS_MENU_TITLE) in perm_strs)
     assert(to_text(permissions.ACTION_CAN_ACCESS_MENU, CODE_EDITOR_MENU_LABEL) in perm_strs)
     assert(to_text(permissions.ACTION_CAN_READ, permissions.RESOURCE_CONNECTION) not in perm_strs)
+    assert(to_text(permissions.ACTION_CAN_READ, permissions.RESOURCE_DAG) not in perm_strs) # Cannot read all DAGs
