@@ -51,8 +51,8 @@ class BoxEtlHelpers:
         # This regex is matched first against the folder subpath within the matched record folder before linking all matching files (including none)
         folder_path_regex: re.Pattern = re.compile(r".*"),):
         """
-        Creates a task that filters the Box files by regexp, and also applies a regexp against the
-        folder path for each file.
+        Creates a task that filters the Box files by regexp, and can also apply a regexp against the
+        folder path for each file for further filtering.
         """
 
         @task

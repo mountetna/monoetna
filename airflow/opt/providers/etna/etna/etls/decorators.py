@@ -129,7 +129,7 @@ def box_etl(
 
     This decorator is the main entry point for processing Box files with an etl.  The decorated function receives
     a number of useful XComArg objects and a helpers object to help set up Box tasks based on consuming changes
-    scoped to the given folder in Box.
+    scoped to the given folder in Box. The folder must be shared with the Etna service agent account.
 
     1.  tail_files -- an XComArg object that will resolve into a list of File objects inside tasks.
     """
