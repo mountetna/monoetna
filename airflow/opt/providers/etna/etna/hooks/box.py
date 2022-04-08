@@ -154,7 +154,7 @@ class Box(object):
             batch_end: Optional[datetime] = None,
      ) -> List[BoxFile]:
         if not Box.valid_folder_name(folder_name):
-            raise ValueError(f"Invalid folder name: {folder_name}. Only alphanumeric characters, -, and spaces are allowed.")
+            raise ValueError(f"Invalid folder name: {folder_name}. Only alphanumeric characters, _, -, and spaces are allowed.")
 
         if batch_start and batch_end:
             args = dict(
