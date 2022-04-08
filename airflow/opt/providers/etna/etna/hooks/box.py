@@ -200,7 +200,7 @@ class Box(object):
 
             if process.returncode != 0:
                 raise AirflowException(
-                    f"LFTP command failed!  Check logs for more information."
+                    f"LFTP command failed!\n{process.stderr}"
                 )
 
         return process.stdout
