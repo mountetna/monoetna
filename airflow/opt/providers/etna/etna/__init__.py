@@ -9,6 +9,10 @@ with all the utilities here within.  https://airflow.apache.org/docs/
 The top level module exports many common utilities needed by an average etl,
 while individual inner packages may contain implementations, interfaces, and
 granular functions for nuanced use cases.
+
+This documentation is fairly exhaustive and likely too much for someone starting off.
+I highly recommend using this as a primary reference in combination with existing
+working etl processes until a more comprehensive tutorial can be documented here.
 """
 
 from datetime import datetime
