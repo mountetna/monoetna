@@ -8,7 +8,7 @@ import logging
 import os.path
 import re
 from logging import Logger
-from typing import Union, Literal, List, Optional, Tuple, Callable, Dict, Any, Iterable
+from typing import Union, Literal, List, Optional, Tuple, Callable, Dict, Any, Iterable, Mapping
 
 from airflow import DAG
 from airflow.decorators import task
@@ -341,6 +341,26 @@ class MetisEtlHelpers:
                                 )
 
         return do_link(listed_record_matches)
+
+    def link_single_cell_attribute_files_v1(
+            self,
+            model_name: str, # The model name, one of either sc_rna_seq or sc_rna_seq_pool
+            identifier_prefix: str, # a prefix to indicate matching folders belonging to the given model_name
+            single_cell_root_prefix="single_cell_", # a prefix used to identify the parent single_cell directories
+            attribute_linker_overrides: Optional[Mapping[str, str]] = None, # a list of attribute names to regex strings for overrides to default linking behavior.
+            dry_run=True # When True (default), a run does not complete linking but simply validates the code paths,
+    ) -> Tuple[XComArg, XComArg]:
+        """
+        Links single cell rna related attributes for either sc_rna_seq or sc_rna_seq_pool models, including
+        raw fastqs and processed files.
+
+        Checkout `etna.etls.linkers.signle_cell_rna_seq.link_single_cell_attribute_files_v1` source code
+        for more information on how matches are made and which attributes are linked.
+        """
+        # Prevent circular import.
+        from etna.etls.linkers.single_cell_rna_seq import link_single_cell_attribute_files_v1
+        return link_single_cell_attribute_files_v1(self, model_name, identifier_prefix, single_cell_root_prefix,
+                                                   attribute_linker_overrides=attribute_linker_overrides, dry_run=dry_run)
 
     def link_matching_file(
         self,

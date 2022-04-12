@@ -1,0 +1,168 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:10.19
+    environment:
+      POSTGRES_DB: "polyphemus"
+      POSTGRES_PASSWORD_FILE: /run/secrets/password
+      POSTGRES_USER: developer
+    volumes:
+      - db:/var/lib/postgresql/data
+    deploy:
+      placement:
+        constraints:
+          - node.labels.volumes.polyphemus_production_db == true
+    networks:
+      - db
+    secrets:
+      - source: db-pw
+        target: password
+
+  app:
+    environment:
+      - APP_NAME=polyphemus
+      - POLYPHEMUS_ENV=production
+      - ETNA__PRODUCTION_FILE=/app/env.yml
+      - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
+      - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN_FILE=/run/secrets/rollbar-access-token
+      - ETNA__PRODUCTION__USER_HASH_SECRET=/run/secrets/user-hash-secret
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
+        exec /bin/deploy.sh migrate -- /app/bin/puma.sh
+    image: etnaagent/polyphemus:production
+
+    deploy:
+      update_config:
+        parallelism: 1
+      replicas: 2
+      labels:
+        - autoupdate=true
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 1s
+      test: bash -c 'curl http://localhost:3000 || exit 1'
+      timeout: 5s
+    configs:
+      - source: config
+        target: /app/config.yml
+      - source: env
+        target: /app/env.yml
+      - source: known_hosts
+        target: /root/.ssh/known_hosts
+    networks:
+      db:
+      prometheus:
+      fe:
+        aliases:
+          - polyphemus_app
+    secrets:
+      - metrics-pw
+      - source: db-pw
+        target: db-password
+      - source: id_rsa_gne
+        target: /root/id_rsa_gne
+      - source: rollbar
+        target: rollbar-access-token
+
+  app_fe:
+    environment:
+      - APP_NAME=polyphemus
+      - POLYPHEMUS_ENV=production
+    image: etnaagent/polyphemus_app_fe:production
+    networks:
+      - edge_bridge
+      - fe
+    volumes:
+      - app_public:/app/public:nocopy
+    # Notably, apache needs to start as super user but it immediately downgrades
+    # its own user permissions after bootup.  See the includes.
+    user: 0:3000 # su:browser
+    configs:
+      - source: browser.system.include
+        target: /usr/opt/httpd.conf.d/browser.system.include
+    deploy:
+      replicas: 2
+      labels:
+        - autoupdate=true
+
+      placement:
+        constraints:
+          - node.labels.volumes.big-share == true
+
+  app_assets_deployer:
+    environment:
+      - APP_NAME=polyphemus
+      - POLYPHEMUS_ENV=production
+
+    command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
+    image: etnaagent/polyphemus:production
+    volumes:
+      - app_public:/sync-assets:nocopy
+
+    user: 0:3000
+    deploy:
+      labels:
+        - autoupdate=true
+      restart_policy:
+        condition: none
+      mode: global
+      placement:
+        constraints:
+          - node.labels.volumes.big-share == true
+
+volumes:
+  app_public:
+    name: polyphemus_production_app_public
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
+      device: ":/cache/polyphemus/app_public"
+  db:
+    name: "polyphemus_production_db"
+
+configs:
+  known_hosts:
+    external: true
+    name: ${POLYPHEMUS_KNOWN_HOSTS:-polyphemus_known_hosts}
+  browser.system.include:
+    name: ${BROWSER_SYSTEM_INCLUDE:-browser.system.include}
+    external: true
+  config:
+    external: true
+    name: ${APP_CONFIG:-polyphemus.production.yml}
+  env:
+    external: true
+    name: ${ENV_CONFIG:-etna.production.yml}
+
+secrets:
+  user-hash-secret:
+    external: true
+    name: ${USER_HASH_SECRET:-user-hash-secret}
+  metrics-pw:
+    external: true
+    name: ${METRICS_PW:-metrics-pw}
+  id_rsa_gne:
+    external: true
+    name: ${ID_RSA_GNE:-id_rsa_gne}
+  db-pw:
+    external: true
+    name: "polyphemus_production_db_password"
+  rollbar:
+    external: true
+    name: polyphemus_rollbar
+
+
+networks:
+  fe:
+  db:
+  edge_bridge:
+    external: true
+  prometheus:
+    external: true
