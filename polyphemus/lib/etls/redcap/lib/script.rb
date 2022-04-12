@@ -14,7 +14,16 @@ module Redcap
                 ]
               }
             },
-            each: { "$ref": "#/definitions/each" }
+            each: { "$ref": "#/definitions/each" },
+            filters: {
+              type: "object",
+              additionalProperties: {
+                oneOf: [
+                  { type: "string" },
+                  { "$ref": "#/definitions/filter_value" }
+                ]
+              }
+            }
           },
           additionalProperties: false,
           required: [ "attributes" ]
@@ -32,10 +41,13 @@ module Redcap
       @each_entities = script[:each]&.map do |ent|
         Redcap::Entity.create(ent)
       end
+      @filter_entities = script[:filters]&.map do |filter|
+        Redcap::Filter.create(filter)
+      end
     end
 
     def fields
-      @fields ||= @attributes.values.map(&:field_name).uniq
+      @fields ||= @attributes.values.map(&:field_name).concat(@filter_entities&.map(&:field_name) || []).uniq.compact
     end
 
     def each_entities
@@ -129,6 +141,10 @@ module Redcap
         next unless magma_record_name
 
         next unless @attributes.values.all?{|v| v.valid_redcap?(redcap_record) }
+
+        if @filter_entities
+          next unless @filter_entities.all? { |f| f.allow_redcap?(redcap_record) }
+        end
 
         update.merge!(
           magma_record_name => update_record(magma_record_name, redcap_record)
