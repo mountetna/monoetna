@@ -43,7 +43,6 @@ import {RedcapContext, RedcapProvider} from './redcap-context';
 import {Debouncer} from 'etna-js/utils/debouncer';
 
 import {makeStyles, Theme} from '@material-ui/core/styles';
-import {Filter} from '@material-ui/icons';
 
 const useStyles = makeStyles((theme: Theme) => ({
   form: {
@@ -737,7 +736,7 @@ const RedcapFilter = ({
   const handleUpdateValue = useCallback(
     (field_name: string, newValue: any) => {
       let v: Filter = {...filter, [field_name]: newValue};
-      if (newValue === undefined) delete v[field_name as keyof typeof Filter];
+      if (newValue === undefined) delete v[field_name as keyof Filter];
       onChange(v);
     },
     [onChange, filter]
@@ -747,7 +746,7 @@ const RedcapFilter = ({
     <ValueRow
       key={field_name}
       field_name={field_name}
-      value={filter[field_name as keyof typeof Filter]}
+      value={filter[field_name as keyof Filter]}
       opts={filter_props?.[field_name]}
       update={(newValue: any) => {
         handleUpdateValue(field_name, newValue);
