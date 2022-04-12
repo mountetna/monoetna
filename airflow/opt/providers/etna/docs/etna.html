@@ -82,6 +82,9 @@
                                 <a class="function" href="#MetisEtlHelpers.link_matching_files">link_matching_files</a>
                         </li>
                         <li>
+                                <a class="function" href="#MetisEtlHelpers.link_record_folders_to_parent">link_record_folders_to_parent</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#MetisEtlHelpers.find_record_folders">find_record_folders</a>
                         </li>
                         <li>
@@ -170,6 +173,10 @@ with all the utilities here within.  https://airflow.apache.org/docs/</p>
 <p>The top level module exports many common utilities needed by an average etl,
 while individual inner packages may contain implementations, interfaces, and
 granular functions for nuanced use cases.</p>
+
+<p>This documentation is fairly exhaustive and likely too much for someone starting off.
+I highly recommend using this as a primary reference in combination with existing
+working etl processes until a more comprehensive tutorial can be documented here.</p>
 </div>
 
                         <details>
@@ -185,6 +192,10 @@ granular functions for nuanced use cases.</p>
 <span class="sd">The top level module exports many common utilities needed by an average etl,</span>
 <span class="sd">while individual inner packages may contain implementations, interfaces, and</span>
 <span class="sd">granular functions for nuanced use cases.</span>
+
+<span class="sd">This documentation is fairly exhaustive and likely too much for someone starting off.</span>
+<span class="sd">I highly recommend using this as a primary reference in combination with existing</span>
+<span class="sd">working etl processes until a more comprehensive tutorial can be documented here.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
@@ -935,6 +946,49 @@ scoped to the given project_name, bucket_name pair.</p>
 
         <span class="k">return</span> <span class="n">do_link</span><span class="p">(</span><span class="n">listed_record_matches</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">link_record_folders_to_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">embedded_matches</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        When record folders are embedded in metis such that parent model record folders</span>
+<span class="sd">        exist, it is common to want to &#39;link&#39; the parent model attribute based on the folder name.</span>
+
+<span class="sd">        This function takes an XComArg containing a list of MatchedRecordFolder obtained via</span>
+<span class="sd">        `find_record_folders`, *whose source arg was not None*.  In other words, consider this example:</span>
+
+
+<span class="sd">        Imagine a directory structure like /MYSAMPLE.T1/ScRnaSeq/MYSAMPLE.T1.BLAH.BLAH</span>
+<span class="sd">        ```</span>
+<span class="sd">        sample_matches = helpers.find_record_folders(&quot;sample&quot;, SAMPLE_REGEX)</span>
+<span class="sd">        with TaskGroup(&quot;sc_rna_seq_matches&quot;):</span>
+<span class="sd">          sc_rna_seq_matches = helpers.find_record_folders(&quot;sc_rna_seq&quot;, SC_RNA_SEQ_REGEX, source=sample_matches)</span>
+<span class="sd">          helpers.link_record_folders_to_parent(sc_rna_esq_matches)</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        In this case, FIRST task will find &quot;/MYSAMPLE.T1&quot; as a &quot;sample&quot; record folder and it will belong</span>
+<span class="sd">        to the `XComArg` returned as `sample_matches`.</span>
+
+<span class="sd">        Next, it will search under /MYSAMPLE.T1 to find the MYSAMPLE.T1.BLAH.BLAH directory as a &quot;sc_rna_eq&quot; model</span>
+<span class="sd">        directory, noting the parent record folder as MYSAMPLE.T1 and that pairing will belong to sc_rna_seq_matches.</span>
+
+<span class="sd">        Lastly, the `link_record_folders_to_parent` will use the association between MYSAMPLE.T1.BLAH.BLAH and MYSAMPLE.T1</span>
+<span class="sd">        to make the association between that sc_rna_seq record and the parent sample record.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nd">@link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">link_record_folders_to_parent</span><span class="p">(</span><span class="n">record_matches</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">]):</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">magma</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="n">get_project_name</span><span class="p">())</span> <span class="k">as</span> <span class="n">magma</span><span class="p">:</span>
+                <span class="n">magma_models</span> <span class="o">=</span> <span class="n">magma</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">get_project_name</span><span class="p">(),</span> <span class="n">hide_templates</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">models</span>
+            <span class="k">for</span> <span class="n">record_folder_match</span> <span class="ow">in</span> <span class="n">record_matches</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">model_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">magma_models</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Folder #</span><span class="si">{</span><span class="n">record_folder_match</span><span class="si">}</span><span class="s2"> has invalid model_name&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">match_parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Folder #</span><span class="si">{</span><span class="n">record_folder_match</span><span class="si">}</span><span class="s2"> does not have a match parent, did you provide a source= argument to find_record_folders?&quot;</span><span class="p">)</span>
+
+                <span class="n">parent</span> <span class="o">=</span> <span class="n">magma_models</span><span class="p">[</span><span class="n">record_folder_match</span><span class="o">.</span><span class="n">model_name</span><span class="p">]</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">parent</span>
+
+                <span class="k">yield</span> <span class="n">record_folder_match</span><span class="p">,</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">as_update</span><span class="p">({</span><span class="n">parent</span><span class="p">:</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">match_parent</span><span class="o">.</span><span class="n">record_name</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">link_record_folders_to_parent</span><span class="p">(</span><span class="n">embedded_matches</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">find_record_folders</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="c1"># The model for which these matches represent identifiers for.</span>
@@ -1305,6 +1359,92 @@ Because listed_record_matches ONLY sees a single directory's contents at a time,
 folder_path_regex ensures the correct folder is selected before linking, in case multiple
 child directories exist for a matched record folder.</li>
 </ol>
+</div>
+
+
+                            </div>
+                            <div id="MetisEtlHelpers.link_record_folders_to_parent" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#MetisEtlHelpers.link_record_folders_to_parent">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">link_record_folders_to_parent</span><span class="signature">(
+    self,
+    embedded_matches: airflow.models.xcom_arg.XComArg,
+    dry_run=True
+)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">link_record_folders_to_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">embedded_matches</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        When record folders are embedded in metis such that parent model record folders</span>
+<span class="sd">        exist, it is common to want to &#39;link&#39; the parent model attribute based on the folder name.</span>
+
+<span class="sd">        This function takes an XComArg containing a list of MatchedRecordFolder obtained via</span>
+<span class="sd">        `find_record_folders`, *whose source arg was not None*.  In other words, consider this example:</span>
+
+
+<span class="sd">        Imagine a directory structure like /MYSAMPLE.T1/ScRnaSeq/MYSAMPLE.T1.BLAH.BLAH</span>
+<span class="sd">        ```</span>
+<span class="sd">        sample_matches = helpers.find_record_folders(&quot;sample&quot;, SAMPLE_REGEX)</span>
+<span class="sd">        with TaskGroup(&quot;sc_rna_seq_matches&quot;):</span>
+<span class="sd">          sc_rna_seq_matches = helpers.find_record_folders(&quot;sc_rna_seq&quot;, SC_RNA_SEQ_REGEX, source=sample_matches)</span>
+<span class="sd">          helpers.link_record_folders_to_parent(sc_rna_esq_matches)</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        In this case, FIRST task will find &quot;/MYSAMPLE.T1&quot; as a &quot;sample&quot; record folder and it will belong</span>
+<span class="sd">        to the `XComArg` returned as `sample_matches`.</span>
+
+<span class="sd">        Next, it will search under /MYSAMPLE.T1 to find the MYSAMPLE.T1.BLAH.BLAH directory as a &quot;sc_rna_eq&quot; model</span>
+<span class="sd">        directory, noting the parent record folder as MYSAMPLE.T1 and that pairing will belong to sc_rna_seq_matches.</span>
+
+<span class="sd">        Lastly, the `link_record_folders_to_parent` will use the association between MYSAMPLE.T1.BLAH.BLAH and MYSAMPLE.T1</span>
+<span class="sd">        to make the association between that sc_rna_seq record and the parent sample record.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nd">@link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">link_record_folders_to_parent</span><span class="p">(</span><span class="n">record_matches</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">]):</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">magma</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="n">get_project_name</span><span class="p">())</span> <span class="k">as</span> <span class="n">magma</span><span class="p">:</span>
+                <span class="n">magma_models</span> <span class="o">=</span> <span class="n">magma</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">get_project_name</span><span class="p">(),</span> <span class="n">hide_templates</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">models</span>
+            <span class="k">for</span> <span class="n">record_folder_match</span> <span class="ow">in</span> <span class="n">record_matches</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">model_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">magma_models</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Folder #</span><span class="si">{</span><span class="n">record_folder_match</span><span class="si">}</span><span class="s2"> has invalid model_name&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">match_parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Folder #</span><span class="si">{</span><span class="n">record_folder_match</span><span class="si">}</span><span class="s2"> does not have a match parent, did you provide a source= argument to find_record_folders?&quot;</span><span class="p">)</span>
+
+                <span class="n">parent</span> <span class="o">=</span> <span class="n">magma_models</span><span class="p">[</span><span class="n">record_folder_match</span><span class="o">.</span><span class="n">model_name</span><span class="p">]</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">parent</span>
+
+                <span class="k">yield</span> <span class="n">record_folder_match</span><span class="p">,</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">as_update</span><span class="p">({</span><span class="n">parent</span><span class="p">:</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">match_parent</span><span class="o">.</span><span class="n">record_name</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">link_record_folders_to_parent</span><span class="p">(</span><span class="n">embedded_matches</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>When record folders are embedded in metis such that parent model record folders
+exist, it is common to want to 'link' the parent model attribute based on the folder name.</p>
+
+<p>This function takes an XComArg containing a list of MatchedRecordFolder obtained via
+<code><a href="#MetisEtlHelpers.find_record_folders">find_record_folders</a></code>, <em>whose source arg was not None</em>.  In other words, consider this example:</p>
+
+<p>Imagine a directory structure like /MYSAMPLE.T1/ScRnaSeq/MYSAMPLE.T1.BLAH.BLAH</p>
+
+<pre><code>sample_matches = helpers.find_record_folders("sample", SAMPLE_REGEX)
+with TaskGroup("sc_rna_seq_matches"):
+  sc_rna_seq_matches = helpers.find_record_folders("sc_rna_seq", SC_RNA_SEQ_REGEX, source=sample_matches)
+  helpers.link_record_folders_to_parent(sc_rna_esq_matches)
+</code></pre>
+
+<p>In this case, FIRST task will find "/MYSAMPLE.T1" as a "sample" record folder and it will belong
+to the <code>XComArg</code> returned as <code>sample_matches</code>.</p>
+
+<p>Next, it will search under /MYSAMPLE.T1 to find the MYSAMPLE.T1.BLAH.BLAH directory as a "sc_rna_eq" model
+directory, noting the parent record folder as MYSAMPLE.T1 and that pairing will belong to sc_rna_seq_matches.</p>
+
+<p>Lastly, the <code><a href="#MetisEtlHelpers.link_record_folders_to_parent">link_record_folders_to_parent</a></code> will use the association between MYSAMPLE.T1.BLAH.BLAH and MYSAMPLE.T1
+to make the association between that sc_rna_seq record and the parent sample record.</p>
 </div>
 
 
