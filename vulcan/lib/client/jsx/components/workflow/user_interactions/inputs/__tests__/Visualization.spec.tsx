@@ -3,7 +3,8 @@ import NestedSelectAutocompleteInput from '../nested_select_autocomplete';
 import {DataEnvelope} from '../input_types';
 import {
   integrateElement,
-  setupBefore
+  setupBefore,
+  awaitBefore
 } from '../../../../../test_utils/integration';
 import {Maybe, some} from '../../../../../selectors/maybe';
 import {act, ReactTestInstance} from 'react-test-renderer';
@@ -61,7 +62,7 @@ describe('VisualizationInput', () => {
   let value_when_scatter = scatter_base
   value_when_scatter.color_by = 'cont1'
 
-  const integrated = setupBefore(() =>
+  const integrated = awaitBefore( async () =>
     integrateElement(
       <AnyPlotly
         onChange={onChange.value}
