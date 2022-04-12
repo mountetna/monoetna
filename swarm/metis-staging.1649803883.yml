@@ -129,21 +129,21 @@ volumes:
     driver_opts:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
-      device: ":/cache/magma/staging/app_public"
+      device: ":/cache/metis/staging/app_public"
   thumbnails:
     name: metis_staging_thumbnails
     driver: local
     driver_opts:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
-      device: ":/cache/magma/staging/app_public"
+      device: ":/cache/metis/staging/thumbnails"
   data:
     name: metis_staging_data
     driver: local
     driver_opts:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
-      device: ":/cache/magma/staging/app_public"
+      device: ":/cache/metis/staging/data"
   db:
     name: "metis_staging_db"
 

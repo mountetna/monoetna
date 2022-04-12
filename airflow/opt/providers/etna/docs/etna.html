@@ -76,6 +76,9 @@
                                 <a class="function" href="#MetisEtlHelpers.process_and_link_matching_file">process_and_link_matching_file</a>
                         </li>
                         <li>
+                                <a class="function" href="#MetisEtlHelpers.link_single_cell_attribute_files_v1">link_single_cell_attribute_files_v1</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#MetisEtlHelpers.link_matching_file">link_matching_file</a>
                         </li>
                         <li>
@@ -890,6 +893,26 @@ scoped to the given project_name, bucket_name pair.</p>
 
         <span class="k">return</span> <span class="n">do_link</span><span class="p">(</span><span class="n">listed_record_matches</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">link_single_cell_attribute_files_v1</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># The model name, one of either sc_rna_seq or sc_rna_seq_pool</span>
+            <span class="n">identifier_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># a prefix to indicate matching folders belonging to the given model_name</span>
+            <span class="n">single_cell_root_prefix</span><span class="o">=</span><span class="s2">&quot;single_cell_&quot;</span><span class="p">,</span> <span class="c1"># a prefix used to identify the parent single_cell directories</span>
+            <span class="n">attribute_linker_overrides</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># a list of attribute names to regex strings for overrides to default linking behavior.</span>
+            <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span> <span class="c1"># When True (default), a run does not complete linking but simply validates the code paths,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">XComArg</span><span class="p">,</span> <span class="n">XComArg</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Links single cell rna related attributes for either sc_rna_seq or sc_rna_seq_pool models, including</span>
+<span class="sd">        raw fastqs and processed files.</span>
+
+<span class="sd">        Checkout `etna.etls.linkers.signle_cell_rna_seq.link_single_cell_attribute_files_v1` source code</span>
+<span class="sd">        for more information on how matches are made and which attributes are linked.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Prevent circular import.</span>
+        <span class="kn">from</span> <span class="nn">etna.etls.linkers.single_cell_rna_seq</span> <span class="kn">import</span> <span class="n">link_single_cell_attribute_files_v1</span>
+        <span class="k">return</span> <span class="n">link_single_cell_attribute_files_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">identifier_prefix</span><span class="p">,</span> <span class="n">single_cell_root_prefix</span><span class="p">,</span>
+                                                   <span class="n">attribute_linker_overrides</span><span class="o">=</span><span class="n">attribute_linker_overrides</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">link_matching_file</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="c1"># an XComArg that lists MatchedRecordFolder and Files, usually the result of helpers.list_match_folders</span>
@@ -1241,6 +1264,55 @@ matches = helpers.find_record_folders('rna_seq', rna_seq_folder_regex)
 listed_matches = helpers.list_match_folders(matches)
 helpers.process_and_link_matching_file(listed_matches, re.compile(r'.*gene_counts\.tsv$'), my_processor)
 </code></pre>
+</div>
+
+
+                            </div>
+                            <div id="MetisEtlHelpers.link_single_cell_attribute_files_v1" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#MetisEtlHelpers.link_single_cell_attribute_files_v1">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">link_single_cell_attribute_files_v1</span><span class="signature">(
+    self,
+    model_name: str,
+    identifier_prefix: str,
+    single_cell_root_prefix=&#39;single_cell_&#39;,
+    attribute_linker_overrides: Union[Mapping[str, str], NoneType] = None,
+    dry_run=True
+) -&gt; Tuple[airflow.models.xcom_arg.XComArg, airflow.models.xcom_arg.XComArg]</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">link_single_cell_attribute_files_v1</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># The model name, one of either sc_rna_seq or sc_rna_seq_pool</span>
+            <span class="n">identifier_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># a prefix to indicate matching folders belonging to the given model_name</span>
+            <span class="n">single_cell_root_prefix</span><span class="o">=</span><span class="s2">&quot;single_cell_&quot;</span><span class="p">,</span> <span class="c1"># a prefix used to identify the parent single_cell directories</span>
+            <span class="n">attribute_linker_overrides</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># a list of attribute names to regex strings for overrides to default linking behavior.</span>
+            <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span> <span class="c1"># When True (default), a run does not complete linking but simply validates the code paths,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">XComArg</span><span class="p">,</span> <span class="n">XComArg</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Links single cell rna related attributes for either sc_rna_seq or sc_rna_seq_pool models, including</span>
+<span class="sd">        raw fastqs and processed files.</span>
+
+<span class="sd">        Checkout `etna.etls.linkers.signle_cell_rna_seq.link_single_cell_attribute_files_v1` source code</span>
+<span class="sd">        for more information on how matches are made and which attributes are linked.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Prevent circular import.</span>
+        <span class="kn">from</span> <span class="nn">etna.etls.linkers.single_cell_rna_seq</span> <span class="kn">import</span> <span class="n">link_single_cell_attribute_files_v1</span>
+        <span class="k">return</span> <span class="n">link_single_cell_attribute_files_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">identifier_prefix</span><span class="p">,</span> <span class="n">single_cell_root_prefix</span><span class="p">,</span>
+                                                   <span class="n">attribute_linker_overrides</span><span class="o">=</span><span class="n">attribute_linker_overrides</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Links single cell rna related attributes for either sc_rna_seq or sc_rna_seq_pool models, including
+raw fastqs and processed files.</p>
+
+<p>Checkout <code><a href="etna/etls.html#linkers.signle_cell_rna_seq.link_single_cell_attribute_files_v1">etna.etls.linkers.signle_cell_rna_seq.link_single_cell_attribute_files_v1</a></code> source code
+for more information on how matches are made and which attributes are linked.</p>
 </div>
 
 
