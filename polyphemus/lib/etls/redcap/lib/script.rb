@@ -16,13 +16,11 @@ module Redcap
             },
             each: { "$ref": "#/definitions/each" },
             filters: {
-              type: "object",
-              additionalProperties: {
-                oneOf: [
-                  { type: "string" },
-                  { "$ref": "#/definitions/filter_value" }
-                ]
-              }
+              type: "array",
+              items: {
+                "$ref": "#/definitions/filter_value"
+              },
+              uniqueItems: true
             }
           },
           additionalProperties: false,
@@ -76,7 +74,7 @@ module Redcap
 
       groups
     end
-    
+
     def key_entities
       @key_entities ||= each_entities.select(&:flat_key?)
     end

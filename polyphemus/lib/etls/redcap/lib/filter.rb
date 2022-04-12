@@ -2,15 +2,19 @@ module Redcap
   class Filter
     def self.to_schema
       {
-        attribute_value: {
+        filter_value: {
           type: "object",
           properties: {
+            redcap_field: { type: "string" },
             equals: { type: "string" },
             match: { type: "string" },
             in: { type: "array", items: { type: "string" } },
             exists: { type: "boolean" },
           },
           additionalProperties: false,
+          required: [ "redcap_field" ],
+          maxProperties: 2,
+          minProperties: 2
         },
       }
     end
@@ -45,7 +49,7 @@ module Redcap
       end
 
       if @config.has_key?(:exists)
-        return @config[:exists] ? (value && !value.empty?) : value?.empty?
+        return @config[:exists] ? (value && !value.empty?) : (value.nil? || value.empty?)
       end
 
       true

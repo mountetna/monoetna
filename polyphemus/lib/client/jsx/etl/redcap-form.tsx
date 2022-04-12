@@ -27,6 +27,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import CopyIcon from '@material-ui/icons/FileCopy';
 import EditIcon from '@material-ui/icons/Edit';
 import TuneIcon from '@material-ui/icons/Tune';
+import FilterIcon from '@material-ui/icons/FilterList';
 import Pagination from '@material-ui/lab/Pagination';
 
 import Dialog from '@material-ui/core/Dialog';
@@ -42,6 +43,7 @@ import {RedcapContext, RedcapProvider} from './redcap-context';
 import {Debouncer} from 'etna-js/utils/debouncer';
 
 import {makeStyles, Theme} from '@material-ui/core/styles';
+import {Filter} from '@material-ui/icons';
 
 const useStyles = makeStyles((theme: Theme) => ({
   form: {
@@ -162,6 +164,14 @@ const useStyles = makeStyles((theme: Theme) => ({
   remove_value: {
     width: 'auto',
     flex: '1 1 auto'
+  },
+  filterHeader: {
+    borderBottom: '1px solid #ccc',
+    background: '#ccc',
+    paddingLeft: '5px',
+    paddingRight: '5px',
+    marginLeft: '-5px',
+    marginRight: '-5px'
   }
 }));
 
@@ -697,6 +707,131 @@ const RedcapEntity = ({
 };
 
 type Script = any;
+type Filter = {
+  redcap_field: string;
+  exists?: boolean;
+  equals?: string;
+  in?: string[];
+  match?: string;
+};
+
+const RedcapFilter = ({
+  filter,
+  filter_props,
+  onChange
+}: {
+  filter: Filter;
+  filter_props: {[key: string]: any};
+  onChange: (filter: Filter | null) => void;
+}) => {
+  const classes = useStyles();
+  const [showAddProp, setShowAddProp] = useState(false);
+
+  const sort: {[key: string]: number | undefined} = {
+    redcap_field: 1
+  };
+  const fieldNames = useMemo(() => {
+    return Object.keys(filter).sort((a, b) => (sort[b] || 0) - (sort[a] || 0));
+  }, [filter]);
+
+  const handleUpdateValue = useCallback(
+    (field_name: string, newValue: any) => {
+      let v: Filter = {...filter, [field_name]: newValue};
+      if (newValue === undefined) delete v[field_name as keyof typeof Filter];
+      onChange(v);
+    },
+    [onChange, filter]
+  );
+
+  const valueComponent = fieldNames.map((field_name) => (
+    <ValueRow
+      key={field_name}
+      field_name={field_name}
+      value={filter[field_name as keyof typeof Filter]}
+      opts={filter_props?.[field_name]}
+      update={(newValue: any) => {
+        handleUpdateValue(field_name, newValue);
+      }}
+    />
+  ));
+
+  return (
+    <Grid item container alignItems='center'>
+      <Grid item xs={2}></Grid>
+      <Grid item container className={classes.attribute_value}>
+        {valueComponent}
+      </Grid>
+      <Grid item>
+        <Tooltip title='Add property'>
+          <IconButton onClick={() => setShowAddProp(true)}>
+            <EditIcon fontSize='small' />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title='Remove filter'>
+          <IconButton onClick={() => onChange(null)}>
+            <ClearIcon fontSize='small' />
+          </IconButton>
+        </Tooltip>
+      </Grid>
+      <AddProp
+        attribute_value={filter}
+        open={showAddProp}
+        close={() => setShowAddProp(false)}
+        update={onChange}
+        attribute_props={filter_props}
+      />
+    </Grid>
+  );
+};
+
+const ScriptFilters = ({
+  filters,
+  onChange
+}: {
+  filters: Filter[];
+  onChange: (filters: Filter[]) => void;
+}) => {
+  const classes = useStyles();
+
+  const {schema} = useContext(RedcapContext);
+  const filter_props = useMemo(
+    () => schema?.definitions?.filter_value?.properties,
+    [schema]
+  );
+
+  const handleOnChange = useCallback(
+    (newFilter: Filter | null, index: number) => {
+      let update = [...filters];
+
+      if (newFilter == null) {
+        update.splice(index, 1);
+      } else {
+        update[index] = newFilter;
+      }
+
+      onChange(update);
+    },
+    [onChange, filters]
+  );
+
+  return (
+    <Grid container direction='column' className={classes.attribute_name}>
+      <Typography className={classes.filterHeader}>Filters</Typography>
+      <Grid container item alignItems='center'>
+        {filters.map((filter: Filter, index: number) => {
+          return (
+            <RedcapFilter
+              key={index}
+              filter={filter}
+              filter_props={filter_props}
+              onChange={(newFilter) => handleOnChange(newFilter, index)}
+            />
+          );
+        })}
+      </Grid>
+    </Grid>
+  );
+};
 
 const RedcapScript = ({
   script,
@@ -712,7 +847,7 @@ const RedcapScript = ({
   modelName: string;
 }) => {
   const classes = useStyles();
-  const {attributes, each} = script;
+  const {attributes, each, filters} = script;
 
   const [showAddAttribute, setShowAddAttribute] = useState(false);
 
@@ -741,6 +876,27 @@ const RedcapScript = ({
     [handleUpdate, each, script]
   );
 
+  const addFilter = useCallback(() => {
+    handleUpdate({
+      ...script,
+      filters: [...(filters || [])].concat([
+        {
+          redcap_field: ''
+        }
+      ])
+    });
+  }, [script, filters, handleUpdate]);
+
+  const handleOnChangeFilters = useCallback(
+    (filters: Filter[]) => {
+      handleUpdate({
+        ...script,
+        filters: [...filters]
+      });
+    },
+    [handleUpdate, script]
+  );
+
   return (
     <Grid className={classes.script} container direction='column'>
       <Typography className={classes.number}>{num}</Typography>
@@ -762,6 +918,11 @@ const RedcapScript = ({
         </Grid>
         <Grid item xs={4}>
           <Grid container justify='flex-end'>
+            <Tooltip title='Add filter'>
+              <IconButton onClick={addFilter}>
+                <FilterIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
             <Tooltip title='Add attribute'>
               <IconButton onClick={() => setShowAddAttribute(true)}>
                 <AddIcon fontSize='small' />
@@ -788,6 +949,9 @@ const RedcapScript = ({
           update={(newValue: any) => updateAttributes(att_name, newValue)}
         />
       ))}
+      {filters?.length > 0 ? (
+        <ScriptFilters filters={filters} onChange={handleOnChangeFilters} />
+      ) : null}
       <AddAttribute
         modelName={modelName}
         script={script}
