@@ -246,7 +246,8 @@ const input_constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = {
   },
   'y_plot': {
     'x_by': "discrete",
-    'y_by': "continuous"
+    'y_by': "continuous",
+    'color_by': "discrete"
   }
 }
 
