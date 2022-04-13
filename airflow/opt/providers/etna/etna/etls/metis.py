@@ -398,6 +398,49 @@ class MetisEtlHelpers:
 
         return do_link(listed_record_matches)
 
+    def link_record_folders_to_parent(self, embedded_matches: XComArg, dry_run=True):
+        """
+        When record folders are embedded in metis such that parent model record folders
+        exist, it is common to want to 'link' the parent model attribute based on the folder name.
+
+        This function takes an XComArg containing a list of MatchedRecordFolder obtained via
+        `find_record_folders`, *whose source arg was not None*.  In other words, consider this example:
+
+
+        Imagine a directory structure like /MYSAMPLE.T1/ScRnaSeq/MYSAMPLE.T1.BLAH.BLAH
+        ```
+        sample_matches = helpers.find_record_folders("sample", SAMPLE_REGEX)
+        with TaskGroup("sc_rna_seq_matches"):
+          sc_rna_seq_matches = helpers.find_record_folders("sc_rna_seq", SC_RNA_SEQ_REGEX, source=sample_matches)
+          helpers.link_record_folders_to_parent(sc_rna_esq_matches)
+        ```
+
+        In this case, FIRST task will find "/MYSAMPLE.T1" as a "sample" record folder and it will belong
+        to the `XComArg` returned as `sample_matches`.
+
+        Next, it will search under /MYSAMPLE.T1 to find the MYSAMPLE.T1.BLAH.BLAH directory as a "sc_rna_eq" model
+        directory, noting the parent record folder as MYSAMPLE.T1 and that pairing will belong to sc_rna_seq_matches.
+
+        Lastly, the `link_record_folders_to_parent` will use the association between MYSAMPLE.T1.BLAH.BLAH and MYSAMPLE.T1
+        to make the association between that sc_rna_seq record and the parent sample record.
+        """
+        @link(dry_run=dry_run)
+        def link_record_folders_to_parent(record_matches: List[MatchedRecordFolder]):
+            with self.hook.magma(project_name=get_project_name()) as magma:
+                magma_models = magma.retrieve(get_project_name(), hide_templates=False).models
+            for record_folder_match in record_matches:
+                if record_folder_match.model_name not in magma_models:
+                    raise AirflowException(f"Folder #{record_folder_match} has invalid model_name")
+
+                if record_folder_match.match_parent is None:
+                    raise AirflowException(f"Folder #{record_folder_match} does not have a match parent, did you provide a source= argument to find_record_folders?")
+
+                parent = magma_models[record_folder_match.model_name].template.parent
+
+                yield record_folder_match, record_folder_match.as_update({parent: record_folder_match.match_parent.record_name})
+
+        return link_record_folders_to_parent(embedded_matches)
+
     def find_record_folders(
         self,
         # The model for which these matches represent identifiers for.

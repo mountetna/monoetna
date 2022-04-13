@@ -326,7 +326,7 @@ class TailNode:
 
     @property
     def updated_at_datetime(self) -> datetime:
-        return dateutil.parser.isoparse(self.updated_at)
+        return dateutil.parser.parse(self.updated_at)
 
 class TailResultContainer:
     bucket_name: str
@@ -424,7 +424,7 @@ class File:
 
     @property
     def updated_at_datetime(self) -> datetime:
-        return dateutil.parser.isoparse(self.updated_at)
+        return dateutil.parser.parse(self.updated_at)
 
 
 @serialize
@@ -441,7 +441,7 @@ class Folder:
 
     @property
     def updated_at_datetime(self) -> datetime:
-        return dateutil.parser.isoparse(self.updated_at)
+        return dateutil.parser.parse(self.updated_at)
 
 
 @serialize
