@@ -25,9 +25,10 @@ def create_and_link_parents(matches: List[MatchedRecordFolder]):
     for match in matches:
         if match.model_name == "sc_rna_seq_pool":
             yield match, match.as_update(dict(tube_name=match.record_name))
+            continue
 
         if match.model_name != "sc_rna_seq":
-            raise AirflowException(f"Model #{match.model_name} is not supported by this helper method.")
+            raise AirflowException(f"Model {match.model_name} is not supported by this helper method.")
 
         timepoint_id = timepoint_regex.match(match.record_name)
         if not timepoint_id:
@@ -48,11 +49,11 @@ def create_and_link_parents(matches: List[MatchedRecordFolder]):
         if "N" in timepoint_id:
             day *= -1
 
-        update.update_record("patient", patient_id, dict())
+        update = match.as_update(dict(timepoint=timepoint_id))
         update.update_record(
             "timepoint", timepoint_id, dict(patient=patient_id, day=day)
         )
-        update = match.as_update(dict(timepoint=timepoint_id))
+        update.update_record("patient", patient_id, dict())
         yield match, update
 
 def link_single_cell_attribute_files_v1(

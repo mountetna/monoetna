@@ -88,9 +88,10 @@ necessaril ybe backported to all data sets.</p>
     <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">model_name</span> <span class="o">==</span> <span class="s2">&quot;sc_rna_seq_pool&quot;</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">match</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">as_update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">tube_name</span><span class="o">=</span><span class="n">match</span><span class="o">.</span><span class="n">record_name</span><span class="p">))</span>
+            <span class="k">continue</span>
 
         <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">model_name</span> <span class="o">!=</span> <span class="s2">&quot;sc_rna_seq&quot;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model #</span><span class="si">{</span><span class="n">match</span><span class="o">.</span><span class="n">model_name</span><span class="si">}</span><span class="s2"> is not supported by this helper method.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">match</span><span class="o">.</span><span class="n">model_name</span><span class="si">}</span><span class="s2"> is not supported by this helper method.&quot;</span><span class="p">)</span>
 
         <span class="n">timepoint_id</span> <span class="o">=</span> <span class="n">timepoint_regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">record_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">timepoint_id</span><span class="p">:</span>
@@ -111,11 +112,11 @@ necessaril ybe backported to all data sets.</p>
         <span class="k">if</span> <span class="s2">&quot;N&quot;</span> <span class="ow">in</span> <span class="n">timepoint_id</span><span class="p">:</span>
             <span class="n">day</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
 
-        <span class="n">update</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="s2">&quot;patient&quot;</span><span class="p">,</span> <span class="n">patient_id</span><span class="p">,</span> <span class="nb">dict</span><span class="p">())</span>
+        <span class="n">update</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">as_update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">timepoint</span><span class="o">=</span><span class="n">timepoint_id</span><span class="p">))</span>
         <span class="n">update</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span>
             <span class="s2">&quot;timepoint&quot;</span><span class="p">,</span> <span class="n">timepoint_id</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">patient</span><span class="o">=</span><span class="n">patient_id</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="n">day</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="n">update</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">as_update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">timepoint</span><span class="o">=</span><span class="n">timepoint_id</span><span class="p">))</span>
+        <span class="n">update</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="s2">&quot;patient&quot;</span><span class="p">,</span> <span class="n">patient_id</span><span class="p">,</span> <span class="nb">dict</span><span class="p">())</span>
         <span class="k">yield</span> <span class="n">match</span><span class="p">,</span> <span class="n">update</span>
 
 <span class="k">def</span> <span class="nf">link_single_cell_attribute_files_v1</span><span class="p">(</span>
@@ -145,7 +146,7 @@ necessaril ybe backported to all data sets.</p>
     <span class="k">if</span> <span class="n">attribute_linker_overrides</span><span class="p">:</span>
         <span class="n">sc_file_linkers</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">attribute_linker_overrides</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="n">TaskGroup</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;#</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">_processed&quot;</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">TaskGroup</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">_processed&quot;</span><span class="p">):</span>
         <span class="n">processed_matches</span> <span class="o">=</span> <span class="n">helpers</span><span class="o">.</span><span class="n">find_record_folders</span><span class="p">(</span>
             <span class="n">model_name</span><span class="p">,</span>
             <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;^</span><span class="si">{</span><span class="n">single_cell_root_prefix</span><span class="si">}</span><span class="s2">[^/]*/processed/</span><span class="si">{</span><span class="n">identifier_prefix</span><span class="si">}</span><span class="s2">[^/]+&quot;</span><span class="p">),</span>
@@ -155,7 +156,7 @@ necessaril ybe backported to all data sets.</p>
         <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">matcher</span> <span class="ow">in</span> <span class="n">sc_file_linkers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">helpers</span><span class="o">.</span><span class="n">link_matching_file</span><span class="p">(</span><span class="n">listed_matches</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">matcher</span><span class="p">),</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="n">TaskGroup</span><span class="p">(</span><span class="s2">&quot;sc_rna_seq_raw&quot;</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">TaskGroup</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">_raw&quot;</span><span class="p">):</span>
         <span class="n">raw_matches</span> <span class="o">=</span> <span class="n">helpers</span><span class="o">.</span><span class="n">find_record_folders</span><span class="p">(</span>
             <span class="n">model_name</span><span class="p">,</span>
             <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;^</span><span class="si">{</span><span class="n">single_cell_root_prefix</span><span class="si">}</span><span class="s2">[^/]*/raw/</span><span class="si">{</span><span class="n">identifier_prefix</span><span class="si">}</span><span class="s2">[^/]+&quot;</span><span class="p">),</span>
@@ -192,9 +193,10 @@ necessaril ybe backported to all data sets.</p>
     <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">model_name</span> <span class="o">==</span> <span class="s2">&quot;sc_rna_seq_pool&quot;</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">match</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">as_update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">tube_name</span><span class="o">=</span><span class="n">match</span><span class="o">.</span><span class="n">record_name</span><span class="p">))</span>
+            <span class="k">continue</span>
 
         <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">model_name</span> <span class="o">!=</span> <span class="s2">&quot;sc_rna_seq&quot;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model #</span><span class="si">{</span><span class="n">match</span><span class="o">.</span><span class="n">model_name</span><span class="si">}</span><span class="s2"> is not supported by this helper method.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">match</span><span class="o">.</span><span class="n">model_name</span><span class="si">}</span><span class="s2"> is not supported by this helper method.&quot;</span><span class="p">)</span>
 
         <span class="n">timepoint_id</span> <span class="o">=</span> <span class="n">timepoint_regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">record_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">timepoint_id</span><span class="p">:</span>
@@ -215,11 +217,11 @@ necessaril ybe backported to all data sets.</p>
         <span class="k">if</span> <span class="s2">&quot;N&quot;</span> <span class="ow">in</span> <span class="n">timepoint_id</span><span class="p">:</span>
             <span class="n">day</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
 
-        <span class="n">update</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="s2">&quot;patient&quot;</span><span class="p">,</span> <span class="n">patient_id</span><span class="p">,</span> <span class="nb">dict</span><span class="p">())</span>
+        <span class="n">update</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">as_update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">timepoint</span><span class="o">=</span><span class="n">timepoint_id</span><span class="p">))</span>
         <span class="n">update</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span>
             <span class="s2">&quot;timepoint&quot;</span><span class="p">,</span> <span class="n">timepoint_id</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">patient</span><span class="o">=</span><span class="n">patient_id</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="n">day</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="n">update</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">as_update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">timepoint</span><span class="o">=</span><span class="n">timepoint_id</span><span class="p">))</span>
+        <span class="n">update</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="s2">&quot;patient&quot;</span><span class="p">,</span> <span class="n">patient_id</span><span class="p">,</span> <span class="nb">dict</span><span class="p">())</span>
         <span class="k">yield</span> <span class="n">match</span><span class="p">,</span> <span class="n">update</span>
 </pre></div>
 
@@ -272,7 +274,7 @@ necessaril ybe backported to all data sets.</p>
     <span class="k">if</span> <span class="n">attribute_linker_overrides</span><span class="p">:</span>
         <span class="n">sc_file_linkers</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">**</span><span class="n">attribute_linker_overrides</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="n">TaskGroup</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;#</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">_processed&quot;</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">TaskGroup</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">_processed&quot;</span><span class="p">):</span>
         <span class="n">processed_matches</span> <span class="o">=</span> <span class="n">helpers</span><span class="o">.</span><span class="n">find_record_folders</span><span class="p">(</span>
             <span class="n">model_name</span><span class="p">,</span>
             <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;^</span><span class="si">{</span><span class="n">single_cell_root_prefix</span><span class="si">}</span><span class="s2">[^/]*/processed/</span><span class="si">{</span><span class="n">identifier_prefix</span><span class="si">}</span><span class="s2">[^/]+&quot;</span><span class="p">),</span>
@@ -282,7 +284,7 @@ necessaril ybe backported to all data sets.</p>
         <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">matcher</span> <span class="ow">in</span> <span class="n">sc_file_linkers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">helpers</span><span class="o">.</span><span class="n">link_matching_file</span><span class="p">(</span><span class="n">listed_matches</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">matcher</span><span class="p">),</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="n">TaskGroup</span><span class="p">(</span><span class="s2">&quot;sc_rna_seq_raw&quot;</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">TaskGroup</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">_raw&quot;</span><span class="p">):</span>
         <span class="n">raw_matches</span> <span class="o">=</span> <span class="n">helpers</span><span class="o">.</span><span class="n">find_record_folders</span><span class="p">(</span>
             <span class="n">model_name</span><span class="p">,</span>
             <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;^</span><span class="si">{</span><span class="n">single_cell_root_prefix</span><span class="si">}</span><span class="s2">[^/]*/raw/</span><span class="si">{</span><span class="n">identifier_prefix</span><span class="si">}</span><span class="s2">[^/]+&quot;</span><span class="p">),</span>

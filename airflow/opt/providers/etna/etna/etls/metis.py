@@ -584,7 +584,7 @@ def filter_by_exists_in_timur(
             record_names=[m.record_name for m in matches],
         )
         result.extend(
-            m for m in matches if m.record_name in response.models[model_name].documents
+            m for m in matches if model_name in response.models and m.record_name in response.models[model_name].documents
         )
 
     return result
