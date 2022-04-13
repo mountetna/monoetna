@@ -204,7 +204,7 @@ const ValueRow = ({
   value: any;
   update: (newValue: any) => void;
   opts: any;
-  required: boolean;
+  required?: boolean;
 }) => {
   const classes = useStyles();
 
