@@ -1116,7 +1116,7 @@ const RedcapModel = ({
             update={(newScript: Script | undefined) =>
               handleUpdateScript(i, newScript)
             }
-            copy={() => handleCopyScript(i, script)}
+            copy={() => handleCopyScript(i + (page - 1) * pageSize, script)}
           />
         ))}
       </ModelRow>
