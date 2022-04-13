@@ -159,16 +159,26 @@ class link:
             result: List[MatchedRecordFolder] = []
             with self.hook.magma(read_only=False) as magma:
                 self.log.info("retrieving model...")
-                response = magma.retrieve(
+                models = magma.retrieve(
                     project_name=self.project_name,
                     model_name="all",
                     hide_templates=False,
-                )
+                ).models
+
+                project_models = magma.retrieve(project_name=self.project_name, model_name="project", record_names="all").models
+                if 'project' not in project_models:
+                    raise AirflowException('Project is not fully initialized, missing project model and record.')
+
+                project_rows = list(project_models['project'].documents.keys())
+                if not project_rows:
+                    raise AirflowException('Project is not fully initialized, missing record')
+
+                project = project_rows[0]
 
                 self.log.info("running linking function...")
                 for cur_batch in batch_iterable(fn(*args, **kwds), 50):
                     result.extend(
-                        self._process_link_batch(magma, response.models, cur_batch)
+                        self._process_link_batch(magma, models, cur_batch, project)
                     )
 
             return pickled(result)
@@ -185,6 +195,7 @@ class link:
         magma: Magma,
         models: Dict[str, Model],
         batch: Iterable[Tuple[MatchedRecordFolder, Any]],
+        project: str,
     ) -> List[MatchedRecordFolder]:
         result: List[MatchedRecordFolder] = []
         update: UpdateRequest = UpdateRequest(
@@ -216,11 +227,22 @@ class link:
             result.append(match)
             self.log.info(f"Updates to {updated_names} found in {match}")
 
+        self._expand_project_parents(update, models, project)
         self.log.info("Validating update...")
         self._validate_update(magma, update, models)
         self.log.info("Executing batched magma update")
         magma.update(update)
         return result
+
+    def _expand_project_parents(self, update: UpdateRequest, models: Dict[str, Model], project: str):
+        for model_name, revisions in update.revisions.items():
+            if model_name not in models:
+                continue
+            model = models[model_name]
+            self.log.info(f"Expanding project={project} for model {model_name}...")
+            if model.template.parent == "parent":
+                for revision in revisions.values():
+                    revision['project'] = project
 
     def _validate_update(self, magma: Magma, update: UpdateRequest, models: Dict[str, Model]):
         if not self.validate_record_update:

@@ -23,12 +23,9 @@ day_regex = re.compile(r".*-[A-Z][A-Z]?(?P<day>\d+)$")
 # TODO:  Would be great if a naming service provided this structure for us.
 def create_and_link_parents(matches: List[MatchedRecordFolder]):
     for match in matches:
-        if match.model_name == "sc_rna_seq_pool":
+        if 'pool' in match.model_name:
             yield match, match.as_update(dict(tube_name=match.record_name))
             continue
-
-        if match.model_name != "sc_rna_seq":
-            raise AirflowException(f"Model {match.model_name} is not supported by this helper method.")
 
         timepoint_id = timepoint_regex.match(match.record_name)
         if not timepoint_id:
@@ -110,4 +107,4 @@ def link_single_cell_attribute_files_v1(
             dry_run=dry_run,
         )
 
-    return [processed_matches, raw_matches]
+    return (processed_matches, raw_matches)
