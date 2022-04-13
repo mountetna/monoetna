@@ -164,13 +164,11 @@ const useStyles = makeStyles((theme: Theme) => ({
     width: 'auto',
     flex: '1 1 auto'
   },
-  filterHeader: {
-    borderBottom: '1px solid #ccc',
-    background: '#ccc',
-    paddingLeft: '5px',
-    paddingRight: '5px',
-    marginLeft: '-5px',
-    marginRight: '-5px'
+  script_children_header: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    padding: '0px 5px',
+    textTransform: 'capitalize'
   }
 }));
 
@@ -783,15 +781,55 @@ const RedcapFilter = ({
   );
 };
 
-const ScriptFilters = ({
-  filters,
-  onChange
+const ScriptChildren = ({
+  handleAdd,
+  label,
+  children
 }: {
-  filters: Filter[];
-  onChange: (filters: Filter[]) => void;
+  handleAdd: () => void;
+  label: string;
+  children: any;
 }) => {
   const classes = useStyles();
 
+  return (
+    <Grid container direction='column'>
+      <Grid
+        container
+        item
+        className={classes.script_header}
+        alignItems='center'
+      >
+        <Grid item className={classes.script_children_header} xs={2}>
+          {`${label}s`}
+        </Grid>
+        <Grid item xs={6}></Grid>
+        <Grid item xs={4}>
+          <Grid container justify='flex-end'>
+            <Tooltip title={`Add ${label}`}>
+              <IconButton onClick={handleAdd}>
+                <AddIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
+          </Grid>
+        </Grid>
+      </Grid>
+      <Grid container item alignItems='center'>
+        {children}
+      </Grid>
+    </Grid>
+  );
+};
+
+const ScriptFilters = ({
+  filters,
+  onChange,
+  handleAddFilter
+}: {
+  filters: Filter[];
+  onChange: (filters: Filter[]) => void;
+  handleAddFilter: () => void;
+}) => {
   const {schema} = useContext(RedcapContext);
   const filter_props = useMemo(
     () => schema?.definitions?.filter_value?.properties,
@@ -814,21 +852,41 @@ const ScriptFilters = ({
   );
 
   return (
-    <Grid container direction='column' className={classes.attribute_name}>
-      <Typography className={classes.filterHeader}>Filters</Typography>
-      <Grid container item alignItems='center'>
-        {filters.map((filter: Filter, index: number) => {
-          return (
-            <RedcapFilter
-              key={index}
-              filter={filter}
-              filter_props={filter_props}
-              onChange={(newFilter) => handleOnChange(newFilter, index)}
-            />
-          );
-        })}
-      </Grid>
-    </Grid>
+    <ScriptChildren label='filter' handleAdd={handleAddFilter}>
+      {filters?.map((filter: Filter, index: number) => {
+        return (
+          <RedcapFilter
+            key={index}
+            filter={filter}
+            filter_props={filter_props}
+            onChange={(newFilter) => handleOnChange(newFilter, index)}
+          />
+        );
+      })}
+    </ScriptChildren>
+  );
+};
+
+const ScriptAttributes = ({
+  attributes,
+  onChange,
+  handleAddAttribute
+}: {
+  attributes: any;
+  onChange: (attributeName: string, newValue: any) => void;
+  handleAddAttribute: () => void;
+}) => {
+  return (
+    <ScriptChildren label='attribute' handleAdd={handleAddAttribute}>
+      {Object.keys(attributes).map((att_name) => (
+        <RedcapAttribute
+          key={att_name}
+          att_name={att_name}
+          attribute_value={attributes[att_name]}
+          update={(newValue: any) => onChange(att_name, newValue)}
+        />
+      ))}
+    </ScriptChildren>
   );
 };
 
@@ -917,16 +975,6 @@ const RedcapScript = ({
         </Grid>
         <Grid item xs={4}>
           <Grid container justify='flex-end'>
-            <Tooltip title='Add filter'>
-              <IconButton onClick={addFilter}>
-                <FilterIcon fontSize='small' />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title='Add attribute'>
-              <IconButton onClick={() => setShowAddAttribute(true)}>
-                <AddIcon fontSize='small' />
-              </IconButton>
-            </Tooltip>
             <Tooltip title='Copy script'>
               <IconButton onClick={copy}>
                 <CopyIcon fontSize='small' />
@@ -940,17 +988,16 @@ const RedcapScript = ({
           </Grid>
         </Grid>
       </Grid>
-      {Object.keys(attributes).map((att_name) => (
-        <RedcapAttribute
-          key={att_name}
-          att_name={att_name}
-          attribute_value={attributes[att_name]}
-          update={(newValue: any) => updateAttributes(att_name, newValue)}
-        />
-      ))}
-      {filters?.length > 0 ? (
-        <ScriptFilters filters={filters} onChange={handleOnChangeFilters} />
-      ) : null}
+      <ScriptFilters
+        filters={filters}
+        onChange={handleOnChangeFilters}
+        handleAddFilter={addFilter}
+      />
+      <ScriptAttributes
+        attributes={attributes}
+        onChange={updateAttributes}
+        handleAddAttribute={() => setShowAddAttribute(true)}
+      />
       <AddAttribute
         modelName={modelName}
         script={script}
