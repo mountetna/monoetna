@@ -82,7 +82,7 @@ def link_single_cell_attribute_files_v1(
     if attribute_linker_overrides:
         sc_file_linkers.update(**attribute_linker_overrides)
 
-    with TaskGroup(f"#{model_name}_processed"):
+    with TaskGroup(f"{model_name}_processed"):
         processed_matches = helpers.find_record_folders(
             model_name,
             re.compile(f"^{single_cell_root_prefix}[^/]*/processed/{identifier_prefix}[^/]+"),
@@ -92,7 +92,7 @@ def link_single_cell_attribute_files_v1(
         for attr, matcher in sc_file_linkers.items():
             helpers.link_matching_file(listed_matches, attr, re.compile(matcher), dry_run=dry_run)
 
-    with TaskGroup("sc_rna_seq_raw"):
+    with TaskGroup(f"{model_name}_raw"):
         raw_matches = helpers.find_record_folders(
             model_name,
             re.compile(f"^{single_cell_root_prefix}[^/]*/raw/{identifier_prefix}[^/]+"),
