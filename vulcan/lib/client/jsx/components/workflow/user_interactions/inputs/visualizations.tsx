@@ -21,9 +21,9 @@ CWL Call: (parenthesis = optional)
       out: [data_frame, continuous_cols, discrete_cols, (preset)]
 
   user_plot_setup:
-    run: ui-queries/any-viz.cwl (Alternately, paired with below: 'ui-queries/scatter-plotly.cwl', 'ui-queries/y-plotly.cwl', or 'ui-queries/bar-plotly.cwl')
+    run: ui-queries/any-viz.cwl (Alternately, to lock in a plot type: 'ui-queries/scatter-plotly.cwl', 'ui-queries/y-plotly.cwl', or 'ui-queries/bar-plotly.cwl')
     label: 'Set plot options'
-    doc: "Selections here pick the plot type and how it should be generated. For addtional details, see https://mountetna.github.io/vulcan.html#the-setup-gui which is clickably linked within this workflow's 'vignette'."
+    doc: "Selections here adjust how the plot will be generated. For addtional details, see the 'Visualization with Vulcan' section of the Vulcan's documentation, acccessible via the 'Help' button at the top of this page. (<if using 'presets' or a set plot type, please describe! Example, scRNAseq.cwl umap:> This particular instance of the Plot Configuration Interface constitutes a version with preset values for plot-type (scatter_plot), X-Axis Data (UMAP_1), Y-Axis Data (UMAP_2), and Color Data (chosen above).)"
     in:
       data_frame: <in_step>/data_frame
       continuous_cols: <in_step>/continuous_cols
@@ -32,7 +32,7 @@ CWL Call: (parenthesis = optional)
       preset: <in_step>/preset
     out: [plot_setup]
   make_umap:
-    run: scripts/make_plot.cwl (Alternately, paired with above: 'scripts/make_scatter.cwl', 'scripts/y-plotly.cwl', or 'scripts/bar-plotly.cwl')
+    run: scripts/make_plot.cwl
     label: 'Create UMAP plot'
     in:
       plot_setup: user_plot_setup/plot_setup
@@ -44,12 +44,13 @@ Creation from python:
     from archimedes.functions.dataflow import output_path
     from archimedes.functions.plotting import output_column_types
   dataframe:
-    'df.to_json(output_path("data_frame"))' where df is a pandas.DataFrame.
+    'df.to_json(output_path("data_frame"))', where df is a pandas.DataFrame with attributes in columns and data points/obsevations in rows.
   continuous_cols, discrete_cols:
-    'output_column_types(df, "continuous_cols", "discrete_cols")'
+    'output_column_types(df, "continuous_cols", "discrete_cols")', with the same df used for 'dataframe' 
   preset:
     'output_json(preset, "preset")' where preset is a dict which one could pass to the target plotter function (in 'archimedes/archimedes/functions/plotting') via 'viz_fxn(**preset)'
-    Example:
+    Example, a umap where color_by is pre-selected in an upstream ui, and umap embeddings are stored in columns named '0' and '1':
+      color_by = input_var('color_by')
       plot_preset = {
         'x_by': '0',
         'y_by': '1',
@@ -73,8 +74,8 @@ JSX:
   'value', object where (key,val) pairs mostly equate to (key,val) pairs that could be splatted into an archimedes visualization funciton.
       
   Major design notes:
-    - Organized around having a set of pairs of input-names and associated component-setups.
-    - An 'input_sets' object defines the set of inputs that are used for a given visualization type.
+    - Organized around having pairs of input-names and associated component-setups.
+    - An 'input_sets' object defines the set of inputs that are used for a given visualization type.  Thus, after a plot-type choice, necessary inputs are known and the set of necessary ui pieces can be compiled. 
     - (key,val) pairs of the optional 'presets' input will cause any inputs' component-setup to be removed from the displayed set, while also providing the value to give to 'value[key]'.
   
 */
