@@ -128,7 +128,7 @@ function VisualizationUI({
       {Object.entries(input_sets[plotType]).map(([group_name, val]) => {
         const group_values: DataEnvelope<any> = pick(shownSetupValues,val)
         const open = expandedDrawers.includes(group_name);
-        console.log('group_values', group_values)
+        // console.log('group_values', group_values)
         return (Object.keys(group_values).length > 0) ? <InputWrapper key={group_name} title={group_name} values={group_values} open={open} toggleOpen={toggleDrawerExpansion}>
           {Object.entries(group_values).map(([key, val]) => {
             return <ComponentUse key={key} k={key} value={val} extra_inputs={extra_inputs[key]} updateValue={updateValue}/>
@@ -138,7 +138,7 @@ function VisualizationUI({
     </Grid>
   )
   
-  console.log(props.value);
+  // console.log(props.value);
   
   return (
     <div key='VizUI'>
@@ -289,7 +289,7 @@ function useExtraInputs(
       'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
       'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"]
     }
-  }, [options, full_data, plot_type]);
+  }, [options, plot_type, constraints, continuous, discrete]);
 
   return extra_inputs;
 }
