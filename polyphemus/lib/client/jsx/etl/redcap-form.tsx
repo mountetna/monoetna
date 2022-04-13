@@ -197,12 +197,14 @@ const ValueRow = ({
   field_name,
   value,
   update,
-  opts
+  opts,
+  required
 }: {
   field_name: string;
   value: any;
   update: (newValue: any) => void;
   opts: any;
+  required: boolean;
 }) => {
   const classes = useStyles();
 
@@ -273,18 +275,20 @@ const ValueRow = ({
         <Grid item className={classes.value}>
           {valueComponent}
         </Grid>
-        <Grid
-          item
-          className={classes.remove_value}
-          container
-          justify='flex-end'
-        >
-          <Tooltip title='Remove property'>
-            <IconButton onClick={() => update(undefined)}>
-              <ClearIcon fontSize='small' />
-            </IconButton>
-          </Tooltip>
-        </Grid>
+        {required ? null : (
+          <Grid
+            item
+            className={classes.remove_value}
+            container
+            justify='flex-end'
+          >
+            <Tooltip title='Remove property'>
+              <IconButton onClick={() => update(undefined)}>
+                <ClearIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
+          </Grid>
+        )}
       </Grid>
     </Card>
   );
@@ -715,10 +719,12 @@ type Filter = {
 const RedcapFilter = ({
   filter,
   filter_props,
+  filter_required,
   onChange
 }: {
   filter: Filter;
   filter_props: {[key: string]: any};
+  filter_required: string[];
   onChange: (filter: Filter | null) => void;
 }) => {
   const classes = useStyles();
@@ -746,6 +752,7 @@ const RedcapFilter = ({
       field_name={field_name}
       value={filter[field_name as keyof Filter]}
       opts={filter_props?.[field_name]}
+      required={!!filter_required?.includes(field_name)}
       update={(newValue: any) => {
         handleUpdateValue(field_name, newValue);
       }}
@@ -831,10 +838,13 @@ const ScriptFilters = ({
   handleAddFilter: () => void;
 }) => {
   const {schema} = useContext(RedcapContext);
-  const filter_props = useMemo(
-    () => schema?.definitions?.filter_value?.properties,
+  const filter_value = useMemo(
+    () => schema?.definitions?.filter_value,
     [schema]
   );
+  const filter_required = useMemo(() => filter_value?.required, [filter_value]);
+
+  const filter_props = useMemo(() => filter_value?.properties, [filter_value]);
 
   const handleOnChange = useCallback(
     (newFilter: Filter | null, index: number) => {
@@ -859,6 +869,7 @@ const ScriptFilters = ({
             key={index}
             filter={filter}
             filter_props={filter_props}
+            filter_required={filter_required}
             onChange={(newFilter) => handleOnChange(newFilter, index)}
           />
         );
