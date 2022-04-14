@@ -50,17 +50,22 @@ class BoxEtlHelpers:
     def filter_files(self,
         files: XComArg,
         # A regex to match against any file name, resulting files will be linked.
-        file_regex: re.Pattern = re.compile(r".*"),
+        file_name_regex: re.Pattern = re.compile(r".*"),
         # This regex is matched against the folder subpath of the file
         folder_path_regex: re.Pattern = re.compile(r".*"),):
         """
-        Creates a task that filters the Box files by regexp, and can also apply a regexp against the
+        Creates a task that filters the Box file names by regexp, and can also apply a regexp against the
         folder path for each file for further filtering.
+
+        args:
+            files: List of files from tail_files or previous filter_files call
+            file_name_regex: re.Pattern, i.e. re.compile(r".*\.fcs")
+            folder_path_regex: re.Pattern, i.e. re.compile(r".*ipi.*")
         """
 
         @task
         def filter_files(files):
-            result: List[BoxFile] = [f for f in files if folder_path_regex.match(f.folder_path) and file_regex.match(f.file_name)]
+            result: List[BoxFile] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.file_name)]
 
             return result
 
