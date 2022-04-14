@@ -1,15 +1,9 @@
-from datetime import datetime
-from inspect import isgenerator
-from typing import Dict, Optional, List
+from typing import List
 import os
 import re
-from urllib.parse import quote
 import logging
 
-from airflow import DAG
 from airflow.operators.python import get_current_context
-from requests.adapters import HTTPAdapter
-from serde import serialize, deserialize
 
 from airflow.decorators import task
 from airflow.models.taskinstance import Context
@@ -18,24 +12,6 @@ from airflow.models.xcom_arg import XComArg
 
 from etna.etls.etl_task_batching import get_batch_range
 
-import cached_property
-import dateutil
-import requests
-from airflow.exceptions import AirflowException
-from airflow.hooks.base import BaseHook
-from airflow.models import Connection
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-from requests import HTTPError, Session
-from requests.auth import AuthBase
-from serde.json import from_json, to_json
-from urllib3 import Retry
-
-from etna.dags.project_name import get_project_name
-from etna.hooks.keys import prepared_key_from
-from etna.utils.iterables import batch_iterable
-from etna.utils.multipart import encode_as_multipart
-from etna.utils.streaming import iterable_to_stream
 from etna.hooks.box import BoxHook, BoxFile, Box
 from etna.hooks.etna import EtnaHook
 
