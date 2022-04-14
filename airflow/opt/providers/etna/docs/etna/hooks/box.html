@@ -127,7 +127,13 @@
                                 <a class="function" href="#Box.tail">tail</a>
                         </li>
                         <li>
-                                <a class="function" href="#Box.open_file">open_file</a>
+                                <a class="function" href="#Box.ftps">ftps</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Box.file_size">file_size</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Box.retrieve_file">retrieve_file</a>
                         </li>
                 </ul>
 
@@ -163,6 +169,7 @@
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">ContextManager</span>
+<span class="kn">from</span> <span class="nn">ftplib</span> <span class="kn">import</span> <span class="n">FTP_TLS</span>
 
 <span class="kn">import</span> <span class="nn">cached_property</span>
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">AirflowException</span>
@@ -256,11 +263,11 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_lftp_line</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
-        <span class="n">sub_path</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">host</span><span class="si">}</span><span class="s2">/Root/</span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">sub_path</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="s2">&quot;Root&quot;</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">path</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">sub_path</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">from_json</span><span class="p">(</span><span class="n">BoxFile</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span>
             <span class="s2">&quot;file_name&quot;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
-            <span class="s2">&quot;folder_path&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;folder_path&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_name</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
         <span class="p">}))</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -268,11 +275,11 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">full_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;/Root/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;Root&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
 
 
 <span class="nd">@serialize</span>
@@ -331,6 +338,9 @@
         <span class="k">return</span> <span class="n">results</span>
 
     <span class="k">def</span> <span class="nf">_lftp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">batch_start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">batch_end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs the LFTP command to get a listing of files with a timestamp in the given date range.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">command</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">&quot;lftp&quot;</span><span class="p">,</span>
             <span class="s2">&quot;-u&quot;</span><span class="p">,</span>
@@ -353,7 +363,7 @@
 
             <span class="k">if</span> <span class="n">process</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;LFTP command failed!  Check logs for more information.&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;LFTP command failed!</span><span class="se">\n</span><span class="si">{</span><span class="n">process</span><span class="o">.</span><span class="n">stderr</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">process</span><span class="o">.</span><span class="n">stdout</span>
@@ -371,20 +381,36 @@
             <span class="n">command</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--older-than=</span><span class="si">{</span><span class="n">batch_end</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">command</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-            <span class="sa">f</span><span class="s2">&quot;Root/</span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;/Root/</span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span>
             <span class="s2">&quot;.;&quot;</span><span class="p">,</span>
             <span class="s2">&quot;bye&quot;</span>
         <span class="p">])</span>
 
         <span class="k">return</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
 
-    <span class="c1"># def _curl(self, )</span>
+    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+    <span class="k">def</span> <span class="nf">ftps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FTP_TLS</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Configures an FTP_TLS connection to Box.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ftps</span> <span class="o">=</span> <span class="n">FTP_TLS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">)</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="p">,</span> <span class="n">passwd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">open_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">BoxFile</span><span class="p">,</span> <span class="n">binary_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">ftps</span>
+
+        <span class="n">ftps</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">file_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">BoxFile</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the size of the given file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">ftps</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">BoxFile</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Opens the given file for download into a context as a python io (file like) object.</span>
-<span class="sd">        By default, when binary_mode is False, the underlying io object yields decoded strings using utf-8.</span>
-<span class="sd">        Otherwise, the provided io object yields bytes objects.</span>
+<span class="sd">        The underlying io object yields bytes objects.</span>
 
 <span class="sd">        Note:  Ideally, this method is used in combination with &#39;with&#39; syntax in python, so that the underlying</span>
 <span class="sd">        data stream is closed after usage.  This is especially performant when code only needs to access a small</span>
@@ -397,10 +423,11 @@
 <span class="sd">             break</span>
 <span class="sd">        ```</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_curl</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-        <span class="n">io_obj</span> <span class="o">=</span> <span class="n">iterable_to_stream</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">DEFAULT_BUFFER_SIZE</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">binary_mode</span><span class="p">:</span>
-            <span class="n">io_obj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">io_obj</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf8&#39;</span><span class="p">)</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">))</span>
+
+        <span class="n">io_obj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">retrbinary</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RETR </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">io_obj</span><span class="o">.</span><span class="n">write</span><span class="p">)</span>
+        <span class="n">io_obj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">io_obj</span>
 </pre></div>
 
@@ -748,11 +775,11 @@ for the efficiency of imports.</p>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_lftp_line</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
-        <span class="n">sub_path</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">host</span><span class="si">}</span><span class="s2">/Root/</span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">sub_path</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="s2">&quot;Root&quot;</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">path</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">sub_path</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">from_json</span><span class="p">(</span><span class="n">BoxFile</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span>
             <span class="s2">&quot;file_name&quot;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
-            <span class="s2">&quot;folder_path&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;folder_path&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_name</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
         <span class="p">}))</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -760,11 +787,11 @@ for the efficiency of imports.</p>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">full_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;/Root/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;Root&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -838,11 +865,11 @@ for the efficiency of imports.</p>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_lftp_line</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">host</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
-        <span class="n">sub_path</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">host</span><span class="si">}</span><span class="s2">/Root/</span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">sub_path</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="s2">&quot;Root&quot;</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">path</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">sub_path</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">from_json</span><span class="p">(</span><span class="n">BoxFile</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span>
             <span class="s2">&quot;file_name&quot;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
-            <span class="s2">&quot;folder_path&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;folder_path&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_name</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
         <span class="p">}))</span>
 </pre></div>
 
@@ -1000,6 +1027,9 @@ for the efficiency of imports.</p>
         <span class="k">return</span> <span class="n">results</span>
 
     <span class="k">def</span> <span class="nf">_lftp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">batch_start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">batch_end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs the LFTP command to get a listing of files with a timestamp in the given date range.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">command</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">&quot;lftp&quot;</span><span class="p">,</span>
             <span class="s2">&quot;-u&quot;</span><span class="p">,</span>
@@ -1022,7 +1052,7 @@ for the efficiency of imports.</p>
 
             <span class="k">if</span> <span class="n">process</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;LFTP command failed!  Check logs for more information.&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;LFTP command failed!</span><span class="se">\n</span><span class="si">{</span><span class="n">process</span><span class="o">.</span><span class="n">stderr</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">process</span><span class="o">.</span><span class="n">stdout</span>
@@ -1040,20 +1070,36 @@ for the efficiency of imports.</p>
             <span class="n">command</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--older-than=</span><span class="si">{</span><span class="n">batch_end</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">command</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-            <span class="sa">f</span><span class="s2">&quot;Root/</span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;/Root/</span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span>
             <span class="s2">&quot;.;&quot;</span><span class="p">,</span>
             <span class="s2">&quot;bye&quot;</span>
         <span class="p">])</span>
 
         <span class="k">return</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
 
-    <span class="c1"># def _curl(self, )</span>
+    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+    <span class="k">def</span> <span class="nf">ftps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FTP_TLS</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Configures an FTP_TLS connection to Box.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ftps</span> <span class="o">=</span> <span class="n">FTP_TLS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">)</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="p">,</span> <span class="n">passwd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">open_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">BoxFile</span><span class="p">,</span> <span class="n">binary_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">ftps</span>
+
+        <span class="n">ftps</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">file_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">BoxFile</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the size of the given file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">ftps</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">BoxFile</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Opens the given file for download into a context as a python io (file like) object.</span>
-<span class="sd">        By default, when binary_mode is False, the underlying io object yields decoded strings using utf-8.</span>
-<span class="sd">        Otherwise, the provided io object yields bytes objects.</span>
+<span class="sd">        The underlying io object yields bytes objects.</span>
 
 <span class="sd">        Note:  Ideally, this method is used in combination with &#39;with&#39; syntax in python, so that the underlying</span>
 <span class="sd">        data stream is closed after usage.  This is especially performant when code only needs to access a small</span>
@@ -1066,10 +1112,11 @@ for the efficiency of imports.</p>
 <span class="sd">             break</span>
 <span class="sd">        ```</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_curl</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-        <span class="n">io_obj</span> <span class="o">=</span> <span class="n">iterable_to_stream</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">DEFAULT_BUFFER_SIZE</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">binary_mode</span><span class="p">:</span>
-            <span class="n">io_obj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">io_obj</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf8&#39;</span><span class="p">)</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">))</span>
+
+        <span class="n">io_obj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">retrbinary</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RETR </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">io_obj</span><span class="o">.</span><span class="n">write</span><span class="p">)</span>
+        <span class="n">io_obj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">io_obj</span>
 </pre></div>
 
@@ -1168,25 +1215,80 @@ for the efficiency of imports.</p>
     
 
                             </div>
-                            <div id="Box.open_file" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#Box.open_file">#&nbsp;&nbsp</a>
+                            <div id="Box.ftps" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Box.ftps">#&nbsp;&nbsp</a>
+
+                <div class="decorator">@contextlib.contextmanager</div>
+
+            <span class="def">def</span>
+            <span class="name">ftps</span><span class="signature">(self) -&gt; ftplib.FTP_TLS</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+    <span class="k">def</span> <span class="nf">ftps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FTP_TLS</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Configures an FTP_TLS connection to Box.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ftps</span> <span class="o">=</span> <span class="n">FTP_TLS</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">)</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="p">,</span> <span class="n">passwd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+
+        <span class="k">yield</span> <span class="n">ftps</span>
+
+        <span class="n">ftps</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Configures an FTP_TLS connection to Box.</p>
+</div>
+
+
+                            </div>
+                            <div id="Box.file_size" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Box.file_size">#&nbsp;&nbsp</a>
 
         
             <span class="def">def</span>
-            <span class="name">open_file</span><span class="signature">(
+            <span class="name">file_size</span><span class="signature">(self, ftps: ftplib.FTP_TLS, file: <a href="#BoxFile">etna.hooks.box.BoxFile</a>) -&gt; int</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">file_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">BoxFile</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the size of the given file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">ftps</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Returns the size of the given file.</p>
+</div>
+
+
+                            </div>
+                            <div id="Box.retrieve_file" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Box.retrieve_file">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">retrieve_file</span><span class="signature">(
     self,
-    file: <a href="#BoxFile">etna.hooks.box.BoxFile</a>,
-    binary_mode=False
+    ftps: ftplib.FTP_TLS,
+    file: <a href="#BoxFile">etna.hooks.box.BoxFile</a>
 ) -&gt; _io.BufferedReader</span>:
     </div>
 
             <details>
             <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">open_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">BoxFile</span><span class="p">,</span> <span class="n">binary_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">BoxFile</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedReader</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Opens the given file for download into a context as a python io (file like) object.</span>
-<span class="sd">        By default, when binary_mode is False, the underlying io object yields decoded strings using utf-8.</span>
-<span class="sd">        Otherwise, the provided io object yields bytes objects.</span>
+<span class="sd">        The underlying io object yields bytes objects.</span>
 
 <span class="sd">        Note:  Ideally, this method is used in combination with &#39;with&#39; syntax in python, so that the underlying</span>
 <span class="sd">        data stream is closed after usage.  This is especially performant when code only needs to access a small</span>
@@ -1199,18 +1301,18 @@ for the efficiency of imports.</p>
 <span class="sd">             break</span>
 <span class="sd">        ```</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_curl</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-        <span class="n">io_obj</span> <span class="o">=</span> <span class="n">iterable_to_stream</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">DEFAULT_BUFFER_SIZE</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">binary_mode</span><span class="p">:</span>
-            <span class="n">io_obj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">TextIOWrapper</span><span class="p">(</span><span class="n">io_obj</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf8&#39;</span><span class="p">)</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">))</span>
+
+        <span class="n">io_obj</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">retrbinary</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RETR </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">io_obj</span><span class="o">.</span><span class="n">write</span><span class="p">)</span>
+        <span class="n">io_obj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">io_obj</span>
 </pre></div>
 
         </details>
 
             <div class="docstring"><p>Opens the given file for download into a context as a python io (file like) object.
-By default, when binary_mode is False, the underlying io object yields decoded strings using utf-8.
-Otherwise, the provided io object yields bytes objects.</p>
+The underlying io object yields bytes objects.</p>
 
 <p>Note:  Ideally, this method is used in combination with 'with' syntax in python, so that the underlying
 data stream is closed after usage.  This is especially performant when code only needs to access a small
