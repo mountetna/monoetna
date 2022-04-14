@@ -629,7 +629,7 @@ scoped to the given project_name, bucket_name pair.</p>
         <span class="n">hook</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">EtnaHook</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">task_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">validate_record_update</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">batch_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_id</span> <span class="o">=</span> <span class="n">task_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span> <span class="o">=</span> <span class="n">hook</span>
@@ -794,7 +794,7 @@ scoped to the given project_name, bucket_name pair.</p>
     hook: Union[<a href="etna/hooks/etna.html#EtnaHook">etna.hooks.etna.EtnaHook</a>, NoneType] = None,
     task_id: Union[str, NoneType] = None,
     validate_record_update: Union[Callable[[Any, Any, List[str]], bool], NoneType] = None,
-    batch_size=50
+    batch_size=30
 )</span>
     </div>
 
@@ -807,7 +807,7 @@ scoped to the given project_name, bucket_name pair.</p>
         <span class="n">hook</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">EtnaHook</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">task_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">validate_record_update</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">batch_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_id</span> <span class="o">=</span> <span class="n">task_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span> <span class="o">=</span> <span class="n">hook</span>

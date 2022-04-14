@@ -138,7 +138,7 @@ class link:
         hook: Optional[EtnaHook] = None,
         task_id: Optional[str] = None,
         validate_record_update: Optional[Callable[[Any, Any, List[str]], bool]] = None,
-        batch_size=50,
+        batch_size=30,
     ):
         self.task_id = task_id
         self._hook = hook
