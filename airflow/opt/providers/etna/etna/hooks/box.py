@@ -10,6 +10,7 @@ import re
 import subprocess
 import tempfile
 from typing import List, Dict, Optional, ContextManager
+from ftplib import FTP_TLS
 
 import cached_property
 from airflow import AirflowException
@@ -103,11 +104,11 @@ class BoxFile:
 
     @classmethod
     def from_lftp_line(cls, host, folder_name, line):
-        sub_path = line.split(f"{host}/Root/{folder_name}/")[1]
+        sub_path = line.split(os.path.join(host, "Root", folder_name, ""))[1]
         path, filename = os.path.split(sub_path)
         return from_json(BoxFile, json.dumps({
             "file_name": filename,
-            "folder_path": f"{folder_name}/{path}"
+            "folder_path": os.path.join(folder_name, path)
         }))
 
     def __str__(self):
@@ -115,11 +116,11 @@ class BoxFile:
 
     @property
     def path(self):
-        return f"{self.folder_path}/{self.file_name}"
+        return os.path.join(self.folder_path, self.file_name)
 
     @property
     def full_path(self):
-        return f"/Root/{self.folder_path}/{self.file_name}"
+        return os.path.join("/", "Root", self.folder_path, self.file_name)
 
 
 @serialize
@@ -178,6 +179,9 @@ class Box(object):
         return results
 
     def _lftp(self, folder_name: str, batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None):
+        """
+        Constructs the LFTP command to get a listing of files with a timestamp in the given date range.
+        """
         command = [
             "lftp",
             "-u",
@@ -218,20 +222,36 @@ class Box(object):
             command.append(f"--older-than={batch_end}")
 
         command.extend([
-            f"Root/{folder_name}/",
+            f"/Root/{folder_name}/",
             ".;",
             "bye"
         ])
 
         return ' '.join(command)
 
-    # def _curl(self, )
+    @contextlib.contextmanager
+    def ftps(self) -> FTP_TLS:
+        """
+        Configures an FTP_TLS connection to Box.
+        """
+        ftps = FTP_TLS(self.hook.connection.host)
+        ftps.login(user=self.hook.connection.login, passwd=self.hook.connection.password)
 
-    def open_file(self, file: BoxFile, binary_mode=False) -> io.BufferedReader:
+        yield ftps
+
+        ftps.quit()
+
+    def file_size(self, ftps: FTP_TLS, file: BoxFile) -> int:
+        """
+        Returns the size of the given file.
+        """
+        ftps.cwd(os.path.dirname(file.full_path))
+        return ftps.size(file.file_name)
+
+    def retrieve_file(self, ftps: FTP_TLS, file: BoxFile) -> io.BufferedReader:
         """
         Opens the given file for download into a context as a python io (file like) object.
-        By default, when binary_mode is False, the underlying io object yields decoded strings using utf-8.
-        Otherwise, the provided io object yields bytes objects.
+        The underlying io object yields bytes objects.
 
         Note:  Ideally, this method is used in combination with 'with' syntax in python, so that the underlying
         data stream is closed after usage.  This is especially performant when code only needs to access a small
@@ -244,8 +264,9 @@ class Box(object):
              break
         ```
         """
-        response = self._curl(file)
-        io_obj = iterable_to_stream(response.iter_content(io.DEFAULT_BUFFER_SIZE))
-        if not binary_mode:
-            io_obj = io.TextIOWrapper(io_obj, encoding='utf8')
+        ftps.cwd(os.path.dirname(file.full_path))
+
+        io_obj = io.BytesIO()
+        ftps.retrbinary(f"RETR {file.file_name}", io_obj.write)
+        io_obj.seek(0)
         return io_obj

@@ -1,6 +1,7 @@
 from datetime import datetime
 from inspect import isgenerator
 from typing import Dict, Optional, List
+import os
 import re
 from urllib.parse import quote
 import logging
@@ -36,6 +37,7 @@ from etna.utils.iterables import batch_iterable
 from etna.utils.multipart import encode_as_multipart
 from etna.utils.streaming import iterable_to_stream
 from etna.hooks.box import BoxHook, BoxFile, Box
+from etna.hooks.etna import EtnaHook
 
 
 class BoxEtlHelpers:
@@ -43,12 +45,13 @@ class BoxEtlHelpers:
 
     def __init__(self, hook: BoxHook):
         self.hook = hook
+        self.log = logging.getLogger("airflow.task")
 
     def filter_files(self,
         files: XComArg,
-        # A regex to match against any file name inside of a MatchedRecordFolder, resulting files will be linked.
+        # A regex to match against any file name, resulting files will be linked.
         file_regex: re.Pattern = re.compile(r".*"),
-        # This regex is matched first against the folder subpath within the matched record folder before linking all matching files (including none)
+        # This regex is matched against the folder subpath of the file
         folder_path_regex: re.Pattern = re.compile(r".*"),):
         """
         Creates a task that filters the Box files by regexp, and can also apply a regexp against the
@@ -63,63 +66,33 @@ class BoxEtlHelpers:
 
         return filter_files(files)
 
-    def ingest_to_metis(self, project_name: str = "triage", bucket_name: str = "waiting_room") -> XComArg:
-        pass
-
-    def ingest_to_c4(
-        self,
-        # an XComArg that lists MatchedRecordFiles, usually the result of tail()
-        listed_record_matches: XComArg,
-        # By default, the ingestion process does a dry-run fetch for files.  set dry_run=False to actually download files to C4.
-        dry_run=True,
-    ) -> XComArg:
+    def ingest_to_metis(self, files: XComArg, project_name: str = "triage", bucket_name: str = "waiting_room") -> XComArg:
         """
-        Creates a task that follows the listed set of record match folders and calls the given
-        processor function to provide an UpdateRequest object as a result of matching files from
-        the listed match record folder.
+        Given a list of BoxFiles, will copy them to the given Metis project_name and bucket_name,
+        mimicking the full directory structure from Box.
 
-        The decorated function can receive arguments named metis, file, match, or template,
-        each being either a MetisClient, File, MatchedRecordFolder, or Template respectively.
-
-        eg:
-
-        ```
-        def my_processor(metis, template, match, file):
-          with metis.open_file(file) as file_reader:
-            csv_reader = csv.reader(file_reader)
-            return match.as_update(csv_reader)
-
-        matches = helpers.find_record_folders('rna_seq', rna_seq_folder_regex)
-        listed_matches = helpers.list_match_folders(matches)
-        helpers.process_and_link_matching_file(listed_matches, re.compile(r'.*gene_counts\.tsv$'), my_processor)
-        ```
+        Default project_name is `triage`
+        Default bucket_name is `waiting_room`
         """
-
         @task
-        def do_link(listed_matches: List[Tuple[MatchedRecordFolder, List[File]]]):
-            with self.hook.magma(
-                project_name=get_project_name(), read_only=True
-            ) as magma:
-                models = magma.retrieve(get_project_name(), hide_templates=False).models
-                with self.hook.metis(read_only=False) as metis:
-                    for match, files in listed_matches:
-                        for file in files:
-                            if regex.match(file.file_name):
-                                template: Template = None
-                                if match.model_name in models:
-                                    template = models[match.model_name].template
+        def ingest(files, project_name, bucket_name):
+            etna_hook = EtnaHook.for_project(project_name)
+            with etna_hook.metis(project_name, read_only=False) as metis, self.hook.box() as box, box.ftps() as ftps:
+                self.log.info(f"Attempting to upload {len(files)} files to Metis")
+                for file in files:
+                    with box.retrieve_file(ftps, file) as box_io_file:
+                        self.log.info(f"Uploading {file.full_path}.")
+                        for blob in metis.upload_file(
+                            project_name,
+                            bucket_name,
+                            os.path.join(self.hook.connection.host, file.path),
+                            box_io_file,
+                            box.file_size(ftps, file)
+                        ):
+                            self.log.info("Uploading blob...")
+                        self.log.info(f"Done with {file.full_path}")
 
-                                yield match, inject(
-                                    processor,
-                                    dict(
-                                        metis=metis,
-                                        file=file,
-                                        match=match,
-                                        template=template,
-                                    ),
-                                )
-
-        return do_link(listed_record_matches)
+        return ingest(files, project_name, bucket_name)
 
 
 def load_box_files_batch(
