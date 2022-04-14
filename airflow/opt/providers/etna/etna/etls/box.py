@@ -76,8 +76,10 @@ class BoxEtlHelpers:
         Given a list of BoxFiles, will copy them to the given Metis project_name and bucket_name,
         mimicking the full directory structure from Box.
 
-        Default project_name is `triage`
-        Default bucket_name is `waiting_room`
+        args:
+            files: List of files from tail_files or filter_files call
+            project_name: str, the target Metis project name. Default is `triage`
+            bucket_name: str, the target Metis bucket name. Default is `waiting_room`
         """
         @task
         def ingest(files, project_name, bucket_name):
