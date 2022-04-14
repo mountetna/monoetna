@@ -86,12 +86,9 @@ necessaril ybe backported to all data sets.</p>
 <span class="c1"># TODO:  Would be great if a naming service provided this structure for us.</span>
 <span class="k">def</span> <span class="nf">create_and_link_parents</span><span class="p">(</span><span class="n">matches</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">]):</span>
     <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">model_name</span> <span class="o">==</span> <span class="s2">&quot;sc_rna_seq_pool&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;pool&#39;</span> <span class="ow">in</span> <span class="n">match</span><span class="o">.</span><span class="n">model_name</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">match</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">as_update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">tube_name</span><span class="o">=</span><span class="n">match</span><span class="o">.</span><span class="n">record_name</span><span class="p">))</span>
             <span class="k">continue</span>
-
-        <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">model_name</span> <span class="o">!=</span> <span class="s2">&quot;sc_rna_seq&quot;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">match</span><span class="o">.</span><span class="n">model_name</span><span class="si">}</span><span class="s2"> is not supported by this helper method.&quot;</span><span class="p">)</span>
 
         <span class="n">timepoint_id</span> <span class="o">=</span> <span class="n">timepoint_regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">record_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">timepoint_id</span><span class="p">:</span>
@@ -151,7 +148,7 @@ necessaril ybe backported to all data sets.</p>
             <span class="n">model_name</span><span class="p">,</span>
             <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;^</span><span class="si">{</span><span class="n">single_cell_root_prefix</span><span class="si">}</span><span class="s2">[^/]*/processed/</span><span class="si">{</span><span class="n">identifier_prefix</span><span class="si">}</span><span class="s2">[^/]+&quot;</span><span class="p">),</span>
         <span class="p">)</span>
-        <span class="n">processed_matches</span> <span class="o">=</span> <span class="n">link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)(</span><span class="n">create_and_link_parents</span><span class="p">)(</span><span class="n">processed_matches</span><span class="p">)</span>
+        <span class="n">processed_matches</span> <span class="o">=</span> <span class="n">link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)(</span><span class="n">create_and_link_parents</span><span class="p">)(</span><span class="n">processed_matches</span><span class="p">)</span>
         <span class="n">listed_matches</span> <span class="o">=</span> <span class="n">helpers</span><span class="o">.</span><span class="n">list_match_folders</span><span class="p">(</span><span class="n">processed_matches</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">matcher</span> <span class="ow">in</span> <span class="n">sc_file_linkers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">helpers</span><span class="o">.</span><span class="n">link_matching_file</span><span class="p">(</span><span class="n">listed_matches</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">matcher</span><span class="p">),</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
@@ -162,7 +159,7 @@ necessaril ybe backported to all data sets.</p>
             <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;^</span><span class="si">{</span><span class="n">single_cell_root_prefix</span><span class="si">}</span><span class="s2">[^/]*/raw/</span><span class="si">{</span><span class="n">identifier_prefix</span><span class="si">}</span><span class="s2">[^/]+&quot;</span><span class="p">),</span>
         <span class="p">)</span>
 
-        <span class="n">raw_matches</span> <span class="o">=</span> <span class="n">link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)(</span><span class="n">create_and_link_parents</span><span class="p">)(</span><span class="n">raw_matches</span><span class="p">)</span>
+        <span class="n">raw_matches</span> <span class="o">=</span> <span class="n">link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)(</span><span class="n">create_and_link_parents</span><span class="p">)(</span><span class="n">raw_matches</span><span class="p">)</span>
         <span class="c1"># create new records if needed</span>
         <span class="n">listed_matches</span> <span class="o">=</span> <span class="n">helpers</span><span class="o">.</span><span class="n">list_match_folders</span><span class="p">(</span><span class="n">raw_matches</span><span class="p">)</span>
         <span class="c1"># make this a raw_fastq_files collection</span>
@@ -173,7 +170,7 @@ necessaril ybe backported to all data sets.</p>
             <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="k">return</span> <span class="p">[</span><span class="n">processed_matches</span><span class="p">,</span> <span class="n">raw_matches</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">processed_matches</span><span class="p">,</span> <span class="n">raw_matches</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -191,12 +188,9 @@ necessaril ybe backported to all data sets.</p>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span><span class="k">def</span> <span class="nf">create_and_link_parents</span><span class="p">(</span><span class="n">matches</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">]):</span>
     <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">model_name</span> <span class="o">==</span> <span class="s2">&quot;sc_rna_seq_pool&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;pool&#39;</span> <span class="ow">in</span> <span class="n">match</span><span class="o">.</span><span class="n">model_name</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">match</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">as_update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">tube_name</span><span class="o">=</span><span class="n">match</span><span class="o">.</span><span class="n">record_name</span><span class="p">))</span>
             <span class="k">continue</span>
-
-        <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">model_name</span> <span class="o">!=</span> <span class="s2">&quot;sc_rna_seq&quot;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">match</span><span class="o">.</span><span class="n">model_name</span><span class="si">}</span><span class="s2"> is not supported by this helper method.&quot;</span><span class="p">)</span>
 
         <span class="n">timepoint_id</span> <span class="o">=</span> <span class="n">timepoint_regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">record_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">timepoint_id</span><span class="p">:</span>
@@ -279,7 +273,7 @@ necessaril ybe backported to all data sets.</p>
             <span class="n">model_name</span><span class="p">,</span>
             <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;^</span><span class="si">{</span><span class="n">single_cell_root_prefix</span><span class="si">}</span><span class="s2">[^/]*/processed/</span><span class="si">{</span><span class="n">identifier_prefix</span><span class="si">}</span><span class="s2">[^/]+&quot;</span><span class="p">),</span>
         <span class="p">)</span>
-        <span class="n">processed_matches</span> <span class="o">=</span> <span class="n">link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)(</span><span class="n">create_and_link_parents</span><span class="p">)(</span><span class="n">processed_matches</span><span class="p">)</span>
+        <span class="n">processed_matches</span> <span class="o">=</span> <span class="n">link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)(</span><span class="n">create_and_link_parents</span><span class="p">)(</span><span class="n">processed_matches</span><span class="p">)</span>
         <span class="n">listed_matches</span> <span class="o">=</span> <span class="n">helpers</span><span class="o">.</span><span class="n">list_match_folders</span><span class="p">(</span><span class="n">processed_matches</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">matcher</span> <span class="ow">in</span> <span class="n">sc_file_linkers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">helpers</span><span class="o">.</span><span class="n">link_matching_file</span><span class="p">(</span><span class="n">listed_matches</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">matcher</span><span class="p">),</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
@@ -290,7 +284,7 @@ necessaril ybe backported to all data sets.</p>
             <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;^</span><span class="si">{</span><span class="n">single_cell_root_prefix</span><span class="si">}</span><span class="s2">[^/]*/raw/</span><span class="si">{</span><span class="n">identifier_prefix</span><span class="si">}</span><span class="s2">[^/]+&quot;</span><span class="p">),</span>
         <span class="p">)</span>
 
-        <span class="n">raw_matches</span> <span class="o">=</span> <span class="n">link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)(</span><span class="n">create_and_link_parents</span><span class="p">)(</span><span class="n">raw_matches</span><span class="p">)</span>
+        <span class="n">raw_matches</span> <span class="o">=</span> <span class="n">link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)(</span><span class="n">create_and_link_parents</span><span class="p">)(</span><span class="n">raw_matches</span><span class="p">)</span>
         <span class="c1"># create new records if needed</span>
         <span class="n">listed_matches</span> <span class="o">=</span> <span class="n">helpers</span><span class="o">.</span><span class="n">list_match_folders</span><span class="p">(</span><span class="n">raw_matches</span><span class="p">)</span>
         <span class="c1"># make this a raw_fastq_files collection</span>
@@ -301,7 +295,7 @@ necessaril ybe backported to all data sets.</p>
             <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="k">return</span> <span class="p">[</span><span class="n">processed_matches</span><span class="p">,</span> <span class="n">raw_matches</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">processed_matches</span><span class="p">,</span> <span class="n">raw_matches</span><span class="p">)</span>
 </pre></div>
 
         </details>

@@ -129,6 +129,7 @@ class link:
     _hook: Optional[EtnaHook]
     attribute_name: Optional[str]
     validate_record_update: Optional[Callable[[Any, Any, List[str]], bool]]
+    batch_size: int
 
     def __init__(
         self,
@@ -136,7 +137,8 @@ class link:
         dry_run=True,
         hook: Optional[EtnaHook] = None,
         task_id: Optional[str] = None,
-        validate_record_update: Optional[Callable[[Any, Any, List[str]], bool]] = None
+        validate_record_update: Optional[Callable[[Any, Any, List[str]], bool]] = None,
+        batch_size=50,
     ):
         self.task_id = task_id
         self._hook = hook
@@ -144,6 +146,7 @@ class link:
         self.attribute_name = attribute_name
         self.log = logging.getLogger("airflow.task")
         self.validate_record_update = validate_record_update
+        self.batch_size = batch_size
 
     @property
     def project_name(self) -> str:
@@ -165,7 +168,7 @@ class link:
                     hide_templates=False,
                 ).models
 
-                project_models = magma.retrieve(project_name=self.project_name, model_name="project", record_names="all").models
+                project_models = magma.retrieve(project_name=self.project_name, model_name="project", record_names="all", attribute_names=["identifier"]).models
                 if 'project' not in project_models:
                     raise AirflowException('Project is not fully initialized, missing project model and record.')
 
@@ -176,7 +179,7 @@ class link:
                 project = project_rows[0]
 
                 self.log.info("running linking function...")
-                for cur_batch in batch_iterable(fn(*args, **kwds), 50):
+                for cur_batch in batch_iterable(fn(*args, **kwds), self.batch_size):
                     result.extend(
                         self._process_link_batch(magma, models, cur_batch, project)
                     )
