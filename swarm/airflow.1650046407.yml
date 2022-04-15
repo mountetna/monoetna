@@ -53,7 +53,7 @@ services:
         - autoupdate=true
         - prometheus_port=8080
         - prometheus_path=/admin/metrics
-      replicas: 1
+      replicas: 2
       placement:
         constraints:
           - node.labels.volumes.big-shared == true
