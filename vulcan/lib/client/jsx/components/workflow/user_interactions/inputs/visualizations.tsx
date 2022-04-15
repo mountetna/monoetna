@@ -13,6 +13,8 @@ import { key_wrap, stringPiece, dropdownPiece, multiselectPiece, checkboxPiece, 
 import { subsetDataFramePiece } from './subsetDataFrame_piece';
 
 /*
+Docmentation last updated: Apr 15, 2022
+
 This UI is closely tied to archimedes/functions/plotting/*_plotly functions.
 
 CWL Call: (parenthesis = optional)
