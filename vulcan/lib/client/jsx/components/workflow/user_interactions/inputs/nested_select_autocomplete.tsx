@@ -53,7 +53,11 @@ function LeafOptions({
   handleSelect: (value: string | null, depth: number) => void;
   maxOptions?: number;
 }) {
-  if ( (!options_in) || (value!=null && !options_in.includes(value)) ) return null;
+  if (!options_in) return null;
+  if (value!=null && !options_in.includes(value)) {
+    console.log('skipping render due to mismatch')
+    return null
+  }
   return (
     <SelectAutocompleteInput
       key={`${depth}-${options_in.slice(0, 5).join('-')}`}

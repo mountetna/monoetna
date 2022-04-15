@@ -189,3 +189,27 @@ DataTransformation.args = {
     }
   }
 }
+
+export const nestedTest = Template.bind({});
+nestedTest.args = {
+  type: TYPE.NESTED_SELECT_AUTOCOMPLETE,
+  cwlParams: {
+    'options-a': {
+      option1: {
+        suboption1: null,
+        suboption2: {
+          grandchild1: null,
+          grandchild2: null
+        }
+      }
+    },
+    'options-b': {
+      option2: {
+        another1: {
+          stepchild1: null,
+          stepchild2: null
+        }
+      }
+    }
+  }
+};

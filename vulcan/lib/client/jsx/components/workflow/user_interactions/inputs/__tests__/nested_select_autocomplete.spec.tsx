@@ -65,7 +65,7 @@ describe('NestedSelectAutocompleteInput', () => {
     ];
 
     const options = autocomplete.props.options;
-
+    console.log("picking " + options[optionIndex])
     await act(async () => {
       autocomplete.props.onChange(null, options[optionIndex]);
     });
@@ -128,9 +128,12 @@ describe('NestedSelectAutocompleteInput', () => {
 
     it('correctly updates dropdowns when given a value', async () => {
       const {node} = integrated.value;
+      
+      console.log('problem test')
 
       expect(node.root.findAllByType('input').length).toEqual(3);
       await clickAutocompleteOption(node.root, 0, 0);
+      console.log(node.root.findByType(NestedSelectAutocompleteInput).props.value)
       expect(node.root.findAllByType('input').length).toEqual(2);
     });
   });
