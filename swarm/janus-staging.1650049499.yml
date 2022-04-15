@@ -4,7 +4,7 @@ services:
   postgres:
     image: postgres:10.19
     environment:
-      POSTGRES_DB: "magma"
+      POSTGRES_DB: "janus"
       POSTGRES_PASSWORD_FILE: /run/secrets/password
       POSTGRES_USER: developer
     volumes:
@@ -12,22 +12,21 @@ services:
     deploy:
       placement:
         constraints:
-          - node.labels.volumes.magma_staging_db == true
+          - node.labels.volumes.janus_staging_db == true
     networks:
       - db
     secrets:
-      - source: db-pw
-        target: password
+    - source: db-pw
+      target: password
 
   app:
     environment:
-      - APP_NAME=magma
-      - MAGMA_ENV=production
+      - APP_NAME=janus
+      - JANUS_ENV=production
       - ETNA__PRODUCTION_FILE=/app/env.yml
       - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
+      - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN=/run/secrets/rollbar-access-token
       - ETNA__PRODUCTION__USER_HASH_SECRET=/run/secrets/user-hash-secret
-      - ETNA__PRODUCTION__HMAC_KEYS__METIS_FILE=/run/secrets/staging-metis-hmac
-      - ETNA__PRODUCTION__HMAC_KEYS__MAGMA_FILE=/run/secrets/staging-metis-hmac
     command:
       - bash
       - -c
@@ -35,9 +34,7 @@ services:
         set -e
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
         exec /bin/deploy.sh migrate -- /app/bin/puma.sh
-    image: etnaagent/magma:staging
-
-    #user: ${APP_UID}:999 # metis:docker
+    image: etnaagent/janus:staging
     deploy:
       update_config:
         parallelism: 1
@@ -59,25 +56,23 @@ services:
       prometheus:
       fe:
         aliases:
-          - magma_app
+          - janus_app
     secrets:
-      - staging-metis-hmac
-      - staging-magma-hmac
       - metrics-pw
-      - user-hash-secret
       - source: db-pw
         target: db-password
 
   app_fe:
     environment:
-      - APP_NAME=magma
-      - MAGMA_ENV=production
-    image: etnaagent/magma_app_fe:staging
+      - APP_NAME=janus
+      - JANUS_ENV=production
+    image: etnaagent/janus_app_fe:staging
     networks:
       - edge_bridge
       - fe
     volumes:
       - app_public:/app/public:nocopy
+      - staging_shibboleth:/shibboleth:nocopy
     # Notably, apache needs to start as super user but it immediately downgrades
     # its own user permissions after bootup.  See the includes.
     user: 0:3000 # su:browser
@@ -89,19 +84,19 @@ services:
         - autoupdate=true
       placement:
         constraints:
-          - node.labels.volumes.big-share == true
+          - node.labels.volumes.big-shared == true
+    command:
+      - /bin/httpd_with_shibd.sh
 
   app_assets_deployer:
     environment:
-      - APP_NAME=magma
-      - MAGMA_ENV=production
-
+      - APP_NAME=janus
+      - JANUS_ENV=production
+    user: 0:3000 # root/browser -- todo, this can only become a lower permission once the app images are built that way
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
-    image: etnaagent/magma:staging
+    image: etnaagent/janus:staging
     volumes:
       - app_public:/sync-assets:nocopy
-
-    user: 0:3000
     deploy:
       labels:
         - autoupdate=true
@@ -109,28 +104,34 @@ services:
         condition: none
       mode: global
       placement:
-        max_replicas_per_node: 1
         constraints:
-          - node.labels.volumes.big-share == true
+          - node.labels.volumes.big-shared == true
 
 volumes:
   app_public:
-    name: magma_staging_app_public
+    name: janus_staging_app_public
     driver: local
     driver_opts:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
-      device: ":/cache/magma/staging/app_public"
+      device: ":/cache/janus/staging/app_public"
   db:
-    name: "magma_staging_db"
+    name: "janus_staging_db"
+  staging_shibboleth:
+    name: janus_staging_shibboleth
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
+      device: ":/cache/janus/staging/shibboleth"
 
 configs:
   browser.system.include:
-    name: ${BROWSER_SYSTEM_INCLUDE:-browser.system.include}
     external: true
+    name: ${BROWSER_SYSTEM_INCLUDE:-browser.system.include}
   config:
     external: true
-    name: ${APP_CONFIG:-magma.staging.yml}
+    name: ${APP_CONFIG:-janus.staging.yml}
   env:
     external: true
     name: ${ENV_CONFIG:-etna.staging.yml}
@@ -142,15 +143,9 @@ secrets:
   metrics-pw:
     external: true
     name: ${METRICS_PW:-metrics-pw}
-  staging-metis-hmac:
-    external: true
-    name: ${STAGING_METIS_HMAC:-staging-metis-hmac}
-  staging-magma-hmac:
-    external: true
-    name: ${STAGING_MAGMA_HMAC:-staging-magma-hmac}
   db-pw:
     external: true
-    name: "magma_staging_db_password"
+    name: "janus_staging_db_password"
 
 networks:
   fe:
