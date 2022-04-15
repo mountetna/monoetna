@@ -1,0 +1,353 @@
+# airflow-code-editor changelog
+
+## 1.0.0
+
+2019-08-06
+
+### Added
+
+- initial version
+
+## 1.0.1
+
+2019-08-07
+
+### Fix
+
+- change static folder
+
+## 2.0.0
+
+2019-08-30
+
+### Added
+
+- git gui
+
+## 2.0.1
+
+2019-09-04
+
+### Added
+
+- configuration options
+
+## 2.0.2
+
+2019-09-05
+
+### Added
+
+- show tree files with CodeMirror
+
+## 2.1.0
+
+2019-10-15
+
+### Fixed
+
+- fix newline (cr+lf vs lf)
+
+## 2.1.1
+
+2019-11-19
+
+### Fixed
+
+- fix missing icons
+
+## 2.2.0
+
+2020-09-04
+
+### Added
+
+- configurable root folder and download link
+
+## 2.2.1
+
+2020-09-04
+
+### Fixed
+
+- fixed format file size
+
+## 2.2.2
+
+2020-09-07
+
+### Added
+
+- configurable additional folders
+- show files modification date
+- add link for downloading from git
+- tests added
+
+## 2.2.3
+
+2020-09-11
+
+### Added
+- save as
+- auto detect file mode
+
+### Changed
+- CodeMirror upgrade
+- editor layout
+
+## 2.2.4
+
+2020-09-17
+
+### Fixed
+
+- mount points config parsing
+- always show Files section
+
+## 2.3.0
+
+2020-10-05
+
+### Changed
+
+- convert tabs to spaces (only for python files)
+- CodeMirror upgrade
+
+### Added
+- search/replace
+
+## 2.4.0
+
+2020-10-22
+
+### Added
+- url hash navigation
+- open in a new window button
+- search and replace buttons
+
+## 3.0.0
+
+2020-11-19
+
+### Added
+
+- Airflow 2.0 compatibility
+
+## 3.1.0
+
+2020-12-08
+
+### Added
+
+- Format code
+- Editor settings (theme, mode)
+
+### Fix
+
+- fix git revert (checkout)
+
+## 3.2.0
+
+2021-01-01
+
+### Changed
+
+- refactoring gui with Vue.js
+
+### Added
+
+- New file button added
+
+## 3.2.1
+
+2021-01-05
+
+### Fix
+
+- keep cursor position after save
+
+## 3.3.0
+
+2021-03-18
+
+### Added
+
+- Delete button added
+- Move/rename button added
+- Show number of files in a directory
+
+## 3.3.1
+
+2021-03-29
+
+### Fix
+
+- Support different base URL
+- Fix buttons wrap
+
+## 3.3.2
+
+2021-04-25
+
+### Changed
+
+- CodeMirror upgrade
+
+### Fix
+
+- Fix missing font awesome css for Airflow v1 without RBAC
+
+## 3.3.3
+
+2021-05-01
+
+### Changed
+
+- Fix missing font awesome font files
+
+## 3.3.4
+
+2021-05-02
+
+### Changed
+
+- Fix missing font awesome font files
+
+## 4.0.0
+
+2021-05-09
+
+### Changed
+
+- Replace left pane section/subsections with a tree
+- Git support can be disabled (git is optional)
+
+## 4.0.1
+
+2021-05-12
+
+### Added
+
+- Github Actions CI/CD
+
+### Fix
+
+- Fix init git repository
+- Add missing horizontal scroll to the sidebar
+
+## 4.1.0
+
+2021-05-21
+
+### Added
+
+- Files icons
+- CSTR token refresh
+
+### Changed
+
+- Unify file view and tree api
+
+## 5.0.0
+
+2021-08-01
+
+### Added
+
+- File upload (upload button/drag&drop)
+
+### Changed
+
+- Webpack module bundler
+- Replace jQuery get/post with Axios
+
+## 5.0.1
+
+2021-09-11
+
+### Changed
+
+- Axios upgrade
+- CodeMirror upgrade
+
+## 5.1.0
+
+2021-09-16
+
+### Changed
+
+- Vue-Good-Table file list (sortable&searchable)
+
+## 5.1.1
+
+2021-10-17
+
+### Changed
+- CodeMirror upgrade
+
+## 5.1.2
+
+2021-10-23
+
+### Changed
+
+- ansi-regex upgrade
+
+### Fix
+
+- Fix directories items number
+
+## 5.1.3
+
+2021-12-04
+
+### Changed
+
+- CodeMirror upgrade
+
+### Fix
+
+- Fix empty files list
+
+## 5.1.4
+
+2022-01-08
+
+### Changed
+
+- CodeMirror upgrade
+
+## 5.1.5
+
+2022-02-09
+
+### Changed
+
+- axios upgrade
+
+### Changed
+
+- CodeMirror upgrade
+
+## 5.1.6
+
+2022-03-07
+
+### Changed
+
+- axios upgrade
+
+### Changed
+- CodeMirror upgrade
+
+## 5.2.0
+
+2022-03-23
+
+### Added
+
+- enabled configuration option added
+
+### Changed
+
+- splitpanes upgrade
