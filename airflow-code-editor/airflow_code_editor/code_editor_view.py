@@ -78,10 +78,11 @@ class AbstractCodeEditorView(object):
 
                 if fullpath.endswith('.py'):
                     # Validate the file, write it as a temporary object and try importing it in the dag bag context.
-                    tempdir = tempfile.mkdtemp()
-                    with tempfile.NamedTemporaryFile(dir=tempdir, suffix='.py') as file:
+                    with tempfile.NamedTemporaryFile(suffix='.py') as file:
                         file.write(data.encode('utf-8'))
-                        file.write("\n")
+                        file.write("\n".encode('utf-8'))
+                        file.flush()
+                        file.close()
 
                         try:
                             with timeout(conf.getfloat('core', 'DAGBAG_IMPORT_TIMEOUT'), error_message="Timeout importing module"):
