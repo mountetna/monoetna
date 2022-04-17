@@ -170,6 +170,7 @@ export default {
                       if (self.editor.getMode().name == 'python') {
                           data = data.replace(/\t/g, '    ');
                       }
+                      self.loadedValue = data;
                       self.editor.setValue(data);
                       self.editor.refresh();
                       self.editorPath = path;
@@ -189,10 +190,11 @@ export default {
         editorSave(path) {
             // Save editor content
             const self = this;
-            const payload = self.editor.getValue();
+            const to = self.editor.getValue();
+            const payload = JSON.stringify({ to: to, from: self.loadedValue });
             const options = {
                 headers: {
-                    'Content-Type': 'text/plain'
+                    'Content-Type': 'application/json'
                 }
             };
 
@@ -209,6 +211,7 @@ export default {
                         self.editor.openNotification('file saved', { duration: 5000 })
                         // Update url hash
                         document.location.hash = self.normalize('edit' + path);
+                        self.loadedValue = to;
                     }
                  })
                  .catch((error) => showError(error.response ? error.response.data.message : error));
@@ -248,6 +251,7 @@ export default {
             };
             axios.post(prepareHref('format'), payload, options)
                  .then((response) => {
+                    self.loadedValue = response.data.data;
                     self.editor.setValue(response.data.data);
                     self.editor.refresh();
                  })
@@ -435,6 +439,7 @@ export default {
             }
             if (self.isNew(last.name)) {
                 // New file
+                self.loadedValue = '';
                 self.editor.setValue('');
                 setTimeout(function(){
                     self.editor.refresh();
@@ -509,7 +514,7 @@ export default {
                         }
                     };
                     // Upload file
-                    axios.post(prepareHref('files' + filename), payload, options)
+                    axios.post(prepareHref('uploads' + filename), payload, options)
                          .then((response) => self.refresh())
                          .catch((error) => console.log(error));
                 });
@@ -535,6 +540,7 @@ export default {
     mounted() {
         const self = this;
         self.editor = CodeMirror.fromTextArea(self.$el.querySelector('textarea'), self.codeMirrorOptions);
+        self.loadedValue = "";
         self.editor.save = () => self.saveAction(); // save file command
         // window._editor = self.editor;
     }
