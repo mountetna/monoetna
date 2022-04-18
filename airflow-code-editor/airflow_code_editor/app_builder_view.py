@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #
 #   Copyright 2019 Andrea Bonomi <andrea.bonomi@gmail.com>
+#   Modifications included by DSCOLabs engineering team
+#   University of San Francisco, CA
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -36,9 +38,6 @@ try:
         (permissions.ACTION_CAN_READ, permissions.RESOURCE_WEBSITE),
     ]
 
-    # ############################################################################
-    # AppBuilder (Airflow >= 2.0)
-
     class AppBuilderCodeEditorView(BaseView, AbstractCodeEditorView):
         route_base = ROUTE
         base_permissions = ["can_list", "can_create", "menu_acccess"]
@@ -62,6 +61,11 @@ try:
         @auth.has_access(PERMISSIONS)
         def save(self, path=None):
             return self._save(path)
+
+        @expose("/uploads/<path:path>", methods=["POST"])
+        @auth.has_access(PERMISSIONS)
+        def upload(self, path=None):
+            return self._save(path, upload=True)
 
         @expose("/files/<path:path>", methods=["GET"])
         @auth.has_access(PERMISSIONS)
@@ -98,68 +102,9 @@ try:
                 **kargs
             )
 
-
 except (ImportError, ModuleNotFoundError):
-    from airflow_code_editor.auth import has_access
-    from airflow.www_rbac.decorators import has_dag_access
-
-    # ############################################################################
-    # AppBuilder (Airflow >= 1.10 < 2.0 and rbac = True)
-
-    class AppBuilderCodeEditorView(BaseView, AbstractCodeEditorView):
-        route_base = ROUTE
-        base_permissions = ["can_list"]
-
-        @expose("/")
-        @has_dag_access(can_dag_edit=True)
-        @has_access
-        def list(self):
-            return self._index()
-
-        @expose("/repo", methods=["POST"])
-        @has_dag_access(can_dag_edit=True)
-        def repo_base(self, path=None):
-            return self._git_repo(path)
-
-        @expose("/repo/<path:path>", methods=["GET", "HEAD", "POST"])
-        @has_dag_access(can_dag_edit=True)
-        def repo(self, path=None):
-            return self._git_repo(path)
-
-        @expose("/files/<path:path>", methods=["POST"])
-        @has_dag_access(can_dag_edit=True)
-        def save(self, path=None):
-            return self._save(path)
-
-        @expose("/files/<path:path>", methods=["GET"])
-        @has_dag_access(can_dag_edit=True)
-        def load(self, path=None):
-            return self._load(path)
-
-        @expose("/format", methods=["POST"])
-        @has_dag_access(can_dag_edit=True)
-        def format(self):
-            return self._format()
-
-        @expose("/tree", methods=["GET"])
-        @has_dag_access(can_dag_edit=True)
-        def tree_base(self, path=None):
-            return self._tree(path)
-
-        @expose("/tree/<path:path>", methods=["GET"])
-        @has_dag_access(can_dag_edit=True)
-        def tree(self, path=None):
-            return self._tree(path)
-
-        def _render(self, template, *args, **kargs):
-            return self.render_template(
-                template + "_appbuilder.html",
-                airflow_major_version=self.airflow_major_version,
-                js_files=JS_FILES,
-                version=VERSION,
-                *args,
-                **kargs
-            )
+    # We do not support older airflow versions.
+    raise
 
 
 appbuilder_code_editor_view = AppBuilderCodeEditorView()

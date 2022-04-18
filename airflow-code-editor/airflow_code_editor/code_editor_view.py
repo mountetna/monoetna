@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #
 #   Copyright 2019 Andrea Bonomi <andrea.bonomi@gmail.com>
+#   Modifications included by DSCOLabs engineering team
+#   University of San Francisco, CA
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -14,11 +16,20 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the Licens
 #
-
+import importlib
+import importlib.machinery
+import importlib.util
 import os
 import os.path
 import logging
 import mimetypes
+
+import sys
+import tempfile
+
+from airflow.configuration import conf
+from airflow.models.dagbag import DagBag
+from airflow.utils.timeout import timeout
 from flask import abort, request, send_file
 from flask_wtf.csrf import generate_csrf
 from airflow.version import version
@@ -39,6 +50,8 @@ __all__ = ["AbstractCodeEditorView"]
 
 AIRFLOW_MAJOR_VERSION = int(version.split(".")[0])
 
+def clean_data(data):
+    return data.replace("\r", "").rstrip()
 
 class AbstractCodeEditorView(object):
     airflow_major_version = AIRFLOW_MAJOR_VERSION
@@ -46,20 +59,48 @@ class AbstractCodeEditorView(object):
     def _index(self):
         return self._render("index")
 
-    def _save(self, path=None):
+    def _save(self, path=None, upload=False):
         try:
             fullpath = git_absolute_path(path)
-            mime_type = request.headers.get("Content-Type", "text/plain")
-            is_text = mime_type.startswith("text/")
-            if is_text:
-                data = request.get_data(as_text=True)
+            if not upload:
+                payload = request.get_json()
+                data = payload['to']
+
                 # Newline fix (remove cr)
-                data = data.replace("\r", "").rstrip()
+                data = clean_data(data)
                 os.makedirs(os.path.dirname(fullpath), exist_ok=True)
+
+                # "Version" the code so as to prevent concurrent modifications.
+                if os.path.exists(fullpath):
+                    with open(fullpath, 'r') as f:
+                        if clean_data(f.read()) != clean_data(payload['from']):
+                            return prepare_api_response(path=normalize_path(path), error_message="The file has been modified since you last opened it!  Copy your changes and refresh the page.")
+
+                if fullpath.endswith('.py'):
+                    # Validate the file, write it as a temporary object and try importing it in the dag bag context.
+                    with tempfile.NamedTemporaryFile(suffix='.py') as file:
+                        file.write(data.encode('utf-8'))
+                        file.write("\n".encode('utf-8'))
+                        file.flush()
+                        file.close()
+
+                        try:
+                            with timeout(conf.getfloat('core', 'DAGBAG_IMPORT_TIMEOUT'), error_message="Timeout importing module"):
+                                mod_name = "airflow_code_editor_test_module"
+                                loader = importlib.machinery.SourceFileLoader(mod_name, file.name)
+                                spec = importlib.util.spec_from_loader(mod_name, loader)
+                                new_module = importlib.util.module_from_spec(spec)
+                                loader.exec_module(new_module)
+                        except Exception as e:
+                            return prepare_api_response(
+                                path=normalize_path(path),
+                                error_message=f"Problem loading module: {e}"
+                            )
+
                 with open(fullpath, "w") as f:
                     f.write(data)
                     f.write("\n")
-            else:  # Binary file
+            else:
                 data = request.get_data()
                 os.makedirs(os.path.dirname(fullpath), exist_ok=True)
                 with open(fullpath, "wb") as f:
