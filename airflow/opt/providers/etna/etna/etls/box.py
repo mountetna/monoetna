@@ -3,6 +3,8 @@ import os
 import re
 import logging
 
+from ftplib import FTP_TLS
+
 from airflow.operators.python import get_current_context
 
 from airflow.decorators import task
@@ -59,11 +61,13 @@ class BoxEtlHelpers:
         """
         @task
         def ingest(files, project_name, bucket_name):
+            import pdb
+            pdb.set_trace()
             etna_hook = EtnaHook.for_project(project_name)
             with etna_hook.metis(project_name, read_only=False) as metis, self.hook.box() as box, box.ftps() as ftps:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
                 for file in files:
-                    with box.retrieve_file(ftps, file) as box_io_file:
+                    with _retrieve_file(box, ftps, file) as box_io_file:
                         self.log.info(f"Uploading {file.full_path}.")
                         for blob in metis.upload_file(
                             project_name,
@@ -73,7 +77,8 @@ class BoxEtlHelpers:
                             box.file_size(ftps, file)
                         ):
                             self.log.info("Uploading blob...")
-                        self.log.info(f"Done with {file.full_path}")
+                    _remove_file(box,ftps, file)
+                    self.log.info(f"Done ingesting {file.full_path}.")
 
         return ingest(files, project_name, bucket_name)
 
@@ -99,3 +104,11 @@ def _load_box_files_batch(
     files = box.tail(folder_name, start, end)
 
     return files
+
+
+def _retrieve_file(box: Box, ftps: FTP_TLS, file: BoxFile):
+    return box.retrieve_file(ftps, file)
+
+
+def _remove_file(box: Box, ftps: FTP_TLS, file: BoxFile):
+    box.remove_file(ftps, file)

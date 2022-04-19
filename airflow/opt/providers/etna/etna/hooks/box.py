@@ -215,11 +215,15 @@ class Box(object):
             "--dry-run",
         ]
 
-        if batch_start:
-            command.append(f"--newer-than={batch_start}")
+        # Because FTP preserves the file's original modified / created times,
+        #   and we can't seem to query by "upload time" (stored by Box only?),
+        #   we'll have to grab all files that are present, and
+        #   delete them when done.
+        # if batch_start:
+            # command.append(f"--newer-than={batch_start}")
 
-        if batch_end:
-            command.append(f"--older-than={batch_end}")
+        # if batch_end:
+            # command.append(f"--older-than={batch_end}")
 
         command.extend([
             f"/Root/{folder_name}/",
@@ -270,3 +274,12 @@ class Box(object):
         ftps.retrbinary(f"RETR {file.file_name}", io_obj.write)
         io_obj.seek(0)
         return io_obj
+
+    def remove_file(self, ftps: FTP_TLS, file: BoxFile):
+        """
+        Removes the file from the FTP server. This is so we can keep track of which files
+        have been ingested, since we can't rely on upload / file modified timestamps.
+        """
+        ftps.cwd(os.path.dirname(file.full_path))
+
+        ftps.delete(file.file_name)
