@@ -107,8 +107,8 @@ module Redcap
       @scripts.each do |script|
         script_records = invert? ? script.inverse_load : script.load
 
-        script_records.each do |model_name, record|
-          (records[model_name] ||= {}).update( record )
+        script_records.each do |record_name, record|
+          (records[record_name] ||= {}).update( record )
         end
       end
 
