@@ -6,13 +6,14 @@ import {
 import {defaultSessionSyncHelpers} from "./session_sync";
 import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 import {dismissMessages, showMessages} from "etna-js/actions/message_actions";
-import {clearBufferedInput, setBufferedInput, setInputs, VulcanAction} from "../actions/vulcan_actions";
+import {clearBufferedInput, clearStepUIAutoPass, setBufferedInput, setInputs, setStepUIAutoPass, VulcanAction} from "../actions/vulcan_actions";
 import {allSourcesForStepName} from "../selectors/workflow_selectors";
 import {mapSome, Maybe, maybeOfNullable, some, withDefault} from "../selectors/maybe";
 import {DataEnvelope} from "../components/workflow/user_interactions/inputs/input_types";
 import {VulcanContext} from "./vulcan_context";
 
 import Button from '@material-ui/core/Button';
+import { FormControlLabel, Switch } from '@material-ui/core';
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(stepName: string | null, inputs: DataEnvelope<Maybe<any>>) {
@@ -77,11 +78,42 @@ export function WithBufferedInputs({
     }
   }, [cancelInputs, commitSessionInputChanges, stepName]);
 
+  function setAutoPass(event: any, checked: boolean) {
+    if (checked) {
+      dispatch(setStepUIAutoPass(stepName))
+    } else {
+      dispatch(clearStepUIAutoPass(stepName))
+    }
+  }
+
+  function isPassable(stepName: string | null) {
+    if (stepName!=null) {
+      // ToDo: better way?
+      const this_step = state.workflow?.steps[0].filter((val) => val.name == stepName)[0]
+      if (this_step && this_step.doc!=null && this_step.doc.startsWith('SKIPPABLE')) return true
+    }
+    return false
+  }
+
   return <BufferedInputsContext.Provider value={{inputs, setInputs, commitInputs, cancelInputs}}>
     <div>
       {children}
     </div>
     { hasInputs ? <div className='reset-or-commit-inputs'>
+      { isPassable(stepName) ?
+        <FormControlLabel
+            className='auto-pass-inputs'
+            control={
+              <Switch
+                checked={state.autoPassSteps.includes(stepName)}
+                onChange={setAutoPass}
+                color='primary'
+                disabled={!!state.pollingState}
+              />
+            }
+            label="Auto-Commit in future"
+            labelPlacement='start'
+          /> : null }
       <Button onClick={cancelInputs} disabled={!!state.pollingState}>
         Reset
       </Button>
