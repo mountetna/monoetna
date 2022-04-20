@@ -82,7 +82,6 @@ class AbstractCodeEditorView(object):
                         file.write(data.encode('utf-8'))
                         file.write("\n".encode('utf-8'))
                         file.flush()
-                        file.close()
 
                         try:
                             with timeout(conf.getfloat('core', 'DAGBAG_IMPORT_TIMEOUT'), error_message="Timeout importing module"):
