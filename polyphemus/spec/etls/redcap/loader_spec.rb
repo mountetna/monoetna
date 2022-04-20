@@ -121,6 +121,84 @@ describe Redcap::Loader do
     end
   end
 
+
+  context 'loading' do
+    before(:each) do
+      stub_magma_models(fixture: 'spec/fixtures/magma_test2_models.json')
+      stub_redcap(
+        hash_including(content: 'metadata') => redcap_metadata(
+          cars: [
+            [ "company_name" ],
+            [ "dof", "date of founding" ],
+            [ "car_class" ],
+            [ "year", "calendar year", "date" ],
+            {
+              field_name: "feature",
+              field_type: "checkbox",
+              select_choices_or_calculations: redcap_choices("Window", "Door", "Spoiler", "Radio", "Engine", "Carbuerator", "Wheels")
+            },
+            [ "award_name", "Awards" ]
+          ]
+        )
+      )
+      @magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
+    end
+
+    it 'combines records by record name' do
+      Redcap::Model.define("Make").class_eval do
+        def identifier(record_name, identifier_fields: nil)
+          record_name
+        end
+
+        def offset_id(record_name)
+          record_name
+        end
+      end
+
+      stub_redcap(
+        /fields/ => (redcap_records(
+          { redcap_event_name: "Base", field_name: "dof" },
+          [
+            { record: "Jatsun", "value": "1956-02-03" },
+            { "record": "ToyoT", "value": "1933-08-11" },
+            { "record": "Caudillac", "value": "1901-03-01" },
+          ]
+        )+redcap_records(
+          { redcap_event_name: "Base", field_name: "country" },
+          [
+            { record: "Jatsun", "value": "Japan" },
+            { "record": "ToyoT", "value": "Japan" },
+            { "record": "Caudillac", "value": "Spain" },
+          ]
+        )).to_json
+      )
+
+      records = run_loader(
+        make: {
+          each: [ "record" ],
+          scripts: [
+            {
+              attributes: {
+                date_of_founding: "dof"
+              }
+            },
+            {
+              attributes: {
+                country: "country"
+              }
+            }
+          ]
+        }
+      )
+
+      expect(records.keys).to match_array([:make])
+      expect(records[:make].keys).to match_array(["Jatsun", "ToyoT", "Caudillac"])
+      expect(records[:make].values.map(&:keys)).to all( match_array([:country, :date_of_founding]) )
+
+      Kernel.send(:remove_const,:Make)
+    end
+  end
+
   context 'entity iteration' do
     before(:each) do
       stub_magma_models(fixture: 'spec/fixtures/magma_test2_models.json')
