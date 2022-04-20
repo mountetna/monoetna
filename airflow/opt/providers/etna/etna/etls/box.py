@@ -61,7 +61,7 @@ class BoxEtlHelpers:
             folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.
         """
         @task
-        def ingest(files, project_name, bucket_name):
+        def ingest(files, project_name, bucket_name, folder_path):
             etna_hook = EtnaHook.for_project(project_name)
             with etna_hook.metis(project_name, read_only=False) as metis, self.hook.box() as box, box.ftps() as ftps:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
@@ -81,7 +81,7 @@ class BoxEtlHelpers:
                         box.remove_file(ftps, file)
                         self.log.info(f"Done ingesting {file.full_path}.")
 
-        return ingest(files, project_name, bucket_name)
+        return ingest(files, project_name, bucket_name, folder_path)
 
 
 def load_box_files_batch(
