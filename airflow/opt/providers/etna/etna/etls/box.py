@@ -58,6 +58,7 @@ class BoxEtlHelpers:
             files: List of files from tail_files or filter_files call
             project_name: str, the target Metis project name. Default is `triage`
             bucket_name: str, the target Metis bucket name. Default is `waiting_room`
+            folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.
         """
         @task
         def ingest(files, project_name, bucket_name):
@@ -70,13 +71,13 @@ class BoxEtlHelpers:
                         for blob in metis.upload_file(
                             project_name,
                             bucket_name,
-                            os.path.join(self.hook.connection.host, file.path) if folder_path is None else folder_path,
+                            os.path.join(self.hook.connection.host, file.path) if folder_path is None else os.path.join(folder_path, file.file_name),
                             box_io_file,
                             box.file_size(ftps, file)
                         ):
                             self.log.info("Uploading blob...")
-                    box.remove_file(ftps, file)
-                    self.log.info(f"Done ingesting {file.full_path}.")
+                        box.remove_file(ftps, file)
+                        self.log.info(f"Done ingesting {file.full_path}.")
 
         return ingest(files, project_name, bucket_name)
 

@@ -580,7 +580,7 @@ class Metis(EtnaClientBase):
                     "size was not specified, but file is streaming.  You must specify a size hint when using a stream."
                 )
 
-        if len(dest_path) > 1:
+        if len(dest_path) > 1 and not self.folder_exists(project_name, bucket_name, os.path.dirname(dest_path)):
             self.create_folder(project_name, bucket_name, os.path.dirname(dest_path))
         authorization = self.authorize_upload(project_name, bucket_name, dest_path)
         upload = Upload(file=file, file_size=size, upload_path=authorization.upload_path)
@@ -646,6 +646,15 @@ class Metis(EtnaClientBase):
         )
         response_obj = from_json(FoldersAndFilesResponse, response.content)
         return response_obj
+
+    def folder_exists(
+        self, project_name: str, bucket_name: str, folder_path: str
+    ) -> bool:
+        response = self.session.get(
+            self.prepare_url(project_name, "list", bucket_name, folder_path)
+        )
+
+        return response.status_code == 200
 
     def tail(
             self,
