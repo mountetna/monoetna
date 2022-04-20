@@ -24,7 +24,9 @@ setup(
         "etna.operators",
         "etna.dags",
         "etna.etls",
+        "etna.etls.linkers",
         "etna.metrics",
+        "etna.plugins"
     ],
     # install_requires=['apache-airflow>=2.2'],
     # setup_requires=['setuptools', 'wheel'],

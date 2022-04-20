@@ -54,8 +54,8 @@ class EtnaUser:
         )
 
     @property
-    def projects(self) -> List[str]:
-        return [p.project_name for p in self.perm]
+    def editable_projects(self) -> List[str]:
+        return [p.project_name for p in self.perm if self.can_edit(p.project_name)]
 
     def project_permission(self, project_name: str) -> Optional[Permission]:
         for p in self.perm:

@@ -33,7 +33,7 @@ describe Redcap::Loader do
       stub_redcap(
         hash_including(content: 'metadata') => redcap_metadata(
           cars: [
-            [ "car_class" ]
+            [ "record", "car_class" ]
           ]
         ),
         /eav/ => redcap_records(
@@ -77,7 +77,7 @@ describe Redcap::Loader do
       stub_redcap(
         hash_including(content: 'metadata') => redcap_metadata(
           cars: [
-            [ "inventor_age" ]
+            [ "record", "inventor_age" ]
           ]
         ),
         /eav/ => redcap_records(
