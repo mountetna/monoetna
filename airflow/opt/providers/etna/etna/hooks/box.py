@@ -140,6 +140,15 @@ class Box(object):
             batch_start: Optional[datetime] = None,
             batch_end: Optional[datetime] = None,
      ) -> List[FtpEntry]:
+        """
+        Tails all files found in the given `folder_name`, with modified times (`mtime`) in the
+        given batch_start and batch_end date range. Recursively searches sub-folders.
+
+        params:
+          folder_name: str, the top-level folder to search from.
+          batch_start, Optional[datetime], to compare against each file's mtime, via <=
+          batch_end, Optional[datetime], to compare against each file's mtime, via >=
+        """
         if not Box.valid_folder_name(folder_name):
             raise ValueError(f"Invalid folder name: {folder_name}. Only alphanumeric characters, _, -, and spaces are allowed.")
 
@@ -175,7 +184,14 @@ class Box(object):
     @contextlib.contextmanager
     def ftps(self) -> FTP_TLS:
         """
-        Configures an FTP_TLS connection to Box.
+        Configures an FTP_TLS connection to Box. Using Pythong `with` syntax, so that the
+        connection is closed after usage.
+
+        eg:
+        ```
+        with box.ftps() as ftps:
+            ftps.sendcmd("LIST")
+        ```
         """
         ftps = FTP_TLS(self.hook.connection.host)
         ftps.login(user=self.hook.connection.login, passwd=self.hook.connection.password)
@@ -199,6 +215,10 @@ class Box(object):
           for line in csv.reader(open_file):
              break
         ```
+
+        params:
+          ftps: an open, FTP_TLS connection
+          file: an FTP file listing
         """
         ftps.cwd(file.folder_path)
 
@@ -209,8 +229,8 @@ class Box(object):
 
     def remove_file(self, ftps: FTP_TLS, file: FtpEntry):
         """
-        Removes the file from the FTP server. This is so we can keep track of which files
-        have been ingested, since we can't rely on upload / file modified timestamps.
+        Removes the file from the FTP server, if user wants to automatically
+        clean up after ingestion to Metis.
         """
         ftps.cwd(file.folder_path)
 
