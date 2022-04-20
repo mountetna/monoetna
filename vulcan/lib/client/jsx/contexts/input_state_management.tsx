@@ -6,7 +6,7 @@ import {
 import {defaultSessionSyncHelpers} from "./session_sync";
 import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 import {dismissMessages, showMessages} from "etna-js/actions/message_actions";
-import {clearBufferedInput, clearStepUIAutoPass, setBufferedInput, setInputs, setStepUIAutoPass, VulcanAction} from "../actions/vulcan_actions";
+import {clearBufferedInput, clearCommitTrigger, clearStepUIAutoPass, setBufferedInput, setInputs, setRunTrigger, setStepUIAutoPass, VulcanAction} from "../actions/vulcan_actions";
 import {allSourcesForStepName} from "../selectors/workflow_selectors";
 import {mapSome, Maybe, maybeOfNullable, some, withDefault} from "../selectors/maybe";
 import {DataEnvelope} from "../components/workflow/user_interactions/inputs/input_types";
@@ -94,6 +94,18 @@ export function WithBufferedInputs({
     }
     return false
   }
+
+  // Catch auto-pass 'Commit' trigger
+  useEffect(() => {
+    if (state.triggerCommit.length>0 && state.triggerCommit[0] == stepName) {
+      // Try to commit, add 'Run' trigger if works
+      if (commitSessionInputChanges(stepName, inputsRef.current)) {
+        cancelInputs();
+        dispatch(setRunTrigger(stepName))
+      }
+      dispatch(clearCommitTrigger(stepName))
+    }
+  },[state.triggerCommit])
 
   return <BufferedInputsContext.Provider value={{inputs, setInputs, commitInputs, cancelInputs}}>
     <div>

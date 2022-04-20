@@ -28,6 +28,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import {
   clearCommittedStepPending,
+  clearRunTriggers,
   setSession,
   setSessionAndFigure
 } from '../../../actions/vulcan_actions';
@@ -255,6 +256,14 @@ export default function SessionManager() {
   useEffect(() => {
     if (figure.title) setLocalTitle(figure.title);
   }, [figure]);
+
+  // Catch auto-pass 'Run' trigger
+  useEffect(() => {
+    if (state.triggerRun.length>0 && state.committedStepPending) {
+      dispatch(clearRunTriggers(state.triggerRun))
+      run;
+    }
+  }, [state.triggerRun, state.committedStepPending])
 
   const inputsChanged = useMemo(() => {
     return !_.isEqual(figure.inputs, session.inputs);

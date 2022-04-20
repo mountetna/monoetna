@@ -50,6 +50,8 @@ export const defaultVulcanState = {
 
   // Step marked for auto-passing by user
   autoPassSteps: [] as (string | null)[],
+  triggerCommit: [] as (string | null)[],
+  triggerRun: [] as (string | null)[],
 
   session: defaultSession,
   outputs: defaultSessionStatusResponse.outputs,
@@ -97,6 +99,13 @@ export default function VulcanReducer(
       if (state.bufferedSteps.includes(action.step)) {
         return state;
       }
+      // Initiate auto-pass attempt
+      if (state.autoPassSteps.includes(action.step)) {
+        return {...state,
+          bufferedSteps: [...state.bufferedSteps, action.step],
+          triggerCommit: [...state.triggerCommit, action.step]
+        };
+      }
       return {...state, bufferedSteps: [...state.bufferedSteps, action.step]};
 
     case 'CLEAR_BUFFERED_INPUT':
@@ -118,6 +127,23 @@ export default function VulcanReducer(
       const autoPassSteps = [...state.autoPassSteps];
       autoPassSteps.splice(index, 1);
       return {...state, autoPassSteps};
+
+    case 'CLEAR_COMMIT_TRIGGER':
+      const idx_cct = state.triggerCommit.indexOf(action.step);
+      if (idx_cct === -1) return state;
+      const triggerCommit = [...state.triggerCommit];
+      triggerCommit.splice(idx_cct, 1);
+      return {...state, triggerCommit};
+
+    case 'SET_RUN_TRIGGER':
+      if (state.triggerRun.includes(action.step)) {
+        return state;
+      }
+      return {...state, triggerRun: [...state.triggerRun, action.step]};
+
+    case 'CLEAR_RUN_TRIGGERS':
+      const triggerRun = [...state.triggerRun].filter((val) => !action.steps.includes(val));
+      return {...state, triggerRun};
 
     case 'SET_DOWNLOAD':
       return {

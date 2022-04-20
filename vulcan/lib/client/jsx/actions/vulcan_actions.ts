@@ -104,6 +104,18 @@ export function clearStepUIAutoPass(step: string | null) {
   return actionObject('CLEAR_AUTO_PASS_STEP', {step});
 }
 
+export function clearCommitTrigger(step: string | null) {
+  return actionObject('CLEAR_COMMIT_TRIGGER', {step});
+}
+
+export function setRunTrigger(step: string | null) {
+  return actionObject('SET_RUN_TRIGGER', {step});
+}
+
+export function clearRunTriggers(steps: (string | null)[]) {
+  return actionObject('CLEAR_RUN_TRIGGERS', {steps});
+}
+
 export function checkCommittedStepPending(step: Maybe<string>) {
   return actionObject('CHECK_CHANGES_READY', {step});
 }
@@ -129,6 +141,9 @@ export type VulcanAction =
   | ReturnType<typeof clearBufferedInput>
   | ReturnType<typeof setStepUIAutoPass>
   | ReturnType<typeof clearStepUIAutoPass>
+  | ReturnType<typeof clearCommitTrigger>
+  | ReturnType<typeof setRunTrigger>
+  | ReturnType<typeof clearRunTriggers>
   | ReturnType<typeof checkCommittedStepPending>
   | ReturnType<typeof clearCommittedStepPending>
   | ReturnType<typeof setSessionAndFigure>
