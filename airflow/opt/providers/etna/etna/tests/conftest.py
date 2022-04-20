@@ -117,8 +117,19 @@ def vcr_config():
 
     EtnaHook.get_client = _get_client
 
+    def scrub_string(replacement=''):
+        def before_record_response(response):
+            if response['headers'].get('Content-Type') == ['text/plain; charset=UTF-8']:
+                response['body']['string'] = replacement.encode("utf-8")
+            return response
+        return before_record_response
+
     # Authorization in any vcr is safely masked
-    return {"filter_headers": [("authorization", "XXX-Auth")]}
+    return {
+        "filter_headers": [("authorization", "XXX-Auth")],
+        "before_record_response": scrub_string("token"),
+        "allow_playback_repeats": True
+    }
 
 
 # def match_body(r1: BaseRequest, r2: BaseRequest):
