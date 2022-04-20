@@ -49,7 +49,7 @@ class BoxEtlHelpers:
 
         return filter_files(files)
 
-    def ingest_to_metis(self, files: XComArg, project_name: str = "triage", bucket_name: str = "waiting_room") -> XComArg:
+    def ingest_to_metis(self, files: XComArg, project_name: str = "triage", bucket_name: str = "waiting_room", folder_path: str = None) -> XComArg:
         """
         Given a list of BoxFiles, will copy them to the given Metis project_name and bucket_name,
         mimicking the full directory structure from Box.
@@ -61,23 +61,21 @@ class BoxEtlHelpers:
         """
         @task
         def ingest(files, project_name, bucket_name):
-            import pdb
-            pdb.set_trace()
             etna_hook = EtnaHook.for_project(project_name)
             with etna_hook.metis(project_name, read_only=False) as metis, self.hook.box() as box, box.ftps() as ftps:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
                 for file in files:
-                    with _retrieve_file(box, ftps, file) as box_io_file:
+                    with box.retrieve_file(ftps, file) as box_io_file:
                         self.log.info(f"Uploading {file.full_path}.")
                         for blob in metis.upload_file(
                             project_name,
                             bucket_name,
-                            os.path.join(self.hook.connection.host, file.path),
+                            os.path.join(self.hook.connection.host, file.path) if folder_path is None else folder_path,
                             box_io_file,
                             box.file_size(ftps, file)
                         ):
                             self.log.info("Uploading blob...")
-                    _remove_file(box,ftps, file)
+                    box.remove_file(ftps, file)
                     self.log.info(f"Done ingesting {file.full_path}.")
 
         return ingest(files, project_name, bucket_name)
@@ -104,11 +102,3 @@ def _load_box_files_batch(
     files = box.tail(folder_name, start, end)
 
     return files
-
-
-def _retrieve_file(box: Box, ftps: FTP_TLS, file: BoxFile):
-    return box.retrieve_file(ftps, file)
-
-
-def _remove_file(box: Box, ftps: FTP_TLS, file: BoxFile):
-    box.remove_file(ftps, file)
