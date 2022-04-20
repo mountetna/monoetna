@@ -250,10 +250,11 @@ def session():
 @pytest.fixture()
 def reset_db():
     from airflow.utils import db
-
+    settings.configure_orm()
     db.resetdb()
     yield
 
+    settings.dispose_orm()
 
 @pytest.fixture(scope="module")
 def examples_dag_bag(session):
