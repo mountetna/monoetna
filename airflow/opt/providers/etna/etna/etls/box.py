@@ -3,8 +3,6 @@ import os
 import re
 import logging
 
-from ftplib import FTP_TLS
-
 from airflow.operators.python import get_current_context
 
 from airflow.decorators import task
@@ -14,7 +12,7 @@ from airflow.models.xcom_arg import XComArg
 
 from etna.etls.etl_task_batching import get_batch_range
 
-from etna.hooks.box import BoxHook, BoxFile, Box
+from etna.hooks.box import BoxHook, FtpEntry, Box
 from etna.hooks.etna import EtnaHook
 
 
@@ -43,15 +41,22 @@ class BoxEtlHelpers:
 
         @task
         def filter_files(files):
-            result: List[BoxFile] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.file_name)]
+            result: List[FtpEntry] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
 
             return result
 
         return filter_files(files)
 
-    def ingest_to_metis(self, files: XComArg, project_name: str = "triage", bucket_name: str = "waiting_room", folder_path: str = None) -> XComArg:
+    def ingest_to_metis(
+        self,
+        files: XComArg,
+        project_name: str = "triage",
+        bucket_name: str = "waiting_room",
+        folder_path: str = None,
+        flatten: bool = True,
+        clean_up: bool = False) -> XComArg:
         """
-        Given a list of BoxFiles, will copy them to the given Metis project_name and bucket_name,
+        Given a list of Box files, will copy them to the given Metis project_name and bucket_name,
         mimicking the full directory structure from Box.
 
         args:
@@ -59,6 +64,8 @@ class BoxEtlHelpers:
             project_name: str, the target Metis project name. Default is `triage`
             bucket_name: str, the target Metis bucket name. Default is `waiting_room`
             folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.
+            flatten: bool, to flatten the Box folder structure or maintain it. Default is True.
+            clean_up: bool, to remove the file from Box after ingest. Default is False.
         """
         @task
         def ingest(files, project_name, bucket_name, folder_path):
@@ -67,7 +74,19 @@ class BoxEtlHelpers:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
                 for file in files:
                     with box.retrieve_file(ftps, file) as box_io_file:
-                        dest_path = os.path.join(self.hook.connection.host, file.path) if folder_path is None else os.path.join(folder_path, file.file_name)
+                        parts = []
+                        if folder_path is None:
+                            parts.append(self.hook.connection.host)
+                        else:
+                            parts.append(folder_path)
+
+                        if flatten:
+                            parts.append(file.name)
+                        else:
+                            parts.append(file.rel_path)
+
+                        dest_path = os.path.join(*parts)
+
                         self.log.info(f"Uploading {file.full_path} to {dest_path}.")
 
                         for blob in metis.upload_file(
@@ -75,10 +94,11 @@ class BoxEtlHelpers:
                             bucket_name,
                             dest_path,
                             box_io_file,
-                            box.file_size(ftps, file)
+                            file.size
                         ):
                             self.log.info("Uploading blob...")
-                        box.remove_file(ftps, file)
+                        if clean_up:
+                            box.remove_file(ftps, file)
                         self.log.info(f"Done ingesting {file.full_path}.")
 
         return ingest(files, project_name, bucket_name, folder_path)
@@ -86,14 +106,14 @@ class BoxEtlHelpers:
 
 def load_box_files_batch(
     box: Box, folder_name: str
-) -> List[BoxFile]:
+) -> List[FtpEntry]:
     return _load_box_files_batch(box, folder_name)
 
 
 def _load_box_files_batch(
     box: Box,
     folder_name: str
-) -> List[BoxFile]:
+) -> List[FtpEntry]:
     context: Context = get_current_context()
     start, end = get_batch_range(context)
 

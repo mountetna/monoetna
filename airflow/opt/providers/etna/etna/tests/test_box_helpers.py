@@ -23,7 +23,7 @@ def mock_tail():
     ]
 
 @mock.patch('providers.etna.etna.etls.decorators.load_box_files_batch', side_effect=[mock_tail(), []])
-def test_metis_files_etl_filter_file_name(mock_load, reset_db):
+def test_metis_files_etl_filter_file_name(mock_load, reset_db, session_a):
     record_matches_task_id: str = ""
 
     @box_etl("a_folder", version=1)
@@ -51,7 +51,7 @@ def test_metis_files_etl_filter_file_name(mock_load, reset_db):
     assert results[1].file_name == "xyz.exe"
 
 @mock.patch('providers.etna.etna.etls.decorators.load_box_files_batch', side_effect=[mock_tail(), []])
-def test_metis_files_etl_filter_folder_path(mock_load, reset_db):
+def test_metis_files_etl_filter_folder_path(mock_load, reset_db, session_a):
     record_matches_task_id: str = ""
 
     @box_etl("b_folder", version=1)
@@ -80,7 +80,7 @@ def test_metis_files_etl_filter_folder_path(mock_load, reset_db):
 
 
 @mock.patch('providers.etna.etna.etls.decorators.load_box_files_batch', side_effect=[mock_tail(), []])
-def test_metis_files_etl_filter_file_name_and_folder_path(mock_load, reset_db):
+def test_metis_files_etl_filter_file_name_and_folder_path(mock_load, reset_db, session_a):
     record_matches_task_id: str = ""
 
     @box_etl("c_folder", version=1)
@@ -120,7 +120,7 @@ mock_remove_file = mock.Mock()
 #   record a VCR cassette, but not sure that works with FTPS?
 # @mock.patch('providers.etna.etna.etls.decorators.load_box_files_batch', side_effect=[mock_tail(), []])
 # @mock.patch.object(EtnaHook, 'for_project', return_value=mock_etna_hook)
-# def test_metis_files_etl_ingest(mock_etna, mock_load, reset_db):
+# def test_metis_files_etl_ingest(mock_etna, mock_load, reset_db, session_a):
 
 #     # Mock all this stuff so the context managers in ingest_to_metis
 #     #   are correctly handled
@@ -147,7 +147,7 @@ mock_remove_file = mock.Mock()
 
 #     @box_etl("d_folder", version=1, hook=mock_box_hook)
 #     def test_ingesting_metis_files_ingest(helpers: BoxEtlHelpers, tail_files: XComArg):
-#         helpers.ingest_to_metis(tail_files)
+#         helpers.ingest_to_metis(tail_files, folder_path="foo", clean_up=True)
 
 #     test_ingesting_metis_files_ingest: DAG
 

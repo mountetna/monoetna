@@ -650,11 +650,15 @@ class Metis(EtnaClientBase):
     def folder_exists(
         self, project_name: str, bucket_name: str, folder_path: str
     ) -> bool:
-        response = self.session.get(
-            self.prepare_url(project_name, "list", bucket_name, folder_path)
-        )
-
-        return response.status_code == 200
+        try:
+            self.session.get(
+                self.prepare_url(project_name, "list", bucket_name, folder_path)
+            )
+            return True
+        except HTTPError as e:
+            if e.response.status_code == 422:
+                return False
+            raise e
 
     def tail(
             self,

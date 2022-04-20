@@ -1,6 +1,6 @@
 import contextlib
 import dataclasses
-from datetime import datetime
+from datetime import datetime, timezone
 import dateutil
 import io
 import json
@@ -91,53 +91,39 @@ class BoxHook(BaseHook):
         yield Box(self)
 
 
-@serialize
-@deserialize
-@dataclasses.dataclass
-class BoxFile:
-    file_name: str = ""
-    folder_path: Optional[int] = None
-
-    @classmethod
-    def is_file(cls, line):
-        return line.startswith("get -O")
-
-    @classmethod
-    def from_lftp_line(cls, host, folder_name, line):
-        sub_path = line.split(os.path.join(host, "Root", folder_name, ""))[1]
-        path, filename = os.path.split(sub_path)
-        return from_json(BoxFile, json.dumps({
-            "file_name": filename,
-            "folder_path": os.path.join(folder_name, path)
-        }))
-
-    def __str__(self):
-        return self.full_path
-
-    @property
-    def path(self):
-        return os.path.join(self.folder_path, self.file_name)
-
-    @property
-    def full_path(self):
-        return os.path.join("/", "Root", self.folder_path, self.file_name)
-
-
-@serialize
-@deserialize
-@dataclasses.dataclass
-class BoxFilesResponse:
-    files: List[BoxFile] = dataclasses.field(default_factory=list)
-
-    def empty(self):
-        return not self.files
-
-    def extend(self, other: "BoxFilesResponse"):
-        self.files.extend(other.files)
-
-
-
 log = logging.getLogger("airflow.task")
+
+
+class FtpEntry(object):
+    def __init__(self, tuple, parent_path: str):
+        self.name = tuple[0]
+        self.metadata = tuple[1]
+        self.folder_path = parent_path
+
+    @property
+    def size(self) -> int:
+        return int(self.metadata['size'])
+
+    def is_file(self) -> bool:
+        return self.metadata['type'] == 'file'
+
+    def is_dir(self) -> bool:
+        return self.metadata['type'] == 'dir'
+
+    @property
+    def mtime(self) -> datetime:
+        return datetime.strptime(self.metadata['modify'], "%Y%m%d%H%M%S.000").replace(tzinfo=timezone.utc)
+
+    def is_dot(self) -> bool:
+        return self.name == "." or self.name == ".."
+
+    @property
+    def full_path(self) -> str:
+        return os.path.join(self.folder_path, self.name)
+
+    @property
+    def rel_path(self) -> str:
+        return self.full_path[1::] if self.full_path[0] == '/' else self.full_path
 
 class Box(object):
     def __init__(self, hook: BoxHook):
@@ -153,85 +139,38 @@ class Box(object):
             folder_name: str,
             batch_start: Optional[datetime] = None,
             batch_end: Optional[datetime] = None,
-     ) -> List[BoxFile]:
+     ) -> List[FtpEntry]:
         if not Box.valid_folder_name(folder_name):
             raise ValueError(f"Invalid folder name: {folder_name}. Only alphanumeric characters, _, -, and spaces are allowed.")
 
-        if batch_start and batch_end:
-            args = dict(
-                batch_start=batch_start.date().isoformat(),
-                batch_end=batch_end.date().isoformat(),
-                folder_name=folder_name,
-            )
+        with self.ftps() as ftps:
+            all_files = self._ls_r(ftps)
+
+            return [f for f in all_files if self._is_in_range(f, batch_start, batch_end)]
+
+    def _ls_r(self, ftps: FTP_TLS, path: str = "/") -> List[FtpEntry]:
+        files = []
+        for entry in ftps.mlsd(path):
+            ftp_entry = FtpEntry(entry, path)
+
+            if ftp_entry.is_dot():
+                continue
+
+            if ftp_entry.is_dir():
+                files += self._ls_r(ftps, os.path.join(path, ftp_entry.name))
+            else:
+                files.append(ftp_entry)
+        return files
+
+    def _is_in_range(self, file: FtpEntry, batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None):
+        if batch_start is None and batch_end is None:
+            return True
+        elif batch_start is None:
+            return file.mtime <= batch_end
+        elif batch_end is None:
+            return file.mtime >= batch_start
         else:
-            args = dict(
-                folder_name=folder_name,
-            )
-
-        response = self._lftp(**args)
-
-        results: List[BoxFile] = []
-
-        for line in response.split("\n"):
-            if line and BoxFile.is_file(line):
-                results.append(BoxFile.from_lftp_line(self.hook.connection.host, folder_name, line))
-
-        return results
-
-    def _lftp(self, folder_name: str, batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None):
-        """
-        Constructs the LFTP command to get a listing of files with a timestamp in the given date range.
-        """
-        command = [
-            "lftp",
-            "-u",
-            f"{self.hook.connection.login},{self.hook.connection.password}",
-            f"{self.hook.connection.schema}://{self.hook.connection.host}",
-            "-e",
-            f"{self._mirror_cmd(folder_name=folder_name, batch_start=batch_start, batch_end=batch_end)}",
-        ]
-
-        with contextlib.ExitStack() as stack:
-            tmpdir = stack.enter_context(tempfile.TemporaryDirectory(prefix='box_lftp'))
-
-            process = subprocess.run(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                cwd=tmpdir,
-                encoding='utf-8'
-            )
-
-            if process.returncode != 0:
-                raise AirflowException(
-                    f"LFTP command failed!\n{process.stderr}"
-                )
-
-        return process.stdout
-
-    def _mirror_cmd(self, folder_name: str, batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None):
-        command = [
-            "mirror",
-            "--dry-run",
-        ]
-
-        # Because FTP preserves the file's original modified / created times,
-        #   and we can't seem to query by "upload time" (stored by Box only?),
-        #   we'll have to grab all files that are present, and
-        #   delete them when done.
-        # if batch_start:
-            # command.append(f"--newer-than={batch_start}")
-
-        # if batch_end:
-            # command.append(f"--older-than={batch_end}")
-
-        command.extend([
-            f"/Root/{folder_name}/",
-            ".;",
-            "bye"
-        ])
-
-        return ' '.join(command)
+            return batch_start <= file.mtime <= batch_end
 
     @contextlib.contextmanager
     def ftps(self) -> FTP_TLS:
@@ -245,14 +184,7 @@ class Box(object):
 
         ftps.quit()
 
-    def file_size(self, ftps: FTP_TLS, file: BoxFile) -> int:
-        """
-        Returns the size of the given file.
-        """
-        ftps.cwd(os.path.dirname(file.full_path))
-        return ftps.size(file.file_name)
-
-    def retrieve_file(self, ftps: FTP_TLS, file: BoxFile) -> io.BufferedReader:
+    def retrieve_file(self, ftps: FTP_TLS, file: FtpEntry) -> io.BufferedReader:
         """
         Opens the given file for download into a context as a python io (file like) object.
         The underlying io object yields bytes objects.
@@ -268,18 +200,18 @@ class Box(object):
              break
         ```
         """
-        ftps.cwd(os.path.dirname(file.full_path))
+        ftps.cwd(file.folder_path)
 
         io_obj = io.BytesIO()
-        ftps.retrbinary(f"RETR {file.file_name}", io_obj.write)
+        ftps.retrbinary(f"RETR {file.name}", io_obj.write)
         io_obj.seek(0)
         return io_obj
 
-    def remove_file(self, ftps: FTP_TLS, file: BoxFile):
+    def remove_file(self, ftps: FTP_TLS, file: FtpEntry):
         """
         Removes the file from the FTP server. This is so we can keep track of which files
         have been ingested, since we can't rely on upload / file modified timestamps.
         """
-        ftps.cwd(os.path.dirname(file.full_path))
+        ftps.cwd(file.folder_path)
 
-        ftps.delete(file.file_name)
+        ftps.delete(file.name)
