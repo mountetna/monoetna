@@ -13,7 +13,7 @@ import {DataEnvelope} from "../components/workflow/user_interactions/inputs/inpu
 import {VulcanContext} from "./vulcan_context";
 
 import Button from '@material-ui/core/Button';
-import { FormControlLabel, Switch } from '@material-ui/core';
+import { FormControlLabel, Grid, Switch } from '@material-ui/core';
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(stepName: string | null, inputs: DataEnvelope<Maybe<any>>) {
@@ -107,42 +107,51 @@ export function WithBufferedInputs({
     }
   },[state.triggerCommit])
 
+  const commit_rest_buttons = hasInputs ? <div className='reset-or-commit-inputs'>
+    <Button onClick={cancelInputs} disabled={!!state.pollingState}>
+      Reset
+    </Button>
+    <Button
+      onClick={commitInputs}
+      style={{
+        background: "linear-gradient(135deg, #6e8efb, #a777e3)",
+        textAlign: 'center',
+        fontWeight: 'bold',
+        fontSize: 14,
+        border:'3px solid black',
+        //outline: '#4CAF50 solid 2px'
+        }}
+      disabled={!!state.pollingState}>
+      Commit
+    </Button>
+  </div> : null
+
+  const autopass_switch = isPassable(stepName) ? <FormControlLabel
+    className='auto-pass-inputs'
+    control={
+      <Switch
+        checked={state.autoPassSteps.includes(stepName)}
+        onChange={setAutoPass}
+        color='primary'
+        disabled={!!state.pollingState}
+      />
+    }
+    label="Auto-Commit in future"
+    labelPlacement='start'
+  /> : null
+
+  const controls_below = (isPassable(stepName) || hasInputs) ? (
+    <Grid container style={{width: 'auto'}} justify="flex-end">
+      {autopass_switch}
+      {commit_rest_buttons}
+    </Grid>
+   ) : null
+
   return <BufferedInputsContext.Provider value={{inputs, setInputs, commitInputs, cancelInputs}}>
     <div>
       {children}
     </div>
-    { hasInputs ? <div className='reset-or-commit-inputs'>
-      { isPassable(stepName) ?
-        <FormControlLabel
-            className='auto-pass-inputs'
-            control={
-              <Switch
-                checked={state.autoPassSteps.includes(stepName)}
-                onChange={setAutoPass}
-                color='primary'
-                disabled={!!state.pollingState}
-              />
-            }
-            label="Auto-Commit in future"
-            labelPlacement='start'
-          /> : null }
-      <Button onClick={cancelInputs} disabled={!!state.pollingState}>
-        Reset
-      </Button>
-      <Button  
-        onClick={commitInputs}
-        style={{
-          background: "linear-gradient(135deg, #6e8efb, #a777e3)",
-          textAlign: 'center', 
-          fontWeight: 'bold',
-          fontSize: 14,
-          border:'3px solid black',
-          //outline: '#4CAF50 solid 2px'  
-          }}
-        disabled={!!state.pollingState}>
-        Commit
-      </Button>
-    </div> : null } 
+    { controls_below } 
   </BufferedInputsContext.Provider>
 }
 
