@@ -14,7 +14,7 @@ USER root
 COPY --from=0 /known_hosts /root/.ssh/known_hosts
 RUN chmod 0700 /root/.ssh
 RUN apt-get update
-RUN apt-get install -y bash curl jq git openssh-client ncat lftp
+RUN apt-get install -y bash curl jq git openssh-client ncat
 RUN groupadd --gid 999 docker \
     && usermod -aG docker airflow
 
