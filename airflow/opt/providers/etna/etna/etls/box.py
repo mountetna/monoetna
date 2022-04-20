@@ -67,11 +67,13 @@ class BoxEtlHelpers:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
                 for file in files:
                     with box.retrieve_file(ftps, file) as box_io_file:
-                        self.log.info(f"Uploading {file.full_path}.")
+                        dest_path = os.path.join(self.hook.connection.host, file.path) if folder_path is None else os.path.join(folder_path, file.file_name)
+                        self.log.info(f"Uploading {file.full_path} to {dest_path}.")
+
                         for blob in metis.upload_file(
                             project_name,
                             bucket_name,
-                            os.path.join(self.hook.connection.host, file.path) if folder_path is None else os.path.join(folder_path, file.file_name),
+                            dest_path,
                             box_io_file,
                             box.file_size(ftps, file)
                         ):
