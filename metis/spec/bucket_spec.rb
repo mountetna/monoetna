@@ -176,6 +176,7 @@ describe BucketController do
           "id",
           "node_name",
           "parent_id",
+          "size",
           "type",
           "updated_at"
         ])
@@ -227,6 +228,7 @@ describe BucketController do
           "id",
           "node_name",
           "parent_id",
+          "size",
           "type",
           "updated_at"
         ])

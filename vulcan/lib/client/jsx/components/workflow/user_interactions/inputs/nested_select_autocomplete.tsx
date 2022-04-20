@@ -1,15 +1,16 @@
 // Input component that takes nested object
 //   and shows the keys one level at a time.
 // Returns the last "Leaf" that the user selects.
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import * as _ from 'lodash';
 
-import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import {WithInputParams} from "./input_types";
-import {mapSome, some, withDefault} from "../../../../selectors/maybe";
+import {some} from "../../../../selectors/maybe";
 import {useMemoized} from "../../../../selectors/workflow_selectors";
 import {joinNesting} from "./monoids";
 import {useSetsDefault} from "./useSetsDefault";
+import { InputLabel, TextField } from '@material-ui/core';
+import SelectAutocompleteInput from './select_autocomplete';
 
 function getPath(options: OptionSet, leaf: string): string[] {
   for (let [key, value] of Object.entries(options)) {
@@ -40,38 +41,42 @@ function getOptions(
 }
 
 function LeafOptions({
-  options,
+  options_in,
+  value,
   depth,
-  handleSelect
+  handleSelect,
+  maxOptions=100,
 }: {
-  options: string[] | null;
+  options_in: string[] | null;
+  value: string | null;
   depth: number;
   handleSelect: (value: string | null, depth: number) => void;
+  maxOptions?: number;
 }) {
-  if (!options) return null;
-
+  if (!options_in) return null;
   return (
-    <DropdownAutocomplete
-      key={`${depth}-${options.slice(0, 5).join('-')}`}
-      onSelect={(e: any) => {
-        handleSelect(e, depth);
-      }}
-      list={options}
-      defaultValue={null}
-      maxItems={30}
+    <SelectAutocompleteInput
+      key={`${depth}-${options_in.slice(0, 5).join('-')}`}
+      onChange={(v) => {}}
+      onChangeOverride={
+        (event:any, e: string|null) => handleSelect(e, depth)
+      }
+      value={some(value)}
+      data={{a: options_in}}
+      maxOptions={maxOptions}
     />
-  );
+  )
 }
 
 type OptionSet = {[k: string]: null | OptionSet};
 
-export default function NestedSelectAutocompleteInput({ label, data, onChange, ...props }: WithInputParams<{label?: string}, string, OptionSet>) {
-  const value = useSetsDefault("", props.value, onChange)
+export default function NestedSelectAutocompleteInput({ label, data, onChange, ...props }: WithInputParams<{label?: string}, string|null, OptionSet>) {
+  const value = useSetsDefault(null, props.value, onChange)
   const allOptions = useMemoized(joinNesting, data);
   const [path, setPath] = useState([] as string[]);
   
   useEffect(() => {
-    if (value && value != "") {
+    if (value!=null) {
       const updatedPath = getPath(allOptions, value);
       setPath(updatedPath);
     }
@@ -99,28 +104,27 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
     [allOptions, path, onChange]
   );
 
-  let lab
-  if (label) {
-    lab = label;
-  } else {
-    lab = null;
-  }
+  // const lab = (label) ? 
+  //   <InputLabel shrink>{label}</InputLabel> : null;
 
+  // console.log({value})
+  // console.log({path})
   return (
     <div>
-      {lab}
+      {/* {lab} */}
       <div>
         {path.map((value, index) => {
               const options = getOptions(path.slice(0, index), allOptions);
               return (
-                <DropdownAutocomplete
+                (options==null) ? null :
+                <SelectAutocompleteInput
                   key={index}
-                  onSelect={(e: string | null) => {
-                    handleSelect(e, index);
-                  }}
-                  list={options}
-                  value={value}
-                  maxItems={30}
+                  onChange={(v) => {}}
+                  onChangeOverride={
+                    (event:any, e: string|null) => handleSelect(e, index)
+                  }
+                  value={some(value)}
+                  data={{a: options}}
                 />
               );
             })
@@ -128,7 +132,8 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
       </div>
       <div>
         <LeafOptions
-          options={getOptions(path, allOptions)}
+          options_in={getOptions(path, allOptions)}
+          value={value}
           depth={path.length}
           handleSelect={handleSelect}
         />

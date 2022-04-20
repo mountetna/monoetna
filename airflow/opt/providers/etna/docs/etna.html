@@ -37,6 +37,12 @@
                     <a class="function" href="#system_dag">system_dag</a>
             </li>
             <li>
+                    <a class="function" href="#dag">dag</a>
+            </li>
+            <li>
+                    <a class="function" href="#rollup_dag">rollup_dag</a>
+            </li>
+            <li>
                     <a class="function" href="#run_on_docker">run_on_docker</a>
             </li>
             <li>
@@ -70,10 +76,16 @@
                                 <a class="function" href="#MetisEtlHelpers.process_and_link_matching_file">process_and_link_matching_file</a>
                         </li>
                         <li>
+                                <a class="function" href="#MetisEtlHelpers.link_single_cell_attribute_files_v1">link_single_cell_attribute_files_v1</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#MetisEtlHelpers.link_matching_file">link_matching_file</a>
                         </li>
                         <li>
                                 <a class="function" href="#MetisEtlHelpers.link_matching_files">link_matching_files</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#MetisEtlHelpers.link_record_folders_to_parent">link_record_folders_to_parent</a>
                         </li>
                         <li>
                                 <a class="function" href="#MetisEtlHelpers.find_record_folders">find_record_folders</a>
@@ -115,6 +127,18 @@
                                 <a class="variable" href="#UpdateRequest.dry_run">dry_run</a>
                         </li>
                         <li>
+                                <a class="function" href="#UpdateRequest.shallow_copy">shallow_copy</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#UpdateRequest.includes">includes</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#UpdateRequest.sample_revision_tree">sample_revision_tree</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#UpdateRequest.empty">empty</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#UpdateRequest.extend">extend</a>
                         </li>
                         <li>
@@ -125,6 +149,15 @@
                         </li>
                         <li>
                                 <a class="function" href="#UpdateRequest.append_table">append_table</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#rollup">rollup</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#rollup.__init__">rollup</a>
                         </li>
                 </ul>
 
@@ -155,6 +188,10 @@ with all the utilities here within.  https://airflow.apache.org/docs/</p>
 <p>The top level module exports many common utilities needed by an average etl,
 while individual inner packages may contain implementations, interfaces, and
 granular functions for nuanced use cases.</p>
+
+<p>This documentation is fairly exhaustive and likely too much for someone starting off.
+I highly recommend using this as a primary reference in combination with existing
+working etl processes until a more comprehensive tutorial can be documented here.</p>
 </div>
 
                         <details>
@@ -170,13 +207,17 @@ granular functions for nuanced use cases.</p>
 <span class="sd">The top level module exports many common utilities needed by an average etl,</span>
 <span class="sd">while individual inner packages may contain implementations, interfaces, and</span>
 <span class="sd">granular functions for nuanced use cases.</span>
+
+<span class="sd">This documentation is fairly exhaustive and likely too much for someone starting off.</span>
+<span class="sd">I highly recommend using this as a primary reference in combination with existing</span>
+<span class="sd">working etl processes until a more comprehensive tutorial can be documented here.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 
 
 <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">.dags.decorators</span> <span class="kn">import</span> <span class="n">system_dag</span>
+    <span class="kn">from</span> <span class="nn">.dags.decorators</span> <span class="kn">import</span> <span class="n">system_dag</span><span class="p">,</span> <span class="n">dag</span><span class="p">,</span> <span class="n">rollup_dag</span>
     <span class="kn">from</span> <span class="nn">.operators</span> <span class="kn">import</span> <span class="n">run_on_docker</span>
     <span class="kn">from</span> <span class="nn">.etls.decorators</span> <span class="kn">import</span> <span class="n">metis_etl</span>
     <span class="kn">from</span> <span class="nn">.etls.metis</span> <span class="kn">import</span> <span class="p">(</span>
@@ -191,6 +232,7 @@ granular functions for nuanced use cases.</p>
         <span class="n">get_project_slack_hook</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="kn">from</span> <span class="nn">.hooks.etna</span> <span class="kn">import</span> <span class="n">UpdateRequest</span>
+    <span class="kn">from</span> <span class="nn">.operators.rollup_xcom_operator</span> <span class="kn">import</span> <span class="n">rollup</span>
 
     <span class="n">__all__</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span>
         <span class="s2">&quot;dags&quot;</span><span class="p">,</span>
@@ -212,7 +254,7 @@ granular functions for nuanced use cases.</p>
 
 <span class="c1"># trick the static checker.</span>
 <span class="k">if</span> <span class="nb">globals</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;notathing&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">.dags.decorators</span> <span class="kn">import</span> <span class="n">system_dag</span>
+    <span class="kn">from</span> <span class="nn">.dags.decorators</span> <span class="kn">import</span> <span class="n">system_dag</span><span class="p">,</span> <span class="n">dag</span><span class="p">,</span> <span class="n">rollup_dag</span>
     <span class="kn">from</span> <span class="nn">.operators</span> <span class="kn">import</span> <span class="n">run_on_docker</span>
     <span class="kn">from</span> <span class="nn">.etls.decorators</span> <span class="kn">import</span> <span class="n">metis_etl</span>
     <span class="kn">from</span> <span class="nn">.etls.metis</span> <span class="kn">import</span> <span class="p">(</span>
@@ -227,6 +269,7 @@ granular functions for nuanced use cases.</p>
         <span class="n">get_project_slack_hook</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="kn">from</span> <span class="nn">.hooks.etna</span> <span class="kn">import</span> <span class="n">UpdateRequest</span>
+    <span class="kn">from</span> <span class="nn">.operators.rollup_xcom_operator</span> <span class="kn">import</span> <span class="n">rollup</span>
 </pre></div>
 
         </details>
@@ -246,9 +289,7 @@ granular functions for nuanced use cases.</p>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span><span class="k">def</span> <span class="nf">system_dag</span><span class="p">(</span><span class="n">interval</span><span class="p">:</span> <span class="n">timedelta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Callable</span><span class="p">],</span> <span class="n">DAG</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Decorator that converts the decorator function into a DAG by the same name</span>
-<span class="sd">    using any tasks instantiated within the function.  For use with &#39;system&#39;</span>
-<span class="sd">    level dags whose owner should be &#39;administration&#39;.</span>
+<span class="sd">    `dag` variant that sets the owner to &#39;administration&#39; and a high number of retries.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">instantiate_dag</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
@@ -257,7 +298,7 @@ granular functions for nuanced use cases.</p>
             <span class="n">schedule_interval</span><span class="o">=</span><span class="n">interval</span><span class="p">,</span>
             <span class="n">default_args</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
                 <span class="n">owner</span><span class="o">=</span><span class="s2">&quot;administration&quot;</span><span class="p">,</span>
-                <span class="n">retries</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                <span class="n">retries</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
             <span class="p">),</span>
             <span class="c1"># default_args=dict(</span>
             <span class="c1"># on_failure_callback=notify_slack_dag_callback(&quot;failed: &quot;),</span>
@@ -270,9 +311,117 @@ granular functions for nuanced use cases.</p>
 
         </details>
 
-            <div class="docstring"><p>Decorator that converts the decorator function into a DAG by the same name
-using any tasks instantiated within the function.  For use with 'system'
-level dags whose owner should be 'administration'.</p>
+            <div class="docstring"><p><code><a href="#dag">dag</a></code> variant that sets the owner to 'administration' and a high number of retries.</p>
+</div>
+
+
+                </section>
+                <section id="dag">
+                            <div class="attr function"><a class="headerlink" href="#dag">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">dag</span><span class="signature">(
+    on_failure_callback: Union[Callable[[airflow.utils.context.Context], NoneType], NoneType] = None,
+    on_success_callback: Union[Callable[[airflow.utils.context.Context], NoneType], NoneType] = None,
+    schedule_interval: Union[str, datetime.timedelta, dateutil.relativedelta.relativedelta, NoneType, Type[airflow.models.dag.ScheduleIntervalArgNotSet]] = &lt;class &#39;airflow.models.dag.ScheduleIntervalArgNotSet&#39;&gt;,
+    start_date: Union[datetime, NoneType] = None,
+    end_date: Union[datetime, NoneType] = None,
+    inject_params: Mapping[str, str] = {},
+    version: Union[int, str] = &#39;&#39;,
+    **kwds
+)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span class="k">def</span> <span class="nf">dag</span><span class="p">(</span>
+    <span class="c1"># A callback function that is invoked when a dag fails.  This can be used to send notifications.</span>
+    <span class="n">on_failure_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DagStateChangeCallback</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="c1"># A callback function that is invoked when a dag succeeds.  This can be used to send notifications.</span>
+    <span class="n">on_success_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DagStateChangeCallback</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="c1"># Generally a timedelta value, or a cron like string specification, indicating the desired interval of execution</span>
+    <span class="n">schedule_interval</span><span class="p">:</span> <span class="n">ScheduleIntervalArg</span> <span class="o">=</span> <span class="n">ScheduleIntervalArgNotSet</span><span class="p">,</span>
+    <span class="c1"># The point of the desired first execution.  Generally, this should be set to some recent date that marks the start of a project.</span>
+    <span class="n">start_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="c1"># Optional &#39;end point&#39; of processing, after which no further runs will be scheduled, however manual runs can always be triggered.</span>
+    <span class="n">end_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="c1"># A mapping of values to parameter names that will be injected into the decorated function.</span>
+    <span class="n">inject_params</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+    <span class="c1"># A value that is appended to the name of the resulting DAG, allowing one to easily force reprocessing of a DAG when</span>
+    <span class="c1"># significant changes to its implementation occur.</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwds</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple convenience decorator that wraps airflow.dag decorator with some basic defaults and the ability</span>
+<span class="sd">    to &#39;inject&#39; parameters into the callable.  Generally not used directly, use other more specific decorators</span>
+<span class="sd">    such as system_dag or metis_etl.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">instantiate_dag</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">DAG</span><span class="p">(</span>
+            <span class="n">dag_id</span><span class="o">=</span><span class="n">fn</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">version</span><span class="p">),</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">fn</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">,</span>
+            <span class="n">on_failure_callback</span><span class="o">=</span><span class="n">on_failure_callback</span><span class="p">,</span>
+            <span class="n">on_success_callback</span><span class="o">=</span><span class="n">on_success_callback</span><span class="p">,</span>
+            <span class="n">start_date</span><span class="o">=</span><span class="n">start_date</span><span class="p">,</span>
+            <span class="n">end_date</span><span class="o">=</span><span class="n">end_date</span><span class="p">,</span>
+            <span class="n">schedule_interval</span><span class="o">=</span><span class="n">schedule_interval</span><span class="p">,</span>
+            <span class="n">max_active_runs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwds</span><span class="p">,</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
+            <span class="n">inject</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">inject_params</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dag</span>
+
+    <span class="k">return</span> <span class="n">instantiate_dag</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Simple convenience decorator that wraps airflow.dag decorator with some basic defaults and the ability
+to 'inject' parameters into the callable.  Generally not used directly, use other more specific decorators
+such as system_dag or metis_etl.</p>
+</div>
+
+
+                </section>
+                <section id="rollup_dag">
+                            <div class="attr function"><a class="headerlink" href="#rollup_dag">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">rollup_dag</span><span class="signature">(
+    interval: datetime.timedelta,
+    labels: List[str]
+) -&gt; Callable[[Callable], airflow.models.dag.DAG]</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span class="k">def</span> <span class="nf">rollup_dag</span><span class="p">(</span><span class="n">interval</span><span class="p">:</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Callable</span><span class="p">],</span> <span class="n">DAG</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    `system_dag` variant that sets the dag&#39;s labels so that a rollup of it&#39;s XCom values are used</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">instantiate_dag</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">dag</span><span class="p">(</span>
+            <span class="n">start_date</span><span class="o">=</span><span class="n">system_epoch</span><span class="p">,</span>
+            <span class="n">schedule_interval</span><span class="o">=</span><span class="n">interval</span><span class="p">,</span>
+            <span class="n">default_args</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+                <span class="n">owner</span><span class="o">=</span><span class="s2">&quot;administration&quot;</span><span class="p">,</span>
+                <span class="n">retries</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;rollup&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;label:</span><span class="si">{</span><span class="n">l</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">],</span>
+            <span class="n">catchup</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)(</span><span class="n">fn</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">instantiate_dag</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p><code><a href="#system_dag">system_dag</a></code> variant that sets the dag's labels so that a rollup of it's XCom values are used</p>
 </div>
 
 
@@ -470,6 +619,8 @@ scoped to the given project_name, bucket_name pair.</p>
     <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span>
     <span class="n">_hook</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">EtnaHook</span><span class="p">]</span>
     <span class="n">attribute_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">validate_record_update</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="nb">bool</span><span class="p">]]</span>
+    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -477,12 +628,16 @@ scoped to the given project_name, bucket_name pair.</p>
         <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">hook</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">EtnaHook</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">task_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">validate_record_update</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_id</span> <span class="o">=</span> <span class="n">task_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span> <span class="o">=</span> <span class="n">hook</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span> <span class="o">=</span> <span class="n">dry_run</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attribute_name</span> <span class="o">=</span> <span class="n">attribute_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;airflow.task&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_record_update</span> <span class="o">=</span> <span class="n">validate_record_update</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">project_name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -498,20 +653,26 @@ scoped to the given project_name, bucket_name pair.</p>
             <span class="n">result</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">magma</span><span class="p">(</span><span class="n">read_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">magma</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;retrieving model...&quot;</span><span class="p">)</span>
-                <span class="n">response</span> <span class="o">=</span> <span class="n">magma</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span>
+                <span class="n">models</span> <span class="o">=</span> <span class="n">magma</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span>
                     <span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span>
                     <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span>
-                    <span class="n">attribute_names</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attribute_name</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attribute_name</span>
-                    <span class="k">else</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span>
-                    <span class="n">record_names</span><span class="o">=</span><span class="p">[],</span>
                     <span class="n">hide_templates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                <span class="p">)</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">models</span>
+
+                <span class="n">project_models</span> <span class="o">=</span> <span class="n">magma</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="n">record_names</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">attribute_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;identifier&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">models</span>
+                <span class="k">if</span> <span class="s1">&#39;project&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">project_models</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Project is not fully initialized, missing project model and record.&#39;</span><span class="p">)</span>
+
+                <span class="n">project_rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">project_models</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">documents</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">project_rows</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s1">&#39;Project is not fully initialized, missing record&#39;</span><span class="p">)</span>
+
+                <span class="n">project</span> <span class="o">=</span> <span class="n">project_rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;running linking function...&quot;</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">cur_batch</span> <span class="ow">in</span> <span class="n">batch_iterable</span><span class="p">(</span><span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">),</span> <span class="mi">50</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">cur_batch</span> <span class="ow">in</span> <span class="n">batch_iterable</span><span class="p">(</span><span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">):</span>
                     <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_process_link_batch</span><span class="p">(</span><span class="n">magma</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">models</span><span class="p">,</span> <span class="n">cur_batch</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_process_link_batch</span><span class="p">(</span><span class="n">magma</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">cur_batch</span><span class="p">,</span> <span class="n">project</span><span class="p">)</span>
                     <span class="p">)</span>
 
             <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -528,6 +689,7 @@ scoped to the given project_name, bucket_name pair.</p>
         <span class="n">magma</span><span class="p">:</span> <span class="n">Magma</span><span class="p">,</span>
         <span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Model</span><span class="p">],</span>
         <span class="n">batch</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+        <span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">]:</span>
         <span class="n">result</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">update</span><span class="p">:</span> <span class="n">UpdateRequest</span> <span class="o">=</span> <span class="n">UpdateRequest</span><span class="p">(</span>
@@ -549,12 +711,73 @@ scoped to the given project_name, bucket_name pair.</p>
             <span class="k">for</span> <span class="n">error_message</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">models</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="n">error_message</span><span class="p">)</span>
 
+            <span class="n">updated_names</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">identifier</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">for</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">mr</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">identifier</span> <span class="ow">in</span> <span class="n">mr</span>
+            <span class="p">]</span>
+
             <span class="n">update</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
             <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Updates to </span><span class="si">{</span><span class="n">updated_names</span><span class="si">}</span><span class="s2"> found in </span><span class="si">{</span><span class="n">match</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expand_project_parents</span><span class="p">(</span><span class="n">update</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">project</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Validating update...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_update</span><span class="p">(</span><span class="n">magma</span><span class="p">,</span> <span class="n">update</span><span class="p">,</span> <span class="n">models</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Executing batched magma update&quot;</span><span class="p">)</span>
         <span class="n">magma</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">update</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_expand_project_parents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="n">UpdateRequest</span><span class="p">,</span> <span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Model</span><span class="p">],</span> <span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">revisions</span> <span class="ow">in</span> <span class="n">update</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">model_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expanding project=</span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2"> for model </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">parent</span> <span class="o">==</span> <span class="s2">&quot;parent&quot;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">revision</span> <span class="ow">in</span> <span class="n">revisions</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                    <span class="n">revision</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">project</span>
+
+    <span class="k">def</span> <span class="nf">_validate_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">magma</span><span class="p">:</span> <span class="n">Magma</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="n">UpdateRequest</span><span class="p">,</span> <span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Model</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_record_update</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">differ</span> <span class="o">=</span> <span class="n">difflib</span><span class="o">.</span><span class="n">Differ</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">revisions</span> <span class="ow">in</span> <span class="n">update</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">revision_batch</span> <span class="ow">in</span> <span class="n">batch_iterable</span><span class="p">(</span><span class="n">revisions</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="mi">100</span><span class="p">):</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">magma</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">get_project_name</span><span class="p">(),</span> <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_names</span><span class="o">=</span><span class="n">revision_batch</span><span class="p">)</span>
+                <span class="n">disconnected_response</span> <span class="o">=</span> <span class="n">magma</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">get_project_name</span><span class="p">(),</span> <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_names</span><span class="o">=</span><span class="n">revision_batch</span><span class="p">,</span> <span class="n">show_disconnected</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">response</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">disconnected_response</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">identifier</span> <span class="ow">in</span> <span class="n">revision_batch</span><span class="p">:</span>
+                    <span class="n">revision</span> <span class="o">=</span> <span class="n">update</span><span class="o">.</span><span class="n">revisions</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="p">{})</span>
+                    <span class="n">existing</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span><span class="o">.</span><span class="n">documents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="p">{})</span>
+                    <span class="c1"># Compare the subset of attributes that actually exist in this revision</span>
+                    <span class="c1"># against what might already exist for that record.</span>
+                    <span class="c1"># Order the attributes based on the template to ensure cleaner diff as well.</span>
+                    <span class="n">exisiting_diffable</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+                    <span class="n">revision_diffable</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+                    <span class="n">unequal_attrs</span> <span class="o">=</span> <span class="p">[]</span>
+
+                    <span class="k">for</span> <span class="n">attr_name</span> <span class="ow">in</span> <span class="n">models</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">attr_name</span> <span class="ow">in</span> <span class="n">revision</span><span class="p">:</span>
+                            <span class="n">revision_diffable</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span> <span class="o">=</span> <span class="n">revision</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="n">attr_name</span> <span class="ow">in</span> <span class="n">existing</span><span class="p">:</span>
+                                <span class="n">exisiting_diffable</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span> <span class="o">=</span> <span class="n">existing</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span>
+                                <span class="k">if</span> <span class="n">a</span> <span class="o">!=</span> <span class="n">b</span><span class="p">:</span>
+                                    <span class="n">unequal_attrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attr_name</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">unequal_attrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attr_name</span><span class="p">)</span>
+
+                    <span class="n">revision_diffable</span><span class="p">[</span><span class="s1">&#39;identifier&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">identifier</span>
+                    <span class="n">exisiting_diffable</span><span class="p">[</span><span class="s1">&#39;identifier&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">identifier</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_record_update</span><span class="p">(</span><span class="n">exisiting_diffable</span><span class="p">,</span> <span class="n">revision_diffable</span><span class="p">,</span> <span class="n">unequal_attrs</span><span class="p">):</span>
+                        <span class="n">diff_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">differ</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span>
+                            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">exisiting_diffable</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
+                            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">revision_diffable</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">(</span><span class="kc">True</span><span class="p">),</span>
+                        <span class="p">))</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Update on </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">identifier</span><span class="si">}</span><span class="s2"> failed, diffset was:</span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">diff_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -569,7 +792,9 @@ scoped to the given project_name, bucket_name pair.</p>
     attribute_name: Union[str, NoneType] = None,
     dry_run=True,
     hook: Union[<a href="etna/hooks/etna.html#EtnaHook">etna.hooks.etna.EtnaHook</a>, NoneType] = None,
-    task_id: Union[str, NoneType] = None
+    task_id: Union[str, NoneType] = None,
+    validate_record_update: Union[Callable[[Any, Any, List[str]], bool], NoneType] = None,
+    batch_size=30
 )</span>
     </div>
 
@@ -581,12 +806,16 @@ scoped to the given project_name, bucket_name pair.</p>
         <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">hook</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">EtnaHook</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">task_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">validate_record_update</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">task_id</span> <span class="o">=</span> <span class="n">task_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_hook</span> <span class="o">=</span> <span class="n">hook</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span> <span class="o">=</span> <span class="n">dry_run</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attribute_name</span> <span class="o">=</span> <span class="n">attribute_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;airflow.task&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate_record_update</span> <span class="o">=</span> <span class="n">validate_record_update</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
 </pre></div>
 
         </details>
@@ -644,7 +873,8 @@ scoped to the given project_name, bucket_name pair.</p>
 
         <span class="nd">@task</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;prepare_</span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2">_task_token&quot;</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">prepare_task_token</span><span class="p">(</span><span class="n">read_only</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_task_auth</span><span class="p">(</span><span class="n">read_only</span><span class="o">=</span><span class="n">read_only</span><span class="p">)</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_task_auth</span><span class="p">(</span><span class="n">read_only</span><span class="o">=</span><span class="n">read_only</span><span class="p">)</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">token</span>
 
         <span class="k">return</span> <span class="n">prepare_task_token</span><span class="p">(</span><span class="n">read_only</span><span class="p">)</span>
 
@@ -703,6 +933,26 @@ scoped to the given project_name, bucket_name pair.</p>
 
         <span class="k">return</span> <span class="n">do_link</span><span class="p">(</span><span class="n">listed_record_matches</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">link_single_cell_attribute_files_v1</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># The model name, one of either sc_rna_seq or sc_rna_seq_pool</span>
+            <span class="n">identifier_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># a prefix to indicate matching folders belonging to the given model_name</span>
+            <span class="n">single_cell_root_prefix</span><span class="o">=</span><span class="s2">&quot;single_cell_&quot;</span><span class="p">,</span> <span class="c1"># a prefix used to identify the parent single_cell directories</span>
+            <span class="n">attribute_linker_overrides</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># a list of attribute names to regex strings for overrides to default linking behavior.</span>
+            <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span> <span class="c1"># When True (default), a run does not complete linking but simply validates the code paths,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">XComArg</span><span class="p">,</span> <span class="n">XComArg</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Links single cell rna related attributes for either sc_rna_seq or sc_rna_seq_pool models, including</span>
+<span class="sd">        raw fastqs and processed files.</span>
+
+<span class="sd">        Checkout `etna.etls.linkers.signle_cell_rna_seq.link_single_cell_attribute_files_v1` source code</span>
+<span class="sd">        for more information on how matches are made and which attributes are linked.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Prevent circular import.</span>
+        <span class="kn">from</span> <span class="nn">etna.etls.linkers.single_cell_rna_seq</span> <span class="kn">import</span> <span class="n">link_single_cell_attribute_files_v1</span>
+        <span class="k">return</span> <span class="n">link_single_cell_attribute_files_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">identifier_prefix</span><span class="p">,</span> <span class="n">single_cell_root_prefix</span><span class="p">,</span>
+                                                   <span class="n">attribute_linker_overrides</span><span class="o">=</span><span class="n">attribute_linker_overrides</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">link_matching_file</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="c1"># an XComArg that lists MatchedRecordFolder and Files, usually the result of helpers.list_match_folders</span>
@@ -759,6 +1009,49 @@ scoped to the given project_name, bucket_name pair.</p>
 
         <span class="k">return</span> <span class="n">do_link</span><span class="p">(</span><span class="n">listed_record_matches</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">link_record_folders_to_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">embedded_matches</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        When record folders are embedded in metis such that parent model record folders</span>
+<span class="sd">        exist, it is common to want to &#39;link&#39; the parent model attribute based on the folder name.</span>
+
+<span class="sd">        This function takes an XComArg containing a list of MatchedRecordFolder obtained via</span>
+<span class="sd">        `find_record_folders`, *whose source arg was not None*.  In other words, consider this example:</span>
+
+
+<span class="sd">        Imagine a directory structure like /MYSAMPLE.T1/ScRnaSeq/MYSAMPLE.T1.BLAH.BLAH</span>
+<span class="sd">        ```</span>
+<span class="sd">        sample_matches = helpers.find_record_folders(&quot;sample&quot;, SAMPLE_REGEX)</span>
+<span class="sd">        with TaskGroup(&quot;sc_rna_seq_matches&quot;):</span>
+<span class="sd">          sc_rna_seq_matches = helpers.find_record_folders(&quot;sc_rna_seq&quot;, SC_RNA_SEQ_REGEX, source=sample_matches)</span>
+<span class="sd">          helpers.link_record_folders_to_parent(sc_rna_esq_matches)</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        In this case, FIRST task will find &quot;/MYSAMPLE.T1&quot; as a &quot;sample&quot; record folder and it will belong</span>
+<span class="sd">        to the `XComArg` returned as `sample_matches`.</span>
+
+<span class="sd">        Next, it will search under /MYSAMPLE.T1 to find the MYSAMPLE.T1.BLAH.BLAH directory as a &quot;sc_rna_eq&quot; model</span>
+<span class="sd">        directory, noting the parent record folder as MYSAMPLE.T1 and that pairing will belong to sc_rna_seq_matches.</span>
+
+<span class="sd">        Lastly, the `link_record_folders_to_parent` will use the association between MYSAMPLE.T1.BLAH.BLAH and MYSAMPLE.T1</span>
+<span class="sd">        to make the association between that sc_rna_seq record and the parent sample record.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nd">@link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">link_record_folders_to_parent</span><span class="p">(</span><span class="n">record_matches</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">]):</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">magma</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="n">get_project_name</span><span class="p">())</span> <span class="k">as</span> <span class="n">magma</span><span class="p">:</span>
+                <span class="n">magma_models</span> <span class="o">=</span> <span class="n">magma</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">get_project_name</span><span class="p">(),</span> <span class="n">hide_templates</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">models</span>
+            <span class="k">for</span> <span class="n">record_folder_match</span> <span class="ow">in</span> <span class="n">record_matches</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">model_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">magma_models</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Folder #</span><span class="si">{</span><span class="n">record_folder_match</span><span class="si">}</span><span class="s2"> has invalid model_name&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">match_parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Folder #</span><span class="si">{</span><span class="n">record_folder_match</span><span class="si">}</span><span class="s2"> does not have a match parent, did you provide a source= argument to find_record_folders?&quot;</span><span class="p">)</span>
+
+                <span class="n">parent</span> <span class="o">=</span> <span class="n">magma_models</span><span class="p">[</span><span class="n">record_folder_match</span><span class="o">.</span><span class="n">model_name</span><span class="p">]</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">parent</span>
+
+                <span class="k">yield</span> <span class="n">record_folder_match</span><span class="p">,</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">as_update</span><span class="p">({</span><span class="n">parent</span><span class="p">:</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">match_parent</span><span class="o">.</span><span class="n">record_name</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">link_record_folders_to_parent</span><span class="p">(</span><span class="n">embedded_matches</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">find_record_folders</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="c1"># The model for which these matches represent identifiers for.</span>
@@ -771,28 +1064,50 @@ scoped to the given project_name, bucket_name pair.</p>
         <span class="c1"># Ideally, matched folders are correct magma record names, but if some transformation is necessary,</span>
         <span class="c1"># this function can be specified.</span>
         <span class="n">corrected_record_name</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+
+        <span class="c1"># When not provided, all the bucket&#39;s files and folders are used as the source search directories.</span>
+        <span class="c1"># When provided, this may by a subset of files, such as an existing set of List[MatchedRecordFolder].</span>
+        <span class="c1"># In that case, the XComArg returned by this function will include `match_parent` set.</span>
+        <span class="n">source</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">XComArg</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates a task that produces a list of MatchedRecordFolders by finding any file or folder change that is</span>
-<span class="sd">        found inside a folder given by the provided regex.</span>
+<span class="sd">        Creates a task that Searches for folders that match the given a regex creates MatchedRecordFolder</span>
+<span class="sd">        entries with the name of the directory at the far end of the match and the given model name.  The match must</span>
+<span class="sd">        occur at a folder boundary, so for instance, r&#39;abc/def&#39; does not match &#39;abc/defg&#39; but does match &#39;abc/def/c&#39;.</span>
+<span class="sd">        The directory matched by the last path segment of the regex is considered a &#39;record name&#39; belonging to the given</span>
+<span class="sd">        model_name, allowing other convenience methods to process and filter with that assumption.</span>
 
-<span class="sd">        This function should be called to identify folders that have a 1:1 mapping to a magma model + record combination.</span>
-<span class="sd">        Doing so allows many linking convenience functions that can determine the record name by the containing folder&#39;s</span>
-<span class="sd">        name.</span>
+<span class="sd">        `source` should be used when processing inner record folders, with the outer record matches XComArg being passed.</span>
+<span class="sd">        In that case, you should use a `with TaskGroup(&#39;---&#39;)` surrounding this task to distinguish the inner task name</span>
+<span class="sd">        from the outer one.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="nd">@task</span>
-        <span class="k">def</span> <span class="nf">find_record_folders</span><span class="p">(</span><span class="n">folders</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span>
-                <span class="n">filter_by_record_directory</span><span class="p">(</span>
-                    <span class="n">folders</span> <span class="o">+</span> <span class="n">files</span><span class="p">,</span>
-                    <span class="n">regex</span><span class="p">,</span>
-                    <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
-                    <span class="n">corrected_record_name</span><span class="o">=</span><span class="n">corrected_record_name</span><span class="p">,</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nd">@task</span>
+            <span class="k">def</span> <span class="nf">find_record_folders</span><span class="p">(</span><span class="n">folders</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span>
+                    <span class="n">filter_by_record_directory</span><span class="p">(</span>
+                        <span class="n">folders</span> <span class="o">+</span> <span class="n">files</span><span class="p">,</span>
+                        <span class="n">regex</span><span class="p">,</span>
+                        <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+                        <span class="n">corrected_record_name</span><span class="o">=</span><span class="n">corrected_record_name</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
-            <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">find_record_folders</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tail_folders</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tail_files</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">find_record_folders</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tail_folders</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tail_files</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nd">@task</span>
+            <span class="k">def</span> <span class="nf">find_record_folders</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span>
+                    <span class="n">filter_by_record_directory</span><span class="p">(</span>
+                        <span class="n">source</span><span class="p">,</span>
+                        <span class="n">regex</span><span class="p">,</span>
+                        <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+                        <span class="n">corrected_record_name</span><span class="o">=</span><span class="n">corrected_record_name</span><span class="p">,</span>
+                        <span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">find_record_folders</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">filter_by_timur</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matches</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -819,8 +1134,17 @@ scoped to the given project_name, bucket_name pair.</p>
 
         <span class="nd">@task</span>
         <span class="k">def</span> <span class="nf">list_match_folders</span><span class="p">(</span><span class="n">matches</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[]</span>
+
+            <span class="n">project_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">project_name</span>
+            <span class="n">bucket_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bucket_name</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">metis</span><span class="p">()</span> <span class="k">as</span> <span class="n">metis</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span><span class="n">list_contents_of_matches</span><span class="p">(</span><span class="n">metis</span><span class="p">,</span> <span class="n">matches</span><span class="p">))</span>
+                <span class="n">files_by_parent_id</span> <span class="o">=</span> <span class="p">{</span> <span class="n">k</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">metis</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="n">folder_id</span><span class="o">=</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">])[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">file</span><span class="p">:</span> <span class="n">file</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="p">}</span>
+                <span class="k">return</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">files_by_parent_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
+                    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span>
+                <span class="p">]</span>
 
         <span class="k">return</span> <span class="n">list_match_folders</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span>
 </pre></div>
@@ -873,7 +1197,8 @@ scoped to the given project_name, bucket_name pair.</p>
 
         <span class="nd">@task</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;prepare_</span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2">_task_token&quot;</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">prepare_task_token</span><span class="p">(</span><span class="n">read_only</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_task_auth</span><span class="p">(</span><span class="n">read_only</span><span class="o">=</span><span class="n">read_only</span><span class="p">)</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">get_task_auth</span><span class="p">(</span><span class="n">read_only</span><span class="o">=</span><span class="n">read_only</span><span class="p">)</span><span class="o">.</span><span class="n">token</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">token</span>
 
         <span class="k">return</span> <span class="n">prepare_task_token</span><span class="p">(</span><span class="n">read_only</span><span class="p">)</span>
 </pre></div>
@@ -979,6 +1304,55 @@ matches = helpers.find_record_folders('rna_seq', rna_seq_folder_regex)
 listed_matches = helpers.list_match_folders(matches)
 helpers.process_and_link_matching_file(listed_matches, re.compile(r'.*gene_counts\.tsv$'), my_processor)
 </code></pre>
+</div>
+
+
+                            </div>
+                            <div id="MetisEtlHelpers.link_single_cell_attribute_files_v1" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#MetisEtlHelpers.link_single_cell_attribute_files_v1">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">link_single_cell_attribute_files_v1</span><span class="signature">(
+    self,
+    model_name: str,
+    identifier_prefix: str,
+    single_cell_root_prefix=&#39;single_cell_&#39;,
+    attribute_linker_overrides: Union[Mapping[str, str], NoneType] = None,
+    dry_run=True
+) -&gt; Tuple[airflow.models.xcom_arg.XComArg, airflow.models.xcom_arg.XComArg]</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">link_single_cell_attribute_files_v1</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># The model name, one of either sc_rna_seq or sc_rna_seq_pool</span>
+            <span class="n">identifier_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># a prefix to indicate matching folders belonging to the given model_name</span>
+            <span class="n">single_cell_root_prefix</span><span class="o">=</span><span class="s2">&quot;single_cell_&quot;</span><span class="p">,</span> <span class="c1"># a prefix used to identify the parent single_cell directories</span>
+            <span class="n">attribute_linker_overrides</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># a list of attribute names to regex strings for overrides to default linking behavior.</span>
+            <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span> <span class="c1"># When True (default), a run does not complete linking but simply validates the code paths,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">XComArg</span><span class="p">,</span> <span class="n">XComArg</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Links single cell rna related attributes for either sc_rna_seq or sc_rna_seq_pool models, including</span>
+<span class="sd">        raw fastqs and processed files.</span>
+
+<span class="sd">        Checkout `etna.etls.linkers.signle_cell_rna_seq.link_single_cell_attribute_files_v1` source code</span>
+<span class="sd">        for more information on how matches are made and which attributes are linked.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Prevent circular import.</span>
+        <span class="kn">from</span> <span class="nn">etna.etls.linkers.single_cell_rna_seq</span> <span class="kn">import</span> <span class="n">link_single_cell_attribute_files_v1</span>
+        <span class="k">return</span> <span class="n">link_single_cell_attribute_files_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">identifier_prefix</span><span class="p">,</span> <span class="n">single_cell_root_prefix</span><span class="p">,</span>
+                                                   <span class="n">attribute_linker_overrides</span><span class="o">=</span><span class="n">attribute_linker_overrides</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Links single cell rna related attributes for either sc_rna_seq or sc_rna_seq_pool models, including
+raw fastqs and processed files.</p>
+
+<p>Checkout <code><a href="etna/etls/linkers.html#signle_cell_rna_seq.link_single_cell_attribute_files_v1">etna.etls.linkers.signle_cell_rna_seq.link_single_cell_attribute_files_v1</a></code> source code
+for more information on how matches are made and which attributes are linked.</p>
 </div>
 
 
@@ -1101,6 +1475,92 @@ child directories exist for a matched record folder.</li>
 
 
                             </div>
+                            <div id="MetisEtlHelpers.link_record_folders_to_parent" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#MetisEtlHelpers.link_record_folders_to_parent">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">link_record_folders_to_parent</span><span class="signature">(
+    self,
+    embedded_matches: airflow.models.xcom_arg.XComArg,
+    dry_run=True
+)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">link_record_folders_to_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">embedded_matches</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        When record folders are embedded in metis such that parent model record folders</span>
+<span class="sd">        exist, it is common to want to &#39;link&#39; the parent model attribute based on the folder name.</span>
+
+<span class="sd">        This function takes an XComArg containing a list of MatchedRecordFolder obtained via</span>
+<span class="sd">        `find_record_folders`, *whose source arg was not None*.  In other words, consider this example:</span>
+
+
+<span class="sd">        Imagine a directory structure like /MYSAMPLE.T1/ScRnaSeq/MYSAMPLE.T1.BLAH.BLAH</span>
+<span class="sd">        ```</span>
+<span class="sd">        sample_matches = helpers.find_record_folders(&quot;sample&quot;, SAMPLE_REGEX)</span>
+<span class="sd">        with TaskGroup(&quot;sc_rna_seq_matches&quot;):</span>
+<span class="sd">          sc_rna_seq_matches = helpers.find_record_folders(&quot;sc_rna_seq&quot;, SC_RNA_SEQ_REGEX, source=sample_matches)</span>
+<span class="sd">          helpers.link_record_folders_to_parent(sc_rna_esq_matches)</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        In this case, FIRST task will find &quot;/MYSAMPLE.T1&quot; as a &quot;sample&quot; record folder and it will belong</span>
+<span class="sd">        to the `XComArg` returned as `sample_matches`.</span>
+
+<span class="sd">        Next, it will search under /MYSAMPLE.T1 to find the MYSAMPLE.T1.BLAH.BLAH directory as a &quot;sc_rna_eq&quot; model</span>
+<span class="sd">        directory, noting the parent record folder as MYSAMPLE.T1 and that pairing will belong to sc_rna_seq_matches.</span>
+
+<span class="sd">        Lastly, the `link_record_folders_to_parent` will use the association between MYSAMPLE.T1.BLAH.BLAH and MYSAMPLE.T1</span>
+<span class="sd">        to make the association between that sc_rna_seq record and the parent sample record.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nd">@link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">link_record_folders_to_parent</span><span class="p">(</span><span class="n">record_matches</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">]):</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">magma</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="n">get_project_name</span><span class="p">())</span> <span class="k">as</span> <span class="n">magma</span><span class="p">:</span>
+                <span class="n">magma_models</span> <span class="o">=</span> <span class="n">magma</span><span class="o">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">get_project_name</span><span class="p">(),</span> <span class="n">hide_templates</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">models</span>
+            <span class="k">for</span> <span class="n">record_folder_match</span> <span class="ow">in</span> <span class="n">record_matches</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">model_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">magma_models</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Folder #</span><span class="si">{</span><span class="n">record_folder_match</span><span class="si">}</span><span class="s2"> has invalid model_name&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">match_parent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Folder #</span><span class="si">{</span><span class="n">record_folder_match</span><span class="si">}</span><span class="s2"> does not have a match parent, did you provide a source= argument to find_record_folders?&quot;</span><span class="p">)</span>
+
+                <span class="n">parent</span> <span class="o">=</span> <span class="n">magma_models</span><span class="p">[</span><span class="n">record_folder_match</span><span class="o">.</span><span class="n">model_name</span><span class="p">]</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">parent</span>
+
+                <span class="k">yield</span> <span class="n">record_folder_match</span><span class="p">,</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">as_update</span><span class="p">({</span><span class="n">parent</span><span class="p">:</span> <span class="n">record_folder_match</span><span class="o">.</span><span class="n">match_parent</span><span class="o">.</span><span class="n">record_name</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">link_record_folders_to_parent</span><span class="p">(</span><span class="n">embedded_matches</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>When record folders are embedded in metis such that parent model record folders
+exist, it is common to want to 'link' the parent model attribute based on the folder name.</p>
+
+<p>This function takes an XComArg containing a list of MatchedRecordFolder obtained via
+<code><a href="#MetisEtlHelpers.find_record_folders">find_record_folders</a></code>, <em>whose source arg was not None</em>.  In other words, consider this example:</p>
+
+<p>Imagine a directory structure like /MYSAMPLE.T1/ScRnaSeq/MYSAMPLE.T1.BLAH.BLAH</p>
+
+<pre><code>sample_matches = helpers.find_record_folders("sample", SAMPLE_REGEX)
+with TaskGroup("sc_rna_seq_matches"):
+  sc_rna_seq_matches = helpers.find_record_folders("sc_rna_seq", SC_RNA_SEQ_REGEX, source=sample_matches)
+  helpers.link_record_folders_to_parent(sc_rna_esq_matches)
+</code></pre>
+
+<p>In this case, FIRST task will find "/MYSAMPLE.T1" as a "sample" record folder and it will belong
+to the <code>XComArg</code> returned as <code>sample_matches</code>.</p>
+
+<p>Next, it will search under /MYSAMPLE.T1 to find the MYSAMPLE.T1.BLAH.BLAH directory as a "sc_rna_eq" model
+directory, noting the parent record folder as MYSAMPLE.T1 and that pairing will belong to sc_rna_seq_matches.</p>
+
+<p>Lastly, the <code><a href="#MetisEtlHelpers.link_record_folders_to_parent">link_record_folders_to_parent</a></code> will use the association between MYSAMPLE.T1.BLAH.BLAH and MYSAMPLE.T1
+to make the association between that sc_rna_seq record and the parent sample record.</p>
+</div>
+
+
+                            </div>
                             <div id="MetisEtlHelpers.find_record_folders" class="classattr">
                                         <div class="attr function"><a class="headerlink" href="#MetisEtlHelpers.find_record_folders">#&nbsp;&nbsp</a>
 
@@ -1110,7 +1570,8 @@ child directories exist for a matched record folder.</li>
     self,
     model_name: str,
     regex: re.Pattern,
-    corrected_record_name: Callable[[str], str] = &lt;function MetisEtlHelpers.&lt;lambda&gt;&gt;
+    corrected_record_name: Callable[[str], str] = &lt;function MetisEtlHelpers.&lt;lambda&gt;&gt;,
+    source: Union[airflow.models.xcom_arg.XComArg, NoneType] = None
 ) -&gt; airflow.models.xcom_arg.XComArg</span>:
     </div>
 
@@ -1128,38 +1589,63 @@ child directories exist for a matched record folder.</li>
         <span class="c1"># Ideally, matched folders are correct magma record names, but if some transformation is necessary,</span>
         <span class="c1"># this function can be specified.</span>
         <span class="n">corrected_record_name</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+
+        <span class="c1"># When not provided, all the bucket&#39;s files and folders are used as the source search directories.</span>
+        <span class="c1"># When provided, this may by a subset of files, such as an existing set of List[MatchedRecordFolder].</span>
+        <span class="c1"># In that case, the XComArg returned by this function will include `match_parent` set.</span>
+        <span class="n">source</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">XComArg</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Creates a task that produces a list of MatchedRecordFolders by finding any file or folder change that is</span>
-<span class="sd">        found inside a folder given by the provided regex.</span>
+<span class="sd">        Creates a task that Searches for folders that match the given a regex creates MatchedRecordFolder</span>
+<span class="sd">        entries with the name of the directory at the far end of the match and the given model name.  The match must</span>
+<span class="sd">        occur at a folder boundary, so for instance, r&#39;abc/def&#39; does not match &#39;abc/defg&#39; but does match &#39;abc/def/c&#39;.</span>
+<span class="sd">        The directory matched by the last path segment of the regex is considered a &#39;record name&#39; belonging to the given</span>
+<span class="sd">        model_name, allowing other convenience methods to process and filter with that assumption.</span>
 
-<span class="sd">        This function should be called to identify folders that have a 1:1 mapping to a magma model + record combination.</span>
-<span class="sd">        Doing so allows many linking convenience functions that can determine the record name by the containing folder&#39;s</span>
-<span class="sd">        name.</span>
+<span class="sd">        `source` should be used when processing inner record folders, with the outer record matches XComArg being passed.</span>
+<span class="sd">        In that case, you should use a `with TaskGroup(&#39;---&#39;)` surrounding this task to distinguish the inner task name</span>
+<span class="sd">        from the outer one.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="nd">@task</span>
-        <span class="k">def</span> <span class="nf">find_record_folders</span><span class="p">(</span><span class="n">folders</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span>
-                <span class="n">filter_by_record_directory</span><span class="p">(</span>
-                    <span class="n">folders</span> <span class="o">+</span> <span class="n">files</span><span class="p">,</span>
-                    <span class="n">regex</span><span class="p">,</span>
-                    <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
-                    <span class="n">corrected_record_name</span><span class="o">=</span><span class="n">corrected_record_name</span><span class="p">,</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nd">@task</span>
+            <span class="k">def</span> <span class="nf">find_record_folders</span><span class="p">(</span><span class="n">folders</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span>
+                    <span class="n">filter_by_record_directory</span><span class="p">(</span>
+                        <span class="n">folders</span> <span class="o">+</span> <span class="n">files</span><span class="p">,</span>
+                        <span class="n">regex</span><span class="p">,</span>
+                        <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+                        <span class="n">corrected_record_name</span><span class="o">=</span><span class="n">corrected_record_name</span><span class="p">,</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
-            <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">find_record_folders</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tail_folders</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tail_files</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">find_record_folders</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tail_folders</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tail_files</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nd">@task</span>
+            <span class="k">def</span> <span class="nf">find_record_folders</span><span class="p">(</span><span class="n">source</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span>
+                    <span class="n">filter_by_record_directory</span><span class="p">(</span>
+                        <span class="n">source</span><span class="p">,</span>
+                        <span class="n">regex</span><span class="p">,</span>
+                        <span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+                        <span class="n">corrected_record_name</span><span class="o">=</span><span class="n">corrected_record_name</span><span class="p">,</span>
+                        <span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">find_record_folders</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
 </pre></div>
 
         </details>
 
-            <div class="docstring"><p>Creates a task that produces a list of MatchedRecordFolders by finding any file or folder change that is
-found inside a folder given by the provided regex.</p>
+            <div class="docstring"><p>Creates a task that Searches for folders that match the given a regex creates MatchedRecordFolder
+entries with the name of the directory at the far end of the match and the given model name.  The match must
+occur at a folder boundary, so for instance, r'abc/def' does not match 'abc/defg' but does match 'abc/def/c'.
+The directory matched by the last path segment of the regex is considered a 'record name' belonging to the given
+model_name, allowing other convenience methods to process and filter with that assumption.</p>
 
-<p>This function should be called to identify folders that have a 1:1 mapping to a magma model + record combination.
-Doing so allows many linking convenience functions that can determine the record name by the containing folder's
-name.</p>
+<p><code>source</code> should be used when processing inner record folders, with the outer record matches XComArg being passed.
+In that case, you should use a <code>with TaskGroup('---')</code> surrounding this task to distinguish the inner task name
+from the outer one.</p>
 </div>
 
 
@@ -1221,8 +1707,17 @@ in magma / timur, ensuring that any incorrectly named folder does not accidental
 
         <span class="nd">@task</span>
         <span class="k">def</span> <span class="nf">list_match_folders</span><span class="p">(</span><span class="n">matches</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[]</span>
+
+            <span class="n">project_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">project_name</span>
+            <span class="n">bucket_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bucket_name</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">metis</span><span class="p">()</span> <span class="k">as</span> <span class="n">metis</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span><span class="n">list_contents_of_matches</span><span class="p">(</span><span class="n">metis</span><span class="p">,</span> <span class="n">matches</span><span class="p">))</span>
+                <span class="n">files_by_parent_id</span> <span class="o">=</span> <span class="p">{</span> <span class="n">k</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">metis</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="n">folder_id</span><span class="o">=</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">])[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">file</span><span class="p">:</span> <span class="n">file</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="p">}</span>
+                <span class="k">return</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">files_by_parent_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
+                    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span>
+                <span class="p">]</span>
 
         <span class="k">return</span> <span class="n">list_match_folders</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span>
 </pre></div>
@@ -1251,6 +1746,8 @@ reading in multiple files that exist in the same record folder.</p>
             <details>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span><span class="k">def</span> <span class="nf">pickled</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="n">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">EtnaXComValue</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">v</span>
     <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">_Pickled</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
 </pre></div>
 
@@ -1378,6 +1875,78 @@ is set by most utilities in the etna library automatically.</p>
     <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
+    <span class="k">def</span> <span class="fm">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">shallow_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">revisions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UpdateRequest&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">revisions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">revisions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span>
+
+        <span class="k">return</span> <span class="n">UpdateRequest</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="p">,</span> <span class="n">revisions</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="o">**</span><span class="n">revisions</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">includes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">record_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">record_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="p">{})</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterator</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="k">for</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">revisions</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">record_name</span> <span class="ow">in</span> <span class="n">revisions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">yield</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span>
+
+    <span class="k">def</span> <span class="nf">sample_revision_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">record_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Model</span><span class="p">],</span> <span class="n">acc</span><span class="p">:</span> <span class="s2">&quot;UpdateRequest&quot;</span><span class="p">,</span> <span class="n">destructive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Attempts to sample the complete graph of related objects reference by the given model_name / record_name in this</span>
+<span class="sd">        update, copying it and all its referenced links to acc.</span>
+
+<span class="sd">        When destructive=True is set, it also removes all copied models from this update.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">includes</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">model_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">acc</span><span class="o">.</span><span class="n">includes</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Ensure a record to prevent recursive re-entry</span>
+        <span class="n">acc</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">)</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">destructive</span><span class="p">:</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">record_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">)</span>
+
+        <span class="c1"># copy table values into the acc</span>
+        <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">attr_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">record</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span> <span class="ow">and</span> <span class="n">attr</span><span class="o">.</span><span class="n">attribute_type</span> <span class="o">!=</span> <span class="s2">&quot;table&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">child_id</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sample_revision_tree</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">child_id</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">acc</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sample_revision_tree</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">acc</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span> <span class="ow">and</span> <span class="n">attr</span><span class="o">.</span><span class="n">attribute_type</span> <span class="o">==</span> <span class="s2">&quot;table&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">table_id</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                        <span class="n">acc</span><span class="o">.</span><span class="n">append_table</span><span class="p">(</span>
+                            <span class="n">model_name</span><span class="p">,</span>
+                            <span class="n">record_name</span><span class="p">,</span>
+                            <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">table_id</span><span class="p">),</span>
+                            <span class="n">attr_name</span>
+                        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rev</span><span class="p">)</span> <span class="k">for</span> <span class="n">rev</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
     <span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;UpdateRequest&quot;</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">docs</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">record_name</span><span class="p">,</span> <span class="n">revision</span> <span class="ow">in</span> <span class="n">docs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1459,6 +2028,146 @@ is set by most utilities in the etna library automatically.</p>
     </div>
 
     
+    
+
+                            </div>
+                            <div id="UpdateRequest.shallow_copy" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#UpdateRequest.shallow_copy">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">shallow_copy</span><span class="signature">(
+    self,
+    revisions: Union[Dict[str, Dict[str, Dict[str, Any]]], NoneType] = None
+) -&gt; <a href="etna/hooks/etna.html#UpdateRequest">etna.hooks.etna.UpdateRequest</a></span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">shallow_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">revisions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UpdateRequest&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">revisions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">revisions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span>
+
+        <span class="k">return</span> <span class="n">UpdateRequest</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="p">,</span> <span class="n">revisions</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="o">**</span><span class="n">revisions</span><span class="p">))</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="UpdateRequest.includes" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#UpdateRequest.includes">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">includes</span><span class="signature">(self, model_name: str, record_name: str)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">includes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">record_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">record_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="p">{})</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="UpdateRequest.sample_revision_tree" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#UpdateRequest.sample_revision_tree">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">sample_revision_tree</span><span class="signature">(
+    self,
+    model_name: str,
+    record_name: str,
+    models: Dict[str, <a href="etna/hooks/etna.html#Model">etna.hooks.etna.Model</a>],
+    acc: <a href="etna/hooks/etna.html#UpdateRequest">etna.hooks.etna.UpdateRequest</a>,
+    destructive=False
+)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">sample_revision_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">record_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Model</span><span class="p">],</span> <span class="n">acc</span><span class="p">:</span> <span class="s2">&quot;UpdateRequest&quot;</span><span class="p">,</span> <span class="n">destructive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Attempts to sample the complete graph of related objects reference by the given model_name / record_name in this</span>
+<span class="sd">        update, copying it and all its referenced links to acc.</span>
+
+<span class="sd">        When destructive=True is set, it also removes all copied models from this update.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">includes</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">model_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">acc</span><span class="o">.</span><span class="n">includes</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Ensure a record to prevent recursive re-entry</span>
+        <span class="n">acc</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">)</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">destructive</span><span class="p">:</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">record_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">)</span>
+
+        <span class="c1"># copy table values into the acc</span>
+        <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">attr_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">record</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span> <span class="ow">and</span> <span class="n">attr</span><span class="o">.</span><span class="n">attribute_type</span> <span class="o">!=</span> <span class="s2">&quot;table&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">child_id</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sample_revision_tree</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">child_id</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">acc</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sample_revision_tree</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">acc</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span> <span class="ow">and</span> <span class="n">attr</span><span class="o">.</span><span class="n">attribute_type</span> <span class="o">==</span> <span class="s2">&quot;table&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">table_id</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                        <span class="n">acc</span><span class="o">.</span><span class="n">append_table</span><span class="p">(</span>
+                            <span class="n">model_name</span><span class="p">,</span>
+                            <span class="n">record_name</span><span class="p">,</span>
+                            <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">table_id</span><span class="p">),</span>
+                            <span class="n">attr_name</span>
+                        <span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Attempts to sample the complete graph of related objects reference by the given model_name / record_name in this
+update, copying it and all its referenced links to acc.</p>
+
+<p>When destructive=True is set, it also removes all copied models from this update.</p>
+</div>
+
+
+                            </div>
+                            <div id="UpdateRequest.empty" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#UpdateRequest.empty">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">empty</span><span class="signature">(self)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+
+        </details>
+
     
 
                             </div>
@@ -1572,6 +2281,54 @@ is set by most utilities in the etna library automatically.</p>
         <span class="n">table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">attrs</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">id</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                </section>
+                <section id="rollup">
+                                <div class="attr class">
+        <a class="headerlink" href="#rollup">#&nbsp;&nbsp</a>
+
+        
+        <span class="def">class</span>
+        <span class="name">rollup</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span class="k">class</span> <span class="nc">rollup</span><span class="p">:</span>
+    <span class="n">concat</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Rollup</span><span class="p">,</span> <span class="n">Rollup</span><span class="p">],</span> <span class="n">Rollup</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">concat</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Rollup</span><span class="p">,</span> <span class="n">Rollup</span><span class="p">],</span> <span class="n">Rollup</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">concat</span> <span class="o">=</span> <span class="n">concat</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">):</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="n">RollupXcomOperator</span><span class="p">(</span><span class="n">concat</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">concat</span><span class="p">,</span> <span class="n">arg</span><span class="o">=</span><span class="n">arg</span><span class="p">)</span>
+        <span class="n">arg</span> <span class="o">&gt;&gt;</span> <span class="n">op</span>
+        <span class="k">return</span> <span class="n">op</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            <div id="rollup.__init__" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#rollup.__init__">#&nbsp;&nbsp</a>
+
+        
+            <span class="name">rollup</span><span class="signature">(
+    concat: Callable[[<a href="#metrics.rollup_metrics.Rollup">etna.metrics.rollup_metrics.Rollup</a>, <a href="#metrics.rollup_metrics.Rollup">etna.metrics.rollup_metrics.Rollup</a>], <a href="#metrics.rollup_metrics.Rollup">etna.metrics.rollup_metrics.Rollup</a>]
+)</span>
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">concat</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Rollup</span><span class="p">,</span> <span class="n">Rollup</span><span class="p">],</span> <span class="n">Rollup</span><span class="p">]):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">concat</span> <span class="o">=</span> <span class="n">concat</span>
 </pre></div>
 
         </details>

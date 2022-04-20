@@ -8,7 +8,7 @@ import logging
 import os.path
 import re
 from logging import Logger
-from typing import Union, Literal, List, Optional, Tuple, Callable, Dict, Any, Iterable
+from typing import Union, Literal, List, Optional, Tuple, Callable, Dict, Any, Iterable, Mapping
 
 from airflow import DAG
 from airflow.decorators import task
@@ -129,6 +129,7 @@ class link:
     _hook: Optional[EtnaHook]
     attribute_name: Optional[str]
     validate_record_update: Optional[Callable[[Any, Any, List[str]], bool]]
+    batch_size: int
 
     def __init__(
         self,
@@ -136,7 +137,8 @@ class link:
         dry_run=True,
         hook: Optional[EtnaHook] = None,
         task_id: Optional[str] = None,
-        validate_record_update: Optional[Callable[[Any, Any, List[str]], bool]] = None
+        validate_record_update: Optional[Callable[[Any, Any, List[str]], bool]] = None,
+        batch_size=30,
     ):
         self.task_id = task_id
         self._hook = hook
@@ -144,6 +146,7 @@ class link:
         self.attribute_name = attribute_name
         self.log = logging.getLogger("airflow.task")
         self.validate_record_update = validate_record_update
+        self.batch_size = batch_size
 
     @property
     def project_name(self) -> str:
@@ -159,16 +162,26 @@ class link:
             result: List[MatchedRecordFolder] = []
             with self.hook.magma(read_only=False) as magma:
                 self.log.info("retrieving model...")
-                response = magma.retrieve(
+                models = magma.retrieve(
                     project_name=self.project_name,
                     model_name="all",
                     hide_templates=False,
-                )
+                ).models
+
+                project_models = magma.retrieve(project_name=self.project_name, model_name="project", record_names="all", attribute_names=["identifier"]).models
+                if 'project' not in project_models:
+                    raise AirflowException('Project is not fully initialized, missing project model and record.')
+
+                project_rows = list(project_models['project'].documents.keys())
+                if not project_rows:
+                    raise AirflowException('Project is not fully initialized, missing record')
+
+                project = project_rows[0]
 
                 self.log.info("running linking function...")
-                for cur_batch in batch_iterable(fn(*args, **kwds), 50):
+                for cur_batch in batch_iterable(fn(*args, **kwds), self.batch_size):
                     result.extend(
-                        self._process_link_batch(magma, response.models, cur_batch)
+                        self._process_link_batch(magma, models, cur_batch, project)
                     )
 
             return pickled(result)
@@ -185,6 +198,7 @@ class link:
         magma: Magma,
         models: Dict[str, Model],
         batch: Iterable[Tuple[MatchedRecordFolder, Any]],
+        project: str,
     ) -> List[MatchedRecordFolder]:
         result: List[MatchedRecordFolder] = []
         update: UpdateRequest = UpdateRequest(
@@ -216,11 +230,22 @@ class link:
             result.append(match)
             self.log.info(f"Updates to {updated_names} found in {match}")
 
+        self._expand_project_parents(update, models, project)
         self.log.info("Validating update...")
         self._validate_update(magma, update, models)
         self.log.info("Executing batched magma update")
         magma.update(update)
         return result
+
+    def _expand_project_parents(self, update: UpdateRequest, models: Dict[str, Model], project: str):
+        for model_name, revisions in update.revisions.items():
+            if model_name not in models:
+                continue
+            model = models[model_name]
+            self.log.info(f"Expanding project={project} for model {model_name}...")
+            if model.template.parent == "parent":
+                for revision in revisions.values():
+                    revision['project'] = project
 
     def _validate_update(self, magma: Magma, update: UpdateRequest, models: Dict[str, Model]):
         if not self.validate_record_update:
@@ -342,6 +367,26 @@ class MetisEtlHelpers:
 
         return do_link(listed_record_matches)
 
+    def link_single_cell_attribute_files_v1(
+            self,
+            model_name: str, # The model name, one of either sc_rna_seq or sc_rna_seq_pool
+            identifier_prefix: str, # a prefix to indicate matching folders belonging to the given model_name
+            single_cell_root_prefix="single_cell_", # a prefix used to identify the parent single_cell directories
+            attribute_linker_overrides: Optional[Mapping[str, str]] = None, # a list of attribute names to regex strings for overrides to default linking behavior.
+            dry_run=True # When True (default), a run does not complete linking but simply validates the code paths,
+    ) -> Tuple[XComArg, XComArg]:
+        """
+        Links single cell rna related attributes for either sc_rna_seq or sc_rna_seq_pool models, including
+        raw fastqs and processed files.
+
+        Checkout `etna.etls.linkers.signle_cell_rna_seq.link_single_cell_attribute_files_v1` source code
+        for more information on how matches are made and which attributes are linked.
+        """
+        # Prevent circular import.
+        from etna.etls.linkers.single_cell_rna_seq import link_single_cell_attribute_files_v1
+        return link_single_cell_attribute_files_v1(self, model_name, identifier_prefix, single_cell_root_prefix,
+                                                   attribute_linker_overrides=attribute_linker_overrides, dry_run=dry_run)
+
     def link_matching_file(
         self,
         # an XComArg that lists MatchedRecordFolder and Files, usually the result of helpers.list_match_folders
@@ -397,6 +442,49 @@ class MetisEtlHelpers:
                     yield match, matched_files
 
         return do_link(listed_record_matches)
+
+    def link_record_folders_to_parent(self, embedded_matches: XComArg, dry_run=True):
+        """
+        When record folders are embedded in metis such that parent model record folders
+        exist, it is common to want to 'link' the parent model attribute based on the folder name.
+
+        This function takes an XComArg containing a list of MatchedRecordFolder obtained via
+        `find_record_folders`, *whose source arg was not None*.  In other words, consider this example:
+
+
+        Imagine a directory structure like /MYSAMPLE.T1/ScRnaSeq/MYSAMPLE.T1.BLAH.BLAH
+        ```
+        sample_matches = helpers.find_record_folders("sample", SAMPLE_REGEX)
+        with TaskGroup("sc_rna_seq_matches"):
+          sc_rna_seq_matches = helpers.find_record_folders("sc_rna_seq", SC_RNA_SEQ_REGEX, source=sample_matches)
+          helpers.link_record_folders_to_parent(sc_rna_esq_matches)
+        ```
+
+        In this case, FIRST task will find "/MYSAMPLE.T1" as a "sample" record folder and it will belong
+        to the `XComArg` returned as `sample_matches`.
+
+        Next, it will search under /MYSAMPLE.T1 to find the MYSAMPLE.T1.BLAH.BLAH directory as a "sc_rna_eq" model
+        directory, noting the parent record folder as MYSAMPLE.T1 and that pairing will belong to sc_rna_seq_matches.
+
+        Lastly, the `link_record_folders_to_parent` will use the association between MYSAMPLE.T1.BLAH.BLAH and MYSAMPLE.T1
+        to make the association between that sc_rna_seq record and the parent sample record.
+        """
+        @link(dry_run=dry_run)
+        def link_record_folders_to_parent(record_matches: List[MatchedRecordFolder]):
+            with self.hook.magma(project_name=get_project_name()) as magma:
+                magma_models = magma.retrieve(get_project_name(), hide_templates=False).models
+            for record_folder_match in record_matches:
+                if record_folder_match.model_name not in magma_models:
+                    raise AirflowException(f"Folder #{record_folder_match} has invalid model_name")
+
+                if record_folder_match.match_parent is None:
+                    raise AirflowException(f"Folder #{record_folder_match} does not have a match parent, did you provide a source= argument to find_record_folders?")
+
+                parent = magma_models[record_folder_match.model_name].template.parent
+
+                yield record_folder_match, record_folder_match.as_update({parent: record_folder_match.match_parent.record_name})
+
+        return link_record_folders_to_parent(embedded_matches)
 
     def find_record_folders(
         self,
@@ -521,7 +609,7 @@ def filter_by_exists_in_timur(
             record_names=[m.record_name for m in matches],
         )
         result.extend(
-            m for m in matches if m.record_name in response.models[model_name].documents
+            m for m in matches if model_name in response.models and m.record_name in response.models[model_name].documents
         )
 
     return result
