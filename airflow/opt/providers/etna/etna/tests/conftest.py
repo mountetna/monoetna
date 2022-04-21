@@ -250,6 +250,9 @@ def session():
 @pytest.fixture()
 def reset_db():
     from airflow.utils import db
+
+    # reconfiguring the ORM seems to help with pytest hanging
+    #   https://stackoverflow.com/questions/69307554/why-would-my-pytest-tests-hang-before-dropping-my-sqlalchemy-db
     settings.configure_orm()
     db.resetdb()
     yield
