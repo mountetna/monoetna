@@ -2,6 +2,7 @@ from typing import List
 import os
 import re
 import logging
+import time
 
 from airflow.operators.python import get_current_context
 
@@ -96,7 +97,9 @@ class BoxEtlHelpers:
                             box_io_file,
                             file.size
                         ):
-                            self.log.info("Uploading blob...")
+                            # Only log every 5 seconds, to save log space...
+                            if int(time.time()) % 5 == 0:
+                                self.log.info("Uploading blob...")
                         if clean_up:
                             box.remove_file(ftps, file)
                         self.log.info(f"Done ingesting {file.full_path}.")

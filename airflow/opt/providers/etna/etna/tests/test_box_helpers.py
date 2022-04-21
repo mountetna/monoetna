@@ -17,9 +17,9 @@ from .test_metis_files_etl import run_dag, get_all_results
 
 def mock_tail():
     return [
-        FtpEntry(("123.txt",{}), "parent/child/grandchild"),
-        FtpEntry(("abc.exe", {}), ""),
-        FtpEntry(("xyz.exe", {}), "aunt/child/cousin")
+        FtpEntry(("123.txt",{"size": 1}), "parent/child/grandchild"),
+        FtpEntry(("abc.exe", {"size": 5}), ""),
+        FtpEntry(("xyz.exe", {"size": 10}), "aunt/child/cousin")
     ]
 
 @mock.patch('providers.etna.etna.etls.decorators.load_box_files_batch', side_effect=[mock_tail(), []])
@@ -106,3 +106,54 @@ def test_metis_files_etl_filter_file_name_and_folder_path(mock_load, reset_db):
 
     assert len(results) == 1
     assert results[0].name == 'xyz.exe'
+
+mock_etna_hook = mock.Mock()
+mock_metis = mock.Mock()
+
+mock_retrieve_file = mock.Mock()
+mock_remove_file = mock.Mock()
+
+# Okay, this is a really bad test, because I wound up mocking both the Box
+#   FTP side as well as the Metis side ... so it only tests the logic within
+#   the helper, really. Probably fairly brittle. Alternative might be to
+#   record a VCR cassette, but not sure that works with FTPS?
+@mock.patch('providers.etna.etna.etls.decorators.load_box_files_batch', side_effect=[mock_tail(), []])
+@mock.patch.object(EtnaHook, 'for_project', return_value=mock_etna_hook)
+def test_metis_files_etl_ingest(mock_etna, mock_load, reset_db):
+
+    # Mock all this stuff so the context managers in ingest_to_metis
+    #   are correctly handled
+    mock_metis.return_value.upload_file.return_value = []
+    mock_metis.return_value.__enter__ = mock_metis
+    mock_metis.return_value.__exit__ = mock_metis
+    mock_etna_hook.metis = mock_metis
+    mock_box_hook = mock.Mock()
+    mock_box = mock.Mock()
+    mock_ftps = mock.Mock()
+    mock_ftps.return_value.__enter__ = mock_ftps
+    mock_ftps.return_value.__exit__ = mock_ftps
+    mock_box.return_value.ftps = mock_ftps
+
+    mock_retrieve_file.return_value.__enter__ = mock_retrieve_file
+    mock_retrieve_file.return_value.__exit__ = mock_retrieve_file
+    mock_box.return_value.file_size.return_value = 0
+    mock_box.return_value.retrieve_file = mock_retrieve_file
+    mock_box.return_value.remove_file = mock_remove_file
+    mock_box.return_value.__enter__ = mock_box
+    mock_box.return_value.__exit__ = mock_box
+    mock_box_hook.box = mock_box
+    mock_box_hook.connection.host = "host.development.local"
+
+    @box_etl("d_folder", version=1, hook=mock_box_hook)
+    def test_ingesting_metis_files_ingest(helpers: BoxEtlHelpers, tail_files: XComArg):
+        helpers.ingest_to_metis(tail_files, folder_path="foo", clean_up=True)
+
+    test_ingesting_metis_files_ingest: DAG
+
+    start_date = parser.parse("2022-01-01 00:00:00 +0000")
+    end_date = start_date + timedelta(days=1, minutes=1)
+    run_dag(test_ingesting_metis_files_ingest, start_date, end_date)
+
+    mock_metis().upload_file.assert_called()
+    mock_retrieve_file.assert_called()
+    mock_remove_file.assert_called()
