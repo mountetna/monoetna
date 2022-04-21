@@ -5,21 +5,21 @@ services:
     image: postgres:10.12
     environment:
       POSTGRES_DB: 'vulcan'
-      POSTGRES_PASSWORD: /run/secrets/password
+      POSTGRES_PASSWORD_FILE: /run/secrets/password
       POSTGRES_USER: developer
     volumes:
-      - db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data:nocopy
     deploy:
       placement:
         constraints:
-          - node.labels.volumes.vulcan_db == true
+          - node.labels.volumes.big-shared == true
     networks:
       - db
     secrets:
       - source: db-pw
         target: password
 
-  # Exists purely to allow updates to its image via service deployer.
+  # Exists purely to allow updates to archimedes image on all possible nodes via service deployer.
   # Intention is for this to be removed when we move the scheduler to airflow.
   archimedes:
     command: 
@@ -28,12 +28,12 @@ services:
       - sleep 10
     image: etnaagent/archimedes:production
     deploy:
+      mode: global
       labels:
         - autoupdate=true
       placement:
-        # This should match the hosts that vulcan are deployed on.
         constraints:
-          - node.labels.volumes.vulcan_data == true
+          - node.labels.volumes.big-shared == true
 
   app:
     environment:
@@ -53,21 +53,24 @@ services:
         exec /bin/deploy.sh migrate 'docker pull etnaagent/archimedes:production' -- /app/bin/puma.sh
     image: etnaagent/vulcan:production
     volumes:
-      - /data_change_me_when_done/vulcan:/app/data/vulcan
+      - data:/app/data/vulcan:nocopy
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /var/node_exporter/metrics.prom:/tmp/metrics.prom
     user: 0:999 #1502:999 # vulcan:docker
     deploy:
       update_config:
         parallelism: 1
         order: start-first
+      resources:
+        reservations:
+          cpus: '4'
+          memory: 60G
       labels:
         - autoupdate=true
         - prometheus-etna=1 # 3000
         - prometheus-puma=1 # 9234
       placement:
         constraints:
-          - node.labels.volumes.vulcan_data == true
+          - node.labels.volumes.big-shared == true
     healthcheck:
       interval: 10s
       retries: 3
@@ -103,21 +106,18 @@ services:
       - edge_bridge
       - fe
     volumes:
-      - app_public:/app/public
-      - /data_change_me_when_done/vulcan:/app/data/vulcan:ro
-    user: 0:3000 # TODO: Can vulcan user be used here?
+      - app_public:/app/public:nocopy
+      - data:/app/data/vulcan:ro
+    user: 0:3000
     configs:
       - source: browser.system.include
         target: /usr/opt/httpd.conf.d/browser.system.include
     deploy:
       labels:
         - autoupdate=true
-      restart_policy:
-        condition: none
       placement:
         constraints:
-        - node.labels.volumes.vulcan_app_public == true
-        - node.labels.volumes.vulcan_data == true
+        - node.labels.volumes.big-shared == true
 
   app_assets_deployer:
     environment:
@@ -127,23 +127,39 @@ services:
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
     image: etnaagent/vulcan:production
     volumes:
-      - app_public:/sync-assets:rw
+      - app_public:/sync-assets:nocopy
 
     deploy:
       labels:
         - autoupdate=true
       restart_policy:
         condition: none
-      mode: global
       placement:
-        max_replicas_per_node: 1
         constraints:
-          - node.labels.volumes.vulcan_app_public == true
+          - node.labels.volumes.big-shared == true
 
 volumes:
+  data:
+    name: vulcan_data
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard
+      device: ":/cache/vulcan/data"
   app_public:
+    name: vulcan_app_public
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
+      device: ":/cache/vulcan/app_public"
   db:
     name: vulcan_db
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard
+      device: ":/cache/postgres/vulcan"
 
 configs:
   browser.system.include:
