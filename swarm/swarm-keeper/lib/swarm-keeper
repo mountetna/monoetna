@@ -574,13 +574,13 @@ function shaOfImageDigest() {
 }
 
 function versionOfStackFilePath() {
-  if [[ "$1" =~ ([^.]*)\.([0-9]+)\.(.*) ]]; then
+  if [[ "$1" =~ ([^.]*)\.([0-9]+)\.yml ]]; then
     echo ${BASH_REMATCH[2]}
   fi
 }
 
 function nameOfStackFilePath() {
-  if [[ "$1" =~ ([^.]*)\.(.*) ]]; then
+  if [[ "$1" =~ ([^.]*).*\.yml ]]; then
     echo ${BASH_REMATCH[1]}
   fi
 }
@@ -725,60 +725,73 @@ function runCommand() {
     portainer-deploy-stack)
       doPortainerAuth
 
-      trueFilePath=
-      if ! [[ -f "$1" ]]; then
-        echo "Could not find file $1, assuming this is a new stack name..."
-        stackFileName=
-        stackName=$1
-      else
-        trueFilePath=$(readlink -f "$1") || return 1
-        stackFileName=$(basename "$trueFilePath")
-        stackName=$(nameOfStackFilePath "$stackFileName")
-      fi
+      while [[ "$#" != "0" ]]; do
+        trueFilePath=
 
-      stack=$(findStack "$stackName")
-      version=$(dig "$stack" -r '.updateDate // .UpdateDate // ""')
-      localVersion=$(versionOfStackFilePath "$stackFileName")
-      echo "Found remote version '$version', local version is '$localVersion'"
-      [[ -z "$version" ]] && return 1
-      conflict=
+        if ! [[ -f "$1" ]]; then
+          echo "Could not find file $1, assuming this is a new stack name..."
+          stackFileName=
+          stackName=$1
+        else
+          # Ignore files which might be versioned ymls
+          if [[ -n "$(versionOfStackFilePath "$(basename "$1")")" ]]; then
+            shift
+            continue
+          fi
 
-      if [[ $localVersion == $version ]]; then
-        updateStackYml "$stack" "$(cat $1)" || return 1
-        awaitStackDeploy "$stack" || deployFailed=1
-        if [[ -n "$deployFailed" ]]; then
-          echo "Deployment of $path to $(dig "$stack" '.Name') failed, check portainer."
-          anyDeployFailed=1
+          trueFilePath=$(readlink -f "$1") || return 1
+          stackFileName=$(basename "$trueFilePath")
+          stackName=$(nameOfStackFilePath "$stackFileName")
         fi
-        stack=$(findStack "$stackName") || return 1
-        version=$(dig "$stack" -r '.updateDate // .UpdateDate // ""') || return 1
-        echo "$stack" | jq
-      else
-        echo "Local stack version from file was '$localVersion', but remote version was '$version'."
-        conflict=1
-      fi
 
-      curVersionFilePath="$(dirname "$1")/$stackName.$version.yml"
-      echo "Downloading current stack to $curVersionFilePath"
-      cur=$(downloadStack "$stack") || return 1
-      mv $cur "$curVersionFilePath" || return 1
+        stack=$(findStack "$stackName")
+        version=$(dig "$stack" -r '.updateDate // .UpdateDate // ""')
+        localVersion=$(versionOfStackFilePath "$stackFileName")
 
-      if [[ -n "$conflict" ]]; then
-        echo "Edit $curVersionFilePath and rerun portainer-deploy-stack"
 
-        if [[ -n "$trueFilePath" ]]; then
-          echo "Compare upstream changes with: diff $trueFilePath $curVersionFilePath"
-          tmp=$(mktemp)
-          diff $trueFilePath $curVersionFilePath || true > $tmp
-          echo "I've recorded the diff to $tmp for your convenience"
+        echo "Processing ${stackName} from ${stackFileName}"
+        echo "Found remote version '$version', local version is '$localVersion'"
+        [[ -z "$version" ]] && return 1
+        conflict=
+
+        if [[ $localVersion == $version ]]; then
+          updateStackYml "$stack" "$(cat $1)" || return 1
+          awaitStackDeploy "$stack" || deployFailed=1
+          if [[ -n "$deployFailed" ]]; then
+            echo "Deployment of $path to $(dig "$stack" '.Name') failed, check portainer."
+            anyDeployFailed=1
+          fi
+          stack=$(findStack "$stackName") || return 1
+          version=$(dig "$stack" -r '.updateDate // .UpdateDate // ""') || return 1
+          echo "$stack" | jq
+        else
+          echo "Local stack version from file was '$localVersion', but remote version was '$version'."
+          conflict=1
         fi
-      fi
 
-      if [[ -z "$conflict" ]] && [[ -n "$trueFilePath" ]]; then
-        rm "$trueFilePath"
-      fi
+        curVersionFilePath="$(dirname "$1")/$stackName.$version.yml"
+        echo "Downloading current stack to $curVersionFilePath"
+        cur=$(downloadStack "$stack") || return 1
+        mv $cur "$curVersionFilePath" || return 1
 
-      ln -sf "$(basename $curVersionFilePath)" "$(dirname "$1")/$stackName.yml"
+        if [[ -n "$conflict" ]]; then
+          echo "Edit $curVersionFilePath and rerun portainer-deploy-stack"
+
+          if [[ -n "$trueFilePath" ]]; then
+            echo "Compare upstream changes with: diff $trueFilePath $curVersionFilePath"
+            tmp=$(mktemp)
+            diff $trueFilePath $curVersionFilePath || true > $tmp
+            echo "I've recorded the diff to $tmp for your convenience"
+          fi
+        fi
+
+        if [[ -z "$conflict" ]] && [[ -n "$trueFilePath" ]]; then
+          rm "$trueFilePath"
+        fi
+
+        ln -sf "$(basename $curVersionFilePath)" "$(dirname "$1")/$stackName.yml"
+        shift
+      done
       ;;
 
     portainer-swap-secret)
