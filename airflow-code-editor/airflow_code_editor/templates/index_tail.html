@@ -1,0 +1,13 @@
+{% for filename in js_files -%}
+<script src="{{ url_for('static', filename='code_editor/' + filename, v=version) }}"></script>
+{% endfor %}
+
+<script type="text/javascript">
+
+jQuery(document).ready(function() {
+    // Init
+    var csrfToken = "{{ csrf_token() }}";
+    init(csrfToken);
+});
+
+</script>
