@@ -13,7 +13,7 @@ import re
 from airflow.exceptions import AirflowException
 from airflow.models.xcom_arg import XComArg
 from airflow.utils.task_group import TaskGroup
-from providers.etna.etna import UpdateRequest
+from etna.hooks.etna import UpdateRequest
 
 from etna.etls.metis import MatchedRecordFolder
 
@@ -64,7 +64,7 @@ def link_single_cell_attribute_files_v1(
         # Overrides that can change the regex and attributes that are linked.
         attribute_linker_overrides: Optional[Mapping[str, str]]=None,
         # The function used to create parents for the given model.  By default, this function links lineage assuming sc_seq -> timepoint -> patient -> project.
-        link_parents: typing.Callable[[List[MatchedRecordFolder]], typing.Iterable[typing.Tuple[MatchedRecordFolder, UpdateRequest]]]=create_and_link_parents,
+        link_parents=create_and_link_parents,
         dry_run=True,
 ) -> Tuple[XComArg, XComArg]:
     sc_file_linkers = dict(
