@@ -563,71 +563,78 @@ Array [
     </div>
   </div>,
   <div
-    className="reset-or-commit-inputs"
-  >
-    <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-text"
-      disabled={false}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onDragLeave={[Function]}
-      onFocus={[Function]}
-      onKeyDown={[Function]}
-      onKeyUp={[Function]}
-      onMouseDown={[Function]}
-      onMouseLeave={[Function]}
-      onMouseUp={[Function]}
-      onTouchEnd={[Function]}
-      onTouchMove={[Function]}
-      onTouchStart={[Function]}
-      tabIndex={0}
-      type="button"
-    >
-      <span
-        className="MuiButton-label"
-      >
-        Reset
-      </span>
-      <span
-        className="MuiTouchRipple-root"
-      />
-    </button>
-    <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-text"
-      disabled={false}
-      onBlur={[Function]}
-      onClick={[Function]}
-      onDragLeave={[Function]}
-      onFocus={[Function]}
-      onKeyDown={[Function]}
-      onKeyUp={[Function]}
-      onMouseDown={[Function]}
-      onMouseLeave={[Function]}
-      onMouseUp={[Function]}
-      onTouchEnd={[Function]}
-      onTouchMove={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "background": "linear-gradient(135deg, #6e8efb, #a777e3)",
-          "border": "3px solid black",
-          "fontSize": 14,
-          "fontWeight": "bold",
-          "textAlign": "center",
-        }
+    className="MuiGrid-root reset-or-commit-inputs MuiGrid-container MuiGrid-justify-content-xs-flex-end"
+    style={
+      Object {
+        "width": "auto",
       }
-      tabIndex={0}
-      type="button"
-    >
-      <span
-        className="MuiButton-label"
+    }
+  >
+    <div>
+      <button
+        className="MuiButtonBase-root MuiButton-root MuiButton-text"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onDragLeave={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex={0}
+        type="button"
       >
-        Commit
-      </span>
-      <span
-        className="MuiTouchRipple-root"
-      />
-    </button>
+        <span
+          className="MuiButton-label"
+        >
+          Reset
+        </span>
+        <span
+          className="MuiTouchRipple-root"
+        />
+      </button>
+      <button
+        className="MuiButtonBase-root MuiButton-root MuiButton-text"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onDragLeave={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "background": "linear-gradient(135deg, #6e8efb, #a777e3)",
+            "border": "3px solid black",
+            "fontSize": 14,
+            "fontWeight": "bold",
+            "textAlign": "center",
+          }
+        }
+        tabIndex={0}
+        type="button"
+      >
+        <span
+          className="MuiButton-label"
+        >
+          Commit
+        </span>
+        <span
+          className="MuiTouchRipple-root"
+        />
+      </button>
+    </div>
   </div>,
 ]
 `;

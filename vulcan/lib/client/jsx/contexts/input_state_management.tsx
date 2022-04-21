@@ -107,7 +107,7 @@ export function WithBufferedInputs({
     }
   },[state.triggerCommit])
 
-  const commit_rest_buttons = hasInputs ? <div className='reset-or-commit-inputs'>
+  const commit_rest_buttons = hasInputs ? <div>
     <Button onClick={cancelInputs} disabled={!!state.pollingState}>
       Reset
     </Button>
@@ -141,7 +141,7 @@ export function WithBufferedInputs({
   /> : null
 
   const controls_below = (isPassable(stepName) || hasInputs) ? (
-    <Grid container style={{width: 'auto'}} justify="flex-end">
+    <Grid container style={{width: 'auto'}} justify="flex-end" className='reset-or-commit-inputs'>
       {autopass_switch}
       {commit_rest_buttons}
     </Grid>
