@@ -99,13 +99,6 @@ export default function VulcanReducer(
       if (state.bufferedSteps.includes(action.step)) {
         return state;
       }
-      // Initiate auto-pass attempt
-      if (state.autoPassSteps.includes(action.step)) {
-        return {...state,
-          bufferedSteps: [...state.bufferedSteps, action.step],
-          triggerCommit: [...state.triggerCommit, action.step]
-        };
-      }
       return {...state, bufferedSteps: [...state.bufferedSteps, action.step]};
 
     case 'CLEAR_BUFFERED_INPUT':

@@ -6,8 +6,8 @@ import {
 import {defaultSessionSyncHelpers} from "./session_sync";
 import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 import {dismissMessages, showMessages} from "etna-js/actions/message_actions";
-import {clearBufferedInput, clearCommitTrigger, clearAutoPassStep, setBufferedInput, setInputs, setRunTrigger, setAutoPassStep, VulcanAction} from "../actions/vulcan_actions";
-import {allSourcesForStepName} from "../selectors/workflow_selectors";
+import {clearBufferedInput, clearCommitTrigger, clearAutoPassStep, setBufferedInput, setInputs, setRunTrigger, setAutoPassStep, VulcanAction, setCommitTrigger} from "../actions/vulcan_actions";
+import {allSourcesForStepName, statusOfStep} from "../selectors/workflow_selectors";
 import {mapSome, Maybe, maybeOfNullable, some, withDefault} from "../selectors/maybe";
 import {DataEnvelope} from "../components/workflow/user_interactions/inputs/input_types";
 import {VulcanContext} from "./vulcan_context";
@@ -55,6 +55,13 @@ export function WithBufferedInputs({
     if (Object.keys(inputsRef.current).length > 0){
       if (!stateRef.current.bufferedSteps.includes(stepName))
         dispatch(setBufferedInput(stepName));
+        // Check / Initiate auto-pass attempt
+        if (
+          stateRef.current.autoPassSteps.includes(stepName) &&
+          stepName!=null &&
+          statusOfStep(stepName, stateRef.current.status)?.status=="pending") {
+            dispatch(setCommitTrigger(stepName));
+        }
     } else {
       if (stateRef.current.bufferedSteps.includes(stepName))
         dispatch(clearBufferedInput(stepName));
