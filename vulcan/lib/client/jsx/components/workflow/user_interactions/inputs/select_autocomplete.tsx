@@ -18,7 +18,6 @@ export default function SelectAutocompleteInput(
   Special Case: If any data key is "recommendation", a line of text will display the values of this recommendation to the user.
   */
   const [data_use, suggestion] = useMemoized(pullRecommendation, data)
-  if (data_use == {}) return null
   const options_in = useMemoized(flattenStringOptions, data_use);
   const value = useSetsDefault(null, props.value, onChange);
   const disp_label = useMemo( () => {return suggestion ? suggestion : label}, [suggestion, label]);
@@ -27,7 +26,7 @@ export default function SelectAutocompleteInput(
   const [inputState, setInputState] = React.useState(dispValue(value));
   const [options, setOptionsFull] = useState({
     filtered: options_in,
-    display: [...options_in].splice(0,maxOptions)
+    display: options_in
     });
   function setOptions(filteredOptions: string[]) {
     setOptionsFull({
@@ -44,7 +43,7 @@ export default function SelectAutocompleteInput(
     const query = (inputState!=value) ? inputState : ''
     
     if (options_in.length>1000) {
-      setLoadingOptions(true);
+      setLoadingOptions(true); setOptions([]);
       // console.log('calculating options - slow')
       getOptionsDelayed(query, options_in, (filteredOptions: string[]) => {
         setLoadingOptions(false)
@@ -68,8 +67,8 @@ export default function SelectAutocompleteInput(
     <Autocomplete
       disableClearable={disableClearable}
       clearOnBlur={true}
-      options={options_in}
-      filterOptions={(x: string[]) => options.display}
+      options={options.display}
+      filterOptions={(x: string[]) => x} // disable filtering by mui
       loading={loadingOptions}
       value={value}
       onChange={onChangeAction}

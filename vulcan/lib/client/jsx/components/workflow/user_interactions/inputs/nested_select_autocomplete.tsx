@@ -53,7 +53,7 @@ function LeafOptions({
   handleSelect: (value: string | null, depth: number) => void;
   maxOptions?: number;
 }) {
-  if ( (!options_in) || (value!=null && !options_in.includes(value)) ) return null;
+  if (!options_in) return null;
   return (
     <SelectAutocompleteInput
       key={`${depth}-${options_in.slice(0, 5).join('-')}`}
@@ -108,7 +108,7 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
   //   <InputLabel shrink>{label}</InputLabel> : null;
 
   // console.log({value})
-  console.log({path})
+  // console.log({path})
   return (
     <div>
       {/* {lab} */}
@@ -116,7 +116,7 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
         {path.map((value, index) => {
               const options = getOptions(path.slice(0, index), allOptions);
               return (
-                (options==null) ? null : // skip here if leaf
+                (options==null) ? null :
                 <SelectAutocompleteInput
                   key={index}
                   onChange={(v) => {}}
