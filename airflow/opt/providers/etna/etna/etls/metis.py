@@ -10,6 +10,7 @@ import re
 from logging import Logger
 from typing import Union, Literal, List, Optional, Tuple, Callable, Dict, Any, Iterable, Mapping
 
+import typing
 from airflow import DAG
 from airflow.decorators import task
 from airflow.exceptions import AirflowException
@@ -243,7 +244,7 @@ class link:
                 continue
             model = models[model_name]
             self.log.info(f"Expanding project={project} for model {model_name}...")
-            if model.template.parent == "parent":
+            if model.template.parent == "project":
                 for revision in revisions.values():
                     revision['project'] = project
 
@@ -373,6 +374,8 @@ class MetisEtlHelpers:
             identifier_prefix: str, # a prefix to indicate matching folders belonging to the given model_name
             single_cell_root_prefix="single_cell_", # a prefix used to identify the parent single_cell directories
             attribute_linker_overrides: Optional[Mapping[str, str]] = None, # a list of attribute names to regex strings for overrides to default linking behavior.
+            # The function used to create parents for the given model.  By default, this function links lineage assuming sc_seq -> timepoint -> patient -> project.
+            link_parents: Optional[typing.Callable[[List[MatchedRecordFolder]], typing.Iterable[typing.Tuple[MatchedRecordFolder, UpdateRequest]]]] = None,
             dry_run=True # When True (default), a run does not complete linking but simply validates the code paths,
     ) -> Tuple[XComArg, XComArg]:
         """
@@ -383,9 +386,12 @@ class MetisEtlHelpers:
         for more information on how matches are made and which attributes are linked.
         """
         # Prevent circular import.
-        from etna.etls.linkers.single_cell_rna_seq import link_single_cell_attribute_files_v1
+        from etna.etls.linkers.single_cell_rna_seq import link_single_cell_attribute_files_v1, create_and_link_parents
+        if link_parents is None:
+            link_parents = create_and_link_parents
         return link_single_cell_attribute_files_v1(self, model_name, identifier_prefix, single_cell_root_prefix,
-                                                   attribute_linker_overrides=attribute_linker_overrides, dry_run=dry_run)
+                                                   attribute_linker_overrides=attribute_linker_overrides,
+                                                   link_parents=link_parents, dry_run=dry_run)
 
     def link_matching_file(
         self,

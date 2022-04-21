@@ -5,6 +5,7 @@ necessaril ybe backported to all data sets.
 
 Most of these helpers are accessible on the main MetisEtlHelper class as methods.
 """
+import typing
 from typing import Mapping, Optional, List, Tuple
 
 import re
@@ -12,6 +13,8 @@ import re
 from airflow.exceptions import AirflowException
 from airflow.models.xcom_arg import XComArg
 from airflow.utils.task_group import TaskGroup
+from providers.etna.etna import UpdateRequest
+
 from etna.etls.metis import MatchedRecordFolder
 
 from etna import MetisEtlHelpers, link
@@ -58,7 +61,10 @@ def link_single_cell_attribute_files_v1(
         model_name: str,
         identifier_prefix: str,
         single_cell_root_prefix="single_cell_",
+        # Overrides that can change the regex and attributes that are linked.
         attribute_linker_overrides: Optional[Mapping[str, str]]=None,
+        # The function used to create parents for the given model.  By default, this function links lineage assuming sc_seq -> timepoint -> patient -> project.
+        link_parents: typing.Callable[[List[MatchedRecordFolder]], typing.Iterable[typing.Tuple[MatchedRecordFolder, UpdateRequest]]]=create_and_link_parents,
         dry_run=True,
 ) -> Tuple[XComArg, XComArg]:
     sc_file_linkers = dict(
@@ -96,7 +102,7 @@ def link_single_cell_attribute_files_v1(
             re.compile(f"^{single_cell_root_prefix}[^/]*/raw/{identifier_prefix}[^/]+"),
         )
 
-        raw_matches = link(dry_run=dry_run, batch_size=10)(create_and_link_parents)(raw_matches)
+        raw_matches = link(dry_run=dry_run, batch_size=10)(link_parents)(raw_matches)
         # create new records if needed
         listed_matches = helpers.list_match_folders(raw_matches)
         # make this a raw_fastq_files collection
