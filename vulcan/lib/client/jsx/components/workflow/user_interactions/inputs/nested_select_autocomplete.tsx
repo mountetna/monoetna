@@ -108,7 +108,7 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
   //   <InputLabel shrink>{label}</InputLabel> : null;
 
   // console.log({value})
-  // console.log({path})
+  console.log({path})
   return (
     <div>
       {/* {lab} */}
