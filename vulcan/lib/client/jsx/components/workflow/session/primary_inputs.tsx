@@ -34,6 +34,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import IconButton from '@material-ui/core/IconButton';
 import {makeStyles} from '@material-ui/core/styles';
+import { setCommitTrigger } from '../../../actions/vulcan_actions';
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -61,7 +62,7 @@ export default function PrimaryInputs() {
 }
 
 function PrimaryInputsInner() {
-  const {state} = useContext(VulcanContext);
+  const {state, dispatch} = useContext(VulcanContext);
   const {inputs, setInputs} = useContext(BufferedInputsContext);
   const {session} = state;
   const {workflow} = useWorkflow();
@@ -76,6 +77,10 @@ function PrimaryInputsInner() {
 
     if (Object.keys(withDefaults).length > 0) {
       setInputs((inputs) => ({...inputs, ...withDefaults}));
+      // Also check / trigger auto-committing after defaults are set
+      if (state.workflow && state.workflow.vignette && state.workflow.vignette.includes("Primary inputs are skippable")) {
+        dispatch(setCommitTrigger(null))
+      }
     }
   }, [inputs, session.inputs, setInputs, workflow.inputs]);
 

@@ -47,6 +47,7 @@ import {
 import useUserHooks from '../../useUserHooks';
 import Button from '@material-ui/core/Button';
 import Tag from '../../tag';
+import { defaultSessionSyncHelpers } from '../../../contexts/session_sync';
 
 const modalStyles = {
   content: {
@@ -259,11 +260,11 @@ export default function SessionManager() {
 
   // Catch auto-pass 'Run' trigger
   useEffect(() => {
-    if (state.triggerRun.length>0 && state.committedStepPending) {
+    if (state.triggerRun.length>0) {
       dispatch(clearRunTriggers(state.triggerRun))
-      run;
+      run();
     }
-  }, [state.triggerRun, state.committedStepPending])
+  }, [state.triggerRun])
 
   const inputsChanged = useMemo(() => {
     return !_.isEqual(figure.inputs, session.inputs);

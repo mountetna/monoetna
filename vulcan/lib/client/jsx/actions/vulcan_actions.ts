@@ -96,12 +96,16 @@ export function clearBufferedInput(step: string | null) {
   return actionObject('CLEAR_BUFFERED_INPUT', {step});
 }
 
-export function setStepUIAutoPass(step: string | null) {
+export function setAutoPassStep(step: string | null) {
   return actionObject('SET_AUTO_PASS_STEP', {step});
 }
 
-export function clearStepUIAutoPass(step: string | null) {
+export function clearAutoPassStep(step: string | null) {
   return actionObject('CLEAR_AUTO_PASS_STEP', {step});
+}
+
+export function setCommitTrigger(step: string | null) {
+  return actionObject('SET_COMMIT_TRIGGER', {step});
 }
 
 export function clearCommitTrigger(step: string | null) {
@@ -139,8 +143,9 @@ export type VulcanAction =
   | ReturnType<typeof removeValidationErrors>
   | ReturnType<typeof setBufferedInput>
   | ReturnType<typeof clearBufferedInput>
-  | ReturnType<typeof setStepUIAutoPass>
-  | ReturnType<typeof clearStepUIAutoPass>
+  | ReturnType<typeof setAutoPassStep>
+  | ReturnType<typeof clearAutoPassStep>
+  | ReturnType<typeof setCommitTrigger>
   | ReturnType<typeof clearCommitTrigger>
   | ReturnType<typeof setRunTrigger>
   | ReturnType<typeof clearRunTriggers>

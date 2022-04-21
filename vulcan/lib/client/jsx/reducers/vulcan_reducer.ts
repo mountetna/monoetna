@@ -128,6 +128,12 @@ export default function VulcanReducer(
       autoPassSteps.splice(index, 1);
       return {...state, autoPassSteps};
 
+    case 'SET_COMMIT_TRIGGER':
+      if (state.triggerCommit.includes(action.step)) {
+        return state;
+      }
+      return {...state, triggerCommit: [...state.triggerCommit, action.step]};
+
     case 'CLEAR_COMMIT_TRIGGER':
       const idx_cct = state.triggerCommit.indexOf(action.step);
       if (idx_cct === -1) return state;
