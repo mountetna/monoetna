@@ -769,7 +769,7 @@ function runCommand() {
         if [[ -n "$trueFilePath" ]]; then
           echo "Compare upstream changes with: diff $trueFilePath $curVersionFilePath"
           tmp=$(mktemp)
-          diff $trueFilePath $curVersionFilePath > $tmp
+          diff $trueFilePath $curVersionFilePath || true > $tmp
           echo "I've recorded the diff to $tmp for your convenience"
         fi
       fi

@@ -8,7 +8,7 @@ import logging
 import os.path
 import re
 from logging import Logger
-from typing import Union, Literal, List, Optional, Tuple, Callable, Dict, Any, Iterable
+from typing import Union, Literal, List, Optional, Tuple, Callable, Dict, Any, Iterable, Mapping
 
 from airflow import DAG
 from airflow.decorators import task
@@ -129,6 +129,7 @@ class link:
     _hook: Optional[EtnaHook]
     attribute_name: Optional[str]
     validate_record_update: Optional[Callable[[Any, Any, List[str]], bool]]
+    batch_size: int
 
     def __init__(
         self,
@@ -136,7 +137,8 @@ class link:
         dry_run=True,
         hook: Optional[EtnaHook] = None,
         task_id: Optional[str] = None,
-        validate_record_update: Optional[Callable[[Any, Any, List[str]], bool]] = None
+        validate_record_update: Optional[Callable[[Any, Any, List[str]], bool]] = None,
+        batch_size=30,
     ):
         self.task_id = task_id
         self._hook = hook
@@ -144,6 +146,7 @@ class link:
         self.attribute_name = attribute_name
         self.log = logging.getLogger("airflow.task")
         self.validate_record_update = validate_record_update
+        self.batch_size = batch_size
 
     @property
     def project_name(self) -> str:
@@ -159,16 +162,26 @@ class link:
             result: List[MatchedRecordFolder] = []
             with self.hook.magma(read_only=False) as magma:
                 self.log.info("retrieving model...")
-                response = magma.retrieve(
+                models = magma.retrieve(
                     project_name=self.project_name,
                     model_name="all",
                     hide_templates=False,
-                )
+                ).models
+
+                project_models = magma.retrieve(project_name=self.project_name, model_name="project", record_names="all", attribute_names=["identifier"]).models
+                if 'project' not in project_models:
+                    raise AirflowException('Project is not fully initialized, missing project model and record.')
+
+                project_rows = list(project_models['project'].documents.keys())
+                if not project_rows:
+                    raise AirflowException('Project is not fully initialized, missing record')
+
+                project = project_rows[0]
 
                 self.log.info("running linking function...")
-                for cur_batch in batch_iterable(fn(*args, **kwds), 50):
+                for cur_batch in batch_iterable(fn(*args, **kwds), self.batch_size):
                     result.extend(
-                        self._process_link_batch(magma, response.models, cur_batch)
+                        self._process_link_batch(magma, models, cur_batch, project)
                     )
 
             return pickled(result)
@@ -185,6 +198,7 @@ class link:
         magma: Magma,
         models: Dict[str, Model],
         batch: Iterable[Tuple[MatchedRecordFolder, Any]],
+        project: str,
     ) -> List[MatchedRecordFolder]:
         result: List[MatchedRecordFolder] = []
         update: UpdateRequest = UpdateRequest(
@@ -216,11 +230,22 @@ class link:
             result.append(match)
             self.log.info(f"Updates to {updated_names} found in {match}")
 
+        self._expand_project_parents(update, models, project)
         self.log.info("Validating update...")
         self._validate_update(magma, update, models)
         self.log.info("Executing batched magma update")
         magma.update(update)
         return result
+
+    def _expand_project_parents(self, update: UpdateRequest, models: Dict[str, Model], project: str):
+        for model_name, revisions in update.revisions.items():
+            if model_name not in models:
+                continue
+            model = models[model_name]
+            self.log.info(f"Expanding project={project} for model {model_name}...")
+            if model.template.parent == "parent":
+                for revision in revisions.values():
+                    revision['project'] = project
 
     def _validate_update(self, magma: Magma, update: UpdateRequest, models: Dict[str, Model]):
         if not self.validate_record_update:
@@ -341,6 +366,26 @@ class MetisEtlHelpers:
                                 )
 
         return do_link(listed_record_matches)
+
+    def link_single_cell_attribute_files_v1(
+            self,
+            model_name: str, # The model name, one of either sc_rna_seq or sc_rna_seq_pool
+            identifier_prefix: str, # a prefix to indicate matching folders belonging to the given model_name
+            single_cell_root_prefix="single_cell_", # a prefix used to identify the parent single_cell directories
+            attribute_linker_overrides: Optional[Mapping[str, str]] = None, # a list of attribute names to regex strings for overrides to default linking behavior.
+            dry_run=True # When True (default), a run does not complete linking but simply validates the code paths,
+    ) -> Tuple[XComArg, XComArg]:
+        """
+        Links single cell rna related attributes for either sc_rna_seq or sc_rna_seq_pool models, including
+        raw fastqs and processed files.
+
+        Checkout `etna.etls.linkers.signle_cell_rna_seq.link_single_cell_attribute_files_v1` source code
+        for more information on how matches are made and which attributes are linked.
+        """
+        # Prevent circular import.
+        from etna.etls.linkers.single_cell_rna_seq import link_single_cell_attribute_files_v1
+        return link_single_cell_attribute_files_v1(self, model_name, identifier_prefix, single_cell_root_prefix,
+                                                   attribute_linker_overrides=attribute_linker_overrides, dry_run=dry_run)
 
     def link_matching_file(
         self,
@@ -564,7 +609,7 @@ def filter_by_exists_in_timur(
             record_names=[m.record_name for m in matches],
         )
         result.extend(
-            m for m in matches if m.record_name in response.models[model_name].documents
+            m for m in matches if model_name in response.models and m.record_name in response.models[model_name].documents
         )
 
     return result

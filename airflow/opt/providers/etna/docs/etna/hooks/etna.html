@@ -607,6 +607,18 @@
                                 <a class="variable" href="#UpdateRequest.dry_run">dry_run</a>
                         </li>
                         <li>
+                                <a class="function" href="#UpdateRequest.shallow_copy">shallow_copy</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#UpdateRequest.includes">includes</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#UpdateRequest.sample_revision_tree">sample_revision_tree</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#UpdateRequest.empty">empty</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#UpdateRequest.extend">extend</a>
                         </li>
                         <li>
@@ -1601,6 +1613,78 @@
     <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
+    <span class="k">def</span> <span class="fm">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">shallow_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">revisions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UpdateRequest&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">revisions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">revisions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span>
+
+        <span class="k">return</span> <span class="n">UpdateRequest</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="p">,</span> <span class="n">revisions</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="o">**</span><span class="n">revisions</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">includes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">record_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">record_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="p">{})</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterator</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="k">for</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">revisions</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">record_name</span> <span class="ow">in</span> <span class="n">revisions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">yield</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span>
+
+    <span class="k">def</span> <span class="nf">sample_revision_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">record_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Model</span><span class="p">],</span> <span class="n">acc</span><span class="p">:</span> <span class="s2">&quot;UpdateRequest&quot;</span><span class="p">,</span> <span class="n">destructive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Attempts to sample the complete graph of related objects reference by the given model_name / record_name in this</span>
+<span class="sd">        update, copying it and all its referenced links to acc.</span>
+
+<span class="sd">        When destructive=True is set, it also removes all copied models from this update.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">includes</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">model_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">acc</span><span class="o">.</span><span class="n">includes</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Ensure a record to prevent recursive re-entry</span>
+        <span class="n">acc</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">)</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">destructive</span><span class="p">:</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">record_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">)</span>
+
+        <span class="c1"># copy table values into the acc</span>
+        <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">attr_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">record</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span> <span class="ow">and</span> <span class="n">attr</span><span class="o">.</span><span class="n">attribute_type</span> <span class="o">!=</span> <span class="s2">&quot;table&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">child_id</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sample_revision_tree</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">child_id</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">acc</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sample_revision_tree</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">acc</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span> <span class="ow">and</span> <span class="n">attr</span><span class="o">.</span><span class="n">attribute_type</span> <span class="o">==</span> <span class="s2">&quot;table&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">table_id</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                        <span class="n">acc</span><span class="o">.</span><span class="n">append_table</span><span class="p">(</span>
+                            <span class="n">model_name</span><span class="p">,</span>
+                            <span class="n">record_name</span><span class="p">,</span>
+                            <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">table_id</span><span class="p">),</span>
+                            <span class="n">attr_name</span>
+                        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rev</span><span class="p">)</span> <span class="k">for</span> <span class="n">rev</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
     <span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;UpdateRequest&quot;</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">docs</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">record_name</span><span class="p">,</span> <span class="n">revision</span> <span class="ow">in</span> <span class="n">docs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1716,13 +1800,13 @@
 
     <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">300</span>
 
-    <span class="c1"># TODO: Support batched update, breaking down the request into viable chunks</span>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="n">UpdateRequest</span><span class="p">):</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">prepare_url</span><span class="p">(</span><span class="s2">&quot;update&quot;</span><span class="p">),</span>
             <span class="n">data</span><span class="o">=</span><span class="n">to_json</span><span class="p">(</span><span class="n">update</span><span class="p">),</span>
             <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">},</span>
         <span class="p">)</span>
+
         <span class="k">return</span> <span class="n">from_json</span><span class="p">(</span><span class="n">RetrievalResponse</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
 
 
@@ -5588,6 +5672,78 @@ subset of the data.</p>
     <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="n">dry_run</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
+    <span class="k">def</span> <span class="fm">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">shallow_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">revisions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UpdateRequest&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">revisions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">revisions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span>
+
+        <span class="k">return</span> <span class="n">UpdateRequest</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="p">,</span> <span class="n">revisions</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="o">**</span><span class="n">revisions</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">includes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">record_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">record_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="p">{})</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterator</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="k">for</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">revisions</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">record_name</span> <span class="ow">in</span> <span class="n">revisions</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">yield</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span>
+
+    <span class="k">def</span> <span class="nf">sample_revision_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">record_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Model</span><span class="p">],</span> <span class="n">acc</span><span class="p">:</span> <span class="s2">&quot;UpdateRequest&quot;</span><span class="p">,</span> <span class="n">destructive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Attempts to sample the complete graph of related objects reference by the given model_name / record_name in this</span>
+<span class="sd">        update, copying it and all its referenced links to acc.</span>
+
+<span class="sd">        When destructive=True is set, it also removes all copied models from this update.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">includes</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">model_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">acc</span><span class="o">.</span><span class="n">includes</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Ensure a record to prevent recursive re-entry</span>
+        <span class="n">acc</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">)</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">destructive</span><span class="p">:</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">record_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">)</span>
+
+        <span class="c1"># copy table values into the acc</span>
+        <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">attr_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">record</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span> <span class="ow">and</span> <span class="n">attr</span><span class="o">.</span><span class="n">attribute_type</span> <span class="o">!=</span> <span class="s2">&quot;table&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">child_id</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sample_revision_tree</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">child_id</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">acc</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sample_revision_tree</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">acc</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span> <span class="ow">and</span> <span class="n">attr</span><span class="o">.</span><span class="n">attribute_type</span> <span class="o">==</span> <span class="s2">&quot;table&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">table_id</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                        <span class="n">acc</span><span class="o">.</span><span class="n">append_table</span><span class="p">(</span>
+                            <span class="n">model_name</span><span class="p">,</span>
+                            <span class="n">record_name</span><span class="p">,</span>
+                            <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">table_id</span><span class="p">),</span>
+                            <span class="n">attr_name</span>
+                        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rev</span><span class="p">)</span> <span class="k">for</span> <span class="n">rev</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
     <span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;UpdateRequest&quot;</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">docs</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">record_name</span><span class="p">,</span> <span class="n">revision</span> <span class="ow">in</span> <span class="n">docs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -5669,6 +5825,146 @@ subset of the data.</p>
     </div>
 
     
+    
+
+                            </div>
+                            <div id="UpdateRequest.shallow_copy" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#UpdateRequest.shallow_copy">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">shallow_copy</span><span class="signature">(
+    self,
+    revisions: Union[Dict[str, Dict[str, Dict[str, Any]]], NoneType] = None
+) -&gt; <a href="#UpdateRequest">etna.hooks.etna.UpdateRequest</a></span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">shallow_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">revisions</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;UpdateRequest&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">revisions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">revisions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span>
+
+        <span class="k">return</span> <span class="n">UpdateRequest</span><span class="p">(</span><span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">project_name</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="p">,</span> <span class="n">revisions</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="o">**</span><span class="n">revisions</span><span class="p">))</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="UpdateRequest.includes" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#UpdateRequest.includes">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">includes</span><span class="signature">(self, model_name: str, record_name: str)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">includes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">record_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">record_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="p">{})</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="UpdateRequest.sample_revision_tree" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#UpdateRequest.sample_revision_tree">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">sample_revision_tree</span><span class="signature">(
+    self,
+    model_name: str,
+    record_name: str,
+    models: Dict[str, <a href="#Model">etna.hooks.etna.Model</a>],
+    acc: <a href="#UpdateRequest">etna.hooks.etna.UpdateRequest</a>,
+    destructive=False
+)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">sample_revision_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">record_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Model</span><span class="p">],</span> <span class="n">acc</span><span class="p">:</span> <span class="s2">&quot;UpdateRequest&quot;</span><span class="p">,</span> <span class="n">destructive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Attempts to sample the complete graph of related objects reference by the given model_name / record_name in this</span>
+<span class="sd">        update, copying it and all its referenced links to acc.</span>
+
+<span class="sd">        When destructive=True is set, it also removes all copied models from this update.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">includes</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">model_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">acc</span><span class="o">.</span><span class="n">includes</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Ensure a record to prevent recursive re-entry</span>
+        <span class="n">acc</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">)</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">destructive</span><span class="p">:</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">record_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">record_name</span><span class="p">)</span>
+
+        <span class="c1"># copy table values into the acc</span>
+        <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">attr_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">record</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span> <span class="ow">and</span> <span class="n">attr</span><span class="o">.</span><span class="n">attribute_type</span> <span class="o">!=</span> <span class="s2">&quot;table&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">child_id</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sample_revision_tree</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">child_id</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">acc</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">sample_revision_tree</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">models</span><span class="p">,</span> <span class="n">acc</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span> <span class="ow">and</span> <span class="n">attr</span><span class="o">.</span><span class="n">attribute_type</span> <span class="o">==</span> <span class="s2">&quot;table&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">table_id</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                        <span class="n">acc</span><span class="o">.</span><span class="n">append_table</span><span class="p">(</span>
+                            <span class="n">model_name</span><span class="p">,</span>
+                            <span class="n">record_name</span><span class="p">,</span>
+                            <span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">link_model_name</span><span class="p">,</span> <span class="n">table_id</span><span class="p">),</span>
+                            <span class="n">attr_name</span>
+                        <span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Attempts to sample the complete graph of related objects reference by the given model_name / record_name in this
+update, copying it and all its referenced links to acc.</p>
+
+<p>When destructive=True is set, it also removes all copied models from this update.</p>
+</div>
+
+
+                            </div>
+                            <div id="UpdateRequest.empty" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#UpdateRequest.empty">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">empty</span><span class="signature">(self)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+
+        </details>
+
     
 
                             </div>
@@ -5873,13 +6169,13 @@ subset of the data.</p>
 
     <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">300</span>
 
-    <span class="c1"># TODO: Support batched update, breaking down the request into viable chunks</span>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="p">:</span> <span class="n">UpdateRequest</span><span class="p">):</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">prepare_url</span><span class="p">(</span><span class="s2">&quot;update&quot;</span><span class="p">),</span>
             <span class="n">data</span><span class="o">=</span><span class="n">to_json</span><span class="p">(</span><span class="n">update</span><span class="p">),</span>
             <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">},</span>
         <span class="p">)</span>
+
         <span class="k">return</span> <span class="n">from_json</span><span class="p">(</span><span class="n">RetrievalResponse</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
 </pre></div>
 
@@ -6010,6 +6306,7 @@ subset of the data.</p>
             <span class="n">data</span><span class="o">=</span><span class="n">to_json</span><span class="p">(</span><span class="n">update</span><span class="p">),</span>
             <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">},</span>
         <span class="p">)</span>
+
         <span class="k">return</span> <span class="n">from_json</span><span class="p">(</span><span class="n">RetrievalResponse</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
 </pre></div>
 
