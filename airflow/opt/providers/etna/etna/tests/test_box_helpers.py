@@ -136,10 +136,10 @@ def set_up_mocks():
     mock_ftps.return_value.__exit__ = mock_ftps
     mock_box.return_value.ftps = mock_ftps
 
-    mock_retrieve_file.return_value.__enter__ = mock_retrieve_file
-    mock_retrieve_file.return_value.__exit__ = mock_retrieve_file
+    mock_retrieve_file.__enter__ = mock_retrieve_file
+    mock_retrieve_file.__exit__ = mock_retrieve_file
     mock_box.return_value.file_size.return_value = 0
-    mock_box.return_value.retrieve_file = mock_retrieve_file
+    mock_box.return_value.retrieve_file.return_value = (mock_retrieve_file, None)
     mock_box.return_value.remove_file = mock_remove_file
     mock_box.return_value.__enter__ = mock_box
     mock_box.return_value.__exit__ = mock_box

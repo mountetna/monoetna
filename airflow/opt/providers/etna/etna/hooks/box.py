@@ -1,26 +1,17 @@
 import contextlib
-import dataclasses
 from datetime import datetime, timezone
-import dateutil
 import io
-import json
 import logging
 import os
 import re
-import subprocess
-import tempfile
-from typing import List, Dict, Optional, ContextManager
+from typing import List, Dict, Optional, ContextManager, Tuple, BinaryIO
 from ftplib import FTP_TLS
+from socket import socket
 
 import cached_property
-from airflow import AirflowException
 from airflow.hooks.base import BaseHook
 from airflow.models import Connection
 from etna.dags.project_name import get_project_name
-from serde import serialize, deserialize
-from serde.json import from_json, to_json
-
-from etna.utils.streaming import iterable_to_stream
 
 
 class BoxHook(BaseHook):
@@ -125,6 +116,7 @@ class FtpEntry(object):
     def rel_path(self) -> str:
         return self.full_path[1::] if self.full_path[0] == '/' else self.full_path
 
+
 class Box(object):
     def __init__(self, hook: BoxHook):
         self.hook = hook
@@ -200,10 +192,10 @@ class Box(object):
 
         ftps.quit()
 
-    def retrieve_file(self, ftps: FTP_TLS, file: FtpEntry) -> io.BufferedReader:
+    def retrieve_file(self, ftps: FTP_TLS, file: FtpEntry) -> Tuple[BinaryIO, int]:
         """
-        Opens the given file for download into a context as a python io (file like) object.
-        The underlying io object yields bytes objects.
+        Opens the given file for download into a context as a Tuple(BinaryIO, size).
+        The underlying socket object yields bytes objects.
 
         Note:  Ideally, this method is used in combination with 'with' syntax in python, so that the underlying
         data stream is closed after usage.  This is especially performant when code only needs to access a small
@@ -211,9 +203,10 @@ class Box(object):
 
         eg:
         ```
-        with box.open_file(file) as open_file:
-          for line in csv.reader(open_file):
-             break
+        socket, size =  box.retrieve_file(file)
+        with socket as connection:
+            for line in csv.reader(connection):
+                break
         ```
 
         params:
@@ -221,11 +214,9 @@ class Box(object):
           file: an FTP file listing
         """
         ftps.cwd(file.folder_path)
+        sock, size = ftps.ntransfercmd(f"RETR {file.name}")
 
-        io_obj = io.BytesIO()
-        ftps.retrbinary(f"RETR {file.name}", io_obj.write)
-        io_obj.seek(0)
-        return io_obj
+        return sock.makefile(mode='rb'), size
 
     def remove_file(self, ftps: FTP_TLS, file: FtpEntry):
         """

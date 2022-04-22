@@ -74,7 +74,9 @@ class BoxEtlHelpers:
             with etna_hook.metis(project_name, read_only=False) as metis, self.hook.box() as box, box.ftps() as ftps:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
                 for file in files:
-                    with box.retrieve_file(ftps, file) as box_io_file:
+                    sock, size = box.retrieve_file(ftps, file)
+
+                    with sock as connection:
                         parts = []
                         if folder_path is None:
                             parts.append(self.hook.connection.host)
@@ -94,8 +96,8 @@ class BoxEtlHelpers:
                             project_name,
                             bucket_name,
                             dest_path,
-                            box_io_file,
-                            file.size
+                            connection,
+                            size or file.size
                         ):
                             # Only log every 5 seconds, to save log space...
                             if int(time.time()) % 5 == 0:
