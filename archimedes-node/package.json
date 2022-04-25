@@ -1,0 +1,17 @@
+{
+  "name": "Archimedes Node",
+  "version": "1.0.0",
+  "description": "Node.JS container to run JS / TS scripts in Archimedes",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mountetna/monoetna.git",
+    "directory": "archimedes-node"
+  },
+  "author": "UCSF DSCoLab",
+  "license": "GPL-2.0-only",
+  "peerDependencies": {},
+  "scripts": {
+    "test": "cd archimedes-node/ && npm install && npm test"
+  },
+  "devDependencies": {}
+}

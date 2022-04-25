@@ -1,0 +1,29 @@
+networks:
+  edge_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: '172.16.238.0/24'
+        - subnet: '2001:3984:3989::/64'
+
+version: '3.4'
+
+volumes:
+  archimedes-node-modules:
+    driver: local
+  archimedes-exec:
+    driver: local
+
+services:
+  archimedes_node:
+    image: archimedes-node-base
+    volumes:
+      - .:/app:delegated
+      - archimedes-node-modules:/app/node_modules
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - archimedes-exec:/archimedes-exec
+      - ../vulcan/lib/server/workflows/scripts:/app/vulcan_scripts
+    environment:
+      HOST_DIR: $PWD
+    entrypoint: /entrypoints/development.sh
+    command: echo hello!
