@@ -155,9 +155,7 @@ class Box(object):
             raise ValueError(f"Invalid folder name: {folder_name}. Only alphanumeric characters, _, -, and spaces are allowed.")
 
         with self.ftps() as ftps:
-            all_files = self._ls_r(ftps)
-
-            return [f for f in all_files if self._is_in_range(f, batch_start, batch_end)]
+            return self._ls_r(ftps, batch_start=batch_start, batch_end=batch_end)
 
     def _ls_r(self, ftps: FTP_TLS, path: str = "/", batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None) -> List[FtpEntry]:
         files = []
