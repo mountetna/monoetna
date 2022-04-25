@@ -1,5 +1,6 @@
 import re
-from datetime import timedelta
+import pytz
+from datetime import timedelta, datetime
 from dateutil import parser
 from unittest import mock
 
@@ -106,6 +107,51 @@ def test_metis_files_etl_filter_file_name_and_folder_path(mock_load, reset_db):
 
     assert len(results) == 1
     assert results[0].name == 'xyz.exe'
+
+
+def make_datetime(year, month, day):
+    return datetime(year, month, day, 0, 0, 0, 0, pytz.UTC)
+
+
+def test_ftp_entry():
+    entry_dict_1 = {
+        "modify": "20220101000000.000",
+        "size": "42",
+        "type": "file"
+    }
+
+    entry_dict_2 = {
+        "modify": "20220201000000.000",
+        "size": "42",
+        "type": "dir"
+    }
+
+    entry = FtpEntry(("testfile.txt", entry_dict_1), "/root/child/leaf")
+    assert entry.is_dir() == False
+    assert entry.is_file() == True
+    assert entry.size == 42
+    assert entry.full_path == "/root/child/leaf/testfile.txt"
+    assert entry.is_in_range() == True
+    assert entry.is_in_range(make_datetime(2022, 3, 1)) == False
+    assert entry.is_in_range(None, make_datetime(2021, 1, 1)) == False
+    assert entry.is_in_range(make_datetime(2021, 1, 1)) == True
+    assert entry.is_in_range(None, make_datetime(2022, 2, 1)) == True
+    assert entry.is_in_range(make_datetime(2021, 1, 1), make_datetime(2022, 2, 1)) == True
+    assert entry.is_in_range(make_datetime(2021, 1, 1), make_datetime(2021, 2, 1)) == False
+
+    entry = FtpEntry((".", entry_dict_2), "/root/child/leaf")
+    assert entry.is_dir() == True
+    assert entry.is_file() == False
+    assert entry.is_dot() == True
+    assert entry.size == 42
+    assert entry.full_path == "/root/child/leaf/."
+
+    entry = FtpEntry(("..", entry_dict_2), "/root/child/leaf")
+    assert entry.is_dir() == True
+    assert entry.is_file() == False
+    assert entry.is_dot() == True
+    assert entry.size == 42
+    assert entry.full_path == "/root/child/leaf/.."
 
 mock_etna_hook = mock.Mock()
 mock_metis = mock.Mock()

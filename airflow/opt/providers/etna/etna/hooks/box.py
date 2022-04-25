@@ -116,6 +116,16 @@ class FtpEntry(object):
     def rel_path(self) -> str:
         return self.full_path[1::] if self.full_path[0] == '/' else self.full_path
 
+    def is_in_range(self, batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None):
+        if batch_start is None and batch_end is None:
+            return True
+        elif batch_start is None:
+            return self.mtime <= batch_end
+        elif batch_end is None:
+            return self.mtime >= batch_start
+        else:
+            return batch_start <= self.mtime <= batch_end
+
 
 class Box(object):
     def __init__(self, hook: BoxHook):
@@ -149,7 +159,7 @@ class Box(object):
 
             return [f for f in all_files if self._is_in_range(f, batch_start, batch_end)]
 
-    def _ls_r(self, ftps: FTP_TLS, path: str = "/") -> List[FtpEntry]:
+    def _ls_r(self, ftps: FTP_TLS, path: str = "/", batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None) -> List[FtpEntry]:
         files = []
         for entry in ftps.mlsd(path):
             ftp_entry = FtpEntry(entry, path)
@@ -159,19 +169,9 @@ class Box(object):
 
             if ftp_entry.is_dir():
                 files += self._ls_r(ftps, os.path.join(path, ftp_entry.name))
-            else:
+            elif ftp_entry.is_in_range(batch_start, batch_end):
                 files.append(ftp_entry)
         return files
-
-    def _is_in_range(self, file: FtpEntry, batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None):
-        if batch_start is None and batch_end is None:
-            return True
-        elif batch_start is None:
-            return file.mtime <= batch_end
-        elif batch_end is None:
-            return file.mtime >= batch_start
-        else:
-            return batch_start <= file.mtime <= batch_end
 
     @contextlib.contextmanager
     def ftps(self) -> FTP_TLS:
