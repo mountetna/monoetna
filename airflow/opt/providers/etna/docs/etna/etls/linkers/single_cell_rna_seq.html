@@ -68,6 +68,7 @@ necessaril ybe backported to all data sets.</p>
 
 <span class="sd">Most of these helpers are accessible on the main MetisEtlHelper class as methods.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">typing</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span> <span class="nn">re</span>
@@ -75,6 +76,8 @@ necessaril ybe backported to all data sets.</p>
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
 <span class="kn">from</span> <span class="nn">airflow.models.xcom_arg</span> <span class="kn">import</span> <span class="n">XComArg</span>
 <span class="kn">from</span> <span class="nn">airflow.utils.task_group</span> <span class="kn">import</span> <span class="n">TaskGroup</span>
+<span class="kn">from</span> <span class="nn">etna.hooks.etna</span> <span class="kn">import</span> <span class="n">UpdateRequest</span>
+
 <span class="kn">from</span> <span class="nn">etna.etls.metis</span> <span class="kn">import</span> <span class="n">MatchedRecordFolder</span>
 
 <span class="kn">from</span> <span class="nn">etna</span> <span class="kn">import</span> <span class="n">MetisEtlHelpers</span><span class="p">,</span> <span class="n">link</span>
@@ -121,7 +124,10 @@ necessaril ybe backported to all data sets.</p>
         <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">identifier_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">single_cell_root_prefix</span><span class="o">=</span><span class="s2">&quot;single_cell_&quot;</span><span class="p">,</span>
+        <span class="c1"># Overrides that can change the regex and attributes that are linked.</span>
         <span class="n">attribute_linker_overrides</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="c1"># The function used to create parents for the given model.  By default, this function links lineage assuming sc_seq -&gt; timepoint -&gt; patient -&gt; project.</span>
+        <span class="n">link_parents</span><span class="o">=</span><span class="n">create_and_link_parents</span><span class="p">,</span>
         <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">XComArg</span><span class="p">,</span> <span class="n">XComArg</span><span class="p">]:</span>
     <span class="n">sc_file_linkers</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -159,7 +165,7 @@ necessaril ybe backported to all data sets.</p>
             <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;^</span><span class="si">{</span><span class="n">single_cell_root_prefix</span><span class="si">}</span><span class="s2">[^/]*/raw/</span><span class="si">{</span><span class="n">identifier_prefix</span><span class="si">}</span><span class="s2">[^/]+&quot;</span><span class="p">),</span>
         <span class="p">)</span>
 
-        <span class="n">raw_matches</span> <span class="o">=</span> <span class="n">link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)(</span><span class="n">create_and_link_parents</span><span class="p">)(</span><span class="n">raw_matches</span><span class="p">)</span>
+        <span class="n">raw_matches</span> <span class="o">=</span> <span class="n">link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)(</span><span class="n">link_parents</span><span class="p">)(</span><span class="n">raw_matches</span><span class="p">)</span>
         <span class="c1"># create new records if needed</span>
         <span class="n">listed_matches</span> <span class="o">=</span> <span class="n">helpers</span><span class="o">.</span><span class="n">list_match_folders</span><span class="p">(</span><span class="n">raw_matches</span><span class="p">)</span>
         <span class="c1"># make this a raw_fastq_files collection</span>
@@ -235,6 +241,7 @@ necessaril ybe backported to all data sets.</p>
     identifier_prefix: str,
     single_cell_root_prefix=&#39;single_cell_&#39;,
     attribute_linker_overrides: Union[Mapping[str, str], NoneType] = None,
+    link_parents=&lt;function create_and_link_parents&gt;,
     dry_run=True
 ) -&gt; Tuple[airflow.models.xcom_arg.XComArg, airflow.models.xcom_arg.XComArg]</span>:
     </div>
@@ -246,7 +253,10 @@ necessaril ybe backported to all data sets.</p>
         <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">identifier_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">single_cell_root_prefix</span><span class="o">=</span><span class="s2">&quot;single_cell_&quot;</span><span class="p">,</span>
+        <span class="c1"># Overrides that can change the regex and attributes that are linked.</span>
         <span class="n">attribute_linker_overrides</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="c1"># The function used to create parents for the given model.  By default, this function links lineage assuming sc_seq -&gt; timepoint -&gt; patient -&gt; project.</span>
+        <span class="n">link_parents</span><span class="o">=</span><span class="n">create_and_link_parents</span><span class="p">,</span>
         <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">XComArg</span><span class="p">,</span> <span class="n">XComArg</span><span class="p">]:</span>
     <span class="n">sc_file_linkers</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
@@ -284,7 +294,7 @@ necessaril ybe backported to all data sets.</p>
             <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;^</span><span class="si">{</span><span class="n">single_cell_root_prefix</span><span class="si">}</span><span class="s2">[^/]*/raw/</span><span class="si">{</span><span class="n">identifier_prefix</span><span class="si">}</span><span class="s2">[^/]+&quot;</span><span class="p">),</span>
         <span class="p">)</span>
 
-        <span class="n">raw_matches</span> <span class="o">=</span> <span class="n">link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)(</span><span class="n">create_and_link_parents</span><span class="p">)(</span><span class="n">raw_matches</span><span class="p">)</span>
+        <span class="n">raw_matches</span> <span class="o">=</span> <span class="n">link</span><span class="p">(</span><span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)(</span><span class="n">link_parents</span><span class="p">)(</span><span class="n">raw_matches</span><span class="p">)</span>
         <span class="c1"># create new records if needed</span>
         <span class="n">listed_matches</span> <span class="o">=</span> <span class="n">helpers</span><span class="o">.</span><span class="n">list_match_folders</span><span class="p">(</span><span class="n">raw_matches</span><span class="p">)</span>
         <span class="c1"># make this a raw_fastq_files collection</span>
