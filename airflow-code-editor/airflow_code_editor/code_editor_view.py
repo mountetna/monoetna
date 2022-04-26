@@ -78,7 +78,7 @@ class AbstractCodeEditorView(object):
 
                 if fullpath.endswith('.py'):
                     # Validate the file, write it as a temporary object and try importing it in the dag bag context.
-                    with tempfile.NamedTemporaryFile(suffix='.py') as file:
+                    with tempfile.NamedTemporaryFile(suffix='.tmp', dir=os.path.dirname(fullpath)) as file:
                         file.write(data.encode('utf-8'))
                         file.write("\n".encode('utf-8'))
                         file.flush()

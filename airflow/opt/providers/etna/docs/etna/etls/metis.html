@@ -172,6 +172,7 @@
 <span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">Logger</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
 
+<span class="kn">import</span> <span class="nn">typing</span>
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">DAG</span>
 <span class="kn">from</span> <span class="nn">airflow.decorators</span> <span class="kn">import</span> <span class="n">task</span>
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
@@ -405,7 +406,7 @@
                 <span class="k">continue</span>
             <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expanding project=</span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2"> for model </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">parent</span> <span class="o">==</span> <span class="s2">&quot;parent&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">parent</span> <span class="o">==</span> <span class="s2">&quot;project&quot;</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">revision</span> <span class="ow">in</span> <span class="n">revisions</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                     <span class="n">revision</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">project</span>
 
@@ -535,6 +536,8 @@
             <span class="n">identifier_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># a prefix to indicate matching folders belonging to the given model_name</span>
             <span class="n">single_cell_root_prefix</span><span class="o">=</span><span class="s2">&quot;single_cell_&quot;</span><span class="p">,</span> <span class="c1"># a prefix used to identify the parent single_cell directories</span>
             <span class="n">attribute_linker_overrides</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># a list of attribute names to regex strings for overrides to default linking behavior.</span>
+            <span class="c1"># The function used to create parents for the given model.  By default, this function links lineage assuming sc_seq -&gt; timepoint -&gt; patient -&gt; project.</span>
+            <span class="n">link_parents</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">List</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">]],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">,</span> <span class="n">UpdateRequest</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span> <span class="c1"># When True (default), a run does not complete linking but simply validates the code paths,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">XComArg</span><span class="p">,</span> <span class="n">XComArg</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -545,9 +548,12 @@
 <span class="sd">        for more information on how matches are made and which attributes are linked.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Prevent circular import.</span>
-        <span class="kn">from</span> <span class="nn">etna.etls.linkers.single_cell_rna_seq</span> <span class="kn">import</span> <span class="n">link_single_cell_attribute_files_v1</span>
+        <span class="kn">from</span> <span class="nn">etna.etls.linkers.single_cell_rna_seq</span> <span class="kn">import</span> <span class="n">link_single_cell_attribute_files_v1</span><span class="p">,</span> <span class="n">create_and_link_parents</span>
+        <span class="k">if</span> <span class="n">link_parents</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">link_parents</span> <span class="o">=</span> <span class="n">create_and_link_parents</span>
         <span class="k">return</span> <span class="n">link_single_cell_attribute_files_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">identifier_prefix</span><span class="p">,</span> <span class="n">single_cell_root_prefix</span><span class="p">,</span>
-                                                   <span class="n">attribute_linker_overrides</span><span class="o">=</span><span class="n">attribute_linker_overrides</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+                                                   <span class="n">attribute_linker_overrides</span><span class="o">=</span><span class="n">attribute_linker_overrides</span><span class="p">,</span>
+                                                   <span class="n">link_parents</span><span class="o">=</span><span class="n">link_parents</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">link_matching_file</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1300,7 +1306,7 @@ Note, this is NOT necessarily the id of the record folder itself, but either</p>
                 <span class="k">continue</span>
             <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">model_name</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expanding project=</span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2"> for model </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">parent</span> <span class="o">==</span> <span class="s2">&quot;parent&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">parent</span> <span class="o">==</span> <span class="s2">&quot;project&quot;</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">revision</span> <span class="ow">in</span> <span class="n">revisions</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                     <span class="n">revision</span><span class="p">[</span><span class="s1">&#39;project&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">project</span>
 
@@ -1505,6 +1511,8 @@ Note, this is NOT necessarily the id of the record folder itself, but either</p>
             <span class="n">identifier_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># a prefix to indicate matching folders belonging to the given model_name</span>
             <span class="n">single_cell_root_prefix</span><span class="o">=</span><span class="s2">&quot;single_cell_&quot;</span><span class="p">,</span> <span class="c1"># a prefix used to identify the parent single_cell directories</span>
             <span class="n">attribute_linker_overrides</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># a list of attribute names to regex strings for overrides to default linking behavior.</span>
+            <span class="c1"># The function used to create parents for the given model.  By default, this function links lineage assuming sc_seq -&gt; timepoint -&gt; patient -&gt; project.</span>
+            <span class="n">link_parents</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">List</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">]],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">,</span> <span class="n">UpdateRequest</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span> <span class="c1"># When True (default), a run does not complete linking but simply validates the code paths,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">XComArg</span><span class="p">,</span> <span class="n">XComArg</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1515,9 +1523,12 @@ Note, this is NOT necessarily the id of the record folder itself, but either</p>
 <span class="sd">        for more information on how matches are made and which attributes are linked.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Prevent circular import.</span>
-        <span class="kn">from</span> <span class="nn">etna.etls.linkers.single_cell_rna_seq</span> <span class="kn">import</span> <span class="n">link_single_cell_attribute_files_v1</span>
+        <span class="kn">from</span> <span class="nn">etna.etls.linkers.single_cell_rna_seq</span> <span class="kn">import</span> <span class="n">link_single_cell_attribute_files_v1</span><span class="p">,</span> <span class="n">create_and_link_parents</span>
+        <span class="k">if</span> <span class="n">link_parents</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">link_parents</span> <span class="o">=</span> <span class="n">create_and_link_parents</span>
         <span class="k">return</span> <span class="n">link_single_cell_attribute_files_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">identifier_prefix</span><span class="p">,</span> <span class="n">single_cell_root_prefix</span><span class="p">,</span>
-                                                   <span class="n">attribute_linker_overrides</span><span class="o">=</span><span class="n">attribute_linker_overrides</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+                                                   <span class="n">attribute_linker_overrides</span><span class="o">=</span><span class="n">attribute_linker_overrides</span><span class="p">,</span>
+                                                   <span class="n">link_parents</span><span class="o">=</span><span class="n">link_parents</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">link_matching_file</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1885,6 +1896,7 @@ helpers.process_and_link_matching_file(listed_matches, re.compile(r'.*gene_count
     identifier_prefix: str,
     single_cell_root_prefix=&#39;single_cell_&#39;,
     attribute_linker_overrides: Union[Mapping[str, str], NoneType] = None,
+    link_parents: Union[Callable[[List[<a href="#MatchedRecordFolder">etna.etls.metis.MatchedRecordFolder</a>]], Iterable[Tuple[<a href="#MatchedRecordFolder">etna.etls.metis.MatchedRecordFolder</a>, <a href="../hooks/etna.html#UpdateRequest">etna.hooks.etna.UpdateRequest</a>]]], NoneType] = None,
     dry_run=True
 ) -&gt; Tuple[airflow.models.xcom_arg.XComArg, airflow.models.xcom_arg.XComArg]</span>:
     </div>
@@ -1897,6 +1909,8 @@ helpers.process_and_link_matching_file(listed_matches, re.compile(r'.*gene_count
             <span class="n">identifier_prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># a prefix to indicate matching folders belonging to the given model_name</span>
             <span class="n">single_cell_root_prefix</span><span class="o">=</span><span class="s2">&quot;single_cell_&quot;</span><span class="p">,</span> <span class="c1"># a prefix used to identify the parent single_cell directories</span>
             <span class="n">attribute_linker_overrides</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># a list of attribute names to regex strings for overrides to default linking behavior.</span>
+            <span class="c1"># The function used to create parents for the given model.  By default, this function links lineage assuming sc_seq -&gt; timepoint -&gt; patient -&gt; project.</span>
+            <span class="n">link_parents</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[</span><span class="n">List</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">]],</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Tuple</span><span class="p">[</span><span class="n">MatchedRecordFolder</span><span class="p">,</span> <span class="n">UpdateRequest</span><span class="p">]]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">dry_run</span><span class="o">=</span><span class="kc">True</span> <span class="c1"># When True (default), a run does not complete linking but simply validates the code paths,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">XComArg</span><span class="p">,</span> <span class="n">XComArg</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1907,9 +1921,12 @@ helpers.process_and_link_matching_file(listed_matches, re.compile(r'.*gene_count
 <span class="sd">        for more information on how matches are made and which attributes are linked.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Prevent circular import.</span>
-        <span class="kn">from</span> <span class="nn">etna.etls.linkers.single_cell_rna_seq</span> <span class="kn">import</span> <span class="n">link_single_cell_attribute_files_v1</span>
+        <span class="kn">from</span> <span class="nn">etna.etls.linkers.single_cell_rna_seq</span> <span class="kn">import</span> <span class="n">link_single_cell_attribute_files_v1</span><span class="p">,</span> <span class="n">create_and_link_parents</span>
+        <span class="k">if</span> <span class="n">link_parents</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">link_parents</span> <span class="o">=</span> <span class="n">create_and_link_parents</span>
         <span class="k">return</span> <span class="n">link_single_cell_attribute_files_v1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">identifier_prefix</span><span class="p">,</span> <span class="n">single_cell_root_prefix</span><span class="p">,</span>
-                                                   <span class="n">attribute_linker_overrides</span><span class="o">=</span><span class="n">attribute_linker_overrides</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
+                                                   <span class="n">attribute_linker_overrides</span><span class="o">=</span><span class="n">attribute_linker_overrides</span><span class="p">,</span>
+                                                   <span class="n">link_parents</span><span class="o">=</span><span class="n">link_parents</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="n">dry_run</span><span class="p">)</span>
 </pre></div>
 
         </details>
