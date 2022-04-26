@@ -117,6 +117,11 @@ volumes:
       device: ":/cache/janus/staging/app_public"
   db:
     name: "janus_staging_db"
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
+      device: ":/cache/postgres/janus-staging"
   staging_shibboleth:
     name: janus_staging_shibboleth
     driver: local
