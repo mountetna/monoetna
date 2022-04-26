@@ -31,7 +31,24 @@ services:
       - edge_bridge
       - prometheus
     user: "1500:999" # dockerapp:docker
-  
+
+  prometheus_backup:
+    image: etnaagent/metis:production
+    command: "yes > /dev/null"
+    volumes:
+      - tsdb:/prometheus
+    deploy:
+      labels:
+        - autoupdate=true
+      restart_policy:
+        condition: none
+      placement:
+        constraints:
+          - node.labels.volumes.prometheus-tsdb == true
+    networks:
+      - prometheus
+    user: "1500:999" # dockerapp:docker
+
   alertmanger:
     hostname: alertmanager
     image: "prom/alertmanager:v0.21.0"
@@ -49,7 +66,23 @@ services:
       replicas: 1
       restart_policy:
         condition: any
-    
+
+  grafana_backup:
+    image: etnaagent/metis:production
+    volumes:
+      - /etc/grafana:/etc/grafana
+      - /var/lib/grafana:/var/lib/grafana
+    command: "yes > /dev/null"
+    user: "1500:999" # dockerapp:docker
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.labels.volumes.grafana-data == true
+
   grafana:
     hostname: grafana
     image: "grafana/grafana:7.5.1"

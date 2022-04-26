@@ -12,7 +12,7 @@ services:
     deploy:
       placement:
         constraints:
-          - node.labels.volumes.janus_staging_db == true
+          - node.labels.volumes.big-shared == true
     networks:
       - db
     secrets:
@@ -84,7 +84,7 @@ services:
         - autoupdate=true
       placement:
         constraints:
-          - node.labels.volumes.big-share == true
+          - node.labels.volumes.big-shared == true
     command:
       - /bin/httpd_with_shibd.sh
 
@@ -102,10 +102,10 @@ services:
         - autoupdate=true
       restart_policy:
         condition: none
-      mode: global
+      mode: replicated
       placement:
         constraints:
-          - node.labels.volumes.big-share == true
+          - node.labels.volumes.big-shared == true
 
 volumes:
   app_public:

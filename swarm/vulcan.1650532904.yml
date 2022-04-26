@@ -59,7 +59,6 @@ services:
     deploy:
       update_config:
         parallelism: 1
-        order: start-first
       resources:
         reservations:
           cpus: '4'

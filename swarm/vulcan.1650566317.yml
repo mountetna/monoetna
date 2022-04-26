@@ -2,44 +2,71 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:10.19
+    image: postgres:10.12
     environment:
-      POSTGRES_DB: "janus"
+      POSTGRES_DB: 'vulcan'
       POSTGRES_PASSWORD_FILE: /run/secrets/password
       POSTGRES_USER: developer
     volumes:
-      - db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data:nocopy
     deploy:
       placement:
         constraints:
-          - node.labels.volumes.janus_staging_db == true
+          - node.labels.volumes.big-shared == true
     networks:
       - db
     secrets:
-    - source: db-pw
-      target: password
+      - source: db-pw
+        target: password
+
+  # Exists purely to allow updates to archimedes image on all possible nodes via service deployer.
+  # Intention is for this to be removed when we move the scheduler to airflow.
+  archimedes:
+    command: 
+      - bash
+      - -c
+      - sleep 10
+    image: etnaagent/archimedes:production
+    deploy:
+      mode: global
+      labels:
+        - autoupdate=true
+      placement:
+        constraints:
+          - node.labels.volumes.big-shared == true
 
   app:
     environment:
-      - APP_NAME=janus
-      - JANUS_ENV=production
+      - APP_NAME=vulcan
+      - VULCAN_ENV=production
       - ETNA__PRODUCTION_FILE=/app/env.yml
       - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
       - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN=/run/secrets/rollbar-access-token
       - ETNA__PRODUCTION__USER_HASH_SECRET=/run/secrets/user-hash-secret
+      - HOST_DIR_MAP=/app/data/vulcan=/cache/vulcan/data
     command:
       - bash
       - -c
       - |
         set -e
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
-        exec /bin/deploy.sh migrate -- /app/bin/puma.sh
-    image: etnaagent/janus:staging
+        exec /bin/deploy.sh migrate 'docker pull etnaagent/archimedes:production' -- /app/bin/puma.sh
+    image: etnaagent/vulcan:production
+    volumes:
+      - data:/app/data/vulcan:nocopy
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    user: 0:999 #1502:999 # vulcan:docker
     deploy:
       update_config:
         parallelism: 1
       labels:
         - autoupdate=true
+        - prometheus-etna=1 # 3000
+        - prometheus-puma=1 # 9234
+      placement:
+        constraints:
+          - node.labels.volumes.big-shared == true
+          - node.labels.volumes.vulcan_data == true
     healthcheck:
       interval: 10s
       retries: 3
@@ -56,26 +83,28 @@ services:
       prometheus:
       fe:
         aliases:
-          - janus_app
+          - vulcan_app
     secrets:
       - metrics-pw
+      - user-hash-secret
       - source: db-pw
         target: db-password
+      - rollbar-access-token
+      
 
   app_fe:
     environment:
-      - APP_NAME=janus
-      - JANUS_ENV=production
-    image: etnaagent/janus_app_fe:staging
+      - APP_NAME=vulcan
+      - VULCAN_ENV=production
+
+    image: etnaagent/vulcan_app_fe:production
     networks:
       - edge_bridge
       - fe
     volumes:
       - app_public:/app/public:nocopy
-      - staging_shibboleth:/shibboleth:nocopy
-    # Notably, apache needs to start as super user but it immediately downgrades
-    # its own user permissions after bootup.  See the includes.
-    user: 0:3000 # su:browser
+      - data:/app/data/vulcan:ro
+    user: 0:3000
     configs:
       - source: browser.system.include
         target: /usr/opt/httpd.conf.d/browser.system.include
@@ -84,68 +113,74 @@ services:
         - autoupdate=true
       placement:
         constraints:
-          - node.labels.volumes.big-shared == true
-    command:
-      - /bin/httpd_with_shibd.sh
+        - node.labels.volumes.big-shared == true
 
   app_assets_deployer:
     environment:
-      - APP_NAME=janus
-      - JANUS_ENV=production
-    user: 0:3000 # root/browser -- todo, this can only become a lower permission once the app images are built that way
+      APP_NAME: vulcan
+      VULCAN_ENV: production
+
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
-    image: etnaagent/janus:staging
+    image: etnaagent/vulcan:production
     volumes:
       - app_public:/sync-assets:nocopy
+
     deploy:
       labels:
         - autoupdate=true
       restart_policy:
         condition: none
-      mode: global
       placement:
         constraints:
           - node.labels.volumes.big-shared == true
 
 volumes:
+  data:
+    name: vulcan_data
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
+      device: ":/cache/vulcan/data"
   app_public:
-    name: janus_staging_app_public
+    name: vulcan_app_public
     driver: local
     driver_opts:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
-      device: ":/cache/janus/staging/app_public"
+      device: ":/cache/vulcan/app_public"
   db:
-    name: "janus_staging_db"
-  staging_shibboleth:
-    name: janus_staging_shibboleth
+    name: vulcan_db
     driver: local
     driver_opts:
       type: nfs
-      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
-      device: ":/cache/janus/staging/shibboleth"
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
+      device: ":/cache/postgres/vulcan"
 
 configs:
   browser.system.include:
-    external: true
     name: ${BROWSER_SYSTEM_INCLUDE:-browser.system.include}
+    external: true
   config:
     external: true
-    name: ${APP_CONFIG:-janus.staging.yml}
+    name: ${APP_CONFIG:-vulcan.production.yml}
   env:
     external: true
-    name: ${ENV_CONFIG:-etna.staging.yml}
+    name: ${ENV_CONFIG:-etna.production.yml}
 
 secrets:
+  db-pw:
+    external: true
+    name: "vulcan_production_db_password"
   user-hash-secret:
     external: true
     name: ${USER_HASH_SECRET:-user-hash-secret}
   metrics-pw:
     external: true
     name: ${METRICS_PW:-metrics-pw}
-  db-pw:
+  rollbar-access-token:
     external: true
-    name: "janus_staging_db_password"
+    name: ${ROLLBAR_ACCESS_TOKEN:-vulcan-rollbar-token}
 
 networks:
   fe:
