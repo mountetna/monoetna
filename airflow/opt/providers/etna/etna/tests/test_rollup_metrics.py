@@ -30,7 +30,7 @@ class TestRollup(Rollup):
     def measure(self) -> Iterable[Tuple[Dict[str, str], int]]:
         return self.options
 
-def test_rollup_metrics():
+def test_rollup_metrics(ensure_session):
     @rollup_dag(timedelta(minutes=1, seconds=60), ['a', 'b', 'c'])
     def test_rollup_dag():
         @task

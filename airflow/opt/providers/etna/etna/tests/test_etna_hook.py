@@ -41,7 +41,7 @@ def test_e2e_upload_to_metis_and_download(token_etna_connection: Connection):
     payload = b'abcdef' * 2500000
     with hook.metis("ipi", read_only=False) as metis:
         # Adjust the file path to a unique file when re-recording.
-        for upload in metis.upload_file('ipi', 'airflow_debug', 'test/a/file2', io.BytesIO(payload), len(payload)):
+        for upload in metis.upload_file('ipi', 'airflow_debug', 'test/a/file3', io.BytesIO(payload), len(payload)):
             print("Uploading...")
         print("Done!")
 

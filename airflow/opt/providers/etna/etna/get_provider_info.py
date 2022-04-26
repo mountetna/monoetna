@@ -18,5 +18,9 @@ def get_provider_info():
                 "connection-type": "etna",
                 "hook-class-name": "etna.hooks.etna.EtnaHook",
             },
+            {
+                "connection-type": "box",
+                "hook-class-name": "etna.hooks.box.BoxHook",
+            },
         ],
     }
