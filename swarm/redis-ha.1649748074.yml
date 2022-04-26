@@ -1,0 +1,78 @@
+version: '3.8'
+services:
+  # Redis worker nodes, will replicate to each other an elect a primary.
+  # See the redis-ha image entrypoint for how this works on startup.
+  # sentinels are set up below as agents that figure out and load balance
+  # the connections on behalf of client connections.
+  redis:
+    image: etnaagent/redis-ha:production
+    environment:
+      # this must match the service name for the redis workers above,
+      # check entrypoints file to see how this is used for service discovery.
+      REDIS_NAME: redis
+      REDIS_PORT: 6380
+      PASSWORD_FILE: /run/secrets/redis_password
+    volumes:
+    - redis-data:/data
+    secrets:
+      - redis_password
+    deploy:
+      mode: replicated
+      replicas: 3
+      # Prevent the docker router mesh from doing 'cleverness'
+      endpoint_mode: dnsrr
+      placement:
+        # Ensure that these are spread out, so that they don't share the same data volume
+        max_replicas_per_node: 1
+        constraints:
+          - node.role == worker
+          - node.labels.volumes.redis-data == true
+      # Allows sentinel to move around master node and reduce impact of deployment.
+      update_config:
+        parallelism: 1
+    networks:
+      - redis
+  sentinel:
+    image: etnaagent/redis-ha:production
+    command: redis-sentinel
+    environment:
+      # this must match the service name for the redis workers above,
+      # check entrypoints file to see how this is used for service discovery.
+      REDIS_NAME: redis
+      REDIS_PORT: 6380
+      SENTINEL_NAME: sentinel
+      SENTINEL_PORT: 26380
+      PASSWORD_FILE: /run/secrets/redis_password
+      # Redis sentinel supports multiple masters -- this names that master in the sentinel config.
+      # In reality it doesn't have much purpose, it would only matter if we use the same sentinel
+      # cluster to watch multiple redis
+      INSTANCE_NAME: myinstance
+      QUORUM: 2
+    secrets:
+      - redis_password
+    deploy:
+      mode: replicated
+      replicas: 3
+      endpoint_mode: dnsrr
+      placement:
+        # Ensure that these are spread out.
+        max_replicas_per_node: 1
+        constraints:
+          - node.role == worker
+      # Allows for slower roll out that does not interrupt fail over work.
+      update_config:
+        parallelism: 1
+    networks:
+      - redis
+
+volumes:
+  redis-data:
+
+secrets:
+  redis_password:
+    external: true
+    name: ${REDIS_PASSWORD:-redis_password}
+
+networks:
+  redis:
+    external: true
