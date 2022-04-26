@@ -91,7 +91,7 @@ def link_single_cell_attribute_files_v1(
             model_name,
             re.compile(f"^{single_cell_root_prefix}[^/]*/processed/{identifier_prefix}[^/]+"),
         )
-        processed_matches = link(dry_run=dry_run, batch_size=10)(create_and_link_parents)(processed_matches)
+        processed_matches = link(dry_run=dry_run, batch_size=10)(link_parents)(processed_matches)
         listed_matches = helpers.list_match_folders(processed_matches)
         for attr, matcher in sc_file_linkers.items():
             helpers.link_matching_file(listed_matches, attr, re.compile(matcher), dry_run=dry_run)
