@@ -20,7 +20,7 @@ class WorkflowsController < Vulcan::Controller
 
   def workflows_for(project_name)
     project_workflows = all_workflows.select do |workflow|
-      workflow[:projects].include?(project_name)
+      workflow[:projects].include?(project_name) || workflow[:projects].include?("ALL")
     end
 
     @params[:tag] ? workflows_by_tag(project_workflows, @params[:tag]) : project_workflows
