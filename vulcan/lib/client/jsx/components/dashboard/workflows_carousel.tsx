@@ -40,7 +40,7 @@ export default function WorkflowsCarousel({
 
   const projectWorkflows = workflows
     ? workflows.filter(({projects}: {projects?: string[]}) =>
-        projects?.includes(project_name)
+        projects?.includes(project_name) || projects?.includes("ALL")
       )
     : [];
 
