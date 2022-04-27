@@ -11,8 +11,8 @@
   "license": "GPL-2.0-only",
   "scripts": {
     "test": "cd archimedes-node/ && npm install && npm test",
-    "compile_ts": "find archimedes-node -name \"*.ts\" -print0 | xargs -0 -I {} tsc --module node12 {}",
-    "initialize": "npm run compile_ts && npm install"
+    "compile_ts": "find archimedes-node -name \"*.ts\" -not -path \"*/node_modules/*\" -print0 | xargs -0 -I {} tsc --module node12 {}",
+    "initialize": "npm install && npm run compile_ts"
   },
   "devDependencies": {},
   "dependencies": {

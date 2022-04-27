@@ -1,17 +1,16 @@
-import * as dataflow from '../dataflow/index.js';
-import HyperFormula from 'hyperformula';
+import {HyperFormula} from 'hyperformula';
 
 type NestedArrayDataFrame = any[][];
 type JsonDataFrame = {[key: string]: any};
 
-function dimensions(nestedArray: NestedArrayDataFrame) {
+const dimensions = (nestedArray: NestedArrayDataFrame) => {
   return {
     numRows: nestedArray.length,
     numCols: nestedArray[0].length
   };
-}
+};
 
-function merge(original: NestedArrayDataFrame, user: NestedArrayDataFrame) {
+const merge = (original: NestedArrayDataFrame, user: NestedArrayDataFrame) => {
   const userDimensions = dimensions(user);
   const originalDimensions = dimensions(original);
   const numUserRows = userDimensions.numRows;
@@ -23,18 +22,18 @@ function merge(original: NestedArrayDataFrame, user: NestedArrayDataFrame) {
       return [...user[index]];
     } else {
       // This is beyond the user preview, so
-      //   we just copy the original but pad out with empty values.
+      //   we just copy the original but pad out with null values.
       return [...row].concat(new Array(numNewColumns).fill(null));
     }
   });
-}
+};
 
 export const zipDF = (original: JsonDataFrame, user: JsonDataFrame) => {
   const originalData = dataFrameJsonToNestedArray(original);
   const userData = dataFrameJsonToNestedArray(user);
 
   const hfOptions = {
-    licenseKey: 'non-commercial-research-use'
+    licenseKey: 'gpl-v3'
   };
 
   // Start with the userDF, which is a subset of the originalData plus
@@ -56,9 +55,11 @@ export const zipDF = (original: JsonDataFrame, user: JsonDataFrame) => {
     row: 1,
     col: originalDimensions.numCols
   };
+  // We just grab two rows to get the pattern, so we don't expect
+  //   the user to populate too many of the formula cells.
   const userBottomRight = {
     sheet: 0,
-    row: userDimensions.numRows - 1,
+    row: 2,
     col: userDimensions.numCols - 1
   };
   const newCellValues = dataFrame.getFillRangeData(
@@ -87,7 +88,7 @@ export const zipDF = (original: JsonDataFrame, user: JsonDataFrame) => {
 
 // Hm...slight variations of these are also used in the Vulcan UI data_transformation.tsx
 //   component. There should be a better way to avoid duplication.
-export const nestedArrayToDataFrameJson = (
+const nestedArrayToDataFrameJson = (
   input: NestedArrayDataFrame
 ): JsonDataFrame => {
   const headers = input[0];
@@ -107,7 +108,7 @@ export const nestedArrayToDataFrameJson = (
   }, payload);
 };
 
-export const dataFrameJsonToNestedArray = (
+const dataFrameJsonToNestedArray = (
   input: JsonDataFrame
 ): NestedArrayDataFrame => {
   if (!input) return [[]];
