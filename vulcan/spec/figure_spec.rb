@@ -105,6 +105,9 @@ describe FigureController do
         title: "Hercules Fighting the Nemean Lion",
         workflow_name: "reubens"
       )
+
+      # there are two figures
+      expect(Vulcan::Figure.count).to eq(2)
     end
 
     it 'throws exception for unknown figure' do
@@ -142,7 +145,9 @@ describe FigureController do
       delete("/api/labors/figure/#{figure.figure_id}")
 
       expect(last_response.status).to eq(200)
-      expect(Vulcan::Figure.count).to eq(0)
+      expect(Vulcan::Figure.count).to eq(1)
+      figure.refresh
+      expect(figure.archived).to be_truthy
     end
 
     it 'throws exception for unknown figure' do

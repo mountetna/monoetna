@@ -47,6 +47,8 @@ import useUserHooks from '../../useUserHooks';
 import Button from '@material-ui/core/Button';
 import Tag from '../../tag';
 
+import RevisionHistory from '../../revision-history';
+
 const modalStyles = {
   content: {
     top: '50%',
@@ -94,6 +96,7 @@ export default function SessionManager() {
 
   const [tags, setTags] = useState<string[]>(figure.tags || []);
   const [openTagEditor, setOpenTagEditor] = useState(false);
+  const [openRevisions, setOpenRevisions] = useState(false);
   const [localTitle, setLocalTitle] = useState(figure.title);
 
   const invoke = useActionInvoker();
@@ -127,6 +130,11 @@ export default function SessionManager() {
       if (!params.title) {
         params.title = prompt('Set a title for this figure') || undefined;
         if (!params.title) return;
+      }
+
+      if (params.figure_id) {
+        params.comment = prompt('Enter a revision comment') || undefined;
+        if (!params.comment) return;
       }
 
       setSaving(true);
@@ -370,6 +378,14 @@ export default function SessionManager() {
               title='Edit tags'
               onClick={() => setOpenTagEditor(true)}
             />
+            <FlatButton
+              className='header-btn edit-tags'
+              icon='clock-rotate-left'
+              label='Revisions'
+              title='Revisions'
+              onClick={() => setOpenRevisions(true)}
+            />
+            <RevisionHistory open={openRevisions} project_name={session.project_name} name={session.figure_id}/>
             <Dialog
               maxWidth='md'
               open={openTagEditor}
