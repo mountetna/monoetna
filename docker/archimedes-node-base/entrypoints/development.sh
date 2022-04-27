@@ -12,4 +12,4 @@ if [ -e /app/development ]; then
   done
 fi
 
-exec node $@
+exec $@

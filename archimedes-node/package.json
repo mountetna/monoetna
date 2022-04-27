@@ -9,9 +9,17 @@
   },
   "author": "UCSF DSCoLab",
   "license": "GPL-2.0-only",
-  "peerDependencies": {},
   "scripts": {
-    "test": "cd archimedes-node/ && npm install && npm test"
+    "test": "cd archimedes-node/ && npm install && npm test",
+    "compile_ts": "find archimedes-node -name \"*.ts\" -print0 | xargs -0 -I {} tsc --module node12 {}",
+    "initialize": "npm run compile_ts && npm install"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "dependencies": {
+    "@types/jest": "^27.4.1",
+    "@types/node": "^17.0.26",
+    "archimedes-node": "file:/app/archimedes-node",
+    "typescript": "^4.7.0-dev.20220427"
+  },
+  "type": "module"
 }

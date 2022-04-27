@@ -15,7 +15,7 @@ volumes:
     driver: local
 
 services:
-  archimedes_node:
+  archimedes-node_app:
     image: archimedes-node-base
     volumes:
       - .:/app:delegated
