@@ -55,7 +55,7 @@ function LeafOptions({
 }) {
   if (!options_in) return null;
   if (value!=null && !options_in.includes(value)) {
-    console.log('skipping render due to mismatch')
+    console.log('skipping LeafOptions due to value mismatch')
     return null
   }
   return (
@@ -111,8 +111,8 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
   // const lab = (label) ? 
   //   <InputLabel shrink>{label}</InputLabel> : null;
 
-  // console.log({value})
-  // console.log({path})
+  console.log({value})
+  console.log({path})
   return (
     <div>
       {/* {lab} */}
