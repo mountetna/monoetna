@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import NestedSelectAutocompleteInput from '../nested_select_autocomplete';
 import {DataEnvelope} from '../input_types';
 import {
@@ -12,7 +12,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 
 describe('NestedSelectAutocompleteInput', () => {
   const onChange = setupBefore(() => jest.fn());
-  const value = setupBefore(() => null as Maybe<string>);
+  const defaultValue = setupBefore(() => null as Maybe<string | null>);
   const data = setupBefore(() => {
     return {
       'options-a': {
@@ -36,13 +36,17 @@ describe('NestedSelectAutocompleteInput', () => {
   });
 
   const integrated = setupBefore(() =>
-    integrateElement(
-      <NestedSelectAutocompleteInput
-        onChange={onChange.value}
-        value={value.value}
+    integrateElement(() => {
+      const [value, setValue] = useState(() => defaultValue.value);
+      return <NestedSelectAutocompleteInput
+        onChange={(v) => {
+          setValue(v);
+          onChange.value(v);
+        }}
+        value={value}
         data={data.value}
       />
-    )
+    })
   );
 
   function getSelectedOption(component: ReactTestInstance, index: number) {
@@ -65,7 +69,7 @@ describe('NestedSelectAutocompleteInput', () => {
     ];
 
     const options = autocomplete.props.options;
-    console.log("picking " + options[optionIndex])
+    // console.log("picking " + options[optionIndex])
     await act(async () => {
       autocomplete.props.onChange(null, options[optionIndex]);
     });
@@ -111,7 +115,7 @@ describe('NestedSelectAutocompleteInput', () => {
   });
 
   describe('with a given value', () => {
-    value.replace(() => some('stepchild1'));
+    defaultValue.replace(() => some('stepchild1'));
 
     it('can find an existing path when given a value', async () => {
       const {node} = integrated.value;
@@ -124,17 +128,25 @@ describe('NestedSelectAutocompleteInput', () => {
   });
 
   describe('with a stepchild set as a value', () => {
-    value.replace(() => some('stepchild1'));
+    defaultValue.replace(() => some('stepchild1'));
 
     it('correctly updates dropdowns when given a value', async () => {
-      const {node} = integrated.value;
-      
-      console.log('problem test')
+      let {node} = integrated.value;
 
       expect(node.root.findAllByType('input').length).toEqual(3);
       await clickAutocompleteOption(node.root, 0, 0);
-      console.log(node.root.findByType(NestedSelectAutocompleteInput).props.value)
       expect(node.root.findAllByType('input').length).toEqual(2);
     });
   });
 });
+
+// Methods not actually needed, but two ways to wait until renders complete if the issue is ever that await isn't actually waiting long enough.
+// function delay(ms: number) {
+//   return new Promise(resolve => setTimeout(resolve, ms));
+// }
+// while (true) {
+//   await act(() => {})
+//   if (node.root.findByType(NestedSelectAutocompleteInput).props.value == [null]) {
+//     break
+//   }
+// }
