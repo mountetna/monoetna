@@ -12,4 +12,6 @@ if [ -e /app/development ]; then
   done
 fi
 
+chown -R 1000:1000 /app/node_modules
+
 exec $@
