@@ -44,7 +44,6 @@ services:
     deploy:
       update_config:
         parallelism: 1
-        order: start-first
       labels:
         - autoupdate=true
       #placement:
@@ -96,8 +95,6 @@ services:
     deploy:
       labels:
         - autoupdate=true
-      restart_policy:
-        condition: none
       placement:
         constraints:
           - node.labels.volumes.${APP_NAME}_${ENV}_app_public == true
