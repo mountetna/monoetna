@@ -1,4 +1,5 @@
 import functools
+import re
 from datetime import timedelta
 from typing import Union, Optional, Mapping, List
 
@@ -21,6 +22,11 @@ from etna.etls.metis import (
 from etna.hooks.etna import EtnaHook, Folder, File
 from etna.utils.inject import inject
 from etna.xcom.etna_xcom import pickled
+from etna.etls.box import (
+    BoxEtlHelpers,
+    load_box_files_batch
+)
+from etna.hooks.box import BoxHook, Box
 
 
 def metis_etl(
@@ -98,6 +104,62 @@ def metis_etl(
                     bucket_name=bucket_name,
                     helpers=helpers,
                     hook=hook,
+                    **inject_params
+                ),
+            )
+
+        return etl(
+            project_name=project_name,
+            interval=interval,
+            version=version,
+        )(setup_tail)
+
+    return instantiate_dag
+
+
+def box_etl(
+    folder_name: str,
+    version: Union[int, str],
+    hook: Optional[BoxHook] = None,
+    project_name: str = "administration",
+    inject_params: Mapping[str, str] = {},
+):
+    """
+    A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.
+
+    This decorator is the main entry point for processing Box files with an etl.  The decorated function receives
+    a number of useful XComArg objects and a helpers object to help set up Box tasks based on consuming changes
+    scoped to the given folder in Box. The folder must be shared with the Etna service agent account.
+
+    1.  tail_files -- an XComArg object that will resolve into a list of File objects inside tasks.
+    """
+    if not Box.valid_folder_name(folder_name):
+        raise ValueError(f"Invalid folder name: {folder_name}. Only alphanumeric characters, -, and spaces are allowed.")
+
+    if hook is None:
+        hook = BoxHook.for_project(project_name)
+
+    interval = timedelta(days=1)
+
+    def instantiate_dag(fn):
+        @functools.wraps(fn)
+        def setup_tail():
+            @task
+            def tail_files() -> List[File]:
+                with hook.box() as box:
+                    return pickled(load_box_files_batch(box, folder_name))
+
+            files = tail_files()
+
+            helpers = BoxEtlHelpers(
+                hook=hook
+            )
+
+            return inject(
+                fn,
+                dict(
+                    tail_files=files,
+                    helpers=helpers,
                     **inject_params
                 ),
             )

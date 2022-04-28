@@ -22,6 +22,7 @@ def run_on_docker(
     output_json: Union[bool, Type] = False,
     output_b64: bool = False,
     docker_base_url="unix://var/run/docker.sock",
+    include_external_networks=False,
 ) -> DockerOperatorBase:
     if os.environ.get("DEV_MODE"):
         return run_in_container(
@@ -41,6 +42,7 @@ def run_on_docker(
         output_json=output_json,
         output_b64=output_b64,
         docker_base_url=docker_base_url,
+        include_external_networks=include_external_networks,
     )
 
 
@@ -49,10 +51,10 @@ def run_in_swarm(
     source_service: str,
     command: List[str],
     env: Mapping[str, str] = dict(),
-    include_external_network: bool = False,
     output_json: Union[bool, Type] = False,
     output_b64: bool = False,
     docker_base_url="unix://var/run/docker.sock",
+    include_external_networks: Optional[bool] = False,
 ) -> DockerSwarmOperator:
     serialize_last_output = _prepare_input_outputs(output_b64, output_json)
 
@@ -60,7 +62,7 @@ def run_in_swarm(
         task_id=task_id,
         source_service=source_service,
         command=command,
-        include_external_networks=include_external_network,
+        include_external_networks=include_external_networks,
         serialize_last_output=serialize_last_output,
         env=env,
         docker_base_url=docker_base_url,

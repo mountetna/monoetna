@@ -7,6 +7,7 @@ import { useSetsDefault } from './useSetsDefault';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { debounce } from 'lodash';
+import { useAsyncCallback } from 'etna-js/utils/cancellable_helpers';
 
 
 export default function SelectAutocompleteInput(
@@ -33,12 +34,10 @@ export default function SelectAutocompleteInput(
       filtered: filteredOptions,
       display: [...filteredOptions].splice(0,maxOptions)})
   }
-  const getOptionsDelayed = useCallback(
-    debounce((text, options_in, callback) => {
-      getOptionsAsync(text, [...options_in]).then(callback);
-    }, 200),
-    [],
-  );
+  const [getOptionsDelayed] = useAsyncCallback(function*(text: string, options_in: string[], callback: Function) {
+    const options = yield getOptionsAsync(text, [...options_in]);
+    callback(options)
+  }, [])
   
   useEffect(() => {
     // Shown from all options when user has made their selection (current text = current value)
@@ -48,7 +47,6 @@ export default function SelectAutocompleteInput(
       setLoadingOptions(true);
       // console.log('calculating options - slow')
       getOptionsDelayed(query, options_in, (filteredOptions: string[]) => {
-        // console.log('calculating options - slow')
         setLoadingOptions(false)
         setOptions(filteredOptions)
       });
