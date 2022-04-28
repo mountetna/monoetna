@@ -1,4 +1,5 @@
 # Extends the base Etna::Workflow class with extra logic useful for
+require 'find'
 module Etna
   class Cwl
     def self.source_as_string(os)
@@ -161,8 +162,15 @@ module Etna
       def lookup_operation_script
         return nil if script_name.nil?
 
-        script_path = File.join(Vulcan.instance.config(:workflows_folder), "scripts/#{script_name}.py")
-        if ::File.exists?(script_path)
+        script_path = nil
+
+        Find.find(File.join(Vulcan.instance.config(:workflows_folder), "scripts/")) do |path|
+          begin
+            script_path = path
+            break
+          end if path =~ /.*\/#{script_name}\.(py|js)$/
+        end
+        if !script_path.nil?
           ::File.read(script_path)
         end
       end

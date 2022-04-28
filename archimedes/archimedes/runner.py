@@ -52,6 +52,21 @@ class RunRequest:
     environment: List[str] = field(default_factory=list)
     image: str = "archimedes"
     isolator: str = "docker"
+    interpreter: str = "python"
+
+    def run_with(self, interp: str):
+        return self.interpreter == interp
+
+    @property
+    def target_file(self):
+        if self.interpreter == 'node':
+            return "script.mjs"
+        else:
+            return "script.py"
+
+    @property
+    def target_path(self):
+        return f"/{self.target_file}"
 
 
 T = TypeVar('T')
@@ -149,16 +164,16 @@ class DockerIsolator(Isolator[Container]):
         if not self._is_self_container():
             mounts += [
                 Mount(
-                    target="/script.py",
+                    target=request.target_path,
                     type='bind',
                     source=exec_script_path,
                     read_only=True
-                ),
+                )
             ]
-            cmd = f"poetry run python /script.py"
+            script_path = request.target_path
         else:
             volumes_from += [ os.environ['HOSTNAME'] ]
-            cmd = f"poetry run python {exec_script_path}"
+            script_path = exec_script_path
 
         # Could set options like cpu_quote, mem_limit, restrict network access,
         # etc, to further lockdown the task.
@@ -171,7 +186,7 @@ class DockerIsolator(Isolator[Container]):
         }
 
         return self.docker_cli.containers.run(
-            request.image, cmd,
+            request.image, self._cmd(request, script_path),
             **params
         )
 
@@ -180,6 +195,12 @@ class DockerIsolator(Isolator[Container]):
             os.mkdir(self.exec_dir)
 
         return tempfile.TemporaryDirectory(dir=self.exec_dir)
+
+    def _cmd(self, request: RunRequest, exec_script_path: str):
+        if request.run_with("node"):
+            return f"node {exec_script_path}"
+        else:
+            return f"poetry run python {exec_script_path}"
 
 
 LocalProcess = Tuple[subprocess.Popen, IO[bin], str]
@@ -245,10 +266,22 @@ class LocalIsolator(Isolator[LocalProcess]):
 
         stderr_log_io = open(stderr_log, 'wb')
         return subprocess.Popen(
-            [shutil.which('python'), exec_script_path],
+            [self._cmd(request), exec_script_path],
             stderr=stderr_log_io,
             env={k: v for k, v in [s.split('=', maxsplit=1) for s in environment]},
         ), stderr_log_io, stderr_log
+
+    def _cmd(self, request: RunRequest):
+        if request.run_with("python"):
+            return shutil.which('python')
+        else:
+            # If we want to support alternate language  engines for local development,
+            #   we'll have to pull the binary and archimedes-node
+            #   into the archimedes image via a multi-stage docker build.
+            # Otherwise, you just have to test via Vulcan.
+            raise ValueError(
+                "Script language is not supported in the local isolator. Use a docker isolator with an appropriate image."
+            )
 
 
 def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 60, remove = True) -> RunResult:
@@ -256,12 +289,12 @@ def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 60, remove = 
     print(f"Preparing to run script using {request.isolator} isolator", file=sys.stderr)
 
     with isolator.reserve_exec_dir() as exec_dir:
-        script_path = os.path.join(exec_dir, "script.py")
+        script_path = os.path.join(exec_dir, request.target_file)
         with open(script_path, "w") as script_file:
             script_file.write(request.script)
 
         print("Validating script...", file=sys.stderr)
-        if not run_checker([script_path]):
+        if request.run_with('python') and not run_checker([script_path]):
             raise ValueError(
                 "Script did not conform to the archimedes dsl requirements."
             )
@@ -329,7 +362,8 @@ def main():
     parser.add_argument('--input', dest='inputs', default=[], action='append', help="input files of the form name:/path/on/host")
     parser.add_argument('--output', dest='outputs', default=[], action='append', help="output files of the form name:/path/on/host")
     parser.add_argument('-e', '--env', dest='env', action='append', help="environment variables of the form ABC=abc")
-    
+    parser.add_argument('--interpreter', default='python', choices=['python', 'node'])
+
     args = parser.parse_args()
 
     request: RunRequest = RunRequest(
@@ -338,7 +372,8 @@ def main():
         output_files=[make_storage_file(s) for s in args.outputs],
         environment=args.env or [],
         script=(args.file and open(args.file, 'r').read()) or sys.stdin.read(),
-        image=args.image
+        image=args.image,
+        interpreter=args.interpreter
     )
 
     result = RunResult(status='done', error=f"Did not run, isolator {request.isolator} unrecognized")

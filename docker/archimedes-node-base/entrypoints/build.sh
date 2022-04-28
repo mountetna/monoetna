@@ -6,7 +6,7 @@ set -x
 shopt -s globstar
 
 if [ -n "$FULL_BUILD" ]; then
-  npm install
+  npm install -g
 fi
 
 if [ -e /app/build ]; then

@@ -6,6 +6,7 @@ WORKDIR /app
 ENV DOCKER_VERSION 19.03.12
 ENV NODE_VERSION=16.14.2
 ENV YARN_VERSION=1.22.18
+ENV NODE_PATH=/usr/local/lib/node_modules
 ENV DOCKERIZE_VERSION 0.5.0
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
 ENV PATH "/app/bin:$PATH"
@@ -49,6 +50,8 @@ RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
 RUN curl https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz > /tmp/docker.tgz
 RUN tar -xf /tmp/docker.tgz -C /tmp/
 RUN mv /tmp/docker/* /usr/local/bin/
+
+RUN npm install -g typescript@next
 
 # Copy entrypoint scripts
 COPY entrypoints /entrypoints

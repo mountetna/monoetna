@@ -16,7 +16,10 @@ volumes:
 
 services:
   archimedes-node_app:
-    image: archimedes-node-base
+    image: archimedes-node
+    build:
+      context: ./
+      dockerfile: Dockerfile
     volumes:
       - .:/app:delegated
       - archimedes-node-modules:/app/node_modules
