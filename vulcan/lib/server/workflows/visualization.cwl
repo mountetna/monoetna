@@ -38,18 +38,11 @@ steps:
     in:
       data_frame: get_data/data_frame
     out: [formulaic_data, calculated_data]
-  extend_user_formulas:
-    run: scripts/calc_data_frame.cwl
-    label: 'Extend formulas to all data'
-    in:
-      original_data.json: get_data/data_frame
-      user_data.json: review_data/formulaic_data
-    out: [full_user_data.json]
   assess_data:
     run: scripts/VIZ_prep_df.cwl
     label: 'Determine column types'
     in:
-      data_frame: extend_user_formulas/full_user_data.json
+      data_frame: review_data/calculated_data
     out: [continuous_cols, discrete_cols]
   fill_plot_options:
     run: ui-queries/any-viz.cwl

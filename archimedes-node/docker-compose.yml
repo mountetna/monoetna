@@ -11,6 +11,8 @@ version: '3.4'
 volumes:
   archimedes-node-modules:
     driver: local
+  archimedes-global-node-modules:
+    driver: local
   archimedes-exec:
     driver: local
 
@@ -22,6 +24,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/app:delegated
+      - archimedes-global-node-modules:/usr/local/lib/node_modules
       - archimedes-node-modules:/app/node_modules
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - archimedes-exec:/archimedes-exec

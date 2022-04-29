@@ -198,7 +198,8 @@ class DockerIsolator(Isolator[Container]):
 
     def _cmd(self, request: RunRequest, exec_script_path: str):
         if request.run_with("node"):
-            return f"node {exec_script_path}"
+            exec_dir = exec_script_path.replace(request.target_file, "")
+            return ["/bin/bash", "-c", f"cd {exec_dir}; cp /app/package.json package.json; npm install; node {exec_script_path}"]
         else:
             return f"poetry run python {exec_script_path}"
 
