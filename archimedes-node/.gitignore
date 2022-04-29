@@ -3,3 +3,5 @@ vulcan_scripts
 test_data/*
 npm-cache/
 node_modules
+
+/**/*.js
