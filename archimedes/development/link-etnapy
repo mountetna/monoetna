@@ -1,0 +1,12 @@
+#! /usr/bin/env bash
+
+set -e
+set -x
+
+ETNAPY_SITEPACKAGE_PATH=$(poetry env info -p)/lib/python3.8/site-packages/mountetna
+
+if ! test -h "$ETNAPY_SITEPACKAGE_PATH"; then
+  rm -rf "$ETNAPY_SITEPACKAGE_PATH"
+  ln -s /etna-py/src/mountetna "$ETNAPY_SITEPACKAGE_PATH"
+fi
+

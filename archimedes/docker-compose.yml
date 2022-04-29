@@ -26,7 +26,7 @@ services:
       - archimedes-pycharm-opt:/opt/.pycharm_helpers
       - archimedes-exec:/archimedes-exec
       - ../vulcan/lib/server/workflows/scripts:/app/vulcan_scripts
-      - ../etna/packages/magby/:/magby/
+      - ../etna/packages/etna-py/:/etna-py/
     environment:
       HOST_DIR: $PWD
     entrypoint: /entrypoints/development.sh
