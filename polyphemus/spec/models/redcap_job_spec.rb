@@ -60,4 +60,74 @@ describe Polyphemus::RedcapJob do
       }.to raise_error(Polyphemus::JobError, "redcap_tokens must be a comma-separated list of tokens.")
     end
   end
+
+  context 'config' do
+    it 'validates filters' do
+      redcap_job = create_job(
+        request_params: payload_stamp.update(
+          redcap_tokens: REDCAP_TOKEN,
+          model_names: "all",
+
+        )
+      )
+
+      etl_config = Polyphemus::EtlConfig.create(
+        project_name: PROJECT,
+        name: 'test_etl',
+        etl: 'redcap',
+        config: {},
+        secrets: {},
+        params: {},
+        run_interval: Polyphemus::EtlConfig::RUN_NEVER
+      )
+
+      expect(etl_config.validate_config({
+        model_name: {
+          scripts: [{
+            each: ['record'],
+            attributes: {},
+            filters: [{
+              redcap_field: 'something',
+              exists: false
+            }]
+          }]
+        }
+      })).to eq(true)
+
+      expect(etl_config.validate_config({
+        model_name: {
+          scripts: [{
+            each: ['record'],
+            attributes: {}
+          }]
+        }
+      })).to eq(true)
+
+      expect(etl_config.validate_config({
+        model_name: {
+          scripts: [{
+            each: ['record'],
+            attributes: {},
+            filters: [{
+              redcap_field: 'something'
+            }]
+          }]
+        }
+      })).to eq(false)
+
+      expect(etl_config.validate_config({
+        model_name: {
+          scripts: [{
+            each: ['record'],
+            attributes: {},
+            filters: [{
+              redcap_field: 'something',
+              exists: false,
+              equals: '1232'
+            }]
+          }]
+        }
+      })).to eq(false)
+    end
+  end
 end

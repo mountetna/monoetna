@@ -24,6 +24,7 @@ setup(
         "etna.operators",
         "etna.dags",
         "etna.etls",
+        "etna.etls.linkers",
         "etna.metrics",
         "etna.plugins"
     ],

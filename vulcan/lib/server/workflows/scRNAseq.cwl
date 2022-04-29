@@ -280,6 +280,7 @@ steps:
   user_plot_setup:
     run: ui-queries/scatter-plotly.cwl
     label: 'Set plot options'
+    doc: "Selections here adjust how the UMAP plot will be generated. For addtional details, see the 'Visualization with Vulcan' section of the Vulcan's documentation, acccessible via the 'Help' button at the top of this page. This particular instance of the Plot Configuration Interface constitutes a version with preset values for plot-type (scatter_plot), X-Axis Data (UMAP_1), Y-Axis Data (UMAP_2), and Color Data (chosen above)."
     in:
       data_frame: prep_umap_plot_data/data_frame
       preset: prep_umap_plot_data/preset

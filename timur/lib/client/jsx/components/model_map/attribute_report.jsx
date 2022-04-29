@@ -1,4 +1,14 @@
-import React, { Component } from 'react';
+import React, { useState, Component } from 'react';
+import { useDispatch } from 'react-redux';
+import Grid from '@material-ui/core/Grid';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import {makeStyles} from '@material-ui/core/styles';
+import {useReduxState} from 'etna-js/hooks/useReduxState';
+import {requestAnswer} from 'etna-js/actions/magma_actions';
+import MapHeading from './map_heading';
+import Button from '@material-ui/core/Button';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const ATT_ATTS = [
   'attribute_type',
@@ -8,6 +18,7 @@ const ATT_ATTS = [
   'format_hint',
   'attribute_group',
 
+  'validation_type',
   'validation',
 
   'restricted',
@@ -15,34 +26,91 @@ const ATT_ATTS = [
   'hidden'
 ];
 
-const AttributeReport = ({attribute}) =>
-  !attribute ? <div className="attribute_report"/> :
-  <div className="attribute_report">
-    <div className="heading report_row">
-      <span className="name">Attribute</span> <span className="title">{attribute.attribute_name}</span>
-    </div>
-    {
-      ATT_ATTS.map(att => {
-        switch(att) {
-          case 'validation':
-            if (attribute.options)
-              return [ 'validation', attribute.options.join(', ') ];
-            if (attribute.match)
-              return [ 'validation', attribute.match ];
-            if (attribute.validation)
-              return [ 'validation', JSON.stringify(attribute.validation) ];
-            return [ 'validation', null ];
-            break;
-          default:
-            return [ att, attribute[att] ];
+const useStyles = makeStyles((theme) => ({
+  clauseTitle: {
+    fontSize: '1.2rem'
+  },
+  attribute_report: {
+    height: '50%',
+    borderTop: '1px solid #bbb'
+  },
+  attribute_card: {
+    background: '#eee',
+    padding: '15px',
+    height: 'calc(100% - 30px)'
+  },
+  content: {
+    height: 'calc(100% - 64px)',
+    overflowY: 'auto'
+  },
+  type: {
+    color: 'gray'
+  },
+  value: {
+    color: '#131',
+    borderBottom: '1px solid rgba(34, 139, 34, 0.1)',
+    maxHeight: '90px',
+    overflowY: 'auto'
+  }
+}));
+
+const AttributeReport = ({attribute, model_name, counts}) => {
+  if (!attribute) return null;
+
+  const dispatch = useDispatch();
+
+  const [ sample, setSample ] = useState(null);
+
+  const showSample = () => {
+    requestAnswer({ query: [
+      model_name, '::distinct', attribute.attribute_name
+    ]})(dispatch).then(
+      ({answer}) => setSample(answer)
+    )
+  }
+
+  const classes = useStyles();
+
+  return <Grid className={ classes.attribute_report }>
+    <Card className={ classes.attribute_card} >
+      <MapHeading name='Attribute' title={attribute.attribute_name}>
+        {
+          attribute.attribute_type == 'string' && <Tooltip title='Show data sample'>
+            <Button
+              onClick={ showSample }
+              size='small'
+              color='secondary'>Sample</Button>
+          </Tooltip>
         }
-      }).filter( ([name,value]) => value).map( ([name, value]) =>
-        <div className="report_row" key={name}>
-          <div className="type">{name}</div>
-          <div className="value">{value}</div>
-        </div>
-      )
-    }
-  </div>;
+      </MapHeading>
+      <CardContent className={ classes.content }>
+        {
+          ATT_ATTS.map(att => {
+            switch(att) {
+              case 'validation':
+                return [ att, attribute.validation ? JSON.stringify(attribute.validation.value) : null ];
+              case 'validation_type':
+                return [ att, attribute.validation?.type ]
+              default:
+                return [ att, attribute[att] ];
+            }
+          }).filter( ([name,value]) => value).map( ([name, value]) =>
+            <Grid container key={name}>
+              <Grid item xs={3} className={ classes.type }>{name}</Grid>
+              <Grid item xs={9} className={ classes.value }>{value}</Grid>
+            </Grid>
+          )
+        }
+        {
+          sample && 
+            <Grid container>
+              <Grid item xs={3} className={ classes.type }>sample</Grid>
+              <Grid item xs={9} className={ classes.value }>{sample.length > 0 ? JSON.stringify(sample) : <i>No values</i>}</Grid>
+            </Grid>
+        }
+      </CardContent>
+    </Card>
+  </Grid>;
+}
 
 export default AttributeReport;

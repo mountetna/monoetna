@@ -46,7 +46,13 @@ describe('RedcapForm', () => {
                 {
                   attributes: {
                     name: 'redcap_field_name'
-                  }
+                  },
+                  filters: [
+                    {
+                      redcap_field: 'field_2',
+                      exists: true
+                    }
+                  ]
                 }
               ],
               each: ['record'],
@@ -91,6 +97,7 @@ describe('RedcapForm', () => {
 
       expect(screen.getByDisplayValue('non_standard_field')).toBeTruthy();
       expect(screen.getByDisplayValue('redcap_field_name')).toBeTruthy();
+      expect(screen.getByText('field_2')).toBeTruthy();
     });
   });
 
@@ -507,7 +514,12 @@ describe('RedcapForm', () => {
             expect(newConfig).toEqual({
               testModel: {
                 ...initialConfig.testModel,
-                identifier_fields: ['non_standard_field', 'another_field']
+                scripts: [
+                  {
+                    ...initialConfig.testModel.scripts[0],
+                    filters: [{redcap_field: ''}]
+                  }
+                ]
               }
             });
           }}
@@ -534,12 +546,11 @@ describe('RedcapForm', () => {
 
       await waitFor(() => screen.getByTitle('Add model'));
 
-      expect(screen.queryByText('testModel')).toBeTruthy();
-
-      const identifierInput = screen.getByDisplayValue('non_standard_field');
-      fireEvent.change(identifierInput, {
-        target: {value: 'non_standard_field,another_field'}
+      expect(screen.queryByText('Filters')).toBeFalsy();
+      const addFilterBtn = screen.getByRole('button', {
+        name: 'Add filter'
       });
+      addFilterBtn.click();
     });
 
     it('edit scripts without affecting other scripts', async () => {

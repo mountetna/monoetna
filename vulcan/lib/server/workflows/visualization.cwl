@@ -47,7 +47,7 @@ steps:
   fill_plot_options:
     run: ui-queries/any-viz.cwl
     label: 'Set plot options'
-    doc: "Selections here pick the plot type and how it should be generated. For addtional details, see https://mountetna.github.io/vulcan.html#the-setup-gui which is clickably linked within this workflow's 'vignette'."
+    doc: "Selections here pick the plot type and how it should be generated. For addtional details, see https://mountetna.github.io/vulcan.html#the-plot-configuration-interface which is clickably linked within this workflow's 'vignette'."
     in:
       data_frame: review_data/calculated_data
       continuous_cols: assess_data/continuous_cols

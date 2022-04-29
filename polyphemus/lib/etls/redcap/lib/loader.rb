@@ -10,7 +10,8 @@ module Redcap
           Redcap::Model,
           Redcap::Script,
           Redcap::Entity,
-          Redcap::Value
+          Redcap::Value,
+          Redcap::Filter
         ].map(&:to_schema).reduce(&:merge),
 	type: "object",
         additionalProperties: {

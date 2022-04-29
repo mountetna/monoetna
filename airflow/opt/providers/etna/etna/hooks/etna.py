@@ -4,6 +4,7 @@ import dataclasses
 import hashlib
 import io
 import json
+import logging
 import os.path
 import typing
 import uuid
@@ -579,7 +580,7 @@ class Metis(EtnaClientBase):
                     "size was not specified, but file is streaming.  You must specify a size hint when using a stream."
                 )
 
-        if len(dest_path) > 1:
+        if len(dest_path) > 1 and not self.folder_exists(project_name, bucket_name, os.path.dirname(dest_path)):
             self.create_folder(project_name, bucket_name, os.path.dirname(dest_path))
         authorization = self.authorize_upload(project_name, bucket_name, dest_path)
         upload = Upload(file=file, file_size=size, upload_path=authorization.upload_path)
@@ -645,6 +646,19 @@ class Metis(EtnaClientBase):
         )
         response_obj = from_json(FoldersAndFilesResponse, response.content)
         return response_obj
+
+    def folder_exists(
+        self, project_name: str, bucket_name: str, folder_path: str
+    ) -> bool:
+        try:
+            self.session.get(
+                self.prepare_url(project_name, "list", bucket_name, folder_path)
+            )
+            return True
+        except HTTPError as e:
+            if e.response.status_code == 422:
+                return False
+            raise e
 
     def tail(
             self,
@@ -941,6 +955,78 @@ class UpdateRequest:
     project_name: str = ""
     dry_run: bool = False
 
+    def __bool__(self):
+        return not self.empty()
+
+    def shallow_copy(self, revisions: Optional[Dict[str, Dict[str, Dict[str, typing.Any]]]] = None) -> "UpdateRequest":
+        if revisions is None:
+            revisions = self.revisions
+
+        return UpdateRequest(project_name=self.project_name, dry_run=self.dry_run, revisions=dict(**revisions))
+
+    def includes(self, model_name: str, record_name: str):
+        return record_name in self.revisions.get(model_name, {})
+
+    def __iter__(self) -> typing.Iterator[typing.Tuple[str, str]]:
+        for model_name, revisions in self.revisions.items():
+            for record_name in revisions.keys():
+                yield model_name, record_name
+
+    def sample_revision_tree(self, model_name: str, record_name: str, models: Dict[str, Model], acc: "UpdateRequest", destructive=False):
+        """
+        Attempts to sample the complete graph of related objects reference by the given model_name / record_name in this
+        update, copying it and all its referenced links to acc.
+
+        When destructive=True is set, it also removes all copied models from this update.
+        """
+        if not self.includes(model_name, record_name):
+            return
+
+        if model_name not in models:
+            return
+
+        if acc.includes(model_name, record_name):
+            return
+
+        # Ensure a record to prevent recursive re-entry
+        acc.update_record(model_name, record_name)
+
+        model = models[model_name]
+
+        if destructive:
+            record = self.revisions[model_name].pop(record_name)
+        else:
+            record = self.update_record(model_name, record_name)
+
+        # copy table values into the acc
+        for attr_name, attr in model.template.attributes.items():
+            if attr_name not in record:
+                continue
+            val = record[attr_name]
+
+            if attr.link_model_name and attr.attribute_type != "table":
+                if isinstance(val, list):
+                    for child_id in val:
+                        self.sample_revision_tree(attr.link_model_name, child_id, models, acc)
+                if isinstance(val, str):
+                    self.sample_revision_tree(attr.link_model_name, val, models, acc)
+            elif attr.link_model_name and attr.attribute_type == "table":
+                if isinstance(val, list):
+                    for table_id in val:
+                        acc.append_table(
+                            model_name,
+                            record_name,
+                            attr.link_model_name,
+                            self.update_record(attr.link_model_name, table_id),
+                            attr_name
+                        )
+
+    def __len__(self):
+        return sum(len(rev) for rev in self.revisions.values())
+
+    def empty(self):
+        return len(self) == 0
+
     def extend(self, other: "UpdateRequest"):
         for model_name, docs in other.revisions.items():
             for record_name, revision in docs.items():
@@ -1056,13 +1142,13 @@ class Magma(EtnaClientBase):
 
     batch_size = 300
 
-    # TODO: Support batched update, breaking down the request into viable chunks
     def update(self, update: UpdateRequest):
         response = self.session.post(
             self.prepare_url("update"),
             data=to_json(update),
             headers={"Content-Type": "application/json"},
         )
+
         return from_json(RetrievalResponse, response.content)
 
 
