@@ -37,15 +37,16 @@ steps:
     in:
       data_frame: get_data/data_frame
     out: [formulaic_data, calculated_data]
+  extend_user_formulas:
+    run: scripts/calc_data_frame.cwl
+    label: 'Extend formulas to all rows'
+    in:
+      original_data.json: get_data/data_frame
+      user_data.json: transform_data/formulaic_data
+    out: [full_user_data.json]
   show_data:
     run: ui-outputs/link.cwl
     in:
-      a: transform_data/calculated_data
+      a: extend_user_formulas/full_user_data.json
     out: []
     label: 'Download your final data frame'
-  show_source_data:
-    run: ui-outputs/link.cwl
-    in:
-      a: transform_data/formulaic_data
-    out: []
-    label: 'Download the source of your final data frame'
