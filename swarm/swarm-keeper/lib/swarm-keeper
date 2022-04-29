@@ -106,6 +106,12 @@ function findStack() {
   api GET /stacks/$stackId
 }
 
+function makeBackup() {
+  set -eo pipefail
+  local pw="$1"
+  api POST /backup "password=$pw"
+}
+
 function downloadStack() {
   set -eo pipefail
   local tmp
@@ -336,6 +342,7 @@ function awaitStackDeploy() {
     return 1
   fi
 }
+
 
 function downloadConfig() {
   set -eo pipefail
@@ -822,6 +829,11 @@ function runCommand() {
       else
         echo "File was not modified, not deploying"
       fi
+      ;;
+
+    portainer-backup)
+      doPortainerAuth
+      makeBackup "$1"
       ;;
 
     portainer-edit-config)
