@@ -34,6 +34,11 @@ const useStyles = makeStyles((theme) => ({
   },
   loading: {
     marginLeft: '1rem'
+  },
+  helpdoc: {
+    maxWidth: '600px',
+    marginTop: '1rem',
+    marginBottom: '1rem'
   }
 }));
 
@@ -99,6 +104,18 @@ function DataTransformationModal({
         )
       </DialogTitle>
       <DialogContent className={classes.dialog}>
+        <Typography className={classes.helpdoc}>
+          This is a preview of your data frame (the first 100 rows). You can
+          edit the column headings or append additional columns at the end, by
+          right-clicking and selecting "Insert column to right" in the context
+          menu.
+        </Typography>
+        <Typography className={classes.helpdoc}>
+          To apply a formula in a new column, just add a couple of cells with
+          the formula to establish the pattern. Save your changes, commit the
+          input, and click Run. Vulcan will propagate the formulas to the full
+          data set.
+        </Typography>
         <HotTable
           ref={hotTableComponent}
           settings={{
@@ -313,15 +330,23 @@ export default function DataTransformationInput({
 
   value = dataFrameJsonToNestedArray(value);
 
+  const truncatedValue = useMemo(() => {
+    return value.slice(0, 100);
+  }, [value]);
+
+  const originalAsNestedArray = useMemo(() => {
+    return dataFrameJsonToNestedArray(some(originalData));
+  }, [originalData]);
+
   if (!originalData || value.length === 0 || value[0].length === 0)
     return <div>No data frame!</div>;
 
   return (
     <>
       <div>
-        Your data frame has {value.length - 1} rows and {value[0].length}{' '}
-        columns. You can preview or edit the data frame now, or just click
-        "Commit" to accept the raw data.
+        Your data frame has {originalAsNestedArray.length - 1} rows and{' '}
+        {value[0].length} columns. You can preview or edit the data frame now,
+        or just click "Commit" to accept the raw data.
       </div>
       <Dialog
         open={open}
@@ -336,7 +361,7 @@ export default function DataTransformationInput({
         disableEnforceFocus={true}
       >
         <DataTransformationModal
-          data={value}
+          data={truncatedValue}
           numOriginalCols={Object.keys(originalData).length}
           onChange={destructureOnChange}
           onClose={handleOnClose}
