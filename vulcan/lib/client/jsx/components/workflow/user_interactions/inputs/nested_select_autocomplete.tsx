@@ -55,6 +55,7 @@ function LeafOptions({
 }) {
   if (!options_in) return null;
   if (value!=null && !options_in.includes(value)) {
+    // non-null starting value, but path has not yet been properly determined?
     // console.log('skipping LeafOptions due to value mismatch')
     return null
   }
