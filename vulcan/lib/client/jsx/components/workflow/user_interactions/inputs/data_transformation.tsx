@@ -69,6 +69,20 @@ function DataTransformationModal({
     return widths;
   }, [data]);
 
+  const isReadOnlyColumn = useCallback(
+    (colIndex: number) => {
+      return colIndex < numOriginalCols;
+    },
+    [numOriginalCols]
+  );
+
+  const canInsertColumn = useCallback(
+    (colIndex: number) => {
+      return colIndex < numOriginalCols - 1;
+    },
+    [numOriginalCols]
+  );
+
   return (
     <>
       <DialogTitle>
@@ -112,16 +126,30 @@ function DataTransformationModal({
             },
             contextMenu: {
               items: {
-                col_left: {
-                  name: 'Insert column to left'
-                },
                 col_right: {
-                  name: 'Insert column to right'
+                  name: 'Insert column to right',
+                  disabled: () => {
+                    return canInsertColumn(
+                      hotTableComponent.current.hotInstance.getSelectedLast()[1]
+                    );
+                  }
                 },
-                remove_col: {},
+                remove_col: {
+                  disabled: () => {
+                    return isReadOnlyColumn(
+                      hotTableComponent.current.hotInstance.getSelectedLast()[1]
+                    );
+                  }
+                },
                 undo: {},
                 redo: {},
-                clear_column: {}
+                clear_column: {
+                  disabled: () => {
+                    return isReadOnlyColumn(
+                      hotTableComponent.current.hotInstance.getSelectedLast()[1]
+                    );
+                  }
+                }
               }
             }
           }}
