@@ -16,7 +16,8 @@ import Switch from '@material-ui/core/Switch';
 import ConfigScript from './config-script';
 import EtlPane, {EtlPaneHeader} from './etl-pane';
 import RedcapForm from './redcap-form';
-import RevisionHistory from './revision-history';
+import RevisionHistory from 'etna-js/components/revision-history';
+import { json_get } from 'etna-js/utils/fetch';
 import {formatTime} from './run-state';
 
 const useStyles = makeStyles((theme) => ({
@@ -58,7 +59,7 @@ const ConfigurePane = ({
   const [editedScript, setEditedScript] = useState('');
   const [editedConfig, setEditedConfig] = useState({});
   const [comment, setComment] = useState('');
-  const [showRevisions, setShowRevisions] = useState(false);
+  const [showRevisions, setShowRevisions] = useState(null);
   const [showJson, setShowJson] = useState(false);
 
   const JobForm = job ? FORMS[job.name] : null;
@@ -138,18 +139,19 @@ const ConfigurePane = ({
               <HistoryIcon />
             </IconButton>
           </Tooltip>
-          <RevisionHistory
-            name={name}
-            project_name={project_name}
-            open={showRevisions}
-            config={config}
-            update={(newConfig) => {
-              setEditedConfig(newConfig);
-              setEditedScript(JSON.stringify(newConfig, null, 2));
-              setShowRevisions(false);
-            }}
-            onClose={() => setShowRevisions(false)}
-          />
+          { showRevisions != null && <RevisionHistory
+              getRevisions={() => json_get(
+                `/api/etl/${project_name}/revisions/${name}`)}
+              open={showRevisions}
+              revisionDoc={ revision => JSON.stringify(revision.config, null, 2) }
+              update={({config:newConfig}) => {
+                setEditedConfig(newConfig);
+                setEditedScript(JSON.stringify(newConfig, null, 2));
+                setShowRevisions(false);
+              }}
+              onClose={() => setShowRevisions(false)}
+            />
+          }
         </Grid>
       </EtlPaneHeader>
       {!JobForm || showJson ? (

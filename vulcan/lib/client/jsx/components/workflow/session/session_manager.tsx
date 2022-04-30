@@ -41,13 +41,15 @@ import {defaultSession} from '../../../reducers/vulcan_reducer';
 import {
   VulcanFigure,
   VulcanFigureSession,
+  VulcanRevision,
   VulcanSession
 } from '../../../api_types';
+import { json_get } from 'etna-js/utils/fetch';
 import useUserHooks from '../../useUserHooks';
 import Button from '@material-ui/core/Button';
 import Tag from '../../tag';
 
-import RevisionHistory from '../../revision-history';
+import RevisionHistory from 'etna-js/components/revision-history';
 
 const modalStyles = {
   content: {
@@ -96,7 +98,7 @@ export default function SessionManager() {
 
   const [tags, setTags] = useState<string[]>(figure.tags || []);
   const [openTagEditor, setOpenTagEditor] = useState(false);
-  const [openRevisions, setOpenRevisions] = useState(false);
+  const [openRevisions, setOpenRevisions] = useState<boolean|null>(null);
   const [localTitle, setLocalTitle] = useState(figure.title);
 
   const invoke = useActionInvoker();
@@ -380,12 +382,21 @@ export default function SessionManager() {
             />
             <FlatButton
               className='header-btn edit-tags'
-              icon='clock-rotate-left'
+              icon='history'
               label='Revisions'
               title='Revisions'
               onClick={() => setOpenRevisions(true)}
             />
-            <RevisionHistory open={openRevisions} project_name={session.project_name} name={session.figure_id}/>
+            { openRevisions != null && <RevisionHistory
+                open={openRevisions}
+                onClose={ () => setOpenRevisions(false) }
+                revisionDoc={ ({inputs,title,tags}:VulcanRevision) => JSON.stringify( {inputs,title,tags}, null, 2 ) }
+                update={ ({inputs,title,tags}:VulcanRevision) => dispatch(setSession({ ...session, inputs, title, tags } as VulcanSession)) }
+                getRevisions={ () => json_get(
+                  `/api/${session.project_name}/figure/${figure.figure_id}/revisions`
+                ) }
+              />
+            }
             <Dialog
               maxWidth='md'
               open={openTagEditor}
