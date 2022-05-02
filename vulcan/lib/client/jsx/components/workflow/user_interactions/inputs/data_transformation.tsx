@@ -188,10 +188,12 @@ function DataTransformationModal({
               //   returns the raw formulas, unrendered, which we
               //   set as input values to preserve any transformations.
               const sourceData = hotTableComponent.current.hotInstance.getSourceData();
+              const data = hotTableComponent.current.hotInstance.getData();
 
               onChange(
                 some({
-                  formulaic_data: some(nestedArrayToDataFrameJson(sourceData))
+                  formulaic_data: some(nestedArrayToDataFrameJson(sourceData)),
+                  calculated_data: some(nestedArrayToDataFrameJson(data))
                 })
               );
             }
@@ -295,6 +297,7 @@ export default function DataTransformationInput({
 
   const rawData = useMemo(() => {
     return {
+      calculated_data: some(originalData),
       formulaic_data: some(originalData)
     };
   }, [originalData]);
@@ -310,10 +313,18 @@ export default function DataTransformationInput({
     //   but will leave it here to be explicit.
     value = inputValue.formulaic_data;
   } else {
-    // If the workflow author has named their CWL outputs differently,
+    // If the workflow author has named their CWL outputs differently, we really don't
+    //   know which one is the formulaic_data. Given that the
+    //   UI component uses "calculated_data" and "formulaic_data", and
+    //   "formulaic_data" comes second alphabetically, we first attempt to
+    //   use the second inputValue key if present. If only one key,
     //   we default to the first value.
     const inputKeys = Object.keys(inputValue).sort();
-    value = inputValue[inputKeys[0]];
+    if (inputKeys.length > 1) {
+      value = inputValue[inputKeys[1]];
+    } else {
+      value = inputValue[inputKeys[0]];
+    }
   }
 
   useEffect(() => {
@@ -331,7 +342,7 @@ export default function DataTransformationInput({
   value = dataFrameJsonToNestedArray(value);
 
   const truncatedValue = useMemo(() => {
-    return value.slice(0, 100);
+    return value.slice(0, 101);
   }, [value]);
 
   const originalAsNestedArray = useMemo(() => {
