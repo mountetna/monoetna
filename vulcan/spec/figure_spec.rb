@@ -94,7 +94,7 @@ describe FigureController do
     it 'updates an existing figure' do
       figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
       auth_header(:viewer)
-      contents = { title: 'Hercules Fighting the Nemean Lion' }
+      contents = { title: 'Hercules Fighting the Nemean Lion', comment: 'Better title'}
       post("/api/labors/figure/#{figure.figure_id}/update", contents)
 
       expect(last_response.status).to eq(200)
@@ -113,7 +113,7 @@ describe FigureController do
     it 'throws exception for unknown figure' do
       figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
       auth_header(:viewer)
-      contents = { title: 'Hercules Fighting the Nemean Lion' }
+      contents = { title: 'Hercules Fighting the Nemean Lion', comment: 'Better title' }
       post("/api/labors/figure/999999999/update", contents)
 
       expect(last_response.status).to eq(404)
@@ -122,7 +122,7 @@ describe FigureController do
     it 'updates an existing figure with tags' do
       figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
       auth_header(:viewer)
-      contents = { tags: ['private'] }
+      contents = { tags: ['private'], comment: 'Make private' }
       post("/api/labors/figure/#{figure.figure_id}/update", contents)
 
       expect(last_response.status).to eq(200)
