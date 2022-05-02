@@ -262,10 +262,13 @@ describe('DataTransformationInput', () => {
     });
   });
 
+  // Note the subtle difference with the buffered input.value
+  //   tests, which is that the inner values (i.e. calculated_data)
+  //   are not wrapped in some().
   describe('with a committed input.value', () => {
     value.replace(() => {
       return some({
-        calculated_data: some({
+        calculated_data: {
           col_01: {
             '0': 1,
             '1': 0.25,
@@ -281,8 +284,8 @@ describe('DataTransformationInput', () => {
             '1': 4,
             '2': 6
           }
-        }),
-        formulaic_data: some({
+        },
+        formulaic_data: {
           col_01: {
             '0': 1,
             '1': 0.25,
@@ -298,7 +301,7 @@ describe('DataTransformationInput', () => {
             '1': '=2 * (A3 + 1)',
             '2': '=2 * (A4 + 1)'
           }
-        })
+        }
       }) as Maybe<DataEnvelope<{[key: string]: any}>>;
     });
 
@@ -315,7 +318,7 @@ describe('DataTransformationInput', () => {
     describe('with differently-named CWL outputs', () => {
       value.replace(() => {
         return some({
-          a: some({
+          a: {
             col_01: {
               '0': 1,
               '1': 0.25,
@@ -336,8 +339,8 @@ describe('DataTransformationInput', () => {
               '1': 1,
               '2': 1
             }
-          }),
-          b: some({
+          },
+          b: {
             col_01: {
               '0': 1,
               '1': 0.25,
@@ -358,7 +361,7 @@ describe('DataTransformationInput', () => {
               '1': '=IF(C3 > 3, 1, 0)',
               '2': '=IF(C4 > 3, 1, 0)'
             }
-          })
+          }
         }) as Maybe<DataEnvelope<{[key: string]: any}>>;
       });
 
