@@ -244,6 +244,13 @@ export default function SessionManager() {
     );
   };
 
+  const loadRevision = useCallback(({inputs,title,tags}:VulcanRevision) => {
+      dispatch(setSession({ ...session, inputs } as VulcanFigureSession));
+      setLocalTitle(title);
+      setTags(tags || []);
+      setOpenRevisions(false);
+    }, [ figure ]);
+
   const resetSession = useCallback(() => {
     const newSession = {
       ...defaultSession,
@@ -391,7 +398,7 @@ export default function SessionManager() {
                 open={openRevisions}
                 onClose={ () => setOpenRevisions(false) }
                 revisionDoc={ ({inputs,title,tags}:VulcanRevision) => JSON.stringify( {inputs,title,tags}, null, 2 ) }
-                update={ ({inputs,title,tags}:VulcanRevision) => dispatch(setSession({ ...session, inputs, title, tags } as VulcanSession)) }
+                update={ loadRevision }
                 getRevisions={ () => json_get(
                   `/api/${session.project_name}/figure/${figure.figure_id}/revisions`
                 ) }

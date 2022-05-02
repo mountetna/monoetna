@@ -59,7 +59,7 @@ const ConfigurePane = ({
   const [editedScript, setEditedScript] = useState('');
   const [editedConfig, setEditedConfig] = useState({});
   const [comment, setComment] = useState('');
-  const [showRevisions, setShowRevisions] = useState(null);
+  const [showRevisions, setShowRevisions] = useState<boolean|null>(null);
   const [showJson, setShowJson] = useState(false);
 
   const JobForm = job ? FORMS[job.name] : null;

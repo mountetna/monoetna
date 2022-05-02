@@ -48,6 +48,7 @@ class FigureController < Vulcan::Controller
 
     raise Etna::NotFound unless figure
 
+    figure.modified!(:updated_at)
     figure.update(archived: true)
 
     now = DateTime.now
@@ -58,6 +59,7 @@ class FigureController < Vulcan::Controller
         author: @user.name,
         created_at: figure.created_at,
         updated_at: now,
+        comment: @params[:comment]
       }.update(
         figure.to_hash.slice(*figure_params)
       ).update(

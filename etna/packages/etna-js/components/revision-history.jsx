@@ -17,7 +17,7 @@ import 'codemirror/mode/javascript/javascript';
 import 'codemirror/mode/diff/diff';
 import 'codemirror/addon/lint/lint';
 
-const formatTime = (time:Date|string) => Intl.DateTimeFormat('en-US', {
+const formatTime = time => Intl.DateTimeFormat('en-US', {
    year: 'numeric', month: 'short', day: 'numeric',
    hour: 'numeric', minute: 'numeric'
 }).format(new Date(time))
@@ -42,13 +42,7 @@ const useStyles = makeStyles( theme => ({
 
 const toJson = doc => JSON.stringify(doc,null,2);
 
-const diff = ({revision, current, prev, revisionDoc, diffType}:{
-  revision:EtlRevision,
-  current:EtlRevision,
-  prev:EtlRevision,
-  revisionDoc:Function,
-  diffType:string
-}) => {
+const diff = ({revision, current, prev, revisionDoc, diffType}) => {
   if (diffType == 'text') return revisionDoc(revision);
 
   if (diffType == 'curr')
@@ -67,20 +61,18 @@ const diff = ({revision, current, prev, revisionDoc, diffType}:{
     );
 }
 
-const RevisionHistory = ({getRevisions, revisionDoc, update, open, onClose}:{
-  getRevisions: () => Promise,
-  revisionDoc: Function,
-  update: (revision: any) => void,
-  open: boolean,
-  onClose: (event:{})=>void
-}) => {
-  const [ revisions, setRevisions ] = useState<null | EtlRevision[]>(null);
-  const [ selectedRevision, setSelectedRevision ] = useState<number|null>(null);
+const RevisionHistory = ({getRevisions, revisionDoc, update, open, onClose}) => {
+  const [ revisions, setRevisions ] = useState(null);
+  const [ selectedRevision, setSelectedRevision ] = useState(null);
   const [ diffType, setDiffType ] = useState('text');
 
-  const setSelected = (revision:number, diffType:string) => {
+  const setSelected = (revision, newDiffType) => {
+    if (selectedRevision == revision && diffType == newDiffType) {
+      setSelectedRevision(null);
+      return;
+    }
     setSelectedRevision(revision);
-    setDiffType(diffType);
+    setDiffType(newDiffType);
   }
 
   const classes = useStyles();

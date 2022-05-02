@@ -52,7 +52,13 @@ class Vulcan
     end
 
     def to_revision
-      to_hash.slice(:inputs, :title, :tags, :updated_at, :comment)
+      {
+        inputs: inputs.to_hash,
+        title: title,
+        tags: tags,
+        updated_at: updated_at.iso8601,
+        comment: comment
+      }
     end
 
     def to_hash(storage: nil)
