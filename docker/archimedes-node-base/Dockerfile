@@ -51,7 +51,7 @@ RUN curl https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_V
 RUN tar -xf /tmp/docker.tgz -C /tmp/
 RUN mv /tmp/docker/* /usr/local/bin/
 
-RUN npm install -g typescript@next
+RUN npm install -g typescript@4.7.0-beta
 
 # Copy entrypoint scripts
 COPY entrypoints /entrypoints

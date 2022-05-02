@@ -60,7 +60,7 @@ class RunRequest:
     @property
     def target_file(self):
         if self.interpreter == 'node':
-            return "script.mjs"
+            return "script.js"
         else:
             return "script.py"
 
