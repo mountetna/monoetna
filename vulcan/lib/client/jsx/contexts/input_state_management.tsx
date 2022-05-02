@@ -104,7 +104,7 @@ export function WithBufferedInputs({
 
   // Catch auto-pass 'Commit' trigger
   useEffect(() => {
-    if (state.triggerCommit.length>0 && state.triggerCommit[0] == stepName) {
+    if (state.tryCommitThenRun.length>0 && state.tryCommitThenRun[0] == stepName) {
       // Try to commit, add 'Run' trigger if works
       if (commitSessionInputChanges(stepName, inputsRef.current)) {
         cancelInputs();
@@ -112,7 +112,7 @@ export function WithBufferedInputs({
       }
       dispatch(clearCommitTrigger(stepName))
     }
-  },[state.triggerCommit])
+  },[state.tryCommitThenRun])
 
   const commit_rest_buttons = hasInputs ? <div>
     <Button onClick={cancelInputs} disabled={!!state.pollingState}>
@@ -134,7 +134,7 @@ export function WithBufferedInputs({
   </div> : null
 
   const autopass_switch = isPassable(stepName) ? <FormControlLabel
-    className='auto-pass-inputs'
+    className='auto-pass-toggle'
     control={
       <Switch
         checked={state.autoPassSteps.includes(stepName)}

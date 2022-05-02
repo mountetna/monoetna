@@ -76,10 +76,11 @@ function PrimaryInputsInner() {
     );
 
     if (Object.keys(withDefaults).length > 0) {
-      setInputs((inputs) => ({...inputs, ...withDefaults}));
-      // Also check / trigger auto-committing after defaults are set
-      if (state.workflow && state.workflow.vignette && state.workflow.vignette.includes("Primary inputs are skippable")) {
+      if (inputs=={} && state.workflow?.vignette?.includes("Primary inputs are skippable")) {
+        setInputs((inputs) => ({...inputs, ...withDefaults}));
         dispatch(setCommitTrigger(null))
+      } else {
+        setInputs((inputs) => ({...inputs, ...withDefaults}));
       }
     }
   }, [inputs, session.inputs, setInputs, workflow.inputs]);

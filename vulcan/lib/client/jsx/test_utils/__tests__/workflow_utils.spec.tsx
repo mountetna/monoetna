@@ -39,5 +39,8 @@ describe('workflow_utils', () => {
         })
       })
     })
+    describe('setVignette', () => {
+      it('sets a vignette readable by ___')
+    })
   })
 })

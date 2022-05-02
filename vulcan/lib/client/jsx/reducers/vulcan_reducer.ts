@@ -50,7 +50,7 @@ export const defaultVulcanState = {
 
   // Step marked for auto-passing by user
   autoPassSteps: [] as (string | null)[],
-  triggerCommit: [] as (string | null)[],
+  tryCommitThenRun: [] as (string | null)[],
   triggerRun: [] as (string | null)[],
 
   session: defaultSession,
@@ -122,17 +122,17 @@ export default function VulcanReducer(
       return {...state, autoPassSteps};
 
     case 'SET_COMMIT_TRIGGER':
-      if (state.triggerCommit.includes(action.step)) {
+      if (state.tryCommitThenRun.includes(action.step)) {
         return state;
       }
-      return {...state, triggerCommit: [...state.triggerCommit, action.step]};
+      return {...state, tryCommitThenRun: [...state.tryCommitThenRun, action.step]};
 
     case 'CLEAR_COMMIT_TRIGGER':
-      const idx_cct = state.triggerCommit.indexOf(action.step);
+      const idx_cct = state.tryCommitThenRun.indexOf(action.step);
       if (idx_cct === -1) return state;
-      const triggerCommit = [...state.triggerCommit];
+      const triggerCommit = [...state.tryCommitThenRun];
       triggerCommit.splice(idx_cct, 1);
-      return {...state, triggerCommit};
+      return {...state, tryCommitThenRun: triggerCommit};
 
     case 'SET_RUN_TRIGGER':
       if (state.triggerRun.includes(action.step)) {

@@ -16,9 +16,7 @@ import StepsList from './steps/steps_list';
 import {
   setSession,
   setWorkflow,
-  setSessionAndFigureSeparately,
-  setCommitTrigger,
-  setAutoPassStep
+  setSessionAndFigureSeparately
 } from '../../actions/vulcan_actions';
 import {
   defaultFigure,
