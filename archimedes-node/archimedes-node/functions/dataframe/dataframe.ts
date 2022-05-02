@@ -10,24 +10,6 @@ const dimensions = (nestedArray: NestedArrayDataFrame) => {
   };
 };
 
-const merge = (original: NestedArrayDataFrame, user: NestedArrayDataFrame) => {
-  const userDimensions = dimensions(user);
-  const originalDimensions = dimensions(original);
-  const numUserRows = userDimensions.numRows;
-  const numUserColumns = userDimensions.numCols;
-  const numOriginalColumns = originalDimensions.numCols;
-  const numNewColumns = numUserColumns - numOriginalColumns;
-  return original.map((row, index) => {
-    if (index < numUserRows - 1) {
-      return [...user[index]];
-    } else {
-      // This is beyond the user preview, so
-      //   we just copy the original but pad out with null values.
-      return [...row].concat(new Array(numNewColumns).fill(null));
-    }
-  });
-};
-
 export const zipDF = (original: JsonDataFrame, user: JsonDataFrame) => {
   const originalData = dataFrameJsonToNestedArray(original);
   const userData = dataFrameJsonToNestedArray(user);
@@ -88,6 +70,24 @@ export const zipDF = (original: JsonDataFrame, user: JsonDataFrame) => {
 
 // Hm...slight variations of these are also used in the Vulcan UI data_transformation.tsx
 //   component. There should be a better way to avoid duplication.
+const merge = (original: NestedArrayDataFrame, user: NestedArrayDataFrame) => {
+  const userDimensions = dimensions(user);
+  const originalDimensions = dimensions(original);
+  const numUserRows = userDimensions.numRows;
+  const numUserColumns = userDimensions.numCols;
+  const numOriginalColumns = originalDimensions.numCols;
+  const numNewColumns = numUserColumns - numOriginalColumns;
+  return original.map((row, index) => {
+    if (index < numUserRows - 1) {
+      return [...user[index]];
+    } else {
+      // This is beyond the user preview, so
+      //   we just copy the original but pad out with null values.
+      return [...row].concat(new Array(numNewColumns).fill(null));
+    }
+  });
+};
+
 const nestedArrayToDataFrameJson = (
   input: NestedArrayDataFrame
 ): JsonDataFrame => {

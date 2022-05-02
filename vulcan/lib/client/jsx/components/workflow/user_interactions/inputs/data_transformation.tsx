@@ -42,6 +42,9 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+type NestedArrayDataFrame = any[][];
+type JsonDataFrame = {[key: string]: any};
+
 function DataTransformationModal({
   data,
   numOriginalCols,
@@ -50,7 +53,7 @@ function DataTransformationModal({
 }: {
   data: any[][];
   numOriginalCols: number;
-  onChange: (data: Maybe<{[key: string]: any}>) => void;
+  onChange: (data: Maybe<JsonDataFrame>) => void;
   onClose: () => void;
 }) {
   const [loading, setLoading] = useState(true);
@@ -87,10 +90,6 @@ function DataTransformationModal({
     },
     [numOriginalCols]
   );
-
-  const truncatedValue = useCallback((formulas: any[][]) => {
-    return formulas.slice(0, 101);
-  }, []);
 
   return (
     <>
@@ -193,18 +192,22 @@ function DataTransformationModal({
               const sourceData = hotTableComponent.current.hotInstance.getSourceData();
               const data = hotTableComponent.current.hotInstance.getData();
 
-              // Only send back the first 100 rows of formulaic_data,
+              // Only send back the first 100 rows of data,
               //   since the server will extend formulas based on the
               //   first couple of rows only. This will make sure we
               //   aren't saving or sending giant blobs of data
               //   as an input.
+              const truncatedFormulas = sourceData.slice(0, 101);
+              const truncatedData = data.slice(0, 101);
 
               onChange(
                 some({
                   formulaic_data: some(
-                    nestedArrayToDataFrameJson(truncatedValue(sourceData))
+                    nestedArrayToDataFrameJson(truncatedFormulas)
                   ),
-                  calculated_data: some(nestedArrayToDataFrameJson(data))
+                  calculated_data: some(
+                    nestedArrayToDataFrameJson(truncatedData)
+                  )
                 })
               );
             }
@@ -222,9 +225,37 @@ function DataTransformationModal({
   );
 }
 
+const dimensions = (nestedArray: NestedArrayDataFrame) => {
+  return {
+    numRows: nestedArray.length,
+    numCols: nestedArray[0].length
+  };
+};
+
+export function merge(
+  original: NestedArrayDataFrame,
+  user: NestedArrayDataFrame
+) {
+  const userDimensions = dimensions(user);
+  const originalDimensions = dimensions(original);
+  const numUserRows = userDimensions.numRows;
+  const numUserColumns = userDimensions.numCols;
+  const numOriginalColumns = originalDimensions.numCols;
+  const numNewColumns = numUserColumns - numOriginalColumns;
+  return original.map((row, index) => {
+    if (index < numUserRows - 1) {
+      return [...user[index]];
+    } else {
+      // This is beyond the user preview, so
+      //   we just copy the original but pad out with null values.
+      return [...row].concat(new Array(numNewColumns).fill(null));
+    }
+  });
+}
+
 export function nestedArrayToDataFrameJson(
-  input: any[][]
-): DataEnvelope<{[key: string]: any}> {
+  input: NestedArrayDataFrame
+): DataEnvelope<JsonDataFrame> {
   const headers = input[0];
   let payload = headers.reduce((acc, header) => {
     acc[header] = {};
@@ -243,8 +274,8 @@ export function nestedArrayToDataFrameJson(
 }
 
 export function dataFrameJsonToNestedArray(
-  input: Maybe<DataEnvelope<{[key: string]: any}>>
-): any[][] {
+  input: Maybe<DataEnvelope<JsonDataFrame>>
+): NestedArrayDataFrame {
   if (!isSome(input)) return [[]];
 
   const inner = Array.isArray(input) ? withDefault(input, {}) : input;
@@ -356,6 +387,10 @@ export default function DataTransformationInput({
     return dataFrameJsonToNestedArray(some(originalData));
   }, [originalData]);
 
+  const mergedValue = useMemo(() => {
+    return merge(originalAsNestedArray, value);
+  }, [value, originalAsNestedArray]);
+
   if (!originalData || value.length === 0 || value[0].length === 0)
     return <div>No data frame!</div>;
 
@@ -379,7 +414,7 @@ export default function DataTransformationInput({
         disableEnforceFocus={true}
       >
         <DataTransformationModal
-          data={value}
+          data={mergedValue}
           numOriginalCols={Object.keys(originalData).length}
           onChange={destructureOnChange}
           onClose={handleOnClose}
