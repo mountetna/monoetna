@@ -79,12 +79,12 @@ describe('DataTransformationInput', () => {
   const data = setupBefore(() => {
     return {
       data_frame: {
-        record_name_01: {
+        col_01: {
           '0': 1,
           '1': 0.25,
           '2': 'data'
         },
-        record_name_02: {
+        col_02: {
           '0': 200,
           '1': 1.111,
           '2': '=IF(A2>100, 1, 0)'
@@ -122,24 +122,24 @@ describe('DataTransformationInput', () => {
     expect(onChange.value).toHaveBeenCalledWith(
       some({
         calculated_data: some({
-          record_name_01: {
+          col_01: {
             '0': 1,
             '1': 0.25,
             '2': 'data'
           },
-          record_name_02: {
+          col_02: {
             '0': 200,
             '1': 1.111,
             '2': '=IF(A2>100, 1, 0)'
           }
         }),
         formulaic_data: some({
-          record_name_01: {
+          col_01: {
             '0': 1,
             '1': 0.25,
             '2': 'data'
           },
-          record_name_02: {
+          col_02: {
             '0': 200,
             '1': 1.111,
             '2': '=IF(A2>100, 1, 0)'
@@ -154,31 +154,37 @@ describe('DataTransformationInput', () => {
     value.replace(() => {
       return some({
         calculated_data: some({
-          record_name_01: {
+          col_01: {
             '0': 1,
             '1': 0.25,
-            '2': 'data',
-            '3': 'abc1232'
+            '2': 'data'
           },
-          record_name_02: {
+          col_02: {
             '0': 200,
             '1': 1.111,
-            '2': '=IF(A2>100, 1, 0)',
-            '3': '-9.9'
+            '2': '=IF(A2>100, 1, 0)'
+          },
+          col_03: {
+            '0': 2,
+            '1': 4,
+            '2': 6
           }
         }),
         formulaic_data: some({
-          record_name_01: {
+          col_01: {
             '0': 1,
             '1': 0.25,
-            '2': 'data',
-            '3': 2
+            '2': 'data'
           },
-          record_name_02: {
+          col_02: {
             '0': 200,
             '1': 1.111,
-            '2': '=IF(A2>100, 1, 0)',
-            '3': '=1+1'
+            '2': '=IF(A2>100, 1, 0)'
+          },
+          col_03: {
+            '0': '=2 * (A2 + 1)',
+            '1': '=2 * (A3 + 1)',
+            '2': '=2 * (A4 + 1)'
           }
         })
       }) as Maybe<DataEnvelope<{[key: string]: any}>>;
@@ -186,9 +192,10 @@ describe('DataTransformationInput', () => {
 
     it('correctly renders', async () => {
       const {node} = integrated.value;
+
       expect(
         matchesTextPredicate(
-          'Your data frame has 4 rows and 2 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
+          'Your data frame has 3 rows and 3 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
         )(node.root)
       ).toEqual(true);
     });
@@ -197,35 +204,47 @@ describe('DataTransformationInput', () => {
       value.replace(() => {
         return some({
           a: some({
-            record_name_01: {
+            col_01: {
               '0': 1,
               '1': 0.25,
-              '2': 'data',
-              '3': 'abc1232',
-              '4': '000'
+              '2': 'data'
             },
-            record_name_02: {
+            col_02: {
               '0': 200,
               '1': 1.111,
-              '2': '=IF(A2>100, 1, 0)',
-              '3': '-9.9',
-              '4': '111'
+              '2': '=IF(A2>100, 1, 0)'
+            },
+            col_03: {
+              '0': 2,
+              '1': 4,
+              '2': 6
+            },
+            col_04: {
+              '0': 0,
+              '1': 1,
+              '2': 1
             }
           }),
           b: some({
-            record_name_01: {
+            col_01: {
               '0': 1,
               '1': 0.25,
-              '2': 'data',
-              '3': 2,
-              '4': 'abc'
+              '2': 'data'
             },
-            record_name_02: {
+            col_02: {
               '0': 200,
               '1': 1.111,
-              '2': '=IF(A2>100, 1, 0)',
-              '3': '=1+1',
-              '4': '=1*9'
+              '2': '=IF(A2>100, 1, 0)'
+            },
+            col_03: {
+              '0': '=2 * (A2 + 1)',
+              '1': '=2 * (A3 + 1)',
+              '2': '=2 * (A4 + 1)'
+            },
+            col_04: {
+              '0': '=IF(C2 > 3, 1, 0)',
+              '1': '=IF(C3 > 3, 1, 0)',
+              '2': '=IF(C4 > 3, 1, 0)'
             }
           })
         }) as Maybe<DataEnvelope<{[key: string]: any}>>;
@@ -236,7 +255,7 @@ describe('DataTransformationInput', () => {
 
         expect(
           matchesTextPredicate(
-            'Your data frame has 5 rows and 2 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
+            'Your data frame has 3 rows and 4 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
           )(node.root)
         ).toEqual(true);
       });
@@ -246,34 +265,40 @@ describe('DataTransformationInput', () => {
   describe('with a committed input.value', () => {
     value.replace(() => {
       return some({
-        calculated_data: {
-          record_name_01: {
+        calculated_data: some({
+          col_01: {
             '0': 1,
             '1': 0.25,
-            '2': 'data',
-            '3': 'abc1232'
+            '2': 'data'
           },
-          record_name_02: {
+          col_02: {
             '0': 200,
             '1': 1.111,
-            '2': '=IF(A2>100, 1, 0)',
-            '3': '-9.9'
+            '2': '=IF(A2>100, 1, 0)'
+          },
+          col_03: {
+            '0': 2,
+            '1': 4,
+            '2': 6
           }
-        },
-        formulaic_data: {
-          record_name_01: {
+        }),
+        formulaic_data: some({
+          col_01: {
             '0': 1,
             '1': 0.25,
-            '2': 'data',
-            '3': 2
+            '2': 'data'
           },
-          record_name_02: {
+          col_02: {
             '0': 200,
             '1': 1.111,
-            '2': '=IF(A2>100, 1, 0)',
-            '3': '=1+1'
+            '2': '=IF(A2>100, 1, 0)'
+          },
+          col_03: {
+            '0': '=2 * (A2 + 1)',
+            '1': '=2 * (A3 + 1)',
+            '2': '=2 * (A4 + 1)'
           }
-        }
+        })
       }) as Maybe<DataEnvelope<{[key: string]: any}>>;
     });
 
@@ -282,7 +307,7 @@ describe('DataTransformationInput', () => {
 
       expect(
         matchesTextPredicate(
-          'Your data frame has 4 rows and 2 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
+          'Your data frame has 3 rows and 3 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
         )(node.root)
       ).toEqual(true);
     });
@@ -290,38 +315,50 @@ describe('DataTransformationInput', () => {
     describe('with differently-named CWL outputs', () => {
       value.replace(() => {
         return some({
-          a: {
-            record_name_01: {
+          a: some({
+            col_01: {
               '0': 1,
               '1': 0.25,
-              '2': 'data',
-              '3': 'abc1232',
-              '4': '000'
+              '2': 'data'
             },
-            record_name_02: {
+            col_02: {
               '0': 200,
               '1': 1.111,
-              '2': '=IF(A2>100, 1, 0)',
-              '3': '-9.9',
-              '4': '111'
+              '2': '=IF(A2>100, 1, 0)'
+            },
+            col_03: {
+              '0': 2,
+              '1': 4,
+              '2': 6
+            },
+            col_04: {
+              '0': 0,
+              '1': 1,
+              '2': 1
             }
-          },
-          b: {
-            record_name_01: {
+          }),
+          b: some({
+            col_01: {
               '0': 1,
               '1': 0.25,
-              '2': 'data',
-              '3': 2,
-              '4': 'abc'
+              '2': 'data'
             },
-            record_name_02: {
+            col_02: {
               '0': 200,
               '1': 1.111,
-              '2': '=IF(A2>100, 1, 0)',
-              '3': '=1+1',
-              '4': '=1*9'
+              '2': '=IF(A2>100, 1, 0)'
+            },
+            col_03: {
+              '0': '=2 * (A2 + 1)',
+              '1': '=2 * (A3 + 1)',
+              '2': '=2 * (A4 + 1)'
+            },
+            col_04: {
+              '0': '=IF(C2 > 3, 1, 0)',
+              '1': '=IF(C3 > 3, 1, 0)',
+              '2': '=IF(C4 > 3, 1, 0)'
             }
-          }
+          })
         }) as Maybe<DataEnvelope<{[key: string]: any}>>;
       });
 
@@ -330,7 +367,7 @@ describe('DataTransformationInput', () => {
 
         expect(
           matchesTextPredicate(
-            'Your data frame has 5 rows and 2 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
+            'Your data frame has 3 rows and 4 columns. You can preview or edit the data frame now, or just click "Commit" to accept the raw data.Review or edit data frame** You have modified the data frame. **Revert to raw data'
           )(node.root)
         ).toEqual(true);
       });
