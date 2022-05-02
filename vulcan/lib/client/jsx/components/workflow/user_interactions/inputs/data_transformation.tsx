@@ -88,6 +88,10 @@ function DataTransformationModal({
     [numOriginalCols]
   );
 
+  const truncatedValue = useCallback((formulas: any[][]) => {
+    return formulas.slice(0, 101);
+  }, []);
+
   return (
     <>
       <DialogTitle>
@@ -105,10 +109,9 @@ function DataTransformationModal({
       </DialogTitle>
       <DialogContent className={classes.dialog}>
         <Typography className={classes.helpdoc}>
-          This is a preview of your data frame (the first 100 rows). You can
-          edit the column headings or append additional columns at the end, by
-          right-clicking and selecting "Insert column to right" in the context
-          menu.
+          This is a preview of your data frame. You can edit the column headings
+          or append additional columns on the right, by right-clicking and
+          selecting "Insert column to right" in the context menu.
         </Typography>
         <Typography className={classes.helpdoc}>
           To apply a formula in a new column, just add a couple of cells with
@@ -190,9 +193,17 @@ function DataTransformationModal({
               const sourceData = hotTableComponent.current.hotInstance.getSourceData();
               const data = hotTableComponent.current.hotInstance.getData();
 
+              // Only send back the first 100 rows of formulaic_data,
+              //   since the server will extend formulas based on the
+              //   first couple of rows only. This will make sure we
+              //   aren't saving or sending giant blobs of data
+              //   as an input.
+
               onChange(
                 some({
-                  formulaic_data: some(nestedArrayToDataFrameJson(sourceData)),
+                  formulaic_data: some(
+                    nestedArrayToDataFrameJson(truncatedValue(sourceData))
+                  ),
                   calculated_data: some(nestedArrayToDataFrameJson(data))
                 })
               );
@@ -341,10 +352,6 @@ export default function DataTransformationInput({
 
   value = dataFrameJsonToNestedArray(value);
 
-  const truncatedValue = useMemo(() => {
-    return value.slice(0, 101);
-  }, [value]);
-
   const originalAsNestedArray = useMemo(() => {
     return dataFrameJsonToNestedArray(some(originalData));
   }, [originalData]);
@@ -372,7 +379,7 @@ export default function DataTransformationInput({
         disableEnforceFocus={true}
       >
         <DataTransformationModal
-          data={truncatedValue}
+          data={value}
           numOriginalCols={Object.keys(originalData).length}
           onChange={destructureOnChange}
           onClose={handleOnClose}
