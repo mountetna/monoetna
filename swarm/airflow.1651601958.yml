@@ -26,7 +26,7 @@ services:
         failure_action: rollback
       placement:
         constraints:
-          - node.labels.volumes.airflow-metadata-db == true
+          - node.labels.volumes.big-shared == true
     healthcheck:
       test: pg_isready -q -d airflow -U developer || exit 1
       interval: 10s
@@ -141,7 +141,7 @@ services:
       interval: 60s
       retries: 5
       start_period: 5s
-      test: 
+      test:
       - CMD
       - /opt/airflow/entrypoint-with-secret-files.sh
       - jobs
@@ -191,7 +191,7 @@ services:
       interval: 300s
       retries: 5
       start_period: 300s
-      test: 
+      test:
       - CMD
       - /opt/airflow/entrypoint-with-secret-files.sh
       - jobs
@@ -213,7 +213,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - airflow
-     
+
   init:
     image: etnaagent/airflow:production
     command: version
