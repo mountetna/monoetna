@@ -39,8 +39,26 @@ describe('workflow_utils', () => {
         })
       })
     })
-    describe('setVignette', () => {
-      it('sets a vignette readable by ___')
+    describe('workflow with no vignette', () => {
+      awaitBefore(async () => {
+        workflowUtils.value.setWorkflow('test');
+        workflowUtils.value.addStep('a', {
+          out: ['out'],
+        })
+      })
+      const context = setupBefore(() => integrated.value.runHook(() => useContext(VulcanContext)))
+      it('has no vignette', () => {
+        expect(context.value.state.workflow?.vignette).toBeUndefined()
+      })
+      describe('setVignette', () => {
+        const addVignette = awaitBefore(async () => {
+          workflowUtils.value.setVignette("I am a helpful vignette.")
+        });
+        const context = setupBefore(() => integrated.value.runHook(() => useContext(VulcanContext)))
+        it('adds a vignette to the current workflow', async () => {
+          expect(context.value.state.workflow?.vignette).toEqual("I am a helpful vignette.")
+        })
+      })
     })
   })
 })
