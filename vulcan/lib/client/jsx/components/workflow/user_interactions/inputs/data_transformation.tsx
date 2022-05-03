@@ -40,6 +40,9 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: '600px',
     marginTop: '1rem',
     marginBottom: '1rem'
+  },
+  propagateButton: {
+    marginBottom: '1rem'
   }
 }));
 
@@ -118,7 +121,6 @@ function DataTransformationModal({
   onChange: (data: Maybe<JsonDataFrame>) => void;
   onClose: () => void;
 }) {
-  const [loading, setLoading] = useState(true);
   const classes = useStyles();
 
   const hotTableComponent = useRef<any>(null);
@@ -197,6 +199,7 @@ function DataTransformationModal({
           and Run!
         </Typography>
         <Button
+          className={classes.propagateButton}
           onClick={handleExtendFormulas}
           startIcon={<TableChartIcon />}
           color='secondary'
@@ -283,8 +286,8 @@ function DataTransformationModal({
               //   first couple of rows only. This will make sure we
               //   aren't saving or sending giant blobs of data
               //   as an input.
-              const truncatedFormulas = sourceData.slice(0, 11);
-              const truncatedData = data.slice(0, 11);
+              const truncatedFormulas = sourceData.slice(0, 21);
+              const truncatedData = data.slice(0, 21);
 
               onChange(
                 some({
