@@ -47,7 +47,6 @@ services:
           memory: 900M
       update_config:
         parallelism: 1
-        order: start-first
       mode: replicated
       labels:
         - autoupdate=true
@@ -79,7 +78,7 @@ services:
        -----END PUBLIC KEY-----
 
     healthcheck:
-      test: [ "CMD", "curl", "--fail", "-L", "http://localhost:8080" ]
+      test: [ "CMD", "curl", "--fail", "-L", "http://localhost:8080/admin/metrics" ]
       interval: 30s
       timeout: 5s
       retries: 5

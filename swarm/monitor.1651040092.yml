@@ -26,12 +26,29 @@ services:
       placement:
         constraints:
           - node.role == manager
-          - node.labels.volumes.prometheus-tsdb == true
+          - node.labels.volumes.big-shared == true
     networks:
       - edge_bridge
       - prometheus
     user: "1500:999" # dockerapp:docker
-  
+
+  prometheus_backup:
+    image: etnaagent/metis:production
+    command: "true"
+    volumes:
+      - tsdb:/prometheus
+    deploy:
+      labels:
+        - autoupdate=true
+      restart_policy:
+        condition: none
+      placement:
+        constraints:
+          - node.labels.volumes.big-shared == true
+    networks:
+      - prometheus
+    user: "1500:999" # dockerapp:docker
+
   alertmanger:
     hostname: alertmanager
     image: "prom/alertmanager:v0.21.0"
@@ -49,7 +66,21 @@ services:
       replicas: 1
       restart_policy:
         condition: any
-    
+
+  grafana_backup:
+    image: etnaagent/metis:production
+    volumes:
+      - grafana-config:/etc/grafana
+      - grafana-data:/var/lib/grafana
+    command: "true"
+    user: "1500:999" # dockerapp:docker
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.volumes.big-shared == true
+
   grafana:
     hostname: grafana
     image: "grafana/grafana:7.5.1"
@@ -58,9 +89,8 @@ services:
       GF_SMTP_HOST: 172.17.0.1:25
       
     volumes:
-      - /etc/grafana:/etc/grafana
-      - /var/lib/grafana:/var/lib/grafana
-
+      - grafana-config:/etc/grafana
+      - grafana-data:/var/lib/grafana
 
     networks:
       - edge_bridge
@@ -73,13 +103,37 @@ services:
         condition: any
       placement:
         constraints:
-          - node.labels.volumes.grafana-data == true
+          - node.labels.volumes.big-shared == true
 
 volumes:
   alertmanager-data:
+    name: alertmanager_data
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
+      device: ":/cache/prometheus/alertmanager"
   tsdb:
-    external: true
-    name: prometheus-tsdb # historical name before swarm, reusing that volume.
+    name: prometheus-tsdb
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
+      device: ":/cache/prometheus/tsdb"
+  grafana-config:
+    name: etc_grafana
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
+      device: ":/cache/grafana/etc"
+  grafana-data:
+    name: var_lib_grafana
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
+      device: ":/cache/grafana/var"
 
 configs:
   prometheus.yml:

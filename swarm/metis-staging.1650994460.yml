@@ -12,7 +12,7 @@ services:
     deploy:
       placement:
         constraints:
-          - node.labels.volumes.metis_staging_db == true
+          - node.labels.volumes.big-shared == true
     networks:
       - db
     secrets:
@@ -116,9 +116,7 @@ services:
         - autoupdate=true
       restart_policy:
         condition: none
-      mode: global
       placement:
-        max_replicas_per_node: 1
         constraints:
           - node.labels.volumes.big-shared == true
 
@@ -146,6 +144,11 @@ volumes:
       device: ":/cache/metis/staging/data"
   db:
     name: "metis_staging_db"
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
+      device: ":/cache/postgres/metis-staging"
 
 configs:
   browser.system.include:
