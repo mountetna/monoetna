@@ -6,6 +6,14 @@ class Vulcan
       Vulcan.instance.db.get { nextval("figures_ids") }
     end
 
+    def self.[](project_name, figure_id)
+      Vulcan::Figure.where(
+        project_name: project_name,
+        figure_id: figure_id,
+        archived: false
+      ).first
+    end
+
     def session
       @session ||= Session.from_figure(self)
     end
@@ -36,11 +44,21 @@ class Vulcan
         next unless ::File.exists?(thumbnail.data_path(storage))
 
         next storage.data_url(
-               project_name: thumbnail.project_name,
-               cell_hash: thumbnail.cell_hash,
-               data_filename: thumbnail.data_filename,
-             )
+          project_name: thumbnail.project_name,
+          cell_hash: thumbnail.cell_hash,
+          data_filename: thumbnail.data_filename,
+        )
       end.compact
+    end
+
+    def to_revision
+      {
+        inputs: inputs.to_hash,
+        title: title,
+        tags: tags,
+        updated_at: updated_at.iso8601,
+        comment: comment
+      }
     end
 
     def to_hash(storage: nil)
