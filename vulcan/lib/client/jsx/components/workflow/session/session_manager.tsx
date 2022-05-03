@@ -248,6 +248,7 @@ export default function SessionManager() {
       dispatch(setSession({ ...session, inputs } as VulcanFigureSession));
       setLocalTitle(title);
       setTags(tags || []);
+      requestPoll();
       setOpenRevisions(false);
     }, [ figure ]);
 
