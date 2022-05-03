@@ -114,7 +114,7 @@ export function WithBufferedInputs({
     }
   },[state.tryCommitThenRun])
 
-  const commit_rest_buttons = hasInputs ? <div>
+  const commit_rest_buttons = hasInputs ? <div className='reset-or-commit-inputs'>
     <Button onClick={cancelInputs} disabled={!!state.pollingState}>
       Reset
     </Button>
@@ -134,7 +134,6 @@ export function WithBufferedInputs({
   </div> : null
 
   const autopass_switch = isPassable(stepName) ? <FormControlLabel
-    className='auto-pass-toggle'
     control={
       <Switch
         checked={state.autoPassSteps.includes(stepName)}
@@ -148,7 +147,7 @@ export function WithBufferedInputs({
   /> : null
 
   const controls_below = (isPassable(stepName) || hasInputs) ? (
-    <Grid container style={{width: 'auto'}} justify="flex-end" className='reset-or-commit-inputs'>
+    <Grid container style={{width: 'auto'}} justify="flex-end">
       {autopass_switch}
       {commit_rest_buttons}
     </Grid>
