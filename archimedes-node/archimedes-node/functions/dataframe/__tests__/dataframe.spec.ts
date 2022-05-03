@@ -1,3 +1,5 @@
+// import {zipJsonDF} from '../dataframe';
+
 // This is tested in etna-js
 xdescribe('DataFrame Utils', () => {
   it('correctly extends and evaluates', () => {
@@ -32,7 +34,8 @@ xdescribe('DataFrame Utils', () => {
       }
     };
 
-    let result = zipJsonDF({original: mockOrig, user: mockUser});
+    let result = [];
+    // let result = zipJsonDF({original: mockOrig, user: mockUser});
 
     expect(result).toEqual({
       col1: {0: 1, 1: 2, 2: 3},
