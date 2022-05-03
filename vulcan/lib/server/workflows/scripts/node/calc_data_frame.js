@@ -7,6 +7,9 @@ const originalData = await dataflow.inputJson('original_data.json');
 const userData = await dataflow.inputJson('user_data.json');
 
 dataflow.outputJson(
-  dfUtils.zipDF(originalData, userData),
+  dfUtils.zipJsonDF({
+    original: originalData,
+    user: userData
+  }),
   'full_user_data.json'
 );

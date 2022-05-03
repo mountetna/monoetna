@@ -3,7 +3,8 @@
   "version": "1.1.1-ui",
   "description": "Shared JS modules for Mount Etna.",
   "scripts": {
-    "test": "tsc && jest"
+    "test": "tsc && jest",
+    "build": "find . -name \"*.ts\" -not -path \"*/node_modules/*\" -print0 | xargs -0 -I {} tsc --downlevelIteration --lib es2019 --skipLibCheck {}"
   },
   "author": "",
   "license": "GPL-2.0-only",
@@ -30,6 +31,7 @@
     "downloadjs": "^1.4.7",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.2",
+    "hyperformula": "^2.0.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^26.1.0",
     "json2csv": "^4.0.1",

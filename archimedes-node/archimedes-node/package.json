@@ -15,6 +15,7 @@
     "@babel/preset-typescript": "^7.13.0",
     "@types/jest": "^26.0.23",
     "@types/mocha": "^9.1.1",
+    "@types/node": "^17.0.29",
     "archimedes-node": "file:/app/archimedes-node",
     "babel-jest": "^26.0.1",
     "enzyme": "^3.11.0",
@@ -27,6 +28,7 @@
   "dependencies": {
     "archimedes-node": "file:/app/archimedes-node",
     "csv": "^6.0.5",
+    "etna-js": "file:/etna/packages/etna-js",
     "hyperformula": "^2.0.0"
   },
   "repository": {

@@ -1,4 +1,5 @@
 FROM development-certs
+FROM etna-base
 
 FROM node:gallium-buster-slim
 WORKDIR /app
@@ -52,6 +53,8 @@ RUN tar -xf /tmp/docker.tgz -C /tmp/
 RUN mv /tmp/docker/* /usr/local/bin/
 
 RUN npm install -g typescript@4.7.0-beta
+
+COPY --from=1 /etna /etna
 
 # Copy entrypoint scripts
 COPY entrypoints /entrypoints
