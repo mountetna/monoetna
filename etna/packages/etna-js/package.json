@@ -4,7 +4,7 @@
   "description": "Shared JS modules for Mount Etna.",
   "scripts": {
     "test": "tsc && jest",
-    "build": "find . -name \"*.ts\" -not -path \"*/node_modules/*\" -print0 | xargs -0 -I {} tsc --downlevelIteration --lib es2019 --skipLibCheck {}"
+    "build": "npm install && find . -name \"*.ts\" -not -path \"*/node_modules/*\" -print0 | xargs -0 -I {} tsc --downlevelIteration --lib es2019 --skipLibCheck {}"
   },
   "author": "",
   "license": "GPL-2.0-only",
