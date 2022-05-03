@@ -12,8 +12,7 @@
   "scripts": {
     "test": "cd archimedes-node/ && npm install && npm test",
     "compile_ts": "find /app/archimedes-node -name \"*.ts\" -not -path \"*/node_modules/*\" -print0 | xargs -0 -I {} tsc --skipLibCheck --module node12 {}",
-    "initialize": "npm install && npm run compile_ts",
-    "preinstall": "cd /etna/packages/etna-js && npm run build && cd /app/archimedes-node && npm install"
+    "initialize": "npm install && npm run compile_ts"
   },
   "devDependencies": {
     "@types/jest": "^27.4.1",

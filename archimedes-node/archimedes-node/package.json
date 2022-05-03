@@ -4,8 +4,7 @@
   "description": "Node.JS container to run JS / TS scripts in Archimedes",
   "scripts": {
     "test": "tsc && jest",
-    "build": "find . -name \"*.ts\" -not -path \"*/node_modules/*\" -print0 | xargs -0 -I {} tsc --skipLibCheck --module node12 {}",
-    "postinstall": "npm run build"
+    "build": "find . -name \"*.ts\" -not -path \"*/node_modules/*\" -print0 | xargs -0 -I {} tsc --skipLibCheck --module node12 {}"
   },
   "author": "UCSF DSCoLab",
   "license": "GPL-2.0-only",
