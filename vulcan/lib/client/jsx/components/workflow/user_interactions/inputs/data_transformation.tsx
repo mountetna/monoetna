@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import {HotTable} from '@handsontable/react';
 import {HyperFormula} from 'hyperformula';
 import EditIcon from '@material-ui/icons/Edit';
+import TableChartIcon from '@material-ui/icons/TableChart';
 import SaveIcon from '@material-ui/icons/Save';
 import CancelIcon from '@material-ui/icons/Cancel';
 import RestoreIcon from '@material-ui/icons/Restore';
@@ -45,14 +46,75 @@ const useStyles = makeStyles((theme) => ({
 type NestedArrayDataFrame = any[][];
 type JsonDataFrame = {[key: string]: any};
 
+const zipDF = (
+  originalData: NestedArrayDataFrame,
+  userData: NestedArrayDataFrame
+) => {
+  const hfOptions = {
+    licenseKey: 'gpl-v3'
+  };
+
+  // Start with the userDF, which is a subset of the originalData plus
+  //   any added columns. Assume added columns are on the right (will have
+  //   to enforce in the UI).
+  // Add in missing data from the originalData rows.
+  // And then apply equations in extra user-defined columns to
+  //   ranges with hyperformula.getFillRangeData().
+  const mergedDF = merge(originalData, userData);
+
+  const dataFrame = HyperFormula.buildFromArray(mergedDF, hfOptions);
+
+  const userDimensions = dimensions(userData);
+  const originalDimensions = dimensions(originalData);
+
+  // Extend equations and grab new cell values
+  const userTopLeft = {
+    sheet: 0,
+    row: 1,
+    col: originalDimensions.numCols
+  };
+  // We just grab two rows to get the pattern, so we don't expect
+  //   the user to populate too many of the formula cells.
+  const userBottomRight = {
+    sheet: 0,
+    row: 2,
+    col: userDimensions.numCols - 1
+  };
+  const newCellValues = dataFrame.getFillRangeData(
+    {
+      start: userTopLeft,
+      end: userBottomRight
+    },
+    {
+      start: {
+        sheet: 0,
+        row: 1,
+        col: originalDimensions.numCols
+      },
+      end: {
+        sheet: 0,
+        row: originalDimensions.numRows - 1,
+        col: userDimensions.numCols - 1
+      }
+    }
+  );
+
+  dataFrame.setCellContents(userTopLeft, newCellValues);
+
+  return {
+    formulas: dataFrame.getSheetSerialized(0),
+    values: dataFrame.getSheetValues(0)
+  };
+};
+
 function DataTransformationModal({
-  data,
-  numOriginalCols,
+  userData,
+  originalData,
   onChange,
   onClose
 }: {
-  data: any[][];
-  numOriginalCols: number;
+  userData: NestedArrayDataFrame;
+  originalData: NestedArrayDataFrame;
   onChange: (data: Maybe<JsonDataFrame>) => void;
   onClose: () => void;
 }) {
@@ -70,12 +132,14 @@ function DataTransformationModal({
     []
   );
 
+  const numOriginalCols = dimensions(originalData).numCols;
+
   const columnWidths = useMemo(() => {
-    let widths = new Array(data[0].length).fill(150);
+    let widths = new Array(dimensions(userData).numCols).fill(150);
     widths[0] = 200;
 
     return widths;
-  }, [data]);
+  }, [userData]);
 
   const isReadOnlyColumn = useCallback(
     (colIndex: number) => {
@@ -90,6 +154,20 @@ function DataTransformationModal({
     },
     [numOriginalCols]
   );
+
+  const zippedData = useMemo(() => {
+    return zipDF(originalData, userData);
+  }, [userData, originalData]);
+
+  const handleExtendFormulas = useCallback(() => {
+    if (!hotTableComponent.current) return;
+
+    hotTableComponent.current.hotInstance.loadData(zippedData.formulas);
+  }, [zippedData, hotTableComponent]);
+
+  const mergedData = useMemo(() => {
+    return merge(originalData, userData);
+  }, [userData, originalData]);
 
   return (
     <>
@@ -114,10 +192,18 @@ function DataTransformationModal({
         </Typography>
         <Typography className={classes.helpdoc}>
           To apply a formula in a new column, just add a couple of cells with
-          the formula to establish the pattern. Save your changes, commit the
-          input, and click Run. Vulcan will propagate the formulas to the full
-          data set.
+          the formula to establish the pattern. Click the "Propagate Formulas"
+          button to propagate the formulas to the entire table. Save, Commit,
+          and Run!
         </Typography>
+        <Button
+          onClick={handleExtendFormulas}
+          startIcon={<TableChartIcon />}
+          color='secondary'
+          variant='contained'
+        >
+          Propagate Formulas
+        </Button>
         <HotTable
           ref={hotTableComponent}
           settings={{
@@ -126,7 +212,7 @@ function DataTransformationModal({
             colWidths: columnWidths,
             autoRowSize: false,
             autoColumnSize: false,
-            data: data,
+            data: mergedData,
             colHeaders: true,
             rowHeaders: true,
             height: 'auto',
@@ -192,13 +278,13 @@ function DataTransformationModal({
               const sourceData = hotTableComponent.current.hotInstance.getSourceData();
               const data = hotTableComponent.current.hotInstance.getData();
 
-              // Only send back the first 100 rows of data,
+              // Only send back the first couple rows of data,
               //   since the server will extend formulas based on the
               //   first couple of rows only. This will make sure we
               //   aren't saving or sending giant blobs of data
               //   as an input.
-              const truncatedFormulas = sourceData.slice(0, 101);
-              const truncatedData = data.slice(0, 101);
+              const truncatedFormulas = sourceData.slice(0, 11);
+              const truncatedData = data.slice(0, 11);
 
               onChange(
                 some({
@@ -387,10 +473,6 @@ export default function DataTransformationInput({
     return dataFrameJsonToNestedArray(some(originalData));
   }, [originalData]);
 
-  const mergedValue = useMemo(() => {
-    return merge(originalAsNestedArray, value);
-  }, [value, originalAsNestedArray]);
-
   if (!originalData || value.length === 0 || value[0].length === 0)
     return <div>No data frame!</div>;
 
@@ -414,8 +496,8 @@ export default function DataTransformationInput({
         disableEnforceFocus={true}
       >
         <DataTransformationModal
-          data={mergedValue}
-          numOriginalCols={Object.keys(originalData).length}
+          userData={value}
+          originalData={originalAsNestedArray}
           onChange={destructureOnChange}
           onClose={handleOnClose}
         />
