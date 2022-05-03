@@ -33,7 +33,7 @@ describe('DataFrame Utils', () => {
       }
     };
 
-    let result = zipJsonDF(mockOrig, mockUser);
+    let result = zipJsonDF({original: mockOrig, user: mockUser});
 
     expect(result).toEqual({
       col1: {0: 1, 1: 2, 2: 3},
