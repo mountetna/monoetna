@@ -3,7 +3,7 @@ name = "mountetna"
 version = "0.1.0"
 description = "Client package for Mount Etna data library"
 
-license = "MIT"
+license = "GPL-2.0-only"
 
 authors = [
     "Zachary Collins <zachary.collins@ucsf.edu>",
@@ -18,7 +18,8 @@ homepage = "https://github.com/mountetna/monoetna"
 keywords = ['mount etna', 'data library']
 
 [tool.poetry.dependencies]
-python = "^3.9"  # Compatible python versions must be declared here
+python = "^3.8"  # Compatible python versions must be declared here
+pandas = "^1.2.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
