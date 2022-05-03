@@ -106,7 +106,7 @@ export const merge = ({
   const numOriginalColumns = originalDimensions.numCols;
   const numNewColumns = numUserColumns - numOriginalColumns;
   return original.map((row, index) => {
-    if (index < numUserRows - 1) {
+    if (index < numUserRows) {
       return [...user[index]];
     } else {
       // This is beyond the user preview, so

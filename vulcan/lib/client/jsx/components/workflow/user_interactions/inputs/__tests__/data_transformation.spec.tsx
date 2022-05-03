@@ -5,71 +5,16 @@ import {
 } from '../../../../../test_utils/integration';
 
 import {Maybe, some} from '../../../../../selectors/maybe';
-import DataTransformationInput, {
-  dataFrameJsonToNestedArray,
-  nestedArrayToDataFrameJson
-} from '../data_transformation';
+import DataTransformationInput from '../data_transformation';
 import {DataEnvelope} from '../input_types';
 import {
   clickNode,
   findAllByClassName,
   matchesTextPredicate,
-  matchesTypePredicate,
-  text
+  matchesTypePredicate
 } from '../../../../../test_utils/rendered';
 import {ReactTestInstance} from 'react-test-renderer';
 import ReactDOM from 'react-dom';
-
-describe('dataFrameJsonToNestedArray', () => {
-  it('can reformat the data', () => {
-    const inputDF = {
-      col1: {
-        '0': 1,
-        '1': 2,
-        '2': 10
-      },
-      col2: {
-        '0': 'abc',
-        '1': '21',
-        '2': 'xyz'
-      }
-    };
-    const output = dataFrameJsonToNestedArray(some(inputDF));
-
-    expect(output).toEqual([
-      ['col1', 'col2'],
-      [1, 'abc'],
-      [2, '21'],
-      [10, 'xyz']
-    ]);
-  });
-});
-
-describe('nestedArrayToDataFrameJson', () => {
-  it('can reformat the data', () => {
-    const input = [
-      ['col1', 'col2'],
-      [1, 'abc'],
-      [2, '21'],
-      [10, 'xyz']
-    ];
-
-    const output = nestedArrayToDataFrameJson(input);
-
-    expect(output).toEqual({
-      col1: {
-        '0': 1,
-        '1': 2,
-        '2': 10
-      },
-      col2: {
-        '0': 'abc',
-        '1': '21',
-        '2': 'xyz'
-      }
-    });
-  });
-});
 
 describe('DataTransformationInput', () => {
   const onChange = setupBefore(() => jest.fn());
