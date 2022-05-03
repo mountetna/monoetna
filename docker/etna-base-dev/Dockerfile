@@ -41,6 +41,7 @@ RUN apt-get update \
       sshpass \
       libvips \
       libvips-tools \
+      sqlite3 \
       --no-install-recommends &&\
     rm -rf /var/lib/apt/lists/*
 
