@@ -10,6 +10,7 @@
   "license": "GPL-2.0-only",
   "dependencies": {
     "animate.css": "^4.1.0",
+    "hyperformula": "^2.0.0",
     "react-notifications-component": "^2.4.0"
   },
   "peerDependencies": {
@@ -31,7 +32,6 @@
     "downloadjs": "^1.4.7",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.2",
-    "hyperformula": "^2.0.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^26.1.0",
     "json2csv": "^4.0.1",
