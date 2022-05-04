@@ -66,7 +66,8 @@
 
     .config-dialog,
     .move-folder-dialog,
-    .move-file-dialog {
+    .move-file-dialog,
+    .file-properties-dialog {
       width: 300px;
       font-family: $base-font;
       padding: 5px;
@@ -109,7 +110,8 @@
           }
         }
       }
-      .submit {
+      .submit,
+      .close {
         display: flex;
         padding: 10px 80px 5px;
         .button {
