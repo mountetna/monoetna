@@ -55,12 +55,11 @@ export function WithBufferedInputs({
     if (Object.keys(inputsRef.current).length > 0){
       if (!stateRef.current.bufferedSteps.includes(stepName))
         dispatch(setBufferedInput(stepName));
-        // Check / Initiate auto-pass attempt
-        if (
-          stateRef.current.autoPassSteps.includes(stepName) &&
-          stepName!=null &&
-          statusOfStep(stepName, stateRef.current.status)?.status=="pending") {
-            dispatch(setCommitTrigger(stepName));
+        // Check / Initiate auto-pass attempt.
+        if ( (stepName==null && stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable") && Object.keys(state.session.inputs).length==0 )
+          || (stepName!=null && stateRef.current.autoPassSteps.includes(stepName) && Object.keys(state.session.inputs).filter((val) => val.includes(stepName)).length<1 )
+        ) {
+          dispatch(setCommitTrigger(stepName));
         }
     } else {
       if (stateRef.current.bufferedSteps.includes(stepName))

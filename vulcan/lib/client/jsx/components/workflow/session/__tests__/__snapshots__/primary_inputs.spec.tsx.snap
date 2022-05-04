@@ -563,14 +563,16 @@ Array [
     </div>
   </div>,
   <div
-    className="MuiGrid-root reset-or-commit-inputs MuiGrid-container MuiGrid-justify-content-xs-flex-end"
+    className="MuiGrid-root MuiGrid-container MuiGrid-justify-content-xs-flex-end"
     style={
       Object {
         "width": "auto",
       }
     }
   >
-    <div>
+    <div
+      className="reset-or-commit-inputs"
+    >
       <button
         className="MuiButtonBase-root MuiButton-root MuiButton-text"
         disabled={false}
