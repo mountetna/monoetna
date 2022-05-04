@@ -4,17 +4,19 @@ require_relative './vulcan_controller'
 class FigureController < Vulcan::Controller
   def fetch
     success_json(
-      figures: Vulcan::Figure.where(project_name: @params[:project_name]).all.map do |f|
+      figures: Vulcan::Figure.where(
+        project_name: @params[:project_name],
+        archived: false).all.map do |f|
         f.to_hash(storage: storage)
       end
     )
   end
 
   def get
-    figure = Vulcan::Figure.where(
-      project_name: @params[:project_name],
-      figure_id: @params[:figure_id]
-    ).order(:updated_at).first
+    figure = Vulcan::Figure[
+      @params[:project_name],
+      @params[:figure_id]
+    ]
 
     raise Etna::NotFound unless figure
 
@@ -37,29 +39,57 @@ class FigureController < Vulcan::Controller
   end
 
   def update
-    figure = Vulcan::Figure.where(
+    require_params(:comment)
+
+    figure = Vulcan::Figure[
+      @params[:project_name],
+      @params[:figure_id]
+    ]
+
+    raise Etna::NotFound unless figure
+
+    figure.modified!(:updated_at)
+    figure.update(archived: true)
+
+    now = DateTime.now
+
+    new_figure = Vulcan::Figure.create(
+      {
+        figure_id: figure.figure_id,
+        author: @user.name,
+        created_at: figure.created_at,
+        updated_at: now,
+        comment: @params[:comment]
+      }.update(
+        figure.to_hash.slice(*figure_params)
+      ).update(
+        @params.slice(*figure_params)
+      )
+    )
+
+    success_json(new_figure.to_hash)
+  end
+
+  def revisions
+    figures = Vulcan::Figure.where(
       project_name: @params[:project_name],
       figure_id: @params[:figure_id]
-    ).first
+    ).reverse_order(:updated_at).all.sort_by{|e| e.archived ? 1 : 0 }
+
+    success_json(figures.map(&:to_revision))
+  end
+
+  def delete
+    figure = Vulcan::Figure[
+      @params[:project_name],
+      @params[:figure_id]
+    ]
 
     raise Etna::NotFound unless figure
 
     figure.update(
-        @params.slice(*figure_params)
+      archived: true
     )
-
-    success_json(figure.to_hash)
-  end
-
-  def delete
-    figure = Vulcan::Figure.where(
-      project_name: @params[:project_name],
-      figure_id: @params[:figure_id]
-    ).first
-
-    raise Etna::NotFound unless figure
-
-    figure.delete
 
     success_json(figure.to_hash)
   end

@@ -54,6 +54,11 @@ function LeafOptions({
   maxOptions?: number;
 }) {
   if (!options_in) return null;
+  if (value!=null && !options_in.includes(value)) {
+    // non-null starting value, but path has not yet been properly determined?
+    // console.log('skipping LeafOptions due to value mismatch')
+    return null
+  }
   return (
     <SelectAutocompleteInput
       key={`${depth}-${options_in.slice(0, 5).join('-')}`}
@@ -116,7 +121,7 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
         {path.map((value, index) => {
               const options = getOptions(path.slice(0, index), allOptions);
               return (
-                (options==null) ? null :
+                (options==null) ? null : // skip here if leaf
                 <SelectAutocompleteInput
                   key={index}
                   onChange={(v) => {}}
