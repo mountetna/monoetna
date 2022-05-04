@@ -63,7 +63,7 @@ services:
       - |
         set -e
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
-        exec /bin/deploy.sh migrate 'docker pull etnaagent/archimedes:production; docker pull etnaagent/archimedes-node:production' -- /app/bin/puma.sh
+        exec /bin/deploy.sh migrate 'docker pull etnaagent/archimedes:production' 'docker pull etnaagent/archimedes-node:production' -- /app/bin/puma.sh
     image: etnaagent/vulcan:production
     volumes:
       - data:/app/data/vulcan:nocopy
