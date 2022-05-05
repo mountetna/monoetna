@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -8,8 +9,6 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
 import Collapse from '@material-ui/core/Collapse';
-import { json_get } from 'etna-js/utils/fetch';
-import { formatTime } from './run-state';
 import { Controlled } from 'react-codemirror2';
 
 import { createTwoFilesPatch } from 'diff';
@@ -18,6 +17,11 @@ import 'codemirror/mode/javascript/javascript';
 import 'codemirror/mode/diff/diff';
 import 'codemirror/addon/lint/lint';
 
+const formatTime = time => Intl.DateTimeFormat('en-US', {
+   year: 'numeric', month: 'short', day: 'numeric',
+   hour: 'numeric', minute: 'numeric'
+}).format(new Date(time))
+
 const useStyles = makeStyles( theme => ({
   revision_header: {
     borderBottom: '1px solid #ccc',
@@ -25,62 +29,56 @@ const useStyles = makeStyles( theme => ({
   },
   diff: {
     height: '200px',
-    border: '1px solid #ccc'
+    border: '1px solid #ccc',
+    '& .react-codemirror2,.CodeMirror': {
+      height: '100%',
+      width: '100%'
+    }
   },
   actions: {
     paddingRight: '25px'
   }
 }));
 
-const diff = ({revision, prev, diffType, config}:{
-  revision:EtlRevision,
-  prev:EtlRevision,
-  diffType:string,
-  config:any
-}) => {
-  if (diffType == 'text') return JSON.stringify(revision.config,null,2);
+const toJson = doc => JSON.stringify(doc,null,2);
+
+const diff = ({revision, current, prev, revisionDoc, diffType}) => {
+  if (diffType == 'text') return revisionDoc(revision);
 
   if (diffType == 'curr')
     return createTwoFilesPatch(
       'revision',
       'curr',
-      JSON.stringify(revision.config,null,2)+'\n',
-      JSON.stringify(config,null,2)+'\n'
+      revisionDoc(revision),
+      revisionDoc(current)
     );
   else
     return createTwoFilesPatch(
       'prev',
       'revision',
-      JSON.stringify(prev ? prev.config : {},null,2)+'\n',
-      JSON.stringify(revision.config,null,2)+'\n'
+      prev ? revisionDoc(prev) : revisionDoc({}),
+      revisionDoc(revision)
     );
 }
 
-const RevisionHistory = ({project_name, name, update, open, onClose, config}:{
-  project_name: string,
-  name: string,
-  update: (config: any) => void,
-  open: boolean,
-  onClose: (event:{})=>void,
-  config: any
-}) => {
-  const [ revisions, setRevisions ] = useState<null | EtlRevision[]>(null);
-  const [ selectedRevision, setSelectedRevision ] = useState<number|null>(null);
+const RevisionHistory = ({getRevisions, revisionDoc, update, open, onClose}) => {
+  const [ revisions, setRevisions ] = useState(null);
+  const [ selectedRevision, setSelectedRevision ] = useState(null);
   const [ diffType, setDiffType ] = useState('text');
 
-  const setSelected = (revision:number, diffType:string) => {
+  const setSelected = (revision, newDiffType) => {
+    if (selectedRevision == revision && diffType == newDiffType) {
+      setSelectedRevision(null);
+      return;
+    }
     setSelectedRevision(revision);
-    setDiffType(diffType);
+    setDiffType(newDiffType);
   }
 
   const classes = useStyles();
 
   useEffect( () => {
-    json_get(
-      `/api/etl/${project_name}/revisions/${name}`
-    ).then(
-      revisions => setRevisions(revisions)
-    )
+    getRevisions().then(revisions => setRevisions(revisions))
   }, []);
 
   return <Dialog maxWidth="md" fullWidth scroll='paper' open={open} onClose={ onClose } aria-labelledby="form-dialog-title">
@@ -105,7 +103,7 @@ const RevisionHistory = ({project_name, name, update, open, onClose, config}:{
                 { i != 0 ? <Button onClick={ () => setSelected(i,'curr') } variant='text' size='small'>curr</Button> : <div style={{width: '64px', display: 'inline'}}/> }
                 { i < revisions.length-1 && <Button onClick={ () => setSelected(i, 'prev') } variant='text' size='small'>prev</Button> }
               </Grid>
-              <Grid xs={4} item>{formatTime(revision.updated_at) }</Grid>
+              <Grid xs={4} item><Typography>{formatTime(revision.updated_at) }</Typography></Grid>
             </Grid>
             <Collapse in={selectedRevision == i} timeout='auto' unmountOnExit>
               <Grid container className={classes.diff}>
@@ -119,7 +117,7 @@ const RevisionHistory = ({project_name, name, update, open, onClose, config}:{
                     gutters: ['CodeMirror-lint-markers'],
                     tabSize: 2
                   }}
-                  value={diff({revision, diffType, config, prev: revisions[i+1]})}
+                  value={diff({revision, diffType, revisionDoc, current: revisions[0], prev: revisions[i+1]})}
                   onBeforeChange={(editor, data, value) => { }}
                 /> }
               </Grid>
@@ -130,7 +128,7 @@ const RevisionHistory = ({project_name, name, update, open, onClose, config}:{
     </DialogContent>
     <DialogActions className={classes.actions}>
       {
-        revisions && selectedRevision != null && <Button onClick={() => update(revisions[selectedRevision].config)} >Load</Button>
+        revisions && selectedRevision != null && <Button onClick={() => update(revisions[selectedRevision])} >Load</Button>
       }
     </DialogActions>
   </Dialog>;

@@ -34,7 +34,7 @@ services:
 
   prometheus_backup:
     image: etnaagent/metis:production
-    command: "yes > /dev/null"
+    command: "true"
     volumes:
       - tsdb:/prometheus
     deploy:
@@ -72,7 +72,7 @@ services:
     volumes:
       - grafana-config:/etc/grafana
       - grafana-data:/var/lib/grafana
-    command: "yes > /dev/null"
+    command: "true"
     user: "1500:999" # dockerapp:docker
     deploy:
       mode: replicated

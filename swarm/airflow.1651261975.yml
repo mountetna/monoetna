@@ -40,7 +40,7 @@ services:
       - dags:/opt/airflow/dags:nocopy
       - tmp:/opt/tmp:nocopy
     # does not run anything on its own, airflow schedules this service later to perform backups of the dag data
-    command: "yes > /dev/null"
+    command: "true"
     deploy:
       labels:
         - autoupdate=true
@@ -238,6 +238,12 @@ services:
 
 volumes:
   airflow-metadata-db:
+    name: airflow_db
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
+      device: ":/cache/postgres/airflow"
   tmp:
     name: airflow_tmp
     driver: local

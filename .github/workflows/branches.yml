@@ -28,6 +28,7 @@ jobs:
           - archimedes
           - deployer
           - airflow
+          - archimedes-node
       fail-fast: false
     steps:
       - uses: actions/checkout@v2

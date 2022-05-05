@@ -22,6 +22,7 @@ class Vulcan
 
       get 'api/:project_name/figures', action: 'figure#fetch'
       get 'api/:project_name/figure/:figure_id', action: 'figure#get'
+      get 'api/:project_name/figure/:figure_id/revisions', action: 'figure#revisions'
       post 'api/:project_name/figure/create', action: 'figure#create'
       post 'api/:project_name/figure/:figure_id/update', action: 'figure#update'
       delete 'api/:project_name/figure/:figure_id', action: 'figure#delete'

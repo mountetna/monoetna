@@ -94,7 +94,7 @@ describe FigureController do
     it 'updates an existing figure' do
       figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
       auth_header(:viewer)
-      contents = { title: 'Hercules Fighting the Nemean Lion' }
+      contents = { title: 'Hercules Fighting the Nemean Lion', comment: 'Better title'}
       post("/api/labors/figure/#{figure.figure_id}/update", contents)
 
       expect(last_response.status).to eq(200)
@@ -105,12 +105,15 @@ describe FigureController do
         title: "Hercules Fighting the Nemean Lion",
         workflow_name: "reubens"
       )
+
+      # there are two figures
+      expect(Vulcan::Figure.count).to eq(2)
     end
 
     it 'throws exception for unknown figure' do
       figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
       auth_header(:viewer)
-      contents = { title: 'Hercules Fighting the Nemean Lion' }
+      contents = { title: 'Hercules Fighting the Nemean Lion', comment: 'Better title' }
       post("/api/labors/figure/999999999/update", contents)
 
       expect(last_response.status).to eq(404)
@@ -119,7 +122,7 @@ describe FigureController do
     it 'updates an existing figure with tags' do
       figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
       auth_header(:viewer)
-      contents = { tags: ['private'] }
+      contents = { tags: ['private'], comment: 'Make private' }
       post("/api/labors/figure/#{figure.figure_id}/update", contents)
 
       expect(last_response.status).to eq(200)
@@ -142,7 +145,9 @@ describe FigureController do
       delete("/api/labors/figure/#{figure.figure_id}")
 
       expect(last_response.status).to eq(200)
-      expect(Vulcan::Figure.count).to eq(0)
+      expect(Vulcan::Figure.count).to eq(1)
+      figure.refresh
+      expect(figure.archived).to be_truthy
     end
 
     it 'throws exception for unknown figure' do

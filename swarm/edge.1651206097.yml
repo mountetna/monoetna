@@ -50,14 +50,13 @@ services:
         source /lib/config-helpers
         template /main.conf.erb main.conf
         cat main.conf | docker run --rm -i -v /etc/ssl:/etc/ssl:ro etnaagent/edge-apache:production bash -c 'cat > /usr/opt/httpd.conf.d/main.conf && httpd -t'
-        if [ -z "$$DRY_RUN" ]; then
-          enable main.conf
-          edge_node="$$(docker ps --filter name=edge_edge-apache -q || true)"
-          if [ -n "$$edge_node" ]; then
-            docker kill --signal="USR1" "$$edge_node" || true
-          fi
+        enable main.conf
+        edge_node="$$(docker ps --filter name=edge_edge-apache -q || true)"
+        if [ -n "$$edge_node" ]; then
+          docker exec "$$edge_node" apachectl -k graceful
         else
-          cat main.conf
+          echo "Could not find edge_edge-apache on local node"
+          exit 1
         fi
 
 volumes:
