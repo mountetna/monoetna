@@ -107,7 +107,7 @@
           }
           input {
             font-size: 1.0em;
-            width: 200px;
+            width: 95%;
           }
         }
       }
@@ -125,6 +125,10 @@
       }
 
       background: white;
+    }
+
+    .file-properties-dialog {
+      width: 400px;
     }
 
     .move-folder-dialog,
