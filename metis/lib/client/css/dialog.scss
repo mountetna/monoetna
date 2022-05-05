@@ -91,13 +91,14 @@
         display: flex;
         padding-top: 10px;
         .label {
-          flex: 0 0 75px;
+          flex: 0 0 85px;
           font-size: 0.8em;
           text-align: right;
           padding-right: 5px;
           padding-top: 3px;
         }
         .input {
+          padding-top: 3px;
           font-size: 0.8em;
           flex: 1 1;
           select, input {
