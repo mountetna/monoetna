@@ -3,14 +3,19 @@
   "version": "1.1.1-ui",
   "description": "Shared JS modules for Mount Etna.",
   "scripts": {
-    "test": "tsc && jest"
+    "test": "tsc && jest",
+    "build": "find . -name \"*.ts\" -not -path \"*/node_modules/*\" -print0 | xargs -0 -I {} tsc --downlevelIteration --lib es2019 --skipLibCheck {}"
   },
   "author": "",
   "license": "GPL-2.0-only",
   "dependencies": {
     "animate.css": "^4.1.0",
+    "hyperformula": "^2.0.0",
     "react-notifications-component": "^2.4.0"
   },
+  "bundledDependencies": [
+    "hyperformula"
+  ],
   "peerDependencies": {
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
