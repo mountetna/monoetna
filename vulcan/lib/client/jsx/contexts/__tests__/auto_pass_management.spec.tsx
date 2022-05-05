@@ -20,7 +20,7 @@ import {createSessionFixture, createStatusFixture, createStepStatusFixture} from
 import { Switch } from '@material-ui/core';
 import { act } from 'react-test-renderer';
 
-describe('useDataBuffering', () => {
+describe('autoPass, in WithBufferedInputs', () => {
   beforeEach(() => {
     jest.useFakeTimers();
   });
@@ -89,94 +89,93 @@ describe('useDataBuffering', () => {
     });
   });
 
-  describe('autoPass', () => {
-
-    describe('for primary inputs', () => {
-      stepName.replace(() => null)
-      describe('in workflow w/ vignette trigger', () => {
-        const addVignetteWithTrigger = awaitBefore(async () => {
-          workflowHelpers.value.setVignette('blah blah Primary inputs are skippable blah blah');
-        });
-        describe('no session inputs yet', () => {
-          const setPrimaryInputs = awaitBefore(async () => {
-            bufferInputsContextData.value.setInputs(() => {
-              return { a: [true], b: [true], c: [true] }
-            })
-          })
-          it('autoPass initiated', async () => {
-            const {stateRef} = contextData.value;
-            expect(stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable")).toBeTruthy()
-            expect(stateRef.current.triggerRun).toEqual([null])
-          })
-        })
-        // describe('with previous session inputs', () => {
-        //   testSession.replace(() =>
-        //     createSessionFixture('test', {project_name: 'test', inputs: {a: [true]}})
-        //   )
-        //   const setupSession = awaitBefore(async () => {
-        //     await testSession.ensure();
-        //     contextData.value.dispatch(setSession(testSession.value));
-        //   });
-        //   const bufferInputsContextData = setupBefore(() =>
-        //     integrated.value.runHook(() => useContext(BufferedInputsContext))
-        //   );
-        //   describe('before primaries set', () => {
-        //     const setPrimaryInputs = awaitBefore(async () => {
-        //       bufferInputsContextData.value.setInputs(() => {
-        //         return { a: [true], b: [true], c: [true] }
-        //       })
-        //     })
-        //     it('does NOT initiate autoPass', () => {
-        //       const {state} = contextData.value;
-        //       console.log(state.session.inputs)
-        //       console.log("after?")
-        //       const {stateRef} = contextData.value;
-        //       expect(stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable")).toBeTruthy()
-        //       expect(stateRef.current.triggerRun).toEqual([])
-        //     })
-        //   })
-        // })
-      })
-      describe('for primary inputs, w/out vignette string', () => {
-        const addVignetteWithoutTrigger = awaitBefore(async () => {
-          workflowHelpers.value.setVignette('blah blah blah blah');
-        });
+  describe('for primary inputs', () => {
+    stepName.replace(() => null)
+    describe('in workflow w/ vignette trigger', () => {
+      const addVignetteWithTrigger = awaitBefore(async () => {
+        workflowHelpers.value.setVignette('blah blah Primary inputs are skippable blah blah');
+      });
+      describe('no session inputs yet', () => {
         const setPrimaryInputs = awaitBefore(async () => {
           bufferInputsContextData.value.setInputs(() => {
             return { a: [true], b: [true], c: [true] }
           })
         })
-        it('TryCommitThenRun not initiated', () => {
+        it('autoPass initiated', async () => {
           const {stateRef} = contextData.value;
-          expect(stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable")).toBeFalsy()
-          expect(stateRef.current.triggerRun).toEqual([])
+          expect(stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable")).toBeTruthy()
+          expect(stateRef.current.triggerRun).toEqual([null])
         })
-      });
-    })
-
-    describe('for stepUserInputs w/ doc string', () => {
-      stepName.replace(() => 'bstep')
-      async function pushStepUI() {
-        await act(async () => {
-          bufferInputsContextData.value.setInputs(() => {
-            return { 'bstep/b': [true], 'bstep/a': [true] }
+      })
+      describe('with previous session inputs', () => {
+        testSession.replace(() =>
+          createSessionFixture('test', {
+            project_name: 'test',
+            inputs: { a: [true], b: [true], c: [true] }
           })
+        )
+        setupSession.replace(async () => {
+          await testSession.ensure();
+          contextData.value.dispatch(setSession(testSession.value));
         });
-      }
-      describe('eligible', () => {
-        const setStepInputs = awaitBefore(async () => {
-          bufferInputsContextData.value.setInputs(() => {
-            return { 'bstep/b': [true], 'bstep/a': [true] }
+        integrated.replace(() =>
+          integrateElement((hook, {dispatch, commitSessionInputChanges}) => (
+            <WithBufferedInputs
+              stepName={stepName.value}
+              dispatch={dispatch}
+              commitSessionInputChanges={commitSessionInputChanges}
+            >
+              {hook}
+            </WithBufferedInputs>
+          ))
+        );
+        describe('on primary input values set', () => {
+          const setPrimaryInputs = awaitBefore(async () => {
+            bufferInputsContextData.value.setInputs(() => {
+              return { a: [true], b: [true], c: [true] }
+            })
+          })
+          it('does NOT initiate autoPass', () => {
+            const {stateRef} = contextData.value;
+            expect(stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable")).toBeTruthy()
+            expect(stateRef.current.triggerRun).toEqual([])
           })
         })
-        it('switch shown', () => {
-          expect(contextData.value.stateRef.current.autoPassSteps).toEqual([])
-          expect(contextData.value.stateRef.current.tryCommitThenRun).toEqual([])
-          expect(contextData.value.stateRef.current.triggerRun).toEqual([])
-          const {node} = integrated.value;
-          expect(node.root.findAllByType(Switch).length).toEqual(1);
-          expect(node.root.findAllByProps({className:'reset-or-commit-inputs'}).length).toEqual(1)
+      })
+    })
+    describe('for primary inputs, w/out vignette string', () => {
+      const addVignetteWithoutTrigger = awaitBefore(async () => {
+        workflowHelpers.value.setVignette('blah blah blah blah');
+      });
+      const setPrimaryInputs = awaitBefore(async () => {
+        bufferInputsContextData.value.setInputs(() => {
+          return { a: [true], b: [true], c: [true] }
         })
+      })
+      it('TryCommitThenRun not initiated', () => {
+        const {stateRef} = contextData.value;
+        expect(stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable")).toBeFalsy()
+        expect(stateRef.current.triggerRun).toEqual([])
+      })
+    });
+  })
+
+  describe('for stepUserInputs w/ doc string', () => {
+    stepName.replace(() => 'bstep')
+    describe('eligible', () => {
+      const setStepInputs = awaitBefore(async () => {
+        bufferInputsContextData.value.setInputs(() => {
+          return { 'bstep/b': [true], 'bstep/a': [true] }
+        })
+      })
+      it('switch shown', async () => {
+        const {stateRef} = contextData.value;
+        expect(stateRef.current.autoPassSteps).toEqual([])
+        expect(stateRef.current.tryCommitThenRun).toEqual([])
+        expect(stateRef.current.triggerRun).toEqual([])
+        const {node} = integrated.value;
+        expect(node.root.findAllByType(Switch).length).toEqual(1);
+        expect(node.root.findAllByProps({className:'reset-or-commit-inputs'}).length).toEqual(1)
       })
       // fit('adds to autoPassSteps on toggle', async () => {
       //   const {node} = integrated.value;
@@ -187,62 +186,97 @@ describe('useDataBuffering', () => {
       //   console.log(contextData.value.stateRef.current)
       //   expect(contextData.value.stateRef.current.autoPassSteps).toEqual(['bstep'])
       // })
-      describe('turned on', () => {
-        const setAutoPass = awaitBefore(async () => {
-          contextData.value.dispatch(setAutoPassStep(stepName.value));
+    })
+    describe('turned on', () => {
+      const setAutoPass = awaitBefore(async () => {
+        contextData.value.dispatch(setAutoPassStep(stepName.value));
+      })
+      describe('no validation errors', () => {
+        it('indeed', () => {
+          const {stateRef} = contextData.value;
+          expect(stateRef.current.validationErrors).toEqual([]);
+          expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
+          expect(stateRef.current.tryCommitThenRun).toEqual([]);
+          expect(stateRef.current.triggerRun).toEqual([]);
         })
-        describe('no validation errors', () => {
+        describe('on inputs set', () => {
+          // Triggered when setting inputs, with tryCommitThenRun both set and cleared on within this await
+          const setStepInputs = awaitBefore(async () => {
+            bufferInputsContextData.value.setInputs(() => {
+              return { 'bstep/b': [true], 'bstep/a': [true] }
+            })
+          })
           it('gets through TryCommitThenRun & triggers Run', async () => {
             const {stateRef} = contextData.value;
-            const {inputs} = bufferInputsContextData.value;
-            expect(stateRef.current.validationErrors).toEqual([]);
-            expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
-            expect(stateRef.current.tryCommitThenRun).toEqual([]);
-            expect(stateRef.current.triggerRun).toEqual([]);
-            // Triggered when setting inputs, with tryCommitThenRun also acted on within this await
-            await pushStepUI()
             expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
             expect(stateRef.current.tryCommitThenRun).toEqual([]);
             expect(stateRef.current.triggerRun).toEqual(['bstep']);
           })
-          // describe('with previous session inputs for step', () => {
-          //   testSession.replace(() =>
-          //     createSessionFixture('test', {project_name: 'test', inputs: {bstep/a: [true]}})
-          //   )
-          //   const setupSession = awaitBefore(async () => {
-          //     await testSession.ensure();
-          //     contextData.value.dispatch(setSession(testSession.value));
-          //   });
-          //   const bufferInputsContextData = setupBefore(() =>
-          //     integrated.value.runHook(() => useContext(BufferedInputsContext))
-          //   );
-          //   describe('on passing new inputs', () => {
-          //     const setStepInputs = awaitBefore(async () => {
-          //       bufferInputsContextData.value.setInputs(() => {
-          //         return { 'bstep/b': [true], 'bstep/a': [true] }
-          //       })
-          //     })
-          //     it('does NOT initiate autoPass', () => {
-          //       const {stateRef} = contextData.value;
-          //       expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
-          //       expect(stateRef.current.tryCommitThenRun).toEqual([]);
-          //       expect(stateRef.current.triggerRun).toEqual([]);
-          //     })
-          //   })
-          // })
         })
-        describe('with validation errors', () => {
-          const addValidationError = awaitBefore(async () => {
-            contextData.value.dispatch(
-              addValidationErrors('bstep', 'the label', ['some error'])
-            );
+        describe('with previous session inputs for step', () => {
+          testSession.replace(() =>
+            createSessionFixture('test', {
+              project_name: 'test',
+              inputs: {'bstep/a': [true]}
+            })
+          )
+          const setupSession = awaitBefore(async () => {
+            await testSession.ensure();
+            contextData.value.dispatch(setSession(testSession.value));
+          });
+          integrated.replace(() =>
+            integrateElement((hook, {dispatch, commitSessionInputChanges}) => (
+              <WithBufferedInputs
+                stepName={stepName.value}
+                dispatch={dispatch}
+                commitSessionInputChanges={commitSessionInputChanges}
+              >
+                {hook}
+              </WithBufferedInputs>
+            ))
+          );
+          it('indeed', () => {
+            const {stateRef} = contextData.value;
+            // input values do exist beforehand
+            expect(Object.keys(stateRef.current.session.inputs).filter((val: string) => val.includes(stepName.value as string)).length).toBeGreaterThanOrEqual(1)
+            expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
+            expect(stateRef.current.tryCommitThenRun).toEqual([]);
+            expect(stateRef.current.triggerRun).toEqual([]);
+          })
+          describe('on passing new inputs', () => {
+            // Triggered when setting inputs, with tryCommitThenRun both set and cleared on within this await
+            const setStepInputs = awaitBefore(async () => {
+              bufferInputsContextData.value.setInputs(() => {
+                return { 'bstep/b': [true], 'bstep/a': [true] }
+              })
+            })
+            it('does NOT initiate autoPass', () => {
+              const {stateRef} = contextData.value;
+              expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
+              expect(stateRef.current.tryCommitThenRun).toEqual([]);
+              expect(stateRef.current.triggerRun).toEqual([]);
+            })
+          })
+        })
+      })
+      describe('with validation errors', () => {
+        const addValidationError = awaitBefore(async () => {
+          contextData.value.dispatch(
+            addValidationErrors('bstep', 'the label', ['some error'])
+          );
+        })
+        it('indeed', () => {
+          const {stateRef} = contextData.value;
+          expect(stateRef.current.validationErrors).toEqual([["bstep","the label",["some error"]]]);
+        })
+        describe('on attempting to set inputs', () => {
+          const setStepInputs = awaitBefore(async () => {
+            bufferInputsContextData.value.setInputs(() => {
+              return { 'bstep/b': [true], 'bstep/a': [true] }
+            })
           })
           it('NO triggerRun, ', async () => {
             const {stateRef} = contextData.value;
-            const {inputs} = bufferInputsContextData.value;
-            expect(stateRef.current.validationErrors).toEqual([["bstep","the label",["some error"]]]);
-            // Triggered when setting inputs, with tryCommitThenRun also acted on within this await
-            await pushStepUI()
             expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
             expect(stateRef.current.tryCommitThenRun).toEqual([]);
             expect(stateRef.current.triggerRun).toEqual([]);
@@ -250,19 +284,19 @@ describe('useDataBuffering', () => {
         })
       })
     })
-    describe('for stepUserInputs w/out doc string', () => {
-      stepName.replace(() => 'astep')
-      describe('not eligible', () => {
-        it('switch not shown', async () => {
-          await act(async () => {
-            bufferInputsContextData.value.setInputs(() => {
-              return { 'astep/b': [true], 'astep/a': [true] }
-            })
-          });
-          const {node} = integrated.value;
-          expect(node.root.findAllByProps({className:'reset-or-commit-inputs'}).length).toEqual(1)
-          expect(node.root.findAllByType(Switch).length).toEqual(0);
-        })
+  })
+  describe('for stepUserInputs w/out doc string', () => {
+    stepName.replace(() => 'astep')
+    describe('not eligible', () => {
+      it('switch not shown', async () => {
+        await act(async () => {
+          bufferInputsContextData.value.setInputs(() => {
+            return { 'astep/b': [true], 'astep/a': [true] }
+          })
+        });
+        const {node} = integrated.value;
+        expect(node.root.findAllByProps({className:'reset-or-commit-inputs'}).length).toEqual(1)
+        expect(node.root.findAllByType(Switch).length).toEqual(0);
       })
     })
   })

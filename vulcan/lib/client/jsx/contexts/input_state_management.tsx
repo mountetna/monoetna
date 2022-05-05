@@ -7,13 +7,14 @@ import {defaultSessionSyncHelpers} from "./session_sync";
 import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 import {dismissMessages, showMessages} from "etna-js/actions/message_actions";
 import {clearBufferedInput, clearCommitTrigger, clearAutoPassStep, setBufferedInput, setInputs, setRunTrigger, setAutoPassStep, VulcanAction, setCommitTrigger} from "../actions/vulcan_actions";
-import {allSourcesForStepName, statusOfStep} from "../selectors/workflow_selectors";
+import {allSourcesForStepName} from "../selectors/workflow_selectors";
 import {mapSome, Maybe, maybeOfNullable, some, withDefault} from "../selectors/maybe";
 import {DataEnvelope} from "../components/workflow/user_interactions/inputs/input_types";
 import {VulcanContext} from "./vulcan_context";
 
 import Button from '@material-ui/core/Button';
 import { FormControlLabel, Grid, Switch } from '@material-ui/core';
+import { Workflow } from '../api_types';
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(stepName: string | null, inputs: DataEnvelope<Maybe<any>>) {
@@ -56,8 +57,8 @@ export function WithBufferedInputs({
       if (!stateRef.current.bufferedSteps.includes(stepName))
         dispatch(setBufferedInput(stepName));
         // Check / Initiate auto-pass attempt.
-        if ( (stepName==null && stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable") && Object.keys(state.session.inputs).length==0 )
-          || (stepName!=null && stateRef.current.autoPassSteps.includes(stepName) && Object.keys(state.session.inputs).filter((val) => val.includes(stepName)).length<1 )
+        if ( (stepName==null && stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable") && Object.keys(stateRef.current.session.inputs).length==0 )
+          || (stepName!=null && stateRef.current.autoPassSteps.includes(stepName) && Object.keys(stateRef.current.session.inputs).filter((val) => val.includes(stepName)).length<1 )
         ) {
           dispatch(setCommitTrigger(stepName));
         }
@@ -92,18 +93,9 @@ export function WithBufferedInputs({
     }
   }
 
-  function isPassable(stepName: string | null) {
-    if (stepName!=null) {
-      // ToDo: better way?
-      const this_step = state.workflow?.steps[0].filter((val) => val.name == stepName)[0]
-      if (this_step && this_step.doc!=null && this_step.doc.startsWith('SKIPPABLE')) return true
-    }
-    return false
-  }
-
   // Catch auto-pass 'Commit' trigger
   useEffect(() => {
-    if (state.tryCommitThenRun.length>0 && state.tryCommitThenRun[0] == stepName) {
+    if (stateRef.current.tryCommitThenRun.includes(stepName)) {
       // Try to commit, add 'Run' trigger if works
       if (commitSessionInputChanges(stepName, inputsRef.current)) {
         cancelInputs();
@@ -111,7 +103,7 @@ export function WithBufferedInputs({
       }
       dispatch(clearCommitTrigger(stepName))
     }
-  },[state.tryCommitThenRun])
+  },[stateRef.current.tryCommitThenRun])
 
   const commit_rest_buttons = hasInputs ? <div className='reset-or-commit-inputs'>
     <Button onClick={cancelInputs} disabled={!!state.pollingState}>
@@ -132,7 +124,7 @@ export function WithBufferedInputs({
     </Button>
   </div> : null
 
-  const autopass_switch = isPassable(stepName) ? <FormControlLabel
+  const autopass_switch = isPassableUIStep(stepName, state.workflow) ? <FormControlLabel
     control={
       <Switch
         checked={state.autoPassSteps.includes(stepName)}
@@ -145,7 +137,7 @@ export function WithBufferedInputs({
     labelPlacement='start'
   /> : null
 
-  const controls_below = (isPassable(stepName) || hasInputs) ? (
+  const controls_below = (isPassableUIStep(stepName, state.workflow) || hasInputs) ? (
     <Grid container style={{width: 'auto'}} justify="flex-end">
       {autopass_switch}
       {commit_rest_buttons}
@@ -196,4 +188,12 @@ export function useInputStateManagement(invoke: ReturnType<typeof useActionInvok
   return {
     commitSessionInputChanges,
   };
+}
+
+export function isPassableUIStep(stepName: string | null, workflow: Workflow | null) {
+  if (stepName!=null) {
+    const this_step = workflow?.steps[0].filter((val) => val.name == stepName)[0]
+    if (this_step?.doc?.startsWith('SKIPPABLE')) return true
+  }
+  return false
 }
