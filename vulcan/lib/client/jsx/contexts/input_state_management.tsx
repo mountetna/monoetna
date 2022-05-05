@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {VulcanState} from "../reducers/vulcan_reducer";
+import {defaultSession, VulcanState} from "../reducers/vulcan_reducer";
 import {
   createContext, Dispatch, MutableRefObject, PropsWithChildren, useCallback, useContext, useRef, useState
 } from "react";
@@ -57,7 +57,7 @@ export function WithBufferedInputs({
       if (!stateRef.current.bufferedSteps.includes(stepName))
         dispatch(setBufferedInput(stepName));
         // Check / Initiate auto-pass attempt.
-        if ( (stepName==null && stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable") && Object.keys(stateRef.current.session.inputs).length==0 )
+        if ( (stepName==null && stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable") && Object.keys(stateRef.current.session.inputs).length==0 /*catch page refreshing and not yet ready*/ && stateRef.current.session!==defaultSession)
           || (stepName!=null && stateRef.current.autoPassSteps.includes(stepName) && Object.keys(stateRef.current.session.inputs).filter((val) => val.includes(stepName)).length<1 )
         ) {
           dispatch(setCommitTrigger(stepName));
