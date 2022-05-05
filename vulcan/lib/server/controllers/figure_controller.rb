@@ -105,5 +105,9 @@ class FigureController < Vulcan::Controller
       :tags
     ]
   end
+
+  def image_sha(image_name:, tag: 'production', account: 'etnaagent', registry: 'registry.hub.docker.com/v2/repositories')
+    `curl --silent --location --url https://#{registry}/#{account}/#{image_name}/tags/#{tag} | jq -r '.images[0].digest'`
+  end
 end
 
