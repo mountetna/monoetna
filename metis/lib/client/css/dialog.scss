@@ -66,7 +66,8 @@
 
     .config-dialog,
     .move-folder-dialog,
-    .move-file-dialog {
+    .move-file-dialog,
+    .file-properties-dialog {
       width: 300px;
       font-family: $base-font;
       padding: 5px;
@@ -90,13 +91,14 @@
         display: flex;
         padding-top: 10px;
         .label {
-          flex: 0 0 75px;
+          flex: 0 0 85px;
           font-size: 0.8em;
           text-align: right;
           padding-right: 5px;
           padding-top: 3px;
         }
         .input {
+          padding-top: 3px;
           font-size: 0.8em;
           flex: 1 1;
           select, input {
@@ -105,11 +107,12 @@
           }
           input {
             font-size: 1.0em;
-            width: 200px;
+            width: 95%;
           }
         }
       }
-      .submit {
+      .submit,
+      .close {
         display: flex;
         padding: 10px 80px 5px;
         .button {
@@ -122,6 +125,10 @@
       }
 
       background: white;
+    }
+
+    .file-properties-dialog {
+      width: 400px;
     }
 
     .move-folder-dialog,
