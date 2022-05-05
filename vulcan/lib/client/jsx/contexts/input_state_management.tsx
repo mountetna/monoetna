@@ -138,7 +138,7 @@ export function WithBufferedInputs({
   /> : null
 
   const controls_below = (isPassableUIStep(stepName, state.workflow) || hasInputs) ? (
-    <Grid container style={{width: 'auto'}} justify="flex-end">
+    <Grid container style={{width: 'auto'}} justifyContent="flex-end">
       {autopass_switch}
       {commit_rest_buttons}
     </Grid>

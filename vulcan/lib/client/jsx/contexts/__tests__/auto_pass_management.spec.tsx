@@ -16,7 +16,7 @@ import {
   BufferedInputsContext,
   WithBufferedInputs
 } from '../input_state_management';
-import {createSessionFixture, createStatusFixture, createStepStatusFixture} from '../../test_utils/fixtures';
+import {createSessionFixture} from '../../test_utils/fixtures';
 import { Switch } from '@material-ui/core';
 import { act } from 'react-test-renderer';
 

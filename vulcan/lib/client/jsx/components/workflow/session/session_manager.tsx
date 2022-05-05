@@ -49,7 +49,6 @@ import { json_get } from 'etna-js/utils/fetch';
 import useUserHooks from '../../useUserHooks';
 import Button from '@material-ui/core/Button';
 import Tag from '../../tag';
-import { defaultSessionSyncHelpers } from '../../../contexts/session_sync';
 
 import RevisionHistory from 'etna-js/components/revision-history';
 
