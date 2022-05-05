@@ -8,12 +8,9 @@ import {
   sourceNamesOfStep, splitSource, stepInputDataRaw, stepOfSource, stepOfStatus, stepOutputs, uiQueryOfStep
 } from "../../../../selectors/workflow_selectors";
 import {defaultBufferedInputs} from "../../../../contexts/input_state_management";
+import {InputType, DataEnvelope} from 'etna-js/utils/input_types';
 
-export type InputType = string;
-
-// ui-queries using CWL take a dictionary of inputs, which often must be flattened.
-// This type represents the unflattened raw data format coming in from the cwl.
-export type DataEnvelope<Inner> = { [k: string]: Inner };
+export {InputType, DataEnvelope} from 'etna-js/utils/input_types';
 
 export function nulled_vals(de: DataEnvelope<any>): DataEnvelope<null> {
   let de_ = {...de};
