@@ -95,7 +95,7 @@ export function WithBufferedInputs({
 
   // Catch auto-pass 'Commit' trigger
   useEffect(() => {
-    if (stateRef.current.tryCommitThenRun.includes(stepName)) {
+    if (stateRef.current.tryCommitThenRun.includes(stepName) && Object.keys(inputsRef.current).length > 0) {
       // Try to commit, add 'Run' trigger if works
       if (commitSessionInputChanges(stepName, inputsRef.current)) {
         cancelInputs();
@@ -103,7 +103,7 @@ export function WithBufferedInputs({
       }
       dispatch(clearCommitTrigger(stepName))
     }
-  },[stateRef.current.tryCommitThenRun])
+  },[stateRef.current.tryCommitThenRun, inputsRef])
 
   const commit_rest_buttons = hasInputs ? <div className='reset-or-commit-inputs'>
     <Button onClick={cancelInputs} disabled={!!state.pollingState}>
