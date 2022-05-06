@@ -115,10 +115,10 @@ export function WithBufferedInputs({
     </Button>
   </div> : null
 
-  const autopass_switch = isPassableUIStep(stepName, state.workflow) ? <FormControlLabel
+  const autopass_switch = isPassableUIStep(stepName, stateRef.current.workflow) ? <FormControlLabel
     control={
       <Switch
-        checked={state.autoPassSteps.includes(stepName)}
+        checked={stateRef.current.autoPassSteps.includes(stepName)}
         onChange={setAutoPass}
         color='primary'
         disabled={!!state.pollingState}
@@ -128,7 +128,7 @@ export function WithBufferedInputs({
     labelPlacement='start'
   /> : null
 
-  const controls_below = (isPassableUIStep(stepName, state.workflow) || hasInputs) ? (
+  const controls_below = (isPassableUIStep(stepName, stateRef.current.workflow) || hasInputs) ? (
     <Grid container style={{width: 'auto'}} justifyContent="flex-end">
       {autopass_switch}
       {commit_rest_buttons}
