@@ -235,7 +235,6 @@ steps:
   cluster_annotation:
     run: ui-queries/multiple-string.cwl
     label: 'Manually Annotate Clusters'
-    doc: 'SKIPPABLE. Use this optional input to enter annotations for each cluster.'
     in:
       a: calc_leiden/blank_annots.json
     out: [annots.json]
