@@ -104,14 +104,6 @@ export function clearAutoPassStep(step: string | null) {
   return actionObject('CLEAR_AUTO_PASS_STEP', {step});
 }
 
-export function setCommitTrigger(step: string | null) {
-  return actionObject('SET_COMMIT_TRIGGER', {step});
-}
-
-export function clearCommitTrigger(step: string | null) {
-  return actionObject('CLEAR_COMMIT_TRIGGER', {step});
-}
-
 export function setRunTrigger(step: string | null) {
   return actionObject('SET_RUN_TRIGGER', {step});
 }
@@ -145,8 +137,6 @@ export type VulcanAction =
   | ReturnType<typeof clearBufferedInput>
   | ReturnType<typeof setAutoPassStep>
   | ReturnType<typeof clearAutoPassStep>
-  | ReturnType<typeof setCommitTrigger>
-  | ReturnType<typeof clearCommitTrigger>
   | ReturnType<typeof setRunTrigger>
   | ReturnType<typeof clearRunTriggers>
   | ReturnType<typeof checkCommittedStepPending>

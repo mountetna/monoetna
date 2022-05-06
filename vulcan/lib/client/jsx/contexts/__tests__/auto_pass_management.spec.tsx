@@ -152,7 +152,7 @@ describe('autoPass, in WithBufferedInputs', () => {
           return { a: [true], b: [true], c: [true] }
         })
       })
-      it('TryCommitThenRun not initiated', () => {
+      it('does NOT initiate autoPass', () => {
         const {stateRef} = contextData.value;
         expect(stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable")).toBeFalsy()
         expect(stateRef.current.triggerRun).toEqual([])
@@ -171,7 +171,6 @@ describe('autoPass, in WithBufferedInputs', () => {
       it('switch shown', async () => {
         const {stateRef} = contextData.value;
         expect(stateRef.current.autoPassSteps).toEqual([])
-        expect(stateRef.current.tryCommitThenRun).toEqual([])
         expect(stateRef.current.triggerRun).toEqual([])
         const {node} = integrated.value;
         expect(node.root.findAllByType(Switch).length).toEqual(1);
@@ -196,20 +195,17 @@ describe('autoPass, in WithBufferedInputs', () => {
           const {stateRef} = contextData.value;
           expect(stateRef.current.validationErrors).toEqual([]);
           expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
-          expect(stateRef.current.tryCommitThenRun).toEqual([]);
           expect(stateRef.current.triggerRun).toEqual([]);
         })
         describe('on inputs set', () => {
-          // Triggered when setting inputs, with tryCommitThenRun both set and cleared on within this await
           const setStepInputs = awaitBefore(async () => {
             bufferInputsContextData.value.setInputs(() => {
               return { 'bstep/b': [true], 'bstep/a': [true] }
             })
           })
-          it('gets through TryCommitThenRun & triggers Run', async () => {
+          it('triggers Run', async () => {
             const {stateRef} = contextData.value;
             expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
-            expect(stateRef.current.tryCommitThenRun).toEqual([]);
             expect(stateRef.current.triggerRun).toEqual(['bstep']);
           })
         })
@@ -240,11 +236,9 @@ describe('autoPass, in WithBufferedInputs', () => {
             // input values do exist beforehand
             expect(Object.keys(stateRef.current.session.inputs).filter((val: string) => val.includes(stepName.value as string)).length).toBeGreaterThanOrEqual(1)
             expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
-            expect(stateRef.current.tryCommitThenRun).toEqual([]);
             expect(stateRef.current.triggerRun).toEqual([]);
           })
           describe('on passing new inputs', () => {
-            // Triggered when setting inputs, with tryCommitThenRun both set and cleared on within this await
             const setStepInputs = awaitBefore(async () => {
               bufferInputsContextData.value.setInputs(() => {
                 return { 'bstep/b': [true], 'bstep/a': [true] }
@@ -253,7 +247,6 @@ describe('autoPass, in WithBufferedInputs', () => {
             it('does NOT initiate autoPass', () => {
               const {stateRef} = contextData.value;
               expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
-              expect(stateRef.current.tryCommitThenRun).toEqual([]);
               expect(stateRef.current.triggerRun).toEqual([]);
             })
           })
@@ -275,10 +268,9 @@ describe('autoPass, in WithBufferedInputs', () => {
               return { 'bstep/b': [true], 'bstep/a': [true] }
             })
           })
-          it('NO triggerRun, ', async () => {
+          it('does NOT initiate autoPass, ', async () => {
             const {stateRef} = contextData.value;
             expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
-            expect(stateRef.current.tryCommitThenRun).toEqual([]);
             expect(stateRef.current.triggerRun).toEqual([]);
           })
         })

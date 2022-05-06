@@ -6,7 +6,7 @@ import {
 import {defaultSessionSyncHelpers} from "./session_sync";
 import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 import {dismissMessages, showMessages} from "etna-js/actions/message_actions";
-import {clearBufferedInput, clearCommitTrigger, clearAutoPassStep, setBufferedInput, setInputs, setRunTrigger, setAutoPassStep, VulcanAction, setCommitTrigger} from "../actions/vulcan_actions";
+import {clearBufferedInput, clearAutoPassStep, setBufferedInput, setInputs, setRunTrigger, setAutoPassStep, VulcanAction} from "../actions/vulcan_actions";
 import {allSourcesForStepName} from "../selectors/workflow_selectors";
 import {mapSome, Maybe, maybeOfNullable, some, withDefault} from "../selectors/maybe";
 import {DataEnvelope} from "../components/workflow/user_interactions/inputs/input_types";
@@ -60,7 +60,10 @@ export function WithBufferedInputs({
         if ( (stepName==null && stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable") && Object.keys(stateRef.current.session.inputs).length==0 /*catch page refreshing and not yet ready*/ && stateRef.current.session!==defaultSession)
           || (stepName!=null && stateRef.current.autoPassSteps.includes(stepName) && Object.keys(stateRef.current.session.inputs).filter((val) => val.includes(stepName)).length<1 )
         ) {
-          dispatch(setCommitTrigger(stepName));
+          if (commitSessionInputChanges(stepName, inputsRef.current)) {
+            cancelInputs();
+            dispatch(setRunTrigger(stepName))
+          }
         }
     } else {
       if (stateRef.current.bufferedSteps.includes(stepName))
@@ -92,18 +95,6 @@ export function WithBufferedInputs({
       dispatch(clearAutoPassStep(stepName))
     }
   }
-
-  // Catch auto-pass 'Commit' trigger
-  useEffect(() => {
-    if (stateRef.current.tryCommitThenRun.includes(stepName) && Object.keys(inputsRef.current).length > 0) {
-      // Try to commit, add 'Run' trigger if works
-      if (commitSessionInputChanges(stepName, inputsRef.current)) {
-        cancelInputs();
-        dispatch(setRunTrigger(stepName))
-      }
-      dispatch(clearCommitTrigger(stepName))
-    }
-  },[stateRef.current.tryCommitThenRun, inputsRef])
 
   const commit_rest_buttons = hasInputs ? <div className='reset-or-commit-inputs'>
     <Button onClick={cancelInputs} disabled={!!state.pollingState}>

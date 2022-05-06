@@ -34,7 +34,6 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpandLessIcon from '@material-ui/icons/ExpandLess';
 import IconButton from '@material-ui/core/IconButton';
 import {makeStyles} from '@material-ui/core/styles';
-import { setCommitTrigger } from '../../../actions/vulcan_actions';
 
 const useStyles = makeStyles((theme) => ({
   card: {
