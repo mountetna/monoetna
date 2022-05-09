@@ -53,6 +53,10 @@ describe FigureController do
   end
 
   context '#create' do
+    before(:each) do
+      setup_docker_hub_stubs
+    end
+
     it 'creates a new figure' do
       auth_header(:viewer)
       contents = {
@@ -69,6 +73,7 @@ describe FigureController do
         )
       )
 
+      expect(json_body.keys).to include(:dependencies)
     end
 
     it 'creates a new figure with tags' do
@@ -87,12 +92,24 @@ describe FigureController do
           project_name: "labors"
         )
       )
+
+      expect(json_body.keys).to include(:dependencies)
     end
   end
 
   context '#update' do
+    before(:each) do
+      setup_docker_hub_stubs
+    end
+
     it 'updates an existing figure' do
-      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
+      figure = create_figure(
+        title: 'Lion of Nemea',
+        workflow_name: 'reubens',
+        dependencies: {
+          something: 'sha:abc'
+        }
+      )
       auth_header(:viewer)
       contents = { title: 'Hercules Fighting the Nemean Lion', comment: 'Better title'}
       post("/api/labors/figure/#{figure.figure_id}/update", contents)
@@ -103,7 +120,12 @@ describe FigureController do
         inputs: {},
         project_name: "labors",
         title: "Hercules Fighting the Nemean Lion",
-        workflow_name: "reubens"
+        workflow_name: "reubens",
+
+        # Updating maintains the previous figure dependencies
+        dependencies: {
+          something: 'sha:abc'
+        }
       )
 
       # there are two figures
@@ -132,6 +154,40 @@ describe FigureController do
         project_name: "labors",
         tags: ['private'],
         workflow_name: "reubens"
+      )
+    end
+
+    it 'can update dependencies' do
+      figure = create_figure(
+        title: 'Lion of Nemea',
+        workflow_name: 'reubens',
+        dependencies: {
+          something: 'sha:abc'
+        }
+      )
+      auth_header(:viewer)
+      contents = {
+        title: 'Hercules Fighting the Nemean Lion',
+        comment: 'Better title',
+        update_dependencies: true
+      }
+      post("/api/labors/figure/#{figure.figure_id}/update", contents)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body).to include(
+        figure_id: 1,
+        inputs: {},
+        project_name: "labors",
+        title: "Hercules Fighting the Nemean Lion",
+        workflow_name: "reubens",
+
+        # Using the update_dependencies re-queries docker hub to grab
+        #   the latest SHAs
+        dependencies: {
+          vulcan: 'sha:123',
+          archimedes: 'sha:123',
+          'archimedes-node': 'sha:123'
+        }
       )
     end
   end

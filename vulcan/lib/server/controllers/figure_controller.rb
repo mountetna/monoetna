@@ -1,4 +1,5 @@
 require 'json'
+require 'net/http'
 require_relative './vulcan_controller'
 
 class FigureController < Vulcan::Controller
@@ -66,10 +67,14 @@ class FigureController < Vulcan::Controller
         figure.to_hash.slice(*figure_params)
       ).update(
         @params.slice(*figure_params)
-      ).update(
-        dependencies: dependency_shas.to_json
       )
     )
+
+    if @params[:update_dependencies]
+      new_figure.update(
+        dependencies: dependency_shas.to_json
+      )
+    end
 
     success_json(new_figure.to_hash)
   end
@@ -106,12 +111,14 @@ class FigureController < Vulcan::Controller
       :workflow_name,
       :inputs,
       :title,
-      :tags
+      :tags,
+      :dependencies
     ]
   end
 
   def image_sha(image_name:, tag: 'production', namespace: 'etnaagent', registry: 'registry.hub.docker.com/v2/repositories')
-    metadata = JSON.parse(`curl --silent --location --url https://#{registry}/#{namespace}/#{image_name}/tags/#{tag}`, symbolize_names: true)
+    uri = URI("https://#{registry}/#{namespace}/#{image_name}/tags/#{tag}")
+    metadata = JSON.parse(Net::HTTP.get(uri), symbolize_names: true)
     metadata[:images].first[:digest]
   end
 

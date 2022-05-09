@@ -74,6 +74,7 @@ class Vulcan
         thumbnails: thumbnails(storage: storage),
         created_at: created_at.iso8601,
         updated_at: updated_at.iso8601,
+        dependencies: dependencies
       }
     end
   end
