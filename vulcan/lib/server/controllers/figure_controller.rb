@@ -33,6 +33,8 @@ class FigureController < Vulcan::Controller
         updated_at: now,
       }.update(
         @params.slice(*figure_params)
+      ).update(
+        dependencies: dependency_shas.to_json
       )
     )
     success_json(figure.to_hash)
@@ -64,6 +66,8 @@ class FigureController < Vulcan::Controller
         figure.to_hash.slice(*figure_params)
       ).update(
         @params.slice(*figure_params)
+      ).update(
+        dependencies: dependency_shas.to_json
       )
     )
 
@@ -106,8 +110,15 @@ class FigureController < Vulcan::Controller
     ]
   end
 
-  def image_sha(image_name:, tag: 'production', account: 'etnaagent', registry: 'registry.hub.docker.com/v2/repositories')
-    `curl --silent --location --url https://#{registry}/#{account}/#{image_name}/tags/#{tag} | jq -r '.images[0].digest'`
+  def image_sha(image_name:, tag: 'production', namespace: 'etnaagent', registry: 'registry.hub.docker.com/v2/repositories')
+    metadata = JSON.parse(`curl --silent --location --url https://#{registry}/#{namespace}/#{image_name}/tags/#{tag}`, symbolize_names: true)
+    metadata[:images].first[:digest]
+  end
+
+  def dependency_shas
+    Vulcan.instance.dependencies.map do |dependency|
+      [dependency, image_sha(image_name: dependency)]
+    end.to_h
   end
 end
 

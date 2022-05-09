@@ -45,4 +45,10 @@ class Vulcan
 
     super
   end
+
+  def dependencies
+    # We'll have to add here whenever we want to add a dependency, i.e. archimedes-r
+    # Not sure of a better way to "autocalculate" these...
+    ['vulcan', 'archimedes', 'archimedes-node']
+  end
 end
