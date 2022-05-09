@@ -53,10 +53,6 @@ describe FigureController do
   end
 
   context '#create' do
-    before(:each) do
-      setup_docker_hub_stubs
-    end
-
     it 'creates a new figure' do
       auth_header(:viewer)
       contents = {
@@ -98,10 +94,6 @@ describe FigureController do
   end
 
   context '#update' do
-    before(:each) do
-      setup_docker_hub_stubs
-    end
-
     it 'updates an existing figure' do
       figure = create_figure(
         title: 'Lion of Nemea',
@@ -180,15 +172,16 @@ describe FigureController do
         project_name: "labors",
         title: "Hercules Fighting the Nemean Lion",
         workflow_name: "reubens",
-
-        # Using the update_dependencies re-queries docker hub to grab
-        #   the latest SHAs
-        dependencies: {
-          vulcan: 'sha:123',
-          archimedes: 'sha:123',
-          'archimedes-node': 'sha:123'
-        }
       )
+
+      # Using the update_dependencies flag should update dependencies
+      expect(json_body[:dependencies]).not_to eq({
+        something: 'sha:abc'
+      })
+      # TODO: This may fail locally when testing if the production images have not been pulled...
+      #   Should test if this will pass on CI, or make this check CI-only, or
+      #   just get rid of it...
+      expect(json_body[:dependencies].values.all? { |d| d =~ /^sha256:.*/ }).to eq(true)
     end
   end
 

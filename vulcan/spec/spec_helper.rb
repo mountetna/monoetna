@@ -135,13 +135,3 @@ def save_last_response_json(fixture_name, type)
 
   ::File.write(fixture_path, "import {#{type}} from \"../../api_types\";\n\nexport const #{constName}: #{type} = #{last_response.body};")
 end
-
-def setup_docker_hub_stubs
-  payload = JSON.generate({
-    images: [{
-      digest: 'sha:123'
-    }]
-  })
-  stub_request(:get, /registry.hub.docker.com/).
-    to_return(status: 200, body: payload, headers: {'Content-Type': 'application/json'})
-end

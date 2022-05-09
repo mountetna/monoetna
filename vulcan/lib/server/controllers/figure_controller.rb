@@ -1,5 +1,4 @@
 require 'json'
-require 'net/http'
 require_relative './vulcan_controller'
 
 class FigureController < Vulcan::Controller
@@ -116,10 +115,11 @@ class FigureController < Vulcan::Controller
     ]
   end
 
-  def image_sha(image_name:, tag: 'production', namespace: 'etnaagent', registry: 'registry.hub.docker.com/v2/repositories')
-    uri = URI("https://#{registry}/#{namespace}/#{image_name}/tags/#{tag}")
-    metadata = JSON.parse(Net::HTTP.get(uri), symbolize_names: true)
-    metadata[:images].first[:digest]
+  def image_sha(image_name:, postfix: ':production', prefix: 'etnaagent/')
+    image_name_full = "#{prefix}#{image_name}#{postfix}"
+    image_name_wo_sha = "#{prefix}#{image_name}@"
+    digest = `docker inspect --format '{{index .RepoDigests 0}}' #{image_name_full}`
+    digest.gsub(image_name_wo_sha, '').strip
   end
 
   def dependency_shas
