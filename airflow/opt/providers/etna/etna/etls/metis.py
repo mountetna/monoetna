@@ -30,7 +30,8 @@ from etna.hooks.etna import (
     Magma,
     Metis,
     Model,
-    Template, RetrievalResponse,
+    Template,
+    RetrievalResponse,
 )
 from etna.operators import DockerOperatorBase
 from etna.utils.inject import inject
