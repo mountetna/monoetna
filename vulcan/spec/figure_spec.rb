@@ -181,6 +181,7 @@ describe FigureController do
       # TODO: This may fail locally when testing if the production images have not been pulled...
       #   Should test if this will pass on CI, or make this check CI-only, or
       #   just get rid of it...
+      p json_body
       expect(json_body[:dependencies].values.all? { |d| d =~ /^sha256:.*/ }).to eq(true)
     end
   end
