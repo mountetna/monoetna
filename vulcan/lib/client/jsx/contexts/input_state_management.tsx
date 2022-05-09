@@ -1,18 +1,20 @@
 import React, {useEffect} from 'react';
-import {VulcanState} from "../reducers/vulcan_reducer";
+import {defaultSession, VulcanState} from "../reducers/vulcan_reducer";
 import {
   createContext, Dispatch, MutableRefObject, PropsWithChildren, useCallback, useContext, useRef, useState
 } from "react";
 import {defaultSessionSyncHelpers} from "./session_sync";
 import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 import {dismissMessages, showMessages} from "etna-js/actions/message_actions";
-import {clearBufferedInput, setBufferedInput, setInputs, VulcanAction} from "../actions/vulcan_actions";
+import {clearBufferedInput, clearAutoPassStep, setBufferedInput, setInputs, setRunTrigger, setAutoPassStep, VulcanAction} from "../actions/vulcan_actions";
 import {allSourcesForStepName} from "../selectors/workflow_selectors";
 import {mapSome, Maybe, maybeOfNullable, some, withDefault} from "../selectors/maybe";
 import {DataEnvelope} from "../components/workflow/user_interactions/inputs/input_types";
 import {VulcanContext} from "./vulcan_context";
 
 import Button from '@material-ui/core/Button';
+import { FormControlLabel, Grid, Switch } from '@material-ui/core';
+import { Workflow } from '../api_types';
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(stepName: string | null, inputs: DataEnvelope<Maybe<any>>) {
@@ -54,6 +56,15 @@ export function WithBufferedInputs({
     if (Object.keys(inputsRef.current).length > 0){
       if (!stateRef.current.bufferedSteps.includes(stepName))
         dispatch(setBufferedInput(stepName));
+        // Check / Initiate auto-pass attempt.
+        if ( (stepName==null && stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable") && Object.keys(stateRef.current.session.inputs).length==0 /*catch page refreshing and not yet ready*/ && stateRef.current.session!==defaultSession)
+          || (stepName!=null && stateRef.current.autoPassSteps.includes(stepName) && Object.keys(stateRef.current.session.inputs).filter((val) => val.includes(stepName)).length<1 )
+        ) {
+          if (commitSessionInputChanges(stepName, inputsRef.current)) {
+            cancelInputs();
+            dispatch(setRunTrigger(stepName))
+          }
+        }
     } else {
       if (stateRef.current.bufferedSteps.includes(stepName))
         dispatch(clearBufferedInput(stepName));
@@ -77,28 +88,58 @@ export function WithBufferedInputs({
     }
   }, [cancelInputs, commitSessionInputChanges, stepName]);
 
+  function setAutoPass(event: any, checked: boolean) {
+    if (checked) {
+      dispatch(setAutoPassStep(stepName))
+    } else {
+      dispatch(clearAutoPassStep(stepName))
+    }
+  }
+
+  const commit_rest_buttons = hasInputs ? <div className='reset-or-commit-inputs'>
+    <Button onClick={cancelInputs} disabled={!!state.pollingState}>
+      Reset
+    </Button>
+    <Button
+      onClick={commitInputs}
+      style={{
+        background: "linear-gradient(135deg, #6e8efb, #a777e3)",
+        textAlign: 'center',
+        fontWeight: 'bold',
+        fontSize: 14,
+        border:'3px solid black',
+        //outline: '#4CAF50 solid 2px'
+        }}
+      disabled={!!state.pollingState}>
+      Commit
+    </Button>
+  </div> : null
+
+  const autopass_switch = isPassableUIStep(stepName, stateRef.current.workflow) ? <FormControlLabel
+    control={
+      <Switch
+        checked={stateRef.current.autoPassSteps.includes(stepName)}
+        onChange={setAutoPass}
+        color='primary'
+        disabled={!!state.pollingState}
+      />
+    }
+    label="Auto-Commit in future"
+    labelPlacement='start'
+  /> : null
+
+  const controls_below = (isPassableUIStep(stepName, stateRef.current.workflow) || hasInputs) ? (
+    <Grid container style={{width: 'auto'}} justifyContent="flex-end">
+      {autopass_switch}
+      {commit_rest_buttons}
+    </Grid>
+   ) : null
+
   return <BufferedInputsContext.Provider value={{inputs, setInputs, commitInputs, cancelInputs}}>
     <div>
       {children}
     </div>
-    { hasInputs ? <div className='reset-or-commit-inputs'>
-      <Button onClick={cancelInputs} disabled={!!state.pollingState}>
-        Reset
-      </Button>
-      <Button  
-        onClick={commitInputs}
-        style={{
-          background: "linear-gradient(135deg, #6e8efb, #a777e3)",
-          textAlign: 'center', 
-          fontWeight: 'bold',
-          fontSize: 14,
-          border:'3px solid black',
-          //outline: '#4CAF50 solid 2px'  
-          }}
-        disabled={!!state.pollingState}>
-        Commit
-      </Button>
-    </div> : null } 
+    { controls_below } 
   </BufferedInputsContext.Provider>
 }
 
@@ -138,4 +179,12 @@ export function useInputStateManagement(invoke: ReturnType<typeof useActionInvok
   return {
     commitSessionInputChanges,
   };
+}
+
+export function isPassableUIStep(stepName: string | null, workflow: Workflow | null) {
+  if (stepName!=null) {
+    const this_step = workflow?.steps[0].filter((val) => val.name == stepName)[0]
+    if (this_step?.doc?.startsWith('SKIPPABLE')) return true
+  }
+  return false
 }
