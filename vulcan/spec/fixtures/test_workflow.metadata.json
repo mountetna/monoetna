@@ -1,4 +1,5 @@
 {
   "projects": ["labors", "secret_project"],
-  "tags": ["demo"]
+  "tags": ["demo"],
+  "authors": ["someone"]
 }

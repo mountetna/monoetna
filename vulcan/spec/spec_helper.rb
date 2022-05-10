@@ -118,6 +118,10 @@ FactoryBot.define do
   factory :figure, class: Vulcan::Figure do
     to_create(&:save)
   end
+
+  factory :workflow_snapshot, class: Vulcan::WorkflowSnapshot do
+    to_create(&:save)
+  end
 end
 
 def json_body
