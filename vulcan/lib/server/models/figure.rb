@@ -16,12 +16,11 @@ class Vulcan
 
     def after_save
       # Use this hook to also save the Vulcan workflow snapshot
-      # Only when the vulcan SHA has changed
-
+      # Only when the vulcan SHA has changed or no current snapshot for the figure
       previous_figure = Vulcan::Figure.where(figure_id: self.figure_id).exclude(id: self.id).last
       previous_snapshot = Vulcan::WorkflowSnapshot.where(figure_id: previous_figure.id).first if previous_figure
     
-      if previous_snapshot && previous_figure&.dependencies["vulcan"] == self.dependencies["vulcan"]
+      if previous_snapshot && !vulcan_sha_changed?(previous_figure)
         Vulcan::WorkflowSnapshot.from_workflow_json(
           figure_id: self.id,
           json_workflow: previous_snapshot.to_workflow_json
@@ -40,6 +39,10 @@ class Vulcan
 
     def has_snapshot?
       !!Vulcan::WorkflowSnapshot.where(figure_id: self.id).first
+    end
+
+    def vulcan_sha_changed?(previous_figure)
+      previous_figure&.dependencies["vulcan"] != self.dependencies["vulcan"]
     end
 
     def session
