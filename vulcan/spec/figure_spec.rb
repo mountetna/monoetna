@@ -91,7 +91,8 @@ describe FigureController do
         )
       )
 
-      expect(json_body.keys).to include(:dependencies)
+      expect(json_body.keys).to include(:dependencies, :workflow_snapshot)
+      expect(json_body[:workflow_snapshot]).not_to eq(nil)
     end
   end
 

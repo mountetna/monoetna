@@ -435,7 +435,8 @@ export function selectFigure(
     title: figureResponse.title,
     author: figureResponse.author,
     inputs: {...figureResponse.inputs},
-    tags: [...(figureResponse.tags || [])]
+    tags: [...(figureResponse.tags || [])],
+    workflow_snapshot: figureResponse.workflow_snapshot
   };
 }
 

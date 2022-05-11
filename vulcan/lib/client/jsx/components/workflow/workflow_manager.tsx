@@ -44,15 +44,27 @@ export default function WorkflowManager({
     fetchFigure
   } = useContext(VulcanContext);
 
+  const selectWorkflowSnapshot = useCallback(
+    (
+      figure: VulcanFigure | VulcanFigureSession,
+      defaultWorkflowName: string
+    ) => {
+      return figure.workflow_snapshot
+        ? figure.workflow_snapshot
+        : workflowByName(defaultWorkflowName, state);
+    },
+    [state]
+  );
+
   const initializeFromSessionAndFigure = useCallback(
     (session: VulcanSession, figure: VulcanFigure) => {
-      const workflow = workflowByName(session.workflow_name, state);
+      const workflow = selectWorkflowSnapshot(figure, session.workflow_name);
       if (workflow) dispatch(setWorkflow(workflow, projectName));
       dispatch(setSessionAndFigureSeparately(figure, session));
 
       requestPoll();
     },
-    [projectName, dispatch, state, requestPoll]
+    [projectName, dispatch, selectWorkflowSnapshot, requestPoll]
   );
 
   const initializeFromFigure = useCallback(
@@ -95,7 +107,10 @@ export default function WorkflowManager({
 
   const initializeFromStoredSession = useCallback(
     (localSession: VulcanFigureSession) => {
-      const workflow = workflowByName(localSession.workflow_name, state);
+      const workflow = selectWorkflowSnapshot(
+        localSession,
+        localSession.workflow_name
+      );
       if (!workflow) {
         initializeNewSession();
         return;
@@ -126,7 +141,7 @@ export default function WorkflowManager({
     },
     [
       projectName,
-      state,
+      selectWorkflowSnapshot,
       dispatch,
       initializeFromSessionAndFigure,
       initializeNewSession

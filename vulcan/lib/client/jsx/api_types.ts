@@ -163,6 +163,7 @@ export interface VulcanFigure {
   thumbnails?: string[];
   comment?: string;
   tags?: string[];
+  workflow_snapshot: Workflow
 }
 
 export type VulcanFigureSession = VulcanSession & VulcanFigure;
@@ -175,7 +176,8 @@ export interface VulcanRevision {
 
 export const defaultFigure = {
   figure_id: null,
-  inputs: {}
+  inputs: {},
+  workflow_snapshot: defaultWorkflow
 };
 
 export interface FiguresResponse {

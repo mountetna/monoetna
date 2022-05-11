@@ -2,6 +2,8 @@ class Vulcan
   class Figure < Sequel::Model
     plugin :timestamps, update_on_create: true
 
+    one_to_one :workflow_snapshot
+
     def self.next_id
       Vulcan.instance.db.get { nextval("figures_ids") }
     end
@@ -16,24 +18,23 @@ class Vulcan
 
     def after_save
       # Use this hook to also save the Vulcan workflow snapshot
-      # Only when the vulcan SHA has changed or no current snapshot for the figure
-      previous_figure = Vulcan::Figure.where(figure_id: self.figure_id).exclude(id: self.id).last
-      previous_snapshot = Vulcan::WorkflowSnapshot.where(figure_id: previous_figure.id).first if previous_figure
+      # Only when the workflow has changed and no current snapshot for the figure
+      begin
+        previous_figure = Vulcan::Figure.where(figure_id: self.figure_id).exclude(id: self.id).last
+        previous_snapshot = Vulcan::WorkflowSnapshot.where(figure_id: previous_figure.id).first if previous_figure
+      
+        current_workflow = current_workflow_json
+      
+        Vulcan::WorkflowSnapshot.from_workflow_json(
+          figure_id: self.id,
+          json_workflow: workflow_changed?(previous_snapshot, current_workflow) ?
+            previous_snapshot.to_workflow_json :
+            current_workflow
+        )
     
-      if previous_snapshot && !vulcan_sha_changed?(previous_figure)
-        Vulcan::WorkflowSnapshot.from_workflow_json(
-          figure_id: self.id,
-          json_workflow: previous_snapshot.to_workflow_json
-        )
-      elsif !has_snapshot?
-        workflow = session.workflow
-        json_workflow = workflow.as_steps_json(self.workflow_name)
-        json_workflow.merge!(Etna::Cwl::Workflow.metadata(json_workflow[:name]))
-        Vulcan::WorkflowSnapshot.from_workflow_json(
-          figure_id: self.id,
-          json_workflow: json_workflow
-        )
-      end
+        self.refresh
+      end if !has_snapshot?
+      
       super
     end
 
@@ -41,8 +42,8 @@ class Vulcan
       !!Vulcan::WorkflowSnapshot.where(figure_id: self.id).first
     end
 
-    def vulcan_sha_changed?(previous_figure)
-      previous_figure&.dependencies["vulcan"] != self.dependencies["vulcan"]
+    def workflow_changed?(previous_snapshot, current_workflow)
+      previous_snapshot&.to_workflow_json != current_workflow
     end
 
     def session
@@ -105,8 +106,17 @@ class Vulcan
         thumbnails: thumbnails(storage: storage),
         created_at: created_at.iso8601,
         updated_at: updated_at.iso8601,
-        dependencies: dependencies
+        dependencies: dependencies,
+        workflow_snapshot: workflow_snapshot&.to_workflow_json
       }
+    end
+
+    private
+
+    def current_workflow_json
+      workflow = session.workflow
+      json_workflow = workflow.as_steps_json(self.workflow_name)
+      json_workflow.update(Etna::Cwl::Workflow.metadata(json_workflow[:name]))
     end
   end
 end
