@@ -5,7 +5,7 @@ import logging
 import os
 import re
 from typing import List, Dict, Optional, ContextManager, Tuple, BinaryIO
-from ftplib import FTP_TLS
+from ftplib import FTP_TLS, error_reply
 from socket import socket
 
 import cached_property
@@ -201,8 +201,8 @@ class Box(object):
 
         eg:
         ```
-        socket, size =  box.retrieve_file(file)
-        with socket as connection:
+        socket = box.retrieve_file(file)
+        with socket.makefile('rb') as connection:
             for line in csv.reader(connection):
                 break
         ```
@@ -211,16 +211,17 @@ class Box(object):
           ftps: an open, FTP_TLS connection
           file: an FTP file listing
         """
-        ftps.cwd(file.folder_path)
-        sock, size = ftps.ntransfercmd(f"RETR {file.name}")
+        # force binary file transfers via the socket
+        ftps.voidcmd('TYPE I')
 
-        return sock.makefile(mode='rb'), size
+        # Required because...otherwise the next ftps call returns the status
+        #   message from the previous command. :facepalm:
+        ftps.voidcmd('NOOP')
+        return ftps.transfercmd(f"RETR {file.full_path}")
 
     def remove_file(self, ftps: FTP_TLS, file: FtpEntry):
         """
         Removes the file from the FTP server, if user wants to automatically
         clean up after ingestion to Metis.
         """
-        ftps.cwd(file.folder_path)
-
-        ftps.delete(file.name)
+        ftps.delete(file.full_path)

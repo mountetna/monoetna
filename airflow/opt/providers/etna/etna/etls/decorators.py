@@ -152,7 +152,8 @@ def box_etl(
             files = tail_files()
 
             helpers = BoxEtlHelpers(
-                hook=hook
+                hook=hook,
+                box_folder=folder_name
             )
 
             return inject(
