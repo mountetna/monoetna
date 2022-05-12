@@ -77,7 +77,7 @@ class BoxEtlHelpers:
             etna_hook = EtnaHook.for_project(project_name)
             with etna_hook.metis(project_name, read_only=False) as metis, self.hook.box() as box:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
-                for file in files[0:2]:
+                for file in files:
                     with box.ftps() as ftps:
                         sock = box.retrieve_file(ftps, file)
 
@@ -92,10 +92,10 @@ class BoxEtlHelpers:
                                 parts.append(file.name)
                             elif split_folder_name is not None:
                                 rel_path = file.rel_path
-                                parts.append(rel_path.split(f"{split_folder_name}/")[1])
+                                parts.append(rel_path.split(f"/{split_folder_name}/")[-1])
                             else:
                                 rel_path = file.rel_path
-                                parts.append(rel_path.split(f"{self.box_folder}/")[1])
+                                parts.append(rel_path.split(f"/{self.box_folder}/")[-1])
 
                             dest_path = os.path.join(*parts)
 
