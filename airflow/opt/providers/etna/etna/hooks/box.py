@@ -5,7 +5,7 @@ import logging
 import os
 import re
 from typing import List, Dict, Optional, ContextManager, Tuple, BinaryIO
-from ftplib import FTP_TLS, error_reply
+from ftplib import FTP_TLS
 from socket import socket
 
 import cached_property
