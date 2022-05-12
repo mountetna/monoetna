@@ -214,8 +214,8 @@ class Box(object):
         # force binary file transfers via the socket
         ftps.voidcmd('TYPE I')
 
-        # Required because...otherwise the next ftps call returns the status
-        #   message from the previous command. :facepalm:
+        # Required because...otherwise the next ftps call may return the status
+        #   message from the previous command. :shrug:
         ftps.voidcmd('NOOP')
         return ftps.transfercmd(f"RETR {file.full_path}")
 
