@@ -57,7 +57,8 @@ class BoxEtlHelpers:
         bucket_name: str = "waiting_room",
         folder_path: str = None,
         flatten: bool = True,
-        clean_up: bool = False) -> XComArg:
+        clean_up: bool = False,
+        split_folder_name: str = None) -> XComArg:
         """
         Given a list of Box files, will copy them to the given Metis project_name and bucket_name,
         mimicking the full directory structure from Box.
@@ -69,6 +70,7 @@ class BoxEtlHelpers:
             folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.
             flatten: bool, to flatten the Box folder structure or maintain it. Default is True.
             clean_up: bool, to remove the file from Box after ingest. Default is False.
+            split_folder_name: str, if flatten=False, the folder name after which to copy the structure from Box. Generally would match what you use in filter_files() for folder_path_regex.
         """
         @task
         def ingest(files, project_name, bucket_name, folder_path):
@@ -88,6 +90,9 @@ class BoxEtlHelpers:
 
                             if flatten:
                                 parts.append(file.name)
+                            elif split_folder_name is not None:
+                                rel_path = file.rel_path
+                                parts.append(rel_path.split(f"{split_folder_name}/")[1])
                             else:
                                 rel_path = file.rel_path
                                 parts.append(rel_path.split(f"{self.box_folder}/")[1])
@@ -103,7 +108,6 @@ class BoxEtlHelpers:
                                 connection,
                                 file.size
                             ):
-                                ftps.voidcmd('NOOP')
                                 # Only log every 5 seconds, to save log space...
                                 if int(time.time()) % 5 == 0:
                                     self.log.info("Uploading blob...")
