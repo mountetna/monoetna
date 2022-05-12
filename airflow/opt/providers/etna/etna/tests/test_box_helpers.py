@@ -157,6 +157,7 @@ mock_etna_hook = mock.Mock()
 mock_metis = mock.Mock()
 
 mock_retrieve_file = mock.Mock()
+mock_socket = mock.Mock()
 mock_remove_file = mock.Mock()
 
 mock_box_hook = mock.Mock()
@@ -184,8 +185,9 @@ def set_up_mocks():
 
     mock_retrieve_file.__enter__ = mock_retrieve_file
     mock_retrieve_file.__exit__ = mock_retrieve_file
+    mock_socket.makefile.return_value = mock_retrieve_file
     mock_box.return_value.file_size.return_value = 0
-    mock_box.return_value.retrieve_file.return_value = (mock_retrieve_file, None)
+    mock_box.return_value.retrieve_file.return_value = mock_socket
     mock_box.return_value.remove_file = mock_remove_file
     mock_box.return_value.__enter__ = mock_box
     mock_box.return_value.__exit__ = mock_box
@@ -299,5 +301,26 @@ def test_metis_files_etl_ingest_with_project_bucket(mock_etna, mock_load, reset_
     run_dag(test_ingesting_metis_files_ingest_with_project_bucket, start_date, end_date)
 
     mock_metis().upload_file.assert_any_call("test", "bucket", "host.development.local/123.txt", mock.ANY, 1)
+    mock_retrieve_file.assert_called()
+    mock_remove_file.assert_not_called()
+
+
+@mock.patch('providers.etna.etna.etls.decorators.load_box_files_batch', side_effect=[mock_tail(), []])
+@mock.patch.object(EtnaHook, 'for_project', return_value=mock_etna_hook)
+def test_metis_files_etl_ingest_with_split_folder_name(mock_etna, mock_load, reset_db):
+
+    set_up_mocks()
+
+    @box_etl("i_folder", version=1, hook=mock_box_hook)
+    def test_ingesting_metis_files_ingest_with_split_folder_name(helpers: BoxEtlHelpers, tail_files: XComArg):
+        helpers.ingest_to_metis(tail_files, flatten=False, split_folder_name="child")
+
+    test_ingesting_metis_files_ingest_with_split_folder_name: DAG
+
+    start_date = parser.parse("2022-01-01 00:00:00 +0000")
+    end_date = start_date + timedelta(days=1, minutes=1)
+    run_dag(test_ingesting_metis_files_ingest_with_split_folder_name, start_date, end_date)
+
+    mock_metis().upload_file.assert_any_call("triage", "waiting_room", "host.development.local/grandchild/123.txt", mock.ANY, 1)
     mock_retrieve_file.assert_called()
     mock_remove_file.assert_not_called()
