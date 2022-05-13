@@ -155,7 +155,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">ContextManager</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">BinaryIO</span>
-<span class="kn">from</span> <span class="nn">ftplib</span> <span class="kn">import</span> <span class="n">FTP_TLS</span>
+<span class="kn">from</span> <span class="nn">ftplib</span> <span class="kn">import</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">error_reply</span>
 <span class="kn">from</span> <span class="nn">socket</span> <span class="kn">import</span> <span class="n">socket</span>
 
 <span class="kn">import</span> <span class="nn">cached_property</span>
@@ -351,8 +351,8 @@
 
 <span class="sd">        eg:</span>
 <span class="sd">        ```</span>
-<span class="sd">        socket, size =  box.retrieve_file(file)</span>
-<span class="sd">        with socket as connection:</span>
+<span class="sd">        socket = box.retrieve_file(file)</span>
+<span class="sd">        with socket.makefile(&#39;rb&#39;) as connection:</span>
 <span class="sd">            for line in csv.reader(connection):</span>
 <span class="sd">                break</span>
 <span class="sd">        ```</span>
@@ -361,19 +361,20 @@
 <span class="sd">          ftps: an open, FTP_TLS connection</span>
 <span class="sd">          file: an FTP file listing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ftps</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">folder_path</span><span class="p">)</span>
-        <span class="n">sock</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="n">ftps</span><span class="o">.</span><span class="n">ntransfercmd</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RETR </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># force binary file transfers via the socket</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">voidcmd</span><span class="p">(</span><span class="s1">&#39;TYPE I&#39;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">sock</span><span class="o">.</span><span class="n">makefile</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rb&#39;</span><span class="p">),</span> <span class="n">size</span>
+        <span class="c1"># Required because...otherwise the next ftps call may return the status</span>
+        <span class="c1">#   message from the previous command. :shrug:</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">voidcmd</span><span class="p">(</span><span class="s1">&#39;NOOP&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ftps</span><span class="o">.</span><span class="n">transfercmd</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RETR </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">remove_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">FtpEntry</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Removes the file from the FTP server, if user wants to automatically</span>
 <span class="sd">        clean up after ingestion to Metis.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ftps</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">folder_path</span><span class="p">)</span>
-
-        <span class="n">ftps</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -989,8 +990,8 @@ for the efficiency of imports.</p>
 
 <span class="sd">        eg:</span>
 <span class="sd">        ```</span>
-<span class="sd">        socket, size =  box.retrieve_file(file)</span>
-<span class="sd">        with socket as connection:</span>
+<span class="sd">        socket = box.retrieve_file(file)</span>
+<span class="sd">        with socket.makefile(&#39;rb&#39;) as connection:</span>
 <span class="sd">            for line in csv.reader(connection):</span>
 <span class="sd">                break</span>
 <span class="sd">        ```</span>
@@ -999,19 +1000,20 @@ for the efficiency of imports.</p>
 <span class="sd">          ftps: an open, FTP_TLS connection</span>
 <span class="sd">          file: an FTP file listing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ftps</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">folder_path</span><span class="p">)</span>
-        <span class="n">sock</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="n">ftps</span><span class="o">.</span><span class="n">ntransfercmd</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RETR </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># force binary file transfers via the socket</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">voidcmd</span><span class="p">(</span><span class="s1">&#39;TYPE I&#39;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">sock</span><span class="o">.</span><span class="n">makefile</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rb&#39;</span><span class="p">),</span> <span class="n">size</span>
+        <span class="c1"># Required because...otherwise the next ftps call may return the status</span>
+        <span class="c1">#   message from the previous command. :shrug:</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">voidcmd</span><span class="p">(</span><span class="s1">&#39;NOOP&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ftps</span><span class="o">.</span><span class="n">transfercmd</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RETR </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">remove_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">FtpEntry</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Removes the file from the FTP server, if user wants to automatically</span>
 <span class="sd">        clean up after ingestion to Metis.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ftps</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">folder_path</span><span class="p">)</span>
-
-        <span class="n">ftps</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -1178,8 +1180,8 @@ connection is closed after usage.</p>
 
 <span class="sd">        eg:</span>
 <span class="sd">        ```</span>
-<span class="sd">        socket, size =  box.retrieve_file(file)</span>
-<span class="sd">        with socket as connection:</span>
+<span class="sd">        socket = box.retrieve_file(file)</span>
+<span class="sd">        with socket.makefile(&#39;rb&#39;) as connection:</span>
 <span class="sd">            for line in csv.reader(connection):</span>
 <span class="sd">                break</span>
 <span class="sd">        ```</span>
@@ -1188,10 +1190,13 @@ connection is closed after usage.</p>
 <span class="sd">          ftps: an open, FTP_TLS connection</span>
 <span class="sd">          file: an FTP file listing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ftps</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">folder_path</span><span class="p">)</span>
-        <span class="n">sock</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="n">ftps</span><span class="o">.</span><span class="n">ntransfercmd</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RETR </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># force binary file transfers via the socket</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">voidcmd</span><span class="p">(</span><span class="s1">&#39;TYPE I&#39;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">sock</span><span class="o">.</span><span class="n">makefile</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rb&#39;</span><span class="p">),</span> <span class="n">size</span>
+        <span class="c1"># Required because...otherwise the next ftps call may return the status</span>
+        <span class="c1">#   message from the previous command. :shrug:</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">voidcmd</span><span class="p">(</span><span class="s1">&#39;NOOP&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ftps</span><span class="o">.</span><span class="n">transfercmd</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RETR </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -1205,8 +1210,8 @@ subset of the data.</p>
 
 <p>eg:</p>
 
-<pre><code>socket, size =  box.retrieve_file(file)
-with socket as connection:
+<pre><code>socket = box.retrieve_file(file)
+with socket.makefile('rb') as connection:
     for line in csv.reader(connection):
         break
 </code></pre>
@@ -1233,9 +1238,7 @@ with socket as connection:
 <span class="sd">        Removes the file from the FTP server, if user wants to automatically</span>
 <span class="sd">        clean up after ingestion to Metis.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ftps</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">folder_path</span><span class="p">)</span>
-
-        <span class="n">ftps</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">ftps</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">)</span>
 </pre></div>
 
         </details>

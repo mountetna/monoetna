@@ -96,6 +96,22 @@ export function clearBufferedInput(step: string | null) {
   return actionObject('CLEAR_BUFFERED_INPUT', {step});
 }
 
+export function setAutoPassStep(step: string | null) {
+  return actionObject('SET_AUTO_PASS_STEP', {step});
+}
+
+export function clearAutoPassStep(step: string | null) {
+  return actionObject('CLEAR_AUTO_PASS_STEP', {step});
+}
+
+export function setRunTrigger(step: string | null) {
+  return actionObject('SET_RUN_TRIGGER', {step});
+}
+
+export function clearRunTriggers(steps: (string | null)[]) {
+  return actionObject('CLEAR_RUN_TRIGGERS', {steps});
+}
+
 export function checkCommittedStepPending(step: Maybe<string>) {
   return actionObject('CHECK_CHANGES_READY', {step});
 }
@@ -119,6 +135,10 @@ export type VulcanAction =
   | ReturnType<typeof removeValidationErrors>
   | ReturnType<typeof setBufferedInput>
   | ReturnType<typeof clearBufferedInput>
+  | ReturnType<typeof setAutoPassStep>
+  | ReturnType<typeof clearAutoPassStep>
+  | ReturnType<typeof setRunTrigger>
+  | ReturnType<typeof clearRunTriggers>
   | ReturnType<typeof checkCommittedStepPending>
   | ReturnType<typeof clearCommittedStepPending>
   | ReturnType<typeof setSessionAndFigure>
