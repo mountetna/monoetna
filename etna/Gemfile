@@ -13,6 +13,7 @@ gem "multipart-post"
 gem "nokogiri"
 gem "rake" # for mimemagic??
 
+puts RUBY_PLATFORM
 unless RUBY_PLATFORM=~ /win/
   gem "mimemagic", "~>0.3.10" # for aspera-cli
   gem "concurrent-ruby"
@@ -21,9 +22,8 @@ unless RUBY_PLATFORM=~ /win/
   gem "yabeda-prometheus"
   gem "yabeda-puma-plugin"
   gem "net-ssh"
+  gem "prometheus-client"
 end
-
-gem "prometheus-client"
 
 gem "curb"
 
