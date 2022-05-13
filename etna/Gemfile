@@ -14,7 +14,7 @@ gem "nokogiri"
 gem "rake" # for mimemagic??
 
 puts RUBY_PLATFORM
-unless RUBY_PLATFORM=~ /win/
+unless RUBY_PLATFORM=~ /ming/
   gem "mimemagic", "~>0.3.10" # for aspera-cli
   gem "concurrent-ruby"
   gem "aspera-cli", ">=4.1.0"
