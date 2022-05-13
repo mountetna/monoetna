@@ -11,17 +11,21 @@ gem "rollbar"
 gem "vcr" # For Etna::Client in recording mode.
 gem "multipart-post"
 gem "nokogiri"
-gem "aspera-cli", ">=4.1.0"
 gem "rake" # for mimemagic??
-gem "mimemagic", "~>0.3.10" # for aspera-cli
-gem "concurrent-ruby"
+
+unless RUBY_PLATFORM=~ /win/
+  gem "mimemagic", "~>0.3.10" # for aspera-cli
+  gem "concurrent-ruby"
+  gem "aspera-cli", ">=4.1.0"
+  gem "yabeda"
+  gem "yabeda-prometheus"
+  gem "yabeda-puma-plugin"
+  gem "net-ssh"
+end
+
 gem "prometheus-client"
 
-gem "yabeda"
-gem "yabeda-prometheus"
-gem "yabeda-puma-plugin"
 gem "curb"
-gem "net-ssh"
 
 group :test do
   gem "pry", "~>0.13.0"
