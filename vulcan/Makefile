@@ -7,6 +7,7 @@ EXTRA_DOCKER_ARGS:=-v /var/run/docker.sock:/var/run/docker.sock:ro -v $${PWD}/..
 # Ensures that the etnaagent/archimedes image is ready
 compose-ready::
 	@ IMAGES_PREFIX=etnaagent/ IMAGES_POSTFIX=:latest make -C ../archimedes release-build
+	@ IMAGES_PREFIX=etnaagent/ IMAGES_POSTFIX=:latest make -C ../archimedes-node release-build
 
 start-storybook: docker-ready
 	docker run --rm \

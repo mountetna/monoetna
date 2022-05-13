@@ -16,12 +16,21 @@ import {
   setDownloadedData,
   setStatus,
   setWorkflow,
-  setWorkflows
+  setWorkflows,
+  setSession
 } from '../../../../actions/vulcan_actions';
 import Card from '@material-ui/core/Card';
 
 describe('InputFeed', () => {
-  fit('renders complete UI steps and error steps', () => {
+  const createNodeMock = (element: any) => {
+    if (element.type === 'textarea') {
+      return document.createElement('textarea');
+    } else {
+      return null;
+    }
+  };
+
+  it('renders complete UI steps and error steps', () => {
     const workflow = createWorkflowFixture({
       projects: ['test-project'],
       inputs: {},
@@ -67,7 +76,16 @@ describe('InputFeed', () => {
           })
         )
       ),
-      setDownloadedData('https://download1', "default-value")
+      setDownloadedData('https://download1', 'default-value'),
+      setSession({
+        project_name: 'test-project',
+        workflow_name: workflow.name,
+        key: 'test',
+        inputs: {
+          'second/response': 'default-value',
+          'third/response': 'default-value'
+        }
+      })
     ]);
 
     const component = renderer.create(
@@ -76,7 +94,8 @@ describe('InputFeed', () => {
         useActionInvoker={defaultContext.useActionInvoker}
       >
         <InputFeed />
-      </VulcanProvider>
+      </VulcanProvider>,
+      {createNodeMock}
     );
 
     let instance = component.root;
@@ -85,11 +104,10 @@ describe('InputFeed', () => {
       1
     );
 
-
     expect(
-      instance.findAllByType(Card).filter(
-        t => t.props.className.endsWith('step-user-input')
-      ).length
+      instance
+        .findAllByType(Card)
+        .filter((t) => t.props.className.endsWith('step-user-input')).length
     ).toEqual(2);
 
     expect(component.toJSON()).toMatchSnapshot();

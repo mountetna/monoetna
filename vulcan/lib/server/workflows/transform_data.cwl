@@ -17,9 +17,9 @@ inputs:
     doc: "Whether to expand matrix attributes into individual columns, with one matrix data point per column.  In most cases, you'll want to leave this checked."
 
 outputs:
-  the_plot:
+  the_data:
     type: File
-    outputSource: transform_data/calculated_data
+    outputSource: transform_data/formulaic_data
 
 steps:
   get_data:
@@ -36,16 +36,17 @@ steps:
     doc: "Manipulate your data frame as needed. Right click for an interactions menu where you can add/remove columns. Start a cell with '=' to create functions in an Excel-like manner."
     in:
       data_frame: get_data/data_frame
-    out: [formulaic_data, calculated_data]
+    out: [formulaic_data]
+  extend_user_formulas:
+    run: scripts/calc_data_frame.cwl
+    label: 'Extend formulas to all rows'
+    in:
+      original_data.json: get_data/data_frame
+      user_data.json: transform_data/formulaic_data
+    out: [full_user_data.json]
   show_data:
     run: ui-outputs/link.cwl
     in:
-      a: transform_data/calculated_data
+      a: extend_user_formulas/full_user_data.json
     out: []
     label: 'Download your final data frame'
-  show_source_data:
-    run: ui-outputs/link.cwl
-    in:
-      a: transform_data/formulaic_data
-    out: []
-    label: 'Download the source of your final data frame'

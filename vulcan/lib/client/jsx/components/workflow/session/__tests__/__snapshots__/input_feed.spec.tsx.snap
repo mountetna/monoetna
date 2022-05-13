@@ -185,11 +185,64 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
                   <div
                     className="input-help-children-wrapper"
                   >
-                    <input
-                      onChange={[Function]}
-                      type="text"
-                      value="default-value"
-                    />
+                    <div
+                      style={
+                        Object {
+                          "paddingTop": 0,
+                        }
+                      }
+                    >
+                      <div
+                        className="MuiFormControl-root MuiTextField-root"
+                        style={
+                          Object {
+                            "minWidth": 200,
+                          }
+                        }
+                      >
+                        <div
+                          className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline MuiInputBase-marginDense MuiInput-marginDense"
+                          onClick={[Function]}
+                        >
+                          <textarea
+                            aria-invalid={false}
+                            autoFocus={false}
+                            className="MuiInputBase-input MuiInput-input MuiInputBase-inputMultiline MuiInput-inputMultiline MuiInputBase-inputMarginDense MuiInput-inputMarginDense"
+                            disabled={false}
+                            onAnimationStart={[Function]}
+                            onBlur={[Function]}
+                            onChange={[Function]}
+                            onFocus={[Function]}
+                            required={false}
+                            rows={1}
+                            style={
+                              Object {
+                                "height": -4,
+                                "overflow": "hidden",
+                              }
+                            }
+                            value="default-value"
+                          />
+                          <textarea
+                            aria-hidden={true}
+                            className="MuiInputBase-input MuiInput-input MuiInputBase-inputMultiline MuiInput-inputMultiline MuiInputBase-inputMarginDense MuiInput-inputMarginDense"
+                            readOnly={true}
+                            style={
+                              Object {
+                                "height": 0,
+                                "left": 0,
+                                "overflow": "hidden",
+                                "position": "absolute",
+                                "top": 0,
+                                "transform": "translateZ(0)",
+                                "visibility": "hidden",
+                              }
+                            }
+                            tabIndex={-1}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div
                     className="help-icon-wrapper"
@@ -309,11 +362,64 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
                   <div
                     className="input-help-children-wrapper"
                   >
-                    <input
-                      onChange={[Function]}
-                      type="text"
-                      value="default-value"
-                    />
+                    <div
+                      style={
+                        Object {
+                          "paddingTop": 0,
+                        }
+                      }
+                    >
+                      <div
+                        className="MuiFormControl-root MuiTextField-root"
+                        style={
+                          Object {
+                            "minWidth": 200,
+                          }
+                        }
+                      >
+                        <div
+                          className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline MuiInputBase-marginDense MuiInput-marginDense"
+                          onClick={[Function]}
+                        >
+                          <textarea
+                            aria-invalid={false}
+                            autoFocus={false}
+                            className="MuiInputBase-input MuiInput-input MuiInputBase-inputMultiline MuiInput-inputMultiline MuiInputBase-inputMarginDense MuiInput-inputMarginDense"
+                            disabled={false}
+                            onAnimationStart={[Function]}
+                            onBlur={[Function]}
+                            onChange={[Function]}
+                            onFocus={[Function]}
+                            required={false}
+                            rows={1}
+                            style={
+                              Object {
+                                "height": -4,
+                                "overflow": "hidden",
+                              }
+                            }
+                            value="default-value"
+                          />
+                          <textarea
+                            aria-hidden={true}
+                            className="MuiInputBase-input MuiInput-input MuiInputBase-inputMultiline MuiInput-inputMultiline MuiInputBase-inputMarginDense MuiInput-inputMarginDense"
+                            readOnly={true}
+                            style={
+                              Object {
+                                "height": 0,
+                                "left": 0,
+                                "overflow": "hidden",
+                                "position": "absolute",
+                                "top": 0,
+                                "transform": "translateZ(0)",
+                                "visibility": "hidden",
+                              }
+                            }
+                            tabIndex={-1}
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <div
                     className="help-icon-wrapper"

@@ -10,6 +10,7 @@ require_relative 'lib/entity'
 require_relative 'lib/value'
 require_relative 'lib/project'
 require_relative 'lib/magma_models'
+require_relative 'lib/filter'
 
 require_relative '../etl_script_runner'
 require_relative '../../magma_record_etl'

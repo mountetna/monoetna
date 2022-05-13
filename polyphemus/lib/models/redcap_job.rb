@@ -13,7 +13,7 @@ class Polyphemus
             description: 'update existing and append new records'
           }, {
             value: 'strict',
-            description: 'iscard all existing records and append new records'
+            description: 'discard all existing records and append new records'
           }, {
             value: 'existing',
             description: 'only update existing records'

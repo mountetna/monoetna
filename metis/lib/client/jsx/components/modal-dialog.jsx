@@ -7,8 +7,9 @@ import Message from './dialogs/message-dialog';
 import UploadDialog from "./dialogs/upload-dialog";
 import MoveFolder from './dialogs/move-folder-dialog';
 import MoveFile from './dialogs/move-file-dialog';
+import FileProperties from './dialogs/file-properties-dialog';
 
-const DIALOGS = { ConfigureBucket, Message, UploadDialog, MoveFolder, MoveFile };
+const DIALOGS = { ConfigureBucket, Message, UploadDialog, MoveFolder, MoveFile, FileProperties };
 
 const ModalDialog = ({ dialog, dismissDialog }) => {
   if (!dialog || !Object.keys(dialog).length) return null;

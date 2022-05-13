@@ -65,23 +65,12 @@ module Redcap
     end
 
     def valid?(value)
-      if @config.has_key?(:equals)
-        return value == @config[:equals]
-      end
+      # At some point we would ideally deprecate this filtering ability in the value,
+      #   but that would require migrating current scripts. This at least consolidates
+      #   the validity logic.
+      @filter = Redcap::Filter.new(@config)
 
-      if @config.has_key?(:match)
-        return value =~ Regexp.new(@config[:match])
-      end
-
-      if @config.has_key?(:in)
-        return @config[:in].include?(value)
-      end
-
-      if @config.has_key?(:exists)
-        return value && !value.empty?
-      end
-
-      true
+      @filter.valid?(value)
     end
 
     private

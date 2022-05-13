@@ -48,6 +48,10 @@ export const defaultVulcanState = {
   // If a buffered step was filled in while remaining 'pending'
   committedStepPending: false,
 
+  // Step marked for auto-passing by user
+  autoPassSteps: [] as (string | null)[],
+  triggerRun: [] as (string | null)[],
+
   session: defaultSession,
   outputs: defaultSessionStatusResponse.outputs,
   validationErrors: defaultValidationErrors,
@@ -102,6 +106,29 @@ export default function VulcanReducer(
       const bufferedSteps = [...state.bufferedSteps];
       bufferedSteps.splice(idx, 1);
       return {...state, bufferedSteps};
+
+    case 'SET_AUTO_PASS_STEP':
+      if (state.autoPassSteps.includes(action.step)) {
+        return state;
+      }
+      return {...state, autoPassSteps: [...state.autoPassSteps, action.step]};
+
+    case 'CLEAR_AUTO_PASS_STEP':
+      const index = state.autoPassSteps.indexOf(action.step);
+      if (index === -1) return state;
+      const autoPassSteps = [...state.autoPassSteps];
+      autoPassSteps.splice(index, 1);
+      return {...state, autoPassSteps};
+
+    case 'SET_RUN_TRIGGER':
+      if (state.triggerRun.includes(action.step)) {
+        return state;
+      }
+      return {...state, triggerRun: [...state.triggerRun, action.step]};
+
+    case 'CLEAR_RUN_TRIGGERS':
+      const triggerRun = [...state.triggerRun].filter((val) => !action.steps.includes(val));
+      return {...state, triggerRun};
 
     case 'SET_DOWNLOAD':
       return {

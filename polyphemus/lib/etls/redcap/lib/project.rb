@@ -39,11 +39,15 @@ module Redcap
       end
     end
 
+    def master_record_field_name
+      @master_record_field_name ||= template.fields.first.last[:field_name]
+    end
+
     def flat_records
       @flat_records ||= client.get_record_flat(
-        field_opts([ 'record_id' ] + valid_fields)
+        field_opts([ master_record_field_name ] + valid_fields)
       ).map do |record|
-        record.merge(record: record[:record_id])
+        record.merge(record: record[master_record_field_name.to_sym])
       end
     end
 

@@ -93,6 +93,46 @@ describe Polyphemus::RedcapEtlScriptRunner do
     }
   }
 
+  CONFIG_WITH_FILTERS = {
+    model_one: {
+      each: [ "record" ],
+      scripts: [
+        {
+          attributes: {
+            birthday: "date_of_birth",
+            graduation_date: "commencement",
+            name: "name"
+          },
+          filters: [{
+            redcap_field: "rain_date",
+            exists: true
+          }]
+        }
+      ]
+    },
+    model_two: {
+      each: [ "record" ],
+      scripts: [
+        {
+          attributes: {
+            label: {
+              redcap_field: "today",
+              value: "label"
+            },
+            yesterday: {
+              redcap_field: "today",
+              value: "value"
+            }
+          },
+          filters: [{
+            redcap_field: "some_day",
+            equals: "2022-01-01"
+          }]
+        }
+      ]
+    },
+  }
+
   context 'dateshifts' do
     before do
       stub_magma_models
@@ -223,9 +263,11 @@ describe Polyphemus::RedcapEtlScriptRunner do
       raw_data_456 = data_for_id('456')
       raw_data_000 = data_for_id('000')
       raw_data_123 = data_for_id('123')
+      raw_data_321 = data_for_id('321')
       id_456 = temp_id(records, "456")
       id_000 = temp_id(records, "000")
       id_123 = "123"
+      id_321 = "321"
 
       # Dateshift checks
       expect(records[:model_one][id_456][:birthday]).not_to eq(raw_data_456[:value])
@@ -234,6 +276,8 @@ describe Polyphemus::RedcapEtlScriptRunner do
       expect(records[:model_one][id_000][:graduation_date].start_with?('2021')).to eq(true)
       expect(records[:model_two][id_123][:yesterday]).not_to eq(raw_data_123[:value])
       expect(records[:model_two][id_123][:yesterday].start_with?('2019')).to eq(true)
+      expect(records[:model_two][id_321][:yesterday]).not_to eq(raw_data_321[:value])
+      expect(records[:model_two][id_321][:yesterday].start_with?('2020')).to eq(true)
 
       # ensure containing records works for model_two
       injected_parent_id = "#{id_123}-one"
@@ -336,6 +380,45 @@ describe Polyphemus::RedcapEtlScriptRunner do
       expect(records[:model_with_alternate_id].key?(expected_id_987)).to eq(true)
     end
 
+    it "filters records based on non-mapped redcap attribute" do
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test',
+        model_names: "all",
+        redcap_tokens: REDCAP_TOKEN,
+        dateshift_salt: '123',
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST,
+        config: CONFIG_WITH_FILTERS
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
+
+      records = redcap_etl.run(magma_client: magma_client)
+
+      raw_data_000 = data_for_id('000')
+      raw_data_321 = data_for_id('321')
+      id_456 = temp_id(records, "456")
+      id_000 = temp_id(records, "000")
+      id_123 = "123"
+      id_321 = "321"
+
+      # Verify that only record 000 for model one passes the filter
+      expect(records[:model_one].keys.include?(id_456)).to eq(false)
+      expect(records[:model_one][id_000][:graduation_date]).not_to eq(raw_data_000[:value])
+      expect(records[:model_one][id_000][:graduation_date].start_with?('2021')).to eq(true)
+      expect(records[:model_one][id_000].keys.include?(:rain_date)).to eq(false) # filter attribute
+
+      # Verify that only record 321 for model two passes the filter, and that
+      # ensure containing records works for model_two still
+      expect(records[:model_two].keys.include?(id_123)).to eq(false)
+      expect(records[:model_two][id_321][:yesterday]).not_to eq(raw_data_321[:value])
+      expect(records[:model_two][id_321][:yesterday].start_with?('2020')).to eq(true)
+      expect(records[:model_two][id_321].keys.include?(:some_day)).to eq(false) # filter attribute
+      injected_parent_id = "#{id_321}-one"
+      expect(records[:model_one][injected_parent_id][:parent_model]).to eq("#{injected_parent_id}-parent")
+    
+    end
+
     context("mode == nil") do
       it 'updates records even if not in Magma with regular model' do
         redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
@@ -404,7 +487,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
         magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
 
         records = redcap_etl.run(magma_client: magma_client)
-        
+
         # Even though the parent record is attempted to be made,
         #   it should be removed because it's not an "existing" magma
         #   record per the fixture.

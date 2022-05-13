@@ -1,27 +1,24 @@
 import React from 'react';
-import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
 import {WithInputParams} from './input_types';
 import {some} from "../../../../selectors/maybe";
 import {useSetsDefault} from "./useSetsDefault";
 import {selectDefaultString} from "./monoids";
+import { TextField } from '@material-ui/core';
 
-export default function StringInput({onChange, label, data, ...props}: WithInputParams<{label?: string}, string, string>) {
+export default function StringInput({onChange, label, minWidth, data, ...props}: WithInputParams<{label?: string, minWidth?: number}, string, string>) {
   const value = useSetsDefault(selectDefaultString(data), props.value, onChange);
-
-  const inner = <SlowTextInput
-      followDefault
-      defaultValue={value}
-      onChange={(e: string) => {
-        onChange(some(e));
-      }}
-    />
-
-  if (label) {
-  return <div>
-    {label}
-    {inner}
-  </div>;
-  }
-
-  return inner;
+  
+  return (
+    <div style={{paddingTop: label ? 8 : 0}}>
+      <TextField
+        value={value}
+        multiline
+        label={label}
+        InputLabelProps={{ shrink: true }}
+        onChange={(event) => onChange(some(event.target.value))}
+        size="small"
+        style={{minWidth: minWidth || 200}}
+      />
+    </div>
+  )
 }

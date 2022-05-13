@@ -1,19 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import NestedSelectAutocompleteInput from '../nested_select_autocomplete';
 import {DataEnvelope} from '../input_types';
-import {integrateElement, setupBefore} from "../../../../../test_utils/integration";
-import {Maybe, some} from "../../../../../selectors/maybe";
-import {act, ReactTestInstance} from "react-test-renderer";
 import {
-  clickNode,
-  includesClassNamePredicate,
-  matchesTextPredicate, matchesTypePredicate,
-  text
-} from "../../../../../test_utils/rendered";
+  integrateElement,
+  setupBefore
+} from '../../../../../test_utils/integration';
+import {Maybe, some} from '../../../../../selectors/maybe';
+import {act, ReactTestInstance} from 'react-test-renderer';
+import {matchesTypePredicate} from '../../../../../test_utils/rendered';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 describe('NestedSelectAutocompleteInput', () => {
   const onChange = setupBefore(() => jest.fn());
-  const value = setupBefore(() => null as Maybe<string>);
+  const defaultValue = setupBefore(() => null as Maybe<string | null>);
   const data = setupBefore(() => {
     return {
       'options-a': {
@@ -37,104 +36,117 @@ describe('NestedSelectAutocompleteInput', () => {
   });
 
   const integrated = setupBefore(() =>
-    integrateElement(<NestedSelectAutocompleteInput
-      onChange={onChange.value} value={value.value} data={data.value}/>))
-
-  async function clickDropdownOption(component: ReactTestInstance, optionText: string) {
-    await act(async () => {
-      component
-        .find(matchesTextPredicate(optionText))
-        .props.onClick();
+    integrateElement(() => {
+      const [value, setValue] = useState(() => defaultValue.value);
+      return <NestedSelectAutocompleteInput
+        onChange={(v) => {
+          setValue(v);
+          onChange.value(v);
+        }}
+        value={value}
+        data={data.value}
+      />
     })
+  );
+
+  function getSelectedOption(component: ReactTestInstance, index: number) {
+    return component.findAll(matchesTypePredicate(Autocomplete))[index].props
+      .value;
   }
 
-  async function clickIconWrapper(component: ReactTestInstance, idx: number) {
-    await clickNode(component, includesClassNamePredicate('icon-wrapper'), idx);
+  function getDropdownOptions(component: ReactTestInstance, index: number) {
+    return component.findAll(matchesTypePredicate(Autocomplete))[index].props
+      .options;
   }
 
-  async function clickLi(component: ReactTestInstance, idx: number) {
-    await clickNode(component, matchesTypePredicate('li'), idx);
-  }
+  async function clickAutocompleteOption(
+    component: ReactTestInstance,
+    index: number,
+    optionIndex: number
+  ) {
+    const autocomplete = component.findAll(matchesTypePredicate(Autocomplete))[
+      index
+    ];
 
-  function getSelectedOption(component: ReactTestInstance) {
-    return component.findAllByType('input')[0].props.value;
+    const options = autocomplete.props.options;
+    // console.log("picking " + options[optionIndex])
+    await act(async () => {
+      autocomplete.props.onChange(null, options[optionIndex]);
+    });
   }
 
   it('correctly manages child(ren) selects', async () => {
     const {node} = integrated.value;
 
     expect(node.root.findAllByType('input').length).toEqual(1);
-    await clickIconWrapper(node.root, 0);
-    await clickLi(node.root, 0);
 
-    expect(getSelectedOption(node.root)).toEqual('option1');
+    await clickAutocompleteOption(node.root, 0, 0);
+
+    expect(getSelectedOption(node.root, 0)).toEqual('option1');
     expect(node.root.findAllByType('input').length).toEqual(2);
 
-    await clickIconWrapper(node.root, -1);
-
-    expect(node.root.findAllByType('li').map((li) => text(li))).toEqual([
+    expect(getDropdownOptions(node.root, 1)).toEqual([
       'suboption1',
       'suboption2'
     ]);
 
-    await clickIconWrapper(node.root, 0);
-    // Close the second drop-down
-    await clickIconWrapper(node.root, 1);
-    // second item in the first drop-down
-    await clickDropdownOption(node.root, 'option2');
+    await clickAutocompleteOption(node.root, 0, 1);
 
     expect(node.root.findAllByType('input').length).toEqual(2);
-    expect(getSelectedOption(node.root)).toEqual('option2');
+    expect(getSelectedOption(node.root, 0)).toEqual('option2');
 
-
-    // Click the second drop-down again
-    await clickIconWrapper(node.root, 1);
-
-    expect(node.root.findAllByType('li').map(text)).toEqual(['another1']);
+    expect(getDropdownOptions(node.root, 1)).toEqual(['another1']);
   });
 
   it('returns leaf value or null if not leaf', async () => {
     const {node} = integrated.value;
     expect(node.root.findAllByType('input').length).toEqual(1);
-    await clickIconWrapper(node.root, 0);
-    await clickLi(node.root, 0);
+    await clickAutocompleteOption(node.root, 0, 0);
     expect(onChange.value).toBeCalledWith(null);
+    expect(node.root.findAllByType('input').length).toEqual(2);
 
-    await clickIconWrapper(node.root, -1);
-    await clickDropdownOption(node.root, 'suboption1');
+    await clickAutocompleteOption(node.root, 1, 0);
+    expect(node.root.findAllByType('input').length).toEqual(2);
     expect(onChange.value).toBeCalledWith(some('suboption1'));
 
-    await clickIconWrapper(node.root, -1);
-    await clickDropdownOption(node.root, 'suboption2');
-
+    await clickAutocompleteOption(node.root, 1, 1);
+    expect(node.root.findAllByType('input').length).toEqual(3);
     expect(onChange.value).toBeCalledWith(null);
   });
 
   describe('with a given value', () => {
-    value.replace(() => some('stepchild1'));
+    defaultValue.replace(() => some('stepchild1'));
 
-    it('can find an existing path when given a value', () => {
+    it('can find an existing path when given a value', async () => {
       const {node} = integrated.value;
 
       expect(node.root.findAllByType('input').length).toEqual(3);
-      expect(node.root.findAllByType('input').map((i) => i.props.value)).toEqual([
-        'option2',
-        'another1',
-        'stepchild1'
-      ]);
+      expect(
+        node.root.findAllByType('input').map((i) => i.props.value)
+      ).toEqual(['option2', 'another1', 'stepchild1']);
     });
-  })
+  });
 
   describe('with a stepchild set as a value', () => {
-    value.replace(() => some('stepchild1'));
+    defaultValue.replace(() => some('stepchild1'));
 
     it('correctly updates dropdowns when given a value', async () => {
-      const {node} = integrated.value;
+      let {node} = integrated.value;
 
       expect(node.root.findAllByType('input').length).toEqual(3);
-      await clickIconWrapper(node.root, 0);
-      await clickLi(node.root, 0);
+      await clickAutocompleteOption(node.root, 0, 0);
       expect(node.root.findAllByType('input').length).toEqual(2);
     });
-  })
+  });
 });
+
+// Methods not actually needed, but two ways to wait until renders complete if the issue is ever that await isn't actually waiting long enough.
+// function delay(ms: number) {
+//   return new Promise(resolve => setTimeout(resolve, ms));
+// }
+// while (true) {
+//   await act(() => {})
+//   if (node.root.findByType(NestedSelectAutocompleteInput).props.value == [null]) {
+//     break
+//   }
+// }

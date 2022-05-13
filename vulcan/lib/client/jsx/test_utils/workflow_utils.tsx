@@ -124,6 +124,12 @@ export class WorkflowUtils {
     this.setWorkflow(workflow.name, workflow);
     return input;
   }
+  
+  setVignette(vignette: string) {
+    let workflow = {...this.workflow, vignette: vignette};
+    this.setWorkflow(workflow.name, workflow);
+    return vignette;
+  }
 
   /*
      Note -- this method will force a setStatus update to a 'complete' status with either the existing or a new

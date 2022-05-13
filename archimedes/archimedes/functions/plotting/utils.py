@@ -1,10 +1,7 @@
 import numpy as np
 import plotly.io as pio
 import json
-
-from ..dataflow import output_path
-
-
+from ..dataflow import output_path, output_json
 
 DISCRETE_KINDS = 'ObUS'
 CONTINUOUS_KINDS = 'ifuc'
@@ -34,6 +31,17 @@ def _is_logical(nda: np.ndarray):
 
 def _is_integer(nda: np.ndarray):
     return nda.dtype.kind == 'i'
+
+def output_column_types(df, continuous_out_name, discrete_out_name):
+    disc_cols = []
+    cont_cols = []
+    for col in df.columns:
+        if _is_discrete(df[col]):
+            disc_cols.append(col)
+        if _is_continuous(df[col]):
+            cont_cols.append(col)
+    output_json(disc_cols, discrete_out_name)
+    output_json(cont_cols, continuous_out_name)
 
 def _leave_default_or_none(target, default, none_if = False, default_when = "make"):
     '''

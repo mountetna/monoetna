@@ -161,10 +161,17 @@ export interface VulcanFigure {
   title?: string;
   author?: string;
   thumbnails?: string[];
+  comment?: string;
   tags?: string[];
 }
 
 export type VulcanFigureSession = VulcanSession & VulcanFigure;
+
+export interface VulcanRevision {
+  inputs: {[k: string]: any};
+  title?: string;
+  tags?: string[];
+}
 
 export const defaultFigure = {
   figure_id: null,

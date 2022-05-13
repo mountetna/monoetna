@@ -14,6 +14,8 @@ from flask_login import login_user
 from werkzeug.wrappers import Response as WerkzeugResponse
 
 from etna.auth.etna_user import EtnaUser
+from etna.plugins.etna_docs_plugin import ETNA_DOCS_MENU_TITLE
+from airflow_code_editor.commons import MENU_LABEL as CODE_EDITOR_MENU_LABEL
 
 
 def deserialize_etna_user(payload: str, algo: str, key: str) -> EtnaUser:
@@ -91,7 +93,7 @@ class EtnaSecurityManager(AirflowSecurityManager):
         elif etna_user.is_superviewer:
             roles.append(self.find_role("Viewer"))
 
-        for project in etna_user.projects:
+        for project in etna_user.editable_projects:
             roles.append(self.sync_project_role(project))
 
         return roles
@@ -107,11 +109,61 @@ class EtnaSecurityManager(AirflowSecurityManager):
         cond = DagModel.tags.any(DagTag.name == project_name)
         dags_query = dags_query.filter(cond)
 
+        project_permissions = [
+            # From standard Viewer
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_AUDIT_LOG),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_DAG_DEPENDENCIES),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_DAG_CODE),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_DAG_RUN),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_IMPORT_ERROR),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_JOB),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_TASK_INSTANCE),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_TASK_LOG),
+            (permissions.ACTION_CAN_READ, permissions.RESOURCE_WEBSITE),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_BROWSE_MENU),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_DAG_DEPENDENCIES),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_DAG_RUN),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_JOB),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_AUDIT_LOG),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_TASK_INSTANCE),
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_DOCS),
+
+            # From standard Operator
+            (permissions.ACTION_CAN_ACCESS_MENU, permissions.RESOURCE_ADMIN_MENU),
+
+            # For plugins
+            (permissions.ACTION_CAN_ACCESS_MENU, ETNA_DOCS_MENU_TITLE),
+            (permissions.ACTION_CAN_ACCESS_MENU, CODE_EDITOR_MENU_LABEL),
+        ]
+
+        editing_permissions = [
+            # From standard Viewer
+            permissions.ACTION_CAN_READ,
+
+            # From standard User
+            permissions.ACTION_CAN_EDIT,
+        ]
+
         for dag in dags_query.all():
-            perm_view = self.add_permission_view_menu(
-                permissions.ACTION_CAN_READ,
-                resource_name_for_dag(dag.dag_id),
-            )
-            self.add_permission_role(role, perm_view)
+            dag_resource_name = resource_name_for_dag(dag.dag_id)
+            for editing_permission in editing_permissions:
+                project_permissions.append((
+                    editing_permission,
+                    dag_resource_name,
+                ))
+
+        # Convert to Permissions
+        project_permissions = [self.add_permission_view_menu(*p) for p in project_permissions]
+
+        # Remove any old permissions on the role
+        for role_perm in role.permissions:
+            if (role_perm not in project_permissions):
+                self.remove_permission_from_role(role, role_perm)
+
+        # Add new permissions to role
+        for project_perm in project_permissions:
+            self.add_permission_role(
+                role,
+                project_perm)
 
         return role

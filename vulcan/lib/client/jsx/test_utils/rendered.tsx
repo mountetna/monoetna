@@ -16,7 +16,7 @@ export function includesClassNamePredicate(className: string) {
   return (node: ReactTestInstance) => node.props.className?.match(new RegExp(`(?:\\s+|^)${className}(?:\\s+|$)`))
 }
 
-export function matchesTypePredicate(element: string) {
+export function matchesTypePredicate(element: string | ((props: any) => JSX.Element)) {
   return (node: ReactTestInstance) => node.type === element;
 }
 

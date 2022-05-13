@@ -28,6 +28,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import {
   clearCommittedStepPending,
+  clearRunTriggers,
   setSession,
   setSessionAndFigure
 } from '../../../actions/vulcan_actions';
@@ -41,11 +42,15 @@ import {defaultSession} from '../../../reducers/vulcan_reducer';
 import {
   VulcanFigure,
   VulcanFigureSession,
+  VulcanRevision,
   VulcanSession
 } from '../../../api_types';
+import { json_get } from 'etna-js/utils/fetch';
 import useUserHooks from '../../useUserHooks';
 import Button from '@material-ui/core/Button';
 import Tag from '../../tag';
+
+import RevisionHistory from 'etna-js/components/revision-history';
 
 const modalStyles = {
   content: {
@@ -94,6 +99,7 @@ export default function SessionManager() {
 
   const [tags, setTags] = useState<string[]>(figure.tags || []);
   const [openTagEditor, setOpenTagEditor] = useState(false);
+  const [openRevisions, setOpenRevisions] = useState<boolean|null>(null);
   const [localTitle, setLocalTitle] = useState(figure.title);
 
   const invoke = useActionInvoker();
@@ -127,6 +133,11 @@ export default function SessionManager() {
       if (!params.title) {
         params.title = prompt('Set a title for this figure') || undefined;
         if (!params.title) return;
+      }
+
+      if (params.figure_id) {
+        params.comment = prompt('Enter a revision comment') || undefined;
+        if (!params.comment) return;
       }
 
       setSaving(true);
@@ -234,6 +245,14 @@ export default function SessionManager() {
     );
   };
 
+  const loadRevision = useCallback(({inputs,title,tags}:VulcanRevision) => {
+      dispatch(setSession({ ...session, inputs } as VulcanFigureSession));
+      setLocalTitle(title);
+      setTags(tags || []);
+      requestPoll();
+      setOpenRevisions(false);
+    }, [ figure ]);
+
   const resetSession = useCallback(() => {
     const newSession = {
       ...defaultSession,
@@ -255,6 +274,14 @@ export default function SessionManager() {
   useEffect(() => {
     if (figure.title) setLocalTitle(figure.title);
   }, [figure]);
+
+  // Catch auto-pass 'Run' trigger
+  useEffect(() => {
+    if (state.triggerRun.length>0) {
+      dispatch(clearRunTriggers(state.triggerRun))
+      run();
+    }
+  }, [state.triggerRun])
 
   const inputsChanged = useMemo(() => {
     return !_.isEqual(figure.inputs, session.inputs);
@@ -370,6 +397,23 @@ export default function SessionManager() {
               title='Edit tags'
               onClick={() => setOpenTagEditor(true)}
             />
+            <FlatButton
+              className='header-btn edit-tags'
+              icon='history'
+              label='Revisions'
+              title='Revisions'
+              onClick={() => setOpenRevisions(true)}
+            />
+            { openRevisions != null && <RevisionHistory
+                open={openRevisions}
+                onClose={ () => setOpenRevisions(false) }
+                revisionDoc={ ({inputs,title,tags}:VulcanRevision) => JSON.stringify( {inputs,title,tags}, null, 2 ) }
+                update={ loadRevision }
+                getRevisions={ () => json_get(
+                  `/api/${session.project_name}/figure/${figure.figure_id}/revisions`
+                ) }
+              />
+            }
             <Dialog
               maxWidth='md'
               open={openTagEditor}

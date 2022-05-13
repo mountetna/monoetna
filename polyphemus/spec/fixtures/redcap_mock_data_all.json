@@ -114,5 +114,19 @@
     "redcap_event_name": "2",
     "field_name": "citation_date",
     "value": "2020-12-13"
+  },
+  {
+    "record": "000",
+    "record_id": "000",
+    "redcap_event_name": "Graduation day",
+    "field_name": "rain_date",
+    "value": "2022-01-01"
+  },
+  {
+    "record": "321",
+    "record_id": "321",
+    "redcap_event_name": "Calendar event",
+    "field_name": "some_day",
+    "value": "2022-01-01"
   }
 ]

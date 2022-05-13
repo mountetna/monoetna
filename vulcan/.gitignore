@@ -27,4 +27,6 @@ spec/examples.txt
 .npm-packages
 .npmrc
 
+node_modules
+
 storage.lock

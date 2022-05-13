@@ -23,7 +23,7 @@ if [ -n "$USE_MOCKS" ]; then
 fi
 
 
-cp /opt/airflow/.airflowignore $(airflow config get-value core dags_folder)/.airflowignore
+cp /opt/airflow/.airflowignore $(airflow config get-value core dags_folder)/
 
 echo $@
 exec /entrypoint $@

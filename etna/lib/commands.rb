@@ -2,6 +2,7 @@ require 'date'
 require 'logger'
 require 'rollbar'
 require 'tempfile'
+require 'securerandom'
 require_relative 'helpers'
 require 'yaml'
 
@@ -84,6 +85,123 @@ class EtnaApp
             "#{gem_root}/lib/etna/templates/attribute_actions_template.json",
             'attribute_actions_template.json')
         puts "A sample attribute actions JSON template has been provided in the current directory as `attribute_actions_template.json`."
+      end
+    end
+  end
+
+  class Metis
+    include Etna::CommandExecutor
+    string_flags << "--project-name"
+    string_flags << "--bucket-name"
+    string_flags << "--path"
+    ROLLING_COUNT = 14
+
+    class PutArchive < Etna::Command
+      include WithEtnaClients
+
+      def execute(file, project_name:, bucket_name:, path:)
+        @project_name = project_name
+        @bucket_name = bucket_name
+        basename = ::File.basename(path)
+        dir = ::File.dirname(path)
+
+        puts "Creating archive folder"
+        metis_client.create_folder(Etna::Clients::Metis::CreateFolderRequest.new(
+          project_name: project_name,
+          bucket_name: bucket_name,
+          folder_path: dir
+        ))
+
+        puts "Listing archive folder"
+        files = metis_client.list_folder(Etna::Clients::Metis::ListFolderRequest.new(
+          project_name: project_name,
+          bucket_name: bucket_name,
+          folder_path: dir
+        )).files.all
+
+        if files.select { |f| f.file_name == basename }.length > 0
+          timestr = DateTime.now.strftime("%Y%m%d_%H%M")
+          puts "Backing up #{dir}/#{basename} to #{dir}/#{basename}.#{timestr}"
+          metis_client.rename_file(Etna::Clients::Metis::RenameFileRequest.new(
+            project_name: project_name,
+            bucket_name: bucket_name,
+            file_path: ::File.join(dir, basename),
+            new_bucket_name: bucket_name,
+            new_file_path: ::File.join(dir, "#{basename}.#{timestr}"),
+          ))
+        end
+
+        create_upload_workflow.do_upload(
+          ::File.open(file, "r"),
+          path
+        ) do |progress|
+          case progress[0]
+          when :error
+            puts("Error while uploading: #{progress[1].to_s}")
+          else
+          end
+        end
+        puts "Completed upload"
+
+        backups = files.select { |f| f.file_name != basename }.sort_by(&:file_name).reverse
+        if backups.length > ROLLING_COUNT
+          backups.slice(ROLLING_COUNT..-1).reverse.each do |f|
+            puts "Removing rolling back up #{f.file_name}"
+            metis_client.delete_file(Etna::Clients::Metis::DeleteFileRequest.new(
+              project_name: project_name,
+              bucket_name: bucket_name,
+              file_path: ::File.join(dir, f.file_name)
+            ))
+          end
+        end
+      end
+
+      def create_upload_workflow
+        Etna::Clients::Metis::MetisUploadWorkflow.new(
+          metis_client: @metis_client,
+          metis_uid: SecureRandom.hex,
+          project_name: @project_name,
+          bucket_name: @bucket_name,
+          max_attempts: 3
+        )
+      end
+    end
+
+    class PullArchive < Etna::Command
+      include WithEtnaClients
+
+      def execute(project_name:, bucket_name:, path:)
+        @project_name = project_name
+        @bucket_name = bucket_name
+        basename = ::File.basename(path)
+        dir = ::File.dirname(path)
+
+        files = metis_client.list_folder(Etna::Clients::Metis::ListFolderRequest.new(
+          project_name: project_name,
+          bucket_name: bucket_name,
+          folder_path: dir
+        )).files.all
+
+        files.sort_by(&:file_name).reverse
+
+        archived = files.select { |f| f.file_name == basename }.first
+        if archived.nil?
+          archived = files.first
+        end
+
+        tmp = Tempfile.new('download', Dir.pwd)
+        begin
+          puts "Downloading to #{basename} from #{archived.file_name}"
+          metis_client.download_file(archived) do |chunk|
+            tmp.write(chunk)
+          end
+
+          # Atomic operation -- ensure we only place the file in position when it successfully loads
+          ::File.rename(tmp.path, ::File.join(::Dir.pwd, basename))
+        rescue
+          tmp.close!
+          raise
+        end
       end
     end
   end

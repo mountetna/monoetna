@@ -13,8 +13,6 @@ docker
 coverage
 .docker-build-mark
 Dockerfile
-README.md
-LICENSE
 config.yml
 Makefile
 *.mk

@@ -11,7 +11,7 @@ def y_plotly(
     plots = ["violin", "box"],
     px_args: dict = {},
     rows_use = None,
-    y_scale = "as is",
+    y_scale = "linear",
     color_panel: list = colors,
     xlab="make",
     ylab="make",
@@ -26,7 +26,7 @@ def y_plotly(
     'color_panel' (string list) sets the colors to use for violin/boxplot fills.
     'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
     'rows_use'
-    'y_scale', String, 'as is', 'log10', or 'log10(val+1)'. Controls whether this axes should be log scaled, and if so, whether 1 should be added to all values first in order to let zeros be okay to plot.
+    'y_scale', String, 'linear', 'log10', or 'log10(val+1)'. Controls whether this axes should be log scaled, and if so, whether 1 should be added to all values first in order to let zeros be okay to plot.
     """
     
     # Parse dependent defaults
