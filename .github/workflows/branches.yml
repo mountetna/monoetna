@@ -68,11 +68,6 @@ jobs:
           cd etna
           bundle install
 
-      - name: "Set up Perl"
-        run: |
-          choco install strawberryperl
-          echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
-
       - name: "Inspect Windows Environment"
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\${{ matrix.vs }}\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
