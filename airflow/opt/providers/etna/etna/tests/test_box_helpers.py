@@ -3,6 +3,7 @@ import pytz
 from datetime import timedelta, datetime
 from dateutil import parser
 from unittest import mock
+from pytest import raises
 
 from airflow import DAG
 from airflow.models.xcom_arg import XComArg
@@ -10,7 +11,7 @@ from airflow.models.xcom_arg import XComArg
 
 from providers.etna.etna.etls.decorators import box_etl
 from providers.etna.etna.etls.box import BoxEtlHelpers
-from providers.etna.etna.hooks.box import FtpEntry
+from providers.etna.etna.hooks.box import FtpEntry, Box
 from providers.etna.etna.etls.box import EtnaHook
 
 from .test_metis_files_etl import run_dag, get_all_results
@@ -163,6 +164,7 @@ mock_remove_file = mock.Mock()
 mock_box_hook = mock.Mock()
 mock_box = mock.Mock()
 mock_ftps = mock.Mock()
+mock_mlsd = mock.Mock()
 
 def set_up_mocks():
     # Mock all this stuff so the context managers in ingest_to_metis
@@ -174,11 +176,24 @@ def set_up_mocks():
     mock_box_hook.reset_mock()
     mock_box.reset_mock()
     mock_ftps.reset_mock()
+    mock_mlsd.reset_mock()
 
     mock_metis.return_value.upload_file.return_value = []
     mock_metis.return_value.__enter__ = mock_metis
     mock_metis.return_value.__exit__ = mock_metis
     mock_etna_hook.metis = mock_metis
+    mock_mlsd.side_effect = [
+        [
+            ('.', {'modify': '20220101000000.000', 'type': 'dir'}),
+            ('folder', {'modify': '20220101000000.000', 'type': 'dir'}),
+            ('something.txt', {'modify': '20220201000000.000', 'type': 'file'}),
+            ('other_thing.txt', {'modify': '20220301000000.000', 'type': 'file'})
+        ], [
+            ('.', {'modify': '20220101000000.000', 'type': 'dir'}),
+            ('something_else.txt', {'modify': '20220302000000.000', 'type': 'file'})
+        ]
+    ]
+    mock_ftps.return_value.mlsd = mock_mlsd
     mock_ftps.return_value.__enter__ = mock_ftps
     mock_ftps.return_value.__exit__ = mock_ftps
     mock_box.return_value.ftps = mock_ftps
@@ -324,3 +339,31 @@ def test_metis_files_etl_ingest_with_split_folder_name(mock_etna, mock_load, res
     mock_metis().upload_file.assert_any_call("triage", "waiting_room", "host.development.local/grandchild/123.txt", mock.ANY, 1)
     mock_retrieve_file.assert_called()
     mock_remove_file.assert_not_called()
+
+
+def test_tail(reset_db):
+    set_up_mocks()
+
+    box = Box(mock_box_hook)
+
+    box.ftps = mock_ftps
+
+    start_date = parser.parse("2022-02-15 00:00:00 +0000")
+    end_date = start_date + timedelta(days=30, minutes=1)
+
+    results = box.tail("ROOT", start_date, end_date)
+
+    assert len(results) == 2
+    assert [f.name for f in results].sort() == ['other_thing.txt', 'something_else.txt'].sort()
+
+
+def test_invalid_folder_name(reset_db):
+    set_up_mocks()
+
+    box = Box(mock_box_hook)
+
+    start_date = parser.parse("2022-02-15 00:00:00 +0000")
+    end_date = start_date + timedelta(days=30, minutes=1)
+
+    with raises(ValueError):
+        box.tail("/", start_date, end_date)

@@ -116,10 +116,6 @@ class FtpEntry(object):
         return self.full_path[1::] if self.full_path[0] == '/' else self.full_path
 
     def is_in_range(self, batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None):
-        log = logging.getLogger("airflow.task")
-        log.info(
-            f"in is_in_range, {batch_start}, {batch_end}, {self.mtime}"
-        )
         if batch_start is None and batch_end is None:
             return True
         elif batch_start is None:
@@ -162,10 +158,6 @@ class Box(object):
 
     def _ls_r(self, ftps: FTP_TLS, path: str = "/", batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None) -> List[FtpEntry]:
         files = []
-        log = logging.getLogger("airflow.task")
-        log.info(
-            f"in ls_r, {batch_start}, {batch_end}"
-        )
 
         for entry in ftps.mlsd(path):
             ftp_entry = FtpEntry(entry, path)
@@ -174,7 +166,7 @@ class Box(object):
                 continue
 
             if ftp_entry.is_dir():
-                files += self._ls_r(ftps, os.path.join(path, ftp_entry.name))
+                files += self._ls_r(ftps, os.path.join(path, ftp_entry.name), batch_start, batch_end)
             elif ftp_entry.is_in_range(batch_start, batch_end):
                 files.append(ftp_entry)
         return files
@@ -182,7 +174,7 @@ class Box(object):
     @contextlib.contextmanager
     def ftps(self) -> FTP_TLS:
         """
-        Configures an FTP_TLS connection to Box. Using Pythong `with` syntax, so that the
+        Configures an FTP_TLS connection to Box. Using Python `with` syntax, so that the
         connection is closed after usage.
 
         eg:
