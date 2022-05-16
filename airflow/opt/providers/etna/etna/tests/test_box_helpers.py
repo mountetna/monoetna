@@ -3,6 +3,7 @@ import pytz
 from datetime import timedelta, datetime
 from dateutil import parser
 from unittest import mock
+from pytest import raises
 
 from airflow import DAG
 from airflow.models.xcom_arg import XComArg
@@ -10,7 +11,7 @@ from airflow.models.xcom_arg import XComArg
 
 from providers.etna.etna.etls.decorators import box_etl
 from providers.etna.etna.etls.box import BoxEtlHelpers
-from providers.etna.etna.hooks.box import FtpEntry
+from providers.etna.etna.hooks.box import FtpEntry, Box
 from providers.etna.etna.etls.box import EtnaHook
 
 from .test_metis_files_etl import run_dag, get_all_results
@@ -157,11 +158,13 @@ mock_etna_hook = mock.Mock()
 mock_metis = mock.Mock()
 
 mock_retrieve_file = mock.Mock()
+mock_socket = mock.Mock()
 mock_remove_file = mock.Mock()
 
 mock_box_hook = mock.Mock()
 mock_box = mock.Mock()
 mock_ftps = mock.Mock()
+mock_mlsd = mock.Mock()
 
 def set_up_mocks():
     # Mock all this stuff so the context managers in ingest_to_metis
@@ -173,19 +176,36 @@ def set_up_mocks():
     mock_box_hook.reset_mock()
     mock_box.reset_mock()
     mock_ftps.reset_mock()
+    mock_mlsd.reset_mock()
 
     mock_metis.return_value.upload_file.return_value = []
     mock_metis.return_value.__enter__ = mock_metis
     mock_metis.return_value.__exit__ = mock_metis
     mock_etna_hook.metis = mock_metis
+    mock_mlsd.side_effect = [
+        [
+            ('.', {'modify': '20220101000000.000', 'type': 'dir'}),
+            ('folder', {'modify': '20220101000000.000', 'type': 'dir'}),
+            ('something.txt', {'modify': '20220201000000.000', 'type': 'file'}),
+            ('other_thing.txt', {'modify': '20220301000000.000', 'type': 'file'}),
+            ('other_things.txt', {'modify': '20220501000000.000', 'type': 'file'})
+        ], [
+            ('.', {'modify': '20220101000000.000', 'type': 'dir'}),
+            ('something_else.txt', {'modify': '20220302000000.000', 'type': 'file'}),
+            ('yet_another_thing.txt', {'modify': '20220602000000.000', 'type': 'file'}),
+            ('another_thing.txt', {'modify': '20220102000000.000', 'type': 'file'}),
+        ]
+    ]
+    mock_ftps.return_value.mlsd = mock_mlsd
     mock_ftps.return_value.__enter__ = mock_ftps
     mock_ftps.return_value.__exit__ = mock_ftps
     mock_box.return_value.ftps = mock_ftps
 
     mock_retrieve_file.__enter__ = mock_retrieve_file
     mock_retrieve_file.__exit__ = mock_retrieve_file
+    mock_socket.makefile.return_value = mock_retrieve_file
     mock_box.return_value.file_size.return_value = 0
-    mock_box.return_value.retrieve_file.return_value = (mock_retrieve_file, None)
+    mock_box.return_value.retrieve_file.return_value = mock_socket
     mock_box.return_value.remove_file = mock_remove_file
     mock_box.return_value.__enter__ = mock_box
     mock_box.return_value.__exit__ = mock_box
@@ -301,3 +321,52 @@ def test_metis_files_etl_ingest_with_project_bucket(mock_etna, mock_load, reset_
     mock_metis().upload_file.assert_any_call("test", "bucket", "host.development.local/123.txt", mock.ANY, 1)
     mock_retrieve_file.assert_called()
     mock_remove_file.assert_not_called()
+
+
+@mock.patch('providers.etna.etna.etls.decorators.load_box_files_batch', side_effect=[mock_tail(), []])
+@mock.patch.object(EtnaHook, 'for_project', return_value=mock_etna_hook)
+def test_metis_files_etl_ingest_with_split_folder_name(mock_etna, mock_load, reset_db):
+
+    set_up_mocks()
+
+    @box_etl("i_folder", version=1, hook=mock_box_hook)
+    def test_ingesting_metis_files_ingest_with_split_folder_name(helpers: BoxEtlHelpers, tail_files: XComArg):
+        helpers.ingest_to_metis(tail_files, flatten=False, split_folder_name="child")
+
+    test_ingesting_metis_files_ingest_with_split_folder_name: DAG
+
+    start_date = parser.parse("2022-01-01 00:00:00 +0000")
+    end_date = start_date + timedelta(days=1, minutes=1)
+    run_dag(test_ingesting_metis_files_ingest_with_split_folder_name, start_date, end_date)
+
+    mock_metis().upload_file.assert_any_call("triage", "waiting_room", "host.development.local/grandchild/123.txt", mock.ANY, 1)
+    mock_retrieve_file.assert_called()
+    mock_remove_file.assert_not_called()
+
+
+def test_tail(reset_db):
+    set_up_mocks()
+
+    box = Box(mock_box_hook)
+
+    box.ftps = mock_ftps
+
+    start_date = parser.parse("2022-02-15 00:00:00 +0000")
+    end_date = start_date + timedelta(days=30, minutes=1)
+
+    results = box.tail("ROOT", start_date, end_date)
+
+    assert len(results) == 2
+    assert [f.name for f in results].sort() == ['other_thing.txt', 'something_else.txt'].sort()
+
+
+def test_invalid_folder_name(reset_db):
+    set_up_mocks()
+
+    box = Box(mock_box_hook)
+
+    start_date = parser.parse("2022-02-15 00:00:00 +0000")
+    end_date = start_date + timedelta(days=30, minutes=1)
+
+    with raises(ValueError):
+        box.tail("/", start_date, end_date)

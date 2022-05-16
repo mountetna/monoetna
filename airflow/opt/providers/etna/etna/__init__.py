@@ -21,11 +21,12 @@ from datetime import datetime
 def __getattr__(name):
     from .dags.decorators import system_dag, dag, rollup_dag
     from .operators import run_on_docker
-    from .etls.decorators import metis_etl
+    from .etls.decorators import metis_etl, box_etl
     from .etls.metis import (
         link,
         MetisEtlHelpers,
     )
+    from .etls.box import BoxEtlHelpers
     from .xcom.etna_xcom import pickled
     from .hooks.hook_helpers import (
         get_project_name,
@@ -58,11 +59,12 @@ def __getattr__(name):
 if globals().get("notathing", False):
     from .dags.decorators import system_dag, dag, rollup_dag
     from .operators import run_on_docker
-    from .etls.decorators import metis_etl
+    from .etls.decorators import metis_etl, box_etl
     from .etls.metis import (
         link,
         MetisEtlHelpers,
     )
+    from .etls.box import BoxEtlHelpers
     from .xcom.etna_xcom import pickled
     from .hooks.hook_helpers import (
         get_project_name,

@@ -2,6 +2,7 @@ from typing import List
 import os
 import re
 import logging
+import socket
 import time
 
 from airflow.operators.python import get_current_context
@@ -20,9 +21,10 @@ from etna.hooks.etna import EtnaHook
 class BoxEtlHelpers:
     hook: BoxHook
 
-    def __init__(self, hook: BoxHook):
+    def __init__(self, hook: BoxHook, box_folder: str):
         self.hook = hook
         self.log = logging.getLogger("airflow.task")
+        self.box_folder = box_folder
 
     def filter_files(self,
         files: XComArg,
@@ -55,7 +57,8 @@ class BoxEtlHelpers:
         bucket_name: str = "waiting_room",
         folder_path: str = None,
         flatten: bool = True,
-        clean_up: bool = False) -> XComArg:
+        clean_up: bool = False,
+        split_folder_name: str = None) -> XComArg:
         """
         Given a list of Box files, will copy them to the given Metis project_name and bucket_name,
         mimicking the full directory structure from Box.
@@ -67,44 +70,59 @@ class BoxEtlHelpers:
             folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.
             flatten: bool, to flatten the Box folder structure or maintain it. Default is True.
             clean_up: bool, to remove the file from Box after ingest. Default is False.
+            split_folder_name: str, if flatten=False, the folder name after which to copy the structure from Box. Generally would match what you use in filter_files() for folder_path_regex.
         """
         @task
         def ingest(files, project_name, bucket_name, folder_path):
             etna_hook = EtnaHook.for_project(project_name)
-            with etna_hook.metis(project_name, read_only=False) as metis, self.hook.box() as box, box.ftps() as ftps:
+            with etna_hook.metis(project_name, read_only=False) as metis, self.hook.box() as box:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
                 for file in files:
-                    sock, size = box.retrieve_file(ftps, file)
+                    with box.ftps() as ftps:
+                        sock = box.retrieve_file(ftps, file)
 
-                    with sock as connection:
-                        parts = []
-                        if folder_path is None:
-                            parts.append(self.hook.connection.host)
-                        else:
-                            parts.append(folder_path)
+                        with sock.makefile(mode='rb') as connection:
+                            parts = []
+                            if folder_path is None:
+                                parts.append(self.hook.connection.host)
+                            else:
+                                parts.append(folder_path)
 
-                        if flatten:
-                            parts.append(file.name)
-                        else:
-                            parts.append(file.rel_path)
+                            if flatten:
+                                parts.append(file.name)
+                            elif split_folder_name is not None:
+                                rel_path = file.rel_path
+                                parts.append(rel_path.split(f"/{split_folder_name}/")[-1])
+                            else:
+                                rel_path = file.rel_path
+                                parts.append(rel_path.split(f"/{self.box_folder}/")[-1])
 
-                        dest_path = os.path.join(*parts)
+                            dest_path = os.path.join(*parts)
 
-                        self.log.info(f"Uploading {file.full_path} to {dest_path}.")
+                            self.log.info(f"Uploading {file.full_path} to {dest_path}.")
 
-                        for blob in metis.upload_file(
-                            project_name,
-                            bucket_name,
-                            dest_path,
-                            connection,
-                            size or file.size
-                        ):
-                            # Only log every 5 seconds, to save log space...
-                            if int(time.time()) % 5 == 0:
-                                self.log.info("Uploading blob...")
-                        if clean_up:
-                            box.remove_file(ftps, file)
-                        self.log.info(f"Done ingesting {file.full_path}.")
+                            should_log = True
+                            for blob in metis.upload_file(
+                                project_name,
+                                bucket_name,
+                                dest_path,
+                                connection,
+                                file.size
+                            ):
+                                # Only log every 5 seconds, to save log space...
+                                time_check = int(time.time())
+                                if time_check % 5 == 0 and should_log:
+                                    self.log.info("Uploading blob...")
+                                    should_log = False
+                                elif time_check % 5 != 0 and not should_log:
+                                    should_log = True
+
+                            if clean_up:
+                                box.remove_file(ftps, file)
+                                self.log.info("Removed the original file from Box.")
+                            self.log.info(f"Done ingesting {file.full_path}.")
+                        sock.shutdown(socket.SHUT_RDWR)
+                        sock.close()
 
         return ingest(files, project_name, bucket_name, folder_path)
 
@@ -127,6 +145,6 @@ def _load_box_files_batch(
         f"Searching for Box data from {start.isoformat(timespec='seconds')} to {end.isoformat(timespec='seconds')}"
     )
 
-    files = box.tail(folder_name, start, end)
+    files = box.tail(folder_name, batch_start=start, batch_end=end)
 
     return files
