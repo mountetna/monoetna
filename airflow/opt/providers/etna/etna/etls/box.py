@@ -101,6 +101,7 @@ class BoxEtlHelpers:
 
                             self.log.info(f"Uploading {file.full_path} to {dest_path}.")
 
+                            should_log = True
                             for blob in metis.upload_file(
                                 project_name,
                                 bucket_name,
@@ -109,8 +110,12 @@ class BoxEtlHelpers:
                                 file.size
                             ):
                                 # Only log every 5 seconds, to save log space...
-                                if int(time.time()) % 5 == 0:
+                                time_check = int(time.time())
+                                if time_check % 5 == 0 and should_log:
                                     self.log.info("Uploading blob...")
+                                    should_log = False
+                                elif time_check % 5 != 0 and not should_log:
+                                    should_log = True
 
                             if clean_up:
                                 box.remove_file(ftps, file)
