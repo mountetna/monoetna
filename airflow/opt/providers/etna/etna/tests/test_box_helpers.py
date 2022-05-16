@@ -190,7 +190,8 @@ def set_up_mocks():
             ('other_thing.txt', {'modify': '20220301000000.000', 'type': 'file'})
         ], [
             ('.', {'modify': '20220101000000.000', 'type': 'dir'}),
-            ('something_else.txt', {'modify': '20220302000000.000', 'type': 'file'})
+            ('something_else.txt', {'modify': '20220302000000.000', 'type': 'file'}),
+            ('yet_another_thing.txt', {'modify': '20220602000000.000', 'type': 'file'}),
         ]
     ]
     mock_ftps.return_value.mlsd = mock_mlsd
