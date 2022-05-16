@@ -27,7 +27,22 @@ class Magma
     private
 
     def validations
-      [:validate_attribute_exists, :validate_options, :validate_changes, :validate_restricted_attribute]
+      [
+        :validate_params,
+        :validate_attribute_exists,
+        :validate_options,
+        :validate_changes,
+        :validate_restricted_attribute
+      ]
+    end
+
+    def validate_params
+      return if @action_params[:attribute_name] && @action_params[:model_name]
+
+      @errors << Magma::ActionError.new(
+        message: 'model_name and attribute_name are required, but missing.',
+        source: @action_params.slice(:attribute_name, :model_name)
+      )
     end
 
     def validate_attribute_exists
@@ -88,6 +103,8 @@ class Magma
     end
 
     def attribute
+      return nil if model.nil?
+      return nil if @action_params[:attribute_name].nil?
       @attribute ||= model.attributes[@action_params[:attribute_name].to_sym]
     end
 
