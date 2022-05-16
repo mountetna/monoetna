@@ -77,7 +77,7 @@ class BoxEtlHelpers:
             etna_hook = EtnaHook.for_project(project_name)
             with etna_hook.metis(project_name, read_only=False) as metis, self.hook.box() as box:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
-                for file in files:
+                for file in files[0:2]:
                     with box.ftps() as ftps:
                         sock = box.retrieve_file(ftps, file)
 
@@ -140,6 +140,6 @@ def _load_box_files_batch(
         f"Searching for Box data from {start.isoformat(timespec='seconds')} to {end.isoformat(timespec='seconds')}"
     )
 
-    files = box.tail(folder_name, start, end)
+    files = box.tail(folder_name, batch_start=start, batch_end=end)
 
     return files

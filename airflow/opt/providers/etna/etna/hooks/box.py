@@ -6,7 +6,6 @@ import os
 import re
 from typing import List, Dict, Optional, ContextManager, Tuple, BinaryIO
 from ftplib import FTP_TLS
-from socket import socket
 
 import cached_property
 from airflow.hooks.base import BaseHook
@@ -117,6 +116,10 @@ class FtpEntry(object):
         return self.full_path[1::] if self.full_path[0] == '/' else self.full_path
 
     def is_in_range(self, batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None):
+        log = logging.getLogger("airflow.task")
+        log.info(
+            f"in is_in_range, {batch_start}, {batch_end}, {self.mtime}"
+        )
         if batch_start is None and batch_end is None:
             return True
         elif batch_start is None:
@@ -159,6 +162,11 @@ class Box(object):
 
     def _ls_r(self, ftps: FTP_TLS, path: str = "/", batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None) -> List[FtpEntry]:
         files = []
+        log = logging.getLogger("airflow.task")
+        log.info(
+            f"in ls_r, {batch_start}, {batch_end}"
+        )
+
         for entry in ftps.mlsd(path):
             ftp_entry = FtpEntry(entry, path)
 
