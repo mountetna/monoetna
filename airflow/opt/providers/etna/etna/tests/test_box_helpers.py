@@ -187,7 +187,8 @@ def set_up_mocks():
             ('.', {'modify': '20220101000000.000', 'type': 'dir'}),
             ('folder', {'modify': '20220101000000.000', 'type': 'dir'}),
             ('something.txt', {'modify': '20220201000000.000', 'type': 'file'}),
-            ('other_thing.txt', {'modify': '20220301000000.000', 'type': 'file'})
+            ('other_thing.txt', {'modify': '20220301000000.000', 'type': 'file'}),
+            ('other_things.txt', {'modify': '20220501000000.000', 'type': 'file'})
         ], [
             ('.', {'modify': '20220101000000.000', 'type': 'dir'}),
             ('something_else.txt', {'modify': '20220302000000.000', 'type': 'file'}),
