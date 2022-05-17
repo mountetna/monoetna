@@ -7,6 +7,7 @@ from pytest import raises
 
 from airflow import DAG
 from airflow.models.xcom_arg import XComArg
+from airflow.models import Variable
 
 
 from providers.etna.etna.etls.decorators import box_etl
@@ -23,6 +24,16 @@ def mock_tail():
         FtpEntry(("abc.exe", {"size": 5}), ""),
         FtpEntry(("xyz.exe", {"size": 10}), "aunt/child/cousin")
     ]
+
+
+def mock_var_get():
+    return {
+        "/something.txt": "1-20220201000000.000-20220101000000.000",
+        "/other_thing.txt": "0-20220301000000.000-20220101000000.000",
+        "/other_things.txt": '3-20220501000000.000-20220101000000.000',
+        "/folder/yet_another_thing.txt": "5-20220602000000.000-20220101000000.000",
+        "/folder/another_thing.txt": "6-20220102000000.000-20220101000000.000"
+    }
 
 @mock.patch('providers.etna.etna.etls.decorators.load_box_files_batch', side_effect=[mock_tail(), []])
 def test_metis_files_etl_filter_file_name(mock_load, reset_db):
@@ -186,14 +197,14 @@ def set_up_mocks():
         [
             ('.', {'modify': '20220101000000.000', 'type': 'dir'}),
             ('folder', {'modify': '20220101000000.000', 'type': 'dir'}),
-            ('something.txt', {'modify': '20220201000000.000', 'type': 'file'}),
-            ('other_thing.txt', {'modify': '20220301000000.000', 'type': 'file'}),
-            ('other_things.txt', {'modify': '20220501000000.000', 'type': 'file'})
+            ('something.txt', {'modify': '20220201000000.000', 'type': 'file', 'size': 1, 'create': '20220101000000.000'}),
+            ('other_thing.txt', {'modify': '20220301000000.000', 'type': 'file', 'size': 2, 'create': '20220101000000.000'}),
+            ('other_things.txt', {'modify': '20220501000000.000', 'type': 'file', 'size': 3, 'create': '20220101000000.000'})
         ], [
             ('.', {'modify': '20220101000000.000', 'type': 'dir'}),
-            ('something_else.txt', {'modify': '20220302000000.000', 'type': 'file'}),
-            ('yet_another_thing.txt', {'modify': '20220602000000.000', 'type': 'file'}),
-            ('another_thing.txt', {'modify': '20220102000000.000', 'type': 'file'}),
+            ('something_else.txt', {'modify': '20220302000000.000', 'type': 'file', 'size': 4, 'create': '20220101000000.000'}),
+            ('yet_another_thing.txt', {'modify': '20220602000000.000', 'type': 'file', 'size': 5, 'create': '20220101000000.000'}),
+            ('another_thing.txt', {'modify': '20220102000000.000', 'type': 'file', 'size': 6, 'create': '20220101000000.000'}),
         ]
     ]
     mock_ftps.return_value.mlsd = mock_mlsd
@@ -344,7 +355,8 @@ def test_metis_files_etl_ingest_with_split_folder_name(mock_etna, mock_load, res
     mock_remove_file.assert_not_called()
 
 
-def test_tail(reset_db):
+@mock.patch.object(Variable, 'get', side_effect=[mock_var_get()])
+def test_tail(mock_var, reset_db):
     set_up_mocks()
 
     box = Box(mock_box_hook)

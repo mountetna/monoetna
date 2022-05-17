@@ -142,7 +142,7 @@ def _load_box_files_batch(
 
     log = logging.getLogger("airflow.task")
     log.info(
-        f"Searching for Box data from {start.isoformat(timespec='seconds')} to {end.isoformat(timespec='seconds')}"
+        f"Searching for Box data that has not been ingested as of {end.isoformat(timespec='seconds')}"
     )
 
     files = box.tail(folder_name, batch_start=start, batch_end=end)

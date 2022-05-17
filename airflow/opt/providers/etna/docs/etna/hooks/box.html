@@ -156,7 +156,6 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">ContextManager</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">BinaryIO</span>
 <span class="kn">from</span> <span class="nn">ftplib</span> <span class="kn">import</span> <span class="n">FTP_TLS</span>
-<span class="kn">from</span> <span class="nn">socket</span> <span class="kn">import</span> <span class="n">socket</span>
 
 <span class="kn">import</span> <span class="nn">cached_property</span>
 <span class="kn">from</span> <span class="nn">airflow.hooks.base</span> <span class="kn">import</span> <span class="n">BaseHook</span>
@@ -309,6 +308,7 @@
 
     <span class="k">def</span> <span class="nf">_ls_r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">batch_start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">batch_end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">FtpEntry</span><span class="p">]:</span>
         <span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
+
         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">ftps</span><span class="o">.</span><span class="n">mlsd</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
             <span class="n">ftp_entry</span> <span class="o">=</span> <span class="n">FtpEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
 
@@ -316,7 +316,7 @@
                 <span class="k">continue</span>
 
             <span class="k">if</span> <span class="n">ftp_entry</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
-                <span class="n">files</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ls_r</span><span class="p">(</span><span class="n">ftps</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">ftp_entry</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="n">files</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ls_r</span><span class="p">(</span><span class="n">ftps</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">ftp_entry</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">batch_start</span><span class="p">,</span> <span class="n">batch_end</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">ftp_entry</span><span class="o">.</span><span class="n">is_in_range</span><span class="p">(</span><span class="n">batch_start</span><span class="p">,</span> <span class="n">batch_end</span><span class="p">):</span>
                 <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ftp_entry</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">files</span>
@@ -324,7 +324,7 @@
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
     <span class="k">def</span> <span class="nf">ftps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FTP_TLS</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Configures an FTP_TLS connection to Box. Using Pythong `with` syntax, so that the</span>
+<span class="sd">        Configures an FTP_TLS connection to Box. Using Python `with` syntax, so that the</span>
 <span class="sd">        connection is closed after usage.</span>
 
 <span class="sd">        eg:</span>
@@ -948,6 +948,7 @@ for the efficiency of imports.</p>
 
     <span class="k">def</span> <span class="nf">_ls_r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">batch_start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">batch_end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">FtpEntry</span><span class="p">]:</span>
         <span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
+
         <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">ftps</span><span class="o">.</span><span class="n">mlsd</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
             <span class="n">ftp_entry</span> <span class="o">=</span> <span class="n">FtpEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
 
@@ -955,7 +956,7 @@ for the efficiency of imports.</p>
                 <span class="k">continue</span>
 
             <span class="k">if</span> <span class="n">ftp_entry</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
-                <span class="n">files</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ls_r</span><span class="p">(</span><span class="n">ftps</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">ftp_entry</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="n">files</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ls_r</span><span class="p">(</span><span class="n">ftps</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">ftp_entry</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">batch_start</span><span class="p">,</span> <span class="n">batch_end</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">ftp_entry</span><span class="o">.</span><span class="n">is_in_range</span><span class="p">(</span><span class="n">batch_start</span><span class="p">,</span> <span class="n">batch_end</span><span class="p">):</span>
                 <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ftp_entry</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">files</span>
@@ -963,7 +964,7 @@ for the efficiency of imports.</p>
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
     <span class="k">def</span> <span class="nf">ftps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FTP_TLS</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Configures an FTP_TLS connection to Box. Using Pythong `with` syntax, so that the</span>
+<span class="sd">        Configures an FTP_TLS connection to Box. Using Python `with` syntax, so that the</span>
 <span class="sd">        connection is closed after usage.</span>
 
 <span class="sd">        eg:</span>
@@ -1124,7 +1125,7 @@ given batch_start and batch_end date range. Recursively searches sub-folders.</p
             <div class="pdoc-code codehilite"><pre><span></span>    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
     <span class="k">def</span> <span class="nf">ftps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FTP_TLS</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Configures an FTP_TLS connection to Box. Using Pythong `with` syntax, so that the</span>
+<span class="sd">        Configures an FTP_TLS connection to Box. Using Python `with` syntax, so that the</span>
 <span class="sd">        connection is closed after usage.</span>
 
 <span class="sd">        eg:</span>
@@ -1143,7 +1144,7 @@ given batch_start and batch_end date range. Recursively searches sub-folders.</p
 
         </details>
 
-            <div class="docstring"><p>Configures an FTP_TLS connection to Box. Using Pythong <code>with</code> syntax, so that the
+            <div class="docstring"><p>Configures an FTP_TLS connection to Box. Using Python <code>with</code> syntax, so that the
 connection is closed after usage.</p>
 
 <p>eg:</p>

@@ -1,6 +1,5 @@
 import contextlib
 from datetime import datetime, timezone
-import io
 import logging
 import os
 import re
@@ -9,7 +8,7 @@ from ftplib import FTP_TLS
 
 import cached_property
 from airflow.hooks.base import BaseHook
-from airflow.models import Connection
+from airflow.models import Connection, Variable
 from etna.dags.project_name import get_project_name
 
 
@@ -125,10 +124,17 @@ class FtpEntry(object):
         else:
             return batch_start <= self.mtime <= batch_end
 
+    @property
+    def hash(self):
+        return f"{self.metadata['size']}-{self.metadata['modify']}-{self.metadata['create']}"
+
 
 class Box(object):
+    variable_name = "box_ingest_cursor"
+
     def __init__(self, hook: BoxHook):
         self.hook = hook
+        self.cursor = Variable.get(self.variable_name, default_var={}, deserialize_json=True)
 
     @classmethod
     def valid_folder_name(cls, folder_name: str):
@@ -154,7 +160,11 @@ class Box(object):
             raise ValueError(f"Invalid folder name: {folder_name}. Only alphanumeric characters, _, -, and spaces are allowed.")
 
         with self.ftps() as ftps:
-            return self._ls_r(ftps, batch_start=batch_start, batch_end=batch_end)
+            results = self._ls_r(ftps, batch_start=batch_start, batch_end=batch_end)
+
+            Variable.set(self.variable_name, self.cursor, serialize_json=True)
+
+            return results
 
     def _ls_r(self, ftps: FTP_TLS, path: str = "/", batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None) -> List[FtpEntry]:
         files = []
@@ -167,8 +177,14 @@ class Box(object):
 
             if ftp_entry.is_dir():
                 files += self._ls_r(ftps, os.path.join(path, ftp_entry.name), batch_start, batch_end)
-            elif ftp_entry.is_in_range(batch_start, batch_end):
+            elif ftp_entry.full_path not in self.cursor or self.cursor[ftp_entry.full_path] != ftp_entry.hash:
+                # Box FTP interface does not give us useful timestamps,
+                #       so we'll just scan all files and store a cursor
+                #       in an Airflow Variable for files we've seen.
+                # Re-upload file if the hash has changed (size-modified time-created time).
                 files.append(ftp_entry)
+                self.cursor[ftp_entry.full_path] = ftp_entry.hash
+
         return files
 
     @contextlib.contextmanager
