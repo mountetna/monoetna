@@ -150,9 +150,11 @@ class BoxEtlHelpers:
                             if clean_up:
                                 box.remove_file(ftps, file)
                                 self.log.info("Removed the original file from Box.")
+                            box.mark_file_as_ingested(file)
                             self.log.info(f"Done ingesting {file.full_path}.")
                         sock.shutdown(socket.SHUT_RDWR)
                         sock.close()
+                box.update_cursor()
 
         return ingest(files, project_name, bucket_name, folder_path)
 

@@ -9,6 +9,7 @@ from ftplib import FTP_TLS
 import cached_property
 from airflow.hooks.base import BaseHook
 from airflow.models import Connection, Variable
+from airflow.operators.python import get_current_context
 from etna.dags.project_name import get_project_name
 
 
@@ -154,16 +155,10 @@ class Box(object):
         if not Box.valid_folder_name(folder_name):
             raise ValueError(f"Invalid folder name: {folder_name}. Only alphanumeric characters, _, -, and spaces are allowed.")
 
-        variable_key = f"{self.variable_root}-{folder_name}"
-
-        self.cursor = Variable.get(variable_key, default_var={}, deserialize_json=True)
+        self.cursor = Variable.get(self.variable_key, default_var={}, deserialize_json=True)
 
         with self.ftps() as ftps:
-            results = self._ls_r(ftps)
-
-            Variable.set(variable_key, self.cursor, serialize_json=True)
-
-            return results
+            return self._ls_r(ftps)
 
     def _ls_r(self, ftps: FTP_TLS, path: str = "/") -> List[FtpEntry]:
         files = []
@@ -182,7 +177,6 @@ class Box(object):
                 #       in an Airflow Variable for files we've seen.
                 # Re-upload file if the hash has changed (size-modified time-created time).
                 files.append(ftp_entry)
-                self.cursor[ftp_entry.full_path] = ftp_entry.hash
 
         return files
 
@@ -234,9 +228,30 @@ class Box(object):
         ftps.voidcmd('NOOP')
         return ftps.transfercmd(f"RETR {file.full_path}")
 
+    def mark_file_as_ingested(self, file: FtpEntry):
+        """
+        In the cursor, save the fact that the given file's upload was completed.
+        """
+        self.cursor[file.full_path] = file.hash
+
+    def update_cursor(self):
+        """
+        Save the cursor to the database.
+        """
+        Variable.set(self.variable_key, self.cursor, serialize_json=True)
+
     def remove_file(self, ftps: FTP_TLS, file: FtpEntry):
         """
         Removes the file from the FTP server, if user wants to automatically
         clean up after ingestion to Metis.
         """
         ftps.delete(file.full_path)
+
+    @property
+    def variable_key(self):
+        """
+        Return the variable key for the current dag.
+        """
+        context = get_current_context()
+
+        return f"{self.variable_root}-{context['dag'].id}"
