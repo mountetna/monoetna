@@ -135,6 +135,7 @@ class Box(object):
 
     def __init__(self, hook: BoxHook):
         self.hook = hook
+        self.cursor = Variable.get(self.variable_key, default_var={}, deserialize_json=True)
 
     @classmethod
     def valid_folder_name(cls, folder_name: str):
@@ -154,8 +155,6 @@ class Box(object):
         """
         if not Box.valid_folder_name(folder_name):
             raise ValueError(f"Invalid folder name: {folder_name}. Only alphanumeric characters, _, -, and spaces are allowed.")
-
-        self.cursor = Variable.get(self.variable_key, default_var={}, deserialize_json=True)
 
         with self.ftps() as ftps:
             return self._ls_r(ftps)
@@ -254,4 +253,4 @@ class Box(object):
         """
         context = get_current_context()
 
-        return f"{self.variable_root}-{context['dag'].id}"
+        return f"{self.variable_root}-{context['dag'].dag_id}"
