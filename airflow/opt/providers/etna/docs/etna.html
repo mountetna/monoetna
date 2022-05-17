@@ -109,6 +109,9 @@
                                 <a class="function" href="#BoxEtlHelpers.__init__">BoxEtlHelpers</a>
                         </li>
                         <li>
+                                <a class="function" href="#BoxEtlHelpers.alert_slack">alert_slack</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#BoxEtlHelpers.filter_files">filter_files</a>
                         </li>
                         <li>
@@ -1876,6 +1879,37 @@ reading in multiple files that exist in the same record folder.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;airflow.task&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">box_folder</span> <span class="o">=</span> <span class="n">box_folder</span>
 
+    <span class="k">def</span> <span class="nf">alert_slack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
+        <span class="n">ingested</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends a Slack message to the data-ingest-ping channel, notifying of</span>
+<span class="sd">            the number of files uploaded.</span>
+
+<span class="sd">        args:</span>
+<span class="sd">            files: List of files</span>
+<span class="sd">            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.</span>
+<span class="sd">            project_name: str, project name for the message</span>
+<span class="sd">            bucket_name: str, bucket name for the message</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nd">@task</span>
+        <span class="k">def</span> <span class="nf">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;Finished uploading </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files from Box to Metis for </span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">. Please check the </span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2"> bucket.&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">full_path</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">])</span>
+
+                <span class="n">SlackWebhookOperator</span><span class="p">(</span>
+                    <span class="n">task_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;notify_slack_</span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">_box_ingest&quot;</span><span class="p">,</span>
+                    <span class="n">username</span><span class="o">=</span><span class="s2">&quot;Airflow&quot;</span><span class="p">,</span>
+                    <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;data-ingest-ping&quot;</span><span class="p">,</span>
+                    <span class="n">http_conn_id</span><span class="o">=</span><span class="s1">&#39;slack-api&#39;</span><span class="p">,</span>
+                    <span class="n">message</span><span class="o">=</span><span class="n">msg</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">filter_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
         <span class="c1"># A regex to match against any file name, resulting files will be linked.</span>
@@ -1999,6 +2033,68 @@ reading in multiple files that exist in the same record folder.</p>
         </details>
 
     
+
+                            </div>
+                            <div id="BoxEtlHelpers.alert_slack" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#BoxEtlHelpers.alert_slack">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">alert_slack</span><span class="signature">(
+    self,
+    files: airflow.models.xcom_arg.XComArg,
+    ingested: bool,
+    project_name: str,
+    bucket_name: str
+)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">alert_slack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
+        <span class="n">ingested</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends a Slack message to the data-ingest-ping channel, notifying of</span>
+<span class="sd">            the number of files uploaded.</span>
+
+<span class="sd">        args:</span>
+<span class="sd">            files: List of files</span>
+<span class="sd">            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.</span>
+<span class="sd">            project_name: str, project name for the message</span>
+<span class="sd">            bucket_name: str, bucket name for the message</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nd">@task</span>
+        <span class="k">def</span> <span class="nf">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;Finished uploading </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files from Box to Metis for </span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">. Please check the </span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2"> bucket.&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">full_path</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">])</span>
+
+                <span class="n">SlackWebhookOperator</span><span class="p">(</span>
+                    <span class="n">task_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;notify_slack_</span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">_box_ingest&quot;</span><span class="p">,</span>
+                    <span class="n">username</span><span class="o">=</span><span class="s2">&quot;Airflow&quot;</span><span class="p">,</span>
+                    <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;data-ingest-ping&quot;</span><span class="p">,</span>
+                    <span class="n">http_conn_id</span><span class="o">=</span><span class="s1">&#39;slack-api&#39;</span><span class="p">,</span>
+                    <span class="n">message</span><span class="o">=</span><span class="n">msg</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Sends a Slack message to the data-ingest-ping channel, notifying of
+    the number of files uploaded.</p>
+
+<p>args:
+    files: List of files
+    ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.
+    project_name: str, project name for the message
+    bucket_name: str, bucket name for the message</p>
+</div>
+
 
                             </div>
                             <div id="BoxEtlHelpers.filter_files" class="classattr">
