@@ -130,11 +130,10 @@ class FtpEntry(object):
 
 
 class Box(object):
-    variable_name = "box_ingest_cursor"
+    variable_root = "box_ingest_cursor"
 
     def __init__(self, hook: BoxHook):
         self.hook = hook
-        self.cursor = Variable.get(self.variable_name, default_var={}, deserialize_json=True)
 
     @classmethod
     def valid_folder_name(cls, folder_name: str):
@@ -143,30 +142,30 @@ class Box(object):
 
     def tail(
             self,
-            folder_name: str,
-            batch_start: Optional[datetime] = None,
-            batch_end: Optional[datetime] = None,
+            folder_name: str
      ) -> List[FtpEntry]:
         """
-        Tails all files found in the given `folder_name`, with modified times (`mtime`) in the
-        given batch_start and batch_end date range. Recursively searches sub-folders.
+        Tails all files found in the given `folder_name`, that have not been ingested previously.
+            Recursively searches sub-folders.
 
         params:
-          folder_name: str, the top-level folder to search from.
-          batch_start, Optional[datetime], to compare against each file's mtime, via <=
-          batch_end, Optional[datetime], to compare against each file's mtime, via >=
+          folder_name: str, the top-level folder to search from
         """
         if not Box.valid_folder_name(folder_name):
             raise ValueError(f"Invalid folder name: {folder_name}. Only alphanumeric characters, _, -, and spaces are allowed.")
 
-        with self.ftps() as ftps:
-            results = self._ls_r(ftps, batch_start=batch_start, batch_end=batch_end)
+        variable_key = f"{self.variable_root}-{folder_name}"
 
-            Variable.set(self.variable_name, self.cursor, serialize_json=True)
+        self.cursor = Variable.get(variable_key, default_var={}, deserialize_json=True)
+
+        with self.ftps() as ftps:
+            results = self._ls_r(ftps)
+
+            Variable.set(variable_key, self.cursor, serialize_json=True)
 
             return results
 
-    def _ls_r(self, ftps: FTP_TLS, path: str = "/", batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None) -> List[FtpEntry]:
+    def _ls_r(self, ftps: FTP_TLS, path: str = "/") -> List[FtpEntry]:
         files = []
 
         for entry in ftps.mlsd(path):
@@ -176,7 +175,7 @@ class Box(object):
                 continue
 
             if ftp_entry.is_dir():
-                files += self._ls_r(ftps, os.path.join(path, ftp_entry.name), batch_start, batch_end)
+                files += self._ls_r(ftps, os.path.join(path, ftp_entry.name))
             elif ftp_entry.full_path not in self.cursor or self.cursor[ftp_entry.full_path] != ftp_entry.hash:
                 # Box FTP interface does not give us useful timestamps,
                 #       so we'll just scan all files and store a cursor

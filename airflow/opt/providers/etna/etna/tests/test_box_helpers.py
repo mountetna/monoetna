@@ -363,10 +363,7 @@ def test_tail(mock_var, reset_db):
 
     box.ftps = mock_ftps
 
-    start_date = parser.parse("2022-02-15 00:00:00 +0000")
-    end_date = start_date + timedelta(days=30, minutes=1)
-
-    results = box.tail("ROOT", start_date, end_date)
+    results = box.tail("ROOT")
 
     assert len(results) == 2
     assert [f.name for f in results].sort() == ['other_thing.txt', 'something_else.txt'].sort()
@@ -377,8 +374,5 @@ def test_invalid_folder_name(reset_db):
 
     box = Box(mock_box_hook)
 
-    start_date = parser.parse("2022-02-15 00:00:00 +0000")
-    end_date = start_date + timedelta(days=30, minutes=1)
-
     with raises(ValueError):
-        box.tail("/", start_date, end_date)
+        box.tail("/")

@@ -5,12 +5,11 @@ import logging
 import socket
 import time
 
-from airflow.operators.python import get_current_context
-
 from airflow.decorators import task
 from airflow.models.taskinstance import Context
 from airflow.operators.python import get_current_context
 from airflow.models.xcom_arg import XComArg
+from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
 
 from etna.etls.etl_task_batching import get_batch_range
 
@@ -25,6 +24,37 @@ class BoxEtlHelpers:
         self.hook = hook
         self.log = logging.getLogger("airflow.task")
         self.box_folder = box_folder
+
+    def alert_slack(self,
+        files: XComArg,
+        ingested: bool,
+        project_name: str,
+        bucket_name: str):
+        """
+        Sends a Slack message to the data-ingest-ping channel, notifying of
+            the number of files uploaded.
+
+        args:
+            files: List of files
+            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.
+            project_name: str, project name for the message
+            bucket_name: str, bucket name for the message
+        """
+
+        @task
+        def alert(files, ingested):
+            if len(files) > 0:
+                msg = "\n".join([f"Finished uploading {len(files)} files from Box to Metis for {project_name}. Please check the {bucket_name} bucket."] + [f.full_path for f in files])
+
+                SlackWebhookOperator(
+                    task_id=f"notify_slack_{project_name}_{bucket_name}_box_ingest",
+                    username="Airflow",
+                    channel="data-ingest-ping",
+                    http_conn_id='slack-api',
+                    message=msg
+                ).execute(context=None)
+
+        return alert(files, ingested, )
 
     def filter_files(self,
         files: XComArg,
@@ -138,13 +168,13 @@ def _load_box_files_batch(
     folder_name: str
 ) -> List[FtpEntry]:
     context: Context = get_current_context()
-    start, end = get_batch_range(context)
+    _, end = get_batch_range(context)
 
     log = logging.getLogger("airflow.task")
     log.info(
         f"Searching for Box data that has not been ingested as of {end.isoformat(timespec='seconds')}"
     )
 
-    files = box.tail(folder_name, batch_start=start, batch_end=end)
+    files = box.tail(folder_name)
 
     return files
