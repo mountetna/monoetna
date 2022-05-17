@@ -12,6 +12,8 @@ class Session < Etna::Cwl
     @workflow_name += ".cwl" unless @workflow_name =~ /\.cwl$/
     @key = attributes['key']
     @inputs = attributes['inputs']
+
+    @workflow_snapshot = attributes['workflow_snapshot']
   end
 
   def self.new_session_for(project_name, workflow_name, key, inputs = {})
@@ -85,7 +87,11 @@ class Session < Etna::Cwl
   end
 
   def workflow
-    @workflow ||= Etna::Cwl::Workflow.from_yaml_file(workflow_name)
+    @workflow ||= begin
+      @workflow_snapshot.nil? ?
+        Etna::Cwl::Workflow.from_yaml_file(workflow_name) :
+        Etna::Cwl::Workflow.from_snapshot(@workflow_snapshot)
+    end
   end
 
   def orchestration

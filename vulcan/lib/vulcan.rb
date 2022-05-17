@@ -46,9 +46,7 @@ class Vulcan
     super
   end
 
-  def dependencies
-    # We'll have to add here whenever we want to add a dependency, i.e. archimedes-r
-    # Not sure of a better way to "autocalculate" these...
-    ['vulcan', 'archimedes', 'archimedes-node']
+  def dependency_manager
+    @dependency_manager ||= Vulcan::DependencyManager.new
   end
 end

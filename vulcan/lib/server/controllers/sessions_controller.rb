@@ -4,7 +4,7 @@ require_relative './vulcan_controller'
 class SessionsController < Vulcan::Controller
   def session
     begin
-      @the_session ||= Session.from_json(@params.slice(:key, :project_name, :workflow_name, :inputs))
+      @the_session ||= Session.from_json(@params.slice(:key, :project_name, :workflow_name, :inputs, :workflow_snapshot))
     rescue => e
       raise Etna::BadRequest.new(e.message)
     end

@@ -117,7 +117,7 @@ class Vulcan
         "-e",
         "PROJECT_NAME=#{session.project_name}",
         "--interpreter=#{interpreter}",
-        "--image=" + target_image(interpreter),
+        "--image=" + Vulcan.instance.dependency_manager.target_image(interpreter),
       ] + output_files.map do |sf|
         "--output=#{sf.to_archimedes_storage_file(storage)}"
       end + input_files.map do |sf|
@@ -135,7 +135,7 @@ class Vulcan
         output_files: output_files,
         token: token,
         ch: ch,
-        interpreter: interpreter(script: script)
+        interpreter: Vulcan.instance.dependency_manager.interpreter(script: script)
       )
       Open3.popen2(*cmd) do |input, output, wait_thr|
         input.print(script)
@@ -150,19 +150,6 @@ class Vulcan
       end
 
       JSON.parse(output_str)
-    end
-
-    def target_image(interpreter)
-      Vulcan.instance.config(:archimedes_interpreters)&.dig(interpreter.to_sym) || Vulcan.instance.config(:archimedes_run_image)
-    end
-
-    def interpreter(script:)
-      first_line = script.split("\n").first
-
-      # Ignore shebang variations for now
-      return "node" if first_line == "#!/usr/bin/env node"
-
-      "python"
     end
 
     def relative_path(from, to)

@@ -32,6 +32,10 @@ module Etna
         JSON.parse(::File.read(metadata_file), symbolize_names: true)
       end
 
+      def self.from_snapshot(workflow_snapshot)
+        self.loader.load(workflow_snapshot)
+      end
+
       def find_step(step_name)
         steps.find { |s| s.id == step_name }
       end

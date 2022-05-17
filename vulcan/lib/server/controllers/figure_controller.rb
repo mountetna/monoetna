@@ -34,7 +34,7 @@ class FigureController < Vulcan::Controller
       }.update(
         @params.slice(*figure_params)
       ).update(
-        dependencies: dependency_shas.to_json
+        dependencies: dependency_shas
       )
     )
     success_json(figure.to_hash)
@@ -69,7 +69,7 @@ class FigureController < Vulcan::Controller
 
     if @params[:update_dependencies]
       new_figure_data.merge!(
-        dependencies: dependency_shas.to_json
+        dependencies: dependency_shas
       )
     end
 
@@ -115,20 +115,8 @@ class FigureController < Vulcan::Controller
     ]
   end
 
-  def image_sha(image_name:, postfix: ':production', prefix: 'etnaagent/')
-    # This assumes that the images are available locally and up to date.
-    # Alternative is to ping docker hub or some other registry, but
-    #   I'm hesitant to introduce a runtime dependency on a third-party service...
-    image_name_full = "#{prefix}#{image_name}#{postfix}"
-    image_name_wo_sha = "#{prefix}#{image_name}@"
-    digest = `docker inspect --format '{{index .RepoDigests 0}}' #{image_name_full}`
-    digest.gsub(image_name_wo_sha, '').strip
-  end
-
   def dependency_shas
-    Vulcan.instance.dependencies.map do |dependency|
-      [dependency, image_sha(image_name: dependency)]
-    end.to_h
+    Vulcan.instance.dependency_manager.dependency_shas.to_json
   end
 end
 
