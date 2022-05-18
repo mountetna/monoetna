@@ -42,7 +42,7 @@ class BoxEtlHelpers:
         """
 
         @task
-        def alert(files, ingested):
+        def alert(files, ingested, project_name, bucket_name):
             if len(files) > 0:
                 msg = "\n".join([f"Finished uploading {len(files)} files from Box to Metis for {project_name}. Please check the {bucket_name} bucket."] + [f.full_path for f in files])
 
@@ -54,7 +54,7 @@ class BoxEtlHelpers:
                     message=msg
                 ).execute(context=None)
 
-        return alert(files, ingested, )
+        return alert(files, ingested, project_name, bucket_name)
 
     def filter_files(self,
         files: XComArg,
