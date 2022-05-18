@@ -20,9 +20,9 @@ from .test_metis_files_etl import run_dag, get_all_results
 
 def mock_tail():
     return [
-        FtpEntry(("123.txt",{"size": 1}), "parent/child/grandchild"),
-        FtpEntry(("abc.exe", {"size": 5}), ""),
-        FtpEntry(("xyz.exe", {"size": 10}), "aunt/child/cousin")
+        FtpEntry(("123.txt",{"size": 1, "modify": "20220101000000.000", "create": "20220301000000.000"}), "parent/child/grandchild"),
+        FtpEntry(("abc.exe", {"size": 5, "modify": "20220101000000.000", "create": "20220301000000.000"}), ""),
+        FtpEntry(("xyz.exe", {"size": 10, "modify": "20220101000000.000", "create": "20220301000000.000"}), "aunt/child/cousin")
     ]
 
 
@@ -176,6 +176,8 @@ mock_box_hook = mock.Mock()
 mock_box = mock.Mock()
 mock_ftps = mock.Mock()
 mock_mlsd = mock.Mock()
+mock_box_mark_ingested = mock.Mock()
+mock_box_update_cursor = mock.Mock()
 
 def set_up_mocks():
     # Mock all this stuff so the context managers in ingest_to_metis
@@ -188,6 +190,8 @@ def set_up_mocks():
     mock_box.reset_mock()
     mock_ftps.reset_mock()
     mock_mlsd.reset_mock()
+    mock_box_mark_ingested.reset_mock()
+    mock_box_update_cursor.reset_mock()
 
     mock_metis.return_value.upload_file.return_value = []
     mock_metis.return_value.__enter__ = mock_metis
@@ -215,6 +219,8 @@ def set_up_mocks():
     mock_retrieve_file.__enter__ = mock_retrieve_file
     mock_retrieve_file.__exit__ = mock_retrieve_file
     mock_socket.makefile.return_value = mock_retrieve_file
+    mock_box.return_value.mark_file_as_ingested = mock_box_mark_ingested
+    mock_box.return_value.update_cursor = mock_box_update_cursor
     mock_box.return_value.file_size.return_value = 0
     mock_box.return_value.retrieve_file.return_value = mock_socket
     mock_box.return_value.remove_file = mock_remove_file
@@ -355,6 +361,30 @@ def test_metis_files_etl_ingest_with_split_folder_name(mock_etna, mock_load, res
     mock_remove_file.assert_not_called()
 
 
+@mock.patch('providers.etna.etna.etls.decorators.load_box_files_batch', side_effect=[mock_tail(), []])
+@mock.patch.object(EtnaHook, 'for_project', return_value=mock_etna_hook)
+@mock.patch.object(Variable, 'get', side_effect=[mock_var_get()])
+@mock.patch.object(Variable, 'set')
+def test_ingest_updates_cursor(mock_set, mock_get, mock_etna, mock_load, reset_db):
+
+    set_up_mocks()
+
+    @box_etl("j_folder", version=1, hook=mock_box_hook)
+    def test_ingest_updates_cursor(helpers: BoxEtlHelpers, tail_files: XComArg):
+        helpers.ingest_to_metis(tail_files, flatten=False, split_folder_name="child")
+
+    test_ingest_updates_cursor: DAG
+
+    start_date = parser.parse("2022-01-01 00:00:00 +0000")
+    end_date = start_date + timedelta(days=1, minutes=1)
+    run_dag(test_ingest_updates_cursor, start_date, end_date)
+
+    mock_box_mark_ingested.assert_called()
+    # 3 files from mock_tail should all get ingested since none are in mock_var_get()
+    assert len(mock_box_mark_ingested.call_args_list) == 3
+    mock_box_update_cursor.assert_called()
+
+
 @mock.patch.object(Variable, 'get', side_effect=[mock_var_get()])
 def test_tail(mock_var, reset_db):
     set_up_mocks()
@@ -365,6 +395,7 @@ def test_tail(mock_var, reset_db):
 
     results = box.tail("ROOT")
 
+    # Only two files are not in cursor or been updated
     assert len(results) == 2
     assert [f.name for f in results].sort() == ['other_thing.txt', 'something_else.txt'].sort()
 
@@ -376,3 +407,40 @@ def test_invalid_folder_name(reset_db):
 
     with raises(ValueError):
         box.tail("/")
+
+
+@mock.patch.object(Variable, 'get', side_effect=[mock_var_get()])
+def test_mark_ingested_updates_cursor(mock_get, reset_db):
+    set_up_mocks()
+
+    box = Box(mock_box_hook)
+
+    box.ftps = mock_ftps
+
+    test_file = FtpEntry(("123.txt",{"size": 1, "modify": "20220101000000.000", "create": "20220301000000.000"}), "parent/child/grandchild")
+
+    box.cursor = {}
+    box.mark_file_as_ingested(test_file)
+    assert test_file.full_path in box.cursor
+    assert test_file.hash == box.cursor[test_file.full_path]
+
+
+@mock.patch.object(Variable, 'get', side_effect=[mock_var_get()])
+@mock.patch.object(Variable, 'set')
+def test_update_cursor_saves_variable(mock_set, mock_get, reset_db):
+    set_up_mocks()
+
+    box = Box(mock_box_hook)
+
+    box.ftps = mock_ftps
+
+    box.cursor = {
+        '/file.txt': '1-2-3'
+    }
+    box.update_cursor()
+    mock_set.assert_called_with(
+        'box_ingest_cursor',
+        {
+            '/file.txt': '1-2-3'
+        },
+        serialize_json=True)

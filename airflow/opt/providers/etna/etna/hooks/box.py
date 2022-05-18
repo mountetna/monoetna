@@ -7,6 +7,8 @@ from typing import List, Dict, Optional, ContextManager, Tuple, BinaryIO
 from ftplib import FTP_TLS
 
 import cached_property
+
+from airflow.exceptions import AirflowException
 from airflow.hooks.base import BaseHook
 from airflow.models import Connection, Variable
 from airflow.operators.python import get_current_context
@@ -251,6 +253,9 @@ class Box(object):
         """
         Return the variable key for the current dag.
         """
-        context = get_current_context()
+        try:
+            context = get_current_context()
 
-        return f"{self.variable_root}-{context['dag'].dag_id}"
+            return f"{self.variable_root}-{context['dag'].dag_id}"
+        except AirflowException:
+            return self.variable_root
