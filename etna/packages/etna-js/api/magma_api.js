@@ -8,8 +8,8 @@ const magmaPost = (endpoint, fetch, params) => {
       credentials: 'include',
       headers: headers('json'),
       body: JSON.stringify({
-        ...params,
-        project_name: CONFIG.project_name
+        project_name: CONFIG.project_name,
+        ...params
       })
     })
     .then(checkStatus);

@@ -37,6 +37,9 @@
                                 <a class="function" href="#BoxEtlHelpers.__init__">BoxEtlHelpers</a>
                         </li>
                         <li>
+                                <a class="function" href="#BoxEtlHelpers.alert_slack">alert_slack</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#BoxEtlHelpers.filter_files">filter_files</a>
                         </li>
                         <li>
@@ -74,12 +77,11 @@
 <span class="kn">import</span> <span class="nn">socket</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
-<span class="kn">from</span> <span class="nn">airflow.operators.python</span> <span class="kn">import</span> <span class="n">get_current_context</span>
-
 <span class="kn">from</span> <span class="nn">airflow.decorators</span> <span class="kn">import</span> <span class="n">task</span>
 <span class="kn">from</span> <span class="nn">airflow.models.taskinstance</span> <span class="kn">import</span> <span class="n">Context</span>
 <span class="kn">from</span> <span class="nn">airflow.operators.python</span> <span class="kn">import</span> <span class="n">get_current_context</span>
 <span class="kn">from</span> <span class="nn">airflow.models.xcom_arg</span> <span class="kn">import</span> <span class="n">XComArg</span>
+<span class="kn">from</span> <span class="nn">airflow.providers.slack.operators.slack_webhook</span> <span class="kn">import</span> <span class="n">SlackWebhookOperator</span>
 
 <span class="kn">from</span> <span class="nn">etna.etls.etl_task_batching</span> <span class="kn">import</span> <span class="n">get_batch_range</span>
 
@@ -94,6 +96,37 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hook</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;airflow.task&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">box_folder</span> <span class="o">=</span> <span class="n">box_folder</span>
+
+    <span class="k">def</span> <span class="nf">alert_slack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
+        <span class="n">ingested</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends a Slack message to the data-ingest-ping channel, notifying of</span>
+<span class="sd">            the number of files uploaded.</span>
+
+<span class="sd">        args:</span>
+<span class="sd">            files: List of files</span>
+<span class="sd">            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.</span>
+<span class="sd">            project_name: str, project name for the message</span>
+<span class="sd">            bucket_name: str, bucket name for the message</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nd">@task</span>
+        <span class="k">def</span> <span class="nf">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;Finished uploading </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files from Box to Metis for </span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">. Please check the </span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2"> bucket.&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">full_path</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">])</span>
+
+                <span class="n">SlackWebhookOperator</span><span class="p">(</span>
+                    <span class="n">task_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;notify_slack_</span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">_box_ingest&quot;</span><span class="p">,</span>
+                    <span class="n">username</span><span class="o">=</span><span class="s2">&quot;Airflow&quot;</span><span class="p">,</span>
+                    <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;data-ingest-ping&quot;</span><span class="p">,</span>
+                    <span class="n">http_conn_id</span><span class="o">=</span><span class="s1">&#39;slack-api&#39;</span><span class="p">,</span>
+                    <span class="n">message</span><span class="o">=</span><span class="n">msg</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">filter_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
@@ -170,6 +203,7 @@
 
                             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Uploading </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">dest_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
+                            <span class="n">should_log</span> <span class="o">=</span> <span class="kc">True</span>
                             <span class="k">for</span> <span class="n">blob</span> <span class="ow">in</span> <span class="n">metis</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span>
                                 <span class="n">project_name</span><span class="p">,</span>
                                 <span class="n">bucket_name</span><span class="p">,</span>
@@ -178,8 +212,12 @@
                                 <span class="n">file</span><span class="o">.</span><span class="n">size</span>
                             <span class="p">):</span>
                                 <span class="c1"># Only log every 5 seconds, to save log space...</span>
-                                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">time_check</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+                                <span class="k">if</span> <span class="n">time_check</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">should_log</span><span class="p">:</span>
                                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Uploading blob...&quot;</span><span class="p">)</span>
+                                    <span class="n">should_log</span> <span class="o">=</span> <span class="kc">False</span>
+                                <span class="k">elif</span> <span class="n">time_check</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">should_log</span><span class="p">:</span>
+                                    <span class="n">should_log</span> <span class="o">=</span> <span class="kc">True</span>
 
                             <span class="k">if</span> <span class="n">clean_up</span><span class="p">:</span>
                                 <span class="n">box</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">ftps</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
@@ -202,14 +240,14 @@
     <span class="n">folder_name</span><span class="p">:</span> <span class="nb">str</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">FtpEntry</span><span class="p">]:</span>
     <span class="n">context</span><span class="p">:</span> <span class="n">Context</span> <span class="o">=</span> <span class="n">get_current_context</span><span class="p">()</span>
-    <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">get_batch_range</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">get_batch_range</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
 
     <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;airflow.task&quot;</span><span class="p">)</span>
     <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Searching for Box data from </span><span class="si">{</span><span class="n">start</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="n">timespec</span><span class="o">=</span><span class="s1">&#39;seconds&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">end</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="n">timespec</span><span class="o">=</span><span class="s1">&#39;seconds&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;Searching for Box data that has not been ingested as of </span><span class="si">{</span><span class="n">end</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="n">timespec</span><span class="o">=</span><span class="s1">&#39;seconds&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
     <span class="p">)</span>
 
-    <span class="n">files</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">folder_name</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">folder_name</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">files</span>
 </pre></div>
@@ -236,6 +274,37 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;airflow.task&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">box_folder</span> <span class="o">=</span> <span class="n">box_folder</span>
 
+    <span class="k">def</span> <span class="nf">alert_slack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
+        <span class="n">ingested</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends a Slack message to the data-ingest-ping channel, notifying of</span>
+<span class="sd">            the number of files uploaded.</span>
+
+<span class="sd">        args:</span>
+<span class="sd">            files: List of files</span>
+<span class="sd">            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.</span>
+<span class="sd">            project_name: str, project name for the message</span>
+<span class="sd">            bucket_name: str, bucket name for the message</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nd">@task</span>
+        <span class="k">def</span> <span class="nf">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;Finished uploading </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files from Box to Metis for </span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">. Please check the </span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2"> bucket.&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">full_path</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">])</span>
+
+                <span class="n">SlackWebhookOperator</span><span class="p">(</span>
+                    <span class="n">task_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;notify_slack_</span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">_box_ingest&quot;</span><span class="p">,</span>
+                    <span class="n">username</span><span class="o">=</span><span class="s2">&quot;Airflow&quot;</span><span class="p">,</span>
+                    <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;data-ingest-ping&quot;</span><span class="p">,</span>
+                    <span class="n">http_conn_id</span><span class="o">=</span><span class="s1">&#39;slack-api&#39;</span><span class="p">,</span>
+                    <span class="n">message</span><span class="o">=</span><span class="n">msg</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">filter_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
         <span class="c1"># A regex to match against any file name, resulting files will be linked.</span>
@@ -311,6 +380,7 @@
 
                             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Uploading </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">dest_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
+                            <span class="n">should_log</span> <span class="o">=</span> <span class="kc">True</span>
                             <span class="k">for</span> <span class="n">blob</span> <span class="ow">in</span> <span class="n">metis</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span>
                                 <span class="n">project_name</span><span class="p">,</span>
                                 <span class="n">bucket_name</span><span class="p">,</span>
@@ -319,8 +389,12 @@
                                 <span class="n">file</span><span class="o">.</span><span class="n">size</span>
                             <span class="p">):</span>
                                 <span class="c1"># Only log every 5 seconds, to save log space...</span>
-                                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">time_check</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+                                <span class="k">if</span> <span class="n">time_check</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">should_log</span><span class="p">:</span>
                                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Uploading blob...&quot;</span><span class="p">)</span>
+                                    <span class="n">should_log</span> <span class="o">=</span> <span class="kc">False</span>
+                                <span class="k">elif</span> <span class="n">time_check</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">should_log</span><span class="p">:</span>
+                                    <span class="n">should_log</span> <span class="o">=</span> <span class="kc">True</span>
 
                             <span class="k">if</span> <span class="n">clean_up</span><span class="p">:</span>
                                 <span class="n">box</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">ftps</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
@@ -354,6 +428,68 @@
         </details>
 
     
+
+                            </div>
+                            <div id="BoxEtlHelpers.alert_slack" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#BoxEtlHelpers.alert_slack">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">alert_slack</span><span class="signature">(
+    self,
+    files: airflow.models.xcom_arg.XComArg,
+    ingested: bool,
+    project_name: str,
+    bucket_name: str
+)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">alert_slack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
+        <span class="n">ingested</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sends a Slack message to the data-ingest-ping channel, notifying of</span>
+<span class="sd">            the number of files uploaded.</span>
+
+<span class="sd">        args:</span>
+<span class="sd">            files: List of files</span>
+<span class="sd">            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.</span>
+<span class="sd">            project_name: str, project name for the message</span>
+<span class="sd">            bucket_name: str, bucket name for the message</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nd">@task</span>
+        <span class="k">def</span> <span class="nf">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;Finished uploading </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files from Box to Metis for </span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">. Please check the </span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2"> bucket.&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">full_path</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">])</span>
+
+                <span class="n">SlackWebhookOperator</span><span class="p">(</span>
+                    <span class="n">task_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;notify_slack_</span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">_box_ingest&quot;</span><span class="p">,</span>
+                    <span class="n">username</span><span class="o">=</span><span class="s2">&quot;Airflow&quot;</span><span class="p">,</span>
+                    <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;data-ingest-ping&quot;</span><span class="p">,</span>
+                    <span class="n">http_conn_id</span><span class="o">=</span><span class="s1">&#39;slack-api&#39;</span><span class="p">,</span>
+                    <span class="n">message</span><span class="o">=</span><span class="n">msg</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Sends a Slack message to the data-ingest-ping channel, notifying of
+    the number of files uploaded.</p>
+
+<p>args:
+    files: List of files
+    ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.
+    project_name: str, project name for the message
+    bucket_name: str, bucket name for the message</p>
+</div>
+
 
                             </div>
                             <div id="BoxEtlHelpers.filter_files" class="classattr">
@@ -479,6 +615,7 @@ folder path for each file for further filtering.</p>
 
                             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Uploading </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">dest_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
+                            <span class="n">should_log</span> <span class="o">=</span> <span class="kc">True</span>
                             <span class="k">for</span> <span class="n">blob</span> <span class="ow">in</span> <span class="n">metis</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span>
                                 <span class="n">project_name</span><span class="p">,</span>
                                 <span class="n">bucket_name</span><span class="p">,</span>
@@ -487,8 +624,12 @@ folder path for each file for further filtering.</p>
                                 <span class="n">file</span><span class="o">.</span><span class="n">size</span>
                             <span class="p">):</span>
                                 <span class="c1"># Only log every 5 seconds, to save log space...</span>
-                                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">time_check</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+                                <span class="k">if</span> <span class="n">time_check</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">should_log</span><span class="p">:</span>
                                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Uploading blob...&quot;</span><span class="p">)</span>
+                                    <span class="n">should_log</span> <span class="o">=</span> <span class="kc">False</span>
+                                <span class="k">elif</span> <span class="n">time_check</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">should_log</span><span class="p">:</span>
+                                    <span class="n">should_log</span> <span class="o">=</span> <span class="kc">True</span>
 
                             <span class="k">if</span> <span class="n">clean_up</span><span class="p">:</span>
                                 <span class="n">box</span><span class="o">.</span><span class="n">remove_file</span><span class="p">(</span><span class="n">ftps</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
