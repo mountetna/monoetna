@@ -1,6 +1,5 @@
 import contextlib
 from datetime import datetime, timezone
-import io
 import logging
 import os
 import re
@@ -8,8 +7,11 @@ from typing import List, Dict, Optional, ContextManager, Tuple, BinaryIO
 from ftplib import FTP_TLS
 
 import cached_property
+
+from airflow.exceptions import AirflowException
 from airflow.hooks.base import BaseHook
-from airflow.models import Connection
+from airflow.models import Connection, Variable
+from airflow.operators.python import get_current_context
 from etna.dags.project_name import get_project_name
 
 
@@ -125,10 +127,17 @@ class FtpEntry(object):
         else:
             return batch_start <= self.mtime <= batch_end
 
+    @property
+    def hash(self):
+        return f"{self.metadata['size']}-{self.metadata['modify']}-{self.metadata['create']}"
+
 
 class Box(object):
+    variable_root = "box_ingest_cursor"
+
     def __init__(self, hook: BoxHook):
         self.hook = hook
+        self.cursor = Variable.get(self.variable_key, default_var={}, deserialize_json=True)
 
     @classmethod
     def valid_folder_name(cls, folder_name: str):
@@ -137,26 +146,22 @@ class Box(object):
 
     def tail(
             self,
-            folder_name: str,
-            batch_start: Optional[datetime] = None,
-            batch_end: Optional[datetime] = None,
+            folder_name: str
      ) -> List[FtpEntry]:
         """
-        Tails all files found in the given `folder_name`, with modified times (`mtime`) in the
-        given batch_start and batch_end date range. Recursively searches sub-folders.
+        Tails all files found in the given `folder_name`, that have not been ingested previously.
+            Recursively searches sub-folders.
 
         params:
-          folder_name: str, the top-level folder to search from.
-          batch_start, Optional[datetime], to compare against each file's mtime, via <=
-          batch_end, Optional[datetime], to compare against each file's mtime, via >=
+          folder_name: str, the top-level folder to search from
         """
         if not Box.valid_folder_name(folder_name):
             raise ValueError(f"Invalid folder name: {folder_name}. Only alphanumeric characters, _, -, and spaces are allowed.")
 
         with self.ftps() as ftps:
-            return self._ls_r(ftps, batch_start=batch_start, batch_end=batch_end)
+            return self._ls_r(ftps)
 
-    def _ls_r(self, ftps: FTP_TLS, path: str = "/", batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None) -> List[FtpEntry]:
+    def _ls_r(self, ftps: FTP_TLS, path: str = "/") -> List[FtpEntry]:
         files = []
 
         for entry in ftps.mlsd(path):
@@ -166,9 +171,14 @@ class Box(object):
                 continue
 
             if ftp_entry.is_dir():
-                files += self._ls_r(ftps, os.path.join(path, ftp_entry.name), batch_start, batch_end)
-            elif ftp_entry.is_in_range(batch_start, batch_end):
+                files += self._ls_r(ftps, os.path.join(path, ftp_entry.name))
+            elif ftp_entry.full_path not in self.cursor or self.cursor[ftp_entry.full_path] != ftp_entry.hash:
+                # Box FTP interface does not give us useful timestamps,
+                #       so we'll just scan all files and store a cursor
+                #       in an Airflow Variable for files we've seen.
+                # Re-upload file if the hash has changed (size-modified time-created time).
                 files.append(ftp_entry)
+
         return files
 
     @contextlib.contextmanager
@@ -219,9 +229,33 @@ class Box(object):
         ftps.voidcmd('NOOP')
         return ftps.transfercmd(f"RETR {file.full_path}")
 
+    def mark_file_as_ingested(self, file: FtpEntry):
+        """
+        In the cursor, save the fact that the given file's upload was completed.
+        """
+        self.cursor[file.full_path] = file.hash
+
+    def update_cursor(self):
+        """
+        Save the cursor to the database.
+        """
+        Variable.set(self.variable_key, self.cursor, serialize_json=True)
+
     def remove_file(self, ftps: FTP_TLS, file: FtpEntry):
         """
         Removes the file from the FTP server, if user wants to automatically
         clean up after ingestion to Metis.
         """
         ftps.delete(file.full_path)
+
+    @property
+    def variable_key(self):
+        """
+        Return the variable key for the current dag.
+        """
+        try:
+            context = get_current_context()
+
+            return f"{self.variable_root}-{context['dag'].dag_id}"
+        except AirflowException:
+            return self.variable_root
