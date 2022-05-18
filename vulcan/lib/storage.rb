@@ -192,7 +192,7 @@ class Vulcan
     class BuildTarget
       attr_reader :script, :project_name, :input_files
 
-      def initialize(project_name:, session_key:, input_files:, output_filenames:, script:)
+      def initialize(project_name:, session_key:, input_files:, output_filenames:, script:, reference_figure_id:)
         unless input_files.map(&:project_name).all? { |v| v == project_name }
           raise "input files are mixed across projects, they must all belong to #{project_name}"
         end
@@ -205,6 +205,11 @@ class Vulcan
         @input_files = input_files
         @output_filenames = output_filenames
         @script = script
+        @reference_figure_id = reference_figure_id
+      end
+
+      def dependencies
+        @dependencies ||= Vulcan::Figure.from_reference(@reference_figure_id)&.dependencies
       end
 
       def cell_hash
@@ -214,7 +219,8 @@ class Vulcan
             output_filenames: @output_filenames,
             session_key: @session_key,
             script: @script,
-        })
+            dependencies: dependencies
+        }.compact)
       end
 
       def build_outputs
@@ -258,10 +264,15 @@ class Vulcan
     class MaterialSource
       attr_reader :project_name
 
-      def initialize(project_name:, session_key:, material_reference:)
+      def initialize(project_name:, session_key:, material_reference:, reference_figure_id:)
         @project_name = project_name
         @session_key = session_key
         @digest = Storage.hash_json_obj(material_reference)
+        @reference_figure_id = reference_figure_id
+      end
+
+      def dependencies
+        @dependencies ||= Vulcan::Figure.from_reference(@reference_figure_id)&.dependencies
       end
 
       def cell_hash
@@ -270,7 +281,8 @@ class Vulcan
             output_filenames: ['material.bin'],
             session_key: @session_key,
             digest: @digest,
-        })
+            dependencies: dependencies
+        }.compact)
       end
 
       def build_outputs

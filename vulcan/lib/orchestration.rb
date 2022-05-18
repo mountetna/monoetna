@@ -333,7 +333,8 @@ class Vulcan
           session_key: session.key,
           input_files: input_files,
           output_filenames: output_filenames,
-          script: script
+          script: script,
+          reference_figure_id: session.reference_figure_id
         )
       end
     end
@@ -352,7 +353,8 @@ class Vulcan
     def material_source(material_reference)
       Storage::MaterialSource.new(
         project_name: session.project_name, session_key: session.key,
-        material_reference: material_reference)
+        material_reference: material_reference,
+        reference_figure_id: session.reference_figure_id)
     end
 
     class RunErrors < StandardError

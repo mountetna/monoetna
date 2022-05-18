@@ -4,6 +4,10 @@ class Vulcan
 
     one_to_one :workflow_snapshot
 
+    def self.from_reference(reference_id)
+      Vulcan::Figure.where(id: reference_id).first
+    end
+
     def self.next_id
       Vulcan.instance.db.get { nextval("figures_ids") }
     end

@@ -3,7 +3,7 @@ require 'securerandom'
 # A vulcan session model.  For now this is just static, but could be made backed by a database, or a browser
 # cookie session, or just about anything we like.
 class Session < Etna::Cwl
-  attr_reader :project_name, :workflow_name, :inputs, :key
+  attr_reader :project_name, :workflow_name, :inputs, :key, :reference_figure_id
 
   def initialize(attributes)
     @attributes = attributes
@@ -13,15 +13,16 @@ class Session < Etna::Cwl
     @key = attributes['key']
     @inputs = attributes['inputs']
 
-    @workflow_snapshot = attributes['workflow_snapshot']
+    @reference_figure_id = attributes['reference_figure_id']
   end
 
-  def self.new_session_for(project_name, workflow_name, key, inputs = {})
+  def self.new_session_for(project_name, workflow_name, key, inputs = {}, reference_figure_id)
     self.new({
         'project_name' => project_name,
         'workflow_name' => workflow_name,
         'key' => key,
         'inputs' => inputs,
+        'reference_figure_id' => reference_figure_id
     })
   end
 
@@ -88,9 +89,11 @@ class Session < Etna::Cwl
 
   def workflow
     @workflow ||= begin
-      @workflow_snapshot.nil? ?
+      @reference_figure_id.nil? ?
         Etna::Cwl::Workflow.from_yaml_file(workflow_name) :
-        Etna::Cwl::Workflow.from_snapshot(@workflow_snapshot)
+        Etna::Cwl::Workflow.from_snapshot(
+          Etna::Figure.from_reference(@reference_figure_id).workflow_snapshot
+        )
     end
   end
 
