@@ -1,3 +1,23 @@
+Sequel::Schema::AlterTableGenerator.class_eval do
+  def drop_if_exists_constraint(name)
+    @operations << {:op => :drop_if_exists_constraint, :name => name}
+    nil
+  end
+end
+
+Sequel::Database.class_eval do
+  def alter_table_drop_if_exists_constraint_sql(table, op)
+    orig = alter_table_drop_constraint_sql(table, op)
+    l, r = orig.split("CONSTRAINT")
+    "#{l}CONSTRAINT IF EXISTS#{r}"
+  end
+
+  def drop_foreign_constraint_if_exists(column)
+    @operations << opts.merge(:op => :drop_if_exists_constraint, :type => :foreign_key, :columns => [column])
+    nil
+  end
+end
+
 class Magma
   class Migration
     class << self
@@ -152,7 +172,13 @@ class Magma
     end
 
     def remove_column_entry name
-      "drop_column :#{name}"
+      now = DateTime.now.to_time.to_i
+      new_name = "#{name}_#{now}_backup"
+
+      [
+        "drop_foreign_constraint_if_exists :#{name}",
+        "rename_column :#{name}, :#{new_name}",
+      ]
     end
 
     def unique_entry name
@@ -190,6 +216,7 @@ class Magma
         next if @model.attributes[name]
         next if @model.attributes[ name.to_s.sub(/_id$/,'').to_sym ]
         next if @model.attributes[ name.to_s.sub(/_type$/,'').to_sym ]
+        next if name =~ /\d+_backup$/
         next if db_opts[:primary_key]
         next if attribute_with_different_column_name?(name)
         remove_column_entry(name)

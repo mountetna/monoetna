@@ -1,4 +1,7 @@
 describe Magma::Migration do
+  before(:each) { Timecop.freeze('2000-01-01') }
+  after(:each) { Timecop.return }
+
   context 'empty migrations' do
     it 'does nothing if there is no change' do
       migration = Labors::Project.migration
@@ -181,7 +184,8 @@ EOT
       migration = Labors::Prize.migration
       expect(migration.to_s).to eq <<EOT.chomp
     alter_table(Sequel[:labors][:prizes]) do
-      drop_column :#{worth.column_name}
+      drop_foreign_constraint_if_exists :#{worth.column_name}
+      rename_column :#{worth.column_name}, :#{worth.column_name}_946684800_backup
     end
 EOT
       Labors::Prize.attributes[:worth] = worth
@@ -216,7 +220,8 @@ EOT
       expect(migration.to_s).to eq <<EOT.chomp
     alter_table(Sequel[:labors][:prizes]) do
       add_column :weight, Float
-      drop_column :#{worth.column_name}
+      drop_foreign_constraint_if_exists :#{worth.column_name}
+      rename_column :#{worth.column_name}, :#{worth.column_name}_946684800_backup
     end
 EOT
       remove_attribute(Labors::Prize, :weight)
