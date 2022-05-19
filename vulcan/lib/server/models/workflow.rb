@@ -33,7 +33,7 @@ module Etna
       end
 
       def self.from_snapshot(workflow_snapshot)
-        self.loader.load(workflow_snapshot)
+        self.loader.load(workflow_snapshot.to_workflow_json)
       end
 
       def find_step(step_name)

@@ -4,7 +4,7 @@ class Vulcan
 
     one_to_one :workflow_snapshot
 
-    def self.from_reference(reference_id)
+    def self.from_reference_id(reference_id)
       Vulcan::Figure.where(id: reference_id).first
     end
 
@@ -31,7 +31,7 @@ class Vulcan
       
         Vulcan::WorkflowSnapshot.from_workflow_json(
           figure_id: self.id,
-          json_workflow: workflow_changed?(previous_snapshot, current_workflow) ?
+          json_workflow: workflow_changed?(previous_snapshot, current_workflow) && previous_snapshot ?
             previous_snapshot.to_workflow_json :
             current_workflow
         )

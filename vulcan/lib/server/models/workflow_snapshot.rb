@@ -30,11 +30,11 @@ class Vulcan
     end
 
     def to_workflow_json
-      {
+      JSON.parse({
         class: "Workflow",
       }.update(Vulcan::WorkflowSnapshot.params.map do |param|
         [param, self[param.to_s.snake_case.to_sym]]
-      end.to_h).update(self.other_metadata)
+      end.to_h).update(self.other_metadata).to_json)
     end
 
     private

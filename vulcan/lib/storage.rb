@@ -192,7 +192,7 @@ class Vulcan
     class BuildTarget
       attr_reader :script, :project_name, :input_files
 
-      def initialize(project_name:, session_key:, input_files:, output_filenames:, script:, reference_figure_id:)
+      def initialize(project_name:, session_key:, input_files:, output_filenames:, script:, dependencies:)
         unless input_files.map(&:project_name).all? { |v| v == project_name }
           raise "input files are mixed across projects, they must all belong to #{project_name}"
         end
@@ -205,11 +205,7 @@ class Vulcan
         @input_files = input_files
         @output_filenames = output_filenames
         @script = script
-        @reference_figure_id = reference_figure_id
-      end
-
-      def dependencies
-        @dependencies ||= Vulcan::Figure.from_reference(@reference_figure_id)&.dependencies
+        @dependencies = dependencies
       end
 
       def cell_hash
@@ -219,7 +215,7 @@ class Vulcan
             output_filenames: @output_filenames,
             session_key: @session_key,
             script: @script,
-            dependencies: dependencies
+            dependencies: @dependencies&.to_json
         }.compact)
       end
 
@@ -264,15 +260,11 @@ class Vulcan
     class MaterialSource
       attr_reader :project_name
 
-      def initialize(project_name:, session_key:, material_reference:, reference_figure_id:)
+      def initialize(project_name:, session_key:, material_reference:, dependencies:)
         @project_name = project_name
         @session_key = session_key
         @digest = Storage.hash_json_obj(material_reference)
-        @reference_figure_id = reference_figure_id
-      end
-
-      def dependencies
-        @dependencies ||= Vulcan::Figure.from_reference(@reference_figure_id)&.dependencies
+        @dependencies = dependencies
       end
 
       def cell_hash
@@ -281,7 +273,7 @@ class Vulcan
             output_filenames: ['material.bin'],
             session_key: @session_key,
             digest: @digest,
-            dependencies: dependencies
+            dependencies: @dependencies&.to_json
         }.compact)
       end
 

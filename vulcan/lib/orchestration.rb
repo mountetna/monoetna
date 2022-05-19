@@ -194,7 +194,7 @@ class Vulcan
         )
 
         if (error = result["error"])
-          raise "#{interpreter(script: script).capitalize()} error while executing script: #{error}"
+          raise "#{Vulcan.instance.dependency_manager.interpreter(script: script).capitalize()} error while executing script: #{error}"
         end
 
         storage.install_build_output(
@@ -334,7 +334,7 @@ class Vulcan
           input_files: input_files,
           output_filenames: output_filenames,
           script: script,
-          reference_figure_id: session.reference_figure_id
+          dependencies: session.dependencies
         )
       end
     end
@@ -354,7 +354,7 @@ class Vulcan
       Storage::MaterialSource.new(
         project_name: session.project_name, session_key: session.key,
         material_reference: material_reference,
-        reference_figure_id: session.reference_figure_id)
+        dependencies: session.dependencies)
     end
 
     class RunErrors < StandardError
