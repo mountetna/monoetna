@@ -209,5 +209,53 @@ EOT
       log_contents = File.foreach(@log_file).to_a
       expect(log_contents[1..3].join).to eq(output)
     end
+
+    it 'logs if dont_log is true but there is an error' do
+      Arachne::Server.get('/test', dont_log: true) { raise Etna::Forbidden, 'You cannot do that.' }
+
+      @app = setup_app(
+        Arachne::Server,
+        [ Etna::TestAuth ],
+        test: { log_file: @log_file }
+      )
+
+      header(*Etna::TestAuth.token_header(
+        email: 'janus@two-faces.org',
+        perm: 'e:labors'
+      ))
+
+      get('/test')
+      expect(last_response.status).to eq(403)
+
+      output = <<EOT
+# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/61378
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {}
+ERROR:2000-01-01T00:00:00+00:00 8fzmq8 Exiting with 403, You cannot do that.
+EOT
+      expect(File.read(@log_file)).to eq(output)
+    end
+
+    it 'skips logging if dont_log is true' do
+      Arachne::Server.get('/test', dont_log: true) { success_json('You did it.') }
+
+      @app = setup_app(
+        Arachne::Server,
+        [ Etna::TestAuth ],
+        test: { log_file: @log_file }
+      )
+
+      header(*Etna::TestAuth.token_header(
+        email: 'janus@two-faces.org',
+        perm: 'e:labors'
+      ))
+
+      get('/test')
+      expect(last_response.status).to eq(200)
+
+      output = <<EOT
+# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/61378
+EOT
+      expect(File.read(@log_file)).to eq(output)
+    end
   end
 end

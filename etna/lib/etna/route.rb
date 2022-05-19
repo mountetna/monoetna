@@ -15,6 +15,7 @@ module Etna
       @block = block
       @match_ext = options[:match_ext]
       @log_redact_keys = options[:log_redact_keys]
+      @dont_log = options[:dont_log]
     end
 
     def to_hash
@@ -127,6 +128,7 @@ module Etna
       end
 
       request.env['etna.redact_keys'] = @log_redact_keys
+      request.env['etna.dont_log'] = @dont_log
 
       if @action
         controller, action = @action.split('#')
