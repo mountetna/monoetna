@@ -139,7 +139,8 @@ export const defaultVulcanSession = {
   project_name: '',
   workflow_name: '',
   key: '',
-  inputs: {} as {[k: string]: any}
+  inputs: {} as {[k: string]: any},
+  reference_figure_id: null as number | null
 };
 
 export type VulcanSession = typeof defaultVulcanSession;
@@ -156,6 +157,7 @@ export const defaultSessionStatusResponse = {
 export type SessionStatusResponse = typeof defaultSessionStatusResponse;
 
 export interface VulcanFigure {
+  id: number | null;
   figure_id?: number | null;
   inputs: {[k: string]: any};
   title?: string;
@@ -175,6 +177,7 @@ export interface VulcanRevision {
 }
 
 export const defaultFigure = {
+  id: null,
   figure_id: null,
   inputs: {},
   workflow_snapshot: defaultWorkflow

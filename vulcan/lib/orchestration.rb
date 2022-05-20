@@ -325,6 +325,8 @@ class Vulcan
             input_files << input_file
           end
         else
+          require 'pry'
+          binding.pry
           raise "Step #{step_name} has no backing definition."
         end
 

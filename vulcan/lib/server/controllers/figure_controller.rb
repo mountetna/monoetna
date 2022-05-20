@@ -67,13 +67,12 @@ class FigureController < Vulcan::Controller
       @params.slice(*figure_params)
     )
 
-    if @params[:update_dependencies]
-      new_figure_data.merge!(
-        dependencies: dependency_shas
-      )
-    end
-
     new_figure = Vulcan::Figure.create(new_figure_data)
+
+    begin
+      new_figure.update_dependencies
+      new_figure.take_snapshot
+    end if @params[:update_dependencies]
 
     success_json(new_figure.to_hash)
   end

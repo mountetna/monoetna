@@ -179,25 +179,16 @@ describe SessionsController do
   describe "with a saved workflow snapshot" do
     describe "adding inputs from previous workflow version", use_transactional_fixtures: false do
       let(:figure) {
-        create_figure(
+        fig = create_figure(
           title: "Lion of Nemea",
           workflow_name: "test_workflow.cwl",
           dependencies: {
             something: "sha:abc",
           },
         )
-      }
-      let(:body_json) do
-        {
-          key: key,
-          inputs: inputs,
-          reference_figure_id: figure.id,
-        }
-      end
 
-      before(:each) do
         # Tweak the snapshot to be slightly different
-        figure.workflow_snapshot.update(
+        fig.workflow_snapshot.update(
           inputs: {
             "someInt" => {
               "default" => 200,
@@ -270,6 +261,19 @@ describe SessionsController do
           ],
         )
 
+        fig.refresh
+
+        fig
+      }
+      let(:body_json) do
+        {
+          key: key,
+          inputs: inputs,
+          reference_figure_id: figure.id,
+        }
+      end
+
+      before(:each) do
         inputs["someIntWithoutDefault"] = 123
         inputs["pickANum/num"] = 300
         inputs["removedInt"] = 42
