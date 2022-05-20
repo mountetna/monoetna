@@ -5,6 +5,34 @@ describe Session do
       expect(Session.from_json(JSON.parse(session.as_json.to_json)).as_json).to eql(session.as_json)
     end
   end
+
+  describe "#workflow" do
+    context "when reference id exists, loads workflow" do
+      let(:figure) { create_figure_with_snapshot }
+
+      it "from snapshot when snapshot exists" do
+        session = Session.new_session_for("project_name", "test_workflow.cwl", "thekey", reference_figure_id: figure.id)
+        expect(session.workflow.inputs.length).to eq(3)
+        expect(session.workflow.inputs.map { |i| i.id }).to include("removedInt")
+      end
+
+      it "from yaml file when no snapshot" do
+        figure.remove_existing_snapshot
+
+        session = Session.new_session_for("project_name", "test_workflow.cwl", "thekey", reference_figure_id: figure.id)
+        expect(session.workflow.inputs.length).to eq(2)
+        expect(session.workflow.inputs.map { |i| i.id }).not_to include("removedInt")
+      end
+    end
+
+    context "without reference id" do
+      it "loads workflow from yaml file" do
+        session = Session.new_session_for("project_name", "test_workflow.cwl", "thekey")
+        expect(session.workflow.inputs.length).to eq(2)
+        expect(session.workflow.inputs.map { |i| i.id }).not_to include("removedInt")
+      end
+    end
+  end
 end
 
 describe SessionsController do
@@ -178,93 +206,8 @@ describe SessionsController do
 
   describe "with a saved workflow snapshot" do
     describe "adding inputs from previous workflow version", use_transactional_fixtures: false do
-      let(:figure) {
-        fig = create_figure(
-          title: "Lion of Nemea",
-          workflow_name: "test_workflow.cwl",
-          dependencies: {
-            something: "sha:abc",
-          },
-        )
+      let(:figure) { create_figure_with_snapshot }
 
-        # Tweak the snapshot to be slightly different
-        fig.workflow_snapshot.update(
-          inputs: {
-            "someInt" => {
-              "default" => 200,
-              "format" => nil,
-              "label" => "it is an int",
-              "type" => "int",
-              "doc" => "help tip",
-            },
-            "someIntWithoutDefault" => {
-              "default" => nil,
-              "format" => nil,
-              "label" => nil,
-              "type" => "int",
-              "doc" => "another tip",
-            },
-            "removedInt" => {
-              "default" => nil,
-              "format" => nil,
-              "label" => nil,
-              "type" => "int",
-              "doc" => "deprecated tip",
-            },
-          }, steps: [
-            [
-              {
-                "in" => [{ "id" => "a", "source" => "someInt" },
-                         { "id" => "b", "source" => "someIntWithoutDefault" }],
-                "doc" => nil,
-                "label" => nil,
-                "out" => ["sum"],
-                "id" => "firstAdd",
-                "run" => "scripts/add.cwl",
-              },
-              {
-                "in" => [{ "id" => "a", "source" => "firstAdd/sum" },
-                         { "id" => "b", "source" => "removedInt" }],
-                "doc" => nil,
-                "label" => nil,
-                "out" => ["sum"],
-                "id" => "secondAdd",
-                "run" => "scripts/add.cwl",
-              },
-              {
-                "in" => [{ "id" => "num", "source" => "secondAdd/sum" }],
-                "doc" => nil,
-                "label" => nil,
-                "out" => ["num"],
-                "id" => "pickANum",
-                "run" => "ui-queries/pick-a-number.cwl",
-              },
-              {
-                "in" => [{ "id" => "a", "source" => "secondAdd/sum" },
-                         { "id" => "b", "source" => "pickANum/num" }],
-                "doc" => nil,
-                "label" => nil,
-                "out" => ["sum", "thumb.png"],
-                "id" => "finalStep",
-                "run" => "scripts/add.cwl",
-              },
-              {
-                "in" => [{ "id" => "a", "source" => "finalStep/sum" },
-                         { "id" => "b", "source" => "finalStep/thumb.png" }],
-                "doc" => nil,
-                "label" => nil,
-                "id" => "aPlot",
-                "out" => [],
-                "run" => "ui-outputs/plotly.cwl",
-              },
-            ],
-          ],
-        )
-
-        fig.refresh
-
-        fig
-      }
       let(:body_json) do
         {
           key: key,

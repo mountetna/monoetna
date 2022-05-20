@@ -90,11 +90,15 @@ class Session < Etna::Cwl
 
   def workflow
     @workflow ||= begin
-      @reference_figure_id.nil? ?
-        Etna::Cwl::Workflow.from_yaml_file(workflow_name) :
-        Etna::Cwl::Workflow.from_snapshot(
-          Vulcan::Figure.from_reference_id(@reference_figure_id).workflow_snapshot
-        )
+      if @reference_figure_id
+        if (snapshot = Vulcan::Figure.from_reference_id(@reference_figure_id)&.workflow_snapshot)
+          Etna::Cwl::Workflow.from_snapshot(snapshot)
+        else
+          Etna::Cwl::Workflow.from_yaml_file(workflow_name)  
+        end
+      else
+        Etna::Cwl::Workflow.from_yaml_file(workflow_name)  
+      end    
     end
   end
 

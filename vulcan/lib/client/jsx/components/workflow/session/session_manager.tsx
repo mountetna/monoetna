@@ -30,22 +30,20 @@ import {
   clearCommittedStepPending,
   clearRunTriggers,
   setSession,
-  setSessionAndFigure
+  setSessionAndFigure,
+  setWorkflow
 } from '../../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 import Vignette from '../vignette';
 import {workflowName} from '../../../selectors/workflow_selectors';
 import {useWorkflow} from '../../../contexts/workflow_context';
-import {readTextFile, downloadBlob} from 'etna-js/utils/blob';
-import {defaultSession} from '../../../reducers/vulcan_reducer';
 import {
   VulcanFigure,
   VulcanFigureSession,
-  VulcanRevision,
-  VulcanSession
+  VulcanRevision
 } from '../../../api_types';
-import { json_get } from 'etna-js/utils/fetch';
+import {json_get} from 'etna-js/utils/fetch';
 import useUserHooks from '../../useUserHooks';
 import Button from '@material-ui/core/Button';
 import Tag from '../../tag';
@@ -99,7 +97,7 @@ export default function SessionManager() {
 
   const [tags, setTags] = useState<string[]>(figure.tags || []);
   const [openTagEditor, setOpenTagEditor] = useState(false);
-  const [openRevisions, setOpenRevisions] = useState<boolean|null>(null);
+  const [openRevisions, setOpenRevisions] = useState<boolean | null>(null);
   const [localTitle, setLocalTitle] = useState(figure.title);
 
   const invoke = useActionInvoker();
@@ -116,9 +114,9 @@ export default function SessionManager() {
   }, [requestPoll, dispatch, showErrors]);
   const stop = useCallback(() => cancelPolling(), [cancelPolling]);
 
-  const cancelSaving = () => {
+  const cancelSaving = useCallback(() => {
     setSaving(false);
-  };
+  }, []);
 
   const handleSaveOrCreate = useCallback(
     (figure: VulcanFigure) => {
@@ -180,7 +178,7 @@ export default function SessionManager() {
       invoke,
       dispatch,
       clearLocalSession,
-      pushLocation
+      createFigure
     ]
   );
 
@@ -204,64 +202,24 @@ export default function SessionManager() {
     handleSaveOrCreate(clone);
   }, [figure, handleSaveOrCreate]);
 
-  const saveSessionToBlob = useCallback(() => {
-    if (hasPendingEdits) {
-      if (!confirm('Pending edits will be discarded when saving. Proceed?')) {
-        return;
-      }
-    }
-
-    downloadBlob({
-      data: JSON.stringify(session, null, 2),
-      filename: `${name}.json`,
-      contentType: 'text/json'
-    });
-  }, [hasPendingEdits, session, name]);
-
-  const openSession = () => {
-    showErrors(
-      readTextFile('*.json').then((sessionJson) => {
-        const session: VulcanSession = JSON.parse(sessionJson);
-        if (
-          session.workflow_name !== state.session.workflow_name ||
-          session.project_name !== state.session.project_name
-        ) {
-          // TODO: Confirm the user has project and workflow access before doing the navigation?
-          if (
-            confirm(
-              'This session file belongs to a different project / workflow combination, navigate to that page?'
-            )
-          ) {
-            location.href =
-              location.origin +
-              ROUTES.workflow(session.project_name, session.workflow_name);
-          }
-          throw new Error(
-            'Cannot read session file, incompatible with current page.'
-          );
-        }
-        dispatch(setSession(session));
-      })
-    );
-  };
-
-  const loadRevision = useCallback(({inputs,title,tags}:VulcanRevision) => {
-      dispatch(setSession({ ...session, inputs } as VulcanFigureSession));
+  const loadRevision = useCallback(
+    ({inputs, title, tags, id, workflow_snapshot}: VulcanRevision) => {
+      dispatch(
+        setSession({
+          ...session,
+          inputs,
+          reference_figure_id: id
+        } as VulcanFigureSession)
+      );
       setLocalTitle(title);
       setTags(tags || []);
       requestPoll();
       setOpenRevisions(false);
-    }, [ figure ]);
-
-  const resetSession = useCallback(() => {
-    const newSession = {
-      ...defaultSession,
-      workflow_name: session.workflow_name,
-      project_name: session.project_name
-    };
-    dispatch(setSession(newSession));
-    requestPoll();
-  }, [session, dispatch, requestPoll]);
+      if (workflow_snapshot)
+        dispatch(setWorkflow(workflow_snapshot, session.project_name));
+    },
+    [dispatch, session, requestPoll]
+  );
 
   const handleCloseEditTags = useCallback(() => {
     setOpenTagEditor(false);
@@ -277,11 +235,11 @@ export default function SessionManager() {
 
   // Catch auto-pass 'Run' trigger
   useEffect(() => {
-    if (state.triggerRun.length>0) {
-      dispatch(clearRunTriggers(state.triggerRun))
+    if (state.triggerRun.length > 0) {
+      dispatch(clearRunTriggers(state.triggerRun));
       run();
     }
-  }, [state.triggerRun])
+  }, [state.triggerRun, dispatch, run]);
 
   const inputsChanged = useMemo(() => {
     return !_.isEqual(figure.inputs, session.inputs);
@@ -301,7 +259,10 @@ export default function SessionManager() {
     );
   }, [running, saving, inputsChanged, titleChanged, tagsChanged]);
 
-  const editor = useMemo(() => canEdit(figure) || !figure.figure_id, [figure]);
+  const editor = useMemo(() => canEdit(figure) || !figure.figure_id, [
+    figure,
+    canEdit
+  ]);
 
   const isPublic = useMemo(() => (tags || []).includes('public'), [tags]);
 
@@ -404,16 +365,21 @@ export default function SessionManager() {
               title='Revisions'
               onClick={() => setOpenRevisions(true)}
             />
-            { openRevisions != null && <RevisionHistory
+            {openRevisions != null && (
+              <RevisionHistory
                 open={openRevisions}
-                onClose={ () => setOpenRevisions(false) }
-                revisionDoc={ ({inputs,title,tags}:VulcanRevision) => JSON.stringify( {inputs,title,tags}, null, 2 ) }
-                update={ loadRevision }
-                getRevisions={ () => json_get(
-                  `/api/${session.project_name}/figure/${figure.figure_id}/revisions`
-                ) }
+                onClose={() => setOpenRevisions(false)}
+                revisionDoc={({inputs, title, tags}: VulcanRevision) =>
+                  JSON.stringify({inputs, title, tags}, null, 2)
+                }
+                update={loadRevision}
+                getRevisions={() =>
+                  json_get(
+                    `/api/${session.project_name}/figure/${figure.figure_id}/revisions`
+                  )
+                }
               />
-            }
+            )}
             <Dialog
               maxWidth='md'
               open={openTagEditor}
@@ -435,17 +401,19 @@ export default function SessionManager() {
                   renderInput={(params: any) => (
                     <TextField {...params} label='Tags' variant='outlined' />
                   )}
-                  renderTags={
-                    (tags, getTagProps) => tags.map(
-                      (tag, index) => <Tag {...getTagProps({ index })} label={tag} />
-                    )
+                  renderTags={(tags: string[], getTagProps: any) =>
+                    tags.map((tag, index) => (
+                      <Tag {...getTagProps({index})} label={tag} />
+                    ))
                   }
-                  renderOption={(option, state) => <span>{option}</span>}
-                  filterOptions={(options, state) => {
+                  renderOption={(option: string, state: any) => (
+                    <span>{option}</span>
+                  )}
+                  filterOptions={(options: string[], state: any) => {
                     let regex = new RegExp(state.inputValue);
                     return options.filter((o) => regex.test(o));
                   }}
-                  onChange={(e, v) => setTags(v)}
+                  onChange={(e: any, v: string[]) => setTags(v)}
                 />
               </DialogContent>
               <DialogActions>

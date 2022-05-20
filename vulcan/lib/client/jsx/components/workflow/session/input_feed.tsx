@@ -31,14 +31,7 @@ export default function InputFeed() {
   const groupedSteps = groupUiSteps(completed.concat(nextUiSteps));
 
   let errorSteps = erroredSteps(workflow, status);
-  console.log(
-    'errorSteps',
-    errorSteps,
-    workflow,
-    status,
-    nextUiSteps,
-    completed
-  );
+
   return (
     <div className='session-input-feed'>
       <PrimaryInputs />

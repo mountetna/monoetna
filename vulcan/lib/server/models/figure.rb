@@ -63,6 +63,7 @@ class Vulcan
 
     def remove_existing_snapshot
       Vulcan::WorkflowSnapshot.where(figure_id: self.id).first.delete
+      refresh
     end
 
     def session
@@ -109,6 +110,8 @@ class Vulcan
         tags: tags,
         updated_at: updated_at.iso8601,
         comment: comment,
+        id: id,
+        workflow_snapshot: workflow_snapshot&.to_workflow_json
       }
     end
 

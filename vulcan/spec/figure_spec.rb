@@ -54,6 +54,24 @@ describe FigureController do
     end
   end
 
+  context "#revisions" do
+    it "returns a figure's revisions'" do
+      auth_header(:viewer)
+      figure = create_figure(title: "Lion of Nemea", workflow_name: "test_workflow.cwl", figure_id: 1)
+      figure_v2 = create_figure(
+        title: "Lion of Nemea, redux",
+        workflow_name: "test_workflow.cwl",
+        figure_id: figure.figure_id
+      )
+      get("/api/labors/figure/#{figure.figure_id}/revisions")
+
+      expect(last_response.status).to eq(200)
+      expect(json_body.length).to eq(2)
+      expect(json_body.map { |r| r[:title] }).to match_array(["Lion of Nemea", "Lion of Nemea, redux"])
+      expect(json_body.first.keys).to include(:id, :workflow_snapshot)
+    end
+  end
+
   context "#create" do
     it "creates a new figure" do
       expect(Vulcan::WorkflowSnapshot.count).to eq(0)
