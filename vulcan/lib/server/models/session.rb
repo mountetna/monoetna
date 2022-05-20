@@ -16,7 +16,7 @@ class Session < Etna::Cwl
     @reference_figure_id = attributes['reference_figure_id']
   end
 
-  def self.new_session_for(project_name, workflow_name, key, inputs = {}, reference_figure_id)
+  def self.new_session_for(project_name, workflow_name, key, inputs = {}, reference_figure_id: nil)
     self.new({
         'project_name' => project_name,
         'workflow_name' => workflow_name,
