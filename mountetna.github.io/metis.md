@@ -90,6 +90,8 @@ list the contents of the `blueprints` folder.
 - *pwd* - Print your local directory
 - *lcd* - Change your local directory
 - *get* - Recursively download a directory from metis
+- *validate* - Verify that a directory of files exists on metis
+- *nuke* - Remove portions of a directory structure that exist on metis
 
 If you have edit permission you may also:
 - *mv* - Rename a file on metis
