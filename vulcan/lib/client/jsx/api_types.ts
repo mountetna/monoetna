@@ -165,7 +165,7 @@ export interface VulcanFigure {
   thumbnails?: string[];
   comment?: string;
   tags?: string[];
-  workflow_snapshot: Workflow
+  workflow_snapshot?: Workflow
 }
 
 export type VulcanFigureSession = VulcanSession & VulcanFigure;

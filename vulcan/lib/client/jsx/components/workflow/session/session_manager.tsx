@@ -231,9 +231,10 @@ export default function SessionManager() {
     updateFigureDependencies(session.project_name, figure.figure_id).then(
       (updatedFigure) => {
         dispatch(setSessionAndFigure(updatedFigure));
-        dispatch(
-          setWorkflow(updatedFigure.workflow_snapshot, session.project_name)
-        );
+        if (updatedFigure.workflow_snapshot)
+          dispatch(
+            setWorkflow(updatedFigure.workflow_snapshot, session.project_name)
+          );
       }
     );
   }, [session, figure, updateFigureDependencies, dispatch]);
