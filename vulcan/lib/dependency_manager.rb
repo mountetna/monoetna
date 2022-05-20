@@ -16,8 +16,11 @@ class Vulcan
       dependency
     end
 
-    def target_image(interpreter)
-      Vulcan.instance.config(:archimedes_interpreters)&.dig(interpreter.to_sym) || Vulcan.instance.config(:archimedes_run_image)
+    def target_image(interpreter, session)
+      # Specify the image with sha here
+      target = Vulcan.instance.config(:archimedes_interpreters)&.dig(interpreter.to_sym) || Vulcan.instance.config(:archimedes_run_image)
+
+      dependency_name_w_sha(session, target)
     end
 
     def interpreter(script:)
@@ -30,12 +33,16 @@ class Vulcan
     end
 
     def archimedes_run_sha(session)
+      dependency_name_w_sha(session, Vulcan.instance.config(:archimedes_run_image))
+    end
+
+    private
+
+    def dependency_name_w_sha(session, image_name)
       # If the session's reference figure has dependencies,
       #   we'll try to honor those in the image passed back.
       # Otherwise, default is just what is in Vulcan config.
-      config_image = Vulcan.instance.config(:archimedes_run_image)
-
-      base_image = config_image.split(":").first.to_s
+      base_image = image_name.split(":").first.to_s
 
       begin
         sha = dependency_sha(session, base_image)
@@ -43,10 +50,8 @@ class Vulcan
         return "#{base_image}@#{sha}" unless sha.nil?
       end if session.dependencies
 
-      config_image
+      image_name
     end
-
-    private
 
     def dependency_sha(session, dependency_name)
       return nil unless session.dependencies.keys.include?(dependency_name)

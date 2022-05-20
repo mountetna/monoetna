@@ -235,5 +235,32 @@ describe Vulcan::Orchestration do
         }.to raise_error(Vulcan::Orchestration::RunErrors)
       end
     end
+
+    describe 'node' do
+      let(:figure) {
+        create_figure(
+          workflow_name: "test_node_workflow.cwl",
+          dependencies: {
+            "etnaagent/archimedes-node": "sha256:969d1df72b9a6f78a17600f78316d0a48b94bb18679f9df04c7d28629891536a",
+            "etnaagent/archimedes": "sha256:0336c5101c0a089a2bb38d2fa01c0747f4f6bd615e0326a567a256e8aa04d4b0"
+          }
+        )
+      }
+      let(:session) { Session.new_session_for('project', 'test_node_workflow.cwl', 'storage_key', inputs, reference_figure_id: figure.id) }
+    
+      it 'works' do
+        expect(orchestration.run_until_done!(storage).length).to eql(2)
+        expect(::File.read(primary_outputs.build_outputs['the_result'].data_path(storage))).to eql({
+          'col1' => {
+            0 => 1,
+            1 => 2
+          },
+          'col2' => {
+            0 => 'abc',
+            1 => 'xyz'
+          }
+        }.to_json)
+      end
+    end
   end
 end
