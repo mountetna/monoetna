@@ -87,7 +87,8 @@ export default function SessionManager() {
     cancelPolling,
     updateFigure,
     createFigure,
-    clearLocalSession
+    clearLocalSession,
+    updateFigureDependencies
   } = useContext(VulcanContext);
   const {workflow, hasPendingEdits, complete} = useWorkflow();
   const {canEdit} = useUserHooks();
@@ -221,6 +222,22 @@ export default function SessionManager() {
     [dispatch, session, requestPoll]
   );
 
+  const updateDependencies = useCallback(() => {
+    // Post an update request for the figure,
+    //   then set local workflow / session with
+    //   the new reference_figure_id and snapshot.
+    if (!figure.figure_id) return;
+
+    updateFigureDependencies(session.project_name, figure.figure_id).then(
+      (updatedFigure) => {
+        dispatch(setSessionAndFigure(updatedFigure));
+        dispatch(
+          setWorkflow(updatedFigure.workflow_snapshot, session.project_name)
+        );
+      }
+    );
+  }, [session, figure, updateFigureDependencies, dispatch]);
+
   const handleCloseEditTags = useCallback(() => {
     setOpenTagEditor(false);
   }, []);
@@ -253,11 +270,24 @@ export default function SessionManager() {
     return !_.isEqual(tags, figure.tags);
   }, [figure, tags]);
 
+  const viewingRevision = useMemo(() => {
+    return figure.id !== session.reference_figure_id;
+  }, [figure, session]);
+
   const canSave = useMemo(() => {
     return (
-      (titleChanged || inputsChanged || tagsChanged) && !(running || saving)
+      (titleChanged || inputsChanged || tagsChanged) &&
+      !(running || saving) &&
+      !viewingRevision
     );
-  }, [running, saving, inputsChanged, titleChanged, tagsChanged]);
+  }, [
+    running,
+    saving,
+    inputsChanged,
+    titleChanged,
+    tagsChanged,
+    viewingRevision
+  ]);
 
   const editor = useMemo(() => canEdit(figure) || !figure.figure_id, [
     figure,
@@ -380,6 +410,13 @@ export default function SessionManager() {
                 }
               />
             )}
+            <FlatButton
+              className='header-btn edit-tags'
+              icon='code-branch'
+              label='Update dependencies'
+              title='Update dependencies'
+              onClick={updateDependencies}
+            />
             <Dialog
               maxWidth='md'
               open={openTagEditor}
