@@ -8,7 +8,7 @@ class Vulcan
 
     def dependencies
       @dependencies ||= ["vulcan"].concat(
-        Vulcan.instance.config(:archimedes_interpreters)&.values.map { |ai| image_wo_tag(ai) } || []
+        Vulcan.instance.config(:archimedes_interpreters)&.values&.map { |ai| image_wo_tag(ai) } || []
       ).concat([image_wo_tag(Vulcan.instance.config(:archimedes_run_image))]).uniq.compact
     end
 
