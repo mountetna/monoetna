@@ -29,6 +29,19 @@ class Vulcan
       "python"
     end
 
+    def archimedes_run_sha(session)
+      # If the session's reference figure has dependencies,
+      #   we'll try to honor those in the image passed back.
+      # Otherwise, default is just what is in Vulcan config.
+      config_image = Vulcan.instance.config(:archimedes_run_image)
+
+      base_image = config_image.split(":").first.to_s
+
+      return "#{base_image}@#{session.dependencies[base_image]}" if session.dependencies && session.dependencies.keys.include?(base_image)
+
+      config_image
+    end
+
     private
 
     def image_wo_tag(image_name)

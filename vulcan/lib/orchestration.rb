@@ -105,7 +105,7 @@ class Vulcan
         "/var/run/docker.sock:/var/run/docker.sock:ro",
         "-v",
         "#{Vulcan.instance.config(:archimedes_exec_volume)}:/archimedes-exec",
-        Vulcan.instance.config(:archimedes_run_image),
+        Vulcan.instance.dependency_manager.archimedes_run_sha(session),
         "poetry",
         "run",
         "archimedes-run",
