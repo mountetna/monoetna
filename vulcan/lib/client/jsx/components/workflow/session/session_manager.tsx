@@ -50,6 +50,8 @@ import Tag from '../../tag';
 
 import RevisionHistory from 'etna-js/components/revision-history';
 
+import AdvancedSessionControls from './advanced_session_controls';
+
 const modalStyles = {
   content: {
     top: '50%',
@@ -87,8 +89,7 @@ export default function SessionManager() {
     cancelPolling,
     updateFigure,
     createFigure,
-    clearLocalSession,
-    updateFigureDependencies
+    clearLocalSession
   } = useContext(VulcanContext);
   const {workflow, hasPendingEdits, complete} = useWorkflow();
   const {canEdit} = useUserHooks();
@@ -221,23 +222,6 @@ export default function SessionManager() {
     },
     [dispatch, session, requestPoll]
   );
-
-  const updateDependencies = useCallback(() => {
-    // Post an update request for the figure,
-    //   then set local workflow / session with
-    //   the new reference_figure_id and snapshot.
-    if (!figure.figure_id) return;
-
-    updateFigureDependencies(session.project_name, figure.figure_id).then(
-      (updatedFigure) => {
-        dispatch(setSessionAndFigure(updatedFigure));
-        if (updatedFigure.workflow_snapshot)
-          dispatch(
-            setWorkflow(updatedFigure.workflow_snapshot, session.project_name)
-          );
-      }
-    );
-  }, [session, figure, updateFigureDependencies, dispatch]);
 
   const handleCloseEditTags = useCallback(() => {
     setOpenTagEditor(false);
@@ -411,13 +395,7 @@ export default function SessionManager() {
                 }
               />
             )}
-            <FlatButton
-              className='header-btn edit-tags'
-              icon='code-branch'
-              label='Update dependencies'
-              title='Update dependencies'
-              onClick={updateDependencies}
-            />
+            <AdvancedSessionControls session={session} figure={figure} />
             <Dialog
               maxWidth='md'
               open={openTagEditor}
