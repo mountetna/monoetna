@@ -37,12 +37,25 @@ class Vulcan
 
       base_image = config_image.split(":").first.to_s
 
-      return "#{base_image}@#{session.dependencies[base_image]}" if session.dependencies && session.dependencies.keys.include?(base_image)
+      begin
+        sha = dependency_sha(session, base_image)
+
+        return "#{base_image}@#{sha}" unless sha.nil?
+      end if session.dependencies
 
       config_image
     end
 
     private
+
+    def dependency_sha(session, dependency_name)
+      return nil unless session.dependencies.keys.include?(dependency_name)
+
+      sha = session.dependencies[dependency_name]
+      return nil if sha.empty?
+
+      sha
+    end
 
     def image_wo_tag(image_name)
       image_name.to_s.split(":").first
