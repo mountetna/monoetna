@@ -20,10 +20,6 @@ services:
         - autoupdate=true
       mode: replicated
       replicas: 1
-      resources:
-        limits:
-          cpus: '0.1'
-          memory: 100mb
     configs:
       - source: blackbox.config.yml
         target: /config/blackbox.config.yml
@@ -45,7 +41,6 @@ services:
         delay: 300s
       resources:
         limits:
-          cpus: '0.1'
           memory: 200mb
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -86,7 +81,6 @@ services:
         constraints: [node.platform.os == linux]
       resources:
         limits:
-          cpus: '0.1'
           memory: 200mb
     ports:
       - 7100:8080

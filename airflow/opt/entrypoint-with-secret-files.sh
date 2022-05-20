@@ -11,7 +11,7 @@ if [ -f /run/secrets/airflow-fernet-key ]; then
 fi
 
 if [ -f /etna_public_key ]; then
-  export ETNA_PUBLIC_KEY="$(cat /etna_public_key)"
+  export ETNA_AUTH_PUBLIC_KEY="$(cat /etna_public_key)"
 fi
 
 if [ -n "$USE_MOCKS" ]; then
