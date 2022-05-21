@@ -606,11 +606,11 @@ function checkAndDeployUpdatedImages() {
 
   for serviceName in $services; do
     echo "Checking $serviceName for updated image..."
-    service=$(getService "$serviceName")
-    serviceId=$(dig "$service" -r '.ID')
-    image=$(dig "$service" -r '.Spec.TaskTemplate.ContainerSpec.Image')
-    tag=$(tagOfImageDigest "$image")
-    sha=$(shaOfImageDigest "$image")
+    service="$(getService "$serviceName")"
+    serviceId="$(dig "$service" -r '.ID')"
+    image="$(dig "$service" -r '.Spec.TaskTemplate.ContainerSpec.Image')"
+    tag="$(tagOfImageDigest "$image")"
+    sha="$(shaOfImageDigest "$image")"
     deployFailed=
     echo "Current tag is $tag, sha is $sha"
 
