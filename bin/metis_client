@@ -1237,6 +1237,60 @@ EOT
     end
   end
 
+  class Validate < Command
+    usage "validate <local_directory>"
+
+    def parse(args)
+      parse_opts(args) do |opts|
+        opts.on("-l", "--list", "List unarchived files") do |n|
+          options[:list] = true
+        end
+      end
+    end
+
+    def run(local_directory)
+      # collect all files and folders
+      folders, files = Dir[::File.join(local_directory, "**", "*")].partition { |f| ::File.directory?(f) }
+
+      puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
+
+      archived_files_count = 0 
+      unarchived_files = []
+      unarchived_size = 0
+
+      unless files.empty?
+        # compute md5sums
+        file_md5s = files.map.with_index do |file,i|
+          print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}\r"
+          [ file, %x{ md5sum #{file} }.split(' ')[0] ]
+        end.to_h
+        puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}\n"
+
+        # check with metis
+        response = @shell.client.exists(file_md5s.values)
+
+        # count found files
+        found = ::Set.new(response[:found])
+
+        file_md5s.each do |file, md5|
+          if found.include?(md5)
+            archived_files_count += 1
+          else
+            unarchived_files << file
+            unarchived_size += ::File.size(file)
+          end
+        end
+      end
+
+      puts "Found #{archived_files_count} of #{files.length} files on Metis."
+      puts "Total unarchived size: #{byte_format(unarchived_size)}"
+      if options[:list] && !unarchived_files.empty?
+        puts "\nMissing files:"
+        puts unarchived_files
+      end
+    end
+  end
+
   class Peek < Command
     usage "peek <byte_offset> <num_bytes> <remote_file_path> [<local_file_path>]"
 
