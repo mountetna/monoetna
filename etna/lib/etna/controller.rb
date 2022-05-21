@@ -44,7 +44,7 @@ module Etna
     rescue Exception => e
       error = e
     ensure
-      log_request
+      log_request if !@request.env['etna.dont_log'] || error
       return handle_error(error) if error
     end
 

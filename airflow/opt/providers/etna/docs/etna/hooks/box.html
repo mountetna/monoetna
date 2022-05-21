@@ -130,7 +130,16 @@
                                 <a class="function" href="#Box.retrieve_file">retrieve_file</a>
                         </li>
                         <li>
+                                <a class="function" href="#Box.mark_file_as_ingested">mark_file_as_ingested</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Box.update_cursor">update_cursor</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#Box.remove_file">remove_file</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Box.variable_key">variable_key</a>
                         </li>
                 </ul>
 
@@ -163,8 +172,11 @@
 <span class="kn">from</span> <span class="nn">ftplib</span> <span class="kn">import</span> <span class="n">FTP_TLS</span>
 
 <span class="kn">import</span> <span class="nn">cached_property</span>
+
+<span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
 <span class="kn">from</span> <span class="nn">airflow.hooks.base</span> <span class="kn">import</span> <span class="n">BaseHook</span>
 <span class="kn">from</span> <span class="nn">airflow.models</span> <span class="kn">import</span> <span class="n">Connection</span><span class="p">,</span> <span class="n">Variable</span>
+<span class="kn">from</span> <span class="nn">airflow.operators.python</span> <span class="kn">import</span> <span class="n">get_current_context</span>
 <span class="kn">from</span> <span class="nn">etna.dags.project_name</span> <span class="kn">import</span> <span class="n">get_project_name</span>
 
 
@@ -290,6 +302,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook</span><span class="p">:</span> <span class="n">BoxHook</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hook</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">,</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">valid_folder_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -310,16 +323,8 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">Box</span><span class="o">.</span><span class="n">valid_folder_name</span><span class="p">(</span><span class="n">folder_name</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid folder name: </span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">. Only alphanumeric characters, _, -, and spaces are allowed.&quot;</span><span class="p">)</span>
 
-        <span class="n">variable_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_root</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">variable_key</span><span class="p">,</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ftps</span><span class="p">()</span> <span class="k">as</span> <span class="n">ftps</span><span class="p">:</span>
-            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ls_r</span><span class="p">(</span><span class="n">ftps</span><span class="p">)</span>
-
-            <span class="n">Variable</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">variable_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">,</span> <span class="n">serialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-            <span class="k">return</span> <span class="n">results</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ls_r</span><span class="p">(</span><span class="n">ftps</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_ls_r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">FtpEntry</span><span class="p">]:</span>
         <span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
@@ -338,7 +343,6 @@
                 <span class="c1">#       in an Airflow Variable for files we&#39;ve seen.</span>
                 <span class="c1"># Re-upload file if the hash has changed (size-modified time-created time).</span>
                 <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ftp_entry</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">[</span><span class="n">ftp_entry</span><span class="o">.</span><span class="n">full_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">ftp_entry</span><span class="o">.</span><span class="n">hash</span>
 
         <span class="k">return</span> <span class="n">files</span>
 
@@ -390,12 +394,36 @@
         <span class="n">ftps</span><span class="o">.</span><span class="n">voidcmd</span><span class="p">(</span><span class="s1">&#39;NOOP&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ftps</span><span class="o">.</span><span class="n">transfercmd</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RETR </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">mark_file_as_ingested</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">FtpEntry</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        In the cursor, save the fact that the given file&#39;s upload was completed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">hash</span>
+
+    <span class="k">def</span> <span class="nf">update_cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the cursor to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Variable</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">,</span> <span class="n">serialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">remove_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">FtpEntry</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Removes the file from the FTP server, if user wants to automatically</span>
 <span class="sd">        clean up after ingestion to Metis.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ftps</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">variable_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the variable key for the current dag.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">context</span> <span class="o">=</span> <span class="n">get_current_context</span><span class="p">()</span>
+
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_root</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;dag&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dag_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">except</span> <span class="n">AirflowException</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable_root</span>
 </pre></div>
 
         </details>
@@ -956,6 +984,7 @@ for the efficiency of imports.</p>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook</span><span class="p">:</span> <span class="n">BoxHook</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hook</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">,</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">valid_folder_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -976,16 +1005,8 @@ for the efficiency of imports.</p>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">Box</span><span class="o">.</span><span class="n">valid_folder_name</span><span class="p">(</span><span class="n">folder_name</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid folder name: </span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">. Only alphanumeric characters, _, -, and spaces are allowed.&quot;</span><span class="p">)</span>
 
-        <span class="n">variable_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_root</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">variable_key</span><span class="p">,</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ftps</span><span class="p">()</span> <span class="k">as</span> <span class="n">ftps</span><span class="p">:</span>
-            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ls_r</span><span class="p">(</span><span class="n">ftps</span><span class="p">)</span>
-
-            <span class="n">Variable</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">variable_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">,</span> <span class="n">serialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-            <span class="k">return</span> <span class="n">results</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ls_r</span><span class="p">(</span><span class="n">ftps</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_ls_r</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">FtpEntry</span><span class="p">]:</span>
         <span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1004,7 +1025,6 @@ for the efficiency of imports.</p>
                 <span class="c1">#       in an Airflow Variable for files we&#39;ve seen.</span>
                 <span class="c1"># Re-upload file if the hash has changed (size-modified time-created time).</span>
                 <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ftp_entry</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">[</span><span class="n">ftp_entry</span><span class="o">.</span><span class="n">full_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">ftp_entry</span><span class="o">.</span><span class="n">hash</span>
 
         <span class="k">return</span> <span class="n">files</span>
 
@@ -1056,12 +1076,36 @@ for the efficiency of imports.</p>
         <span class="n">ftps</span><span class="o">.</span><span class="n">voidcmd</span><span class="p">(</span><span class="s1">&#39;NOOP&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ftps</span><span class="o">.</span><span class="n">transfercmd</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RETR </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">mark_file_as_ingested</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">FtpEntry</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        In the cursor, save the fact that the given file&#39;s upload was completed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">hash</span>
+
+    <span class="k">def</span> <span class="nf">update_cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the cursor to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Variable</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">,</span> <span class="n">serialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">remove_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ftps</span><span class="p">:</span> <span class="n">FTP_TLS</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">FtpEntry</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Removes the file from the FTP server, if user wants to automatically</span>
 <span class="sd">        clean up after ingestion to Metis.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ftps</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">variable_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the variable key for the current dag.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">context</span> <span class="o">=</span> <span class="n">get_current_context</span><span class="p">()</span>
+
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_root</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">context</span><span class="p">[</span><span class="s1">&#39;dag&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dag_id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">except</span> <span class="n">AirflowException</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">variable_root</span>
 </pre></div>
 
         </details>
@@ -1079,6 +1123,7 @@ for the efficiency of imports.</p>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook</span><span class="p">:</span> <span class="n">BoxHook</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hook</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">,</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -1142,16 +1187,8 @@ for the efficiency of imports.</p>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">Box</span><span class="o">.</span><span class="n">valid_folder_name</span><span class="p">(</span><span class="n">folder_name</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid folder name: </span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">. Only alphanumeric characters, _, -, and spaces are allowed.&quot;</span><span class="p">)</span>
 
-        <span class="n">variable_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_root</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">folder_name</span><span class="si">}</span><span class="s2">&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">variable_key</span><span class="p">,</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
         <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ftps</span><span class="p">()</span> <span class="k">as</span> <span class="n">ftps</span><span class="p">:</span>
-            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ls_r</span><span class="p">(</span><span class="n">ftps</span><span class="p">)</span>
-
-            <span class="n">Variable</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">variable_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">,</span> <span class="n">serialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-            <span class="k">return</span> <span class="n">results</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ls_r</span><span class="p">(</span><span class="n">ftps</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -1278,6 +1315,54 @@ with socket.makefile('rb') as connection:
 
 
                             </div>
+                            <div id="Box.mark_file_as_ingested" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Box.mark_file_as_ingested">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">mark_file_as_ingested</span><span class="signature">(self, file: <a href="#FtpEntry">etna.hooks.box.FtpEntry</a>)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">mark_file_as_ingested</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">FtpEntry</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        In the cursor, save the fact that the given file&#39;s upload was completed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">hash</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>In the cursor, save the fact that the given file's upload was completed.</p>
+</div>
+
+
+                            </div>
+                            <div id="Box.update_cursor" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Box.update_cursor">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">update_cursor</span><span class="signature">(self)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">update_cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the cursor to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Variable</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">,</span> <span class="n">serialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Save the cursor to the database.</p>
+</div>
+
+
+                            </div>
                             <div id="Box.remove_file" class="classattr">
                                         <div class="attr function"><a class="headerlink" href="#Box.remove_file">#&nbsp;&nbsp</a>
 
@@ -1300,6 +1385,18 @@ with socket.makefile('rb') as connection:
 
             <div class="docstring"><p>Removes the file from the FTP server, if user wants to automatically
 clean up after ingestion to Metis.</p>
+</div>
+
+
+                            </div>
+                            <div id="Box.variable_key" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#Box.variable_key">#&nbsp;&nbsp</a>
+
+        <span class="name">variable_key</span>
+    </div>
+
+    
+            <div class="docstring"><p>Return the variable key for the current dag.</p>
 </div>
 
 
