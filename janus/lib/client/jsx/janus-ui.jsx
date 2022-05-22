@@ -3,10 +3,10 @@ import { ThemeProvider } from '@material-ui/core/styles';
 
 import JanusNav from './janus-nav';
 import JanusMain from './janus-main';
-import JanusAdmin from './janus-admin';
+import ProjectsView from './projects-view';
 import JanusSettings from './janus-settings';
 import ProjectView from './project-view';
-import FlagsView from './flags/flags-view';
+import UsersView from './users-view';
 
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 
@@ -23,9 +23,9 @@ const ROUTES = [
     component: JanusMain
   },
   {
-    name: 'admin',
-    template: 'admin',
-    component: JanusAdmin
+    name: 'projects',
+    template: 'projects',
+    component: ProjectsView
   },
   {
     name: 'settings',
@@ -33,9 +33,9 @@ const ROUTES = [
     component: JanusSettings
   },
   {
-    name: 'flags',
-    template: 'flags',
-    component: FlagsView
+    name: 'users',
+    template: 'users',
+    component: UsersView
   },
   {
     name: 'projects',
