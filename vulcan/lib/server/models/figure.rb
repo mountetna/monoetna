@@ -34,6 +34,8 @@ class Vulcan
         )
 
         refresh
+      rescue Etna::Cwl::WorkflowNotFound
+        ## workflow does not exist ... this figure should be deprecated
       end if !has_snapshot?
 
       super
@@ -48,6 +50,8 @@ class Vulcan
       )
 
       refresh
+    rescue Etna::Cwl::WorkflowNotFound
+      ## workflow does not exist ... this figure should be deprecated
     end
 
     def update_dependencies
