@@ -615,7 +615,7 @@ class Metis(EtnaClientBase):
                         upload_path=upload.upload_path,
                         next_blob_size=upload.next_blob_size,
                         next_blob_hash=upload.next_blob_hash,
-                        blob_data=blob_data or b"",
+                        blob_data=blob_data,
                         metis_uid=metis_uid,
                         current_byte_position=current_byte_position,
                     )
@@ -893,7 +893,7 @@ class Upload:
                 raise ValueError("Unexpected EOF while reading source stream.")
 
         if next_right == self.read_position:
-            return self.last_bytes
+            return self.last_bytes or b""
 
         if next_left != self.read_position:
             if self.file.seekable():
