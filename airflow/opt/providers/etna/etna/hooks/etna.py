@@ -10,7 +10,7 @@ import typing
 import uuid
 from datetime import datetime
 from inspect import isgenerator
-from typing import Dict, Optional, List, Tuple
+from typing import Dict, Optional, List
 import re
 from urllib.parse import quote
 
