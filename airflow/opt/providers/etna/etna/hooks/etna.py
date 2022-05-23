@@ -10,7 +10,7 @@ import typing
 import uuid
 from datetime import datetime
 from inspect import isgenerator
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Tuple
 import re
 from urllib.parse import quote
 
@@ -615,7 +615,7 @@ class Metis(EtnaClientBase):
                         upload_path=upload.upload_path,
                         next_blob_size=upload.next_blob_size,
                         next_blob_hash=upload.next_blob_hash,
-                        blob_data=blob_data,
+                        blob_data=blob_data or b"",
                         metis_uid=metis_uid,
                         current_byte_position=current_byte_position,
                     )
