@@ -4,7 +4,7 @@ services:
   postgres:
     image: postgres:10.19
     environment:
-      POSTGRES_DB: "metis"
+      POSTGRES_DB: "polyphemus"
       POSTGRES_PASSWORD_FILE: /run/secrets/password
       POSTGRES_USER: developer
     volumes:
@@ -13,10 +13,6 @@ services:
       placement:
         constraints:
           - node.labels.volumes.big-shared == true
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 400mb
     networks:
       - db
     secrets:
@@ -25,13 +21,12 @@ services:
 
   app:
     environment:
-      - APP_NAME=metis
-      - METIS_ENV=production
+      - APP_NAME=polyphemus
+      - POLYPHEMUS_ENV=production
       - ETNA__PRODUCTION_FILE=/app/env.yml
       - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
+      - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN_FILE=/run/secrets/rollbar-access-token
       - ETNA__PRODUCTION__USER_HASH_SECRET=/run/secrets/user-hash-secret
-      - ETNA__PRODUCTION__HMAC_KEYS__METIS_FILE=/run/secrets/staging-metis-hmac
-      - ETNA__PRODUCTION__HMAC_KEYS__MAGMA_FILE=/run/secrets/staging-metis-hmac
     command:
       - bash
       - -c
@@ -39,23 +34,17 @@ services:
         set -e
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
         exec /bin/deploy.sh migrate -- /app/bin/puma.sh
-    image: etnaagent/metis:staging
-    volumes:
-      - data:/app/data/metis:nocopy
-      - thumbnails:/app/thumbnails:nocopy
-    user: 1501:999 # metis:docker
+    image: etnaagent/polyphemus:production
+
     deploy:
       update_config:
         parallelism: 1
+      replicas: 2
       labels:
         - autoupdate=true
       placement:
         constraints:
-          - node.labels.volumes.big-shared == true
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 300mb
+          - node.labels.is_edge != true
     healthcheck:
       interval: 10s
       retries: 3
@@ -67,31 +56,33 @@ services:
         target: /app/config.yml
       - source: env
         target: /app/env.yml
+      - source: known_hosts
+        target: /root/.ssh/known_hosts
     networks:
       db:
       prometheus:
       fe:
         aliases:
-          - metis_app
+          - polyphemus_app
     secrets:
-      - staging-metis-hmac
-      - staging-magma-hmac
       - metrics-pw
-      - user-hash-secret
       - source: db-pw
         target: db-password
+      - source: id_rsa_gne
+        target: /root/id_rsa_gne
+      - source: rollbar
+        target: rollbar-access-token
 
   app_fe:
     environment:
-      - APP_NAME=metis
-      - METIS_ENV=production
-    image: etnaagent/metis_app_fe:staging
+      - APP_NAME=polyphemus
+      - POLYPHEMUS_ENV=production
+    image: etnaagent/polyphemus_app_fe:production
     networks:
       - edge_bridge
       - fe
     volumes:
       - app_public:/app/public:nocopy
-      - data:/app/data/metis:ro
     # Notably, apache needs to start as super user but it immediately downgrades
     # its own user permissions after bootup.  See the includes.
     user: 0:3000 # su:browser
@@ -99,22 +90,25 @@ services:
       - source: browser.system.include
         target: /usr/opt/httpd.conf.d/browser.system.include
     deploy:
+      replicas: 1
       labels:
         - autoupdate=true
+
       placement:
         constraints:
           - node.labels.volumes.big-shared == true
 
   app_assets_deployer:
     environment:
-      - APP_NAME=metis
-      - METIS_ENV=production
+      - APP_NAME=polyphemus
+      - POLYPHEMUS_ENV=production
 
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
-    image: etnaagent/metis:staging
+    image: etnaagent/polyphemus:production
     volumes:
-      - app_public:/sync-assets:rw
+      - app_public:/sync-assets:nocopy
 
+    user: 0:3000
     deploy:
       labels:
         - autoupdate=true
@@ -123,46 +117,36 @@ services:
       placement:
         constraints:
           - node.labels.volumes.big-shared == true
+
 volumes:
   app_public:
-    name: metis_staging_app_public
+    name: polyphemus_production_app_public
     driver: local
     driver_opts:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
-      device: ":/cache/metis/staging/app_public"
-  thumbnails:
-    name: metis_staging_thumbnails
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
-      device: ":/cache/metis/staging/thumbnails"
-  data:
-    name: metis_staging_data
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
-      device: ":/cache/metis/staging/data"
+      device: ":/cache/polyphemus/app_public"
   db:
-    name: "metis_staging_db"
+    name: "polyphemus_production_db"
     driver: local
     driver_opts:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
-      device: ":/cache/postgres/metis-staging"
+      device: ":/cache/postgres/polyphemus"
 
 configs:
+  known_hosts:
+    external: true
+    name: ${POLYPHEMUS_KNOWN_HOSTS:-polyphemus_known_hosts}
   browser.system.include:
     name: ${BROWSER_SYSTEM_INCLUDE:-browser.system.include}
     external: true
   config:
     external: true
-    name: ${APP_CONFIG:-metis.staging.yml}
+    name: ${APP_CONFIG:-polyphemus.production.yml}
   env:
     external: true
-    name: ${ENV_CONFIG:-etna.staging.yml}
+    name: ${ENV_CONFIG:-etna.production.yml}
 
 secrets:
   user-hash-secret:
@@ -171,15 +155,16 @@ secrets:
   metrics-pw:
     external: true
     name: ${METRICS_PW:-metrics-pw}
-  staging-metis-hmac:
+  id_rsa_gne:
     external: true
-    name: ${STAGING_METIS_HMAC:-staging-metis-hmac}
-  staging-magma-hmac:
-    external: true
-    name: ${STAGING_MAGMA_HMAC:-staging-magma-hmac}
+    name: ${ID_RSA_GNE:-id_rsa_gne}
   db-pw:
     external: true
-    name: "metis_staging_db_password"
+    name: "polyphemus_production_db_password"
+  rollbar:
+    external: true
+    name: polyphemus_rollbar
+
 
 networks:
   fe:

@@ -20,6 +20,9 @@ services:
         - autoupdate=true
       mode: replicated
       replicas: 1
+      placement:
+        constraints:
+          - node.labels.is_edge != true
     configs:
       - source: blackbox.config.yml
         target: /config/blackbox.config.yml
