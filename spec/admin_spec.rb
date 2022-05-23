@@ -533,9 +533,7 @@ describe AdminController do
       expect(last_response.status).to eq(302)
 
       expect(Permission.count).to eq(2)
-      expect(User.count).to eq(2)
-      expect(User.first.email).to eq(user.email)
-      expect(User.last.email).to eq('portunus@two-faces.org')
+      expect(User.select_map(:email)).to match_array([user.email, 'portunus@two-faces.org'])
     end
 
     it 'forbids a non-admin from adding a user' do
