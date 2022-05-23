@@ -1,9 +1,10 @@
 version: '3.8'
+
 services:
   postgres:
     image: postgres:10.19
     environment:
-      POSTGRES_DB: "janus"
+      POSTGRES_DB: "timur"
       POSTGRES_PASSWORD_FILE: /run/secrets/password
       POSTGRES_USER: developer
     volumes:
@@ -12,20 +13,16 @@ services:
       placement:
         constraints:
           - node.labels.volumes.big-shared == true
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 400mb
     networks:
       - db
     secrets:
-    - source: db-pw
-      target: password
+      - source: db-pw
+        target: password
 
   app:
     environment:
-      - APP_NAME=janus
-      - JANUS_ENV=production
+      - APP_NAME=timur
+      - TIMUR_ENV=production
       - ETNA__PRODUCTION_FILE=/app/env.yml
       - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
       - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN=/run/secrets/rollbar-access-token
@@ -37,16 +34,15 @@ services:
         set -e
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
         exec /bin/deploy.sh migrate -- /app/bin/puma.sh
-    image: etnaagent/janus:staging
+    image: etnaagent/timur:staging
     deploy:
       update_config:
         parallelism: 1
       labels:
         - autoupdate=true
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 300mb
+      placement:
+        constraints:
+          - node.labels.is_edge != true
     healthcheck:
       interval: 10s
       retries: 3
@@ -63,23 +59,23 @@ services:
       prometheus:
       fe:
         aliases:
-          - janus_app
+          - timur_app
     secrets:
       - metrics-pw
+      - user-hash-secret
       - source: db-pw
         target: db-password
 
   app_fe:
     environment:
-      - APP_NAME=janus
-      - JANUS_ENV=production
-    image: etnaagent/janus_app_fe:staging
+      - APP_NAME=timur
+      - TIMUR_ENV=production
+    image: etnaagent/timur_app_fe:staging
     networks:
       - edge_bridge
       - fe
     volumes:
-      - app_public:/app/public:nocopy
-      - staging_shibboleth:/shibboleth:nocopy
+      - app_public:/app/public
     # Notably, apache needs to start as super user but it immediately downgrades
     # its own user permissions after bootup.  See the includes.
     user: 0:3000 # su:browser
@@ -92,57 +88,49 @@ services:
       placement:
         constraints:
           - node.labels.volumes.big-shared == true
-    command:
-      - /bin/httpd_with_shibd.sh
 
   app_assets_deployer:
     environment:
-      - APP_NAME=janus
-      - JANUS_ENV=production
-    user: 0:3000 # root/browser -- todo, this can only become a lower permission once the app images are built that way
+      - APP_NAME=timur
+      - TIMUR_ENV=production
+
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
-    image: etnaagent/janus:staging
+    image: etnaagent/timur:staging
     volumes:
-      - app_public:/sync-assets:nocopy
+      - app_public:/sync-assets:rw
+
     deploy:
       labels:
         - autoupdate=true
       restart_policy:
         condition: none
-      mode: replicated
       placement:
         constraints:
           - node.labels.volumes.big-shared == true
+
 volumes:
   app_public:
-    name: janus_staging_app_public
+    name: timur_staging_app_public
     driver: local
     driver_opts:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
-      device: ":/cache/janus/staging/app_public"
+      device: ":/cache/timur/staging/app_public"
   db:
-    name: "janus_staging_db"
+    name: "timur_staging_db"
     driver: local
     driver_opts:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
-      device: ":/cache/postgres/janus-staging"
-  staging_shibboleth:
-    name: janus_staging_shibboleth
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
-      device: ":/cache/janus/staging/shibboleth"
+      device: ":/cache/postgres/timur-staging"
 
 configs:
   browser.system.include:
-    external: true
     name: ${BROWSER_SYSTEM_INCLUDE:-browser.system.include}
+    external: true
   config:
     external: true
-    name: ${APP_CONFIG:-janus.staging.yml}
+    name: ${APP_CONFIG:-timur.staging.yml}
   env:
     external: true
     name: ${ENV_CONFIG:-etna.staging.yml}
@@ -154,9 +142,15 @@ secrets:
   metrics-pw:
     external: true
     name: ${METRICS_PW:-metrics-pw}
+  staging-metis-hmac:
+    external: true
+    name: ${STAGING_METIS_HMAC:-staging-metis-hmac}
+  staging-magma-hmac:
+    external: true
+    name: ${STAGING_MAGMA_HMAC:-staging-magma-hmac}
   db-pw:
     external: true
-    name: "janus_staging_db_password"
+    name: "timur_staging_db_password"
 
 networks:
   fe:

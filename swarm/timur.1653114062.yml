@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   postgres:
     image: postgres:10.19
@@ -25,8 +24,8 @@ services:
       - TIMUR_ENV=production
       - ETNA__PRODUCTION_FILE=/app/env.yml
       - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
-      - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN=/run/secrets/rollbar-access-token
-      - ETNA__PRODUCTION__USER_HASH_SECRET=/run/secrets/user-hash-secret
+      - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN_FILE=/run/secrets/rollbar-access-token
+      - ETNA__PRODUCTION__USER_HASH_SECRET_FILE=/run/secrets/user-hash-secret
     command:
       - bash
       - -c
@@ -34,12 +33,16 @@ services:
         set -e
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
         exec /bin/deploy.sh migrate -- /app/bin/puma.sh
-    image: etnaagent/timur:staging
+    image: etnaagent/timur:production
     deploy:
+      replicas: 2
       update_config:
         parallelism: 1
       labels:
         - autoupdate=true
+      placement:
+        constraints:
+          - node.labels.is_edge != true
     healthcheck:
       interval: 10s
       retries: 3
@@ -60,6 +63,7 @@ services:
     secrets:
       - metrics-pw
       - user-hash-secret
+      - rollbar-access-token
       - source: db-pw
         target: db-password
 
@@ -67,7 +71,7 @@ services:
     environment:
       - APP_NAME=timur
       - TIMUR_ENV=production
-    image: etnaagent/timur_app_fe:staging
+    image: etnaagent/timur_app_fe:production
     networks:
       - edge_bridge
       - fe
@@ -92,7 +96,7 @@ services:
       - TIMUR_ENV=production
 
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
-    image: etnaagent/timur:staging
+    image: etnaagent/timur:production
     volumes:
       - app_public:/sync-assets:rw
 
@@ -107,19 +111,19 @@ services:
 
 volumes:
   app_public:
-    name: timur_staging_app_public
+    name: timur_production_app_public
     driver: local
     driver_opts:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
-      device: ":/cache/timur/staging/app_public"
+      device: ":/cache/timur/app_public"
   db:
-    name: "timur_staging_db"
+    name: "timur_production_db"
     driver: local
     driver_opts:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
-      device: ":/cache/postgres/timur-staging"
+      device: ":/cache/postgres/timur"
 
 configs:
   browser.system.include:
@@ -127,10 +131,10 @@ configs:
     external: true
   config:
     external: true
-    name: ${APP_CONFIG:-timur.staging.yml}
+    name: ${APP_CONFIG:-timur.production.yml}
   env:
     external: true
-    name: ${ENV_CONFIG:-etna.staging.yml}
+    name: ${ENV_CONFIG:-etna.production.yml}
 
 secrets:
   user-hash-secret:
@@ -139,15 +143,12 @@ secrets:
   metrics-pw:
     external: true
     name: ${METRICS_PW:-metrics-pw}
-  staging-metis-hmac:
-    external: true
-    name: ${STAGING_METIS_HMAC:-staging-metis-hmac}
-  staging-magma-hmac:
-    external: true
-    name: ${STAGING_MAGMA_HMAC:-staging-magma-hmac}
   db-pw:
     external: true
-    name: "timur_staging_db_password"
+    name: "timur_production_db_password"
+  rollbar-access-token:
+    external: true
+    name: "timur-rollbar-access-token"
 
 networks:
   fe:
