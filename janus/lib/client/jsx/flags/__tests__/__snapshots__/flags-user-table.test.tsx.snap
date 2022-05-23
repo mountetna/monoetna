@@ -292,11 +292,11 @@ exports[`UserTable filters users based on all 3 search params 1`] = `
       class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
     >
       <div
-        class="MuiPaper-root MuiTableContainer-root MuiPaper-elevation1 MuiPaper-rounded"
+        class="MuiPaper-root MuiTableContainer-root makeStyles-table_container MuiPaper-elevation1 MuiPaper-rounded"
       >
         <table
           aria-label="user flags"
-          class="MuiTable-root makeStyles-table"
+          class="MuiTable-root makeStyles-table MuiTable-stickyHeader"
         >
           <thead
             class="MuiTableHead-root"
@@ -305,7 +305,7 @@ exports[`UserTable filters users based on all 3 search params 1`] = `
               class="MuiTableRow-root MuiTableRow-head"
             >
               <th
-                class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox MuiTableCell-stickyHeader"
                 scope="col"
               >
                 <span
@@ -339,25 +339,25 @@ exports[`UserTable filters users based on all 3 search params 1`] = `
                 </span>
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Name
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Email
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Projects
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Flags
@@ -644,11 +644,11 @@ exports[`UserTable filters users based on flag search 1`] = `
       class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
     >
       <div
-        class="MuiPaper-root MuiTableContainer-root MuiPaper-elevation1 MuiPaper-rounded"
+        class="MuiPaper-root MuiTableContainer-root makeStyles-table_container MuiPaper-elevation1 MuiPaper-rounded"
       >
         <table
           aria-label="user flags"
-          class="MuiTable-root makeStyles-table"
+          class="MuiTable-root makeStyles-table MuiTable-stickyHeader"
         >
           <thead
             class="MuiTableHead-root"
@@ -657,7 +657,7 @@ exports[`UserTable filters users based on flag search 1`] = `
               class="MuiTableRow-root MuiTableRow-head"
             >
               <th
-                class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox MuiTableCell-stickyHeader"
                 scope="col"
               >
                 <span
@@ -691,25 +691,25 @@ exports[`UserTable filters users based on flag search 1`] = `
                 </span>
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Name
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Email
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Projects
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Flags
@@ -1074,11 +1074,11 @@ exports[`UserTable filters users based on project search 1`] = `
       class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
     >
       <div
-        class="MuiPaper-root MuiTableContainer-root MuiPaper-elevation1 MuiPaper-rounded"
+        class="MuiPaper-root MuiTableContainer-root makeStyles-table_container MuiPaper-elevation1 MuiPaper-rounded"
       >
         <table
           aria-label="user flags"
-          class="MuiTable-root makeStyles-table"
+          class="MuiTable-root makeStyles-table MuiTable-stickyHeader"
         >
           <thead
             class="MuiTableHead-root"
@@ -1087,7 +1087,7 @@ exports[`UserTable filters users based on project search 1`] = `
               class="MuiTableRow-root MuiTableRow-head"
             >
               <th
-                class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox MuiTableCell-stickyHeader"
                 scope="col"
               >
                 <span
@@ -1121,25 +1121,25 @@ exports[`UserTable filters users based on project search 1`] = `
                 </span>
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Name
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Email
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Projects
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Flags
@@ -1482,11 +1482,11 @@ exports[`UserTable filters users based on text search 1`] = `
       class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
     >
       <div
-        class="MuiPaper-root MuiTableContainer-root MuiPaper-elevation1 MuiPaper-rounded"
+        class="MuiPaper-root MuiTableContainer-root makeStyles-table_container MuiPaper-elevation1 MuiPaper-rounded"
       >
         <table
           aria-label="user flags"
-          class="MuiTable-root makeStyles-table"
+          class="MuiTable-root makeStyles-table MuiTable-stickyHeader"
         >
           <thead
             class="MuiTableHead-root"
@@ -1495,7 +1495,7 @@ exports[`UserTable filters users based on text search 1`] = `
               class="MuiTableRow-root MuiTableRow-head"
             >
               <th
-                class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox MuiTableCell-stickyHeader"
                 scope="col"
               >
                 <span
@@ -1529,25 +1529,25 @@ exports[`UserTable filters users based on text search 1`] = `
                 </span>
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Name
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Email
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Projects
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Flags
@@ -1881,11 +1881,11 @@ exports[`UserTable renders correctly 1`] = `
       class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
     >
       <div
-        class="MuiPaper-root MuiTableContainer-root MuiPaper-elevation1 MuiPaper-rounded"
+        class="MuiPaper-root MuiTableContainer-root makeStyles-table_container MuiPaper-elevation1 MuiPaper-rounded"
       >
         <table
           aria-label="user flags"
-          class="MuiTable-root makeStyles-table"
+          class="MuiTable-root makeStyles-table MuiTable-stickyHeader"
         >
           <thead
             class="MuiTableHead-root"
@@ -1894,7 +1894,7 @@ exports[`UserTable renders correctly 1`] = `
               class="MuiTableRow-root MuiTableRow-head"
             >
               <th
-                class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox MuiTableCell-stickyHeader"
                 scope="col"
               >
                 <span
@@ -1928,25 +1928,25 @@ exports[`UserTable renders correctly 1`] = `
                 </span>
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Name
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Email
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Projects
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Flags
@@ -2490,11 +2490,11 @@ exports[`UserTable shows Add/Remove card when users are selected and Manage butt
       class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
     >
       <div
-        class="MuiPaper-root MuiTableContainer-root MuiPaper-elevation1 MuiPaper-rounded"
+        class="MuiPaper-root MuiTableContainer-root makeStyles-table_container MuiPaper-elevation1 MuiPaper-rounded"
       >
         <table
           aria-label="user flags"
-          class="MuiTable-root makeStyles-table"
+          class="MuiTable-root makeStyles-table MuiTable-stickyHeader"
         >
           <thead
             class="MuiTableHead-root"
@@ -2503,7 +2503,7 @@ exports[`UserTable shows Add/Remove card when users are selected and Manage butt
               class="MuiTableRow-root MuiTableRow-head"
             >
               <th
-                class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox MuiTableCell-stickyHeader"
                 scope="col"
               >
                 <span
@@ -2537,25 +2537,25 @@ exports[`UserTable shows Add/Remove card when users are selected and Manage butt
                 </span>
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Name
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Email
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Projects
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head"
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader"
                 scope="col"
               >
                 Flags
