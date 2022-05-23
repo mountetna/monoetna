@@ -1,5 +1,5 @@
 {
-  "projects": ["labors", "secret_project"],
-  "tags": ["demo"],
+  "projects": ["labors_node"],
+  "tags": ["test"],
   "authors": ["someone"]
 }
