@@ -3,9 +3,9 @@ import {Provider} from 'react-redux';
 import { act, create } from 'react-test-renderer';
 import {mockStore} from '../test-helpers';
 import {stubUrl} from 'etna-js/spec/helpers';
-import JanusAdmin from '../janus-admin';
+import ProjectsView from '../projects-view';
 
-describe('JanusAdmin', () => {
+describe('ProjectsView', () => {
   let store;
 
   beforeEach(() => {
@@ -42,7 +42,7 @@ describe('JanusAdmin', () => {
 
     let component = create(
       <Provider store={store}>
-        <JanusAdmin/>
+        <ProjectsView/>
       </Provider>
     );
 
