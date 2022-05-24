@@ -720,4 +720,23 @@ describe MetisShell do
       FileUtils.rm_r('athena-copy')
     end
   end
+
+  describe MetisShell::Validate do
+    it 'validates a local directory for missing files' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+      stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: bucket)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      stubs.send(:stub_file,'athena-copy/new/wisdom-copy.txt', WISDOM)
+      stubs.send(:stub_file,'athena-copy/new/helmet-copy.txt', HELMET)
+      stubs.send(:stub_file,'athena-copy/old/folly-copy.txt', WISDOM.reverse)
+
+      expect_output("metis://athena", "validate", "athena-copy") { /Found 2 of 3 files on Metis/ }
+
+      FileUtils.rm_r('athena-copy')
+    end
+  end
 end

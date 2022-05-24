@@ -1,10 +1,9 @@
 version: '3.8'
-
 services:
   postgres:
     image: postgres:10.19
     environment:
-      POSTGRES_DB: "polyphemus"
+      POSTGRES_DB: "timur"
       POSTGRES_PASSWORD_FILE: /run/secrets/password
       POSTGRES_USER: developer
     volumes:
@@ -12,7 +11,7 @@ services:
     deploy:
       placement:
         constraints:
-          - node.labels.volumes.polyphemus_staging_db == true
+          - node.labels.volumes.big-shared == true
     networks:
       - db
     secrets:
@@ -20,7 +19,13 @@ services:
         target: password
 
   app:
-    image: etnaagent/polyphemus_app:staging
+    environment:
+      - APP_NAME=timur
+      - TIMUR_ENV=production
+      - ETNA__PRODUCTION_FILE=/app/env.yml
+      - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
+      - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN_FILE=/run/secrets/rollbar-access-token
+      - ETNA__PRODUCTION__USER_HASH_SECRET_FILE=/run/secrets/user-hash-secret
     command:
       - bash
       - -c
@@ -28,19 +33,16 @@ services:
         set -e
         export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
         exec /bin/deploy.sh migrate -- /app/bin/puma.sh
-    environment:
-      - APP_NAME=polyphemus
-      - POLYPHEMUS_ENV=production
-      - ETNA__PRODUCTION_FILE=/app/env.yml
-      - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
-      - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN=/run/secrets/rollbar-access-token
-      - ETNA__PRODUCTION__USER_HASH_SECRET=/run/secrets/user-hash-secret
-
+    image: etnaagent/timur:production
     deploy:
+      replicas: 2
       update_config:
         parallelism: 1
       labels:
         - autoupdate=true
+      placement:
+        constraints:
+          - node.labels.is_edge != true
     healthcheck:
       interval: 10s
       retries: 3
@@ -52,27 +54,24 @@ services:
         target: /app/config.yml
       - source: env
         target: /app/env.yml
-      - source: known_hosts
-        target: /root/.ssh/known_hosts
     networks:
       db:
       prometheus:
       fe:
         aliases:
-          - polyphemus_app
+          - timur_app
     secrets:
       - metrics-pw
+      - user-hash-secret
+      - rollbar-access-token
       - source: db-pw
         target: db-password
-      - source: id_rsa_gne
-        target: /root/id_rsa_gne
-
 
   app_fe:
     environment:
-      - APP_NAME=polyphemus
-      - POLYPHEMUS_ENV=production
-    image: etnaagent/polyphemus_app_fe:staging
+      - APP_NAME=timur
+      - TIMUR_ENV=production
+    image: etnaagent/timur_app_fe:production
     networks:
       - edge_bridge
       - fe
@@ -93,11 +92,11 @@ services:
 
   app_assets_deployer:
     environment:
-      - APP_NAME=polyphemus
-      - POLYPHEMUS_ENV=production
+      - APP_NAME=timur
+      - TIMUR_ENV=production
 
     command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
-    image: etnaagent/polyphemus:staging
+    image: etnaagent/timur:production
     volumes:
       - app_public:/sync-assets:rw
 
@@ -106,36 +105,36 @@ services:
         - autoupdate=true
       restart_policy:
         condition: none
-      mode: global
       placement:
-        max_replicas_per_node: 1
         constraints:
           - node.labels.volumes.big-shared == true
 
 volumes:
   app_public:
+    name: timur_production_app_public
     driver: local
     driver_opts:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
-      device: ":/cache/polyphemus/staging/app_public"
+      device: ":/cache/timur/app_public"
   db:
-    external: true
-    name: "polyphemus_staging_db"
+    name: "timur_production_db"
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
+      device: ":/cache/postgres/timur"
 
 configs:
-  known_hosts:
-    external: true
-    name: polyphemus_known_hosts
   browser.system.include:
     name: ${BROWSER_SYSTEM_INCLUDE:-browser.system.include}
     external: true
   config:
     external: true
-    name: ${APP_CONFIG:-polyphemus.staging.yml}
+    name: ${APP_CONFIG:-timur.production.yml}
   env:
     external: true
-    name: ${ENV_CONFIG:-etna.staging.yml}
+    name: ${ENV_CONFIG:-etna.production.yml}
 
 secrets:
   user-hash-secret:
@@ -144,14 +143,12 @@ secrets:
   metrics-pw:
     external: true
     name: ${METRICS_PW:-metrics-pw}
-  id_rsa_gne:
-    external: true
-    name: ${ID_RSA_GNE:-id_rsa_gne}
   db-pw:
     external: true
-    name: "polyphemus_staging_db_password"
-
-
+    name: "timur_production_db_password"
+  rollbar-access-token:
+    external: true
+    name: "timur-rollbar-access-token"
 
 networks:
   fe:

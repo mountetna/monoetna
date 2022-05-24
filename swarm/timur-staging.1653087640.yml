@@ -40,6 +40,9 @@ services:
         parallelism: 1
       labels:
         - autoupdate=true
+      placement:
+        constraints:
+          - node.labels.is_edge != true
     healthcheck:
       interval: 10s
       retries: 3
