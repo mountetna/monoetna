@@ -80,6 +80,33 @@ describe AdminController do
       expect(last_response.status).to eq(403)
     end
 
+    it 'viewer cannot set the requires_agreement flag' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      auth_header(:viewer)
+      json_post('/api/admin/door/update', requires_agreement: true)
+
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'viewer cannot set the code of conduct text' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      auth_header(:viewer)
+      json_post('/api/admin/door/update', cc_text: 'Will wipe your shoes before entering.')
+
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'viewer cannot set the contact email' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      auth_header(:viewer)
+      json_post('/api/admin/door/update', contact_email: 'foo@janus.test')
+
+      expect(last_response.status).to eq(403)
+    end
+
     it 'can set the resource flag' do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
 
@@ -98,6 +125,68 @@ describe AdminController do
       expect(last_response.status).to eq(200)
       door.refresh
       expect(door.resource).to eq(false)
+    end
+
+    it 'can set the requires_agreement flag' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      expect(door.requires_agreement).to eq(false)
+
+      auth_header(:zeus)
+
+      json_post('/api/admin/door/update', requires_agreement: true)
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.requires_agreement).to eq(true)
+
+      json_post('/api/admin/door/update', requires_agreement: false)
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.requires_agreement).to eq(false)
+    end
+    
+    it 'can set the code of conduct text' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      expect(door.cc_text).to eq('')
+
+      auth_header(:zeus)
+      cc_text = 'You will wipe your shoes before entering.'
+      json_post('/api/admin/door/update', cc_text: cc_text)
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.cc_text).to eq(cc_text)
+    end
+
+    it 'can set the contact email' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      expect(door.contact_email).to eq('')
+
+      auth_header(:zeus)
+      contact_email = 'janus@janus.test'
+      json_post('/api/admin/door/update', contact_email: contact_email)
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.contact_email).to eq(contact_email)
+    end
+
+    it 'raises exception for invalid contact email' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      expect(door.contact_email).to eq('')
+
+      auth_header(:zeus)
+
+      json_post('/api/admin/door/update', contact_email: 'janus@hackerz.test')
+
+      expect(last_response.status).to eq(422)
+      door.refresh
+      expect(door.contact_email).to eq('')
     end
 
     it 'resource flag does not change if not provided in params' do
@@ -146,7 +235,10 @@ describe AdminController do
         ],
         project_name: "door",
         project_name_full: "Door",
-        resource: false
+        resource: false,
+        requires_agreement: false,
+        cc_text: '',
+        contact_email: ''
       )
     end
   end
