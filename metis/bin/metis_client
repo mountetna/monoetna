@@ -1558,7 +1558,7 @@ EOT
     rescue ShellError => e
       logger.log_error(e)
       exit(1) if errexit?
-    rescue MetisClient::Error => e
+    rescue Client::Error => e
       logger.log_error(e)
       exit(1) if errexit?
     rescue ArgumentError => e
