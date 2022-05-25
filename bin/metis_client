@@ -124,6 +124,9 @@ end
 class Client
 
   attr_reader :logger
+  
+  class Error < StandardError
+  end
 
   def initialize(host, token, logger)
     @host = host
@@ -173,10 +176,51 @@ class Client
       https
     end
   end
+
+  def retry_request(req, retries=0, &block)
+    retries += 1
+
+    begin
+      logger.write("\rWaiting for server restart"+"."*retries+"\x1b[0K")
+
+      sleep 15
+    end if retries > 1
+
+    if retries < 60
+      begin
+        if block_given?
+          https.request(req, &block)
+        else
+          response = https.request(req)
+        end
+      rescue OpenSSL::SSL::SSLError => e
+        if e.message =~ /write client hello/
+          logger.write("SSL error, retrying")
+          return retry_request(req, retries)
+        end
+        raise e
+      rescue *net_exceptions => e
+        logger.write("Received #{e.class.name}, retrying")
+        return retry_request(req, retries)
+      end
+
+      begin
+        retry_codes = ['503', '502', '504', '408']
+        if retry_codes.include?(response.code)
+          logger.write("Received response with code #{response.code}, retrying")
+          return retry_request(req, retries)
+        end
+
+        return response
+      end unless block_given?
+    end
+
+    raise Client::Error, "Could not contact server, giving up" unless block_given?
+  end
 end
 
 class JanusClient < Client
-  class Error < StandardError
+  class Error < Client::Error
   end
 
   def refresh_token
@@ -187,12 +231,12 @@ class JanusClient < Client
 
   def get_request(path)
     req = get(path)
-    https.request(req)
+    retry_request(req, 0)
   end
 
   def post_request(path)
     req = post(path)
-    https.request(req)
+    retry_request(req, 0)
   end
 
   def request(path, method, headers=nil)
@@ -204,13 +248,13 @@ class JanusClient < Client
 end
 
 class MetisClient < Client
-  class Error < StandardError
+  class Error < Client::Error
   end
 
-  class UploadError < StandardError
+  class UploadError < Client::Error
   end
 
-  class DownloadError < StandardError
+  class DownloadError < Client::Error
   end
 
   def net_exceptions
@@ -240,7 +284,6 @@ class MetisClient < Client
       Net::HTTPServiceUnavailable,
       Net::HTTPUnprocessableEntity,
       Net::OpenTimeout,
-      Net::WriteTimeout,
       IOError,
       EOFError,
       Timeout::Error
@@ -249,6 +292,7 @@ class MetisClient < Client
     begin
       retry_exceptions << Net::HTTPRequestTimeout
       retry_exceptions << Net::HTTPGatewayTimeout
+      retry_exceptions << Net::WriteTimeout
     end if RUBY_VERSION > "2.5.8"
 
     retry_exceptions
@@ -291,49 +335,16 @@ class MetisClient < Client
     json_body(response)
   end
 
-  def retry_blob(upload_path, upload, blob, retries)
-    retries += 1
-
-    logger.write("\rWaiting for server restart"+"."*retries+"\x1b[0K")
-
-    sleep 15
-
-    if retries < 60
-      blob_upload(upload_path, upload, blob, retries)
-      return
-    end
-
-    raise MetisClient::Error, "Could not contact server, giving up"
-  end
-
   def blob_upload(upload_path, upload, blob, retries=0)
-    begin
-      response = multipart_post(
-        upload_path, [
-          [ 'action', 'blob', ],
-          [ 'blob_data', blob[:blob_data], {filename: 'blob'} ],
-          [ 'next_blob_size', blob[:next_blob_size].to_s ],
-          [ 'next_blob_hash', blob[:next_blob_hash].to_s ],
-          [ 'current_byte_position', blob[:current_byte_position].to_s ]
-        ]
-      )
-    rescue OpenSSL::SSL::SSLError => e
-      if e.message =~ /write client hello/
-        logger.write("SSL error, retrying")
-        return retry_blob(upload_path, upload, blob, retries)
-      end
-      raise e
-    rescue *net_exceptions  => e
-      logger.write("Received #{e.class.name}, retrying")
-      return retry_blob(upload_path, upload, blob, retries)
-    end
-
-    retry_codes = ['503', '502', '504', '408']
-    if retry_codes.include?(response.code)
-      logger.write("Received response with code #{response.code}, retrying")
-      retry_blob(upload_path, upload, blob, retries)
-      return
-    end
+    response = multipart_post(
+      upload_path, [
+        [ 'action', 'blob', ],
+        [ 'blob_data', blob[:blob_data], {filename: 'blob'} ],
+        [ 'next_blob_size', blob[:next_blob_size].to_s ],
+        [ 'next_blob_hash', blob[:next_blob_hash].to_s ],
+        [ 'current_byte_position', blob[:current_byte_position].to_s ]
+      ]
+    )
 
     raise MetisClient::UploadError, "Problem with uploading the blob: #{error(response)}" if response.code == '422'
     raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
@@ -345,13 +356,13 @@ class MetisClient < Client
   end
 
   def list_buckets(project_name)
-    response = https.request( get("/#{project_name}/list") )
+    response = get_request( "/#{project_name}/list" )
     raise MetisClient::Error, "Could not list buckets for #{project_name}\n#{error(response)} #{response.code}" unless response.code == "200"
     return json_body(response)[:buckets]
   end
 
   def list_folder(project_name,folder_path)
-    response = https.request( get("/#{project_name}/list/#{URI.encode(folder_path || '')}") )
+    response = get_request( "/#{project_name}/list/#{URI.encode(folder_path || '')}" )
 
     return nil if response.code == "404"
     raise MetisClient::Error, "Could not list folder #{folder_path}\n#{error(response)}" unless response.code == "200"
@@ -369,6 +380,8 @@ class MetisClient < Client
   end
 
   def get_file(path, &block)
+    # downloading files handles retries separately, so don't
+    #   call get_request here
     https.request(get(path)) do |response|
       response.read_body do |chunk|
         yield chunk
@@ -377,9 +390,9 @@ class MetisClient < Client
   end
 
   def get_partial_file(path, start_byte, end_byte, &block)
-    https.request(get(path, {
+    get_request(path, {
       "Range" => "bytes=#{start_byte}-#{end_byte}"
-    })) do |response|
+    }) do |response|
       response.read_body do |chunk|
         yield chunk
       end
@@ -433,24 +446,28 @@ class MetisClient < Client
     JanusClient.new(@host.gsub("metis", "janus"), @token, logger)
   end
 
+  def get_request(path, headers=nil, &block)
+    retry_request(get(path, headers), 0, &block)
+  end
+
   def json_post(path, body={})
     req = post(path)
     req['Content-Type'] = 'application/json'
     req.body = body.to_json
-    https.request(req)
+    retry_request(req, 0)
   end
 
   def delete_request(path, body={})
     req = delete(path)
     req['Content-Type'] = 'application/json'
     req.body = body.to_json
-    https.request(req)
+    retry_request(req, 0)
   end
 
   def multipart_post(path, body)
     req = post(path, suppress_logging: true)
     req.set_form(body, 'multipart/form-data')
-    https.request(req)
+    retry_request(req, 0)
   end
 
   def request(path, method, headers=nil)
@@ -1254,7 +1271,7 @@ EOT
 
       puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
 
-      archived_files_count = 0 
+      archived_files_count = 0
       unarchived_files = []
       unarchived_size = 0
 
@@ -1541,7 +1558,7 @@ EOT
     rescue ShellError => e
       logger.log_error(e)
       exit(1) if errexit?
-    rescue MetisClient::Error => e
+    rescue Client::Error => e
       logger.log_error(e)
       exit(1) if errexit?
     rescue ArgumentError => e
