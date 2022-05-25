@@ -27,8 +27,7 @@ const useStyles = makeStyles((theme) => ({
     width: '100%',
     flex: '1 1 auto'
   },
-  tagauto: {
-  },
+  tagauto: {},
   tags: {
     padding: '12.5px !important'
   }
@@ -37,16 +36,17 @@ const useStyles = makeStyles((theme) => ({
 export default function FiguresControls({
   project_name,
   setSearchString,
-  setTags
+  setTags,
+  tags,
+  searchString
 }: {
   project_name: string;
   setSearchString: Function;
   setTags: Function;
+  tags?: string[];
+  searchString?: string;
 }) {
-  const {
-    showErrors,
-    fetchFigures,
-  } = useContext(VulcanContext);
+  const {showErrors, fetchFigures} = useContext(VulcanContext);
 
   const [allFigureSessions, setAllFigureSessions] = useState<
     VulcanFigureSession[]
@@ -89,6 +89,7 @@ export default function FiguresControls({
               </InputAdornment>
             )
           }}
+          value={searchString}
           onChange={(e) => setSearchString(e.target.value)}
         />
       </Grid>
@@ -100,16 +101,21 @@ export default function FiguresControls({
           classes={{
             input: classes.tags
           }}
-          defaultValue={['public']}
+          value={tags}
           options={allTags.sort()}
           renderInput={(params: any) => (
-            <TextField {...params} size='small' label='Tags' variant='outlined' />
+            <TextField
+              {...params}
+              size='small'
+              label='Tags'
+              variant='outlined'
+            />
           )}
           renderOption={(option, state) => <span>{option}</span>}
-          renderTags={
-            (tags, getTagProps) => tags.map(
-              (tag, index) => <Tag {...getTagProps({ index })} label={tag} />
-            )
+          renderTags={(tags, getTagProps) =>
+            tags.map((tag, index) => (
+              <Tag {...getTagProps({index})} label={tag} />
+            ))
           }
           filterOptions={(options, state) => {
             let regex = new RegExp(state.inputValue);
