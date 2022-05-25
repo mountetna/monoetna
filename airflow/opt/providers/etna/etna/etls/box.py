@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 import os
 import re
 import logging
@@ -29,7 +29,9 @@ class BoxEtlHelpers:
         files: XComArg,
         ingested: bool,
         project_name: str,
-        bucket_name: str):
+        bucket_name: str,
+        channel: str = "data-ingest-ping",
+        member_ids: Optional[List[str]] = None):
         """
         Sends a Slack message to the data-ingest-ping channel, notifying of
             the number of files uploaded.
@@ -39,6 +41,8 @@ class BoxEtlHelpers:
             ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.
             project_name: str, project name for the message
             bucket_name: str, bucket name for the message
+            channel: str, the Slack channel to post to, default data-ingest-ping
+            member_ids: Optional[List[str]], list of Slack member ids to be notified of task completion.
         """
 
         @task
@@ -49,10 +53,21 @@ class BoxEtlHelpers:
                 SlackWebhookOperator(
                     task_id=f"notify_slack_{project_name}_{bucket_name}_box_ingest",
                     username="Airflow",
-                    channel="data-ingest-ping",
+                    channel=channel,
                     http_conn_id='slack-api',
                     message=msg
                 ).execute(context=None)
+
+                if member_ids is not None and len(member_ids) > 0:
+                    user_mentions = [f"<@{m_id}>" for m_id in member_ids]
+                    notify_msg = f"{' '.join(user_mentions)} :point_up_2:"
+                    SlackWebhookOperator(
+                        task_id=f"notify_slack_users_{project_name}_{bucket_name}_box_ingest",
+                        username="Airflow",
+                        channel=channel,
+                        http_conn_id='slack-api',
+                        message=notify_msg
+                    ).execute(context=None)
 
         return alert(files, ingested, project_name, bucket_name)
 

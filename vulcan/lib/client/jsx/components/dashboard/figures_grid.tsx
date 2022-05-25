@@ -30,12 +30,16 @@ export default function FiguresGrid({
   project_name,
   workflowName,
   tags,
-  searchString
+  searchString,
+  setSearchString,
+  setTags
 }: {
   project_name: string;
   workflowName?: string;
   tags?: string[];
   searchString?: string;
+  setSearchString: Function;
+  setTags: Function;
 }) {
   const {
     showErrors,
@@ -69,15 +73,25 @@ export default function FiguresGrid({
       const copy = {
         ...figure,
         figure_id: null,
-        title: `${figure.title} - copy`
+        title: `${figure.title} - copy`,
+        tags: []
       };
       showErrors(
         createFigure(project_name, copy).then((newFigure) => {
           setAllFigureSessions([...allFigureSessions].concat([newFigure]));
+          setTags([]);
+          setSearchString(figure.title);
         })
       );
     },
-    [showErrors, createFigure, project_name, allFigureSessions]
+    [
+      showErrors,
+      createFigure,
+      project_name,
+      allFigureSessions,
+      setTags,
+      setSearchString
+    ]
   );
 
   const handleOnRename = useCallback(
