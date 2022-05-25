@@ -111,6 +111,29 @@ describe MetisShell do
 
       Timecop.return
     end
+
+    it 'retries refreshing the token if janus down' do
+      stub_request(:post, "https://janus.test/api/tokens/generate")
+      .to_return({
+        status: 502
+      }, {
+        status: 200,
+        body: @long_lived_token
+      })
+
+      frozen_time = 1000
+      Timecop.freeze(DateTime.strptime(frozen_time.to_s, "%s"))
+      ENV['TOKEN'] = token_with_exp(2000)
+
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      expect_output("metis://athena", "ls") { %r!armor/!}
+
+      expect(WebMock).to have_requested(:post, "https://janus.test/api/tokens/generate").times(2)
+
+      expect(ENV["TOKEN"]).to eq(@long_lived_token)
+
+      Timecop.return
+    end
   end
 
   describe MetisShell::Set do
