@@ -38,7 +38,7 @@ const TokenBuilder = ({user}) => {
       }
 
       // Needs to be in seconds, not milliseconds
-      req['exp'] = new Date(date).getTime() / 1000;
+      req['exp'] = (new Date(date)).getTime() / 1000;
       json_post('/api/tokens/build',req).then(
 	(token) => { copyText(token); setError(null); }
       ).catch( p => p.then( ({error}) => setError(error) ) )
