@@ -37,7 +37,7 @@ const TokenBuilder = ({user}) => {
         return;
       }
 
-      req['exp'] = (new Date(date)).getTime();
+      req['exp'] = date.unix();
       json_post('/api/tokens/build',req).then(
 	(token) => { copyText(token); setError(null); }
       ).catch( p => p.then( ({error}) => setError(error) ) )
