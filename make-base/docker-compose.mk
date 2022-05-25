@@ -15,8 +15,7 @@ config-ready:: docker-compose.yml .dockerignore
 	@ true
 
 compose-ready:: docker-compose.yml images
-	make -C ../docker docker-compose.yml
-	@ true
+	make -C $$(dirname $(call find_project_file,docker,Makefile)) docker-compose.yml
 
 up:: compose-ready
 	@ docker-compose up -d

@@ -19,6 +19,35 @@ services:
       - source: db-pw
         target: password
 
+  projects_loader:
+    image: etnaagent/polyphemus:production
+    volumes:
+      - projects:/projects
+    secrets:
+      - source: id-redcap-git
+        mode: 0600
+    configs:
+      - source: polyphemus_ssh_config
+        target: /root/.ssh/config
+    deploy:
+      restart_policy:
+        delay: 300s
+      resources:
+        limits:
+          memory: 200mb
+      placement:
+        constraints:
+          - node.labels.volumes.big-shared == true
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        mkdir -p /root/.ssh
+        ssh-keyscan github.com > /root/.ssh/known_hosts
+        cd /projects
+        git pull
+
   app:
     environment:
       - APP_NAME=polyphemus
@@ -36,6 +65,8 @@ services:
         exec /bin/deploy.sh migrate -- /app/bin/puma.sh
     image: etnaagent/polyphemus:production
 
+    volumes:
+      - projects:/app/lib/etls/redcap/projects:nocopy
     deploy:
       update_config:
         parallelism: 1
@@ -45,6 +76,7 @@ services:
       placement:
         constraints:
           - node.labels.is_edge != true
+          - node.labels.volumes.big-shared == true
     healthcheck:
       interval: 10s
       retries: 3
@@ -133,8 +165,18 @@ volumes:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
       device: ":/cache/postgres/polyphemus"
+  projects:
+    name: "polyphemus_projects"
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
+      device: ":/cache/polyphemus/projects"
 
 configs:
+  polyphemus_ssh_config:
+    external: true
+    name: ${POLYPHEMUS_SSH_CONFIG:-polyphemus_ssh_config}
   known_hosts:
     external: true
     name: ${POLYPHEMUS_KNOWN_HOSTS:-polyphemus_known_hosts}
@@ -149,6 +191,9 @@ configs:
     name: ${ENV_CONFIG:-etna.production.yml}
 
 secrets:
+  id-redcap-git:
+    external: true
+    name: ${ID_REDCAP_GIT:-id-redcap-git}
   user-hash-secret:
     external: true
     name: ${USER_HASH_SECRET:-user-hash-secret}

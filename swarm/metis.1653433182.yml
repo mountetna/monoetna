@@ -106,7 +106,7 @@ services:
       - source: browser.system.include
         target: /usr/opt/httpd.conf.d/browser.system.include
     deploy:
-      replicas: 1
+      replicas: 2
       labels:
         - autoupdate=true
       placement:

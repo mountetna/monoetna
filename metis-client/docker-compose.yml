@@ -1,0 +1,8 @@
+version: '3.4'
+services:
+  metis-client_app:
+    image: rust-base
+    volumes:
+      - ./src:/app/src
+      - ./Cargo.toml:/app/Cargo.toml
+      - ./Cargo.lock:/app/Cargo.lock

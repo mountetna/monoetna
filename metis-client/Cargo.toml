@@ -1,0 +1,19 @@
+[package]
+name = "metis-client"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { version = "0.11.10", features = ["json", "rustls-tls"], default-features = false }
+reqwest-middleware = "0.1.6"
+reqwest-retry = "0.1.5"
+lazy_static = "1.4.0"
+clap = { version = "3.1.18", features = ["derive"] }
+task-local-extensions = "0.1.1"
+jwt-simple = "0.11.0"
+async-trait = "0.1.53"
+anyhow = "1.0.57"
+sha2 = "0.10.2"
+tokio = { version = "1.18.2", features = ["full"] }
