@@ -164,11 +164,11 @@ class AdminController < Janus::Controller
       result[:resource] = !!@params[:resource] unless @params[:resource].nil?
       result[:requires_agreement] = !!@params[:requires_agreement] unless @params[:requires_agreement].nil?
       result[:cc_text] = @params[:cc_text] unless @params[:cc_text].nil?
-      result[:contact_email] = @params[:contact_email] if valid_contact?
+      result[:contact_email] = @params[:contact_email].strip if valid_contact?
     end
   end
 
   def valid_contact?
-    @params[:contact_email]&.rpartition('@')&.last == Janus.instance.config(:token_domain)
+    @params[:contact_email]&.strip&.rpartition('@')&.last == Janus.instance.config(:token_domain)
   end
 end

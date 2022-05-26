@@ -175,6 +175,20 @@ describe AdminController do
       expect(door.contact_email).to eq(contact_email)
     end
 
+    it 'strips whitespace from the contact email' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      expect(door.contact_email).to eq('')
+
+      auth_header(:zeus)
+      contact_email = 'janus@janus.test   '
+      json_post('/api/admin/door/update', contact_email: contact_email)
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.contact_email).to eq(contact_email.strip)
+    end
+
     it 'raises exception for invalid contact email' do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
 
