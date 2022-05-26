@@ -12,7 +12,10 @@ class Project < Sequel::Model
       project_name: project_name,
       project_name_full: project_name_full,
       permissions: permissions.map(&:to_hash),
-      resource: resource
+      resource: resource,
+      requires_agreement: requires_agreement,
+      cc_text: cc_text,
+      contact_email: contact_email
     }
   end
 end
