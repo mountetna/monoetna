@@ -14,6 +14,7 @@ import typing
 from airflow import DAG
 from airflow.decorators import task
 from airflow.exceptions import AirflowException
+from airflow.models import Variable
 from airflow.models.taskinstance import Context, TaskInstance
 from airflow.models.xcom_arg import XComArg
 from airflow.operators.python import get_current_context
@@ -122,6 +123,20 @@ class MatchedRecordFolder:
             return self.root_path
         return "/".join([self.root_path, self.match_subpath])
 
+def filter_args_for_processed_files(args: Iterable[Any]) -> Iterable[Any]:
+    print("filtering variables...")
+    processed = process_file_set()
+    for arg in args:
+        print("hello")
+        if isinstance(arg, list):
+            print("filtering list")
+            yield [
+                v for v in arg if not isinstance(v, File) or v.file_hash not in processed
+            ]
+        else:
+            yield arg
+    print("done")
+
 class link:
     task_id: Optional[str]
     log: Logger
@@ -160,7 +175,7 @@ class link:
     def __call__(self, fn: Callable):
         @functools.wraps(fn)
         def new_task(*args, **kwds):
-            result: List[MatchedRecordFolder] = []
+            result: List[Any] = []
             with self.hook.magma(read_only=False) as magma:
                 self.log.info("retrieving model...")
                 models = magma.retrieve(
@@ -180,7 +195,7 @@ class link:
                 project = project_rows[0]
 
                 self.log.info("running linking function...")
-                for cur_batch in batch_iterable(fn(*args, **kwds), self.batch_size):
+                for cur_batch in batch_iterable(fn(*filter_args_for_processed_files(args), **kwds), self.batch_size):
                     result.extend(
                         self._process_link_batch(magma, models, cur_batch, project)
                     )
@@ -198,10 +213,10 @@ class link:
         self,
         magma: Magma,
         models: Dict[str, Model],
-        batch: Iterable[Tuple[MatchedRecordFolder, Any]],
+        batch: Iterable[Tuple[Any, Any]],
         project: str,
-    ) -> List[MatchedRecordFolder]:
-        result: List[MatchedRecordFolder] = []
+    ) -> List[Any]:
+        result: List[Any] = []
         update: UpdateRequest = UpdateRequest(
             revisions={}, project_name=self.project_name, dry_run=self.dry_run
         )
@@ -211,7 +226,7 @@ class link:
 
             if isinstance(value, UpdateRequest):
                 pass
-            elif self.attribute_name is not None:
+            elif self.attribute_name is not None and isinstance(match, MatchedRecordFolder):
                 value = match.as_update({self.attribute_name: value})
             else:
                 raise AirflowException(
@@ -236,6 +251,11 @@ class link:
         self._validate_update(magma, update, models)
         self.log.info("Executing batched magma update")
         magma.update(update)
+
+        for match in result:
+            if isinstance(match, File):
+                mark_processed_file(match)
+
         return result
 
     def _expand_project_parents(self, update: UpdateRequest, models: Dict[str, Model], project: str):
@@ -588,6 +608,19 @@ class MetisEtlHelpers:
 
         return list_match_folders(matches)
 
+def processed_file_variable_key() -> str:
+    context = get_current_context()
+    ti: TaskInstance = context['ti']
+    return f"processed_files_{ti.task_id}_{ti.run_id}"
+
+def process_file_set() -> List[str]:
+    return Variable.get(processed_file_variable_key(), [], deserialize_json=True)
+
+def mark_processed_file(file: File):
+    existing = process_file_set()
+    if file.file_hash not in existing:
+        existing.append(file.file_hash)
+    Variable.set(processed_file_variable_key(), existing, serialize_json=True)
 
 def filter_by_exists_in_timur(
     magma: Magma,

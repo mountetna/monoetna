@@ -1,4 +1,5 @@
 mod etna_auth;
+mod etna_client;
 
 use std::path::PathBuf;
 use std::time::Duration;

@@ -1,11 +1,13 @@
 use std::borrow::Borrow;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::io::Bytes;
 use std::time::Duration;
 use jwt_simple::prelude::*;
+use rsa::{Hash, PaddingScheme, RsaPrivateKey};
+use serde::{Deserialize, Serialize};
 
 use reqwest::{Request, Response};
-use reqwest::header::{HeaderName, HeaderValue};
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue, InvalidHeaderValue};
 
 use reqwest_middleware::{Middleware, Next};
 use reqwest_retry::policies::ExponentialBackoff;
@@ -15,7 +17,9 @@ use anyhow::{anyhow, Error};
 use jwt_simple::JWTError;
 use jwt_simple::prelude::RS256PublicKey;
 use lazy_static::lazy_static;
+use rsa::pkcs1::FromRsaPrivateKey;
 use task_local_extensions::Extensions;
+use crate::etna_client::EtnaClient;
 
 lazy_static! {
     static ref janus_public_key: &'static str = "-----BEGIN PUBLIC KEY-----
@@ -34,31 +38,61 @@ VnOJnAt45Hq/mNZEBP2I7/MCAwEAAQ==
 -----END PUBLIC KEY-----";
 }
 
-pub struct EtnaTokenAuth {
-    token_header: HeaderValue,
-    pub token: String,
+#[derive(Serialize, Deserialize)]
+struct TaskTokenRequest {
+    token_type: String,
+    project_name: String,
+    read_only: bool,
 }
 
-#[async_trait]
-impl Middleware for EtnaTokenAuth {
-    async fn handle(
-        &self,
-        req: Request,
-        extensions: &mut Extensions,
-        next: Next<'_>,
-    ) -> reqwest_middleware::Result<Response> {
-        let mut new_req = req.try_clone().ok_or(
-        reqwest_middleware::Error::Middleware(anyhow!(
-                "Could not clone request to add new headers".to_string()
-            ))
-        )?;
-        // HeaderValue::from_bytes()
-        new_req.headers_mut().insert(
-            HeaderName::from_static("Authorization"),
-            self.token_header.clone()
-        );
-        next.run(new_req, extensions).await
-    }
+async fn get_nonce_auth(
+    janus: &EtnaClient,
+    private_key_pem: &str,
+    email: &str
+) -> Result<HeaderMap, anyhow::Error> {
+    let client = janus.client();
+    let response = client.get(janus.format_url("/api/tokens/nonce")).send().await?;
+    let nonce = response.text().await?;
+
+    let (digest, sig) = sign_it(&nonce, private_key_pem, email)
+        .map_err(|rsa_err| { anyhow!(rsa_err) })?;
+
+    auth_headers("Signed-Nonce", format!("{}.{}", digest, sig).as_str())
+        .map_err(|header_err| anyhow!(rsa_err))
+}
+
+async fn get_task_token_auth(
+    janus: &EtnaClient,
+    project_name: &str,
+) -> Result<HeaderMap, anyhow::Error> {
+    let client = janus.client();
+    let response = client.post(janus.format_url("/api/tokens/generate")).send().await?;
+    let token = response.text().await?;
+    auth_headers("Etna", token.as_str());
+}
+
+fn sign_it(
+    nonce: &str,
+    private_key_pem: &str,
+    email: &str
+) -> Result<(String, String), rsa::errors::Error> {
+    let key = RsaPrivateKey::from_pkcs1_pem(private_key_pem)?;
+    let digest = format!("{}.{}", nonce, base64::encode(email));
+    let sig = key.sign(PaddingScheme::PKCS1v15Sign { hash: Some(Hash::SHA2_256)},
+             digest.as_bytes())?;
+    Ok((
+        digest,
+        base64::encode(sig),
+    ))
+}
+
+pub fn auth_headers(lead: &str, value: &str) -> Result<HeaderMap, InvalidHeaderValue> {
+    let mut map = HeaderMap::new();
+    map.insert(
+        HeaderName::from_static("Authorization"),
+        HeaderValue::from_str(&format!("{} {}", lead, value))?
+    );
+    Ok(map)
 }
 
 pub fn apply_auth(token: &Option<&str>, key: &Option<&[u8]>) {

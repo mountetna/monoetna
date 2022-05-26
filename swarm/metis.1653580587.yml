@@ -14,8 +14,8 @@ services:
           - node.labels.volumes.big-shared == true
       resources:
         reservations:
-          cpus: '1.0'
-          memory: 900mb
+          cpus: '2.0'
+          memory: 3G
     networks:
       - db
     secrets:
