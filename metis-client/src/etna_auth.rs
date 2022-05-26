@@ -58,7 +58,6 @@ async fn get_nonce_auth(
         .map_err(|rsa_err| { anyhow!(rsa_err) })?;
 
     auth_headers("Signed-Nonce", format!("{}.{}", digest, sig).as_str())
-        .map_err(|header_err| anyhow!(rsa_err))
 }
 
 async fn get_task_token_auth(
@@ -66,9 +65,14 @@ async fn get_task_token_auth(
     project_name: &str,
 ) -> Result<HeaderMap, anyhow::Error> {
     let client = janus.client();
-    let response = client.post(janus.format_url("/api/tokens/generate")).send().await?;
+    let response = client.post(janus.format_url("/api/tokens/generate"))
+        .json(&TaskTokenRequest {
+            token_type: "token".to_string(),
+            project_name: project_name.to_string(),
+            read_only: false,
+        }).send().await?;
     let token = response.text().await?;
-    auth_headers("Etna", token.as_str());
+    auth_headers("Etna", token.as_str())
 }
 
 fn sign_it(
@@ -86,17 +90,14 @@ fn sign_it(
     ))
 }
 
-pub fn auth_headers(lead: &str, value: &str) -> Result<HeaderMap, InvalidHeaderValue> {
+pub fn auth_headers(lead: &str, value: &str) -> Result<HeaderMap, anyhow::Error> {
     let mut map = HeaderMap::new();
     map.insert(
         HeaderName::from_static("Authorization"),
-        HeaderValue::from_str(&format!("{} {}", lead, value))?
+        HeaderValue::from_str(&format!("{} {}", lead, value))
+            .map_err(|e| anywho!(e))?
     );
     Ok(map)
-}
-
-pub fn apply_auth(token: &Option<&str>, key: &Option<&[u8]>) {
-
 }
 
 pub struct Claims {
