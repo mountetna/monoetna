@@ -143,6 +143,20 @@ class AdminController < Janus::Controller
     success_json(user.to_hash)
   end
 
+  def update_cc_agreement
+    # User agrees to the code of conduct for the specified project
+    require_params(:project_name, :cc_text, :agreed)
+
+    agreement = CcAgreement.create(
+      user_email: @user.email,
+      project_name: @params[:project_name],
+      cc_text: @params[:cc_text],
+      agreed: !!@params[:agreed]
+    )
+
+    success_json(agreement.to_hash)
+  end
+
   private
 
   def update_payload

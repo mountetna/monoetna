@@ -751,4 +751,49 @@ describe AdminController do
       expect(user.flags).to eq(nil)
     end
   end
+
+  context '#update_cc_agreement' do
+    before(:each) do
+      @door = create(:project, project_name: 'door', project_name_full: 'Door')
+    end
+
+    it 'requires cc_text and agreed' do
+      auth_header(:superuser)
+      json_post('/api/admin/door/cc', something: 'not-relevant')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq("Missing param cc_text, agreed")
+    end
+
+    it 'can submit multiple for same user / project, with different cc_text or agreed status' do
+      expect(CcAgreement.count).to eq(0)
+      auth_header(:superuser)
+      json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: false)
+
+      expect(last_response.status).to eq(200)
+      expect(CcAgreement.count).to eq(1)
+
+      json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: true)
+
+      expect(last_response.status).to eq(200)
+      expect(CcAgreement.count).to eq(2)
+
+      json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
+
+      expect(last_response.status).to eq(200)
+      expect(CcAgreement.count).to eq(3)
+    end
+
+    it 'allows non-authorized users to set for a given project' do
+      user = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
+
+      expect(CcAgreement.count).to eq(0)
+      auth_header(:portunus)
+      json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
+
+      expect(last_response.status).to eq(200)
+      expect(CcAgreement.count).to eq(1)
+      expect(CcAgreement.first.user_email).to eq(user.email)
+    end
+  end
 end
