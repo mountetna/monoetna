@@ -209,11 +209,25 @@ module Redcap
 
       return {} unless @flat_records
       
-      non_repeating_record_key = [ record_id.first, ["", ""] ]
+      non_repeating_key = non_repeating_record_key(record_id)
       
-      return {} unless @flat_records[non_repeating_record_key]
+      return {} if non_repeating_key.nil?
 
-      @flat_records[non_repeating_record_key].first.slice(*identifier_fields)
+      @flat_records[non_repeating_key].first.slice(*identifier_fields)
+    end
+
+    def non_repeating_record_keys
+      # flat record keys are Tuples in the form of
+      # [ redcap_id, [ repeating_instrument, instance_id ] ]
+      @non_repeating_record_keys ||= @flat_records.keys.select do |key|
+        key.last.first == ""
+      end 
+    end
+
+    def non_repeating_record_key(record_id)
+      non_repeating_record_keys.select do |key|
+        key.first == record_id.first
+      end.first
     end
   end
 end
