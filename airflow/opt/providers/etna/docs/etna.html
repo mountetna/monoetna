@@ -1888,7 +1888,9 @@ reading in multiple files that exist in the same record folder.</p>
         <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
         <span class="n">ingested</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;data-ingest-ping&quot;</span><span class="p">,</span>
+        <span class="n">users</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends a Slack message to the data-ingest-ping channel, notifying of</span>
 <span class="sd">            the number of files uploaded.</span>
@@ -1898,6 +1900,8 @@ reading in multiple files that exist in the same record folder.</p>
 <span class="sd">            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.</span>
 <span class="sd">            project_name: str, project name for the message</span>
 <span class="sd">            bucket_name: str, bucket name for the message</span>
+<span class="sd">            channel: str, the Slack channel to post to, default data-ingest-ping</span>
+<span class="sd">            users: Optional[List[str]], list of Slack user names to be notified of task completion.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="nd">@task</span>
@@ -1908,10 +1912,21 @@ reading in multiple files that exist in the same record folder.</p>
                 <span class="n">SlackWebhookOperator</span><span class="p">(</span>
                     <span class="n">task_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;notify_slack_</span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">_box_ingest&quot;</span><span class="p">,</span>
                     <span class="n">username</span><span class="o">=</span><span class="s2">&quot;Airflow&quot;</span><span class="p">,</span>
-                    <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;data-ingest-ping&quot;</span><span class="p">,</span>
+                    <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span>
                     <span class="n">http_conn_id</span><span class="o">=</span><span class="s1">&#39;slack-api&#39;</span><span class="p">,</span>
                     <span class="n">message</span><span class="o">=</span><span class="n">msg</span>
                 <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">users</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">users</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">user_mentions</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;@</span><span class="si">{</span><span class="n">u</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">users</span><span class="p">]</span>
+                    <span class="n">notify_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">user_mentions</span><span class="p">)</span><span class="si">}</span><span class="s2"> :point_up_2:&quot;</span>
+                    <span class="n">SlackWebhookOperator</span><span class="p">(</span>
+                        <span class="n">task_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;notify_slack_users_</span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">_box_ingest&quot;</span><span class="p">,</span>
+                        <span class="n">username</span><span class="o">=</span><span class="s2">&quot;Airflow&quot;</span><span class="p">,</span>
+                        <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span>
+                        <span class="n">http_conn_id</span><span class="o">=</span><span class="s1">&#39;slack-api&#39;</span><span class="p">,</span>
+                        <span class="n">message</span><span class="o">=</span><span class="n">notify_msg</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">)</span>
 
@@ -2052,7 +2067,9 @@ reading in multiple files that exist in the same record folder.</p>
     files: airflow.models.xcom_arg.XComArg,
     ingested: bool,
     project_name: str,
-    bucket_name: str
+    bucket_name: str,
+    channel: str = &#39;data-ingest-ping&#39;,
+    users: Union[List[str], NoneType] = None
 )</span>:
     </div>
 
@@ -2062,7 +2079,9 @@ reading in multiple files that exist in the same record folder.</p>
         <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
         <span class="n">ingested</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;data-ingest-ping&quot;</span><span class="p">,</span>
+        <span class="n">users</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends a Slack message to the data-ingest-ping channel, notifying of</span>
 <span class="sd">            the number of files uploaded.</span>
@@ -2072,6 +2091,8 @@ reading in multiple files that exist in the same record folder.</p>
 <span class="sd">            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.</span>
 <span class="sd">            project_name: str, project name for the message</span>
 <span class="sd">            bucket_name: str, bucket name for the message</span>
+<span class="sd">            channel: str, the Slack channel to post to, default data-ingest-ping</span>
+<span class="sd">            users: Optional[List[str]], list of Slack user names to be notified of task completion.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="nd">@task</span>
@@ -2082,10 +2103,21 @@ reading in multiple files that exist in the same record folder.</p>
                 <span class="n">SlackWebhookOperator</span><span class="p">(</span>
                     <span class="n">task_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;notify_slack_</span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">_box_ingest&quot;</span><span class="p">,</span>
                     <span class="n">username</span><span class="o">=</span><span class="s2">&quot;Airflow&quot;</span><span class="p">,</span>
-                    <span class="n">channel</span><span class="o">=</span><span class="s2">&quot;data-ingest-ping&quot;</span><span class="p">,</span>
+                    <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span>
                     <span class="n">http_conn_id</span><span class="o">=</span><span class="s1">&#39;slack-api&#39;</span><span class="p">,</span>
                     <span class="n">message</span><span class="o">=</span><span class="n">msg</span>
                 <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">users</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">users</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">user_mentions</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;@</span><span class="si">{</span><span class="n">u</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">users</span><span class="p">]</span>
+                    <span class="n">notify_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">user_mentions</span><span class="p">)</span><span class="si">}</span><span class="s2"> :point_up_2:&quot;</span>
+                    <span class="n">SlackWebhookOperator</span><span class="p">(</span>
+                        <span class="n">task_id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;notify_slack_users_</span><span class="si">{</span><span class="n">project_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">bucket_name</span><span class="si">}</span><span class="s2">_box_ingest&quot;</span><span class="p">,</span>
+                        <span class="n">username</span><span class="o">=</span><span class="s2">&quot;Airflow&quot;</span><span class="p">,</span>
+                        <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span>
+                        <span class="n">http_conn_id</span><span class="o">=</span><span class="s1">&#39;slack-api&#39;</span><span class="p">,</span>
+                        <span class="n">message</span><span class="o">=</span><span class="n">notify_msg</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">)</span>
 </pre></div>
@@ -2099,7 +2131,9 @@ reading in multiple files that exist in the same record folder.</p>
     files: List of files
     ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.
     project_name: str, project name for the message
-    bucket_name: str, bucket name for the message</p>
+    bucket_name: str, bucket name for the message
+    channel: str, the Slack channel to post to, default data-ingest-ping
+    users: Optional[List[str]], list of Slack user names to be notified of task completion.</p>
 </div>
 
 

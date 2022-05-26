@@ -199,7 +199,50 @@ def stub_metis_download(path, file_data)
     })
 end
 
-def stub_metis_list_bucket
+def stub_metis_list_buckets
+  return_values = []
+
+  return_values << { status: 502 }
+  return_values << {
+    status: 200,
+    body: {buckets: [{
+      bucket_name: 'test',
+      project_name: 'athena',
+      access: 'viewer'
+    }]}.to_json
+  }
+
+  stub_request(:get, /list$/)
+    .to_return(*return_values)
+end
+
+def stub_metis_rm_folder
+  return_values = []
+
+  return_values << { status: 502 }
+  return_values << {
+    status: 200,
+    body: {folder_name: ''}.to_json
+  }
+
+  stub_request(:delete, /folder\/remove/)
+    .to_return(*return_values)
+end
+
+def stub_metis_create_folder
+  return_values = []
+
+  return_values << { status: 502 }
+  return_values << {
+    status: 200,
+    body: {files: [], folders: []}.to_json
+  }
+
+  stub_request(:post, /folder\/create/)
+    .to_return(*return_values)
+end
+
+def stub_metis_list_bucket(with_error=false)
   stub_request(:get, /list\/bucket/)
     .to_return({
       status: 200,

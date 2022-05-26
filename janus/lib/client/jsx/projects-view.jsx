@@ -16,6 +16,7 @@ import {isSuperEditor} from 'etna-js/utils/janus';
 import {updateProject} from './api/janus_api';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 
+import {makeStyles} from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -64,7 +65,7 @@ const Project = ({project}) => {
         <a href={`/${project.project_name}`}>{project.project_name}</a>
       </TableCell>
       <TableCell>{project.project_name_full}</TableCell>
-      <TableCell width='200'>
+      <TableCell padding='checkbox' width='200'>
         <Checkbox
           checked={isResource}
           onChange={(e) => {
@@ -83,10 +84,19 @@ const Project = ({project}) => {
   );
 };
 
-const Projects = ({projects}) => (
-  <div id='admin-projects'>
+const projectStyles = makeStyles( theme => ({
+  table_container: {
+    height: 'calc(100vh - 61px - 38px - 73px)',
+    width: 'calc(100% - 2px)'
+  }
+}));
+
+const Projects = ({projects}) => {
+  const classes = projectStyles();
+
+  return <div id='admin-projects'>
     <div className='title'>Projects</div>
-    <TableContainer component={Paper}>
+    <TableContainer component={Paper} className={classes.table_container}>
       <Table aria-label='all projects'>
         <TableHead>
           <TableRow>
@@ -97,10 +107,10 @@ const Projects = ({projects}) => (
           </TableRow>
         </TableHead>
         <TableBody>
-          {projects
+          {Array(100).fill(projects
             .sort((p1, p2) =>
               p1.project_name_full.localeCompare(p2.project_name_full)
-            )
+            )).flat()
             .map((project) => (
               <Project project={project} />
             ))}
@@ -108,7 +118,7 @@ const Projects = ({projects}) => (
       </Table>
     </TableContainer>
   </div>
-);
+}
 
 const postAddProject = (project) => json_post('/api/admin/add_project', project);
 
@@ -160,7 +170,7 @@ const NewProject = ({retrieveAllProjects}) => {
   );
 };
 
-const JanusAdmin = () => {
+const ProjectsView = () => {
   let user = useReduxState((state) => selectUser(state));
 
   const {
@@ -183,13 +193,11 @@ const JanusAdmin = () => {
   );
 };
 
-const JanusAdminWrapper = () => {
+const ProjectsViewWrapper = () => {
   return (
-    <div id='janus-admin'>
-      <ProjectsProvider>
-        <JanusAdmin />
-      </ProjectsProvider>
-    </div>
+    <ProjectsProvider>
+      <ProjectsView />
+    </ProjectsProvider>
   );
 };
 
@@ -228,4 +236,4 @@ const ProjectsProvider = (props) => {
   );
 };
 
-export default JanusAdminWrapper;
+export default ProjectsViewWrapper;
