@@ -1,8 +1,9 @@
 module Redcap
   class Record
-    def initialize eavs, flat_record
+    def initialize eavs, flat_record, identifier_fields_data
       @eavs = eavs
       @flat_record = flat_record || {}
+      @identifier_fields_data = identifier_fields_data || {}
     end
 
     def record
@@ -30,7 +31,7 @@ module Redcap
         end
         rec
       end
-      record.empty? ? nil : record
+      record.empty? ? nil : record.update(@identifier_fields_data)
     end
   end
 end

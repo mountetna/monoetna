@@ -208,6 +208,7 @@ describe Redcap::Loader do
             [ "company_name" ],
             [ "dof", "date of founding" ],
             [ "car_class" ],
+            [ "in_black" ],
             [ "year", "calendar year", "date" ],
             {
               field_name: "feature",
@@ -258,6 +259,49 @@ describe Redcap::Loader do
 
       expect(records.keys).to match_array([:make])
       expect(records[:make].keys).to match_array(["Jatsun", "ToyoT", "Caudillac"])
+
+      Kernel.send(:remove_const,:Make)
+    end
+
+    it 'correctly casts non-Yes/No booleans' do
+      Redcap::Model.define("Make").class_eval do
+        def identifier(record_name, identifier_fields: nil)
+          record_name
+        end
+
+        def offset_id(record_name)
+          record_name
+        end
+      end
+
+      stub_redcap(
+        /fields/ => redcap_records(
+          { redcap_event_name: "Base", field_name: "in_black" },
+          [
+            { record: "Jatsun", "value": "Yes" },
+            { "record": "ToyoT", "value": "No" },
+            { "record": "Caudillac", "value": "Of course" },
+          ]
+        ).to_json
+      )
+
+      records = run_loader(
+        make: {
+          each: [ "record" ],
+          scripts: [
+            {
+              attributes: {
+                available_in_black: "in_black"
+              }
+            }
+          ]
+        }
+      )
+
+      expect(records.keys).to match_array([:make])
+      expect(records[:make]["Jatsun"][:available_in_black]).to eq(true)
+      expect(records[:make]["ToyoT"][:available_in_black]).to eq(false)
+      expect(records[:make]["Caudillac"][:available_in_black]).to eq(true)
 
       Kernel.send(:remove_const,:Make)
     end
@@ -347,6 +391,104 @@ describe Redcap::Loader do
       expect(records[:year].keys).to match_array(["Jatsun Thunderer 1", "Jatsun Thunderer 2", "ToyoT CorolloroC 1", "ToyoT CorolloroC 2"])
 
       Kernel.send(:remove_const,:Year)
+    end
+
+    it 'correctly handles repeat_instance id for eav and flat across repeating instruments with identifier_fields' do
+      Redcap::Model.define("Award").class_eval do
+        def identifier(record_name, event_name = nil, identifier_fields: nil )
+          [
+            "::temp", identifier_fields[:special_id], rand(36 ** 8).to_s(36),
+          ].compact.join("-")
+        end
+
+        def patch(id, record)
+          record[:model] = id.split('-')[1]
+        end
+      end
+
+      stub_redcap(
+        /eav/ => redcap_records(
+          { "redcap_repeat_instrument": "awards" },
+          [
+            {
+              "record": "Jatsun", "field_name": "name",
+              "redcap_repeat_instance": 1, "value": "Gold"
+            },
+            {
+              "record": "Jatsun", "field_name": "name",
+              "redcap_repeat_instance": '2', "value": "Silver"
+            },
+            {
+              "record": "ToyoT", "field_name": "name",
+              "redcap_repeat_instance": 1, "value": "Bronze"
+            },
+            {
+              "record": "ToyoT", "field_name": "name",
+              "redcap_repeat_instance": '2', "value": "Platinum"
+            }
+          ]
+        ).to_json,
+        /flat/ => redcap_records(
+          { },
+          [
+            {
+              "redcap_repeat_instrument": "",
+              "record_id": "Jatsun", "redcap_repeat_instance": "",
+              "special_id": "brand1", "company_name": "Jatsun"
+            },
+            {
+              "redcap_repeat_instrument": "awards",
+              "record_id": "Jatsun", "name": "Gold",
+              "redcap_repeat_instance": 1, "company_name": "Jatsun",
+              "special_id": ""
+            },
+            {
+              "redcap_repeat_instrument": "awards",
+              "record_id": "Jatsun", "name": "Silver",
+              "redcap_repeat_instance": 2, "company_name": "Jatsun",
+              "special_id": ""
+            },
+            {
+              "redcap_repeat_instrument": "awards",
+              "record_id": "ToyoT", "name": "Bronze",
+              "redcap_repeat_instance": 1, "company_name": "ToyoT",
+              "special_id": ""
+            },
+            {
+              "redcap_repeat_instrument": "awards",
+              "record_id": "ToyoT", "name": "Platinum",
+              "redcap_repeat_instance": 2, "company_name": "ToyoT",
+              "special_id": ""
+            },
+            {
+              "redcap_repeat_instrument": "",
+              "record_id": "ToyoT", "redcap_repeat_instance": "",
+              "special_id": "brand2", "company_name": "ToyoT"
+            },
+          ]
+        ).to_json
+      )
+
+      records = run_loader(
+        award: {
+          each: [ "record", "repeat" ],
+          identifier_fields: ["special_id"],
+          scripts: [
+            {
+              attributes: {
+                name: "name"
+              }
+            }
+          ]
+        }
+      )
+
+      expect(records.keys).to match_array([:award, :model])
+      expect(records[:award].keys.length).to eq(4)
+      expect(records[:model]["brand1"]["award"].length).to eq(2)
+      expect(records[:model]["brand2"]["award"].length).to eq(2)
+
+      Kernel.send(:remove_const,:Award)
     end
 
     it 'iterates across values' do

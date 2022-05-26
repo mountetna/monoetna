@@ -23,7 +23,15 @@ module Redcap
 
       return nil unless response.content_type =~ %r!application/json!
 
-      JSON.parse(response.body, symbolize_names: true)
+      # For some reason :redcap_repeat_instance returns as int
+      #   for non-eav, but str for eav when the value > 1...
+      #   so we'll cast the values in this field to int so can do
+      #   accurate mapping between eav and flat records.
+      JSON.parse(response.body, symbolize_names: true).map do |record|
+        record[:redcap_repeat_instance] = record[:redcap_repeat_instance].to_i unless (record[:redcap_repeat_instance].nil? || record[:redcap_repeat_instance] == '')
+
+        record
+      end
     end
 
     def get_records(opts={})

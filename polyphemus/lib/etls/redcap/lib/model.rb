@@ -182,7 +182,9 @@ module Redcap
       when "integer"
         return value.to_i
       when "boolean"
-        return value == "Yes" ? true : value == "No" ? false : nil
+        # Not all REDCap radio buttons are Yes / No, unfortunately...
+        no_values = ["No"]
+        return !no_values.include?(value) ? true : no_values.include?(value) ? false : nil
       else
         return value
       end
