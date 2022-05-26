@@ -25,11 +25,11 @@ class Janus
     post '/api/admin/:project_name/update', action: 'admin#update_project', auth: { user: { is_supereditor?: true } }
     post '/api/admin/:project_name/update_permission', action: 'admin#update_permission', auth: { user: { is_admin?: :project_name } }
     post '/api/admin/:project_name/add_user', action: 'admin#add_user', auth: { user: { is_admin?: :project_name } }
-
+    post '/api/admin/:project_name/cc', action: 'admin#update_cc_agreement', auth: { user: { active?: true } }
+    
     get '/api/admin/projects', action: 'admin#projects', auth: { user: { is_superviewer?: true } }
     post '/api/admin/add_project', action: 'admin#add_project', auth: { user: { is_supereditor?: true } }
     post '/api/admin/flag_user', action: 'admin#flag_user', auth: { user: { is_superuser?: true } }
-
 
     post '/api/user/update_key', action: 'user#update_key'
     get '/api/user/info', action: 'user#info'

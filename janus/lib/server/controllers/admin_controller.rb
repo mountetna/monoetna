@@ -116,8 +116,10 @@ class AdminController < Janus::Controller
     @project = Project[project_name: @params[:project_name]]
 
     raise Etna::BadRequest, "invalid project" if @project.nil?
+    raise Etna::BadRequest, "invalid contact email" if @params[:contact_email] && !valid_contact?
 
-    @project.update(resource: !!@params[:resource]) unless @params[:resource].nil?
+    @project.update(**update_payload)
+
     @project.refresh
 
     success_json(@project.to_hash)
@@ -139,5 +141,34 @@ class AdminController < Janus::Controller
     user.update(flags: @params[:flags])
 
     success_json(user.to_hash)
+  end
+
+  def update_cc_agreement
+    # User agrees to the code of conduct for the specified project
+    require_params(:project_name, :cc_text, :agreed)
+
+    agreement = CcAgreement.create(
+      user_email: @user.email,
+      project_name: @params[:project_name],
+      cc_text: @params[:cc_text],
+      agreed: !!@params[:agreed]
+    )
+
+    success_json(agreement.to_hash)
+  end
+
+  private
+
+  def update_payload
+    {}.tap do |result|
+      result[:resource] = !!@params[:resource] unless @params[:resource].nil?
+      result[:requires_agreement] = !!@params[:requires_agreement] unless @params[:requires_agreement].nil?
+      result[:cc_text] = @params[:cc_text] unless @params[:cc_text].nil?
+      result[:contact_email] = @params[:contact_email].strip if valid_contact?
+    end
+  end
+
+  def valid_contact?
+    @params[:contact_email]&.strip&.rpartition('@')&.last == Janus.instance.config(:token_domain)
   end
 end
