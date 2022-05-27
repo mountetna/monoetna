@@ -1,8 +1,11 @@
 mod etna_auth;
 mod etna_client;
 
-use std::path::PathBuf;
+use std::fmt::Display;
+use std::fs;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
+use anyhow::anyhow;
 use clap::{Parser, Subcommand, Args};
 use reqwest_middleware::ClientBuilder;
 
@@ -54,31 +57,42 @@ struct Pull {
     path: Vec<PathBuf>,
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let opts: Cli = Cli::parse();
+fn default_key_path() -> Option<PathBuf> {
+    if let Some(user_dirs) = directories::UserDirs::new() {
+        return Some(user_dirs.home_dir().join(".ssh").join(""));
+    }
 
-    let client = reqwest::Client::builder()
-        .https_only(true)
-        .use_rustls_tls()
-        .connect_timeout(Duration::from_secs(6))
-        .build()?;
+    None
+}
+
+fn try_rsa_pem(file_override: &Option<Vec<PathBuf>>) -> anyhow::Result<Option<String>> {
+    if let Some(file_override) = file_override {
+        return Ok(Some(fs::read_to_string(file_override)?));
+    }
+
+    if let Some(key_path) = default_key_path() {
+        if let Ok(contents) = fs::read_to_string(key_path) {
+            return Ok(Some(contents))
+        }
+    }
+
+    Ok(None)
+}
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let opts: Cli = Cli::parse();
 
     let env_token = std::env::var("TOKEN").ok();
 
     match opts.command.unwrap_or(Commands::Push(opts.push)) {
         Commands::Push(push) => {
-            ClientBuilder::new(client);
+            let private_key = try_rsa_pem(&push.rsa_file)?;
         }
         Commands::Pull(pull) => {
-            ClientBuilder::new(client);
+            let private_key = try_rsa_pem(&pull.rsa_file)?;
         }
     }
-    // let resp = reqwest::get("https://httpbin.org/ip")
-    //     .await?
-    //     .json::<HashMap<String, String>>()
-    //     .await?;
-    // println!("{:?}", opts);
-    // println!("{:#?}", resp);
+
     Ok(())
 }
