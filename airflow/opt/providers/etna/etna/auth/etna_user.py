@@ -18,6 +18,7 @@ ROLE_MAP = dict(
     a="admin",
     v="viewer",
     e="editor",
+    g="guest"
 )
 
 
@@ -108,7 +109,7 @@ def construct_permission(role: str) -> Callable[[List[str]], List[Permission]]:
 
 
 role_parser: Parser[str] = take_left(
-    regex_parser(re.compile(r"[aAeEvV]")), literal_parser(":")
+    regex_parser(re.compile(r"[aAeEvVg]")), literal_parser(":")
 )
 permission_parser: Parser[List[Permission]] = parser_apply(
     parser_apply(parser_lift(construct_permission), role_parser),
