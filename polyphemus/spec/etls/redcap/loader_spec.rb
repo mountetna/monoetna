@@ -263,7 +263,7 @@ describe Redcap::Loader do
       Kernel.send(:remove_const,:Make)
     end
 
-    it 'correctly casts non-Yes/No booleans' do
+    it 'correctly catch variants of Yes/No booleans' do
       Redcap::Model.define("Make").class_eval do
         def identifier(record_name, identifier_fields: nil)
           record_name
@@ -281,6 +281,7 @@ describe Redcap::Loader do
             { record: "Jatsun", "value": "Yes" },
             { "record": "ToyoT", "value": "No" },
             { "record": "Caudillac", "value": "True" },
+            { "record": "Hunda", "value": "False" },
           ]
         ).to_json
       )
@@ -302,6 +303,7 @@ describe Redcap::Loader do
       expect(records[:make]["Jatsun"][:available_in_black]).to eq(true)
       expect(records[:make]["ToyoT"][:available_in_black]).to eq(false)
       expect(records[:make]["Caudillac"][:available_in_black]).to eq(true)
+      expect(records[:make]["Hunda"][:available_in_black]).to eq(false)
 
       Kernel.send(:remove_const,:Make)
     end
