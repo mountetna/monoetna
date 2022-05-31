@@ -280,7 +280,7 @@ describe Redcap::Loader do
           [
             { record: "Jatsun", "value": "Yes" },
             { "record": "ToyoT", "value": "No" },
-            { "record": "Caudillac", "value": "Of course" },
+            { "record": "Caudillac", "value": "True" },
           ]
         ).to_json
       )
