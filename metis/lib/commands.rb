@@ -111,9 +111,13 @@ class Metis
     usage "Checksum files."
 
     def execute
-      needs_hash = Metis::DataBlock.where(md5_hash: Metis::DataBlock::TEMP_MATCH, removed: false).order(:updated_at).all[0..10]
-      puts "Found #{needs_hash.count} data blocks to be checksummed."
-      needs_hash.each(&:compute_hash!)
+      while true
+        needs_hash = Metis::DataBlock.where(md5_hash: Metis::DataBlock::TEMP_MATCH, removed: false).order(:updated_at).all[0..10]
+        count = needs_hash.count
+        puts "Found #{count} data blocks to be checksummed."
+        needs_hash.each(&:compute_hash!)
+        break if count == 0
+      end
     end
 
     def setup(config)
