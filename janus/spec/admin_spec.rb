@@ -330,6 +330,45 @@ describe AdminController do
       expect(perm2).not_to be_privileged
     end
 
+    it 'allows an admin to upgrade from guest role' do
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
+
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+      perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
+      perm2 = create(:permission, project: door, user: user2, role: 'guest')
+
+      expect(perm2.role).to eq('guest')
+      auth_header(:janus)
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', role: 'viewer')
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location']).to eq('/door')
+
+      perm2.refresh
+      expect(perm2.role).to eq('viewer')
+    end
+
+    it 'allows an admin to remove guest role' do
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
+
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+      perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
+      perm2 = create(:permission, project: door, user: user2, role: 'guest')
+
+      expect(user2.permissions.length).to eq(1)
+
+      auth_header(:janus)
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', role: 'disabled')
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location']).to eq('/door')
+
+      user2.refresh
+      expect(user2.permissions.length).to eq(0)
+    end
+
     it 'forbids a non-admin from updating roles' do
       user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
       user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
@@ -478,6 +517,26 @@ describe AdminController do
 
       expect(user2.name).to eq('Portunus')
       expect(user2.email).to eq('portunus@two-faces.org')
+    end
+
+    it 'allows an admin to add a guest' do
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
+
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+      perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
+      
+      expect(user2.permissions.length).to eq(0)
+
+      auth_header(:janus)
+      json_post('/api/admin/door/add_user', email: 'portunus@two-faces.org', name: 'Portunus', role: 'guest')
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location']).to eq('/door')
+
+      user2.refresh
+      expect(user2.permissions.length).to eq(1)
+      expect(user2.permissions.first.role).to eq('guest')
     end
 
     it 'strips leading and trailing whitespace from an e-mail' do
