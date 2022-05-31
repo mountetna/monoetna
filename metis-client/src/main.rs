@@ -1,5 +1,8 @@
-mod etna_auth;
-mod etna_client;
+mod janus;
+mod etna;
+mod metis;
+mod pull;
+mod worker;
 
 use std::fmt::Display;
 use std::fs;
@@ -36,10 +39,10 @@ struct Push {
     #[clap(long)]
     remote_path: Option<String>,
     #[clap(long, parse(from_os_str))]
-    rsa_file: Option<Vec<PathBuf>>,
+    rsa_file: Option<PathBuf>,
 
     #[clap(long, parse(from_os_str))]
-    path: Option<Vec<PathBuf>>,
+    path: Option<PathBuf>,
 }
 
 #[derive(Debug, Args)]
@@ -51,10 +54,10 @@ struct Pull {
     #[clap(long)]
     remote_path: Option<String>,
     #[clap(long, parse(from_os_str))]
-    rsa_file: Option<Vec<PathBuf>>,
+    rsa_file: Option<PathBuf>,
 
     #[clap(required = true, parse(from_os_str))]
-    path: Vec<PathBuf>,
+    path: PathBuf,
 }
 
 fn default_key_path() -> Option<PathBuf> {
@@ -65,7 +68,7 @@ fn default_key_path() -> Option<PathBuf> {
     None
 }
 
-fn try_rsa_pem(file_override: &Option<Vec<PathBuf>>) -> anyhow::Result<Option<String>> {
+fn try_rsa_pem(file_override: &Option<PathBuf>) -> anyhow::Result<Option<String>> {
     if let Some(file_override) = file_override {
         return Ok(Some(fs::read_to_string(file_override)?));
     }

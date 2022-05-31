@@ -788,6 +788,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "base64",
+ "bytes",
  "clap",
  "directories",
  "jwt-simple",
