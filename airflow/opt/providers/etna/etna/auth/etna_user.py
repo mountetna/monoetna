@@ -87,7 +87,7 @@ class EtnaUser:
 
     def can_view(self, project_name) -> bool:
         return self.is_superviewer or self.has_any_role(
-            project_name, "admin", "editor", "viewer"
+            project_name, "admin", "editor", "viewer", "guest"
         )
 
     def is_admin(self, project_name) -> bool:
