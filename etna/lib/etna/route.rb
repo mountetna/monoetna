@@ -124,6 +124,8 @@ module Etna
       update_params(request)
 
       unless authorized?(request)
+        return cc_redirect(request) if cc_required?(request)
+
         return [ 403, { 'Content-Type' => 'application/json' }, [ { error: 'You are forbidden from performing this action.' }.to_json ] ]
       end
 
@@ -160,20 +162,21 @@ module Etna
       @auth && @auth[:user] && @auth[:user][constraint]
     end
 
-    def update_params(request)
-      match = route_regexp.match(request.path)
-      request.env['rack.request.params'].update(
-        Hash[
-          match.names.map(&:to_sym).zip(
-            match.captures.map do |capture|
-              URI.decode(capture)
-            end
-          )
-        ]
-      )
-    end
-
     private
+
+    # If the application asks for a code of conduct redirect
+    def cc_redirect(request, msg = 'You are unauthorized')
+      return [ 401, { 'Content-Type' => 'text/html' }, [msg] ] unless application.config(:auth_redirect)
+
+      # Must have params at this point, post-call to cc_required?
+      params = request.env['rack.request.params']
+
+      uri = URI(
+        application.config(:auth_redirect).chomp('/') + "/#{params[:project_name]}/cc"
+      )
+      uri.query = URI.encode_www_form(refer: request.url)
+      return [ 302, { 'Location' => uri.to_s }, [] ]
+    end
 
     def application
       @application ||= Etna::Application.instance
@@ -204,6 +207,58 @@ module Etna
       end
     end
 
+    def projects(token)
+      return [] unless has_janus_config?
+
+      janus_client(token).get_projects.projects
+    rescue
+      # If encounter any issue with Janus, we'll return no projects
+      []
+    end
+
+    def resource_projects(token)
+      projects(token).select do |project|
+        !!project.resource
+      end
+    end
+
+    def community_projects(token)
+      resource_projects(token).select do |project|
+        !!project.requires_agreement
+      end
+    end
+
+    def janus_client(token)
+      Etna::Clients::Janus.new(
+        token: token,
+        host: application.config(:janus)[:host]
+      )
+    end
+
+    def has_janus_config?
+      application.config(:janus) && application.config(:janus)[:host]
+    end
+
+    def cc_required?(request)
+      user = request.env['etna.user']
+
+      return false unless user
+
+      params = request.env['rack.request.params']
+
+      return false unless params[:project_name]
+
+      # Only unagreed if the user does not currently have permissions
+      #   for the project
+      return false if user.permissions.any? do |perm|
+        perm.project_name == params[:project_name]
+      end
+
+      raise Etna::Auth::UnagreedCodeOfConductError if !community_projects(user.token).select do |project|
+        project.project_name == params[:project_name]
+      end.first.nil?
+    end
+
     def hmac_authorized?(request)
       # either there is no hmac requirement, or we have a valid hmac
       !@auth[:hmac] || request.env['etna.hmac']&.valid?
@@ -218,6 +273,19 @@ module Etna
 
       # unnamed route
       return nil
+    end
+
+    def update_params(request)
+      match = route_regexp.match(request.path)
+      request.env['rack.request.params'].update(
+        Hash[
+          match.names.map(&:to_sym).zip(
+            match.captures.map do |capture|
+              URI.decode(capture)
+            end
+          )
+        ]
+      )
     end
 
     def separator_free_match
