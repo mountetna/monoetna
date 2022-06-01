@@ -60,6 +60,11 @@ describe Etna::User do
         name: 'Deino Phorcides',
         perm: 'v:labors'
       )
+      @guest = Etna::User.new(
+        email: 'simon@earth.org',
+        name: 'Simon the Greek',
+        perm: 'g:labors'
+      )
     end
 
     it 'checks if the user can edit a project' do
@@ -69,6 +74,7 @@ describe Etna::User do
       expect(@admin.can_edit?(:labors)).to be_truthy
       expect(@editor.can_edit?(:labors)).to be_truthy
       expect(@viewer.can_edit?(:labors)).to be_falsy
+      expect(@guest.can_edit?(:labors)).to be_falsy
     end
     it 'checks if the user can view a project' do
       expect(@superuser.can_view?(:labors)).to be_truthy
@@ -77,6 +83,7 @@ describe Etna::User do
       expect(@admin.can_view?(:labors)).to be_truthy
       expect(@editor.can_view?(:labors)).to be_truthy
       expect(@viewer.can_view?(:labors)).to be_truthy
+      expect(@guest.can_view?(:labors)).to be_truthy
     end
     it 'checks if the user is an admin on the project' do
       expect(@superuser.is_admin?(:labors)).to be_truthy
@@ -85,6 +92,7 @@ describe Etna::User do
       expect(@admin.is_admin?(:labors)).to be_truthy
       expect(@editor.is_admin?(:labors)).to be_falsy
       expect(@viewer.is_admin?(:labors)).to be_falsy
+      expect(@guest.is_admin?(:labors)).to be_falsy
     end
     it 'checks if the user can see restricted data' do
       expect(@superuser.can_see_restricted?(:labors)).to be_falsy
@@ -93,6 +101,7 @@ describe Etna::User do
       expect(@admin.can_see_restricted?(:labors)).to be_truthy
       expect(@editor.can_see_restricted?(:labors)).to be_truthy
       expect(@viewer.can_see_restricted?(:labors)).to be_falsy
+      expect(@guest.can_see_restricted?(:labors)).to be_falsy
     end
     it 'gives a list of user projects' do
       expect(@superuser.projects).to eq(['administration'])
@@ -101,6 +110,7 @@ describe Etna::User do
       expect(@admin.projects).to eq(['labors'])
       expect(@editor.projects).to eq(['labors'])
       expect(@viewer.projects).to eq(['labors'])
+      expect(@guest.projects).to eq(['labors'])
     end
     it 'gives a list of user permissions' do
       expect(@superuser.permissions).to eq( 'administration' => { role: :admin, restricted: false } )
@@ -109,6 +119,7 @@ describe Etna::User do
       expect(@admin.permissions).to eq( 'labors' => { role: :admin, restricted: true } )
       expect(@editor.permissions).to eq( 'labors' => { role: :editor, restricted: true } )
       expect(@viewer.permissions).to eq( 'labors' => { role: :viewer, restricted: false } )
+      expect(@guest.permissions).to eq( 'labors' => { role: :guest, restricted: false } )
     end
   end
 

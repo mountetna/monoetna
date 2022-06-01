@@ -160,6 +160,19 @@ module Etna
       @auth && @auth[:user] && @auth[:user][constraint]
     end
 
+    def update_params(request)
+      match = route_regexp.match(request.path)
+      request.env['rack.request.params'].update(
+        Hash[
+          match.names.map(&:to_sym).zip(
+            match.captures.map do |capture|
+              URI.decode(capture)
+            end
+          )
+        ]
+      )
+    end
+
     private
 
     def application
@@ -205,19 +218,6 @@ module Etna
 
       # unnamed route
       return nil
-    end
-
-    def update_params(request)
-      match = route_regexp.match(request.path)
-      request.env['rack.request.params'].update(
-        Hash[
-          match.names.map(&:to_sym).zip(
-            match.captures.map do |capture|
-              URI.decode(capture)
-            end
-          )
-        ]
-      )
     end
 
     def separator_free_match
