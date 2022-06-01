@@ -22,7 +22,7 @@ use jwt_simple::prelude::RS256PublicKey;
 use lazy_static::lazy_static;
 use rsa::pkcs1::FromRsaPrivateKey;
 use task_local_extensions::Extensions;
-use crate::etna::{EtnaEndpoint, EtnaServices, EtnaTransaction};
+use crate::etna::{base_etna_client_builder, EtnaClient, EtnaEndpoint, EtnaServices, EtnaTransaction};
 
 lazy_static! {
     static ref janus_public_key: &'static str = "-----BEGIN PUBLIC KEY-----
@@ -46,9 +46,8 @@ struct GetNonce {}
 
 #[async_trait]
 impl EtnaTransaction<String> for GetNonce {
-    async fn run(&self, services: &EtnaServices) -> anyhow::Result<String> {
-        let client = services.client()?;
-        let response = client.get(services.janus.format_url("/api/tokens/nonce")).send().await?.error_for_status()?;
+    async fn run(&self, client: &EtnaClient, ext: &mut Extensions, services: &EtnaServices) -> anyhow::Result<String> {
+        let response = client.get(services.janus.format_url("/api/tokens/nonce")).send_with_extensions(ext).await?.error_for_status()?;
         Ok(response.text().await?)
     }
 }
@@ -72,10 +71,9 @@ impl Default for GenerateTaskToken {
 
 #[async_trait]
 impl EtnaTransaction<String> for GenerateTaskToken {
-    async fn run(&self, services: &EtnaServices) -> anyhow::Result<String> {
-        let client = services.client()?;
+    async fn run(&self, client: &EtnaClient, ext: &mut Extensions, services: &EtnaServices) -> anyhow::Result<String> {
         let response = client.post(services.janus.format_url("/api/tokens/generate"))
-            .json(&self).send().await?.error_for_status()?;
+            .json(&self).send_with_extensions(ext).await?.error_for_status()?;
 
         Ok(response.text().await?)
     }
@@ -124,7 +122,7 @@ fn parse_token<T: RSAPublicKeyLike>(token: &str, public_key: &T) -> anyhow::Resu
     public_key.verify_token::<Claims>(token, None)
 }
 
-#[derive(Default)]
+#[derive(Default,Clone)]
 pub struct AuthConfig {
     email: String,
     private_key: String
@@ -132,7 +130,8 @@ pub struct AuthConfig {
 
 impl AuthConfig {
     async fn rotate_token(&self, services: &EtnaServices, project_name: &str) -> anyhow::Result<String> {
-        let nonce = GetNonce::default().run(services).await?;
+        let client = base_etna_client_builder(HeaderMap::new())?.build();
+        let nonce = GetNonce::default().run(&client, &mut Extensions::new(), services).await?;
         let signed_auth = sign_nonce(&nonce, &self.private_key, &self.email)?;
 
         let task = GenerateTaskToken {
@@ -140,31 +139,35 @@ impl AuthConfig {
             ..GenerateTaskToken::default()
         };
 
-        task.run(&services.with_headers(Arc::new(signed_auth))).await
+        let client = base_etna_client_builder(signed_auth)?.build();
+        Ok(task.run(&client, &mut Extensions::new(), services).await?)
     }
 }
 
-pub struct EtnaAuthManager {
+pub struct EtnaAuthState {
+    token: String,
+}
+
+#[derive(Clone)]
+pub struct EtnaAuthContext {
     project_name: String,
     services: EtnaServices,
-    cur_token: Option<String>,
     janus_pub_key_override: Option<String>,
     auth_config: AuthConfig,
 }
 
-impl EtnaAuthManager {
-    fn new(
+impl EtnaAuthContext {
+    pub fn new(
         project_name: String,
         services: EtnaServices,
         auth_config: AuthConfig,
         janus_pub_key_override: Option<String>,
     ) -> Self {
-        EtnaAuthManager {
+        EtnaAuthContext {
             project_name,
             services,
             janus_pub_key_override,
             auth_config,
-            cur_token: None
         }
     }
 
@@ -176,20 +179,25 @@ impl EtnaAuthManager {
                 .unwrap_or(true)
         })
     }
+}
 
-    async fn run<T>(&mut self, transaction: &dyn EtnaTransaction<T>) -> anyhow::Result<T> {
-        if let Some(cur_token) = &self.cur_token {
-            if self.token_needs_rotation(cur_token)? {
-                self.cur_token = None
+#[async_trait]
+impl Middleware for EtnaAuthContext {
+    async fn handle(&self, mut req: Request, extensions: &mut Extensions, next: Next<'_>) -> reqwest_middleware::Result<Response> {
+        if let Some(auth_state) = extensions.get::<EtnaAuthState>() {
+            if !self.token_needs_rotation(&auth_state.token)? {
+                req.headers_mut().extend(auth_headers("Etna", &auth_state.token)?);
+                return next.run(req, extensions).await;
             }
         }
 
-        if self.cur_token.is_none() {
-            let token = self.auth_config.rotate_token(&self.services, &self.project_name).await?;
-            self.services = self.services.with_headers(Arc::new(auth_headers("Etna", &token)?));
-            self.cur_token = Some(token);
-        };
+        let token = self.auth_config.rotate_token(
+            &self.services,
+            &self.project_name,
+        ).await.map_err(|err| reqwest_middleware::Error::Middleware(err))?;
 
-        transaction.run(&self.services).await
+        req.headers_mut().extend(auth_headers("Etna", &token)?);
+        extensions.insert(EtnaAuthState { token });
+        next.run(req, extensions).await
     }
 }
