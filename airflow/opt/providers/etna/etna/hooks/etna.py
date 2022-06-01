@@ -893,7 +893,7 @@ class Upload:
                 raise ValueError("Unexpected EOF while reading source stream.")
 
         if next_right == self.read_position:
-            return self.last_bytes
+            return self.last_bytes or b""
 
         if next_left != self.read_position:
             if self.file.seekable():

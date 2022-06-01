@@ -28,6 +28,9 @@ const useStyles = makeStyles((theme) => ({
   },
   table: {
     minWidth: 650
+  },
+  table_container: {
+    height: 'calc(100vh - 61px - 80px)'
   }
 }));
 
@@ -126,8 +129,8 @@ const UserTable = () => {
         </Grid>
       </Grid>
       <Grid item xs={12}>
-        <TableContainer component={Paper}>
-          <Table className={classes.table} aria-label='user flags'>
+        <TableContainer className={classes.table_container} component={Paper}>
+          <Table stickyHeader className={classes.table} aria-label='user flags'>
             <TableHead>
               <TableRow>
                 <TableCell padding='checkbox'>
