@@ -115,4 +115,27 @@ class User < Sequel::Model
         permission.project&.project_name == project
     end
   end
+  
+  def fix_guest_permissions!
+    # Get all coc agreements for user
+    # For each project
+    # Pick most recent
+    # if agreed, ensure have a permission, add guest if not
+    # if not agreed, remove permission if role==guest
+    CcAgreement.where(user_email: email).all.group_by(&:project_name).each do |project_name, cc_agreements|
+      most_recent = cc_agreements.sort_by(&:updated_at).last
+      project = Project[project_name: project_name]
+      next unless project
+      perm = Permission.where(user: self, project: project).first
+      if most_recent.agreed
+        if !perm
+          Permission.create(project: project, user: self, role: 'guest')
+        end
+      else
+        if perm && perm.role == 'guest'
+          perm.delete
+        end
+      end
+    end
+  end
 end
