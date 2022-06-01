@@ -61,6 +61,31 @@ describe FolderController do
       )
     end
 
+    it 'should return a list of files and folders for the current folder as guest' do
+      # our files
+      token_header(:guest)
+      get('/athena/list/files/')
+      require 'pry'
+      binding.pry
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:files].first).to include(
+        file_name: 'wisdom.txt',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        bucket_name: 'files',
+        size: 66,
+        file_hash: Digest::MD5.hexdigest(WISDOM),
+        download_url: a_string_matching(%r{http.*athena/download})
+      )
+      expect(json_body[:folders].first).to include(
+        folder_name: 'blueprints',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        bucket_name: 'files'
+      )
+    end
+
     it 'should return a list of files and folders using a folder_id' do
       # our files
       token_header(:editor)
