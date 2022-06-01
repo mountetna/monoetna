@@ -37,6 +37,11 @@ describe Metis::Bucket do
     token_header(:viewer)
     get('/athena/list/my_bucket/')
     expect(last_response.status).to eq(403)
+
+    # the guest is forbidden
+    token_header(:guest)
+    get('/athena/list/my_bucket/')
+    expect(last_response.status).to eq(403)
   end
 
   it 'forbids users from accessing buckets by email id' do
@@ -56,6 +61,11 @@ describe Metis::Bucket do
     token_header(:viewer)
     get('/athena/list/my_bucket/')
     expect(last_response.status).to eq(200)
+
+    # the guest Sinon is not allowed
+    token_header(:guest)
+    get('/athena/list/my_bucket/')
+    expect(last_response.status).to eq(403)
   end
 end
 
