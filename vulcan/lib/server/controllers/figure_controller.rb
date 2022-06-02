@@ -74,6 +74,8 @@ class FigureController < Vulcan::Controller
     )
 
     success_json(new_figure.to_hash)
+  rescue ArgumentError => e
+    failure(422, e.message)
   end
 
   def revisions

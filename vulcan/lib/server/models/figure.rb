@@ -88,7 +88,7 @@ class Vulcan
     def self.validate(payload, user, project_name)
       project_permissions = user.permissions[project_name]
 
-      raise ArgumentError.new('Guests cannot save public figures.') if project_permissions[:role] == :guest && payload[:tags].include?('public')
+      raise ArgumentError.new('Guests cannot save public figures.') if project_permissions[:role] == :guest && payload[:tags]&.include?('public')
     end
   end
 end
