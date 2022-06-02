@@ -45,7 +45,7 @@ import {
   VulcanRevision,
   VulcanSession
 } from '../../../api_types';
-import { json_get } from 'etna-js/utils/fetch';
+import {json_get} from 'etna-js/utils/fetch';
 import useUserHooks from '../../useUserHooks';
 import Button from '@material-ui/core/Button';
 import Tag from '../../tag';
@@ -92,14 +92,14 @@ export default function SessionManager() {
     clearLocalSession
   } = useContext(VulcanContext);
   const {workflow, hasPendingEdits, complete} = useWorkflow();
-  const {canEdit} = useUserHooks();
+  const {canEdit, guest} = useUserHooks();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
   const {session, figure, committedStepPending} = state;
 
   const [tags, setTags] = useState<string[]>(figure.tags || []);
   const [openTagEditor, setOpenTagEditor] = useState(false);
-  const [openRevisions, setOpenRevisions] = useState<boolean|null>(null);
+  const [openRevisions, setOpenRevisions] = useState<boolean | null>(null);
   const [localTitle, setLocalTitle] = useState(figure.title);
 
   const invoke = useActionInvoker();
@@ -245,13 +245,16 @@ export default function SessionManager() {
     );
   };
 
-  const loadRevision = useCallback(({inputs,title,tags}:VulcanRevision) => {
-      dispatch(setSession({ ...session, inputs } as VulcanFigureSession));
+  const loadRevision = useCallback(
+    ({inputs, title, tags}: VulcanRevision) => {
+      dispatch(setSession({...session, inputs} as VulcanFigureSession));
       setLocalTitle(title);
       setTags(tags || []);
       requestPoll();
       setOpenRevisions(false);
-    }, [ figure ]);
+    },
+    [figure]
+  );
 
   const resetSession = useCallback(() => {
     const newSession = {
@@ -277,11 +280,11 @@ export default function SessionManager() {
 
   // Catch auto-pass 'Run' trigger
   useEffect(() => {
-    if (state.triggerRun.length>0) {
-      dispatch(clearRunTriggers(state.triggerRun))
+    if (state.triggerRun.length > 0) {
+      dispatch(clearRunTriggers(state.triggerRun));
       run();
     }
-  }, [state.triggerRun])
+  }, [state.triggerRun]);
 
   const inputsChanged = useMemo(() => {
     return !_.isEqual(figure.inputs, session.inputs);
@@ -389,6 +392,7 @@ export default function SessionManager() {
                 isPublic ? 'private' : 'public'
               }`}
               onClick={() => setTags(isPublic ? [] : ['public'])}
+              disabled={guest(session.project_name)}
             />
             <FlatButton
               className='header-btn edit-tags'
@@ -404,16 +408,21 @@ export default function SessionManager() {
               title='Revisions'
               onClick={() => setOpenRevisions(true)}
             />
-            { openRevisions != null && <RevisionHistory
+            {openRevisions != null && (
+              <RevisionHistory
                 open={openRevisions}
-                onClose={ () => setOpenRevisions(false) }
-                revisionDoc={ ({inputs,title,tags}:VulcanRevision) => JSON.stringify( {inputs,title,tags}, null, 2 ) }
-                update={ loadRevision }
-                getRevisions={ () => json_get(
-                  `/api/${session.project_name}/figure/${figure.figure_id}/revisions`
-                ) }
+                onClose={() => setOpenRevisions(false)}
+                revisionDoc={({inputs, title, tags}: VulcanRevision) =>
+                  JSON.stringify({inputs, title, tags}, null, 2)
+                }
+                update={loadRevision}
+                getRevisions={() =>
+                  json_get(
+                    `/api/${session.project_name}/figure/${figure.figure_id}/revisions`
+                  )
+                }
               />
-            }
+            )}
             <Dialog
               maxWidth='md'
               open={openTagEditor}
@@ -435,10 +444,10 @@ export default function SessionManager() {
                   renderInput={(params: any) => (
                     <TextField {...params} label='Tags' variant='outlined' />
                   )}
-                  renderTags={
-                    (tags, getTagProps) => tags.map(
-                      (tag, index) => <Tag {...getTagProps({ index })} label={tag} />
-                    )
+                  renderTags={(tags, getTagProps) =>
+                    tags.map((tag, index) => (
+                      <Tag {...getTagProps({index})} label={tag} />
+                    ))
                   }
                   renderOption={(option, state) => <span>{option}</span>}
                   filterOptions={(options, state) => {
