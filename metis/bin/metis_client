@@ -209,6 +209,9 @@ class Client
         if retry_codes.include?(response.code)
           logger.write("Received response with code #{response.code}, retrying")
           return retry_request(req, retries)
+        elsif response.code == '500' && response.body.start_with?("Puma caught")
+          logger.write("Received 500 Puma error #{response.body.split("\n").first}, retrying")
+          return retry_request(req, retries)
         end
 
         return response
