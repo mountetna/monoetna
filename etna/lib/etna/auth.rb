@@ -100,17 +100,7 @@ module Etna
       begin      
         permissions = permissions(payload)
 
-        user_projects = janus.projects(token)
-
-        community_project_names = janus.select_community_projects(user_projects).map do |proj|
-          proj.project_name
-        end
-        resource_projects = janus.select_resource_projects(user_projects)
-
-        # Only inject resource projects, not community projects!
-        resource_projects.reject do |project|
-          community_project_names.include?(project.project_name)
-        end.each do |resource_project|
+        janus.resource_projects(token).each do |resource_project|
           permissions.add_permission(
             Etna::Permission.new('v', resource_project.project_name)
           )
