@@ -76,104 +76,106 @@ describe User do
     expect(payload['flags']).to eq(user.flags.join(';'))
   end
 
-  it 'guest-setter adds guest permission if user has agreed to coc, not on project already' do
-    user = create(
-      :user, name: 'Portunus', email: 'portunus@two-faces.org'
-    )
-    gateway = create(
-      :project, project_name: 'gateway', project_name_full: 'Gateway',
-      resource: true, requires_agreement: true
-    )
-    cc = create(
-      :cc_agreement, user_email: 'portunus@two-faces.org', cc_text: 'blah blah blah',
-      agreed: true, project_name: 'gateway'
-    )
+  context 'guest-setter' do
+    it 'adds guest permission if user has agreed to coc, not on project already' do
+      user = create(
+        :user, name: 'Portunus', email: 'portunus@two-faces.org'
+      )
+      gateway = create(
+        :project, project_name: 'gateway', project_name_full: 'Gateway',
+        resource: true, requires_agreement: true
+      )
+      cc = create(
+        :cc_agreement, user_email: 'portunus@two-faces.org', cc_text: 'blah blah blah',
+        agreed: true, project_name: 'gateway'
+      )
 
-    user.set_guest_permissions!
-    expect(Permission.count).to eq(1)
+      user.set_guest_permissions!
+      expect(Permission.count).to eq(1)
 
-    perm = Permission.first
-    expect(perm.project_name).to eq('gateway')
-    expect(perm.user).to eq(user)
-    expect(perm.role).to eq('guest')
-  end
+      perm = Permission.first
+      expect(perm.project_name).to eq('gateway')
+      expect(perm.user).to eq(user)
+      expect(perm.role).to eq('guest')
+    end
 
-  it 'guest-setter does nothing if user has agreed to coc, but already has viewer+ permission' do
-    user = create(
-      :user, name: 'Portunus', email: 'portunus@two-faces.org'
-    )
-    gateway = create(
-      :project, project_name: 'gateway', project_name_full: 'Gateway',
-      resource: true, requires_agreement: true
-    )
-    permission = create(
-      :permission, project: gateway, user: user, role: 'viewer'
-    )
-    cc = create(
-      :cc_agreement, user_email: 'portunus@two-faces.org', cc_text: 'blah blah blah',
-      agreed: true, project_name: 'gateway'
-    )
+    it 'does nothing if user has agreed to coc, but already has viewer+ permission' do
+      user = create(
+        :user, name: 'Portunus', email: 'portunus@two-faces.org'
+      )
+      gateway = create(
+        :project, project_name: 'gateway', project_name_full: 'Gateway',
+        resource: true, requires_agreement: true
+      )
+      permission = create(
+        :permission, project: gateway, user: user, role: 'viewer'
+      )
+      cc = create(
+        :cc_agreement, user_email: 'portunus@two-faces.org', cc_text: 'blah blah blah',
+        agreed: true, project_name: 'gateway'
+      )
 
-    user.set_guest_permissions!
-    expect(Permission.count).to eq(1)
+      user.set_guest_permissions!
+      expect(Permission.count).to eq(1)
 
-    perm = Permission.first
-    expect(perm.project_name).to eq('gateway')
-    expect(perm.user).to eq(user)
-    expect(perm.role).to eq('viewer')
-  end
-  
-  it 'guest-setter does nothing if user did not agree to coc, but already has viewer+ permission' do
-    user = create(
-      :user, name: 'Portunus', email: 'portunus@two-faces.org'
-    )
-    gateway = create(
-      :project, project_name: 'gateway', project_name_full: 'Gateway',
-      resource: true, requires_agreement: true
-    )
-    permission = create(
-      :permission, project: gateway, user: user, role: 'viewer'
-    )
-    cc = create(
-      :cc_agreement, user_email: 'portunus@two-faces.org', cc_text: 'blah blah blah',
-      agreed: false, project_name: 'gateway'
-    )
-
-    user.set_guest_permissions!
-    expect(Permission.count).to eq(1)
-
-    perm = Permission.first
-    expect(perm.project_name).to eq('gateway')
-    expect(perm.user).to eq(user)
-    expect(perm.role).to eq('viewer')
-  end
-
-  it 'guest-setter removes guest permission if user has guest-level permission & most recently did not agree to coc' do
-    user = create(
-      :user, name: 'Portunus', email: 'portunus@two-faces.org'
-    )
-    gateway = create(
-      :project, project_name: 'gateway', project_name_full: 'Gateway',
-      resource: true, requires_agreement: true
-    )
-    permission = create(
-      :permission, project: gateway, user: user, role: 'guest'
-    )
+      perm = Permission.first
+      expect(perm.project_name).to eq('gateway')
+      expect(perm.user).to eq(user)
+      expect(perm.role).to eq('viewer')
+    end
     
-    now = Time.now
-    cc1 = create(
-      :cc_agreement, user_email: 'portunus@two-faces.org', cc_text: 'blah blah blah',
-      agreed: true, project_name: 'gateway',
-      created_at: now-10
-    )
-    cc2 = create(
-      :cc_agreement, user_email: 'portunus@two-faces.org', cc_text: 'blah blah blah',
-      agreed: false, project_name: 'gateway',
-      created_at: now
-    )
-    
-    user.set_guest_permissions!
-    expect(Permission.count).to eq(0)
+    it 'does nothing if user did not agree to coc, but already has viewer+ permission' do
+      user = create(
+        :user, name: 'Portunus', email: 'portunus@two-faces.org'
+      )
+      gateway = create(
+        :project, project_name: 'gateway', project_name_full: 'Gateway',
+        resource: true, requires_agreement: true
+      )
+      permission = create(
+        :permission, project: gateway, user: user, role: 'viewer'
+      )
+      cc = create(
+        :cc_agreement, user_email: 'portunus@two-faces.org', cc_text: 'blah blah blah',
+        agreed: false, project_name: 'gateway'
+      )
+
+      user.set_guest_permissions!
+      expect(Permission.count).to eq(1)
+
+      perm = Permission.first
+      expect(perm.project_name).to eq('gateway')
+      expect(perm.user).to eq(user)
+      expect(perm.role).to eq('viewer')
+    end
+
+    it 'removes guest permission if user has guest-level permission & most recently did not agree to coc' do
+      user = create(
+        :user, name: 'Portunus', email: 'portunus@two-faces.org'
+      )
+      gateway = create(
+        :project, project_name: 'gateway', project_name_full: 'Gateway',
+        resource: true, requires_agreement: true
+      )
+      permission = create(
+        :permission, project: gateway, user: user, role: 'guest'
+      )
+      
+      now = Time.now
+      cc1 = create(
+        :cc_agreement, user_email: 'portunus@two-faces.org', cc_text: 'blah blah blah',
+        agreed: true, project_name: 'gateway',
+        created_at: now-10
+      )
+      cc2 = create(
+        :cc_agreement, user_email: 'portunus@two-faces.org', cc_text: 'blah blah blah',
+        agreed: false, project_name: 'gateway',
+        created_at: now
+      )
+      
+      user.set_guest_permissions!
+      expect(Permission.count).to eq(0)
+    end
   end
 end
 
