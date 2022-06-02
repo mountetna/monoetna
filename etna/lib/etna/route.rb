@@ -172,7 +172,6 @@ module Etna
     def cc_redirect(request, msg = 'You are unauthorized')
       return [ 401, { 'Content-Type' => 'text/html' }, [msg] ] unless application.config(:auth_redirect)
 
-      # Must have params at this point, post-call to cc_required?
       params = request.env['rack.request.params']
 
       uri = URI(
