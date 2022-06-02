@@ -1,4 +1,4 @@
-import React, {useState, useContext, useCallback} from 'react';
+import React, {useState, useContext, useCallback, useMemo} from 'react';
 
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -46,6 +46,10 @@ export default function AdvancedSessionControls({
     );
   }, [session, figure, updateFigureDependencies, dispatch]);
 
+  const viewingRevision = useMemo(() => {
+    return figure.id !== session.reference_figure_id;
+  }, [figure, session]);
+
   return (
     <>
       <IconButton
@@ -62,7 +66,9 @@ export default function AdvancedSessionControls({
         anchorEl={menuAnchor}
         onClose={handleClose}
       >
-        <MenuItem onClick={updateDependencies}>Update dependencies</MenuItem>
+        <MenuItem onClick={updateDependencies} disabled={viewingRevision}>
+          Update dependencies
+        </MenuItem>
       </Menu>
     </>
   );
