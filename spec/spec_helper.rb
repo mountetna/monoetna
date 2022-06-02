@@ -395,6 +395,9 @@ AUTH_USERS = {
   },
   non_user: {
     email: 'nessus@centaurs.org', name: 'Nessus', perm: ''
+  },
+  guest: {
+    email: 'sinon@troy.org', name: 'Sinon', perm: 'g:athena'
   }
 }
 def token_header(user_type)

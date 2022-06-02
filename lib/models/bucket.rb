@@ -11,7 +11,8 @@ class Metis
       admin: 1,
       administrator: 1,
       editor: 2,
-      viewer: 3
+      viewer: 3,
+      guest: 3
     }
 
     def self.valid_bucket_name?(bucket_name)
