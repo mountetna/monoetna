@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use async_trait::async_trait;
 use crate::etna::{EtnaServices, EtnaTransaction};
 use crate::janus::EtnaAuthContext;
-use crate::metis::{AuthorizeDownload, DownloadMeta, MetisFilePath, MetisPath};
+use crate::metis::{AuthorizeDownload, DownloadMeta, FolderContents, ListFolder, MetisFilePath, MetisPath};
 use crate::pull::PlannedPullWork::DownloadFile;
 use crate::worker::{EtnaWork, EtnaWorker};
 use md5::{Md5, Digest};
@@ -57,8 +57,8 @@ async fn plan_pull(worker: &mut EtnaWorker, pull: &PullNode) -> anyhow::Result<V
                         }
                     }
 
-                    let result = hasher.finalize();
-                    let hex_result = format!("{:02x?}", result);
+                    let digest = hasher.finalize();
+                    let hex_result = format!("{:02x?}", digest);
 
                     if hex_result != remote_md5 {
                         result.push(PlannedPullWork::DownloadFile(path.clone(), pull.local_path.clone()))
@@ -67,12 +67,10 @@ async fn plan_pull(worker: &mut EtnaWorker, pull: &PullNode) -> anyhow::Result<V
             } else {
                 result.push(PlannedPullWork::DownloadFile(path.clone(), pull.local_path.clone()))
             }
-
-            let url = worker.execute::<String>(&AuthorizeDownload(path.clone())).await?;
-            // result.push(PlannedPullWork::DownloadFile())
         },
         MetisPath::FolderPath(path) => {
-            
+            let list = ListFolder(path.clone());
+            let folder_contents = worker.execute::<FolderContents>(&list).await?;
         }
     }
 

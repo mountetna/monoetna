@@ -21,11 +21,40 @@ struct Upload {
 //     }
 // }
 
-struct DownloadChunk {
+pub struct DownloadChunk {
     download_url: String,
     chunk_start: u64,
     chunk_length: u64,
     expected_md5: Option<String>,
+}
+
+#[derive(Debug,Deserialize)]
+pub struct File {
+    file_name: String,
+    file_hash: String,
+    updated_at: String,
+    file_path: Option<String>,
+    folder_id: Option<u64>,
+    project_name: String,
+    bucket_name: String,
+    download_url: Option<String>,
+}
+
+#[derive(Debug,Deserialize)]
+pub struct Folder {
+    id: u64,
+    folder_path: String,
+    project_name: String,
+    bucket_name: String,
+    folder_name: String,
+    updated_at: String,
+    folder_id: u64,
+}
+
+#[derive(Debug,Deserialize)]
+pub struct FolderContents {
+    folders: Option<Vec<Folder>>,
+    files: Option<Vec<File>>,
 }
 
 #[async_trait]
@@ -81,6 +110,7 @@ pub struct MetisFolderPath {
 }
 
 pub struct AuthorizeDownload(pub MetisFilePath);
+pub struct ListFolder(pub MetisFolderPath);
 
 #[derive(Clone,Debug)]
 pub enum PathNodeType {
@@ -92,6 +122,20 @@ pub struct DownloadMeta {
     pub download_url: String,
     pub md5: Option<String>,
     pub size: u64,
+}
+
+#[async_trait]
+impl EtnaTransaction<FolderContents> for ListFolder {
+    async fn run(&self, client: &EtnaClient, extensions: &mut Extensions, services: &EtnaServices) -> anyhow::Result<FolderContents> {
+        let req = if self.0.folder_path.is_empty() {
+            client.get(services.metis.format_url(&format!("{}/list/{}", self.0.project_name, self.0.bucket_name)))
+        } else {
+            client.get(services.metis.format_url(&format!("{}/list/{}/{}", self.0.project_name, self.0.bucket_name, self.0.folder_path)))
+        };
+
+        let response = req.send_with_extensions(extensions).await?;
+        Ok(response.json::<FolderContents>().await?)
+    }
 }
 
 #[async_trait]
