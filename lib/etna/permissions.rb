@@ -50,6 +50,10 @@ module Etna
       @permissions << permission
     end
 
+    def any?(&block)
+      @permissions.any?(&block)
+    end
+
     private
 
     def current_project_names
@@ -64,6 +68,7 @@ module Etna
       "A" => :admin,
       "E" => :editor,
       "V" => :viewer,
+      "G" => :guest
     }
 
     def initialize(role_key, project_name)

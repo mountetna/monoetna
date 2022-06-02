@@ -53,7 +53,7 @@ module Etna
     end
 
     def can_view? project
-      is_superviewer? || has_any_role?(project, :admin, :editor, :viewer)
+      is_superviewer? || has_any_role?(project, :admin, :editor, :viewer, :guest)
     end
 
     # superusers - administrators of the Administration group - cannot

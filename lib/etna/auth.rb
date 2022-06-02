@@ -18,11 +18,15 @@ module Etna
       if [ approve_noauth(request), approve_hmac(request), approve_user(request) ].all?{|approved| !approved}
         return fail_or_redirect(request)
       end
-
+  
       @app.call(request.env)
     end
 
     private
+
+    def janus
+      @janus ||= Etna::JanusUtils.new
+    end
 
     def application
       @application ||= Etna::Application.instance
@@ -77,52 +81,26 @@ module Etna
       return true if route && route.ignore_janus?
 
       # process task tokens
-      payload['task'] ? valid_task_token?(token) : true
+      payload[:task] ? janus.valid_task_token?(token) : true
     end
 
-    def resource_projects(token)
-      return [] unless has_janus_config?
-
-      janus_client(token).get_projects.projects.select do |project|
-        project.resource
-      end
-    rescue
-      # If encounter any issue with Janus, we'll return no resource projects
-      []
+    def symbolize_payload_keys(payload)
+      payload.map{|k,v| [k.to_sym, v]}.to_h
     end
 
-    def janus_client(token)
-      Etna::Clients::Janus.new(
-        token: token,
-        host: application.config(:janus)[:host]
-      )
-    end
-
-    def valid_task_token?(token)
-      return false unless has_janus_config?
-
-      response = janus_client(token).validate_task_token
-
-      return false unless response.code == '200'
-
-      return true
-    end
-
-    def has_janus_config?
-      application.config(:janus) && application.config(:janus)[:host]
+    def permissions(payload)
+      Etna::Permissions.from_encoded_permissions(payload[:perm])
     end
 
     def update_payload(payload, token, request)
       route = server.find_route(request)
 
-      payload = payload.map{|k,v| [k.to_sym, v]}.to_h
-
       return payload unless route
 
       begin      
-        permissions = Etna::Permissions.from_encoded_permissions(payload[:perm])
+        permissions = permissions(payload)
 
-        resource_projects(token).each do |resource_project|
+        janus.resource_projects(token).each do |resource_project|
           permissions.add_permission(
             Etna::Permission.new('v', resource_project.project_name)
           )
@@ -140,6 +118,8 @@ module Etna
 
       begin
         payload, header = application.sign.jwt_decode(token)
+
+        payload = symbolize_payload_keys(payload)
 
         return false unless janus_approved?(payload, token, request)
         return request.env['etna.user'] = Etna::User.new(

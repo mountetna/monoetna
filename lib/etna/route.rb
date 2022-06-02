@@ -124,6 +124,8 @@ module Etna
       update_params(request)
 
       unless authorized?(request)
+        return cc_redirect(request) if cc_available?(request)
+
         return [ 403, { 'Content-Type' => 'application/json' }, [ { error: 'You are forbidden from performing this action.' }.to_json ] ]
       end
 
@@ -162,6 +164,23 @@ module Etna
 
     private
 
+    def janus
+      @janus ||= Etna::JanusUtils.new
+    end
+
+    # If the application asks for a code of conduct redirect
+    def cc_redirect(request, msg = 'You are unauthorized')
+      return [ 401, { 'Content-Type' => 'text/html' }, [msg] ] unless application.config(:auth_redirect)
+
+      params = request.env['rack.request.params']
+
+      uri = URI(
+        application.config(:auth_redirect).chomp('/') + "/#{params[:project_name]}/cc"
+      )
+      uri.query = URI.encode_www_form(refer: request.url)
+      return [ 302, { 'Location' => uri.to_s }, [] ]
+    end
+
     def application
       @application ||= Etna::Application.instance
     end
@@ -189,6 +208,24 @@ module Etna
             user.send(constraint, params[param_name]) :
             user.send(constraint, param_name))
       end
+    end
+
+    def cc_available?(request)
+      user = request.env['etna.user']
+
+      return false unless user
+
+      params = request.env['rack.request.params']
+
+      return false unless params[:project_name]
+
+      # Only check for a CC if the user does not currently have permissions
+      #   for the project
+      return false if user.permissions.keys.include?(params[:project_name])
+
+      !janus.community_projects(user.token).select do |project|
+        project.project_name == params[:project_name]
+      end.first.nil?
     end
 
     def hmac_authorized?(request)

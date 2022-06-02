@@ -115,6 +115,87 @@ describe Etna::Auth do
       end
     end
 
+    context "community projects" do
+      authenticated_user = nil
+      before(:each) do
+        authenticated_user = nil
+        Arachne::Server.get('/:project_name', auth: { user: { can_view?: :project_name }}) {
+          authenticated_user = @user; success(@user.class)
+        }
+        Arachne::Server.get('/generic/route') { authenticated_user = @user; success(@user.class) }
+
+        @public_key = OpenSSL::PKey::RSA.new(@private_key).public_key.to_s
+
+        @app = setup_app(
+          Arachne::Server,
+          [ Etna::Auth ],
+          test: {
+            rsa_private: @private_key,
+            rsa_public: @public_key,
+            janus: { host: 'https://janus.test/' },
+            token_name: 'ARACHNE_TOKEN',
+            token_algo: 'RS256',
+            auth_redirect: 'https://janus.test'
+          }
+        )
+        clear_cookies
+
+        stub_request(:any, /janus.test/).
+          to_return(body: {
+            projects: [{
+              project_name: "test_project",
+              resource: true,
+              requires_agreement: true
+            }]
+            }.to_json
+          )
+      end
+    
+      it "redirects a user with no existing permissions for project" do
+        token = Arachne.instance.sign.jwt_token(
+          email: 'janus@two-faces.org',
+          name: 'Janus Bifrons',
+          perm: 'g:constellations',
+          exp: (Time.now + 600).to_i
+        )
+  
+        auth_header(token)
+        get('/test_project')
+        expect(last_response.status).to eq(302)
+        expect(last_response.headers['Location']).to eq(
+          "https://janus.test/test_project/cc?refer=http%3A%2F%2Fexample.org%2Ftest_project"
+        )
+      end
+  
+      it "permits user with existing guest access" do
+        token = Arachne.instance.sign.jwt_token(
+          email: 'janus@two-faces.org',
+          name: 'Janus Bifrons',
+          perm: 'a:labors;e:olympics,argo;g:test_project'
+        )
+  
+        auth_header(token)
+        get('/test_project')
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to eq('Etna::User')
+        expect(authenticated_user.token).to eq(token)
+      end
+
+      it "permits access to non-project route" do
+        token = Arachne.instance.sign.jwt_token(
+          email: 'janus@two-faces.org',
+          name: 'Janus Bifrons',
+          perm: 'a:labors;e:olympics,argo;g:test_project'
+        )
+  
+        auth_header(token)
+        get('/generic/route')
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to eq('Etna::User')
+        expect(authenticated_user.token).to eq(token)
+      end
+    end
+
     context "invalid tokens" do
       before(:each) do
         # We generate a new public key that does not match with
@@ -345,7 +426,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/secret')
           expect(last_response.status).to eq(403)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!)
+          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(2)
         end
   
         it "allows the request if user does not have permission to resource project" do
@@ -393,7 +474,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/secret')
           expect(last_response.status).to eq(403)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!)
+          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(2)
         end
   
         it "allows the request if user does not have permission to resource project" do
