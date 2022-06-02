@@ -153,10 +153,12 @@ describe "Token Generation" do
       tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
       tannel = create(:project, project_name: 'tannel', project_name_full: 'Tunnel with an a')
       mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
+      keyhole = create(:project, project_name: 'keyhole', project_name_full: 'Keyhole')
 
       perm = create(:permission, project: tunnel, user: @user, role: 'administrator', privileged: true)
       perm = create(:permission, project: tannel, user: @user, role: 'administrator', privileged: true)
       perm = create(:permission, project: mirror, user: @user, role: 'viewer')
+      perm = create(:permission, project: keyhole, user: @user, role: 'guest')
     end
 
     describe 'e2e' do
@@ -198,6 +200,30 @@ describe "Token Generation" do
 
       # there is only one project on the token, with reduced permissions
       expect(payload["perm"]).to eq('E:tannel')
+
+      expect(payload["task"]).to be_truthy
+
+      expect(Time.at(payload["exp"]) - Time.now).to be_within(1).of(Janus.instance.config(:task_token_life))
+
+      Timecop.return
+    end
+
+    it 'creates a task token for a guest' do
+      Timecop.freeze
+
+      header('Authorization', "Etna #{@user.create_token!}")
+      post('/api/tokens/generate', project_name: 'keyhole', token_type: 'task')
+
+      expect(last_response.status).to eq(200)
+
+      payload = header = nil
+
+      expect {
+        payload, header = Janus.instance.sign.jwt_decode(last_response.body)
+      }.not_to raise_error
+
+      # there is only one project on the token, with reduced permissions
+      expect(payload["perm"]).to eq('g:keyhole')
 
       expect(payload["task"]).to be_truthy
 
@@ -278,6 +304,12 @@ describe "Token Generation" do
 
     it 'validates a task token' do
       header('Authorization', "Etna #{@user.create_task_token!('tunnel')}")
+      post('/api/tokens/validate_task')
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'validates a guest task token' do
+      header('Authorization', "Etna #{@user.create_task_token!('keyhole')}")
       post('/api/tokens/validate_task')
       expect(last_response.status).to eq(200)
     end
@@ -381,6 +413,18 @@ describe "Token Building" do
     expect(last_response.status).to eq(200)
   end
 
+  it "can build a guest token" do
+    auth_header(:superuser)
+    post(
+      '/api/tokens/build',
+      email: 'janus@mount.etna',
+      perm: 'g:door',
+      exp: (Time.now.utc + 600).to_i
+    )
+
+    expect(last_response.status).to eq(200)
+  end
+
   it "won't build an invalid token" do
     auth_header(:superuser)
     post(
@@ -399,11 +443,35 @@ describe "Token Building" do
     post(
       '/api/tokens/build',
       email: 'janus@mount.etna',
-      perm: 'e:chair',
+      perm: 'e:door',
       exp: (Time.now.utc + -600).to_i
     )
 
     expect(last_response.status).to eq(422)
-    expect(json_body[:error]).to eq('Cannot make a token with invalid permissions!')
+    expect(json_body[:error]).to eq('Token is invalid!')
+  end
+
+  it "won't let viewer build a token" do
+    auth_header(:viewer)
+    post(
+      '/api/tokens/build',
+      email: 'janus@mount.etna',
+      perm: 'g:door',
+      exp: (Time.now.utc + 600).to_i
+    )
+
+    expect(last_response.status).to eq(403)
+  end
+
+  it "will let superuser build a guest token" do
+    auth_header(:superuser)
+    post(
+      '/api/tokens/build',
+      email: 'janus@mount.etna',
+      perm: 'g:door',
+      exp: (Time.now.utc + 600).to_i
+    )
+
+    expect(last_response.status).to eq(200)
   end
 end

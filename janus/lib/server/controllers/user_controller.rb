@@ -41,13 +41,15 @@ class UserController < Janus::Controller
         project_name_full: perm.project.project_name_full,
         role: perm.role,
         privileged: perm.privileged?,
-        resource: perm.project.resource
+        resource: perm.project.resource,
+        requires_agreement: perm.project.requires_agreement
       }
     end.concat(Project.where(resource: true).all.map do |proj|
       {
         project_name: proj.project_name,
         project_name_full: proj.project_name_full,
-        resource: proj.resource
+        resource: proj.resource,
+        requires_agreement: proj.requires_agreement
       }
     end).uniq do |proj|
       proj[:project_name]
