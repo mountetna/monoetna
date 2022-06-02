@@ -14,6 +14,12 @@ class Vulcan
       ).first
     end
 
+    def self.from_payload(payload, user, project_name)
+      self.validate(payload, user, project_name)
+
+      Vulcan::Figure.create(payload)
+    end
+
     def session
       @session ||= Session.from_figure(self)
     end
@@ -75,6 +81,14 @@ class Vulcan
         created_at: created_at.iso8601,
         updated_at: updated_at.iso8601,
       }
+    end
+
+    private
+
+    def self.validate(payload, user, project_name)
+      project_permissions = user.permissions[project_name]
+
+      raise ArgumentError.new('Guests cannot save public figures.') if project_permissions[:role] == :guest && payload[:tags].include?('public')
     end
   end
 end

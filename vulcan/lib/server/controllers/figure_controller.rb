@@ -25,7 +25,7 @@ class FigureController < Vulcan::Controller
 
   def create
     now = DateTime.now
-    figure = Vulcan::Figure.create(
+    figure = Vulcan::Figure.from_payload(
       {
         figure_id: Vulcan::Figure.next_id,
         author: @user.name,
@@ -33,9 +33,13 @@ class FigureController < Vulcan::Controller
         updated_at: now,
       }.update(
         @params.slice(*figure_params)
-      )
+      ),
+      @user,
+      @params[:project_name]
     )
     success_json(figure.to_hash)
+  rescue ArgumentError => e
+    failure(422, e.message)
   end
 
   def update
@@ -53,7 +57,7 @@ class FigureController < Vulcan::Controller
 
     now = DateTime.now
 
-    new_figure = Vulcan::Figure.create(
+    new_figure = Vulcan::Figure.from_payload(
       {
         figure_id: figure.figure_id,
         author: @user.name,
@@ -64,7 +68,9 @@ class FigureController < Vulcan::Controller
         figure.to_hash.slice(*figure_params)
       ).update(
         @params.slice(*figure_params)
-      )
+      ),
+      @user,
+      @params[:project_name]
     )
 
     success_json(new_figure.to_hash)
