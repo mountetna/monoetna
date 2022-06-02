@@ -240,7 +240,7 @@ const ValueRow = ({
       <TextField
         placeholder='Comma-separated list'
         fullWidth
-        value={localValue.join(', ')}
+        value={Array.isArray(localValue) ? localValue.join(', ') : localValue}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
           debouncedUpdate(e.target.value.split(/,\s*/))
         }
