@@ -45,7 +45,7 @@ class AdminController < Janus::Controller
 
     raise Etna::Forbidden, 'Cannot grant admin role!' if @params[:role] == 'administrator' && !@user.is_superuser?
 
-    raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless !@params[:role] || ['administrator', 'viewer', 'editor', 'disabled'].include?(@params[:role])
+    raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless !@params[:role] || Token::ROLE_KEYS.values.concat(['disabled']).include?(@params[:role])
 
     if @params[:role] == 'disabled'
       permission.delete
@@ -62,13 +62,16 @@ class AdminController < Janus::Controller
 
   def add_user
     require_params(:email, :name, :role)
+
+    settable_roles = ['viewer', 'editor', 'guest']
+
     @project = Project[project_name: @params[:project_name]]
 
     @email = @params[:email].downcase.strip
 
     raise Etna::Forbidden, 'Cannot set admin role!' if @params[:role] == 'administrator'
 
-    raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless ['viewer', 'editor'].include?(@params[:role])
+    raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless settable_roles.include?(@params[:role])
 
     unless @project.permissions.any? { |p| p.user.email == @email }
       user = User[email: @email]
@@ -82,7 +85,7 @@ class AdminController < Janus::Controller
       end
 
       permission = Permission.create(project: @project, user: user, role: @params[:role])
-      permission.role = @params[:role] if ['viewer', 'editor'].include?(@params[:role])
+      permission.role = @params[:role] if settable_roles.include?(@params[:role])
       permission.privileged = false
       permission.affiliation = @params[:affiliation]
       permission.save
