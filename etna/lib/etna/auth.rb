@@ -100,10 +100,12 @@ module Etna
       begin      
         permissions = permissions(payload)
 
-        community_project_names = janus.community_projects(token).map do |proj|
+        user_projects = janus.projects(token)
+
+        community_project_names = janus.select_community_projects(user_projects).map do |proj|
           proj.project_name
         end
-        resource_projects = janus.resource_projects(token)
+        resource_projects = janus.select_resource_projects(user_projects)
 
         # Only inject resource projects, not community projects!
         resource_projects.reject do |project|

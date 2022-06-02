@@ -410,7 +410,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/labors')
           expect(last_response.status).to eq(200)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(2)
+          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!)
         end
   
         it "denies the request if user does not have permission to non-resource project" do
@@ -426,7 +426,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/secret')
           expect(last_response.status).to eq(403)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(3)
+          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(2)
         end
   
         it "allows the request if user does not have permission to resource project" do
@@ -442,7 +442,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/public')
           expect(last_response.status).to eq(200)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(2)
+          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!)
         end
       end
       
@@ -459,7 +459,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/labors')
           expect(last_response.status).to eq(200)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(2)
+          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!)
         end
   
         it "denies the request if user does not have permission to non-resource project" do
@@ -474,7 +474,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/secret')
           expect(last_response.status).to eq(403)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(3)
+          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(2)
         end
   
         it "allows the request if user does not have permission to resource project" do
@@ -489,7 +489,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/public')
           expect(last_response.status).to eq(200)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(2)
+          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!)
         end
       end
     end

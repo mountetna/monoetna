@@ -13,16 +13,24 @@ module Etna
       []
     end
 
-    def resource_projects(token)
-      projects(token).select do |project|
+    def select_resource_projects(projects)
+      projects.select do |project|
         !!project.resource
       end
     end
 
-    def community_projects(token)
-      resource_projects(token).select do |project|
+    def select_community_projects(projects)
+      select_resource_projects(projects).select do |project|
         !!project.requires_agreement
       end
+    end
+
+    def resource_projects(token)
+      select_resource_projects(projects(token))
+    end
+
+    def community_projects(token)
+      select_community_projects(projects(token))
     end
 
     def janus_client(token)
