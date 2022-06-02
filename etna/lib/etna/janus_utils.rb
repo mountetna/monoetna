@@ -1,10 +1,7 @@
 # Utility class to work with Janus for authz and authn
 module Etna
   class JanusUtils
-    attr_reader :token
-
-    def initialize(token)
-      @token = token
+    def initialize
     end
 
     def projects(token)
@@ -19,6 +16,12 @@ module Etna
     def resource_projects(token)
       projects(token).select do |project|
         !!project.resource
+      end
+    end
+
+    def community_projects(token)
+      resource_projects(token).select do |project|
+        !!project.requires_agreement
       end
     end
 
@@ -37,6 +40,12 @@ module Etna
       return false unless response.code == "200"
 
       return true
+    end
+
+    private
+
+    def application
+      @application ||= Etna::Application.instance
     end
 
     def has_janus_config?

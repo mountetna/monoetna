@@ -24,6 +24,10 @@ module Etna
 
     private
 
+    def janus
+      @janus ||= Etna::JanusUtils.new
+    end
+
     def application
       @application ||= Etna::Application.instance
     end
@@ -77,43 +81,7 @@ module Etna
       return true if route && route.ignore_janus?
 
       # process task tokens
-      payload[:task] ? valid_task_token?(token) : true
-    end
-
-    def projects(token)
-      return [] unless has_janus_config?
-
-      janus_client(token).get_projects.projects
-    rescue
-      # If encounter any issue with Janus, we'll return no projects
-      []
-    end
-
-    def resource_projects(token)
-      projects(token).select do |project|
-        !!project.resource
-      end
-    end
-
-    def janus_client(token)
-      Etna::Clients::Janus.new(
-        token: token,
-        host: application.config(:janus)[:host]
-      )
-    end
-
-    def valid_task_token?(token)
-      return false unless has_janus_config?
-
-      response = janus_client(token).validate_task_token
-
-      return false unless response.code == '200'
-
-      return true
-    end
-
-    def has_janus_config?
-      application.config(:janus) && application.config(:janus)[:host]
+      payload[:task] ? janus.valid_task_token?(token) : true
     end
 
     def symbolize_payload_keys(payload)
@@ -132,7 +100,15 @@ module Etna
       begin      
         permissions = permissions(payload)
 
-        resource_projects(token).each do |resource_project|
+        community_project_names = janus.community_projects(token).map do |proj|
+          proj.project_name
+        end
+        resource_projects = janus.resource_projects(token)
+
+        # Only inject resource projects, not community projects!
+        resource_projects.reject do |project|
+          community_project_names.include?(project.project_name)
+        end.each do |resource_project|
           permissions.add_permission(
             Etna::Permission.new('v', resource_project.project_name)
           )
