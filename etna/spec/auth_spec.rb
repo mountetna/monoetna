@@ -119,7 +119,9 @@ describe Etna::Auth do
       authenticated_user = nil
       before(:each) do
         authenticated_user = nil
-        Arachne::Server.get('/:project_name') { authenticated_user = @user; success(@user.class) }
+        Arachne::Server.get('/:project_name', auth: { user: { can_view?: :project_name }}) {
+          authenticated_user = @user; success(@user.class)
+        }
         Arachne::Server.get('/generic/route') { authenticated_user = @user; success(@user.class) }
 
         @public_key = OpenSSL::PKey::RSA.new(@private_key).public_key.to_s
@@ -149,7 +151,7 @@ describe Etna::Auth do
           )
       end
     
-      it "redirects a user with no existing permissions" do
+      it "redirects a user with no existing permissions for project" do
         token = Arachne.instance.sign.jwt_token(
           email: 'janus@two-faces.org',
           name: 'Janus Bifrons',
@@ -440,7 +442,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/public')
           expect(last_response.status).to eq(200)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(2)
+          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!)
         end
       end
       
@@ -487,7 +489,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/public')
           expect(last_response.status).to eq(200)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(2)
+          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!)
         end
       end
     end
