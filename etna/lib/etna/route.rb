@@ -220,7 +220,7 @@ module Etna
 
       return false unless params[:project_name]
 
-      # Only unagreed if the user does not currently have permissions
+      # Only check for a CC if the user does not currently have permissions
       #   for the project
       return false if user.permissions.keys.include?(params[:project_name])
 
