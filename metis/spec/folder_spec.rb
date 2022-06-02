@@ -455,7 +455,7 @@ describe FolderController do
     end
 
     it 'refuses to remove a folder without permissions' do
-      [:viewer, :guest].each do |role|
+      below_editor_roles.each do |role|
         token_header(role)
         remove_folder('blueprints')
 
@@ -568,7 +568,7 @@ describe FolderController do
     end
 
     it 'refuses to protect a folder without permissions' do
-      [:editor, :viewer, :guest].each do |role|
+      below_admin_roles.each do |role|
         token_header(role)
         protect_folder('blueprints')
 
@@ -627,7 +627,7 @@ describe FolderController do
     end
 
     it 'refuses to unprotect a folder without permissions' do
-      [:editor, :viewer, :guest].each do |role|
+      below_admin_roles.each do |role|
         token_header(role)
         unprotect_folder('blueprints')
 
@@ -701,7 +701,7 @@ describe FolderController do
     end
 
     it 'refuses to rename a folder without permissions' do
-      [:viewer, :guest].each do |role|
+      below_editor_roles.each do |role|
         token_header(role)
         rename_folder('blueprints', 'blue-prints')
 

@@ -192,7 +192,7 @@ describe UploadController do
       expect(Metis::Upload.count).to eq(0)
     end
 
-    it 'does not authorize viewers' do
+    it 'does not authorize viewers or guests' do
       params = {
         file_path: 'wisdom.txt',
         project_name: 'athena',
@@ -200,30 +200,15 @@ describe UploadController do
       }
 
       # we use our token to authorize an upload
-      token_header(:viewer)
-      json_post('/authorize/upload', params)
+      below_editor_roles.each do |role|
+        token_header(role)
+        json_post('/authorize/upload', params)
 
-      # we expect to be forbidden from uploading
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('You are forbidden from performing this action.')
-      expect(Metis::Upload.count).to eq(0)
-    end
-
-    it 'does not authorize guests' do
-      params = {
-        file_path: 'wisdom.txt',
-        project_name: 'athena',
-        bucket_name: 'files'
-      }
-
-      # we use our token to authorize an upload
-      token_header(:guest)
-      json_post('/authorize/upload', params)
-
-      # we expect to be forbidden from uploading
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('You are forbidden from performing this action.')
-      expect(Metis::Upload.count).to eq(0)
+        # we expect to be forbidden from uploading
+        expect(last_response.status).to eq(403)
+        expect(json_body[:error]).to eq('You are forbidden from performing this action.')
+        expect(Metis::Upload.count).to eq(0)
+      end
     end
   end
 
