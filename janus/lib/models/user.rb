@@ -119,7 +119,7 @@ class User < Sequel::Model
   def set_guest_permissions!
     # Per project, if agreed, add guest access when no access already; remove guest access if !agreed
     CcAgreement.where(user_email: email).all.group_by(&:project_name).each do |project_name, cc_agreements|
-      most_recent = cc_agreements.sort_by(&:updated_at).last
+      most_recent = cc_agreements.sort_by(&:created_at).last
       project = Project[project_name: project_name]
       next unless project
       perm = Permission.where(user: self, project: project).first
