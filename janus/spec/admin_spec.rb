@@ -846,15 +846,21 @@ describe AdminController do
       expect(last_response.status).to eq(200)
       expect(CcAgreement.count).to eq(1)
 
-      json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: true)
+      sleep(1)
 
+      json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: true)
+      
       expect(last_response.status).to eq(200)
       expect(CcAgreement.count).to eq(2)
 
+      sleep(1)
+      
       json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
 
       expect(last_response.status).to eq(200)
       expect(CcAgreement.count).to eq(3)
+
+      expect(CcAgreement.first.created_at).not_to eq(CcAgreement.last.created_at)
     end
 
     it 'allows non-authorized users to set for a given project' do
