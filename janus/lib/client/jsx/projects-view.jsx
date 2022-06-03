@@ -28,6 +28,8 @@ import Paper from '@material-ui/core/Paper';
 import Checkbox from '@material-ui/core/Checkbox';
 
 import SaveCancel from './save-cancel';
+import { projectTypeFor } from './utils/project';
+
 
 const Project = ({project}) => {
   const [changed, setChanged] = useState(false);
@@ -43,21 +45,6 @@ const Project = ({project}) => {
     setChanged(false);
   }, [project.resource]);
 
-  const handleOnSave = useCallback(() => {
-    updateProject(project.project_name, {
-      resource: isResource
-    }).then(() => {
-      let updatedProjects = projects.map((p) => {
-        if (p.project_name === project.project_name) {
-          return {...p, resource: isResource};
-        } else {
-          return {...p};
-        }
-      });
-      setProjects(updatedProjects);
-      setChanged(false);
-    });
-  }, [isResource, project.project_name]);
 
   return (
     <TableRow key={project.project_name}>
@@ -65,20 +52,8 @@ const Project = ({project}) => {
         <a href={`/${project.project_name}`}>{project.project_name}</a>
       </TableCell>
       <TableCell>{project.project_name_full}</TableCell>
-      <TableCell padding='checkbox' width='200'>
-        <Checkbox
-          checked={isResource}
-          onChange={(e) => {
-            setIsResource(e.target.checked);
-            setChanged(true);
-          }}
-          inputProps={{'aria-label': 'resource project'}}
-        />
-      </TableCell>
       <TableCell>
-        {changed ? (
-          <SaveCancel onSave={handleOnSave} onCancel={handleOnCancel} />
-        ) : null}
+        { projectTypeFor(project) }
       </TableCell>
     </TableRow>
   );
@@ -102,16 +77,13 @@ const Projects = ({projects}) => {
           <TableRow>
             <TableCell>Project Name</TableCell>
             <TableCell>Title</TableCell>
-            <TableCell width='200'>Resource Project</TableCell>
-            <TableCell width='80'></TableCell>
+            <TableCell>Type</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {Array(100).fill(projects
-            .sort((p1, p2) =>
+          {projects.sort((p1, p2) =>
               p1.project_name_full.localeCompare(p2.project_name_full)
-            )).flat()
-            .map((project) => (
+            ).map((project) => (
               <Project project={project} />
             ))}
         </TableBody>
