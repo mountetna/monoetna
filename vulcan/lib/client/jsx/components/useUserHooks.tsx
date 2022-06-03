@@ -9,7 +9,6 @@ import {isGuest} from 'etna-js/utils/janus';
 export default function useUserHooks() {
   const user = useReduxState((state: any) => selectUser(state));
 
-  console.log('user');
   const canEdit = useCallback(
     (figureSession: VulcanFigureSession | VulcanFigure) =>
       user.name === figureSession.author,

@@ -162,7 +162,6 @@ const ModeBar = ({mode, workflow, session}) => (
 const VulcanNav = ({mode, user}) => {
   let {state} = useContext(VulcanContext);
   let {workflow, session} = state;
-  console.log('user', user)
 
   return (
     <Nav user={user} logo={Logo} app='vulcan'>

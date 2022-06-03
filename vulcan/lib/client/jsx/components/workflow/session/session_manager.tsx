@@ -116,18 +116,18 @@ export default function SessionManager() {
   }, [requestPoll, dispatch, showErrors]);
   const stop = useCallback(() => cancelPolling(), [cancelPolling]);
 
-  const cancelSaving = () => {
+  const cancelSaving = useCallback(() => {
     setSaving(false);
-  };
+  }, []);
 
   const handleSaveOrCreate = useCallback(
-    (figure: VulcanFigure) => {
+    (figure: VulcanFigure, newTags: string[], newTitle: string | undefined) => {
       let params = {
         ...figure,
         workflow_name: name,
         inputs: {...session.inputs},
-        title: localTitle,
-        tags: [...tags]
+        title: newTitle,
+        tags: [...newTags]
       };
 
       if (!params.title) {
@@ -171,16 +171,14 @@ export default function SessionManager() {
     },
     [
       name,
-      localTitle,
       session,
-      tags,
       cancelSaving,
       showErrors,
       updateFigure,
       invoke,
       dispatch,
       clearLocalSession,
-      pushLocation
+      createFigure
     ]
   );
 
@@ -191,8 +189,8 @@ export default function SessionManager() {
       }
     }
 
-    handleSaveOrCreate(figure);
-  }, [hasPendingEdits, handleSaveOrCreate, figure]);
+    handleSaveOrCreate(figure, tags, localTitle);
+  }, [hasPendingEdits, handleSaveOrCreate, figure, tags, localTitle]);
 
   const copyFigure = useCallback(() => {
     let clone = {
@@ -201,8 +199,8 @@ export default function SessionManager() {
 
     delete clone.figure_id;
 
-    handleSaveOrCreate(clone);
-  }, [figure, handleSaveOrCreate]);
+    handleSaveOrCreate(clone, [], `${localTitle} - copy`);
+  }, [figure, handleSaveOrCreate, localTitle]);
 
   const saveSessionToBlob = useCallback(() => {
     if (hasPendingEdits) {
@@ -253,7 +251,7 @@ export default function SessionManager() {
       requestPoll();
       setOpenRevisions(false);
     },
-    [figure]
+    [dispatch, requestPoll, session]
   );
 
   const resetSession = useCallback(() => {
@@ -284,7 +282,7 @@ export default function SessionManager() {
       dispatch(clearRunTriggers(state.triggerRun));
       run();
     }
-  }, [state.triggerRun]);
+  }, [state.triggerRun, dispatch, run]);
 
   const inputsChanged = useMemo(() => {
     return !_.isEqual(figure.inputs, session.inputs);
@@ -304,7 +302,10 @@ export default function SessionManager() {
     );
   }, [running, saving, inputsChanged, titleChanged, tagsChanged]);
 
-  const editor = useMemo(() => canEdit(figure) || !figure.figure_id, [figure]);
+  const editor = useMemo(() => canEdit(figure) || !figure.figure_id, [
+    figure,
+    canEdit
+  ]);
 
   const isPublic = useMemo(() => (tags || []).includes('public'), [tags]);
 
@@ -471,7 +472,6 @@ export default function SessionManager() {
             label='Copy'
             title='Copy current workflow parameters to new figure'
             onClick={copyFigure}
-            disabled={!canSave}
           />
         )}
       </div>
