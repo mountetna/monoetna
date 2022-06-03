@@ -84,7 +84,7 @@ const Projects = ({projects}) => {
           {projects.sort((p1, p2) =>
               p1.project_name_full.localeCompare(p2.project_name_full)
             ).map((project) => (
-              <Project project={project} />
+              <Project key={project.project_name} project={project} />
             ))}
         </TableBody>
       </Table>
