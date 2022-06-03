@@ -188,6 +188,9 @@ FactoryBot.define do
   factory :project do
     to_create(&:save)
   end
+  factory :cc_agreement do
+    to_create(&:save)
+  end
 end
 
 
