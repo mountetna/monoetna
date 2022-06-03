@@ -39,28 +39,30 @@ describe FolderController do
 
     it 'should return a list of files and folders for the current folder' do
       # our files
-      token_header(:editor)
-      get('/athena/list/files/')
-
-      expect(last_response.status).to eq(200)
-
-      expect(json_body[:files].first).to include(
-        file_name: 'wisdom.txt',
-        author: 'metis|Metis',
-        project_name: 'athena',
-        bucket_name: 'files',
-        size: 66,
-        file_hash: Digest::MD5.hexdigest(WISDOM),
-        download_url: a_string_matching(%r{http.*athena/download})
-      )
-      expect(json_body[:folders].first).to include(
-        folder_name: 'blueprints',
-        author: 'metis|Metis',
-        project_name: 'athena',
-        bucket_name: 'files'
-      )
+      [:editor, :guest].each do |role|
+        token_header(role)
+        get('/athena/list/files/')
+  
+        expect(last_response.status).to eq(200)
+  
+        expect(json_body[:files].first).to include(
+          file_name: 'wisdom.txt',
+          author: 'metis|Metis',
+          project_name: 'athena',
+          bucket_name: 'files',
+          size: 66,
+          file_hash: Digest::MD5.hexdigest(WISDOM),
+          download_url: a_string_matching(%r{http.*athena/download})
+        )
+        expect(json_body[:folders].first).to include(
+          folder_name: 'blueprints',
+          author: 'metis|Metis',
+          project_name: 'athena',
+          bucket_name: 'files'
+        )
+      end
     end
-
+  
     it 'should return a list of files and folders using a folder_id' do
       # our files
       token_header(:editor)
@@ -148,69 +150,71 @@ describe FolderController do
 
     it 'can paginate a list of folders for the given bucket' do
       # Our files bucket
-      token_header(:editor)
-      get('/athena/list_all_folders/files/?limit=1')
+      [:editor, :guest].each do |role|
+        token_header(role)
+        get('/athena/list_all_folders/files/?limit=1')
 
-      expect(last_response.status).to eq(200)
+        expect(last_response.status).to eq(200)
 
-      expect(json_body[:files]).to eq (nil)
-      expect(json_body[:folders].length).to eq(1)
-      expect(json_body[:folders].first).to include(
-        folder_name: 'blueprints',
-        author: 'metis|Metis',
-        project_name: 'athena',
-        bucket_name: 'files'
-      )
+        expect(json_body[:files]).to eq (nil)
+        expect(json_body[:folders].length).to eq(1)
+        expect(json_body[:folders].first).to include(
+          folder_name: 'blueprints',
+          author: 'metis|Metis',
+          project_name: 'athena',
+          bucket_name: 'files'
+        )
 
-      get('/athena/list_all_folders/files/?limit=1&offset=2')
+        get('/athena/list_all_folders/files/?limit=1&offset=2')
 
-      expect(last_response.status).to eq(200)
+        expect(last_response.status).to eq(200)
 
-      expect(json_body[:files]).to eq (nil)
-      expect(json_body[:folders].length).to eq(1)
-      expect(json_body[:folders].first).to include(
-        folder_name: 'helmet',
-        author: 'metis|Metis',
-        project_name: 'athena',
-        bucket_name: 'files',
-        folder_path: 'blueprints/helmet',
-      )
+        expect(json_body[:files]).to eq (nil)
+        expect(json_body[:folders].length).to eq(1)
+        expect(json_body[:folders].first).to include(
+          folder_name: 'helmet',
+          author: 'metis|Metis',
+          project_name: 'athena',
+          bucket_name: 'files',
+          folder_path: 'blueprints/helmet',
+        )
 
-      get('/athena/list_all_folders/files/?offset=1')
+        get('/athena/list_all_folders/files/?offset=1')
 
-      expect(last_response.status).to eq(200)
+        expect(last_response.status).to eq(200)
 
-      expect(json_body[:files]).to eq (nil)
-      expect(json_body[:folders].length).to eq(2)
+        expect(json_body[:files]).to eq (nil)
+        expect(json_body[:folders].length).to eq(2)
 
-      expect(json_body[:folders].first).to include(
-        folder_name: 'helmet',
-        author: 'metis|Metis',
-        project_name: 'athena',
-        bucket_name: 'files'
-      )
-      expect(json_body[:folders].last).to include(
-        folder_name: 'helmet',
-        author: 'metis|Metis',
-        project_name: 'athena',
-        bucket_name: 'files',
-        folder_path: 'blueprints/helmet'
-      )
+        expect(json_body[:folders].first).to include(
+          folder_name: 'helmet',
+          author: 'metis|Metis',
+          project_name: 'athena',
+          bucket_name: 'files'
+        )
+        expect(json_body[:folders].last).to include(
+          folder_name: 'helmet',
+          author: 'metis|Metis',
+          project_name: 'athena',
+          bucket_name: 'files',
+          folder_path: 'blueprints/helmet'
+        )
 
-      get('/athena/list_all_folders/files/?limit=5&offset=20')
+        get('/athena/list_all_folders/files/?limit=5&offset=20')
 
-      expect(last_response.status).to eq(200)
+        expect(last_response.status).to eq(200)
 
-      expect(json_body[:files]).to eq (nil)
-      expect(json_body[:folders].length).to eq(0)
+        expect(json_body[:files]).to eq (nil)
+        expect(json_body[:folders].length).to eq(0)
 
-      get('/athena/list_all_folders/files/?limit=50&offset=-20')
+        get('/athena/list_all_folders/files/?limit=50&offset=-20')
 
-      expect(last_response.status).to eq(422)
+        expect(last_response.status).to eq(422)
 
-      get('/athena/list_all_folders/files/?limit=-50&offset=20')
+        get('/athena/list_all_folders/files/?limit=-50&offset=20')
 
-      expect(last_response.status).to eq(422)
+        expect(last_response.status).to eq(422)
+      end
     end
 
     it 'should return a list of folders for the given bucket' do
@@ -329,6 +333,13 @@ describe FolderController do
       expect(json_body[:error]).to eq('Invalid path')
     end
 
+    it 'refuses to create a folder for guest' do
+      token_header(:guest)
+      post_create_folder('Helmet Blueprints')
+
+      expect(last_response.status).to eq(403)
+    end
+
     it 'creates nested folders' do
       blueprints_folder = create_folder('athena', 'blueprints')
       stubs.create_folder('athena', 'files', 'blueprints')
@@ -444,11 +455,13 @@ describe FolderController do
     end
 
     it 'refuses to remove a folder without permissions' do
-      token_header(:viewer)
-      remove_folder('blueprints')
+      below_editor_roles.each do |role|
+        token_header(role)
+        remove_folder('blueprints')
 
-      expect(last_response.status).to eq(403)
-      expect(Metis::Folder.count).to eq(1)
+        expect(last_response.status).to eq(403)
+        expect(Metis::Folder.count).to eq(1)
+      end
     end
 
     it 'refuses to remove a non-existent folder' do
@@ -555,12 +568,14 @@ describe FolderController do
     end
 
     it 'refuses to protect a folder without permissions' do
-      token_header(:editor)
-      protect_folder('blueprints')
+      below_admin_roles.each do |role|
+        token_header(role)
+        protect_folder('blueprints')
 
-      @blueprints_folder.refresh
-      expect(last_response.status).to eq(403)
-      expect(@blueprints_folder).not_to be_read_only
+        @blueprints_folder.refresh
+        expect(last_response.status).to eq(403)
+        expect(@blueprints_folder).not_to be_read_only
+      end
     end
 
     it 'refuses to protect a non-existent folder' do
@@ -612,12 +627,14 @@ describe FolderController do
     end
 
     it 'refuses to unprotect a folder without permissions' do
-      token_header(:editor)
-      unprotect_folder('blueprints')
+      below_admin_roles.each do |role|
+        token_header(role)
+        unprotect_folder('blueprints')
 
-      @blueprints_folder.refresh
-      expect(last_response.status).to eq(403)
-      expect(@blueprints_folder).to be_read_only
+        @blueprints_folder.refresh
+        expect(last_response.status).to eq(403)
+        expect(@blueprints_folder).to be_read_only
+      end
     end
 
     it 'refuses to unprotect a non-existent folder' do
@@ -684,12 +701,14 @@ describe FolderController do
     end
 
     it 'refuses to rename a folder without permissions' do
-      token_header(:viewer)
-      rename_folder('blueprints', 'blue-prints')
+      below_editor_roles.each do |role|
+        token_header(role)
+        rename_folder('blueprints', 'blue-prints')
 
-      @blueprints_folder.refresh
-      expect(last_response.status).to eq(403)
-      expect(@blueprints_folder.folder_name).to eq('blueprints')
+        @blueprints_folder.refresh
+        expect(last_response.status).to eq(403)
+        expect(@blueprints_folder.folder_name).to eq('blueprints')
+      end
     end
 
     it 'refuses to rename a non-existent folder' do

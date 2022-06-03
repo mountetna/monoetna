@@ -191,6 +191,25 @@ describe UploadController do
       expect(json_body[:error]).to eq('Cannot overwrite existing folder')
       expect(Metis::Upload.count).to eq(0)
     end
+
+    it 'does not authorize viewers or guests' do
+      params = {
+        file_path: 'wisdom.txt',
+        project_name: 'athena',
+        bucket_name: 'files'
+      }
+
+      # we use our token to authorize an upload
+      below_editor_roles.each do |role|
+        token_header(role)
+        json_post('/authorize/upload', params)
+
+        # we expect to be forbidden from uploading
+        expect(last_response.status).to eq(403)
+        expect(json_body[:error]).to eq('You are forbidden from performing this action.')
+        expect(Metis::Upload.count).to eq(0)
+      end
+    end
   end
 
   context '#upload_start' do

@@ -43,6 +43,9 @@ AUTH_USERS = {
   },
   no_flag: {
     email: 'nessus@centaurs.org', name: 'Nessus', perm: '', exp: Time.now.to_i + 6000,
+  },
+  guest: {
+    email: 'sinon@troy.org', name: 'Sinon', perm: 'g:labors', exp: Time.now.to_i + 6000, flags: 'vulcan'
   }
 }
 
@@ -134,4 +137,12 @@ def save_last_response_json(fixture_name, type)
   p last_response.body
 
   ::File.write(fixture_path, "import {#{type}} from \"../../api_types\";\n\nexport const #{constName}: #{type} = #{last_response.body};")
+end
+
+def below_admin_roles
+  [:editor, :viewer, :guest]
+end
+
+def below_editor_roles
+  [:viewer, :guest]
 end

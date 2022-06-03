@@ -375,3 +375,7 @@ declare module 'etna-js/hooks/useAsyncWork' {
     opts: any
   ): [loading: boolean, wrapper: Function, awaitNextRender: Function];
 }
+
+declare module 'etna-js/utils/janus' {
+  export function isGuest(user: any, project_name: string): boolean;
+}

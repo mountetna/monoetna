@@ -62,6 +62,18 @@ describe AdminController do
       expect(last_response.status).to eq(403)
     end
 
+    it 'forbids the project data to guests' do
+      user = create(:user, name: 'Sinon', email: 'sinon@earth.org')
+
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+      perm = create(:permission, project: door, user: user, role: 'guest')
+
+      auth_header(:sinon)
+      get('/api/admin/door/info')
+
+      expect(last_response.status).to eq(403)
+    end
+
     it 'forbids project outsiders' do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
 
@@ -71,40 +83,48 @@ describe AdminController do
       expect(last_response.status).to eq(403)
     end
 
-    it 'viewer cannot set the resource flag' do
+    it 'viewer / guest cannot set the resource flag' do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
 
-      auth_header(:viewer)
-      json_post('/api/admin/door/update', resource: true)
+      below_editor_roles.each do |role|
+        auth_header(role)
+        json_post('/api/admin/door/update', resource: true)
 
-      expect(last_response.status).to eq(403)
+        expect(last_response.status).to eq(403)
+      end
     end
 
-    it 'viewer cannot set the requires_agreement flag' do
+    it 'viewer / guest cannot set the requires_agreement flag' do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
 
-      auth_header(:viewer)
-      json_post('/api/admin/door/update', requires_agreement: true)
+      below_editor_roles.each do |role|
+        auth_header(role)
+        json_post('/api/admin/door/update', requires_agreement: true)
 
-      expect(last_response.status).to eq(403)
+        expect(last_response.status).to eq(403)
+      end
     end
 
-    it 'viewer cannot set the code of conduct text' do
+    it 'viewer / guest cannot set the code of conduct text' do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
 
-      auth_header(:viewer)
-      json_post('/api/admin/door/update', cc_text: 'Will wipe your shoes before entering.')
+      below_editor_roles.each do |role|
+        auth_header(role)
+        json_post('/api/admin/door/update', cc_text: 'Will wipe your shoes before entering.')
 
-      expect(last_response.status).to eq(403)
+        expect(last_response.status).to eq(403)
+      end
     end
 
-    it 'viewer cannot set the contact email' do
+    it 'viewer /guest cannot set the contact email' do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
 
-      auth_header(:viewer)
-      json_post('/api/admin/door/update', contact_email: 'foo@janus.test')
+      below_editor_roles.each do |role|
+        auth_header(role)
+        json_post('/api/admin/door/update', contact_email: 'foo@janus.test')
 
-      expect(last_response.status).to eq(403)
+        expect(last_response.status).to eq(403)
+      end
     end
 
     it 'can set the resource flag' do
