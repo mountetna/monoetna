@@ -20,7 +20,7 @@ class Vulcan
       # Specify the image with sha here
       target = Vulcan.instance.config(:archimedes_interpreters)&.dig(interpreter.to_sym) || Vulcan.instance.config(:archimedes_run_image)
 
-      dependency_name_w_sha(session, target)
+      tag_or_latest_image(dependency_name_w_sha(session, target))
     end
 
     def interpreter(script:)
@@ -33,14 +33,12 @@ class Vulcan
     end
 
     def archimedes_run_sha(session)
-      dependency_name_w_sha(session, Vulcan.instance.config(:archimedes_run_image))
+      tag_or_latest_image(
+        dependency_name_w_sha(session, Vulcan.instance.config(:archimedes_run_image))
+      )
     end
 
     private
-
-    # def git_sha
-
-    # end
 
     def dependency_name_w_sha(session, image_name)
       # If the session's reference figure has dependencies,
@@ -82,6 +80,26 @@ class Vulcan
       image_name_wo_sha = "#{prefix}#{image_name_wo_sha}" unless image_name_wo_sha.start_with?(prefix)
       digest = `docker inspect --format '{{index .RepoDigests 0}}' #{image_name_full}`
       digest.gsub(image_name_wo_sha, "").strip
+    end
+
+    def tag_or_latest_image(image_name)
+      # If the image is specified with a SHA (@sha:<hash>), then
+      #   check that the hash exists in the registry. If not,
+      #   then return the image name with :latest tag, as the
+      #   fallback.
+      image_exists?(image_name) ? image_name : latest_image(image_name)
+    end
+
+    def latest_image(image_name)
+      # Convert etnaagent/image@sha256:<hash> or etnaagent/image:<tag>
+      # to etnaagent/image:latest
+      "#{image_name.split("@").first.split(":").first}:latest"
+    end
+
+    def image_exists?(image_name)
+      # Run a docker command to check that the sha or image exists.
+      exists = `docker manifest inspect #{image_name} > /dev/null`
+      0 == $?.exitstatus ? true : false
     end
   end
 end

@@ -203,6 +203,39 @@ describe Vulcan::Orchestration do
       end
     end
 
+    describe 'specifying a non-existent archimedes sha' do
+      let(:figure) {
+        create_figure(
+          workflow_name: "test_workflow.cwl",
+          dependencies: {
+            "etnaagent/archimedes": "sha256:f3b3b28a45160805bb16542c9531888519430e9e6d6ffc09d72261b0d26ff74f"
+          }
+        )
+      }
+      let(:session) { Session.new_session_for('project', 'test_workflow.cwl', 'storage_key', inputs, reference_figure_id: figure.id) }
+    
+      it 'works' do
+        expect(orchestration.run_until_done!(storage).length).to eql(0)
+        expect(primary_outputs.is_built?(storage)).to eql(false)
+        session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
+        expect(orchestration.run_until_done!(storage).length).to eql(1)
+        expect(primary_outputs.is_built?(storage)).to eql(false)
+        session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
+        session.define_user_input(["pickANum", "num"], 543)
+        expect(orchestration.run_until_done!(storage).length).to eql(3)
+        expect(::File.read(primary_outputs.build_outputs['the_result'].data_path(storage))).to eql("866")
+      end
+
+      it 'reports cell errors correctly' do
+        expect(orchestration.run_until_done!(storage).length).to eql(0)
+        session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 'abc-not-an-int')
+
+        expect {
+          orchestration.run_until_done!(storage)
+        }.to raise_error(Vulcan::Orchestration::RunErrors)
+      end
+    end
+
     describe 'with an empty archimedes sha' do
       let(:figure) {
         create_figure(
