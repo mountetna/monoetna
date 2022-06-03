@@ -124,7 +124,13 @@ module Etna
       update_params(request)
 
       unless authorized?(request)
-        return cc_redirect(request) if cc_available?(request)
+        if cc_available?(request)
+          if request.content_type == 'application/json'
+            return [ 403, { 'Content-Type' => 'application/json' }, [ { error: 'You are forbidden from performing this action, but you can visit the project home page and request access.' }.to_json ] ]
+          else
+            return cc_redirect(request)
+          end
+        end
 
         return [ 403, { 'Content-Type' => 'application/json' }, [ { error: 'You are forbidden from performing this action.' }.to_json ] ]
       end
