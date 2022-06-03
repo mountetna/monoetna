@@ -31,8 +31,10 @@ AUTH_USERS.update(
   },
   lar: {
     email: 'lar@two-faces.org', name: 'Lar Familiaris', perm: 'v:door'
+  },
+  sinon: {
+    email: 'sinon@earth.org', name: 'Sinon', perm: 'g:door'
   }
-
 )
 
 Janus.instance.configure(YAML.load(File.read('config.yml')))
