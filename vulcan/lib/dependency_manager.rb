@@ -38,6 +38,10 @@ class Vulcan
 
     private
 
+    # def git_sha
+
+    # end
+
     def dependency_name_w_sha(session, image_name)
       # If the session's reference figure has dependencies,
       #   we'll try to honor those in the image passed back.
