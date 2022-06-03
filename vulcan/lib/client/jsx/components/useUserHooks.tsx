@@ -4,6 +4,7 @@ import _ from 'lodash';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {VulcanFigure, VulcanFigureSession} from '../api_types';
+import {isGuest} from 'etna-js/utils/janus';
 
 export default function useUserHooks() {
   const user = useReduxState((state: any) => selectUser(state));
@@ -14,7 +15,13 @@ export default function useUserHooks() {
     [user]
   );
 
+  const guest = useCallback(
+    (projectName: string) => isGuest(user, projectName),
+    [user]
+  );
+
   return {
-    canEdit
+    canEdit,
+    guest
   };
 }
