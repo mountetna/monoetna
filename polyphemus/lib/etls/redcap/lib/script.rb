@@ -110,7 +110,7 @@ module Redcap
           Redcap::Record.new(
             record_eavs,
             flat_record(record_id),
-            identifier_fields_data(record_id)
+            some(identifier_fields_data(record_id))
           ).record
         ]
       end.to_h.compact
@@ -213,7 +213,16 @@ module Redcap
       
       return {} if non_repeating_key.nil?
 
-      @flat_records[non_repeating_key].first.slice(*identifier_fields)
+      @flat_records[non_repeating_key]&.first.slice(*identifier_fields)
+    end
+
+    def some(data)
+      return {} if data.nil?
+
+      # Make sure the values are wrapped in arrays, to match how loader behaves
+      data.map do |key, value|
+        [key, value.is_a?(Array) ? value : [value].compact]
+      end.to_h
     end
 
     def non_repeating_record_keys

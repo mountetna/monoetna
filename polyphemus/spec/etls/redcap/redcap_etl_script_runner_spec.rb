@@ -86,7 +86,8 @@ describe Polyphemus::RedcapEtlScriptRunner do
       scripts: [
         {
           attributes: {
-            name: "name",
+            name: "date_of_birth",
+            original_name: "name"
           }
         }
       ]
@@ -378,6 +379,8 @@ describe Polyphemus::RedcapEtlScriptRunner do
 
       expect(records[:model_with_alternate_id].key?(expected_id_789)).to eq(true)
       expect(records[:model_with_alternate_id].key?(expected_id_987)).to eq(true)
+      expect(records[:model_with_alternate_id][expected_id_789][:name]).to eq(data_789[:date_of_birth])
+      expect(records[:model_with_alternate_id][expected_id_987][:name]).to eq(data_987[:date_of_birth])
     end
 
     it "filters records based on non-mapped redcap attribute" do
