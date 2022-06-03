@@ -187,7 +187,7 @@ class DockerIsolator(Isolator[Container]):
         }
 
         return self.docker_cli.containers.run(
-            self.tag_or_latest_image(request.image), self._cmd(request, script_path),
+            request.image, self._cmd(request, script_path),
             **params
         )
 
@@ -203,35 +203,6 @@ class DockerIsolator(Isolator[Container]):
             return ["/bin/bash", "-c", f"cd {exec_dir}; cp /app/package.json package.json; npm install; node {exec_script_path}"]
         else:
             return f"poetry run python {exec_script_path}"
-
-    def tag_or_latest_image(self, image_name: str) -> str:
-        """
-        If the image is specified with a SHA (@sha:<hash>), then
-          check that the hash exists in the registry. If not,
-          then return the image name with :latest tag, as the
-          fallback.
-        """
-        if self._image_exists(image_name):
-            return image_name
-        else:
-            return self._latest_image(image_name)
-
-    def _latest_image(self, image_name: str) -> str:
-        """
-        Convert etnaagent/image@sha256:<hash> or etnaagent/image:<tag>
-        
-        to etnaagent/image:latest"""
-        return f"{image_name.split('@')[0].split(':')[0]}:latest"
-
-    def _image_exists(self, image_name: str) -> bool:
-        """
-        Run a docker command to check that the sha or image exists.
-        """        
-        try:
-            self.docker_cli.images.get_registry_data(image_name)
-            return True
-        except (ImageNotFound, APIError):
-            return False
 
 
 LocalProcess = Tuple[subprocess.Popen, IO[bin], str]
