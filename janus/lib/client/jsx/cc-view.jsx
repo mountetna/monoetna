@@ -50,24 +50,13 @@ export function CcView({project_name}) {
 
   const classes = useStyles();
 
-  const requiresAgreement = true ? true : project ? project.requires_agreement : false;
-  const cc_text = project && project.cc_text ? project.cc_text : `
-Welcome to the IPI Community project! We are happy to be providing you access to this data to as part of our Data Library community.  A Community project means that the stewards of this data have graciously agreed to transition this project from a private project to the Data Library “stacks”—making it accessible to all Library members.  
-
-Investigators sharing their data as Community Projects mean they are entrusting you with respectful use of this data, and expect that you will adhere to a certain set of norms regarding data use. Though this isn’t explicitly enforceable or legally binding, we are asking you to follow the norms of this community. Failure to do so may result in your removal from the platform. 
-
-As part of this access please confirm that you understand and will follow the expectations of data access in our Community projects: 
-
-- Some of this data is unpublished. If you would like to include this data in an ongoing analysis that may result in a publication, contact the project PI to inform them of your plan in the spirit of open collaboration. IPIs contact PIs are Max Krummel at [Max email] and Alexis Combes [Alexis email].
-- Do not share the data outside of this platform without the consent of the IPI PIs
-- By agreeing to this list you will be granted “Guest” status on this project. Project members will be able to see that you’ve been added to the “Guest List” (name and email)
-- If you have general questions about the platform, Community Projects, access, or otherwise, feel free to contact dscolab@ucsf.edu
-`
+  const cc_text = project && project.cc_text ? project.cc_text : "";
+  const requiresAgreement = project ? project.requires_agreement && cc_text : false;
 
   useEffect(() => {
     if (!project) return;
     if (!requiresAgreement) {
-      window.location.href = CONFIG['timur_host'];
+      // window.location.href = CONFIG['timur_host'];
     }
   }, [project, requiresAgreement])
 
