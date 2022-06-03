@@ -214,7 +214,10 @@ const ProjectView = ({project_name}) => {
     }).catch( e => e.then( ({error}) => setError(error) ) );
   }
 
-  const resetProject = () => setProjectDetails(project);
+  const resetProject = () => {
+    setProjectDetails(project);
+    setError(null);
+  }
 
   const setProjectDetails = (newProject) => {
     setProjectType(projectTypeFor(newProject));
@@ -239,6 +242,13 @@ const ProjectView = ({project_name}) => {
   const [ projectContact, setProjectContact ] = useState('');
   const [ error, setError ] = useState(null);
 
+  const updateProjectType = (type) => {
+    if (type == 'community') setError("WARNING! Setting this project to 'community' will allow any library user to add themselves as a guest to the project.")
+    else if (type == 'resource') setError("WARNING! Setting this project to 'resource' will allow any library user to view the project data.")
+    else setError(null);
+    setProjectType(type);
+  }
+
   const isChanged = (projectType != projectTypeFor(project)
                      || projectCoc != project.cc_text
                      || projectContact != project.contact_email);
@@ -252,7 +262,7 @@ const ProjectView = ({project_name}) => {
           <Setting title='Project Type'>
             <Select
               value={ projectType }
-              onChange={ (e) => setProjectType(e.target.value) }>
+              onChange={ (e) => updateProjectType(e.target.value) }>
                {
                  [ 'active', 'community', 'resource' ].map(
                    r => <MenuItem key={r} value={ r }>{ r }</MenuItem>
