@@ -82,3 +82,22 @@ def test_runner():
         assert result.status == 'done'
 
         assert out_file.read() == "Some other input with more stuff in it"
+
+    with expected_output('output_one') as (out_path, out_file):
+        request = RunRequest(
+            script=read_resource('fixtures/test_runner_a.py.donotrun'),
+            input_files=[
+                host_storage_file('input_one', 'tests/fixtures/runner_inputs/b')
+            ],
+            output_files=[
+                host_storage_file('output_one', out_path)
+            ],
+            # This is a SHA for a different image
+            image='archimedes@sha256:f3b3b28a45160805bb16542c9531888519430e9e6d6ffc09d72261b0d26ff74f'
+        )
+
+        result = run(request, DockerIsolator(), 4, False)
+        assert result.error is None
+        assert result.status == 'done'
+
+        assert out_file.read() == "Some other input with more stuff in it"
