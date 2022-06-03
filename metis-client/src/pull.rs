@@ -35,12 +35,13 @@ async fn plan_pull(worker: &mut EtnaWorker, pull: &PullNode) -> anyhow::Result<V
     match &pull.metis_path {
         MetisPath::FilePath(path) => {
             let md = fs::metadata(&pull.local_path).ok();
+            let meta = worker.execute::<DownloadMeta>(&AuthorizeDownload(path.clone())).await?;
+
             if md.as_ref().map(|r|r.is_dir()).unwrap_or(false) {
                 result.push(PlannedPullWork::RemoveLocalPath(pull.local_path.clone()))
             }
 
             if md.as_ref().map(|r|r.is_file()).unwrap_or(false) {
-                let meta = worker.execute::<DownloadMeta>(&AuthorizeDownload(path.clone())).await?;
                 if let Some(remote_md5) = meta.md5 {
                     let mut buff: Vec<u8> = Vec::with_capacity(1024 * 1024);
                     let mut hasher = Md5::new();
@@ -71,6 +72,7 @@ async fn plan_pull(worker: &mut EtnaWorker, pull: &PullNode) -> anyhow::Result<V
         MetisPath::FolderPath(path) => {
             let list = ListFolder(path.clone());
             let folder_contents = worker.execute::<FolderContents>(&list).await?;
+
         }
     }
 

@@ -109,8 +109,23 @@ pub struct MetisFolderPath {
     folder_path: String,
 }
 
+pub enum MetisTailType {
+    files,
+    folders
+}
+
+pub struct MetisTail {
+    folder_id: Option<Vec<u64>>,
+    batch_start: Option<String>,
+    batch_end: Option<String>,
+    r#type: String,
+    project_name: String,
+    bucket_name: String,
+}
+
 pub struct AuthorizeDownload(pub MetisFilePath);
 pub struct ListFolder(pub MetisFolderPath);
+pub struct Tail(pub MetisFolderPath);
 
 #[derive(Clone,Debug)]
 pub enum PathNodeType {
