@@ -161,6 +161,10 @@ module Etna::Application
     (ENV["#{self.class.name.upcase}_ENV"] || :development).to_sym
   end
 
+  def test?
+    environment == "test"
+  end
+
   def id
     ENV["APP_NAME"] || self.class.name.snake_case.split(/::/).last
   end

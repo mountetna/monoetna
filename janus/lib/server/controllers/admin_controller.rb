@@ -149,6 +149,7 @@ class AdminController < Janus::Controller
   def update_cc_agreement
     # User agrees to the code of conduct for the specified project
     require_params(:project_name, :cc_text, :agreed)
+    project_name = @params[:project_name]
     project = Project[project_name: @params[:project_name]]
     if project.nil?
       return failure(404, "Project #{project_name} does not exist.")
@@ -160,23 +161,24 @@ class AdminController < Janus::Controller
 
     agreement = CcAgreement.create(
       user_email: @user.email,
-      project_name: @params[:project_name],
+      project_name: project_name,
       cc_text: @params[:cc_text],
       agreed: !!@params[:agreed]
     )
 
-    @user.set_guest_permissions!
+    user = User[email: @user.email]
+    user.set_guest_permissions!
 
-    if project.contact_email and @params[:agreed]
+    if project.contact_email && project.contact_email.length > 0 && @params[:agreed]
       send_email(
-        "Project Lead if #{@params[:project_name]}",
+        "Project Lead of #{project_name}",
         project.contact_email,
-        "A new guest user has agreed to the #{@params[:project_name]} Code of Conduct",
-        "User #{@user.email} has agree to the Code of Conduct and will be enjoying guest level access to the project."
+        "A new guest user has agreed to the #{project_name} Code of Conduct",
+        "User #{@user.email} has agreed to the Code of Conduct and will be enjoying guest level access to the project."
       )
     end
 
-    token = @user.create_token!
+    token = user.create_token!
     Janus.instance.set_token_cookie(@response, token)
     success_json(agreement.to_hash)
   end

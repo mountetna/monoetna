@@ -85,8 +85,11 @@ Subject: #{subject}
 
 #{content}
 MESSAGE_END
-      Net::SMTP.start('smtp.ucsf.edu') do |smtp|
-        smtp.send_message message, 'noreply@janus', to_email
+
+      unless @server.send(:application).test?
+        Net::SMTP.start('smtp.ucsf.edu') do |smtp|
+          smtp.send_message message, 'noreply@janus', to_email
+        end
       end
     rescue => e
       @logger.log_error(e)
