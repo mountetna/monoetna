@@ -264,7 +264,7 @@ const ProjectView = ({project_name}) => {
               value={ projectType }
               onChange={ (e) => updateProjectType(e.target.value) }>
                {
-                 [ 'active', 'community', 'resource' ].map(
+                 [ 'team', 'community', 'resource' ].map(
                    r => <MenuItem key={r} value={ r }>{ r }</MenuItem>
                  )
                }
