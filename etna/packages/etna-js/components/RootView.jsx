@@ -62,7 +62,7 @@ const RootView = () => {
         n1 < n2 ? -1 : n1 > n2 ? 1 : 0
       );
 
-    const resourceProjects = projects.filter((proj) => proj.resource);
+    const resourceProjects = projects.filter((proj) => proj.resource && !proj.requires_agreement);
 
     return {my_projects, resourceProjects};
   });

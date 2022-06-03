@@ -60,12 +60,14 @@ describe FileController do
 
     it 'refuses to remove a file without permissions' do
       # we attempt to remove a file though we are a mere viewer
-      token_header(:viewer)
-      remove_file('wisdom.txt')
+      below_editor_roles.each do |role|
+        token_header(role)
+        remove_file('wisdom.txt')
 
-      expect(last_response.status).to eq(403)
-      expect(@wisdom_file).to be_has_data
-      expect(Metis::File.count).to eq(2)
+        expect(last_response.status).to eq(403)
+        expect(@wisdom_file).to be_has_data
+        expect(Metis::File.count).to eq(2)
+      end
     end
 
     it 'refuses to remove a non-existent file' do
@@ -127,12 +129,14 @@ describe FileController do
     end
 
     it 'refuses to protect a file without permissions' do
-      token_header(:editor)
-      protect_file('wisdom.txt')
+      below_admin_roles.each do |role|
+        token_header(role)
+        protect_file('wisdom.txt')
 
-      @wisdom_file.refresh
-      expect(last_response.status).to eq(403)
-      expect(@wisdom_file).not_to be_read_only
+        @wisdom_file.refresh
+        expect(last_response.status).to eq(403)
+        expect(@wisdom_file).not_to be_read_only
+      end
     end
 
     it 'refuses to protect a non-existent file' do
@@ -184,12 +188,14 @@ describe FileController do
     end
 
     it 'refuses to unprotect a file without permissions' do
-      token_header(:editor)
-      unprotect_file('wisdom.txt')
+      below_admin_roles.each do |role|
+        token_header(role)
+        unprotect_file('wisdom.txt')
 
-      @wisdom_file.refresh
-      expect(last_response.status).to eq(403)
-      expect(@wisdom_file).to be_read_only
+        @wisdom_file.refresh
+        expect(last_response.status).to eq(403)
+        expect(@wisdom_file).to be_read_only
+      end
     end
 
     it 'refuses to unprotect a non-existent file' do
@@ -255,13 +261,15 @@ describe FileController do
 
     it 'refuses to rename a file without permissions' do
       # the user is a viewer, not an editor
-      token_header(:viewer)
-      rename_file('wisdom.txt', 'learn-wisdom.txt')
+      below_editor_roles.each do |role|
+        token_header(:viewer)
+        rename_file('wisdom.txt', 'learn-wisdom.txt')
 
-      @wisdom_file.refresh
-      expect(last_response.status).to eq(403)
-      expect(@wisdom_file.file_name).to eq('wisdom.txt')
-      expect(@wisdom_file).to be_has_data
+        @wisdom_file.refresh
+        expect(last_response.status).to eq(403)
+        expect(@wisdom_file.file_name).to eq('wisdom.txt')
+        expect(@wisdom_file).to be_has_data
+      end
     end
 
     it 'refuses to rename a non-existent file' do
@@ -480,18 +488,20 @@ describe FileController do
 
     it 'refuses to copy a file without permissions' do
       # the user is a viewer, not an editor
-      token_header(:viewer)
-      copy_file('wisdom.txt', 'learn-wisdom.txt')
+      below_editor_roles.each do |role|
+        token_header(role)
+        copy_file('wisdom.txt', 'learn-wisdom.txt')
 
-      @wisdom_file.refresh
-      expect(last_response.status).to eq(403)
+        @wisdom_file.refresh
+        expect(last_response.status).to eq(403)
 
-      # the original is untouched
-      expect(@wisdom_file.file_name).to eq('wisdom.txt')
-      expect(@wisdom_file).to be_has_data
+        # the original is untouched
+        expect(@wisdom_file.file_name).to eq('wisdom.txt')
+        expect(@wisdom_file).to be_has_data
 
-      # there is no new file created
-      expect(Metis::File.count).to eq(1)
+        # there is no new file created
+        expect(Metis::File.count).to eq(1)
+      end
     end
 
     it 'refuses to copy a non-existent file' do
@@ -837,28 +847,30 @@ describe FileController do
 
     it 'refuses to copy a file without permissions' do
       # the user is a viewer, not an editor
-      token_header(:viewer)
+      below_editor_roles.each do |role|
+        token_header(role)
 
-      expect(Metis::File.count).to eq(2)
+        expect(Metis::File.count).to eq(2)
 
-      bulk_copy([{
-        source: 'metis://athena/files/wisdom.txt',
-        dest: 'metis://athena/files/learn-wisdom.txt'
-      }])
+        bulk_copy([{
+          source: 'metis://athena/files/wisdom.txt',
+          dest: 'metis://athena/files/learn-wisdom.txt'
+        }])
 
-      @wisdom_file.refresh
-      expect(last_response.status).to eq(403)
+        @wisdom_file.refresh
+        expect(last_response.status).to eq(403)
 
-      # the original is untouched
-      expect(@wisdom_file.file_name).to eq('wisdom.txt')
-      expect(@wisdom_file).to be_has_data
+        # the original is untouched
+        expect(@wisdom_file.file_name).to eq('wisdom.txt')
+        expect(@wisdom_file).to be_has_data
 
-      # there is no new file
-      expect(Metis::File.count).to eq(2)
-      orig_wisdom_file = Metis::File.first
-      expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
-      orig_helmet_file = Metis::File.last
-      expect(orig_helmet_file.file_name).to eq('helmet.jpg')
+        # there is no new file
+        expect(Metis::File.count).to eq(2)
+        orig_wisdom_file = Metis::File.first
+        expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
+        orig_helmet_file = Metis::File.last
+        expect(orig_helmet_file.file_name).to eq('helmet.jpg')
+      end
     end
 
     it 'refuses to copy a non-existent file' do

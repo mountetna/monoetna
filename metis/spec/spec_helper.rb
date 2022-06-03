@@ -504,3 +504,11 @@ def replace_stdio(stdin_path, stdout_path)
     }
   }
 end
+
+def below_admin_roles
+  [:editor, :viewer, :guest]
+end
+
+def below_editor_roles
+  [:viewer, :guest]
+end
