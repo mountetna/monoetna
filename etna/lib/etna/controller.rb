@@ -1,4 +1,5 @@
 require 'erb'
+require 'net/smtp'
 
 module Etna
   class Controller
@@ -74,6 +75,21 @@ module Etna
         block.call(@response)
         @response.finish
       end
+    end
+
+    def send_email(to_name, to_email, subject, content)
+      message = <<MESSAGE_END
+From: Data Library <noreply@janus>
+To: #{to_name} <#{to_email}>
+Subject: #{subject}
+
+#{content}
+MESSAGE_END
+      Net::SMTP.start('smtp.ucsf.edu') do |smtp|
+        smtp.send_message message, 'noreply@janus', to_email
+      end
+    rescue => e
+      @logger.log_error(e)
     end
 
     def require_params(*params)

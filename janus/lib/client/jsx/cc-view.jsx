@@ -1,37 +1,42 @@
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
-import {json_get} from "etna-js/utils/fetch";
-import {CircularProgress, Container, Typography} from "@material-ui/core";
+import {json_get, json_post} from "etna-js/utils/fetch";
+import {Button, Checkbox, CircularProgress, Container, FormControlLabel, Typography} from "@material-ui/core";
 import {makeStyles} from "@material-ui/core/styles";
 import DOMPurify from 'dompurify';
 import * as marked from 'marked'
 
-const useStyles = makeStyles({
-  loadingRoot: {
-    minWidth: "100%",
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center"
-  },
-  loadingArt: {
-    display: "flex",
-    alignItems: "center"
-  },
-  cc: {
-    h1: {
-      fontSize: 100,
-      color: 'red',
-    },
-    p: {
+const useStyles = makeStyles((theme) => {
+  const tags = ["h1", "h2", "h3", "h4", "h5", "h6", "p", "b", "li", "ul"];
+  const cc = {};
+  tags.forEach((tag) => {
+    cc[`& ${tag}`] = { ...theme.typography[tag], margin: "15px 0px" };
+  });
 
+  cc["& li"]["marginLeft"] = 25;
+  cc["& ul"]["listStyle"] = "disc outside none";
+
+  return {
+    loadingRoot: {
+      minWidth: "100%",
+      minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center"
+    },
+    loadingArt: {
+      display: "flex",
+      alignItems: "center"
+    },
+    cc,
+    agree: {
+      margin: "15px 25px",
     }
-  }
+  };
 });
 
 export function CcView({project_name}) {
   const [project, setProject] = useState(null);
-  const classes = useStyles();
-
+  const [agreed, setAgreed] = useState(false);
   useEffect(() => {
     json_get(`/api/admin/${project_name}/info`)
       .then(
@@ -39,8 +44,10 @@ export function CcView({project_name}) {
       )
   }, []);
 
+  const classes = useStyles();
+
   const requiresAgreement = true ? true : project ? project.requires_agreement : false;
-  const ccText = project && project.cc_text ? project.cc_text : `
+  const cc_text = project && project.cc_text ? project.cc_text : `
 Welcome to the IPI Community project! We are happy to be providing you access to this data to as part of our Data Library community.  A Community project means that the stewards of this data have graciously agreed to transition this project from a private project to the Data Library “stacks”—making it accessible to all Library members.  
 
 Investigators sharing their data as Community Projects mean they are entrusting you with respectful use of this data, and expect that you will adhere to a certain set of norms regarding data use. Though this isn’t explicitly enforceable or legally binding, we are asking you to follow the norms of this community. Failure to do so may result in your removal from the platform. 
@@ -56,11 +63,29 @@ As part of this access please confirm that you understand and will follow the ex
   useEffect(() => {
     if (!project) return;
     if (!requiresAgreement) {
-      window.location = CONFIG['timur_host'];
+      window.location.href = CONFIG['timur_host'];
     }
   }, [project, requiresAgreement])
 
-  const ccHtml = useMemo(() => DOMPurify.sanitize(marked.marked(ccText)), [ccText]);
+  const onClickAgree = useCallback(e => {
+    setAgreed(e.target.checked);
+  }, []);
+  const onClickSubmit = useCallback(() => {
+    setProject(null); // Clear the screen while submitting
+    json_post(`/api/admin/${project_name}/cc`, {
+      project_name, agreed, cc_text
+    }).then(() => {
+      const refer = new URLSearchParams(window.location.search).get('refer');
+      if (!refer) {
+        window.location.href = CONFIG['timur_host'];
+      } else {
+        window.location.href = refer;
+      }
+    })
+  }, [agreed])
+
+
+  const ccHtml = useMemo(() => DOMPurify.sanitize(marked.marked(cc_text)), [cc_text]);
 
   if (!project) {
     return <div className={classes.loadingRoot}>
@@ -71,14 +96,21 @@ As part of this access please confirm that you understand and will follow the ex
   }
   if (!requiresAgreement) return null;
 
-  return <Container maxWidth="md" style={{paddingTop: 40}} className={classes.cc}>
+  return <Container maxWidth="sm" style={{paddingTop: 40}} className={classes.cc}>
     <Typography>
-      <h1>
+      <h3>
         {project.project_name_full} Community Code of Conduct
-      </h1>
+      </h3>
     </Typography>
     <Typography
       dangerouslySetInnerHTML={{ __html: ccHtml}}
       />
+
+    <div className={classes.agree} style={{clear: "both"}}>
+      <FormControlLabel control={<Checkbox checked={agreed} onChange={onClickAgree} />} label="I agree to the above conditions" />
+      <Button style={{float: "right"}} onClick={onClickSubmit}>
+        Submit
+      </Button>
+    </div>
   </Container>
 }
