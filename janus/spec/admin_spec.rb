@@ -223,6 +223,18 @@ describe AdminController do
       expect(door.contact_email).to eq('')
     end
 
+    it 'allows blanking contact email' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door', contact_email: 'portunus@two-faces.org')
+
+      auth_header(:zeus)
+
+      json_post('/api/admin/door/update', contact_email: '')
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.contact_email).to eq('')
+    end
+
     it 'resource flag does not change if not provided in params' do
       door = create(:project, project_name: 'door', project_name_full: 'Door', resource: true)
 

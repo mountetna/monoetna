@@ -172,6 +172,6 @@ class AdminController < Janus::Controller
   end
 
   def valid_contact?
-    @params[:contact_email]&.strip&.rpartition('@')&.last == Janus.instance.config(:token_domain)
+    @params[:contact_email]&.empty? || @params[:contact_email]&.strip&.rpartition('@')&.last == Janus.instance.config(:token_domain)
   end
 end
