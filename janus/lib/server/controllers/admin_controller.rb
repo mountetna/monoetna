@@ -165,7 +165,7 @@ class AdminController < Janus::Controller
       agreed: !!@params[:agreed]
     )
 
-    # TODO: Update user permissions!
+    @user.set_guest_permissions!
 
     if project.contact_email and @params[:agreed]
       send_email(
