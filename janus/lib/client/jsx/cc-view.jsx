@@ -38,9 +38,13 @@ export function CcView({project_name}) {
   const [project, setProject] = useState(null);
   const [agreed, setAgreed] = useState(false);
   useEffect(() => {
-    json_get(`/api/admin/${project_name}/info`)
+    json_get(`/api/user/projects`)
       .then(
-        ({project}) => setProject(project),
+        ({projects}) => {
+          projects.forEach((p) => {
+            if (project_name === p.project_name) setProject(p);
+          })
+        }
       )
   }, []);
 
