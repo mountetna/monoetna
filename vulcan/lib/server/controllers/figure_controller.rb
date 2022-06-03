@@ -52,9 +52,6 @@ class FigureController < Vulcan::Controller
 
     raise Etna::NotFound unless figure
 
-    figure.modified!(:updated_at)
-    figure.update(archived: true)
-
     now = DateTime.now
 
     new_figure = Vulcan::Figure.from_payload(
@@ -72,6 +69,12 @@ class FigureController < Vulcan::Controller
       @user,
       @params[:project_name]
     )
+
+    # Only archive the original figure once the new figure
+    #   exists, otherwise we risk losing the figure if
+    #   an exception gets thrown during figure creation.
+    figure.modified!(:updated_at)
+    figure.update(archived: true)
 
     success_json(new_figure.to_hash)
   rescue ArgumentError => e
