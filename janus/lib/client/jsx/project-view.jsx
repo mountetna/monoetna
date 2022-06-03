@@ -206,6 +206,7 @@ const ProjectView = ({project_name}) => {
       resource: projectType == 'community' || projectType == 'resource',
       ...projectCoc != project.cc_text && { cc_text: projectCoc },
       ...projectContact != project.contact_email && { contact_email: projectContact },
+      ...projectType != 'community' && { cc_text: '', contact_email: '' }
     }).then( project => {
       setProject(project);
       setProjectDetails(project);
