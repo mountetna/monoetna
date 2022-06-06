@@ -313,21 +313,24 @@ describe UserController do
         role: "viewer",
         privileged: true,
         resource: false,
-        requires_agreement: false
+        requires_agreement: false,
+        cc_text: "",
       }, {
         project_name: "mirror",
         project_name_full: "Mirror",
         role: "editor",
         privileged: nil,
         resource: false,
-        requires_agreement: false
+        requires_agreement: false,
+        cc_text: "",
       }, {
         project_name: "gateway",
         project_name_full: "Gateway",
         role: "editor",
         privileged: nil,
         resource: false,
-        requires_agreement: false
+        requires_agreement: false,
+        cc_text: "",
       }])
     end
 
@@ -347,7 +350,8 @@ describe UserController do
         project_name: "door",
         project_name_full: "Door",
         resource: true,
-        requires_agreement: false
+        requires_agreement: false,
+        cc_text: "",
       }])
     end
 
@@ -367,7 +371,8 @@ describe UserController do
         project_name: "door",
         project_name_full: "Door",
         resource: true,
-        requires_agreement: true
+        requires_agreement: true,
+        cc_text: "",
       }])
     end
   end
