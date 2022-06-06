@@ -90,7 +90,7 @@ describe User do
         agreed: true, project_name: 'gateway'
       )
 
-      user.set_guest_permissions!
+      user.set_guest_permissions!('gateway')
       expect(Permission.count).to eq(1)
 
       perm = Permission.first
@@ -115,7 +115,7 @@ describe User do
         agreed: true, project_name: 'gateway'
       )
 
-      user.set_guest_permissions!
+      user.set_guest_permissions!('gateway')
       expect(Permission.count).to eq(1)
 
       perm = Permission.first
@@ -124,7 +124,7 @@ describe User do
       expect(perm.role).to eq('viewer')
     end
     
-    it 'does nothing if user did not agree to coc, but already has viewer+ permission' do
+    it 'does nothing if user disagreed to coc, but already has viewer+ permission' do
       user = create(
         :user, name: 'Portunus', email: 'portunus@two-faces.org'
       )
@@ -140,7 +140,7 @@ describe User do
         agreed: false, project_name: 'gateway'
       )
 
-      user.set_guest_permissions!
+      user.set_guest_permissions!('gateway')
       expect(Permission.count).to eq(1)
 
       perm = Permission.first
@@ -173,8 +173,31 @@ describe User do
         created_at: now
       )
       
-      user.set_guest_permissions!
+      user.set_guest_permissions!('gateway')
       expect(Permission.count).to eq(0)
+    end
+
+    it 'does nothing if user has guest-level permission but never agreed or disagreed to coc' do
+      user = create(
+        :user, name: 'Portunus', email: 'portunus@two-faces.org'
+      )
+      gateway = create(
+        :project, project_name: 'gateway', project_name_full: 'Gateway',
+        resource: true, requires_agreement: true
+      )
+      permission = create(
+        :permission, project: gateway, user: user, role: 'guest'
+      )
+
+      now = Time.now
+
+      user.set_guest_permissions!('gateway')
+      expect(Permission.count).to eq(1)
+
+      perm = Permission.first
+      expect(perm.project_name).to eq('gateway')
+      expect(perm.user).to eq(user)
+      expect(perm.role).to eq('guest')
     end
   end
 end
