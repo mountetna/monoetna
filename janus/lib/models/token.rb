@@ -9,7 +9,8 @@ module Token
   ROLE_KEYS = {
     a: 'administrator',
     e: 'editor',
-    v: 'viewer'
+    v: 'viewer',
+    g: 'guest'
   }
   def self.role_from_key(role_key)
     return [ ROLE_KEYS[role_key.downcase.to_sym], role_key == role_key.upcase ]
@@ -76,7 +77,7 @@ module Token
       end
 
       # Ensure the resulting permission is valid.
-      unless payload[:perm] =~ /^[EeVv]:#{Project::PROJECT_NAME_MATCH.source}$/
+      unless payload[:perm] =~ /^[EeVvg]:#{Project::PROJECT_NAME_MATCH.source}$/
         raise Token::Error, "Cannot write invalid permission on task token!"
       end
 
@@ -110,7 +111,7 @@ module Token
     end
 
     def valid_roles?
-      permissions.all? { |perm| perm[:role] =~ /^[AaEeVv]$/ }
+      permissions.all? { |perm| perm[:role] =~ /^[AaEeVvg]$/ }
     end
 
     def valid_projects?

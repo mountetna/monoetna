@@ -45,7 +45,7 @@ class AdminController < Janus::Controller
 
     raise Etna::Forbidden, 'Cannot grant admin role!' if @params[:role] == 'administrator' && !@user.is_superuser?
 
-    raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless !@params[:role] || ['administrator', 'viewer', 'editor', 'disabled'].include?(@params[:role])
+    raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless !@params[:role] || Token::ROLE_KEYS.values.concat(['disabled']).include?(@params[:role])
 
     if @params[:role] == 'disabled'
       permission.delete
@@ -62,13 +62,16 @@ class AdminController < Janus::Controller
 
   def add_user
     require_params(:email, :name, :role)
+
+    settable_roles = ['viewer', 'editor', 'guest']
+
     @project = Project[project_name: @params[:project_name]]
 
     @email = @params[:email].downcase.strip
 
     raise Etna::Forbidden, 'Cannot set admin role!' if @params[:role] == 'administrator'
 
-    raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless ['viewer', 'editor'].include?(@params[:role])
+    raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless settable_roles.include?(@params[:role])
 
     unless @project.permissions.any? { |p| p.user.email == @email }
       user = User[email: @email]
@@ -82,7 +85,7 @@ class AdminController < Janus::Controller
       end
 
       permission = Permission.create(project: @project, user: user, role: @params[:role])
-      permission.role = @params[:role] if ['viewer', 'editor'].include?(@params[:role])
+      permission.role = @params[:role] if settable_roles.include?(@params[:role])
       permission.privileged = false
       permission.affiliation = @params[:affiliation]
       permission.save
@@ -146,14 +149,37 @@ class AdminController < Janus::Controller
   def update_cc_agreement
     # User agrees to the code of conduct for the specified project
     require_params(:project_name, :cc_text, :agreed)
+    project_name = @params[:project_name]
+    project = Project[project_name: @params[:project_name]]
+    if project.nil?
+      return failure(404, "Project #{project_name} does not exist.")
+    end
+
+    if !project.requires_agreement
+      return failure(403, "Project #{project_name} does not require a code of conduct agreement.")
+    end
 
     agreement = CcAgreement.create(
       user_email: @user.email,
-      project_name: @params[:project_name],
+      project_name: project_name,
       cc_text: @params[:cc_text],
       agreed: !!@params[:agreed]
     )
 
+    user = User[email: @user.email]
+    user.set_guest_permissions!
+
+    if project.contact_email && project.contact_email.length > 0 && @params[:agreed]
+      send_email(
+        "Project Lead of #{project_name}",
+        project.contact_email,
+        "A new guest user has agreed to the #{project_name} Code of Conduct",
+        "User #{@user.email} has agreed to the Code of Conduct and will be enjoying guest level access to the project."
+      )
+    end
+
+    token = user.create_token!
+    Janus.instance.set_token_cookie(@response, token)
     success_json(agreement.to_hash)
   end
 
@@ -169,6 +195,6 @@ class AdminController < Janus::Controller
   end
 
   def valid_contact?
-    @params[:contact_email]&.strip&.rpartition('@')&.last == Janus.instance.config(:token_domain)
+    @params[:contact_email]&.empty? || @params[:contact_email]&.strip&.rpartition('@')&.last == Janus.instance.config(:token_domain)
   end
 end

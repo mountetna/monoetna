@@ -22,21 +22,25 @@ describe DataController do
     end
 
     it 'fetches the data stored at the given hash and filename' do
-      auth_header(:viewer)
-      path = store("somehash", "myfile.zip", "abc")
-      get("/api/#{PROJECT}/data/somehash/myfile.zip")
-      expect(last_response.status).to eq(200)
+      below_editor_roles.each do |role|
+        auth_header(role)
+        path = store("somehash", "myfile.zip", "abc")
+        get("/api/#{PROJECT}/data/somehash/myfile.zip")
+        expect(last_response.status).to eq(200)
 
-      expect(last_response['X-Sendfile']).to eq(path)
+        expect(last_response['X-Sendfile']).to eq(path)
+      end
     end
 
     it 'returns 404 for a non-existent workflow' do
-      auth_header(:viewer)
-      get("/api/#{PROJECT}/data/somehash/a")
+      below_editor_roles.each do |role|
+        auth_header(role)
+        get("/api/#{PROJECT}/data/somehash/a")
 
-      expect(last_response.status).to eq(404)
+        expect(last_response.status).to eq(404)
 
-      expect(json_body[:error]).to eq('File a for hash somehash in project labors was not found')
+        expect(json_body[:error]).to eq('File a for hash somehash in project labors was not found')
+      end
     end
   end
 end
