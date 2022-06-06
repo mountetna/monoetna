@@ -42,7 +42,7 @@ AUTH_USERS = {
     email: 'nessus@centaurs.org', name: 'Nessus', perm: '', exp: Time.now.to_i + 6000, flags: 'vulcan'
   },
   no_flag: {
-    email: 'nessus@centaurs.org', name: 'Nessus', perm: '', exp: Time.now.to_i + 6000,
+    email: 'nessus@centaurs.org', name: 'Nessus', perm: 'g:labors', exp: Time.now.to_i + 6000,
   },
   guest: {
     email: 'sinon@troy.org', name: 'Sinon', perm: 'g:labors', exp: Time.now.to_i + 6000, flags: 'vulcan'
