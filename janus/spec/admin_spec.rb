@@ -223,6 +223,18 @@ describe AdminController do
       expect(door.contact_email).to eq('')
     end
 
+    it 'allows blanking contact email' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door', contact_email: 'portunus@two-faces.org')
+
+      auth_header(:zeus)
+
+      json_post('/api/admin/door/update', contact_email: '')
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.contact_email).to eq('')
+    end
+
     it 'resource flag does not change if not provided in params' do
       door = create(:project, project_name: 'door', project_name_full: 'Door', resource: true)
 
@@ -848,49 +860,59 @@ describe AdminController do
   context '#update_cc_agreement' do
     before(:each) do
       @door = create(:project, project_name: 'door', project_name_full: 'Door')
+      @user = create(:user, name: "Zeus The God", email: "zeus@olympus.org")
     end
 
-    it 'requires cc_text and agreed' do
-      auth_header(:superuser)
-      json_post('/api/admin/door/cc', something: 'not-relevant')
+    context 'when requires_agreement=True' do
+      before(:each) do
+        @door.update(requires_agreement: true)
+      end
 
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq("Missing param cc_text, agreed")
-    end
 
-    it 'can submit multiple for same user / project, with different cc_text or agreed status' do
-      expect(CcAgreement.count).to eq(0)
-      auth_header(:superuser)
-      json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: false)
+      it 'requires cc_text and agreed' do
+        auth_header(:superuser)
+        json_post('/api/admin/door/cc', something: 'not-relevant')
 
-      expect(last_response.status).to eq(200)
-      expect(CcAgreement.count).to eq(1)
+        expect(last_response.status).to eq(422)
+        expect(json_body[:error]).to eq("Missing param cc_text, agreed")
+      end
 
-      sleep(1)
+      it 'can submit multiple for same user / project, with different cc_text or agreed status' do
+        expect(CcAgreement.count).to eq(0)
+        auth_header(:superuser)
+        json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: false)
 
-      json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: true)
-      
-      expect(last_response.status).to eq(200)
-      expect(CcAgreement.count).to eq(2)
+        expect(last_response.status).to eq(200)
+        expect(CcAgreement.count).to eq(1)
 
-      sleep(1)
-      
-      json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
+        sleep(1)
 
-      expect(last_response.status).to eq(200)
-      expect(CcAgreement.count).to eq(3)
+        json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: true)
 
-      expect(CcAgreement.first.created_at).not_to eq(CcAgreement.last.created_at)
-    end
+        expect(last_response.status).to eq(200)
+        expect(CcAgreement.count).to eq(2)
 
-    it 'allows non-authorized users to set for a given project' do
-      expect(CcAgreement.count).to eq(0)
-      auth_header(:viewer) # has permissions for labor, but not door project
-      json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
+        sleep(1)
 
-      expect(last_response.status).to eq(200)
-      expect(CcAgreement.count).to eq(1)
-      expect(CcAgreement.first.user_email).to eq("hercules@twelve-labors.org")
+        json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
+
+        expect(last_response.status).to eq(200)
+        expect(CcAgreement.count).to eq(3)
+
+        expect(CcAgreement.first.created_at).not_to eq(CcAgreement.last.created_at)
+      end
+
+      it 'allows non-authorized users to set for a given project' do
+        user = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
+
+        expect(CcAgreement.count).to eq(0)
+        auth_header(:portunus)
+        json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
+
+        expect(last_response.status).to eq(200)
+        expect(CcAgreement.count).to eq(1)
+        expect(CcAgreement.first.user_email).to eq(user.email)
+      end
     end
   end
 end
