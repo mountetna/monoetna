@@ -133,5 +133,7 @@ class User < Sequel::Model
         end
       end
     end
+
+    self.permissions(reload: true)
   end
 end
