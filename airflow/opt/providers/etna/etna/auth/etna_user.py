@@ -18,6 +18,7 @@ ROLE_MAP = dict(
     a="admin",
     v="viewer",
     e="editor",
+    g="guest"
 )
 
 
@@ -86,7 +87,7 @@ class EtnaUser:
 
     def can_view(self, project_name) -> bool:
         return self.is_superviewer or self.has_any_role(
-            project_name, "admin", "editor", "viewer"
+            project_name, "admin", "editor", "viewer", "guest"
         )
 
     def is_admin(self, project_name) -> bool:
@@ -108,7 +109,7 @@ def construct_permission(role: str) -> Callable[[List[str]], List[Permission]]:
 
 
 role_parser: Parser[str] = take_left(
-    regex_parser(re.compile(r"[aAeEvV]")), literal_parser(":")
+    regex_parser(re.compile(r"[aAeEvVg]")), literal_parser(":")
 )
 permission_parser: Parser[List[Permission]] = parser_apply(
     parser_apply(parser_lift(construct_permission), role_parser),

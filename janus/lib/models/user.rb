@@ -115,4 +115,31 @@ class User < Sequel::Model
         permission.project&.project_name == project
     end
   end
+  
+  def set_guest_permissions!(project_name)
+    # For given project: if agreed, ensure at least guest access; if explicitly !agreed, remove guest access; if no cc aggreement, do nothing
+    cc_agreements_project = CcAgreement.where(user_email: email, project_name: project_name).all
+    most_recent = cc_agreements_project.sort_by(&:created_at).last
+
+    project = Project[project_name: project_name]
+    if project.nil?
+      return failure(404, "Project #{project_name} does not exist.")
+    end
+
+    perm = Permission.where(user: self, project: project).first
+    if most_recent
+      if most_recent.agreed
+        if !perm
+          Permission.create(project: project, user: self, role: 'guest')
+        end
+      end
+      if !most_recent.agreed
+        if perm && perm.role == 'guest'
+          perm.delete
+        end
+      end
+    end
+
+    self.permissions(reload: true)
+  end
 end

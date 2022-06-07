@@ -42,7 +42,7 @@ describe('Janus Utils', () => {
       const userInfo = {
         email: 'janus@two-faces.org',
         name: 'Janus Portunus',
-        perm: 'a:project1,project2;v:project3',
+        perm: 'a:project1,project2;v:project3;g:project4',
         flags: 'red;yellow;blue'
       };
       const result = parseToken(generateTestToken(userInfo));
@@ -65,6 +65,11 @@ describe('Janus Utils', () => {
             privileged: false,
             project_name: 'project3',
             role: 'viewer'
+          },
+          project4: {
+            privileged: false,
+            project_name: 'project4',
+            role: 'guest'
           }
         },
         flags: ['red', 'yellow', 'blue']
@@ -75,7 +80,7 @@ describe('Janus Utils', () => {
       const userInfo = {
         email: 'janus@two-faces.org',
         name: 'Janus Portunus',
-        perm: 'a:project1,project2;v:project3'
+        perm: 'a:project1,project2;v:project3;g:project4'
       };
 
       const result = parseToken(generateTestToken(userInfo));
@@ -98,6 +103,11 @@ describe('Janus Utils', () => {
             privileged: false,
             project_name: 'project3',
             role: 'viewer'
+          },
+          project4: {
+            privileged: false,
+            project_name: 'project4',
+            role: 'guest'
           }
         },
         flags: []

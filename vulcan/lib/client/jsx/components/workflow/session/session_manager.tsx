@@ -92,7 +92,7 @@ export default function SessionManager() {
     clearLocalSession
   } = useContext(VulcanContext);
   const {workflow, hasPendingEdits, complete} = useWorkflow();
-  const {canEdit} = useUserHooks();
+  const {canEdit, guest} = useUserHooks();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
   const {session, figure, committedStepPending} = state;
@@ -121,13 +121,13 @@ export default function SessionManager() {
   }, []);
 
   const handleSaveOrCreate = useCallback(
-    (figure: VulcanFigure) => {
+    (figure: VulcanFigure, newTags: string[], newTitle: string | undefined) => {
       let params = {
         ...figure,
         workflow_name: name,
         inputs: {...session.inputs},
-        title: localTitle,
-        tags: [...tags]
+        title: newTitle,
+        tags: [...newTags]
       };
 
       if (!params.title) {
@@ -171,9 +171,7 @@ export default function SessionManager() {
     },
     [
       name,
-      localTitle,
       session,
-      tags,
       cancelSaving,
       showErrors,
       updateFigure,
@@ -191,8 +189,8 @@ export default function SessionManager() {
       }
     }
 
-    handleSaveOrCreate(figure);
-  }, [hasPendingEdits, handleSaveOrCreate, figure]);
+    handleSaveOrCreate(figure, tags, localTitle);
+  }, [hasPendingEdits, handleSaveOrCreate, figure, tags, localTitle]);
 
   const copyFigure = useCallback(() => {
     let clone = {
@@ -201,8 +199,8 @@ export default function SessionManager() {
 
     delete clone.figure_id;
 
-    handleSaveOrCreate(clone);
-  }, [figure, handleSaveOrCreate]);
+    handleSaveOrCreate(clone, [], `${localTitle} - copy`);
+  }, [figure, handleSaveOrCreate, localTitle]);
 
   const loadRevision = useCallback(
     ({inputs, title, tags, id, workflow_snapshot}: VulcanRevision) => {
@@ -365,6 +363,7 @@ export default function SessionManager() {
                 isPublic ? 'private' : 'public'
               }`}
               onClick={() => setTags(isPublic ? [] : ['public'])}
+              disabled={guest(session.project_name)}
             />
             <FlatButton
               className='header-btn edit-tags'
@@ -446,7 +445,6 @@ export default function SessionManager() {
             label='Copy'
             title='Copy current workflow parameters to new figure'
             onClick={copyFigure}
-            disabled={!canSave}
           />
         )}
       </div>

@@ -128,6 +128,34 @@ describe SessionsController do
       end
     end
 
+    describe 'with guest permission' do
+      before(:each) { auth_header(:guest) }
+  
+      it 'creates a new empty session and returns it' do
+        make_request("/status")
+        expect(last_response.status).to eql(200)
+        expect(last_json_response['session']['project_name']).to eql(project_name)
+        expect(last_json_response['session']['key']).to_not be_empty
+        expect(last_json_response['session']['workflow_name']).to eql(workflow_name)
+        expect(last_json_response['session']['inputs']).to eql({})
+        expect(last_json_response['status'].map { |a| a.map { |v| v['name'] }}).to match_array([
+            ['firstAdd', 'pickANum', 'finalStep', 'aPlot'],
+        ])
+        expect(last_json_response['status']).to eql([
+            [
+                {'downloads' => nil, 'name' => 'firstAdd',  'status' => 'pending', 'hash' => orchestration.build_target_for('firstAdd').cell_hash },
+                {'downloads' => nil, 'name' => 'pickANum',  'status' => 'pending', 'hash' => orchestration.build_target_for('pickANum').cell_hash },
+                {'downloads' => nil, 'name' => 'finalStep', 'status' => 'pending', 'hash' => orchestration.build_target_for('finalStep').cell_hash },
+                {'downloads' => nil, 'name' => 'aPlot',     'status' => 'pending', 'hash' => orchestration.build_target_for('aPlot').cell_hash },
+            ],
+        ])
+        expect(last_json_response['outputs']).to eql({'downloads' => nil, 'status' => 'pending'})
+  
+        save_last_response_json('status-without-downloads', 'SessionStatusResponse')
+      end
+    end
+  end
+
     describe "adding new inputs" do
       before(:each) do
         inputs["someIntWithoutDefault"] = 123

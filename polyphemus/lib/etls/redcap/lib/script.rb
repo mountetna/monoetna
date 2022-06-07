@@ -212,6 +212,7 @@ module Redcap
       non_repeating_key = non_repeating_record_key(record_id)
       
       return {} if non_repeating_key.nil?
+      return {} unless @flat_records[non_repeating_key]
 
       @flat_records[non_repeating_key].first.slice(*identifier_fields)
     end

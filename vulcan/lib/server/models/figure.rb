@@ -20,6 +20,12 @@ class Vulcan
       ).first
     end
 
+    def self.from_payload(payload, user, project_name)
+      self.validate(payload, user, project_name)
+
+      Vulcan::Figure.create(payload)
+    end
+
     def after_save
       # Use this hook to also save the Vulcan workflow snapshot
       begin
@@ -68,7 +74,6 @@ class Vulcan
     def remove_existing_snapshot
       Vulcan::WorkflowSnapshot.where(figure_id: self.id).first.delete
       refresh
-    end
 
     def session
       @session ||= Session.from_figure(self)
@@ -142,6 +147,12 @@ class Vulcan
 
     def current_workflow_json
       @current_workflow_json ||= Etna::Cwl::Workflow.json_from_file_with_metadata(workflow_name)
+    end
+
+    def self.validate(payload, user, project_name)
+      project_permissions = user.permissions[project_name]
+
+      raise ArgumentError.new('Guests cannot save public figures. Please remove the "public" tag and try saving again.') if project_permissions[:role] == :guest && payload[:tags]&.include?('public')
     end
   end
 end

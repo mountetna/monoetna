@@ -20,12 +20,6 @@
     max-height: 410px;
     overflow: auto;
   }
-  .summary {
-    font-size: 0.8em;
-    color: #1d6a86;
-    font-style: italic;
-    padding: 10px 15px;
-  }
   .item {
     &.header {
       @include janus-header;
