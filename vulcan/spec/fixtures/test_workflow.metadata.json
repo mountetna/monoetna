@@ -1,5 +1,6 @@
 {
   "projects": ["labors", "secret_project"],
   "tags": ["demo"],
-  "authors": ["someone"]
+  "authors": ["someone"],
+  "displayName": "Test workflow"
 }

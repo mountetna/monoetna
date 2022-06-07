@@ -124,6 +124,7 @@ class Vulcan
         comment: comment,
         id: id,
         workflow_snapshot: workflow_snapshot&.as_steps_json_w_metadata,
+        dependencies: dependencies
       }
     end
 

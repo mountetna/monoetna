@@ -66,6 +66,9 @@ describe FigureController do
 
         expect(last_response.status).to eq(200)
         expect(json_body[:workflow_snapshot][:projects]).to eq(["labors", "secret_project"])
+
+        # Make sure the snapshot metadata keys are camelCase for the UI (to match JSON convention)
+        expect(json_body[:workflow_snapshot][:displayName]).to eq("Test workflow")
       end
     end
   end
@@ -84,7 +87,8 @@ describe FigureController do
       expect(last_response.status).to eq(200)
       expect(json_body.length).to eq(2)
       expect(json_body.map { |r| r[:title] }).to match_array(["Lion of Nemea", "Lion of Nemea, redux"])
-      expect(json_body.first.keys).to include(:id, :workflow_snapshot)
+      expect(json_body.first.keys).to include(:id, :workflow_snapshot, :dependencies)
+      expect(json_body.first[:dependencies]).not_to eq(nil)
     end
   end
 

@@ -1,3 +1,5 @@
+require 'active_support/inflector'
+
 class Vulcan
   class WorkflowSnapshot < Sequel::Model
     plugin :timestamps, update_on_create: true
@@ -23,7 +25,7 @@ class Vulcan
         figure_id: figure_id,
         cwl_yaml: YAML.dump(cwl_yaml),
       }.update(
-        Vulcan::WorkflowSnapshot.snake_case_keys(metadata.slice(*Vulcan::WorkflowSnapshot.metadata_params))
+        Vulcan::WorkflowSnapshot.snake_case_keys(metadata).slice(*Vulcan::WorkflowSnapshot.metadata_params)
       ))
     end
 
@@ -35,7 +37,7 @@ class Vulcan
 
     def as_steps_json_w_metadata
       Etna::Cwl::Workflow.from_yaml(cwl_as_yaml).as_steps_json(figure.workflow_name).update(
-        params_to_hash(Vulcan::WorkflowSnapshot.metadata_params)
+        params_to_hash(Vulcan::WorkflowSnapshot.metadata_params, camel_case: true)
       )
     end
 
@@ -49,10 +51,14 @@ class Vulcan
 
     private
 
-    def params_to_hash(params)
+    def params_to_hash(params, camel_case: false)
       {}.tap do |result|
         params.each do |param|
-          result[param] = self[param]
+          if camel_case
+            result[param.to_s.camelize(:lower).to_sym] = self[param]
+          else
+            result[param] = self[param]
+          end
         end
       end
     end
@@ -61,10 +67,10 @@ class Vulcan
       @figure ||= Vulcan::Figure.where(id: figure_id).first
     end
 
-    def self.snake_case_keys(yaml_workflow)
+    def self.snake_case_keys(camel_case_hash)
       {}.tap do |snake_case|
-        yaml_workflow.each do |key, value|
-          snake_case[key.to_s.snake_case] = value
+        camel_case_hash.each do |key, value|
+          snake_case[key.to_s.snake_case.to_sym] = value
         end
       end
     end
