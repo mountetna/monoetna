@@ -128,104 +128,103 @@ describe SessionsController do
       end
     end
 
-    describe 'with guest permission' do
+    describe "with guest permission" do
       before(:each) { auth_header(:guest) }
-  
-      it 'creates a new empty session and returns it' do
+
+      it "creates a new empty session and returns it" do
         make_request("/status")
         expect(last_response.status).to eql(200)
-        expect(last_json_response['session']['project_name']).to eql(project_name)
-        expect(last_json_response['session']['key']).to_not be_empty
-        expect(last_json_response['session']['workflow_name']).to eql(workflow_name)
-        expect(last_json_response['session']['inputs']).to eql({})
-        expect(last_json_response['status'].map { |a| a.map { |v| v['name'] }}).to match_array([
-            ['firstAdd', 'pickANum', 'finalStep', 'aPlot'],
+        expect(last_json_response["session"]["project_name"]).to eql(project_name)
+        expect(last_json_response["session"]["key"]).to_not be_empty
+        expect(last_json_response["session"]["workflow_name"]).to eql(workflow_name)
+        expect(last_json_response["session"]["inputs"]).to eql({})
+        expect(last_json_response["status"].map { |a| a.map { |v| v["name"] } }).to match_array([
+          ["firstAdd", "pickANum", "finalStep", "aPlot"],
         ])
-        expect(last_json_response['status']).to eql([
-            [
-                {'downloads' => nil, 'name' => 'firstAdd',  'status' => 'pending', 'hash' => orchestration.build_target_for('firstAdd').cell_hash },
-                {'downloads' => nil, 'name' => 'pickANum',  'status' => 'pending', 'hash' => orchestration.build_target_for('pickANum').cell_hash },
-                {'downloads' => nil, 'name' => 'finalStep', 'status' => 'pending', 'hash' => orchestration.build_target_for('finalStep').cell_hash },
-                {'downloads' => nil, 'name' => 'aPlot',     'status' => 'pending', 'hash' => orchestration.build_target_for('aPlot').cell_hash },
-            ],
+        expect(last_json_response["status"]).to eql([
+          [
+            { "downloads" => nil, "name" => "firstAdd", "status" => "pending", "hash" => orchestration.build_target_for("firstAdd").cell_hash },
+            { "downloads" => nil, "name" => "pickANum", "status" => "pending", "hash" => orchestration.build_target_for("pickANum").cell_hash },
+            { "downloads" => nil, "name" => "finalStep", "status" => "pending", "hash" => orchestration.build_target_for("finalStep").cell_hash },
+            { "downloads" => nil, "name" => "aPlot", "status" => "pending", "hash" => orchestration.build_target_for("aPlot").cell_hash },
+          ],
         ])
-        expect(last_json_response['outputs']).to eql({'downloads' => nil, 'status' => 'pending'})
-  
-        save_last_response_json('status-without-downloads', 'SessionStatusResponse')
+        expect(last_json_response["outputs"]).to eql({ "downloads" => nil, "status" => "pending" })
+
+        save_last_response_json("status-without-downloads", "SessionStatusResponse")
       end
     end
   end
 
-    describe "adding new inputs" do
-      before(:each) do
-        inputs["someIntWithoutDefault"] = 123
-        inputs["pickANum/num"] = 300
-      end
+  describe "adding new inputs" do
+    before(:each) do
+      inputs["someIntWithoutDefault"] = 123
+      inputs["pickANum/num"] = 300
+    end
 
-      def check_url_for(url, storage_file)
-        get(URI.parse(url).path)
-        expect(last_response["X-Sendfile"]).to eql(storage_file.data_path(storage))
-      end
+    def check_url_for(url, storage_file)
+      get(URI.parse(url).path)
+      expect(last_response["X-Sendfile"]).to eql(storage_file.data_path(storage))
+    end
 
-      it "builds and makes available downloads to those outputs" do
-        make_request
-        expect(last_response.status).to eql(200)
-        response = last_json_response
+    it "builds and makes available downloads to those outputs" do
+      make_request
+      expect(last_response.status).to eql(200)
+      response = last_json_response
 
-        expect(response["status"][0][0]["status"]).to eql("running")
-        expect(response["session"]["inputs"]).to eql(inputs)
-        orchestration.scheduler.join_all
+      expect(response["status"][0][0]["status"]).to eql("running")
+      expect(response["session"]["inputs"]).to eql(inputs)
+      orchestration.scheduler.join_all
 
-        make_request("/status")
-        expect(last_response.status).to eql(200)
-        save_last_response_json("status-with-downloads", "SessionStatusResponse")
-        response = last_json_response
+      make_request("/status")
+      expect(last_response.status).to eql(200)
+      save_last_response_json("status-with-downloads", "SessionStatusResponse")
+      response = last_json_response
 
-        check_url_for(response["status"][0][0]["downloads"]["sum"], orchestration.build_target_for("firstAdd").build_outputs["sum"])
-        check_url_for(response["status"][0][1]["downloads"]["num"], orchestration.build_target_for("pickANum").build_outputs["num"])
-        check_url_for(response["status"][0][2]["downloads"]["sum"], orchestration.build_target_for("finalStep").build_outputs["sum"])
+      check_url_for(response["status"][0][0]["downloads"]["sum"], orchestration.build_target_for("firstAdd").build_outputs["sum"])
+      check_url_for(response["status"][0][1]["downloads"]["num"], orchestration.build_target_for("pickANum").build_outputs["num"])
+      check_url_for(response["status"][0][2]["downloads"]["sum"], orchestration.build_target_for("finalStep").build_outputs["sum"])
 
-        check_url_for(response["outputs"]["downloads"]["the_result"],
-                      orchestration.build_target_for(:primary_outputs).build_outputs["the_result"])
+      check_url_for(response["outputs"]["downloads"]["the_result"],
+                    orchestration.build_target_for(:primary_outputs).build_outputs["the_result"])
 
-        expect(response["status"][0][3]["status"]).to eql("complete")
-      end
+      expect(response["status"][0][3]["status"]).to eql("complete")
+    end
 
-      describe "task_token" do
-        describe "e2e" do
-          # Set this to a project you have in your dev enviroment (not test environment) when re-recording
-          let(:project_name) { "ipi" }
-          let(:mock_create_task_token) { false }
+    describe "task_token" do
+      describe "e2e" do
+        # Set this to a project you have in your dev enviroment (not test environment) when re-recording
+        let(:project_name) { "ipi" }
+        let(:mock_create_task_token) { false }
 
-          it "does a thing" do
-            allow(Vulcan.instance).to receive(:config).and_call_original
-            allow(Vulcan.instance).to receive(:config).with(:janus).and_return({
-              host: "https://janus.development.local",
-            })
+        it "does a thing" do
+          allow(Vulcan.instance).to receive(:config).and_call_original
+          allow(Vulcan.instance).to receive(:config).with(:janus).and_return({
+            host: "https://janus.development.local",
+          })
 
-            expect_any_instance_of(Vulcan::AsynchronousScheduler).to receive(:schedule_more!).and_wrap_original do |m, opts|
-              new_token = opts[:token]
-              payload = JSON.parse(Base64.decode64(new_token.split(".")[1]))
-              # Ensure that the token is always downgraded to viewer in this case.
-              expect(payload["perm"]).to eql("v:#{project_name}")
-              expect(payload["task"]).to eql(true)
+          expect_any_instance_of(Vulcan::AsynchronousScheduler).to receive(:schedule_more!).and_wrap_original do |m, opts|
+            new_token = opts[:token]
+            payload = JSON.parse(Base64.decode64(new_token.split(".")[1]))
+            # Ensure that the token is always downgraded to viewer in this case.
+            expect(payload["perm"]).to eql("v:#{project_name}")
+            expect(payload["task"]).to eql(true)
 
-              m.call(opts)
-            end
+            m.call(opts)
+          end
 
-            # When re-recording, provide a TOKEN into the environment to run against your local development.
-            if (tok = ENV["TOKEN"])
-              header("Authorization", "Etna #{tok}")
-            else
-              # Since the project name will differ from a real project, when running this without a local token,
-              # we need an auth token that still has permission to the project
-              auth_header(:viewer, additional: { perm: "v:#{project_name}" })
-            end
+          # When re-recording, provide a TOKEN into the environment to run against your local development.
+          if (tok = ENV["TOKEN"])
+            header("Authorization", "Etna #{tok}")
+          else
+            # Since the project name will differ from a real project, when running this without a local token,
+            # we need an auth token that still has permission to the project
+            auth_header(:viewer, additional: { perm: "v:#{project_name}" })
+          end
 
-            VCR.use_cassette("create_session.e2e") do
-              make_request
-              expect(last_response.status).to eql(200)
-            end
+          VCR.use_cassette("create_session.e2e") do
+            make_request
+            expect(last_response.status).to eql(200)
           end
         end
       end

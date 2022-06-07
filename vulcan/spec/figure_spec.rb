@@ -30,11 +30,11 @@ describe FigureController do
     OUTER_APP
   end
 
-  context '#fetch' do
-    it 'returns a list of figures' do
+  context "#fetch" do
+    it "returns a list of figures" do
       below_editor_roles.each do |role|
         auth_header(role)
-        figure = create_figure(title: 'Lion of Nemea', workflow_name: 'test_workflow')
+        figure = create_figure(title: "Lion of Nemea", workflow_name: "test_workflow")
         get("/api/labors/figures")
 
         expect(last_response.status).to eq(200)
@@ -65,7 +65,7 @@ describe FigureController do
       figure_v2 = create_figure(
         title: "Lion of Nemea, redux",
         workflow_name: "test_workflow.cwl",
-        figure_id: figure.figure_id
+        figure_id: figure.figure_id,
       )
       get("/api/labors/figure/#{figure.figure_id}/revisions")
 
@@ -82,31 +82,32 @@ describe FigureController do
       below_editor_roles.each do |role|
         auth_header(role)
         contents = {
-          title: 'Lion of Nemea',
-          workflow_name: 'reubens',
-          inputs: { a: 'b' }
+          title: "Lion of Nemea",
+          workflow_name: "test_workflow.cwl",
+          inputs: { a: "b" },
         }
         post("/api/labors/figure/create", contents)
 
         expect(last_response.status).to eq(200)
         expect(json_body).to include(
           contents.merge(
-            project_name: "labors"
+            project_name: "labors",
           )
         )
       end
     end
 
-    it 'creates a new public figure with tags' do
+    it "creates a new public figure with tags" do
       auth_header(:viewer)
       contents = {
-        title: 'Lion of Nemea',
-        workflow_name: 'reubens',
-        inputs: { a: 'b' },
-        tags: ['public']
+        title: "Lion of Nemea",
+        workflow_name: "test_workflow.cwl",
+        inputs: { a: "b" },
+        tags: ["public"],
       }
 
       expect(Vulcan::Figure.count).to eq(0)
+      expect(Vulcan::WorkflowSnapshot.count).to eq(0)
       post("/api/labors/figure/create", contents)
 
       expect(last_response.status).to eq(200)
@@ -121,7 +122,7 @@ describe FigureController do
       expect(Vulcan::Figure.count).to eq(1)
     end
 
-    it 'refuses to create a public figure with tags for guest' do
+    it "refuses to create a public figure with tags for guest" do
       auth_header(:guest)
       contents = {
         title: "Lion of Nemea",
@@ -138,14 +139,14 @@ describe FigureController do
       expect(Vulcan::Figure.count).to eq(0)
     end
 
-    it 'guest can create a figure with non-public tags' do
+    it "guest can create a figure with non-public tags" do
       expect(Vulcan::Figure.count).to eq(0)
       auth_header(:guest)
       contents = {
-        title: 'Lion of Nemea',
-        workflow_name: 'reubens',
-        inputs: { a: 'b' },
-        tags: ['mine']
+        title: "Lion of Nemea",
+        workflow_name: "test_workflow.cwl",
+        inputs: { a: "b" },
+        tags: ["mine"],
       }
 
       expect(Vulcan::Figure.count).to eq(0)
@@ -176,8 +177,8 @@ describe FigureController do
       )
 
       expect(Vulcan::WorkflowSnapshot.count).to eq(1)
-      original_title = 'Hercules Fighting the Nemean Lion'
-      contents = { title: original_title, comment: 'Better title'}
+      original_title = "Hercules Fighting the Nemean Lion"
+      contents = { title: original_title, comment: "Better title" }
 
       below_editor_roles.each_with_index do |role, index|
         auth_header(role)
@@ -201,8 +202,8 @@ describe FigureController do
         # there are more figures
         expect(Vulcan::Figure.count).to eq(2 + index)
         expect(Vulcan::WorkflowSnapshot.count).to eq(2 + index)
-        expect(Vulcan::WorkflowSnapshot.first.to_workflow_json).to eq(
-          Vulcan::WorkflowSnapshot.last.to_workflow_json
+        expect(Vulcan::WorkflowSnapshot.first.as_steps_json).to eq(
+          Vulcan::WorkflowSnapshot.last.as_steps_json
         )
       end
     end
@@ -274,11 +275,10 @@ describe FigureController do
         "authors": ["a new author"],
         "projects": ["another project"],
       })
-      allow_any_instance_of(Etna::Cwl::Workflow).to receive(:as_steps_json).and_return({
-        "steps": [],
-        "name": "test_workflow.cwl",
-      })
-      allow_any_instance_of(FigureController).to receive(:dependency_shas).and_return({
+      allow(Etna::Cwl::Workflow).to receive(:raw_yaml_from_file).and_return(
+        YAML.safe_load("---\ncwlVersion: v1.1\nclass: Workflow\ninputs: []\noutputs: []\nsteps:\n  dummyStep:\n    run: scripts/something.cwl\n    in: []\n    out: []\nname: test_workflow.cwl")
+      )
+      allow_any_instance_of(Vulcan::DependencyManager).to receive(:dependency_shas).and_return({
         "vulcan": "sha256:123",
       })
     end
@@ -325,8 +325,8 @@ describe FigureController do
       )
 
       # Make sure the workflow steps also update
-      expect(Vulcan::WorkflowSnapshot.first.steps).not_to eq(
-        Vulcan::WorkflowSnapshot.last.steps
+      expect(Vulcan::WorkflowSnapshot.first.cwl_yaml).not_to eq(
+        Vulcan::WorkflowSnapshot.last.cwl_yaml
       )
     end
 
@@ -363,15 +363,15 @@ describe FigureController do
       )
 
       expect(Vulcan::WorkflowSnapshot.count).to eq(2)
-      expect(Vulcan::WorkflowSnapshot.first.to_workflow_json).to eq(
-        Vulcan::WorkflowSnapshot.last.to_workflow_json
+      expect(Vulcan::WorkflowSnapshot.first.cwl_yaml).to eq(
+        Vulcan::WorkflowSnapshot.last.cwl_yaml
       )
     end
 
-    it 'guest updates an existing figure with non-public tags' do
-      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
+    it "guest updates an existing figure with non-public tags" do
+      figure = create_figure(title: "Lion of Nemea", workflow_name: "reubens")
       auth_header(:guest)
-      contents = { tags: ['private'], comment: 'Make private' }
+      contents = { tags: ["private"], comment: "Make private" }
       post("/api/labors/figure/#{figure.figure_id}/update", contents)
 
       expect(last_response.status).to eq(200)
@@ -379,19 +379,19 @@ describe FigureController do
         figure_id: 1,
         inputs: {},
         project_name: "labors",
-        tags: ['private'],
-        workflow_name: "reubens"
+        tags: ["private"],
+        workflow_name: "reubens",
       )
     end
 
-    it 'guest cannot update an existing figure with public tag' do
-      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'reubens')
+    it "guest cannot update an existing figure with public tag" do
+      figure = create_figure(title: "Lion of Nemea", workflow_name: "test_workflow.cwl")
       auth_header(:guest)
-      contents = { tags: ['public'], comment: 'Make public' }
+      contents = { tags: ["public"], comment: "Make public" }
       post("/api/labors/figure/#{figure.figure_id}/update", contents)
 
       expect(last_response.status).to eq(422)
-      
+
       figure.refresh
       expect(figure.tags).to eq(nil)
     end
@@ -411,8 +411,8 @@ describe FigureController do
       expect(figure.archived).to be_truthy
     end
 
-    it 'deletes an existing figure as guest' do
-      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'test_workflow.cwl')
+    it "deletes an existing figure as guest" do
+      figure = create_figure(title: "Lion of Nemea", workflow_name: "test_workflow.cwl")
 
       expect(Vulcan::Figure.count).to eq(1)
       auth_header(:guest)
@@ -424,8 +424,8 @@ describe FigureController do
       expect(figure.archived).to be_truthy
     end
 
-    it 'throws exception for unknown figure' do
-      figure = create_figure(title: 'Lion of Nemea', workflow_name: 'test_workflow.cwl')
+    it "throws exception for unknown figure" do
+      figure = create_figure(title: "Lion of Nemea", workflow_name: "test_workflow.cwl")
 
       expect(Vulcan::Figure.count).to eq(1)
       auth_header(:viewer)

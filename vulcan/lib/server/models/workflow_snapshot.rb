@@ -2,75 +2,65 @@ class Vulcan
   class WorkflowSnapshot < Sequel::Model
     plugin :timestamps, update_on_create: true
 
-    def self.params
+    def self.metadata_params
       [
         :authors,
-        :name,
         :projects,
         :vignette,
-        :displayName,
+        :display_name,
         :description,
-        :cwlVersion,
-        :inputs,
-        :outputs,
-        :steps,
+        :query_action,
+        :input_query_map,
         :tags,
         :image,
       ]
     end
 
-    def self.from_workflow_json(json_workflow:, figure_id:)
+    def self.from_workflow_name(workflow_name:, figure_id:)
+      cwl_yaml = Etna::Cwl::Workflow.raw_yaml_from_file(workflow_name)
+      metadata = Etna::Cwl::Workflow.metadata(workflow_name)
       Vulcan::WorkflowSnapshot.create({
         figure_id: figure_id,
+        cwl_yaml: YAML.dump(cwl_yaml),
       }.update(
-        Vulcan::WorkflowSnapshot.snake_case_keys(json_workflow.slice(*Vulcan::WorkflowSnapshot.params))
-      ).update(
-        other_metadata: json_workflow.slice(*(json_workflow.keys - Vulcan::WorkflowSnapshot.params)),
+        Vulcan::WorkflowSnapshot.snake_case_keys(metadata.slice(*Vulcan::WorkflowSnapshot.metadata_params))
       ))
     end
 
-    def to_workflow_json(symbolize_names: true, for_json_loader: false)
-      JSON.parse({
-        class: "Workflow",
-      }.update(Vulcan::WorkflowSnapshot.params.map do |param|
-        value = self[param.to_s.snake_case.to_sym]
-        if param == :steps
-          [param, [value.first&.map do |step|
-            for_json_loader ? step : inject_step_name(step)
-          end].compact]
-        else
-          [param, value]
-        end
-      end.to_h).update(self.other_metadata).to_json, symbolize_names: symbolize_names)
+    def self.from_snapshot(previous_snapshot:, figure_id:)
+      Vulcan::WorkflowSnapshot.create({
+        figure_id: figure_id,
+      }.update(previous_snapshot.to_hash))
     end
 
-    private
+    def as_steps_json
+      Etna::Cwl::Workflow.from_yaml(cwl_as_yaml).as_steps_json(figure.workflow_name)
+    end
 
-    def self.snake_case_keys(json_workflow)
-      {}.tap do |snake_case|
-        json_workflow.each do |key, value|
-          if key == :steps
-            # Steps are nested one level deep
-            snake_case[key.to_s.snake_case] = [value.first&.map do |step|
-              Vulcan::WorkflowSnapshot.inject_step_id(step)
-            end].compact
-          else
-            snake_case[key.to_s.snake_case] = value
-          end
+    def to_hash
+      {}.tap do |result|
+        [:cwl_yaml].concat(Vulcan::WorkflowSnapshot.metadata_params).each do |param|
+          result[param] = self[param]
         end
       end
     end
 
-    def self.inject_step_id(step_json)
-      step_json.map do |key, value|
-        key.to_sym == :name ? [:id, value] : [key, value]
-      end.to_h
+    def cwl_as_yaml
+      YAML.safe_load(cwl_yaml)
     end
 
-    def inject_step_name(step_json)
-      step_json.map do |key, value|
-        key.to_sym == :id ? [:name, value] : [key, value]
-      end.to_h
+    private
+
+    def figure
+      @figure ||= Vulcan::Figure.where(id: figure_id).first
+    end
+
+    def self.snake_case_keys(yaml_workflow)
+      {}.tap do |snake_case|
+        yaml_workflow.each do |key, value|
+          snake_case[key.to_s.snake_case] = value
+        end
+      end
     end
   end
 end

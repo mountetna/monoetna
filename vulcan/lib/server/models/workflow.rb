@@ -14,11 +14,20 @@ module Etna
     end
 
     class Workflow < Cwl
-      def self.from_yaml_file(filename, prefix = Vulcan.instance.config(:workflows_folder))
+
+      def self.raw_yaml_from_file(filename, prefix = Vulcan.instance.config(:workflows_folder))
         full_path = File.join(prefix, filename)
         raise WorkflowNotFound.new("File not found: #{filename}") unless ::File.exists?(full_path)
-        attributes = YAML.safe_load(::File.read(full_path))
+        YAML.safe_load(::File.read(full_path))
+      end
+
+      def self.from_yaml(attributes)
         self.loader.load(attributes)
+      end
+  
+      def self.from_yaml_file(filename, prefix = Vulcan.instance.config(:workflows_folder))
+        attributes = Etna::Cwl::Workflow.raw_yaml_from_file(filename, prefix)
+        Etna::Cwl::Workflow.from_yaml(attributes)
       end
 
       def self.metadata(filename, prefix = Vulcan.instance.config(:workflows_folder))
@@ -39,7 +48,7 @@ module Etna
       end
 
       def self.from_snapshot(workflow_snapshot)
-        self.loader.load(workflow_snapshot.to_workflow_json(symbolize_names: false, for_json_loader: true))
+        self.loader.load(workflow_snapshot.cwl_as_yaml)
       end
 
       def find_step(step_name)

@@ -35,7 +35,9 @@ class FigureController < Vulcan::Controller
         @params.slice(*figure_params)
       ).update(
         dependencies: dependency_shas
-      )
+      ),
+      @user,
+      @params[:project_name]
     )
     success_json(figure.to_hash)
   rescue ArgumentError => e
@@ -66,7 +68,11 @@ class FigureController < Vulcan::Controller
       @params.slice(*figure_params)
     )
 
-    new_figure = Vulcan::Figure.create(new_figure_data)
+    new_figure = Vulcan::Figure.from_payload(
+      new_figure_data,
+      @user,
+      @params[:project_name]
+    )
 
     # Only archive the original figure once the new figure
     #   exists, otherwise we risk losing the figure if

@@ -32,12 +32,14 @@ class Vulcan
         previous_figure = Vulcan::Figure.where(figure_id: self.figure_id).exclude(id: self.id).last
         previous_snapshot = Vulcan::WorkflowSnapshot.where(figure_id: previous_figure.id).first if previous_figure
 
-        Vulcan::WorkflowSnapshot.from_workflow_json(
-          figure_id: self.id,
-          json_workflow: !previous_snapshot.nil? ?
-            previous_snapshot.to_workflow_json :
-            current_workflow_json,
-        )
+        if !previous_snapshot.nil?
+          Vulcan::WorkflowSnapshot.from_snapshot(
+            previous_snapshot: previous_snapshot,
+            figure_id: self.id
+          )
+        else
+          take_snapshot
+        end
 
         refresh
       rescue Etna::Cwl::WorkflowNotFound
@@ -50,9 +52,9 @@ class Vulcan
     def take_snapshot
       remove_existing_snapshot if has_snapshot?
 
-      Vulcan::WorkflowSnapshot.from_workflow_json(
+      Vulcan::WorkflowSnapshot.from_workflow_name(
         figure_id: self.id,
-        json_workflow: current_workflow_json,
+        workflow_name: workflow_name,
       )
 
       refresh
@@ -74,6 +76,7 @@ class Vulcan
     def remove_existing_snapshot
       Vulcan::WorkflowSnapshot.where(figure_id: self.id).first.delete
       refresh
+    end
 
     def session
       @session ||= Session.from_figure(self)
@@ -120,7 +123,7 @@ class Vulcan
         updated_at: updated_at.iso8601,
         comment: comment,
         id: id,
-        workflow_snapshot: workflow_snapshot&.to_workflow_json
+        workflow_snapshot: workflow_snapshot&.as_steps_json,
       }
     end
 
@@ -139,20 +142,16 @@ class Vulcan
         created_at: created_at.iso8601,
         updated_at: updated_at.iso8601,
         dependencies: dependencies,
-        workflow_snapshot: workflow_snapshot&.to_workflow_json,
+        workflow_snapshot: workflow_snapshot&.as_steps_json,
       }
     end
 
     private
 
-    def current_workflow_json
-      @current_workflow_json ||= Etna::Cwl::Workflow.json_from_file_with_metadata(workflow_name)
-    end
-
     def self.validate(payload, user, project_name)
       project_permissions = user.permissions[project_name]
 
-      raise ArgumentError.new('Guests cannot save public figures. Please remove the "public" tag and try saving again.') if project_permissions[:role] == :guest && payload[:tags]&.include?('public')
+      raise ArgumentError.new('Guests cannot save public figures. Please remove the "public" tag and try saving again.') if project_permissions[:role] == :guest && payload[:tags]&.include?("public")
     end
   end
 end
