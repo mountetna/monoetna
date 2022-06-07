@@ -10,7 +10,7 @@ Sequel.migration do
       String :display_name
       String :description
       String :cwl_yaml, null: false
-      json :other_metadata
+      json :query_metadata
       json :tags
       String :image
 
