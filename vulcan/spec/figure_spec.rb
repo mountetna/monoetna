@@ -56,6 +56,18 @@ describe FigureController do
         expect(json_body[:workflow_snapshot][:steps][0][0].key?(:name)).to eq(true)
       end
     end
+
+
+    it "snapshot includes metadata" do
+      below_editor_roles.each do |role|
+        auth_header(role)
+        figure = create_figure(title: "Lion of Nemea", workflow_name: "test_workflow.cwl")
+        get("/api/labors/figure/#{figure.figure_id}")
+
+        expect(last_response.status).to eq(200)
+        expect(json_body[:workflow_snapshot][:projects]).to eq(["labors", "secret_project"])
+      end
+    end
   end
 
   context "#revisions" do
@@ -202,8 +214,8 @@ describe FigureController do
         # there are more figures
         expect(Vulcan::Figure.count).to eq(2 + index)
         expect(Vulcan::WorkflowSnapshot.count).to eq(2 + index)
-        expect(Vulcan::WorkflowSnapshot.first.as_steps_json).to eq(
-          Vulcan::WorkflowSnapshot.last.as_steps_json
+        expect(Vulcan::WorkflowSnapshot.first.as_steps_json_w_metadata).to eq(
+          Vulcan::WorkflowSnapshot.last.as_steps_json_w_metadata
         )
       end
     end

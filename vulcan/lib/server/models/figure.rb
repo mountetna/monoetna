@@ -123,7 +123,7 @@ class Vulcan
         updated_at: updated_at.iso8601,
         comment: comment,
         id: id,
-        workflow_snapshot: workflow_snapshot&.as_steps_json,
+        workflow_snapshot: workflow_snapshot&.as_steps_json_w_metadata,
       }
     end
 
@@ -142,7 +142,7 @@ class Vulcan
         created_at: created_at.iso8601,
         updated_at: updated_at.iso8601,
         dependencies: dependencies,
-        workflow_snapshot: workflow_snapshot&.as_steps_json,
+        workflow_snapshot: workflow_snapshot&.as_steps_json_w_metadata,
       }
     end
 

@@ -33,23 +33,29 @@ class Vulcan
       }.update(previous_snapshot.to_hash))
     end
 
-    def as_steps_json
-      Etna::Cwl::Workflow.from_yaml(cwl_as_yaml).as_steps_json(figure.workflow_name)
-    end
-
-    def to_hash
-      {}.tap do |result|
-        [:cwl_yaml].concat(Vulcan::WorkflowSnapshot.metadata_params).each do |param|
-          result[param] = self[param]
-        end
-      end
+    def as_steps_json_w_metadata
+      Etna::Cwl::Workflow.from_yaml(cwl_as_yaml).as_steps_json(figure.workflow_name).update(
+        params_to_hash(Vulcan::WorkflowSnapshot.metadata_params)
+      )
     end
 
     def cwl_as_yaml
       YAML.safe_load(cwl_yaml)
     end
 
+    def to_hash
+      params_to_hash([:cwl_yaml].concat(Vulcan::WorkflowSnapshot.metadata_params))
+    end
+
     private
+
+    def params_to_hash(params)
+      {}.tap do |result|
+        params.each do |param|
+          result[param] = self[param]
+        end
+      end
+    end
 
     def figure
       @figure ||= Vulcan::Figure.where(id: figure_id).first
