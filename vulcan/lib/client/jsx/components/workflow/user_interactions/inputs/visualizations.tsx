@@ -9,8 +9,9 @@ import { useSetsDefault } from './useSetsDefault';
 import { some } from '../../../../selectors/maybe';
 import { Accordion, AccordionDetails, AccordionSummary, Grid, Typography } from '@material-ui/core';
 import { pick } from 'lodash';
-import { key_wrap, stringPiece, dropdownPiece, multiselectPiece, checkboxPiece, sliderPiece, reorderPiece } from './user_input_pieces';
+import { key_wrap, stringPiece, dropdownPiece, multiselectPiece, checkboxPiece, sliderPiece } from './user_input_pieces';
 import { subsetDataFramePiece } from './subsetDataFrame_piece';
+import { reorderPiece } from './reorder_piece';
 
 /*
 Docmentation last updated: Apr 15, 2022
