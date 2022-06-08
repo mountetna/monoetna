@@ -67,13 +67,12 @@ export function reorderPiece(
     />
   
   const reorder_custom = !Array.isArray(value) ? null :
-    <DragDropContext onDragEnd={handleOnDragEnd} style={{paddingLeft:10, padding:2}}>
+    <DragDropContext onDragEnd={handleOnDragEnd}>
       <Droppable droppableId='columns'>
         {(provided: any) => (
           <Paper
             ref={provided.innerRef}
             {...provided.droppableProps}
-            // style={{display: 'inline-flex'}}
           >
             {(value as string[]).map((level: string, index: number) => {
               return (
