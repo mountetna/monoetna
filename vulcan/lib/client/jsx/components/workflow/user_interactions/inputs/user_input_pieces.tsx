@@ -2,13 +2,11 @@ import React from 'react';
 import {DataEnvelope} from './input_types';
 import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
 import MultiselectStringInput from './multiselect_string';
-import { InputLabel, Paper, Slider } from '@material-ui/core';
+import { InputLabel, Slider } from '@material-ui/core';
 import StringInput from './string';
 import BooleanInput from './boolean';
 import SelectAutocompleteInput from './select_autocomplete';
 import FloatInput from './float';
-import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
-import { arrayLevels } from './subsetDataFrame_piece';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v}
@@ -20,6 +18,13 @@ export function key_wrap(k: string[]) {
     de[k[ind]]="0";
   }
   return de;
+}
+
+export function arrayLevels(original: any[]) {
+  function onlyUnique(value: any, index: number, self: any) {
+    return self.indexOf(value) === index;
+  }
+  return Array.from(original).filter(onlyUnique)
 }
 
 /*

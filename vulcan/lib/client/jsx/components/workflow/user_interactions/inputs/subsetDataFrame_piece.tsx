@@ -4,6 +4,7 @@ import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplet
 import { checkboxPiece, dropdownPiece, multiselectPiece, rangePiece } from './user_input_pieces';
 import { Button, PropTypes } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
+import { arrayLevels } from './user_input_pieces';
 
 /*
 This script defines a component that behaves like all other 'user_input_pieces'.
@@ -205,11 +206,4 @@ function targetSelectionComponent(
   return(
     <div>Not yet implemented Data Taype. Please followup with someone from the Data Library Team!</div>
   ) 
-}
-
-export function arrayLevels(original: any[]) {
-  function onlyUnique(value: any, index: number, self: any) {
-    return self.indexOf(value) === index;
-  }
-  return Array.from(original).filter(onlyUnique)
 }

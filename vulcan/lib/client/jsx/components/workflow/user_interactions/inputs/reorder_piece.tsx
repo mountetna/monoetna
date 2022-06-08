@@ -4,7 +4,7 @@ import { Paper } from '@material-ui/core';
 import { some } from "../../../../selectors/maybe";
 import SelectAutocompleteInput from './select_autocomplete';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { arrayLevels } from './subsetDataFrame_piece';
+import { arrayLevels } from './user_input_pieces';
 
 const LevelComponent = (props: any) => {
   return(
