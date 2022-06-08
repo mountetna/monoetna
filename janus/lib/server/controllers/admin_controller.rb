@@ -167,7 +167,7 @@ class AdminController < Janus::Controller
     )
 
     user = User[email: @user.email]
-    user.set_guest_permissions!
+    user.set_guest_permissions!(project_name)
 
     if project.contact_email && project.contact_email.length > 0 && @params[:agreed]
       send_email(
