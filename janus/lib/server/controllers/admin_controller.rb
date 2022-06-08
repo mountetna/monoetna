@@ -167,13 +167,13 @@ class AdminController < Janus::Controller
     )
 
     user = User[email: @user.email]
-    user.set_guest_permissions!
+    user.set_guest_permissions!(project_name)
 
     if project.contact_email && project.contact_email.length > 0 && @params[:agreed]
       send_email(
         "Project Lead of #{project_name}",
         project.contact_email,
-        "A new guest user has agreed to the #{project_name} Code of Conduct",
+        "#{project_name} Code of Conduct was signed by #{@user.email}",
         "User #{@user.email} has agreed to the Code of Conduct and will be enjoying guest level access to the project."
       )
     end

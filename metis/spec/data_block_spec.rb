@@ -20,6 +20,133 @@ describe Metis::DataBlock do
   end
 
   context '#compute_hash!' do
+    def validate_readable_block(block)
+      expect(block.has_data?).to be_truthy
+
+      unless block.temp_hash?
+        expect(Metis::File.md5(block.location)).to eql(block.md5_hash)
+      end
+    end
+
+    def validate_block_converged(block)
+      return if Metis::DataBlock.where(id: block.id).first.nil?
+      return if block.removed
+      return unless block.temp_hash?
+
+      validate_readable_block(block)
+    end
+
+    def self.test_concurrent_action(&block)
+      before(:each) do
+        new_db.compute_hash!(&block)
+      end
+
+      it "converges on an end state" do
+        validate_block_converged(new_db)
+        validate_readable_block(new_file.reload.data_block)
+        expect(new_db.temp_hash?).to be_falsey
+      end
+    end
+
+    def self.test_with_processing_error(&block)
+      before(:each) do
+        expect do
+          new_db.compute_hash!(&block)
+        end.to raise_error("Test")
+
+        expect(new_db.temp_hash?).to be_truthy
+      end
+
+      it 'preserves a working file after the failure' do
+        validate_readable_block(new_file.reload.data_block)
+      end
+
+      it "converges on its next run on a valid file" do
+        new_db.compute_hash!
+        validate_block_converged(new_db)
+        validate_readable_block(new_file.reload.data_block)
+        expect(new_file.data_block.temp_hash?).to be_falsey
+        expect(::File.symlink?(new_db.location)).to be_falsey
+      end
+    end
+
+    describe "processing a new temp file" do
+
+      let(:temp_hash) { "#{Metis::DataBlock::TEMP_PREFIX}abcdefg" }
+      let(:new_file) do
+        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM, temp_hash)
+        create_file('athena', 'wisdom.txt', WISDOM, md5_hash: temp_hash)
+      end
+
+      let(:expected_hash) do
+        Digest::MD5.hexdigest(WISDOM)
+      end
+
+      let(:new_db) do
+        new_file.data_block
+      end
+
+      let(:existing_file) do
+        stubs.create_file('athena', 'files', 'wisdom2.txt', WISDOM, expected_hash)
+        create_file('athena', 'wisdom2.txt', WISDOM, md5_hash: expected_hash)
+      end
+
+      describe 'for a new hash' do
+        describe 'when a data block by the same hash concurrently is created' do
+          test_concurrent_action do |test_cmd|
+            if test_cmd.first == :sym
+              # create the existing file, at this very moment.
+              ::File.write(test_cmd[2], WISDOM)
+            end
+          end
+        end
+
+        describe 'when the update to the block md5 fails after the sym link' do
+          test_with_processing_error do |test_cmd|
+            if test_cmd.first == :new_update
+              raise "Test"
+            end
+          end
+        end
+      end
+
+      describe "with existing block pointing to same hash" do
+        before(:each) { existing_file }
+
+        it 'converges sanely' do
+          new_db.compute_hash!
+
+          validate_block_converged(new_db)
+          validate_readable_block(existing_file.reload.data_block)
+          validate_readable_block(new_file.reload.data_block)
+        end
+
+        describe 'if something happens after temp delete but before database update' do
+          test_with_processing_error do |test_cmd|
+            if test_cmd.first == :temp_destroy
+              raise "Test"
+            end
+          end
+
+          it "The existing file is still ok" do
+            validate_readable_block(existing_file.reload.data_block)
+          end
+        end
+
+        describe 'if something happens before existing temp file deletion' do
+          test_with_processing_error do |test_cmd|
+            if test_cmd.first == :temp_delete
+              raise "Test"
+            end
+          end
+
+          it "The existing file is still ok" do
+            validate_readable_block(existing_file.reload.data_block)
+          end
+        end
+      end
+    end
+
     it 'computes the md5 sum of the block if it is temporary (not yet computed)' do
       # We create the data block with a temporary hash assigned
       temp_hash = "temp-ef15c9bd4c7836612b1567f4c8396726"
@@ -37,6 +164,7 @@ describe Metis::DataBlock do
 
       # the hash is now the actual md5
       expect(wisdom_data.md5_hash).to eq(Digest::MD5.hexdigest(WISDOM))
+      expect(wisdom_data.has_data?).to be_truthy
     end
 
     it 'does not recompute hashes' do
@@ -52,6 +180,7 @@ describe Metis::DataBlock do
 
       wisdom_data.refresh
       expect(wisdom_data.md5_hash).to eq(Digest::MD5.hexdigest(WISDOM))
+      expect(wisdom_data.has_data?).to be_truthy
     end
   end
 
@@ -61,7 +190,6 @@ describe Metis::DataBlock do
       @wisdom_data = @wisdom_file.data_block
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
     end
-
 
     it 'backs up the file to AWS Glacier' do
       glacier_stub('metis-test-athena')
@@ -174,7 +302,7 @@ describe DataBlockController do
       ])
 
       expect(last_response.status).to eq(200)
-      expect(json_body).to eq(found: [ wisdom_md5 ], missing: [ folly_md5])
+      expect(json_body).to eq(found: [wisdom_md5], missing: [folly_md5])
     end
   end
 end

@@ -12,9 +12,9 @@ class Vulcan
       erb_view(:no_auth)
     end
 
-    get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true, has_flag?: 'vulcan' } }
+    get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
 
-    with auth: { user: { can_view?: :project_name, has_flag?: 'vulcan' } } do
+    with auth: { user: { can_view?: :project_name } } do
       get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true
       post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true
       post 'api/:project_name/session/:workflow_name', action: 'sessions#submit', as: :submit_view, match_ext: true
