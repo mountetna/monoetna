@@ -74,7 +74,7 @@ class Metis
     end
 
     def compute_hash!(&test_hook)
-      if temp_hash? and has_data?
+      if temp_hash? && has_data?
         md5_hash = Metis::File.md5(location)
         existing_block = Metis::DataBlock.where(md5_hash: md5_hash).first
 
