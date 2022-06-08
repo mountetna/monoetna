@@ -33,7 +33,6 @@ class Metis
     end
 
     def set_file_data(file_path, copy = false)
-      # Rename the existing file.
       if copy
         ::FileUtils.copy(
           file_path,
@@ -74,10 +73,9 @@ class Metis
       md5_hash =~ TEMP_MATCH
     end
 
-    def compute_hash!
-      if has_data? && temp_hash?
+    def compute_hash!(&test_hook)
+      if temp_hash? and has_data?
         md5_hash = Metis::File.md5(location)
-
         existing_block = Metis::DataBlock.where(md5_hash: md5_hash).first
 
         if existing_block
@@ -88,22 +86,38 @@ class Metis
             data_block_id: existing_block.id,
           )
 
+          yield [:temp_delete] if block_given?
           # destroy the redundant file
-          ::File.delete(location)
+          ::File.delete(location) if has_data?
 
           # destroy this redundant record
+          yield [:temp_destroy] if block_given?
           destroy
           return
+        else
+          # Create a stub in position without removing the exist file, to ensure that
+          # if the database transaction fails, we still have a way of finding the file backing
+          # this datablock.
+          yield [:sym, location, file_location(md5_hash)] if block_given?
+          begin
+            ::File.symlink(location, file_location(md5_hash))
+          rescue ::Errno::EEXIST => e
+            # Some other process may have already prepared the file by the same hash,
+          end
+
+          yield [:new_update] if block_given?
+          update(md5_hash: md5_hash)
         end
+      end
 
-        # Actually move the file
-        ::File.rename(
-          location,
-          file_location(md5_hash)
-        )
+      if ::File.symlink?(location) && !temp_hash?
+        original_file = ::File.readlink(location)
+        ::File.rename(original_file, location)
+      end
 
-        # Now update the record
-        update(md5_hash: md5_hash)
+      unless has_data?
+        yield [:update_removed] if block_given?
+        update(removed: true)
       end
     end
 
