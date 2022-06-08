@@ -188,10 +188,7 @@ function targetSelectionComponent(
   }
   if (typeof target_data[0] == "string") {
     // Need to build the unique options set first.
-    function onlyUnique(value: any, index: number, self: any) {
-      return self.indexOf(value) === index;
-    }
-    const options = target_data.filter(onlyUnique) as string[];
+    const options = arrayLevels(target_data) as string[];
     return multiselectPiece(
       key+index+index, updateFxn,
       inner_def as string[],
@@ -208,4 +205,11 @@ function targetSelectionComponent(
   return(
     <div>Not yet implemented Data Taype. Please followup with someone from the Data Library Team!</div>
   ) 
+}
+
+export function arrayLevels(original: any[]) {
+  function onlyUnique(value: any, index: number, self: any) {
+    return self.indexOf(value) === index;
+  }
+  return Array.from(original).filter(onlyUnique)
 }

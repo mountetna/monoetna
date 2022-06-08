@@ -2,11 +2,13 @@ import React from 'react';
 import {DataEnvelope} from './input_types';
 import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
 import MultiselectStringInput from './multiselect_string';
-import { InputLabel, Slider } from '@material-ui/core';
+import { InputLabel, Paper, Slider } from '@material-ui/core';
 import StringInput from './string';
 import BooleanInput from './boolean';
 import SelectAutocompleteInput from './select_autocomplete';
 import FloatInput from './float';
+import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
+import { arrayLevels } from './subsetDataFrame_piece';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v}
@@ -159,3 +161,88 @@ export function rangePiece(
       </div>
     )
   }
+
+export function reorderPiece(
+  key: string, changeFxn: Function, value: string | string[] = "unordered",
+  label: string, full_data: DataEnvelope<any[]>, data_target: string | null) {
+
+  let chosen_case = Array.isArray(value) ? "custom" : value
+
+  const case_dropdown = <SelectAutocompleteInput
+      key={key}
+      label={label}
+      disabled={data_target == null}
+      value={some(chosen_case)}
+      data={{a: ['unordered', 'increasing', 'decreasing', 'custom']}}
+      onChange={() => {}}
+      onChangeOverride={ (e, picked) => {
+        console.log({picked})
+        const newValue = picked=='custom' ? arrayLevels(Object.values(full_data[data_target as string])) : picked
+        changeFxn(newValue, key)
+      }}
+    />
+  
+  const LevelComponent = (props: any) => {
+    return(
+      <Draggable
+        draggableId={`level-${props.levelIndex}`}
+        index={props.levelIndex}
+      >
+        {(provided: any) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+          >
+            {props.level}
+          </div>
+        )}
+      </Draggable>
+    )
+  }
+
+  const handleOnDragEnd = (result: any) => {
+    if (!result.destination) {
+      return;
+    }
+
+    if (result.destination.index === result.source.index) {
+      return;
+    }
+
+    const newValues = Array.from(value)
+    const [removed] = newValues.splice(result.source.index, 1);
+    newValues.splice(result.destination.index, 0, removed);
+
+    changeFxn(newValues, key)
+  }
+  
+  const reorder_custom = !Array.isArray(value) ? null :
+    <DragDropContext onDragEnd={handleOnDragEnd}>
+      <Droppable droppableId='columns'>
+        {(provided: any) => (
+          <Paper ref={provided.innerRef} {...provided.droppableProps}>
+            {(value as string[]).map((level: string, index: number) => {
+              return (
+                <LevelComponent
+                  key={index}
+                  level={level}
+                  levelIndex={index}
+                />
+              );
+            })}
+            {provided.placeholder}
+          </Paper>
+        )}
+      </Droppable>
+    </DragDropContext>
+  
+  console.log({value})
+  
+  return(
+    <div key={key} style={{paddingTop: 8}}>
+      {case_dropdown}
+      {reorder_custom}
+    </div>
+  )
+}

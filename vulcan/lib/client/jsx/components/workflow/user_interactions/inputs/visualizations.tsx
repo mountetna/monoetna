@@ -9,7 +9,7 @@ import { useSetsDefault } from './useSetsDefault';
 import { some } from '../../../../selectors/maybe';
 import { Accordion, AccordionDetails, AccordionSummary, Grid, Typography } from '@material-ui/core';
 import { pick } from 'lodash';
-import { key_wrap, stringPiece, dropdownPiece, multiselectPiece, checkboxPiece, sliderPiece } from './user_input_pieces';
+import { key_wrap, stringPiece, dropdownPiece, multiselectPiece, checkboxPiece, sliderPiece, reorderPiece } from './user_input_pieces';
 import { subsetDataFramePiece } from './subsetDataFrame_piece';
 
 /*
@@ -138,7 +138,12 @@ function VisualizationUI({
     return data['discrete_cols']
   }, [data]);
 
-  const extra_inputs = useExtraInputs(columns, data_frame, plotType, continuous_columns, discrete_columns);
+  const x_by = (value && Object.keys(value).includes('x_by')) ? value.x_by as string | null : null
+  
+  const extra_inputs = useExtraInputs(
+    columns, data_frame, plotType,
+    continuous_columns, discrete_columns,
+    x_by)
   
   const shownSetupValues = useMemo(() => {
     if (plotType==null) return {}
@@ -226,7 +231,7 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   'bar_plot': {
     'primary features': ["x_by", "y_by", "scale_by"],
     'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'data focus': ['rows_use']
+    'data focus': ['rows_use', 'x_reorder']
   },
   'y_plot': {
     'primary features': ["x_by", "y_by", "plots", "color_by"],
@@ -268,7 +273,8 @@ const defaults: DataEnvelope<any> = {
   'order_when_continuous_color': false,
   'x_scale': 'linear',
   'y_scale': 'linear',
-  'rows_use': {}
+  'rows_use': {},
+  'x_reorder': 'unordered'
 };
 
 function whichDefaults(plotType: string|null, preset: DataEnvelope<any> | null | undefined) {
@@ -309,6 +315,7 @@ function useExtraInputs(
   options: string[], full_data: DataEnvelope<any>,
   plot_type: string | null,
   continuous: string[], discrete: string[],
+  x_by: string | null,
   constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = input_constraints
   ) {
   
@@ -338,9 +345,10 @@ function useExtraInputs(
       'scale_by': ['Scale Y by counts or fraction', ['counts', 'fraction']],
       'x_scale': ['Adjust scaling of the X-Axis', ['linear', 'log10', 'log10(val+1)']],
       'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
-      'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"]
+      'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"],
+      'x_reorder': ['Reorder X-Axis Groupings', full_data, x_by]
     }
-  }, [options, plot_type, constraints, continuous, discrete]);
+  }, [options, plot_type, constraints, continuous, discrete, x_by]);
 
   return extra_inputs;
 }
@@ -360,7 +368,8 @@ const comps: DataEnvelope<Function> = {
   'scale_by': dropdownPiece,
   'x_scale': dropdownPiece,
   'y_scale': dropdownPiece,
-  'rows_use': subsetDataFramePiece
+  'rows_use': subsetDataFramePiece,
+  'x_reorder': reorderPiece
 }
 
 function InputWrapper({title, values, open, toggleOpen, children}: PropsWithChildren<{title:string, values: DataEnvelope<any>, open: boolean, toggleOpen: Dispatch<string>}>) {

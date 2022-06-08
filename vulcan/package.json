@@ -52,6 +52,7 @@
     "plotly.js": "^1.58.4",
     "prettier": "^2.0.5",
     "react": "^16.13.1",
+    "react-beautiful-dnd": "^13.1.0",
     "react-codemirror2": "^7.2.1",
     "react-dom": "^16.13.1",
     "react-fontawesome": "^1.6.1",
