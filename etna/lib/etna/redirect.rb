@@ -26,7 +26,7 @@ module Etna
     private
 
     def matches_domain?(path)
-      top_domain(@request.server_name) == top_domain(URI(path).host)
+      top_domain(@request.hostname) == top_domain(URI(path).host)
     end
 
     def top_domain(host_name)
