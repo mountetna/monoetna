@@ -15,8 +15,7 @@ class AuthorizationController < Janus::Controller
       raise unless user
 
       # they have a valid token
-      @response.redirect(@params[:refer], 302)
-      @response.finish
+      Etna::Redirect(@request).to(@params[:refer])
     rescue
       if Janus.instance.config(:auth_method) == 'shibboleth'
         return login_shib
@@ -153,11 +152,9 @@ class AuthorizationController < Janus::Controller
   end
 
   def respond_with_cookie(token, refer)
-    # Set redirect.
-    @response.redirect(refer.gsub("http://", "https://"), 302)
-
-    Janus.instance.set_token_cookie(@response,token)
-    return @response.finish
+    Etna::Redirect(@request).to(refer) do |response|
+      Janus.instance.set_token_cookie(response,token)
+    end
   end
 
   private
