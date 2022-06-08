@@ -13,8 +13,6 @@ def bar_plotly(
     scale_by: str = 'fraction',
     px_args: dict = {},
     rows_use = None,
-    x_reorder: Union[str, list] = 'unordered',
-    y_reorder: Union[str, list] = 'unordered',
     color_panel: List[str] = colors,
     xlab: str = "make",
     ylab: str = "make",
@@ -26,7 +24,6 @@ def bar_plotly(
     'scale_by' can be either "fraction" or "counts" and sets whether the y-axis of the plot will ultimately reflect proportions of 'y_by'-value make-up within each 'x_by' group versus raw counts of 'y_by'-values per group. 
     'px_args' should be a dictionary of additional bits to send in the 'plotly.express.bar' call.
     'rows_use'
-    'x_reorder' and 'y_reorder', either "unordered", "increasing", "decreasing", or a list[str] with the desired order for x-axis groups.
     'color_panel' (string list) sets the colors to assign to the distinct 'y_by'-values.
     'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
     
@@ -64,19 +61,6 @@ def bar_plotly(
     px_args['y'] = scale_by
     px_args['color'] = "yvals"
     px_args['color_discrete_sequence'] = color_panel
-    if x_reorder!="unordered" or y_reorder!="unordered":
-        cats = {}
-        if isinstance(x_reorder, list):
-            cats[x_by] = x_reorder
-        elif x_reorder in ["increasing","decreasing"]:
-            cats[x_by] = order(unique(df[x_by]), decreasing = x_reorder=="decreasing")
-        if isinstance(y_reorder, list):
-            cats[y_by] = y_reorder
-        elif y_reorder in ["increasing","decreasing"]:
-            cats[y_by] = order(unique(df[y_by]), decreasing = y_reorder=="decreasing")
-        px_args["category_orders"]=cats
-    
-    # raise Exception(px_args)
     
     ### Make plot
     fig = px.bar(**px_args)

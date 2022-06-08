@@ -25,9 +25,14 @@ const LevelComponent = (props: any) => {
   )
 }
 
+/*
+reorderPiece is configured around the VizualizationUI.
+It could be generalized fairly easily, if needed.
+*/
 export function reorderPiece(
   key: string, changeFxn: Function, value: string | string[] = "unordered",
-  label: string, full_data: DataEnvelope<any[]>, data_target: string | null) {
+  label: string, full_data: DataEnvelope<any[]>, data_target: string | null,
+  discrete_data: string[]) {
 
   const handleOnDragEnd = (result: any) => {
     if (!result.destination) {
@@ -50,7 +55,7 @@ export function reorderPiece(
   const case_dropdown = <SelectAutocompleteInput
       key={key}
       label={label}
-      disabled={data_target == null}
+      disabled={data_target == null || !discrete_data.includes(data_target)}
       value={some(chosen_case)}
       data={{a: ['unordered', 'increasing', 'decreasing', 'custom']}}
       onChange={() => {}}
