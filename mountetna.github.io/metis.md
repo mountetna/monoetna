@@ -56,6 +56,14 @@ upload.
 
 `bin/metis_client` is a command-line client to interact with metis. To run the client requires Ruby 2.5+.
 
+You should install Ruby via [rbenv](https://github.com/rbenv/rbenv) and select one of the above versions (2.5 - 2.6).
+
+#### Non-Linux operating systems
+
+When using metis_client on non-Linux operating systems, you may have to manually install some additional libraries. Notably for macOS, you will want to have the `md5sum` command available. You can install this via homebrew: `$ brew install md5sha1sum`.
+
+You may also need `readline`, which for macOS, you can install via `$ brew install readline`.
+
 #### Setup
 
 To run the metis client, copy your Janus token (by visiting e.g.
@@ -81,6 +89,24 @@ Subsequent arguments will be treated as commands and executed
 non-interactively, e.g. `metis_client metis://athena/armor/blueprints ls` will
 list the contents of the `blueprints` folder.
 
+#### Command-line invocation mode
+
+Once you have a set of Metis commands that you want to execute, you can put them into a text file and feed them into metis_client via the command line. This allows you to automate a process with a scheduler, like `cron` or `systemd`.
+
+For example, you might have a text file like the below `instructions.txt`:
+
+```
+project my_project
+cd data_bucket
+get . /local-path-to-copy-data-to
+```
+
+Then you can execute these commands against Metis (assuming you have injected the `TOKEN` environment variable)
+
+```
+$ metis_client.rb < instructions.txt
+```
+
 #### Commands
 
 - *help* - Help! Use this command to get usage information on other commands.
@@ -96,6 +122,24 @@ list the contents of the `blueprints` folder.
 If you have edit permission you may also:
 - *mv* - Rename a file on metis
 - *put* - Upload a folder to metis
+
+#### Avoiding token expiration
+
+Metis downloads may take days, especially for the initial download of a large
+corpus. A common issue is token expiration during the download. While
+resumption is relatively painless, token expiration will usually interrupt a
+workflow. There are some strategies you might employ to avoid token
+expiration:
+
+1. metis_client will attempt to juggle your token (keep it current) during an
+   active download using Janus's `/refresh_token` endpoint. However, this will
+   not re-export a valid token to your shell, so subsequent invocations of
+   metis_client (e.g. if you are using command invocation to script downloads)
+   will fail.
+
+2. You may use Janus's token generation scheme (see above) to refresh your
+   token between downloads. This requires setting a public key on your Janus
+   account.
 
 ## API
 
