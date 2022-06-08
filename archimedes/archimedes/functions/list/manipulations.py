@@ -19,6 +19,9 @@ def flatten(ls: list):
                 yield el
     return list(_flatten(ls))
 
+def reverse(ls: list):
+    return [element for element in reversed(ls)]
+
 def order_num(ls: List[Union[int, float]], return_indexes: bool = False):
     if return_indexes:
         ret = 0
@@ -36,17 +39,19 @@ def order_str(ls: List[str], return_indexes: bool = False):
         ret = 1
     return list(i[ret] for i in sorted(enumerate(ls), key = alphanum_key))
 
-def order(ls: list, return_indexes: bool = False):
+def order(ls: List[Union[int, float, str, bool]], return_indexes: bool = False, decreasing: bool = False):
     """
-    Output: ls reordered in "increasing" order
-    types: str, bool, 'number' (else case):
+    Output: A list. ls reordered in "increasing" order unless 'decreasing' is set to "False"
+    types: str, bool, 'number'
     """
     if all(map(lambda x: isinstance(x, str), ls)):
-        return order_str(ls, return_indexes)
+        output=order_str(ls, return_indexes)
     elif all(map(lambda x: isinstance(x, bool), ls)):
         num_ls = list({True: 0, False: 1}[x] for x in ls)
         order_inds = order_num(num_ls, True)
-        if return_indexes: return order_inds
-        else: return ls[order_inds]
+        if return_indexes: output=order_inds
+        else: output=list(ls[order_inds])
     else:
-        return order_num(ls, return_indexes)
+        output=order_num(ls, return_indexes)
+    
+    return reverse(output) if decreasing else output

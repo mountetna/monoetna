@@ -17,7 +17,6 @@ const LevelComponent = (props: any) => {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          style={{padding:2}}
         >
           {props.level}
         </div>

@@ -140,11 +140,12 @@ function VisualizationUI({
   }, [data]);
 
   const x_by = (value && Object.keys(value).includes('x_by')) ? value.x_by as string | null : null
+  const y_by = (value && Object.keys(value).includes('y_by')) ? value.y_by as string | null : null
   
   const extra_inputs = useExtraInputs(
     columns, data_frame, plotType,
     continuous_columns, discrete_columns,
-    x_by)
+    x_by, y_by)
   
   const shownSetupValues = useMemo(() => {
     if (plotType==null) return {}
@@ -232,13 +233,13 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   'bar_plot': {
     'primary features': ["x_by", "y_by", "scale_by"],
     'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'data focus': ['rows_use', 'x_reorder']
+    'data focus': ['rows_use', 'x_reorder', 'y_reorder']
   },
   'y_plot': {
     'primary features': ["x_by", "y_by", "plots", "color_by"],
     'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
     'coordinates': ['y_scale'],
-    'data focus': ['rows_use']
+    'data focus': ['rows_use', 'x_reorder']
     //'default_adjust': {'color_by': "make"}
   }
 }
@@ -275,7 +276,8 @@ const defaults: DataEnvelope<any> = {
   'x_scale': 'linear',
   'y_scale': 'linear',
   'rows_use': {},
-  'x_reorder': 'unordered'
+  'x_reorder': 'unordered',
+  'y_reorder': 'unordered'
 };
 
 function whichDefaults(plotType: string|null, preset: DataEnvelope<any> | null | undefined) {
@@ -316,7 +318,7 @@ function useExtraInputs(
   options: string[], full_data: DataEnvelope<any>,
   plot_type: string | null,
   continuous: string[], discrete: string[],
-  x_by: string | null,
+  x_by: string | null, y_by: string | null,
   constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = input_constraints
   ) {
   
@@ -347,9 +349,10 @@ function useExtraInputs(
       'x_scale': ['Adjust scaling of the X-Axis', ['linear', 'log10', 'log10(val+1)']],
       'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
       'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"],
-      'x_reorder': ['Reorder X-Axis Groupings', full_data, x_by]
+      'x_reorder': ['Reorder X-Axis Groupings', full_data, x_by],
+      'y_reorder': ['Reorder Y-Axis Groupings', full_data, y_by]
     }
-  }, [options, plot_type, constraints, continuous, discrete, x_by]);
+  }, [options, plot_type, constraints, continuous, discrete, x_by, y_by]);
 
   return extra_inputs;
 }
@@ -370,7 +373,8 @@ const comps: DataEnvelope<Function> = {
   'x_scale': dropdownPiece,
   'y_scale': dropdownPiece,
   'rows_use': subsetDataFramePiece,
-  'x_reorder': reorderPiece
+  'x_reorder': reorderPiece,
+  'y_reorder': reorderPiece
 }
 
 function InputWrapper({title, values, open, toggleOpen, children}: PropsWithChildren<{title:string, values: DataEnvelope<any>, open: boolean, toggleOpen: Dispatch<string>}>) {
