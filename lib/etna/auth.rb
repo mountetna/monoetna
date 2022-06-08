@@ -65,7 +65,7 @@ module Etna
         application.config(:auth_redirect).chomp('/') + '/login'
       )
       uri.query = URI.encode_www_form(refer: request.url)
-      return [ 302, { 'Location' => uri.to_s }, [] ]
+      Etna::Redirect(request).to(uri.to_s)
     end
 
     def approve_noauth(request)

@@ -132,15 +132,15 @@ describe Etna::Auth do
           test: {
             rsa_private: @private_key,
             rsa_public: @public_key,
-            janus: { host: 'https://janus.test/' },
+            janus: { host: 'https://janus.example.org/' },
             token_name: 'ARACHNE_TOKEN',
             token_algo: 'RS256',
-            auth_redirect: 'https://janus.test'
+            auth_redirect: 'https://janus.example.org'
           }
         )
         clear_cookies
 
-        stub_request(:any, /janus.test/).
+        stub_request(:any, /janus.example.org/).
           to_return(body: {
             projects: [{
               project_name: "test_project",
@@ -163,7 +163,7 @@ describe Etna::Auth do
         get('/test_project')
         expect(last_response.status).to eq(302)
         expect(last_response.headers['Location']).to eq(
-          "https://janus.test/test_project/cc?refer=http%3A%2F%2Fexample.org%2Ftest_project"
+          "https://janus.example.org/test_project/cc?refer=http%3A%2F%2Fexample.org%2Ftest_project"
         )
       end
   
@@ -253,7 +253,7 @@ describe Etna::Auth do
             rsa_private: @private_key,
             rsa_public: @invalid_public_key,
             token_algo: 'RS256',
-            auth_redirect: "https://janus.test"
+            auth_redirect: "https://janus.example.org"
 
           }
         )
@@ -270,7 +270,7 @@ describe Etna::Auth do
         # the auth endpoint.
         expect(last_response.status).to eq(302)
         expect(last_response.headers['Location']).to eq(
-          "https://janus.test/login?refer=http%3A%2F%2Fexample.org%2Ftest"
+          "https://janus.example.org/login?refer=http%3A%2F%2Fexample.org%2Ftest"
         )
       end
     end
@@ -289,7 +289,7 @@ describe Etna::Auth do
           test: {
             rsa_private: @private_key,
             rsa_public: @public_key,
-            janus: { host: 'https://janus.test/' },
+            janus: { host: 'https://janus.example.org/' },
             token_name: 'ARACHNE_TOKEN',
             token_algo: 'RS256'
           }
@@ -298,7 +298,7 @@ describe Etna::Auth do
       end
 
       it "calls Janus for a task token" do
-        stub_request(:any, /janus.test/)
+        stub_request(:any, /janus.example.org/)
 
         token = Arachne.instance.sign.jwt_token(
           email: 'janus@two-faces.org',
@@ -314,11 +314,11 @@ describe Etna::Auth do
         expect(last_response.status).to eq(200)
         expect(last_response.body).to eq('Etna::User')
         expect(authenticated_user.token).to eq(token)
-        expect(WebMock).to have_requested(:post, %r!janus.test/api/!)
+        expect(WebMock).to have_requested(:post, %r!janus.example.org/api/!)
       end
 
       it "rejects the request if janus rejects the task token" do
-        stub_request(:any, /janus.test/).
+        stub_request(:any, /janus.example.org/).
           to_return(status: 401)
 
         token = Arachne.instance.sign.jwt_token(
@@ -333,11 +333,11 @@ describe Etna::Auth do
         auth_header(token)
         get('/test')
         expect(last_response.status).to eq(401)
-        expect(WebMock).to have_requested(:post, %r!janus.test/api/!)
+        expect(WebMock).to have_requested(:post, %r!janus.example.org/api/!)
       end
 
       it "allows the request if janus is ignored" do
-        stub_request(:any, /janus.test/).to_return(status: 401)
+        stub_request(:any, /janus.example.org/).to_return(status: 401)
 
         token = Arachne.instance.sign.jwt_token(
           email: 'janus@two-faces.org',
@@ -353,7 +353,7 @@ describe Etna::Auth do
         auth_header(token)
         get('/test2')
         expect(last_response.status).to eq(200)
-        expect(WebMock).not_to have_requested(:post, %r!janus.test/api/!)
+        expect(WebMock).not_to have_requested(:post, %r!janus.example.org/api/!)
       end
     end
 
@@ -371,14 +371,14 @@ describe Etna::Auth do
           test: {
             rsa_private: @private_key,
             rsa_public: @public_key,
-            janus: { host: 'https://janus.test/' },
+            janus: { host: 'https://janus.example.org/' },
             token_name: 'ARACHNE_TOKEN',
             token_algo: 'RS256'
           }
         )
         clear_cookies
 
-        stub_request(:any, /janus.test\/api\/user\/projects/).to_return(body: {
+        stub_request(:any, /janus.example.org\/api\/user\/projects/).to_return(body: {
           projects: [{
             project_name: 'secret',
             resource: false
@@ -394,7 +394,7 @@ describe Etna::Auth do
 
       context 'with task token' do
         before(:each) do
-          stub_request(:any, /janus.test\/api\/tokens/).to_return(status: 200)
+          stub_request(:any, /janus.example.org\/api\/tokens/).to_return(status: 200)
         end
 
         it "allows the request if user has permissions to project" do
@@ -410,7 +410,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/labors')
           expect(last_response.status).to eq(200)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!)
+          expect(WebMock).to have_requested(:get, %r!janus.example.org/api/user/projects!)
         end
   
         it "denies the request if user does not have permission to non-resource project" do
@@ -426,7 +426,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/secret')
           expect(last_response.status).to eq(403)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(2)
+          expect(WebMock).to have_requested(:get, %r!janus.example.org/api/user/projects!).times(2)
         end
   
         it "allows the request if user does not have permission to resource project" do
@@ -442,7 +442,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/public')
           expect(last_response.status).to eq(200)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!)
+          expect(WebMock).to have_requested(:get, %r!janus.example.org/api/user/projects!)
         end
       end
       
@@ -459,7 +459,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/labors')
           expect(last_response.status).to eq(200)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!)
+          expect(WebMock).to have_requested(:get, %r!janus.example.org/api/user/projects!)
         end
   
         it "denies the request if user does not have permission to non-resource project" do
@@ -474,7 +474,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/secret')
           expect(last_response.status).to eq(403)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!).times(2)
+          expect(WebMock).to have_requested(:get, %r!janus.example.org/api/user/projects!).times(2)
         end
   
         it "allows the request if user does not have permission to resource project" do
@@ -489,7 +489,7 @@ describe Etna::Auth do
           auth_header(token)
           get('/public')
           expect(last_response.status).to eq(200)
-          expect(WebMock).to have_requested(:get, %r!janus.test/api/user/projects!)
+          expect(WebMock).to have_requested(:get, %r!janus.example.org/api/user/projects!)
         end
       end
     end
