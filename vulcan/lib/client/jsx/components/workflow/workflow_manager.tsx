@@ -66,7 +66,7 @@ export default function WorkflowManager({
             !_.isEqual(localSession.inputs, figureResponse.inputs)
           ) {
             useLocal = confirm(
-              'You have an edited, local version of that figure. Click OK to use your local version, Cancel to discard it.'
+              "Your local version of this figure diverges from the last saved version. Do you want to keep your changes? Click 'OK' to use your local version, or 'Cancel' to discard all unsaved changes and load the last saved state."
             );
           }
 
