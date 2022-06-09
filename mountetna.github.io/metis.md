@@ -56,13 +56,21 @@ upload.
 
 `bin/metis_client` is a command-line client to interact with metis. To run the client requires Ruby 2.5+.
 
-You should install Ruby via [rbenv](https://github.com/rbenv/rbenv) and select one of the above versions (2.5 - 2.6).
+You should install Ruby via [rbenv](https://github.com/rbenv/rbenv) and select one of the above versions (2.5 - 2.6). If you are using a non-Linux operating system, you will need to install the dependencies listed in [the non-Linux OS section](#non-linux-operating-system-dependencies).
 
-#### Non-Linux operating systems
+#### Non-Linux operating system dependencies
 
-When using metis_client on non-Linux operating systems, you may have to manually install some additional libraries. Notably for macOS, you will want to have the `md5sum` command available. You can install this via homebrew: `$ brew install md5sha1sum`.
+When using metis_client on non-Linux operating systems, you may have to manually install some additional libraries before installing `rbenv`. 
 
-You may also need `readline`, which for macOS, you can install via `$ brew install readline`.
+  * md5sum
+  * readline
+
+For macOS, you can install these both with [homebrew](https://brew.sh/):
+
+```
+$ brew install md5sha1sum
+$ brew install readline
+```
 
 #### Setup
 
