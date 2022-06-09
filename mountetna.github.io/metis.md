@@ -56,7 +56,7 @@ upload.
 
 `bin/metis_client` is a command-line client to interact with metis. To run the client requires Ruby 2.5+.
 
-You should install Ruby via [rbenv](https://github.com/rbenv/rbenv) and select one of the above versions (2.5 - 2.6). If you are using a non-Linux operating system, you will need to install the dependencies listed in [the non-Linux OS section](#non-linux-operating-system-dependencies).
+You should install Ruby via [rbenv](https://github.com/rbenv/rbenv) and select one of the above versions (2.5 - 2.6). If you are using a non-Linux operating system, you will need to install the dependencies listed in [the non-Linux OS section](#non-linux-operating-system-dependencies) **before** installing `rbenv` or any of the target Ruby versions.
 
 #### Non-Linux operating system dependencies
 
