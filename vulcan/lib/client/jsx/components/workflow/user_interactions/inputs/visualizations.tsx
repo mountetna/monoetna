@@ -195,7 +195,7 @@ function VisualizationUI({
     </Grid>
   )
   
-  console.log(props.value);
+  // console.log(props.value);
   
   return (
     <div key='VizUI'>
