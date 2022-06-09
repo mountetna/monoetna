@@ -6,14 +6,21 @@ import DOMPurify from 'dompurify';
 import * as marked from 'marked'
 
 const useStyles = makeStyles((theme) => {
-  const tags = ["h1", "h2", "h3", "h4", "h5", "h6", "p", "b", "li", "ul"];
+  const blockTags = ["h1", "h2", "h3", "h4", "h5", "h6", "p", "b", "li", "ul", "ol", "pre", "code", "blockquote"];
+  const nonBlockTags = ["hr", "em", "strong", "del", "a", "img"];
   const cc = {};
-  tags.forEach((tag) => {
+
+  blockTags.forEach((tag) => {
     cc[`& ${tag}`] = { ...theme.typography[tag], margin: "15px 0px" };
+  });
+
+  nonBlockTags.forEach((tag) => {
+    if (tag in theme.typography) cc[`& ${tag}`] = { ...theme.typography[tag] };
   });
 
   cc["& li"]["marginLeft"] = 25;
   cc["& ul"]["listStyle"] = "disc outside none";
+  cc["& ol"]["listStyleType"] = "upper-roman;";
 
   return {
     loadingRoot: {
