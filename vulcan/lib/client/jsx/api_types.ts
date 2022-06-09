@@ -176,6 +176,7 @@ export interface VulcanRevision {
   tags?: string[];
   id: number;
   workflow_snapshot?: Workflow;
+  dependencies: {[key: string]: string};
 }
 
 export const defaultFigure = {

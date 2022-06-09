@@ -383,8 +383,13 @@ export default function SessionManager() {
               <RevisionHistory
                 open={openRevisions}
                 onClose={() => setOpenRevisions(false)}
-                revisionDoc={({inputs, title, tags}: VulcanRevision) =>
-                  JSON.stringify({inputs, title, tags}, null, 2)
+                revisionDoc={({
+                  inputs,
+                  title,
+                  tags,
+                  dependencies
+                }: VulcanRevision) =>
+                  JSON.stringify({inputs, title, tags, dependencies}, null, 2)
                 }
                 update={loadRevision}
                 getRevisions={() =>
