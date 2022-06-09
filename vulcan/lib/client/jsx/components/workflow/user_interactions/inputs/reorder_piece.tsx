@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { DataEnvelope } from './input_types';
 import { Paper } from '@material-ui/core';
 import { some } from "../../../../selectors/maybe";
@@ -49,21 +49,40 @@ export function reorderPiece(
 
     changeFxn(newValues, key)
   }
+  const onMethodSelect = (e: any, picked: string | null) => {
+    const newValue = picked=='custom' ? arrayLevels(Object.values(full_data[data_target as string])) : picked
+    changeFxn(newValue, key)
+  }
 
   const chosen_case = Array.isArray(value) ? "custom" : value
+  const order_options = useMemo(() => {
+    if (data_target != null && discrete_data.includes(data_target)) {
+      return ['increasing', 'decreasing', 'unordered', 'custom']
+    }
+    return ['increasing', 'decreasing', 'unordered']
+  }, [data_target, discrete_data])
+
+  // Reset to 'increasing' if data_target changes while 'custom', (also hit on page refresh!)
+  useEffect(() => {
+    if (data_target != null && chosen_case=='custom') {
+      // Needed if new data_target is discrete or if new data levels aren't captured
+      let needs_reset = !discrete_data.includes(data_target)
+      if (!needs_reset) {
+        needs_reset = arrayLevels(Object.values(full_data[data_target as string]))
+        .filter(val => !value.includes(val))
+        .length > 0
+      }
+      if (needs_reset) onMethodSelect(null, 'increasing')
+    }
+  }, [full_data, data_target, discrete_data])
 
   const case_dropdown = <SelectAutocompleteInput
       key={key}
       label={label}
-      disabled={data_target == null || !discrete_data.includes(data_target)}
       value={some(chosen_case)}
-      data={{a: ['unordered', 'increasing', 'decreasing', 'custom']}}
+      data={{a: order_options}}
       onChange={() => {}}
-      onChangeOverride={ (e, picked) => {
-        console.log({picked})
-        const newValue = picked=='custom' ? arrayLevels(Object.values(full_data[data_target as string])) : picked
-        changeFxn(newValue, key)
-      }}
+      onChangeOverride={ onMethodSelect }
     />
   
   const reorder_custom = !Array.isArray(value) ? null :

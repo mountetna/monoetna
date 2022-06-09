@@ -195,7 +195,7 @@ function VisualizationUI({
     </Grid>
   )
   
-  // console.log(props.value);
+  console.log(props.value);
   
   return (
     <div key='VizUI'>
@@ -225,9 +225,8 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   'scatter_plot': {
     'primary features': ["x_by", "y_by", "color_by", 'size'],
     'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'point rendering': ['color_order', 'order_when_continuous_color'],
     'coordinates': ['x_scale', 'y_scale'],
-    'data focus': ['rows_use']
+    'data focus': ['rows_use', 'color_order', 'order_when_continuous_color']
     //'default_adjust': {'color_by': "make"}
   },
   'bar_plot': {
@@ -239,7 +238,7 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
     'primary features': ["x_by", "y_by", "plots", "color_by"],
     'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
     'coordinates': ['y_scale'],
-    'data focus': ['rows_use', 'x_reorder']
+    'data focus': ['rows_use', 'x_order']
     //'default_adjust': {'color_by': "make"}
   }
 }
@@ -276,9 +275,8 @@ const defaults: DataEnvelope<any> = {
   'x_scale': 'linear',
   'y_scale': 'linear',
   'rows_use': {},
-  'x_reorder': 'unordered',
-  'y_reorder': 'unordered',
-  'color_reorder': 'unordered'
+  'x_order': 'increasing',
+  'y_order': 'increasing'
 };
 
 function whichDefaults(plotType: string|null, preset: DataEnvelope<any> | null | undefined) {
@@ -343,16 +341,15 @@ function useExtraInputs(
       'y_by': ['Y-Axis Data', get_options('y_by'), false],
       'color_by': ['Color Data', ['make'].concat(get_options('color_by')), false],
       'plots': ['Data Representations', ['violin', 'box']],
-      'color_order': ['Point render order', ['increasing', 'decreasing', 'unordered']],
+      'color_order': ['Point Render & (discrete) Color Assignment Order', full_data, color_by, discrete],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
       'size': ['Point Size', 0.1, 50],
       'scale_by': ['Scale Y by counts or fraction', ['counts', 'fraction']],
       'x_scale': ['Adjust scaling of the X-Axis', ['linear', 'log10', 'log10(val+1)']],
       'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
       'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"],
-      'x_reorder': ['Reorder X-Axis Groupings', full_data, x_by, discrete],
-      'y_reorder': ['Reorder Y-Axis Groupings', full_data, y_by, discrete],
-      'color_reorder': ['Reorder Color Categories', full_data, color_by, discrete]
+      'x_order': ['Order of X-Axis Groupings', full_data, x_by, discrete],
+      'y_order': ['Order of Y-Axis Groupings', full_data, y_by, discrete],
     }
   }, [options, plot_type, constraints, continuous, discrete, x_by, y_by, color_by]);
 
@@ -368,16 +365,15 @@ const comps: DataEnvelope<Function> = {
   'y_by': dropdownPiece,
   'color_by': dropdownPiece,
   'plots': multiselectPiece,
-  'color_order': dropdownPiece,
+  'color_order': reorderPiece,
   'order_when_continuous_color': checkboxPiece,
   'size': sliderPiece,
   'scale_by': dropdownPiece,
   'x_scale': dropdownPiece,
   'y_scale': dropdownPiece,
   'rows_use': subsetDataFramePiece,
-  'x_reorder': reorderPiece,
-  'y_reorder': reorderPiece,
-  'color_reorder': reorderPiece
+  'x_order': reorderPiece,
+  'y_order': reorderPiece
 }
 
 function InputWrapper({title, values, open, toggleOpen, children}: PropsWithChildren<{title:string, values: DataEnvelope<any>, open: boolean, toggleOpen: Dispatch<string>}>) {

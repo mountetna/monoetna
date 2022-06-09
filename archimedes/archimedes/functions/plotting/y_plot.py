@@ -14,7 +14,7 @@ def y_plotly(
     plots: List[str] = ["violin", "box"],
     px_args: dict = {},
     rows_use = None,
-    x_reorder: Union[str, list] = 'unordered',
+    x_order: Union[str, list] = 'unordered',
     y_scale = "linear",
     color_panel: list = colors,
     xlab: str = "make",
@@ -30,7 +30,7 @@ def y_plotly(
     'color_panel' (string list) sets the colors to use for violin/boxplot fills.
     'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
     'rows_use'
-    'x_reorder', either "unordered", "increasing", "decreasing", or a list[str] with the desired order for x-axis groups. 
+    'x_order', either "unordered", "increasing", "decreasing", or a list[str] with the desired order for x-axis groups. 
     'y_scale', String, 'linear', 'log10', or 'log10(val+1)'. Controls whether this axes should be log scaled, and if so, whether 1 should be added to all values first in order to let zeros be okay to plot.
     """
     
@@ -56,13 +56,13 @@ def y_plotly(
     px_args["color"] = color_by
     px_args["color_discrete_sequence"] = color_panel
     px_args["log_y"] = y_scale=="log10"
-    if x_reorder!="unordered":
-        cats = {}
-        if isinstance(x_reorder, list):
-            cats[x_by] = x_reorder
-        elif x_reorder in ["increasing","decreasing"]:
-            cats[x_by] = order(unique(df[x_by]), decreasing=x_reorder=="decreasing")
-        px_args["category_orders"]=cats
+    if x_order!="unordered":
+        categories = {}
+        if isinstance(x_order, list):
+            categories[x_by] = x_order
+        elif x_order in ["increasing","decreasing"]:
+            categories[x_by] = order(unique(df[x_by]), decreasing=x_order=="decreasing")
+        px_args["category_orders"]=categories
     
     # Make Plot
     if "violin" in plots:
