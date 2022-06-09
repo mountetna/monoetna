@@ -184,7 +184,7 @@ module Etna
         application.config(:auth_redirect).chomp('/') + "/#{params[:project_name]}/cc"
       )
       uri.query = URI.encode_www_form(refer: request.url)
-      return [ 302, { 'Location' => uri.to_s }, [] ]
+      Etna::Redirect(request).to(uri.to_s)
     end
 
     def application
