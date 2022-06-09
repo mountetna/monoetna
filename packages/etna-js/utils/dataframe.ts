@@ -43,11 +43,11 @@ export const zipDF = ({
     row: 1,
     col: originalDimensions.numCols
   };
-  // We just grab two rows to get the pattern, so we don't expect
+  // We just grab one row to get the pattern, so we don't expect
   //   the user to populate too many of the formula cells.
   const userBottomRight = {
     sheet: 0,
-    row: 2,
+    row: 1,
     col: userDimensions.numCols - 1
   };
   const newCellValues = dataFrame.getFillRangeData(
