@@ -14,6 +14,7 @@ Sequel.migration do
       json :input_query_map
       json :tags
       String :image
+      json :scripts
 
       DateTime :created_at, null: false
       DateTime :updated_at, null: false
