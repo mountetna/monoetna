@@ -39,7 +39,7 @@ def order_str(ls: List[str], return_indexes: bool = False):
         ret = 1
     return list(i[ret] for i in sorted(enumerate(ls), key = alphanum_key))
 
-def order(ls: List[Union[int, float, str, bool]], return_indexes: bool = False, decreasing: bool = False):
+def order(ls: Union[List[Union[int, float]], List[str], List[bool]], return_indexes: bool = False, decreasing: bool = False):
     """
     Output: A list. ls reordered in "increasing" order unless 'decreasing' is set to "False"
     types: str, bool, 'number'
@@ -51,7 +51,10 @@ def order(ls: List[Union[int, float, str, bool]], return_indexes: bool = False, 
         order_inds = order_num(num_ls, True)
         if return_indexes: output=order_inds
         else: output=list(ls[order_inds])
-    else:
+    elif all(map(lambda x: isinstance(x, (int, float)), ls)):
         output=order_num(ls, return_indexes)
-    
+    elif all(map(lambda x: isinstance(x, type(ls[0])), ls)):
+        raise NotImplemented("Our 'order' function is not yet built for your data type. *Please let the Data Library team know how you got here!*")
+    else:
+        raise Exception("Cannot 'order' mixed data types. Can the data be cleaned?")
     return reverse(output) if decreasing else output
