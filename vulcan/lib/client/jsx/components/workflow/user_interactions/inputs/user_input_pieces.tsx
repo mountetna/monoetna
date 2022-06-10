@@ -20,6 +20,13 @@ export function key_wrap(k: string[]) {
   return de;
 }
 
+export function arrayLevels(original: any[]) {
+  function onlyUnique(value: any, index: number, self: any) {
+    return self.indexOf(value) === index;
+  }
+  return Array.from(original).filter(onlyUnique)
+}
+
 /*
 "Pieces" which follow define components/elements which can be used to fill in discrete parts of a user input widget.
 They are named based on types of input methods.
