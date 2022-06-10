@@ -41,12 +41,6 @@ module Etna
         JSON.parse(::File.read(metadata_file), symbolize_names: true)
       end
 
-      def self.json_from_file_with_metadata(filename,  prefix = Vulcan.instance.config(:workflows_folder))
-        workflow = Etna::Cwl::Workflow.from_yaml_file(filename, prefix)
-        workflow_json = workflow.as_steps_json(filename)
-        workflow_json.update(Etna::Cwl::Workflow.metadata(filename, prefix))
-      end
-
       def self.from_snapshot(workflow_snapshot)
         self.loader.load(workflow_snapshot.cwl_as_yaml)
       end
