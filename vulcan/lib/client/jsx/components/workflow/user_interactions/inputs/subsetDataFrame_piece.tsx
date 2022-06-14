@@ -4,6 +4,7 @@ import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplet
 import { checkboxPiece, dropdownPiece, multiselectPiece, rangePiece } from './user_input_pieces';
 import { Button, PropTypes } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
+import { arrayLevels } from './user_input_pieces';
 
 /*
 This script defines a component that behaves like all other 'user_input_pieces'.
@@ -188,10 +189,7 @@ function targetSelectionComponent(
   }
   if (typeof target_data[0] == "string") {
     // Need to build the unique options set first.
-    function onlyUnique(value: any, index: number, self: any) {
-      return self.indexOf(value) === index;
-    }
-    const options = target_data.filter(onlyUnique) as string[];
+    const options = arrayLevels(target_data) as string[];
     return multiselectPiece(
       key+index+index, updateFxn,
       inner_def as string[],
