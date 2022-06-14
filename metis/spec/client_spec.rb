@@ -111,6 +111,29 @@ describe MetisShell do
 
       Timecop.return
     end
+
+    it 'retries refreshing the token if janus down' do
+      stub_request(:post, "https://janus.test/api/tokens/generate")
+      .to_return({
+        status: 502
+      }, {
+        status: 200,
+        body: @long_lived_token
+      })
+
+      frozen_time = 1000
+      Timecop.freeze(DateTime.strptime(frozen_time.to_s, "%s"))
+      ENV['TOKEN'] = token_with_exp(2000)
+
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      expect_output("metis://athena", "ls") { %r!armor/!}
+
+      expect(WebMock).to have_requested(:post, "https://janus.test/api/tokens/generate").times(2)
+
+      expect(ENV["TOKEN"]).to eq(@long_lived_token)
+
+      Timecop.return
+    end
   end
 
   describe MetisShell::Set do
@@ -185,6 +208,14 @@ describe MetisShell do
     it 'lists root buckets' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       expect_output("metis://athena", "ls") { %r!armor/!}
+    end
+
+    it 'retries listing root buckets if Metis down' do
+      stub_metis_list_buckets
+
+      expect_output("metis://athena", "ls") { %r!retrying!}
+
+      expect(WebMock).to have_requested(:get, "https://metis.test/athena/list").times(2)
     end
 
     it 'lists files and folders' do
@@ -465,6 +496,18 @@ describe MetisShell do
 
       expect(Metis::Folder.count).to eq(4)
     end
+
+    it 'retries if Metis is down' do
+      stub_metis_create_folder
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
+
+      expect_output("metis://athena/armor", "mkdir", "helmet/copy") { /retrying/ }
+
+      expect(WebMock).to have_requested(:post, /folder\/create/).times(2)
+    end
   end
 
   describe MetisShell::Rm do
@@ -539,6 +582,16 @@ describe MetisShell do
       expect_output("metis://athena/armor", "rm", "-r", "helmet") { // }
 
       expect(Metis::Folder.count).to eq(0)
+    end
+
+    it 'retries if Metis is down' do
+      stub_metis_rm_folder
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+
+      expect_output("metis://athena/armor", "rm", "helmet") { /retrying/ }
+
+      expect(WebMock).to have_requested(:delete, /folder\/remove/).times(2)
     end
   end
 
@@ -716,6 +769,25 @@ describe MetisShell do
 
       expect(::File.exists?('athena-copy/old')).to be_falsy
       expect(::File.exists?('athena-copy')).to be_truthy
+
+      FileUtils.rm_r('athena-copy')
+    end
+  end
+
+  describe MetisShell::Validate do
+    it 'validates a local directory for missing files' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+      stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: bucket)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      stubs.send(:stub_file,'athena-copy/new/wisdom-copy.txt', WISDOM)
+      stubs.send(:stub_file,'athena-copy/new/helmet-copy.txt', HELMET)
+      stubs.send(:stub_file,'athena-copy/old/folly-copy.txt', WISDOM.reverse)
+
+      expect_output("metis://athena", "validate", "athena-copy") { /Found 2 of 3 files on Metis/ }
 
       FileUtils.rm_r('athena-copy')
     end

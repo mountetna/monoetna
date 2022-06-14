@@ -79,7 +79,7 @@
   :pass_salt: 
   :token_algo: RS256
   :token_name: JANUS_TOKEN
-  :token_domain: test.test
+  :token_domain: janus.test
   :token_life: 60
   :task_token_life: 600
   :rsa_private: |

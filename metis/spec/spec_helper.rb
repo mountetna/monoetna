@@ -199,7 +199,50 @@ def stub_metis_download(path, file_data)
     })
 end
 
-def stub_metis_list_bucket
+def stub_metis_list_buckets
+  return_values = []
+
+  return_values << { status: 502 }
+  return_values << {
+    status: 200,
+    body: {buckets: [{
+      bucket_name: 'test',
+      project_name: 'athena',
+      access: 'viewer'
+    }]}.to_json
+  }
+
+  stub_request(:get, /list$/)
+    .to_return(*return_values)
+end
+
+def stub_metis_rm_folder
+  return_values = []
+
+  return_values << { status: 502 }
+  return_values << {
+    status: 200,
+    body: {folder_name: ''}.to_json
+  }
+
+  stub_request(:delete, /folder\/remove/)
+    .to_return(*return_values)
+end
+
+def stub_metis_create_folder
+  return_values = []
+
+  return_values << { status: 502 }
+  return_values << {
+    status: 200,
+    body: {files: [], folders: []}.to_json
+  }
+
+  stub_request(:post, /folder\/create/)
+    .to_return(*return_values)
+end
+
+def stub_metis_list_bucket(with_error=false)
   stub_request(:get, /list\/bucket/)
     .to_return({
       status: 200,
@@ -352,6 +395,9 @@ AUTH_USERS = {
   },
   non_user: {
     email: 'nessus@centaurs.org', name: 'Nessus', perm: ''
+  },
+  guest: {
+    email: 'sinon@troy.org', name: 'Sinon', perm: 'g:athena'
   }
 }
 def token_header(user_type)
@@ -409,7 +455,8 @@ end
 def create_file(project_name, file_name, contents, params={})
   data_block = create(:data_block,
     description: file_name,
-    md5_hash: params.delete(:md5_hash) || Digest::MD5.hexdigest(contents)
+    md5_hash: params.delete(:md5_hash) || Digest::MD5.hexdigest(contents),
+    size: contents.length,
   )
 
   create( :file,
@@ -456,4 +503,12 @@ def replace_stdio(stdin_path, stdout_path)
       end
     }
   }
+end
+
+def below_admin_roles
+  [:editor, :viewer, :guest]
+end
+
+def below_editor_roles
+  [:viewer, :guest]
 end

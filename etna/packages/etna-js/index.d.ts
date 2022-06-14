@@ -162,6 +162,16 @@ declare module 'etna-js/utils/markdown' {
   export = function (md: string): string {};
 }
 
+declare module 'etna-js/components/revision-history' {
+  export = function RevisionHistory(params: {
+    getRevisions: () => Promise;
+    revisionDoc: (revision:any) => string;
+    update: (revision:any) => void;
+    open: boolean;
+    onClose: () => void;
+  }): any {};
+}
+
 declare module 'etna-js/components/flat-button' {
   export = function FlatButton(params: {
     className?: string;
@@ -364,4 +374,8 @@ declare module 'etna-js/hooks/useAsyncWork' {
     f: Function,
     opts: any
   ): [loading: boolean, wrapper: Function, awaitNextRender: Function];
+}
+
+declare module 'etna-js/utils/janus' {
+  export function isGuest(user: any, project_name: string): boolean;
 }

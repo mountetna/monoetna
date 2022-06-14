@@ -12,7 +12,18 @@ require_relative '../lib/commands'
 config = if File.exists?(EtnaApp.config_file_path)
   YAML.load(File.read(EtnaApp.config_file_path))
 else
-  {}
+  {
+    production: {
+      docker: { default_tag: "production" },
+      magma: { host: "https://magma.ucsf.edu" },
+      metis: { host: "https://metis.ucsf.edu" },
+      janus: { host: "https://janus.ucsf.edu" },
+      timur: { host: "https://timur.ucsf.edu" },
+      polyphemus: { host: "https://polyphemus.ucsf.edu" },
+      ignore_ssl: false,
+      auth_redirect: "https://janus.ucsf.edu"
+    }
+  }
 end
 
 EtnaApp.instance.run_command(config, *ARGV)

@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import {HotTable} from '@handsontable/react';
 import {HyperFormula} from 'hyperformula';
 import EditIcon from '@material-ui/icons/Edit';
+import TableChartIcon from '@material-ui/icons/TableChart';
 import SaveIcon from '@material-ui/icons/Save';
 import CancelIcon from '@material-ui/icons/Cancel';
 import RestoreIcon from '@material-ui/icons/Restore';
@@ -17,11 +18,21 @@ import {makeStyles} from '@material-ui/core/styles';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 import {joinNesting} from './monoids';
-import {WithInputParams, DataEnvelope} from './input_types';
+import {WithInputParams} from './input_types';
 import {useSetsDefault} from './useSetsDefault';
-import {some, Maybe, withDefault, isSome} from '../../../../selectors/maybe';
+import {some, Maybe} from '../../../../selectors/maybe';
 import {useMemoized} from '../../../../selectors/workflow_selectors';
 import useHandsonTable from './useHandsonTable';
+
+import {
+  zipDF,
+  dimensions,
+  merge,
+  dataFrameJsonToNestedArray,
+  nestedArrayToDataFrameJson,
+  NestedArrayDataFrame,
+  JsonDataFrame
+} from 'etna-js/utils/dataframe';
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
@@ -34,19 +45,28 @@ const useStyles = makeStyles((theme) => ({
   },
   loading: {
     marginLeft: '1rem'
+  },
+  helpdoc: {
+    maxWidth: '600px',
+    marginTop: '1rem',
+    marginBottom: '1rem'
+  },
+  propagateButton: {
+    marginBottom: '1rem'
   }
 }));
 
 function DataTransformationModal({
-  data,
+  userData,
+  originalData,
   onChange,
   onClose
 }: {
-  data: any[][];
-  onChange: (data: Maybe<{[key: string]: any}>) => void;
+  userData: NestedArrayDataFrame;
+  originalData: NestedArrayDataFrame;
+  onChange: (data: Maybe<JsonDataFrame>) => void;
   onClose: () => void;
 }) {
-  const [loading, setLoading] = useState(true);
   const classes = useStyles();
 
   const hotTableComponent = useRef<any>(null);
@@ -60,12 +80,43 @@ function DataTransformationModal({
     []
   );
 
+  const numOriginalCols = dimensions(originalData).numCols;
+
   const columnWidths = useMemo(() => {
-    let widths = new Array(data[0].length).fill(150);
+    let widths = new Array(dimensions(userData).numCols).fill(150);
     widths[0] = 200;
 
     return widths;
-  }, [data]);
+  }, [userData]);
+
+  const isReadOnlyColumn = useCallback(
+    (colIndex: number) => {
+      return colIndex < numOriginalCols;
+    },
+    [numOriginalCols]
+  );
+
+  const canInsertColumn = useCallback(
+    (colIndex: number) => {
+      return colIndex < numOriginalCols - 1;
+    },
+    [numOriginalCols]
+  );
+
+  const handleExtendFormulas = useCallback(() => {
+    if (!hotTableComponent.current) return;
+
+    const zippedData = zipDF({
+      original: originalData,
+      user: hotTableComponent.current.hotInstance.getSourceData()
+    });
+
+    hotTableComponent.current.hotInstance.loadData(zippedData.formulas);
+  }, [originalData, hotTableComponent]);
+
+  const mergedData = useMemo(() => {
+    return merge({original: originalData, user: userData});
+  }, [userData, originalData]);
 
   return (
     <>
@@ -83,6 +134,26 @@ function DataTransformationModal({
         )
       </DialogTitle>
       <DialogContent className={classes.dialog}>
+        <Typography className={classes.helpdoc}>
+          This is a preview of your data frame. You can edit the column headings
+          or append additional columns on the right, by right-clicking and
+          selecting "Insert column to right" in the context menu.
+        </Typography>
+        <Typography className={classes.helpdoc}>
+          To apply a formula in a new column, just add a couple of cells with
+          the formula to establish the pattern. Click the "Propagate Formulas"
+          button to propagate the formulas to the entire table. Save, Commit,
+          and Run!
+        </Typography>
+        <Button
+          className={classes.propagateButton}
+          onClick={handleExtendFormulas}
+          startIcon={<TableChartIcon />}
+          color='secondary'
+          variant='contained'
+        >
+          Propagate Formulas
+        </Button>
         <HotTable
           ref={hotTableComponent}
           settings={{
@@ -91,7 +162,7 @@ function DataTransformationModal({
             colWidths: columnWidths,
             autoRowSize: false,
             autoColumnSize: false,
-            data: data,
+            data: mergedData,
             colHeaders: true,
             rowHeaders: true,
             height: 'auto',
@@ -99,18 +170,41 @@ function DataTransformationModal({
             formulas: {
               engine: hyperformulaInstance
             },
+            cells: (row: number, col: number, props: any) => {
+              if (row > 0 && col < numOriginalCols) {
+                return {
+                  readOnly: true
+                };
+              }
+
+              return {};
+            },
             contextMenu: {
               items: {
-                col_left: {
-                  name: 'Insert column to left'
-                },
                 col_right: {
-                  name: 'Insert column to right'
+                  name: 'Insert column to right',
+                  disabled: () => {
+                    return canInsertColumn(
+                      hotTableComponent.current.hotInstance.getSelectedLast()[1]
+                    );
+                  }
                 },
-                remove_col: {},
+                remove_col: {
+                  disabled: () => {
+                    return isReadOnlyColumn(
+                      hotTableComponent.current.hotInstance.getSelectedLast()[1]
+                    );
+                  }
+                },
                 undo: {},
                 redo: {},
-                clear_column: {}
+                clear_column: {
+                  disabled: () => {
+                    return isReadOnlyColumn(
+                      hotTableComponent.current.hotInstance.getSelectedLast()[1]
+                    );
+                  }
+                }
               }
             }
           }}
@@ -134,10 +228,22 @@ function DataTransformationModal({
               const sourceData = hotTableComponent.current.hotInstance.getSourceData();
               const data = hotTableComponent.current.hotInstance.getData();
 
+              // Only send back the first couple rows of data,
+              //   since the server will extend formulas based on the
+              //   first couple of rows only. This will make sure we
+              //   aren't saving or sending giant blobs of data
+              //   as an input.
+              const truncatedFormulas = sourceData.slice(0, 21);
+              const truncatedData = data.slice(0, 21);
+
               onChange(
                 some({
-                  formulaic_data: some(nestedArrayToDataFrameJson(sourceData)),
-                  calculated_data: some(nestedArrayToDataFrameJson(data))
+                  formulaic_data: some(
+                    nestedArrayToDataFrameJson(truncatedFormulas)
+                  ),
+                  calculated_data: some(
+                    nestedArrayToDataFrameJson(truncatedData)
+                  )
                 })
               );
             }
@@ -152,60 +258,6 @@ function DataTransformationModal({
         </Button>
       </DialogActions>
     </>
-  );
-}
-
-export function nestedArrayToDataFrameJson(
-  input: any[][]
-): DataEnvelope<{[key: string]: any}> {
-  const headers = input[0];
-  let payload = headers.reduce((acc, header) => {
-    acc[header] = {};
-
-    return acc;
-  }, {});
-
-  return input.slice(1).reduce((acc, values, rowIndex) => {
-    values.forEach((value, index) => {
-      let header = headers[index];
-      acc[header][rowIndex.toString()] = value;
-    });
-
-    return acc;
-  }, payload);
-}
-
-export function dataFrameJsonToNestedArray(
-  input: Maybe<DataEnvelope<{[key: string]: any}>>
-): any[][] {
-  if (!isSome(input)) return [[]];
-
-  const inner = Array.isArray(input) ? withDefault(input, {}) : input;
-
-  const numColumns = Object.keys(inner).length;
-  if (numColumns === 0) return [[]];
-
-  const numRows = Object.keys(Object.values(inner)[0]).length;
-
-  // Assume the input data is well-formed and rectangular.
-  return Object.entries(inner).reduce(
-    (
-      acc: any[][],
-      [columnHeading, rowData]: [string, {[key: string]: any}]
-    ) => {
-      if (Object.keys(rowData).length !== numRows) {
-        throw new Error('Input data is malformed and not rectangular');
-      }
-
-      acc[0].push(columnHeading);
-
-      for (var i = 0; i < numRows; i++) {
-        acc[i + 1].push(rowData[i.toString()]);
-      }
-
-      return acc;
-    },
-    [...new Array(1 + numRows)].map(() => [])
   );
 }
 
@@ -285,15 +337,19 @@ export default function DataTransformationInput({
 
   value = dataFrameJsonToNestedArray(value);
 
+  const originalAsNestedArray = useMemo(() => {
+    return dataFrameJsonToNestedArray(some(originalData));
+  }, [originalData]);
+
   if (!originalData || value.length === 0 || value[0].length === 0)
     return <div>No data frame!</div>;
 
   return (
     <>
       <div>
-        Your data frame has {value.length - 1} rows and {value[0].length}{' '}
-        columns. You can preview or edit the data frame now, or just click
-        "Commit" to accept the raw data.
+        Your data frame has {originalAsNestedArray.length - 1} rows and{' '}
+        {value[0].length} columns. You can preview or edit the data frame now,
+        or just click "Commit" to accept the raw data.
       </div>
       <Dialog
         open={open}
@@ -308,7 +364,8 @@ export default function DataTransformationInput({
         disableEnforceFocus={true}
       >
         <DataTransformationModal
-          data={value}
+          userData={value}
+          originalData={originalAsNestedArray}
           onChange={destructureOnChange}
           onClose={handleOnClose}
         />

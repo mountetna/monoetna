@@ -59,20 +59,20 @@ export default function WorkflowManager({
     (figureId: number, localSession: VulcanFigureSession | null) => {
       showErrors(
         fetchFigure(projectName, figureId).then((figureResponse) => {
-          let fromDatabase = true;
+          let useLocal = true;
 
           if (
             localSession &&
             !_.isEqual(localSession.inputs, figureResponse.inputs)
           ) {
-            fromDatabase = confirm(
-              'You have an edited, local version of that figure. Discard it?'
+            useLocal = confirm(
+              "You have unsaved changes. Click 'OK' to use your local version, or 'Cancel' to discard all unsaved changes and load the last saved state."
             );
           }
 
           initializeFromSessionAndFigure(
             selectSession(
-              !fromDatabase && localSession ? localSession : figureResponse
+              useLocal && localSession ? localSession : figureResponse
             ),
             selectFigure(figureResponse)
           );

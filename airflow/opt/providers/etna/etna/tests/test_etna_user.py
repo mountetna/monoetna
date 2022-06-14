@@ -25,7 +25,7 @@ def test_user_from_payload():
 
 
 def test_parse_permissions():
-    perm = "A:mvir1;a:administration,clues1,coprojects_template,sicca1,triage,xaut2,xcrs1,xhlt1,xhlt2,xneo1,xneu1,xorg1,xvir1,zach_test_project_one;e:dscolab,test_project"
+    perm = "A:mvir1;a:administration,clues1,coprojects_template,sicca1,triage,xaut2,xcrs1,xhlt1,xhlt2,xneo1,xneu1,xorg1,xvir1,zach_test_project_one;e:dscolab,test_project;g:community"
     permissions = parse_permissions(perm)
 
     assert permissions == [
@@ -50,6 +50,7 @@ def test_parse_permissions():
         ),
         Permission(project_name="dscolab", see_restricted=False, role="editor"),
         Permission(project_name="test_project", see_restricted=False, role="editor"),
+        Permission(project_name="community", see_restricted=False, role="guest")
     ]
 
 
@@ -74,4 +75,11 @@ def test_parse_permission():
         Permission(project_name="project5", see_restricted=False, role="viewer"),
         Permission(project_name="project1", see_restricted=False, role="viewer"),
         Permission(project_name="project2", see_restricted=False, role="viewer"),
+    ]
+
+    permissions = take_left(permission_parser, eof_parser).run_parser(
+        "g:project6"
+    )[0]
+    assert permissions == [
+        Permission(project_name="project6", see_restricted=False, role="guest"),
     ]

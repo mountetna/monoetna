@@ -1,3 +1,4 @@
+require_relative 'models/cc_agreement'
 require_relative 'models/app'
 require_relative 'models/group'
 require_relative 'models/permission'

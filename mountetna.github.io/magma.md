@@ -372,12 +372,24 @@ Filters may be applied to any model we traverse through:
 
 There are a handful of predicate types, each of which take various arguments. 
 
+##### Start
+
+The first predicate initiates the query and usually takes a model name as an argument:
+
+    <model_name> - a string specifying the model to be searched
+
+You may also pass the following as initial arguments:
+
+    ::predicates - return a list of the available predicates and their verbs
+    ::model_names - return a list of model names for the project being queried
+
 ##### Model
 
 A Model predicate is our query starting point and specifies a set of records. Model predicates can accept an arbitrary number of filter [] arguments, followed by:
 
     ::first - reduce this model to a single item
     ::all - return a vector of values for this model, labeled with this model's identifiers
+    ::attribute_names - return a list of attribute names for this model (only following the start predicate)
 
 ##### Record
 

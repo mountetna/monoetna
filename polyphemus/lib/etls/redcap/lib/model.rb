@@ -105,9 +105,11 @@ module Redcap
 
       records = {}
       @scripts.each do |script|
-        records.update(
-          invert? ? script.inverse_load : script.load
-        )
+        script_records = invert? ? script.inverse_load : script.load
+
+        script_records.each do |record_name, record|
+          (records[record_name] ||= {}).update( record )
+        end
       end
 
       records
@@ -180,7 +182,9 @@ module Redcap
       when "integer"
         return value.to_i
       when "boolean"
-        return value == "Yes" ? true : value == "No" ? false : nil
+        yes_values = ["Yes", "True"]
+        no_values = ["No", "False"]
+        return yes_values.include?(value) ? true : no_values.include?(value) ? false : nil
       else
         return value
       end

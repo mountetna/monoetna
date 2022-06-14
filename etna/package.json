@@ -8,7 +8,8 @@
     "redux": "^4.0.5"
   },
   "scripts": {
-    "test": "cd packages/etna-js && npm install && npm test"
+    "test": "cd packages/etna-js && npm install && npm test",
+    "build": "cd packages/etna-js && npm install && npm run build"
   },
   "devDependencies": {
     "@babel/core": "^7.10.2",

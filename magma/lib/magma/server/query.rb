@@ -7,9 +7,15 @@ class QueryController < Magma::Controller
     return failure(401, errors: ["You are unauthorized"]) unless @user && @user.can_view?(@project_name)
 
     begin
-      if @params[:query] == "::predicates"
-        return success(Magma::Predicate.to_json, "application/json")
+      case @params[:query]
+      when "::predicates"
+        return success_json(Magma::Predicate)
+      when "::model_names"
+        project = Magma.instance.get_project(@project_name)
+        raise Etna::BadRequest, "No such project '#{@project_name}'" unless project
+        return success_json(answer: project.models.keys, type: 'Array', format: [ 'String' ])
       end
+
       question = Magma::Question.new(
         @project_name, JSON.parse(JSON.generate(@params[:query])),
         show_disconnected: @params[:show_disconnected],

@@ -1,3 +1,4 @@
+import hashlib
 import time
 from dataclasses import dataclass
 from datetime import timedelta, datetime
@@ -268,6 +269,10 @@ class DockerSwarmOperator(DockerOperatorBase):
             config_name = (
                 f"{self.dag_id}-{self.task_id}-shared-data-{get_random_string()}"
             )
+
+            if len(config_name) > 64:
+                config_name = hashlib.md5(config_name.encode('utf-8')).hexdigest()
+
             config = self.cli.create_config(
                 config_name,
                 shared_data.data,

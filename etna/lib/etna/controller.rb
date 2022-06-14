@@ -1,4 +1,5 @@
 require 'erb'
+require 'net/smtp'
 
 module Etna
   class Controller
@@ -44,7 +45,7 @@ module Etna
     rescue Exception => e
       error = e
     ensure
-      log_request
+      log_request if !@request.env['etna.dont_log'] || error
       return handle_error(error) if error
     end
 
@@ -74,6 +75,24 @@ module Etna
         block.call(@response)
         @response.finish
       end
+    end
+
+    def send_email(to_name, to_email, subject, content)
+      message = <<MESSAGE_END
+From: Data Library <noreply@janus>
+To: #{to_name} <#{to_email}>
+Subject: #{subject}
+
+#{content}
+MESSAGE_END
+
+      unless @server.send(:application).test?
+        Net::SMTP.start('smtp.ucsf.edu') do |smtp|
+          smtp.send_message message, 'noreply@janus', to_email
+        end
+      end
+    rescue => e
+      @logger.log_error(e)
     end
 
     def require_params(*params)

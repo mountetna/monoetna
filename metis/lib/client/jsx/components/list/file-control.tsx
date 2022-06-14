@@ -104,10 +104,22 @@ const FileControl = ({
     });
   }, [moveFile, bucket_name]);
 
+  const filePropertiesDialog = useCallback(() => {
+    let dialog = {
+      type: 'file-properties',
+      file
+    };
+    invoke({
+      type: 'SHOW_DIALOG',
+      dialog
+    });
+  }, [file]);
+
   let items: UiControlItem[] = [
     {label: 'Download file', callback: downloadFile, role: 'viewer'},
     {label: 'Copy download link', callback: copyLink, role: 'viewer'},
-    {label: 'Copy metis path', callback: copyMetisPath, role: 'viewer'}
+    {label: 'Copy metis path', callback: copyMetisPath, role: 'viewer'},
+    {label: 'FIle properties', callback: filePropertiesDialog, role: 'viewer'}
   ].concat(
     file.read_only
       ? [

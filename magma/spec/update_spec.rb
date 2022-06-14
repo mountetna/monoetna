@@ -29,17 +29,19 @@ describe UpdateController do
 
   it 'fails for non-editors' do
     lion = create(:monster, name: 'Nemean Lion', species: 'hydra')
-    update(
-      {
-        monster: {
-          'Nemean Lion': {
-            species: 'lion'
+    [:viewer, :guest].each do |role|
+      update(
+        {
+          monster: {
+            'Nemean Lion': {
+              species: 'lion'
+            }
           }
-        }
-      },
-      :viewer
-    )
-    expect(last_response.status).to eq(403)
+        },
+        role
+      )
+      expect(last_response.status).to eq(403)
+    end
   end
 
   it 'updates updated_at' do
@@ -169,6 +171,20 @@ describe UpdateController do
         monster.refresh
         hydra.refresh
         expect(monster.labor).to eq(hydra)
+      end
+
+      it 'provides a useful error message when updating with a non existent parent' do
+        monster = create(:monster, name: 'Lernean Hydra')
+        update(
+          monster: {
+            'Lernean Hydra': {
+              labor: 'The Lernean Hydra'
+            }
+          }
+        )
+
+        expect(last_response.status).to eq(422)
+        expect(json_body[:errors]).to eql(["monster.labor 'The Lernean Hydra' does not exist."])
       end
 
       it 'updates a parent attribute for parent-collection' do

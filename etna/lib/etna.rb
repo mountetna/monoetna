@@ -1,4 +1,5 @@
 require 'json'
+require_relative './etna/redirect'
 require_relative './etna/environment_variables'
 require_relative './etna/injection'
 require_relative './etna/ext'
@@ -26,6 +27,7 @@ require_relative './etna/cwl'
 require_relative './etna/metrics'
 require_relative './etna/remote'
 require_relative './etna/synchronize_db'
+require_relative './etna/janus_utils'
 
 class EtnaApp
   include Etna::Application

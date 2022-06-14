@@ -108,7 +108,7 @@ class BucketController < Metis::Controller
       if type == 'files'
         head_query = <<QUERY
     SELECT 
-      'file' as type, head.id as id, head.folder_id as parent_id, head.file_name as node_name, head.updated_at, head.created_at, data_blocks.md5_hash as file_hash, data_blocks.archive_id
+      'file' as type, head.id as id, head.folder_id as parent_id, head.file_name as node_name, head.updated_at, head.created_at, data_blocks.md5_hash as file_hash, data_blocks.archive_id, data_blocks.size
     FROM files as head
     JOIN data_blocks ON data_blocks.id = head.data_block_id
     WHERE #{head_cond} AND head.bucket_id = :bucket_id
@@ -116,7 +116,7 @@ QUERY
       else
         head_query = <<QUERY
     SELECT 
-      'folder' as type, head.id as id, folder_id as parent_id, folder_name as node_name, updated_at, created_at, NULL as file_hash, NULL as archive_id
+      'folder' as type, head.id as id, folder_id as parent_id, folder_name as node_name, updated_at, created_at, NULL as file_hash, NULL as archive_id, NULL as size
     FROM folders as head
     WHERE #{head_cond} AND head.bucket_id = :bucket_id
 QUERY
@@ -127,7 +127,7 @@ QUERY
 #{head_query}
     UNION
     SELECT
-      'parent' as type, folders.id as id, folders.folder_id as parent_id, folders.folder_name as node_name, folders.updated_at, folders.created_at, NULL as file_hash, NULL as archive_id
+      'parent' as type, folders.id as id, folders.folder_id as parent_id, folders.folder_name as node_name, folders.updated_at, folders.created_at, NULL as file_hash, NULL as archive_id, NULL as size
     FROM folders
       JOIN tail_nodes ON folders.id = tail_nodes.parent_id
   )

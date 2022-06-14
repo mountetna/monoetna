@@ -4,17 +4,19 @@ require_relative './vulcan_controller'
 class FigureController < Vulcan::Controller
   def fetch
     success_json(
-      figures: Vulcan::Figure.where(project_name: @params[:project_name]).all.map do |f|
+      figures: Vulcan::Figure.where(
+        project_name: @params[:project_name],
+        archived: false).all.map do |f|
         f.to_hash(storage: storage)
       end
     )
   end
 
   def get
-    figure = Vulcan::Figure.where(
-      project_name: @params[:project_name],
-      figure_id: @params[:figure_id]
-    ).order(:updated_at).first
+    figure = Vulcan::Figure[
+      @params[:project_name],
+      @params[:figure_id]
+    ]
 
     raise Etna::NotFound unless figure
 
@@ -23,7 +25,7 @@ class FigureController < Vulcan::Controller
 
   def create
     now = DateTime.now
-    figure = Vulcan::Figure.create(
+    figure = Vulcan::Figure.from_payload(
       {
         figure_id: Vulcan::Figure.next_id,
         author: @user.name,
@@ -31,35 +33,74 @@ class FigureController < Vulcan::Controller
         updated_at: now,
       }.update(
         @params.slice(*figure_params)
-      )
+      ),
+      @user,
+      @params[:project_name]
     )
     success_json(figure.to_hash)
+  rescue ArgumentError => e
+    failure(422, e.message)
   end
 
   def update
-    figure = Vulcan::Figure.where(
+    require_params(:comment)
+
+    figure = Vulcan::Figure[
+      @params[:project_name],
+      @params[:figure_id]
+    ]
+
+    raise Etna::NotFound unless figure
+
+    now = DateTime.now
+
+    new_figure = Vulcan::Figure.from_payload(
+      {
+        figure_id: figure.figure_id,
+        author: @user.name,
+        created_at: figure.created_at,
+        updated_at: now,
+        comment: @params[:comment]
+      }.update(
+        figure.to_hash.slice(*figure_params)
+      ).update(
+        @params.slice(*figure_params)
+      ),
+      @user,
+      @params[:project_name]
+    )
+
+    # Only archive the original figure once the new figure
+    #   exists, otherwise we risk losing the figure if
+    #   an exception gets thrown during figure creation.
+    figure.modified!(:updated_at)
+    figure.update(archived: true)
+
+    success_json(new_figure.to_hash)
+  rescue ArgumentError => e
+    failure(422, e.message)
+  end
+
+  def revisions
+    figures = Vulcan::Figure.where(
       project_name: @params[:project_name],
       figure_id: @params[:figure_id]
-    ).first
+    ).reverse_order(:updated_at).all.sort_by{|e| e.archived ? 1 : 0 }
+
+    success_json(figures.map(&:to_revision))
+  end
+
+  def delete
+    figure = Vulcan::Figure[
+      @params[:project_name],
+      @params[:figure_id]
+    ]
 
     raise Etna::NotFound unless figure
 
     figure.update(
-        @params.slice(*figure_params)
+      archived: true
     )
-
-    success_json(figure.to_hash)
-  end
-
-  def delete
-    figure = Vulcan::Figure.where(
-      project_name: @params[:project_name],
-      figure_id: @params[:figure_id]
-    ).first
-
-    raise Etna::NotFound unless figure
-
-    figure.delete
 
     success_json(figure.to_hash)
   end

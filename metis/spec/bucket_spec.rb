@@ -37,6 +37,11 @@ describe Metis::Bucket do
     token_header(:viewer)
     get('/athena/list/my_bucket/')
     expect(last_response.status).to eq(403)
+
+    # the guest is forbidden
+    token_header(:guest)
+    get('/athena/list/my_bucket/')
+    expect(last_response.status).to eq(403)
   end
 
   it 'forbids users from accessing buckets by email id' do
@@ -56,6 +61,11 @@ describe Metis::Bucket do
     token_header(:viewer)
     get('/athena/list/my_bucket/')
     expect(last_response.status).to eq(200)
+
+    # the guest Sinon is not allowed
+    token_header(:guest)
+    get('/athena/list/my_bucket/')
+    expect(last_response.status).to eq(403)
   end
 end
 
@@ -176,6 +186,7 @@ describe BucketController do
           "id",
           "node_name",
           "parent_id",
+          "size",
           "type",
           "updated_at"
         ])
@@ -227,6 +238,7 @@ describe BucketController do
           "id",
           "node_name",
           "parent_id",
+          "size",
           "type",
           "updated_at"
         ])
@@ -277,13 +289,15 @@ describe BucketController do
       bucket2 = create( :bucket, project_name: 'athena', name: 'extra', access: 'viewer', owner: 'metis' )
       bucket3 = create( :bucket, project_name: 'athena', name: 'magma', access: 'viewer', owner: 'athena' )
 
-      token_header(:viewer)
-      get('/athena/list')
+      below_editor_roles.each do |role|
+        token_header(role)
+        get('/athena/list')
 
-      expect(last_response.status).to eq(200)
+        expect(last_response.status).to eq(200)
 
-      expect(json_body[:buckets].count).to eq(2)
-      expect(json_body[:buckets].map{|b| b[:bucket_name]}).to include('extra', 'files')
+        expect(json_body[:buckets].count).to eq(2)
+        expect(json_body[:buckets].map{|b| b[:bucket_name]}).to include('extra', 'files')
+      end
     end
 
     it 'returns only visible buckets for the current project' do
@@ -291,12 +305,14 @@ describe BucketController do
       bucket2 = create( :bucket, project_name: 'athena', name: 'extra', access: 'editor', owner: 'metis' )
       bucket3 = create( :bucket, project_name: 'athena', name: 'magma', access: 'administrator', owner: 'athena' )
 
-      token_header(:viewer)
-      get('/athena/list')
+      below_editor_roles.each do |role|
+        token_header(role)
+        get('/athena/list')
 
-      expect(last_response.status).to eq(200)
+        expect(last_response.status).to eq(200)
 
-      expect(json_body[:buckets]).to eq([bucket1.to_hash])
+        expect(json_body[:buckets]).to eq([bucket1.to_hash])
+      end
     end
   end
 
@@ -316,11 +332,13 @@ describe BucketController do
     end
 
     it 'requires admin permissions' do
-      token_header(:editor)
-      json_post('/athena/bucket/create/my_bucket', owner: 'metis', access: 'viewer')
+      below_admin_roles.each do |role|
+        token_header(role)
+        json_post('/athena/bucket/create/my_bucket', owner: 'metis', access: 'viewer')
 
-      expect(Metis::Bucket.count).to eq(0)
-      expect(last_response.status).to eq(403)
+        expect(Metis::Bucket.count).to eq(0)
+        expect(last_response.status).to eq(403)
+      end
     end
 
     it 'prevents illegal bucket names' do
@@ -422,11 +440,13 @@ describe BucketController do
     end
 
     it 'requires admin permissions' do
-      token_header(:editor)
-      json_post('/athena/bucket/update/my_bucket', owner: 'metis', access: 'viewer')
+      below_admin_roles.each do |role|
+        token_header(role)
+        json_post('/athena/bucket/update/my_bucket', owner: 'metis', access: 'viewer')
 
-      expect(Metis::Bucket.count).to eq(0)
-      expect(last_response.status).to eq(403)
+        expect(Metis::Bucket.count).to eq(0)
+        expect(last_response.status).to eq(403)
+      end
     end
 
     it 'updates a bucket' do
@@ -524,11 +544,13 @@ describe BucketController do
     end
 
     it 'requires admin permissions' do
-      token_header(:editor)
-      delete('/athena/bucket/remove/my_bucket')
+      below_admin_roles.each do |role|
+        token_header(role)
+        delete('/athena/bucket/remove/my_bucket')
 
-      expect(Metis::Bucket.count).to eq(0)
-      expect(last_response.status).to eq(403)
+        expect(Metis::Bucket.count).to eq(0)
+        expect(last_response.status).to eq(403)
+      end
     end
 
     it 'removes a bucket' do

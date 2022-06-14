@@ -1,7 +1,7 @@
 require_relative "../../magma_record_file_etl"
 
 class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordFileEtl
-  def initialize(cursor_env: {}, scanner: nil)
+  def initialize(cursor_env: {}, scanner: build_scanner)
     super(
       project_model_pairs: [["ipi", "patient"]],
       attribute_names: ["updated_at", "flojo_file_processed"],
@@ -15,7 +15,7 @@ class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordFileE
     record_names = records.map { |r| r.keys.first }
     logger.info("Processing population tables for patients #{record_names.join(", ")}...")
 
-    ipi_flowjo_script = File.join(File.dirname(__FILE__), "magma", "scripts", "ipi+patient+flowjo.rb")
+    ipi_flowjo_script = File.join(File.dirname(__FILE__), "..", "magma", "scripts", "ipi+patient+flowjo.rb")
 
     runner = Polyphemus::MagmaEtlScriptRunner.new(ipi_flowjo_script)
 

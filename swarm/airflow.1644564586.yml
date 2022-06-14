@@ -52,8 +52,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.volumes.airflow-dags == true
-          - node.labels.volumes.airflow-logs == true
+          - node.labels.volumes.big-shared == true
     environment:
       AIRFLOW__CORE__EXECUTOR: etna.executors.local_executor.LocalExecutor
       AIRFLOW__WEBSERVER__BASE_URL: https://airflow.dsco.ucsf.edu
@@ -78,8 +77,8 @@ services:
     healthcheck:
       test: [ "CMD", "curl", "--fail", "http://localhost:8080/health" ]
       interval: 10s
-      timeout: 30s
-      retries: 5
+      timeout: 5s
+      retries: 3
 
     volumes:
       - dags:/opt/airflow/dags
@@ -105,8 +104,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.volumes.airflow-dags == true
-          - node.labels.volumes.airflow-logs == true
+          - node.labels.volumes.big-shared == true
           - node.role == manager
     healthcheck:
       interval: 60s
@@ -143,16 +141,12 @@ services:
       - airflow-fernet-key
     deploy:
       mode: replicated
-      update_config:
-        parallelism: 1
-        order: start-first
       labels:
         - autoupdate=true
-      replicas: 1
+      replicas: 2
       placement:
         constraints:
-          - node.labels.volumes.airflow-dags == true
-          - node.labels.volumes.airflow-logs == true
+          - node.labels.volumes.big-shared == true
           - node.role == manager
     healthcheck:
       interval: 60s
@@ -204,7 +198,11 @@ services:
 volumes:
   airflow-metadata-db:
   dags:
+    external: true
+    name: airflow_dags
   logs:
+    external: true
+    name: airflow_logs
 
 networks:
   airflow:

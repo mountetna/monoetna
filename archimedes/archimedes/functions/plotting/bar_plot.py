@@ -1,3 +1,4 @@
+from typing import List, Union
 import plotly.express as px
 import pandas as pd
 
@@ -6,33 +7,34 @@ from .colors import colors
 from ..list import unique, order
 
 def bar_plotly(
-    data_frame,
-    x_by,
-    y_by,
-    scale_by = 'fraction',
+    data_frame: pd.DataFrame,
+    x_by: str,
+    y_by: str,
+    scale_by: str = 'fraction',
     px_args: dict = {},
     rows_use = None,
-    color_panel: list = colors,
-    x_title = "make",
-    y_title = "make",
-    plot_title = "make",
-    legend_title = "make"):
+    color_panel: List[str] = colors,
+    xlab: str = "make",
+    ylab: str = "make",
+    plot_title: str = "make",
+    legend_title: str = "make"):
     """
     Produces a stacked bar plot using 'plotly.express.bar' based on the pandas 'data_frame' given, which describes the composition of 'y_by' sets within 'x_by' groupings.
     'x_by', 'y_by' should indicate columns of 'data_frame' to use for x/y axes data.  Both must point to discrete data.
     'scale_by' can be either "fraction" or "counts" and sets whether the y-axis of the plot will ultimately reflect proportions of 'y_by'-value make-up within each 'x_by' group versus raw counts of 'y_by'-values per group. 
     'px_args' should be a dictionary of additional bits to send in the 'plotly.express.bar' call.
+    'rows_use'
     'color_panel' (string list) sets the colors to assign to the distinct 'y_by'-values.
-    'plot_title', 'legend_title', 'x_title', and 'y_title' set titles.
+    'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
     
     Some additional details: Prior to making a plot, the composition of the 'y_by' values associated with each 'x_by' grouping is calculated and scaled based on the method indicated by the 'scale_by' parameter.
     The resulting summary dataframe is then passed to plotly for plot creation.
     """
 
     # Parse dependent defaults
-    x_title = _leave_default_or_none(x_title, x_by)
-    y_title = _leave_default_or_none(y_title, y_by + " " + scale_by) # A little different for this function
-    plot_title = _leave_default_or_none(plot_title, y_title + " per " + x_by)
+    xlab = _leave_default_or_none(xlab, x_by)
+    ylab = _leave_default_or_none(ylab, y_by + " " + scale_by) # A little different for this function
+    plot_title = _leave_default_or_none(plot_title, ylab + " per " + x_by)
     legend_title = _leave_default_or_none(legend_title, y_by) # A little different for this function
     
     # data_frame edits
@@ -66,8 +68,8 @@ def bar_plotly(
     # Tweaks
     fig.update_layout(
         title_text=plot_title,
-        xaxis_title=x_title,
-        yaxis_title=y_title,
+        xaxis_title=xlab,
+        yaxis_title=ylab,
         legend_title_text=legend_title,
         legend= {'itemsizing': 'constant'}
     )

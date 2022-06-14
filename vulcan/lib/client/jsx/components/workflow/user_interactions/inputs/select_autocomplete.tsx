@@ -7,16 +7,18 @@ import { useSetsDefault } from './useSetsDefault';
 import TextField from '@material-ui/core/TextField';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import { debounce } from 'lodash';
+import { useAsyncCallback } from 'etna-js/utils/cancellable_helpers';
 
 
 export default function SelectAutocompleteInput(
-  {data, label, minWidth, maxOptions=100, disableClearable=true, onChangeOverride, onChange, ...props}: WithInputParams<
-  {label?: string, minWidth?: number, disableClearable?: boolean, maxOptions?:number, onChangeOverride?: (event: any, e: string|null) => void}, string | null, StringOptions>) {
+  {data, label, minWidth, maxOptions=100, disableClearable=true, disabled=false, onChangeOverride, onChange, ...props}: WithInputParams<
+  {label?: string, minWidth?: number, disableClearable?: boolean, disabled?: boolean, maxOptions?:number, onChangeOverride?: (event: any, e: string|null) => void}, string | null, StringOptions>) {
   /*
   Creates a searchable dropdown selection input box from concatenated values of the 'data' hash.
   Special Case: If any data key is "recommendation", a line of text will display the values of this recommendation to the user.
   */
   const [data_use, suggestion] = useMemoized(pullRecommendation, data)
+  if (data_use == {}) return null
   const options_in = useMemoized(flattenStringOptions, data_use);
   const value = useSetsDefault(null, props.value, onChange);
   const disp_label = useMemo( () => {return suggestion ? suggestion : label}, [suggestion, label]);
@@ -25,33 +27,31 @@ export default function SelectAutocompleteInput(
   const [inputState, setInputState] = React.useState(dispValue(value));
   const [options, setOptionsFull] = useState({
     filtered: options_in,
-    display: options_in
+    display: [...options_in].splice(0,maxOptions)
     });
   function setOptions(filteredOptions: string[]) {
     setOptionsFull({
       filtered: filteredOptions,
       display: [...filteredOptions].splice(0,maxOptions)})
   }
-  const getOptionsDelayed = useCallback(
-    debounce((text, options_in, callback) => {
-      getOptionsAsync(text, [...options_in]).then(callback);
-    }, 200),
-    [],
-  );
+  const [getOptionsDelayed] = useAsyncCallback(function*(text: string, options_in: string[], callback: Function) {
+    const options = yield getOptionsAsync(text, [...options_in]);
+    callback(options)
+  }, [])
   
   useEffect(() => {
     // Shown from all options when user has made their selection (current text = current value)
     const query = (inputState!=value) ? inputState : ''
     
     if (options_in.length>1000) {
-      setLoadingOptions(true); setOptions([]);
+      setLoadingOptions(true);
+      // console.log('calculating options - slow')
       getOptionsDelayed(query, options_in, (filteredOptions: string[]) => {
-        console.log('calculating options - slow')
         setLoadingOptions(false)
         setOptions(filteredOptions)
       });
     } else {
-      console.log('calculating options - fast')
+      // console.log('calculating options - fast')
       setOptions(filterOptions(query, options_in))
     }
   }, [inputState, getOptionsDelayed, options_in, value]);
@@ -67,10 +67,10 @@ export default function SelectAutocompleteInput(
   return (
     <Autocomplete
       disableClearable={disableClearable}
+      disabled={disabled}
       clearOnBlur={true}
-      options={options.display}
-      // disable filtering on client
-      filterOptions={(x: string[]) => x}
+      options={options_in}
+      filterOptions={(x: string[]) => options.display}
       loading={loadingOptions}
       value={value}
       onChange={onChangeAction}

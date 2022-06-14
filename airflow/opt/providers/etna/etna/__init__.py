@@ -9,6 +9,10 @@ with all the utilities here within.  https://airflow.apache.org/docs/
 The top level module exports many common utilities needed by an average etl,
 while individual inner packages may contain implementations, interfaces, and
 granular functions for nuanced use cases.
+
+This documentation is fairly exhaustive and likely too much for someone starting off.
+I highly recommend using this as a primary reference in combination with existing
+working etl processes until a more comprehensive tutorial can be documented here.
 """
 
 from datetime import datetime
@@ -17,11 +21,12 @@ from datetime import datetime
 def __getattr__(name):
     from .dags.decorators import system_dag, dag, rollup_dag
     from .operators import run_on_docker
-    from .etls.decorators import metis_etl
+    from .etls.decorators import metis_etl, box_etl
     from .etls.metis import (
         link,
         MetisEtlHelpers,
     )
+    from .etls.box import BoxEtlHelpers
     from .xcom.etna_xcom import pickled
     from .hooks.hook_helpers import (
         get_project_name,
@@ -54,11 +59,12 @@ def __getattr__(name):
 if globals().get("notathing", False):
     from .dags.decorators import system_dag, dag, rollup_dag
     from .operators import run_on_docker
-    from .etls.decorators import metis_etl
+    from .etls.decorators import metis_etl, box_etl
     from .etls.metis import (
         link,
         MetisEtlHelpers,
     )
+    from .etls.box import BoxEtlHelpers
     from .xcom.etna_xcom import pickled
     from .hooks.hook_helpers import (
         get_project_name,

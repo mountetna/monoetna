@@ -62,6 +62,18 @@ describe AdminController do
       expect(last_response.status).to eq(403)
     end
 
+    it 'forbids the project data to guests' do
+      user = create(:user, name: 'Sinon', email: 'sinon@earth.org')
+
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+      perm = create(:permission, project: door, user: user, role: 'guest')
+
+      auth_header(:sinon)
+      get('/api/admin/door/info')
+
+      expect(last_response.status).to eq(403)
+    end
+
     it 'forbids project outsiders' do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
 
@@ -71,13 +83,48 @@ describe AdminController do
       expect(last_response.status).to eq(403)
     end
 
-    it 'viewer cannot set the resource flag' do
+    it 'viewer / guest cannot set the resource flag' do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
 
-      auth_header(:viewer)
-      json_post('/api/admin/door/update', resource: true)
+      below_editor_roles.each do |role|
+        auth_header(role)
+        json_post('/api/admin/door/update', resource: true)
 
-      expect(last_response.status).to eq(403)
+        expect(last_response.status).to eq(403)
+      end
+    end
+
+    it 'viewer / guest cannot set the requires_agreement flag' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      below_editor_roles.each do |role|
+        auth_header(role)
+        json_post('/api/admin/door/update', requires_agreement: true)
+
+        expect(last_response.status).to eq(403)
+      end
+    end
+
+    it 'viewer / guest cannot set the code of conduct text' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      below_editor_roles.each do |role|
+        auth_header(role)
+        json_post('/api/admin/door/update', cc_text: 'Will wipe your shoes before entering.')
+
+        expect(last_response.status).to eq(403)
+      end
+    end
+
+    it 'viewer /guest cannot set the contact email' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      below_editor_roles.each do |role|
+        auth_header(role)
+        json_post('/api/admin/door/update', contact_email: 'foo@janus.test')
+
+        expect(last_response.status).to eq(403)
+      end
     end
 
     it 'can set the resource flag' do
@@ -98,6 +145,94 @@ describe AdminController do
       expect(last_response.status).to eq(200)
       door.refresh
       expect(door.resource).to eq(false)
+    end
+
+    it 'can set the requires_agreement flag' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      expect(door.requires_agreement).to eq(false)
+
+      auth_header(:zeus)
+
+      json_post('/api/admin/door/update', requires_agreement: true)
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.requires_agreement).to eq(true)
+
+      json_post('/api/admin/door/update', requires_agreement: false)
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.requires_agreement).to eq(false)
+    end
+    
+    it 'can set the code of conduct text' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      expect(door.cc_text).to eq('')
+
+      auth_header(:zeus)
+      cc_text = 'You will wipe your shoes before entering.'
+      json_post('/api/admin/door/update', cc_text: cc_text)
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.cc_text).to eq(cc_text)
+    end
+
+    it 'can set the contact email' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      expect(door.contact_email).to eq('')
+
+      auth_header(:zeus)
+      contact_email = 'janus@janus.test'
+      json_post('/api/admin/door/update', contact_email: contact_email)
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.contact_email).to eq(contact_email)
+    end
+
+    it 'strips whitespace from the contact email' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      expect(door.contact_email).to eq('')
+
+      auth_header(:zeus)
+      contact_email = 'janus@janus.test   '
+      json_post('/api/admin/door/update', contact_email: contact_email)
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.contact_email).to eq(contact_email.strip)
+    end
+
+    it 'raises exception for invalid contact email' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      expect(door.contact_email).to eq('')
+
+      auth_header(:zeus)
+
+      json_post('/api/admin/door/update', contact_email: 'janus@hackerz.test')
+
+      expect(last_response.status).to eq(422)
+      door.refresh
+      expect(door.contact_email).to eq('')
+    end
+
+    it 'allows blanking contact email' do
+      door = create(:project, project_name: 'door', project_name_full: 'Door', contact_email: 'portunus@two-faces.org')
+
+      auth_header(:zeus)
+
+      json_post('/api/admin/door/update', contact_email: '')
+
+      expect(last_response.status).to eq(200)
+      door.refresh
+      expect(door.contact_email).to eq('')
     end
 
     it 'resource flag does not change if not provided in params' do
@@ -146,7 +281,10 @@ describe AdminController do
         ],
         project_name: "door",
         project_name_full: "Door",
-        resource: false
+        resource: false,
+        requires_agreement: false,
+        cc_text: '',
+        contact_email: ''
       )
     end
   end
@@ -222,6 +360,45 @@ describe AdminController do
 
       perm2.refresh
       expect(perm2).not_to be_privileged
+    end
+
+    it 'allows an admin to upgrade from guest role' do
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
+
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+      perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
+      perm2 = create(:permission, project: door, user: user2, role: 'guest')
+
+      expect(perm2.role).to eq('guest')
+      auth_header(:janus)
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', role: 'viewer')
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location']).to eq('/door')
+
+      perm2.refresh
+      expect(perm2.role).to eq('viewer')
+    end
+
+    it 'allows an admin to remove guest role' do
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
+
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+      perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
+      perm2 = create(:permission, project: door, user: user2, role: 'guest')
+
+      expect(user2.permissions.length).to eq(1)
+
+      auth_header(:janus)
+      json_post('/api/admin/door/update_permission', email: 'portunus@two-faces.org', role: 'disabled')
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location']).to eq('/door')
+
+      user2.refresh
+      expect(user2.permissions.length).to eq(0)
     end
 
     it 'forbids a non-admin from updating roles' do
@@ -372,6 +549,26 @@ describe AdminController do
 
       expect(user2.name).to eq('Portunus')
       expect(user2.email).to eq('portunus@two-faces.org')
+    end
+
+    it 'allows an admin to add a guest' do
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
+
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+      perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
+      
+      expect(user2.permissions.length).to eq(0)
+
+      auth_header(:janus)
+      json_post('/api/admin/door/add_user', email: 'portunus@two-faces.org', name: 'Portunus', role: 'guest')
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location']).to eq('/door')
+
+      user2.refresh
+      expect(user2.permissions.length).to eq(1)
+      expect(user2.permissions.first.role).to eq('guest')
     end
 
     it 'strips leading and trailing whitespace from an e-mail' do
@@ -533,9 +730,7 @@ describe AdminController do
       expect(last_response.status).to eq(302)
 
       expect(Permission.count).to eq(2)
-      expect(User.count).to eq(2)
-      expect(User.first.email).to eq(user.email)
-      expect(User.last.email).to eq('portunus@two-faces.org')
+      expect(User.select_map(:email)).to match_array([user.email, 'portunus@two-faces.org'])
     end
 
     it 'forbids a non-admin from adding a user' do
@@ -659,6 +854,65 @@ describe AdminController do
       # the flags are not changed
       user.refresh
       expect(user.flags).to eq(nil)
+    end
+  end
+
+  context '#update_cc_agreement' do
+    before(:each) do
+      @door = create(:project, project_name: 'door', project_name_full: 'Door')
+      @user = create(:user, name: "Zeus The God", email: "zeus@olympus.org")
+    end
+
+    context 'when requires_agreement=True' do
+      before(:each) do
+        @door.update(requires_agreement: true)
+      end
+
+
+      it 'requires cc_text and agreed' do
+        auth_header(:superuser)
+        json_post('/api/admin/door/cc', something: 'not-relevant')
+
+        expect(last_response.status).to eq(422)
+        expect(json_body[:error]).to eq("Missing param cc_text, agreed")
+      end
+
+      it 'can submit multiple for same user / project, with different cc_text or agreed status' do
+        expect(CcAgreement.count).to eq(0)
+        auth_header(:superuser)
+        json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: false)
+
+        expect(last_response.status).to eq(200)
+        expect(CcAgreement.count).to eq(1)
+
+        sleep(1)
+
+        json_post('/api/admin/door/cc', cc_text: "I pledge to...", agreed: true)
+
+        expect(last_response.status).to eq(200)
+        expect(CcAgreement.count).to eq(2)
+
+        sleep(1)
+
+        json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
+
+        expect(last_response.status).to eq(200)
+        expect(CcAgreement.count).to eq(3)
+
+        expect(CcAgreement.first.created_at).not_to eq(CcAgreement.last.created_at)
+      end
+
+      it 'allows non-authorized users to set for a given project' do
+        user = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
+
+        expect(CcAgreement.count).to eq(0)
+        auth_header(:portunus)
+        json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
+
+        expect(last_response.status).to eq(200)
+        expect(CcAgreement.count).to eq(1)
+        expect(CcAgreement.first.user_email).to eq(user.email)
+      end
     end
   end
 end

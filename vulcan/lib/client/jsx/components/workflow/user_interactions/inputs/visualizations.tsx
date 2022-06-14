@@ -11,25 +11,76 @@ import { Accordion, AccordionDetails, AccordionSummary, Grid, Typography } from 
 import { pick } from 'lodash';
 import { key_wrap, stringPiece, dropdownPiece, multiselectPiece, checkboxPiece, sliderPiece, floatPiece } from './user_input_pieces';
 import { subsetDataFramePiece } from './subsetDataFrame_piece';
+import { reorderPiece } from './reorder_piece';
 
 /*
+Docmentation last updated: Apr 15, 2022
+
 This UI is closely tied to archimedes/functions/plotting/*_plotly functions.
 
-Major design notes:
-- Organized around a set of pairs of input-names and associated component-setups.
-- An 'input_sets' object then defines the set of inputs used for any given visualization type & a new exported function should be created for every such plot_type.
-- Widgets have a set of advanced options that are shown/hidden via a toggle button. These inputs are listed as 'adv' inputs in the 'input_sets' definition.
-- Widgets also allow workflow-designers to hide controls for any inputs that are set internally by the workflow. (Ex: x_by & y_by for a UMAP)
+CWL Call: (parenthesis = optional)
 
-Input structure:
-  'data_frame': A hash representing the data_frame that will be used to make a plot. keys = column names, values = data points. 
-  'continuous_cols': A vector of column names of data_frame which contain continuous data.
-  'discrete_cols': A vector of column names of data_frame which contain continuous data.
-  (optional) 'preset': A hash where keys = input_names that should be hidden from the user & values = the preset value that should be used for that input. E.g. The x_by and y_by inputs are hardset within the umap workflow as '0' and '1', so a user has no choice here and should not be able to adjust those fields!
-Note: 'data_frame', 'continuous_cols', and 'discrete_cols' can all be generated in the upstream python script by passing the dataframe through 'output_dataframe_and_types()' of from archimedes.functions.plotting.
+  <step(s)_before must have>
+      out: [data_frame, continuous_cols, discrete_cols, (preset)]
+
+  user_plot_setup:
+    run: ui-queries/any-viz.cwl (Alternately, to lock in a plot type: 'ui-queries/scatter-plotly.cwl', 'ui-queries/y-plotly.cwl', or 'ui-queries/bar-plotly.cwl')
+    label: 'Set plot options'
+    doc: "Selections here adjust how the plot will be generated. For addtional details, see the 'Visualization with Vulcan' section of the Vulcan's documentation, acccessible via the 'Help' button at the top of this page. (<if using 'presets' or a set plot type, please describe! Example, scRNAseq.cwl umap:> This particular instance of the Plot Configuration Interface constitutes a version with preset values for plot-type (scatter_plot), X-Axis Data (UMAP_1), Y-Axis Data (UMAP_2), and Color Data (chosen above).)"
+    in:
+      data_frame: <in_step>/data_frame
+      continuous_cols: <in_step>/continuous_cols
+      discrete_cols: <in_step>/discrete_cols
+      (optional)
+      preset: <in_step>/preset
+    out: [plot_setup]
+  make_umap:
+    run: scripts/make_plot.cwl
+    label: 'Create UMAP plot'
+    in:
+      plot_setup: user_plot_setup/plot_setup
+      data_frame: <in_step>/data_frame
+    out: [plot.json, plot.png]
   
-Output Structure:
-  A hash (dict once in python) of input-name (key) + value pairs that can be splatted, along with the accompanying DataFrame, into a visualization funciton in archimedes.
+Creation from python:
+  Imports:
+    from archimedes.functions.dataflow import output_path
+    from archimedes.functions.plotting import output_column_types
+  dataframe:
+    'df.to_json(output_path("data_frame"))', where df is a pandas.DataFrame with attributes in columns and data points/obsevations in rows.
+  continuous_cols, discrete_cols:
+    'output_column_types(df, "continuous_cols", "discrete_cols")', with the same df used for 'dataframe' 
+  preset:
+    'output_json(preset, "preset")' where preset is a dict which one could pass to the target plotter function (in 'archimedes/archimedes/functions/plotting') via 'viz_fxn(**preset)'
+    Example, a umap where color_by is pre-selected in an upstream ui, and umap embeddings are stored in columns named '0' and '1':
+      color_by = input_var('color_by')
+      plot_preset = {
+        'x_by': '0',
+        'y_by': '1',
+        'color_by': color_by,
+        'xlab': 'UMAP_1',
+        'ylab': 'UMAP_2'
+      }
+      output_json(preset, "preset")
+
+JSX:
+  'data', object with slots:
+    data_frame:
+      A hash representing the data_frame that will be used to make a plot. keys = column names, values = data points.
+    continuous_cols:
+      A vector of column names of data_frame which contain continuous data.
+    discrete_cols:
+      A vector of column names of data_frame which contain discrete data.
+    ?preset:
+      A hash where keys = input pieces that should be hidden from the user & values = the preset value that should be used for that input. E.g. The x_by and y_by inputs are hardset within the umap workflow as '0' and '1', so a user has no choice here and should not be able to adjust those fields!
+  
+  'value', object where (key,val) pairs mostly equate to (key,val) pairs that could be splatted into an archimedes visualization funciton.
+      
+  Major design notes:
+    - Organized around having pairs of input-names and associated component-setups.
+    - An 'input_sets' object defines the set of inputs that are used for a given visualization type.  Thus, after a plot-type choice, necessary inputs are known and the set of necessary ui pieces can be compiled. 
+    - (key,val) pairs of the optional 'presets' input will cause any inputs' component-setup to be removed from the displayed set, while also providing the value to give to 'value[key]'.
+  
 */
 
 export function ScatterPlotly({
@@ -88,7 +139,13 @@ function VisualizationUI({
     return data['discrete_cols']
   }, [data]);
 
-  const extra_inputs = useExtraInputs(columns, data_frame, plotType, continuous_columns, discrete_columns);
+  const x_by = (value && Object.keys(value).includes('x_by')) ? value.x_by as string | null : null
+  const y_by = (value && Object.keys(value).includes('y_by')) ? value.y_by as string | null : null
+  const color_by = (value && Object.keys(value).includes('color_by')) ? value.color_by as string | null : null
+  const extra_inputs = useExtraInputs(
+    columns, data_frame, plotType,
+    continuous_columns, discrete_columns,
+    x_by, y_by, color_by)
   
   const shownSetupValues = useMemo(() => {
     if (plotType==null) return {}
@@ -128,7 +185,7 @@ function VisualizationUI({
       {Object.entries(input_sets[plotType]).map(([group_name, val]) => {
         const group_values: DataEnvelope<any> = pick(shownSetupValues,val)
         const open = expandedDrawers.includes(group_name);
-        console.log('group_values', group_values)
+        // console.log('group_values', group_values)
         return (Object.keys(group_values).length > 0) ? <InputWrapper key={group_name} title={group_name} values={group_values} open={open} toggleOpen={toggleDrawerExpansion}>
           {Object.entries(group_values).map(([key, val]) => {
             return <ComponentUse key={key} k={key} value={val} extra_inputs={extra_inputs[key]} updateValue={updateValue}/>
@@ -138,7 +195,7 @@ function VisualizationUI({
     </Grid>
   )
   
-  console.log(props.value);
+  // console.log(props.value);
   
   return (
     <div key='VizUI'>
@@ -168,9 +225,8 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   'scatter_plot': {
     'primary features': ["x_by", "y_by", "color_by", 'size'],
     'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'point rendering': ['color_order', 'order_when_continuous_color'],
     'coordinates': ['x_scale', 'y_scale'],
-    'data focus': ['rows_use']
+    'data focus': ['rows_use', 'color_order', 'order_when_continuous_color']
     //'default_adjust': {'color_by': "make"}
   },
   'bar_plot': {
@@ -182,7 +238,7 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
     'primary features': ["x_by", "y_by", "plots", "color_by"],
     'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
     'coordinates': ['y_scale'],
-    'data focus': ['rows_use']
+    'data focus': ['rows_use', 'x_order']
     //'default_adjust': {'color_by': "make"}
   },
   'y_plot_static': {
@@ -208,11 +264,13 @@ const input_constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = {
   },
   'y_plot': {
     'x_by': "discrete",
-    'y_by': "continuous"
+    'y_by': "continuous",
+    'color_by': "discrete"
   },
   'y_plot_static': {
     'x_by': "discrete",
     'y_by': "continuous",
+    'color_by': "discrete"
     // 'split_by': "discrete"
   }
 }
@@ -244,7 +302,9 @@ const defaults: DataEnvelope<any> = {
   'violin_scale': 'area',
   'add_line': 0,
   'line_linetype': 'dashed',
-  'line_color': 'black'
+  'line_color': 'black',
+  'x_order': 'increasing',
+  'y_order': 'increasing'
 };
 
 function whichDefaults(plotType: string|null, preset: DataEnvelope<any> | null | undefined) {
@@ -285,6 +345,7 @@ function useExtraInputs(
   options: string[], full_data: DataEnvelope<any>,
   plot_type: string | null,
   continuous: string[], discrete: string[],
+  x_by: string | null, y_by: string | null, color_by: string | null,
   constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = input_constraints
   ) {
   
@@ -307,8 +368,8 @@ function useExtraInputs(
       'x_by': ['X-Axis Data', get_options('x_by'), false],
       'y_by': ['Y-Axis Data', get_options('y_by'), false],
       'color_by': ['Color Data', ['make'].concat(get_options('color_by')), false],
-      'plots': ['Data Representations', ['violin', 'box']],
-      'color_order': ['Point render order', ['increasing', 'decreasing', 'unordered']],
+      'plots': ['Data Representations', ['violin', 'box', 'jitter']],
+      'color_order': ['Point Render & (discrete) Color Assignment Order', full_data, color_by, discrete],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
       'size': ['Point Size', 0.1, 50],
       'scale_by': ['Scale Y by counts or fraction', ['counts', 'fraction']],
@@ -327,7 +388,7 @@ function useExtraInputs(
       'add_line': ['value'],
       'line_linetype': ['linetype', ['dashed', 'solid']],
       'line_color': ['color']
-    }
+    } as DataEnvelope<any[]>
     return {
       // label, then for any extras
       'plot_title': ['Plot Title'],
@@ -338,16 +399,17 @@ function useExtraInputs(
       'y_by': ['Y-Axis Data', get_options('y_by'), false],
       'color_by': ['Color Data', ['make'].concat(get_options('color_by')), false],
       'plots': ['Data Representations', ['violin', 'box']],
-      'color_order': ['Point render order', ['increasing', 'decreasing', 'unordered']],
+      'color_order': ['Point Render & (discrete) Color Assignment Order', full_data, color_by, discrete],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
       'size': ['Point Size', 0.1, 50],
       'scale_by': ['Scale Y by counts or fraction', ['counts', 'fraction']],
       'x_scale': ['Adjust scaling of the X-Axis', ['linear', 'log10', 'log10(val+1)']],
       'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
-      'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"]
+      'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"],
+      'x_order': ['Order of X-Axis Groupings', full_data, x_by, discrete],
+      'y_order': ['Order of Y-Axis Groupings', full_data, y_by, discrete],
     }
-    
-  }, [options, full_data, plot_type]);
+  }, [options, plot_type, constraints, continuous, discrete, x_by, y_by, color_by]);
 
   return extra_inputs;
 }
@@ -361,7 +423,7 @@ const comps: DataEnvelope<Function> = {
   'y_by': dropdownPiece,
   'color_by': dropdownPiece,
   'plots': multiselectPiece,
-  'color_order': dropdownPiece,
+  'color_order': reorderPiece,
   'order_when_continuous_color': checkboxPiece,
   'size': sliderPiece,
   'scale_by': dropdownPiece,
@@ -379,7 +441,9 @@ const comps: DataEnvelope<Function> = {
   'violin_scale': dropdownPiece,
   'add_line': floatPiece,
   'line_linetype': dropdownPiece,
-  'line_color': stringPiece
+  'line_color': stringPiece,
+  'x_order': reorderPiece,
+  'y_order': reorderPiece
 }
 
 function InputWrapper({title, values, open, toggleOpen, children}: PropsWithChildren<{title:string, values: DataEnvelope<any>, open: boolean, toggleOpen: Dispatch<string>}>) {

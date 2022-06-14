@@ -3,16 +3,17 @@ import { ThemeProvider } from '@material-ui/core/styles';
 
 import JanusNav from './janus-nav';
 import JanusMain from './janus-main';
-import JanusAdmin from './janus-admin';
+import ProjectsView from './projects-view';
 import JanusSettings from './janus-settings';
 import ProjectView from './project-view';
-import FlagsView from './flags/flags-view';
+import UsersView from './users-view';
 
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 
 import {Notifications} from 'etna-js/components/Notifications';
 import Messages from 'etna-js/components/messages';
 import { createEtnaTheme } from 'etna-js/style/theme';
+import {CcView} from "./cc-view";
 
 const theme = createEtnaTheme("#3684fd","#77c");
 
@@ -23,9 +24,9 @@ const ROUTES = [
     component: JanusMain
   },
   {
-    name: 'admin',
-    template: 'admin',
-    component: JanusAdmin
+    name: 'projects',
+    template: 'projects',
+    component: ProjectsView
   },
   {
     name: 'settings',
@@ -33,15 +34,20 @@ const ROUTES = [
     component: JanusSettings
   },
   {
-    name: 'flags',
-    template: 'flags',
-    component: FlagsView
+    name: 'users',
+    template: 'users',
+    component: UsersView
+  },
+  {
+    name: 'cc',
+    template: ':project_name/cc',
+    component: CcView,
   },
   {
     name: 'projects',
     template: ':project_name',
     component: ProjectView
-  }
+  },
 ];
 
 setRoutes(ROUTES);

@@ -10,6 +10,10 @@ if [ -f /run/secrets/airflow-fernet-key ]; then
   export AIRFLOW__CORE__FERNET_KEY=$(cat /run/secrets/airflow-fernet-key)
 fi
 
+if [ -f /etna_public_key ]; then
+  export ETNA_AUTH_PUBLIC_KEY="$(cat /etna_public_key)"
+fi
+
 if [ -n "$USE_MOCKS" ]; then
   echo "Preparing to use mocks"
   source /usr/lib/mocker
@@ -23,7 +27,7 @@ if [ -n "$USE_MOCKS" ]; then
 fi
 
 
-cp /opt/airflow/.airflowignore $(airflow config get-value core dags_folder)/.airflowignore
+cp /opt/airflow/.airflowignore $(airflow config get-value core dags_folder)/
 
 echo $@
 exec /entrypoint $@

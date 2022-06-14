@@ -68,26 +68,6 @@ class Metis
     end
   end
 
-  class BackfillSize < Etna::Command
-    def execute
-      i = 0
-      Metis::DataBlock.where(size: nil).each do |db|
-        db.update(size: db.actual_size || 0)
-
-        i += 1
-        if i % 100 == 0
-          puts "Processed #{i}"
-        end
-      end
-    end
-
-    def setup(config)
-      super
-      Metis.instance.setup_db
-      Metis.instance.load_models
-    end
-  end
-
   class Schema < Etna::Command
     usage "Show the current database schema."
 
@@ -131,9 +111,13 @@ class Metis
     usage "Checksum files."
 
     def execute
-      needs_hash = Metis::DataBlock.where(md5_hash: Metis::DataBlock::TEMP_MATCH, removed: false).order(:updated_at).all[0..10]
-      puts "Found #{needs_hash.count} data blocks to be checksummed."
-      needs_hash.each(&:compute_hash!)
+      while true
+        needs_hash = Metis::DataBlock.where(md5_hash: Metis::DataBlock::TEMP_MATCH, removed: false).order(:updated_at).all[0..10]
+        count = needs_hash.count
+        puts "Found #{count} data blocks to be checksummed."
+        needs_hash.each(&:compute_hash!)
+        break if count == 0
+      end
     end
 
     def setup(config)

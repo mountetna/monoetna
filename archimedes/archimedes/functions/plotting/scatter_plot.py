@@ -1,7 +1,11 @@
+from typing import Union
+import pandas as pd
 import plotly.express as px
 import numpy as np
 
-from plotnine import ggplot, aes, theme_bw, ggtitle, xlab, ylab, scale_y_continuous, scale_x_continuous, scale_colour_gradient, scale_colour_manual, guides, guide_legend, geom_point, scale_shape_manual, theme, element_blank
+from plotnine import ggplot, aes, theme_bw, ggtitle, scale_y_continuous, scale_x_continuous, scale_colour_gradient, scale_colour_manual, guides, guide_legend, geom_point, scale_shape_manual, theme, element_blank
+from plotnine import xlab as xlab_fxn
+from plotnine import ylab as ylab_fxn
 
 from .utils import _leave_default_or_none, _is_discrete, _is_continuous, _is_logical, _is_integer, _scale, _all_rows, _which_rows
 from .utils_col_getters import _isCol, _col, _colLevels
@@ -10,16 +14,16 @@ from .colors import colors
 from ..list import unique, order
 
 def scatter_plotly(
-    data_frame, x_by: str, y_by: str,
+    data_frame: pd.DataFrame, x_by: str, y_by: str,
     color_by: str = "make",
     px_args: dict = {},
     rows_use = None,
     x_scale = "linear", y_scale = "linear",
     size = 5, color_panel: list = colors,
-    color_order: str = 'increasing',
+    color_order: Union[str, list] = 'increasing',
     order_when_continuous_color: bool = False,
     plot_title: str = "make", legend_title: str = "make",
-    x_title: str = "make", y_title: str = "make",
+    xlab: str = "make", ylab: str = "make",
     hover_data: str = None
     ):
     """
@@ -30,14 +34,16 @@ def scatter_plotly(
     'size' sets the size of points.  Can be either a number directly or the name of a column of 'data_frame'.
     'color_panel' (string list) sets the colors when 'color_by' references discrete data
     'order_when_continuous_color'  sets the ordering of data points from back to front.
-    'color_order' ('increasing', 'decreasing', or 'unordered') sets the ordering of keys in the legend, when 'color_by' references discrete data
-    'plot_title', 'legend_title', 'x_title', and 'y_title' set titles.
+    'color_order' ('increasing', 'decreasing', 'unordered', or a list) sets the render ordering from back to front as well as, when 'color_by' references discrete data, the ordering of colors & keys in the legend. When a list, should be the data values in their desired order.
+    'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
+    'rows_use',
+    'x_scale', 'y_scale'. String, 'linear', 'log10', or 'log10(val+1)'. Controls whether these axes should be log scaled, and if so, whether 1 should be added to all values first in order to let zeros be okay to plot.
     """
 
     # Parse dependent defaults
-    x_title = _leave_default_or_none(x_title, x_by)
-    y_title = _leave_default_or_none(y_title, y_by)
-    plot_title = _leave_default_or_none(plot_title, color_by)
+    xlab = _leave_default_or_none(xlab, x_by)
+    ylab = _leave_default_or_none(ylab, y_by)
+    plot_title = _leave_default_or_none(plot_title, "" if color_by=="make" else color_by)
     legend_title = _leave_default_or_none(legend_title, color_by)
     
     # data_frame edits
@@ -64,27 +70,22 @@ def scatter_plotly(
     if color_by!="make":
         px_args['color'] = color_by
         # Also set plotting/legend key order
-        discrete_color = _is_discrete(df[color_by])
-        if (color_order == 'increasing' or color_order == 'decreasing'):
-            categories = order(unique(df[color_by]))
-            if (color_order == 'increasing'):
-                px_args['category_orders'] = { color_by: categories }
-                if order_when_continuous_color and not discrete_color:
-                    px_args['data_frame'] = df.iloc[ order(df[color_by], return_indexes=True) ]
-            else:
-                px_args['category_orders'] = { color_by: list(reversed( categories )) }
-                if order_when_continuous_color and not discrete_color:
-                    px_args['data_frame'] = df.iloc[ list(reversed( order(df[color_by], return_indexes=True) )) ]
-    else:
-        plot_title = _leave_default_or_none(plot_title, "")
+        categories = {}
+        if isinstance(color_order, list):
+            categories[color_by] = color_order
+        elif (color_order in ['increasing','decreasing']):
+            categories[color_by] = order(unique(df[color_by]), decreasing=color_order=="decreasing")
+            if order_when_continuous_color and not _is_discrete(df[color_by]):
+                px_args['data_frame'] = df.iloc[ order(df[color_by], return_indexes=True, decreasing=color_order=="decreasing") ]
+        px_args['category_orders'] = categories
     
     # Make plot
     fig = px.scatter(**px_args)
 
     fig.update_layout(
         title_text=plot_title,
-        xaxis_title=x_title,
-        yaxis_title=y_title,
+        xaxis_title=xlab,
+        yaxis_title=ylab,
         legend= {'itemsizing': 'constant'}
     )
 
@@ -121,8 +122,8 @@ def scatter_plotnine(
     min_value = None,
     max_value = None,
     plot_order: str = 'unordered',
-    x_title: str = "make",
-    y_title: str = "make",
+    xlab: str = "make",
+    ylab: str = "make",
     plot_title: str = "make",
     plot_theme = theme_bw(),
     do_contour = False,
@@ -155,8 +156,8 @@ def scatter_plotnine(
     df = data_frame.copy()
     
     # Parse dependent defaults
-    x_title = _leave_default_or_none(x_title, x_by)
-    y_title = _leave_default_or_none(y_title, y_by)
+    xlab = _leave_default_or_none(xlab, x_by)
+    ylab = _leave_default_or_none(ylab, y_by)
     plot_title = _leave_default_or_none(plot_title, color_by)
     legend_color_title = _leave_default_or_none(legend_color_title, color_by)
     legend_shape_title = _leave_default_or_none(legend_shape_title, shape_by)
@@ -192,8 +193,8 @@ def scatter_plotnine(
     
     ### Start plot, with data and theming
     fig = (ggplot() +
-        ylab(y_title) +
-        xlab(x_title) +
+        ylab_fxn(ylab) +
+        xlab_fxn(xlab) +
         plot_theme +
         x_scale() +
         y_scale()

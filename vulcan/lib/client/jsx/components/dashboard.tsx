@@ -81,6 +81,8 @@ export default function Dashboard({project_name}: {project_name: string}) {
               setSearchString={setSearchString}
               setTags={setTags}
               project_name={project_name}
+              tags={tags}
+              searchString={searchString}
             />
           </Grid>
         </Grid>
@@ -89,6 +91,8 @@ export default function Dashboard({project_name}: {project_name: string}) {
           workflowName={selectedWorkflow?.name}
           tags={tags}
           searchString={searchString}
+          setSearchString={setSearchString}
+          setTags={setTags}
         />
       </Grid>
     </main>

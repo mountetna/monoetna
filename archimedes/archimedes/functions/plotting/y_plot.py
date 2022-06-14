@@ -1,24 +1,30 @@
+from typing import List, Union
 import plotly.express as px
+import pandas as pd
 
-from plotnine import ggplot, aes, theme_bw, ggtitle, geom_jitter, geom_violin, geom_boxplot, scale_fill_manual, xlab, ylab, facet_wrap, facet_grid, position_jitterdodge, position_dodge, geom_hline, element_text, theme, scale_y_continuous, coord_cartesian
+from plotnine import ggplot, aes, theme_bw, ggtitle, geom_jitter, geom_violin, geom_boxplot, scale_fill_manual, facet_wrap, facet_grid, position_jitterdodge, position_dodge, geom_hline, element_text, theme, scale_y_continuous, coord_cartesian
+from plotnine import xlab as xlab_fxn
+from plotnine import ylab as ylab_fxn
 
 from .utils import _leave_default_or_none, _which_rows
 from .colors import colors
+from ..list import order, unique
 
 def y_plotly(
-    data_frame,
-    x_by,
-    y_by,
-    color_by = "make",
-    plots = ["violin", "box"],
+    data_frame: pd.DataFrame,
+    x_by: str,
+    y_by: str,
+    color_by: str = "make",
+    plots: List[str] = ["violin", "box"],
     px_args: dict = {},
     rows_use = None,
+    x_order: Union[str, list] = 'unordered',
     y_scale = "linear",
     color_panel: list = colors,
-    x_title="make",
-    y_label="make",
-    plot_title="make",
-    legend_title ="make"):
+    xlab: str = "make",
+    ylab: str = "make",
+    plot_title: str = "make",
+    legend_title: str = "make"):
     """
     Produces violin and/or box plots using plotly.express.violin, or plotly.express.box, based on the pandas 'data_frame' given.
     'x_by', 'y_by' should indicate columns of 'data_frame' to use for x/y axes data. 'x_by' should denote discrete groupings, while 'y-by' should denote numerical data.
@@ -26,14 +32,15 @@ def y_plotly(
     'plots' sets which data representations to use, and should be a list containing "violin", "box", or both of these.
     'px_args' should be a dictionary of additional bits to send in the 'plotly.express.violin' or 'plotly.express.box' call.
     'color_panel' (string list) sets the colors to use for violin/boxplot fills.
-    'plot_title', 'legend_title', 'x_title', and 'y_title' set titles.
+    'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
     'rows_use'
+    'x_order', either "unordered", "increasing", "decreasing", or a list[str] with the desired order for x-axis groups. 
     'y_scale', String, 'linear', 'log10', or 'log10(val+1)'. Controls whether this axes should be log scaled, and if so, whether 1 should be added to all values first in order to let zeros be okay to plot.
     """
     
     # Parse dependent defaults
     color_by = _leave_default_or_none(color_by, x_by)
-    x_title = _leave_default_or_none(x_title, x_by)
+    xlab = _leave_default_or_none(xlab, x_by)
     y_label = _leave_default_or_none(y_label, y_by)
     plot_title = _leave_default_or_none(plot_title, y_label)
     legend_title = _leave_default_or_none(legend_title, color_by)
@@ -53,6 +60,13 @@ def y_plotly(
     px_args["color"] = color_by
     px_args["color_discrete_sequence"] = color_panel
     px_args["log_y"] = y_scale=="log10"
+    if x_order!="unordered":
+        categories = {}
+        if isinstance(x_order, list):
+            categories[x_by] = x_order
+        elif x_order in ["increasing","decreasing"]:
+            categories[x_by] = order(unique(df[x_by]), decreasing=x_order=="decreasing")
+        px_args["category_orders"]=categories
     
     # Make Plot
     if "violin" in plots:
@@ -69,7 +83,7 @@ def y_plotly(
     # Tweaks
     fig.update_layout(
         title_text=plot_title,
-        xaxis_title=x_title,
+        xaxis_title=xlab,
         yaxis_title=y_label,
         legend_title_text=legend_title,
         legend= {'itemsizing': 'constant'}
@@ -106,8 +120,8 @@ def y_plotnine(
     y_min = "make",
     y_max = "make",
     x_labels_rotate = True,
-    x_title="make",
-    y_title="make",
+    xlab="make",
+    ylab="make",
     plot_title="make",
     legend_title ="make",
     plot_theme = theme_bw()
@@ -120,13 +134,13 @@ def y_plotnine(
     'plots' sets which data representations to use, and should be a list containing "violin", "box", or both of these.
     'px_args' should be a dictionary of additional bits to send in the 'plotly.express.violin' or 'plotly.express.box' call.
     'color_panel' (string list) sets the colors to use for violin/boxplot fills.
-    'plot_title', 'legend_title', 'x_title', and 'y_title' set titles.
+    'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
     """
     
     # Parse dependent defaults
     color_by = _leave_default_or_none(color_by, x_by)
-    x_title = _leave_default_or_none(x_title, x_by)
-    y_title = _leave_default_or_none(y_title, y_by)
+    xlab = _leave_default_or_none(xlab, x_by)
+    ylab = _leave_default_or_none(ylab, y_by)
     plot_title = _leave_default_or_none(plot_title, None)
     legend_title = _leave_default_or_none(legend_title, color_by)
     boxplot_show_outliers = _leave_default_or_none(boxplot_show_outliers, "jitter" not in plots)
@@ -142,7 +156,7 @@ def y_plotnine(
     fig = ( ggplot(data_frame, aes(x = x_by, y = y_by, fill = color_by)) +
         plot_theme +
         scale_fill_manual(values = color_panel, name = legend_title) +
-        xlab(x_title) + ylab(y_title)
+        xlab_fxn(xlab) + ylab_fxn(ylab)
         )
     
     if plot_title is not None:
