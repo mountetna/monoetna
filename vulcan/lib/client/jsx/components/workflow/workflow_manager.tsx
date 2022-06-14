@@ -66,7 +66,7 @@ export default function WorkflowManager({
     },
     [projectName, dispatch, selectWorkflowSnapshot, requestPoll]
   );
-  console.log('just for testing');
+
   const initializeFromFigure = useCallback(
     (figureId: number, localSession: VulcanFigureSession | null) => {
       showErrors(
