@@ -19,7 +19,7 @@ compose-ready:: docker-compose.yml images
 	@ true
 
 up:: compose-ready
-	@ docker-compose up -d
+	@ MONOETNA_SHA=$(shell git rev-parse HEAD) docker-compose up -d
 
 down:: docker-compose.yml
 	@ docker-compose down
@@ -31,7 +31,7 @@ restart:: compose-ready
 	@ docker-compose restart
 
 bash:: compose-ready
-	@ docker-compose run --rm $(app_service_name) $(containerSh)
+	@ MONOETNA_SHA=$(shell git rev-parse HEAD) docker-compose run --rm $(app_service_name) $(containerSh)
 
 logs:: compose-ready
 	@ docker-compose logs -f

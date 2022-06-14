@@ -13,7 +13,7 @@ help: ## Display help text
 
 docker-compose.yml: $(compose_ymls) ./build_support/compose $(wildcard ./*.shared.yml)
 	@ echo 'Rebuilding docker-compose.yml from projects $(compose_ymls)'
-	@ ./build_support/compose $(compose_ymls) > .tmp
+	@ MONOETNA_SHA=$(shell git rev-parse HEAD) ./build_support/compose $(compose_ymls) > .tmp
 	@ mv .tmp docker-compose.yml
 
 .PHONY: config-ready
@@ -32,7 +32,7 @@ update-all: compose-ready ## Runs all projects' updates, running bundle and npm 
 .PHONY: up
 up: compose-ready ## Starts up all containers of this project in the background
 	@ set -e; for project in $(compose_projects); do make -C $$project compose-ready; done
-	@ docker-compose up -d
+	@ MONOETNA_SHA=$(shell git rev-parse HEAD) docker-compose up -d
 
 .PHONY: down
 down: docker-compose.yml ## Ends all projects' processes

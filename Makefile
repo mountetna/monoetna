@@ -15,7 +15,7 @@ build: ## Forces a rebuild of all projects' development dockerfiles
 
 .PHONY: up
 up: ## Starts up all containers of this project in the background
-	@ make -C docker up
+	@ MONOETNA_SHA=$(shell git rev-parse HEAD) make -C docker up
 
 .PHONY: down
 down: ## Ends all projects' processes

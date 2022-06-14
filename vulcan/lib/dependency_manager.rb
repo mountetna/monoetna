@@ -3,7 +3,7 @@ class Vulcan
     def dependency_shas
       dependencies.map do |dependency|
         [dependency, image_sha(image_name: dependency)]
-      end.to_h
+      end.concat([git_sha]).to_h
     end
 
     def dependencies
@@ -39,6 +39,10 @@ class Vulcan
     end
 
     private
+
+    def git_sha
+      ['monoetna_git_sha', ENV['MONOETNA_SHA'] || '']
+    end
 
     def dependency_name_w_sha(session, image_name)
       # If the session's reference figure has dependencies,
