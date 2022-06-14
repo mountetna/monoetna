@@ -9,7 +9,7 @@ import { useSetsDefault } from './useSetsDefault';
 import { some } from '../../../../selectors/maybe';
 import { Accordion, AccordionDetails, AccordionSummary, Grid, Typography } from '@material-ui/core';
 import { pick } from 'lodash';
-import { key_wrap, stringPiece, dropdownPiece, multiselectPiece, checkboxPiece, sliderPiece } from './user_input_pieces';
+import { key_wrap, stringPiece, dropdownPiece, multiselectPiece, checkboxPiece, sliderPiece, floatPiece } from './user_input_pieces';
 import { subsetDataFramePiece } from './subsetDataFrame_piece';
 
 /*
@@ -184,6 +184,16 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
     'coordinates': ['y_scale'],
     'data focus': ['rows_use']
     //'default_adjust': {'color_by': "make"}
+  },
+  'y_plot_static': {
+    'primary features': ["x_by", "y_by", "plots", "color_by"],
+    'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    'coordinates': ['y_scale'],// 'split_by', 'y_min', 'y_max'],
+    'data focus': ['rows_use'],
+    'boxplot tweaks': ['boxplot_fill', 'boxplot_width', 'boxplot_color'],
+    'jitter tweaks': ['jitter_width', 'jitter_size', 'jitter_color'],
+    'violin tweaks': ['violin_lineweight', 'violin_width', 'violin_scale'],
+    'addition: horizontal line': ['add_line', 'line_linetype', 'line_color']
   }
 }
 
@@ -199,6 +209,11 @@ const input_constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = {
   'y_plot': {
     'x_by': "discrete",
     'y_by': "continuous"
+  },
+  'y_plot_static': {
+    'x_by': "discrete",
+    'y_by': "continuous",
+    // 'split_by': "discrete"
   }
 }
 
@@ -217,7 +232,19 @@ const defaults: DataEnvelope<any> = {
   'order_when_continuous_color': false,
   'x_scale': 'linear',
   'y_scale': 'linear',
-  'rows_use': {}
+  'rows_use': {},
+  'boxplot_fill': true,
+  'boxplot_width': 0.2,
+  'boxplot_color': 'black',
+  'jitter_width': 0.2,
+  'jitter_size': 1,
+  'jitter_color': 'black',
+  'violin_lineweight': 1,
+  'violin_width': 1,
+  'violin_scale': 'area',
+  'add_line': 0,
+  'line_linetype': 'dashed',
+  'line_color': 'black'
 };
 
 function whichDefaults(plotType: string|null, preset: DataEnvelope<any> | null | undefined) {
@@ -271,6 +298,36 @@ function useExtraInputs(
   }
   
   const extra_inputs: DataEnvelope<any[]> = useMemo(() => {
+    if (plot_type && plot_type.includes('static')) return {
+      // label, then for any extras
+      'plot_title': ['Plot Title'],
+      'legend_title': ['Legend Title'],
+      'xlab': ['X-Axis Title'],
+      'ylab': ['Y-Axis Title'],
+      'x_by': ['X-Axis Data', get_options('x_by'), false],
+      'y_by': ['Y-Axis Data', get_options('y_by'), false],
+      'color_by': ['Color Data', ['make'].concat(get_options('color_by')), false],
+      'plots': ['Data Representations', ['violin', 'box']],
+      'color_order': ['Point render order', ['increasing', 'decreasing', 'unordered']],
+      'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
+      'size': ['Point Size', 0.1, 50],
+      'scale_by': ['Scale Y by counts or fraction', ['counts', 'fraction']],
+      'x_scale': ['Adjust scaling of the X-Axis', ['linear', 'log10', 'log10(val+1)']],
+      'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
+      'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"],
+      'boxplot_fill': ['fill with color'],
+      'boxplot_width': ['width'],
+      'boxplot_color': ['line color'],
+      'jitter_width': ['width'],
+      'jitter_size': ['point size'],
+      'jitter_color': ['point color'],
+      'violin_lineweight': ['line weight'],
+      'violin_width': ['width'],
+      'violin_scale': ['scale widths by', ['area', 'count', 'width']],
+      'add_line': ['value'],
+      'line_linetype': ['linetype', ['dashed', 'solid']],
+      'line_color': ['color']
+    }
     return {
       // label, then for any extras
       'plot_title': ['Plot Title'],
@@ -289,6 +346,7 @@ function useExtraInputs(
       'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
       'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"]
     }
+    
   }, [options, full_data, plot_type]);
 
   return extra_inputs;
@@ -309,7 +367,19 @@ const comps: DataEnvelope<Function> = {
   'scale_by': dropdownPiece,
   'x_scale': dropdownPiece,
   'y_scale': dropdownPiece,
-  'rows_use': subsetDataFramePiece
+  'rows_use': subsetDataFramePiece,
+  'boxplot_fill': checkboxPiece,
+  'boxplot_width': floatPiece,
+  'boxplot_color': stringPiece,
+  'jitter_width': floatPiece,
+  'jitter_size': floatPiece,
+  'jitter_color': stringPiece,
+  'violin_lineweight': floatPiece,
+  'violin_width': floatPiece,
+  'violin_scale': dropdownPiece,
+  'add_line': floatPiece,
+  'line_linetype': dropdownPiece,
+  'line_color': stringPiece
 }
 
 function InputWrapper({title, values, open, toggleOpen, children}: PropsWithChildren<{title:string, values: DataEnvelope<any>, open: boolean, toggleOpen: Dispatch<string>}>) {
