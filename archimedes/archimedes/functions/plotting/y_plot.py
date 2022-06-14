@@ -41,8 +41,8 @@ def y_plotly(
     # Parse dependent defaults
     color_by = _leave_default_or_none(color_by, x_by)
     xlab = _leave_default_or_none(xlab, x_by)
-    y_label = _leave_default_or_none(y_label, y_by)
-    plot_title = _leave_default_or_none(plot_title, y_label)
+    ylab = _leave_default_or_none(ylab, y_by)
+    plot_title = _leave_default_or_none(plot_title, ylab)
     legend_title = _leave_default_or_none(legend_title, color_by)
     
     # data_frame edits
@@ -84,7 +84,7 @@ def y_plotly(
     fig.update_layout(
         title_text=plot_title,
         xaxis_title=xlab,
-        yaxis_title=y_label,
+        yaxis_title=ylab,
         legend_title_text=legend_title,
         legend= {'itemsizing': 'constant'}
     )
