@@ -50,7 +50,6 @@ export default function StepUserInputWrapper({
 
   const {status} = state;
 
-  const toggleInputs = useCallback(() => setOpen(!open), [setOpen, open]);
   const allInnerStatus = useMemo(
     () => group.steps.map((step) => statusOfStep(step, status)),
     [group, status]
@@ -59,7 +58,8 @@ export default function StepUserInputWrapper({
     () => allInnerStatus.every((s) => s && s.status === STATUS.COMPLETE),
     [allInnerStatus]
   );
-  const [open, setOpen] = useState(allStepsComplete);
+  const [open, setOpen] = useState(!allStepsComplete);
+  const toggleInputs = useCallback(() => setOpen(!open), [setOpen, open]);
 
   const hasValidationErrors = group.steps.some((step) =>
     state.validationErrors.some(([stepName]) => stepName === step.name)
