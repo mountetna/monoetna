@@ -9,7 +9,8 @@ mkdir -p /app/public/js
 mkdir -p /app/public/css
 mkdir -p /app/public/images
 mkdir -p /app/log
-mkdir -p /app/vendor/bundle
+#mkdir -p /app/vendor/bundle
+mkdir -p /bundle
 mkdir -p /app/data/
 mkdir -p /tmp/metrics.prom/
 
@@ -23,9 +24,9 @@ chmod -R 777 /tmp/metrics.prom/
 
 shopt -s globstar
 
-if [ -n "$FULL_BUILD" ]; then
-  bundle install -j "$(nproc)"
-fi
+#if [ -n "$FULL_BUILD" ]; then
+#  bundle install -j "$(nproc)"
+#fi
 
 if [ -n "$FULL_BUILD" ]; then
   # The images tend to build as root, which for host systems is unsafe,

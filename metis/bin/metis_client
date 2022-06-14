@@ -350,8 +350,12 @@ class MetisClient < Client
     raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
   end
 
+  def encode_path(path)
+    path.split('/').map { |v| URI.encode_www_form_component(v) }.join('/')
+  end
+
   def create_folder(project_name, folder_path)
-    response = json_post("/#{project_name}/folder/create/#{URI.encode(folder_path)}")
+    response = json_post("/#{project_name}/folder/create/#{encode_path(folder_path)}")
     raise MetisClient::Error, "Could not create folder #{folder_path}\n#{error(response)}" unless response.code == "200" || (response.code == "422" && error(response) == 'Folder exists')
   end
 
@@ -362,7 +366,7 @@ class MetisClient < Client
   end
 
   def list_folder(project_name,folder_path)
-    response = get_request( "/#{project_name}/list/#{URI.encode(folder_path || '')}" )
+    response = get_request( "/#{project_name}/list/#{encode_path(folder_path || '')}" )
 
     return nil if response.code == "404"
     raise MetisClient::Error, "Could not list folder #{folder_path}\n#{error(response)}" unless response.code == "200"
@@ -370,12 +374,12 @@ class MetisClient < Client
   end
 
   def rename_folder(project_name,bucket_name,folder_path,new_folder_path)
-    response = json_post("/#{project_name}/folder/rename/#{bucket_name}/#{URI.encode(folder_path)}", new_folder_path: new_folder_path)
+    response = json_post("/#{project_name}/folder/rename/#{bucket_name}/#{encode_path(folder_path)}", new_folder_path: new_folder_path)
     raise MetisClient::Error, "Could not rename folder #{folder_path}\n#{error(response)}" unless response.code == "200"
   end
 
   def rename_file(project_name,bucket_name,file_path,new_file_path)
-    response = json_post("/#{project_name}/file/rename/#{bucket_name}/#{URI.encode(file_path)}", new_file_path: new_file_path)
+    response = json_post("/#{project_name}/file/rename/#{bucket_name}/#{encode_path(file_path)}", new_file_path: new_file_path)
     raise MetisClient::Error, "Could not rename file #{file_path}\n#{error(response)}" unless response.code == "200"
   end
 
@@ -400,12 +404,12 @@ class MetisClient < Client
   end
 
   def remove_folder(project_name, folder_path, recursive=false)
-    response = delete_request("/#{project_name}/folder/remove/#{URI.encode(folder_path)}",recursive ? { recursive: true } : {})
+    response = delete_request("/#{project_name}/folder/remove/#{encode_path(folder_path)}",recursive ? { recursive: true } : {})
     raise MetisClient::Error, "Could not remove folder #{folder_path}\n#{error(response)}" unless response.code == "200"
   end
 
   def remove_file(project_name, file_path)
-    response = delete_request("/#{project_name}/file/remove/#{URI.encode(file_path)}")
+    response = delete_request("/#{project_name}/file/remove/#{encode_path(file_path)}")
     raise MetisClient::Error, "Could not remove file #{file_path}\n#{error(response)}" unless response.code == "200"
   end
 
@@ -426,7 +430,7 @@ class MetisClient < Client
       old_file_path = file_path
     end
 
-    response = json_post("/#{project_name}/file/copy/#{URI.encode(old_file_path)}",
+    response = json_post("/#{project_name}/file/copy/#{encode_path(old_file_path)}",
       new_file_path: new_file_path,
       new_bucket_name: new_bucket_name)
 

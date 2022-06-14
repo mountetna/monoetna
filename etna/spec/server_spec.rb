@@ -132,9 +132,20 @@ describe Etna::Server do
     @app = setup_app(Arachne::Server)
 
     get URI.encode("/silk/#{description}")
-
     expect(last_response.status).to eq(200)
     expect(last_response.body).to eq(description)
+
+    get "/silk/a+b+c"
+    expect(last_response.status).to eq(200)
+    expect(last_response.body).to eq("a b c")
+
+    get "/silk/a/b/c"
+    expect(last_response.status).to eq(200)
+    expect(last_response.body).to eq("a/b/c")
+
+    get "/silk/a%2Fb%2Fc"
+    expect(last_response.status).to eq(200)
+    expect(last_response.body).to eq("a/b/c")
   end
 
   it 'sets route names' do
