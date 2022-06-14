@@ -46,7 +46,6 @@ export default function StepUserInputWrapper({
 }: {
   group: WorkflowStepGroup;
 }) {
-  const [open, setOpen] = useState(true);
   const {state} = useContext(VulcanContext);
 
   const {status} = state;
@@ -60,20 +59,11 @@ export default function StepUserInputWrapper({
     () => allInnerStatus.every((s) => s && s.status === STATUS.COMPLETE),
     [allInnerStatus]
   );
+  const [open, setOpen] = useState(allStepsComplete);
 
   const hasValidationErrors = group.steps.some((step) =>
     state.validationErrors.some(([stepName]) => stepName === step.name)
   );
-  const shouldOpen = hasValidationErrors;
-  const shouldClose = allStepsComplete && !hasValidationErrors;
-
-  useEffect(() => {
-    if (shouldClose) {
-      setOpen(false);
-    } else if (shouldOpen) {
-      setOpen(true);
-    }
-  }, [shouldOpen, shouldClose]);
 
   const classes = useStyles();
 
