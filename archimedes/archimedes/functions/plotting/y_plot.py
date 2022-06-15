@@ -175,10 +175,10 @@ def y_plotnine(
     
     if x_order!="unordered":
         if isinstance(x_order, list):
-            category_order = x_order
+            x_order_use = x_order
         elif x_order in ["increasing","decreasing"]:
-            category_order = order(unique(df[x_by]), decreasing=x_order=="decreasing")
-        df[x_by] = pd.Categorical(df[x_by], category_order)
+            x_order_use = order(unique(df[x_by]), decreasing=x_order=="decreasing")
+        df[x_by] = pd.Categorical(df[x_by], x_order_use)
     
     # Add data
     for ptype in plots:

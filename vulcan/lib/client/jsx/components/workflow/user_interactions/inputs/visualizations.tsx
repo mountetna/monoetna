@@ -250,7 +250,58 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
     'jitter tweaks': ['jitter_width', 'jitter_size', 'jitter_color'],
     'violin tweaks': ['violin_lineweight', 'violin_width', 'violin_scale'],
     'addition: horizontal line': ['add_line', 'line_linetype', 'line_color']
+  },
+  'scatter_plot_static': {
+    'primary features': ["x_by", "y_by", "color_by", 'size'],
+    'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    //'coordinates': ['x_scale', 'y_scale'],
+    'data focus': ['rows_use', 'color_order']
+    //'default_adjust': {'color_by': "make"}
   }
+  //   To Add for scatter_static
+  //   plot_order: str = 'unordered',
+  //   shape_by: str = 'make',
+  //   split_by: List[str] = [],
+  //   split_nrow: int = None,
+  //   split_ncol: int = None,
+  //   split_adjust: dict = {},
+  //   show_others: bool = True,
+  //   color_adjustment = None,
+  //   color_adj_fxn = None,
+  //   split_show_all_others: bool = True,
+  //   opacity: float = 1,
+  //   colors: List[int] = None,
+  //   shape_panel: list = ['o','s','^','D','v','*'],
+  //   # rename_color_groups: List[str] = None,
+  //   # rename_shape_groups: List[str] = None,
+  //   min_color: str = "#F0E442",
+  //   max_color: str = "#0072B2",
+  //   min_value: float = None,
+  //   max_value: float = None,
+  //   plot_theme = theme_bw(),
+  //   do_contour: bool = False,
+  //   contour_color: str = "black",
+  //   contour_linetype: str = 'solid',
+  //   # add_trajectory_by_groups = None,
+  //   # add_trajectory_curves = None,
+  //   # trajectory_group_by = None,
+  //   # trajectory_arrow_size = 0.15,
+  //   # do_letter = False,
+  //   # do_ellipse = False,
+  //   # do_label = False,
+  //   # labels_size = 5,
+  //   # labels_highlight = True,
+  //   # labels_repel = True,
+  //   # labels_split_by = "make",
+  //   legend_show: bool = True,
+  //   legend_color_size: float = 5,
+  //   legend_color_breaks: Union[str, List[float]] = "make",
+  //   legend_color_breaks_labels: Union[str, List[str]] = "make",
+  //   legend_shape_title: str = "make",
+  //   legend_shape_size: float = 5,
+  //   show_grid_lines: bool = True,
+  //   y_scale = scale_y_continuous,
+  //   x_scale = scale_x_continuous
 }
 
 const input_constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = {
@@ -272,6 +323,10 @@ const input_constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = {
     'y_by': "continuous",
     'color_by': "discrete"
     // 'split_by': "discrete"
+  },
+  'scatter_plot_static': {
+    'x_by': "continuous",
+    'y_by': "continuous"
   }
 }
 

@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 import pandas as pd
 import plotly.express as px
 import numpy as np
@@ -96,39 +96,40 @@ def scatter_plotly(
     return fig
 
 def scatter_plotnine(
-    data_frame,
+    data_frame: pd.DataFrame,
     x_by: str,
     y_by: str,
-    color_by: str = '',
-    shape_by: str = '',
-    split_by = [],
-    size = 1,
+    color_by: str = 'make',
+    shape_by: str = 'make',
+    split_by: List[str] = [],
+    size: float = 1,
     rows_use = None,
-    show_others = True,
+    color_order: Union[str, list] = 'increasing',
+    show_others: bool = True,
     color_adjustment = None,
     color_adj_fxn = None,
-    split_show_all_others = True,
+    split_show_all_others: bool = True,
     opacity: float = 1,
-    color_panel: list = colors,
-    colors = None,
-    split_nrow = None,
-    split_ncol = None,
-    split_adjust = {},
-    shape_panel = ['o','s','^','D','v','*'],
-    # rename_color_groups = None,
-    # rename_shape_groups = None,
-    min_color = "#F0E442",
-    max_color = "#0072B2",
-    min_value = None,
-    max_value = None,
+    color_panel: List[str] = colors,
+    colors: List[int] = None,
+    split_nrow: int = None,
+    split_ncol: int = None,
+    split_adjust: dict = {},
+    shape_panel: list = ['o','s','^','D','v','*'],
+    # rename_color_groups: List[str] = None,
+    # rename_shape_groups: List[str] = None,
+    min_color: str = "#F0E442",
+    max_color: str = "#0072B2",
+    min_value: float = None,
+    max_value: float = None,
     plot_order: str = 'unordered',
     xlab: str = "make",
     ylab: str = "make",
     plot_title: str = "make",
     plot_theme = theme_bw(),
-    do_contour = False,
-    contour_color = "black",
-    contour_linetype = 'solid',
+    do_contour: bool = False,
+    contour_color: str = "black",
+    contour_linetype: str = 'solid',
     # add_trajectory_by_groups = None,
     # add_trajectory_curves = None,
     # trajectory_group_by = None,
@@ -140,17 +141,17 @@ def scatter_plotnine(
     # labels_highlight = True,
     # labels_repel = True,
     # labels_split_by = "make",
-    legend_show = True,
-    legend_color_title: str = "make",
-    legend_color_size = 5,
-    legend_color_breaks = "make",
-    legend_color_breaks_labels = "make",
-    legend_shape_title = "make",
-    legend_shape_size = 5,
-    show_grid_lines = True,
+    legend_show: bool = True,
+    legend_title: str = "make",
+    legend_color_size: float = 5,
+    legend_color_breaks: Union[str, List[float]] = "make",
+    legend_color_breaks_labels: Union[str, List[str]] = "make",
+    legend_shape_title: str = "make",
+    legend_shape_size: float = 5,
+    show_grid_lines: bool = True,
     y_scale = scale_y_continuous,
     x_scale = scale_x_continuous,
-    data_out = False
+    data_out: bool = False
     ):
     
     df = data_frame.copy()
@@ -159,7 +160,7 @@ def scatter_plotnine(
     xlab = _leave_default_or_none(xlab, x_by)
     ylab = _leave_default_or_none(ylab, y_by)
     plot_title = _leave_default_or_none(plot_title, color_by)
-    legend_color_title = _leave_default_or_none(legend_color_title, color_by)
+    legend_title = _leave_default_or_none(legend_title, color_by)
     legend_shape_title = _leave_default_or_none(legend_shape_title, shape_by)
     if colors!= None:
         color_panel = color_panel[colors]
@@ -209,12 +210,14 @@ def scatter_plotnine(
         'size': size,
         'alpha': opacity}
     
-    if color_by!='':
+    if color_by!='make':
         aes_args['color'] = color_by
         
         if _is_continuous(df[color_by]):
+            if (color_order in ['increasing','decreasing']):
+                df = df.iloc[ order(df[color_by], return_indexes=True, decreasing=color_order=="decreasing") ]
             scale_args= {
-                'name': legend_color_title,
+                'name': legend_title,
                 'low': min_color,
                 'high': max_color,
                 'limits': (
@@ -227,12 +230,18 @@ def scatter_plotnine(
                 scale_args['labels'] = legend_color_breaks_labels
             fig += scale_colour_gradient(**scale_args)
         else:
+            if color_order!="unordered":
+                if isinstance(color_order, list):
+                    color_order_use = color_order
+                elif (color_order in ['increasing','decreasing']):
+                    color_order_use = order(unique(df[color_by]), decreasing=color_order=="decreasing")
+                df[color_by] = pd.Categorical(df[color_by], color_order_use)
             fig += scale_colour_manual(
-                name = legend_color_title,
+                name = legend_title,
                 values = color_panel)
             fig += guides(color = guide_legend(override_aes = {'size':legend_color_size}))
     
-    if shape_by!='':
+    if shape_by!='make':
         aes_args['shape'] = shape_by
         fig += scale_shape_manual(
                 values = shape_panel,
