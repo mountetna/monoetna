@@ -35,7 +35,8 @@ def bar_plotly(
     y_by = _leave_default_or_none(y_by, x_by)
     xlab = _leave_default_or_none(xlab, x_by)
     ylab = _leave_default_or_none(ylab, y_by + " " + scale_by) # A little different for this function
-    plot_title = _leave_default_or_none(plot_title, ylab + " per " + x_by)
+    title_x_add = " per " + x_by if x_by!=y_by else ""
+    plot_title = _leave_default_or_none(plot_title, ylab + title_x_add)
     legend_title = _leave_default_or_none(legend_title, y_by) # A little different for this function
     
     # data_frame edits
