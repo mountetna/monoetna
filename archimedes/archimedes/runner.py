@@ -16,13 +16,12 @@ import shutil
 import signal
 import subprocess
 from dataclasses import dataclass, field
-from turtle import end_fill
 from dataclasses_json import dataclass_json
 import time
 from typing import List, ContextManager, TypeVar, Generic, Tuple, IO, Optional
 
 from docker import DockerClient
-from docker.errors import NotFound, ImageNotFound, APIError
+from docker.errors import NotFound
 from docker.types import Mount
 from docker.models.containers import Container
 from archimedes.checker import run as run_checker
