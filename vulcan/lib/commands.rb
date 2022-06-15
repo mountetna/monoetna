@@ -236,7 +236,7 @@ class Vulcan
 
     def setup(config)
       super
-      Vulcan.instance.setup_db
+      Vulcan.instance.setup_db(false)
     end
   end
 
