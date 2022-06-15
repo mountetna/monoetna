@@ -23,8 +23,8 @@ export GROUP_ID=$(id -g)
 
 cp $DIR/docker-compose.shared.yml /tmp/composed.yml
 for compose_yml in $@; do
-    docker-compose -f $compose_yml config > /tmp/next.yml
-    docker-compose -f /tmp/next.yml -f /tmp/composed.yml config > /tmp/composed.yml.next
+    docker-compose -f $compose_yml config --no-interpolate > /tmp/next.yml
+    docker-compose -f /tmp/next.yml -f /tmp/composed.yml config --no-interpolate > /tmp/composed.yml.next
     mv /tmp/composed.yml.next /tmp/composed.yml
 done
 

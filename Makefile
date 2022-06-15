@@ -1,5 +1,6 @@
 export COMPOSE_PROJECT_NAME=monoetna
 export NODE_ENV=development
+export MONOETNA_SHA=$(shell git rev-parse HEAD) 
 
 .PHONY: help
 help: ## Display help text
@@ -15,7 +16,7 @@ build: ## Forces a rebuild of all projects' development dockerfiles
 
 .PHONY: up
 up: ## Starts up all containers of this project in the background
-	@ MONOETNA_SHA=$(shell git rev-parse HEAD) make -C docker up
+	@ make -C docker up
 
 .PHONY: down
 down: ## Ends all projects' processes
