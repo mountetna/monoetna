@@ -63,10 +63,10 @@ const postUpdateProject = (project_name, revision) => json_post(`/api/admin/${pr
 const postAddUser = (project_name, {email, name, role}) => json_post(`/api/admin/${project_name}/add_user`, {email, name, role});
 
 const Permission = ({roles, editable, onSave, permission={}, create}) => {
-  let {user_email, user_name, role, affiliation, privileged} = permission;
-  let [ revision, updateRevision ] = useState({});
+  const {user_email, user_name, role, affiliation, privileged} = permission;
+  const [ revision, updateRevision ] = useState({});
 
-  let update = useCallback( (key, value) => {
+  const update = useCallback( (key, value) => {
     let newRevision = {...revision};
     if (permission[key] == value) {
       delete newRevision[key];
@@ -86,6 +86,8 @@ const Permission = ({roles, editable, onSave, permission={}, create}) => {
   const handleOnCancel = useCallback(() => {
     updateRevision({});
   });
+
+  if (role == 'guest') roles = [ ...roles, 'guest' ];
 
   return <TableRow>
     <TableCell>
