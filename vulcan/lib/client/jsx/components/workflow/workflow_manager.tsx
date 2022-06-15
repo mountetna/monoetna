@@ -105,7 +105,7 @@ export default function WorkflowManager({
       dispatch(setWorkflow(workflow, projectName));
       const defaults = defaultInputs(workflow);
 
-      let useLocal = false;
+      let useLocal = true;
 
       if (
         !_.isEqual(defaults, localSession.inputs) &&
