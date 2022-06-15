@@ -344,7 +344,7 @@ function useExtraInputs(
       'color_order': ['Point Render & (discrete) Color Assignment Order', full_data, color_by, discrete],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
       'size': ['Point Size', 0.1, 50],
-      'scale_by': ['Scale Y by counts or fraction', ['counts', 'fraction']],
+      'scale_by': ['Scale Y by counts or fraction', ['counts', 'fraction'], true, 200, x_by==y_by],
       'x_scale': ['Adjust scaling of the X-Axis', ['linear', 'log10', 'log10(val+1)']],
       'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
       'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"],
