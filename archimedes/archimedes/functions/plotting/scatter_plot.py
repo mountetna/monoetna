@@ -269,7 +269,7 @@ def scatter_plotnine(
     # Faceting
     fig = _add_splitting(fig, split_by, split_nrow, split_ncol, split_adjust)
     # Contours
-    if do_contour:
+    if do_contour and _is_discrete(df[color_by]):
         fig = _add_contours(fig, df, x_by, y_by, contour_color, contour_linetype)
     # Grid lines
     if not show_grid_lines:

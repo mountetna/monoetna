@@ -119,7 +119,7 @@ export function multiselectPiece(
 
 export function sliderPiece(
   key: string, changeFxn: Function, value: number,
-  label: string, min: number = 0.1, max: number = 20) {
+  label: string, min: number = 0.1, max: number = 20, step: number = 1) {
 
     return(
         <div key={key} style={{paddingTop: 8}}>
@@ -130,6 +130,7 @@ export function sliderPiece(
             onChange={(event, newValue) => changeFxn(newValue as number, key)}
             min={min}
             max={max}
+            step={step}
             valueLabelDisplay="auto"
           />
         </div>

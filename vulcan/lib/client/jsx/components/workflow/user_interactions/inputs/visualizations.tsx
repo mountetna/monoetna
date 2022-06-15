@@ -252,15 +252,15 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
     'addition: horizontal line': ['add_line', 'line_linetype', 'line_color']
   },
   'scatter_plot_static': {
-    'primary features': ["x_by", "y_by", "color_by", 'size'],
+    'primary features': ["x_by", "y_by", "color_by", 'shape_by', 'size', 'opacity'],
     'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
     //'coordinates': ['x_scale', 'y_scale'],
-    'data focus': ['rows_use', 'color_order']
+    'data focus': ['rows_use', 'plot_order', 'color_order'],
+    'Visual Tweaks': ['show_grid_lines'],
+    'Addition - Contours': ['do_contour', 'contour_color', 'contour_linetype']
     //'default_adjust': {'color_by': "make"}
   }
-  //   To Add for scatter_static
-  //   plot_order: str = 'unordered',
-  //   shape_by: str = 'make',
+  // To Add for scatter_static:
   //   split_by: List[str] = [],
   //   split_nrow: int = None,
   //   split_ncol: int = None,
@@ -269,9 +269,6 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   //   color_adjustment = None,
   //   color_adj_fxn = None,
   //   split_show_all_others: bool = True,
-  //   opacity: float = 1,
-  //   colors: List[int] = None,
-  //   shape_panel: list = ['o','s','^','D','v','*'],
   //   # rename_color_groups: List[str] = None,
   //   # rename_shape_groups: List[str] = None,
   //   min_color: str = "#F0E442",
@@ -279,9 +276,6 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   //   min_value: float = None,
   //   max_value: float = None,
   //   plot_theme = theme_bw(),
-  //   do_contour: bool = False,
-  //   contour_color: str = "black",
-  //   contour_linetype: str = 'solid',
   //   # add_trajectory_by_groups = None,
   //   # add_trajectory_curves = None,
   //   # trajectory_group_by = None,
@@ -299,7 +293,6 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   //   legend_color_breaks_labels: Union[str, List[str]] = "make",
   //   legend_shape_title: str = "make",
   //   legend_shape_size: float = 5,
-  //   show_grid_lines: bool = True,
   //   y_scale = scale_y_continuous,
   //   x_scale = scale_x_continuous
 }
@@ -326,7 +319,8 @@ const input_constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = {
   },
   'scatter_plot_static': {
     'x_by': "continuous",
-    'y_by': "continuous"
+    'y_by': "continuous",
+    'shape_by': "discrete"
   }
 }
 
@@ -335,8 +329,10 @@ const defaults: DataEnvelope<any> = {
   'y_by': null,
   'plots': ['box', 'violin'],
   'color_by': 'make',
+  'shape_by': 'make',
   'scale_by': 'fraction',
   'size': 5,
+  'opacity': 1,
   'plot_title': 'make',
   'legend_title': 'make',
   'xlab': 'make',
@@ -359,7 +355,12 @@ const defaults: DataEnvelope<any> = {
   'line_linetype': 'dashed',
   'line_color': 'black',
   'x_order': 'increasing',
-  'y_order': 'increasing'
+  'y_order': 'increasing',
+  'plot_order': 'unordered',
+  'do_contour': false,
+  'contour_color': "black",
+  'contour_linetype': "solid",
+  'show_grid_lines': true
 };
 
 function whichDefaults(plotType: string|null, preset: DataEnvelope<any> | null | undefined) {
@@ -423,9 +424,10 @@ function useExtraInputs(
       'x_by': ['X-Axis Data', get_options('x_by'), false],
       'y_by': ['Y-Axis Data', get_options('y_by'), false],
       'color_by': ['Color Data', ['make'].concat(get_options('color_by')), false],
-      'color_order': ['Point Render & (discrete) Color Assignment Order', full_data, color_by, discrete],
+      'shape_by': ['Shape Data', get_options('shape_by'), false],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
-      'size': ['Point Size', 0.1, 50],
+      'size': ['Point Size', 0.5, 50, 0.5],
+      'opacity': ['Point Opacity', 0, 1, 0.05],
       'scale_by': ['Scale Y by counts or fraction', ['counts', 'fraction']],
       'x_scale': ['Adjust scaling of the X-Axis', ['linear', 'log10', 'log10(val+1)']],
       'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
@@ -448,11 +450,18 @@ function useExtraInputs(
       'violin_scale': ['scale widths by', ['area', 'count', 'width']],
       'add_line': ['value'],
       'line_linetype': ['linetype', ['dashed', 'solid']],
-      'line_color': ['color']
+      'line_color': ['color'],
+      'color_order': ['Color Assignment Order (Discrete-only)', full_data, color_by, discrete],
+      'plot_order': ['Plotting Render Order', ['unordered', 'increasing', 'decreasing']],
+      'do_contour': ['Add Ellipses?'],
+      'contour_color': ['Contour Color'],
+      'contour_linetype': ['Contour Linetype', ["solid", "dashed", "dotted"]],
+      'show_grid_lines': ['Show Grid Lines?']
     } as DataEnvelope<any[]>
     // Plotly Plotter Defaults
     return {
       ...universal,
+      'color_order': ['Point Render & (discrete) Color Assignment Order', full_data, color_by, discrete],
       'plots': ['Data Representations', ['violin', 'box']]
     }
   }, [options, plot_type, constraints, continuous, discrete, x_by, y_by, color_by]);
@@ -468,10 +477,12 @@ const comps: DataEnvelope<Function> = {
   'x_by': dropdownPiece,
   'y_by': dropdownPiece,
   'color_by': dropdownPiece,
+  'shape_by': dropdownPiece,
   'plots': multiselectPiece,
   'color_order': reorderPiece,
   'order_when_continuous_color': checkboxPiece,
   'size': sliderPiece,
+  'opacity': sliderPiece,
   'scale_by': dropdownPiece,
   'x_scale': dropdownPiece,
   'y_scale': dropdownPiece,
@@ -489,7 +500,12 @@ const comps: DataEnvelope<Function> = {
   'line_linetype': dropdownPiece,
   'line_color': stringPiece,
   'x_order': reorderPiece,
-  'y_order': reorderPiece
+  'y_order': reorderPiece,
+  'plot_order': dropdownPiece,
+  'do_contour': checkboxPiece,
+  'contour_color': stringPiece,
+  'contour_linetype': dropdownPiece,
+  'show_grid_lines': checkboxPiece
 }
 
 function InputWrapper({title, values, open, toggleOpen, children}: PropsWithChildren<{title:string, values: DataEnvelope<any>, open: boolean, toggleOpen: Dispatch<string>}>) {
