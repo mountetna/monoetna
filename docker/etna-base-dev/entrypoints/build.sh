@@ -9,7 +9,6 @@ mkdir -p /app/public/js
 mkdir -p /app/public/css
 mkdir -p /app/public/images
 mkdir -p /app/log
-#mkdir -p /app/vendor/bundle
 mkdir -p /bundle
 mkdir -p /app/data/
 mkdir -p /tmp/metrics.prom/

@@ -7,7 +7,6 @@ x-base-etna-service:
   volumes: &base-etna-service-volumes
     - metis-node-modules:/app/node_modules
     - .:/app:delegated
-#    - app-gems:/app/vendor/bundle:rw
     - log-dir:/app/log:rw
     - tmp-dir:/app/tmp:rw
     - public-dir:/app/public:rw

@@ -33,6 +33,8 @@ gem "yabeda-prometheus"
 gem "yabeda-puma-plugin"
 gem "curb"
 gem "net-ssh"
+gem "rsync", "~> 1.0", ">= 1.0.9"
+gem "json_schemer"
 
 group :test do
   gem 'rspec'
@@ -45,8 +47,5 @@ group :test do
   gem "simplecov"
   gem 'factory_bot'
   gem 'database_cleaner', '1.8.5'
-  gem 'pry-byebug'
   gem 'net-http-persistent'
-  gem 'multipart-post'
-  gem 'debase'
 end

@@ -15,10 +15,11 @@ volumes:
 services:
   etna_app:
     command: echo initialized
-    image: etna-base
+    image: etna-base-dev
     volumes:
       - /home/home/etna.yml:/root/etna.yml
       - .:/app:cached
+      - .:/etna:cached
       - ../docker/etna-base/entrypoints:/entrypoints:ro
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
