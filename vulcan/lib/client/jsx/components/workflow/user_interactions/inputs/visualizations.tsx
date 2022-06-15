@@ -245,7 +245,7 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
     'primary features': ["x_by", "y_by", "plots", "color_by"],
     'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
     'coordinates': ['y_scale'],// 'split_by', 'y_min', 'y_max'],
-    'data focus': ['rows_use'],
+    'data focus': ['rows_use', 'x_order'],
     'boxplot tweaks': ['boxplot_fill', 'boxplot_width', 'boxplot_color'],
     'jitter tweaks': ['jitter_width', 'jitter_size', 'jitter_color'],
     'violin tweaks': ['violin_lineweight', 'violin_width', 'violin_scale'],
@@ -359,8 +359,8 @@ function useExtraInputs(
   }
   
   const extra_inputs: DataEnvelope<any[]> = useMemo(() => {
-    if (plot_type && plot_type.includes('static')) return {
-      // label, then for any extras
+    // Values: label then any other inputs for the relevant component
+    const universal = {
       'plot_title': ['Plot Title'],
       'legend_title': ['Legend Title'],
       'xlab': ['X-Axis Title'],
@@ -368,7 +368,6 @@ function useExtraInputs(
       'x_by': ['X-Axis Data', get_options('x_by'), false],
       'y_by': ['Y-Axis Data', get_options('y_by'), false],
       'color_by': ['Color Data', ['make'].concat(get_options('color_by')), false],
-      'plots': ['Data Representations', ['violin', 'box', 'jitter']],
       'color_order': ['Point Render & (discrete) Color Assignment Order', full_data, color_by, discrete],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
       'size': ['Point Size', 0.1, 50],
@@ -376,6 +375,13 @@ function useExtraInputs(
       'x_scale': ['Adjust scaling of the X-Axis', ['linear', 'log10', 'log10(val+1)']],
       'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
       'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"],
+      'x_order': ['Order of X-Axis Groupings', full_data, x_by, discrete],
+      'y_order': ['Order of Y-Axis Groupings', full_data, y_by, discrete]
+    }
+    // Static Plotter defaults
+    if (plot_type && plot_type.includes('static')) return {
+      ...universal,
+      'plots': ['Data Representations', ['violin', 'box', 'jitter']],
       'boxplot_fill': ['fill with color'],
       'boxplot_width': ['width'],
       'boxplot_color': ['line color'],
@@ -389,25 +395,10 @@ function useExtraInputs(
       'line_linetype': ['linetype', ['dashed', 'solid']],
       'line_color': ['color']
     } as DataEnvelope<any[]>
+    // Plotly Plotter Defaults
     return {
-      // label, then for any extras
-      'plot_title': ['Plot Title'],
-      'legend_title': ['Legend Title'],
-      'xlab': ['X-Axis Title'],
-      'ylab': ['Y-Axis Title'],
-      'x_by': ['X-Axis Data', get_options('x_by'), false],
-      'y_by': ['Y-Axis Data', get_options('y_by'), false],
-      'color_by': ['Color Data', ['make'].concat(get_options('color_by')), false],
-      'plots': ['Data Representations', ['violin', 'box']],
-      'color_order': ['Point Render & (discrete) Color Assignment Order', full_data, color_by, discrete],
-      'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
-      'size': ['Point Size', 0.1, 50],
-      'scale_by': ['Scale Y by counts or fraction', ['counts', 'fraction']],
-      'x_scale': ['Adjust scaling of the X-Axis', ['linear', 'log10', 'log10(val+1)']],
-      'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
-      'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"],
-      'x_order': ['Order of X-Axis Groupings', full_data, x_by, discrete],
-      'y_order': ['Order of Y-Axis Groupings', full_data, y_by, discrete],
+      ...universal,
+      'plots': ['Data Representations', ['violin', 'box']]
     }
   }, [options, plot_type, constraints, continuous, discrete, x_by, y_by, color_by]);
 

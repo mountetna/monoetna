@@ -91,13 +91,14 @@ def y_plotly(
     return fig
 
 def y_plotnine(
-    data_frame,
-    x_by,
-    y_by,
-    color_by = "make",
+    data_frame: pd.DataFrame,
+    x_by: str,
+    y_by: str,
+    color_by: str = "make",
     plots = ["violin", "box", "jitter"],
     split_by = [],
     rows_use = None,
+    x_order: Union[str, list] = 'unordered',
     color_panel: list = colors,
     boxplot_fill = True,
     boxplot_width = 0.2,
@@ -166,12 +167,18 @@ def y_plotnine(
         fig += y_scale(breaks = y_breaks)
     else:
         fig += y_scale()
-        
     if y_min!="make":
         y_min = min(data_frame[y_by])
     if y_max!="make":
         y_max = max(data_frame[y_by])
     fig += coord_cartesian(ylim=(y_min,y_max))
+    
+    if x_order!="unordered":
+        if isinstance(x_order, list):
+            category_order = x_order
+        elif x_order in ["increasing","decreasing"]:
+            category_order = order(unique(df[x_by]), decreasing=x_order=="decreasing")
+        df[x_by] = pd.Categorical(df[x_by], category_order)
     
     # Add data
     for ptype in plots:
