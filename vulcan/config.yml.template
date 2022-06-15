@@ -29,8 +29,8 @@ default: &default
   :log_level: info
   :archimedes_run_image: etnaagent/archimedes
   :archimedes_interpreters:
-    :node: etnaagent/archimedes-node
-    :python: etnaagent/archimedes
+    :node: etnaagent/archimedes-node:production
+    :python: etnaagent/archimedes:production
   :archimedes_exec_volume: archimedes-exec
   :log_file: /dev/stdout
   :rsa_public: |
@@ -67,5 +67,5 @@ default: &default
   :archimedes_exec_volume: archimedes-exec
   :advisory_lock_file: /app/spec/storage.lock
   :archimedes_interpreters:
-    :node: etnaagent/archimedes-node
+    :node: etnaagent/archimedes-node:production
     :python: etnaagent/archimedes:production
