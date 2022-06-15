@@ -91,7 +91,7 @@ class Session < Etna::Cwl
   def workflow
     @workflow ||= begin
       if @reference_figure_id
-        if (snapshot = Vulcan::Figure.from_reference_id(@reference_figure_id)&.workflow_snapshot)
+        if (snapshot = workflow_snapshot)
           Etna::Cwl::Workflow.from_snapshot(snapshot)
         else
           Etna::Cwl::Workflow.from_yaml_file(workflow_name)  
@@ -141,7 +141,11 @@ class Session < Etna::Cwl
     @reference_figure ||= Vulcan::Figure.from_reference_id(@reference_figure_id)
   end
 
+  def workflow_snapshot
+    @workflow_snapshot ||= reference_figure&.workflow_snapshot
+  end
+
   def snapshot_scripts
-    @snapshot_scripts ||= reference_figure&.workflow_snapshot&.scripts
+    @snapshot_scripts ||= workflow_snapshot&.scripts
   end
 end
