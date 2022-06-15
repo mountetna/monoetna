@@ -11,8 +11,8 @@ import { useAsyncCallback } from 'etna-js/utils/cancellable_helpers';
 
 
 export default function SelectAutocompleteInput(
-  {data, label, minWidth, maxOptions=100, disableClearable=true, onChangeOverride, onChange, ...props}: WithInputParams<
-  {label?: string, minWidth?: number, disableClearable?: boolean, maxOptions?:number, onChangeOverride?: (event: any, e: string|null) => void}, string | null, StringOptions>) {
+  {data, label, minWidth, maxOptions=100, disableClearable=true, disabled=false, onChangeOverride, onChange, ...props}: WithInputParams<
+  {label?: string, minWidth?: number, disableClearable?: boolean, disabled?: boolean, maxOptions?:number, onChangeOverride?: (event: any, e: string|null) => void}, string | null, StringOptions>) {
   /*
   Creates a searchable dropdown selection input box from concatenated values of the 'data' hash.
   Special Case: If any data key is "recommendation", a line of text will display the values of this recommendation to the user.
@@ -67,6 +67,7 @@ export default function SelectAutocompleteInput(
   return (
     <Autocomplete
       disableClearable={disableClearable}
+      disabled={disabled}
       clearOnBlur={true}
       options={options_in}
       filterOptions={(x: string[]) => options.display}

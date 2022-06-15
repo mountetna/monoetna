@@ -15,7 +15,7 @@ class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordFileE
     record_names = records.map { |r| r.keys.first }
     logger.info("Processing population tables for patients #{record_names.join(", ")}...")
 
-    ipi_flowjo_script = File.join(File.dirname(__FILE__), "magma", "scripts", "ipi+patient+flowjo.rb")
+    ipi_flowjo_script = File.join(File.dirname(__FILE__), "..", "magma", "scripts", "ipi+patient+flowjo.rb")
 
     runner = Polyphemus::MagmaEtlScriptRunner.new(ipi_flowjo_script)
 
