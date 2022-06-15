@@ -54,6 +54,7 @@ describe FigureController do
         expect(json_body[:title]).to eql(figure.title)
         expect(json_body[:workflow_snapshot]).not_to eq(nil)
         expect(json_body[:workflow_snapshot][:steps][0][0].key?(:name)).to eq(true)
+        expect(json_body[:workflow_snapshot].key?(:scripts)).to eq(false) # don't send this back in the JSON
       end
     end
 
@@ -69,6 +70,16 @@ describe FigureController do
 
         # Make sure the snapshot metadata keys are camelCase for the UI (to match JSON convention)
         expect(json_body[:workflow_snapshot][:displayName]).to eq("Test workflow")
+
+        figure.refresh
+        expect(figure.workflow_snapshot.scripts).to eq({
+          "aPlot"=>nil,
+          "finalStep"=>
+           "from archimedes.functions.dataflow import output_path, input_path\n\na = int(open(input_path('a'), 'r').read())\nb = int(open(input_path('b'), 'r').read())\n\nwith open(output_path('sum'), 'w') as output_file:\n    output_file.write(str(a + b))",
+          "firstAdd"=>
+           "from archimedes.functions.dataflow import output_path, input_path\n\na = int(open(input_path('a'), 'r').read())\nb = int(open(input_path('b'), 'r').read())\n\nwith open(output_path('sum'), 'w') as output_file:\n    output_file.write(str(a + b))",
+          "pickANum"=>nil
+        })
       end
     end
   end

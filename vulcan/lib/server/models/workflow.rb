@@ -45,6 +45,13 @@ module Etna
         self.loader.load(workflow_snapshot.cwl_as_yaml)
       end
 
+      def self.step_scripts(attributes, prefix = Vulcan.instance.config(:workflows_folder))
+        workflow = Etna::Cwl::Workflow.from_yaml(attributes)
+        workflow.steps.map do |step|
+          [step.id, step.lookup_operation_script]
+        end.to_h
+      end
+
       def find_step(step_name)
         steps.find { |s| s.id == step_name }
       end

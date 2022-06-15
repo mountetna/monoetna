@@ -300,7 +300,10 @@ class Vulcan
             if step.ui_behavior?
               script = {}
             elsif step.script_name
-              script = step.lookup_operation_script
+              # Check snapshot first for the stored script
+              script = session.snapshot_script(step.id)
+
+              script = step.lookup_operation_script if script.nil?
               raise "Could not find backing script #{step.script_name.inspect} for step #{step.id}" if script.nil?
             else
               raise "Step #{step.id} has invalid run: #{step.run}.  Must be either a ui-queries/, ui-outputs/, or scripts/ entry." if script.nil?

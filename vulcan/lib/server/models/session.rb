@@ -128,6 +128,20 @@ class Session < Etna::Cwl
   end
 
   def dependencies
-    @dependencies ||= Vulcan::Figure.from_reference_id(@reference_figure_id)&.dependencies
+    @dependencies ||= reference_figure&.dependencies
+  end
+
+  def snapshot_script(script_name)
+    snapshot_scripts ? snapshot_scripts[script_name] : nil
+  end
+
+  private
+  
+  def reference_figure
+    @reference_figure ||= Vulcan::Figure.from_reference_id(@reference_figure_id)
+  end
+
+  def snapshot_scripts
+    @snapshot_scripts ||= reference_figure&.workflow_snapshot&.scripts
   end
 end

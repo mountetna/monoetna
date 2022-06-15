@@ -1,4 +1,4 @@
-require 'active_support/inflector'
+require "active_support/inflector"
 
 class Vulcan
   class WorkflowSnapshot < Sequel::Model
@@ -21,11 +21,14 @@ class Vulcan
     def self.from_workflow_name(workflow_name:, figure_id:)
       cwl_yaml = Etna::Cwl::Workflow.raw_yaml_from_file(workflow_name)
       metadata = Etna::Cwl::Workflow.metadata(workflow_name)
+
       Vulcan::WorkflowSnapshot.create({
         figure_id: figure_id,
         cwl_yaml: YAML.dump(cwl_yaml),
       }.update(
         Vulcan::WorkflowSnapshot.snake_case_keys(metadata).slice(*Vulcan::WorkflowSnapshot.metadata_params)
+      ).update(
+        scripts: Etna::Cwl::Workflow.step_scripts(cwl_yaml),
       ))
     end
 
@@ -46,7 +49,7 @@ class Vulcan
     end
 
     def to_hash
-      params_to_hash([:cwl_yaml].concat(Vulcan::WorkflowSnapshot.metadata_params))
+      params_to_hash([:cwl_yaml, :scripts].concat(Vulcan::WorkflowSnapshot.metadata_params))
     end
 
     private
