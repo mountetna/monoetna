@@ -338,11 +338,29 @@ describe MetisShell do
     #   strips out the body data on those POST requests.
     # So this is actually impossible to test except in
     #   a 'production' environment.
-    xit 'puts a file into a bucket' do
+    it 'puts a file into a bucket' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_path = stubs.create_data('stubs', 'helmet.txt', HELMET)
-      #expect_output("metis://athena/armor", "put", helmet_path) { '' }
-      #expect(Metis::File.first.file_name).to eq('helmet.txt')
+      expect_output("metis://athena/armor", "put", helmet_path, '.') { nil }
+      expect(WebMock).to have_requested(:post, /https:\/\/metis.test\/authorize\/upload/).
+        with(body: hash_including({
+          "project_name": "athena",
+          "bucket_name": "armor",
+          "file_path": "helmet.txt"
+        }))
+    end
+
+    it 'puts a file into a sub-folder' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_path = stubs.create_data('stubs', 'helmet.txt', HELMET)
+      expect_output("metis://athena/armor", "put", helmet_path, 'helmet') { nil }
+      expect(WebMock).to have_requested(:post, /https:\/\/metis.test\/authorize\/upload/).
+        with(body: hash_including({
+          "project_name": "athena",
+          "bucket_name": "armor",
+          "file_path": "helmet/helmet.txt"
+        }))
     end
 
     it 'retries to upload a file into a bucket on a 422 response' do
