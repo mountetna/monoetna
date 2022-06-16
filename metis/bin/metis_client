@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-#
+
 require 'optparse'
 require 'resolv'
 require 'json'
@@ -1060,10 +1060,12 @@ EOT
       raise ShellError, 'No input files selected!' if input_files.empty?
 
       # get a listing of the folder
-      folder = @shell.client.list_folder(@shell.project_name, @shell.relative_path(folder_path))
+      folder_path = @shell.relative_path(folder_path)
+
+      folder = @shell.client.list_folder(@shell.project_name, folder_path)
 
       input_files.each do |file_or_folder|
-        upload(file_or_folder, @shell.cwd, folder)
+        upload(file_or_folder, folder_path, folder)
       end
     end
 
