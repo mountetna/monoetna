@@ -67,6 +67,9 @@ export default function WorkflowManager({
     [projectName, dispatch, selectWorkflowSnapshot, requestPoll]
   );
 
+  const useLocalPrompt =
+    "You have unsaved changes. Click 'OK' to use your local version, or 'Cancel' to discard all unsaved changes and load the last saved state.";
+
   const initializeFromFigure = useCallback(
     (figureId: number, localSession: VulcanFigureSession | null) => {
       showErrors(
@@ -77,9 +80,7 @@ export default function WorkflowManager({
             localSession &&
             !_.isEqual(localSession.inputs, figureResponse.inputs)
           ) {
-            useLocal = confirm(
-              "You have unsaved changes. Click 'OK' to use your local version, or 'Cancel' to discard all unsaved changes and load the last saved state."
-            );
+            useLocal = confirm(useLocalPrompt);
           }
 
           initializeFromSessionAndFigure(
@@ -119,18 +120,16 @@ export default function WorkflowManager({
       dispatch(setWorkflow(workflow, projectName));
       const defaults = defaultInputs(workflow);
 
-      let discardStoredSession = true;
+      let useLocal = true;
 
       if (
         !_.isEqual(defaults, localSession.inputs) &&
         Object.keys(localSession.inputs) >= Object.keys(defaults)
       ) {
-        discardStoredSession = confirm(
-          'You have an edited, unsaved version of this workflow. Discard it?'
-        );
+        useLocal = confirm(useLocalPrompt);
       }
 
-      if (discardStoredSession) {
+      if (!useLocal) {
         initializeNewSession();
       } else {
         initializeFromSessionAndFigure(
