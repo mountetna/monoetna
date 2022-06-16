@@ -159,7 +159,7 @@ def scatter_plotnine(
     # Parse dependent defaults
     xlab = _leave_default_or_none(xlab, x_by)
     ylab = _leave_default_or_none(ylab, y_by)
-    plot_title = _leave_default_or_none(plot_title, color_by)
+    plot_title = _leave_default_or_none(plot_title, color_by, color_by=="make")
     legend_title = _leave_default_or_none(legend_title, color_by)
     legend_shape_title = _leave_default_or_none(legend_shape_title, shape_by)
     if colors!= None:
