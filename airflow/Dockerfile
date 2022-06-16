@@ -1,6 +1,7 @@
 FROM known_hosts
 FROM bash_mocker
 FROM airflow-code-editor
+FROM etna-py AS etna-py
 
 FROM apache/airflow:2.2.4-python3.8
 
@@ -30,8 +31,10 @@ RUN pip3 install -r /opt/airflow/requirements.txt
 
 COPY --chown=airflow:0 ./opt/ /opt/airflow/
 COPY --from=1 /mocker /usr/lib/mocker
+COPY --chown=airflow:0 --from=etna-py /etna-py /etna-py
 RUN pip uninstall -y apache-airflow-providers-google apache-airflow-providers-grpc apache-airflow-providers-hashicorp apache-airflow-providers-microsoft-azure apache-airflow-providers-sendgrid apache-airflow-providers-elasticsearch apache-airflow-providers-cncf-kubernetes apache-airflow-providers-celery
 RUN pip install /opt/airflow/providers/etna
 RUN pip install /airflow-code-editor
+RUN pip install /etna-py
 
 ENTRYPOINT ["/opt/airflow/entrypoint-with-secret-files.sh"]
