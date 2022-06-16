@@ -221,8 +221,9 @@ def scatter_plotnine(
                 'low': min_color,
                 'high': max_color,
                 'limits': (
-                    [min_value,min(df[color_by])][min_value==None]
-                    [max_value,max(df[color_by])][max_value==None])
+                    min(df[color_by]) if min_value==None else min_value,
+                    max(df[color_by]) if max_value==None else max_value
+                )
             }
             if legend_color_breaks!="make":
                 scale_args['breaks'] = legend_color_breaks,
