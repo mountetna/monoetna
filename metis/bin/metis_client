@@ -1519,7 +1519,7 @@ EOT
       return
     end
 
-    report_stale_version
+    report_stale_version unless test_env?
 
     Readline.completion_proc = proc do |string|
       complete(string)
