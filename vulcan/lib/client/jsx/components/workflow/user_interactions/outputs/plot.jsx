@@ -6,8 +6,8 @@ export const PlotOutput = ({data}) => {
   console.log({data})
   return <React.Fragment>
     {Object.keys(data).map((k) => {
-      if (!Object.keys(data[k]).includes('layout')) {
-        return null
+      if (typeof(data[k])=='string') {
+        return <iframe key={k} srcDoc={data[k]}></iframe>
       } else {
         return PlotlyOutput(data)
       }

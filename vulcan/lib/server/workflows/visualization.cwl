@@ -66,16 +66,11 @@ steps:
     in:
       plot_setup: fill_plot_options/plot_setup
       data_frame: extend_user_formulas/full_user_data.json
-    out: [plot.json, plot.png, thumb.png]
+    out: [plot.json, plot.html, thumb.png]
   show_plot:
     run: ui-outputs/plot.cwl
     in:
       a: make_plot/plot.json
+      b: make_plot/plot.html
     out: []
     label: 'Display Plot if Plotly'
-  download_plot:
-    run: ui-outputs/link.cwl
-    in:
-      a: make_plot/plot.png
-    out: []
-    label: 'Download Plot if Static'
