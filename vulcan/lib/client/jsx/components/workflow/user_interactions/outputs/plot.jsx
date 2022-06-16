@@ -2,7 +2,20 @@ import React from 'react';
 import {autoColors} from 'etna-js/utils/colors';
 import PlotWithEffects from './plot_with_effects';
 
-const PlotOutput = ({data: plots}) => {
+export const PlotOutput = ({data}) => {
+  console.log({data})
+  return <React.Fragment>
+    {Object.keys(data).map((k) => {
+      if (!Object.keys(data[k]).includes('layout')) {
+        return null
+      } else {
+        return PlotlyOutput(data)
+      }
+    })}
+  </React.Fragment>
+}
+
+export const PlotlyOutput = ({data: plots}) => {
   return (
     <React.Fragment>
       {Object.keys(plots).map((k) => {
@@ -65,5 +78,3 @@ const PlotOutput = ({data: plots}) => {
     </React.Fragment>
   );
 };
-
-export default PlotOutput;

@@ -6,7 +6,7 @@ import {OUTPUT_COMPONENT} from '../../../api_types';
 import StepName from './step_name';
 import RawOutput from '../user_interactions/outputs/raw';
 import LinkOutput from '../user_interactions/outputs/link';
-import PlotOutput from '../user_interactions/outputs/plot';
+import { PlotlyOutput, PlotOutput } from '../user_interactions/outputs/plot';
 import ConsignmentOutput from '../user_interactions/outputs/consignment';
 
 import {statusOfStep, uiOutputOfStep, stepInputDataUrls, stepInputDataRaw} from "../../../selectors/workflow_selectors";
@@ -15,7 +15,8 @@ import {WorkflowStep} from "../../../api_types";
 const OUTPUTS = {
   default: LinkOutput,
   [OUTPUT_COMPONENT.LINK]: LinkOutput,
-  [OUTPUT_COMPONENT.PLOTLY]: PlotOutput,
+  [OUTPUT_COMPONENT.PLOTLY]: PlotlyOutput,
+  [OUTPUT_COMPONENT.PLOT]: PlotOutput,
   [OUTPUT_COMPONENT.CONSIGNMENT]: ConsignmentOutput,
   [OUTPUT_COMPONENT.RAW]: RawOutput
 };

@@ -38,6 +38,7 @@ export const RUN = {
 // UI Output widgets
 export const OUTPUT_COMPONENT = {
   LINK: 'link',
+  PLOT: 'plot',
   PLOTLY: 'plotly',
   CONSIGNMENT: 'consignment',
   RAW: 'raw'

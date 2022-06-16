@@ -424,7 +424,7 @@ function useExtraInputs(
       'x_by': ['X-Axis Data', get_options('x_by'), false],
       'y_by': ['Y-Axis Data', get_options('y_by'), false],
       'color_by': ['Color Data', ['make'].concat(get_options('color_by')), false],
-      'shape_by': ['Shape Data', get_options('shape_by'), false],
+      'shape_by': ['Shape Data', ['make'].concat(get_options('shape_by')), false],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
       'size': ['Point Size', 0.5, 50, 0.5],
       'opacity': ['Point Opacity', 0, 1, 0.05],
