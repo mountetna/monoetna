@@ -3,7 +3,6 @@ import plotly.io as pio
 import json
 import plotnine
 from ..dataflow import output_path, output_json
-import mpld3
 
 DISCRETE_KINDS = 'ObUS'
 CONTINUOUS_KINDS = 'ifuc'
@@ -22,8 +21,11 @@ def output_plotly(fig, out_file: str = 'plot.json', thumb_file: str = 'thumb.png
         height=200
         )
 
-def output_plotnine(fig: plotnine.ggplot, out_file: str = 'plot.html', thumb_file: str = 'thumb.png'):
-    mpld3.save_html(fig.draw(), output_path(out_file))
+def output_plotnine(fig: plotnine.ggplot, out_file: str = 'plot.png', thumb_file: str = 'thumb.png'):
+    fig.save(
+        filename=output_path(out_file),
+        format='png'
+    )
     fig = fig + plotnine.theme(legend_position='none') + plotnine.theme_void()
     fig.save(
         filename=output_path(thumb_file),
