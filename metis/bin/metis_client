@@ -19,6 +19,14 @@ require 'singleton'
 CONFIG_FILE='~/.metis.json'
 LOG_FILE='~/.metis.log'
 
+def github_contents
+  uri = URI('https://raw.githubusercontent.com/mountetna/metis/master/bin/metis_client')
+  response = Net::HTTP.get_response(uri)
+  return nil unless response.is_a?(Net::HTTPSuccess)
+
+  return response.body
+end
+
 def escaped_path(folder_path)
   folder_path.split('/').map{|fs| CGI.escape(fs) }.join('/')
 end
@@ -915,7 +923,6 @@ EOT
     end
   end
 
-
   class Mkdir < Command
     usage "mkdir <remote_path>"
     def run(path)
@@ -1367,6 +1374,29 @@ EOT
     end
   end
 
+  class Update < Command
+    usage "update"
+
+    def run
+      script = github_contents
+
+      unless script
+        puts "Could not fetch metis_client from github"
+        return
+      end
+
+      if script == File.read(__FILE__)
+        puts "Up to date."
+        return
+      end
+
+      puts "Updating to latest version..."
+      File.open(__FILE__, 'w') do |f|
+        f.puts script
+      end
+    end
+  end
+
   class ShellError < StandardError
   end
 
@@ -1472,12 +1502,24 @@ EOT
     end
   end
 
+  def report_stale_version
+    script = github_contents
+    return unless script
+    old_script = File.read(__FILE__)
+
+    if script != old_script
+      puts "Your version of metis_client is stale. Run `metis_client metis:// update` to update."
+    end
+  end
+
   def run
     unless @args.empty?
       command, *args = @args
       run_command(command, *args)
       return
     end
+
+    report_stale_version
 
     Readline.completion_proc = proc do |string|
       complete(string)
