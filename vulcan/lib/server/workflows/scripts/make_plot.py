@@ -1,5 +1,5 @@
 from archimedes.functions.dataflow import input_path, json, input_json
-from archimedes.functions.plotting import output_plotly, scatter_plotly, y_plotly, bar_plotly, y_plotnine, scatter_plotnine, output_mpld3, plotnine
+from archimedes.functions.plotting import output_plotly, scatter_plotly, y_plotly, bar_plotly, y_plotnine, scatter_plotnine, output_plotnine, plotnine
 from archimedes.functions.utils import pandas as pd
 from archimedes.functions.ui_complements import subsetDF_index_targets
 
@@ -23,6 +23,6 @@ plot_setup.pop('plot_type')
 # Make & output plot
 fig = viz_fxn(df, **plot_setup)
 
-output_fxn = output_mpld3 if isinstance(fig, plotnine.ggplot) else output_plotly
+output_fxn = output_plotnine if isinstance(fig, plotnine.ggplot) else output_plotly
 
 output_fxn(fig)
