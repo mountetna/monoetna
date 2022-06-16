@@ -79,3 +79,9 @@ steps:
       a: make_plot/plot.png
     out: []
     label: 'Download Plot if Static'
+  show_plot:
+    run: ui-outputs/png.cwl
+    in:
+      a: make_plot/plot.png
+    out: []
+    label: 'Display Plot if Static'

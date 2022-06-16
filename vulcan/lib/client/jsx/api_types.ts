@@ -40,6 +40,7 @@ export const OUTPUT_COMPONENT = {
   LINK: 'link',
   PLOT: 'plot',
   PLOTLY: 'plotly',
+  PNG: 'png',
   CONSIGNMENT: 'consignment',
   RAW: 'raw'
 };

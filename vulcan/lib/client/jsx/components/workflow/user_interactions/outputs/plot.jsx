@@ -15,6 +15,16 @@ export const PlotOutput = ({data}) => {
   </React.Fragment>
 }
 
+export const PngOutput = ({data}) => {
+  return <React.Fragment>
+    {Object.values(data).map(url =>
+        <React.Fragment key={url}>
+          <img src={url}></img>
+        </React.Fragment>
+    )}
+  </React.Fragment>
+}
+
 export const PlotlyOutput = ({data: plots}) => {
   return (
     <React.Fragment>
