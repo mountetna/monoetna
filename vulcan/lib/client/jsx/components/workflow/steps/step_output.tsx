@@ -33,6 +33,10 @@ export default function StepOutput({step}: {step: WorkflowStep}) {
   let data;
   if (['default', OUTPUT_COMPONENT.LINK,OUTPUT_COMPONENT.PNG].includes(stepType)) {
     data = stepInputDataUrls(step, state.status);
+  } else if ([OUTPUT_COMPONENT.PLOT].includes(stepType)){
+    data = {
+      url: stepInputDataUrls(step, state.status),
+      raw: stepInputDataRaw(step, state.status, state.data, state.session)};
   } else {
     data = stepInputDataRaw(step, state.status, state.data, state.session);
   }

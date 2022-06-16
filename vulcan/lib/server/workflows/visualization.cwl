@@ -71,17 +71,6 @@ steps:
     run: ui-outputs/plot.cwl
     in:
       a: make_plot/plot.json
+      b: make_plot/plot.png
     out: []
-    label: 'Display Plot if Plotly'
-  download_plot:
-    run: ui-outputs/link.cwl
-    in:
-      a: make_plot/plot.png
-    out: []
-    label: 'Download Plot if Static'
-  show_plot:
-    run: ui-outputs/png.cwl
-    in:
-      a: make_plot/plot.png
-    out: []
-    label: 'Display Plot if Static'
+    label: 'Display Plot'

@@ -3,23 +3,22 @@ import {autoColors} from 'etna-js/utils/colors';
 import PlotWithEffects from './plot_with_effects';
 
 export const PlotOutput = ({data}) => {
-  console.log({data})
+  const plotlys = data.raw
+  const pngs = Object.fromEntries(Object.entries(data.url).
+    filter(([key, val]) => {
+      return !Object.keys(data.raw).includes(key) && val.endsWith(".png")
+    }))
   return <React.Fragment>
-    {Object.keys(data).map((k) => {
-      if (!Object.keys(data[k]).includes('layout')) {
-        return null
-      } else {
-        return PlotlyOutput(data)
-      }
-    })}
+    {(Object.keys(plotlys).length>0) ? PlotlyOutput({data: plotlys}) : null}
+    {(Object.keys(pngs).length>0) ? PngOutput({data: pngs}) : null}
   </React.Fragment>
 }
 
 export const PngOutput = ({data}) => {
   return <React.Fragment>
-    {Object.values(data).map(url =>
+    {Object.values(data).map((url, ind) =>
         <React.Fragment key={url}>
-          <img src={url}></img>
+          <img key={ind} src={url}/>
         </React.Fragment>
     )}
   </React.Fragment>
