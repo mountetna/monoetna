@@ -3,14 +3,14 @@ import pandas as pd
 import plotly.express as px
 import numpy as np
 
-from plotnine import ggplot, aes, theme_bw, ggtitle, scale_y_continuous, scale_x_continuous, scale_colour_gradient, scale_colour_manual, guides, guide_legend, geom_point, scale_shape_manual, theme, element_blank
+from plotnine import ggplot, aes, theme_bw, ggtitle, scale_y_continuous, scale_x_continuous, scale_y_log10, scale_x_log10, scale_colour_gradient, scale_colour_manual, guides, guide_legend, geom_point, scale_shape_manual, theme, element_blank
 from plotnine import xlab as xlab_fxn
 from plotnine import ylab as ylab_fxn
 
 from .utils import _leave_default_or_none, _is_discrete, _is_continuous, _is_logical, _is_integer, _scale, _all_rows, _which_rows
 from .utils_col_getters import _isCol, _col, _colLevels
 from .utils_plot_mods import _add_contours, _add_splitting, _remove_legend
-from .colors import colors
+from .colors import dittoColors
 from ..list import unique, order
 
 def scatter_plotly(
@@ -19,7 +19,7 @@ def scatter_plotly(
     px_args: dict = {},
     rows_use = None,
     x_scale = "linear", y_scale = "linear",
-    size = 5, color_panel: list = colors,
+    size = 5, color_panel: list = dittoColors(),
     color_order: Union[str, list] = 'increasing',
     order_when_continuous_color: bool = False,
     plot_title: str = "make", legend_title: str = "make",
@@ -110,7 +110,7 @@ def scatter_plotnine(
     color_adj_fxn = None,
     split_show_all_others: bool = True,
     opacity: float = 1,
-    color_panel: List[str] = colors,
+    color_panel: List[str] = dittoColors(),
     colors: List[int] = None,
     split_nrow: int = None,
     split_ncol: int = None,
@@ -175,6 +175,22 @@ def scatter_plotnine(
         new_color_by = color_by + "-adj"
         df[new_color_by] = _col(color_by, df, color_adjustment, color_adj_fxn)
         color_by = new_color_by
+    if isinstance(y_scale, str):
+        if y_scale == "log10(val+1)":
+            df[y_by] = df[y_by]+1
+        y_scale = {
+            'linear': scale_y_continuous,
+            'log10': scale_y_log10,
+            'log10(val+1)': scale_y_log10
+        }[y_scale]
+    if isinstance(x_scale, str):
+        if x_scale == "log10(val+1)":
+            df[x_by] = df[x_by]+1
+        x_scale = {
+            'linear': scale_x_continuous,
+            'log10': scale_x_log10,
+            'log10(val+1)': scale_x_log10
+        }[x_scale]
     # Relabels/reorders
     # if rename_color_groups!=None:
     #     df[color_by] = _rename_and_or_reorder(

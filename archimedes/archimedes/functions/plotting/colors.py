@@ -40,3 +40,6 @@ colors = [
   '#8D3666',
   '#3D3D3D'
 ]
+
+def dittoColors(reps = 100):
+  return colors*reps

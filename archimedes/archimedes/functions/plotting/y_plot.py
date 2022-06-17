@@ -2,12 +2,12 @@ from typing import List, Union
 import plotly.express as px
 import pandas as pd
 
-from plotnine import ggplot, aes, theme_bw, ggtitle, geom_jitter, geom_violin, geom_boxplot, scale_fill_manual, facet_wrap, facet_grid, position_jitterdodge, position_dodge, geom_hline, element_text, theme, scale_y_continuous, coord_cartesian
+from plotnine import ggplot, aes, theme_bw, ggtitle, geom_jitter, geom_violin, geom_boxplot, scale_fill_manual, facet_wrap, facet_grid, position_jitterdodge, position_dodge, geom_hline, element_text, theme, scale_y_continuous, coord_cartesian, scale_y_log10
 from plotnine import xlab as xlab_fxn
 from plotnine import ylab as ylab_fxn
 
 from .utils import _leave_default_or_none, _which_rows
-from .colors import colors
+from .colors import dittoColors
 from ..list import order, unique
 
 def y_plotly(
@@ -20,7 +20,7 @@ def y_plotly(
     rows_use = None,
     x_order: Union[str, list] = 'unordered',
     y_scale = "linear",
-    color_panel: list = colors,
+    color_panel: list = dittoColors(),
     xlab: str = "make",
     ylab: str = "make",
     plot_title: str = "make",
@@ -99,7 +99,7 @@ def y_plotnine(
     split_by = [],
     rows_use = None,
     x_order: Union[str, list] = 'unordered',
-    color_panel: list = colors,
+    color_panel: list = dittoColors(),
     boxplot_fill = True,
     boxplot_width = 0.2,
     boxplot_color = "black",
@@ -118,8 +118,8 @@ def y_plotnine(
     line_color = "black",
     y_scale = scale_y_continuous,
     y_breaks = None,
-    y_min = "make",
-    y_max = "make",
+    # y_min = "make",
+    # y_max = "make",
     x_labels_rotate = True,
     xlab="make",
     ylab="make",
@@ -146,15 +146,24 @@ def y_plotnine(
     legend_title = _leave_default_or_none(legend_title, color_by)
     boxplot_show_outliers = _leave_default_or_none(boxplot_show_outliers, "jitter" not in plots)
     boxplot_position_dodge = _leave_default_or_none(boxplot_position_dodge, violin_width)
-    jitter_position_dodge = _leave_default_or_none(jitter_position_dodge, boxplot_position_dodge)    
+    jitter_position_dodge = _leave_default_or_none(jitter_position_dodge, boxplot_position_dodge)
     
     # data_frame edits
     df = data_frame.copy()
     rows_use = _which_rows(rows_use, data_frame)
     df = df.loc[rows_use]
     
+    if isinstance(y_scale, str):
+        if y_scale == "log10(val+1)":
+            df[y_by] = df[y_by]+1
+        y_scale = {
+            'linear': scale_y_continuous,
+            'log10': scale_y_log10,
+            'log10(val+1)': scale_y_log10
+        }[y_scale]
+
     ### Start Plot, with data and theming
-    fig = ( ggplot(data_frame, aes(x = x_by, y = y_by, fill = color_by)) +
+    fig = ( ggplot(df, aes(x = x_by, y = y_by, fill = color_by)) +
         plot_theme +
         scale_fill_manual(values = color_panel, name = legend_title) +
         xlab_fxn(xlab) + ylab_fxn(ylab)
@@ -167,11 +176,11 @@ def y_plotnine(
         fig += y_scale(breaks = y_breaks)
     else:
         fig += y_scale()
-    if y_min!="make":
-        y_min = min(data_frame[y_by])
-    if y_max!="make":
-        y_max = max(data_frame[y_by])
-    fig += coord_cartesian(ylim=(y_min,y_max))
+    # if y_min=="make":
+    #     y_min = min(df[y_by])
+    # if y_max=="make":
+    #     y_max = max(df[y_by])
+    # fig += coord_cartesian(ylim=(y_min,y_max))
     
     if x_order!="unordered":
         if isinstance(x_order, list):

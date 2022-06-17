@@ -3,7 +3,7 @@ import plotly.express as px
 import pandas as pd
 
 from .utils import _leave_default_or_none, _which_rows
-from .colors import colors
+from .colors import dittoColors
 from ..list import unique, order
 
 def bar_plotly(
@@ -13,7 +13,7 @@ def bar_plotly(
     scale_by: str = 'fraction',
     px_args: dict = {},
     rows_use = None,
-    color_panel: List[str] = colors,
+    color_panel: List[str] = dittoColors(),
     xlab: str = "make",
     ylab: str = "make",
     plot_title: str = "make",
