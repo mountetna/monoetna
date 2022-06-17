@@ -1,10 +1,10 @@
-require 'json'
-require_relative './vulcan_controller'
+require "json"
+require_relative "./vulcan_controller"
 
 class SessionsController < Vulcan::Controller
   def session
     begin
-      @the_session ||= Session.from_json(@params.slice(:key, :project_name, :workflow_name, :inputs))
+      @the_session ||= Session.from_json(@params.slice(:key, :project_name, :workflow_name, :inputs, :reference_figure_id))
     rescue => e
       raise Etna::BadRequest.new(e.message)
     end
@@ -50,7 +50,6 @@ class SessionsController < Vulcan::Controller
     end
 
     janus_client = Etna::Clients::Janus.new(token: @user.token, host: Vulcan.instance.config(:janus)[:host])
-    janus_client.generate_token('task', project_name: @params[:project_name], read_only: true)
+    janus_client.generate_token("task", project_name: @params[:project_name], read_only: true)
   end
 end
-

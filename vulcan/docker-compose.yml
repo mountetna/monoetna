@@ -41,6 +41,7 @@ x-base-etna-services:
     environment:
       <<: *base-etna-env
       WAIT_FOR_DB: 1
+      MONOETNA_SHA: ${MONOETNA_SHA}
     depends_on:
       - 'vulcan_db'
 

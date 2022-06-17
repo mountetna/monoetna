@@ -25,6 +25,7 @@ RUN apt-get update \
       gnupg \
       bash-completion \
       git \
+      tk \
       --no-install-recommends
 
 # add postgres 10 repo for debian stretch
