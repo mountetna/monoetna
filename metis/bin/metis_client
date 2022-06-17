@@ -20,7 +20,7 @@ CONFIG_FILE='~/.metis.json'
 LOG_FILE='~/.metis.log'
 
 def github_contents
-  uri = URI('https://raw.githubusercontent.com/mountetna/metis/master/bin/metis_client')
+  uri = URI('https://raw.githubusercontent.com/mountetna/monoetna/master/metis/bin/metis_client')
   response = Net::HTTP.get_response(uri)
   return nil unless response.is_a?(Net::HTTPSuccess)
 
