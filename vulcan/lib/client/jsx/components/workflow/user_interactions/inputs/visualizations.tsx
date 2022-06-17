@@ -244,7 +244,7 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   'y_plot_static': {
     'primary features': ["x_by", "y_by", "plots", "color_by"],
     'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'coordinates': ['y_scale'],// 'split_by', 'y_min', 'y_max'],
+    'coordinates': ['y_scale'],// 'y_min', 'y_max'],
     'data focus': ['rows_use', 'x_order'],
     'boxplot tweaks': ['boxplot_fill', 'boxplot_width', 'boxplot_color'],
     'jitter tweaks': ['jitter_width', 'jitter_size', 'jitter_color'],
@@ -254,7 +254,7 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   'scatter_plot_static': {
     'primary features': ["x_by", "y_by", "color_by", 'shape_by', 'size', 'opacity'],
     'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    //'coordinates': ['x_scale', 'y_scale'],
+    'coordinates': ['x_scale', 'y_scale'],
     'data focus': ['rows_use', 'plot_order', 'color_order'],
     'Visual Tweaks': ['show_grid_lines'],
     'Addition - Contours': ['do_contour', 'contour_color', 'contour_linetype']
