@@ -297,4 +297,23 @@ class Vulcan
       end
     end
   end
+
+  class BackfillDependenciesSnapshots < Etna::Command
+    usage 'Capture dependencies and workflow snapshots for current figures.'
+
+    def execute
+      Vulcan::Figure.each do |figure|
+        figure.update(
+          dependencies: Vulcan.instance.dependency_manager.dependency_shas.to_json
+        ) if figure.dependencies.empty?
+
+        figure.take_snapshot unless figure.has_snapshot?
+      end
+    end
+
+    def setup(config)
+      super
+      Vulcan.instance.setup_db
+    end
+  end
 end
