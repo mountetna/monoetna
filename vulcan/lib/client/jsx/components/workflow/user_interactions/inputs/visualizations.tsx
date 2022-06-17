@@ -244,7 +244,7 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   'y_plot_static': {
     'primary features': ["x_by", "y_by", "plots", "color_by"],
     'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'coordinates': ['y_scale'],// 'y_min', 'y_max'],
+    'coordinates': ['y_scale'],//, 'y_min', 'y_max'],
     'data focus': ['rows_use', 'x_order'],
     'boxplot tweaks': ['boxplot_fill', 'boxplot_width', 'boxplot_color'],
     'jitter tweaks': ['jitter_width', 'jitter_size', 'jitter_color'],
@@ -324,36 +324,21 @@ const input_constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = {
   }
 }
 
-const defaults: DataEnvelope<any> = {
+const universal_defaults: DataEnvelope<any> = {
   'x_by': null,
   'y_by': null,
-  'plots': ['box', 'violin'],
   'color_by': 'make',
   'shape_by': 'make',
   'scale_by': 'fraction',
-  'size': 5,
   'opacity': 1,
   'plot_title': 'make',
   'legend_title': 'make',
   'xlab': 'make',
   'ylab': 'make',
   'color_order': 'increasing',
-  'order_when_continuous_color': false,
   'x_scale': 'linear',
   'y_scale': 'linear',
   'rows_use': {},
-  'boxplot_fill': true,
-  'boxplot_width': 0.2,
-  'boxplot_color': 'black',
-  'jitter_width': 0.2,
-  'jitter_size': 1,
-  'jitter_color': 'black',
-  'violin_lineweight': 1,
-  'violin_width': 1,
-  'violin_scale': 'area',
-  'add_line': 0,
-  'line_linetype': 'dashed',
-  'line_color': 'black',
   'x_order': 'increasing',
   'y_order': 'increasing',
   'plot_order': 'unordered',
@@ -361,17 +346,40 @@ const defaults: DataEnvelope<any> = {
   'contour_color': "black",
   'contour_linetype': "solid",
   'show_grid_lines': true
-};
+}
+const plotly_defaults: DataEnvelope<any> = {
+  'size': 5,
+  'plots': ['box', 'violin'],
+  'order_when_continuous_color': false,
+}
+const static_defaults: DataEnvelope<any> = {
+  'size': 1,
+  'plots': ['violin', 'box', 'jitter'],
+  'boxplot_fill': true,
+  'boxplot_width': 0.2,
+  'boxplot_color': 'black',
+  'jitter_width': 0.4,
+  'jitter_size': 1,
+  'jitter_color': 'black',
+  'violin_lineweight': 1,
+  'violin_width': 1,
+  'violin_scale': 'area',
+  'add_line': 0,
+  'line_linetype': 'dashed',
+  'line_color': 'black'
+}
 
 function whichDefaults(plotType: string|null, preset: DataEnvelope<any> | null | undefined) {
   if (plotType == null) return {plot_type: plotType}
   
   const inputs = Object.values(input_sets[plotType]).flat()
 
-  let initial_vals = {...defaults};
+  let initial_vals = (plotType && plotType.includes('static')) ?
+    {...universal_defaults, ...static_defaults} :
+    {...universal_defaults, ...plotly_defaults}
   
   // Remove input:value pairs that aren't in this Viz type
-  const def_keys = Object.keys(defaults);
+  const def_keys = Object.keys(initial_vals);
   for (let ind = 0; ind < def_keys.length; ind++) {
     if (!inputs.includes(def_keys[ind])) delete initial_vals[def_keys[ind]];
   }
@@ -426,7 +434,6 @@ function useExtraInputs(
       'color_by': ['Color Data', ['make'].concat(get_options('color_by')), false],
       'shape_by': ['Shape Data', ['make'].concat(get_options('shape_by')), false],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
-      'size': ['Point Size', 0.5, 50, 0.5],
       'opacity': ['Point Opacity', 0, 1, 0.05],
       'scale_by': ['Scale Y by counts or fraction', ['counts', 'fraction']],
       'x_scale': ['Adjust scaling of the X-Axis', ['linear', 'log10', 'log10(val+1)']],
@@ -435,9 +442,10 @@ function useExtraInputs(
       'x_order': ['Order of X-Axis Groupings', full_data, x_by, discrete],
       'y_order': ['Order of Y-Axis Groupings', full_data, y_by, discrete]
     }
-    // Static Plotter defaults
+    // Static Plotter Settings
     if (plot_type && plot_type.includes('static')) return {
       ...universal,
+      'size': ['Point Size', 0.1, 20, 0.1],
       'plots': ['Data Representations', ['violin', 'box', 'jitter']],
       'boxplot_fill': ['fill with color'],
       'boxplot_width': ['width'],
@@ -458,9 +466,10 @@ function useExtraInputs(
       'contour_linetype': ['Contour Linetype', ["solid", "dashed", "dotted"]],
       'show_grid_lines': ['Show Grid Lines?']
     } as DataEnvelope<any[]>
-    // Plotly Plotter Defaults
+    // Plotly Plotter Settings
     return {
       ...universal,
+      'size': ['Point Size', 0.5, 50, 0.5],
       'color_order': ['Point Render & (discrete) Color Assignment Order', full_data, color_by, discrete],
       'plots': ['Data Representations', ['violin', 'box']]
     }

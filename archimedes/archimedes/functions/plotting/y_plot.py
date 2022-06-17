@@ -118,8 +118,8 @@ def y_plotnine(
     line_color = "black",
     y_scale = scale_y_continuous,
     y_breaks = None,
-    # y_min = "make",
-    # y_max = "make",
+    y_min = None,
+    y_max = None,
     x_labels_rotate = True,
     xlab="make",
     ylab="make",
@@ -172,15 +172,15 @@ def y_plotnine(
     if plot_title is not None:
         fig += ggtitle(plot_title)
         
+    y_scale_args={
+        'limits': (
+            min(df[y_by]) if y_min is None else y_min,
+            max(df[y_by]) if y_max is None else y_max
+        )
+    }
     if y_breaks is not None:
-        fig += y_scale(breaks = y_breaks)
-    else:
-        fig += y_scale()
-    # if y_min=="make":
-    #     y_min = min(df[y_by])
-    # if y_max=="make":
-    #     y_max = max(df[y_by])
-    # fig += coord_cartesian(ylim=(y_min,y_max))
+        y_scale_args['breaks'] = y_breaks
+    fig += y_scale(**y_scale_args)
     
     if x_order!="unordered":
         if isinstance(x_order, list):
