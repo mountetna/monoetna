@@ -26,7 +26,12 @@ def output_plotnine(fig: plotnine.ggplot, out_file: str = 'plot.png', thumb_file
         filename=output_path(out_file),
         format='png'
     )
-    fig = fig + plotnine.theme(legend_position='none') + plotnine.theme_void()
+    fig = (fig +
+        plotnine.theme_void() +
+        plotnine.theme(
+            legend_position='none',
+            plot_title=plotnine.themes.element_blank())
+        )
     fig.save(
         filename=output_path(thumb_file),
         format='png',
