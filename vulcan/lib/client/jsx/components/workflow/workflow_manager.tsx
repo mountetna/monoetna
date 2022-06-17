@@ -44,16 +44,31 @@ export default function WorkflowManager({
     fetchFigure
   } = useContext(VulcanContext);
 
+  const selectWorkflowSnapshot = useCallback(
+    (
+      figure: VulcanFigure | VulcanFigureSession,
+      defaultWorkflowName: string
+    ) => {
+      return figure.workflow_snapshot
+        ? figure.workflow_snapshot
+        : workflowByName(defaultWorkflowName, state);
+    },
+    [state]
+  );
+
   const initializeFromSessionAndFigure = useCallback(
     (session: VulcanSession, figure: VulcanFigure) => {
-      const workflow = workflowByName(session.workflow_name, state);
+      const workflow = selectWorkflowSnapshot(figure, session.workflow_name);
       if (workflow) dispatch(setWorkflow(workflow, projectName));
       dispatch(setSessionAndFigureSeparately(figure, session));
 
       requestPoll();
     },
-    [projectName, dispatch, state, requestPoll]
+    [projectName, dispatch, selectWorkflowSnapshot, requestPoll]
   );
+
+  const useLocalPrompt =
+    "You have unsaved changes. Click 'OK' to use your local version, or 'Cancel' to discard all unsaved changes and load the last saved state.";
 
   const initializeFromFigure = useCallback(
     (figureId: number, localSession: VulcanFigureSession | null) => {
@@ -65,9 +80,7 @@ export default function WorkflowManager({
             localSession &&
             !_.isEqual(localSession.inputs, figureResponse.inputs)
           ) {
-            useLocal = confirm(
-              "You have unsaved changes. Click 'OK' to use your local version, or 'Cancel' to discard all unsaved changes and load the last saved state."
-            );
+            useLocal = confirm(useLocalPrompt);
           }
 
           initializeFromSessionAndFigure(
@@ -95,7 +108,10 @@ export default function WorkflowManager({
 
   const initializeFromStoredSession = useCallback(
     (localSession: VulcanFigureSession) => {
-      const workflow = workflowByName(localSession.workflow_name, state);
+      const workflow = selectWorkflowSnapshot(
+        localSession,
+        localSession.workflow_name
+      );
       if (!workflow) {
         initializeNewSession();
         return;
@@ -104,18 +120,16 @@ export default function WorkflowManager({
       dispatch(setWorkflow(workflow, projectName));
       const defaults = defaultInputs(workflow);
 
-      let discardStoredSession = true;
+      let useLocal = true;
 
       if (
         !_.isEqual(defaults, localSession.inputs) &&
         Object.keys(localSession.inputs) >= Object.keys(defaults)
       ) {
-        discardStoredSession = confirm(
-          'You have an edited, unsaved version of this workflow. Discard it?'
-        );
+        useLocal = confirm(useLocalPrompt);
       }
 
-      if (discardStoredSession) {
+      if (!useLocal) {
         initializeNewSession();
       } else {
         initializeFromSessionAndFigure(
@@ -126,7 +140,7 @@ export default function WorkflowManager({
     },
     [
       projectName,
-      state,
+      selectWorkflowSnapshot,
       dispatch,
       initializeFromSessionAndFigure,
       initializeNewSession

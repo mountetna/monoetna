@@ -86,7 +86,7 @@ export function checkboxPiece(
 
 export function dropdownPiece(
   key: string, changeFxn: Function, value: string | null = null,
-  label: string|undefined, options: string[], sorted: boolean = true, minWidth: number = 200) {
+  label: string|undefined, options: string[], sorted: boolean = true, minWidth: number = 200, disabled: boolean = false) {
     return(
       <SelectAutocompleteInput
         key={key}
@@ -94,6 +94,7 @@ export function dropdownPiece(
         value={some(value)}
         data={val_wrap(options)}
         minWidth={minWidth}
+        disabled={disabled}
         onChange={ (value) => changeFxn(withDefault(value,null), key) }
       />
     )

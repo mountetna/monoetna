@@ -1,4 +1,6 @@
 FROM etna
+ARG MONOETNA_SHA
+ENV MONOETNA_SHA=${MONOETNA_SHA}
 WORKDIR /app
 RUN rm -rf /app
 RUN mkdir -p /app
