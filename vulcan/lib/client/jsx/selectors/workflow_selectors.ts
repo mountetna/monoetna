@@ -19,7 +19,7 @@ import {
   WorkflowStepGroup
 } from '../components/workflow/user_interactions/inputs/input_types';
 import {useMemo} from 'react';
-import {mapSome, Maybe, maybeOfNullable, withDefault} from './maybe';
+import {mapSome, Maybe, maybeOfNullable, withDefault} from 'etna-js/selectors/maybe';
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
   workflow && workflow.name ? workflow.name : null;
@@ -166,7 +166,7 @@ export function inputValueNonEmpty(
   return withDefault(
     mapSome(
       val,
-      (inner) =>
+      (inner: any) =>
         (typeof inner !== 'number' || !isNaN(inner)) &&
         inner != null &&
         !_.isEqual(inner, ['']) &&
@@ -423,7 +423,8 @@ export function selectSession(
     project_name: figureResponse.project_name,
     workflow_name: figureResponse.workflow_name,
     key: figureResponse.key,
-    inputs: {...figureResponse.inputs}
+    inputs: {...figureResponse.inputs},
+    reference_figure_id: figureResponse.id
   };
 }
 
@@ -435,7 +436,9 @@ export function selectFigure(
     title: figureResponse.title,
     author: figureResponse.author,
     inputs: {...figureResponse.inputs},
-    tags: [...(figureResponse.tags || [])]
+    tags: [...(figureResponse.tags || [])],
+    workflow_snapshot: figureResponse.workflow_snapshot,
+    id: figureResponse.id
   };
 }
 

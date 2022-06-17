@@ -1,4 +1,5 @@
 export COMPOSE_PROJECT_NAME:=monoetna
+export MONOETNA_SHA:=$(shell git rev-parse HEAD) 
 app_service_name:=${app_name}_app
 containerSh:=bash
 
