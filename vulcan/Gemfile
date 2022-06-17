@@ -20,6 +20,8 @@ gem "yabeda"
 gem "yabeda-prometheus"
 gem "yabeda-puma-plugin"
 
+gem "activesupport"
+
 group :development, :test do
   gem 'rspec'
   gem 'simplecov'

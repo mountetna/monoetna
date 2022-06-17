@@ -121,6 +121,10 @@ FactoryBot.define do
   factory :figure, class: Vulcan::Figure do
     to_create(&:save)
   end
+
+  factory :workflow_snapshot, class: Vulcan::WorkflowSnapshot do
+    to_create(&:save)
+  end
 end
 
 def json_body
@@ -137,6 +141,100 @@ def save_last_response_json(fixture_name, type)
   p last_response.body
 
   ::File.write(fixture_path, "import {#{type}} from \"../../api_types\";\n\nexport const #{constName}: #{type} = #{last_response.body};")
+end
+
+def create_figure_with_snapshot
+  fig = create_figure(
+    title: "Lion of Nemea",
+    workflow_name: "test_workflow.cwl",
+    dependencies: {
+      something: "sha:abc",
+    },
+  )
+  
+  # Tweak the snapshot to be slightly different
+  current_yaml = fig.workflow_snapshot.cwl_as_yaml
+  fig.workflow_snapshot.update(
+    cwl_yaml: YAML.dump(
+      current_yaml.update({
+        "inputs" => {
+          "someInt" => {
+            "default" => 200,
+            "format" => nil,
+            "label" => "it is an int",
+            "type" => "int",
+            "doc" => "help tip",
+          },
+          "someIntWithoutDefault" => {
+            "default" => nil,
+            "format" => nil,
+            "label" => nil,
+            "type" => "int",
+            "doc" => "another tip",
+          },
+          "removedInt" => {
+            "default" => nil,
+            "format" => nil,
+            "label" => nil,
+            "type" => "int",
+            "doc" => "deprecated tip",
+          },
+        }, "steps" => [
+          [
+            {
+              "in" => [{ "id" => "a", "source" => "someInt" },
+                      { "id" => "b", "source" => "someIntWithoutDefault" }],
+              "doc" => nil,
+              "label" => nil,
+              "out" => ["sum"],
+              "id" => "firstAdd",
+              "run" => "scripts/add.cwl",
+            },
+            {
+              "in" => [{ "id" => "a", "source" => "firstAdd/sum" },
+                      { "id" => "b", "source" => "removedInt" }],
+              "doc" => nil,
+              "label" => nil,
+              "out" => ["sum"],
+              "id" => "secondAdd",
+              "run" => "scripts/add.cwl",
+            },
+            {
+              "in" => [{ "id" => "num", "source" => "secondAdd/sum" }],
+              "doc" => nil,
+              "label" => nil,
+              "out" => ["num"],
+              "id" => "pickANum",
+              "run" => "ui-queries/pick-a-number.cwl",
+            },
+            {
+              "in" => [{ "id" => "a", "source" => "secondAdd/sum" },
+                      { "id" => "b", "source" => "pickANum/num" }],
+              "doc" => nil,
+              "label" => nil,
+              "out" => ["sum", "thumb.png"],
+              "id" => "finalStep",
+              "run" => "scripts/add.cwl",
+            },
+            {
+              "in" => [{ "id" => "a", "source" => "finalStep/sum" },
+                      { "id" => "b", "source" => "finalStep/thumb.png" }],
+              "doc" => nil,
+              "label" => nil,
+              "id" => "aPlot",
+              "out" => [],
+              "run" => "ui-outputs/plotly.cwl",
+            },
+          ],
+        ]
+        }
+      ),
+    )
+  )
+
+  fig.refresh
+
+  fig
 end
 
 def below_admin_roles

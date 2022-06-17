@@ -29,11 +29,13 @@ export const defaultSession: SessionStatusResponse['session'] = {
   project_name: '',
   workflow_name: '',
   key: '',
-  inputs: {}
+  inputs: {},
+  reference_figure_id: null
 };
 const defaultFigure: VulcanFigure = {
   figure_id: null,
-  inputs: {}
+  inputs: {},
+  id: null
 };
 const defaultValidationErrors: [string | null, string, string[]][] = [];
 
