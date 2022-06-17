@@ -89,7 +89,7 @@ describe Etna::Command do
     @output = []
 
     run_command("other", "inner", "vardic", "args")
-    expect(@output[0]).to eql('in here ["vardic", "args", {}]')
+    expect(@output[0]).to eql('in here ["vardic", "args"]')
   end
 
   describe 'with flags' do

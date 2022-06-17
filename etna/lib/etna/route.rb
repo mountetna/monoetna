@@ -42,7 +42,7 @@ module Etna
       if params
         PARAM_TYPES.reduce(route) do |path,pat|
           path.gsub(pat) do
-           URI.encode( params[$1.to_sym], UNSAFE)
+            params[$1.to_sym].split('/').map { |c| URI.encode_www_form_component(c) }.join('/')
           end
         end
       else
@@ -256,7 +256,7 @@ module Etna
         Hash[
           match.names.map(&:to_sym).zip(
             match.captures.map do |capture|
-              URI.decode(capture)
+              capture.split('/').map {|c| URI.decode_www_form_component(c) }.join('/')
             end
           )
         ]

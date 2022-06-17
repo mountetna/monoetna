@@ -38,7 +38,7 @@ services:
     image: etnaagent/magma:production
 
     deploy:
-      replicas: 2
+      replicas: 1
       update_config:
         parallelism: 1
       labels:
