@@ -3,11 +3,10 @@ version: "3.4"
 
 x-base-etna-service:
   &base-etna-service # Base configuration used by most etna services.
-  image: etna-base-dev
+  image: etna-base
   volumes: &base-etna-service-volumes
     - metis-node-modules:/app/node_modules
     - .:/app:delegated
-    - app-gems:/app/vendor/bundle:rw
     - log-dir:/app/log:rw
     - tmp-dir:/app/tmp:rw
     - public-dir:/app/public:rw
