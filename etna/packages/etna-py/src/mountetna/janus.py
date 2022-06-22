@@ -1,4 +1,4 @@
-from .etna import EtnaClientbase
+from .etna_base import EtnaClientBase
 
 class Janus(EtnaClientBase):
     def generate_token(

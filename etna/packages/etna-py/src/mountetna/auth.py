@@ -1,6 +1,10 @@
 import requests
 from typing import Optional
 from requests.auth import AuthBase
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from requests.auth import AuthBase
+import base64
 
 class TokenAuth(AuthBase):
     token: bytes

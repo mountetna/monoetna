@@ -1,4 +1,12 @@
 import dataclasses
+import typing
+from typing import Dict, Optional, List
+from serde import serialize, deserialize
+from serde.json import from_json, to_json
+from .etna_base import EtnaClientBase
+from requests import HTTPError
+from .utils.iterables import batch_iterable
+from .metis import Upload
 
 @serialize
 @deserialize
@@ -181,7 +189,6 @@ class RetrievalResponse:
     def extend(self, other: "RetrievalResponse"):
         for model_name, model in other.models.items():
             self.models.setdefault(model_name, Model()).extend(model)
-
 
 class Magma(EtnaClientBase):
     def retrieve(

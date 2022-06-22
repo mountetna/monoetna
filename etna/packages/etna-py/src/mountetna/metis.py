@@ -1,4 +1,19 @@
 import dateutil
+from datetime import datetime
+from typing import Dict, Optional, List
+import typing
+import hashlib
+import io
+import re
+import os.path
+import uuid
+import dataclasses
+from serde import serialize, deserialize
+from serde.json import from_json, to_json
+from .etna_base import EtnaClientBase
+from .utils.multipart import encode_as_multipart
+from .utils.streaming import iterable_to_stream
+from requests import HTTPError
 
 @serialize
 @deserialize
@@ -159,6 +174,165 @@ class FoldersAndFilesResponse:
 @dataclasses.dataclass
 class FoldersResponse:
     folders: List[Folder]
+
+
+@serialize
+@deserialize
+@dataclasses.dataclass
+class UploadResponse:
+    current_byte_position: int = 0
+    url: str = ""
+    next_blob_size: int = 0
+
+    @property
+    def upload_path(self):
+        return re.compile(r"^https://[^/]*?/").sub("/", self.url)
+
+
+@dataclasses.dataclass
+class Upload:
+    file: typing.IO
+    file_size: int
+    upload_path: str
+
+    cur: int = 0
+
+    last_bytes: Optional[bytes] = None
+    read_position: int = 0
+
+    INITIAL_BLOB_SIZE = 2 ** 10
+    MAX_BLOB_SIZE = 2 ** 22
+    ZERO_HASH = "d41d8cd98f00b204e9800998ecf8427e"
+
+    @property
+    def as_magma_file_attribute(self) -> Optional[MagmaFileEntry]:
+        metis_url = self.as_metis_url
+        if metis_url:
+            return MagmaFileEntry(
+                path=metis_url, original_filename=os.path.basename(metis_url)
+            )
+        return None
+
+    UPLOAD_PATH_REGEX = re.compile(r"/([^/]+)/upload/([^/]+)/?([^?]*)")
+
+    @property
+    def as_metis_url(self) -> Optional[str]:
+        match = self.UPLOAD_PATH_REGEX.match(self.upload_path)
+        if match:
+            project_name = match.group(1)
+            bucket_name = match.group(2)
+            path = match.group(3)
+            return f"metis://{project_name}/{bucket_name}/{path}"
+        return None
+
+    @property
+    def as_file(self) -> Optional[File]:
+        match = self.UPLOAD_PATH_REGEX.match(self.upload_path)
+        if match:
+            project_name = match.group(1)
+            bucket_name = match.group(2)
+            path = match.group(3)
+            return File(file_name=os.path.basename(path), file_path=path, project_name=project_name, bucket_name=bucket_name)
+        return None
+
+    @property
+    def next_blob_size(self):
+        return min(
+            self.MAX_BLOB_SIZE if self.cur > 0 else self.INITIAL_BLOB_SIZE,
+            self.file_size - self.cur,
+        )
+
+    @property
+    def is_complete(self):
+        return self.cur >= self.file_size
+
+    @property
+    def next_blob_hash(self):
+        b = self.read_next_blob()
+        if not b:
+            return self.ZERO_HASH
+
+        return hashlib.md5(b).hexdigest()
+
+    def resume_from(self, upload_response: UploadResponse):
+        self.cur = upload_response.current_byte_position
+
+    def advance_position(self):
+        self.cur += self.next_blob_size
+
+    def read_next_blob(self) -> bytes:
+        next_left = self.cur
+        next_right = self.cur + self.next_blob_size
+
+        # Advance the position, if we've resumed to a specific place that needs skipping to.
+        # We are merely reading data to catch up to our expected left position.
+        if next_right < self.read_position:
+            if self.file.seekable():
+                self.file.seek(next_left)
+                self.read_position = next_left
+            else:
+                raise ValueError(
+                    "Upload source stream requires restart, upload has failed."
+                )
+        elif self.read_position < next_left:
+            bytes_to_read = next_left - self.read_position
+            data = self.file.read(bytes_to_read)
+            self.read_position += len(data)
+            if not len(data) < bytes_to_read:
+                raise ValueError("Unexpected EOF while reading source stream.")
+
+        if next_right == self.read_position:
+            return self.last_bytes or b""
+
+        if next_left != self.read_position:
+            if self.file.seekable():
+                self.file.seek(self.cur)
+                self.read_position = self.cur
+            else:
+                raise ValueError(
+                    "Alignment error, upload needs to restart but source is not seekable."
+                )
+
+        data: List[bytes] = []
+        while self.read_position < next_right:
+            expected_bytes = next_right - self.read_position
+            chunk = self.file.read(expected_bytes)
+            self.read_position += len(chunk)
+            if len(chunk) < expected_bytes:
+                raise ValueError("Unexpected EOF while reading source stream")
+            data.append(chunk)
+
+        self.last_bytes = b"".join(data)
+        return self.last_bytes
+
+
+@serialize
+@deserialize
+@dataclasses.dataclass
+class UploadStartRequest:
+    file_size: int = 0
+    action: str = "start"
+    metis_uid: str = ""
+    next_blob_size: int = 0
+    upload_path: str = ""
+    next_blob_hash: str = ""
+    reset: bool = False
+
+
+@dataclasses.dataclass
+class UploadBlobRequest:
+    file_size: int = 0
+    action: str = "blob"
+    metis_uid: str = ""
+    blob_data: bytes = b""
+    upload_path: str = ""
+    next_blob_size: int = 0
+    next_blob_hash: str = ""
+    current_byte_position: int = 0
+
+    def to_dict(self):
+        return self.__dict__
+
 
 
 class Metis(EtnaClientBase):
