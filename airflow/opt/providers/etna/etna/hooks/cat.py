@@ -14,7 +14,6 @@ from airflow.hooks.base import BaseHook
 from airflow.hooks.subprocess import SubprocessHook
 from airflow.models import Connection, Variable
 from airflow.operators.python import get_current_context
-from airflow.providers.ssh.operators.ssh import SSHOperator
 from airflow.providers.ssh.hooks.ssh import SSHHook
 from etna.dags.project_name import get_project_name
 from etna.hooks.hook_helpers import RemoteFileBase
@@ -28,7 +27,7 @@ class CatHook(SSHHook):
     conn_name_attr = "cat_conn_id"
     default_conn_name = "cat_default"
     conn_type = "cat"
-    hook_name = "Cat Connection"
+    hook_name = "CAT Connection"
     root_dir = "/opt/airflow/dags/repos"
 
     remote_path: str
@@ -143,6 +142,7 @@ class RsyncEntry(RemoteFileBase):
 
 class Cat(object):
     variable_root = "cat_ingest_cursor"
+    ssh_hostfile = "~/.ssh/known_hosts"
 
     def __init__(self, hook: CatHook):
         self.hook = hook
@@ -161,7 +161,10 @@ class Cat(object):
           magic_string: regex, the "oligo" we use to identify our projects' files. Default of ".*DSCOLAB.*
         """
         self._ensure_cat_host_key()
-
+        log.info("set known_hosts")
+        with open(self.ssh_hostfile, 'rb') as host_file:
+            for line in host_file.readlines():
+                log.info(line)
         all_files = self._rsync()
 
         return [f for f in all_files if magic_string.match(f.full_path)]
@@ -214,36 +217,34 @@ class Cat(object):
         return [e for e in all_entries if e.is_file()]
 
     def _ensure_cat_host_key(self):
-        check_hosts_cmd = [
-            "ssh-keygen",
-            "-F",
-            self.hook.connection.host,
-            "-f",
-            "~/.ssh/known_hosts"
-        ]
+        key_exists = self._key_in_hostfile()
+        log.info(f"key exists: {key_exists}")
+        if not key_exists:
+            self._add_key()
 
-        grep_found_cmd = [
-            "grep",
-            "-q",
-            "found",
-        ]
+    def _key_in_hostfile(self):
+        if not os.path.exists(self.ssh_hostfile):
+            return False
 
-        add_host_key_cmd = [
-            "echo",
-            self._extra()["host_key"],
-            ">>",
-            "~/.ssh/known_hosts"
-        ]
+        with open(self.ssh_hostfile, 'r') as host_file:
+            for line in host_file.readlines():
+                if (line.startswith(self.hook.connection.host) and
+                    -1 != line.find(self._extra()["host_key"])):
+                    return True
 
-        check_hosts = subprocess.run(
-            check_hosts_cmd,
-            stdout=subprocess.PIPE)
-        found = subprocess.run(
-            grep_found_cmd,
-            input=check_hosts.stdout,
-            stdout=subprocess.PIPE)
-        if 0 != found.returncode:
-            subprocess.run(add_host_key_cmd)
+        return False
+
+    def _add_key(self):
+        os.makedirs(os.path.dirname(self.ssh_hostfile), exist_ok=True)
+        with open(self.ssh_hostfile, 'a+') as host_file:
+            key = self._extra()["host_key"]
+            host_file.write(f"{self.hook.connection.host} {key}\n")
+
+        log.info("adding host key")
+        log.info(os.path.exists(self.ssh_hostfile))
+        with open(self.ssh_hostfile, 'r') as host_file:
+            for line in host_file.readlines():
+                log.info(line)
 
     def retrieve_file(self, target_hook: BaseHook, file: RsyncEntry) -> Tuple[BinaryIO, int]:
         """
