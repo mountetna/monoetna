@@ -27,6 +27,11 @@ from etna.etls.box import (
     load_box_files_batch
 )
 from etna.hooks.box import BoxHook, Box
+from etna.hooks.cat import CatHook, Cat
+from etna.etls.cat import (
+    load_cat_files_batch,
+    CatEtlHelpers
+)
 
 
 def metis_etl(
@@ -154,6 +159,59 @@ def box_etl(
             helpers = BoxEtlHelpers(
                 hook=hook,
                 box_folder=folder_name
+            )
+
+            return inject(
+                fn,
+                dict(
+                    tail_files=files,
+                    helpers=helpers,
+                    **inject_params
+                ),
+            )
+
+        return etl(
+            project_name=project_name,
+            interval=interval,
+            version=version,
+        )(setup_tail)
+
+    return instantiate_dag
+
+
+def cat_etl(
+    version: Union[int, str],
+    hook: Optional[CatHook] = None,
+    project_name: str = "administration",
+    inject_params: Mapping[str, str] = {},
+    magic_string: re.Pattern = re.compile(".*DSCOLAB.*"),
+):
+    """
+    A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.
+
+    This decorator is the main entry point for processing CAT files with an etl.  The decorated function receives
+    a number of useful XComArg objects and a helpers object to help set up CAT tasks based on consuming changes
+    including the `magic_string` in CAT.
+
+    1.  tail_files -- an XComArg object that will resolve into a list of File objects inside tasks.
+    """
+    if hook is None:
+        hook = CatHook.for_project(project_name)
+
+    interval = timedelta(days=1)
+
+    def instantiate_dag(fn):
+        @functools.wraps(fn)
+        def setup_tail():
+            @task
+            def tail_files() -> List[File]:
+                with hook.cat() as cat:
+                    return pickled(load_cat_files_batch(cat, magic_string))
+
+            files = tail_files()
+
+            helpers = CatEtlHelpers(
+                hook=hook
             )
 
             return inject(

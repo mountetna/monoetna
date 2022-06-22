@@ -1,6 +1,5 @@
 from typing import List, Optional
 import os
-import re
 import logging
 import socket
 import time
@@ -9,15 +8,14 @@ from airflow.decorators import task
 from airflow.models.taskinstance import Context
 from airflow.operators.python import get_current_context
 from airflow.models.xcom_arg import XComArg
-from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
 
 from etna.etls.etl_task_batching import get_batch_range
-
+from etna.etls.remote_helpers_base import RemoteHelpersBase
 from etna.hooks.box import BoxHook, FtpEntry, Box
 from etna.hooks.etna import EtnaHook
 
 
-class BoxEtlHelpers:
+class BoxEtlHelpers(RemoteHelpersBase):
     hook: BoxHook
 
     def __init__(self, hook: BoxHook, box_folder: str):
@@ -47,53 +45,16 @@ class BoxEtlHelpers:
 
         @task
         def alert(files, ingested, project_name, bucket_name):
-            if len(files) > 0:
-                msg = "\n".join([f"Finished uploading {len(files)} files from Box to Metis for {project_name}. Please check the {bucket_name} bucket."] + [f.full_path for f in files])
-
-                SlackWebhookOperator(
-                    task_id=f"notify_slack_{project_name}_{bucket_name}_box_ingest",
-                    username="Airflow",
-                    channel=channel,
-                    http_conn_id='slack-api',
-                    message=msg
-                ).execute(context=None)
-
-                if member_ids is not None and len(member_ids) > 0:
-                    user_mentions = [f"<@{m_id}>" for m_id in member_ids]
-                    notify_msg = f"{' '.join(user_mentions)} :point_up_2:"
-                    SlackWebhookOperator(
-                        task_id=f"notify_slack_users_{project_name}_{bucket_name}_box_ingest",
-                        username="Airflow",
-                        channel=channel,
-                        http_conn_id='slack-api',
-                        message=notify_msg
-                    ).execute(context=None)
+            self.alert(
+                files,
+                project_name,
+                target_path=bucket_name,
+                source_system="Box",
+                target_system="Metis",
+                channel=channel,
+                member_ids=member_ids)
 
         return alert(files, ingested, project_name, bucket_name)
-
-    def filter_files(self,
-        files: XComArg,
-        # A regex to match against any file name, resulting files will be linked.
-        file_name_regex: re.Pattern = re.compile(r".*"),
-        # This regex is matched against the folder subpath of the file
-        folder_path_regex: re.Pattern = re.compile(r".*"),):
-        """
-        Creates a task that filters the Box file names by regexp, and can also apply a regexp against the
-        folder path for each file for further filtering.
-
-        args:
-            files: List of files from tail_files or previous filter_files call
-            file_name_regex: re.Pattern, i.e. re.compile(r".*\.fcs")
-            folder_path_regex: re.Pattern, i.e. re.compile(r".*ipi.*")
-        """
-
-        @task
-        def filter_files(files):
-            result: List[FtpEntry] = [f for f in files if folder_path_regex.match(f.folder_path) and file_name_regex.match(f.name)]
-
-            return result
-
-        return filter_files(files)
 
     def ingest_to_metis(
         self,
