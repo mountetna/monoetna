@@ -82,7 +82,7 @@ export default function VulcanReducer(
       };
     case 'SET_WORKFLOW':
       const workflowProjects = action.workflow.projects;
-      if (!workflowProjects || !workflowProjects.includes(action.projectName))
+      if ( workflowProjects===undefined || (workflowProjects !== null && !workflowProjects.includes(action.projectName)) )
         return state;
 
       return {
