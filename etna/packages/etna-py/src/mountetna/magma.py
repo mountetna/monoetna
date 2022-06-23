@@ -196,6 +196,10 @@ class RetrievalResponse:
 class QueryRequest:
     query: List[typing.Any] = dataclasses.field(default_factory=list)
     project_name: str = ""
+    expand_matrices: Optional[bool] = None
+    user_columns: Optional[List[str]] = None
+    transpose: Optional[bool] = None
+    format: Optional[str] = None
 
 @serialize
 @deserialize
