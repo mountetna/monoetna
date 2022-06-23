@@ -13,7 +13,8 @@ def encode_path(*segments: str) -> str:
 class EtnaSession(Session):
     def __init__(self,
         auth: Optional[AuthBase],
-        hooks: Dict):
+        hooks: Dict = {}):
+        super().__init__()
         self.mount(
             "https://",
             HTTPAdapter(

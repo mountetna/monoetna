@@ -190,6 +190,20 @@ class RetrievalResponse:
         for model_name, model in other.models.items():
             self.models.setdefault(model_name, Model()).extend(model)
 
+@serialize
+@deserialize
+@dataclasses.dataclass
+class QueryRequest:
+    query: List[typing.Any] = dataclasses.field(default_factory=list)
+    project_name: str = ""
+
+@serialize
+@deserialize
+@dataclasses.dataclass
+class QueryResponse:
+    answer: List[typing.Any] = dataclasses.field(default_factory=list)
+    format: List[typing.Any] = dataclasses.field(default_factory=list)
+
 class Magma(EtnaClientBase):
     def retrieve(
         self,
@@ -271,6 +285,14 @@ class Magma(EtnaClientBase):
 
         return from_json(RetrievalResponse, response.content)
 
+    def query(self, query: QueryRequest):
+        response = self.session.post(
+            self.prepare_url("query"),
+            data=to_json(query),
+            headers={"Content-Type": "application/json"},
+        )
+
+        return from_json(QueryResponse, response.content)
 
 def normalize_for_magma(value):
     # Exhaust generators (such as uploads) before consuming their last yielded value
