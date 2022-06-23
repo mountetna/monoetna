@@ -4,5 +4,6 @@ services:
     image: rust-base
     volumes:
       - ./src:/app/src
+      - ./.cargo:/app/.cargo
       - ./Cargo.toml:/app/Cargo.toml
       - ./Cargo.lock:/app/Cargo.lock

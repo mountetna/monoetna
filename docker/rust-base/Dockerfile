@@ -2,7 +2,9 @@ FROM rust:latest
 RUN apt-get update
 RUN apt-get install musl-tools -y
 RUN rustup target add x86_64-unknown-linux-musl
-ENV RUSTFLAGS="-Clinker=musl-gcc"
+#ENV RUSTFLAGS="-Clinker=musl-gcc"
+# Change this to musl-gcc when the dlstart.c bug is fixed?
+ENV RUSTFLAGS="-Clinker=x86_64-linux-gnu-gcc"
 
 WORKDIR /app
 
