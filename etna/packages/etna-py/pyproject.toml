@@ -23,7 +23,7 @@ pandas = "^1.2.1"
 requests = "^2.28.0"
 cryptography = "^37.0.3"
 pyserde = "^0.8.2"
-responses = "^0.21.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
+responses = "^0.21.0"
