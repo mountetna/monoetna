@@ -65,6 +65,8 @@ services:
         target: /app/config.yml
       - source: env
         target: /app/env.yml
+    volumes:
+      - backups:/backups
     networks:
       db:
       prometheus:
@@ -137,6 +139,13 @@ volumes:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
       device: ":/cache/postgres/magma"
+  backups:
+    name: "magma_production_backups"
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
+      device: ":/cache/magma/backups"
 
 configs:
   browser.system.include:

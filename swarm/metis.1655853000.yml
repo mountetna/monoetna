@@ -44,6 +44,7 @@ services:
     volumes:
       - data:/app/data/metis:nocopy
       - thumbnails:/app/thumbnails:nocopy
+      - backups:/backups
     user: 1501:999 # metis:docker
     deploy:
       replicas: 1
@@ -202,3 +203,10 @@ volumes:
       type: nfs
       o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
       device: ":/cache/postgres/metis"
+  backups:
+    name: "metis_production_backups"
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
+      device: ":/cache/metis/backups"
