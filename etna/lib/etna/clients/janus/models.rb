@@ -115,6 +115,10 @@ module Etna
         def resource
           !!@raw[:resource]
         end
+
+        def requires_agreement
+          !!@raw[:requires_agreement]
+        end
       end
 
       class TokenResponse

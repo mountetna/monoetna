@@ -121,12 +121,18 @@ export class QueryBuilder {
   }
 
   filterWithPath(filter: QueryFilter, includeModelPath: boolean = true): any[] {
-    let result: any[] = [
-      '::and',
-      ...filter.clauses.map((clause) =>
-        this.wrapQueryClause(filter.modelName, clause)
-      )
-    ];
+    let result: any[] = [];
+
+    if (filter.clauses.length > 1) {
+      result = [
+        '::and',
+        ...filter.clauses.map((clause) =>
+          this.wrapQueryClause(filter.modelName, clause)
+        )
+      ];
+    } else {
+      result = this.wrapQueryClause(filter.modelName, filter.clauses[0]);
+    }
 
     let path: string[] | undefined = this.filterPathWithModelPredicates(filter);
     if (includeModelPath && undefined != path) {
@@ -175,6 +181,7 @@ export class QueryBuilder {
       );
       expandedFilters = [andFilters];
     } else if (filters.length > 0) {
+      // At this point, filters.length === 1...
       expandedFilters = filters.map((filter) =>
         this.filterWithPath(filter, this.root !== filter.modelName)
       );
@@ -293,12 +300,7 @@ export class QueryBuilder {
     });
 
     if (includeAttributeName)
-      predicate.push(
-        ...this.attributeNameWithPredicate(
-          column.model_name,
-          column.attribute_name
-        )
-      );
+      predicate.push(...this.attributeNameWithPredicate(column));
 
     return predicate;
   }
@@ -307,11 +309,17 @@ export class QueryBuilder {
     return !isMatrixSlice(slice);
   }
 
-  attributeNameWithPredicate(modelName: string, attributeName: string) {
+  attributeNameWithPredicate(column: QueryColumn) {
     // Probably only used for File / Image / FileCollection attributes?
-    let predicate = [attributeName];
-    if (attributeIsFile(this.graph.models, modelName, attributeName)) {
-      predicate.push('::url');
+    let predicate = [column.attribute_name];
+    if (
+      attributeIsFile(
+        this.graph.models,
+        column.model_name,
+        column.attribute_name
+      )
+    ) {
+      predicate.push(`::${column.predicate || 'url'}`);
     }
 
     return predicate;

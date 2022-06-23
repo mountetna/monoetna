@@ -182,7 +182,9 @@ module Redcap
       when "integer"
         return value.to_i
       when "boolean"
-        return value == "Yes" ? true : value == "No" ? false : nil
+        yes_values = ["Yes", "True"]
+        no_values = ["No", "False"]
+        return yes_values.include?(value) ? true : no_values.include?(value) ? false : nil
       else
         return value
       end

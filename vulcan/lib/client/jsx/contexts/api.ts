@@ -56,6 +56,9 @@ export const defaultApiHelpers = {
     figureId: number
   ): Promise<VulcanFigureSession> {
     return new Promise(() => null);
+  },
+  updateFigureDependencies(projectName: string, figureId: number): Promise<VulcanFigureSession> {
+    return new Promise(() => null);
   }
 };
 
@@ -209,6 +212,21 @@ export function useApi(
     [vulcanPost, vulcanPath]
   );
 
+  const updateFigureDependencies = useCallback(
+    (projectName: string, figure_id: number): Promise<VulcanFigureSession> => {
+      return vulcanPost(
+        vulcanPath(ROUTES.update_figure(projectName, figure_id)),
+        {
+          update_dependencies: true,
+          comment: 'Updating dependencies and snapshot'
+        }
+      )
+        .then(handleFetchSuccess)
+        .catch(handleFetchError);
+    },
+    [vulcanPost, vulcanPath]
+  );
+
   const createFigure = useCallback(
     (projectName: string, params: any): Promise<VulcanFigureSession> => {
       return vulcanPost(vulcanPath(ROUTES.create_figure(projectName)), params)
@@ -239,6 +257,7 @@ export function useApi(
     createFigure,
     updateFigure,
     fetchFigures,
-    fetchFigure
+    fetchFigure,
+    updateFigureDependencies
   };
 }

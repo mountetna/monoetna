@@ -13,6 +13,7 @@ import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 import {Notifications} from 'etna-js/components/Notifications';
 import Messages from 'etna-js/components/messages';
 import { createEtnaTheme } from 'etna-js/style/theme';
+import {CcView} from "./cc-view";
 
 const theme = createEtnaTheme("#3684fd","#77c");
 
@@ -38,10 +39,15 @@ const ROUTES = [
     component: UsersView
   },
   {
+    name: 'cc',
+    template: ':project_name/cc',
+    component: CcView,
+  },
+  {
     name: 'projects',
     template: ':project_name',
     component: ProjectView
-  }
+  },
 ];
 
 setRoutes(ROUTES);

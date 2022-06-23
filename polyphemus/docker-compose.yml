@@ -21,11 +21,10 @@ volumes:
 
 x-base-etna-service:
   &base-etna-service # Base configuration used by most etna services.
-  image: etna-base-dev
+  image: etna-base
   volumes: &base-etna-service-volumes
     - .:/app:delegated
     - polyphemus-node-modules:/app/node_modules
-    - polyphemus-app-gems:/app/vendor/bundle:rw
     - polyphemus-log-dir:/app/log:rw
     - polyphemus-tmp-dir:/app/tmp:rw
     - polyphemus-public-dir:/app/public:rw

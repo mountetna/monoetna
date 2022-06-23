@@ -315,6 +315,10 @@ def stub_polyphemus_setup
     })
 end
 
+def json_body
+  JSON.parse(last_response.body, symbolize_names: true)
+end
+
 def configure_etna_yml
   EtnaApp.instance.configure({
       development: {

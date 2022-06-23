@@ -42,7 +42,7 @@ module Etna
       if params
         PARAM_TYPES.reduce(route) do |path,pat|
           path.gsub(pat) do
-           URI.encode( params[$1.to_sym], UNSAFE)
+            params[$1.to_sym].split('/').map { |c| URI.encode_www_form_component(c) }.join('/')
           end
         end
       else
@@ -124,6 +124,14 @@ module Etna
       update_params(request)
 
       unless authorized?(request)
+        if cc_available?(request)
+          if request.content_type == 'application/json'
+            return [ 403, { 'Content-Type' => 'application/json' }, [ { error: 'You are forbidden from performing this action, but you can visit the project home page and request access.' }.to_json ] ]
+          else
+            return cc_redirect(request)
+          end
+        end
+
         return [ 403, { 'Content-Type' => 'application/json' }, [ { error: 'You are forbidden from performing this action.' }.to_json ] ]
       end
 
@@ -162,6 +170,23 @@ module Etna
 
     private
 
+    def janus
+      @janus ||= Etna::JanusUtils.new
+    end
+
+    # If the application asks for a code of conduct redirect
+    def cc_redirect(request, msg = 'You are unauthorized')
+      return [ 401, { 'Content-Type' => 'text/html' }, [msg] ] unless application.config(:auth_redirect)
+
+      params = request.env['rack.request.params']
+
+      uri = URI(
+        application.config(:auth_redirect).chomp('/') + "/#{params[:project_name]}/cc"
+      )
+      uri.query = URI.encode_www_form(refer: request.url)
+      Etna::Redirect(request).to(uri.to_s)
+    end
+
     def application
       @application ||= Etna::Application.instance
     end
@@ -191,6 +216,24 @@ module Etna
       end
     end
 
+    def cc_available?(request)
+      user = request.env['etna.user']
+
+      return false unless user
+
+      params = request.env['rack.request.params']
+
+      return false unless params[:project_name]
+
+      # Only check for a CC if the user does not currently have permissions
+      #   for the project
+      return false if user.permissions.keys.include?(params[:project_name])
+
+      !janus.community_projects(user.token).select do |project|
+        project.project_name == params[:project_name]
+      end.first.nil?
+    end
+
     def hmac_authorized?(request)
       # either there is no hmac requirement, or we have a valid hmac
       !@auth[:hmac] || request.env['etna.hmac']&.valid?
@@ -213,7 +256,7 @@ module Etna
         Hash[
           match.names.map(&:to_sym).zip(
             match.captures.map do |capture|
-              URI.decode(capture)
+              capture.split('/').map {|c| URI.decode_www_form_component(c) }.join('/')
             end
           )
         ]

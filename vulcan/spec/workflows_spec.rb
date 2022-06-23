@@ -123,11 +123,11 @@ describe WorkflowsController do
       expect(last_response.status).to eq(403)
     end
 
-    it 'rejects a user without the right flag' do
+    it 'allows a user without vulcan flag' do
       auth_header(:no_flag)
       get("/api/workflows")
 
-      expect(last_response.status).to eq(403)
+      expect(last_response.status).to eq(200)
     end
   end
 
@@ -170,11 +170,11 @@ describe WorkflowsController do
       expect(last_response.status).to eq(403)
     end
 
-    it 'rejects a user without the right flag' do
+    it 'allows a user without vulcan flag' do
       auth_header(:no_flag)
       get("/api/labors/workflows")
 
-      expect(last_response.status).to eq(403)
+      expect(last_response.status).to eq(200)
     end
   end
 end

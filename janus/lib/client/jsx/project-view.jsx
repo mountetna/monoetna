@@ -8,6 +8,10 @@ import {showMessages} from 'etna-js/actions/message_actions';
 
 import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import CardHeader from '@material-ui/core/CardHeader';
+import Typography from '@material-ui/core/Typography';
 import Checkbox from '@material-ui/core/Checkbox';
 import TextField from '@material-ui/core/TextField';
 import Select from '@material-ui/core/Select';
@@ -20,25 +24,49 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 
+import {Controlled} from 'react-codemirror2';
 import SaveCancel from './save-cancel';
+import { projectTypeFor } from './utils/project';
 
 const useStyles = makeStyles((theme) => ({
   table: {
     minWidth: 650
   },
+  title: {
+    padding: '10px 15px'
+  },
+  subheading: {
+    padding: '6px 15px',
+    background: '#eee',
+    borderTop: '1px solid #4431c6'
+  },
+  summary: {
+    fontSize: '0.8em',
+    color: '#1d6a86',
+    fontStyle: 'italic',
+    padding: '10px 15px',
+    background: '#eee'
+  },
   role: {
     width: '300px'
+  },
+  editor: {
+    border: '1px solid #ccc',
+    height: '100px',
+    resize: 'vertical',
+    overflow: 'hidden'
   }
 }));
 
 const postUpdatePermission = (project_name, email, revision) => json_post(`/api/admin/${project_name}/update_permission`, {email, ...revision});
+const postUpdateProject = (project_name, revision) => json_post(`/api/admin/${project_name}/update`, revision);
 const postAddUser = (project_name, {email, name, role}) => json_post(`/api/admin/${project_name}/add_user`, {email, name, role});
 
 const Permission = ({roles, editable, onSave, permission={}, create}) => {
-  let {user_email, user_name, role, affiliation, privileged} = permission;
-  let [ revision, updateRevision ] = useState({});
+  const {user_email, user_name, role, affiliation, privileged} = permission;
+  const [ revision, updateRevision ] = useState({});
 
-  let update = useCallback( (key, value) => {
+  const update = useCallback( (key, value) => {
     let newRevision = {...revision};
     if (permission[key] == value) {
       delete newRevision[key];
@@ -58,6 +86,8 @@ const Permission = ({roles, editable, onSave, permission={}, create}) => {
   const handleOnCancel = useCallback(() => {
     updateRevision({});
   });
+
+  if (role == 'guest') roles = [ ...roles, 'guest' ];
 
   return <TableRow>
     <TableCell>
@@ -137,6 +167,23 @@ const displayPermissions = (permissions, filter) => (
   )
 );
 
+const settingStyles = makeStyles((theme) => ({
+  setting: {
+    padding: '10px 15px'
+  }
+}));
+
+const Setting = ({title,children}) => {
+  const classes = settingStyles();
+
+  return <Grid alignItems='center' className={classes.setting} item container>
+    <Grid xs={2}>{title}</Grid>
+    <Grid xs={10}>
+      {children}
+    </Grid>
+  </Grid>;
+}
+
 const ProjectView = ({project_name}) => {
   const invoke = useActionInvoker();
 
@@ -147,10 +194,38 @@ const ProjectView = ({project_name}) => {
   let retrieveProject = useCallback(
     () => {
       json_get(`/api/admin/${project_name}/info`)
-        .then(({project}) => setProject(project))
+      .then(({project}) => {
+        setProject(project);
+        setProjectDetails(project);
+      })
     }, [project_name, setProject]
   );
   useEffect( () => retrieveProject(), [] );
+
+  const updateProject = () => {
+    postUpdateProject(project_name, {
+      requires_agreement: projectType == 'community',
+      resource: projectType == 'community' || projectType == 'resource',
+      ...projectCoc != project.cc_text && { cc_text: projectCoc },
+      ...projectContact != project.contact_email && { contact_email: projectContact },
+      ...projectType != 'community' && { cc_text: '', contact_email: '' }
+    }).then( project => {
+      setProject(project);
+      setProjectDetails(project);
+      setError(null);
+    }).catch( e => e.then( ({error}) => setError(error) ) );
+  }
+
+  const resetProject = () => {
+    setProjectDetails(project);
+    setError(null);
+  }
+
+  const setProjectDetails = (newProject) => {
+    setProjectType(projectTypeFor(newProject));
+    setProjectCoc((newProject).cc_text);
+    setProjectContact(newProject.contact_email);
+  }
 
   let { permissions=[], project_name_full } = project;
 
@@ -164,68 +239,132 @@ const ProjectView = ({project_name}) => {
       : [ ];
   const classes = useStyles();
 
+  const [ projectType, setProjectType ] = useState( '' );
+  const [ projectCoc, setProjectCoc ] = useState('ff');
+  const [ projectContact, setProjectContact ] = useState('');
+  const [ error, setError ] = useState(null);
+
+  const updateProjectType = (type) => {
+    if (type == 'community') setError("WARNING! Setting this project to 'community' will allow any library user to add themselves as a guest to the project.")
+    else if (type == 'resource') setError("WARNING! Setting this project to 'resource' will allow any library user to view the project data.")
+    else setError(null);
+    setProjectType(type);
+  }
+
+  const isChanged = (projectType != projectTypeFor(project)
+                     || projectCoc != project.cc_text
+                     || projectContact != project.contact_email);
+
   return <div id='project-view'> 
     <Grid container direction='column'>
-      <div className='title'> { project_name_full }</div>
-      <div className='summary'>
-        {
-          [ 'administrator', 'editor', 'viewer' ].map(
-            role => {
-              let ps = permissions.filter(p => p.role == role);
-              return userCount(ps.length, role)
-            }
-          ).concat(
-            userCount(privileged.length, 'privileged user')
-          ).filter(_=>_).join(', ')
-        }
-      </div>
+      <Grid className={classes.title}> { project_name_full }</Grid>
+      <Grid container direction='column'>
+        <Grid className={classes.subheading}><Typography>Settings</Typography></Grid>
+        <Grid container direction='column'>
+          <Setting title='Project Type'>
+            <Select
+              value={ projectType }
+              onChange={ (e) => updateProjectType(e.target.value) }>
+               {
+                 [ 'team', 'community', 'resource' ].map(
+                   r => <MenuItem key={r} value={ r }>{ r }</MenuItem>
+                 )
+               }
+             </Select>
+          </Setting>
+          { projectType == 'community' && <>
+              <Setting title='Code of Conduct Agreement'>
+                <Grid className={classes.editor}>
+                  <Controlled
+                    options = {{
+                      readOnly: false,
+                      lineNumbers: true,
+                      lineWrapping: true,
+                      mode: 'markdown',
+                      lint: true,
+                      tabSize: 2
+                    }}
+                    value={projectCoc}
+                    onBeforeChange={(editor, data, value) => { setProjectCoc(value) }}
+                  />
+                </Grid>
+              </Setting>
+              <Setting title='Contact email'>
+                <TextField placeholder='Email' value={ projectContact } onChange={ 
+                  e => setProjectContact(e.target.value)
+                }/>
+              </Setting>
+            </>
+          }
+          {
+            error && <Setting>
+              <Typography color='error'>{error}</Typography>
+            </Setting>
+          }
+          {
+            isChanged && <Setting>
+              <SaveCancel onSave={updateProject} onCancel={resetProject} />
+            </Setting>
+          }
+        </Grid>
+      </Grid>
+      <Grid container direction='column'>
+        <Grid className={classes.subheading}><Typography>Users</Typography></Grid>
+        <Grid className={classes.summary}>
+          {
+            [ 'administrator', 'editor', 'viewer', 'guest' ].map(
+              role => {
+                let ps = permissions.filter(p => p.role == role);
+                return userCount(ps.length, role)
+              }
+            ).concat(
+              userCount(privileged.length, 'privileged user')
+            ).filter(_=>_).join(', ')
+          }
+        </Grid>
 
-      <TableContainer className={classes.table} component={Paper}>
-        <Table aria-label='project users'>
-          <TableHead>
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Role</TableCell>
-              <TableCell>Affiliation</TableCell>
-              <TableCell padding='checkbox'>Privileged</TableCell>
-              <TableCell width="80"></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-          {
-            permissions.length > 2 && <TableRow>
-              <TableCell colspan='6'>
-                <TextField placeholder='Filter rows' onChange={ e => setFilter(e.target.value) }/>
-              </TableCell>
-            </TableRow>
-          }
-          {
-            displayPermissions(permissions, filter).map(
-              p => <Permission
-                key={p.user_email}
-                permission={p}
-                editable={editable}
-                roles={roles}
-                onSave={({revision, user_email}) => postUpdatePermission(project_name, user_email, revision).then(() => retrieveProject()).catch((e) => e.then(({error}) => invoke(showMessages([error]))))}
-              />
-            )
-          }
-          {
-            editable && <Permission
-              create={true}
-              editable={true}
-              roles={['viewer', 'editor']} 
-              onSave={({revision}) => postAddUser(project_name, revision).then(() => retrieveProject()).catch((e) => e.then(({error}) => invoke(showMessages([error]))))} />
-          }
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {
-        permissions.length > 10 && <div className='item'>
-          <input className='filter' type='text' placeholder='Filter rows' name='filter' onChange={ e => setFilter(e.target.value) }/>
-        </div>
-      }
+        <TableContainer className={classes.table} component={Paper}>
+          <Table aria-label='project users'>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Role</TableCell>
+                <TableCell>Affiliation</TableCell>
+                <TableCell padding='checkbox'>Privileged</TableCell>
+                <TableCell width="80"></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+            {
+              permissions.length > 1 && <TableRow>
+                <TableCell colspan='6'>
+                  <TextField placeholder='Filter rows' onChange={ e => setFilter(e.target.value) }/>
+                </TableCell>
+              </TableRow>
+            }
+            {
+              displayPermissions(permissions, filter).map(
+                p => <Permission
+                  key={p.user_email}
+                  permission={p}
+                  editable={editable}
+                  roles={roles}
+                  onSave={({revision, user_email}) => postUpdatePermission(project_name, user_email, revision).then(() => retrieveProject()).catch((e) => e.then(({error}) => invoke(showMessages([error]))))}
+                />
+              )
+            }
+            {
+              editable && <Permission
+                create={true}
+                editable={true}
+                roles={['viewer', 'editor']} 
+                onSave={({revision}) => postAddUser(project_name, revision).then(() => retrieveProject()).catch((e) => e.then(({error}) => invoke(showMessages([error]))))} />
+            }
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Grid>
     </Grid>
   </div>
 }

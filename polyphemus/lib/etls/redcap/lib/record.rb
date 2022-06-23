@@ -1,8 +1,9 @@
 module Redcap
   class Record
-    def initialize eavs, flat_record
+    def initialize eavs, flat_record, identifier_fields_data
       @eavs = eavs
       @flat_record = flat_record || {}
+      @identifier_fields_data = identifier_fields_data || {}
     end
 
     def record
@@ -30,7 +31,17 @@ module Redcap
         end
         rec
       end
-      record.empty? ? nil : record
+      record.empty? ? nil : record.update(lift(@identifier_fields_data))
     end
+
+    def lift(data)
+      return {} if data.nil?
+
+      # Make sure the values are wrapped in arrays, to match how loader behaves
+      data.map do |key, value|
+        [key, value.is_a?(Array) ? value : [value].compact]
+      end.to_h
+    end
+
   end
 end

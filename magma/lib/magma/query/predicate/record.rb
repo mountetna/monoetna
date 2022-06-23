@@ -39,8 +39,19 @@ class Magma
         case attribute
         when Magma::ForeignKeyAttribute
           not_null_constraint(attribute.foreign_id)
+        when Magma::TableAttribute, Magma::CollectionAttribute, Magma::ChildAttribute
+          # do nothing in this case, instead, we'll add a join on the
+          #   child table
         else
           not_null_constraint(attribute.column_name.to_sym)
+        end
+      end
+
+      join do
+        attribute = valid_attribute(@arguments[1])
+        case attribute
+        when Magma::TableAttribute, Magma::CollectionAttribute, Magma::ChildAttribute
+          inner_join_child(attribute)
         end
       end
     end
@@ -65,6 +76,11 @@ class Magma
             json_constraint(attribute.column_name.to_sym, "filename", "null"),
             null_constraint(attribute.column_name.to_sym),
           ])
+        when Magma::TableAttribute, Magma::CollectionAttribute, Magma::ChildAttribute
+          not_constraint(
+            :id,
+            lacks_child_subquery(attribute)
+          )
         else
           null_constraint(attribute.column_name.to_sym)
         end
@@ -100,6 +116,54 @@ class Magma
 
     def attribute_name(argument)
       @model.has_attribute?(argument) || argument == :id || argument == '::identifier'
+    end
+
+    def attribute_alias
+      # We don't have a predicates for collection-type attributes,
+      #   so we provide a convenience method to generate new aliases
+      10.times.map{ (97+rand(26)).chr }.join.to_sym
+    end
+    
+    def inner_join_child(attribute)
+      Magma::Join.new(
+        # left table
+        table_name,
+        alias_name,
+        :id,
+
+        #right table
+        attribute.link_model.table_name,
+        attribute_alias,
+        collection_attribute_fk_column(attribute),
+        inner_join: true
+      )
+    end
+
+    def collection_attribute_fk_column(attribute)
+      attribute.link_model.attributes.values.select do |a|
+        a.respond_to?(:link_model) ? a.link_model == @model : false
+      end.first.column_name.to_sym
+    end
+
+    def lacks_child_subquery(attribute)
+      attribute_model_alias = attribute_alias
+      fk_column = collection_attribute_fk_column(attribute)
+      attribute.link_model.select(
+        Sequel.as(
+          Sequel.qualify(attribute_model_alias, fk_column),
+          fk_column
+        )
+      ).from(
+        Sequel.as(attribute.link_model.table_name, attribute_model_alias)
+      ).where(
+        Sequel.negate(
+          Sequel.qualify(attribute_model_alias, fk_column) => nil
+        )
+      )
+      # This "Where" clause is important to apply because any NULL fk records
+      #   on the child table will cause the subquery result to include NULL,
+      #   which means the "NOT IN" constraint ambiguity causes the overall
+      #   query to return []. https://stackoverflow.com/q/1406215
     end
 
     def attribute_join

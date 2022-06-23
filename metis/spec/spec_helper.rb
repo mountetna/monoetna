@@ -127,7 +127,7 @@ def json_body
 end
 
 def json_post(endpoint, hash)
-  post(URI.encode(endpoint), hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
+  post(endpoint.split('/').map { |c| URI.encode_www_form_component(c) }.join('/'), hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
 end
 
 def stubs
@@ -395,6 +395,9 @@ AUTH_USERS = {
   },
   non_user: {
     email: 'nessus@centaurs.org', name: 'Nessus', perm: ''
+  },
+  guest: {
+    email: 'sinon@troy.org', name: 'Sinon', perm: 'g:athena'
   }
 }
 def token_header(user_type)
@@ -500,4 +503,12 @@ def replace_stdio(stdin_path, stdout_path)
       end
     }
   }
+end
+
+def below_admin_roles
+  [:editor, :viewer, :guest]
+end
+
+def below_editor_roles
+  [:viewer, :guest]
 end

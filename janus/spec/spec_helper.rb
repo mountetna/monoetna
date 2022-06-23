@@ -31,8 +31,10 @@ AUTH_USERS.update(
   },
   lar: {
     email: 'lar@two-faces.org', name: 'Lar Familiaris', perm: 'v:door'
+  },
+  sinon: {
+    email: 'sinon@earth.org', name: 'Sinon', perm: 'g:door'
   }
-
 )
 
 Janus.instance.configure(YAML.load(File.read('config.yml')))
@@ -186,6 +188,9 @@ FactoryBot.define do
     to_create(&:save)
   end
   factory :project do
+    to_create(&:save)
+  end
+  factory :cc_agreement do
     to_create(&:save)
   end
 end

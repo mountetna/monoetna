@@ -1,5 +1,6 @@
 export COMPOSE_PROJECT_NAME=monoetna
 export NODE_ENV=development
+export MONOETNA_SHA=$(shell git rev-parse HEAD) 
 
 .PHONY: help
 help: ## Display help text

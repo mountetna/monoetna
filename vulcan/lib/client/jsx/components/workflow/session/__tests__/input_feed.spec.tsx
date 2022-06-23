@@ -84,7 +84,8 @@ describe('InputFeed', () => {
         inputs: {
           'second/response': 'default-value',
           'third/response': 'default-value'
-        }
+        },
+        reference_figure_id: 1
       })
     ]);
 

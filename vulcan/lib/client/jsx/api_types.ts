@@ -102,7 +102,7 @@ export interface Workflow {
   steps: [WorkflowStep[]];
   vignette?: string;
   image?: string;
-  projects?: string[];
+  projects?: string[] | null;
   authors?: string[];
   displayName?: string;
   description?: string;
@@ -139,7 +139,8 @@ export const defaultVulcanSession = {
   project_name: '',
   workflow_name: '',
   key: '',
-  inputs: {} as {[k: string]: any}
+  inputs: {} as {[k: string]: any},
+  reference_figure_id: null as number | null
 };
 
 export type VulcanSession = typeof defaultVulcanSession;
@@ -156,6 +157,7 @@ export const defaultSessionStatusResponse = {
 export type SessionStatusResponse = typeof defaultSessionStatusResponse;
 
 export interface VulcanFigure {
+  id: number | null;
   figure_id?: number | null;
   inputs: {[k: string]: any};
   title?: string;
@@ -163,6 +165,7 @@ export interface VulcanFigure {
   thumbnails?: string[];
   comment?: string;
   tags?: string[];
+  workflow_snapshot?: Workflow
 }
 
 export type VulcanFigureSession = VulcanSession & VulcanFigure;
@@ -171,11 +174,16 @@ export interface VulcanRevision {
   inputs: {[k: string]: any};
   title?: string;
   tags?: string[];
+  id: number;
+  workflow_snapshot?: Workflow;
+  dependencies: {[key: string]: string};
 }
 
 export const defaultFigure = {
+  id: null,
   figure_id: null,
-  inputs: {}
+  inputs: {},
+  workflow_snapshot: defaultWorkflow
 };
 
 export interface FiguresResponse {

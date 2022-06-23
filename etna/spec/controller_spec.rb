@@ -70,7 +70,7 @@ describe Etna::Controller do
       expect(last_response.status).to eq(403)
 
       output = <<EOT
-# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/61378
+# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/v1.4.2
 WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {}
 ERROR:2000-01-01T00:00:00+00:00 8fzmq8 Exiting with 403, You cannot do that.
 EOT
@@ -94,7 +94,7 @@ EOT
       get('/test')
       expect(last_response.status).to eq(500)
       output = <<EOT
-# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/61378
+# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/v1.4.2
 WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {}
 ERROR:2000-01-01T00:00:00+00:00 8fzmq8 Caught unspecified error
 ERROR:2000-01-01T00:00:00+00:00 8fzmq8 Something broke.
@@ -228,7 +228,7 @@ EOT
       expect(last_response.status).to eq(403)
 
       output = <<EOT
-# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/61378
+# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/v1.4.2
 WARN:2000-01-01T00:00:00+00:00 8fzmq8 User janus@two-faces.org calling etna::# with params {}
 ERROR:2000-01-01T00:00:00+00:00 8fzmq8 Exiting with 403, You cannot do that.
 EOT
@@ -253,7 +253,7 @@ EOT
       expect(last_response.status).to eq(200)
 
       output = <<EOT
-# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/61378
+# Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/v1.4.2
 EOT
       expect(File.read(@log_file)).to eq(output)
     end

@@ -18,11 +18,22 @@ module Etna::Spec
       },
       non_user: {
         email: 'nessus@centaurs.org', name: 'Nessus', perm: ''
+      },
+      guest: {
+        email: 'sinon@troy.org', name: 'Sinon', perm: 'g:labors'
       }
     }
 
     def auth_header(user_type)
       header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
+    end
+
+    def below_admin_roles
+      [:editor, :viewer, :guest]
+    end
+    
+    def below_editor_roles
+      [:viewer, :guest]
     end
   end
 end

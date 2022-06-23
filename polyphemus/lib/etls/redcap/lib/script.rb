@@ -85,9 +85,14 @@ module Redcap
       end
 
       # there may be several matching flat_records
-      return @flat_records[
+      flat_record_for_id = @flat_records[
         key_entities.map.with_index {|e,i| e.flat_key? ? [ record_id[i] ] : nil }.compact.flatten(1)
       ]&.first
+
+      # For repeating instruments, need to merge this with the
+      #   base, non-repeating record to catch any specific
+      #   identifiers...
+      flat_record_for_id&.update(alternate_identifier_fields(record_id))
     end
 
     def redcap_records
@@ -104,7 +109,8 @@ module Redcap
           record_id,
           Redcap::Record.new(
             record_eavs,
-            flat_record(record_id)
+            flat_record(record_id),
+            identifier_fields_data(record_id)
           ).record
         ]
       end.to_h.compact
@@ -181,9 +187,48 @@ module Redcap
     end
 
     def identifier_fields_data(record_id)
-      flat_record(record_id)&.slice(*(@model.identifier_fields.map do |field|
+      flat_record(record_id)&.slice(*identifier_fields)
+    end
+
+    def identifier_fields
+      @identifier_fields ||= @model.identifier_fields.map do |field|
         field.to_sym
-      end))
+      end
+    end
+
+    def has_identifier_fields?
+      @has_identifier_fields ||= @model.identifier_fields.length > 0
+    end
+
+    def is_repeating?
+      @is_repeating ||= each_entities.any? { |e| e.is_a?(Redcap::Entity::Repeat) }
+    end
+
+    def alternate_identifier_fields(record_id)
+      return {} unless is_repeating? && has_identifier_fields?
+
+      return {} unless @flat_records
+      
+      non_repeating_key = non_repeating_record_key(record_id)
+      
+      return {} if non_repeating_key.nil?
+      return {} unless @flat_records[non_repeating_key]
+
+      @flat_records[non_repeating_key].first.slice(*identifier_fields)
+    end
+
+    def non_repeating_record_keys
+      # flat record keys are Tuples in the form of
+      # [ redcap_id, [ repeating_instrument, instance_id ] ]
+      @non_repeating_record_keys ||= @flat_records.keys.select do |key|
+        key.last.first == ""
+      end 
+    end
+
+    def non_repeating_record_key(record_id)
+      non_repeating_record_keys.select do |key|
+        key.first == record_id.first
+      end.first
     end
   end
 end

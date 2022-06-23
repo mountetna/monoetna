@@ -1,8 +1,33 @@
+PATH
+  remote: .
+  specs:
+    etna (0.1.44)
+      concurrent-ruby
+      curb
+      jwt
+      multipart-post
+      net-ssh
+      nokogiri
+      rack
+      rollbar
+
 GEM
   remote: http://rubygems.org/
   specs:
+    activemodel (7.0.3)
+      activesupport (= 7.0.3)
+    activerecord (7.0.3)
+      activemodel (= 7.0.3)
+      activesupport (= 7.0.3)
+    activesupport (7.0.3)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      i18n (>= 1.6, < 2)
+      minitest (>= 5.1)
+      tzinfo (~> 2.0)
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
+    anyway_config (2.3.0)
+      ruby-next-core (>= 0.14.0)
     aspera-cli (4.1.0)
       execjs (~> 2.0)
       jwt (~> 2.0)
@@ -14,34 +39,77 @@ GEM
       websocket (~> 1.2)
       websocket-client-simple (~> 0.3)
       xml-simple (~> 1.0)
+    builder (3.2.4)
     byebug (11.1.3)
     coderay (1.1.3)
-    concurrent-ruby (1.1.8)
+    concurrent-ruby (1.1.10)
+    connection_pool (2.2.5)
     crack (0.4.5)
       rexml
     curb (0.9.11)
+    database_cleaner (1.8.5)
     debase (0.2.4.1)
       debase-ruby_core_source (>= 0.10.2)
     debase-ruby_core_source (0.10.12)
     diff-lcs (1.4.4)
     docile (1.3.5)
-    dry-initializer (3.0.4)
+    dry-initializer (3.1.1)
+    ecma-re-validator (0.4.0)
+      regexp_parser (~> 2.2)
     event_emitter (0.2.6)
+    excon (0.92.3)
     execjs (2.8.1)
+    factory_bot (6.2.1)
+      activesupport (>= 5.0.0)
+    ffi (1.15.5)
+    filigree (0.3.3)
+    fog-aws (3.14.0)
+      fog-core (~> 2.1)
+      fog-json (~> 1.1)
+      fog-xml (~> 0.1)
+    fog-core (2.3.0)
+      builder
+      excon (~> 0.71)
+      formatador (>= 0.2, < 2.0)
+      mime-types
+    fog-json (1.2.0)
+      fog-core
+      multi_json (~> 1.10)
+    fog-xml (0.1.4)
+      fog-core
+      nokogiri (>= 1.5.11, < 2.0.0)
+    formatador (1.1.0)
+    hana (1.3.7)
     hashdiff (1.0.1)
+    i18n (1.10.0)
+      concurrent-ruby (~> 1.0)
     json (2.5.1)
-    jwt (2.2.2)
+    json_schemer (0.2.21)
+      ecma-re-validator (~> 0.3)
+      hana (~> 1.3)
+      regexp_parser (~> 2.0)
+      uri_template (~> 0.7)
+    jwt (2.4.1)
     method_source (1.0.0)
+    mime-types (3.4.1)
+      mime-types-data (~> 3.2015)
+    mime-types-data (3.2022.0105)
     mimemagic (0.3.10)
       nokogiri (~> 1)
       rake
-    mini_portile2 (2.5.0)
+    mini_magick (4.11.0)
+    mini_portile2 (2.8.0)
+    minitest (5.15.0)
+    multi_json (1.15.0)
     multipart-post (2.1.1)
+    net-http-persistent (4.0.1)
+      connection_pool (~> 2.2)
     net-ssh (6.1.0)
-    nio4r (2.5.7)
-    nokogiri (1.11.3)
-      mini_portile2 (~> 2.5.0)
+    nio4r (2.5.8)
+    nokogiri (1.13.6)
+      mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
+    pg (1.3.5)
     prometheus-client (2.1.0)
     pry (0.13.1)
       coderay (~> 1.1)
@@ -50,14 +118,21 @@ GEM
       byebug (~> 11.0)
       pry (~> 0.13.0)
     public_suffix (4.0.6)
-    puma (5.2.2)
+    puma (5.6.4)
       nio4r (~> 2.0)
-    racc (1.5.2)
-    rack (2.2.3)
+    racc (1.6.0)
+    rack (2.2.3.1)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
+    rack-throttle (0.7.0)
+      bundler (>= 1.0.0)
+      rack (>= 1.0.0)
     rake (13.0.3)
+    regexp_parser (2.5.0)
     rexml (3.2.5)
+    rltk (3.0.1)
+      ffi (>= 1.0.0)
+      filigree (>= 0.2.0)
     rollbar (3.1.2)
     rspec (3.10.0)
       rspec-core (~> 3.10.0)
@@ -72,21 +147,35 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.10.0)
     rspec-support (3.10.2)
+    rsync (1.0.9)
+    ruby-next-core (0.15.1)
+    ruby-ole (1.2.12.2)
     ruby-progressbar (1.11.0)
+    ruby-vips (2.1.4)
+      ffi (~> 1.12)
     rubyzip (2.3.2)
+    sequel (5.57.0)
+    sequel_pg (1.15.0)
+      pg (>= 0.18.0, != 1.2.0)
+      sequel (>= 4.38.0)
     simplecov (0.21.2)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.12.3)
     simplecov_json_formatter (0.1.2)
+    spreadsheet (1.3.0)
+      ruby-ole
     terminal-table (1.8.0)
       unicode-display_width (~> 1.1, >= 1.1.1)
     timecop (0.9.4)
     tty-cursor (0.7.1)
     tty-spinner (0.9.3)
       tty-cursor (~> 0.7)
+    tzinfo (2.0.4)
+      concurrent-ruby (~> 1.0)
     unicode-display_width (1.7.0)
+    uri_template (0.7.0)
     vcr (6.0.0)
     webmock (3.12.2)
       addressable (>= 2.3.6)
@@ -97,13 +186,14 @@ GEM
       event_emitter
       websocket
     xml-simple (1.1.8)
-    yabeda (0.8.0)
+    yabeda (0.11.0)
+      anyway_config (>= 1.0, < 3)
       concurrent-ruby
       dry-initializer
-    yabeda-prometheus (0.6.1)
+    yabeda-prometheus (0.8.0)
       prometheus-client (>= 0.10, < 3.0)
       rack
-      yabeda (~> 0.5)
+      yabeda (~> 0.10)
     yabeda-puma-plugin (0.6.0)
       json
       puma
@@ -113,24 +203,43 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  activerecord
+  activesupport (>= 4.2.6)
   aspera-cli (>= 4.1.0)
   concurrent-ruby
   curb
+  database_cleaner (= 1.8.5)
   debase
+  etna!
+  factory_bot
+  filigree (= 0.3.3)
+  fog-aws
+  json_schemer
   jwt
   mimemagic (~> 0.3.10)
+  mini_magick
   multipart-post
+  net-http-persistent
   net-ssh
   nokogiri
+  pg
   prometheus-client
   pry (~> 0.13.0)
   pry-byebug
+  puma (>= 5.0.2)
   rack
   rack-test
+  rack-throttle
   rake
+  rltk
   rollbar
   rspec
+  rsync (~> 1.0, >= 1.0.9)
+  ruby-vips
+  sequel
+  sequel_pg
   simplecov
+  spreadsheet
   timecop
   vcr
   webmock
@@ -139,7 +248,7 @@ DEPENDENCIES
   yabeda-puma-plugin
 
 RUBY VERSION
-   ruby 2.5.7p206
+   ruby 2.7.6p219
 
 BUNDLED WITH
-   2.2.26
+   2.3.15

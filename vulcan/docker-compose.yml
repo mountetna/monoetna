@@ -2,11 +2,10 @@ version: '3.4'
 
 x-base-etna-service:
   &base-etna-service # Base configuration used by most etna services.
-  image: etna-base-dev
+  image: etna-base
   volumes: &base-etna-service-volumes
     - .:/app:delegated
     - /var/run/docker.sock:/var/run/docker.sock:ro
-    - vulcan-app-gems:/app/vendor/bundle:rw
     - vulcan-log-dir:/app/log:rw
     - vulcan-tmp-dir:/app/tmp:rw
     - vulcan-public-dir:/app/public:rw
@@ -41,6 +40,7 @@ x-base-etna-services:
     environment:
       <<: *base-etna-env
       WAIT_FOR_DB: 1
+      MONOETNA_SHA: ${MONOETNA_SHA}
     depends_on:
       - 'vulcan_db'
 
