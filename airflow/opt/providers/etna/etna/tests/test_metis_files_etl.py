@@ -11,7 +11,8 @@ from requests import Session
 
 from etna import metis_etl, MetisEtlHelpers
 
-from etna.hooks.etna import Folder, File, EtnaHook, Magma, TokenAuth
+from etna.hooks.etna import EtnaHook
+from mountetna import Folder, File, Magma, TokenAuth
 from etna.etls.metis import filter_by_record_directory, MatchedRecordFolder
 from .conftest import NotSoRandom
 from ..operators import run_in_container

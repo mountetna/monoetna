@@ -38,7 +38,7 @@ from etna.utils.iterables import batch_iterable
 from etna.utils.multipart import encode_as_multipart
 from etna.utils.streaming import iterable_to_stream
 
-from mountetna import Janus, Magma, Metis, File, TokenAuth, SigAuth, EtnaSession
+from mountetna import Janus, Magma, Metis, TokenAuth, SigAuth, EtnaSession
 
 class EtnaHook(BaseHook):
     """
@@ -146,7 +146,7 @@ class EtnaHook(BaseHook):
     def get_client(
         self, auth: Optional[AuthBase]
     ) -> typing.ContextManager[requests.Session]:
-        yield EtnaSession(auth=auth, hooks = { response: [EtnaHook.assert_status] })
+        yield EtnaSession(auth=auth, hooks = { "response": [EtnaHook.assert_status] })
 
     @contextlib.contextmanager
     def metis(
