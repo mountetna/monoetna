@@ -30,8 +30,8 @@ class EtnaSession(Session):
         if auth:
             self.auth = auth
 
-        for hook_name, hook_list in hooks:
-            session.hooks[hook_name].extend(hook_list)
+        for hook_name, hook_list in hooks.items():
+            self.hooks[hook_name].extend(hook_list)
 
 class EtnaClientBase:
     session: requests.Session
