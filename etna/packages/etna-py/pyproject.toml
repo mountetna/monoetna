@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mountetna"
-version = "0.1.2"
+version = "0.1.3"
 description = "Client package for Mount Etna data library"
 
 license = "GPL-2.0-only"
