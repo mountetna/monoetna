@@ -35,7 +35,6 @@ jobs:
           IMAGES_POSTFIX: :master
         run: |
           python -m pip install --upgrade pip
-          pip install poetry
           cd etna/packages/etna-py
-          pip install .
+          pip install . poetry pytest
           poetry run pytest
