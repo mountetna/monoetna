@@ -37,4 +37,5 @@ jobs:
           python -m pip install --upgrade pip
           cd etna/packages/etna-py
           pip install . poetry pytest
+          poetry install
           poetry run pytest
