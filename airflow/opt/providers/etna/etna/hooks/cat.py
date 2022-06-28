@@ -1,10 +1,14 @@
+import base64
 import contextlib
 from datetime import datetime, timezone
 import json
 import logging
 import os
 import re
-import subprocess
+import paramiko
+import stat
+from paramiko.sftp_client import SFTPClient
+from paramiko.sftp_attr import SFTPAttributes
 from typing import List, Dict, Optional, ContextManager, Tuple, BinaryIO
 
 import cached_property
@@ -44,7 +48,7 @@ class CatHook(SSHHook):
             "placeholders": {
                 "host": "fastq.ucsf.edu",
                 "schema": "ssh",
-                "extra": "{\n  \"root_path\": \"/volume1/SSD\",\n  \"host_key\": \"<ssh-key>\"\n}"
+                "extra": "{\n  \"root_path\": \"/volume1/SSD\",\n  \"host_key\": \"<ssh-key>\",\n  \"key_type\": \"<ssh-rsa, ssh-dss, etc.\"\n}"
             },
         }
 
@@ -94,32 +98,36 @@ class CatHook(SSHHook):
 log = logging.getLogger("airflow.task")
 
 
-class RsyncEntry(RemoteFileBase):
-    def __init__(self, raw: str):
-        self.raw_line = raw
-        self.metadata_delimiter = "+++++++++ "
+class SftpEntry(RemoteFileBase):
+    def __init__(self, attrs: SFTPAttributes, folder_path: str):
+        self.attrs = attrs
+        self.folder_path = folder_path
 
     @property
     def name(self) -> str:
-        return os.path.basename(self.full_path)
+        return self.attrs.filename
 
     @property
     def size(self) -> int:
-        return None
+        return self.attrs.st_size
 
     def is_file(self) -> bool:
-        return self.raw_line.startswith(">f")
+        return stat.S_ISREG(self.attrs.st_mode)
 
     def is_dir(self) -> bool:
-        return self.raw_line.startswith("cd")
+        return stat.S_ISDIR(self.attrs.st_mode)
 
     @property
     def mtime(self) -> datetime:
-        return None
+        return self.attrs.st_mtime
+
+    @property
+    def atime(self) -> datetime:
+        return self.attrs.st_atime
 
     @property
     def full_path(self) -> str:
-        return self.raw_line.split(self.metadata_delimiter)[1]
+        return os.path.join(self.folder_path, self.attrs.filename)
 
     @property
     def rel_path(self) -> str:
@@ -137,7 +145,7 @@ class RsyncEntry(RemoteFileBase):
 
     @property
     def hash(self):
-        return self.full_path
+        return f"{self.size}-{self.mtime}-{self.atime}"
 
 
 class Cat(object):
@@ -151,7 +159,7 @@ class Cat(object):
     def tail(
             self,
             magic_string: re.Pattern = re.compile(r".*DSCOLAB.*"),
-     ) -> List[RsyncEntry]:
+     ) -> List[SftpEntry]:
         """
         Tails all files that have not been ingested previously.
         If a `magic_string` regex is provided, will only return files that match the provided
@@ -160,93 +168,92 @@ class Cat(object):
         params:
           magic_string: regex, the "oligo" we use to identify our projects' files. Default of ".*DSCOLAB.*
         """
-        self._ensure_cat_host_key()
-        log.info("set known_hosts")
-        with open(self.ssh_hostfile, 'rb') as host_file:
-            for line in host_file.readlines():
-                log.info(line)
-        all_files = self._rsync()
+        self._ensure_ssh_known_hosts()
+
+        all_files = []
+
+        with self.sftp() as sftp:
+            all_files = self._ls_r(sftp)
 
         return [f for f in all_files if magic_string.match(f.full_path)]
+
+    @contextlib.contextmanager
+    def sftp(self) -> SFTPClient:
+        """
+        Configures an SFTP connection to Box. Using Python `with` syntax, so that the
+        connection is closed after usage.
+
+        eg:
+        ```
+        with cat.sftp() as sftp:
+            sftp.get("/directory")
+        ```
+        """
+        ssh = paramiko.SSHClient()
+
+        keys = ssh.get_host_keys()
+        keys.add(
+            self.hook.connection.host,
+            self._key_type(),
+            self._host_key()
+        )
+        keys.save(self.ssh_hostfile)
+
+        ssh.connect(
+            self.hook.connection.host,
+            username=self.hook.connection.login,
+            password=self.hook.connection.password)
+
+        sftp = ssh.open_sftp()
+
+        yield sftp
+
+        sftp.close()
 
     def _extra(self) -> dict:
         if (self.hook.connection.extra != ''):
             return json.loads(self.hook.connection.extra)
         return {}
 
+    def _get_extra(self, key, default_value):
+        if (key in self._extra() and
+            self._extra()[key] != ""):
+            return self._extra()[key]
+
+        return default_value
+
     def _root_path(self) -> str:
-        if ("root_path" in self._extra() and
-            self._extra()["root_path"] != ""):
-            return self._extra()["root_path"]
+        return self._get_extra("root_path", "SSD")
 
-        return "/volume1/SSD"
+    def _key_type(self) -> str:
+        return self._get_extra("key_path", "ssh-rsa")
 
-    def _rsync_connection_str(self) -> str:
-        return f"{self.hook.connection.login}@{self.hook.connection.host}:{self._root_path()}"
+    def _host_key(self) -> str:
+        return self._get_extra("host_key", "")
 
-    def _rsync(self) -> List[RsyncEntry]:
-        cmd = [
-            "rsync",
-            "-avzh",
-            "--dry-run",
-            "--itemize-changes",
-            "--exclude=test",
-            "--exclude=Reports",
-            "--exclude=Stats",
-            self._rsync_connection_str(),
-            ".",
-        ]
+    def _ls_r(self, sftp: SFTPClient, path: str = None) -> List[SftpEntry]:
+        files = []
 
-        process = SubprocessHook()
+        if path is None:
+            path = self._root_path()
 
-        env: Dict[str, str] = {
-            'RSYNC_PASSWORD': self.hook.connection.password
-        }
+        for entry in sftp.listdir_iter(path):
+            print(entry)
+            sftp_entry = SftpEntry(entry, path)
 
-        result = process.run_command(
-            cmd,
-            env
-        )
+            if sftp_entry.is_dir():
+                files += self._ls_r(sftp, os.path.join(path, sftp_entry.name))
+            elif sftp_entry.full_path not in self.cursor or self.cursor[sftp_entry.full_path] != sftp_entry.hash:
+                # Re-upload file if the hash has changed (size-modified time-created time).
+                files.append(sftp_entry)
 
-        if result.exit_code != 0:
-            raise AirflowException(
-                f"Rsync command failed!  Check logs for more information."
-            )
+        return files
 
-        all_entries = [RsyncEntry(entry) for entry in result.split("\n")]
-        return [e for e in all_entries if e.is_file()]
-
-    def _ensure_cat_host_key(self):
-        key_exists = self._key_in_hostfile()
-        log.info(f"key exists: {key_exists}")
-        if not key_exists:
-            self._add_key()
-
-    def _key_in_hostfile(self):
+    def _ensure_ssh_known_hosts(self):
         if not os.path.exists(self.ssh_hostfile):
-            return False
+            os.makedirs(os.path.dirname(self.ssh_hostfile), exist_ok=True)
 
-        with open(self.ssh_hostfile, 'r') as host_file:
-            for line in host_file.readlines():
-                if (line.startswith(self.hook.connection.host) and
-                    -1 != line.find(self._extra()["host_key"])):
-                    return True
-
-        return False
-
-    def _add_key(self):
-        os.makedirs(os.path.dirname(self.ssh_hostfile), exist_ok=True)
-        with open(self.ssh_hostfile, 'a+') as host_file:
-            key = self._extra()["host_key"]
-            host_file.write(f"{self.hook.connection.host} {key}\n")
-
-        log.info("adding host key")
-        log.info(os.path.exists(self.ssh_hostfile))
-        with open(self.ssh_hostfile, 'r') as host_file:
-            for line in host_file.readlines():
-                log.info(line)
-
-    def retrieve_file(self, target_hook: BaseHook, file: RsyncEntry) -> Tuple[BinaryIO, int]:
+    def retrieve_file(self, target_hook: BaseHook, file: SftpEntry) -> Tuple[BinaryIO, int]:
         """
         Opens the given file for download into a context as a Tuple(BinaryIO, size).
         The underlying socket object yields bytes objects.
@@ -272,7 +279,7 @@ class Cat(object):
         #       for Metis, just stream to it?
         pass
 
-    def mark_file_as_ingested(self, file: RsyncEntry):
+    def mark_file_as_ingested(self, file: SftpEntry):
         """
         In the cursor, save the fact that the given file's upload was completed.
         """
