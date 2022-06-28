@@ -1,10 +1,11 @@
 from archimedes.functions.environment import token, magma_host, project_name
-from archimedes.functions.etna import Magma
+from archimedes.functions.etna import Magma, TokenAuth
 from archimedes.functions.list import flatten
+from archimedes.functions.dataflow import json
 
 def connect():
     return Magma(
-        session=EtnaSession(auth=TokenAuth(token=bytes(token))),
+        auth=TokenAuth(token=token),
         hostname=magma_host
     )
 
@@ -15,7 +16,7 @@ def question(magma, question, strip_identifiers=True):
         })
 
     if not query_result.answer:
-        raise Exception('No answer to magma query with elements: '+ ','.join(flatten(question)))
+        raise Exception('No answer to magma query {json.dumps(question)}')
 
     return [ v[1] for v in query_result.answer ] if strip_identifiers else query_result.answer
 
@@ -26,5 +27,5 @@ def query_tsv(magma, project_name, queryTerms, user_columns=[], expand_matrices=
         'format': 'tsv',
         'user_columns': user_columns,
         'expand_matrices': expand_matrices,
-        'transpose': transpose)
+        'transpose': transpose})
     return query_result

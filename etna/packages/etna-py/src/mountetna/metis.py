@@ -519,7 +519,7 @@ class Metis(EtnaClientBase):
         self, project_name: str, bucket_name: str, folder_path: str
     ) -> bool:
         try:
-            self.session.get(
+            response = self.session.get(
                 self.prepare_url(project_name, "list", bucket_name, folder_path)
             )
             return True

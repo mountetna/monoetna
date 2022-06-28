@@ -1,4 +1,4 @@
-from .. import Magma, EtnaSession, TokenAuth, Model
+from .. import Magma, TokenAuth, Model
 import pytest
 import responses
 from typing import Dict
@@ -20,7 +20,7 @@ def test_magma_retrieve(labor_template: Dict):
         status=200
     )
     client = Magma(
-        session=EtnaSession(auth=TokenAuth(token=b'token')),
+        auth=TokenAuth(token='token'),
         hostname='magma.test'
     )
     response = client.retrieve('ipi')
@@ -49,7 +49,7 @@ def test_magma_update(labor_template: Dict):
         status=200
     )
     client = Magma(
-        session=EtnaSession(auth=TokenAuth(token=b'token')),
+        auth=TokenAuth(token='token'),
         hostname='magma.test'
     )
     response = client.update({ "project_name":"ipi", "revisions": { "labor": { "The Nemean Lion" : { "country" : "Nemea" } } } } )
@@ -68,7 +68,7 @@ def test_magma_query():
         status=200
     )
     client = Magma(
-        session=EtnaSession(auth=TokenAuth(token=b'token')),
+        auth=TokenAuth(token='token'),
         hostname='magma.test'
     )
     response = client.query({ "project_name":"ipi", "query": [ 'labor', [ 'country', '::equals', 'Nemea' ], '::all', 'country' ]})

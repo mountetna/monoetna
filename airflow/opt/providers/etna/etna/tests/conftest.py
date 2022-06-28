@@ -109,13 +109,13 @@ def vcr_config():
             with self.create_session() as session:
                 return session.request(*args, **kwds)
 
-    get_client = EtnaHook.get_client
+    #get_client = EtnaHook.get_client
 
     @contextlib.contextmanager
     def _get_client(self, auth):
         yield ForceNeverReuseConnectionSession(lambda: get_client(self, auth), auth)
 
-    EtnaHook.get_client = _get_client
+    #EtnaHook.get_client = _get_client
 
     # Authorization in any vcr is safely masked
     return {

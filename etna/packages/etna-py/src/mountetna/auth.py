@@ -7,15 +7,15 @@ from requests.auth import AuthBase
 import base64
 
 class TokenAuth(AuthBase):
-    token: bytes
+    token: str
     project_scope: Optional[str]
 
-    def __init__(self, token: bytes, project_scope: Optional[str] = None):
+    def __init__(self, token: str, project_scope: Optional[str] = None):
         self.token = token
         self.project_scope = project_scope
 
     def __call__(self, r: requests.Request) -> requests.Request:
-        r.headers["Authorization"] = f'Etna {self.token.decode("ascii")}'
+        r.headers["Authorization"] = f'Etna {self.token}'
         return r
 
 class SigAuth(AuthBase):

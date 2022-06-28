@@ -1,1 +1,1 @@
-from mountetna import Magma, TokenAuth, EtnaSession
+from mountetna import Magma, TokenAuth

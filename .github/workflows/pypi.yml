@@ -16,9 +16,10 @@ jobs:
         python-version: 3.8
     - run: |
         python -m pip install --upgrade pip
-	pip install poetry
+        pip install poetry
         cd etna/packages/etna-py
         poetry build
-	poetry publish
+        [ $( poetry search mountetna | grep -Poh "\d+\.\d+\.\d+" ) == $( poetry version | grep -Poh "\d+\.\d+\.\d+" ) ] && exit
+        poetry publish
       env:
         POETRY_PYPI_TOKEN_PYPI: ${{secrets.PYPI_TOKEN}}

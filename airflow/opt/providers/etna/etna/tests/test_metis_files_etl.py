@@ -163,9 +163,8 @@ def test_docker_callable_with_task_token(reset_db, token_etna_connection: Connec
 
         @task
         def use_token(token: str):
-            with Session() as session:
-                session.auth = TokenAuth(token.encode("ascii"), "mvir1")
-                Magma(session, "magma.ucsf.edu").retrieve("mvir1")
+            auth = TokenAuth(token.encode("ascii"), "mvir1")
+            Magma(auth, "magma.ucsf.edu").retrieve("mvir1")
 
         use_token(token_through_cat)
 

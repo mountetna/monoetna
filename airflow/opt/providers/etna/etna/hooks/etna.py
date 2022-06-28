@@ -38,7 +38,7 @@ from etna.utils.iterables import batch_iterable
 from etna.utils.multipart import encode_as_multipart
 from etna.utils.streaming import iterable_to_stream
 
-from mountetna import Janus, Magma, Metis, TokenAuth, SigAuth, EtnaSession
+from mountetna import Janus, Magma, Metis, TokenAuth, SigAuth
 
 class EtnaHook(BaseHook):
     """
@@ -114,12 +114,11 @@ class EtnaHook(BaseHook):
         schema = self.connection.schema or "token"
         if schema == "rsa":
             with prepared_key_from(self.connection, True) as key_file:
-                with self.get_client(None) as session:
-                    nonce = Janus(session, self.get_hostname("janus")).nonce()
+                nonce = Janus(None, self.get_hostname("janus")).nonce()
                 return SigAuth(key_file, self.connection.login, nonce)
         elif schema == "token":
             token = self.connection.password or ""
-            return TokenAuth(token.encode("utf8"))
+            return TokenAuth(token)
         else:
             raise AirflowException(
                 f"Connection {self.connection.conn_id} has invalid schema: '{self.connection.schema}'"
@@ -132,69 +131,36 @@ class EtnaHook(BaseHook):
             dag: DAG = get_current_context()["dag"]
             project_name = get_project_name(dag)
         token_auth = self.get_token_auth()
-        with self.get_client(token_auth) as session:
-            # Unfortunately, 'read only' here becomes a viewer token, which does not have
-            # read permission to many buckets.  Unfortunately, read_only does not mean 'can read',
-            # it means 'cannot write, but also likely cannot read.'
-            # We are forced then to always create read_only=False tokens for now.
-            token = Janus(session, self.get_hostname("janus")).generate_token(
-                project_name, False
-            )
+        # Unfortunately, 'read only' here becomes a viewer token, which does not have
+        # read permission to many buckets.  Unfortunately, read_only does not mean 'can read',
+        # it means 'cannot write, but also likely cannot read.'
+        # We are forced then to always create read_only=False tokens for now.
+        token = Janus(token_auth, self.get_hostname("janus")).generate_token(
+            project_name, False
+        )
         return TokenAuth(token, project_name)
-
-    @contextlib.contextmanager
-    def get_client(
-        self, auth: Optional[AuthBase]
-    ) -> typing.ContextManager[requests.Session]:
-        yield EtnaSession(auth=auth, hooks = { "response": [EtnaHook.assert_status] })
 
     @contextlib.contextmanager
     def metis(
         self, project_name: Optional[str] = None, read_only=True
     ) -> typing.ContextManager["Metis"]:
         auth = self.get_task_auth(project_name, read_only)
-        with self.get_client(auth) as session:
-            yield Metis(session, self.get_hostname("metis"))
+        yield Metis(auth, self.get_hostname("metis"))
 
     @contextlib.contextmanager
     def janus(
         self, project_name: Optional[str] = None, read_only=True
     ) -> typing.ContextManager["Janus"]:
         auth = self.get_task_auth(project_name, read_only)
-        with self.get_client(auth) as session:
-            yield Janus(session, self.get_hostname("janus"))
+        yield Janus(auth, self.get_hostname("janus"))
 
     @contextlib.contextmanager
     def magma(
         self, project_name: Optional[str] = None, read_only=True
     ) -> typing.ContextManager["Magma"]:
         auth = self.get_task_auth(project_name, read_only)
-        with self.get_client(auth) as session:
-            yield Magma(session, self.get_hostname("magma"))
+        yield Magma(auth, self.get_hostname("magma"))
 
-    @staticmethod
-    def assert_status(response: requests.Response, *args, **kwds):
-        if 200 <= response.status_code < 300:
-            return
-
-        error_message = response.reason
-
-        try:
-            err_json = response.json()
-            errors = err_json.get("errors", [])
-            error = err_json.get("error")
-
-            if error:
-                errors.append(error)
-
-            error_message = ", ".join(errors)
-            error_message = (
-                f"Request failed with {response.status_code}: {error_message}"
-            )
-        except (TypeError, ValueError, json.JSONDecodeError):
-            pass
-
-        raise HTTPError(error_message, response=response)
 
     def generate_task_token(self):
         pass

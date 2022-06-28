@@ -1,5 +1,5 @@
 import requests
-from requests import Session
+from requests import Session, HTTPError
 from requests.auth import AuthBase
 from requests.adapters import HTTPAdapter
 from typing import Dict, Optional, List
@@ -11,9 +11,31 @@ def encode_path(*segments: str) -> str:
     return "/".join(quote(s) for s in segments)
 
 class EtnaSession(Session):
-    def __init__(self,
-        auth: Optional[AuthBase],
-        hooks: Dict = {}):
+    @staticmethod
+    def assert_status(response: requests.Response, *args, **kwds):
+        if 200 <= response.status_code < 300:
+            return
+
+        error_message = response.reason
+
+        try:
+            err_json = response.json()
+            errors = err_json.get("errors", [])
+            error = err_json.get("error")
+
+            if error:
+                errors.append(error)
+
+            error_message = ", ".join(errors)
+            error_message = (
+                f"Request failed with {response.status_code}: {error_message}"
+            )
+        except (TypeError, ValueError, json.JSONDecodeError):
+            pass
+
+        raise HTTPError(error_message, response=response)
+
+    def __init__(self, auth: Optional[AuthBase]):
         super().__init__()
         self.mount(
             "https://",
@@ -30,16 +52,17 @@ class EtnaSession(Session):
         if auth:
             self.auth = auth
 
-        for hook_name, hook_list in hooks.items():
-            self.hooks[hook_name].extend(hook_list)
+        self.hooks['response'].extend([EtnaSession.assert_status])
 
 class EtnaClientBase:
+    auth: AuthBase
     session: requests.Session
     hostname: str
 
-    def __init__(self, session: EtnaSession, hostname: str):
-        self.session = session
-        self.hostname = hostname
+    def __init__(self, auth: Optional[AuthBase], hostname: str):
+        self.auth = auth
+        self.session = EtnaSession(auth=auth)
+        self.hostname = hostname.replace('https://', '')
 
     @property
     def auth_token(self) -> Optional[bytes]:
