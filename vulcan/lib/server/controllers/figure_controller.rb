@@ -33,6 +33,8 @@ class FigureController < Vulcan::Controller
         updated_at: now,
       }.update(
         @params.slice(*figure_params)
+      ).update(
+        dependencies: dependency_shas
       ),
       @user,
       @params[:project_name]
@@ -54,18 +56,20 @@ class FigureController < Vulcan::Controller
 
     now = DateTime.now
 
+    new_figure_data = {
+      figure_id: figure.figure_id,
+      author: @user.name,
+      created_at: figure.created_at,
+      updated_at: now,
+      comment: @params[:comment]
+    }.update(
+      figure.to_hash.slice(*figure_params)
+    ).update(
+      @params.slice(*figure_params)
+    )
+
     new_figure = Vulcan::Figure.from_payload(
-      {
-        figure_id: figure.figure_id,
-        author: @user.name,
-        created_at: figure.created_at,
-        updated_at: now,
-        comment: @params[:comment]
-      }.update(
-        figure.to_hash.slice(*figure_params)
-      ).update(
-        @params.slice(*figure_params)
-      ),
+      new_figure_data,
       @user,
       @params[:project_name]
     )
@@ -75,6 +79,11 @@ class FigureController < Vulcan::Controller
     #   an exception gets thrown during figure creation.
     figure.modified!(:updated_at)
     figure.update(archived: true)
+  
+    begin
+      new_figure.update_dependencies
+      new_figure.take_snapshot
+    end if @params[:update_dependencies]
 
     success_json(new_figure.to_hash)
   rescue ArgumentError => e
@@ -113,8 +122,13 @@ class FigureController < Vulcan::Controller
       :workflow_name,
       :inputs,
       :title,
-      :tags
+      :tags,
+      :dependencies
     ]
+  end
+
+  def dependency_shas
+    Vulcan.instance.dependency_manager.dependency_shas.to_json
   end
 end
 

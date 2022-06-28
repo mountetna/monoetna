@@ -2,6 +2,12 @@ class Vulcan
   class Figure < Sequel::Model
     plugin :timestamps, update_on_create: true
 
+    one_to_one :workflow_snapshot
+
+    def self.from_reference_id(reference_id)
+      Vulcan::Figure.where(id: reference_id).first
+    end
+
     def self.next_id
       Vulcan.instance.db.get { nextval("figures_ids") }
     end
@@ -10,7 +16,7 @@ class Vulcan
       Vulcan::Figure.where(
         project_name: project_name,
         figure_id: figure_id,
-        archived: false
+        archived: false,
       ).first
     end
 
@@ -18,6 +24,58 @@ class Vulcan
       self.validate(payload, user, project_name)
 
       Vulcan::Figure.create(payload)
+    end
+
+    def after_save
+      # Use this hook to also save the Vulcan workflow snapshot
+      begin
+        previous_figure = Vulcan::Figure.where(figure_id: self.figure_id).exclude(id: self.id).last
+        previous_snapshot = Vulcan::WorkflowSnapshot.where(figure_id: previous_figure.id).first if previous_figure
+
+        if !previous_snapshot.nil?
+          Vulcan::WorkflowSnapshot.from_snapshot(
+            previous_snapshot: previous_snapshot,
+            figure_id: self.id
+          )
+        else
+          take_snapshot
+        end
+
+        refresh
+      rescue Etna::Cwl::WorkflowNotFound
+        ## workflow does not exist ... this figure should be deprecated
+      end if !has_snapshot?
+
+      super
+    end
+
+    def take_snapshot
+      remove_existing_snapshot if has_snapshot?
+
+      Vulcan::WorkflowSnapshot.from_workflow_name(
+        figure_id: self.id,
+        workflow_name: workflow_name,
+      )
+
+      refresh
+    rescue Etna::Cwl::WorkflowNotFound
+      ## workflow does not exist ... this figure should be deprecated
+    end
+
+    def update_dependencies
+      update(
+        dependencies: Vulcan.instance.dependency_manager.dependency_shas.to_json,
+      )
+      refresh
+    end
+
+    def has_snapshot?
+      !!Vulcan::WorkflowSnapshot.where(figure_id: self.id).first
+    end
+
+    def remove_existing_snapshot
+      Vulcan::WorkflowSnapshot.where(figure_id: self.id).first.delete
+      refresh
     end
 
     def session
@@ -50,10 +108,10 @@ class Vulcan
         next unless ::File.exists?(thumbnail.data_path(storage))
 
         next storage.data_url(
-          project_name: thumbnail.project_name,
-          cell_hash: thumbnail.cell_hash,
-          data_filename: thumbnail.data_filename,
-        )
+               project_name: thumbnail.project_name,
+               cell_hash: thumbnail.cell_hash,
+               data_filename: thumbnail.data_filename,
+             )
       end.compact
     end
 
@@ -63,12 +121,16 @@ class Vulcan
         title: title,
         tags: tags,
         updated_at: updated_at.iso8601,
-        comment: comment
+        comment: comment,
+        id: id,
+        workflow_snapshot: workflow_snapshot&.as_steps_json_w_metadata,
+        dependencies: dependencies
       }
     end
 
     def to_hash(storage: nil)
       {
+        id: id,
         figure_id: figure_id,
         project_name: project_name,
         workflow_name: workflow_name,
@@ -80,6 +142,8 @@ class Vulcan
         thumbnails: thumbnails(storage: storage),
         created_at: created_at.iso8601,
         updated_at: updated_at.iso8601,
+        dependencies: dependencies,
+        workflow_snapshot: workflow_snapshot&.as_steps_json_w_metadata,
       }
     end
 
@@ -88,7 +152,7 @@ class Vulcan
     def self.validate(payload, user, project_name)
       project_permissions = user.permissions[project_name]
 
-      raise ArgumentError.new('Guests cannot save public figures. Please remove the "public" tag and try saving again.') if project_permissions[:role] == :guest && payload[:tags]&.include?('public')
+      raise ArgumentError.new('Guests cannot save public figures. Please remove the "public" tag and try saving again.') if project_permissions[:role] == :guest && payload[:tags]&.include?("public")
     end
   end
 end

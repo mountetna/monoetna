@@ -33,4 +33,4 @@ if type -p gfind; then
   find=gfind
 fi
 
-$find $dir -type f ! -path "*.marker" ! -path '*/node_modules/*' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2
+$find $dir -type f ! -path '*/coverage/*' ! -path '*/logs/*' ! -path "*.marker" ! -path '*/node_modules/*' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2

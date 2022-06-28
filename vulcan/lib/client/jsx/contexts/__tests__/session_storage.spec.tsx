@@ -32,7 +32,10 @@ describe('useSessionStorage', () => {
 
   const beforeSessionUpdate = awaitBefore(async () => {});
   const nextSession = setupBefore(() =>
-    createStoredSessionFixture('test', {project_name: 'test'})
+    createStoredSessionFixture('test', {
+      project_name: 'test',
+      reference_figure_id: 1
+    })
   );
   const sessionUpdate = awaitBefore(async () => {
     await beforeSessionUpdate.ensure();
@@ -81,7 +84,9 @@ describe('useSessionStorage', () => {
 
     describe('after an secondary session update', () => {
       const previousSession = setupBefore(() =>
-        createSessionFixture('test', {project_name: 'test'})
+        createSessionFixture('test', {
+          project_name: 'test'
+        })
       );
       nextSession.replace(async (factory) => {
         const original = await factory();
@@ -98,10 +103,20 @@ describe('useSessionStorage', () => {
       it('updates that value', async () => {
         expect(reloadedSession.value).toEqual({
           figure_id: null,
+          reference_figure_id: 1,
           inputs: {},
           key: 'abcdef',
           project_name: 'test',
-          workflow_name: 'test'
+          workflow_name: 'test',
+          id: null, // from default figure
+          workflow_snapshot: {
+            class: '',
+            cwlVersion: '',
+            inputs: {},
+            name: '',
+            outputs: {},
+            steps: [[]]
+          }
         });
       });
 
@@ -122,7 +137,17 @@ describe('useSessionStorage', () => {
             inputs: {},
             key: 'abcdef',
             project_name: 'test2',
-            workflow_name: 'test'
+            workflow_name: 'test',
+            reference_figure_id: 1,
+            id: null, // from default figure
+            workflow_snapshot: {
+              class: '',
+              cwlVersion: '',
+              inputs: {},
+              name: '',
+              outputs: {},
+              steps: [[]]
+            }
           });
         });
       });
@@ -139,7 +164,16 @@ describe('useSessionStorage', () => {
           },
           {
             figure_id: 1,
-            inputs: {a: '123', c: 'def'}
+            inputs: {a: '123', c: 'def'},
+            id: 1,
+            workflow_snapshot: {
+              class: 'Workflow',
+              cwlVersion: '1.1',
+              inputs: {},
+              name: '',
+              outputs: {},
+              steps: [[]]
+            }
           }
         )
       );
@@ -147,7 +181,8 @@ describe('useSessionStorage', () => {
         createSessionFixture('test', {
           project_name: 'test3',
           key: 'session-key',
-          inputs: {a: '321', b: 'abdef'}
+          inputs: {a: '321', b: 'abdef'},
+          reference_figure_id: 1
         })
       );
       reloadedSession.replace(async (factory) => {
@@ -172,6 +207,8 @@ describe('useSessionStorage', () => {
       it('stores updated session inputs', () => {
         expect(reloadedSession.value).toEqual({
           figure_id: 1,
+          id: 1,
+          reference_figure_id: 1,
           inputs: {
             a: '321',
             b: 'abdef'
@@ -179,7 +216,15 @@ describe('useSessionStorage', () => {
           key: 'session-key',
           tags: [],
           project_name: 'test3',
-          workflow_name: 'test'
+          workflow_name: 'test',
+          workflow_snapshot: {
+            class: 'Workflow',
+            cwlVersion: '1.1',
+            inputs: {},
+            name: '',
+            outputs: {},
+            steps: [[]]
+          }
         });
       });
     });

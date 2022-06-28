@@ -40,6 +40,7 @@ fi
 Dockerfile=$(readlink -m $1)
 
 baseTag=$(basename "$(dirname "$(realpath $Dockerfile)")")
+monoetnaSha=$(git rev-parse HEAD)
 
 #- The final tag will also include env variables IMAGES_PREFIX and IMAGES_POSTFIX
 tag="${IMAGES_PREFIX}${baseTag}${IMAGES_POSTFIX}"
@@ -100,6 +101,7 @@ function runBuild() {
     --cache-from $tag \
     --cache-from $baseTag \
     --build-arg APP_NAME=$baseTag \
+    --build-arg MONOETNA_SHA=$monoetnaSha \
     .
 }
 
