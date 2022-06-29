@@ -251,8 +251,9 @@ const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute 
     ...diffTemplate && diffTemplate.attributes
   }), [diffTemplate, template.attributes]);
 
-  const acOptions = useMemo(() =>
-    Object.keys(
+  const acOptions = useMemo(() => {
+    const filterParts = filterString.split(/\s/);
+    return Object.keys(
       Object.values(attributes).reduce((acc, n) => {
         Object.entries(ATT_KEYS).forEach(([selector, attr]) => {
           // only really autocomplete type and group
@@ -267,8 +268,8 @@ const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute 
         });
         return acc;
       }, {})
-    ).sort().map(label => ({ label, match: label.split(':')[1] })),
-    [attributes]);
+    ).sort().filter(v => !filterParts.includes(v)).map(label => ({ label, match: label.split(':')[1] }))
+  }, [attributes, filterString]);
 
   const addItem = useCallback((e, {label}) => {
     const parts = filterString.split(/\s/);
