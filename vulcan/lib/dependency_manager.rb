@@ -1,5 +1,9 @@
 class Vulcan
   class DependencyManager
+    def initialize
+      @existing_images = {}
+    end
+
     def dependency_shas
       dependencies.map do |dependency|
         [dependency, image_sha(image_name: dependency)]
@@ -101,9 +105,13 @@ class Vulcan
     end
 
     def image_exists?(image_name)
+      key_check_result = @existing_images[image_name]
+      return key_check_result unless key_check_result.nil?
+
       # Run a docker command to check that the sha or image exists.
       exists = `docker manifest inspect #{image_name} > /dev/null`
-      0 == $?.exitstatus ? true : false
+
+      @existing_images[image_name] = 0 == $?.exitstatus ? true : false
     end
   end
 end
