@@ -272,7 +272,7 @@ const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute 
 
   const addItem = useCallback((e, {label}) => {
     const parts = filterString.split(/\s/);
-    if (label.indexOf(parts[parts.length - 1]) === 0) parts.pop();
+    parts.pop();
     if (parts.indexOf(label) !== -1) setFilterString(filterString);
     else setFilterString([...parts, label].join(' ') + ' '); // leave dangling space to 'suggest' next item.
   }, [filterString]);
