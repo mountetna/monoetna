@@ -1,11 +1,11 @@
 PATH
   remote: .
   specs:
-    etna (0.1.44)
+    etna (0.1.45)
       concurrent-ruby
       curb
       jwt
-      multipart-post
+      multipart-post (~> 2.1.1)
       net-ssh
       nokogiri
       rack
