@@ -7,19 +7,23 @@ describe Vulcan::Figure do
 
   it "returns a list of thumbnails" do
     store(
-      "abee47d3ee8ba11e3fc2706d8d258e9e586465b4",
+      "ec2e62deda37f88ec8bdcab3ee8753fdc2cbd4c4",
       "thumb.png",
       "thumbnail"
     )
     figure = create_figure(title: "Lion of Nemea", workflow_name: "test_workflow.cwl")
-
-    expect(figure.thumbnails(storage: Vulcan::Storage.new)).to eq(["https://vulcan.test/api/labors/data/abee47d3ee8ba11e3fc2706d8d258e9e586465b4/thumb.png"])
+    expect(figure.thumbnails(storage: Vulcan::Storage.new)).to eq(["https://vulcan.test/api/labors/data/ec2e62deda37f88ec8bdcab3ee8753fdc2cbd4c4/thumb.png"])
   end
 
   it "ignores unbuilt thumbnails" do
     figure = create_figure(title: "Lion of Nemea", workflow_name: "test_workflow.cwl")
 
     expect(figure.thumbnails(storage: Vulcan::Storage.new)).to eq([])
+  end
+
+  it "includes reference_figure_id in hash" do
+    figure = create_figure(title: "Lion of Nemea", workflow_name: "test_workflow.cwl")
+    expect(figure.to_hash[:reference_figure_id]).to eq(figure.id)
   end
 end
 
