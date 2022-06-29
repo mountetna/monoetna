@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'rack'
   spec.add_dependency 'jwt'
   spec.add_dependency 'nokogiri'
-  spec.add_dependency 'multipart-post'
+  spec.add_dependency 'multipart-post', '~> 2.1.1'
   spec.add_dependency 'rollbar'
   spec.add_dependency 'concurrent-ruby'
   spec.add_dependency 'curb'
