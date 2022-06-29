@@ -272,9 +272,9 @@ const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute 
 
   const addItem = useCallback((e, {label}) => {
     const parts = filterString.split(/\s/);
-    if (parts.indexOf(label) !== -1) return;
-    if (parts.some(p => p && label.indexOf(p) === 0)) return;
-    setFilterString(filterString + ' ' + label);
+    if (label.indexOf(parts[parts.length - 1]) === 0) parts.pop();
+    if (parts.indexOf(label) !== -1) setFilterString(filterString);
+    else setFilterString([...parts, label].join(' ') + ' '); // leave dangling space to 'suggest' next item.
   }, [filterString]);
 
   return <Grid className={ classes.model_report }>
