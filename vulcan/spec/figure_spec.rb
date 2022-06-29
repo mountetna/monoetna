@@ -20,6 +20,11 @@ describe Vulcan::Figure do
 
     expect(figure.thumbnails(storage: Vulcan::Storage.new)).to eq([])
   end
+
+  it "includes reference_figure_id in hash" do
+    figure = create_figure(title: "Lion of Nemea", workflow_name: "test_workflow.cwl")
+    expect(figure.to_hash[:reference_figure_id]).to eq(figure.id)
+  end
 end
 
 describe FigureController do
