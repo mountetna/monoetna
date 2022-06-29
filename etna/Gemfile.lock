@@ -5,7 +5,7 @@ PATH
       concurrent-ruby
       curb
       jwt
-      multipart-post
+      multipart-post (~> 2.1.1)
       net-ssh
       nokogiri
       rack
