@@ -59,7 +59,7 @@ class EtnaClientBase:
     session: requests.Session
     hostname: str
 
-    def __init__(self, auth: Optional[AuthBase], hostname: str, session: Optional[Type[requests.Session]]):
+    def __init__(self, auth: Optional[AuthBase], hostname: str, session: Optional[Type[requests.Session]] = None):
         self.auth = auth
         self.session = (session or EtnaSession)(auth=auth)
         self.hostname = hostname.replace('https://', '')
