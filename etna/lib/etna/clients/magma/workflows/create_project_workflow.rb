@@ -59,7 +59,7 @@ module Etna
         end
 
         def create_magma_project_record!
-          magma_client.update(Etna::Clients::Magma::UpdateRequest.new(
+          magma_client.update_json(Etna::Clients::Magma::UpdateRequest.new(
             project_name: project_name,
             revisions: {
                 'project' => { project_name => { name: project_name } },

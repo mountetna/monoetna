@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    etna (0.1.44)
+    etna (0.1.45)
       concurrent-ruby
       curb
       jwt
