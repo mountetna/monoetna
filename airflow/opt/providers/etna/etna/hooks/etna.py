@@ -114,7 +114,7 @@ class EtnaHook(BaseHook):
         schema = self.connection.schema or "token"
         if schema == "rsa":
             with prepared_key_from(self.connection, True) as key_file:
-                nonce = Janus(None, self.get_hostname("janus")).nonce()
+                nonce = Janus(None, self.get_hostname("janus"), session=self.get_session()).nonce()
                 return SigAuth(key_file, self.connection.login, nonce)
         elif schema == "token":
             token = self.connection.password or ""
@@ -135,31 +135,34 @@ class EtnaHook(BaseHook):
         # read permission to many buckets.  Unfortunately, read_only does not mean 'can read',
         # it means 'cannot write, but also likely cannot read.'
         # We are forced then to always create read_only=False tokens for now.
-        token = Janus(token_auth, self.get_hostname("janus")).generate_token(
+        token = Janus(token_auth, self.get_hostname("janus"), session=self.get_session()).generate_token(
             project_name, False
         )
         return TokenAuth(token, project_name)
+
+    def get_session(self, auth):
+        return None
 
     @contextlib.contextmanager
     def metis(
         self, project_name: Optional[str] = None, read_only=True
     ) -> typing.ContextManager["Metis"]:
         auth = self.get_task_auth(project_name, read_only)
-        yield Metis(auth, self.get_hostname("metis"))
+        yield Metis(auth, self.get_hostname("metis"), session=self.get_session())
 
     @contextlib.contextmanager
     def janus(
         self, project_name: Optional[str] = None, read_only=True
     ) -> typing.ContextManager["Janus"]:
         auth = self.get_task_auth(project_name, read_only)
-        yield Janus(auth, self.get_hostname("janus"))
+        yield Janus(auth, self.get_hostname("janus"), session=self.get_session())
 
     @contextlib.contextmanager
     def magma(
         self, project_name: Optional[str] = None, read_only=True
     ) -> typing.ContextManager["Magma"]:
         auth = self.get_task_auth(project_name, read_only)
-        yield Magma(auth, self.get_hostname("magma"))
+        yield Magma(auth, self.get_hostname("magma"), session=self.get_session())
 
 
     def generate_task_token(self):

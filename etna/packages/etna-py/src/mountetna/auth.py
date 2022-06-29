@@ -19,11 +19,11 @@ class TokenAuth(AuthBase):
         return r
 
 class SigAuth(AuthBase):
-    nonce: bytes
+    nonce: str
     email: str
     private_key: bytes
 
-    def __init__(self, private_key_file: str, email: str, nonce: bytes):
+    def __init__(self, private_key_file: str, email: str, nonce: str):
         self.private_key = open(private_key_file, "rb").read()
         self.nonce = nonce
         self.email = email
@@ -31,7 +31,7 @@ class SigAuth(AuthBase):
     def __call__(self, r: requests.Request) -> requests.Request:
         key = serialization.load_pem_private_key(self.private_key, None)
         txt_to_sign: bytes = b".".join(
-            [self.nonce, base64.b64encode(self.email.encode("ascii"))]
+            [self.nonce.encode('ascii'), base64.b64encode(self.email.encode("ascii"))]
         )
         sig = base64.b64encode(
             key.sign(

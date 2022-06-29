@@ -2,7 +2,7 @@ import requests
 from requests import Session, HTTPError
 from requests.auth import AuthBase
 from requests.adapters import HTTPAdapter
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Type
 from .auth import TokenAuth
 from urllib3 import Retry
 from urllib.parse import quote
@@ -59,9 +59,9 @@ class EtnaClientBase:
     session: requests.Session
     hostname: str
 
-    def __init__(self, auth: Optional[AuthBase], hostname: str):
+    def __init__(self, auth: Optional[AuthBase], hostname: str, session: Optional[Type[requests.Session]]):
         self.auth = auth
-        self.session = EtnaSession(auth=auth)
+        self.session = (session or EtnaSession)(auth=auth)
         self.hostname = hostname.replace('https://', '')
 
     @property
