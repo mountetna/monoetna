@@ -1,5 +1,5 @@
 import { useDispatch } from 'react-redux';
-import React, { useState, useCallback } from 'react';
+import React, {useState, useCallback, useMemo} from 'react';
 import { sortAttributeList } from '../../utils/attributes';
 import SelectProjectModelDialog from '../select_project_model';
 import {requestAnswer} from 'etna-js/actions/magma_actions';
@@ -10,6 +10,8 @@ import {isEqual} from 'lodash';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
+// Will need to be upgraded when moving to material-ui 5
+import AutoComplete from '@material-ui/lab/Autocomplete';
 import {makeStyles} from '@material-ui/core/styles';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -152,8 +154,7 @@ const ATT_KEYS = {
 };
 
 const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute }) => {
-  if (!template) return null;
-
+  template = template || {};
   const dispatch = useDispatch();
 
   const classes = reportStyles();
@@ -167,6 +168,7 @@ const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute 
 
   const countModel = () => {
     if (modelCount != undefined) return;
+    if (template.attributes == null) return;
 
     updateCounts({type: 'MODEL_COUNT', model_name, count: -1});
 
@@ -176,7 +178,7 @@ const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute 
       let query = [ model_name, [ '::has', attribute_name ], '::count' ];
 
       getAnswer(
-        query, 
+        query,
         count => updateCounts({type: 'ATTRIBUTE_COUNT', model_name, attribute_name, count})
       )
     });
@@ -187,14 +189,16 @@ const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute 
   const filterMatch = new RegExp(`^(?:(${ Object.keys(ATT_KEYS).join('|') }):)?(.*)$`)
 
   const matchesFilter = useCallback(attribute => {
-    if (filterString == '') return true;
+    if (!filterString) return true;
 
     let tokens = filterString.split(/\s/).filter(_=>_).map(
       token => token.match(filterMatch).slice(1)
     );
 
     return tokens.every( ([ column, token ]) => {
-      const tokenMatch = new RegExp(token,'i');
+      const tokenMatch = column === 'group' ?
+        new RegExp(`(^|,)${token}`, 'i') :
+        new RegExp(token,'i');
       const values = (
         column
           ? [ attribute[ATT_KEYS[column]] ]
@@ -205,10 +209,10 @@ const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute 
 
       return values.some( s => s?.match(tokenMatch));
     });
-  }, [ filterString ])
+  }, [filterString, filterMatch]);
 
-  const [order, setOrder] = React.useState('asc');
-  const [orderBy, setOrderBy] = React.useState('type');
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('type');
 
   const sortByOrder = attributes => {
     let srt;
@@ -241,10 +245,37 @@ const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute 
       fetch
     ).then(({models}) => setDiffTemplate(models[model_name].template));
   }
-  const attributes = Object.values({
+
+  const attributes = useMemo(() => Object.values({
     ...template.attributes,
     ...diffTemplate && diffTemplate.attributes
-  })
+  }), [diffTemplate, template.attributes]);
+
+  const acOptions = useMemo(() =>
+    Object.keys(
+      Object.values(attributes).reduce((acc, n) => {
+        Object.entries(ATT_KEYS).forEach(([selector, attr]) => {
+          // only really autocomplete type and group
+          if (selector === 'description' || selector === 'attribute') return;
+          const value = n[attr];
+          if (!value) return;
+          if (selector === 'group') {
+            value.split(',').forEach(group => group ? (acc[`group:${group}`] = 1) : null);
+          } else {
+            acc[`${selector}:${value}`.toLowerCase()] = 1;
+          }
+        });
+        return acc;
+      }, {})
+    ).sort().map(label => ({ label, match: label.split(':')[1] })),
+    [attributes]);
+
+  const addItem = useCallback((e, {label}) => {
+    const parts = filterString.split(/\s/);
+    if (parts.indexOf(label) !== -1) return;
+    if (parts.some(p => p && label.indexOf(p) === 0)) return;
+    setFilterString(filterString + ' ' + label);
+  }, [filterString]);
 
   return <Grid className={ classes.model_report }>
     <MapHeading className={ classes.heading } name='Model' title={model_name}>
@@ -252,7 +283,7 @@ const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute 
         diffTemplate && <Chip label={ `diff: ${diffProject}.${diffModel}` } onDelete={ () => { setDiffTemplate(null); setDiffModel(null); setDiffProject(null); } }/>
       }
       {
-        modelCount != undefined && modelCount >= 0 && <Chip label={ `${modelCount} ${modelCount > 1 || modelCount == 0 ? 'records' : 'record'}` }/>
+        modelCount !== undefined && modelCount >= 0 && <Chip label={ `${modelCount} ${modelCount > 1 || modelCount == 0 ? 'records' : 'record'}` }/>
       }
       <IconButton size='small' onClick={ e => setAnchor(e.target) }>
         <MoreVertIcon/>
@@ -281,22 +312,16 @@ const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute 
       buttonLabel='Compare'
       description='Select a comparison project and model'
     />
-    <TextField
-      fullWidth
-      placeholder='Filter attributes, e.g. "rna type:file"'
-      variant='outlined'
-      size='small'
-      className={classes.filter}
-      value={ filterString }
-      InputProps={{
-        startAdornment: (
-          <InputAdornment position='start'>
-            <SearchIcon />
-          </InputAdornment>
-        )
-      }}
-      onChange={(e) => setFilterString(e.target.value)}
-    />
+    <AutoComplete options={acOptions}
+                  value={null}
+                  inputValue={ filterString }
+                  freeSolo
+                  disableClearable
+                  onChange={addItem}
+                  filterOptions={filterOptions}
+                  onInputChange={(e, v) => setFilterString(v)}
+                  renderInput={renderInput}
+                  getOptionLabel={({label}) => label}/>
     <TableContainer component={Paper} className={classes.table}>
       <Table stickyHeader size="small">
         <TableHead>
@@ -304,7 +329,7 @@ const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute 
             { diffTemplate && <TableCell className={classes.indicator}/> }
             {
               [ 'type', 'attribute', 'group', 'description', 'counts' ].map( key =>
-                (key !== 'counts' || attributeCounts) && 
+                (key !== 'counts' || attributeCounts) &&
                 <TableCell key={key} className={ key in classes ? classes[key] : null } align={ key == 'type' ? 'right' : 'left' }>
                   <TableSortLabel
                     active={orderBy === key}
@@ -340,6 +365,29 @@ const ModelReport = ({ model_name, updateCounts, counts, template, setAttribute 
       </Table>
     </TableContainer>
   </Grid>;
+
+  function renderInput(params) {
+    return <TextField
+      {...params}
+      fullWidth
+      placeholder='Filter attributes, e.g. "rna type:file"'
+      variant='outlined'
+      size='small'
+      className={classes.filter}
+      InputProps={{
+        ...params.InputProps,
+        startAdornment: (
+          <InputAdornment position='start'>
+            <SearchIcon />
+          </InputAdornment>
+        )
+      }}
+    />;
+  }
+}
+
+function filterOptions(options, { inputValue }) {
+  return options.filter(({label, match}) => inputValue.toLowerCase().split(/\s/).some(p => match.indexOf(p) === 0 || label.indexOf(p) === 0));
 }
 
 export default ModelReport;

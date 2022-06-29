@@ -84,13 +84,13 @@ const ModelMap = ({}) => {
   useEffect( () => {
     invoke(requestModels());
     invoke(fetchProjectsAction());
-  }, []);
+  }, [invoke]);
 
   const [ width, height ] = [ 600, 600 ];
 
   const full_name = projectNameFull(projects, CONFIG.project_name) || CONFIG.project_name;
 
-  const classes = mapStyle()
+  const classes = mapStyle();
 
   return <Grid className={classes.model_map} container>
     <Grid item className="map">

@@ -181,6 +181,38 @@ class Magma
     end
   end
 
+  class AddProject < Etna::Command
+    boolean_flags << "--no-metis-bucket"
+
+    def execute(project_name, no_metis_bucket = false)
+      puts "creating project model..."
+      magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
+        project_name: project_name,
+        actions: [Etna::Clients::Magma::AddProjectAction.new(no_metis_bucket: no_metis_bucket)]))
+
+      puts "inserting project record..."
+      magma_client.update_json(Etna::Clients::Magma::UpdateRequest.new(
+        project_name: project_name,
+        revisions: {
+          'project' => { project_name => { name: project_name } },
+        }))
+
+      puts "done!"
+    end
+
+    def magma_client
+      @magma_client ||= Etna::Clients::LocalMagmaClient.new
+    end
+
+    def setup(config)
+      super
+      Magma.instance.load_models
+      Magma.instance.setup_db
+      require_relative './server'
+      Magma.instance.load_db_projects
+    end
+  end
+
   class Unload < Etna::Command
     usage '<project_name> <model_name> # Dump the dataset of the model into a tsv'
 
