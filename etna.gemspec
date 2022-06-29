@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name              = 'etna'
-  spec.version           = '0.1.44'
+  spec.version           = '0.1.45'
   spec.summary           = 'Base classes for Mount Etna applications'
   spec.description       = 'See summary'
   spec.email             = 'Saurabh.Asthana@ucsf.edu'
@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'rack'
   spec.add_dependency 'jwt'
   spec.add_dependency 'nokogiri'
-  spec.add_dependency 'multipart-post'
+  spec.add_dependency 'multipart-post', '~> 2.1.1'
   spec.add_dependency 'rollbar'
   spec.add_dependency 'concurrent-ruby'
   spec.add_dependency 'curb'

@@ -12,7 +12,7 @@ describe Etna::Clients::Magma::CreateProjectWorkflow do
       Timecop.freeze('2000-01-01') do
         VCR.use_cassette('create_project_workflow.e2e') do
           # Change this when re-running a cassette to ensure a new project is being created in your environment
-          test_project = "test_create_project_aai"
+          test_project = "test_create_project_aaj"
 
           # This is an expired development token and is safe to make public, does not leak anything about production or staging values
           # and cannot be used in a sensitive way.
