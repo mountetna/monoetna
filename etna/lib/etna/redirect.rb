@@ -30,7 +30,7 @@ module Etna
     end
 
     def top_domain(host_name)
-      host_name.split('.')[-2..-1].join('.')
+      host_name.split('.')[-2..-1]&.join('.')
     end
   end
 end
