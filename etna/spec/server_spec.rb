@@ -20,6 +20,22 @@ describe Etna::Server do
     Object.send(:remove_const, :WebController)
   end
 
+  it 'should include a noauth OPTIONS / route' do
+    Arachne::Server.route('GET', '/silk') do
+      [ 200, {}, [ 'ok' ] ]
+    end
+
+    expect(Arachne::Server.routes.length).to eq(2)
+
+    @app = setup_app(Arachne::Server, [Etna::DescribeRoutes])
+
+    options '/'
+
+    expect(last_response.status).to eq(200)
+    expect(last_response.body =~ /OPTIONS/).not_to eq(nil)
+  end
+
+
   it 'should allow route definitions with blocks' do
     Arachne::Server.route('GET', '/silk') do
       [ 200, {}, [ 'ok' ] ]
