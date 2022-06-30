@@ -3,7 +3,19 @@ module Etna
   class Server
     class << self
       def route(method, path, options={}, &block)
-        @routes ||= []
+        # For healthchecks, set up servers
+        #   with an OPTIONS route on /, with noauth
+        @routes ||= [
+          Etna::Route.new(
+            'OPTIONS',
+            '/',
+            {
+              auth: {
+                noauth: true
+              }
+            }
+          )
+        ]
 
         @routes << Etna::Route.new(
           method,

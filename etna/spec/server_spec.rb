@@ -20,6 +20,22 @@ describe Etna::Server do
     Object.send(:remove_const, :WebController)
   end
 
+  it 'should include a noauth OPTIONS / route' do
+    Arachne::Server.route('GET', '/silk') do
+      [ 200, {}, [ 'ok' ] ]
+    end
+
+    expect(Arachne::Server.routes.length).to eq(2)
+
+    @app = setup_app(Arachne::Server, [Etna::DescribeRoutes])
+
+    options '/'
+
+    expect(last_response.status).to eq(200)
+    expect(last_response.body).to match(/OPTIONS/)
+  end
+
+
   it 'should allow route definitions with blocks' do
     Arachne::Server.route('GET', '/silk') do
       [ 200, {}, [ 'ok' ] ]
@@ -151,13 +167,13 @@ describe Etna::Server do
   it 'sets route names' do
     Arachne::Server.get('/silk/:name', as: :silk_road)
 
-    expect(Arachne::Server.routes.first.name).to eq(:silk_road)
+    expect(Arachne::Server.routes.last.name).to eq(:silk_road)
   end
 
   it 'guesses route names' do
     Arachne::Server.get('/web/:silk', action: 'web#silk')
 
-    expect(Arachne::Server.routes.first.name).to eq(:web_silk)
+    expect(Arachne::Server.routes.last.name).to eq(:web_silk)
   end
 
   it 'looks up route names' do
