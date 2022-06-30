@@ -167,13 +167,13 @@ describe Etna::Server do
   it 'sets route names' do
     Arachne::Server.get('/silk/:name', as: :silk_road)
 
-    expect(Arachne::Server.routes.first.name).to eq(:silk_road)
+    expect(Arachne::Server.routes.last.name).to eq(:silk_road)
   end
 
   it 'guesses route names' do
     Arachne::Server.get('/web/:silk', action: 'web#silk')
 
-    expect(Arachne::Server.routes.first.name).to eq(:web_silk)
+    expect(Arachne::Server.routes.last.name).to eq(:web_silk)
   end
 
   it 'looks up route names' do
