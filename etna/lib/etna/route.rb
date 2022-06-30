@@ -38,11 +38,11 @@ module Etna
 
     UNSAFE=/[^\-_.!~*'()a-zA-Z\d;\/?:@&=+$,]/
 
-    def self.path(route, params=nil)
+    def self.path(route, params=nil, &block)
       if params
         PARAM_TYPES.reduce(route) do |path,pat|
           path.gsub(pat) do
-            params[$1.to_sym].split('/').map { |c| URI.encode_www_form_component(c) }.join('/')
+            params[$1.to_sym].split('/').map { |c| block_given? ? yield(c) : URI.encode_www_form_component(c) }.join('/')
           end
         end
       else
@@ -50,8 +50,8 @@ module Etna
       end
     end
 
-    def path(params=nil)
-      self.class.path(@route, params)
+    def path(params=nil, &block)
+      self.class.path(@route, params, &block)
     end
 
     def parts
