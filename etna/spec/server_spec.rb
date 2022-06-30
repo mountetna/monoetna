@@ -166,9 +166,9 @@ describe Etna::Server do
     end
     @app = setup_app(Arachne::Server)
 
-    get('/silk/tree')
+    get('/silk/The+skill+at+weaving+was+itself+a+web')
     expect(last_response.status).to eq(200)
-    expect(last_response.body).to eq('http://example.org/silk/tree')
+    expect(last_response.body).to eq('http://example.org/silk/The+skill+at+weaving+was+itself+a+web')
   end
 
   it "applies an auth check" do
