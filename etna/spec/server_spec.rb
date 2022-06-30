@@ -32,7 +32,7 @@ describe Etna::Server do
     options '/'
 
     expect(last_response.status).to eq(200)
-    expect(last_response.body =~ /OPTIONS/).not_to eq(nil)
+    expect(last_response.body).to match(/OPTIONS/)
   end
 
 
