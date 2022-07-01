@@ -58,6 +58,7 @@ class Polyphemus
             "--exclude=test",
             "--exclude=Reports",
             "--exclude=Stats",
+            "--exclude=test_DM",
             "--rsh=\"/usr/bin/sshpass -p #{@password} ssh -l #{@username}\""]
         )
 
