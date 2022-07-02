@@ -148,7 +148,7 @@ def test_metis_files_etl_e2e(reset_db, token_etna_connection: Connection):
 
 @pytest.mark.vcr
 @mock.patch("tempfile._Random", NotSoRandom)
-def test_docker_callable_with_task_token(reset_db, token_etna_connection: Connection):
+def xtest_docker_callable_with_task_token(reset_db, token_etna_connection: Connection):
     hook = EtnaHook(token_etna_connection.conn_id)
 
     @metis_etl("mvir1", "data", 1, hook=hook)
