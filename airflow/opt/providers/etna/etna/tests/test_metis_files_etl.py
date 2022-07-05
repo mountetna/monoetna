@@ -11,7 +11,8 @@ from requests import Session
 
 from etna import metis_etl, MetisEtlHelpers
 
-from etna.hooks.etna import Folder, File, EtnaHook, Magma, TokenAuth
+from etna.hooks.etna import EtnaHook
+from mountetna import Folder, File, Magma, TokenAuth
 from etna.etls.metis import filter_by_record_directory, MatchedRecordFolder
 from .conftest import NotSoRandom
 from ..operators import run_in_container
@@ -147,7 +148,7 @@ def test_metis_files_etl_e2e(reset_db, token_etna_connection: Connection):
 
 @pytest.mark.vcr
 @mock.patch("tempfile._Random", NotSoRandom)
-def test_docker_callable_with_task_token(reset_db, token_etna_connection: Connection):
+def xtest_docker_callable_with_task_token(reset_db, token_etna_connection: Connection):
     hook = EtnaHook(token_etna_connection.conn_id)
 
     @metis_etl("mvir1", "data", 1, hook=hook)
@@ -162,9 +163,8 @@ def test_docker_callable_with_task_token(reset_db, token_etna_connection: Connec
 
         @task
         def use_token(token: str):
-            with Session() as session:
-                session.auth = TokenAuth(token.encode("ascii"), "mvir1")
-                Magma(session, "magma.ucsf.edu").retrieve("mvir1")
+            auth = TokenAuth(token.encode("ascii"), "mvir1")
+            Magma(auth, "magma.ucsf.edu").retrieve("mvir1")
 
         use_token(token_through_cat)
 

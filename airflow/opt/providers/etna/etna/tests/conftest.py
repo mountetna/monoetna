@@ -39,6 +39,7 @@ from vcr.patch import CassettePatcherBuilder
 from vcr.stubs import VCRFakeSocket
 
 from etna.hooks.etna import EtnaHook
+from mountetna import EtnaSession
 
 
 class NotSoRandom(Random):
@@ -97,25 +98,24 @@ def vcr_config():
     # support keep alive correctly, meaning that tests that happen to last longer than the
     # keep alive configured for a server will fail with this error.
     class ForceNeverReuseConnectionSession(Session):
-        def __init__(self, create_session, auth):
-            self.create_session = create_session
-            super(ForceNeverReuseConnectionSession, self).__init__()
+        def __init__(self, auth):
+            super().__init__()
             self.auth = auth
 
         def __call__(self):
             return self
 
         def request(self, *args, **kwds):
-            with self.create_session() as session:
-                return session.request(*args, **kwds)
+            session = Session()
+            session.auth = self.auth
+            return session.request(*args, **kwds)
 
-    get_client = EtnaHook.get_client
+    get_session = EtnaHook.get_session
 
-    @contextlib.contextmanager
-    def _get_client(self, auth):
-        yield ForceNeverReuseConnectionSession(lambda: get_client(self, auth), auth)
+    def _get_session(self):
+        return ForceNeverReuseConnectionSession
 
-    EtnaHook.get_client = _get_client
+    EtnaHook.get_session = _get_session
 
     # Authorization in any vcr is safely masked
     return {
