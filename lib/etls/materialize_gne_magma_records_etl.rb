@@ -29,7 +29,12 @@ class Polyphemus::MaterializeGneMagmaRecordsEtl < Polyphemus::MagmaRecordEtl
   end
 
   MATERIALIZE_ATTRIBUTES = {
-      'patient' => [
+    'dna_seq' => [
+      'alignment_cram',
+      'tube_name',
+      'raw_fastq_files',
+    ],
+    'patient' => [
           'created_at',
           'updated_at',
           'name',
@@ -130,6 +135,7 @@ class Polyphemus::MaterializeGneMagmaRecordsEtl < Polyphemus::MagmaRecordEtl
           'name',
           'sc_rna_seq',
           'rna_seq',
+          'dna_seq',
           'clinical_lab',
           'day',
           'study_day',
