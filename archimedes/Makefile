@@ -11,3 +11,4 @@ run-image-test:: compose-ready
 # Ensures that the etnaagent/archimedes-node image is ready
 compose-ready::
 	@ IMAGES_PREFIX=etnaagent/ IMAGES_POSTFIX=:latest make -C ../archimedes-node release-build
+	@ IMAGES_PREFIX=etnaagent/ IMAGES_POSTFIX=:latest make -C ../archimedes-r release-build
