@@ -1,6 +1,7 @@
 FROM known_hosts
 FROM bash_mocker
 FROM airflow-code-editor
+FROM etna-py AS etna-py
 
 FROM apache/airflow:2.2.4-python3.8
 
@@ -20,9 +21,6 @@ RUN groupadd --gid 999 docker \
 
 USER airflow
 
-COPY --chown=airflow:0 --from=2 /airflow-code-editor /airflow-code-editor
-RUN ls -la /airflow-code-editor
-
 COPY --chown=airflow:0 --from=0 /known_hosts /opt/airflow/.ssh/known_hosts
 RUN chmod 0700 /opt/airflow/.ssh
 COPY --chown=airflow:0 ./opt/requirements.txt /opt/airflow/
@@ -32,6 +30,12 @@ COPY --chown=airflow:0 ./opt/ /opt/airflow/
 COPY --from=1 /mocker /usr/lib/mocker
 RUN pip uninstall -y apache-airflow-providers-google apache-airflow-providers-grpc apache-airflow-providers-hashicorp apache-airflow-providers-microsoft-azure apache-airflow-providers-sendgrid apache-airflow-providers-elasticsearch apache-airflow-providers-cncf-kubernetes apache-airflow-providers-celery
 RUN pip install /opt/airflow/providers/etna
+
+COPY --chown=airflow:0 --from=2 /airflow-code-editor /airflow-code-editor
+RUN ls -la /airflow-code-editor
 RUN pip install /airflow-code-editor
+
+COPY --chown=airflow:0 --from=etna-py /etna-py /etna-py
+RUN pip install /etna-py
 
 ENTRYPOINT ["/opt/airflow/entrypoint-with-secret-files.sh"]
