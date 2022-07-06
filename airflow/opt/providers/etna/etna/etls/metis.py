@@ -22,15 +22,15 @@ from serde.json import from_json
 
 from etna.dags.project_name import get_project_name
 from etna.etls.etl_task_batching import get_batch_range
-from etna.hooks.etna import (
+from etna.hooks.etna import EtnaHook
+from mountetna import (
     File,
     Folder,
     UpdateRequest,
-    EtnaHook,
     Magma,
     Metis,
     Model,
-    Template, RetrievalResponse,
+    Template
 )
 from etna.operators import DockerOperatorBase
 from etna.utils.inject import inject

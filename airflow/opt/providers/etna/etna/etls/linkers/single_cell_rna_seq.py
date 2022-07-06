@@ -13,7 +13,7 @@ import re
 from airflow.exceptions import AirflowException
 from airflow.models.xcom_arg import XComArg
 from airflow.utils.task_group import TaskGroup
-from etna.hooks.etna import UpdateRequest
+from mountetna import UpdateRequest
 
 from etna.etls.metis import MatchedRecordFolder
 

@@ -22,12 +22,12 @@ jobs:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
       - name: Setup Python
-        id: magby_setup_py
+        id: etna-py-setup
         uses: actions/setup-python@v2
         with:
-          python-version: 3.6
-      - name: Run Magby tests
-        id: magby_first_test_run
+          python-version: 3.8
+      - name: Run etna-py tests
+        id: etna_py_test
         env:
           IMAGES_PREFIX: etnaagent/
           IS_CI: 1
@@ -35,19 +35,7 @@ jobs:
           IMAGES_POSTFIX: :master
         run: |
           python -m pip install --upgrade pip
-          pip install etna/packages/magby/
-          python etna/packages/magby/tests/test_Magby.py
-          python etna/packages/magby/tests/test_Magma.py
-      - name: Run geoline tests
-        id: geoline_first_test_run
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IS_CI: 1
-          CI_SECRET: ${{ secrets.CI_SECRET }}
-          IMAGES_POSTFIX: :master
-        run: |
-          python -m pip install --upgrade pip
-          pip install geoline/
-          python -m unittest geoline/tests/test_Geoline.py
-          python -m unittest geoline/tests/test_geo_utils.py
-          python -m unittest geoline/tests/test_TemplateTree.py
+          cd etna/packages/etna-py
+          pip install . poetry pytest
+          poetry install
+          poetry run pytest

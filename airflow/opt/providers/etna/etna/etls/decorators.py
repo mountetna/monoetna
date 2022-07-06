@@ -19,7 +19,8 @@ from etna.etls.metis import (
     load_metis_files_batch,
     MetisEtlHelpers,
 )
-from etna.hooks.etna import EtnaHook, Folder, File
+from etna.hooks.etna import EtnaHook
+from mountetna import Folder, File
 from etna.utils.inject import inject
 from etna.xcom.etna_xcom import pickled
 from etna.etls.box import (

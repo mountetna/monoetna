@@ -35,7 +35,7 @@ def __getattr__(name):
         get_git_hook,
         get_project_slack_hook,
     )
-    from .hooks.etna import UpdateRequest
+    from mountetna import UpdateRequest
     from .operators.rollup_xcom_operator import rollup
 
     __all__ = list(k for k in locals().keys() if k != "name") + [
@@ -74,5 +74,5 @@ if globals().get("notathing", False):
         get_git_hook,
         get_project_slack_hook,
     )
-    from .hooks.etna import UpdateRequest
+    from mountetna import UpdateRequest
     from .operators.rollup_xcom_operator import rollup
