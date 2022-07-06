@@ -203,8 +203,10 @@ class DockerIsolator(Isolator[Container]):
             exec_dir = exec_script_path.replace(request.target_file, "")
             return ["/bin/bash", "-c", f"cd {exec_dir}; cp /app/package.json package.json; npm install; node {exec_script_path}"]
         elif request.run_with("r"):
+            print(f"Trying: Rscript {exec_script_path}", file=sys.stderr)
             exec_dir = exec_script_path.replace(request.target_file, "")
-            return f"cd {exec_dir}; Rscript {exec_script_path}"
+            print(os.listdir(exec_dir), file=sys.stderr)
+            return f"Rscript {exec_script_path}"
         else:
             return f"poetry run python {exec_script_path}"
 
