@@ -102,7 +102,7 @@ export interface Workflow {
   steps: [WorkflowStep[]];
   vignette?: string;
   image?: string;
-  projects?: string[];
+  projects?: string[] | null;
   authors?: string[];
   displayName?: string;
   description?: string;

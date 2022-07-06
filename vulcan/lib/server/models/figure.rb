@@ -35,7 +35,7 @@ class Vulcan
         if !previous_snapshot.nil?
           Vulcan::WorkflowSnapshot.from_snapshot(
             previous_snapshot: previous_snapshot,
-            figure_id: self.id
+            figure_id: self.id,
           )
         else
           take_snapshot
@@ -124,7 +124,7 @@ class Vulcan
         comment: comment,
         id: id,
         workflow_snapshot: workflow_snapshot&.as_steps_json_w_metadata,
-        dependencies: dependencies
+        dependencies: dependencies,
       }
     end
 
@@ -144,6 +144,7 @@ class Vulcan
         updated_at: updated_at.iso8601,
         dependencies: dependencies,
         workflow_snapshot: workflow_snapshot&.as_steps_json_w_metadata,
+        reference_figure_id: id
       }
     end
 
