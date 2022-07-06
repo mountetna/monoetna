@@ -1,0 +1,12 @@
+{
+  "name": "archimedes-r",
+  "version": "1.0.0",
+  "description": "Container to run R scripts in Archimedes",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mountetna/monoetna.git",
+    "directory": "archimedes-r"
+  },
+  "author": "UCSF DSCoLab",
+  "license": "GPL-2.0-only"
+}
