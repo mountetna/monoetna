@@ -27,7 +27,7 @@ def input_json(name, inputs_env=_os.environ, inputs_dir=None):
 
 def input_bool(name, inputs_env=_os.environ, inputs_dir=None):
     def str2bool(str):
-        return str.lower() in ("yes", "true", "t", "1")
+        return str.lower() in ("yes", "y", "true", "t", "1")
     return  str2bool(input_var(name, inputs_env, inputs_dir))
 
 def output_path(name, outputs_env=_os.environ, outputs_dir=None):

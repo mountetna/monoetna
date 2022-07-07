@@ -5,12 +5,15 @@ inputs:
   1_Data_Input__string:
     type: string
     label: "String"
+    default: "hello"
   1_Data_Input__number:
     type: float
     label: "Number"
+    default: 2.6
   1_Data_Input__integer:
     type: int
     label: "Integer"
+    default: 2
   1_Data_Input__boolean:
     type: boolean
     label: "Boolean"
@@ -34,16 +37,16 @@ steps:
   download_string:
     run: ui-outputs/link.cwl
     in:
-      a: filter_DGE/filtered_diffexp.csv
+      a: get_data/str
     out: []
     label: 'Download String output'
   download_number:
     run: ui-outputs/link.cwl
     in:
-      a: get_data/str
+      a: get_data/num
     out: []
     label: 'Download Number output'
-  download_boolean:
+  download_integer:
     run: ui-outputs/link.cwl
     in:
       a: get_data/int

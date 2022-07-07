@@ -2,8 +2,8 @@ library(dataflow)
 
 str <- input_str('string')
 num <- input_num('number')
-int <- input_str('integer')
-bool <- input_str('boolean')
+int <- input_int('integer')
+bool <- input_bool('boolean')
 
 output_var(str, 'str')
 output_var(num, 'num')
