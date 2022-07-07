@@ -1,5 +1,8 @@
 Package: app
 Imports:
-    dataflow
+    dataflow,
+    Seurat,
+    SeuratDisk
 Remotes:
-    local::archimedes-r/functions/dataflow
+    local::archimedes-r/functions/dataflow,
+    mojaveazure/seurat-disk

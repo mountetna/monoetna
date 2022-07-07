@@ -5,9 +5,9 @@ set -x
 
 shopt -s globstar
 
-# if [ -n "$FULL_BUILD" ]; then
-#   R -e 'install.packages("jetpack")'
-# fi
+if [ -n "$FULL_BUILD" ]; then
+  jetpack install
+fi
 
 if [ -e /app/build ]; then
   for hook in /app/build/*; do

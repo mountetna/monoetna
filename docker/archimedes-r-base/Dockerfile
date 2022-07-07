@@ -1,7 +1,7 @@
 FROM development-certs
 FROM etna-base
 
-FROM r-base:4.2.1
+FROM satijalab/seurat:4.1.0
 WORKDIR /app
 
 ENV DOCKER_VERSION 19.03.12
@@ -27,6 +27,11 @@ RUN apt-get update \
       bash-completion \
       git \
       build-essential \
+      libgeos-dev \
+      libmagick++-dev \
+      libcairo2-dev \
+      libfontconfig1-dev \
+      libhdf5-dev \
       --no-install-recommends
 
 # add postgres 10 repo for debian stretch
