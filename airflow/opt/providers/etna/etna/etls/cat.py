@@ -75,6 +75,10 @@ class CatEtlHelpers(RemoteHelpersBase):
             with c4_hook.c4() as c4, self.hook.cat() as cat:
                 self.log.info(f"Attempting to upload {len(files)} files to C4")
                 for file in files[0:2]:
+                    if cat.file_ingested_to_system("c4", file):
+                        self.log.info(f"Skipping {file.name} because it has already been ingested.")
+                        continue
+
                     with cat.retrieve_file(file) as file_handle:
                         dest_path = os.path.join(folder_path, file.folder_path.replace(f"{cat._root_path()}/", ""))
                         self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, file.name)}.")
@@ -85,9 +89,9 @@ class CatEtlHelpers(RemoteHelpersBase):
                             file_handle,
                             file.size
                         )
-                    cat.mark_file_as_ingested(file)
+                    cat.mark_file_as_ingested("c4", file)
                     self.log.info(f"Done ingesting {file.full_path}.")
-                cat.update_cursor()
+                cat.update_cursor("c4")
 
         return ingest(files, folder_path)
 
@@ -112,7 +116,11 @@ class CatEtlHelpers(RemoteHelpersBase):
             etna_hook = EtnaHook.for_project(project_name)
             with etna_hook.metis(project_name, read_only=False) as metis, self.hook.cat() as cat:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
-                for file in files:
+                for file in files[0:2]:
+                    if cat.file_ingested_to_system("metis", file):
+                        self.log.info(f"Skipping {file.name} because it has already been ingested.")
+                        continue
+
                     with cat.retrieve_file(file) as file_handle:
                         dest_path = os.path.join(folder_path, file.folder_path.replace(f"{cat._root_path()}/", ""))
                         self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, file.name)}.")
@@ -129,9 +137,9 @@ class CatEtlHelpers(RemoteHelpersBase):
                             file=file,
                             metis=metis
                         )
-                    cat.mark_file_as_ingested(file)
+                    cat.mark_file_as_ingested("metis", file)
                     self.log.info(f"Done ingesting {file.full_path}.")
-                cat.update_cursor()
+                cat.update_cursor("metis")
 
         return ingest(files, project_name, bucket_name, folder_path)
 

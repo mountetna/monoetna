@@ -121,10 +121,6 @@ class SftpEntry(RemoteFileBase):
         return self.attrs.st_mtime
 
     @property
-    def atime(self) -> datetime:
-        return self.attrs.st_atime
-
-    @property
     def full_path(self) -> str:
         return os.path.join(self.folder_path, self.attrs.filename)
 
@@ -144,7 +140,10 @@ class SftpEntry(RemoteFileBase):
 
     @property
     def hash(self):
-        return f"{self.size}-{self.mtime}-{self.atime}"
+        # Do NOT use self.atime here, it will update
+        #       every time the file is accessed,
+        #       which means files always appear newer.
+        return f"{self.size}-{self.mtime}"
 
 
 class Cat(SSHBase):
@@ -152,7 +151,10 @@ class Cat(SSHBase):
 
     def __init__(self, hook: CatHook):
         self.hook = hook
-        self.cursor = Variable.get(self.variable_key, default_var={}, deserialize_json=True)
+        self.cursors = {
+            "c4": Variable.get(self.variable_key("c4"), default_var={}, deserialize_json=True),
+            "metis": Variable.get(self.variable_key("metis"), default_var={}, deserialize_json=True)
+        }
 
     def tail(
             self,
@@ -197,7 +199,9 @@ class Cat(SSHBase):
             elif sftp_entry.is_dir():
                 print(f"{sftp_entry.name} is a directory, going into it")
                 files += self._ls_r(sftp, magic_string, ignore_directories, os.path.join(path, sftp_entry.name))
-            elif magic_string.match(sftp_entry.name) and (sftp_entry.full_path not in self.cursor or self.cursor[sftp_entry.full_path] != sftp_entry.hash):
+            elif (magic_string.match(sftp_entry.name) and
+                 (not self.file_ingested_to_system("c4", sftp_entry) or
+                  not self.file_ingested_to_system("metis", sftp_entry))):
                 # Re-upload file if the hash has changed (size-modified time-created time).
                 print(f"appending {sftp_entry.name} to list of files!")
                 files.append(sftp_entry)
@@ -232,14 +236,39 @@ class Cat(SSHBase):
 
             file_obj.close()
 
-    def mark_file_as_ingested(self, file: SftpEntry):
+    def mark_file_as_ingested(self, ingested_to: str, file: SftpEntry):
         """
         In the cursor, save the fact that the given file's upload was completed.
         """
-        self.cursor[file.full_path] = file.hash
+        if ingested_to not in self.cursors:
+            self.cursors[ingested_to] = {}
 
-    def update_cursor(self):
+        self.cursors[ingested_to][file.full_path] = file.hash
+
+    def file_ingested_to_system(self, ingested_to: str, file: SftpEntry) -> bool:
+        """
+        Returns if the file exists in the system's specific cursor.
+        """
+        if ingested_to not in self.cursors:
+            return False
+        print(ingested_to)
+        print(self.cursors)
+        print(file.hash)
+        return file.full_path in self.cursors[ingested_to] and self.cursors[ingested_to][file.full_path] == file.hash
+
+    def update_cursor(self, postfix: str):
         """
         Save the cursor to the database.
         """
-        Variable.set(self.variable_key, self.cursor, serialize_json=True)
+        Variable.set(self.variable_key(postfix), self.cursors[postfix], serialize_json=True)
+
+    def variable_key(self, postfix: str):
+        """
+        Return the variable key for the current dag.
+        """
+        try:
+            context = get_current_context()
+
+            return f"{self.variable_root}-{postfix}-{context['dag'].dag_id}"
+        except AirflowException:
+            return f"{self.variable_root}-{postfix}"

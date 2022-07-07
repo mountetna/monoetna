@@ -94,21 +94,3 @@ class SSHBase(object):
         return key_class[self._key_type()](
             data=base64.b64decode(self._key_components()[1])
         )
-
-    def update_cursor(self):
-        """
-        Save the cursor to the database.
-        """
-        Variable.set(self.variable_key, self.cursor, serialize_json=True)
-
-    @property
-    def variable_key(self):
-        """
-        Return the variable key for the current dag.
-        """
-        try:
-            context = get_current_context()
-
-            return f"{self.variable_root}-{context['dag'].dag_id}"
-        except AirflowException:
-            return self.variable_root

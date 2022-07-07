@@ -100,12 +100,10 @@ log = logging.getLogger("airflow.task")
 
 
 class C4(SSHBase):
-    variable_root = "c4_ingest_cursor"
     chunk_size: int = 4194304
 
     def __init__(self, hook: C4Hook):
         self.hook = hook
-        self.cursor = Variable.get(self.variable_key, default_var={}, deserialize_json=True)
 
     def upload_file(
         self,

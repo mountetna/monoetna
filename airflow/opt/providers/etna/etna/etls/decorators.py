@@ -138,6 +138,7 @@ def box_etl(
     scoped to the given folder in Box. The folder must be shared with the Etna service agent account.
 
     1.  tail_files -- an XComArg object that will resolve into a list of File objects inside tasks.
+    2.  helpers -- a BoxEtlHelpers object that contains useful functions for common etl processing.
     """
     if not Box.valid_folder_name(folder_name):
         raise ValueError(f"Invalid folder name: {folder_name}. Only alphanumeric characters, -, and spaces are allowed.")
@@ -196,6 +197,7 @@ def cat_etl(
     including the `magic_string` in CAT.
 
     1.  tail_files -- an XComArg object that will resolve into a list of File objects inside tasks.
+    2.  helpers -- a CatEtlHelpers object that contains useful functions for common etl processing.
     """
     if hook is None:
         hook = CatHook.for_project(project_name)
