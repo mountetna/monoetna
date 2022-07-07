@@ -140,7 +140,7 @@ class EtnaHook(BaseHook):
         )
         return TokenAuth(token, project_name)
 
-    def get_session(self, auth):
+    def get_session(self):
         return None
 
     @contextlib.contextmanager
