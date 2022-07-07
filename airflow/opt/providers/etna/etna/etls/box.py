@@ -94,7 +94,7 @@ class BoxEtlHelpers(RemoteHelpersBase):
                                 hostname=self.hook.connection.host,
                                 flatten=flatten,
                                 split_folder_name=split_folder_name,
-                                source_hook=box,
+                                root_folder=self.box_folder,
                                 project_name=project_name,
                                 bucket_name=bucket_name,
                                 file=file,

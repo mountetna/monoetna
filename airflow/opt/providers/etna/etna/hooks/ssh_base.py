@@ -95,6 +95,12 @@ class SSHBase(object):
             data=base64.b64decode(self._key_components()[1])
         )
 
+    def update_cursor(self):
+        """
+        Save the cursor to the database.
+        """
+        Variable.set(self.variable_key, self.cursor, serialize_json=True)
+
     @property
     def variable_key(self):
         """

@@ -88,8 +88,8 @@ class RemoteHelpersBase:
         folder_path: str,
         hostname: str,
         flatten: bool,
-        split_folder_name: bool,
-        source_hook: SSHBase,
+        split_folder_name: str,
+        root_folder: str,
         project_name: str,
         bucket_name: str,
         file: RemoteFileBase,
@@ -107,7 +107,7 @@ class RemoteHelpersBase:
             parts.append(rel_path.split(f"/{split_folder_name}/")[-1])
         else:
             rel_path = file.rel_path
-            parts.append(rel_path.split(f"/{self.box_folder}/")[-1])
+            parts.append(rel_path.split(f"{root_folder}/")[-1])
 
         dest_path = os.path.join(*parts)
 
