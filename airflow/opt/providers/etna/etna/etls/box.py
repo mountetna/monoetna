@@ -88,40 +88,18 @@ class BoxEtlHelpers(RemoteHelpersBase):
                         sock = box.retrieve_file(ftps, file)
 
                         with sock.makefile(mode='rb') as connection:
-                            parts = []
-                            if folder_path is None:
-                                parts.append(self.hook.connection.host)
-                            else:
-                                parts.append(folder_path)
-
-                            if flatten:
-                                parts.append(file.name)
-                            elif split_folder_name is not None:
-                                rel_path = file.rel_path
-                                parts.append(rel_path.split(f"/{split_folder_name}/")[-1])
-                            else:
-                                rel_path = file.rel_path
-                                parts.append(rel_path.split(f"/{self.box_folder}/")[-1])
-
-                            dest_path = os.path.join(*parts)
-
-                            self.log.info(f"Uploading {file.full_path} to {dest_path}.")
-
-                            should_log = True
-                            for blob in metis.upload_file(
-                                project_name,
-                                bucket_name,
-                                dest_path,
-                                connection,
-                                file.size
-                            ):
-                                # Only log every 5 seconds, to save log space...
-                                time_check = int(time.time())
-                                if time_check % 5 == 0 and should_log:
-                                    self.log.info("Uploading blob...")
-                                    should_log = False
-                                elif time_check % 5 != 0 and not should_log:
-                                    should_log = True
+                            self.handle_metis_ingest(
+                                file_handle=connection,
+                                folder_path=folder_path,
+                                hostname=self.hook.connection.host,
+                                flatten=flatten,
+                                split_folder_name=split_folder_name,
+                                source_hook=box,
+                                project_name=project_name,
+                                bucket_name=bucket_name,
+                                file=file,
+                                metis=metis
+                            )
 
                             if clean_up:
                                 box.remove_file(ftps, file)

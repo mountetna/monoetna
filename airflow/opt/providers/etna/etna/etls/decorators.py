@@ -186,6 +186,7 @@ def cat_etl(
     project_name: str = "administration",
     inject_params: Mapping[str, str] = {},
     magic_string: re.Pattern = re.compile(".*DSCOLAB.*"),
+    ignore_directories: List[str] = ['Stats', 'test', 'Reports', 'test_DM', 'ec-test']
 ):
     """
     A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.
@@ -207,7 +208,7 @@ def cat_etl(
             @task
             def tail_files() -> List[File]:
                 with hook.cat() as cat:
-                    return pickled(load_cat_files_batch(cat, magic_string))
+                    return pickled(load_cat_files_batch(cat, magic_string, ignore_directories))
 
             files = tail_files()
 

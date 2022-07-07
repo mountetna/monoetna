@@ -26,5 +26,9 @@ def get_provider_info():
                 "connection-type": "cat",
                 "hook-class-name": "etna.hooks.cat.CatHook",
             },
+            {
+                "connection-type": "c4",
+                "hook-class-name": "etna.hooks.c4.C4Hook",
+            },
         ],
     }

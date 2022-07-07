@@ -1,6 +1,7 @@
 import base64
 import contextlib
 from datetime import datetime, timezone
+import io
 import json
 import logging
 import os
@@ -14,18 +15,17 @@ from typing import List, Dict, Optional, ContextManager, Tuple, BinaryIO
 import cached_property
 
 from airflow.exceptions import AirflowException
-from airflow.hooks.base import BaseHook
-from airflow.hooks.subprocess import SubprocessHook
 from airflow.models import Connection, Variable
 from airflow.operators.python import get_current_context
 from airflow.providers.ssh.hooks.ssh import SSHHook
 from etna.dags.project_name import get_project_name
 from etna.hooks.hook_helpers import RemoteFileBase
+from etna.hooks.ssh_base import SSHBase
 
 
 class CatHook(SSHHook):
     """
-    Cat Client Hook to manage the connection
+    CAT Client Hook to manage the connection
     """
 
     conn_name_attr = "cat_conn_id"
@@ -43,12 +43,11 @@ class CatHook(SSHHook):
     @staticmethod
     def get_ui_field_behaviour() -> Dict:
         return {
-            "hidden_fields": ["port"],
+            "hidden_fields": ["port", "schema"],
             "relabeling": {},
             "placeholders": {
                 "host": "fastq.ucsf.edu",
-                "schema": "ssh",
-                "extra": "{\n  \"root_path\": \"/volume1/SSD\",\n  \"host_key\": \"<ssh-key>\",\n  \"key_type\": \"<ssh-rsa, ssh-dss, etc.\"\n}"
+                "extra": "{\n  \"root_path\": \"SSD\",\n  \"host_key\": \"ssh-<key type> <ssh-key>\"\n}"
             },
         }
 
@@ -148,9 +147,8 @@ class SftpEntry(RemoteFileBase):
         return f"{self.size}-{self.mtime}-{self.atime}"
 
 
-class Cat(object):
+class Cat(SSHBase):
     variable_root = "cat_ingest_cursor"
-    ssh_hostfile = "~/.ssh/known_hosts"
 
     def __init__(self, hook: CatHook):
         self.hook = hook
@@ -158,6 +156,7 @@ class Cat(object):
 
     def tail(
             self,
+            ignore_directories: List[str],
             magic_string: re.Pattern = re.compile(r".*DSCOLAB.*"),
      ) -> List[SftpEntry]:
         """
@@ -167,95 +166,48 @@ class Cat(object):
 
         params:
           magic_string: regex, the "oligo" we use to identify our projects' files. Default of ".*DSCOLAB.*
+          ignore_directories: List[str], list of directories to not scan
         """
-        self._ensure_ssh_known_hosts()
-
         all_files = []
 
         with self.sftp() as sftp:
-            all_files = self._ls_r(sftp)
+            all_files = self._ls_r(sftp, magic_string, ignore_directories)
 
-        return [f for f in all_files if magic_string.match(f.full_path)]
+        return all_files
 
-    @contextlib.contextmanager
-    def sftp(self) -> SFTPClient:
-        """
-        Configures an SFTP connection to Box. Using Python `with` syntax, so that the
-        connection is closed after usage.
-
-        eg:
-        ```
-        with cat.sftp() as sftp:
-            sftp.get("/directory")
-        ```
-        """
-        ssh = paramiko.SSHClient()
-
-        keys = ssh.get_host_keys()
-        keys.add(
-            self.hook.connection.host,
-            self._key_type(),
-            self._host_key()
-        )
-        keys.save(self.ssh_hostfile)
-
-        ssh.connect(
-            self.hook.connection.host,
-            username=self.hook.connection.login,
-            password=self.hook.connection.password)
-
-        sftp = ssh.open_sftp()
-
-        yield sftp
-
-        sftp.close()
-
-    def _extra(self) -> dict:
-        if (self.hook.connection.extra != ''):
-            return json.loads(self.hook.connection.extra)
-        return {}
-
-    def _get_extra(self, key, default_value):
-        if (key in self._extra() and
-            self._extra()[key] != ""):
-            return self._extra()[key]
-
-        return default_value
-
-    def _root_path(self) -> str:
-        return self._get_extra("root_path", "SSD")
-
-    def _key_type(self) -> str:
-        return self._get_extra("key_path", "ssh-rsa")
-
-    def _host_key(self) -> str:
-        return self._get_extra("host_key", "")
-
-    def _ls_r(self, sftp: SFTPClient, path: str = None) -> List[SftpEntry]:
+    def _ls_r(
+        self,
+        sftp: SFTPClient,
+        magic_string: re.Pattern,
+        ignore_directories: List[str],
+        path: str = None) -> List[SftpEntry]:
         files = []
 
         if path is None:
             path = self._root_path()
 
-        for entry in sftp.listdir_iter(path):
-            print(entry)
+        print(f"Checking path: {path}")
+
+        for entry in sftp.listdir_attr(path):
             sftp_entry = SftpEntry(entry, path)
 
-            if sftp_entry.is_dir():
-                files += self._ls_r(sftp, os.path.join(path, sftp_entry.name))
-            elif sftp_entry.full_path not in self.cursor or self.cursor[sftp_entry.full_path] != sftp_entry.hash:
+            if sftp_entry.is_dir() and sftp_entry.name in ignore_directories:
+                print(f"{sftp_entry.name} is a skipped dir.")
+                continue
+            elif sftp_entry.is_dir():
+                print(f"{sftp_entry.name} is a directory, going into it")
+                files += self._ls_r(sftp, magic_string, ignore_directories, os.path.join(path, sftp_entry.name))
+            elif magic_string.match(sftp_entry.name) and (sftp_entry.full_path not in self.cursor or self.cursor[sftp_entry.full_path] != sftp_entry.hash):
                 # Re-upload file if the hash has changed (size-modified time-created time).
+                print(f"appending {sftp_entry.name} to list of files!")
                 files.append(sftp_entry)
 
         return files
 
-    def _ensure_ssh_known_hosts(self):
-        if not os.path.exists(self.ssh_hostfile):
-            os.makedirs(os.path.dirname(self.ssh_hostfile), exist_ok=True)
-
-    def retrieve_file(self, target_hook: BaseHook, file: SftpEntry) -> Tuple[BinaryIO, int]:
+    @contextlib.contextmanager
+    def retrieve_file(self, file: SftpEntry) -> io.BytesIO:
         """
-        Opens the given file for download into a context as a Tuple(BinaryIO, size).
+        Opens the given file for download as a file-like object.
         The underlying socket object yields bytes objects.
 
         Note:  Ideally, this method is used in combination with 'with' syntax in python, so that the underlying
@@ -264,20 +216,21 @@ class Cat(object):
 
         eg:
         ```
-        socket = cat.retrieve_file(file)
-        with socket.makefile('rb') as connection:
-            for line in csv.reader(connection):
+        with cat.retrieve_file(file) as source_file:
+            for line in source_file:
                 break
         ```
 
         params:
-          target_hook: Hook with a connection to the target system, where to save the file
-          file: an Rsync file listing
+          file: an SFTP file listing
         """
-        # Will have to use different command per target system
-        #       for C4, is lget
-        #       for Metis, just stream to it?
-        pass
+        with self.sftp() as sftp:
+            file_obj = sftp.file(file.full_path, 'r')
+            file_obj.prefetch(file.size)
+
+            yield file_obj
+
+            file_obj.close()
 
     def mark_file_as_ingested(self, file: SftpEntry):
         """
@@ -290,15 +243,3 @@ class Cat(object):
         Save the cursor to the database.
         """
         Variable.set(self.variable_key, self.cursor, serialize_json=True)
-
-    @property
-    def variable_key(self):
-        """
-        Return the variable key for the current dag.
-        """
-        try:
-            context = get_current_context()
-
-            return f"{self.variable_root}-{context['dag'].dag_id}"
-        except AirflowException:
-            return self.variable_root
