@@ -1,3 +1,5 @@
+import json
+
 import requests
 from requests import Session, HTTPError
 from requests.auth import AuthBase
