@@ -18,7 +18,7 @@ class Metis
     TEMP_PREFIX = "temp-"
     TEMP_MATCH = /^#{TEMP_PREFIX}/
 
-    def self.create_from(file_name, location, copy = false)
+    def self.create_from(file_name, location, copy: false)
       # we don't know the true md5 so we use a random value
       size = ::File.size(location)
       data_block = create(
@@ -137,6 +137,15 @@ class Metis
 
     def location
       file_location(md5_hash)
+    end
+
+    def named_linked_location(file)
+      ::File.join(
+        Metis.instance.config(:data_path),
+        "named",
+        file.bucket.name,
+        file.file_path
+      )
     end
 
     def file_location(hash)

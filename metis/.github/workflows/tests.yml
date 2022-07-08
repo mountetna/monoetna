@@ -53,6 +53,7 @@ jobs:
       run: |
         mkdir -p spec/stubs/blueprints
         mkdir -p spec/data/data_blocks
+        mkdir -p spec/data/named
     - name: Create empty data folder for Upload tests
       run: |
         mkdir -p spec/data

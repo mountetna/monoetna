@@ -28,5 +28,6 @@ fi
 
 mkdir -p /app/data/uploads
 mkdir -p /app/data/data_blocks
+mkdir -p /app/data/named
 
 exec $@

@@ -266,6 +266,7 @@ On your disk you'll want to create the following directories:
 ```sh
 data/
   data_blocks/
+  named/
   uploads/
 ```
 

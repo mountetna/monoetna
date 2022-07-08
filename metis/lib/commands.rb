@@ -46,7 +46,7 @@ class Metis
 
     def execute(file, project_name:, bucket_name:, path:)
       bucket = Metis::Bucket.find(project_name: project_name, name: bucket_name)
-      db = Metis::DataBlock.create_from(::File.basename(file), file, true)
+      db = Metis::DataBlock.create_from(::File.basename(file), file, copy: true)
       folder_id = Metis::Folder.mkdir_p(bucket, path, project_name, 'etna.agent@ucsf.edu|system').map(&:id).last
 
       Metis::File.create(

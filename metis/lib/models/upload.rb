@@ -52,13 +52,13 @@ class Metis
 
       folder = Metis::Folder.from_path(bucket, folder_path).last
 
-      data_block = Metis::DataBlock.create_from(file_name, partial_location)
+      data_block = Metis::DataBlock.create_from(file_name, partial_location, copy: false)
 
       file = Metis::File.find_or_create(
           project_name: project_name,
           file_name: new_file_name,
           folder_id: folder&.id,
-          bucket: bucket
+          bucket: bucket,
       ) do |f|
         f.author = author
         f.data_block = data_block

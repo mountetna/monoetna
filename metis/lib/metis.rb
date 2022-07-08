@@ -6,6 +6,7 @@ require_relative 'archiver'
 # This class handles the http request and routing
 class Metis
   include Etna::Application
+  include Etna::Triggers
 
   attr_reader :db
 
@@ -55,4 +56,15 @@ class Metis
   def archiver
     @archiver ||= Metis::Archiver.new(config(:backup))
   end
+
+  before_insert_trigger :folders, 'update_revisions_table', <<-SQL
+    INSERT INTO revision_updates (bucket_id, folder_id, moved, version)
+      VALUES (NEW.bucket_id, NEW.folder_id, false, (SELECT nextval('revision_updates_version_seq')) )
+      ON CONFLICT UPDATE SET moved = false, version = (SELECT nextval('revision_updates_version_seq'));
+  SQL
+  # before_update_trigger :folders, 'update_revisions_table', <<-SQL
+  #   INSERT INTO revision_updates (bucket_id, folder_id, moved, version)
+  #     VALUES (NEW.bucket_id, NEW.folder_id, false, (SELECT nextval('revision_updates_version_seq')) )
+  #     ON CONFLICT UPDATE SET moved = false, version = (SELECT nextval('revision_updates_version_seq'));
+  # SQL
 end
