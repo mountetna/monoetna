@@ -228,13 +228,11 @@ class Cat(SSHBase):
         params:
           file: an SFTP file listing
         """
-        with self.sftp() as sftp:
-            file_obj = sftp.file(file.full_path, 'r')
-            file_obj.prefetch(file.size)
+        with self.sftp() as sftp, io.BytesIO() as read_io:
+            sftp.getfo(file.full_path, read_io)
+            read_io.seek(0)
 
-            yield file_obj
-
-            file_obj.close()
+            yield read_io
 
     def mark_file_as_ingested(self, ingested_to: str, file: SftpEntry):
         """
@@ -251,9 +249,7 @@ class Cat(SSHBase):
         """
         if ingested_to not in self.cursors:
             return False
-        print(ingested_to)
-        print(self.cursors)
-        print(file.hash)
+
         return file.full_path in self.cursors[ingested_to] and self.cursors[ingested_to][file.full_path] == file.hash
 
     def update_cursor(self, postfix: str):

@@ -121,6 +121,16 @@ class C4(SSHBase):
           file_obj: io, the file-like object that is a data source
           file_size: int, size of the file in bytes
         """
+        def _log_progress(consumed: int, total: int):
+            # Only log every 20 seconds, to save log space...
+            nonlocal should_log
+            time_check = int(time.time())
+            if time_check % 20 == 0 and should_log:
+                log.info("Upload progress: " + "{:.2%}".format(consumed / total))
+                should_log = False
+            elif time_check % 20 != 0 and not should_log:
+                should_log = True
+
         with self.sftp() as sftp:
             # Ensure the folder path exists on C4
             full_path = os.path.join(self._root_path(), folder_path)
@@ -136,17 +146,9 @@ class C4(SSHBase):
                     sftp.mkdir(path_to_folder)
                 traversed.append(folder)
 
-            with sftp.file(os.path.join(full_path, file_name), "w") as target_file:
-                bytes_read = 0
-                should_log = True
-                while bytes_read < file_size:
-                    chunk = file_obj.read(self.chunk_size)
-                    target_file.write(chunk)
-                    bytes_read += len(chunk)
-                    # Only log every 5 seconds, to save log space...
-                    time_check = int(time.time())
-                    if time_check % 5 == 0 and should_log:
-                        log.info("Upload progress: " + "{:.2%}".format(bytes_read / file_size))
-                        should_log = False
-                    elif time_check % 5 != 0 and not should_log:
-                        should_log = True
+            should_log = True
+            sftp.putfo(
+                file_obj,
+                os.path.join(full_path, file_name),
+                file_size=file_size,
+                callback=_log_progress)
