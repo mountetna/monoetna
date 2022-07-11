@@ -11,6 +11,8 @@ version: '3.4'
 volumes:
   archimedes-global-node-modules:
     driver: local
+  archimedes-r-libs:
+    driver: local
   archimedes-exec:
     driver: local
 
@@ -22,7 +24,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/app:delegated
-      - archimedes-global-node-modules:/usr/local/lib/node_modules
+      - archimedes-r-libs:/root/.cache/R/renv/library/app-369-b32273d8/R-4.1/x86_64-pc-linux-gnu
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - archimedes-exec:/archimedes-exec
       - ../vulcan/lib/server/workflows/scripts:/app/vulcan_scripts

@@ -1,10 +1,15 @@
 FROM archimedes-r-base
 # Perform these steps first to allow better caching behavior
 WORKDIR /app
-COPY . /app/
+RUN jetpack init
+COPY renv.lock /app
+COPY DESCRIPTION /app
+COPY .Rprofile /app
+COPY archimedes-r/functions /app/archimedes-r/functions
+RUN jetpack install
 
-# RUN cd /app/archimedes-r && npm install && npm run build
-RUN jetpack init && cd /app/archimedes-r
+# NOTE: Anything after this will almoast always get run every time
+COPY . /app/
 
 ARG FULL_BUILD=1
 RUN /entrypoints/build.sh
