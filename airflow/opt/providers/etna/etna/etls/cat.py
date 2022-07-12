@@ -77,7 +77,7 @@ class CatEtlHelpers(RemoteHelpersBase):
             c4_hook = C4Hook.for_project()
             with c4_hook.c4() as c4, self.hook.cat() as cat:
                 self.log.info(f"Attempting to upload {len(files)} files to C4")
-                for file in files[0:2]:
+                for file in files:
                     if cat.file_ingested_to_system("c4", file):
                         self.log.info(f"Skipping {file.name} because it has already been ingested.")
                         continue
@@ -126,7 +126,7 @@ class CatEtlHelpers(RemoteHelpersBase):
             etna_hook = EtnaHook.for_project(project_name)
             with etna_hook.metis(project_name, read_only=False) as metis, self.hook.cat() as cat:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
-                for file in files[0:2]:
+                for file in files:
                     if cat.file_ingested_to_system("metis", file):
                         self.log.info(f"Skipping {file.name} because it has already been ingested.")
                         continue
