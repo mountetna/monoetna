@@ -88,7 +88,7 @@ class CatEtlHelpers(RemoteHelpersBase):
                         final_file_name = file.name.replace(self.magic_string, "")
 
                     with cat.retrieve_file(file) as file_handle:
-                        dest_path = os.path.join(folder_path, file.folder_path.replace(f"{cat._root_path()}/", ""))
+                        dest_path = os.path.join(folder_path or "", file.folder_path.replace(f"{cat._root_path()}/", ""))
                         self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, final_file_name)}.")
 
                         c4.upload_file(

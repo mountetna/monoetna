@@ -128,15 +128,18 @@ class SftpEntry(RemoteFileBase):
     def rel_path(self) -> str:
         return self.full_path[1::] if self.full_path[0] == '/' else self.full_path
 
+    def _epoch_s(self, timestamp: datetime):
+        return int(timestamp.timestamp())
+
     def is_in_range(self, batch_start: Optional[datetime] = None, batch_end: Optional[datetime] = None):
         if batch_start is None and batch_end is None:
             return True
         elif batch_start is None:
-            return self.mtime <= batch_end
+            return self.mtime <= self._epoch_s(batch_end)
         elif batch_end is None:
-            return self.mtime >= batch_start
+            return self.mtime >= self._epoch_s(batch_start)
         else:
-            return batch_start <= self.mtime <= batch_end
+            return self._epoch_s(batch_start) <= self.mtime <= self._epoch_s(batch_end)
 
     @property
     def hash(self):
