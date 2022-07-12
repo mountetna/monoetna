@@ -134,7 +134,7 @@ export default function WorkflowManager({
       } else {
         initializeFromSessionAndFigure(
           selectSession(localSession),
-          defaultFigure
+          selectFigure(localSession)
         );
       }
     },
