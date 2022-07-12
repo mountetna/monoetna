@@ -18,9 +18,10 @@ from etna.etls.remote_helpers_base import RemoteHelpersBase
 class CatEtlHelpers(RemoteHelpersBase):
     hook: CatHook
 
-    def __init__(self, hook: CatHook):
+    def __init__(self, hook: CatHook, magic_string: str):
         self.hook = hook
         self.log = logging.getLogger("airflow.task")
+        self.magic_string = magic_string
 
     def alert_slack(self,
         files: XComArg,
@@ -60,7 +61,8 @@ class CatEtlHelpers(RemoteHelpersBase):
     def ingest_to_c4(
         self,
         files: XComArg,
-        folder_path: str = None) -> XComArg:
+        folder_path: str = None,
+        remove_magic_string: bool = True) -> XComArg:
         """
         Given a list of CAT files, will copy them to the given C4 path,
         mimicking the full directory structure from the CAT.
@@ -68,6 +70,7 @@ class CatEtlHelpers(RemoteHelpersBase):
         args:
             files: List of files from tail_files or filter_files call
             folder_path: str, existing folder path to dump the files in. Default is C4 root_path configuration + folder structure on CAT.
+            remove_magic_string: bool, remove the magic string from the file name. Default is True.
         """
         @task
         def ingest(files, folder_path):
@@ -79,13 +82,18 @@ class CatEtlHelpers(RemoteHelpersBase):
                         self.log.info(f"Skipping {file.name} because it has already been ingested.")
                         continue
 
+                    final_file_name = file.name
+
+                    if remove_magic_string:
+                        final_file_name = file.name.replace(self.magic_string, "")
+
                     with cat.retrieve_file(file) as file_handle:
                         dest_path = os.path.join(folder_path, file.folder_path.replace(f"{cat._root_path()}/", ""))
-                        self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, file.name)}.")
+                        self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, final_file_name)}.")
 
                         c4.upload_file(
                             dest_path,
-                            file.name,
+                            final_file_name,
                             file_handle,
                             file.size
                         )
@@ -100,7 +108,8 @@ class CatEtlHelpers(RemoteHelpersBase):
         files: XComArg,
         project_name: str = "triage",
         bucket_name: str = "waiting_room",
-        folder_path: str = None) -> XComArg:
+        folder_path: str = None,
+        remove_magic_string: bool = True) -> XComArg:
         """
         Given a list of files, will copy them to the given Metis project_name and bucket_name,
         mimicking the full directory structure from the CAT.
@@ -110,6 +119,7 @@ class CatEtlHelpers(RemoteHelpersBase):
             project_name: str, the target Metis project name. Default is `triage`
             bucket_name: str, the target Metis bucket name. Default is `waiting_room`
             folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.
+            remove_magic_string: bool, remove the magic string from the file name. Default is True.
         """
         @task
         def ingest(files, project_name, bucket_name, folder_path):
@@ -122,8 +132,14 @@ class CatEtlHelpers(RemoteHelpersBase):
                         continue
 
                     with cat.retrieve_file(file) as file_handle:
-                        dest_path = os.path.join(folder_path, file.folder_path.replace(f"{cat._root_path()}/", ""))
-                        self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, file.name)}.")
+                        dest_path = os.path.join(folder_path or "", file.folder_path.replace(f"{cat._root_path()}/", ""))
+
+                        final_file_name = file.name
+
+                        if remove_magic_string:
+                            final_file_name = file.name.replace(self.magic_string, "")
+
+                        self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, final_file_name)}.")
 
                         self.handle_metis_ingest(
                             file_handle=file_handle,
@@ -135,7 +151,8 @@ class CatEtlHelpers(RemoteHelpersBase):
                             project_name=project_name,
                             bucket_name=bucket_name,
                             file=file,
-                            metis=metis
+                            metis=metis,
+                            file_name_override=final_file_name
                         )
                     cat.mark_file_as_ingested("metis", file)
                     self.log.info(f"Done ingesting {file.full_path}.")
@@ -144,14 +161,16 @@ class CatEtlHelpers(RemoteHelpersBase):
         return ingest(files, project_name, bucket_name, folder_path)
 
 
-
-
 def load_cat_files_batch(
     cat: Cat,
-    magic_string: re.Pattern,
+    magic_string: str,
     ignore_directories: List[str]
 ) -> List[SftpEntry]:
-    return _load_cat_files_batch(cat, magic_string, ignore_directories)
+    return _load_cat_files_batch(
+        cat,
+        re.compile(f".*{magic_string}.*"),
+        ignore_directories
+    )
 
 
 def _load_cat_files_batch(

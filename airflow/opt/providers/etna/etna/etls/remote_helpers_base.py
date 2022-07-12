@@ -93,7 +93,8 @@ class RemoteHelpersBase:
         project_name: str,
         bucket_name: str,
         file: RemoteFileBase,
-        metis: Metis):
+        metis: Metis,
+        file_name_override: str = None):
         parts = []
         if folder_path is None:
             parts.append(hostname)
@@ -110,6 +111,11 @@ class RemoteHelpersBase:
             parts.append(rel_path.split(f"{root_folder}/")[-1])
 
         dest_path = os.path.join(*parts)
+
+        if file_name_override is not None:
+            current_path = dest_path.split("/")
+            current_path[-1] = file_name_override
+            dest_path = os.path.join(*current_path)
 
         self.log.info(f"Uploading {file.full_path} to {dest_path}.")
 

@@ -1,28 +1,16 @@
-import base64
 import contextlib
-from datetime import datetime, timezone
 import io
-import json
 import logging
 import os
-import re
 import time
-import paramiko
-import stat
-from paramiko.sftp_client import SFTPClient
-from paramiko.sftp_attr import SFTPAttributes
-from typing import List, Dict, Optional, ContextManager, Tuple, BinaryIO
+from typing import Dict, Optional, ContextManager
 
 import cached_property
 
-from airflow.exceptions import AirflowException
-from airflow.models import Connection, Variable
-from airflow.operators.python import get_current_context
+from airflow.models import Connection
 from airflow.providers.ssh.hooks.ssh import SSHHook
 from etna.dags.project_name import get_project_name
-from etna.hooks.hook_helpers import RemoteFileBase
 from etna.hooks.ssh_base import SSHBase
-from etna.hooks.cat import SftpEntry
 
 
 class C4Hook(SSHHook):

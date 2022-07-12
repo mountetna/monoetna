@@ -28,7 +28,7 @@ from etna.etls.box import (
     load_box_files_batch
 )
 from etna.hooks.box import BoxHook, Box
-from etna.hooks.cat import CatHook, Cat
+from etna.hooks.cat import CatHook
 from etna.etls.cat import (
     load_cat_files_batch,
     CatEtlHelpers
@@ -186,7 +186,7 @@ def cat_etl(
     hook: Optional[CatHook] = None,
     project_name: str = "administration",
     inject_params: Mapping[str, str] = {},
-    magic_string: re.Pattern = re.compile(".*DSCOLAB.*"),
+    magic_string: str = "DSCOLAB_",
     ignore_directories: List[str] = ['Stats', 'test', 'Reports', 'test_DM', 'ec-test']
 ):
     """
@@ -215,7 +215,8 @@ def cat_etl(
             files = tail_files()
 
             helpers = CatEtlHelpers(
-                hook=hook
+                hook=hook,
+                magic_string=magic_string
             )
 
             return inject(

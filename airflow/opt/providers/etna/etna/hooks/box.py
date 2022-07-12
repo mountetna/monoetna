@@ -89,9 +89,13 @@ log = logging.getLogger("airflow.task")
 
 class FtpEntry(RemoteFileBase):
     def __init__(self, tuple, parent_path: str):
-        self.name = tuple[0]
+        self._name = tuple[0]
         self.metadata = tuple[1]
         self.folder_path = parent_path
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     @property
     def size(self) -> int:
