@@ -38,22 +38,30 @@ class MockSftpAttributes(object):
         return self.sftp_attrs["st_mode"]
 
 
+def make_datetime(year, month, day):
+    return datetime(year, month, day, 0, 0, 0, 0, pytz.UTC)
+
+
+def timestamp(year, month, day):
+    return int(make_datetime(year, month, day).timestamp())
+
+
 def mock_tail():
     return [
         SftpEntry(MockSftpAttributes({
             "filename": "123.txt",
             "st_size": 1,
-            "st_mtime": "2022-01-01 00:00:00.000"
+            "st_mtime": timestamp(2022, 1, 1)
         }), "parent/child/grandchild"),
         SftpEntry(MockSftpAttributes({
             "filename": "abc.exe",
             "st_size": 2,
-            "st_mtime": "2022-02-01 00:00:00.000"
+            "st_mtime": timestamp(2022, 2, 1)
         }), ""),
         SftpEntry(MockSftpAttributes({
             "filename": "xyz.exe",
             "st_size":5,
-            "st_mtime": "2022-03-01 00:00:00.000"
+            "st_mtime": timestamp(2022, 3, 1)
         }), "aunt/child/cousin")
     ]
 
@@ -61,21 +69,22 @@ def mock_tail():
 def mock_var_get(system: str):
     if "c4" == system:
         return {
-            "parent/child/grandchild/123.txt": "1-1640995200", # 1640995200 == 2022-01-01 00:00:00.000
-            "something.txt": "1-1640995200",
-            "other_thing.txt": "0-1646092800", # 1646092800 == 2022-03-01 00:00:00.000
-            "other_things.txt": '3-1651363200', # 1651363200 == 2022-05-01 00:00:00.000
-            "folder/yet_another_thing.txt": "5-1654128000", # 1654128000 == 2022-06-02 00:00:00.000
-            "folder/another_thing.txt": "6-1641081600" # 1641081600 == 2022-01-02 00:00:00.000
+            "parent/child/grandchild/123.txt": f"1-{timestamp(2022, 1, 1)}",
+            "something.txt": f"1-{timestamp(2022, 1, 1)}",
+            "other_thing.txt": f"2-{timestamp(2022, 3, 1)}",
+            "other_things.txt": f"3-{timestamp(2022, 5, 1)}",
+            "folder/yet_another_thing.txt": f"5-{timestamp(2022, 6, 2)}",
+            "folder/another_thing.txt": f"6-{timestamp(2022, 1, 2)}"
         }
 
     return {
-        "abc.exe": "2-1643673600", # 1643673600 == 2022-02-01 00:00:00
-        "other_thing.txt": "0-1646092800",
-        "other_things.txt": '3-1651363200',
-        "folder/yet_another_thing.txt": "5-1654128000",
-        "folder/another_thing.txt": "6-1641081600"
+        "abc.exe": f"2-{timestamp(2022, 2, 1)}",
+        "other_thing.txt": f"0-{timestamp(2022, 3, 1)}",
+        "other_things.txt": f"3-{timestamp(2022, 5, 1)}",
+        "folder/yet_another_thing.txt": f"5-{timestamp(2022, 6, 2)}",
+        "folder/another_thing.txt": f"6-{timestamp(2022, 1, 2)}"
     }
+
 
 @mock.patch('providers.etna.etna.etls.decorators.load_cat_files_batch', side_effect=[mock_tail(), []])
 def test_cat_files_etl_filter_file_name(mock_load, reset_db, ssh_cat_connection, ssh_c4_connection):
@@ -162,13 +171,6 @@ def test_cat_files_etl_filter_file_name_and_folder_path(mock_load, reset_db, ssh
     assert len(results) == 1
     assert results[0].name == 'xyz.exe'
 
-
-def make_datetime(year, month, day):
-    return datetime(year, month, day, 0, 0, 0, 0, pytz.UTC)
-
-
-def timestamp(year, month, day):
-    return int(make_datetime(year, month, day).timestamp())
 
 def test_sftp_entry():
     entry_attrs_1 = MockSftpAttributes({
@@ -476,8 +478,10 @@ def test_ingest_updates_cursor(mock_set, mock_get, mock_etna, mock_load, reset_d
     run_dag(test_ingest_updates_cursor, start_date, end_date)
 
     mock_cat_mark_ingested.assert_called()
-    # 2 files from mock_tail should all get ingested since one is in mock_var_get() for metis
-    assert len(mock_cat_mark_ingested.call_args_list) == 2
+    # 3 files from mock_tail should get ingested since one is in mock_var_get("metis")
+    #   and a different one is in mock_var_get("c4") -- so no tail()
+    #   file has been ingested into both systems.
+    assert len(mock_cat_mark_ingested.call_args_list) == 3
     mock_cat_update_cursor.assert_called()
 
 
