@@ -1,44 +1,19 @@
-import base64
 import contextlib
-import dataclasses
-import hashlib
-import io
-import json
-import logging
-import os.path
 import typing
-import uuid
-from datetime import datetime
-from inspect import isgenerator
-from typing import Dict, Optional, List
-import re
-from urllib.parse import quote
-
-from airflow import DAG
-from airflow.operators.python import get_current_context
-from requests.adapters import HTTPAdapter
-from serde import serialize, deserialize
+from typing import Dict, Optional
 
 import cached_property
-import dateutil
-import requests
+from airflow import DAG
 from airflow.exceptions import AirflowException
 from airflow.hooks.base import BaseHook
 from airflow.models import Connection
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-from requests import HTTPError, Session
+from airflow.operators.python import get_current_context
+from mountetna import Janus, Magma, Metis, TokenAuth, SigAuth
 from requests.auth import AuthBase
-from serde.json import from_json, to_json
-from urllib3 import Retry
 
 from etna.dags.project_name import get_project_name
 from etna.hooks.keys import prepared_key_from
-from etna.utils.iterables import batch_iterable
-from etna.utils.multipart import encode_as_multipart
-from etna.utils.streaming import iterable_to_stream
 
-from mountetna import Janus, Magma, Metis, TokenAuth, SigAuth
 
 class EtnaHook(BaseHook):
     """
@@ -140,7 +115,7 @@ class EtnaHook(BaseHook):
         )
         return TokenAuth(token, project_name)
 
-    def get_session(self, auth=None):
+    def get_session(self):
         return None
 
     @contextlib.contextmanager
