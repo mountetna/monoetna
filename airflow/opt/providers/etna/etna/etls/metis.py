@@ -1,8 +1,6 @@
 import dataclasses
 import difflib
 import functools
-import io
-import itertools
 import json
 import logging
 import os.path
@@ -10,17 +8,13 @@ import re
 from logging import Logger
 from typing import Union, Literal, List, Optional, Tuple, Callable, Dict, Any, Iterable, Mapping
 
-from serde.json import to_json
-
 import typing
-from airflow import DAG
 from airflow.decorators import task
 from airflow.exceptions import AirflowException
-from airflow.models.taskinstance import Context, TaskInstance
+from airflow.models.taskinstance import Context
 from airflow.models.xcom_arg import XComArg
 from airflow.operators.python import get_current_context
 from serde import serialize, deserialize, from_dict, to_dict
-from serde.json import from_json
 
 from etna.dags.project_name import get_project_name
 from etna.etls.etl_task_batching import get_batch_range
@@ -34,7 +28,6 @@ from mountetna import (
     Model,
     Template
 )
-from etna.operators import DockerOperatorBase
 from etna.utils.inject import inject
 from etna.utils.iterables import batch_iterable
 from etna.xcom.etna_xcom import pickled
