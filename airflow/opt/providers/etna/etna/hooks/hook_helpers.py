@@ -23,3 +23,13 @@ def get_git_hook(remote_path: str) -> GitHook:
 
 def get_etna_hook() -> EtnaHook:
     return EtnaHook.for_project()
+
+
+class RemoteFileBase:
+    @property
+    def name(self) -> str:
+        raise NotImplementedError("Must be implemented by a subclass")
+
+    @property
+    def full_path(self) -> str:
+        raise NotImplementedError("Must be implemented by a subclass")

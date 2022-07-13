@@ -20,7 +20,7 @@ from .test_metis_files_etl import run_dag, get_all_results
 
 def mock_tail():
     return [
-        FtpEntry(("123.txt",{"size": 1, "modify": "20220101000000.000", "create": "20220301000000.000"}), "parent/child/grandchild"),
+        FtpEntry(("123.txt", {"size": 1, "modify": "20220101000000.000", "create": "20220301000000.000"}), "parent/child/grandchild"),
         FtpEntry(("abc.exe", {"size": 5, "modify": "20220101000000.000", "create": "20220301000000.000"}), ""),
         FtpEntry(("xyz.exe", {"size": 10, "modify": "20220101000000.000", "create": "20220301000000.000"}), "aunt/child/cousin")
     ]
