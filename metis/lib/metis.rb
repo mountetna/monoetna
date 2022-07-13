@@ -57,14 +57,27 @@ class Metis
     @archiver ||= Metis::Archiver.new(config(:backup))
   end
 
-  before_insert_trigger :folders, 'update_revisions_table', <<-SQL
-    INSERT INTO revision_updates (bucket_id, folder_id, moved, version)
-      VALUES (NEW.bucket_id, NEW.folder_id, false, (SELECT nextval('revision_updates_version_seq')) )
-      ON CONFLICT UPDATE SET moved = false, version = (SELECT nextval('revision_updates_version_seq'));
+  before_update_trigger [:bucket_id, :folder_id], :folders, 'revision_footprints', <<-SQL
+    INSERT INTO revision_footprints (bucket_id, parent_id, folder_id, file_id, updated_at)
+      VALUES (OLD.bucket_id, COALESCE(OLD.folder_id, -1), OLD.id, -1, CURRENT_TIMESTAMP )
+      ON CONFLICT DO UPDATE SET updated_at = CURRENT_TIMESTAMP;
   SQL
-  # before_update_trigger :folders, 'update_revisions_table', <<-SQL
-  #   INSERT INTO revision_updates (bucket_id, folder_id, moved, version)
-  #     VALUES (NEW.bucket_id, NEW.folder_id, false, (SELECT nextval('revision_updates_version_seq')) )
-  #     ON CONFLICT UPDATE SET moved = false, version = (SELECT nextval('revision_updates_version_seq'));
-  # SQL
+
+  before_delete_trigger :folders, 'revision_footprints', <<-SQL
+    INSERT INTO revision_footprints (bucket_id, parent_id, folder_id, file_id, updated_at)
+      VALUES (OLD.bucket_id, COALESCE(OLD.folder_id, -1), OLD.id, -1, CURRENT_TIMESTAMP )
+      ON CONFLICT DO UPDATE SET updated_at = CURRENT_TIMESTAMP;
+  SQL
+
+  before_update_trigger [:bucket_id, :folder_id], :files, 'revision_footprints', <<-SQL
+    INSERT INTO revision_footprints (bucket_id, parent_id, file_id, folder_id, updated_at)
+      VALUES (OLD.bucket_id, COALESCE(OLD.folder_id, -1), OLD.id, -1, CURRENT_TIMESTAMP )
+      ON CONFLICT DO UPDATE SET updated_at = CURRENT_TIMESTAMP;
+  SQL
+
+  before_delete_trigger :files, 'revision_footprints', <<-SQL
+    INSERT INTO revision_footprints (bucket_id, parent_id, file_id, folder_id, updated_at)
+      VALUES (OLD.bucket_id, COALESCE(OLD.folder_id, -1), OLD.id, -1, CURRENT_TIMESTAMP )
+      ON CONFLICT DO UPDATE SET updated_at = CURRENT_TIMESTAMP;
+  SQL
 end

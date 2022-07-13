@@ -65,7 +65,7 @@ class BucketController < Metis::Controller
     return success_json(response)
   end
 
-  def batch_query
+  def head_batch_opts
     batch_start = @params[:batch_start]
     batch_end = @params[:batch_end]
 
@@ -81,7 +81,7 @@ class BucketController < Metis::Controller
     ["head.updated_at >= :start AND head.updated_at <= :end", { start: batch_start, end: batch_end }]
   end
 
-  def folder_query
+  def head_folder_opts
     folder_id = @params[:folder_id]
 
     if folder_id.nil?
@@ -93,8 +93,52 @@ class BucketController < Metis::Controller
     end
   end
 
-  def tail_query
-    batch_query || folder_query
+  def head_opts(type)
+    cond, params = (head_batch_opts || head_folder_opts)
+
+    if type == 'files'
+      head_query = <<QUERY
+    SELECT 
+      'file' as type, head.id as id, head.folder_id as parent_id, head.file_name as node_name, head.updated_at, head.created_at, data_blocks.md5_hash as file_hash, data_blocks.archive_id, data_blocks.size
+    FROM files as head
+    JOIN data_blocks ON data_blocks.id = head.data_block_id
+    WHERE #{cond} AND head.bucket_id = :bucket_id
+QUERY
+    else
+      head_query = <<QUERY
+    SELECT 
+      'folder' as type, head.id as id, folder_id as parent_id, folder_name as node_name, updated_at, created_at, NULL as file_hash, NULL as archive_id, NULL as size
+    FROM folders as head
+    WHERE #{cond} AND head.bucket_id = :bucket_id
+QUERY
+    end
+
+    [head_query, params]
+  end
+
+  def footprint_opts(type)
+    batch_start = @params[:batch_start]
+    batch_end = @params[:batch_end]
+
+    entity_id = type == 'files' ? 'file_id' : 'folder_id'
+
+    base_query = <<-SQL
+    SELECT
+    '#{type}_footprint' as type,
+      revision_footprints.#{entity_id} as id,
+      revision_footprints.parent_id,
+      NULL as node_name,
+      NULL as file_hash,
+      NULL as archive_id,
+      NULL as size
+    FROM revision_footprints LEFT JOIN head_nodes ON revision_footprints.#{entity_id} == head_nodes.id
+    WHERE head_nodes.id IS NULL
+    SQL
+
+    if batch_start.nil? or batch_end.nil?
+    end
+
+
   end
 
   def tail
@@ -102,32 +146,20 @@ class BucketController < Metis::Controller
     type = @params[:type]
     raise Etna::BadRequest, "Invalid type, must be one of 'folders' or 'files'" unless ['folders', 'files'].include?(type)
 
-    head_cond, head_params = tail_query
+    head_query, head_params = head_opts(type)
 
     try_stream('application/x-json-stream') do |stream|
-      if type == 'files'
-        head_query = <<QUERY
-    SELECT 
-      'file' as type, head.id as id, head.folder_id as parent_id, head.file_name as node_name, head.updated_at, head.created_at, data_blocks.md5_hash as file_hash, data_blocks.archive_id, data_blocks.size
-    FROM files as head
-    JOIN data_blocks ON data_blocks.id = head.data_block_id
-    WHERE #{head_cond} AND head.bucket_id = :bucket_id
-QUERY
-      else
-        head_query = <<QUERY
-    SELECT 
-      'folder' as type, head.id as id, folder_id as parent_id, folder_name as node_name, updated_at, created_at, NULL as file_hash, NULL as archive_id, NULL as size
-    FROM folders as head
-    WHERE #{head_cond} AND head.bucket_id = :bucket_id
-QUERY
-      end
 
       results = Metis.instance.db[<<QUERY, {bucket_id: bucket.id}.update(head_params)]
-  WITH RECURSIVE tail_nodes AS (
-#{head_query}
+  WITH 
+  #{head_query} as head_nodes,
+  RECURSIVE tail_nodes AS (
+    SELECT * from head_nodes
     UNION
     SELECT
-      'parent' as type, folders.id as id, folders.folder_id as parent_id, folders.folder_name as node_name, folders.updated_at, folders.created_at, NULL as file_hash, NULL as archive_id, NULL as size
+      'parent' as type, folders.id as id, folders.folder_id as parent_id, 
+      folders.folder_name as node_name, folders.updated_at, folders.created_at, 
+      NULL as file_hash, NULL as archive_id, NULL as size
     FROM folders
       JOIN tail_nodes ON folders.id = tail_nodes.parent_id
   )

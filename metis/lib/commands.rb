@@ -84,6 +84,17 @@ class Metis
     end
   end
 
+  class UpdateTriggers < Etna::Command
+    def execute
+      Metis.run_triggers
+    end
+
+    def setup(config)
+      super
+      Metis.instance.setup_db
+    end
+  end
+
   class Migrate < Etna::Command
     usage "Run migrations for the current environment."
     string_flags << "--version"
@@ -94,10 +105,10 @@ class Metis
 
       if version
         puts "Migrating to version #{version}"
-        Sequel::Migrator.run(db, "db/migrations", target: version.to_i)
+        Sequel::Migrator.run(db, "db/migrations", target: version.to_i, use_transactions: true)
       else
         puts "Migrating to latest"
-        Sequel::Migrator.run(db, "db/migrations")
+        Sequel::Migrator.run(db, "db/migrations", use_transactions: true)
       end
     end
 
