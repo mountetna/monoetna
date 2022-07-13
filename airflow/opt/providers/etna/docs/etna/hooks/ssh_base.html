@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="pdoc 10.0.1"/>
-    <title>etna.hooks.hook_helpers API documentation</title>
+    <title>etna.hooks.ssh_base API documentation</title>
 
     <style>/*! * Bootstrap Reboot v5.0.0 (https://getbootstrap.com/) * Copyright 2011-2021 The Bootstrap Authors * Copyright 2011-2021 Twitter, Inc. * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE) * Forked from Normalize.css, licensed MIT (https://github.com/necolas/normalize.css/blob/master/LICENSE.md) */*,::after,::before{box-sizing:border-box}@media (prefers-reduced-motion:no-preference){:root{scroll-behavior:smooth}}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";font-size:1rem;font-weight:400;line-height:1.5;color:#212529;background-color:#fff;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}hr{margin:1rem 0;color:inherit;background-color:currentColor;border:0;opacity:.25}hr:not([size]){height:1px}h1,h2,h3,h4,h5,h6{margin-top:0;margin-bottom:.5rem;font-weight:500;line-height:1.2}h1{font-size:calc(1.375rem + 1.5vw)}@media (min-width:1200px){h1{font-size:2.5rem}}h2{font-size:calc(1.325rem + .9vw)}@media (min-width:1200px){h2{font-size:2rem}}h3{font-size:calc(1.3rem + .6vw)}@media (min-width:1200px){h3{font-size:1.75rem}}h4{font-size:calc(1.275rem + .3vw)}@media (min-width:1200px){h4{font-size:1.5rem}}h5{font-size:1.25rem}h6{font-size:1rem}p{margin-top:0;margin-bottom:1rem}abbr[data-bs-original-title],abbr[title]{-webkit-text-decoration:underline dotted;text-decoration:underline dotted;cursor:help;-webkit-text-decoration-skip-ink:none;text-decoration-skip-ink:none}address{margin-bottom:1rem;font-style:normal;line-height:inherit}ol,ul{padding-left:2rem}dl,ol,ul{margin-top:0;margin-bottom:1rem}ol ol,ol ul,ul ol,ul ul{margin-bottom:0}dt{font-weight:700}dd{margin-bottom:.5rem;margin-left:0}blockquote{margin:0 0 1rem}b,strong{font-weight:bolder}small{font-size:.875em}mark{padding:.2em;background-color:#fcf8e3}sub,sup{position:relative;font-size:.75em;line-height:0;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}a{color:#0d6efd;text-decoration:underline}a:hover{color:#0a58ca}a:not([href]):not([class]),a:not([href]):not([class]):hover{color:inherit;text-decoration:none}code,kbd,pre,samp{font-family:SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:1em;direction:ltr;unicode-bidi:bidi-override}pre{display:block;margin-top:0;margin-bottom:1rem;overflow:auto;font-size:.875em}pre code{font-size:inherit;color:inherit;word-break:normal}code{font-size:.875em;color:#d63384;word-wrap:break-word}a>code{color:inherit}kbd{padding:.2rem .4rem;font-size:.875em;color:#fff;background-color:#212529;border-radius:.2rem}kbd kbd{padding:0;font-size:1em;font-weight:700}figure{margin:0 0 1rem}img,svg{vertical-align:middle}table{caption-side:bottom;border-collapse:collapse}caption{padding-top:.5rem;padding-bottom:.5rem;color:#6c757d;text-align:left}th{text-align:inherit;text-align:-webkit-match-parent}tbody,td,tfoot,th,thead,tr{border-color:inherit;border-style:solid;border-width:0}label{display:inline-block}button{border-radius:0}button:focus:not(:focus-visible){outline:0}button,input,optgroup,select,textarea{margin:0;font-family:inherit;font-size:inherit;line-height:inherit}button,select{text-transform:none}[role=button]{cursor:pointer}select{word-wrap:normal}select:disabled{opacity:1}[list]::-webkit-calendar-picker-indicator{display:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}[type=button]:not(:disabled),[type=reset]:not(:disabled),[type=submit]:not(:disabled),button:not(:disabled){cursor:pointer}::-moz-focus-inner{padding:0;border-style:none}textarea{resize:vertical}fieldset{min-width:0;padding:0;margin:0;border:0}legend{float:left;width:100%;padding:0;margin-bottom:.5rem;font-size:calc(1.275rem + .3vw);line-height:inherit}@media (min-width:1200px){legend{font-size:1.5rem}}legend+*{clear:left}::-webkit-datetime-edit-day-field,::-webkit-datetime-edit-fields-wrapper,::-webkit-datetime-edit-hour-field,::-webkit-datetime-edit-minute,::-webkit-datetime-edit-month-field,::-webkit-datetime-edit-text,::-webkit-datetime-edit-year-field{padding:0}::-webkit-inner-spin-button{height:auto}[type=search]{outline-offset:-2px;-webkit-appearance:textfield}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-color-swatch-wrapper{padding:0}::file-selector-button{font:inherit}::-webkit-file-upload-button{font:inherit;-webkit-appearance:button}output{display:inline-block}iframe{border:0}summary{display:list-item;cursor:pointer}progress{vertical-align:baseline}[hidden]{display:none!important}</style>
     <style>/*! syntax-highlighting.css */pre{line-height:125%;}span.linenos{color:inherit; background-color:transparent; padding-left:5px; padding-right:20px;}.pdoc-code .hll{background-color:#ffffcc}.pdoc-code{background:#f8f8f8;}.pdoc-code .c{color:#3D7B7B; font-style:italic}.pdoc-code .err{border:1px solid #FF0000}.pdoc-code .k{color:#008000; font-weight:bold}.pdoc-code .o{color:#666666}.pdoc-code .ch{color:#3D7B7B; font-style:italic}.pdoc-code .cm{color:#3D7B7B; font-style:italic}.pdoc-code .cp{color:#9C6500}.pdoc-code .cpf{color:#3D7B7B; font-style:italic}.pdoc-code .c1{color:#3D7B7B; font-style:italic}.pdoc-code .cs{color:#3D7B7B; font-style:italic}.pdoc-code .gd{color:#A00000}.pdoc-code .ge{font-style:italic}.pdoc-code .gr{color:#E40000}.pdoc-code .gh{color:#000080; font-weight:bold}.pdoc-code .gi{color:#008400}.pdoc-code .go{color:#717171}.pdoc-code .gp{color:#000080; font-weight:bold}.pdoc-code .gs{font-weight:bold}.pdoc-code .gu{color:#800080; font-weight:bold}.pdoc-code .gt{color:#0044DD}.pdoc-code .kc{color:#008000; font-weight:bold}.pdoc-code .kd{color:#008000; font-weight:bold}.pdoc-code .kn{color:#008000; font-weight:bold}.pdoc-code .kp{color:#008000}.pdoc-code .kr{color:#008000; font-weight:bold}.pdoc-code .kt{color:#B00040}.pdoc-code .m{color:#666666}.pdoc-code .s{color:#BA2121}.pdoc-code .na{color:#687822}.pdoc-code .nb{color:#008000}.pdoc-code .nc{color:#0000FF; font-weight:bold}.pdoc-code .no{color:#880000}.pdoc-code .nd{color:#AA22FF}.pdoc-code .ni{color:#717171; font-weight:bold}.pdoc-code .ne{color:#CB3F38; font-weight:bold}.pdoc-code .nf{color:#0000FF}.pdoc-code .nl{color:#767600}.pdoc-code .nn{color:#0000FF; font-weight:bold}.pdoc-code .nt{color:#008000; font-weight:bold}.pdoc-code .nv{color:#19177C}.pdoc-code .ow{color:#AA22FF; font-weight:bold}.pdoc-code .w{color:#bbbbbb}.pdoc-code .mb{color:#666666}.pdoc-code .mf{color:#666666}.pdoc-code .mh{color:#666666}.pdoc-code .mi{color:#666666}.pdoc-code .mo{color:#666666}.pdoc-code .sa{color:#BA2121}.pdoc-code .sb{color:#BA2121}.pdoc-code .sc{color:#BA2121}.pdoc-code .dl{color:#BA2121}.pdoc-code .sd{color:#BA2121; font-style:italic}.pdoc-code .s2{color:#BA2121}.pdoc-code .se{color:#AA5D1F; font-weight:bold}.pdoc-code .sh{color:#BA2121}.pdoc-code .si{color:#A45A77; font-weight:bold}.pdoc-code .sx{color:#008000}.pdoc-code .sr{color:#A45A77}.pdoc-code .s1{color:#BA2121}.pdoc-code .ss{color:#19177C}.pdoc-code .bp{color:#008000}.pdoc-code .fm{color:#0000FF}.pdoc-code .vc{color:#19177C}.pdoc-code .vg{color:#19177C}.pdoc-code .vi{color:#19177C}.pdoc-code .vm{color:#19177C}.pdoc-code .il{color:#666666}</style>
@@ -31,25 +31,19 @@
         <h2>API Documentation</h2>
             <ul class="memberlist">
             <li>
-                    <a class="function" href="#get_project_slack_hook">get_project_slack_hook</a>
-            </li>
-            <li>
-                    <a class="function" href="#get_git_hook">get_git_hook</a>
-            </li>
-            <li>
-                    <a class="function" href="#get_etna_hook">get_etna_hook</a>
-            </li>
-            <li>
-                    <a class="class" href="#RemoteFileBase">RemoteFileBase</a>
+                    <a class="class" href="#SSHBase">SSHBase</a>
                             <ul class="memberlist">
                         <li>
-                                <a class="function" href="#RemoteFileBase.__init__">RemoteFileBase</a>
+                                <a class="function" href="#SSHBase.__init__">SSHBase</a>
                         </li>
                         <li>
-                                <a class="variable" href="#RemoteFileBase.name">name</a>
+                                <a class="variable" href="#SSHBase.variable_root">variable_root</a>
                         </li>
                         <li>
-                                <a class="variable" href="#RemoteFileBase.full_path">full_path</a>
+                                <a class="variable" href="#SSHBase.chunk_size">chunk_size</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#SSHBase.sftp">sftp</a>
                         </li>
                 </ul>
 
@@ -68,169 +62,304 @@
     <main class="pdoc">
             <section>
                     <h1 class="modulename">
-<a href="./../../etna.html">etna</a><wbr>.<a href="./../hooks.html">hooks</a><wbr>.hook_helpers    </h1>
+<a href="./../../etna.html">etna</a><wbr>.<a href="./../hooks.html">hooks</a><wbr>.ssh_base    </h1>
 
                 
                         <details>
             <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">airflow.providers.slack.hooks.slack</span> <span class="kn">import</span> <span class="n">SlackHook</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">contextlib</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">paramiko</span>
+<span class="kn">from</span> <span class="nn">paramiko.sftp_client</span> <span class="kn">import</span> <span class="n">SFTPClient</span>
 
-<span class="kn">from</span> <span class="nn">etna.dags.project_name</span> <span class="kn">import</span> <span class="n">get_project_name</span>
-<span class="kn">from</span> <span class="nn">etna.hooks.connections</span> <span class="kn">import</span> <span class="n">find_first_valid_connection</span>
-<span class="kn">from</span> <span class="nn">etna.hooks.etna</span> <span class="kn">import</span> <span class="n">EtnaHook</span>
-<span class="kn">from</span> <span class="nn">etna.hooks.git</span> <span class="kn">import</span> <span class="n">GitHook</span>
+<span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
+<span class="kn">from</span> <span class="nn">airflow.models</span> <span class="kn">import</span> <span class="n">Variable</span>
+<span class="kn">from</span> <span class="nn">airflow.operators.python</span> <span class="kn">import</span> <span class="n">get_current_context</span>
+<span class="kn">from</span> <span class="nn">airflow.providers.ssh.hooks.ssh</span> <span class="kn">import</span> <span class="n">SSHHook</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;airflow.task&quot;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">get_project_slack_hook</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">SlackHook</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">SlackHook</span><span class="p">(</span>
-        <span class="n">slack_conn_id</span><span class="o">=</span><span class="n">find_first_valid_connection</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;slack_</span><span class="si">{</span><span class="n">get_project_name</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;slack&quot;</span>
+<span class="k">class</span> <span class="nc">SSHBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">variable_root</span> <span class="o">=</span> <span class="s2">&quot;ssh_ingest_cursor&quot;</span>
+    <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4194304</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook</span><span class="p">:</span> <span class="n">SSHHook</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hook</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">,</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+    <span class="k">def</span> <span class="nf">sftp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SFTPClient</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Configures an SFTP connection. Using Python `with` syntax, so that the</span>
+<span class="sd">        connection is closed after usage.</span>
+
+<span class="sd">        eg:</span>
+<span class="sd">        ```</span>
+<span class="sd">        with hook.sftp() as sftp:</span>
+<span class="sd">            sftp.get(&quot;/directory&quot;)</span>
+<span class="sd">        ```</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ssh</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">()</span>
+
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">get_host_keys</span><span class="p">()</span>
+        <span class="n">keys</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_host_key</span><span class="p">()</span>
         <span class="p">)</span>
-    <span class="p">)</span>
 
+        <span class="n">ssh</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+            <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">get_git_hook</span><span class="p">(</span><span class="n">remote_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GitHook</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">GitHook</span><span class="p">(</span>
-        <span class="n">git_conn_id</span><span class="o">=</span><span class="n">find_first_valid_connection</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git_</span><span class="si">{</span><span class="n">get_project_name</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;git&quot;</span><span class="p">),</span>
-        <span class="n">remote_path</span><span class="o">=</span><span class="n">remote_path</span><span class="p">,</span>
-    <span class="p">)</span>
+        <span class="n">sftp</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
 
+        <span class="k">yield</span> <span class="n">sftp</span>
 
-<span class="k">def</span> <span class="nf">get_etna_hook</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">EtnaHook</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">EtnaHook</span><span class="o">.</span><span class="n">for_project</span><span class="p">()</span>
+        <span class="n">sftp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
+    <span class="k">def</span> <span class="nf">_extra</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">extra</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">extra</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{}</span>
 
-<span class="k">class</span> <span class="nc">RemoteFileBase</span><span class="p">:</span>
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be implemented by a subclass&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_get_extra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default_value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extra</span><span class="p">()</span> <span class="ow">and</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_extra</span><span class="p">()[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extra</span><span class="p">()[</span><span class="n">key</span><span class="p">]</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">full_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be implemented by a subclass&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">default_value</span>
+
+    <span class="k">def</span> <span class="nf">_root_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_extra</span><span class="p">(</span><span class="s2">&quot;root_path&quot;</span><span class="p">,</span> <span class="s2">&quot;SSD&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_key_components</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="n">host_key_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_extra</span><span class="p">(</span><span class="s1">&#39;host_key&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">host_key_str</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Must provide host_key in the connection&#39;s extra options&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">host_key_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="kc">None</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_key_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_components</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_host_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">key_class</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;ssh-rsa&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">RSAKey</span><span class="p">,</span>
+            <span class="s2">&quot;ssh-ed25519&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">Ed25519Key</span><span class="p">,</span>
+            <span class="s2">&quot;ssh-ecdsa&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">ECDSAKey</span><span class="p">,</span>
+            <span class="s2">&quot;ssh-dss&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">DSSKey</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">key_class</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported SSH key type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">key_class</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">()](</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_components</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="p">)</span>
 </pre></div>
 
         </details>
 
             </section>
-                <section id="get_project_slack_hook">
-                            <div class="attr function"><a class="headerlink" href="#get_project_slack_hook">#&nbsp;&nbsp</a>
-
-        
-            <span class="def">def</span>
-            <span class="name">get_project_slack_hook</span><span class="signature">() -&gt; airflow.providers.slack.hooks.slack.SlackHook</span>:
-    </div>
-
-            <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_project_slack_hook</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">SlackHook</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">SlackHook</span><span class="p">(</span>
-        <span class="n">slack_conn_id</span><span class="o">=</span><span class="n">find_first_valid_connection</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;slack_</span><span class="si">{</span><span class="n">get_project_name</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;slack&quot;</span>
-        <span class="p">)</span>
-    <span class="p">)</span>
-</pre></div>
-
-        </details>
-
-    
-
-                </section>
-                <section id="get_git_hook">
-                            <div class="attr function"><a class="headerlink" href="#get_git_hook">#&nbsp;&nbsp</a>
-
-        
-            <span class="def">def</span>
-            <span class="name">get_git_hook</span><span class="signature">(remote_path: str) -&gt; <a href="git.html#GitHook">etna.hooks.git.GitHook</a></span>:
-    </div>
-
-            <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_git_hook</span><span class="p">(</span><span class="n">remote_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GitHook</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">GitHook</span><span class="p">(</span>
-        <span class="n">git_conn_id</span><span class="o">=</span><span class="n">find_first_valid_connection</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git_</span><span class="si">{</span><span class="n">get_project_name</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;git&quot;</span><span class="p">),</span>
-        <span class="n">remote_path</span><span class="o">=</span><span class="n">remote_path</span><span class="p">,</span>
-    <span class="p">)</span>
-</pre></div>
-
-        </details>
-
-    
-
-                </section>
-                <section id="get_etna_hook">
-                            <div class="attr function"><a class="headerlink" href="#get_etna_hook">#&nbsp;&nbsp</a>
-
-        
-            <span class="def">def</span>
-            <span class="name">get_etna_hook</span><span class="signature">() -&gt; <a href="etna.html#EtnaHook">etna.hooks.etna.EtnaHook</a></span>:
-    </div>
-
-            <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_etna_hook</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">EtnaHook</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">EtnaHook</span><span class="o">.</span><span class="n">for_project</span><span class="p">()</span>
-</pre></div>
-
-        </details>
-
-    
-
-                </section>
-                <section id="RemoteFileBase">
+                <section id="SSHBase">
                                 <div class="attr class">
-        <a class="headerlink" href="#RemoteFileBase">#&nbsp;&nbsp</a>
+        <a class="headerlink" href="#SSHBase">#&nbsp;&nbsp</a>
 
         
         <span class="def">class</span>
-        <span class="name">RemoteFileBase</span>:
+        <span class="name">SSHBase</span>:
     </div>
 
             <details>
             <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span class="k">class</span> <span class="nc">RemoteFileBase</span><span class="p">:</span>
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be implemented by a subclass&quot;</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span class="k">class</span> <span class="nc">SSHBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">variable_root</span> <span class="o">=</span> <span class="s2">&quot;ssh_ingest_cursor&quot;</span>
+    <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4194304</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">full_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be implemented by a subclass&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook</span><span class="p">:</span> <span class="n">SSHHook</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hook</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">,</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+    <span class="k">def</span> <span class="nf">sftp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SFTPClient</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Configures an SFTP connection. Using Python `with` syntax, so that the</span>
+<span class="sd">        connection is closed after usage.</span>
+
+<span class="sd">        eg:</span>
+<span class="sd">        ```</span>
+<span class="sd">        with hook.sftp() as sftp:</span>
+<span class="sd">            sftp.get(&quot;/directory&quot;)</span>
+<span class="sd">        ```</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ssh</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">()</span>
+
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">get_host_keys</span><span class="p">()</span>
+        <span class="n">keys</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_host_key</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="n">ssh</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+            <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+
+        <span class="n">sftp</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
+
+        <span class="k">yield</span> <span class="n">sftp</span>
+
+        <span class="n">sftp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_extra</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">extra</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">extra</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">_get_extra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default_value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extra</span><span class="p">()</span> <span class="ow">and</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_extra</span><span class="p">()[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extra</span><span class="p">()[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">default_value</span>
+
+    <span class="k">def</span> <span class="nf">_root_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_extra</span><span class="p">(</span><span class="s2">&quot;root_path&quot;</span><span class="p">,</span> <span class="s2">&quot;SSD&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_key_components</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="n">host_key_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_extra</span><span class="p">(</span><span class="s1">&#39;host_key&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">host_key_str</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="s2">&quot;Must provide host_key in the connection&#39;s extra options&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">host_key_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="kc">None</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_key_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_components</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_host_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">key_class</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;ssh-rsa&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">RSAKey</span><span class="p">,</span>
+            <span class="s2">&quot;ssh-ed25519&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">Ed25519Key</span><span class="p">,</span>
+            <span class="s2">&quot;ssh-ecdsa&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">ECDSAKey</span><span class="p">,</span>
+            <span class="s2">&quot;ssh-dss&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">DSSKey</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">key_class</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported SSH key type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">key_class</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">()](</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_components</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="p">)</span>
 </pre></div>
 
         </details>
 
     
 
-                            <div id="RemoteFileBase.__init__" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#RemoteFileBase.__init__">#&nbsp;&nbsp</a>
+                            <div id="SSHBase.__init__" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#SSHBase.__init__">#&nbsp;&nbsp</a>
 
         
-            <span class="name">RemoteFileBase</span><span class="signature">()</span>
+            <span class="name">SSHBase</span><span class="signature">(hook: airflow.providers.ssh.hooks.ssh.SSHHook)</span>
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hook</span><span class="p">:</span> <span class="n">SSHHook</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hook</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">,</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="SSHBase.variable_root" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#SSHBase.variable_root">#&nbsp;&nbsp</a>
+
+        <span class="name">variable_root</span><span class="default_value"> = &#39;ssh_ingest_cursor&#39;</span>
     </div>
 
     
     
 
                             </div>
-                            <div id="RemoteFileBase.name" class="classattr">
-                                            <div class="attr variable"><a class="headerlink" href="#RemoteFileBase.name">#&nbsp;&nbsp</a>
+                            <div id="SSHBase.chunk_size" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#SSHBase.chunk_size">#&nbsp;&nbsp</a>
 
-        <span class="name">name</span><span class="annotation">: str</span>
+        <span class="name">chunk_size</span><span class="annotation">: int</span><span class="default_value"> = 4194304</span>
     </div>
 
     
     
 
                             </div>
-                            <div id="RemoteFileBase.full_path" class="classattr">
-                                            <div class="attr variable"><a class="headerlink" href="#RemoteFileBase.full_path">#&nbsp;&nbsp</a>
+                            <div id="SSHBase.sftp" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#SSHBase.sftp">#&nbsp;&nbsp</a>
 
-        <span class="name">full_path</span><span class="annotation">: str</span>
+                <div class="decorator">@contextlib.contextmanager</div>
+
+            <span class="def">def</span>
+            <span class="name">sftp</span><span class="signature">(self) -&gt; paramiko.sftp_client.SFTPClient</span>:
     </div>
 
-    
-    
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+    <span class="k">def</span> <span class="nf">sftp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SFTPClient</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Configures an SFTP connection. Using Python `with` syntax, so that the</span>
+<span class="sd">        connection is closed after usage.</span>
+
+<span class="sd">        eg:</span>
+<span class="sd">        ```</span>
+<span class="sd">        with hook.sftp() as sftp:</span>
+<span class="sd">            sftp.get(&quot;/directory&quot;)</span>
+<span class="sd">        ```</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ssh</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">()</span>
+
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">get_host_keys</span><span class="p">()</span>
+        <span class="n">keys</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_host_key</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="n">ssh</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+            <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+
+        <span class="n">sftp</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
+
+        <span class="k">yield</span> <span class="n">sftp</span>
+
+        <span class="n">sftp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Configures an SFTP connection. Using Python <code>with</code> syntax, so that the
+connection is closed after usage.</p>
+
+<p>eg:</p>
+
+<pre><code>with hook.sftp() as sftp:
+    sftp.get("/directory")
+</code></pre>
+</div>
+
 
                             </div>
                 </section>
