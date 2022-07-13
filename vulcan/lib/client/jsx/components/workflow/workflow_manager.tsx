@@ -101,7 +101,8 @@ export default function WorkflowManager({
     let session = {
       ...defaultSession,
       workflow_name: cwlName(workflowName) || workflowName,
-      project_name: projectName
+      project_name: projectName,
+      inputs: workflow ? defaultInputs(workflow) : defaultSession.inputs
     };
     dispatch(setSession(session));
   }, [workflowName, state, projectName, dispatch]);
