@@ -10,6 +10,8 @@ import re
 from logging import Logger
 from typing import Union, Literal, List, Optional, Tuple, Callable, Dict, Any, Iterable, Mapping
 
+from serde.json import to_json
+
 import typing
 from airflow import DAG
 from airflow.decorators import task
@@ -580,7 +582,14 @@ class MetisEtlHelpers:
             project_name = matches[0].project_name
             bucket_name = matches[0].bucket_name
             with self.hook.metis() as metis:
-                files_by_parent_id = { k: list(v) for k, v in itertools.groupby(metis.tail(project_name, bucket_name, 'files', folder_id=[m.folder_id for m in matches])[0], key=lambda file: file.folder_id) }
+                files_by_parent_id = {}
+                for f in metis.tail(project_name, bucket_name, 'files', folder_id=[m.folder_id for m in matches])[0]:
+                    folder_id = f.folder_id
+                    if folder_id not in files_by_parent_id:
+                        files_by_parent_id[folder_id] = []
+
+                    files_by_parent_id[folder_id].append(f)
+
                 return [
                     (m, files_by_parent_id.get(m.folder_id) or [])
                     for m in matches
