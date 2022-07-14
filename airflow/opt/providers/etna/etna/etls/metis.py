@@ -732,7 +732,7 @@ def _load_metis_files_and_folders_batch(
     if type == 'folder':
         tail_type = 'folders'
 
-    files, folders = metis.tail(project_name, bucket_name, tail_type, start, end)
+    files, folders = metis.tail(project_name, bucket_name, tail_type, start, end, include_parents=True)
 
     if type == "file":
         return files
