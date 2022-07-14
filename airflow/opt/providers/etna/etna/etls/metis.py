@@ -1,8 +1,6 @@
 import dataclasses
 import difflib
 import functools
-import io
-import itertools
 import json
 import logging
 import os.path
@@ -11,14 +9,12 @@ from logging import Logger
 from typing import Union, Literal, List, Optional, Tuple, Callable, Dict, Any, Iterable, Mapping
 
 import typing
-from airflow import DAG
 from airflow.decorators import task
 from airflow.exceptions import AirflowException
-from airflow.models.taskinstance import Context, TaskInstance
+from airflow.models.taskinstance import Context
 from airflow.models.xcom_arg import XComArg
 from airflow.operators.python import get_current_context
 from serde import serialize, deserialize, from_dict, to_dict
-from serde.json import from_json
 
 from etna.dags.project_name import get_project_name
 from etna.etls.etl_task_batching import get_batch_range
@@ -32,7 +28,6 @@ from mountetna import (
     Model,
     Template
 )
-from etna.operators import DockerOperatorBase
 from etna.utils.inject import inject
 from etna.utils.iterables import batch_iterable
 from etna.xcom.etna_xcom import pickled
@@ -580,7 +575,14 @@ class MetisEtlHelpers:
             project_name = matches[0].project_name
             bucket_name = matches[0].bucket_name
             with self.hook.metis() as metis:
-                files_by_parent_id = { k: list(v) for k, v in itertools.groupby(metis.tail(project_name, bucket_name, 'files', folder_id=[m.folder_id for m in matches])[0], key=lambda file: file.folder_id) }
+                files_by_parent_id = {}
+                for f in metis.tail(project_name, bucket_name, 'files', folder_id=[m.folder_id for m in matches])[0]:
+                    folder_id = f.folder_id
+                    if folder_id not in files_by_parent_id:
+                        files_by_parent_id[folder_id] = []
+
+                    files_by_parent_id[folder_id].append(f)
+
                 return [
                     (m, files_by_parent_id.get(m.folder_id) or [])
                     for m in matches
