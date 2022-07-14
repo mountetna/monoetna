@@ -11,8 +11,6 @@ module Etna
           :filesystem, :logger, :stub_files, :concurrency,
           :record_names, keyword_init: true)
 
-        DOWNLOAD_REGEX = /^https:\/\/[^\/]*\/(?<project_name>.*)\/download\/(?<bucket_name>.*)\/(?<file_path>[^\?]*).*$/
-
         def initialize(**kwds)
           super(**({filesystem: Etna::Filesystem.new, concurrency: 10, record_names: "all"}.update(kwds)))
         end
