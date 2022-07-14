@@ -13,6 +13,7 @@ from airflow.hooks.base import BaseHook
 from airflow.models import Connection, Variable
 from airflow.operators.python import get_current_context
 from etna.dags.project_name import get_project_name
+from etna.hooks.hook_helpers import RemoteFileBase
 
 
 class BoxHook(BaseHook):
@@ -86,11 +87,15 @@ class BoxHook(BaseHook):
 log = logging.getLogger("airflow.task")
 
 
-class FtpEntry(object):
+class FtpEntry(RemoteFileBase):
     def __init__(self, tuple, parent_path: str):
-        self.name = tuple[0]
+        self._name = tuple[0]
         self.metadata = tuple[1]
         self.folder_path = parent_path
+
+    @property
+    def name(self) -> str:
+        return self._name
 
     @property
     def size(self) -> int:
