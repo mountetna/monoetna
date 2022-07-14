@@ -56,6 +56,8 @@ def find_local_network_ids(cli: APIClient, data: Dict) -> Set[str]:
 def create_service_definition(
     data: Dict,
     local_network_ids: Optional[Set[str]] = None,
+    allow_manager_nodes: Optional[bool] = False,
+    resources: Optional[Resources] = None,
 ) -> SwarmServiceDefinition:
 
     spec = data["Spec"]
@@ -66,6 +68,15 @@ def create_service_definition(
     if local_network_ids is not None:
         networks = [n for n in networks if n["Target"] in local_network_ids]
 
+    placement = task_template.setdefault("Placement", {})
+    if not allow_manager_nodes:
+        constraints = [
+            c for c in placement.get("Constraints", [])
+            if "node.role" not in c
+        ]
+        constraints.append("node.role!=manager")
+        placement["Constraints"] = constraints
+
     return SwarmServiceDefinition(
         image=container_spec["Image"],
         command=container_spec.get("Command", None),
@@ -75,9 +86,9 @@ def create_service_definition(
         tty=container_spec.get("TTY", None),
         configs=container_spec.get("Configs", []),
         secrets=container_spec.get("Secrets", []),
-        resources=task_template.get("Resources", None),
+        resources=resources or container_spec.get("Resources", None),
         networks=networks,
-        placement=task_template.get("Placement", None),
+        placement=placement,
     )
 
 
@@ -149,18 +160,37 @@ def swarm_cleanup(cli: APIClient):
 
 class DockerSwarmOperator(DockerOperatorBase):
     include_external_networks: Optional[bool]
+    allow_manager_nodes: Optional[bool]
     source_service: str
     service: Mapping
+    # NanoCpus (1 cpu = 1e9)
+    cpu_limit: Optional[int]
+    # Bytes (1KB = 1024, 1MB = 1024 * 1024, 1GIG = 1024 * 1024 * 1024)
+    mem_limit: Optional[int]
+    cpu_reservation: Optional[int]
+    mem_reservation: Optional[int]
 
     def __init__(
-        self,
+            self,
         *args,
         source_service: str,
         include_external_networks: Optional[bool] = False,
+        allow_manager_nodes: Optional[bool] = False,
+        # NanoCpus (1 cpu = 1e9)
+        cpu_limit: Optional[int] = int(1e9 * 0.5),
+        # Bytes (1KB = 1024, 1MB = 1024 * 1024, 1GIG = 1024 * 1024 * 1024)
+        mem_limit: Optional[int] = None,
+        cpu_reservation: Optional[int] = None,
+        mem_reservation: Optional[int] = None,
         **kwds,
     ):
+        self.mem_reservation = mem_reservation
+        self.cpu_reservation = cpu_reservation
+        self.mem_limit = mem_limit
+        self.cpu_limit = cpu_limit
         self.source_service = source_service
         self.include_external_networks = include_external_networks
+        self.allow_manager_nodes = allow_manager_nodes
         super(DockerSwarmOperator, self).__init__(*args, **kwds)
 
     def _start_task(self):
@@ -170,10 +200,16 @@ class DockerSwarmOperator(DockerOperatorBase):
             local_network_ids = find_local_network_ids(self.cli, service_data)
 
         command = DockerOperator.format_command(self.command)
-        # TODO: Add in the shared data configs!
         service_definition = create_service_definition(
             service_data,
             local_network_ids,
+            allow_manager_nodes=self.allow_manager_nodes,
+            resources=Resources(
+                cpu_limit=self.cpu_limit,
+                cpu_reservation=self.cpu_reservation,
+                mem_limit=self.mem_limit,
+                mem_reservation=self.mem_reservation,
+            )
         )
         service_definition.command = command
 
