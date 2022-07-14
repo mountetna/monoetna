@@ -32,7 +32,9 @@ export function NumberInput(
 
   // Catch & show non-user value updates.
   useEffect(() => {
-    onNewFloat(from_num(withDefault(props.value,null)), true)
+    if (props.value !== null) {
+      onNewFloat(from_num(withDefault(props.value,null)), true)
+    }
   }, [props.value])
   
   return (
