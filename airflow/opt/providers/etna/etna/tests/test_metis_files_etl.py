@@ -144,6 +144,7 @@ def test_metis_files_etl_e2e(reset_db, token_etna_connection: Connection):
         end_date, test_loading_metis_files, record_matches_task_id
     )
     assert len(results) > 0
+    assert all([len(r[1]) != 1 for r in results])
 
 
 @pytest.mark.vcr
