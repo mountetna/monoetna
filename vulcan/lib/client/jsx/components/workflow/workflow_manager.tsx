@@ -16,7 +16,8 @@ import StepsList from './steps/steps_list';
 import {
   setSession,
   setWorkflow,
-  setSessionAndFigureSeparately
+  setSessionAndFigureSeparately,
+  setAutoPassStep
 } from '../../actions/vulcan_actions';
 import {
   defaultFigure,
@@ -104,6 +105,9 @@ export default function WorkflowManager({
       project_name: projectName,
       inputs: workflow ? defaultInputs(workflow) : defaultSession.inputs
     };
+    if (workflow?.vignette?.includes("Primary inputs are skippable")) {
+      dispatch(setAutoPassStep(null))
+    }
     dispatch(setSession(session));
   }, [workflowName, state, projectName, dispatch]);
 
