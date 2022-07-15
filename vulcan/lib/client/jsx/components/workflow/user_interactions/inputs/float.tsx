@@ -15,35 +15,35 @@ export function NumberInput(
   block_decimal=false
   ) {
   const value = useSetsDefault(0, props.value, onChange); // Had to replace selectDefaultNumber(data) with 0 due how the component can be cleared.  NaN was not an option because of cross-language conversion.
-  const [inputState, setInputState] = useState({text: from_num(value), hasError: false})
-  const onNewFloat = useCallback(
-    (value: string, onlyInputState: boolean = false) => {
+  const [inputText, setInputText] = useState(from_num(value))
+  const [hasError, setHasError] = useState(props.value==some(null))
+  const [sentValue, setSentValue] = useState(props.value)
+  const onNewEntry = useCallback(
+    (text: string, onlyInputState: boolean = false) => {
       const parser = ( block_decimal ) ? parseIntBetter : Number
-      const parsed = parser(value)
-      if (isNaN(parsed)) {
-        setInputState({text: value, hasError: true})
-        if (!onlyInputState) onChange([null])
-      } else {
-        setInputState({text: value, hasError: false})
-        if (!onlyInputState) onChange(some(parsed))
-      }
+      const parsed = parser(text)
+      const newVal = (isNaN(parsed)) ? some(null) : some(parsed)
+      setInputText(text)
+      setSentValue(newVal)
+      if (!onlyInputState) onChange(newVal)
     },
     [onChange]) // todo: better typing for event
 
   // Catch & show non-user value updates.
   useEffect(() => {
-    if (props.value !== null) {
-      onNewFloat(from_num(withDefault(props.value,null)), true)
+    if (props.value != sentValue) {
+      onNewEntry(from_num(withDefault(props.value,null)), true)
     }
+    setHasError(sentValue==null || sentValue[0]==null)
   }, [props.value])
   
   return (
     <div style={{paddingTop: label ? 8 : 0}}>
       <TextField
-        value={inputState.text}
+        value={inputText}
         label={label}
-        error={inputState.hasError}
-        onChange={(event) => onNewFloat(event.target.value)}
+        error={hasError}
+        onChange={(event) => onNewEntry(event.target.value)}
         size="small"
         style={{minWidth: minWidth || 200}}
       />
