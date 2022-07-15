@@ -23,6 +23,13 @@ def run_on_docker(
     output_b64: bool = False,
     docker_base_url="unix://var/run/docker.sock",
     include_external_networks=False,
+    # NanoCpus (1 cpu = 1e9)
+    cpu_limit: Optional[int] = int(1e9 * 0.5),
+    # Bytes (1KB = 1024, 1MB = 1024 * 1024, 1GIG = 1024 * 1024 * 1024)
+    mem_limit: Optional[int] = None,
+    cpu_reservation: Optional[int] = None,
+    mem_reservation: Optional[int] = None,
+    allow_manager_nodes=False,
 ) -> DockerOperatorBase:
     if os.environ.get("DEV_MODE"):
         return run_in_container(
@@ -43,6 +50,11 @@ def run_on_docker(
         output_b64=output_b64,
         docker_base_url=docker_base_url,
         include_external_networks=include_external_networks,
+        allow_manager_nodes=allow_manager_nodes,
+        cpu_limit=cpu_limit,
+        cpu_reservation=cpu_reservation,
+        mem_reservation=mem_reservation,
+        mem_limit=mem_limit,
     )
 
 
@@ -55,6 +67,13 @@ def run_in_swarm(
     output_b64: bool = False,
     docker_base_url="unix://var/run/docker.sock",
     include_external_networks: Optional[bool] = False,
+    # NanoCpus (1 cpu = 1e9)
+    cpu_limit: Optional[int] = int(1e9 * 0.5),
+    # Bytes (1KB = 1024, 1MB = 1024 * 1024, 1GIG = 1024 * 1024 * 1024)
+    mem_limit: Optional[int] = None,
+    cpu_reservation: Optional[int] = None,
+    mem_reservation: Optional[int] = None,
+    allow_manager_nodes=False,
 ) -> DockerSwarmOperator:
     serialize_last_output = _prepare_input_outputs(output_b64, output_json)
 
@@ -66,6 +85,11 @@ def run_in_swarm(
         serialize_last_output=serialize_last_output,
         env=env,
         docker_base_url=docker_base_url,
+        allow_manager_nodes=allow_manager_nodes,
+        cpu_limit=cpu_limit,
+        cpu_reservation=cpu_reservation,
+        mem_reservation=mem_reservation,
+        mem_limit=mem_limit,
     )
 
 

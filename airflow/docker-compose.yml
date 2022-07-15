@@ -58,6 +58,7 @@ services:
     volumes:
       - ./opt/providers:/opt/airflow/providers
       - ./logs:/opt/airflow/logs
+      - ../etna/packages/etna-py:/etna-py
       - airflow-dags:/opt/airflow/dags
     environment:
       <<: *airflow-env
