@@ -575,13 +575,9 @@ class MetisEtlHelpers:
             project_name = matches[0].project_name
             bucket_name = matches[0].bucket_name
             with self.hook.metis() as metis:
-                files_by_parent_id = {}
-                for f in metis.tail(project_name, bucket_name, 'files', folder_id=[m.folder_id for m in matches])[0]:
-                    folder_id = f.folder_id
-                    if folder_id not in files_by_parent_id:
-                        files_by_parent_id[folder_id] = []
-
-                    files_by_parent_id[folder_id].append(f)
+                files_by_parent_id = self._group_files_by_folder(
+                    metis.tail(project_name, bucket_name, 'files', folder_id=[m.folder_id for m in matches])[0]
+                )
 
                 return [
                     (m, files_by_parent_id.get(m.folder_id) or [])
@@ -589,6 +585,20 @@ class MetisEtlHelpers:
                 ]
 
         return list_match_folders(matches)
+
+    def _group_files_by_folder(
+        self,
+        files: List[File]):
+
+        files_by_parent_id = {}
+        for f in files:
+            folder_id = f.folder_id
+            if folder_id not in files_by_parent_id:
+                files_by_parent_id[folder_id] = []
+
+            files_by_parent_id[folder_id].append(f)
+
+        return files_by_parent_id
 
 
 def filter_by_exists_in_timur(
@@ -732,7 +742,7 @@ def _load_metis_files_and_folders_batch(
     if type == 'folder':
         tail_type = 'folders'
 
-    files, folders = metis.tail(project_name, bucket_name, tail_type, start, end)
+    files, folders = metis.tail(project_name, bucket_name, tail_type, start, end, include_parents=True)
 
     if type == "file":
         return files

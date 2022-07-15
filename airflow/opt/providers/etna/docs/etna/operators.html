@@ -90,6 +90,13 @@
     <span class="n">output_b64</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">docker_base_url</span><span class="o">=</span><span class="s2">&quot;unix://var/run/docker.sock&quot;</span><span class="p">,</span>
     <span class="n">include_external_networks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="c1"># NanoCpus (1 cpu = 1e9)</span>
+    <span class="n">cpu_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e9</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">),</span>
+    <span class="c1"># Bytes (1KB = 1024, 1MB = 1024 * 1024, 1GIG = 1024 * 1024 * 1024)</span>
+    <span class="n">mem_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DockerOperatorBase</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;DEV_MODE&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">run_in_container</span><span class="p">(</span>
@@ -110,6 +117,11 @@
         <span class="n">output_b64</span><span class="o">=</span><span class="n">output_b64</span><span class="p">,</span>
         <span class="n">docker_base_url</span><span class="o">=</span><span class="n">docker_base_url</span><span class="p">,</span>
         <span class="n">include_external_networks</span><span class="o">=</span><span class="n">include_external_networks</span><span class="p">,</span>
+        <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="n">allow_manager_nodes</span><span class="p">,</span>
+        <span class="n">cpu_limit</span><span class="o">=</span><span class="n">cpu_limit</span><span class="p">,</span>
+        <span class="n">cpu_reservation</span><span class="o">=</span><span class="n">cpu_reservation</span><span class="p">,</span>
+        <span class="n">mem_reservation</span><span class="o">=</span><span class="n">mem_reservation</span><span class="p">,</span>
+        <span class="n">mem_limit</span><span class="o">=</span><span class="n">mem_limit</span><span class="p">,</span>
     <span class="p">)</span>
 
 
@@ -122,6 +134,13 @@
     <span class="n">output_b64</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">docker_base_url</span><span class="o">=</span><span class="s2">&quot;unix://var/run/docker.sock&quot;</span><span class="p">,</span>
     <span class="n">include_external_networks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="c1"># NanoCpus (1 cpu = 1e9)</span>
+    <span class="n">cpu_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e9</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">),</span>
+    <span class="c1"># Bytes (1KB = 1024, 1MB = 1024 * 1024, 1GIG = 1024 * 1024 * 1024)</span>
+    <span class="n">mem_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DockerSwarmOperator</span><span class="p">:</span>
     <span class="n">serialize_last_output</span> <span class="o">=</span> <span class="n">_prepare_input_outputs</span><span class="p">(</span><span class="n">output_b64</span><span class="p">,</span> <span class="n">output_json</span><span class="p">)</span>
 
@@ -133,6 +152,11 @@
         <span class="n">serialize_last_output</span><span class="o">=</span><span class="n">serialize_last_output</span><span class="p">,</span>
         <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span>
         <span class="n">docker_base_url</span><span class="o">=</span><span class="n">docker_base_url</span><span class="p">,</span>
+        <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="n">allow_manager_nodes</span><span class="p">,</span>
+        <span class="n">cpu_limit</span><span class="o">=</span><span class="n">cpu_limit</span><span class="p">,</span>
+        <span class="n">cpu_reservation</span><span class="o">=</span><span class="n">cpu_reservation</span><span class="p">,</span>
+        <span class="n">mem_reservation</span><span class="o">=</span><span class="n">mem_reservation</span><span class="p">,</span>
+        <span class="n">mem_limit</span><span class="o">=</span><span class="n">mem_limit</span><span class="p">,</span>
     <span class="p">)</span>
 
 
@@ -191,7 +215,12 @@
     output_json: Union[bool, Type] = False,
     output_b64: bool = False,
     docker_base_url=&#39;unix://var/run/docker.sock&#39;,
-    include_external_networks=False
+    include_external_networks=False,
+    cpu_limit: Union[int, NoneType] = 500000000,
+    mem_limit: Union[int, NoneType] = None,
+    cpu_reservation: Union[int, NoneType] = None,
+    mem_reservation: Union[int, NoneType] = None,
+    allow_manager_nodes=False
 ) -&gt; <a href="operators/docker_operator_base.html#DockerOperatorBase">etna.operators.docker_operator_base.DockerOperatorBase</a></span>:
     </div>
 
@@ -206,6 +235,13 @@
     <span class="n">output_b64</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">docker_base_url</span><span class="o">=</span><span class="s2">&quot;unix://var/run/docker.sock&quot;</span><span class="p">,</span>
     <span class="n">include_external_networks</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="c1"># NanoCpus (1 cpu = 1e9)</span>
+    <span class="n">cpu_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e9</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">),</span>
+    <span class="c1"># Bytes (1KB = 1024, 1MB = 1024 * 1024, 1GIG = 1024 * 1024 * 1024)</span>
+    <span class="n">mem_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DockerOperatorBase</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;DEV_MODE&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">run_in_container</span><span class="p">(</span>
@@ -226,6 +262,11 @@
         <span class="n">output_b64</span><span class="o">=</span><span class="n">output_b64</span><span class="p">,</span>
         <span class="n">docker_base_url</span><span class="o">=</span><span class="n">docker_base_url</span><span class="p">,</span>
         <span class="n">include_external_networks</span><span class="o">=</span><span class="n">include_external_networks</span><span class="p">,</span>
+        <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="n">allow_manager_nodes</span><span class="p">,</span>
+        <span class="n">cpu_limit</span><span class="o">=</span><span class="n">cpu_limit</span><span class="p">,</span>
+        <span class="n">cpu_reservation</span><span class="o">=</span><span class="n">cpu_reservation</span><span class="p">,</span>
+        <span class="n">mem_reservation</span><span class="o">=</span><span class="n">mem_reservation</span><span class="p">,</span>
+        <span class="n">mem_limit</span><span class="o">=</span><span class="n">mem_limit</span><span class="p">,</span>
     <span class="p">)</span>
 </pre></div>
 
@@ -247,7 +288,12 @@
     output_json: Union[bool, Type] = False,
     output_b64: bool = False,
     docker_base_url=&#39;unix://var/run/docker.sock&#39;,
-    include_external_networks: Union[bool, NoneType] = False
+    include_external_networks: Union[bool, NoneType] = False,
+    cpu_limit: Union[int, NoneType] = 500000000,
+    mem_limit: Union[int, NoneType] = None,
+    cpu_reservation: Union[int, NoneType] = None,
+    mem_reservation: Union[int, NoneType] = None,
+    allow_manager_nodes=False
 ) -&gt; <a href="operators/swarm_operator.html#DockerSwarmOperator">etna.operators.swarm_operator.DockerSwarmOperator</a></span>:
     </div>
 
@@ -262,6 +308,13 @@
     <span class="n">output_b64</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">docker_base_url</span><span class="o">=</span><span class="s2">&quot;unix://var/run/docker.sock&quot;</span><span class="p">,</span>
     <span class="n">include_external_networks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="c1"># NanoCpus (1 cpu = 1e9)</span>
+    <span class="n">cpu_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e9</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">),</span>
+    <span class="c1"># Bytes (1KB = 1024, 1MB = 1024 * 1024, 1GIG = 1024 * 1024 * 1024)</span>
+    <span class="n">mem_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DockerSwarmOperator</span><span class="p">:</span>
     <span class="n">serialize_last_output</span> <span class="o">=</span> <span class="n">_prepare_input_outputs</span><span class="p">(</span><span class="n">output_b64</span><span class="p">,</span> <span class="n">output_json</span><span class="p">)</span>
 
@@ -273,6 +326,11 @@
         <span class="n">serialize_last_output</span><span class="o">=</span><span class="n">serialize_last_output</span><span class="p">,</span>
         <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span>
         <span class="n">docker_base_url</span><span class="o">=</span><span class="n">docker_base_url</span><span class="p">,</span>
+        <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="n">allow_manager_nodes</span><span class="p">,</span>
+        <span class="n">cpu_limit</span><span class="o">=</span><span class="n">cpu_limit</span><span class="p">,</span>
+        <span class="n">cpu_reservation</span><span class="o">=</span><span class="n">cpu_reservation</span><span class="p">,</span>
+        <span class="n">mem_reservation</span><span class="o">=</span><span class="n">mem_reservation</span><span class="p">,</span>
+        <span class="n">mem_limit</span><span class="o">=</span><span class="n">mem_limit</span><span class="p">,</span>
     <span class="p">)</span>
 </pre></div>
 

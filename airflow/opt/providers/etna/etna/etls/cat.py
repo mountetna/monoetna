@@ -62,7 +62,8 @@ class CatEtlHelpers(RemoteHelpersBase):
         self,
         files: XComArg,
         folder_path: str = None,
-        remove_magic_string: bool = True) -> XComArg:
+        remove_magic_string: bool = True,
+        batch_size: int = 5) -> XComArg:
         """
         Given a list of CAT files, will copy them to the given C4 path,
         mimicking the full directory structure from the CAT.
@@ -71,12 +72,14 @@ class CatEtlHelpers(RemoteHelpersBase):
             files: List of files from tail_files or filter_files call
             folder_path: str, existing folder path to dump the files in. Default is C4 root_path configuration + folder structure on CAT.
             remove_magic_string: bool, remove the magic string from the file name. Default is True.
+            batch_size: int, will save the cursor every X files that are ingested. Default is 5.
         """
         @task
         def ingest(files, folder_path):
             c4_hook = C4Hook.for_project()
             with c4_hook.c4() as c4, self.hook.cat() as cat:
                 self.log.info(f"Attempting to upload {len(files)} files to C4")
+                num_ingested = 0
                 for file in files:
                     if cat.file_ingested_to_system("c4", file):
                         self.log.info(f"Skipping {file.name} because it has already been ingested.")
@@ -99,6 +102,9 @@ class CatEtlHelpers(RemoteHelpersBase):
                         )
                     cat.mark_file_as_ingested("c4", file)
                     self.log.info(f"Done ingesting {file.full_path}.")
+                    num_ingested += 1
+                    if num_ingested % batch_size == 0:
+                        cat.update_cursor("c4")
                 cat.update_cursor("c4")
 
         return ingest(files, folder_path)
@@ -109,7 +115,8 @@ class CatEtlHelpers(RemoteHelpersBase):
         project_name: str = "triage",
         bucket_name: str = "waiting_room",
         folder_path: str = None,
-        remove_magic_string: bool = True) -> XComArg:
+        remove_magic_string: bool = True,
+        batch_size: int = 5) -> XComArg:
         """
         Given a list of files, will copy them to the given Metis project_name and bucket_name,
         mimicking the full directory structure from the CAT.
@@ -120,12 +127,14 @@ class CatEtlHelpers(RemoteHelpersBase):
             bucket_name: str, the target Metis bucket name. Default is `waiting_room`
             folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.
             remove_magic_string: bool, remove the magic string from the file name. Default is True.
+            batch_size: int, will save the cursor every X files that are ingested. Default is 5.
         """
         @task
         def ingest(files, project_name, bucket_name, folder_path):
             etna_hook = EtnaHook.for_project(project_name)
             with etna_hook.metis(project_name, read_only=False) as metis, self.hook.cat() as cat:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
+                num_ingested = 0
                 for file in files:
                     if cat.file_ingested_to_system("metis", file):
                         self.log.info(f"Skipping {file.name} because it has already been ingested.")
@@ -156,6 +165,9 @@ class CatEtlHelpers(RemoteHelpersBase):
                         )
                     cat.mark_file_as_ingested("metis", file)
                     self.log.info(f"Done ingesting {file.full_path}.")
+                    num_ingested += 1
+                    if num_ingested % batch_size == 0:
+                        cat.update_cursor("metis")
                 cat.update_cursor("metis")
 
         return ingest(files, project_name, bucket_name, folder_path)
