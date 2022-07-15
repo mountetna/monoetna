@@ -1387,7 +1387,14 @@ including the <code>magic_string</code> in CAT.</p>
             <span class="n">project_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">project_name</span>
             <span class="n">bucket_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bucket_name</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">metis</span><span class="p">()</span> <span class="k">as</span> <span class="n">metis</span><span class="p">:</span>
-                <span class="n">files_by_parent_id</span> <span class="o">=</span> <span class="p">{</span> <span class="n">k</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">metis</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="n">folder_id</span><span class="o">=</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">])[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">file</span><span class="p">:</span> <span class="n">file</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="p">}</span>
+                <span class="n">files_by_parent_id</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">metis</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="n">folder_id</span><span class="o">=</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">])[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">folder_id</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">folder_id</span>
+                    <span class="k">if</span> <span class="n">folder_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">files_by_parent_id</span><span class="p">:</span>
+                        <span class="n">files_by_parent_id</span><span class="p">[</span><span class="n">folder_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+                    <span class="n">files_by_parent_id</span><span class="p">[</span><span class="n">folder_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
                 <span class="k">return</span> <span class="p">[</span>
                     <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">files_by_parent_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
                     <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span>
@@ -1966,7 +1973,14 @@ in magma / timur, ensuring that any incorrectly named folder does not accidental
             <span class="n">project_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">project_name</span>
             <span class="n">bucket_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bucket_name</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">metis</span><span class="p">()</span> <span class="k">as</span> <span class="n">metis</span><span class="p">:</span>
-                <span class="n">files_by_parent_id</span> <span class="o">=</span> <span class="p">{</span> <span class="n">k</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">metis</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="n">folder_id</span><span class="o">=</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">])[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">file</span><span class="p">:</span> <span class="n">file</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="p">}</span>
+                <span class="n">files_by_parent_id</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">metis</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="n">folder_id</span><span class="o">=</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">])[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">folder_id</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">folder_id</span>
+                    <span class="k">if</span> <span class="n">folder_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">files_by_parent_id</span><span class="p">:</span>
+                        <span class="n">files_by_parent_id</span><span class="p">[</span><span class="n">folder_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+                    <span class="n">files_by_parent_id</span><span class="p">[</span><span class="n">folder_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
                 <span class="k">return</span> <span class="p">[</span>
                     <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">files_by_parent_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
                     <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span>
@@ -2352,7 +2366,8 @@ mimicking the full directory structure from Box.</p>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
         <span class="n">folder_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
+        <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a list of CAT files, will copy them to the given C4 path,</span>
 <span class="sd">        mimicking the full directory structure from the CAT.</span>
@@ -2361,12 +2376,14 @@ mimicking the full directory structure from Box.</p>
 <span class="sd">            files: List of files from tail_files or filter_files call</span>
 <span class="sd">            folder_path: str, existing folder path to dump the files in. Default is C4 root_path configuration + folder structure on CAT.</span>
 <span class="sd">            remove_magic_string: bool, remove the magic string from the file name. Default is True.</span>
+<span class="sd">            batch_size: int, will save the cursor every X files that are ingested. Default is 5.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nd">@task</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">c4_hook</span> <span class="o">=</span> <span class="n">C4Hook</span><span class="o">.</span><span class="n">for_project</span><span class="p">()</span>
             <span class="k">with</span> <span class="n">c4_hook</span><span class="o">.</span><span class="n">c4</span><span class="p">()</span> <span class="k">as</span> <span class="n">c4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempting to upload </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files to C4&quot;</span><span class="p">)</span>
+                <span class="n">num_ingested</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">file_ingested_to_system</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> because it has already been ingested.&quot;</span><span class="p">)</span>
@@ -2389,6 +2406,9 @@ mimicking the full directory structure from Box.</p>
                         <span class="p">)</span>
                     <span class="n">cat</span><span class="o">.</span><span class="n">mark_file_as_ingested</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Done ingesting </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                    <span class="n">num_ingested</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">num_ingested</span> <span class="o">%</span> <span class="n">batch_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">)</span>
                 <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">)</span>
@@ -2399,7 +2419,8 @@ mimicking the full directory structure from Box.</p>
         <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;triage&quot;</span><span class="p">,</span>
         <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;waiting_room&quot;</span><span class="p">,</span>
         <span class="n">folder_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
+        <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a list of files, will copy them to the given Metis project_name and bucket_name,</span>
 <span class="sd">        mimicking the full directory structure from the CAT.</span>
@@ -2410,12 +2431,14 @@ mimicking the full directory structure from Box.</p>
 <span class="sd">            bucket_name: str, the target Metis bucket name. Default is `waiting_room`</span>
 <span class="sd">            folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.</span>
 <span class="sd">            remove_magic_string: bool, remove the magic string from the file name. Default is True.</span>
+<span class="sd">            batch_size: int, will save the cursor every X files that are ingested. Default is 5.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nd">@task</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">etna_hook</span> <span class="o">=</span> <span class="n">EtnaHook</span><span class="o">.</span><span class="n">for_project</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span>
             <span class="k">with</span> <span class="n">etna_hook</span><span class="o">.</span><span class="n">metis</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">metis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempting to upload </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files to Metis&quot;</span><span class="p">)</span>
+                <span class="n">num_ingested</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">file_ingested_to_system</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> because it has already been ingested.&quot;</span><span class="p">)</span>
@@ -2446,6 +2469,9 @@ mimicking the full directory structure from Box.</p>
                         <span class="p">)</span>
                     <span class="n">cat</span><span class="o">.</span><span class="n">mark_file_as_ingested</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Done ingesting </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                    <span class="n">num_ingested</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">num_ingested</span> <span class="o">%</span> <span class="n">batch_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">)</span>
                 <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">)</span>
@@ -2556,7 +2582,8 @@ mimicking the full directory structure from Box.</p>
     self,
     files: airflow.models.xcom_arg.XComArg,
     folder_path: str = None,
-    remove_magic_string: bool = True
+    remove_magic_string: bool = True,
+    batch_size: int = 5
 ) -&gt; airflow.models.xcom_arg.XComArg</span>:
     </div>
 
@@ -2566,7 +2593,8 @@ mimicking the full directory structure from Box.</p>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
         <span class="n">folder_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
+        <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a list of CAT files, will copy them to the given C4 path,</span>
 <span class="sd">        mimicking the full directory structure from the CAT.</span>
@@ -2575,12 +2603,14 @@ mimicking the full directory structure from Box.</p>
 <span class="sd">            files: List of files from tail_files or filter_files call</span>
 <span class="sd">            folder_path: str, existing folder path to dump the files in. Default is C4 root_path configuration + folder structure on CAT.</span>
 <span class="sd">            remove_magic_string: bool, remove the magic string from the file name. Default is True.</span>
+<span class="sd">            batch_size: int, will save the cursor every X files that are ingested. Default is 5.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nd">@task</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">c4_hook</span> <span class="o">=</span> <span class="n">C4Hook</span><span class="o">.</span><span class="n">for_project</span><span class="p">()</span>
             <span class="k">with</span> <span class="n">c4_hook</span><span class="o">.</span><span class="n">c4</span><span class="p">()</span> <span class="k">as</span> <span class="n">c4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempting to upload </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files to C4&quot;</span><span class="p">)</span>
+                <span class="n">num_ingested</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">file_ingested_to_system</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> because it has already been ingested.&quot;</span><span class="p">)</span>
@@ -2603,6 +2633,9 @@ mimicking the full directory structure from Box.</p>
                         <span class="p">)</span>
                     <span class="n">cat</span><span class="o">.</span><span class="n">mark_file_as_ingested</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Done ingesting </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                    <span class="n">num_ingested</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">num_ingested</span> <span class="o">%</span> <span class="n">batch_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">)</span>
                 <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">)</span>
@@ -2616,7 +2649,8 @@ mimicking the full directory structure from the CAT.</p>
 <p>args:
     files: List of files from tail_files or filter_files call
     folder_path: str, existing folder path to dump the files in. Default is C4 root_path configuration + folder structure on CAT.
-    remove_magic_string: bool, remove the magic string from the file name. Default is True.</p>
+    remove_magic_string: bool, remove the magic string from the file name. Default is True.
+    batch_size: int, will save the cursor every X files that are ingested. Default is 5.</p>
 </div>
 
 
@@ -2632,7 +2666,8 @@ mimicking the full directory structure from the CAT.</p>
     project_name: str = &#39;triage&#39;,
     bucket_name: str = &#39;waiting_room&#39;,
     folder_path: str = None,
-    remove_magic_string: bool = True
+    remove_magic_string: bool = True,
+    batch_size: int = 5
 ) -&gt; airflow.models.xcom_arg.XComArg</span>:
     </div>
 
@@ -2644,7 +2679,8 @@ mimicking the full directory structure from the CAT.</p>
         <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;triage&quot;</span><span class="p">,</span>
         <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;waiting_room&quot;</span><span class="p">,</span>
         <span class="n">folder_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
+        <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a list of files, will copy them to the given Metis project_name and bucket_name,</span>
 <span class="sd">        mimicking the full directory structure from the CAT.</span>
@@ -2655,12 +2691,14 @@ mimicking the full directory structure from the CAT.</p>
 <span class="sd">            bucket_name: str, the target Metis bucket name. Default is `waiting_room`</span>
 <span class="sd">            folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.</span>
 <span class="sd">            remove_magic_string: bool, remove the magic string from the file name. Default is True.</span>
+<span class="sd">            batch_size: int, will save the cursor every X files that are ingested. Default is 5.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nd">@task</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">etna_hook</span> <span class="o">=</span> <span class="n">EtnaHook</span><span class="o">.</span><span class="n">for_project</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span>
             <span class="k">with</span> <span class="n">etna_hook</span><span class="o">.</span><span class="n">metis</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">metis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempting to upload </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files to Metis&quot;</span><span class="p">)</span>
+                <span class="n">num_ingested</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">cat</span><span class="o">.</span><span class="n">file_ingested_to_system</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> because it has already been ingested.&quot;</span><span class="p">)</span>
@@ -2691,6 +2729,9 @@ mimicking the full directory structure from the CAT.</p>
                         <span class="p">)</span>
                     <span class="n">cat</span><span class="o">.</span><span class="n">mark_file_as_ingested</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Done ingesting </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                    <span class="n">num_ingested</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">num_ingested</span> <span class="o">%</span> <span class="n">batch_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">)</span>
                 <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">)</span>
@@ -2706,7 +2747,8 @@ mimicking the full directory structure from the CAT.</p>
     project_name: str, the target Metis project name. Default is <code>triage</code>
     bucket_name: str, the target Metis bucket name. Default is <code>waiting_room</code>
     folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.
-    remove_magic_string: bool, remove the magic string from the file name. Default is True.</p>
+    remove_magic_string: bool, remove the magic string from the file name. Default is True.
+    batch_size: int, will save the cursor every X files that are ingested. Default is 5.</p>
 </div>
 
 
