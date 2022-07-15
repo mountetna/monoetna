@@ -601,7 +601,6 @@ class MetisEtlHelpers:
         return files_by_parent_id
 
 
-
 def filter_by_exists_in_timur(
     magma: Magma,
     matched: List[MatchedRecordFolder],
