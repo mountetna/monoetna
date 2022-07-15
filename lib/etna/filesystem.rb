@@ -251,6 +251,8 @@ module Etna
     end
 
     class Metis < Filesystem
+      attr_reader :project_name, :bucket_name
+
       def initialize(metis_client:, project_name:, bucket_name:, root: '/', uuid: SecureRandom.uuid)
         @metis_client = metis_client
         @project_name = project_name
