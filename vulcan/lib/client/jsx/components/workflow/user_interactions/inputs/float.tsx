@@ -16,8 +16,8 @@ export function NumberInput(
   ) {
   const value = useSetsDefault(0, props.value, onChange); // Had to replace selectDefaultNumber(data) with 0 due how the component can be cleared.  NaN was not an option because of cross-language conversion.
   const [inputText, setInputText] = useState(from_num(value))
-  const [sentValue, setSentValue] = useState(some(value))
-  const [hasError, setHasError] = useState(sentValue==null || sentValue[0]==null)
+  const [hasError, setHasError] = useState(props.value==some(null))
+  const [sentValue, setSentValue] = useState(props.value)
   const onNewEntry = useCallback(
     (text: string, onlyInputState: boolean = false) => {
       const parser = ( block_decimal ) ? parseIntBetter : Number
