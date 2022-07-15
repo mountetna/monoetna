@@ -27,6 +27,7 @@ services:
       placement:
         constraints:
           - node.labels.volumes.big-shared == true
+          - node.labels.psql.primary == true
     healthcheck:
       test: pg_isready -q -d airflow -U developer || exit 1
       interval: 10s
