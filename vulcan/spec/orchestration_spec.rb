@@ -201,6 +201,42 @@ describe Vulcan::Orchestration do
           orchestration.run_until_done!(storage)
         }.to raise_error(Vulcan::Orchestration::RunErrors)
       end
+
+      describe 'when dependencies are ignored' do
+        it 'generates new cell hashes' do
+          expect(orchestration.run_until_done!(storage).length).to eql(0)
+          expect(primary_outputs.is_built?(storage)).to eql(false)
+          session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
+          expect(orchestration.run_until_done!(storage).length).to eql(1)
+          expect(primary_outputs.is_built?(storage)).to eql(false)
+          session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
+          session.define_user_input(["pickANum", "num"], 543)
+          expect(orchestration.run_until_done!(storage).length).to eql(3)
+
+          final_data_path_for_session = primary_outputs.build_outputs['the_result'].data_path(storage)
+          
+          ignored_session = Session.new_session_for('project', 'test_workflow.cwl', 'storage_key', {}, reference_figure_id: figure.id, ignore_dependencies: true)
+          ignored_orchestration = ignored_session.orchestration
+
+          expect(ignored_orchestration.run_until_done!(storage).length).to eql(0)
+
+          ignored_primary_outputs = ignored_orchestration.build_target_for(:primary_outputs)
+          expect(ignored_primary_outputs.is_built?(storage)).to eql(false)
+          ignored_session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
+          expect(ignored_orchestration.run_until_done!(storage).length).to eql(1)
+          expect(ignored_primary_outputs.is_built?(storage)).to eql(false)
+          ignored_session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
+          ignored_session.define_user_input(["pickANum", "num"], 543)
+          expect(ignored_orchestration.run_until_done!(storage).length).to eql(3)
+
+          final_data_path_for_ignored_session = ignored_primary_outputs.build_outputs['the_result'].data_path(storage)
+
+          # If the cell_hash / result path has changed, then we'll assume
+          #   the ignore_dependencies flag worked ... at the very least,
+          #   the cache responded correctly. 
+          expect(final_data_path_for_ignored_session).not_to eq(final_data_path_for_session)
+        end
+      end
     end
 
     describe 'specifying a non-existent archimedes sha' do

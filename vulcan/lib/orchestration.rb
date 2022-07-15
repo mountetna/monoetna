@@ -338,6 +338,7 @@ class Vulcan
             output_filenames: output_filenames,
             script: script,
             dependencies: session.dependencies,
+            ignore_dependencies: session.ignore_dependencies
           )
         end
     end
@@ -358,6 +359,7 @@ class Vulcan
         project_name: session.project_name, session_key: session.key,
         material_reference: material_reference,
         dependencies: session.dependencies,
+        ignore_dependencies: session.ignore_dependencies
       )
     end
 

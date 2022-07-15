@@ -24,6 +24,8 @@ class Vulcan
       # Specify the image with sha here
       target = Vulcan.instance.config(:archimedes_interpreters)&.dig(interpreter.to_sym) || Vulcan.instance.config(:archimedes_run_image)
 
+      return target if session.ignore_dependencies
+
       tag_or_latest_image(dependency_name_w_sha(session, target))
     end
 
@@ -37,8 +39,12 @@ class Vulcan
     end
 
     def archimedes_run_sha(session)
+      configured_archimedes = Vulcan.instance.config(:archimedes_run_image)
+
+      return configured_archimedes if session.ignore_dependencies
+
       tag_or_latest_image(
-        dependency_name_w_sha(session, Vulcan.instance.config(:archimedes_run_image))
+        dependency_name_w_sha(session, configured_archimedes)
       )
     end
 

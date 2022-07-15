@@ -3,7 +3,7 @@ require 'securerandom'
 # A vulcan session model.  For now this is just static, but could be made backed by a database, or a browser
 # cookie session, or just about anything we like.
 class Session < Etna::Cwl
-  attr_reader :project_name, :workflow_name, :inputs, :key, :reference_figure_id
+  attr_reader :project_name, :workflow_name, :inputs, :key, :reference_figure_id, :ignore_dependencies
 
   def initialize(attributes)
     @attributes = attributes
@@ -14,15 +14,17 @@ class Session < Etna::Cwl
     @inputs = attributes['inputs']
 
     @reference_figure_id = attributes['reference_figure_id']
+    @ignore_dependencies = attributes['ignore_dependencies']
   end
 
-  def self.new_session_for(project_name, workflow_name, key, inputs = {}, reference_figure_id: nil)
+  def self.new_session_for(project_name, workflow_name, key, inputs = {}, reference_figure_id: nil, ignore_dependencies: false)
     self.new({
         'project_name' => project_name,
         'workflow_name' => workflow_name,
         'key' => key,
         'inputs' => inputs,
-        'reference_figure_id' => reference_figure_id
+        'reference_figure_id' => reference_figure_id,
+        'ignore_dependencies' => ignore_dependencies
     })
   end
 
@@ -32,6 +34,7 @@ class Session < Etna::Cwl
       key: Etna::Cwl::PrimitiveLoader::STRING.optional.map { |v| v.nil? || v.empty? ? SecureRandom.uuid.hex.to_s : v },
       inputs: Etna::Cwl::StrictMapLoader.new(Etna::Cwl::AnyLoader::ANY.map { |v| {json_payload: v}}, Etna::Cwl::SourceLoader.new).optional.map { |v| v || {} },
       reference_figure_id: Etna::Cwl::PrimitiveLoader::INT.optional,
+      ignore_dependencies: Etna::Cwl::PrimitiveLoader::BOOLEAN
   }
 
   def self.from_json(json)
