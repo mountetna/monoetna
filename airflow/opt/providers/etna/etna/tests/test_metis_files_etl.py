@@ -144,7 +144,20 @@ def test_metis_files_etl_e2e(reset_db, token_etna_connection: Connection):
         end_date, test_loading_metis_files, record_matches_task_id
     )
     assert len(results) > 0
-    assert all([len(r[1]) != 1 for r in results])
+
+
+def test_metis_helpers_group_files(reset_db):
+    helpers = MetisEtlHelpers([], [], None)
+
+    grouped_files = helpers._group_files_by_folder(
+        [
+            File(folder_id=1, file_name="file_01.txt"),
+            File(folder_id=2, file_name="file_02.txt"),
+            File(folder_id=1, file_name="file_03.txt"),
+            File(folder_id=2, file_name="file_04.txt")
+        ]
+    )
+    assert all([len(v) == 2 for k, v in grouped_files.items()])
 
 
 @pytest.mark.vcr
