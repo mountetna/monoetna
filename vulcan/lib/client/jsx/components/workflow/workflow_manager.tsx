@@ -105,10 +105,11 @@ export default function WorkflowManager({
       project_name: projectName,
       inputs: workflow ? defaultInputs(workflow) : defaultSession.inputs
     };
+    // To allows correct values to pass through, set session before letting auto-run trigger.
+    dispatch(setSession(session));
     if (workflow?.vignette?.includes("Primary inputs are skippable")) {
       dispatch(setAutoPassStep(null))
     }
-    dispatch(setSession(session));
   }, [workflowName, state, projectName, dispatch]);
 
   const initializeFromStoredSession = useCallback(
