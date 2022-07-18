@@ -163,8 +163,6 @@
             <div class="pdoc-code codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">dataclasses</span>
 <span class="kn">import</span> <span class="nn">difflib</span>
 <span class="kn">import</span> <span class="nn">functools</span>
-<span class="kn">import</span> <span class="nn">io</span>
-<span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os.path</span>
@@ -173,28 +171,25 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
 
 <span class="kn">import</span> <span class="nn">typing</span>
-<span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">DAG</span>
 <span class="kn">from</span> <span class="nn">airflow.decorators</span> <span class="kn">import</span> <span class="n">task</span>
 <span class="kn">from</span> <span class="nn">airflow.exceptions</span> <span class="kn">import</span> <span class="n">AirflowException</span>
-<span class="kn">from</span> <span class="nn">airflow.models.taskinstance</span> <span class="kn">import</span> <span class="n">Context</span><span class="p">,</span> <span class="n">TaskInstance</span>
+<span class="kn">from</span> <span class="nn">airflow.models.taskinstance</span> <span class="kn">import</span> <span class="n">Context</span>
 <span class="kn">from</span> <span class="nn">airflow.models.xcom_arg</span> <span class="kn">import</span> <span class="n">XComArg</span>
 <span class="kn">from</span> <span class="nn">airflow.operators.python</span> <span class="kn">import</span> <span class="n">get_current_context</span>
 <span class="kn">from</span> <span class="nn">serde</span> <span class="kn">import</span> <span class="n">serialize</span><span class="p">,</span> <span class="n">deserialize</span><span class="p">,</span> <span class="n">from_dict</span><span class="p">,</span> <span class="n">to_dict</span>
-<span class="kn">from</span> <span class="nn">serde.json</span> <span class="kn">import</span> <span class="n">from_json</span>
 
 <span class="kn">from</span> <span class="nn">etna.dags.project_name</span> <span class="kn">import</span> <span class="n">get_project_name</span>
 <span class="kn">from</span> <span class="nn">etna.etls.etl_task_batching</span> <span class="kn">import</span> <span class="n">get_batch_range</span>
-<span class="kn">from</span> <span class="nn">etna.hooks.etna</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span> <span class="nn">etna.hooks.etna</span> <span class="kn">import</span> <span class="n">EtnaHook</span>
+<span class="kn">from</span> <span class="nn">mountetna</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">File</span><span class="p">,</span>
     <span class="n">Folder</span><span class="p">,</span>
     <span class="n">UpdateRequest</span><span class="p">,</span>
-    <span class="n">EtnaHook</span><span class="p">,</span>
     <span class="n">Magma</span><span class="p">,</span>
     <span class="n">Metis</span><span class="p">,</span>
     <span class="n">Model</span><span class="p">,</span>
-    <span class="n">Template</span><span class="p">,</span> <span class="n">RetrievalResponse</span><span class="p">,</span>
+    <span class="n">Template</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">etna.operators</span> <span class="kn">import</span> <span class="n">DockerOperatorBase</span>
 <span class="kn">from</span> <span class="nn">etna.utils.inject</span> <span class="kn">import</span> <span class="n">inject</span>
 <span class="kn">from</span> <span class="nn">etna.utils.iterables</span> <span class="kn">import</span> <span class="n">batch_iterable</span>
 <span class="kn">from</span> <span class="nn">etna.xcom.etna_xcom</span> <span class="kn">import</span> <span class="n">pickled</span>
@@ -742,7 +737,14 @@
             <span class="n">project_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">project_name</span>
             <span class="n">bucket_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bucket_name</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">metis</span><span class="p">()</span> <span class="k">as</span> <span class="n">metis</span><span class="p">:</span>
-                <span class="n">files_by_parent_id</span> <span class="o">=</span> <span class="p">{</span> <span class="n">k</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">metis</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="n">folder_id</span><span class="o">=</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">])[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">file</span><span class="p">:</span> <span class="n">file</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="p">}</span>
+                <span class="n">files_by_parent_id</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">metis</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="n">folder_id</span><span class="o">=</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">])[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">folder_id</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">folder_id</span>
+                    <span class="k">if</span> <span class="n">folder_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">files_by_parent_id</span><span class="p">:</span>
+                        <span class="n">files_by_parent_id</span><span class="p">[</span><span class="n">folder_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+                    <span class="n">files_by_parent_id</span><span class="p">[</span><span class="n">folder_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
                 <span class="k">return</span> <span class="p">[</span>
                     <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">files_by_parent_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
                     <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span>
@@ -1001,7 +1003,7 @@
 
         </details>
 
-            <div class="docstring"><p>MatchedRecordFolder(root_path: str, record_name: str, model_name: str, match_file: Union[<a href="../hooks/etna.html#File">etna.hooks.etna.File</a>, NoneType] = None, match_folder: Union[<a href="../hooks/etna.html#Folder">etna.hooks.etna.Folder</a>, NoneType] = None, match_parent_raw: Union[Any, NoneType] = None)</p>
+            <div class="docstring"><p>MatchedRecordFolder(root_path: str, record_name: str, model_name: str, match_file: Union[mountetna.metis.File, NoneType] = None, match_folder: Union[mountetna.metis.Folder, NoneType] = None, match_parent_raw: Union[Any, NoneType] = None)</p>
 </div>
 
 
@@ -1013,8 +1015,8 @@
     root_path: str,
     record_name: str,
     model_name: str,
-    match_file: Union[<a href="../hooks/etna.html#File">etna.hooks.etna.File</a>, NoneType] = None,
-    match_folder: Union[<a href="../hooks/etna.html#Folder">etna.hooks.etna.Folder</a>, NoneType] = None,
+    match_file: Union[mountetna.metis.File, NoneType] = None,
+    match_folder: Union[mountetna.metis.Folder, NoneType] = None,
     match_parent_raw: Union[Any, NoneType] = None
 )</span>
     </div>
@@ -1026,7 +1028,7 @@
                             <div id="MatchedRecordFolder.match_file" class="classattr">
                                             <div class="attr variable"><a class="headerlink" href="#MatchedRecordFolder.match_file">#&nbsp;&nbsp</a>
 
-        <span class="name">match_file</span><span class="annotation">: Union[<a href="../hooks/etna.html#File">etna.hooks.etna.File</a>, NoneType]</span><span class="default_value"> = None</span>
+        <span class="name">match_file</span><span class="annotation">: Union[mountetna.metis.File, NoneType]</span><span class="default_value"> = None</span>
     </div>
 
     
@@ -1036,7 +1038,7 @@
                             <div id="MatchedRecordFolder.match_folder" class="classattr">
                                             <div class="attr variable"><a class="headerlink" href="#MatchedRecordFolder.match_folder">#&nbsp;&nbsp</a>
 
-        <span class="name">match_folder</span><span class="annotation">: Union[<a href="../hooks/etna.html#Folder">etna.hooks.etna.Folder</a>, NoneType]</span><span class="default_value"> = None</span>
+        <span class="name">match_folder</span><span class="annotation">: Union[mountetna.metis.Folder, NoneType]</span><span class="default_value"> = None</span>
     </div>
 
     
@@ -1717,7 +1719,14 @@ Note, this is NOT necessarily the id of the record folder itself, but either</p>
             <span class="n">project_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">project_name</span>
             <span class="n">bucket_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bucket_name</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">metis</span><span class="p">()</span> <span class="k">as</span> <span class="n">metis</span><span class="p">:</span>
-                <span class="n">files_by_parent_id</span> <span class="o">=</span> <span class="p">{</span> <span class="n">k</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">metis</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="n">folder_id</span><span class="o">=</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">])[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">file</span><span class="p">:</span> <span class="n">file</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="p">}</span>
+                <span class="n">files_by_parent_id</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">metis</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="n">folder_id</span><span class="o">=</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">])[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">folder_id</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">folder_id</span>
+                    <span class="k">if</span> <span class="n">folder_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">files_by_parent_id</span><span class="p">:</span>
+                        <span class="n">files_by_parent_id</span><span class="p">[</span><span class="n">folder_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+                    <span class="n">files_by_parent_id</span><span class="p">[</span><span class="n">folder_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
                 <span class="k">return</span> <span class="p">[</span>
                     <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">files_by_parent_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
                     <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span>
@@ -1798,7 +1807,7 @@ file.</p>
     self,
     listed_record_matches: airflow.models.xcom_arg.XComArg,
     regex: re.Pattern,
-    processor: Callable[[], <a href="../hooks/etna.html#UpdateRequest">etna.hooks.etna.UpdateRequest</a>],
+    processor: Callable[[], mountetna.magma.UpdateRequest],
     dry_run=True
 ) -&gt; airflow.models.xcom_arg.XComArg</span>:
     </div>
@@ -1896,7 +1905,7 @@ helpers.process_and_link_matching_file(listed_matches, re.compile(r'.*gene_count
     identifier_prefix: str,
     single_cell_root_prefix=&#39;single_cell_&#39;,
     attribute_linker_overrides: Union[Mapping[str, str], NoneType] = None,
-    link_parents: Union[Callable[[List[<a href="#MatchedRecordFolder">etna.etls.metis.MatchedRecordFolder</a>]], Iterable[Tuple[<a href="#MatchedRecordFolder">etna.etls.metis.MatchedRecordFolder</a>, <a href="../hooks/etna.html#UpdateRequest">etna.hooks.etna.UpdateRequest</a>]]], NoneType] = None,
+    link_parents: Union[Callable[[List[<a href="#MatchedRecordFolder">etna.etls.metis.MatchedRecordFolder</a>]], Iterable[Tuple[<a href="#MatchedRecordFolder">etna.etls.metis.MatchedRecordFolder</a>, mountetna.magma.UpdateRequest]]], NoneType] = None,
     dry_run=True
 ) -&gt; Tuple[airflow.models.xcom_arg.XComArg, airflow.models.xcom_arg.XComArg]</span>:
     </div>
@@ -2296,7 +2305,14 @@ in magma / timur, ensuring that any incorrectly named folder does not accidental
             <span class="n">project_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">project_name</span>
             <span class="n">bucket_name</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bucket_name</span>
             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">metis</span><span class="p">()</span> <span class="k">as</span> <span class="n">metis</span><span class="p">:</span>
-                <span class="n">files_by_parent_id</span> <span class="o">=</span> <span class="p">{</span> <span class="n">k</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">metis</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="n">folder_id</span><span class="o">=</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">])[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">file</span><span class="p">:</span> <span class="n">file</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="p">}</span>
+                <span class="n">files_by_parent_id</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">metis</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="n">folder_id</span><span class="o">=</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">])[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">folder_id</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">folder_id</span>
+                    <span class="k">if</span> <span class="n">folder_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">files_by_parent_id</span><span class="p">:</span>
+                        <span class="n">files_by_parent_id</span><span class="p">[</span><span class="n">folder_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+                    <span class="n">files_by_parent_id</span><span class="p">[</span><span class="n">folder_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
                 <span class="k">return</span> <span class="p">[</span>
                     <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">files_by_parent_id</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">folder_id</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
                     <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span>
@@ -2324,7 +2340,7 @@ reading in multiple files that exist in the same record folder.</p>
         
             <span class="def">def</span>
             <span class="name">filter_by_exists_in_timur</span><span class="signature">(
-    magma: <a href="../hooks/etna.html#Magma">etna.hooks.etna.Magma</a>,
+    magma: mountetna.magma.Magma,
     matched: List[<a href="#MatchedRecordFolder">etna.etls.metis.MatchedRecordFolder</a>]
 ) -&gt; List[<a href="#MatchedRecordFolder">etna.etls.metis.MatchedRecordFolder</a>]</span>:
     </div>
@@ -2377,7 +2393,7 @@ and returns the list of matches that have a backing record in magma.</p>
         
             <span class="def">def</span>
             <span class="name">filter_by_record_directory</span><span class="signature">(
-    files_or_folders: List[Union[<a href="../hooks/etna.html#File">etna.hooks.etna.File</a>, <a href="../hooks/etna.html#Folder">etna.hooks.etna.Folder</a>, <a href="#MatchedRecordFolder">etna.etls.metis.MatchedRecordFolder</a>]],
+    files_or_folders: List[Union[mountetna.metis.File, mountetna.metis.Folder, <a href="#MatchedRecordFolder">etna.etls.metis.MatchedRecordFolder</a>]],
     directory_regex: re.Pattern,
     model_name: str,
     corrected_record_name: Callable[[str], str] = &lt;function &lt;lambda&gt;&gt;
@@ -2468,10 +2484,10 @@ found in this way.</p>
         
             <span class="def">def</span>
             <span class="name">load_metis_files_batch</span><span class="signature">(
-    metis: <a href="../hooks/etna.html#Metis">etna.hooks.etna.Metis</a>,
+    metis: mountetna.metis.Metis,
     bucket_name: str,
     project_name: Union[str, NoneType] = None
-) -&gt; List[<a href="../hooks/etna.html#File">etna.hooks.etna.File</a>]</span>:
+) -&gt; List[mountetna.metis.File]</span>:
     </div>
 
             <details>
@@ -2493,10 +2509,10 @@ found in this way.</p>
         
             <span class="def">def</span>
             <span class="name">load_metis_folders_batch</span><span class="signature">(
-    metis: <a href="../hooks/etna.html#Metis">etna.hooks.etna.Metis</a>,
+    metis: mountetna.metis.Metis,
     bucket_name: str,
     project_name: Union[str, NoneType] = None
-) -&gt; List[<a href="../hooks/etna.html#Folder">etna.hooks.etna.Folder</a>]</span>:
+) -&gt; List[mountetna.metis.Folder]</span>:
     </div>
 
             <details>

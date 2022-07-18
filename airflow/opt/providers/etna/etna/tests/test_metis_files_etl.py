@@ -146,6 +146,20 @@ def test_metis_files_etl_e2e(reset_db, token_etna_connection: Connection):
     assert len(results) > 0
 
 
+def test_metis_helpers_group_files(reset_db):
+    helpers = MetisEtlHelpers([], [], None)
+
+    grouped_files = helpers._group_files_by_folder(
+        [
+            File(folder_id=1, file_name="file_01.txt"),
+            File(folder_id=2, file_name="file_02.txt"),
+            File(folder_id=1, file_name="file_03.txt"),
+            File(folder_id=2, file_name="file_04.txt")
+        ]
+    )
+    assert all([len(v) == 2 for k, v in grouped_files.items()])
+
+
 @pytest.mark.vcr
 @mock.patch("tempfile._Random", NotSoRandom)
 def xtest_docker_callable_with_task_token(reset_db, token_etna_connection: Connection):
