@@ -212,7 +212,7 @@ class Cat(SSHBase):
         return files
 
     @contextlib.contextmanager
-    def retrieve_file(self, file: SftpEntry) -> io.BytesIO:
+    def retrieve_file(self, sftp: SFTPClient, file: SftpEntry) -> io.BytesIO:
         """
         Opens the given file for download as a file-like object.
         The underlying socket object yields bytes objects.
@@ -229,9 +229,10 @@ class Cat(SSHBase):
         ```
 
         params:
+          sftp: a connected SFTPClient
           file: an SFTP file listing
         """
-        with self.sftp() as sftp, io.BytesIO() as read_io:
+        with io.BytesIO() as read_io:
             sftp.getfo(file.full_path, read_io)
             read_io.seek(0)
 

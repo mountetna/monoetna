@@ -77,7 +77,7 @@ class CatEtlHelpers(RemoteHelpersBase):
         @task
         def ingest(files, folder_path):
             c4_hook = C4Hook.for_project()
-            with c4_hook.c4() as c4, self.hook.cat() as cat:
+            with c4_hook.c4() as c4, self.hook.cat() as cat, cat.sftp() as sftp:
                 self.log.info(f"Attempting to upload {len(files)} files to C4")
                 num_ingested = 0
                 for file in files:
@@ -90,7 +90,7 @@ class CatEtlHelpers(RemoteHelpersBase):
                     if remove_magic_string:
                         final_file_name = file.name.replace(self.magic_string, "")
 
-                    with cat.retrieve_file(file) as file_handle:
+                    with cat.retrieve_file(sftp, file) as file_handle:
                         dest_path = os.path.join(folder_path or "", file.folder_path.replace(f"{cat._root_path()}/", ""))
                         self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, final_file_name)}.")
 
@@ -132,15 +132,16 @@ class CatEtlHelpers(RemoteHelpersBase):
         @task
         def ingest(files, project_name, bucket_name, folder_path):
             etna_hook = EtnaHook.for_project(project_name)
-            with etna_hook.metis(project_name, read_only=False) as metis, self.hook.cat() as cat:
+            with etna_hook.metis(project_name, read_only=False) as metis, self.hook.cat() as cat, cat.sftp() as sftp:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
                 num_ingested = 0
+
                 for file in files:
                     if cat.file_ingested_to_system("metis", file):
                         self.log.info(f"Skipping {file.name} because it has already been ingested.")
                         continue
 
-                    with cat.retrieve_file(file) as file_handle:
+                    with cat.retrieve_file(sftp, file) as file_handle:
                         dest_path = os.path.join(folder_path or "", file.folder_path.replace(f"{cat._root_path()}/", ""))
 
                         final_file_name = file.name
