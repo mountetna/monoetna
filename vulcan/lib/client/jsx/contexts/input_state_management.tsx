@@ -57,12 +57,12 @@ export function WithBufferedInputs({
       if (!stateRef.current.bufferedSteps.includes(stepName))
         dispatch(setBufferedInput(stepName));
         // Check / Initiate auto-pass attempt stepUI.
-        // if (stepName!=null && stateRef.current.autoPassSteps.includes(stepName) && Object.keys(stateRef.current.session.inputs).filter((val) => val.includes(stepName)).length<1 ) {
-        //   if (commitSessionInputChanges(stepName, inputsRef.current)) {
-        //     cancelInputs();
-        //     dispatch(setRunTrigger(stepName))
-        //   }
-        // }
+        if (stepName!=null && stateRef.current.autoPassSteps.includes(stepName) && Object.keys(stateRef.current.session.inputs).filter((val) => val.includes(stepName)).length<1 ) {
+          if (commitSessionInputChanges(stepName, inputsRef.current)) {
+            cancelInputs();
+            dispatch(setRunTrigger(stepName))
+          }
+        }
     } else {
       if (stateRef.current.bufferedSteps.includes(stepName))
         dispatch(clearBufferedInput(stepName));
@@ -85,7 +85,7 @@ export function WithBufferedInputs({
       }
       dispatch(clearAutoPassStep(null))
     }
-  }, [stateRef.current.session])
+  }, [stateRef.current.autoPassSteps])
 
   const cancelInputs = useCallback(() => {
     setInputs({});
