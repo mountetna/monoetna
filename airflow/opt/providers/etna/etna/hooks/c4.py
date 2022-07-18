@@ -6,6 +6,7 @@ import time
 from typing import Dict, Optional, ContextManager
 
 import cached_property
+from paramiko.sftp_client import SFTPClient
 
 from airflow.models import Connection
 from airflow.providers.ssh.hooks.ssh import SSHHook
@@ -95,6 +96,7 @@ class C4(SSHBase):
 
     def upload_file(
         self,
+        sftp: SFTPClient,
         folder_path: str,
         file_name: str,
         file_obj: io.BytesIO,
@@ -104,6 +106,7 @@ class C4(SSHBase):
         Stream the file to C4, to the given path.
 
         params:
+          sftp: a connected SFTPClient instance
           folder_path: str, the destination path on C4 (relative to the hook's configured root_path)
           file_name: str, the file name to save to, on C4
           file_obj: io, the file-like object that is a data source
@@ -119,24 +122,23 @@ class C4(SSHBase):
             elif time_check % 20 != 0 and not should_log:
                 should_log = True
 
-        with self.sftp() as sftp:
-            # Ensure the folder path exists on C4
-            full_path = os.path.join(self._root_path(), folder_path)
-            traversed = []
-            for folder in full_path.split("/"):
-                if folder == "":
-                    continue
+        # Ensure the folder path exists on C4
+        full_path = os.path.join(self._root_path(), folder_path)
+        traversed = []
+        for folder in full_path.split("/"):
+            if folder == "":
+                continue
 
-                path_to_folder = os.path.join("/", "/".join(traversed), folder)
-                try:
-                    sftp.chdir(path_to_folder)
-                except IOError:
-                    sftp.mkdir(path_to_folder)
-                traversed.append(folder)
+            path_to_folder = os.path.join("/", "/".join(traversed), folder)
+            try:
+                sftp.chdir(path_to_folder)
+            except IOError:
+                sftp.mkdir(path_to_folder)
+            traversed.append(folder)
 
-            should_log = True
-            sftp.putfo(
-                file_obj,
-                os.path.join(full_path, file_name),
-                file_size=file_size,
-                callback=_log_progress)
+        should_log = True
+        sftp.putfo(
+            file_obj,
+            os.path.join(full_path, file_name),
+            file_size=file_size,
+            callback=_log_progress)

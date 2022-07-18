@@ -77,7 +77,7 @@ class CatEtlHelpers(RemoteHelpersBase):
         @task
         def ingest(files, folder_path):
             c4_hook = C4Hook.for_project()
-            with c4_hook.c4() as c4, self.hook.cat() as cat, cat.sftp() as sftp:
+            with c4_hook.c4() as c4, self.hook.cat() as cat, cat.sftp() as sftp, c4.sftp() as c4_sftp:
                 self.log.info(f"Attempting to upload {len(files)} files to C4")
                 num_ingested = 0
                 for file in files:
@@ -95,6 +95,7 @@ class CatEtlHelpers(RemoteHelpersBase):
                         self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, final_file_name)}.")
 
                         c4.upload_file(
+                            c4_sftp,
                             dest_path,
                             final_file_name,
                             file_handle,

@@ -216,6 +216,7 @@ mock_retrieve_file = mock.Mock()
 mock_cat_hook = mock.Mock()
 mock_cat = mock.Mock()
 mock_sftp = mock.Mock()
+mock_c4_sftp = mock.Mock()
 mock_listdir_attr = mock.Mock()
 mock_cat_mark_ingested = mock.Mock()
 mock_cat_update_cursor = mock.Mock()
@@ -231,10 +232,14 @@ def set_up_mocks():
     mock_cat_hook.reset_mock()
     mock_cat.reset_mock()
     mock_sftp.reset_mock()
+    mock_c4_sftp.reset_mock()
     mock_listdir_attr.reset_mock()
     mock_cat_mark_ingested.reset_mock()
     mock_cat_update_cursor.reset_mock()
 
+    mock_c4_sftp.return_value.__enter__ = mock_c4_sftp
+    mock_c4_sftp.return_value.__exit__ = mock_c4_sftp
+    mock_c4.return_value.sftp = mock_c4_sftp
     mock_c4.return_value.upload_file.return_value = []
     mock_c4.return_value.__enter__ = mock_c4
     mock_c4.return_value.__exit__ = mock_c4
@@ -351,7 +356,7 @@ def test_cat_files_etl_ingest_c4_remove_oligo_by_default(mocked_c4, mock_load, r
     end_date = start_date + timedelta(days=1, minutes=1)
     run_dag(test_ingesting_cat_files_ingest_c4_remove_oligo_by_default, start_date, end_date)
 
-    mock_c4().upload_file.assert_any_call("foo/parent/child/grandchild", "3.txt", mock.ANY, 1)
+    mock_c4().upload_file.assert_any_call(mock.ANY, "foo/parent/child/grandchild", "3.txt", mock.ANY, 1)
     mock_retrieve_file.assert_called()
 
 
@@ -395,7 +400,7 @@ def test_cat_files_etl_ingest_c4_do_not_remove_oligo(mocked_c4, mock_load, reset
     end_date = start_date + timedelta(days=1, minutes=1)
     run_dag(test_ingesting_cat_files_ingest_c4_do_not_remove_oligo, start_date, end_date)
 
-    mock_c4().upload_file.assert_any_call("foo/parent/child/grandchild", "123.txt", mock.ANY, 1)
+    mock_c4().upload_file.assert_any_call(mock.ANY, "foo/parent/child/grandchild", "123.txt", mock.ANY, 1)
     mock_retrieve_file.assert_called()
 
 
@@ -435,7 +440,7 @@ def test_cat_files_etl_ingest_c4_without_folder_path(mocked_c4, mock_load, reset
     end_date = start_date + timedelta(days=1, minutes=1)
     run_dag(test_ingesting_cat_files_ingest_c4_without_folder_path, start_date, end_date)
 
-    mock_c4().upload_file.assert_any_call("parent/child/grandchild", "123.txt", mock.ANY, 1)
+    mock_c4().upload_file.assert_any_call(mock.ANY, "parent/child/grandchild", "123.txt", mock.ANY, 1)
     mock_retrieve_file.assert_called()
 
 
