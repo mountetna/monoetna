@@ -14,7 +14,7 @@ class Session < Etna::Cwl
     @inputs = attributes['inputs']
 
     @reference_figure_id = attributes['reference_figure_id']
-    @ignore_dependencies = attributes['ignore_dependencies']
+    @ignore_dependencies = !!attributes['ignore_dependencies']
   end
 
   def self.new_session_for(project_name, workflow_name, key, inputs = {}, reference_figure_id: nil, ignore_dependencies: false)
@@ -39,6 +39,7 @@ class Session < Etna::Cwl
 
   def self.from_json(json)
     json = json.map { |k, v| [ k.to_s, v ] }.to_h
+    json['ignore_dependencies'] = !!json['ignore_dependencies']
     loader.load(json)
   end
 

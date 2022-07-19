@@ -18,6 +18,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {pushLocation} from 'etna-js/actions/location_actions';
+import {useFeatureFlag} from 'etna-js/hooks/useFeatureFlag';
 
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import Typography from '@material-ui/core/Typography';
@@ -51,6 +52,7 @@ import Tag from '../../tag';
 import RevisionHistory from 'etna-js/components/revision-history';
 
 import AdvancedSessionControls from './advanced_session_controls';
+import IgnoreDependencies from './ignore_dependencies';
 
 const modalStyles = {
   content: {
@@ -225,6 +227,15 @@ export default function SessionManager() {
     setOpenTagEditor(false);
   }, []);
 
+  const toggleIgnoreDependencies = useCallback(() => {
+    dispatch(
+      setSession({
+        ...session,
+        ignore_dependencies: !session.ignore_dependencies
+      } as VulcanFigureSession)
+    );
+  }, [session, dispatch]);
+
   const running = state.pollingState > 0;
   const disableRunButton =
     complete || running || (hasPendingEdits && !committedStepPending);
@@ -279,6 +290,8 @@ export default function SessionManager() {
 
   const isPublic = useMemo(() => (tags || []).includes('public'), [tags]);
 
+  const canIgnoreDependencies = useFeatureFlag('vulcandev');
+
   if (!name || !session) return null;
 
   return (
@@ -309,6 +322,12 @@ export default function SessionManager() {
             />
           </Tooltip>
         </Breadcrumbs>
+        {canIgnoreDependencies ? (
+          <IgnoreDependencies
+            value={session.ignore_dependencies}
+            onChange={toggleIgnoreDependencies}
+          />
+        ) : null}
         {workflow.vignette && (
           <React.Fragment>
             <FlatButton

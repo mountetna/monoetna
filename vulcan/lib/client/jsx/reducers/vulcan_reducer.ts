@@ -30,7 +30,8 @@ export const defaultSession: SessionStatusResponse['session'] = {
   workflow_name: '',
   key: '',
   inputs: {},
-  reference_figure_id: null
+  reference_figure_id: null,
+  ignore_dependencies: false
 };
 const defaultFigure: VulcanFigure = {
   figure_id: null,
