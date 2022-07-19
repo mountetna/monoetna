@@ -243,11 +243,11 @@ class Cat(SSHBase):
         cmd = ["curl", "-u", self._curl_authn(), "-o", "-", "-N", self._curl_url(source_file)]
 
         with subprocess.Popen(cmd, stdout=subprocess.PIPE) as proc:
-            yield io.BytesIO(proc.stdout)
-            proc.wait()
-            if proc.returncode != 0:
-                print(proc.stderr)
-                raise AirflowException(proc.returncode)
+            while True:
+                yield proc.stdout
+                if proc.poll() is not None:
+                    break
+
 
         # curl = pycurl.Curl()
         # curl.setopt(pycurl.URL, self._curl_url(source_file))
