@@ -81,6 +81,7 @@ services:
         constraints:
           - node.labels.volumes.big-shared == true
           - node.labels.volumes.data3 == true
+          - node.role!=manager
     healthcheck:
       interval: 10s
       retries: 3
