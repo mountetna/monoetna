@@ -312,7 +312,7 @@ class Upload:
             chunk = self.file.read(expected_bytes)
             self.read_position += len(chunk)
             if len(chunk) < expected_bytes:
-                raise ValueError("Unexpected EOF while reading source stream")
+                raise ValueError(f"Unexpected EOF while reading source stream {len(chunk)} {expected_bytes}")
             data.append(chunk)
 
         self.last_bytes = b"".join(data)

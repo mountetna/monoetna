@@ -7,6 +7,7 @@ import os
 import re
 import pycurl
 import stat
+import subprocess
 from paramiko.sftp_client import SFTPClient
 from paramiko.sftp_attr import SFTPAttributes
 from typing import List, Dict, Optional, ContextManager
@@ -213,27 +214,57 @@ class Cat(SSHBase):
     def _curl_url(self, file: SftpEntry) -> str:
         return f"sftp://{self.hook.connection.host}/{file.full_path}"
 
-    async def retrieve_file(
+    def _curl_authn(self) -> str:
+        return f"{self.hook.connection.login}:{self.hook.connection.password}"
+
+    @contextlib.contextmanager
+    def retrieve_file(
         self,
-        source_file: SftpEntry,
-        read_io: io.BytesIO
+        source_file: SftpEntry
     ):
         """
         Opens the given file for download as a file-like object.
-        Write the bytes into the given io object.
+        Yields the bytes.
+
+        Note:  Ideally, this method is used in combination with 'with' syntax in python, so that the underlying
+        data stream is closed after usage.  This is especially performant when code only needs to access a small
+        subset of the data.
+
+        eg:
+        ```
+        with cat.retrieve_file(file) as source_file:
+            for line in source_file:
+                break
+        ```
 
         params:
           source_file: an SFTP file listing
-          read_io: an io.BytesIO() object that can be read from; this method will write to it.
         """
-        curl = pycurl.Curl()
-        curl.setopt(pycurl.URL, self._curl_url(source_file))
-        curl.setopt(pycurl.USERNAME, self.hook.connection.login)
-        curl.setopt(pycurl.PASSWORD, self.hook.connection.password)
-        curl.setopt(pycurl.WRITEFUNCTION, read_io.write)
+        cmd = ["curl", "-u", self._curl_authn(), "-o", "-", "-N", self._curl_url(source_file)]
 
-        await curl.perform()
-        curl.close()
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE) as proc:
+            yield io.BytesIO(proc.stdout)
+            proc.wait()
+            if proc.returncode != 0:
+                print(proc.stderr)
+                raise AirflowException(proc.returncode)
+
+        # curl = pycurl.Curl()
+        # curl.setopt(pycurl.URL, self._curl_url(source_file))
+        # curl.setopt(pycurl.USERNAME, self.hook.connection.login)
+        # curl.setopt(pycurl.PASSWORD, self.hook.connection.password)
+
+        # with io.BytesIO() as read_io:
+        #     curl.setopt(pycurl.WRITEFUNCTION, read_io.write)
+
+        #     task = asyncio.create_task(curl.perform())
+        #     read_io.seek(0)
+        #     yield read_io
+
+        #     await task
+        #     curl.close()
+
+
 
         # cmd = f"curl -u {self._curl_authn()} -o - -N {self._curl_url(source_file)}"
         # print(cmd)

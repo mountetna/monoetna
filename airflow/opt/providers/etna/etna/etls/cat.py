@@ -1,5 +1,3 @@
-import asyncio
-import io
 import logging
 import os
 import re
@@ -147,8 +145,7 @@ class CatEtlHelpers(RemoteHelpersBase):
                         self.log.info(f"Skipping {file.name} because it has already been ingested.")
                         continue
 
-                    with io.BytesIO() as read_io:
-                        ingest_task = asyncio.create_task(cat.retrieve_file(file, read_io))
+                    with cat.retrieve_file(file) as file_handle:
                         dest_path = os.path.join(folder_path or "", file.folder_path.replace(f"{cat._root_path()}/", ""))
 
                         final_file_name = file.name
@@ -157,9 +154,9 @@ class CatEtlHelpers(RemoteHelpersBase):
                             final_file_name = file.name.replace(self.magic_string, "")
 
                         self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, final_file_name)}.")
-                        self.log.info(read_io)
+                        self.log.info(file_handle)
                         self.handle_metis_ingest(
-                            file_handle=read_io,
+                            file_handle=file_handle,
                             folder_path=folder_path,
                             hostname=self.hook.connection.host,
                             flatten=False,
