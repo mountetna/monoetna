@@ -7,12 +7,12 @@ describe Vulcan::Figure do
 
   it "returns a list of thumbnails" do
     store(
-      "ec2e62deda37f88ec8bdcab3ee8753fdc2cbd4c4",
+      "ba9d7e4ddc0e3cd9fd35ce9d566eb07dc543b518",
       "thumb.png",
       "thumbnail"
     )
     figure = create_figure(title: "Lion of Nemea", workflow_name: "test_workflow.cwl")
-    expect(figure.thumbnails(storage: Vulcan::Storage.new)).to eq(["https://vulcan.test/api/labors/data/ec2e62deda37f88ec8bdcab3ee8753fdc2cbd4c4/thumb.png"])
+    expect(figure.thumbnails(storage: Vulcan::Storage.new)).to eq(["https://vulcan.test/api/labors/data/ba9d7e4ddc0e3cd9fd35ce9d566eb07dc543b518/thumb.png"])
   end
 
   it "ignores unbuilt thumbnails" do
