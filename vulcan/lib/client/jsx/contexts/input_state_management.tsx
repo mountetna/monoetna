@@ -56,10 +56,8 @@ export function WithBufferedInputs({
     if (Object.keys(inputsRef.current).length > 0){
       if (!stateRef.current.bufferedSteps.includes(stepName))
         dispatch(setBufferedInput(stepName));
-        // Check / Initiate auto-pass attempt.
-        if ( (stepName==null && stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable") && Object.keys(stateRef.current.session.inputs).length==0 /*catch page refreshing and not yet ready*/ && stateRef.current.session!==defaultSession)
-          || (stepName!=null && stateRef.current.autoPassSteps.includes(stepName) && Object.keys(stateRef.current.session.inputs).filter((val) => val.includes(stepName)).length<1 )
-        ) {
+        // Check / Initiate auto-pass attempt stepUI.
+        if (stepName!=null && stateRef.current.autoPassSteps.includes(stepName) && Object.keys(stateRef.current.session.inputs).filter((val) => val.includes(stepName)).length<1 ) {
           if (commitSessionInputChanges(stepName, inputsRef.current)) {
             cancelInputs();
             dispatch(setRunTrigger(stepName))
@@ -77,6 +75,17 @@ export function WithBufferedInputs({
       setInputs({});
     }
   }, [setInputs, state.bufferedSteps, inputs, stepName]);
+
+  useEffect(() => {
+    // Initiate auto-pass attempt, primary inputs.
+    if (stepName===null && stateRef.current.autoPassSteps.includes(stepName)) {
+      if (commitSessionInputChanges(stepName, inputsRef.current)) {
+        cancelInputs();
+        dispatch(setRunTrigger(stepName))
+      }
+      dispatch(clearAutoPassStep(null))
+    }
+  }, [stateRef.current.autoPassSteps])
 
   const cancelInputs = useCallback(() => {
     setInputs({});
