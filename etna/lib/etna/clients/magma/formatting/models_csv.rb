@@ -22,6 +22,7 @@ module Etna
                 :new_attribute_name,
                 :attribute_type,
                 :link_model_name,
+                :link_attribute_name,
                 :description,
                 :display_name,
                 :format_hint,
@@ -137,6 +138,7 @@ module Etna
                 attribute_name: attribute.name,
                 attribute_type: attribute.attribute_type,
                 link_model_name: attribute.link_model_name,
+                link_attribute_name: attribute.link_attribute_name,
                 reciprocal_link_type: models.find_reciprocal(model: model, attribute: attribute)&.attribute_type,
                 description: attribute.description,
                 display_name: attribute.display_name,
@@ -175,7 +177,7 @@ module Etna
           # This should line up with the attribute names _on the model itself_.
           ATTRIBUTE_ROW_ENTRIES = [
               :attribute_type,
-              :link_model_name, :description,
+              :link_model_name, :link_attribute_name, :description,
               :display_name, :format_hint,
               :restricted, :read_only,
               :validation, :attribute_group,

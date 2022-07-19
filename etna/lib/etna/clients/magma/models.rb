@@ -505,6 +505,14 @@ module Etna
           @raw['attribute_type'] = val
         end
 
+        def link_attribute_name
+          @raw['link_attribute_name']
+        end
+
+        def link_attribute_name=(val)
+          @raw['link_attribute_name'] = val
+        end
+
         def link_model_name
           @raw['link_model_name']
         end

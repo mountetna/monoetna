@@ -150,8 +150,9 @@ module Etna
 
           return unless (link_model = source_models.model(link_model_name))
           link_model_attributes = link_model.template.attributes
+
           reciprocal = link_model_attributes.all.find do |attr|
-            attr.link_model_name == model_name
+            attr.link_model_name == model_name && attr.link_attribute_name == attribute_name
           end
 
           target_model_name = target_of_source(model_name)
@@ -159,6 +160,9 @@ module Etna
 
           target_attributes = target_models.model(target_model_name).template.attributes
           return if target_attributes.attribute_keys.include?(target_link_model_name)
+
+          # skip non-links for circular references so they don't get added twice
+          return if link_model_name == model_name && reciprocal.attribute_type != 'link'
 
           add_link = AddLinkAction.new
           add_link.links << AddLinkDefinition.new(model_name: target_model_name, attribute_name: attribute_name, type: source_attribute.attribute_type)
