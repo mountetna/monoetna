@@ -97,14 +97,14 @@ export default function WorkflowManager({
     [projectName, showErrors, fetchFigure, initializeFromSessionAndFigure]
   );
 
-  const initializeNewSession = useCallback(() => {
+  const initializeNewSession = useCallback((inputs?: typeof defaultSession.inputs) => {
     const workflow = workflowByName(workflowName, state);
     if (workflow) dispatch(setWorkflow(workflow, projectName));
     let session = {
       ...defaultSession,
       workflow_name: cwlName(workflowName) || workflowName,
       project_name: projectName,
-      inputs: workflow ? defaultInputs(workflow) : defaultSession.inputs
+      inputs: inputs ? inputs : workflow ? defaultInputs(workflow) : defaultSession.inputs
     };
     // To allows correct values to pass through, set session before letting auto-pass trigger.
     dispatch(setSession(session));
@@ -120,7 +120,7 @@ export default function WorkflowManager({
         localSession.workflow_name
       );
       if (!workflow) {
-        initializeNewSession();
+        initializeNewSession(localSession.inputs);
         return;
       }
 
@@ -137,7 +137,7 @@ export default function WorkflowManager({
       }
 
       if (!useLocal) {
-        initializeNewSession();
+        initializeNewSession(localSession.inputs);
       } else {
         initializeFromSessionAndFigure(
           selectSession(localSession),
