@@ -75,22 +75,35 @@ class TailResultContainer:
 
         return result
 
-    def resolve_folders(self) -> List["Folder"]:
+    def resolve_folders(self, include_parents=False) -> List["Folder"]:
         result = []
         for node in self.nodes:
             if node.type != 'folder':
                 continue
-            result.append(Folder(
-                folder_name=node.node_name,
-                updated_at=node.updated_at,
-                folder_path=self.resolve_path(node),
-                id=node.id,
-                project_name=self.project_name,
-                bucket_name=self.bucket_name,
-                folder_id=node.parent_id,
-            ))
+            result.append(self._construct_folder(node))
+
+        if include_parents:
+            result.extend(self.resolve_parents())
 
         return result
+
+    def resolve_parents(self) -> List["Folder"]:
+        result = []
+        for node in self.parents.values():
+            result.append(self._construct_folder(node))
+
+        return result
+
+    def _construct_folder(self, node: TailNode):
+        return Folder(
+            folder_name=node.node_name,
+            updated_at=node.updated_at,
+            folder_path=self.resolve_path(node),
+            id=node.id,
+            project_name=self.project_name,
+            bucket_name=self.bucket_name,
+            folder_id=node.parent_id,
+        )
 
     def resolve_path(self, node: TailNode):
         if node.parent_id is None:
@@ -536,6 +549,7 @@ class Metis(EtnaClientBase):
             batch_start: Optional[datetime] = None,
             batch_end: Optional[datetime] = None,
             folder_id: Optional[typing.Union[int, typing.List[int]]] = None,
+            include_parents: Optional[bool] = False,
      ) -> typing.Tuple[List[File], List[Folder]]:
         container = TailResultContainer(bucket_name, project_name)
         if batch_start and batch_end:
@@ -555,7 +569,7 @@ class Metis(EtnaClientBase):
             if line:
                 container.add(from_json(TailNode, line))
 
-        return container.resolve_files(), container.resolve_folders()
+        return container.resolve_files(), container.resolve_folders(include_parents=include_parents)
 
     def find(
         self,
