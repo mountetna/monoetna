@@ -1,7 +1,11 @@
+import asyncio
+import io
 import logging
 import os
 import re
 from typing import List, Optional
+
+import paramiko
 
 from airflow.decorators import task
 from airflow.models.taskinstance import Context
@@ -22,6 +26,8 @@ class CatEtlHelpers(RemoteHelpersBase):
         self.hook = hook
         self.log = logging.getLogger("airflow.task")
         self.magic_string = magic_string
+
+        # paramiko.sftp_file.SFTPFile.MAX_REQUEST_SIZE = pow(2, 22) # 4MB per chunk
 
     def alert_slack(self,
         files: XComArg,
@@ -90,17 +96,16 @@ class CatEtlHelpers(RemoteHelpersBase):
                     if remove_magic_string:
                         final_file_name = file.name.replace(self.magic_string, "")
 
-                    with cat.retrieve_file(sftp, file) as file_handle:
-                        dest_path = os.path.join(folder_path or "", file.folder_path.replace(f"{cat._root_path()}/", ""))
-                        self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, final_file_name)}.")
+                    dest_path = os.path.join(folder_path or "", file.folder_path.replace(f"{cat._root_path()}/", ""))
+                    self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, final_file_name)}.")
 
-                        c4.upload_file(
-                            c4_sftp,
-                            dest_path,
-                            final_file_name,
-                            file_handle,
-                            file.size
-                        )
+                    c4.upload_file(
+                        c4_sftp,
+                        dest_path,
+                        final_file_name,
+                        file,
+                        self.hook
+                    )
                     cat.mark_file_as_ingested("c4", file)
                     self.log.info(f"Done ingesting {file.full_path}.")
                     num_ingested += 1
@@ -133,7 +138,7 @@ class CatEtlHelpers(RemoteHelpersBase):
         @task
         def ingest(files, project_name, bucket_name, folder_path):
             etna_hook = EtnaHook.for_project(project_name)
-            with etna_hook.metis(project_name, read_only=False) as metis, self.hook.cat() as cat, cat.sftp() as sftp:
+            with etna_hook.metis(project_name, read_only=False) as metis, self.hook.cat() as cat:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
                 num_ingested = 0
 
@@ -142,7 +147,8 @@ class CatEtlHelpers(RemoteHelpersBase):
                         self.log.info(f"Skipping {file.name} because it has already been ingested.")
                         continue
 
-                    with cat.retrieve_file(sftp, file) as file_handle:
+                    with io.BytesIO() as read_io:
+                        ingest_task = asyncio.create_task(cat.retrieve_file(file, read_io))
                         dest_path = os.path.join(folder_path or "", file.folder_path.replace(f"{cat._root_path()}/", ""))
 
                         final_file_name = file.name
@@ -151,9 +157,9 @@ class CatEtlHelpers(RemoteHelpersBase):
                             final_file_name = file.name.replace(self.magic_string, "")
 
                         self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, final_file_name)}.")
-
+                        self.log.info(read_io)
                         self.handle_metis_ingest(
-                            file_handle=file_handle,
+                            file_handle=read_io,
                             folder_path=folder_path,
                             hostname=self.hook.connection.host,
                             flatten=False,

@@ -1,16 +1,15 @@
-import base64
+import asyncio
 import contextlib
-from datetime import datetime, timezone
+from datetime import datetime
 import io
-import json
 import logging
 import os
 import re
-import paramiko
+import pycurl
 import stat
 from paramiko.sftp_client import SFTPClient
 from paramiko.sftp_attr import SFTPAttributes
-from typing import List, Dict, Optional, ContextManager, Tuple, BinaryIO
+from typing import List, Dict, Optional, ContextManager
 
 import cached_property
 
@@ -211,32 +210,56 @@ class Cat(SSHBase):
 
         return files
 
-    @contextlib.contextmanager
-    def retrieve_file(self, sftp: SFTPClient, file: SftpEntry) -> io.BytesIO:
+    def _curl_url(self, file: SftpEntry) -> str:
+        return f"sftp://{self.hook.connection.host}/{file.full_path}"
+
+    async def retrieve_file(
+        self,
+        source_file: SftpEntry,
+        read_io: io.BytesIO
+    ):
         """
         Opens the given file for download as a file-like object.
-        The underlying socket object yields bytes objects.
-
-        Note:  Ideally, this method is used in combination with 'with' syntax in python, so that the underlying
-        data stream is closed after usage.  This is especially performant when code only needs to access a small
-        subset of the data.
-
-        eg:
-        ```
-        with cat.retrieve_file(file) as source_file:
-            for line in source_file:
-                break
-        ```
+        Write the bytes into the given io object.
 
         params:
-          sftp: a connected SFTPClient
-          file: an SFTP file listing
+          source_file: an SFTP file listing
+          read_io: an io.BytesIO() object that can be read from; this method will write to it.
         """
-        with io.BytesIO() as read_io:
-            sftp.getfo(file.full_path, read_io)
-            read_io.seek(0)
+        curl = pycurl.Curl()
+        curl.setopt(pycurl.URL, self._curl_url(source_file))
+        curl.setopt(pycurl.USERNAME, self.hook.connection.login)
+        curl.setopt(pycurl.PASSWORD, self.hook.connection.password)
+        curl.setopt(pycurl.WRITEFUNCTION, read_io.write)
 
-            yield read_io
+        await curl.perform()
+        curl.close()
+
+        # cmd = f"curl -u {self._curl_authn()} -o - -N {self._curl_url(source_file)}"
+        # print(cmd)
+
+        # # with io.BytesIO() as read_io:
+        # stdin, stdout, stderr = ssh.exec_command(cmd)
+        # print("yielding stdout")
+        # yield stdout
+
+        # print("done yielding, waiting for exit status")
+        # # for chunk in stdout.read(self.chunk_size):
+        # #     yield chunk
+
+        #     # yield read_io
+
+        # # exec_command is non-blocking, so we'll
+        # #     add a blocking call here.
+        # # Hopefully because we're constantly read stdout(),
+        # #     we shouldn't deadlock.
+        # # https://stackoverflow.com/a/28486051
+        # exit_status = stdout.channel.recv_exit_status()
+        # print(exit_status)
+        # if exit_status == 0:
+        #     print("Curl GET completed.")
+        # else:
+        #     raise AirflowException(stderr.read())
 
     def mark_file_as_ingested(self, ingested_to: str, file: SftpEntry):
         """

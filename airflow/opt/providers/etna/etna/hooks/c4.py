@@ -8,10 +8,12 @@ from typing import Dict, Optional, ContextManager
 import cached_property
 from paramiko.sftp_client import SFTPClient
 
+from airflow.exceptions import AirflowException
 from airflow.models import Connection
 from airflow.providers.ssh.hooks.ssh import SSHHook
 from etna.dags.project_name import get_project_name
 from etna.hooks.ssh_base import SSHBase
+from etna.hooks.cat import CatHook, SftpEntry
 
 
 class C4Hook(SSHHook):
@@ -99,8 +101,8 @@ class C4(SSHBase):
         sftp: SFTPClient,
         folder_path: str,
         file_name: str,
-        file_obj: io.BytesIO,
-        file_size: int
+        source_file: SftpEntry,
+        cat_hook: CatHook
      ):
         """
         Stream the file to C4, to the given path.
@@ -109,19 +111,9 @@ class C4(SSHBase):
           sftp: a connected SFTPClient instance
           folder_path: str, the destination path on C4 (relative to the hook's configured root_path)
           file_name: str, the file name to save to, on C4
-          file_obj: io, the file-like object that is a data source
-          file_size: int, size of the file in bytes
+          source_file: SftpEntry, the source file to download
+          cat_hook: CatHook, the CAT hook with SFTP login information
         """
-        def _log_progress(consumed: int, total: int):
-            # Only log every 20 seconds, to save log space...
-            nonlocal should_log
-            time_check = int(time.time())
-            if time_check % 20 == 0 and should_log:
-                log.info("Upload progress: " + "{:.2%}".format(consumed / total))
-                should_log = False
-            elif time_check % 20 != 0 and not should_log:
-                should_log = True
-
         # Ensure the folder path exists on C4
         full_path = os.path.join(self._root_path(), folder_path)
         traversed = []
@@ -136,9 +128,17 @@ class C4(SSHBase):
                 sftp.mkdir(path_to_folder)
             traversed.append(folder)
 
-        should_log = True
-        sftp.putfo(
-            file_obj,
-            os.path.join(full_path, file_name),
-            file_size=file_size,
-            callback=_log_progress)
+        cmd = f"lftp sftp://{cat_hook.connection.login}:{cat_hook.connection.password}@{cat_hook.connection.host}  -e \"get {source_file.full_path} -o {os.path.join(full_path, file_name)}; bye\""
+
+        with self.ssh() as ssh:
+            stdin, stdout, stderr = ssh.exec_command(cmd)
+
+            # exec_command is non-blocking, so we'll
+            #   add a blocking call here.
+            # We shouldn't deadlock since the LFTP output is small
+            # https://stackoverflow.com/a/28486051
+            exit_status = stdout.channel.recv_exit_status()
+            if exit_status == 0:
+                print("LFTP GET completed.")
+            else:
+                raise AirflowException(stderr.read())

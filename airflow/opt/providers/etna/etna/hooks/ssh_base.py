@@ -23,15 +23,15 @@ class SSHBase(object):
         self.cursor = Variable.get(self.variable_key, default_var={}, deserialize_json=True)
 
     @contextlib.contextmanager
-    def sftp(self) -> SFTPClient:
+    def ssh(self) -> paramiko.SSHClient:
         """
-        Configures an SFTP connection. Using Python `with` syntax, so that the
+        Configures an SSH connection. Using Python `with` syntax, so that the
         connection is closed after usage.
 
         eg:
         ```
-        with hook.sftp() as sftp:
-            sftp.get("/directory")
+        with hook.ssh() as ssh:
+            ssh.get("/directory")
         ```
         """
         ssh = paramiko.SSHClient()
@@ -48,11 +48,28 @@ class SSHBase(object):
             username=self.hook.connection.login,
             password=self.hook.connection.password)
 
-        sftp = ssh.open_sftp()
+        yield ssh
 
-        yield sftp
+        ssh.close()
 
-        sftp.close()
+    @contextlib.contextmanager
+    def sftp(self) -> SFTPClient:
+        """
+        Configures an SFTP connection. Using Python `with` syntax, so that the
+        connection is closed after usage.
+
+        eg:
+        ```
+        with hook.sftp() as sftp:
+            sftp.get("/directory")
+        ```
+        """
+        with self.ssh() as ssh:
+            sftp = ssh.open_sftp()
+
+            yield sftp
+
+            sftp.close()
 
     def _extra(self) -> dict:
         if (self.hook.connection.extra != ''):
