@@ -1,5 +1,6 @@
 import io
-from typing import Iterable
+import os
+from typing import Iterable, List
 
 
 class IterStream(io.RawIOBase):
@@ -32,3 +33,15 @@ def iterable_to_stream(
     For efficiency, the stream is buffered.
     """
     return io.BufferedReader(IterStream(iterable), buffer_size=buffer_size)
+
+
+class HotPipe:
+    def __init__(self, rd, wd):
+        self.rd = rd
+        self.wd = wd
+
+    def read(self, len: int) -> List[bytes]:
+        return os.read(self.rd, len)
+
+    def write(self, data):
+        os.write(self.wd, data)

@@ -5,12 +5,13 @@ import io
 import logging
 import os
 import re
-import pycurl
 import stat
 import subprocess
 from paramiko.sftp_client import SFTPClient
 from paramiko.sftp_attr import SFTPAttributes
 from typing import List, Dict, Optional, ContextManager
+from queue import Queue, Empty
+from threading  import Thread
 
 import cached_property
 
@@ -21,6 +22,7 @@ from airflow.providers.ssh.hooks.ssh import SSHHook
 from etna.dags.project_name import get_project_name
 from etna.hooks.hook_helpers import RemoteFileBase
 from etna.hooks.ssh_base import SSHBase
+from etna.utils.streaming import HotPipe
 
 
 class CatHook(SSHHook):
@@ -240,14 +242,71 @@ class Cat(SSHBase):
         params:
           source_file: an SFTP file listing
         """
+        def wait_for_proc(pr, qu):
+            pr.wait()
+            qu.put(pr.returncode)
+
         cmd = ["curl", "-u", self._curl_authn(), "-o", "-", "-N", self._curl_url(source_file)]
 
-        with subprocess.Popen(cmd, stdout=subprocess.PIPE) as proc:
-            while True:
-                yield proc.stdout
-                if proc.poll() is not None:
-                    break
+        rd, wd = os.pipe()
 
+        # non-inheritable by default, which means
+        #   it is closed by child processes.
+        os.set_inheritable(wd, True)
+
+        proc = subprocess.Popen(cmd, stdout=wd)
+        q = Queue()
+
+        closer = Thread(
+            target=wait_for_proc,
+            args=(proc, q),
+            daemon=True
+        )
+
+        closer.start()
+
+        try:
+            os.close(wd)
+            yield HotPipe(rd, wd)
+            os.close(rd)
+        except Exception as e:
+            os.close(wd)
+            os.close(rd)
+            proc.kill()
+            raise e
+
+        status = q.get()
+        if 0 != status:
+            raise AirflowException(f"Failed to run external process, got status code {status}")
+
+            # rd, wd = IO.pipe
+
+            # pid = spawn(*mkcommand(rd, wd, file, opts, size_hint: size_hint))
+            # q = Queue.new
+
+            # closer = Thread.new do
+            # _, status = Process.wait2 pid
+            # q << status
+            # end
+
+            # begin
+            # if opts.include?('w')
+            #     rd.close
+            #     yield wd
+            #     wd.close
+            # else
+            #     wd.close
+            #     yield rd
+            #     rd.close
+            # end
+
+            # closer.join
+            # rescue => e
+            # wd.close
+            # rd.close
+            # Process.kill("HUP", pid)
+            # raise e
+            # end
 
         # curl = pycurl.Curl()
         # curl.setopt(pycurl.URL, self._curl_url(source_file))
