@@ -18,7 +18,6 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {pushLocation} from 'etna-js/actions/location_actions';
-import {useFeatureFlag} from 'etna-js/hooks/useFeatureFlag';
 
 import Breadcrumbs from '@material-ui/core/Breadcrumbs';
 import Typography from '@material-ui/core/Typography';

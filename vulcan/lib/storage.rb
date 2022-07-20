@@ -273,8 +273,7 @@ class Vulcan
             output_filenames: ['material.bin'],
             session_key: @session_key,
             digest: @digest,
-            dependencies: @dependencies&.to_json,
-            ignore_dependencies: @ignore_dependencies
+            dependencies: @dependencies&.to_json
         }.compact)
       end
 
