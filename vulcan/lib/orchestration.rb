@@ -300,8 +300,8 @@ class Vulcan
             if step.ui_behavior?
               script = {}
             elsif step.script_name
-              # Check snapshot first for the stored script
-              script = session.snapshot_script(step.id)
+              # Check snapshot first for the stored script if config permits it
+              script = session.snapshot_script(step.id) unless Vulcan.instance.dependency_manager.ignore_dependencies?
 
               script = step.lookup_operation_script if script.nil?
               raise "Could not find backing script #{step.script_name.inspect} for step #{step.id}" if script.nil?
@@ -337,8 +337,7 @@ class Vulcan
             input_files: input_files,
             output_filenames: output_filenames,
             script: script,
-            dependencies: session.dependencies,
-            ignore_dependencies: session.ignore_dependencies
+            dependencies: session.dependencies
           )
         end
     end
@@ -358,8 +357,7 @@ class Vulcan
       Storage::MaterialSource.new(
         project_name: session.project_name, session_key: session.key,
         material_reference: material_reference,
-        dependencies: session.dependencies,
-        ignore_dependencies: session.ignore_dependencies
+        dependencies: session.dependencies
       )
     end
 

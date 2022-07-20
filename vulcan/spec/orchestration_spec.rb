@@ -180,7 +180,7 @@ describe Vulcan::Orchestration do
         )
       }
       let(:session) { Session.new_session_for('project', 'test_workflow.cwl', 'storage_key', inputs, reference_figure_id: figure.id) }
-    
+
       it 'works' do
         expect(orchestration.run_until_done!(storage).length).to eql(0)
         expect(primary_outputs.is_built?(storage)).to eql(false)
@@ -203,7 +203,11 @@ describe Vulcan::Orchestration do
       end
 
       describe 'when dependencies are ignored' do
-        it 'generates new cell hashes' do
+        after(:each) do
+          configure_etna_yml_ignore_dependencies(false)
+        end
+
+        it 'still generates the same hashes' do
           expect(orchestration.run_until_done!(storage).length).to eql(0)
           expect(primary_outputs.is_built?(storage)).to eql(false)
           session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
@@ -214,27 +218,19 @@ describe Vulcan::Orchestration do
           expect(orchestration.run_until_done!(storage).length).to eql(3)
 
           final_data_path_for_session = primary_outputs.build_outputs['the_result'].data_path(storage)
-          
-          ignored_session = Session.new_session_for('project', 'test_workflow.cwl', 'storage_key', {}, reference_figure_id: figure.id, ignore_dependencies: true)
+
+          configure_etna_yml_ignore_dependencies
+
+          ignored_session = Session.new_session_for('project', 'test_workflow.cwl', 'storage_key', inputs, reference_figure_id: figure.id)
           ignored_orchestration = ignored_session.orchestration
 
           expect(ignored_orchestration.run_until_done!(storage).length).to eql(0)
 
           ignored_primary_outputs = ignored_orchestration.build_target_for(:primary_outputs)
-          expect(ignored_primary_outputs.is_built?(storage)).to eql(false)
-          ignored_session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
-          expect(ignored_orchestration.run_until_done!(storage).length).to eql(1)
-          expect(ignored_primary_outputs.is_built?(storage)).to eql(false)
-          ignored_session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
-          ignored_session.define_user_input(["pickANum", "num"], 543)
-          expect(ignored_orchestration.run_until_done!(storage).length).to eql(3)
-
           final_data_path_for_ignored_session = ignored_primary_outputs.build_outputs['the_result'].data_path(storage)
 
-          # If the cell_hash / result path has changed, then we'll assume
-          #   the ignore_dependencies flag worked ... at the very least,
-          #   the cache responded correctly. 
-          expect(final_data_path_for_ignored_session).not_to eq(final_data_path_for_session)
+          # The cell hash should be the same
+          expect(final_data_path_for_ignored_session).to eq(final_data_path_for_session)
         end
       end
     end
@@ -249,7 +245,7 @@ describe Vulcan::Orchestration do
         )
       }
       let(:session) { Session.new_session_for('project', 'test_workflow.cwl', 'storage_key', inputs, reference_figure_id: figure.id) }
-    
+
       it 'works' do
         expect(orchestration.run_until_done!(storage).length).to eql(0)
         expect(primary_outputs.is_built?(storage)).to eql(false)
@@ -282,7 +278,7 @@ describe Vulcan::Orchestration do
         )
       }
       let(:session) { Session.new_session_for('project', 'test_workflow.cwl', 'storage_key', inputs, reference_figure_id: figure.id) }
-    
+
       it 'works' do
         expect(orchestration.run_until_done!(storage).length).to eql(0)
         expect(primary_outputs.is_built?(storage)).to eql(false)
@@ -316,7 +312,7 @@ describe Vulcan::Orchestration do
         )
       }
       let(:session) { Session.new_session_for('project', 'test_node_workflow.cwl', 'storage_key', inputs, reference_figure_id: figure.id) }
-    
+
       it 'works' do
         expect(orchestration.run_until_done!(storage).length).to eql(2)
         expect(::File.read(primary_outputs.build_outputs['the_result'].data_path(storage))).to eql({
@@ -339,7 +335,7 @@ describe Vulcan::Orchestration do
         )
       }
       let(:session) { Session.new_session_for('project', 'test_workflow.cwl', 'storage_key', inputs, reference_figure_id: figure.id) }
-    
+
       before(:each) do
         # Inject an old "add" script that actually subtracts
         old_scripts = figure.workflow_snapshot.scripts
@@ -379,7 +375,7 @@ describe Vulcan::Orchestration do
             }
           )
         end
-  
+
         it 'works' do
           expect(orchestration.run_until_done!(storage).length).to eql(0)
           expect(primary_outputs.is_built?(storage)).to eql(false)
@@ -390,6 +386,37 @@ describe Vulcan::Orchestration do
           session.define_user_input(["pickANum", "num"], 543)
           expect(orchestration.run_until_done!(storage).length).to eql(3)
           expect(::File.read(primary_outputs.build_outputs['the_result'].data_path(storage))).to eql("620") # 200 - 123 + 543
+        end
+      end
+
+      describe 'falls back to current script if configured to ignore_dependencies' do
+        before(:each) do
+          old_scripts = figure.workflow_snapshot.scripts
+          figure.workflow_snapshot.update(
+            scripts: {
+              "aPlot"=>nil,
+              "firstAdd"=>
+               "from archimedes.functions.dataflow import output_path, input_path\n\na = int(open(input_path('a'), 'r').read())\nb = int(open(input_path('b'), 'r').read())\n\nwith open(output_path('sum'), 'w') as output_file:\n    output_file.write(str(a - b))",
+              "pickANum"=>nil
+            }
+          )
+          configure_etna_yml_ignore_dependencies
+        end
+
+        after(:each) do
+          configure_etna_yml_ignore_dependencies(false)
+        end
+
+        it 'works' do
+          expect(orchestration.run_until_done!(storage).length).to eql(0)
+          expect(primary_outputs.is_built?(storage)).to eql(false)
+          session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
+          expect(orchestration.run_until_done!(storage).length).to eql(1)
+          expect(primary_outputs.is_built?(storage)).to eql(false)
+          session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
+          session.define_user_input(["pickANum", "num"], 543)
+          expect(orchestration.run_until_done!(storage).length).to eql(3)
+          expect(::File.read(primary_outputs.build_outputs['the_result'].data_path(storage))).to eql("866") # 200 + 123 + 543
         end
       end
     end

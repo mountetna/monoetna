@@ -9,8 +9,11 @@ describe Vulcan::DependencyManager do
     )
   }
   let(:session) { Session.new_session_for('project', 'test_workflow.cwl', 'storage_key', inputs, reference_figure_id: figure.id) }
-  let(:ignored_session) { Session.new_session_for('project', 'test_workflow.cwl', 'storage_key', inputs, reference_figure_id: figure.id, ignore_dependencies: true) }
   let(:dm) { Vulcan::DependencyManager.new }
+
+  after(:each) do
+    configure_etna_yml_ignore_dependencies(false)
+  end
 
   describe 'archimedes_run_sha' do
     it 'respects the session ignore_dependencies flag' do
@@ -18,7 +21,9 @@ describe Vulcan::DependencyManager do
       image_name = dm.archimedes_run_sha(session)
       expect(image_name).to eq(explicit_dependency)
 
-      ignored_image_name = dm.archimedes_run_sha(ignored_session)
+      configure_etna_yml_ignore_dependencies
+
+      ignored_image_name = dm.archimedes_run_sha(session)
       expect(ignored_image_name).not_to eq(explicit_dependency)
     end
   end
@@ -29,7 +34,9 @@ describe Vulcan::DependencyManager do
       image_name = dm.target_image("python", session)
       expect(image_name).to eq(explicit_dependency)
 
-      ignored_image_name = dm.target_image("python", ignored_session)
+      configure_etna_yml_ignore_dependencies
+
+      ignored_image_name = dm.target_image("python", session)
       expect(ignored_image_name).not_to eq(explicit_dependency)
     end
   end

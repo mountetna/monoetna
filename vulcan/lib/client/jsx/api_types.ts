@@ -140,8 +140,7 @@ export const defaultVulcanSession = {
   workflow_name: '',
   key: '',
   inputs: {} as {[k: string]: any},
-  reference_figure_id: null as number | null,
-  ignore_dependencies: false
+  reference_figure_id: null as number | null
 };
 
 export type VulcanSession = typeof defaultVulcanSession;

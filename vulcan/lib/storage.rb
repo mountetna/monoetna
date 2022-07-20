@@ -192,7 +192,7 @@ class Vulcan
     class BuildTarget
       attr_reader :script, :project_name, :input_files
 
-      def initialize(project_name:, session_key:, input_files:, output_filenames:, script:, dependencies: nil, ignore_dependencies: false)
+      def initialize(project_name:, session_key:, input_files:, output_filenames:, script:, dependencies: nil)
         unless input_files.map(&:project_name).all? { |v| v == project_name }
           raise "input files are mixed across projects, they must all belong to #{project_name}"
         end
@@ -206,7 +206,6 @@ class Vulcan
         @output_filenames = output_filenames
         @script = script
         @dependencies = dependencies
-        @ignore_dependencies = ignore_dependencies
       end
 
       def cell_hash
@@ -216,8 +215,7 @@ class Vulcan
             output_filenames: @output_filenames,
             session_key: @session_key,
             script: @script,
-            dependencies: @dependencies&.to_json,
-            ignore_dependencies: @ignore_dependencies
+            dependencies: @dependencies&.to_json
         }.compact)
       end
 
@@ -262,12 +260,11 @@ class Vulcan
     class MaterialSource
       attr_reader :project_name
 
-      def initialize(project_name:, session_key:, material_reference:, dependencies: nil, ignore_dependencies: false)
+      def initialize(project_name:, session_key:, material_reference:, dependencies: nil)
         @project_name = project_name
         @session_key = session_key
         @digest = Storage.hash_json_obj(material_reference)
         @dependencies = dependencies
-        @ignore_dependencies = ignore_dependencies
       end
 
       def cell_hash
