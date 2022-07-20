@@ -91,73 +91,41 @@ describe('autoPass, in WithBufferedInputs', () => {
 
   describe('for primary inputs', () => {
     stepName.replace(() => null)
-    describe('in workflow w/ vignette trigger', () => {
-      const addVignetteWithTrigger = awaitBefore(async () => {
-        workflowHelpers.value.setVignette('blah blah Primary inputs are skippable blah blah');
-      });
-      describe('no session inputs yet', () => {
-        const setPrimaryInputs = awaitBefore(async () => {
-          bufferInputsContextData.value.setInputs(() => {
-            return { a: [true], b: [true], c: [true] }
-          })
-        })
-        it('autoPass initiated', async () => {
-          const {stateRef} = contextData.value;
-          expect(stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable")).toBeTruthy()
-          expect(stateRef.current.triggerRun).toEqual([null])
-        })
+    describe('assuming vignette trigger caught by WorkflorManager', () => {
+      // Vignette check now happens upstream
+      // const addVignetteWithTrigger = awaitBefore(async () => {
+      //   workflowHelpers.value.setVignette('blah blah Primary inputs are skippable blah blah');
+      // });
+      const setAutoPass = awaitBefore(async () => {
+        contextData.value.dispatch(setAutoPassStep(stepName.value));
       })
-      describe('with previous session inputs', () => {
-        testSession.replace(() =>
-          createSessionFixture('test', {
-            project_name: 'test',
-            inputs: { a: [true], b: [true], c: [true] }
-          })
-        )
-        setupSession.replace(async () => {
-          await testSession.ensure();
-          contextData.value.dispatch(setSession(testSession.value));
-        });
-        integrated.replace(() =>
-          integrateElement((hook, {dispatch, commitSessionInputChanges}) => (
-            <WithBufferedInputs
-              stepName={stepName.value}
-              dispatch={dispatch}
-              commitSessionInputChanges={commitSessionInputChanges}
-            >
-              {hook}
-            </WithBufferedInputs>
-          ))
-        );
-        describe('on primary input values set', () => {
-          const setPrimaryInputs = awaitBefore(async () => {
-            bufferInputsContextData.value.setInputs(() => {
-              return { a: [true], b: [true], c: [true] }
-            })
-          })
-          it('does NOT initiate autoPass', () => {
-            const {stateRef} = contextData.value;
-            expect(stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable")).toBeTruthy()
-            expect(stateRef.current.triggerRun).toEqual([])
-          })
-        })
-      })
-    })
-    describe('for primary inputs, w/out vignette string', () => {
-      const addVignetteWithoutTrigger = awaitBefore(async () => {
-        workflowHelpers.value.setVignette('blah blah blah blah');
-      });
       const setPrimaryInputs = awaitBefore(async () => {
         bufferInputsContextData.value.setInputs(() => {
           return { a: [true], b: [true], c: [true] }
         })
       })
-      it('does NOT initiate autoPass', () => {
+      it('autoPass initiated', async () => {
         const {stateRef} = contextData.value;
-        expect(stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable")).toBeFalsy()
-        expect(stateRef.current.triggerRun).toEqual([])
+        expect(stateRef.current.autoPassSteps).toEqual([])
+        expect(stateRef.current.triggerRun).toEqual([stepName.value])
       })
-    });
+    })
+    // Vignette check now happens upstream
+    // describe('for primary inputs, w/out vignette string', () => {
+    //   const addVignetteWithoutTrigger = awaitBefore(async () => {
+    //     workflowHelpers.value.setVignette('blah blah blah blah');
+    //   });
+    //   const setPrimaryInputs = awaitBefore(async () => {
+    //     bufferInputsContextData.value.setInputs(() => {
+    //       return { a: [true], b: [true], c: [true] }
+    //     })
+    //   })
+    //   it('does NOT initiate autoPass', () => {
+    //     const {stateRef} = contextData.value;
+    //     expect(stateRef.current.workflow?.vignette?.includes("Primary inputs are skippable")).toBeFalsy()
+    //     expect(stateRef.current.triggerRun).toEqual([])
+    //   })
+    // });
   })
 
   describe('for stepUserInputs w/ doc string', () => {
