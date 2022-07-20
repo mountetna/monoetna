@@ -55,6 +55,7 @@ RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x6
 
 RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
 
+RUN rm /usr/local/lib/ruby/gems/2.7.0/specifications/default/bundler-*.gemspec
 RUN gem install bundler --default -v "=$BUNDLER_VERSION_"
 RUN gem update --system
 

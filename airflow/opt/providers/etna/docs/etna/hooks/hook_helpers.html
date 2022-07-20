@@ -39,6 +39,21 @@
             <li>
                     <a class="function" href="#get_etna_hook">get_etna_hook</a>
             </li>
+            <li>
+                    <a class="class" href="#RemoteFileBase">RemoteFileBase</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#RemoteFileBase.__init__">RemoteFileBase</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#RemoteFileBase.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#RemoteFileBase.full_path">full_path</a>
+                        </li>
+                </ul>
+
+            </li>
     </ul>
 
 
@@ -83,6 +98,16 @@
 
 <span class="k">def</span> <span class="nf">get_etna_hook</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">EtnaHook</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">EtnaHook</span><span class="o">.</span><span class="n">for_project</span><span class="p">()</span>
+
+
+<span class="k">class</span> <span class="nc">RemoteFileBase</span><span class="p">:</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be implemented by a subclass&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">full_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be implemented by a subclass&quot;</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -151,6 +176,63 @@
 
     
 
+                </section>
+                <section id="RemoteFileBase">
+                                <div class="attr class">
+        <a class="headerlink" href="#RemoteFileBase">#&nbsp;&nbsp</a>
+
+        
+        <span class="def">class</span>
+        <span class="name">RemoteFileBase</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span class="k">class</span> <span class="nc">RemoteFileBase</span><span class="p">:</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be implemented by a subclass&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">full_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Must be implemented by a subclass&quot;</span><span class="p">)</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            <div id="RemoteFileBase.__init__" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#RemoteFileBase.__init__">#&nbsp;&nbsp</a>
+
+        
+            <span class="name">RemoteFileBase</span><span class="signature">()</span>
+    </div>
+
+    
+    
+
+                            </div>
+                            <div id="RemoteFileBase.name" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#RemoteFileBase.name">#&nbsp;&nbsp</a>
+
+        <span class="name">name</span><span class="annotation">: str</span>
+    </div>
+
+    
+    
+
+                            </div>
+                            <div id="RemoteFileBase.full_path" class="classattr">
+                                            <div class="attr variable"><a class="headerlink" href="#RemoteFileBase.full_path">#&nbsp;&nbsp</a>
+
+        <span class="name">full_path</span><span class="annotation">: str</span>
+    </div>
+
+    
+    
+
+                            </div>
                 </section>
     </main>
 <script>

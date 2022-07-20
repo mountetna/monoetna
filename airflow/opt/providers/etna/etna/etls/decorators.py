@@ -28,6 +28,11 @@ from etna.etls.box import (
     load_box_files_batch
 )
 from etna.hooks.box import BoxHook, Box
+from etna.hooks.cat import CatHook
+from etna.etls.cat import (
+    load_cat_files_batch,
+    CatEtlHelpers
+)
 
 
 def metis_etl(
@@ -133,6 +138,7 @@ def box_etl(
     scoped to the given folder in Box. The folder must be shared with the Etna service agent account.
 
     1.  tail_files -- an XComArg object that will resolve into a list of File objects inside tasks.
+    2.  helpers -- a BoxEtlHelpers object that contains useful functions for common etl processing.
     """
     if not Box.valid_folder_name(folder_name):
         raise ValueError(f"Invalid folder name: {folder_name}. Only alphanumeric characters, -, and spaces are allowed.")
@@ -155,6 +161,62 @@ def box_etl(
             helpers = BoxEtlHelpers(
                 hook=hook,
                 box_folder=folder_name
+            )
+
+            return inject(
+                fn,
+                dict(
+                    tail_files=files,
+                    helpers=helpers,
+                    **inject_params
+                ),
+            )
+
+        return etl(
+            project_name=project_name,
+            interval=interval,
+            version=version,
+        )(setup_tail)
+
+    return instantiate_dag
+
+
+def cat_etl(
+    version: Union[int, str],
+    hook: Optional[CatHook] = None,
+    project_name: str = "administration",
+    inject_params: Mapping[str, str] = {},
+    magic_string: str = "DSCOLAB_",
+    ignore_directories: List[str] = ['Stats', 'test', 'Reports', 'test_DM', 'ec-test']
+):
+    """
+    A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.
+
+    This decorator is the main entry point for processing CAT files with an etl.  The decorated function receives
+    a number of useful XComArg objects and a helpers object to help set up CAT tasks based on consuming changes
+    including the `magic_string` in CAT.
+
+    1.  tail_files -- an XComArg object that will resolve into a list of File objects inside tasks.
+    2.  helpers -- a CatEtlHelpers object that contains useful functions for common etl processing.
+    """
+    if hook is None:
+        hook = CatHook.for_project(project_name)
+
+    interval = timedelta(days=1)
+
+    def instantiate_dag(fn):
+        @functools.wraps(fn)
+        def setup_tail():
+            @task
+            def tail_files() -> List[File]:
+                with hook.cat() as cat:
+                    return pickled(load_cat_files_batch(cat, magic_string, ignore_directories))
+
+            files = tail_files()
+
+            helpers = CatEtlHelpers(
+                hook=hook,
+                magic_string=magic_string
             )
 
             return inject(

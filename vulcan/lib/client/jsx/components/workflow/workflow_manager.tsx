@@ -4,6 +4,7 @@ import * as _ from 'lodash';
 import {VulcanContext} from '../../contexts/vulcan_context';
 import {defaultSession} from '../../reducers/vulcan_reducer';
 import {
+  completedSteps,
   cwlName,
   defaultInputs,
   selectFigure,
@@ -16,7 +17,8 @@ import StepsList from './steps/steps_list';
 import {
   setSession,
   setWorkflow,
-  setSessionAndFigureSeparately
+  setSessionAndFigureSeparately,
+  setAutoPassStep
 } from '../../actions/vulcan_actions';
 import {
   defaultFigure,
@@ -101,9 +103,14 @@ export default function WorkflowManager({
     let session = {
       ...defaultSession,
       workflow_name: cwlName(workflowName) || workflowName,
-      project_name: projectName
+      project_name: projectName,
+      inputs: workflow ? defaultInputs(workflow) : defaultSession.inputs
     };
+    // To allows correct values to pass through, set session before letting auto-pass trigger.
     dispatch(setSession(session));
+    if (workflow && workflow.vignette?.includes("Primary inputs are skippable") && completedSteps(workflow, state.status).length<1) {
+      dispatch(setAutoPassStep(null))
+    }
   }, [workflowName, state, projectName, dispatch]);
 
   const initializeFromStoredSession = useCallback(
@@ -134,7 +141,7 @@ export default function WorkflowManager({
       } else {
         initializeFromSessionAndFigure(
           selectSession(localSession),
-          defaultFigure
+          selectFigure(localSession)
         );
       }
     },

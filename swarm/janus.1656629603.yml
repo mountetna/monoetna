@@ -1,0 +1,181 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:10.19
+    environment:
+      POSTGRES_DB: "janus"
+      POSTGRES_PASSWORD_FILE: /run/secrets/password
+      POSTGRES_USER: developer
+    volumes:
+      - db:/var/lib/postgresql/data
+    deploy:
+      placement:
+        constraints:
+          - node.labels.psql.primary == true
+          - node.labels.volumes.big-shared == true
+    networks:
+      - db
+    secrets:
+    - source: db-pw
+      target: password
+
+  app:
+    environment:
+      - APP_NAME=janus
+      - JANUS_ENV=production
+      - ETNA__PRODUCTION_FILE=/app/env.yml
+      - ETNA__PRODUCTION__DB__PASSWORD_FILE=/run/secrets/db-password
+      - ETNA__PRODUCTION__ROLLBAR__ACCESS_TOKEN_FILE=/run/secrets/rollbar-access-token
+      - ETNA__PRODUCTION__RSA_PRIVATE_FILE=/run/secrets/rsa-private
+      - ETNA__PRODUCTION__PASS_SALT_FILE=/run/secrets/pass-salt
+      - ETNA__PRODUCTION__USER_HASH_SECRET_FILE=/run/secrets/user-hash-secret
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        export METRICS_PW="$$(cat /run/secrets/metrics-pw)"
+        exec /bin/deploy.sh migrate -- /app/bin/puma.sh
+    image: etnaagent/janus:production
+    deploy:
+      labels:
+        - autoupdate=true
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 500mb
+      placement:
+        constraints:
+          - node.labels.is_edge != true
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 1s
+      test: bash -c 'curl -f -X OPTIONS http://localhost:3000 || exit 1'
+      timeout: 5s
+    configs:
+      - source: config
+        target: /app/config.yml
+      - source: env
+        target: /app/env.yml
+    networks:
+      db:
+      prometheus:
+      fe:
+        aliases:
+          - janus_app
+    secrets:
+      - metrics-pw
+      - source: db-pw
+        target: db-password
+      - rollbar-access-token
+      - rsa-private
+      - pass-salt
+      - user-hash-secret
+
+  app_fe:
+    environment:
+      - APP_NAME=janus
+      - JANUS_ENV=production
+    image: etnaagent/janus_app_fe:production
+    networks:
+      - edge_bridge
+      - fe
+    volumes:
+      - app_public:/app/public:nocopy
+      - production_shibboleth:/shibboleth:nocopy
+    # Notably, apache needs to start as super user but it immediately downgrades
+    # its own user permissions after bootup.  See the includes.
+    user: 0:3000 # su:browser
+    configs:
+      - source: browser.system.include
+        target: /usr/opt/httpd.conf.d/browser.system.include
+    deploy:
+      labels:
+        - autoupdate=true
+      placement:
+        constraints:
+          - node.labels.volumes.big-shared == true
+    command:
+      - /bin/httpd_with_shibd.sh
+
+  app_assets_deployer:
+    environment:
+      - APP_NAME=janus
+      - JANUS_ENV=production
+    user: 0:3000 # root/browser -- todo, this can only become a lower permission once the app images are built that way
+    command: /bin/deploy.sh syncAssets -- true # Sync the assets to the shared data volume and stop.
+    image: etnaagent/janus:production
+    volumes:
+      - app_public:/sync-assets:nocopy
+    deploy:
+      labels:
+        - autoupdate=true
+      restart_policy:
+        condition: none
+      mode: replicated
+      placement:
+        constraints:
+          - node.labels.volumes.big-shared == true
+volumes:
+  app_public:
+    name: janus_production_app_public
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
+      device: ":/cache/janus/app_public"
+  db:
+    name: "janus_production_db"
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3,hard,intr
+      device: ":/cache/postgres/janus"
+  production_shibboleth:
+    name: janus_production_shibboleth
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=mtetna-nfs1,nolock,noatime,suid,nodev,retry=16,proto=tcp,nfsvers=3
+      device: ":/cache/janus/shibboleth"
+
+configs:
+  browser.system.include:
+    external: true
+    name: ${BROWSER_SYSTEM_INCLUDE:-browser.system.include}
+  config:
+    external: true
+    name: ${APP_CONFIG:-janus.production.yml}
+  env:
+    external: true
+    name: ${ENV_CONFIG:-etna.production.yml}
+
+secrets:
+  user-hash-secret:
+    external: true
+    name: ${USER_HASH_SECRET:-user-hash-secret}
+  metrics-pw:
+    external: true
+    name: ${METRICS_PW:-metrics-pw}
+  db-pw:
+    external: true
+    name: "janus_production_db_password"
+  rollbar-access-token:
+    external: true
+    name: ${ROLLBAR_ACCESS_TOKEN:-janus-rollbar-access-token}
+  rsa-private:
+    external: true
+    name: ${RSA_PRIVATE:-janus-rsa-private.json}
+  pass-salt:
+    external: true
+    name: ${PASS_SALT:-janus-pass-salt}
+
+networks:
+  fe:
+  db:
+  edge_bridge:
+    external: true
+  prometheus:
+    external: true
