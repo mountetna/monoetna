@@ -1,8 +1,0 @@
-Package: app
-Imports:
-    dataflow,
-    Seurat,
-    SeuratDisk
-Remotes:
-    local::archimedes-r/functions/dataflow,
-    mojaveazure/seurat-disk

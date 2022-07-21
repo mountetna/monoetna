@@ -30,5 +30,5 @@ services:
       - ../vulcan/lib/server/workflows/scripts:/app/vulcan_scripts
     environment:
       HOST_DIR: $PWD
-    entrypoint: /entrypoints/development.sh
+    # entrypoint: /entrypoints/development.sh
     command: echo hello!

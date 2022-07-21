@@ -1,15 +1,9 @@
-FROM archimedes-r-base
+# FROM development-certs
+FROM etnaagent/archimedes-r-base:main
 # Perform these steps first to allow better caching behavior
 WORKDIR /app
-RUN jetpack init
-COPY renv.lock /app
-COPY DESCRIPTION /app
-COPY .Rprofile /app
 COPY archimedes-r/functions /app/archimedes-r/functions
-RUN jetpack install
+RUN jetpack global add dataflow --remote=local::archimedes-r/functions/dataflow
 
 # NOTE: Anything after this will almoast always get run every time
 COPY . /app/
-
-ARG FULL_BUILD=1
-RUN /entrypoints/build.sh
