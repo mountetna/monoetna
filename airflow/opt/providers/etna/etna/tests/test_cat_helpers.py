@@ -356,8 +356,8 @@ def test_cat_files_etl_ingest_c4_remove_oligo_by_default(mocked_c4, mock_load, r
     end_date = start_date + timedelta(days=1, minutes=1)
     run_dag(test_ingesting_cat_files_ingest_c4_remove_oligo_by_default, start_date, end_date)
 
-    mock_c4().upload_file.assert_any_call(mock.ANY, "foo/parent/child/grandchild", "3.txt", mock.ANY, 1)
-    mock_retrieve_file.assert_called()
+    mock_c4().upload_file.assert_any_call(mock.ANY, "foo/parent/child/grandchild", "3.txt", mock.ANY, mock.ANY)
+    mock_retrieve_file.assert_not_called()
 
 
 @mock.patch('providers.etna.etna.etls.decorators.load_cat_files_batch', side_effect=[mock_tail(), []])
@@ -400,8 +400,8 @@ def test_cat_files_etl_ingest_c4_do_not_remove_oligo(mocked_c4, mock_load, reset
     end_date = start_date + timedelta(days=1, minutes=1)
     run_dag(test_ingesting_cat_files_ingest_c4_do_not_remove_oligo, start_date, end_date)
 
-    mock_c4().upload_file.assert_any_call(mock.ANY, "foo/parent/child/grandchild", "123.txt", mock.ANY, 1)
-    mock_retrieve_file.assert_called()
+    mock_c4().upload_file.assert_any_call(mock.ANY, "foo/parent/child/grandchild", "123.txt", mock.ANY, mock.ANY)
+    mock_retrieve_file.assert_not_called()
 
 
 @mock.patch('providers.etna.etna.etls.decorators.load_cat_files_batch', side_effect=[mock_tail(), []])
@@ -440,8 +440,8 @@ def test_cat_files_etl_ingest_c4_without_folder_path(mocked_c4, mock_load, reset
     end_date = start_date + timedelta(days=1, minutes=1)
     run_dag(test_ingesting_cat_files_ingest_c4_without_folder_path, start_date, end_date)
 
-    mock_c4().upload_file.assert_any_call(mock.ANY, "parent/child/grandchild", "123.txt", mock.ANY, 1)
-    mock_retrieve_file.assert_called()
+    mock_c4().upload_file.assert_any_call(mock.ANY, "parent/child/grandchild", "123.txt", mock.ANY, mock.ANY)
+    mock_retrieve_file.assert_not_called()
 
 
 @mock.patch('providers.etna.etna.etls.decorators.load_cat_files_batch', side_effect=[mock_tail(), []])
