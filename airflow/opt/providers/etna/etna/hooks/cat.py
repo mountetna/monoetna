@@ -1,6 +1,8 @@
 import asyncio
+import codecs
 import contextlib
 from datetime import datetime
+import hashlib
 import io
 import logging
 import os
@@ -219,6 +221,12 @@ class Cat(SSHBase):
     def _curl_authn(self) -> str:
         return f"{self.hook.connection.login}:{self.hook.connection.password}"
 
+    def _curl_hostpubmd5(self) -> str:
+        # https://stackoverflow.com/a/66227907
+        return hashlib.md5(
+            codecs.decode(bytes(self._key_str(),'utf-8'), 'base64')
+        ).hexdigest()
+
     @contextlib.contextmanager
     def retrieve_file(
         self,
@@ -246,15 +254,26 @@ class Cat(SSHBase):
             pr.wait()
             qu.put(pr.returncode)
 
-        cmd = ["curl", "-u", self._curl_authn(), "-o", "-", "-N", self._curl_url(source_file)]
-
         rd, wd = os.pipe()
 
-        # non-inheritable by default, which means
-        #   it is closed by child processes.
-        os.set_inheritable(wd, True)
+        cmd = [
+            "curl",
+            "-u",
+            self._curl_authn(),
+            "--hostpubmd5",
+            self._curl_hostpubmd5(),
+            "-o",
+            "-",
+            "-N",
+            self._curl_url(source_file)
+        ]
 
-        proc = subprocess.Popen(cmd, stdout=wd)
+        proc = subprocess.Popen(
+            cmd,
+            stdout=wd,
+            stderr=subprocess.PIPE,
+            pass_fds=[wd],
+            bufsize=0)
         q = Queue()
 
         closer = Thread(
@@ -265,12 +284,11 @@ class Cat(SSHBase):
 
         closer.start()
 
+        os.close(wd)
         try:
-            os.close(wd)
-            yield HotPipe(rd, wd)
+            yield open(rd, mode='rb', closefd=False)
             os.close(rd)
         except Exception as e:
-            os.close(wd)
             os.close(rd)
             proc.kill()
             raise e
@@ -278,78 +296,6 @@ class Cat(SSHBase):
         status = q.get()
         if 0 != status:
             raise AirflowException(f"Failed to run external process, got status code {status}")
-
-            # rd, wd = IO.pipe
-
-            # pid = spawn(*mkcommand(rd, wd, file, opts, size_hint: size_hint))
-            # q = Queue.new
-
-            # closer = Thread.new do
-            # _, status = Process.wait2 pid
-            # q << status
-            # end
-
-            # begin
-            # if opts.include?('w')
-            #     rd.close
-            #     yield wd
-            #     wd.close
-            # else
-            #     wd.close
-            #     yield rd
-            #     rd.close
-            # end
-
-            # closer.join
-            # rescue => e
-            # wd.close
-            # rd.close
-            # Process.kill("HUP", pid)
-            # raise e
-            # end
-
-        # curl = pycurl.Curl()
-        # curl.setopt(pycurl.URL, self._curl_url(source_file))
-        # curl.setopt(pycurl.USERNAME, self.hook.connection.login)
-        # curl.setopt(pycurl.PASSWORD, self.hook.connection.password)
-
-        # with io.BytesIO() as read_io:
-        #     curl.setopt(pycurl.WRITEFUNCTION, read_io.write)
-
-        #     task = asyncio.create_task(curl.perform())
-        #     read_io.seek(0)
-        #     yield read_io
-
-        #     await task
-        #     curl.close()
-
-
-
-        # cmd = f"curl -u {self._curl_authn()} -o - -N {self._curl_url(source_file)}"
-        # print(cmd)
-
-        # # with io.BytesIO() as read_io:
-        # stdin, stdout, stderr = ssh.exec_command(cmd)
-        # print("yielding stdout")
-        # yield stdout
-
-        # print("done yielding, waiting for exit status")
-        # # for chunk in stdout.read(self.chunk_size):
-        # #     yield chunk
-
-        #     # yield read_io
-
-        # # exec_command is non-blocking, so we'll
-        # #     add a blocking call here.
-        # # Hopefully because we're constantly read stdout(),
-        # #     we shouldn't deadlock.
-        # # https://stackoverflow.com/a/28486051
-        # exit_status = stdout.channel.recv_exit_status()
-        # print(exit_status)
-        # if exit_status == 0:
-        #     print("Curl GET completed.")
-        # else:
-        #     raise AirflowException(stderr.read())
 
     def mark_file_as_ingested(self, ingested_to: str, file: SftpEntry):
         """

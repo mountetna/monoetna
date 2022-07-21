@@ -154,7 +154,7 @@ class CatEtlHelpers(RemoteHelpersBase):
                             final_file_name = file.name.replace(self.magic_string, "")
 
                         self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, final_file_name)}.")
-                        self.log.info(file_handle)
+
                         self.handle_metis_ingest(
                             file_handle=file_handle,
                             folder_path=folder_path,

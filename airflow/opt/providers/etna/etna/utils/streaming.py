@@ -41,7 +41,9 @@ class HotPipe:
         self.wd = wd
 
     def read(self, len: int) -> List[bytes]:
+        print(f"reading {len} data")
         return os.read(self.rd, len)
 
     def write(self, data):
+        print("writing data")
         os.write(self.wd, data)

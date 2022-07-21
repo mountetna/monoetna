@@ -118,7 +118,7 @@ class RemoteHelpersBase:
             dest_path = os.path.join(*current_path)
 
         self.log.info(f"Uploading {file.full_path} to {dest_path}.")
-        self.log.info(file.size)
+
         should_log = True
         for blob in metis.upload_file(
             project_name,
@@ -127,7 +127,6 @@ class RemoteHelpersBase:
             file_handle,
             file.size
         ):
-            self.log.info("blob")
             # Only log every 5 seconds, to save log space...
             time_check = int(time.time())
             if time_check % 5 == 0 and should_log:

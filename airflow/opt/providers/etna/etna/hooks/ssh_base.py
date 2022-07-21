@@ -97,6 +97,9 @@ class SSHBase(object):
     def _key_type(self) -> str:
         return self._key_components()[0]
 
+    def _key_str(self) -> str:
+        return self._key_components()[1]
+
     def _host_key(self) -> str:
         key_class = {
             "ssh-rsa": paramiko.RSAKey,
@@ -109,5 +112,5 @@ class SSHBase(object):
             raise AirflowException(f"Unsupported SSH key type: {self._key_type()}")
 
         return key_class[self._key_type()](
-            data=base64.b64decode(self._key_components()[1])
+            data=base64.b64decode(self._key_str())
         )
