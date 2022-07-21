@@ -24,7 +24,6 @@ from airflow.providers.ssh.hooks.ssh import SSHHook
 from etna.dags.project_name import get_project_name
 from etna.hooks.hook_helpers import RemoteFileBase
 from etna.hooks.ssh_base import SSHBase
-from etna.utils.streaming import HotPipe
 
 
 class CatHook(SSHHook):
@@ -234,7 +233,7 @@ class Cat(SSHBase):
     ):
         """
         Opens the given file for download as a file-like object.
-        Yields the bytes.
+        The returned file-like object yields bytes.
 
         Note:  Ideally, this method is used in combination with 'with' syntax in python, so that the underlying
         data stream is closed after usage.  This is especially performant when code only needs to access a small
