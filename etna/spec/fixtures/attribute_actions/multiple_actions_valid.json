@@ -25,12 +25,14 @@
       {
         "model_name": "assay_name",
         "attribute_name": "document",
-        "attribute_type": "link"
+        "attribute_type": "link",
+        "link_attribute_name": "assay_name"
       },
       {
         "model_name": "document",
         "attribute_name": "assay_name",
-        "attribute_type": "collection"
+        "attribute_type": "collection",
+        "link_attribute_name": "document"
       }
     ]
   }

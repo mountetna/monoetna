@@ -457,7 +457,7 @@ module Etna
         def is_edited?(other)
           # Don't just override == in case need to do a full comparison.
           editable_attribute_names = Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.map(&:to_s)
-          
+
           self_editable = raw.slice(*editable_attribute_names)
           other_editable = other.raw.slice(*editable_attribute_names)
 
