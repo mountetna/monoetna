@@ -31,7 +31,7 @@ class Session < Etna::Cwl
       workflow_name: Etna::Cwl::PrimitiveLoader::STRING,
       key: Etna::Cwl::PrimitiveLoader::STRING.optional.map { |v| v.nil? || v.empty? ? SecureRandom.uuid.hex.to_s : v },
       inputs: Etna::Cwl::StrictMapLoader.new(Etna::Cwl::AnyLoader::ANY.map { |v| {json_payload: v}}, Etna::Cwl::SourceLoader.new).optional.map { |v| v || {} },
-      reference_figure_id: Etna::Cwl::PrimitiveLoader::INT.optional,
+      reference_figure_id: Etna::Cwl::PrimitiveLoader::INT.optional
   }
 
   def self.from_json(json)
@@ -94,11 +94,11 @@ class Session < Etna::Cwl
         if (snapshot = workflow_snapshot)
           Etna::Cwl::Workflow.from_snapshot(snapshot)
         else
-          Etna::Cwl::Workflow.from_yaml_file(workflow_name)  
+          Etna::Cwl::Workflow.from_yaml_file(workflow_name)
         end
       else
-        Etna::Cwl::Workflow.from_yaml_file(workflow_name)  
-      end    
+        Etna::Cwl::Workflow.from_yaml_file(workflow_name)
+      end
     end
   end
 
@@ -136,7 +136,7 @@ class Session < Etna::Cwl
   end
 
   private
-  
+
   def reference_figure
     @reference_figure ||= Vulcan::Figure.from_reference_id(@reference_figure_id)
   end
