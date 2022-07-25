@@ -225,6 +225,7 @@ module Etna
             end
           rescue ImportError => e
             validation_err_block.call(e.message)
+            raise e
           end
 
 
@@ -257,7 +258,11 @@ module Etna
             end
 
             row_processor.process(:parent_link_type, :model_name, :parent_model_name) do |parent_link_type, template|
-              reciprocal = models.find_reciprocal(model_name: template.name, link_attribute_name: template.parent)
+              reciprocal = models.find_reciprocal(
+                model_name: template.name,
+                link_attribute_name: template.name,
+                link_model: models.model(template.parent)
+              )
               if reciprocal && reciprocal.attribute_type.to_s != parent_link_type
                 raise ImportError.new("Model #{template.name} was provided multiple parent_link_types: #{reciprocal.attribute_type} and #{parent_link_type}")
               end
@@ -335,7 +340,7 @@ module Etna
                 att.send(:"#{prop_name}=", value)
 
                 if att.attribute_type && att.link_model_name
-                  if att.attribute_type == Etna::Clients::Magma::AttributeType::LINK && models.find_reciprocal(model_name: template.name, attribute: att).nil?
+                  if att.attribute_type == Etna::Clients::Magma::AttributeType::LINK && models.find_reciprocal(model_name: template.name, attribute: att, link_attribute_name: att.link_attribute_name).nil?
                     models.build_model(att.link_model_name).build_template.build_attributes.build_attribute(template.name).tap do |rec_att|
                       rec_att.attribute_name = rec_att.name = template.name
                       rec_att.display_name = prettify(template.name)

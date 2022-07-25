@@ -239,6 +239,9 @@ module Etna
             link_model: self.model(attribute&.link_model_name)
         )
           return nil if model.nil? || model.name.nil?
+
+          return link_model&.template&.attributes&.all&.find { |a| a.name == link_attribute_name } if link_attribute_name
+
           link_model&.template&.attributes&.all&.find { |a| a.link_model_name == model.name }
         end
 
