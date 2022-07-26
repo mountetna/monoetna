@@ -156,7 +156,7 @@ module Etna
 
           target_attributes = target_models.model(target_model_name).template.attributes
           return if target_attributes.attribute_keys.include?(target_link_model_name)
-          return if target_attributes.attribute_keys.include?(link_attribute_name)
+          return if target_attributes.attribute_keys.include?(reciprocal.attribute_name)
 
           # skip non-links for circular references so they don't get added twice
           return if link_model_name == model_name && reciprocal.attribute_type != 'link'
@@ -164,7 +164,6 @@ module Etna
           add_link = AddLinkAction.new
           add_link.links << AddLinkDefinition.new(model_name: target_model_name, attribute_name: attribute_name, type: source_attribute.attribute_type)
           add_link.links << AddLinkDefinition.new(model_name: target_link_model_name, attribute_name: reciprocal.attribute_name, type: reciprocal.attribute_type)
-          puts(add_link)
           queue_update(add_link)
         end
 
