@@ -115,7 +115,10 @@ module Etna
             if attribute.attribute_type == Etna::Clients::Magma::AttributeType::IDENTIFIER
               # Identifiers for models whose parent link type ends up being a table are non configurable, so we don't
               # want to include them in the CSV.
-              if models.find_reciprocal(model: model, link_attribute_name: model.template.parent)&.attribute_type == Etna::Clients::Magma::AttributeType::TABLE
+              if models.find_reciprocal(
+                model: model,
+                link_attribute_name: model.name,
+                link_model: models.model(model.template.parent))&.attribute_type == Etna::Clients::Magma::AttributeType::TABLE
                 return
               end
             else
