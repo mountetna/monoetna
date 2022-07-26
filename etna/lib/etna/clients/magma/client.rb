@@ -45,6 +45,12 @@ module Etna
         controller = ::UpdateModelController.new(fake_request(update_model_request), nil)
         Magma::UpdateModelResponse.new(parse_json_response(controller.action))
       end
+
+
+      def update_json(update_request = UpdateRequest.new)
+        controller = ::UpdateController.new(fake_request(update_request), nil)
+        Magma::UpdateResponse.new(parse_json_response(controller.action))
+      end
     end
 
     class Magma < Etna::Clients::BaseClient

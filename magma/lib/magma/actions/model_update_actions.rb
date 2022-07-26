@@ -128,7 +128,7 @@ class Magma
     end
 
     def restart_server
-      return if Magma.instance.test?
+      return if Magma.instance.test? || Magma.instance.server_pid.nil?
       Process.kill("USR2", Magma.instance.server_pid)
     end
 
