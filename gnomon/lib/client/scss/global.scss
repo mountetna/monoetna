@@ -5,15 +5,15 @@
 }
 
 a {
-  color: #0808fe;
+  color: #888;
   &:hover {
-    color: turquoise;
+    color: #aaa;
   }
   text-decoration: none;
 }
 
-$polyphemus-color: #623209;
-@function thin-rule($alpha, $color: $polyphemus-color) {
+$gnomon-color: #80888f;
+@function thin-rule($alpha, $color: $gnomon-color) {
   @return 1px solid rgba($color,$alpha)
 }
 

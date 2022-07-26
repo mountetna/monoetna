@@ -4,9 +4,9 @@ import { Provider } from 'react-redux';
 import Cookies from 'js-cookie';
 
 import createStore from './store';
-import PolyphemusUI from './polyphemus-ui';
+import GnomonUI from './gnomon-ui';
 
-function Polyphemus() {
+function Gnomon() {
   const store = createStore();
 
   // add the user
@@ -18,10 +18,10 @@ function Polyphemus() {
   // build the UI
   ReactDOM.render(
     <Provider store={ store }>
-      <PolyphemusUI/>
+      <GnomonUI/>
     </Provider>,
     document.getElementById('root')
   );
 }
 
-window.polyphemus = new Polyphemus();
+window.gnomon = new Gnomon();

@@ -1,5 +1,6 @@
 class Gnomon
   class Controller < Etna::Controller
+    VIEW_PATH=File.expand_path('../views', __dir__)
     def config_json
       {
         project_name: @params[:project_name],
