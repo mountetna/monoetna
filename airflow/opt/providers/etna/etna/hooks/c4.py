@@ -1,8 +1,7 @@
 import contextlib
-import io
 import logging
 import os
-import time
+import re
 from typing import Dict, Optional, ContextManager
 
 import cached_property
@@ -96,6 +95,19 @@ class C4(SSHBase):
     def __init__(self, hook: C4Hook):
         self.hook = hook
 
+    def _alphanumeric(self, param: str, include_period: bool = False) -> bool:
+        if include_period:
+            safe_regex = re.compile(r"^[\w\.]+$")
+        else:
+            safe_regex = re.compile(r"^\w+$")
+        return bool(safe_regex.match(param))
+
+    def _validate_cat_config(self, cat_hook: CatHook):
+        if (not self._alphanumeric(cat_hook.connection.login) or
+            not self._alphanumeric(cat_hook.connection.password) or
+            not self._alphanumeric(cat_hook.connection.host, True)):
+            raise AirflowException("Invalid CAT connection configuration. Please make sure all fields are alphanumeric.")
+
     def upload_file(
         self,
         sftp: SFTPClient,
@@ -114,6 +126,9 @@ class C4(SSHBase):
           source_file: SftpEntry, the source file to download
           cat_hook: CatHook, the CAT hook with SFTP login information
         """
+        # Make sure the cat config is safe
+        self._validate_cat_config(cat_hook)
+
         # Ensure the folder path exists on C4
         full_path = os.path.join(self._root_path(), folder_path)
         traversed = []
@@ -130,15 +145,21 @@ class C4(SSHBase):
 
         cmd = f"lftp sftp://{cat_hook.connection.login}:{cat_hook.connection.password}@{cat_hook.connection.host}  -e \"get {source_file.full_path} -o {os.path.join(full_path, file_name)}; bye\""
 
-        with self.ssh() as ssh:
-            stdin, stdout, stderr = ssh.exec_command(cmd)
+        with self.ssh() as ssh, ssh.get_transport() as transport, transport.open_channel("session") as channel:
+            channel.set_combine_stderr(True)
 
-            # exec_command is non-blocking, so we'll
-            #   add a blocking call here.
-            # We shouldn't deadlock since the LFTP output is small
-            # https://stackoverflow.com/a/28486051
-            exit_status = stdout.channel.recv_exit_status()
-            if exit_status == 0:
-                print("LFTP GET completed.")
-            else:
-                raise AirflowException(stderr.read())
+            channel.exec_command(cmd)
+
+            while not channel.recv_exit_status():
+                if channel.recv_ready():
+                    data = channel.recv(1024)
+                    while data:
+                        print(data)
+                        data = channel.recv(1024)
+
+                exit_status = channel.recv_exit_status()
+                if 0 == exit_status:
+                    print("LFTP GET completed.")
+                    break
+                else:
+                    raise AirflowException(f"Error reading from channel: {data}")
