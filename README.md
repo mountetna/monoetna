@@ -108,6 +108,18 @@ want to maintain entries like the following based on which services you are test
 127.0.0.1 prometheus.development.local
 ```
 
+### Gemfiles
+
+Currently, all etna ruby projects derive from the `etna` base image, which shares a single `Gemfile` and `Gemfile.lock`.
+This is intentional design for performance, storage, and maintenance simplicity.
+
+Adding new gems, one should modify the `etna/Gemfile`, then update the lock file with:
+
+```bash
+make -C etna bash
+> bundle install
+```
+
 ### Seeding janus
 
 In addition, you'll want to configure some users and projects into your janus environment.

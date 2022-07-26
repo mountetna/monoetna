@@ -20,6 +20,22 @@ describe Etna::Server do
     Object.send(:remove_const, :WebController)
   end
 
+  it 'should include a noauth OPTIONS / route' do
+    Arachne::Server.route('GET', '/silk') do
+      [ 200, {}, [ 'ok' ] ]
+    end
+
+    expect(Arachne::Server.routes.length).to eq(2)
+
+    @app = setup_app(Arachne::Server, [Etna::DescribeRoutes])
+
+    options '/'
+
+    expect(last_response.status).to eq(200)
+    expect(last_response.body).to match(/OPTIONS/)
+  end
+
+
   it 'should allow route definitions with blocks' do
     Arachne::Server.route('GET', '/silk') do
       [ 200, {}, [ 'ok' ] ]
@@ -132,21 +148,32 @@ describe Etna::Server do
     @app = setup_app(Arachne::Server)
 
     get URI.encode("/silk/#{description}")
-
     expect(last_response.status).to eq(200)
     expect(last_response.body).to eq(description)
+
+    get "/silk/a+b+c"
+    expect(last_response.status).to eq(200)
+    expect(last_response.body).to eq("a b c")
+
+    get "/silk/a/b/c"
+    expect(last_response.status).to eq(200)
+    expect(last_response.body).to eq("a/b/c")
+
+    get "/silk/a%2Fb%2Fc"
+    expect(last_response.status).to eq(200)
+    expect(last_response.body).to eq("a/b/c")
   end
 
   it 'sets route names' do
     Arachne::Server.get('/silk/:name', as: :silk_road)
 
-    expect(Arachne::Server.routes.first.name).to eq(:silk_road)
+    expect(Arachne::Server.routes.last.name).to eq(:silk_road)
   end
 
   it 'guesses route names' do
     Arachne::Server.get('/web/:silk', action: 'web#silk')
 
-    expect(Arachne::Server.routes.first.name).to eq(:web_silk)
+    expect(Arachne::Server.routes.last.name).to eq(:web_silk)
   end
 
   it 'looks up route names' do
@@ -155,9 +182,9 @@ describe Etna::Server do
     end
     @app = setup_app(Arachne::Server)
 
-    get('/silk/tree')
+    get('/silk/The+skill+at+weaving+was+itself+a+web')
     expect(last_response.status).to eq(200)
-    expect(last_response.body).to eq('http://example.org/silk/tree')
+    expect(last_response.body).to eq('http://example.org/silk/The+skill+at+weaving+was+itself+a+web')
   end
 
   it "applies an auth check" do

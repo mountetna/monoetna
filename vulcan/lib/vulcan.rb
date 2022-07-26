@@ -1,6 +1,7 @@
 require_relative 'commands'
 require_relative 'storage'
 require_relative 'orchestration'
+require_relative 'dependency_manager'
 
 class Vulcan
   include Etna::Application
@@ -44,5 +45,9 @@ class Vulcan
     end
 
     super
+  end
+
+  def dependency_manager
+    @dependency_manager ||= Vulcan::DependencyManager.new
   end
 end

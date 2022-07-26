@@ -13,7 +13,7 @@ import re
 from airflow.exceptions import AirflowException
 from airflow.models.xcom_arg import XComArg
 from airflow.utils.task_group import TaskGroup
-from etna.hooks.etna import UpdateRequest
+from mountetna import UpdateRequest
 
 from etna.etls.metis import MatchedRecordFolder
 
@@ -71,11 +71,11 @@ def link_single_cell_attribute_files_v1(
         cite_antibody_key=r"^ADT_keep_features\.list$",
         mux_index_key=r"^IDX_map\.tsx$",
         processed_robject_rdata=r".*_scTransformed_processed\.RData$",
-        processed_umap=r".*_umap\.pdf$",
+        processed_umap=r".*\d+_umap\.pdf$",
         processing_pipeline_parameters=r"^cutoffs\.yml$",
         filtered_counts_h5=r"^filtered_feature_bc_matrix\.h5$",
         raw_counts_h5=r"^raw_feature_bc_matrix\.h5$",
-        tenx_aligned_bam=r"^raw_feature_bc_matrix\.h5$",
+        tenx_aligned_bam=r"^possorted_genome_bam\.bam$",
         tenx_aligned_bam_index=r"^possorted_genome_bam\.bam\.bai$",
         tenx_cloupe_file=r"^cloupe\.cloupe$",
         tenx_metrics_csv=r"^metrics_summary\.csv$",

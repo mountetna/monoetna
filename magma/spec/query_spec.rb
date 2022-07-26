@@ -34,13 +34,16 @@ describe QueryController do
   it 'can post a basic query' do
     labors = create_list(:labor, 3, project: @project)
 
-    query(
-      [ 'labor', '::all', '::identifier' ]
-    )
+    [:viewer, :guest].each do |role|
+      query(
+        [ 'labor', '::all', '::identifier' ],
+        role
+      )
 
-    expect(last_response.status).to eq(200)
-    expect(json_body[:answer].map(&:last).sort).to eq(labors.map(&:identifier).sort)
-    expect(json_body[:format]).to eq(['labors::labor#name', 'labors::labor#name'])
+      expect(last_response.status).to eq(200)
+      expect(json_body[:answer].map(&:last).sort).to eq(labors.map(&:identifier).sort)
+      expect(json_body[:format]).to eq(['labors::labor#name', 'labors::labor#name'])
+    end
   end
 
   it 'generates an error for bad arguments' do
@@ -106,15 +109,17 @@ describe QueryController do
       labors = create_list(:labor, 3, project: @project)
       disconnected_labors = create_list(:labor, 3)
 
-      auth_header(:viewer)
-      json_post(:query,
-        project_name: 'labors',
-        query: [ 'labor', '::all', '::identifier' ],
-        show_disconnected: true
-      )
+      [:viewer, :guest].each do |role|
+        auth_header(role)
+        json_post(:query,
+          project_name: 'labors',
+          query: [ 'labor', '::all', '::identifier' ],
+          show_disconnected: true
+        )
 
-      expect(last_response.status).to eq(200)
-      expect(json_body[:answer].map(&:last).sort).to match_array((disconnected_labors).map(&:identifier))
+        expect(last_response.status).to eq(200)
+        expect(json_body[:answer].map(&:last).sort).to match_array((disconnected_labors).map(&:identifier))
+      end
     end
   end
 
@@ -140,11 +145,13 @@ describe QueryController do
         poison = create(:prize, name: 'poison', worth: 5, labor: @hydra)
         poop = create(:prize, name: 'poop', labor: @stables)
 
-        query(['prize', [ 'worth', '::>=', 5 ], '::all', 'name'])
+        [:viewer, :guest].each do |role|
+          query(['prize', [ 'worth', '::>=', 5 ], '::all', 'name'], role)
 
-        expect(last_response.status).to eq(200)
-        expect(json_body[:answer].first.last).to eq('poison')
-        expect(json_body[:format]).to eq([ 'labors::prize#id', 'labors::prize#name' ])
+          expect(last_response.status).to eq(200)
+          expect(json_body[:answer].first.last).to eq('poison')
+          expect(json_body[:format]).to eq([ 'labors::prize#id', 'labors::prize#name' ])
+        end
       end
 
       it 'combines filters' do
@@ -1190,6 +1197,69 @@ describe QueryController do
       expect(json_body[:format]).to eq(['labors::labor#name', 'Numeric'])
     end
 
+    it 'supports ::count for collections' do
+      lion_monster = create(:monster, :lion, labor: @lion)
+      hydra_monster = create(:monster, :hydra, labor: @hydra)
+
+      john_doe = create(:victim, name: 'John Doe', monster: lion_monster, country: 'Italy')
+      jane_doe = create(:victim, name: 'Jane Doe', monster: lion_monster, country: 'Greece')
+
+      query(['monster', '::all', 'victim', '::count' ])
+
+      expect(json_body[:answer]).to eq([
+        [ 'Lernean Hydra', 0 ],
+        [ 'Nemean Lion', 2 ]
+      ])
+      expect(json_body[:format]).to eq(['labors::monster#name', 'Numeric'])
+    end
+
+    context '::count in filter' do
+      it 'works with ::has' do
+        lion_monster = create(:monster, :lion, labor: @lion)
+        hydra_monster = create(:monster, :hydra, labor: @hydra)
+  
+        john_doe = create(:victim, name: 'John Doe', monster: lion_monster, country: 'Italy')
+        jane_doe = create(:victim, name: 'Jane Doe', monster: lion_monster, country: 'Greece')
+  
+        query(['monster', ['::has', 'victim'], '::count' ])
+  
+        expect(json_body[:answer]).to eq(1)
+        expect(json_body[:format]).to eq('Numeric')
+      end
+
+      it 'works with ::lacks when there are disconnected records' do
+        # This is important to test because any NULL fk records
+        #   will cause the subquery "not in" constraint to always
+        #   return [].
+        lion_monster = create(:monster, :lion, labor: @lion)
+        hydra_monster = create(:monster, :hydra, labor: @hydra)
+  
+        john_doe = create(:victim, name: 'John Doe', monster: lion_monster, country: 'Italy')
+        jane_doe = create(:victim, name: 'Jane Doe', monster: lion_monster, country: 'Greece')
+
+        someone = create(:victim, name: 'Someone Unknown', country: 'MIA')
+  
+        query(['monster', ['::lacks', 'victim'], '::count' ])
+  
+        expect(json_body[:answer]).to eq(1)
+        expect(json_body[:format]).to eq('Numeric')
+      end
+  
+      it 'works with ::lacks' do
+        lion_monster = create(:monster, :lion, labor: @lion)
+        hydra_monster = create(:monster, :hydra, labor: @hydra)
+        hind = create(:monster, :hind, labor: @hind)
+  
+        john_doe = create(:victim, name: 'John Doe', monster: lion_monster, country: 'Italy')
+        jane_doe = create(:victim, name: 'Jane Doe', monster: lion_monster, country: 'Greece')
+  
+        query(['monster', ['::lacks', 'victim'], '::count' ])
+  
+        expect(json_body[:answer]).to eq(2)
+        expect(json_body[:format]).to eq('Numeric')
+      end
+    end
+    
     it 'supports ::count and ::any' do
       poison = create(:prize, labor: @hydra, name: 'poison', worth: 0)
       poop = create(:prize, labor: @stables, name: 'poop', worth: 4)
@@ -1708,32 +1778,57 @@ describe QueryController do
       expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#name'])
     end
 
-    it 'returns the md5' do
-      route_payload = JSON.generate({
-        files: Labors::Monster.all.map do |monster|
-          {
-            file_name: monster.stats["filename"],
-            project_name: "labors",
-            bucket_name: "magma",
-            file_hash: "hashfor#{monster.stats["filename"]}"
-          }
-        end,
-        folders: []
-      })
+    context 'returns the md5' do
+      before(:each) do
+        route_payload = JSON.generate({
+          files: Labors::Monster.all.map do |monster|
+            {
+              file_name: monster.stats["filename"],
+              project_name: "labors",
+              bucket_name: "magma",
+              file_hash: "hashfor#{monster.stats["filename"]}"
+            }
+          end,
+          folders: []
+        })
+  
+        stub_request(:post, %r!https://metis.test/labors/find/magma!).
+          to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
+      end
 
-      stub_request(:post, %r!https://metis.test/labors/find/magma!).
-        to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
+      it 'in a JSON query response' do
+        query(
+          [ 'monster', '::all', 'stats', '::md5' ]
+        )
+  
+        expect(last_response.status).to eq(200)
+  
+        expect(json_body[:answer].map(&:last).sort).to eq([
+          'hashforhydra-stats.tsv', 'hashforlion-stats.tsv', 'hashforstables-stats.tsv'
+        ])
+        expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#stats'])
+      end
 
-      query(
-        [ 'monster', '::all', 'stats', '::md5' ]
-      )
+      it 'in a TSV query response' do
+        query_opts(
+          [ 'monster', '::all', 'stats', '::md5' ],
+          format: 'tsv'
+        )
+  
+        expect(last_response.status).to eq(200)
+  
+        header, *table = CSV.parse(last_response.body, col_sep: "\t")
 
-      expect(last_response.status).to eq(200)
+        expect(header).to eq(["labors::monster#name", "labors::monster#stats"])
 
-      expect(json_body[:answer].map(&:last).sort).to eq([
-        'hashforhydra-stats.tsv', 'hashforlion-stats.tsv', 'hashforstables-stats.tsv'
-      ])
-      expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#stats'])
+        expected_output = Labors::Monster.all.map do |monster|
+          [ monster.name, "hashfor#{monster.stats["filename"]}" ]
+        end
+
+        expect(table).to match_array(
+          expected_output
+        )
+      end
     end
 
     it 'returns the updated_at' do

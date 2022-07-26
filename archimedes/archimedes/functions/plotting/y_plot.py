@@ -1,22 +1,26 @@
+from typing import List, Union
 import plotly.express as px
+import pandas as pd
 
 from .utils import _leave_default_or_none, _which_rows
 from .colors import colors
+from ..list import order, unique
 
 def y_plotly(
-    data_frame,
-    x_by,
-    y_by,
-    color_by = "make",
-    plots = ["violin", "box"],
+    data_frame: pd.DataFrame,
+    x_by: str,
+    y_by: str,
+    color_by: str = "make",
+    plots: List[str] = ["violin", "box"],
     px_args: dict = {},
     rows_use = None,
+    x_order: Union[str, list] = 'unordered',
     y_scale = "linear",
     color_panel: list = colors,
-    xlab="make",
-    ylab="make",
-    plot_title="make",
-    legend_title ="make"):
+    xlab: str = "make",
+    ylab: str = "make",
+    plot_title: str = "make",
+    legend_title: str = "make"):
     """
     Produces violin and/or box plots using plotly.express.violin, or plotly.express.box, based on the pandas 'data_frame' given.
     'x_by', 'y_by' should indicate columns of 'data_frame' to use for x/y axes data. 'x_by' should denote discrete groupings, while 'y-by' should denote numerical data.
@@ -26,6 +30,7 @@ def y_plotly(
     'color_panel' (string list) sets the colors to use for violin/boxplot fills.
     'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
     'rows_use'
+    'x_order', either "unordered", "increasing", "decreasing", or a list[str] with the desired order for x-axis groups. 
     'y_scale', String, 'linear', 'log10', or 'log10(val+1)'. Controls whether this axes should be log scaled, and if so, whether 1 should be added to all values first in order to let zeros be okay to plot.
     """
     
@@ -51,6 +56,13 @@ def y_plotly(
     px_args["color"] = color_by
     px_args["color_discrete_sequence"] = color_panel
     px_args["log_y"] = y_scale=="log10"
+    if x_order!="unordered":
+        categories = {}
+        if isinstance(x_order, list):
+            categories[x_by] = x_order
+        elif x_order in ["increasing","decreasing"]:
+            categories[x_by] = order(unique(df[x_by]), decreasing=x_order=="decreasing")
+        px_args["category_orders"]=categories
     
     # Make Plot
     if "violin" in plots:

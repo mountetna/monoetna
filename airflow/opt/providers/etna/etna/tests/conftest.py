@@ -1,4 +1,3 @@
-import contextlib
 import functools
 import logging
 import os
@@ -32,14 +31,7 @@ from airflow.utils.db import add_default_pool_if_not_exists, create_default_conn
 from airflow.utils.session import create_session
 from airflow.www.app import purge_cached_app, create_app
 from flask_appbuilder.security.sqla.models import User, PermissionView
-from requests import Session
 from sqlalchemy.orm import scoped_session, sessionmaker
-from urllib3 import connectionpool
-from vcr.patch import CassettePatcherBuilder
-from vcr.stubs import VCRFakeSocket
-
-from etna.hooks.etna import EtnaHook
-
 
 class NotSoRandom(Random):
     def __init__(self, *args):
@@ -92,30 +84,6 @@ def vcr_config():
     # change this to logging level to increase debugging, but it is very very verbose by default
     # so we keep it at warning.
     vcr_log.setLevel(logging.WARNING)
-
-    # This greatly slows down connections in our tests, but unfortunately vcrpy does not
-    # support keep alive correctly, meaning that tests that happen to last longer than the
-    # keep alive configured for a server will fail with this error.
-    class ForceNeverReuseConnectionSession(Session):
-        def __init__(self, create_session, auth):
-            self.create_session = create_session
-            super(ForceNeverReuseConnectionSession, self).__init__()
-            self.auth = auth
-
-        def __call__(self):
-            return self
-
-        def request(self, *args, **kwds):
-            with self.create_session() as session:
-                return session.request(*args, **kwds)
-
-    get_client = EtnaHook.get_client
-
-    @contextlib.contextmanager
-    def _get_client(self, auth):
-        yield ForceNeverReuseConnectionSession(lambda: get_client(self, auth), auth)
-
-    EtnaHook.get_client = _get_client
 
     # Authorization in any vcr is safely masked
     return {
@@ -219,6 +187,48 @@ def ssh_git_connection(session):
         login=os.environ.get("AIRFLOW_GIT_TEST_USER", ""),
         password=password,
         schema="ssh",
+    )
+
+    session.add(conn)
+    session.commit()
+    return conn
+
+
+@pytest.fixture()
+def ssh_cat_connection(session):
+    password = os.environ.get("AIRFLOW_CAT_TEST_PK", "")
+    session.query(Connection).filter(
+        Connection.conn_id == "cat_administration"
+    ).delete()
+
+    conn = Connection(
+        conn_id="cat_administration",
+        conn_type="cat",
+        login=os.environ.get("AIRFLOW_CAT_TEST_USER", ""),
+        password=password,
+        schema="ssh",
+        host=os.environ.get("AIRFLOW_CAT_TEST_HOST", "https://example.com")
+    )
+
+    session.add(conn)
+    session.commit()
+    return conn
+
+
+@pytest.fixture()
+def ssh_c4_connection(session):
+    password = os.environ.get("AIRFLOW_C4_TEST_PK", "")
+    session.query(Connection).filter(
+        Connection.conn_id == "c4_administration"
+    ).delete()
+
+    conn = Connection(
+        conn_id="c4_administration",
+        conn_type="c4",
+        login=os.environ.get("AIRFLOW_C4_TEST_USER", ""),
+        password=password,
+        schema="ssh",
+        host=os.environ.get("AIRFLOW_C4_TEST_HOST", "https://example.com")
     )
 
     session.add(conn)

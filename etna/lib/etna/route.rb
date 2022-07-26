@@ -38,11 +38,11 @@ module Etna
 
     UNSAFE=/[^\-_.!~*'()a-zA-Z\d;\/?:@&=+$,]/
 
-    def self.path(route, params=nil)
+    def self.path(route, params=nil, &block)
       if params
         PARAM_TYPES.reduce(route) do |path,pat|
           path.gsub(pat) do
-           URI.encode( params[$1.to_sym], UNSAFE)
+            params[$1.to_sym].split('/').map { |c| block_given? ? yield(c) : URI.encode_www_form_component(c) }.join('/')
           end
         end
       else
@@ -50,8 +50,8 @@ module Etna
       end
     end
 
-    def path(params=nil)
-      self.class.path(@route, params)
+    def path(params=nil, &block)
+      self.class.path(@route, params, &block)
     end
 
     def parts
@@ -124,7 +124,13 @@ module Etna
       update_params(request)
 
       unless authorized?(request)
-        return cc_redirect(request) if cc_available?(request)
+        if cc_available?(request)
+          if request.content_type == 'application/json'
+            return [ 403, { 'Content-Type' => 'application/json' }, [ { error: 'You are forbidden from performing this action, but you can visit the project home page and request access.' }.to_json ] ]
+          else
+            return cc_redirect(request)
+          end
+        end
 
         return [ 403, { 'Content-Type' => 'application/json' }, [ { error: 'You are forbidden from performing this action.' }.to_json ] ]
       end
@@ -178,7 +184,7 @@ module Etna
         application.config(:auth_redirect).chomp('/') + "/#{params[:project_name]}/cc"
       )
       uri.query = URI.encode_www_form(refer: request.url)
-      return [ 302, { 'Location' => uri.to_s }, [] ]
+      Etna::Redirect(request).to(uri.to_s)
     end
 
     def application
@@ -250,7 +256,7 @@ module Etna
         Hash[
           match.names.map(&:to_sym).zip(
             match.captures.map do |capture|
-              URI.decode(capture)
+              capture.split('/').map {|c| URI.decode_www_form_component(c) }.join('/')
             end
           )
         ]

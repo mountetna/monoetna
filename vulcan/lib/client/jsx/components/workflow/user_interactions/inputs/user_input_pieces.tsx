@@ -20,6 +20,13 @@ export function key_wrap(k: string[]) {
   return de;
 }
 
+export function arrayLevels(original: any[]) {
+  function onlyUnique(value: any, index: number, self: any) {
+    return self.indexOf(value) === index;
+  }
+  return Array.from(original).filter(onlyUnique)
+}
+
 /*
 "Pieces" which follow define components/elements which can be used to fill in discrete parts of a user input widget.
 They are named based on types of input methods.
@@ -79,7 +86,7 @@ export function checkboxPiece(
 
 export function dropdownPiece(
   key: string, changeFxn: Function, value: string | null = null,
-  label: string|undefined, options: string[], sorted: boolean = true, minWidth: number = 200) {
+  label: string|undefined, options: string[], sorted: boolean = true, minWidth: number = 200, disabled: boolean = false) {
     return(
       <SelectAutocompleteInput
         key={key}
@@ -87,6 +94,7 @@ export function dropdownPiece(
         value={some(value)}
         data={val_wrap(options)}
         minWidth={minWidth}
+        disabled={disabled}
         onChange={ (value) => changeFxn(withDefault(value,null), key) }
       />
     )

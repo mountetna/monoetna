@@ -32,14 +32,14 @@ define_model("ModelTwo").class_eval do
     model_one_names = current_records[:model_two].values.map { |r| r[:model_one] }.uniq.compact
 
     result = current_records[:model_one].dup || {}
-    
+
     model_one_names.map do |model_one_name|
       result[model_one_name] ||= {}
       result[model_one_name][:parent_model] = "#{model_one_name}-parent"
     end
 
     {
-      model_one: result
+      model_one: result,
     }
   end
 end
@@ -76,8 +76,8 @@ define_model("ModelWithAlternateId").class_eval do
   def identifier(record_name, identifier_fields: nil)
     # Hardcode a temp id so that the offset is consistent. Makes
     #   testing less random.
-    raise ArgumentError, "Missing :date_of_birth in form" if identifier_fields.nil? || identifier_fields[:date_of_birth].nil?
-  
+    return nil if identifier_fields.nil? || identifier_fields[:date_of_birth].nil?
+
     "::temp-#{identifier_fields[:date_of_birth]}-abc"
   end
 end

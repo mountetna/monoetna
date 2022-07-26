@@ -50,3 +50,9 @@ steps:
       a: extend_user_formulas/full_user_data.json
     out: []
     label: 'Download your final data frame'
+  extra_show_data:
+    run: ui-outputs/link.cwl
+    in:
+      a: extend_user_formulas/full_user_data.json
+    out: []
+    label: 'Download your final data frame again!'

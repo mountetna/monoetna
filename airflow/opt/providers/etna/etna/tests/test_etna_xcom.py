@@ -3,7 +3,7 @@ from datetime import datetime
 from airflow.models import XCom
 from airflow.utils.timezone import utc
 
-from etna.hooks.etna import Folder
+from mountetna import Folder
 from etna.xcom.etna_xcom import pickled
 
 

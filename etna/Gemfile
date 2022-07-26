@@ -1,32 +1,51 @@
 source "http://rubygems.org"
 
-ruby "~> 2.5"
+ruby "~> 2.7"
 
+gem 'mini_magick'
+gem 'rltk'
+gem 'filigree', '0.3.3'
+gem 'fog-aws'
+gem 'puma', '>=5.0.2'
+gem 'etna', path: '/etna'
+gem 'pg'
+gem 'sequel'
+gem 'sequel_pg', :require=>'sequel'
 gem "rack"
+gem 'rack-throttle'
 gem "jwt"
-gem "rspec"
-gem "simplecov"
-gem "rack-test", require: "rack/test"
 gem "rollbar"
 gem "vcr" # For Etna::Client in recording mode.
 gem "multipart-post"
+gem 'ruby-vips'
 gem "nokogiri"
 gem "aspera-cli", ">=4.1.0"
 gem "rake" # for mimemagic??
 gem "mimemagic", "~>0.3.10" # for aspera-cli
 gem "concurrent-ruby"
 gem "prometheus-client"
+gem 'spreadsheet'
+gem 'activerecord'
+gem 'activesupport', '>= 4.2.6'
 
 gem "yabeda"
 gem "yabeda-prometheus"
 gem "yabeda-puma-plugin"
 gem "curb"
 gem "net-ssh"
+gem "rsync", "~> 1.0", ">= 1.0.9"
+gem "json_schemer"
 
 group :test do
+  gem 'rspec'
+  gem 'rack-test', require: "rack/test"
   gem "pry", "~>0.13.0"
   gem "pry-byebug"
   gem "timecop"
   gem "webmock"
   gem "debase"
+  gem "simplecov"
+  gem 'factory_bot'
+  gem 'database_cleaner', '1.8.5'
+  gem 'net-http-persistent'
 end

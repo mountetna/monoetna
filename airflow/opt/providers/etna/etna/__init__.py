@@ -21,12 +21,13 @@ from datetime import datetime
 def __getattr__(name):
     from .dags.decorators import system_dag, dag, rollup_dag
     from .operators import run_on_docker
-    from .etls.decorators import metis_etl, box_etl
+    from .etls.decorators import metis_etl, box_etl, cat_etl
     from .etls.metis import (
         link,
         MetisEtlHelpers,
     )
     from .etls.box import BoxEtlHelpers
+    from .etls.cat import CatEtlHelpers
     from .xcom.etna_xcom import pickled
     from .hooks.hook_helpers import (
         get_project_name,
@@ -34,7 +35,7 @@ def __getattr__(name):
         get_git_hook,
         get_project_slack_hook,
     )
-    from .hooks.etna import UpdateRequest
+    from mountetna import UpdateRequest
     from .operators.rollup_xcom_operator import rollup
 
     __all__ = list(k for k in locals().keys() if k != "name") + [
@@ -59,12 +60,13 @@ def __getattr__(name):
 if globals().get("notathing", False):
     from .dags.decorators import system_dag, dag, rollup_dag
     from .operators import run_on_docker
-    from .etls.decorators import metis_etl, box_etl
+    from .etls.decorators import metis_etl, box_etl, cat_etl
     from .etls.metis import (
         link,
         MetisEtlHelpers,
     )
     from .etls.box import BoxEtlHelpers
+    from .etls.cat import CatEtlHelpers
     from .xcom.etna_xcom import pickled
     from .hooks.hook_helpers import (
         get_project_name,
@@ -72,5 +74,5 @@ if globals().get("notathing", False):
         get_git_hook,
         get_project_slack_hook,
     )
-    from .hooks.etna import UpdateRequest
+    from mountetna import UpdateRequest
     from .operators.rollup_xcom_operator import rollup

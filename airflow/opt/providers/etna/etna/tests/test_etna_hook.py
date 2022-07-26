@@ -4,7 +4,8 @@ from datetime import datetime
 import pytest
 from airflow.models import Connection
 
-from etna.hooks.etna import EtnaHook, File
+from etna.hooks.etna import EtnaHook
+from mountetna import File
 
 
 @pytest.mark.vcr

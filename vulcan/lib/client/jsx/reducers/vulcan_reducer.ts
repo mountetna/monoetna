@@ -29,11 +29,13 @@ export const defaultSession: SessionStatusResponse['session'] = {
   project_name: '',
   workflow_name: '',
   key: '',
-  inputs: {}
+  inputs: {},
+  reference_figure_id: null
 };
 const defaultFigure: VulcanFigure = {
   figure_id: null,
-  inputs: {}
+  inputs: {},
+  id: null
 };
 const defaultValidationErrors: [string | null, string, string[]][] = [];
 
@@ -80,7 +82,11 @@ export default function VulcanReducer(
       };
     case 'SET_WORKFLOW':
       const workflowProjects = action.workflow.projects;
-      if (!workflowProjects || !workflowProjects.includes(action.projectName))
+      if (
+        workflowProjects === undefined ||
+        (workflowProjects !== null &&
+          !workflowProjects.includes(action.projectName))
+      )
         return state;
 
       return {
@@ -127,7 +133,9 @@ export default function VulcanReducer(
       return {...state, triggerRun: [...state.triggerRun, action.step]};
 
     case 'CLEAR_RUN_TRIGGERS':
-      const triggerRun = [...state.triggerRun].filter((val) => !action.steps.includes(val));
+      const triggerRun = [...state.triggerRun].filter(
+        (val) => !action.steps.includes(val)
+      );
       return {...state, triggerRun};
 
     case 'SET_DOWNLOAD':

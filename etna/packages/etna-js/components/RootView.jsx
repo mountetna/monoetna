@@ -48,24 +48,31 @@ const ProjectList = ({title, projects}) => {
 
 const RootView = () => {
   const invoke = useActionInvoker();
-  const {my_projects, resourceProjects} = useReduxState((state) => {
-    let permissions = selectUserPermissions(state);
-    let projects = selectProjects(state);
+  const {my_projects, resourceProjects, communityProjects} = useReduxState(
+    (state) => {
+      let permissions = selectUserPermissions(state);
+      let projects = selectProjects(state);
 
-    let my_projects = Object.values(permissions)
-      .map(({project_name, ...perms}) => ({
-        project_name,
-        ...perms,
-        full_name: projectNameFull(projects, project_name)
-      }))
-      .sort(({project_name: n1}, {project_name: n2}) =>
-        n1 < n2 ? -1 : n1 > n2 ? 1 : 0
+      let my_projects = Object.values(permissions)
+        .map(({project_name, ...perms}) => ({
+          project_name,
+          ...perms,
+          full_name: projectNameFull(projects, project_name)
+        }))
+        .sort(({project_name: n1}, {project_name: n2}) =>
+          n1 < n2 ? -1 : n1 > n2 ? 1 : 0
+        );
+
+      const resourceProjects = projects.filter(
+        (proj) => proj.resource && !proj.requires_agreement
+      );
+      const communityProjects = projects.filter(
+        (proj) => proj.resource && proj.requires_agreement
       );
 
-    const resourceProjects = projects.filter((proj) => proj.resource && !proj.requires_agreement);
-
-    return {my_projects, resourceProjects};
-  });
+      return {my_projects, resourceProjects, communityProjects};
+    }
+  );
 
   useEffect(() => {
     invoke(fetchProjectsAction());
@@ -75,6 +82,7 @@ const RootView = () => {
     <div className='root-view'>
       <ProjectList title='Your Projects' projects={my_projects} />
       <ProjectList title='Resource Projects' projects={resourceProjects} />
+      <ProjectList title='Community Projects' projects={communityProjects} />
     </div>
   );
 };

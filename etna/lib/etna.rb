@@ -1,4 +1,5 @@
 require 'json'
+require_relative './etna/redirect'
 require_relative './etna/environment_variables'
 require_relative './etna/injection'
 require_relative './etna/ext'

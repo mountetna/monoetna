@@ -1,4 +1,4 @@
-FROM magby
+FROM etna-py AS etna-py
 FROM development-certs
 
 FROM python:3.8-slim-buster
@@ -25,6 +25,7 @@ RUN apt-get update \
       gnupg \
       bash-completion \
       git \
+      tk \
       --no-install-recommends
 
 # add postgres 10 repo for debian stretch
@@ -53,4 +54,4 @@ RUN mv /tmp/docker/* /usr/local/bin/
 
 # Copy entrypoint scripts
 COPY entrypoints /entrypoints
-COPY --from=0 /magby /magby
+COPY --from=etna-py /etna-py /etna-py
