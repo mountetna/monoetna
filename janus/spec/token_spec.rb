@@ -266,7 +266,7 @@ describe "Token Generation" do
 
       Timecop.freeze(now)
 
-      post('/api/tokens/generate', project_name: 'tannel', token_type: 'task', do_not_set_user: true)
+      post('/api/tokens/generate', project_name: 'tannel', token_type: 'task')
       expect(last_response.status).to eq(401)
 
       Timecop.return
