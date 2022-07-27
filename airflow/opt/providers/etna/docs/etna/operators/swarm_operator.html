@@ -268,9 +268,15 @@
     <span class="n">allow_manager_nodes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span>
     <span class="n">source_service</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">service</span><span class="p">:</span> <span class="n">Mapping</span>
+    <span class="c1"># NanoCpus (1 cpu = 1e9)</span>
+    <span class="n">cpu_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="c1"># Bytes (1KB = 1024, 1MB = 1024 * 1024, 1GIG = 1024 * 1024 * 1024)</span>
+    <span class="n">mem_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
+            <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="n">args</span><span class="p">,</span>
         <span class="n">source_service</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">include_external_networks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -299,7 +305,6 @@
             <span class="n">local_network_ids</span> <span class="o">=</span> <span class="n">find_local_network_ids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="p">,</span> <span class="n">service_data</span><span class="p">)</span>
 
         <span class="n">command</span> <span class="o">=</span> <span class="n">DockerOperator</span><span class="o">.</span><span class="n">format_command</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">)</span>
-        <span class="c1"># TODO: Add in the shared data configs!</span>
         <span class="n">service_definition</span> <span class="o">=</span> <span class="n">create_service_definition</span><span class="p">(</span>
             <span class="n">service_data</span><span class="p">,</span>
             <span class="n">local_network_ids</span><span class="p">,</span>
@@ -794,9 +799,15 @@
     <span class="n">allow_manager_nodes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span>
     <span class="n">source_service</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">service</span><span class="p">:</span> <span class="n">Mapping</span>
+    <span class="c1"># NanoCpus (1 cpu = 1e9)</span>
+    <span class="n">cpu_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="c1"># Bytes (1KB = 1024, 1MB = 1024 * 1024, 1GIG = 1024 * 1024 * 1024)</span>
+    <span class="n">mem_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
+            <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="n">args</span><span class="p">,</span>
         <span class="n">source_service</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">include_external_networks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -825,7 +836,6 @@
             <span class="n">local_network_ids</span> <span class="o">=</span> <span class="n">find_local_network_ids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cli</span><span class="p">,</span> <span class="n">service_data</span><span class="p">)</span>
 
         <span class="n">command</span> <span class="o">=</span> <span class="n">DockerOperator</span><span class="o">.</span><span class="n">format_command</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">)</span>
-        <span class="c1"># TODO: Add in the shared data configs!</span>
         <span class="n">service_definition</span> <span class="o">=</span> <span class="n">create_service_definition</span><span class="p">(</span>
             <span class="n">service_data</span><span class="p">,</span>
             <span class="n">local_network_ids</span><span class="p">,</span>
@@ -1226,7 +1236,7 @@ the KubernetesExecutor ::
             <details>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
+            <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="n">args</span><span class="p">,</span>
         <span class="n">source_service</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">include_external_networks</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
