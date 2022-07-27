@@ -371,7 +371,7 @@
         <span class="k">return</span> <span class="n">files</span>
 
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
-    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">SftpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sftp</span><span class="p">:</span> <span class="n">SFTPClient</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">SftpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Opens the given file for download as a file-like object.</span>
 <span class="sd">        The underlying socket object yields bytes objects.</span>
@@ -388,9 +388,10 @@
 <span class="sd">        ```</span>
 
 <span class="sd">        params:</span>
+<span class="sd">          sftp: a connected SFTPClient</span>
 <span class="sd">          file: an SFTP file listing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">sftp</span><span class="p">()</span> <span class="k">as</span> <span class="n">sftp</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span> <span class="k">as</span> <span class="n">read_io</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span> <span class="k">as</span> <span class="n">read_io</span><span class="p">:</span>
             <span class="n">sftp</span><span class="o">.</span><span class="n">getfo</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">,</span> <span class="n">read_io</span><span class="p">)</span>
             <span class="n">read_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
@@ -1061,7 +1062,7 @@ for the efficiency of imports.</p>
         <span class="k">return</span> <span class="n">files</span>
 
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
-    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">SftpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sftp</span><span class="p">:</span> <span class="n">SFTPClient</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">SftpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Opens the given file for download as a file-like object.</span>
 <span class="sd">        The underlying socket object yields bytes objects.</span>
@@ -1078,9 +1079,10 @@ for the efficiency of imports.</p>
 <span class="sd">        ```</span>
 
 <span class="sd">        params:</span>
+<span class="sd">          sftp: a connected SFTPClient</span>
 <span class="sd">          file: an SFTP file listing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">sftp</span><span class="p">()</span> <span class="k">as</span> <span class="n">sftp</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span> <span class="k">as</span> <span class="n">read_io</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span> <span class="k">as</span> <span class="n">read_io</span><span class="p">:</span>
             <span class="n">sftp</span><span class="o">.</span><span class="n">getfo</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">,</span> <span class="n">read_io</span><span class="p">)</span>
             <span class="n">read_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
@@ -1213,13 +1215,17 @@ If a <code>magic_string</code> regex is provided, will only return files that ma
                 <div class="decorator">@contextlib.contextmanager</div>
 
             <span class="def">def</span>
-            <span class="name">retrieve_file</span><span class="signature">(self, file: <a href="#SftpEntry">etna.hooks.cat.SftpEntry</a>) -&gt; _io.BytesIO</span>:
+            <span class="name">retrieve_file</span><span class="signature">(
+    self,
+    sftp: paramiko.sftp_client.SFTPClient,
+    file: <a href="#SftpEntry">etna.hooks.cat.SftpEntry</a>
+) -&gt; _io.BytesIO</span>:
     </div>
 
             <details>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span>    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
-    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">SftpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sftp</span><span class="p">:</span> <span class="n">SFTPClient</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">SftpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Opens the given file for download as a file-like object.</span>
 <span class="sd">        The underlying socket object yields bytes objects.</span>
@@ -1236,9 +1242,10 @@ If a <code>magic_string</code> regex is provided, will only return files that ma
 <span class="sd">        ```</span>
 
 <span class="sd">        params:</span>
+<span class="sd">          sftp: a connected SFTPClient</span>
 <span class="sd">          file: an SFTP file listing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">sftp</span><span class="p">()</span> <span class="k">as</span> <span class="n">sftp</span><span class="p">,</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span> <span class="k">as</span> <span class="n">read_io</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span> <span class="k">as</span> <span class="n">read_io</span><span class="p">:</span>
             <span class="n">sftp</span><span class="o">.</span><span class="n">getfo</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">,</span> <span class="n">read_io</span><span class="p">)</span>
             <span class="n">read_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
@@ -1262,6 +1269,7 @@ subset of the data.</p>
 </code></pre>
 
 <p>params:
+  sftp: a connected SFTPClient
   file: an SFTP file listing</p>
 </div>
 

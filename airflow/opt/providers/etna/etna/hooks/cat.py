@@ -1,16 +1,19 @@
-import base64
+import asyncio
+import codecs
 import contextlib
-from datetime import datetime, timezone
+from datetime import datetime
+import hashlib
 import io
-import json
 import logging
 import os
 import re
-import paramiko
 import stat
+import subprocess
 from paramiko.sftp_client import SFTPClient
 from paramiko.sftp_attr import SFTPAttributes
-from typing import List, Dict, Optional, ContextManager, Tuple, BinaryIO
+from typing import List, Dict, Optional, ContextManager
+from queue import Queue, Empty
+from threading  import Thread
 
 import cached_property
 
@@ -211,11 +214,26 @@ class Cat(SSHBase):
 
         return files
 
+    def _curl_url(self, file: SftpEntry) -> str:
+        return f"sftp://{self.hook.connection.host}/{file.full_path}"
+
+    def _curl_authn(self) -> str:
+        return f"{self.hook.connection.login}:{self.hook.connection.password}"
+
+    def _curl_hostpubmd5(self) -> str:
+        # https://stackoverflow.com/a/66227907
+        return hashlib.md5(
+            codecs.decode(bytes(self._key_str(),'utf-8'), 'base64')
+        ).hexdigest()
+
     @contextlib.contextmanager
-    def retrieve_file(self, file: SftpEntry) -> io.BytesIO:
+    def retrieve_file(
+        self,
+        source_file: SftpEntry
+    ):
         """
         Opens the given file for download as a file-like object.
-        The underlying socket object yields bytes objects.
+        The returned file-like object yields bytes.
 
         Note:  Ideally, this method is used in combination with 'with' syntax in python, so that the underlying
         data stream is closed after usage.  This is especially performant when code only needs to access a small
@@ -229,13 +247,54 @@ class Cat(SSHBase):
         ```
 
         params:
-          file: an SFTP file listing
+          source_file: an SFTP file listing
         """
-        with self.sftp() as sftp, io.BytesIO() as read_io:
-            sftp.getfo(file.full_path, read_io)
-            read_io.seek(0)
+        def wait_for_proc(pr, qu):
+            pr.wait()
+            qu.put(pr.returncode)
 
-            yield read_io
+        rd, wd = os.pipe()
+
+        cmd = [
+            "curl",
+            "-u",
+            self._curl_authn(),
+            "--hostpubmd5",
+            self._curl_hostpubmd5(),
+            "-o",
+            "-",
+            "-N",
+            self._curl_url(source_file)
+        ]
+
+        proc = subprocess.Popen(
+            cmd,
+            stdout=wd,
+            stderr=subprocess.PIPE,
+            pass_fds=[wd],
+            bufsize=0)
+        q = Queue()
+
+        closer = Thread(
+            target=wait_for_proc,
+            args=(proc, q),
+            daemon=True
+        )
+
+        closer.start()
+
+        os.close(wd)
+        try:
+            yield open(rd, mode='rb', closefd=False)
+            os.close(rd)
+        except Exception as e:
+            os.close(rd)
+            proc.kill()
+            raise e
+
+        status = q.get()
+        if 0 != status:
+            raise AirflowException(f"Failed to run external process, got status code {status}")
 
     def mark_file_as_ingested(self, ingested_to: str, file: SftpEntry):
         """

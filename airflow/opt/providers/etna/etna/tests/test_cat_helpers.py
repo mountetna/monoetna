@@ -1,3 +1,4 @@
+import json
 import re
 from typing import Any
 import pytz
@@ -9,11 +10,12 @@ from pytest import raises
 from airflow import DAG
 from airflow.models.xcom_arg import XComArg
 from airflow.models import Variable
-
+from airflow.exceptions import AirflowException
 
 from providers.etna.etna.etls.decorators import cat_etl
 from providers.etna.etna.etls.cat import CatEtlHelpers, EtnaHook, CatHook, C4Hook
 from providers.etna.etna.hooks.cat import SftpEntry, Cat
+from providers.etna.etna.hooks.c4 import C4
 
 from .test_metis_files_etl import run_dag, get_all_results
 
@@ -216,6 +218,7 @@ mock_retrieve_file = mock.Mock()
 mock_cat_hook = mock.Mock()
 mock_cat = mock.Mock()
 mock_sftp = mock.Mock()
+mock_c4_sftp = mock.Mock()
 mock_listdir_attr = mock.Mock()
 mock_cat_mark_ingested = mock.Mock()
 mock_cat_update_cursor = mock.Mock()
@@ -231,10 +234,14 @@ def set_up_mocks():
     mock_cat_hook.reset_mock()
     mock_cat.reset_mock()
     mock_sftp.reset_mock()
+    mock_c4_sftp.reset_mock()
     mock_listdir_attr.reset_mock()
     mock_cat_mark_ingested.reset_mock()
     mock_cat_update_cursor.reset_mock()
 
+    mock_c4_sftp.return_value.__enter__ = mock_c4_sftp
+    mock_c4_sftp.return_value.__exit__ = mock_c4_sftp
+    mock_c4.return_value.sftp = mock_c4_sftp
     mock_c4.return_value.upload_file.return_value = []
     mock_c4.return_value.__enter__ = mock_c4
     mock_c4.return_value.__exit__ = mock_c4
@@ -351,8 +358,8 @@ def test_cat_files_etl_ingest_c4_remove_oligo_by_default(mocked_c4, mock_load, r
     end_date = start_date + timedelta(days=1, minutes=1)
     run_dag(test_ingesting_cat_files_ingest_c4_remove_oligo_by_default, start_date, end_date)
 
-    mock_c4().upload_file.assert_any_call("foo/parent/child/grandchild", "3.txt", mock.ANY, 1)
-    mock_retrieve_file.assert_called()
+    mock_c4().upload_file.assert_any_call(mock.ANY, "foo/parent/child/grandchild", "3.txt", mock.ANY, mock.ANY)
+    mock_retrieve_file.assert_not_called()
 
 
 @mock.patch('providers.etna.etna.etls.decorators.load_cat_files_batch', side_effect=[mock_tail(), []])
@@ -395,8 +402,8 @@ def test_cat_files_etl_ingest_c4_do_not_remove_oligo(mocked_c4, mock_load, reset
     end_date = start_date + timedelta(days=1, minutes=1)
     run_dag(test_ingesting_cat_files_ingest_c4_do_not_remove_oligo, start_date, end_date)
 
-    mock_c4().upload_file.assert_any_call("foo/parent/child/grandchild", "123.txt", mock.ANY, 1)
-    mock_retrieve_file.assert_called()
+    mock_c4().upload_file.assert_any_call(mock.ANY, "foo/parent/child/grandchild", "123.txt", mock.ANY, mock.ANY)
+    mock_retrieve_file.assert_not_called()
 
 
 @mock.patch('providers.etna.etna.etls.decorators.load_cat_files_batch', side_effect=[mock_tail(), []])
@@ -435,8 +442,8 @@ def test_cat_files_etl_ingest_c4_without_folder_path(mocked_c4, mock_load, reset
     end_date = start_date + timedelta(days=1, minutes=1)
     run_dag(test_ingesting_cat_files_ingest_c4_without_folder_path, start_date, end_date)
 
-    mock_c4().upload_file.assert_any_call("parent/child/grandchild", "123.txt", mock.ANY, 1)
-    mock_retrieve_file.assert_called()
+    mock_c4().upload_file.assert_any_call(mock.ANY, "parent/child/grandchild", "123.txt", mock.ANY, mock.ANY)
+    mock_retrieve_file.assert_not_called()
 
 
 @mock.patch('providers.etna.etna.etls.decorators.load_cat_files_batch', side_effect=[mock_tail(), []])
@@ -550,3 +557,60 @@ def test_update_cursor_saves_variable(mock_set, mock_get, reset_db):
             '/file.txt': '1-2-3'
         },
         serialize_json=True)
+
+
+def test_c4_validates_cat_config(reset_db):
+    set_up_mocks()
+
+    mock_c4_hook.connection.extra = json.dumps({
+        "host_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl"
+    })
+
+    c4 = C4(mock_c4_hook)
+
+    mock_cat_connection = mock.Mock()
+    mock_cat_connection.host = "sub.domain.com"
+    mock_cat_connection.login = "user123"
+    mock_cat_connection.password = "pass_word"
+
+    mock_cat_hook.connection = mock_cat_connection
+
+    c4._validate_cat_config(mock_cat_hook)
+
+    mock_cat_connection = mock.Mock()
+    mock_cat_connection.host = "'sub.domain.com"
+    mock_cat_connection.login = "user123#"
+    mock_cat_connection.password = "pass_word'<>"
+
+    mock_cat_hook.connection = mock_cat_connection
+
+    with raises(AirflowException):
+        c4._validate_cat_config(mock_cat_hook)
+
+    mock_validate = mock.Mock()
+    mock_ssh = mock.Mock()
+    mock_stdout = mock.Mock()
+
+    mock_stdout.channel.recv_exit_status = 0
+    mock_ssh.exec_command = (mock_stdout, mock_stdout, mock_stdout)
+    mock_ssh.return_value.__enter__ = mock_ssh
+    mock_ssh.return_value.__exit__ = mock_ssh
+    c4._validate_cat_config = mock_validate
+    c4.ssh = mock_ssh
+
+    test_file = SftpEntry(MockSftpAttributes({
+                "filename": "another_thing.txt",
+                "st_size": 1,
+                "st_mtime": timestamp(2022, 1, 2),
+                "st_mode": 33204 # is 0o100664, which is -rw-rw-r--
+            }), "parent/child/grandchild")
+
+    c4.upload_file(
+        mock_c4_sftp,
+        "foo",
+        "file.txt",
+        test_file,
+        mock_cat_hook
+    )
+
+    mock_validate.assert_called()

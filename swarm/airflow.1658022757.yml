@@ -94,7 +94,7 @@ services:
     healthcheck:
       test: [ "CMD", "curl", "--fail", "-L", "http://localhost:8080/admin/metrics" ]
       interval: 30s
-      timeout: 5s
+      timeout: 15s
       retries: 5
       start_period: 35s
 
