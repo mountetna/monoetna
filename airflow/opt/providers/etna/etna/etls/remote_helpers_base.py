@@ -64,7 +64,7 @@ class RemoteHelpersBase:
             msg = "\n".join([f"Finished uploading {len(files)} files from {source_system} to {target_system} for {project_name}. Please check {target_path} bucket / path."] + [f.full_path for f in files])
 
             SlackWebhookOperator(
-                task_id=f"notify_slack_{project_name}_{target_path}_{source_system}_ingest",
+                task_id=f"notify_slack_{project_name}_{target_system}_{source_system}_ingest",
                 username="Airflow",
                 channel=channel,
                 http_conn_id='slack-api',
@@ -75,7 +75,7 @@ class RemoteHelpersBase:
                 user_mentions = [f"<@{m_id}>" for m_id in member_ids]
                 notify_msg = f"{' '.join(user_mentions)} :point_up_2:"
                 SlackWebhookOperator(
-                    task_id=f"notify_slack_users_{project_name}_{target_path}_{source_system}_ingest",
+                    task_id=f"notify_slack_users_{project_name}_{target_system}_{source_system}_ingest",
                     username="Airflow",
                     channel=channel,
                     http_conn_id='slack-api',
