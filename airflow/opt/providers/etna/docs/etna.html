@@ -2333,8 +2333,10 @@ mimicking the full directory structure from Box.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;airflow.task&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">magic_string</span> <span class="o">=</span> <span class="n">magic_string</span>
 
+        <span class="c1"># paramiko.sftp_file.SFTPFile.MAX_REQUEST_SIZE = pow(2, 22) # 4MB per chunk</span>
+
     <span class="k">def</span> <span class="nf">alert_slack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-        <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
+        <span class="n">ingested_files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
         <span class="n">ingested</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -2346,8 +2348,8 @@ mimicking the full directory structure from Box.</p>
 <span class="sd">            the number of files uploaded.</span>
 
 <span class="sd">        args:</span>
-<span class="sd">            files: List of files</span>
-<span class="sd">            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.</span>
+<span class="sd">            ingested_files: List of files</span>
+<span class="sd">            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.</span>
 <span class="sd">            project_name: str, project name for the message</span>
 <span class="sd">            bucket_name: str, bucket name for the message</span>
 <span class="sd">            channel: str, the Slack channel to post to, default data-ingest-ping</span>
@@ -2356,9 +2358,9 @@ mimicking the full directory structure from Box.</p>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="nd">@task</span>
-        <span class="k">def</span> <span class="nf">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">alert</span><span class="p">(</span><span class="n">ingested_files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">alert</span><span class="p">(</span>
-                <span class="n">files</span><span class="p">,</span>
+                <span class="n">ingested_files</span><span class="p">,</span>
                 <span class="n">project_name</span><span class="p">,</span>
                 <span class="n">target_path</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">,</span>
                 <span class="n">source_system</span><span class="o">=</span><span class="s2">&quot;CAT&quot;</span><span class="p">,</span>
@@ -2366,7 +2368,7 @@ mimicking the full directory structure from Box.</p>
                 <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span>
                 <span class="n">member_ids</span><span class="o">=</span><span class="n">member_ids</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">alert</span><span class="p">(</span><span class="n">ingested_files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">ingest_to_c4</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -2387,7 +2389,8 @@ mimicking the full directory structure from Box.</p>
         <span class="nd">@task</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">c4_hook</span> <span class="o">=</span> <span class="n">C4Hook</span><span class="o">.</span><span class="n">for_project</span><span class="p">()</span>
-            <span class="k">with</span> <span class="n">c4_hook</span><span class="o">.</span><span class="n">c4</span><span class="p">()</span> <span class="k">as</span> <span class="n">c4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">,</span> <span class="n">cat</span><span class="o">.</span><span class="n">sftp</span><span class="p">()</span> <span class="k">as</span> <span class="n">sftp</span><span class="p">,</span> <span class="n">c4</span><span class="o">.</span><span class="n">sftp</span><span class="p">()</span> <span class="k">as</span> <span class="n">c4_sftp</span><span class="p">:</span>
+            <span class="n">ingested_files</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">with</span> <span class="n">c4_hook</span><span class="o">.</span><span class="n">c4</span><span class="p">()</span> <span class="k">as</span> <span class="n">c4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">,</span> <span class="n">c4</span><span class="o">.</span><span class="n">sftp</span><span class="p">()</span> <span class="k">as</span> <span class="n">c4_sftp</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempting to upload </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files to C4&quot;</span><span class="p">)</span>
                 <span class="n">num_ingested</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
@@ -2400,23 +2403,24 @@ mimicking the full directory structure from Box.</p>
                     <span class="k">if</span> <span class="n">remove_magic_string</span><span class="p">:</span>
                         <span class="n">final_file_name</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">magic_string</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-                    <span class="k">with</span> <span class="n">cat</span><span class="o">.</span><span class="n">retrieve_file</span><span class="p">(</span><span class="n">sftp</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_handle</span><span class="p">:</span>
-                        <span class="n">dest_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">.</span><span class="n">folder_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cat</span><span class="o">.</span><span class="n">_root_path</span><span class="p">()</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Uploading </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">final_file_name</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                    <span class="n">dest_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">.</span><span class="n">folder_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cat</span><span class="o">.</span><span class="n">_root_path</span><span class="p">()</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Uploading </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">final_file_name</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
-                        <span class="n">c4</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span>
-                            <span class="n">c4_sftp</span><span class="p">,</span>
-                            <span class="n">dest_path</span><span class="p">,</span>
-                            <span class="n">final_file_name</span><span class="p">,</span>
-                            <span class="n">file_handle</span><span class="p">,</span>
-                            <span class="n">file</span><span class="o">.</span><span class="n">size</span>
-                        <span class="p">)</span>
+                    <span class="n">c4</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span>
+                        <span class="n">c4_sftp</span><span class="p">,</span>
+                        <span class="n">dest_path</span><span class="p">,</span>
+                        <span class="n">final_file_name</span><span class="p">,</span>
+                        <span class="n">file</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span>
+                    <span class="p">)</span>
                     <span class="n">cat</span><span class="o">.</span><span class="n">mark_file_as_ingested</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Done ingesting </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
                     <span class="n">num_ingested</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">ingested_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">num_ingested</span> <span class="o">%</span> <span class="n">batch_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">)</span>
                 <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ingested_files</span>
 
         <span class="k">return</span> <span class="n">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">)</span>
 
@@ -2443,7 +2447,8 @@ mimicking the full directory structure from Box.</p>
         <span class="nd">@task</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">etna_hook</span> <span class="o">=</span> <span class="n">EtnaHook</span><span class="o">.</span><span class="n">for_project</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span>
-            <span class="k">with</span> <span class="n">etna_hook</span><span class="o">.</span><span class="n">metis</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">metis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">,</span> <span class="n">cat</span><span class="o">.</span><span class="n">sftp</span><span class="p">()</span> <span class="k">as</span> <span class="n">sftp</span><span class="p">:</span>
+            <span class="n">ingested_files</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">with</span> <span class="n">etna_hook</span><span class="o">.</span><span class="n">metis</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">metis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempting to upload </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files to Metis&quot;</span><span class="p">)</span>
                 <span class="n">num_ingested</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -2452,7 +2457,7 @@ mimicking the full directory structure from Box.</p>
                         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> because it has already been ingested.&quot;</span><span class="p">)</span>
                         <span class="k">continue</span>
 
-                    <span class="k">with</span> <span class="n">cat</span><span class="o">.</span><span class="n">retrieve_file</span><span class="p">(</span><span class="n">sftp</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_handle</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">cat</span><span class="o">.</span><span class="n">retrieve_file</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_handle</span><span class="p">:</span>
                         <span class="n">dest_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">.</span><span class="n">folder_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cat</span><span class="o">.</span><span class="n">_root_path</span><span class="p">()</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
 
                         <span class="n">final_file_name</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span>
@@ -2478,9 +2483,11 @@ mimicking the full directory structure from Box.</p>
                     <span class="n">cat</span><span class="o">.</span><span class="n">mark_file_as_ingested</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Done ingesting </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
                     <span class="n">num_ingested</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">ingested_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">num_ingested</span> <span class="o">%</span> <span class="n">batch_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">)</span>
                 <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ingested_files</span>
 
         <span class="k">return</span> <span class="n">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">)</span>
 </pre></div>
@@ -2502,6 +2509,8 @@ mimicking the full directory structure from Box.</p>
         <span class="bp">self</span><span class="o">.</span><span class="n">hook</span> <span class="o">=</span> <span class="n">hook</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;airflow.task&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">magic_string</span> <span class="o">=</span> <span class="n">magic_string</span>
+
+        <span class="c1"># paramiko.sftp_file.SFTPFile.MAX_REQUEST_SIZE = pow(2, 22) # 4MB per chunk</span>
 </pre></div>
 
         </details>
@@ -2516,7 +2525,7 @@ mimicking the full directory structure from Box.</p>
             <span class="def">def</span>
             <span class="name">alert_slack</span><span class="signature">(
     self,
-    files: airflow.models.xcom_arg.XComArg,
+    ingested_files: airflow.models.xcom_arg.XComArg,
     ingested: bool,
     project_name: str,
     bucket_name: str,
@@ -2529,7 +2538,7 @@ mimicking the full directory structure from Box.</p>
             <details>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">alert_slack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-        <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
+        <span class="n">ingested_files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
         <span class="n">ingested</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -2541,8 +2550,8 @@ mimicking the full directory structure from Box.</p>
 <span class="sd">            the number of files uploaded.</span>
 
 <span class="sd">        args:</span>
-<span class="sd">            files: List of files</span>
-<span class="sd">            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.</span>
+<span class="sd">            ingested_files: List of files</span>
+<span class="sd">            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.</span>
 <span class="sd">            project_name: str, project name for the message</span>
 <span class="sd">            bucket_name: str, bucket name for the message</span>
 <span class="sd">            channel: str, the Slack channel to post to, default data-ingest-ping</span>
@@ -2551,9 +2560,9 @@ mimicking the full directory structure from Box.</p>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="nd">@task</span>
-        <span class="k">def</span> <span class="nf">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">alert</span><span class="p">(</span><span class="n">ingested_files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">alert</span><span class="p">(</span>
-                <span class="n">files</span><span class="p">,</span>
+                <span class="n">ingested_files</span><span class="p">,</span>
                 <span class="n">project_name</span><span class="p">,</span>
                 <span class="n">target_path</span><span class="o">=</span><span class="n">bucket_name</span><span class="p">,</span>
                 <span class="n">source_system</span><span class="o">=</span><span class="s2">&quot;CAT&quot;</span><span class="p">,</span>
@@ -2561,7 +2570,7 @@ mimicking the full directory structure from Box.</p>
                 <span class="n">channel</span><span class="o">=</span><span class="n">channel</span><span class="p">,</span>
                 <span class="n">member_ids</span><span class="o">=</span><span class="n">member_ids</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">alert</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">alert</span><span class="p">(</span><span class="n">ingested_files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -2570,8 +2579,8 @@ mimicking the full directory structure from Box.</p>
     the number of files uploaded.</p>
 
 <p>args:
-    files: List of files
-    ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.
+    ingested_files: List of files
+    ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.
     project_name: str, project name for the message
     bucket_name: str, bucket name for the message
     channel: str, the Slack channel to post to, default data-ingest-ping
@@ -2616,7 +2625,8 @@ mimicking the full directory structure from Box.</p>
         <span class="nd">@task</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">c4_hook</span> <span class="o">=</span> <span class="n">C4Hook</span><span class="o">.</span><span class="n">for_project</span><span class="p">()</span>
-            <span class="k">with</span> <span class="n">c4_hook</span><span class="o">.</span><span class="n">c4</span><span class="p">()</span> <span class="k">as</span> <span class="n">c4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">,</span> <span class="n">cat</span><span class="o">.</span><span class="n">sftp</span><span class="p">()</span> <span class="k">as</span> <span class="n">sftp</span><span class="p">,</span> <span class="n">c4</span><span class="o">.</span><span class="n">sftp</span><span class="p">()</span> <span class="k">as</span> <span class="n">c4_sftp</span><span class="p">:</span>
+            <span class="n">ingested_files</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">with</span> <span class="n">c4_hook</span><span class="o">.</span><span class="n">c4</span><span class="p">()</span> <span class="k">as</span> <span class="n">c4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">,</span> <span class="n">c4</span><span class="o">.</span><span class="n">sftp</span><span class="p">()</span> <span class="k">as</span> <span class="n">c4_sftp</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempting to upload </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files to C4&quot;</span><span class="p">)</span>
                 <span class="n">num_ingested</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
@@ -2629,23 +2639,24 @@ mimicking the full directory structure from Box.</p>
                     <span class="k">if</span> <span class="n">remove_magic_string</span><span class="p">:</span>
                         <span class="n">final_file_name</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">magic_string</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
-                    <span class="k">with</span> <span class="n">cat</span><span class="o">.</span><span class="n">retrieve_file</span><span class="p">(</span><span class="n">sftp</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_handle</span><span class="p">:</span>
-                        <span class="n">dest_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">.</span><span class="n">folder_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cat</span><span class="o">.</span><span class="n">_root_path</span><span class="p">()</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Uploading </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">final_file_name</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                    <span class="n">dest_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">.</span><span class="n">folder_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cat</span><span class="o">.</span><span class="n">_root_path</span><span class="p">()</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Uploading </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dest_path</span><span class="p">,</span> <span class="n">final_file_name</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
 
-                        <span class="n">c4</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span>
-                            <span class="n">c4_sftp</span><span class="p">,</span>
-                            <span class="n">dest_path</span><span class="p">,</span>
-                            <span class="n">final_file_name</span><span class="p">,</span>
-                            <span class="n">file_handle</span><span class="p">,</span>
-                            <span class="n">file</span><span class="o">.</span><span class="n">size</span>
-                        <span class="p">)</span>
+                    <span class="n">c4</span><span class="o">.</span><span class="n">upload_file</span><span class="p">(</span>
+                        <span class="n">c4_sftp</span><span class="p">,</span>
+                        <span class="n">dest_path</span><span class="p">,</span>
+                        <span class="n">final_file_name</span><span class="p">,</span>
+                        <span class="n">file</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">hook</span>
+                    <span class="p">)</span>
                     <span class="n">cat</span><span class="o">.</span><span class="n">mark_file_as_ingested</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Done ingesting </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
                     <span class="n">num_ingested</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">ingested_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">num_ingested</span> <span class="o">%</span> <span class="n">batch_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">)</span>
                 <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;c4&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ingested_files</span>
 
         <span class="k">return</span> <span class="n">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">)</span>
 </pre></div>
@@ -2705,7 +2716,8 @@ mimicking the full directory structure from the CAT.</p>
         <span class="nd">@task</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">etna_hook</span> <span class="o">=</span> <span class="n">EtnaHook</span><span class="o">.</span><span class="n">for_project</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span>
-            <span class="k">with</span> <span class="n">etna_hook</span><span class="o">.</span><span class="n">metis</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">metis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">,</span> <span class="n">cat</span><span class="o">.</span><span class="n">sftp</span><span class="p">()</span> <span class="k">as</span> <span class="n">sftp</span><span class="p">:</span>
+            <span class="n">ingested_files</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">with</span> <span class="n">etna_hook</span><span class="o">.</span><span class="n">metis</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">metis</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempting to upload </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files to Metis&quot;</span><span class="p">)</span>
                 <span class="n">num_ingested</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -2714,7 +2726,7 @@ mimicking the full directory structure from the CAT.</p>
                         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> because it has already been ingested.&quot;</span><span class="p">)</span>
                         <span class="k">continue</span>
 
-                    <span class="k">with</span> <span class="n">cat</span><span class="o">.</span><span class="n">retrieve_file</span><span class="p">(</span><span class="n">sftp</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_handle</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">cat</span><span class="o">.</span><span class="n">retrieve_file</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_handle</span><span class="p">:</span>
                         <span class="n">dest_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_path</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">.</span><span class="n">folder_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cat</span><span class="o">.</span><span class="n">_root_path</span><span class="p">()</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
 
                         <span class="n">final_file_name</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">name</span>
@@ -2740,9 +2752,11 @@ mimicking the full directory structure from the CAT.</p>
                     <span class="n">cat</span><span class="o">.</span><span class="n">mark_file_as_ingested</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Done ingesting </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
                     <span class="n">num_ingested</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">ingested_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">num_ingested</span> <span class="o">%</span> <span class="n">batch_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">)</span>
                 <span class="n">cat</span><span class="o">.</span><span class="n">update_cursor</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ingested_files</span>
 
         <span class="k">return</span> <span class="n">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">)</span>
 </pre></div>

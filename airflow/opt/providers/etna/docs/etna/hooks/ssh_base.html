@@ -43,6 +43,9 @@
                                 <a class="variable" href="#SSHBase.chunk_size">chunk_size</a>
                         </li>
                         <li>
+                                <a class="function" href="#SSHBase.ssh">ssh</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#SSHBase.sftp">sftp</a>
                         </li>
                 </ul>
@@ -92,15 +95,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">,</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
-    <span class="k">def</span> <span class="nf">sftp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SFTPClient</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">ssh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Configures an SFTP connection. Using Python `with` syntax, so that the</span>
+<span class="sd">        Configures an SSH connection. Using Python `with` syntax, so that the</span>
 <span class="sd">        connection is closed after usage.</span>
 
 <span class="sd">        eg:</span>
 <span class="sd">        ```</span>
-<span class="sd">        with hook.sftp() as sftp:</span>
-<span class="sd">            sftp.get(&quot;/directory&quot;)</span>
+<span class="sd">        with hook.ssh() as ssh:</span>
+<span class="sd">            ssh.get(&quot;/directory&quot;)</span>
 <span class="sd">        ```</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ssh</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">()</span>
@@ -117,11 +120,28 @@
             <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
             <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
 
-        <span class="n">sftp</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
+        <span class="k">yield</span> <span class="n">ssh</span>
 
-        <span class="k">yield</span> <span class="n">sftp</span>
+        <span class="n">ssh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-        <span class="n">sftp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+    <span class="k">def</span> <span class="nf">sftp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SFTPClient</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Configures an SFTP connection. Using Python `with` syntax, so that the</span>
+<span class="sd">        connection is closed after usage.</span>
+
+<span class="sd">        eg:</span>
+<span class="sd">        ```</span>
+<span class="sd">        with hook.sftp() as sftp:</span>
+<span class="sd">            sftp.get(&quot;/directory&quot;)</span>
+<span class="sd">        ```</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh</span><span class="p">()</span> <span class="k">as</span> <span class="n">ssh</span><span class="p">:</span>
+            <span class="n">sftp</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
+
+            <span class="k">yield</span> <span class="n">sftp</span>
+
+            <span class="n">sftp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_extra</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">extra</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
@@ -149,6 +169,9 @@
     <span class="k">def</span> <span class="nf">_key_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_components</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 
+    <span class="k">def</span> <span class="nf">_key_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_components</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+
     <span class="k">def</span> <span class="nf">_host_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">key_class</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;ssh-rsa&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">RSAKey</span><span class="p">,</span>
@@ -161,7 +184,7 @@
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported SSH key type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">key_class</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">()](</span>
-            <span class="n">data</span><span class="o">=</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_components</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_str</span><span class="p">())</span>
         <span class="p">)</span>
 </pre></div>
 
@@ -188,15 +211,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">,</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
-    <span class="k">def</span> <span class="nf">sftp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SFTPClient</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">ssh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Configures an SFTP connection. Using Python `with` syntax, so that the</span>
+<span class="sd">        Configures an SSH connection. Using Python `with` syntax, so that the</span>
 <span class="sd">        connection is closed after usage.</span>
 
 <span class="sd">        eg:</span>
 <span class="sd">        ```</span>
-<span class="sd">        with hook.sftp() as sftp:</span>
-<span class="sd">            sftp.get(&quot;/directory&quot;)</span>
+<span class="sd">        with hook.ssh() as ssh:</span>
+<span class="sd">            ssh.get(&quot;/directory&quot;)</span>
 <span class="sd">        ```</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ssh</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">()</span>
@@ -213,11 +236,28 @@
             <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
             <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
 
-        <span class="n">sftp</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
+        <span class="k">yield</span> <span class="n">ssh</span>
 
-        <span class="k">yield</span> <span class="n">sftp</span>
+        <span class="n">ssh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-        <span class="n">sftp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+    <span class="k">def</span> <span class="nf">sftp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SFTPClient</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Configures an SFTP connection. Using Python `with` syntax, so that the</span>
+<span class="sd">        connection is closed after usage.</span>
+
+<span class="sd">        eg:</span>
+<span class="sd">        ```</span>
+<span class="sd">        with hook.sftp() as sftp:</span>
+<span class="sd">            sftp.get(&quot;/directory&quot;)</span>
+<span class="sd">        ```</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh</span><span class="p">()</span> <span class="k">as</span> <span class="n">ssh</span><span class="p">:</span>
+            <span class="n">sftp</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
+
+            <span class="k">yield</span> <span class="n">sftp</span>
+
+            <span class="n">sftp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_extra</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">extra</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
@@ -245,6 +285,9 @@
     <span class="k">def</span> <span class="nf">_key_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_components</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 
+    <span class="k">def</span> <span class="nf">_key_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_components</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+
     <span class="k">def</span> <span class="nf">_host_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">key_class</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;ssh-rsa&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">RSAKey</span><span class="p">,</span>
@@ -257,7 +300,7 @@
             <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported SSH key type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">key_class</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">()](</span>
-            <span class="n">data</span><span class="o">=</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_components</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_str</span><span class="p">())</span>
         <span class="p">)</span>
 </pre></div>
 
@@ -304,6 +347,62 @@
     
 
                             </div>
+                            <div id="SSHBase.ssh" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#SSHBase.ssh">#&nbsp;&nbsp</a>
+
+                <div class="decorator">@contextlib.contextmanager</div>
+
+            <span class="def">def</span>
+            <span class="name">ssh</span><span class="signature">(self) -&gt; paramiko.client.SSHClient</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+    <span class="k">def</span> <span class="nf">ssh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Configures an SSH connection. Using Python `with` syntax, so that the</span>
+<span class="sd">        connection is closed after usage.</span>
+
+<span class="sd">        eg:</span>
+<span class="sd">        ```</span>
+<span class="sd">        with hook.ssh() as ssh:</span>
+<span class="sd">            ssh.get(&quot;/directory&quot;)</span>
+<span class="sd">        ```</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ssh</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">()</span>
+
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">get_host_keys</span><span class="p">()</span>
+        <span class="n">keys</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_host_key</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="n">ssh</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
+            <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+
+        <span class="k">yield</span> <span class="n">ssh</span>
+
+        <span class="n">ssh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Configures an SSH connection. Using Python <code>with</code> syntax, so that the
+connection is closed after usage.</p>
+
+<p>eg:</p>
+
+<pre><code>with hook.ssh() as ssh:
+    ssh.get("/directory")
+</code></pre>
+</div>
+
+
+                            </div>
                             <div id="SSHBase.sftp" class="classattr">
                                         <div class="attr function"><a class="headerlink" href="#SSHBase.sftp">#&nbsp;&nbsp</a>
 
@@ -327,25 +426,12 @@
 <span class="sd">            sftp.get(&quot;/directory&quot;)</span>
 <span class="sd">        ```</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ssh</span> <span class="o">=</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">SSHClient</span><span class="p">()</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">ssh</span><span class="p">()</span> <span class="k">as</span> <span class="n">ssh</span><span class="p">:</span>
+            <span class="n">sftp</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
 
-        <span class="n">keys</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">get_host_keys</span><span class="p">()</span>
-        <span class="n">keys</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">(),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_host_key</span><span class="p">()</span>
-        <span class="p">)</span>
+            <span class="k">yield</span> <span class="n">sftp</span>
 
-        <span class="n">ssh</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
-            <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
-            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
-
-        <span class="n">sftp</span> <span class="o">=</span> <span class="n">ssh</span><span class="o">.</span><span class="n">open_sftp</span><span class="p">()</span>
-
-        <span class="k">yield</span> <span class="n">sftp</span>
-
-        <span class="n">sftp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">sftp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 
         </details>
