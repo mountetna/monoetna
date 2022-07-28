@@ -270,9 +270,7 @@ class Cat(SSHBase):
         proc = subprocess.Popen(
             cmd,
             stdout=wd,
-            stderr=subprocess.PIPE,
-            pass_fds=[wd],
-            bufsize=0)
+            pass_fds=[wd])
         q = Queue()
 
         closer = Thread(
