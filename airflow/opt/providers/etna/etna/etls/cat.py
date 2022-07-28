@@ -28,7 +28,7 @@ class CatEtlHelpers(RemoteHelpersBase):
         # paramiko.sftp_file.SFTPFile.MAX_REQUEST_SIZE = pow(2, 22) # 4MB per chunk
 
     def alert_slack(self,
-        files: XComArg,
+        ingested_files: XComArg,
         ingested: bool,
         project_name: str,
         bucket_name: str,
@@ -40,8 +40,8 @@ class CatEtlHelpers(RemoteHelpersBase):
             the number of files uploaded.
 
         args:
-            files: List of files
-            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.ingest_to_metis.
+            ingested_files: List of files
+            ingested: bool, not really used, just helps control the flow of when messages are sent. Should be return value of helpers.
             project_name: str, project name for the message
             bucket_name: str, bucket name for the message
             channel: str, the Slack channel to post to, default data-ingest-ping
@@ -50,9 +50,9 @@ class CatEtlHelpers(RemoteHelpersBase):
         """
 
         @task
-        def alert(files, ingested, project_name, bucket_name):
+        def alert(ingested_files, ingested, project_name, bucket_name):
             self.alert(
-                files,
+                ingested_files,
                 project_name,
                 target_path=bucket_name,
                 source_system="CAT",
@@ -60,7 +60,7 @@ class CatEtlHelpers(RemoteHelpersBase):
                 channel=channel,
                 member_ids=member_ids)
 
-        return alert(files, ingested, project_name, bucket_name)
+        return alert(ingested_files, ingested, project_name, bucket_name)
 
     def ingest_to_c4(
         self,
@@ -81,7 +81,8 @@ class CatEtlHelpers(RemoteHelpersBase):
         @task
         def ingest(files, folder_path):
             c4_hook = C4Hook.for_project()
-            with c4_hook.c4() as c4, self.hook.cat() as cat, cat.sftp() as sftp, c4.sftp() as c4_sftp:
+            ingested_files = []
+            with c4_hook.c4() as c4, self.hook.cat() as cat, c4.sftp() as c4_sftp:
                 self.log.info(f"Attempting to upload {len(files)} files to C4")
                 num_ingested = 0
                 for file in files:
@@ -107,9 +108,11 @@ class CatEtlHelpers(RemoteHelpersBase):
                     cat.mark_file_as_ingested("c4", file)
                     self.log.info(f"Done ingesting {file.full_path}.")
                     num_ingested += 1
+                    ingested_files.append(file)
                     if num_ingested % batch_size == 0:
                         cat.update_cursor("c4")
                 cat.update_cursor("c4")
+            return ingested_files
 
         return ingest(files, folder_path)
 
@@ -136,6 +139,7 @@ class CatEtlHelpers(RemoteHelpersBase):
         @task
         def ingest(files, project_name, bucket_name, folder_path):
             etna_hook = EtnaHook.for_project(project_name)
+            ingested_files = []
             with etna_hook.metis(project_name, read_only=False) as metis, self.hook.cat() as cat:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
                 num_ingested = 0
@@ -171,9 +175,11 @@ class CatEtlHelpers(RemoteHelpersBase):
                     cat.mark_file_as_ingested("metis", file)
                     self.log.info(f"Done ingesting {file.full_path}.")
                     num_ingested += 1
+                    ingested_files.append(file)
                     if num_ingested % batch_size == 0:
                         cat.update_cursor("metis")
                 cat.update_cursor("metis")
+            return ingested_files
 
         return ingest(files, project_name, bucket_name, folder_path)
 
