@@ -72,12 +72,22 @@ module Etna::Application
     application = self.id
     Yabeda.configure do
       default_tag :application, application
+      default_tag :project_name, 'unknown'
+      default_tag :controller, 'none'
+      default_tag :action, 'none'
 
       group :etna do
         histogram :response_time do
           comment "Time spent by a controller returning a response"
           unit :seconds
           tags [:controller, :action, :user_hash, :project_name]
+          buckets [0.01, 0.1, 0.3, 0.5, 1, 5]
+        end
+
+        histogram :perf do
+          comment "Time spent inside code path"
+          unit :seconds
+          tags [:controller, :action, :project_name, :class_name, :method_name]
           buckets [0.01, 0.1, 0.3, 0.5, 1, 5]
         end
 
@@ -176,9 +186,6 @@ module Etna::Application
   end
 
   def run_command(config, *args, &block)
-    application = self.id
-    status = 'success'
-    start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     cmd, cmd_args, cmd_kwds = find_command(*args)
 
     begin
@@ -190,18 +197,7 @@ module Etna::Application
       cmd.execute(*cmd.fill_in_missing_params(cmd_args), **cmd_kwds)
     rescue => e
       Rollbar.error(e)
-      status = 'failed'
       raise
-    ensure
-      if defined?(Yabeda) && Yabeda.configured?
-        tags = { command: cmd.class.name, status: status, application: application }
-        dur = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
-
-        Yabeda.etna.last_command_completion.set(tags, Time.now.to_i)
-        Yabeda.etna.command_runtime.measure(tags, dur)
-
-        write_job_metrics("run_command.#{cmd.class.name}")
-      end
     end
   end
 end
