@@ -258,6 +258,20 @@ describe "Token Generation" do
       Timecop.return
     end
 
+    it 'refuses to create a task token when main token expired' do
+      now = Time.now
+      Timecop.freeze(Time.at(0))
+
+      header('Authorization', "Etna #{@user.create_token!}")
+
+      Timecop.freeze(now)
+
+      post('/api/tokens/generate', project_name: 'tannel', token_type: 'task', do_not_set_user: true)
+      expect(last_response.status).to eq(401)
+
+      Timecop.return
+    end
+
     it 'refuses to create a task token without project permission' do
       header('Authorization', "Etna #{@user.create_token!}")
       post('/api/tokens/generate', project_name: 'gateway', token_type: 'task')
