@@ -1,5 +1,6 @@
 import React from 'react';
 import Grid from '@material-ui/core/Grid';
+import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
 import ProjectHeader from 'etna-js/components/project-header';
 import {makeStyles} from '@material-ui/core/styles';
@@ -75,7 +76,15 @@ const useStyles = makeStyles((theme) => ({
 
 const isSeparator = letter => letter.match(/[\.\-\_]/)
 
-const Rule = ({rule, order, total, identifier}) => {
+const RuleLink = ({project_name, identifier, name, isModel}) => (
+  name == 'project'
+    ? <Link color='secondary' href={ `${CONFIG.timur_host}/${project_name}` }>{identifier}</Link>
+    : isModel
+    ? <Link color='secondary' href={ `${CONFIG.timur_host}/${project_name}/browse/${name}/${identifier}` }>{identifier}</Link>
+    : identifier
+)
+
+const Rule = ({rule, order, total, project_name, identifier, models}) => {
   const voff = 50;
   return <Grid style={{ position: 'absolute', left: 0, top: 0 }}>
     {/* bracket */}
@@ -90,7 +99,12 @@ const Rule = ({rule, order, total, identifier}) => {
       position: 'absolute',
       top: voff - 5 + 25 * order,
       left: 50 + identifier.length * 40 }}>
-      { rule.label }
+    { rule.label } - <RuleLink
+    identifier={ identifier.slice( rule.from, rule.to+1 ) }
+    name={rule.label}
+    project_name={project_name}
+    isModel={ models.includes(rule.label ) }
+    />
     </Grid>
     {/* pointer */}
     <Grid style={{
@@ -150,6 +164,8 @@ const DecomposeIdentifier = ({project_name, identifier}) => {
 
   identifier = 'MVIR1-HS169-D0PL1-CTK1';
 
+  const models = [ 'project', 'subject', 'timepoint', 'immunoassay' ]
+
   const decomposition = {
     rules: [
       { from: 0, to: 4, label: 'project' },
@@ -186,7 +202,15 @@ const DecomposeIdentifier = ({project_name, identifier}) => {
       <Grid container alignItems='center' justify='center' className={classes.rules}>
         {
           decomposition.rules.map(
-            (rule,i) => <Rule key={i} rule={rule} order={i} total={ decomposition.rules.length } identifier={identifier}/>
+            (rule,i) => <Rule
+            key={i}
+            rule={rule}
+            order={i}
+            total={ decomposition.rules.length }
+            identifier={identifier}
+            models={models}
+            project_name={project_name}
+            />
           )
         }
       </Grid>
