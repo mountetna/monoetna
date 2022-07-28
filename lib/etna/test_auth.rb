@@ -54,6 +54,9 @@ module Etna
 
       return false unless token
 
+      # Useful for testing certain behavior
+      params = request.env["rack.request.params"]
+
       # Here we simply base64-encode our user hash and pass it through
       # In order to behave more like "real" tokens, we expect the user hash to be
       #   in index 1 after splitting by ".".
@@ -63,7 +66,7 @@ module Etna
       request.env['etna.user'] = Etna::User.new(
         update_payload(payload, token, request),
         token
-      )
+      ) unless !!params[:do_not_set_user]
     end
 
     def approve_hmac(request)
