@@ -13,7 +13,7 @@ from serde.json import from_json, to_json
 from .etna_base import EtnaClientBase
 from .utils.multipart import encode_as_multipart
 from .utils.streaming import iterable_to_stream
-from requests import RequestException
+from requests import RequestException, HTTPError
 from time import sleep
 
 @serialize
