@@ -130,7 +130,7 @@ class RemoteHelpersBase:
             # Only log every 5 seconds, to save log space...
             time_check = int(time.time())
             if time_check % 5 == 0 and should_log:
-                self.log.info("Uploading blob...")
+                self.log.info("Uploading blob... ({:.2%})".format(blob.read_position / file.size))
                 should_log = False
             elif time_check % 5 != 0 and not should_log:
                 should_log = True
