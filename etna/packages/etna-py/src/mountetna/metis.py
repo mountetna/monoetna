@@ -13,7 +13,8 @@ from serde.json import from_json, to_json
 from .etna_base import EtnaClientBase
 from .utils.multipart import encode_as_multipart
 from .utils.streaming import iterable_to_stream
-from requests import HTTPError
+from requests import RequestException
+from time import sleep
 
 @serialize
 @deserialize
@@ -503,8 +504,9 @@ class Metis(EtnaClientBase):
                 )
 
                 unsent_zero_byte_file = False
-            except HTTPError as e:
+            except RequestException as e:
                 if remaining_attempts > 1:
+                    sleep(30)
                     if e.response.status_code == 422:
                         yield from self.upload_parts(
                             upload, metis_uid, remaining_attempts - 1, True
