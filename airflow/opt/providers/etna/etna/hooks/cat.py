@@ -316,6 +316,9 @@ class Cat(SSHBase):
         """
         Save the cursor to the database.
         """
+        latest_cursor = Variable.get(self.variable_key(postfix), default_var={}, deserialize_json=True)
+
+        self.cursors[postfix] = {**latest_cursor, **self.cursors[postfix]}
         Variable.set(self.variable_key(postfix), self.cursors[postfix], serialize_json=True)
 
     def variable_key(self, postfix: str):
