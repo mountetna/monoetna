@@ -450,7 +450,7 @@ class Metis(EtnaClientBase):
         dest_path: str,
         file: typing.IO,
         size: Optional[int] = None,
-        max_retries=3,
+        max_retries=15,
     ) -> typing.Iterable["Upload"]:
         if size is None:
             if file.seekable():
