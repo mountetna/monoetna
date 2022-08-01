@@ -38,11 +38,15 @@ const GnomonMain = ({project_name}: {project_name: string}) => {
   const [ models, setModels ] = useState(null);
   const [ error, setError ] = useState(null);
 
-  const onEnter = useCallback( e => {
+  const onEnterIdentifier = useCallback( e => {
     if (e.key == 'Enter') {
       window.location.href = `/${project_name}/identify/${identifier}`;
     }
   }, [ identifier ]);
+
+  const onSelectModel = useCallback( e => {
+    window.location.href = `/${project_name}/create/${e.target.value}`;
+  }, [] );
 
   const dispatch = useDispatch();
 
@@ -61,7 +65,7 @@ const GnomonMain = ({project_name}: {project_name: string}) => {
       <Grid className={classes.main} alignItems='center' container justify='space-around' direction='column'>
         <Grid>
           <TextField variant='outlined'
-            onKeyPress={ onEnter }
+            onKeyPress={ onEnterIdentifier }
             className={classes.text}
             placeholder='Enter an identifier'
             value={ identifier }
@@ -71,7 +75,7 @@ const GnomonMain = ({project_name}: {project_name: string}) => {
         <Grid><Typography color='secondary'>∼ OR ∼</Typography></Grid>
         <Grid>
           <FormControl variant='outlined'>
-            <Select value='' displayEmpty>
+            <Select value='' onChange={ onSelectModel } displayEmpty>
               <MenuItem value='' disabled>Create an identifier</MenuItem>
               {
                 models && models.map( m => <MenuItem key={m} value={m}>{m}</MenuItem> )

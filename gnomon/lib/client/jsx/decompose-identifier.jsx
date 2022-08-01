@@ -4,6 +4,7 @@ import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
 import ProjectHeader from 'etna-js/components/project-header';
 import {makeStyles} from '@material-ui/core/styles';
+import Letter from './letter';
 
 const useStyles = makeStyles((theme) => ({
   header: {
@@ -26,10 +27,7 @@ const useStyles = makeStyles((theme) => ({
     position: 'relative',
     overflowY: 'clip'
   },
-  letter_box: {
-    position: 'relative',
-    width: '40px',
-    height: '40px',
+  letter: {
     border: '1px solid #ccc',
     background: '#eee',
     borderRight: 'none',
@@ -37,10 +35,7 @@ const useStyles = makeStyles((theme) => ({
       borderLeft: '1px solid #888'
     }
   },
-  separator_box: {
-    position: 'relative',
-    width: '40px',
-    height: '40px',
+  separator: {
     padding: '2px',
     border: '1px solid transparent',
     '$counter + &': {
@@ -49,9 +44,6 @@ const useStyles = makeStyles((theme) => ({
     ':not($counter) + &': {
       borderLeft: '1px solid #ccc',
     }
-  },
-  letter: {
-    fontSize: '30px'
   },
   counter: {
     background: 'rgba(128,128,128,0.5)',
@@ -75,6 +67,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const isSeparator = letter => letter.match(/[\.\-\_]/)
+const isCounter = (pos,mask) => mask[pos] == '1';
 
 const RuleLink = ({project_name, identifier, name, isModel}) => (
   name == 'project'
@@ -148,17 +141,6 @@ const Token = ({token, order, total, identifier}) => {
   </Grid>
 }
 
-const Letter = ({letter, position, counter}) => {
-  const classes = useStyles();
-  return <Grid className={
-      `${isSeparator(letter) ? `sep ${classes.separator_box}` : classes.letter_box} ${counter ? `count ${classes.counter}` : ''}`
-    }
-    container alignItems='center' justify='center'>
-    <span className={classes.letter}>{letter}</span>
-    <span className={classes.position}>{position}</span>
-  </Grid>
-}
-
 const DecomposeIdentifier = ({project_name, identifier}) => {
   const classes = useStyles();
 
@@ -196,7 +178,15 @@ const DecomposeIdentifier = ({project_name, identifier}) => {
       </Grid>
       {
         identifier.split('').map(
-          (l,i) => <Letter key={i} position={i} letter={l} counter={ decomposition.counters[i] == '1' } />
+          (l,i) => <Letter key={i}
+            className={
+              `${
+                isSeparator(l) ? classes.separator : classes.letter
+              } ${
+                isCounter(i, decomposition.counters) ? classes.counter : ''
+              }`
+            }
+            letter={l} />
         )
       }
       <Grid container alignItems='center' justify='center' className={classes.rules}>
