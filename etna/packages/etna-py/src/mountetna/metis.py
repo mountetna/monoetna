@@ -506,6 +506,7 @@ class Metis(EtnaClientBase):
                 unsent_zero_byte_file = False
             except (RequestException, HTTPError) as e:
                 if remaining_attempts > 1:
+                    print(f"Error {e.response.status_code}, {e.response.text}. Retrying...")
                     sleep(30)
                     if e.response.status_code == 422:
                         yield from self.upload_parts(
