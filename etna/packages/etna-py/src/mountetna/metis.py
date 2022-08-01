@@ -504,7 +504,7 @@ class Metis(EtnaClientBase):
                 )
 
                 unsent_zero_byte_file = False
-            except RequestException as e:
+            except (RequestException, HTTPError) as e:
                 if remaining_attempts > 1:
                     sleep(30)
                     if e.response.status_code == 422:
@@ -517,7 +517,8 @@ class Metis(EtnaClientBase):
                             upload, metis_uid, remaining_attempts - 1
                         )
                         return
-                raise e
+                else:
+                    raise e
 
             yield upload
 
