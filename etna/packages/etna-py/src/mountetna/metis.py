@@ -13,7 +13,7 @@ from serde.json import from_json, to_json
 from .etna_base import EtnaClientBase
 from .utils.multipart import encode_as_multipart
 from .utils.streaming import iterable_to_stream
-from requests import RequestException
+from requests import RequestException, HTTPError
 from .utils.gater import RetryGater
 
 @serialize
@@ -482,6 +482,12 @@ class Metis(EtnaClientBase):
     def upload_parts(
         self, upload: "Upload", metis_uid: str, remaining_attempts: int, reset=False
     ) -> typing.Iterable["Upload"]:
+        """
+        Note that the remaining_attempts here covers a specific use-case,
+            where the upload does not match what has been uploaded to
+            the server, and it needs to be reset / start over.
+            It should not be used as a counter for retrying individual requests.
+        """
         unsent_zero_byte_file = upload.cur == 0
         upload.resume_from(
             self.start_upload(
@@ -515,16 +521,11 @@ class Metis(EtnaClientBase):
                 )
 
                 unsent_zero_byte_file = False
-            except RequestException as e:
+            except HTTPError as e:
                 if remaining_attempts > 1:
                     if e.response.status_code == 422:
                         yield from self.upload_parts(
                             upload, metis_uid, remaining_attempts - 1, True
-                        )
-                        return
-                    else:
-                        yield from self.upload_parts(
-                            upload, metis_uid, remaining_attempts - 1
                         )
                         return
                 else:
