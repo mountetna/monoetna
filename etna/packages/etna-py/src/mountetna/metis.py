@@ -1,3 +1,4 @@
+from urllib.request import Request
 import dateutil
 from datetime import datetime
 from typing import Dict, Optional, List
@@ -15,6 +16,7 @@ from .utils.multipart import encode_as_multipart
 from .utils.streaming import iterable_to_stream
 from requests import RequestException, HTTPError
 from time import sleep
+from .utils.gater import RetryGater
 
 @serialize
 @deserialize
@@ -353,7 +355,8 @@ class Metis(EtnaClientBase):
     def touch_folder(
         self, project_name: str, bucket_name: str, folder_path: str
     ) -> FoldersResponse:
-        response = self.session.get(
+        response = self._retry_request(
+            self.session.get,
             self.prepare_url(project_name, "folder", "touch", bucket_name, folder_path)
         )
         return from_json(FoldersResponse, response.content)
@@ -362,21 +365,27 @@ class Metis(EtnaClientBase):
         self, project_name: str, bucket_name: str, folder_path: Optional[str] = None
     ) -> FoldersAndFilesResponse:
         if folder_path:
-            response = self.session.get(
+            response = self._retry_request(
+                self.session.get,
                 self.prepare_url(project_name, "list", bucket_name, folder_path)
             )
         else:
-            response = self.session.get(
+            response = self._retry_request(
+                self.session.get,
                 self.prepare_url(project_name, "list", bucket_name)
             )
         return from_json(FoldersAndFilesResponse, response.content)
 
     def authorize_download(self, project_name: str, bucket_name: str, file_path: str) -> str:
-        response = self.session.post(self.prepare_url('authorize', 'download'), json=dict(
-            project_name=project_name,
-            bucket_name=bucket_name,
-            file_path=file_path,
-        ))
+        response = self._retry_request(
+            self.session.post,
+            self.prepare_url('authorize', 'download'),
+            json=dict(
+                project_name=project_name,
+                bucket_name=bucket_name,
+                file_path=file_path,
+            )
+        )
 
         return response.json()['download_url']
 
@@ -408,7 +417,7 @@ class Metis(EtnaClientBase):
              break
         ```
         """
-        response = self.session.get(url, stream=True)
+        response = self._retry_request(self.session.get, url, stream=True)
         io_obj = iterable_to_stream(response.iter_content(io.DEFAULT_BUFFER_SIZE))
         if not binary_mode:
             io_obj = io.TextIOWrapper(io_obj, encoding='utf8')
@@ -417,7 +426,8 @@ class Metis(EtnaClientBase):
     def authorize_upload(
         self, project_name: str, bucket_name: str, file_path: str
     ) -> "UploadResponse":
-        response = self.session.post(
+        response = self._retry_request(
+            self.session.post,
             self.prepare_url("authorize", "upload"),
             json=dict(
                 project_name=project_name, bucket_name=bucket_name, file_path=file_path
@@ -427,7 +437,8 @@ class Metis(EtnaClientBase):
         return response_obj
 
     def start_upload(self, request: "UploadStartRequest") -> "UploadResponse":
-        response = self.session.post(
+        response = self._retry_request(
+            self.session.post,
             self.prepare_url_unsafe(request.upload_path),
             data=to_json(request),
             headers={"Content-Type": "application/json"},
@@ -436,7 +447,8 @@ class Metis(EtnaClientBase):
         return response_obj
 
     def upload_blob(self, request: "UploadBlobRequest"):
-        response = self.session.post(
+        response = self._retry_request(
+            self.session.post,
             self.prepare_url_unsafe(request.upload_path),
             files=encode_as_multipart(request),
         )
@@ -450,7 +462,7 @@ class Metis(EtnaClientBase):
         dest_path: str,
         file: typing.IO,
         size: Optional[int] = None,
-        max_retries=15,
+        max_retries=3,
     ) -> typing.Iterable["Upload"]:
         if size is None:
             if file.seekable():
@@ -466,25 +478,11 @@ class Metis(EtnaClientBase):
             self.create_folder(project_name, bucket_name, os.path.dirname(dest_path))
         authorization = self.authorize_upload(project_name, bucket_name, dest_path)
         upload = Upload(file=file, file_size=size, upload_path=authorization.upload_path)
-        num_tries = max_retries
-        last_status_code = None
-        metis_uid = uuid.uuid4().hex
-        while num_tries > 0:
-            try:
-                return self.upload_parts(upload, metis_uid, last_status_code == 422)
-            except (RequestException, HTTPError) as e:
-                if num_tries > 1:
-                    print(f"Error {e.response.status_code}, {e.response.text}. Retrying...")
-                    sleep(30)
-                else:
-                    raise e
-            except Exception as e:
-                raise e
-            finally:
-                num_tries -= 1
+
+        return self.upload_parts(upload, uuid.uuid4().hex, max_retries)
 
     def upload_parts(
-        self, upload: "Upload", metis_uid: str, reset=False
+        self, upload: "Upload", metis_uid: str, remaining_attempts: int, reset=False
     ) -> typing.Iterable["Upload"]:
         unsent_zero_byte_file = upload.cur == 0
         upload.resume_from(
@@ -519,15 +517,28 @@ class Metis(EtnaClientBase):
                 )
 
                 unsent_zero_byte_file = False
-            except (RequestException, HTTPError) as e:
-                raise e
+            except RequestException as e:
+                if remaining_attempts > 1:
+                    if e.response.status_code == 422:
+                        yield from self.upload_parts(
+                            upload, metis_uid, remaining_attempts - 1, True
+                        )
+                        return
+                    else:
+                        yield from self.upload_parts(
+                            upload, metis_uid, remaining_attempts - 1
+                        )
+                        return
+                else:
+                    raise e
 
             yield upload
 
     def create_folder(
         self, project_name: str, bucket_name: str, folder_path: str
     ) -> FoldersAndFilesResponse:
-        response = self.session.post(
+        response = self._retry_request(
+            self.session.post,
             self.prepare_url(project_name, "folder", "create", bucket_name, folder_path)
         )
         response_obj = from_json(FoldersAndFilesResponse, response.content)
@@ -537,11 +548,12 @@ class Metis(EtnaClientBase):
         self, project_name: str, bucket_name: str, folder_path: str
     ) -> bool:
         try:
-            response = self.session.get(
+            response = self._retry_request(
+                self.session.get,
                 self.prepare_url(project_name, "list", bucket_name, folder_path)
             )
             return True
-        except HTTPError as e:
+        except RequestException as e:
             if e.response.status_code == 422:
                 return False
             raise e
@@ -569,7 +581,11 @@ class Metis(EtnaClientBase):
                 type=type,
             )
 
-        response = self.session.post(self.prepare_url(project_name, 'tail', bucket_name), json=args, stream=True)
+        response = self._retry_request(
+            self.session.post,
+            self.prepare_url(project_name, 'tail', bucket_name),
+            json=args, stream=True
+        )
         for line in response.iter_lines():
             if line:
                 container.add(from_json(TailNode, line))
@@ -602,7 +618,8 @@ class Metis(EtnaClientBase):
 
         result = FoldersAndFilesResponse(folders=[], files=[])
         while True:
-            response = self.session.post(
+            response = self._retry_request(
+                self.session.post,
                 self.prepare_url(project_name, "find", bucket_name), json=args
             )
             response_obj = from_json(FoldersAndFilesResponse, response.content)
@@ -614,3 +631,12 @@ class Metis(EtnaClientBase):
             args["offset"] += max(len(response_obj.files), len(response_obj.folders))
 
         return result
+
+    def _retry_request(self, request_method, *args, **kwargs):
+        gater = RetryGater(max=60)
+        while True:
+            try:
+                return request_method(*args, **kwargs)
+            except RequestException as e:
+                gater.gate(exception=RequestException)
+    
