@@ -23,7 +23,8 @@ class Magma
       :read_only,
       :restricted,
       :unique,
-      :validation
+      :validation,
+      :link_attribute_name
     ]
 
     attr_reader :loader
@@ -31,7 +32,7 @@ class Magma
     class << self
       def options
         [:description, :display_name, :hidden, :attribute_group, :read_only, :unique, :index, :validation,
-:format_hint, :loader, :link_model_name, :restricted]
+:format_hint, :loader, :link_model_name, :restricted, :link_attribute_name]
       end
 
       def type_attributes
@@ -106,6 +107,7 @@ class Magma
         attribute_name: attribute_name,
         model_name: self.is_a?(Magma::Link) ? link_model.model_name : nil,
         link_model_name: self.is_a?(Magma::Link) ? link_model.model_name : nil,
+        link_attribute_name: self.is_a?(Magma::Link) ? link_attribute_name: nil,
         description: description,
         desc: description,
         display_name: display_name,

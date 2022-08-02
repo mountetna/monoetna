@@ -475,6 +475,9 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save the cursor to the database.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">latest_cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">(</span><span class="n">postfix</span><span class="p">),</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">latest_cursor</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">]}</span>
         <span class="n">Variable</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">(</span><span class="n">postfix</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">],</span> <span class="n">serialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">variable_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">postfix</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -1219,6 +1222,9 @@ for the efficiency of imports.</p>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save the cursor to the database.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">latest_cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">(</span><span class="n">postfix</span><span class="p">),</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">latest_cursor</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">]}</span>
         <span class="n">Variable</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">(</span><span class="n">postfix</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">],</span> <span class="n">serialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">variable_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">postfix</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -1488,6 +1494,9 @@ subset of the data.</p>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save the cursor to the database.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">latest_cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">(</span><span class="n">postfix</span><span class="p">),</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">latest_cursor</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">]}</span>
         <span class="n">Variable</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">(</span><span class="n">postfix</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">],</span> <span class="n">serialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 

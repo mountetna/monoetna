@@ -534,7 +534,7 @@ def test_mark_ingested_updates_cursor(mock_get, reset_db):
     assert test_file.hash == cat.cursors["c4"][test_file.full_path]
 
 
-@mock.patch.object(Variable, 'get', side_effect=[mock_var_get("c4"), mock_var_get("metis")])
+@mock.patch.object(Variable, 'get', side_effect=[mock_var_get("c4"), mock_var_get("metis"), mock_var_get("c4")])
 @mock.patch.object(Variable, 'set')
 def test_update_cursor_saves_variable(mock_set, mock_get, reset_db):
     set_up_mocks()
@@ -554,7 +554,13 @@ def test_update_cursor_saves_variable(mock_set, mock_get, reset_db):
     mock_set.assert_called_with(
         'cat_ingest_cursor-c4',
         {
-            '/file.txt': '1-2-3'
+            "parent/child/grandchild/123.txt": f"1-{timestamp(2022, 1, 1)}",
+            "something.txt": f"1-{timestamp(2022, 1, 1)}",
+            "other_thing.txt": f"2-{timestamp(2022, 3, 1)}",
+            "other_things.txt": f"3-{timestamp(2022, 5, 1)}",
+            "folder/yet_another_thing.txt": f"5-{timestamp(2022, 6, 2)}",
+            "folder/another_thing.txt": f"6-{timestamp(2022, 1, 2)}",
+            "/file.txt": "1-2-3"
         },
         serialize_json=True)
 
