@@ -5,6 +5,8 @@ import Typography from '@material-ui/core/Typography';
 import ProjectHeader from 'etna-js/components/project-header';
 import {makeStyles} from '@material-ui/core/styles';
 import Letter from './letter';
+import Bracket from './bracket';
+import Corner from './corner';
 
 const useStyles = makeStyles((theme) => ({
   header: {
@@ -78,14 +80,12 @@ const RuleLink = ({project_name, identifier, name, isModel}) => (
 )
 
 const Rule = ({rule, order, total, project_name, identifier, models}) => {
-  const voff = 50;
+  const voff = 40;
   return <Grid style={{ position: 'absolute', left: 0, top: 0 }}>
-    {/* bracket */}
-    <Grid style={{ position: 'absolute',
-      top: voff + 2.5 + order * 25,
-      left: rule.from * 40,
-      width: (rule.to - rule.from + 1) * 40, border: '1px solid black',
-      height: '10px', borderTop: 'none' }}/>
+    <Bracket
+      top={ voff + 2.5 + order * 25 }
+      left={ rule.from * 40 }
+      width={ (rule.to - rule.from + 1) * 40 }/>
     {/* text */}
     <Grid style={{
       whiteSpace: 'nowrap',
@@ -114,13 +114,10 @@ const Rule = ({rule, order, total, project_name, identifier, models}) => {
 const Token = ({token, order, total, identifier}) => {
   const voff = 40;
   return <Grid style={{ position: 'absolute', left: 0, top: 0 }}>
-    {/* bracket */}
-    <Grid style={{
-      position: 'absolute',
-      bottom: voff,
-      left: token.from * 40,
-      width: (token.to - token.from + 1) * 40, border: '1px solid black',
-      height: '10px', borderBottom: 'none' }}/>
+    <Bracket
+      bottom={voff}
+      left={ token.from * 40 + 2 }
+      width={  (token.to - token.from + 1) * 40 - 4 }/>
     {/* text */}
     <Grid style={{
       whiteSpace: 'nowrap',
@@ -129,15 +126,12 @@ const Token = ({token, order, total, identifier}) => {
       left: 50 + identifier.length * 40 }}>
       { token.label } : { token.description }
     </Grid>
-    {/* pointer */}
-    <Grid style={{
-      position: 'absolute',
-      width: identifier.length * 40 - (token.to + token.from + 1) * 20 + 45,
-      left: (token.to + token.from + 1) * 20,
-      bottom: voff + 10, borderLeft: '1px solid black',
-      opacity: 0.1,
-      borderTop: '1px solid black',
-      height: 25 * (total - order)  }}/>
+    <Corner
+      bottom={ voff + 10 }
+      left={ (token.to + token.from + 1) * 20 }
+      top={ 25 * (total - order) + voff + 10 }
+      right={ identifier.length * 40 + 45 }
+    />
   </Grid>
 }
 

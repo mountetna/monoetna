@@ -13,10 +13,19 @@ import ProjectHeader from 'etna-js/components/project-header';
 import {requestAnswer} from 'etna-js/actions/magma_actions';
 
 const useStyles = makeStyles((theme) => ({
+  frame: {
+    height: 'calc(100vh - 61px - 48px)'
+  },
   main: {
-    width: '100%',
+    width: 'auto',
+    flex: '1 1 auto',
     padding: '100px 0px 200px',
-    height: 'calc(100vh - 61px)'
+  },
+  admin: {
+    flex: '1 1 auto',
+    width: 'auto',
+    borderLeft: '1px solid #eee',
+    margin: '20px 0px'
   },
   header: {
     borderBottom: '1px solid #eee'
@@ -62,26 +71,31 @@ const GnomonMain = ({project_name}: {project_name: string}) => {
   return (
     <Grid>
       <ProjectHeader project_name={project_name} className={classes.header}/>
-      <Grid className={classes.main} alignItems='center' container justify='space-around' direction='column'>
-        <Grid>
-          <TextField variant='outlined'
-            onKeyPress={ onEnterIdentifier }
-            className={classes.text}
-            placeholder='Enter an identifier'
-            value={ identifier }
-            onChange={ (e) => setIdentifier(e.target.value) }
-            />
+      <Grid container className={classes.frame} direction='row'>
+        <Grid item className={classes.main} alignItems='center' container justify='space-around' direction='column'>
+          <Grid>
+            <TextField variant='outlined'
+              onKeyPress={ onEnterIdentifier }
+              className={classes.text}
+              placeholder='Enter an identifier'
+              value={ identifier }
+              onChange={ (e) => setIdentifier(e.target.value) }
+              />
+          </Grid>
+          <Grid><Typography color='secondary'>∼ OR ∼</Typography></Grid>
+          <Grid>
+            <FormControl variant='outlined'>
+              <Select value='' onChange={ onSelectModel } displayEmpty>
+                <MenuItem value='' disabled>Create an identifier</MenuItem>
+                {
+                  models && models.map( m => <MenuItem key={m} value={m}>{m}</MenuItem> )
+                }
+              </Select>
+            </FormControl>
+          </Grid>
         </Grid>
-        <Grid><Typography color='secondary'>∼ OR ∼</Typography></Grid>
-        <Grid>
-          <FormControl variant='outlined'>
-            <Select value='' onChange={ onSelectModel } displayEmpty>
-              <MenuItem value='' disabled>Create an identifier</MenuItem>
-              {
-                models && models.map( m => <MenuItem key={m} value={m}>{m}</MenuItem> )
-              }
-            </Select>
-          </FormControl>
+        <Grid item container alignItems='center' justify='space-around' className={ classes.admin }>
+          Oyoo
         </Grid>
       </Grid>
     </Grid>
