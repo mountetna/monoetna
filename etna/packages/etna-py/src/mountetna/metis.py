@@ -466,10 +466,25 @@ class Metis(EtnaClientBase):
             self.create_folder(project_name, bucket_name, os.path.dirname(dest_path))
         authorization = self.authorize_upload(project_name, bucket_name, dest_path)
         upload = Upload(file=file, file_size=size, upload_path=authorization.upload_path)
-        return self.upload_parts(upload, uuid.uuid4().hex, max_retries)
+        num_tries = max_retries
+        last_status_code = None
+        metis_uid = uuid.uuid4().hex
+        while num_tries > 0:
+            try:
+                return self.upload_parts(upload, metis_uid, last_status_code == 422)
+            except (RequestException, HTTPError) as e:
+                if num_tries > 1:
+                    print(f"Error {e.response.status_code}, {e.response.text}. Retrying...")
+                    sleep(30)
+                else:
+                    raise e
+            except Exception as e:
+                raise e
+            finally:
+                num_tries -= 1
 
     def upload_parts(
-        self, upload: "Upload", metis_uid: str, remaining_attempts: int, reset=False
+        self, upload: "Upload", metis_uid: str, reset=False
     ) -> typing.Iterable["Upload"]:
         unsent_zero_byte_file = upload.cur == 0
         upload.resume_from(
@@ -505,21 +520,7 @@ class Metis(EtnaClientBase):
 
                 unsent_zero_byte_file = False
             except (RequestException, HTTPError) as e:
-                if remaining_attempts > 1:
-                    print(f"Error {e.response.status_code}, {e.response.text}. Retrying...")
-                    sleep(30)
-                    if e.response.status_code == 422:
-                        yield from self.upload_parts(
-                            upload, metis_uid, remaining_attempts - 1, True
-                        )
-                        return
-                    else:
-                        yield from self.upload_parts(
-                            upload, metis_uid, remaining_attempts - 1
-                        )
-                        return
-                else:
-                    raise e
+                raise e
 
             yield upload
 
