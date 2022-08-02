@@ -157,19 +157,22 @@
                 
                         <details>
             <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">base64</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">codecs</span>
 <span class="kn">import</span> <span class="nn">contextlib</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">import</span> <span class="nn">io</span>
-<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">paramiko</span>
 <span class="kn">import</span> <span class="nn">stat</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">from</span> <span class="nn">paramiko.sftp_client</span> <span class="kn">import</span> <span class="n">SFTPClient</span>
 <span class="kn">from</span> <span class="nn">paramiko.sftp_attr</span> <span class="kn">import</span> <span class="n">SFTPAttributes</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">ContextManager</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">BinaryIO</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">ContextManager</span>
+<span class="kn">from</span> <span class="nn">queue</span> <span class="kn">import</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">Empty</span>
+<span class="kn">from</span> <span class="nn">threading</span>  <span class="kn">import</span> <span class="n">Thread</span>
 
 <span class="kn">import</span> <span class="nn">cached_property</span>
 
@@ -370,11 +373,26 @@
 
         <span class="k">return</span> <span class="n">files</span>
 
+    <span class="k">def</span> <span class="nf">_curl_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">SftpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;sftp://</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_curl_authn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_curl_hostpubmd5</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># https://stackoverflow.com/a/66227907</span>
+        <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span>
+            <span class="n">codecs</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_str</span><span class="p">(),</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span> <span class="s1">&#39;base64&#39;</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
-    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sftp</span><span class="p">:</span> <span class="n">SFTPClient</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">SftpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">source_file</span><span class="p">:</span> <span class="n">SftpEntry</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Opens the given file for download as a file-like object.</span>
-<span class="sd">        The underlying socket object yields bytes objects.</span>
+<span class="sd">        The returned file-like object yields bytes.</span>
 
 <span class="sd">        Note:  Ideally, this method is used in combination with &#39;with&#39; syntax in python, so that the underlying</span>
 <span class="sd">        data stream is closed after usage.  This is especially performant when code only needs to access a small</span>
@@ -388,14 +406,52 @@
 <span class="sd">        ```</span>
 
 <span class="sd">        params:</span>
-<span class="sd">          sftp: a connected SFTPClient</span>
-<span class="sd">          file: an SFTP file listing</span>
+<span class="sd">          source_file: an SFTP file listing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span> <span class="k">as</span> <span class="n">read_io</span><span class="p">:</span>
-            <span class="n">sftp</span><span class="o">.</span><span class="n">getfo</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">,</span> <span class="n">read_io</span><span class="p">)</span>
-            <span class="n">read_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wait_for_proc</span><span class="p">(</span><span class="n">pr</span><span class="p">,</span> <span class="n">qu</span><span class="p">):</span>
+            <span class="n">pr</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+            <span class="n">qu</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">pr</span><span class="o">.</span><span class="n">returncode</span><span class="p">)</span>
 
-            <span class="k">yield</span> <span class="n">read_io</span>
+        <span class="n">rd</span><span class="p">,</span> <span class="n">wd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">pipe</span><span class="p">()</span>
+
+        <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;curl&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;-u&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_curl_authn</span><span class="p">(),</span>
+            <span class="s2">&quot;--hostpubmd5&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_curl_hostpubmd5</span><span class="p">(),</span>
+            <span class="s2">&quot;-o&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;-&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;-N&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_curl_url</span><span class="p">(</span><span class="n">source_file</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+            <span class="n">cmd</span><span class="p">,</span>
+            <span class="n">stdout</span><span class="o">=</span><span class="n">wd</span><span class="p">,</span>
+            <span class="n">pass_fds</span><span class="o">=</span><span class="p">[</span><span class="n">wd</span><span class="p">])</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+
+        <span class="n">closer</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">wait_for_proc</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="n">q</span><span class="p">),</span>
+            <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="n">closer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">wd</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="nb">open</span><span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rb&#39;</span><span class="p">,</span> <span class="n">closefd</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">rd</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">rd</span><span class="p">)</span>
+            <span class="n">proc</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="n">status</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">!=</span> <span class="n">status</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to run external process, got status code </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">mark_file_as_ingested</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ingested_to</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">SftpEntry</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -419,6 +475,9 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save the cursor to the database.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">latest_cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">(</span><span class="n">postfix</span><span class="p">),</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">latest_cursor</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">]}</span>
         <span class="n">Variable</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">(</span><span class="n">postfix</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">],</span> <span class="n">serialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">variable_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">postfix</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -1061,11 +1120,26 @@ for the efficiency of imports.</p>
 
         <span class="k">return</span> <span class="n">files</span>
 
+    <span class="k">def</span> <span class="nf">_curl_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">SftpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;sftp://</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_curl_authn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_curl_hostpubmd5</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># https://stackoverflow.com/a/66227907</span>
+        <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span>
+            <span class="n">codecs</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_str</span><span class="p">(),</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span> <span class="s1">&#39;base64&#39;</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
-    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sftp</span><span class="p">:</span> <span class="n">SFTPClient</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">SftpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">source_file</span><span class="p">:</span> <span class="n">SftpEntry</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Opens the given file for download as a file-like object.</span>
-<span class="sd">        The underlying socket object yields bytes objects.</span>
+<span class="sd">        The returned file-like object yields bytes.</span>
 
 <span class="sd">        Note:  Ideally, this method is used in combination with &#39;with&#39; syntax in python, so that the underlying</span>
 <span class="sd">        data stream is closed after usage.  This is especially performant when code only needs to access a small</span>
@@ -1079,14 +1153,52 @@ for the efficiency of imports.</p>
 <span class="sd">        ```</span>
 
 <span class="sd">        params:</span>
-<span class="sd">          sftp: a connected SFTPClient</span>
-<span class="sd">          file: an SFTP file listing</span>
+<span class="sd">          source_file: an SFTP file listing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span> <span class="k">as</span> <span class="n">read_io</span><span class="p">:</span>
-            <span class="n">sftp</span><span class="o">.</span><span class="n">getfo</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">,</span> <span class="n">read_io</span><span class="p">)</span>
-            <span class="n">read_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wait_for_proc</span><span class="p">(</span><span class="n">pr</span><span class="p">,</span> <span class="n">qu</span><span class="p">):</span>
+            <span class="n">pr</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+            <span class="n">qu</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">pr</span><span class="o">.</span><span class="n">returncode</span><span class="p">)</span>
 
-            <span class="k">yield</span> <span class="n">read_io</span>
+        <span class="n">rd</span><span class="p">,</span> <span class="n">wd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">pipe</span><span class="p">()</span>
+
+        <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;curl&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;-u&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_curl_authn</span><span class="p">(),</span>
+            <span class="s2">&quot;--hostpubmd5&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_curl_hostpubmd5</span><span class="p">(),</span>
+            <span class="s2">&quot;-o&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;-&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;-N&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_curl_url</span><span class="p">(</span><span class="n">source_file</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+            <span class="n">cmd</span><span class="p">,</span>
+            <span class="n">stdout</span><span class="o">=</span><span class="n">wd</span><span class="p">,</span>
+            <span class="n">pass_fds</span><span class="o">=</span><span class="p">[</span><span class="n">wd</span><span class="p">])</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+
+        <span class="n">closer</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">wait_for_proc</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="n">q</span><span class="p">),</span>
+            <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="n">closer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">wd</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="nb">open</span><span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rb&#39;</span><span class="p">,</span> <span class="n">closefd</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">rd</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">rd</span><span class="p">)</span>
+            <span class="n">proc</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="n">status</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">!=</span> <span class="n">status</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to run external process, got status code </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">mark_file_as_ingested</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ingested_to</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">SftpEntry</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1110,6 +1222,9 @@ for the efficiency of imports.</p>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save the cursor to the database.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">latest_cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">(</span><span class="n">postfix</span><span class="p">),</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">latest_cursor</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">]}</span>
         <span class="n">Variable</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">(</span><span class="n">postfix</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">],</span> <span class="n">serialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">variable_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">postfix</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -1215,20 +1330,19 @@ If a <code>magic_string</code> regex is provided, will only return files that ma
                 <div class="decorator">@contextlib.contextmanager</div>
 
             <span class="def">def</span>
-            <span class="name">retrieve_file</span><span class="signature">(
-    self,
-    sftp: paramiko.sftp_client.SFTPClient,
-    file: <a href="#SftpEntry">etna.hooks.cat.SftpEntry</a>
-) -&gt; _io.BytesIO</span>:
+            <span class="name">retrieve_file</span><span class="signature">(self, source_file: <a href="#SftpEntry">etna.hooks.cat.SftpEntry</a>)</span>:
     </div>
 
             <details>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span>    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
-    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sftp</span><span class="p">:</span> <span class="n">SFTPClient</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">SftpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">retrieve_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">source_file</span><span class="p">:</span> <span class="n">SftpEntry</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Opens the given file for download as a file-like object.</span>
-<span class="sd">        The underlying socket object yields bytes objects.</span>
+<span class="sd">        The returned file-like object yields bytes.</span>
 
 <span class="sd">        Note:  Ideally, this method is used in combination with &#39;with&#39; syntax in python, so that the underlying</span>
 <span class="sd">        data stream is closed after usage.  This is especially performant when code only needs to access a small</span>
@@ -1242,20 +1356,58 @@ If a <code>magic_string</code> regex is provided, will only return files that ma
 <span class="sd">        ```</span>
 
 <span class="sd">        params:</span>
-<span class="sd">          sftp: a connected SFTPClient</span>
-<span class="sd">          file: an SFTP file listing</span>
+<span class="sd">          source_file: an SFTP file listing</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span> <span class="k">as</span> <span class="n">read_io</span><span class="p">:</span>
-            <span class="n">sftp</span><span class="o">.</span><span class="n">getfo</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">,</span> <span class="n">read_io</span><span class="p">)</span>
-            <span class="n">read_io</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">wait_for_proc</span><span class="p">(</span><span class="n">pr</span><span class="p">,</span> <span class="n">qu</span><span class="p">):</span>
+            <span class="n">pr</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+            <span class="n">qu</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">pr</span><span class="o">.</span><span class="n">returncode</span><span class="p">)</span>
 
-            <span class="k">yield</span> <span class="n">read_io</span>
+        <span class="n">rd</span><span class="p">,</span> <span class="n">wd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">pipe</span><span class="p">()</span>
+
+        <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;curl&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;-u&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_curl_authn</span><span class="p">(),</span>
+            <span class="s2">&quot;--hostpubmd5&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_curl_hostpubmd5</span><span class="p">(),</span>
+            <span class="s2">&quot;-o&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;-&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;-N&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_curl_url</span><span class="p">(</span><span class="n">source_file</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+            <span class="n">cmd</span><span class="p">,</span>
+            <span class="n">stdout</span><span class="o">=</span><span class="n">wd</span><span class="p">,</span>
+            <span class="n">pass_fds</span><span class="o">=</span><span class="p">[</span><span class="n">wd</span><span class="p">])</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+
+        <span class="n">closer</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">wait_for_proc</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="n">q</span><span class="p">),</span>
+            <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="n">closer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">wd</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="nb">open</span><span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rb&#39;</span><span class="p">,</span> <span class="n">closefd</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">rd</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">rd</span><span class="p">)</span>
+            <span class="n">proc</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+        <span class="n">status</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="o">!=</span> <span class="n">status</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AirflowException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to run external process, got status code </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 
         </details>
 
             <div class="docstring"><p>Opens the given file for download as a file-like object.
-The underlying socket object yields bytes objects.</p>
+The returned file-like object yields bytes.</p>
 
 <p>Note:  Ideally, this method is used in combination with 'with' syntax in python, so that the underlying
 data stream is closed after usage.  This is especially performant when code only needs to access a small
@@ -1269,8 +1421,7 @@ subset of the data.</p>
 </code></pre>
 
 <p>params:
-  sftp: a connected SFTPClient
-  file: an SFTP file listing</p>
+  source_file: an SFTP file listing</p>
 </div>
 
 
@@ -1343,6 +1494,9 @@ subset of the data.</p>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save the cursor to the database.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">latest_cursor</span> <span class="o">=</span> <span class="n">Variable</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">(</span><span class="n">postfix</span><span class="p">),</span> <span class="n">default_var</span><span class="o">=</span><span class="p">{},</span> <span class="n">deserialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">latest_cursor</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">]}</span>
         <span class="n">Variable</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variable_key</span><span class="p">(</span><span class="n">postfix</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursors</span><span class="p">[</span><span class="n">postfix</span><span class="p">],</span> <span class="n">serialize_json</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 
@@ -1387,6 +1541,7 @@ subset of the data.</p>
                                 <dl>
                                     <div><dt><a href="ssh_base.html#SSHBase">etna.hooks.ssh_base.SSHBase</a></dt>
                                 <dd id="Cat.chunk_size" class="variable"><a href="ssh_base.html#SSHBase.chunk_size">chunk_size</a></dd>
+                <dd id="Cat.ssh" class="function"><a href="ssh_base.html#SSHBase.ssh">ssh</a></dd>
                 <dd id="Cat.sftp" class="function"><a href="ssh_base.html#SSHBase.sftp">sftp</a></dd>
 
             </div>

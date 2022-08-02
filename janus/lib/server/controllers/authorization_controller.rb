@@ -87,6 +87,8 @@ class AuthorizationController < Janus::Controller
     end
 
     return success(user.create_token!)
+  rescue JWT::ExpiredSignature => e
+    raise Etna::Unauthorized, "failed to create token"
   end
 
   def build
