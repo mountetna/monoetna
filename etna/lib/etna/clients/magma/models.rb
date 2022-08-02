@@ -239,6 +239,9 @@ module Etna
             link_model: self.model(attribute&.link_model_name)
         )
           return nil if model.nil? || model.name.nil?
+
+          return link_model&.template&.attributes&.all&.find { |a| a.name == link_attribute_name } if link_attribute_name
+
           link_model&.template&.attributes&.all&.find { |a| a.link_model_name == model.name }
         end
 
@@ -457,7 +460,7 @@ module Etna
         def is_edited?(other)
           # Don't just override == in case need to do a full comparison.
           editable_attribute_names = Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.map(&:to_s)
-          
+
           self_editable = raw.slice(*editable_attribute_names)
           other_editable = other.raw.slice(*editable_attribute_names)
 
@@ -503,6 +506,14 @@ module Etna
         def attribute_type=(val)
           val = val.to_s if val
           @raw['attribute_type'] = val
+        end
+
+        def link_attribute_name
+          @raw['link_attribute_name']
+        end
+
+        def link_attribute_name=(val)
+          @raw['link_attribute_name'] = val
         end
 
         def link_model_name
