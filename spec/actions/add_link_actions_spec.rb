@@ -8,7 +8,7 @@ describe Magma::AddLinkAction do
       action_name: "add_link",
       links: [
           { model_name: 'model_a', attribute_name: 'link_to_b', type: 'link' },
-          { model_name: 'model_b', attribute_name: 'link_to_a', type: 'link' },
+          { model_name: 'model_b', attribute_name: 'link_to_a', type: 'child' },
       ]
     }
   end
@@ -31,11 +31,13 @@ describe Magma::AddLinkAction do
           parent_link_type: 'collection'
         }).perform).to be_truthy
     end
+    AddLinkTestProject::ModelA.set_primary_key(:id)
+    AddLinkTestProject::ModelB.set_primary_key(:id)
   end
 
   describe '#perform' do
-    context "for two links" do
-      it 'adds a new link attribute and returns no errors' do
+    context "for child link" do
+      it 'adds attributes and returns no errors' do
         unless action.perform
           expect(action.errors).to be_empty
         end
@@ -47,7 +49,7 @@ describe Magma::AddLinkAction do
 
         expect(model_b = Magma.instance.get_model(project_name, 'model_b')).to_not be_nil
         expect(model_b.attributes).to include(:link_to_a)
-        expect(model_b.attributes[:link_to_a]).to be_a(Magma::LinkAttribute)
+        expect(model_b.attributes[:link_to_a]).to be_a(Magma::ChildAttribute)
       end
     end
 
@@ -69,6 +71,29 @@ describe Magma::AddLinkAction do
         expect(model_b = Magma.instance.get_model(project_name, 'model_b')).to_not be_nil
         expect(model_b.attributes).to include(:link_to_a)
         expect(model_b.attributes[:link_to_a]).to be_a(Magma::CollectionAttribute)
+      end
+
+      context "within the same model" do
+        before(:each) do
+          action_params[:links][1][:type] = 'collection'
+          action_params[:links][0][:attribute_name] = 'umbrella_record'
+          action_params[:links][1][:attribute_name] = 'associated_records'
+          action_params[:links][1][:model_name] = action_params[:links][0][:model_name]
+        end
+
+        it 'adds a new link attribute and returns no errors' do
+          unless action.perform
+            expect(action.errors).to be_empty
+          end
+          expect(action.errors).to be_empty
+
+          expect(model_a = Magma.instance.get_model(project_name, 'model_a')).to_not be_nil
+          expect(model_a.attributes).to include(:umbrella_record)
+          expect(model_a.attributes[:umbrella_record]).to be_a(Magma::LinkAttribute)
+
+          expect(model_a.attributes).to include(:associated_records)
+          expect(model_a.attributes[:associated_records]).to be_a(Magma::CollectionAttribute)
+        end
       end
     end
   end
@@ -111,12 +136,23 @@ describe Magma::AddLinkAction do
 
     context "when the types are invalid" do
       before(:each) do
+        action_params[:links][1][:type] = 'sauce'
+      end
+
+      it 'captures an attribute error' do
+        expect(action.validate).to eq(false)
+        expect(action.errors.first[:message]).to eq("links must include at least one collection/child type")
+      end
+    end
+
+    context "when missing a link type" do
+      before(:each) do
         action_params[:links][0][:type] = 'sauce'
       end
 
       it 'captures an attribute error' do
         expect(action.validate).to eq(false)
-        expect(action.errors.first[:message]).to eq("links type must be either another link or a collection")
+        expect(action.errors.first[:message]).to eq("links must include at least one link type")
       end
     end
 

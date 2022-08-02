@@ -37,7 +37,7 @@ class Magma
       constraint do
         attribute = valid_attribute(@arguments[1])
         case attribute
-        when Magma::ForeignKeyAttribute
+        when Magma::ForeignKeyAttribute, Magma::LinkAttribute
           not_null_constraint(attribute.foreign_id)
         when Magma::TableAttribute, Magma::CollectionAttribute, Magma::ChildAttribute
           # do nothing in this case, instead, we'll add a join on the
@@ -62,7 +62,7 @@ class Magma
       constraint do
         attribute = valid_attribute(@arguments[1])
         case attribute
-        when Magma::ForeignKeyAttribute
+        when Magma::ForeignKeyAttribute, Magma::LinkAttribute
           null_constraint(attribute.foreign_id)
         when Magma::FileAttribute, Magma::ImageAttribute
           or_constraint([
@@ -140,9 +140,7 @@ class Magma
     end
 
     def collection_attribute_fk_column(attribute)
-      attribute.link_model.attributes.values.select do |a|
-        a.respond_to?(:link_model) ? a.link_model == @model : false
-      end.first.column_name.to_sym
+      attribute.link_model.attributes[attribute.link_attribute_name.to_sym].column_name.to_sym
     end
 
     def lacks_child_subquery(attribute)
@@ -181,7 +179,7 @@ class Magma
           @child_predicate.alias_name,
           :id
         )
-      when Magma::TableAttribute, Magma::CollectionAttribute, Magma::ChildAttribute
+      when Magma::TableAttribute
         return Magma::Join.new(
           #left table
           table_name,
@@ -192,6 +190,18 @@ class Magma
           @child_predicate.table_name,
           @child_predicate.alias_name,
           attribute.self_id,
+        )
+      when Magma::CollectionAttribute, Magma::ChildAttribute
+        return Magma::Join.new(
+          #left table
+          table_name,
+          alias_name,
+          :id,
+
+          #right table
+          @child_predicate.table_name,
+          @child_predicate.alias_name,
+          attribute.foreign_id,
         )
       end
     end
