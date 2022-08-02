@@ -21,6 +21,7 @@ module Etna
     end
 
     def handle_error(e)
+      # raise e
       case e
       when Etna::Error
         Rollbar.error(e)

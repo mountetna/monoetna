@@ -6,8 +6,8 @@ module Etna
           orig_method_name = :"#{method_name}_without_time_it"
           self.alias_method orig_method_name, method_name
 
-          self.define_method method_name do |*args, **kwds|
-            time_it(orig_method_name, *args, **kwds, &metric_block)
+          self.define_method method_name do |*args|
+            time_it(orig_method_name, args, &metric_block)
           end
         end
       end
@@ -20,11 +20,11 @@ module Etna
       end
     end
 
-    def time_it(method_name, *args, **kwds, &metric_block)
+    def time_it(method_name, args, &metric_block)
       if has_yabeda?
         start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         begin
-          return send(method_name, *args, **kwds)
+          return send(method_name, *args)
         ensure
           dur = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
           if block_given?
