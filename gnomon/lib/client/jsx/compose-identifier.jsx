@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useCallback, useContext} from 'react';
+
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import TextField from '@material-ui/core/TextField';
@@ -10,10 +11,16 @@ import InputLabel from '@material-ui/core/InputLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
-import Letter from './letter';
 import Typography from '@material-ui/core/Typography';
 import ProjectHeader from 'etna-js/components/project-header';
 import {makeStyles} from '@material-ui/core/styles';
+
+import Letter from './letter';
+import Bracket from './bracket';
+import Corner from './corner';
+import Line from './line';
+
+import {isAdmin} from 'etna-js/utils/janus';
 
 const useStyles = makeStyles((theme) => ({
   header: {
@@ -69,103 +76,116 @@ const tokenEditorStyles = makeStyles((theme) => ({
     position: 'absolute',
     opacity: 0.1,
     borderTop: '1px solid black'
+  },
+  editor: {
+    width: 290,
+    boxShadow: '0 0 5px rgba(0,0,0,0.05)',
+    position: 'absolute',
+    border: '1px solid #888',
+    padding: '5px',
+    whiteSpace: 'nowrap',
+  },
+  empty: {
+    color: '#888'
   }
 }));
 
-const TokenEditor = ({token, seq, height, value, pos, update}) => {
-  const classes = tokenEditorStyles()
-  if (token.type == 'hidden') return null;
-  const contents =(token.type == 'resolved')
-  ?  <TextField label={token.label} InputLabelProps={{ shrink: true }}  InputProps={{ readOnly: true }} value={ firstValue(token) }/>
-  : (token.type == 'counter')
-  ? <><TextField onChange={ e => update(pos, e.target.value) } value={value} InputLabelProps={{ shrink: true }} size='small' inputProps={{ pattern: "[0-9]*" }} label={token.label}/> <IconButton title={ `Fill the next available value for ${token.label}`}><PlusOneIcon/></IconButton></>
-  : (token.type == 'unresolved')
-  ? <FormControl style={{ width: 230 }}>
+const ResolvedEditor = ({token}) => (
+  <TextField
+    label={token.label}
+    InputLabelProps={{ shrink: true }}
+    InputProps={{ readOnly: true }}
+    value={ firstValue(token) }
+  />
+);
+
+const CounterEditor = ({token, value, update, pos}) => (
+  <React.Fragment>
+    <TextField
+      onChange={ e => update(pos, e.target.value) }
+      value={value}
+      InputLabelProps={{ shrink: true }}
+      size='small'
+      inputProps={{ pattern: "[0-9]*" }}
+      label={token.label}/>
+    {
+      !value && token.filled && <IconButton
+        size='small' title={ `Fill the next available value for ${token.label}`}>
+        <PlusOneIcon/>
+      </IconButton>
+    }
+  </React.Fragment>
+);
+
+const UnresolvedEditor = ({ token, value, pos, update, classes}) => (
+  <FormControl style={{ width: 230 }}>
       <InputLabel shrink>{token.label}</InputLabel>
       <Select onChange={ e => update(pos, e.target.value) } value={value} displayEmpty size='small'>
-        <MenuItem value=''><em>None</em></MenuItem>
+        <MenuItem value=''><em className={classes.empty}>None</em></MenuItem>
         {
           Object.keys(token.values).map(
             name => <MenuItem key={name} value={name}>{token.values[name]}</MenuItem>
           )
         }
       </Select>
-    </FormControl>
-  : null
+  </FormControl>
+);
 
-  const voff = 25;
+const TokenEditor = params => {
+  const {token, seq, height, value, pos, update} = params;
+  const classes = tokenEditorStyles()
+
+  if (token.type == 'hidden') return null;
+
+  const EditorComponent = eval( `${ token.type.charAt(0).toUpperCase() + token.type.slice(1) }Editor`);
+
+  const voff = 40;
   const lh = 70;
 
-  const h = voff + 20 + (15 - lh / 2) * height + (lh - 15) * token.height;
   const w = 75;
-  const r = Math.sqrt(h*h + w*w);
-  const a = Math.atan(h/w);
-
 
   return <Grid className={classes.token_editor} style={{position: 'absolute', left: 0, top: 0}}>
-    {/* bracket */}
-    <Grid style={{ position: 'absolute',
-      bottom: voff + 2.5,
-      left: token.from * 40+1,
-      width: (token.to - token.from + 1) * 40 - 4, border: '1px solid black',
-      height: '10px', borderBottom: 'none' }}/>
-    {/* text */}
-    <Grid container alignItems='center' style={{
-      width: 290,
-      position: 'absolute',
-      left: w + 25 + seq.length * 40,
-      bottom: (height / 2 - token.height) * lh - 2,
-      border: '1px solid #888',
-      padding: '5px',
-      whiteSpace: 'nowrap',
-      background: token.type == 'resolved' ? 'none' : '#eee'
-    }}>
-    {contents}
+    <Bracket
+      bottom={voff}
+      left={token.from * 40+2}
+      width={(token.to - token.from + 1) * 40 - 4}
+    />
+    <Grid container alignItems='center' className={classes.editor}
+      style={{
+        left: w + 25 + seq.length * 40,
+        bottom: (height / 2 - token.height) * lh,
+        background: (token.type == 'resolved' || value) ? 'none' : '#eee'
+      }}>
+      <EditorComponent classes={classes} {...params}/>
     </Grid>
-    {/* line1 */}
-    <Grid
+    <Corner
       className={ classes.pointer }
-      style={{
-      height: 0,
-      left: (token.to + token.from + 1) * 20,
-      bottom: voff + 12.5,
-      transformOrigin: 'bottom left',
-      transform: 'rotate(-90deg)',
-      width: 15 * (height - token.height + 1)  }}/>
-    {/* line2 */}
-    <Grid
+      left={ (token.to + token.from + 1) * 20 }
+      bottom={ voff + 12.5 }
+      right={ seq.length * 40 }
+      top={ voff + 12 + 15 * (height - token.height + 1) } />
+    <Line 
       className={ classes.pointer }
-      style={{
-      width: seq.length * 40 - (token.to + token.from + 1) * 20,
-      left: (token.to + token.from + 1) * 20,
-      bottom: voff + 12 + 15 * (height - token.height + 1),
-      height: 0 }}/>
-    {/* line3 */}
-    <Grid 
+      left={ seq.length * 40 }
+      right={ seq.length * 40 + w }
+      top={ 7 + (height / 2 - token.height) * lh }
+      bottom={ voff + 12 + 15 * (height - token.height + 1) }
+    />
+    <Line
       className={ classes.pointer }
-      style={{
-        transformOrigin: 'bottom left',
-        left: seq.length * 40,
-        width: r,
-        transform: `rotate(${a}rad)`,
-        bottom: voff + 12 + 15 * (height - token.height + 1),
-        height: 0  }}/>
-    {/* line4 */}
-    <Grid
-      className={ classes.pointer }
-      style={{
-        left: seq.length * 40 + w,
-        width: 20,
-        bottom: 7 + (height / 2 - token.height) * lh,
-        height: 0  }}/>
+      left={ seq.length * 40 + w }
+      right={ seq.length * 40 + w + 20 }
+      bottom={ 7 + (height / 2 - token.height) * lh }
+      top={ 7 + (height / 2 - token.height) * lh }
+    />
   </Grid>
 }
 
-const Token = ({token}) => {
+const Token = ({token, value}) => {
   const classes = useStyles();
 
   return <Grid style={{position: 'relative'}}>
-    <Letters className={classes[token.type]} seq={ token.seq }/>
+    <Letters className={classes[(value ? 'resolved' : token.type)]} seq={ token.seq }/>
   </Grid>
 }
 
@@ -235,7 +255,7 @@ const ComposeIdentifier = ({project_name}) => {
           'VAG' : 'Viral Antigen',
           'PDV' : 'Viral PhIP-Seq',
           'LNK' : 'Olink',
-          'RSL' : 'Recan Luminex'
+          'RSL' : 'Rescan Luminex'
         }
       },
       {
@@ -254,23 +274,29 @@ const ComposeIdentifier = ({project_name}) => {
     setValues( newValues );
   }, [ values ]);
 
-  const updateToken = useCallback(([ pos, height ], token, i) => {
-    const [ seq, type ] = (token.values && Object.keys(token.values).length == 1)
-      ? (firstValue(token)[0] == '#'
-         ? [ firstKey(token), 'hidden' ]
-         : [ firstKey(token), 'resolved' ] )
-      : token.name == 'n'
-      ? [ values[i] || token.name, 'counter' ]
-      : [ values[i] || token.name, 'unresolved' ];
+  // compute some ordering, etc. information about tokens for display and write it to the token
+  const updateToken = useCallback(([ pos, height, filled ], token, i) => {
+    let seq, type, new_filled;
+
+    // there is only one option
+    if (token.values && Object.keys(token.values).length == 1) {
+      seq = firstKey(token);
+      type = (firstValue(token)[0] == '#') ? 'hidden' : 'resolved'; 
+      new_filled = filled;
+    } else {
+      seq = values[i] || token.name;
+      type = (token.name == 'n') ? 'counter' : 'unresolved';
+      new_filled = filled && !!values[i]
+    }
 
     if (type != 'hidden') height = height + 1;
 
-    Object.assign(token, { seq, type, height, from: pos, to: pos + seq.length - 1 });
+    Object.assign(token, { seq, type, height, from: pos, to: pos + seq.length - 1, filled });
 
-    return [ pos + seq.length, height ]
+    return [ pos + seq.length, height, new_filled ]
   }, [values]);
 
-  const [ _, height ] = model.tokens.reduce( updateToken, [ 0, 0 ] );
+  const [ _, height ] = model.tokens.reduce( updateToken, [ 0, 0, true ] );
 
   const seq = model.tokens.map( t => t.seq ).join('');
 
@@ -286,7 +312,7 @@ const ComposeIdentifier = ({project_name}) => {
       </Grid>
       {
         model.tokens.map(
-          (token,i) => <Token key={i} token={token}/>
+          (token,i) => <Token key={i} token={token} value={ values[i] } />
         )
       }
     </Grid>

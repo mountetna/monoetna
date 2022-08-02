@@ -7,11 +7,11 @@ const Logo = () => <div id='logo'/>;
 
 const NavBar = ({user}) => <div id='nav'></div>
 
-const PolyphemusNav = () => {
+const GnomonNav = () => {
   let user = useReduxState( state => selectUser(state) );
   return <Nav logo={Logo} user={user} app='gnomon'>
     <NavBar user={user}/>
   </Nav>;
 }
 
-export default PolyphemusNav;
+export default GnomonNav;
