@@ -317,6 +317,10 @@ class Upload:
 
         self.last_bytes = b"".join(data)
         return self.last_bytes
+    
+    def reset(self):
+        self.read_position = 0
+        self.last_bytes = None
 
 
 @serialize
@@ -493,6 +497,9 @@ class Metis(EtnaClientBase):
                 )
             )
         )
+
+        if reset:
+            upload.reset()
 
         while unsent_zero_byte_file or not upload.is_complete:
             try:
