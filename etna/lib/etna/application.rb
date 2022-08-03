@@ -68,48 +68,43 @@ module Etna::Application
     [path.map(&:to_sym), YAML.load(File.read(value))]
   end
 
+  def controller_tags
+    [:controller, :action, :project_name, :user_hash]
+  end
+
   def setup_yabeda
     application = self.id
+    ctags = self.controller_tags
     Yabeda.configure do
       default_tag :application, application
       default_tag :project_name, 'unknown'
       default_tag :controller, 'none'
       default_tag :action, 'none'
+      default_tag :user_hash, 'unknown'
 
       group :etna do
         histogram :response_time do
           comment "Time spent by a controller returning a response"
           unit :seconds
-          tags [:controller, :action, :user_hash, :project_name]
+          tags ctags
           buckets [0.01, 0.1, 0.3, 0.5, 1, 5]
         end
 
         histogram :perf do
           comment "Time spent inside code path"
           unit :seconds
-          tags [:controller, :action, :project_name, :class_name, :method_name]
+          tags ctags + [:class_name, :method_name]
           buckets [0.01, 0.1, 0.3, 0.5, 1, 5]
         end
 
         counter :visits do
           comment "Counts visits to the controller"
-          tags [:controller, :action, :user_hash, :project_name]
+          tags ctags
         end
 
         counter :rollbar_errors do
           comment "Counts errors detected by and sent to rollbar"
-        end
-
-        gauge :last_command_completion do
-          comment "Unix time of last time command was completed"
-          tags [:command, :status, :application]
-        end
-
-        histogram :command_runtime do
-          comment "Time spent processing a given command"
-          tags [:command, :status, :application]
-          unit :seconds
-          buckets [0.1, 1, 5, 60, 300, 1500]
+          tags ctags
         end
       end
     end
