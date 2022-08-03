@@ -131,7 +131,7 @@ module Etna
             unless attribute.attribute_type == AttributeType::PARENT
               if attribute.link_model_name
                 ensure_model(attribute.link_model_name)
-                ensure_model_link(model_name, attribute.link_model_name, attribute.attribute_name)
+                ensure_model_link(model_name, attribute.link_model_name, attribute.attribute_name, attribute.link_attribute_name)
               else
                 ensure_model_attribute(model_name, attribute.attribute_name)
               end
@@ -144,26 +144,26 @@ module Etna
           end
         end
 
-        def ensure_model_link(model_name, link_model_name, attribute_name)
+        def ensure_model_link(model_name, link_model_name, attribute_name, link_attribute_name)
           return unless (model = source_models.model(model_name))
           return unless (source_attribute = model.template.attributes.attribute(attribute_name))
 
           return unless (link_model = source_models.model(link_model_name))
-          link_model_attributes = link_model.template.attributes
-          reciprocal = link_model_attributes.all.find do |attr|
-            attr.link_model_name == model_name
-          end
+          return unless (reciprocal = link_model.template.attributes.attribute(link_attribute_name))
 
           target_model_name = target_of_source(model_name)
           target_link_model_name = target_of_source(link_model_name)
 
           target_attributes = target_models.model(target_model_name).template.attributes
           return if target_attributes.attribute_keys.include?(target_link_model_name)
+          return if target_attributes.attribute_keys.include?(reciprocal.attribute_name)
+
+          # skip non-links for circular references so they don't get added twice
+          return if link_model_name == model_name && reciprocal.attribute_type != 'link'
 
           add_link = AddLinkAction.new
           add_link.links << AddLinkDefinition.new(model_name: target_model_name, attribute_name: attribute_name, type: source_attribute.attribute_type)
           add_link.links << AddLinkDefinition.new(model_name: target_link_model_name, attribute_name: reciprocal.attribute_name, type: reciprocal.attribute_type)
-
           queue_update(add_link)
         end
 

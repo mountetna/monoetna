@@ -17,6 +17,8 @@ module Token
   end
 
   class Builder
+    include Etna::Instrumentation
+
     def initialize(janus_user)
       @janus_user = janus_user
     end
@@ -41,6 +43,8 @@ module Token
         Etna::Permission.new(Token.role_key(permission.role, permission.privileged?), permission.project_name)
       end).to_string
     end
+
+    time_it(:serialize_permissions)
 
     def create_token!(expires: nil, payload: nil)
       # Time is in seconds, nil = no expiration
@@ -93,6 +97,8 @@ module Token
   end
 
   class Checker
+    include Etna::Instrumentation
+
     def initialize(token)
       @token = token
     end
@@ -152,6 +158,8 @@ module Token
 
       return true
     end
+
+    time_it(:valid_task_token?)
 
     private
     def payload

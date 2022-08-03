@@ -69,6 +69,16 @@ describe Magma::RenameAttributeAction do
     end
 
     context "when the attribute is a link attribute" do
+      before do
+        @original_attribute = Labors::Monster.attributes[:victim].dup
+      end
+
+      after do
+        # Rollback in memory changes to the attribute
+        Labors::Monster.attributes.delete(:victor)
+        Labors::Monster.attributes[:victim] = @original_attribute
+      end
+
       let(:action_params) do
         {
           action: "rename_attribute",
@@ -78,9 +88,15 @@ describe Magma::RenameAttributeAction do
         }
       end
 
-      it "captures an attribute error" do
-        expect(action.validate).to eq(false)
-        expect(action.errors.first[:message]).to eq("attribute_name doesn't match an existing model")
+      it "can rename to non-model name" do
+        expect(Labors::Monster.attributes[:victim].link_model_name).to eq("victim")
+        expect(Labors::Monster.attributes[:victor]).to eq(nil)
+        expect(Labors::Victim.attributes[:monster].link_attribute_name).to eq("victim")
+        expect(action.validate).to eq(true)
+        expect(action.perform).to eq(true)
+        expect(Labors::Monster.attributes[:victim]).to eq(nil)
+        expect(Labors::Monster.attributes[:victor].link_model_name).to eq("victim")
+        expect(Labors::Victim.attributes[:monster].link_attribute_name).to eq("victor")
       end
     end
 
