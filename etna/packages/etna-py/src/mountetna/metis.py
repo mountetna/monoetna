@@ -13,7 +13,7 @@ from serde.json import from_json, to_json
 from .etna_base import EtnaClientBase
 from .utils.multipart import encode_as_multipart
 from .utils.streaming import iterable_to_stream
-from requests import RequestException, HTTPError
+from requests import HTTPError
 
 @serialize
 @deserialize
@@ -541,7 +541,7 @@ class Metis(EtnaClientBase):
                 self.prepare_url(project_name, "list", bucket_name, folder_path)
             )
             return True
-        except RequestException as e:
+        except HTTPError as e:
             if e.response.status_code == 422:
                 return False
             raise e
