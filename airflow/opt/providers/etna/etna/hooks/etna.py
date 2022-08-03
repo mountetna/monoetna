@@ -124,7 +124,7 @@ class EtnaHook(BaseHook):
         return Retry(
             total=20,
             backoff_factor=15,
-            backoff_max=300,
+            # backoff_max=300, -- wait until 1.26.12+ of urllib3...
             connect=20,
             read=20,
             allowed_methods=['GET', 'OPTION', 'POST', 'HEAD'],
