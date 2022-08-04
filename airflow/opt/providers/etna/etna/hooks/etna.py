@@ -125,8 +125,8 @@ class EtnaHook(BaseHook):
             total=60,
             backoff_factor=15,
             # backoff_max=300, -- wait until 1.26.12+ of urllib3...
-            connect=20,
-            read=20,
+            connect=60,
+            read=60,
             allowed_methods=['GET', 'OPTION', 'POST', 'HEAD'],
             status_forcelist=[502, 503, 504],
         )
