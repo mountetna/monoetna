@@ -122,7 +122,7 @@ class EtnaHook(BaseHook):
     
     def get_retry_policy(self):
         return Retry(
-            total=20,
+            total=60,
             backoff_factor=15,
             # backoff_max=300, -- wait until 1.26.12+ of urllib3...
             connect=20,
