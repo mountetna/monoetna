@@ -94,6 +94,26 @@ describe RetrieveController do
     end
   end
 
+  it 'template includes link and reciprocal link attributes' do
+    [:viewer, :guest].each do |role|
+      retrieve(
+        {
+          model_name: 'monster',
+          record_names: [],
+          attribute_names: [],
+          project_name: 'labors'
+        },
+        role
+      )
+      expect(last_response.status).to eq(200)
+
+      monster_template = json_body[:models][:monster][:template]
+
+      expect(monster_template[:attributes][:reference_monster][:link_attribute_name]).to eq("monster_group")
+      expect(monster_template[:attributes][:monster_group][:link_attribute_name]).to eq("reference_monster")
+    end
+  end
+
   it 'optionally does not return a template' do
     [:viewer, :guest].each do |role|
       retrieve(
@@ -353,6 +373,32 @@ describe RetrieveController do
       expect(project_doc).not_to be_nil
       expect(project_doc[:labor]).to eq([])
     end
+
+    it 'retrieves links and collections internal to a single model' do
+      labor = create(:labor, :lion, project: @project)
+      monsters = create_list(:monster, 3, labor: labor)
+      monsters[1].update(
+        reference_monster_id: monsters.first.id
+      )
+      monsters[2].update(
+        reference_monster_id: monsters.first.id
+      )
+
+      retrieve(
+        model_name: 'monster',
+        record_names: 'all',
+        attribute_names: [ 'monster_group', 'reference_monster' ],
+        project_name: 'labors'
+      )
+
+      monsters_doc = json_body[:models][:monster][:documents]
+      main_monster = monsters_doc[monsters.first.name.to_sym]
+      expect(main_monster).not_to be_nil
+      expect(main_monster[:monster_group]).to match_array([monsters[1].name, monsters[2].name])
+
+      expect(monsters_doc[monsters[1].name.to_sym][:reference_monster]).to eq(monsters.first.name)
+      expect(monsters_doc[monsters[2].name.to_sym][:reference_monster]).to eq(monsters.first.name)
+    end
   end
 
   context 'tables' do
@@ -566,7 +612,7 @@ describe RetrieveController do
       belt = create(:labor, name: 'Belt of Hippolyta', number: 9, contributions: matrix[0], project: @project)
       cattle = create(:labor, name: 'Cattle of Geryon', number: 10, contributions: matrix[1], project: @project)
       apples = create(:labor, name: 'Golden Apples of the Hesperides', number: 11, contributions: matrix[2], project: @project)
-      
+
       retrieve(
         project_name: 'labors',
         model_name: 'labor',
@@ -596,7 +642,7 @@ describe RetrieveController do
       another_belt = create(:labor, name: 'Belt of Hippolyta 3', number: 29, contributions: matrix[0], project: @project)
       another_cattle = create(:labor, name: 'Cattle of Geryon 3', number: 30, contributions: matrix[1], project: @project)
       another_apples = create(:labor, name: 'Golden Apples of the Hesperides 3', number: 31, contributions: matrix[2], project: @project)
-      
+
       retrieve(
         project_name: 'labors',
         model_name: 'labor',
@@ -629,7 +675,7 @@ describe RetrieveController do
       new_belt = create(:labor, name: 'Belt of Hippolyta 2', number: 19, contributions: matrix[0], project: @project)
       new_cattle = create(:labor, name: 'Cattle of Geryon 2', number: 20, contributions: matrix[1], project: @project)
       new_apples = create(:labor, name: 'Golden Apples of the Hesperides 2', number: 21, contributions: matrix[2], project: @project)
-      
+
       retrieve(
         project_name: 'labors',
         model_name: 'labor',
@@ -660,7 +706,7 @@ describe RetrieveController do
       belt = create(:labor, name: 'Belt of Hippolyta', number: 9, contributions: matrix[0], project: @project)
       cattle = create(:labor, name: 'Cattle of Geryon', number: 10, contributions: matrix[1], project: @project)
       apples = create(:labor, name: 'Golden Apples of the Hesperides', number: 11, contributions: matrix[2], project: @project)
-      
+
       retrieve(
         project_name: 'labors',
         model_name: 'labor',
@@ -702,7 +748,7 @@ describe RetrieveController do
         expect(json_body[:models][:labor][:documents].count).to eq(2)
       end
     end
-    
+
     it 'can filter on a string list using JSON' do
       lion = create(:labor, :lion, completed: true, project: @project)
       hydra = create(:labor, :hydra, completed: false, project: @project)
@@ -762,7 +808,7 @@ describe RetrieveController do
       lion = create(:labor, :lion, notes: "hard", project: @project)
       hydra = create(:labor, :hydra, notes: "easy", project: @project)
       stables = create(:labor, :stables, notes: nil, project: @project)
-      
+
       retrieve(
         project_name: 'labors',
         model_name: 'labor',
@@ -784,7 +830,7 @@ describe RetrieveController do
 
       labor = create(:labor, :stables, project: @project)
       stables = create(:monster, name: 'Augean Stables', reference_monster: hydra, labor: labor)
-          
+
       retrieve(
         project_name: 'labors',
         model_name: 'monster',
@@ -850,11 +896,11 @@ describe RetrieveController do
       lion_difficulty = create(:characteristic, labor: lion, name: "difficulty", value: "10" )
       hydra_difficulty = create(:characteristic, labor: hydra, name: "difficulty", value: "2" )
       stables_difficulty = create(:characteristic, labor: stables, name: "difficulty", value: "5" )
-    
+
       lion_stance = create(:characteristic, labor: lion, name: "stance", value: "wrestling" )
       hydra_stance = create(:characteristic, labor: hydra, name: "stance", value: "hacking" )
       stables_stance = create(:characteristic, labor: stables, name: "stance", value: "shoveling" )
-    
+
       retrieve(
         project_name: 'labors',
         model_name: 'characteristic',
@@ -1024,7 +1070,7 @@ describe RetrieveController do
 
       labor = create(:labor, :stables, project: @project)
       stables = create(:monster, name: 'Augean Stables', stats: '{"filename": "stables-stats.tsv", "original_filename": "alpha-stables.tsv"}', labor: labor)
-    
+
       retrieve(
         project_name: 'labors',
         model_name: 'monster',
@@ -1048,7 +1094,7 @@ describe RetrieveController do
 
       labor = create(:labor, :stables, project: @project)
       stables = create(:monster, name: 'Augean Stables', stats: '{"filename": "stables-stats.tsv", "original_filename": "alpha-stables.tsv"}', labor: labor)
-    
+
       retrieve(
         project_name: 'labors',
         model_name: 'monster',
@@ -1101,7 +1147,7 @@ describe RetrieveController do
         attribute_names: 'all',
         filter: "completed^@"
       )
-      
+
       expect(last_response.status).to eq(200)
       expect(
         json_body[:models][:labor][:documents].values.map{|d| d[:name]}

@@ -1,4 +1,5 @@
 class User < Sequel::Model
+  include Etna::Instrumentation
   one_to_many :permissions
 
   def validate
@@ -88,6 +89,8 @@ class User < Sequel::Model
 
     return verified
   end
+
+  time_it(:valid_signature?)
 
   def authorized?(pass)
     # A password can be 'nil' if one logs in via Shibboleth/MyAccess.
