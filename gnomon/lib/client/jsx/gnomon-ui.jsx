@@ -5,6 +5,7 @@ import GnomonNav from './gnomon-nav';
 import GnomonMain from './gnomon-main';
 import DecomposeIdentifier from './decompose-identifier';
 import ComposeIdentifier from './compose-identifier';
+import RuleEditor from './rule-editor';
 import RootView from 'etna-js/components/RootView';
 
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
@@ -29,6 +30,10 @@ const ROUTES = [
   {
     template: ':project_name/create/:model_name',
     component: ComposeIdentifier
+  },
+  {
+    template: ':project_name/rules',
+    component: RuleEditor
   }
 ];
 
