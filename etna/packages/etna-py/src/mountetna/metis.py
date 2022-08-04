@@ -13,8 +13,7 @@ from serde.json import from_json, to_json
 from .etna_base import EtnaClientBase
 from .utils.multipart import encode_as_multipart
 from .utils.streaming import iterable_to_stream
-from requests import RequestException, HTTPError
-from time import sleep
+from requests import HTTPError
 
 @serialize
 @deserialize
@@ -318,6 +317,10 @@ class Upload:
 
         self.last_bytes = b"".join(data)
         return self.last_bytes
+    
+    def reset(self):
+        self.read_position = 0
+        self.last_bytes = None
 
 
 @serialize
@@ -372,11 +375,14 @@ class Metis(EtnaClientBase):
         return from_json(FoldersAndFilesResponse, response.content)
 
     def authorize_download(self, project_name: str, bucket_name: str, file_path: str) -> str:
-        response = self.session.post(self.prepare_url('authorize', 'download'), json=dict(
-            project_name=project_name,
-            bucket_name=bucket_name,
-            file_path=file_path,
-        ))
+        response = self.session.post(
+            self.prepare_url('authorize', 'download'),
+            json=dict(
+                project_name=project_name,
+                bucket_name=bucket_name,
+                file_path=file_path,
+            )
+        )
 
         return response.json()['download_url']
 
@@ -450,7 +456,7 @@ class Metis(EtnaClientBase):
         dest_path: str,
         file: typing.IO,
         size: Optional[int] = None,
-        max_retries=15,
+        max_retries=3,
     ) -> typing.Iterable["Upload"]:
         if size is None:
             if file.seekable():
@@ -466,11 +472,18 @@ class Metis(EtnaClientBase):
             self.create_folder(project_name, bucket_name, os.path.dirname(dest_path))
         authorization = self.authorize_upload(project_name, bucket_name, dest_path)
         upload = Upload(file=file, file_size=size, upload_path=authorization.upload_path)
+
         return self.upload_parts(upload, uuid.uuid4().hex, max_retries)
 
     def upload_parts(
         self, upload: "Upload", metis_uid: str, remaining_attempts: int, reset=False
     ) -> typing.Iterable["Upload"]:
+        """
+        Note that the remaining_attempts here covers a specific use-case,
+            where the upload does not match what has been uploaded to
+            the server, and it needs to be reset / start over.
+            It should not be used as a counter for retrying individual requests.
+        """
         unsent_zero_byte_file = upload.cur == 0
         upload.resume_from(
             self.start_upload(
@@ -484,6 +497,9 @@ class Metis(EtnaClientBase):
                 )
             )
         )
+
+        if reset:
+            upload.reset()
 
         while unsent_zero_byte_file or not upload.is_complete:
             try:
@@ -504,20 +520,14 @@ class Metis(EtnaClientBase):
                 )
 
                 unsent_zero_byte_file = False
-            except RequestException as e:
-                if remaining_attempts > 1:
-                    sleep(30)
-                    if e.response.status_code == 422:
-                        yield from self.upload_parts(
-                            upload, metis_uid, remaining_attempts - 1, True
-                        )
-                        return
-                    else:
-                        yield from self.upload_parts(
-                            upload, metis_uid, remaining_attempts - 1
-                        )
-                        return
-                raise e
+            except HTTPError as e:
+                if remaining_attempts > 1 and e.response.status_code == 422:
+                    yield from self.upload_parts(
+                        upload, metis_uid, remaining_attempts - 1, True
+                    )
+                    return
+                else:
+                    raise e
 
             yield upload
 
@@ -566,7 +576,10 @@ class Metis(EtnaClientBase):
                 type=type,
             )
 
-        response = self.session.post(self.prepare_url(project_name, 'tail', bucket_name), json=args, stream=True)
+        response = self.session.post(
+            self.prepare_url(project_name, 'tail', bucket_name),
+            json=args, stream=True
+        )
         for line in response.iter_lines():
             if line:
                 container.add(from_json(TailNode, line))

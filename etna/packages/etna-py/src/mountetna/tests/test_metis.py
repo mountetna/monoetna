@@ -1,8 +1,6 @@
-from .. import Metis, EtnaSession, TokenAuth
-import pytest
+from .. import Metis, TokenAuth
 import responses
 from responses import GET, POST, add
-from typing import Dict
 from io import BytesIO
 
 @responses.activate

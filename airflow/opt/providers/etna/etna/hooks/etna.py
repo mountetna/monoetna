@@ -2,6 +2,8 @@ import contextlib
 import typing
 from typing import Dict, Optional
 
+from urllib3 import Retry
+
 import cached_property
 from airflow import DAG
 from airflow.exceptions import AirflowException
@@ -117,27 +119,50 @@ class EtnaHook(BaseHook):
 
     def get_session(self):
         return None
+    
+    def get_retry_policy(self):
+        return Retry(
+            total=60,
+            backoff_factor=15,
+            # backoff_max=300, -- wait until 1.26.12+ of urllib3...
+            connect=60,
+            read=60,
+            allowed_methods=['GET', 'OPTION', 'POST', 'HEAD'],
+            status_forcelist=[502, 503, 504],
+        )
 
     @contextlib.contextmanager
     def metis(
         self, project_name: Optional[str] = None, read_only=True
     ) -> typing.ContextManager["Metis"]:
         auth = self.get_task_auth(project_name, read_only)
-        yield Metis(auth, self.get_hostname("metis"), session=self.get_session())
+        yield Metis(
+            auth,
+            self.get_hostname("metis"),
+            session=self.get_session(),
+            retry=self.get_retry_policy())
 
     @contextlib.contextmanager
     def janus(
         self, project_name: Optional[str] = None, read_only=True
     ) -> typing.ContextManager["Janus"]:
         auth = self.get_task_auth(project_name, read_only)
-        yield Janus(auth, self.get_hostname("janus"), session=self.get_session())
+        yield Janus(
+            auth,
+            self.get_hostname("janus"),
+            session=self.get_session(),
+            retry=self.get_retry_policy())
 
     @contextlib.contextmanager
     def magma(
         self, project_name: Optional[str] = None, read_only=True
     ) -> typing.ContextManager["Magma"]:
         auth = self.get_task_auth(project_name, read_only)
-        yield Magma(auth, self.get_hostname("magma"), session=self.get_session())
+        yield Magma(
+            auth,
+            self.get_hostname("magma"),
+            session=self.get_session(),
+            retry=self.get_retry_policy())
 
 
     def generate_task_token(self):
