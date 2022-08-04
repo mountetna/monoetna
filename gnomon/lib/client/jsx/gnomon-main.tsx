@@ -95,7 +95,8 @@ const GnomonMain = ({project_name}: {project_name: string}) => {
           </Grid>
         </Grid>
         <Grid item container alignItems='center' justify='space-around' className={ classes.admin }>
-          Oyoo
+          <Button color='secondary' size='large'
+            onClick={ () => window.location.href = `/${project_name}/rules/` }>Edit Rules</Button>
         </Grid>
       </Grid>
     </Grid>

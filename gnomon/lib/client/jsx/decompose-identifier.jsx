@@ -154,8 +154,8 @@ const DecomposeIdentifier = ({project_name, identifier}) => {
       { from: 0, to: 4, label: 'project', description: 'COMET' },
       { from: 6, to: 7, label: 'species', description: 'Homo sapiens' },
       { from: 12, to: 12, label: 'day', description: 'Day' },
-      { from: 14, to: 15, label: 'biospecimen_type', description: 'Plasma' },
-      { from: 18, to: 20, label: 'assay_type', description: 'Cytokine' }
+      { from: 14, to: 15, label: 'biospecimen', description: 'Plasma' },
+      { from: 18, to: 20, label: 'immunoassay', description: 'Cytokine' }
     ],
     counters: '0000000011100100100001'
   }
