@@ -32,7 +32,8 @@ const DEFAULT_STATE = {
     "subject": "PROJ SEP SP .n",
     "timepoint": ".subject SEP TP .n",
     "biospecimen": ".timepoint BSP .n",
-    "immunoassay": ".biospecimen SEP IMM .n"
+    "immunoassay": ".biospecimen SEP IMM .n",
+    "sc_seq": ".biospecimen SEP SCA .n"
   },
   "tokens": {
     "PROJ": {
@@ -92,9 +93,33 @@ const DEFAULT_STATE = {
       "values": {
         "-": "# Separator"
       }
+    },
+    "SCA": {
+      "name": "SCA",
+      "label": "single-cell assay",
+      "values": {
+        "SCG": "Single-cell Gene Expression",
+        "SCB": "Single-cell BCR Seq ",
+        "SCT": "Single-cell TCR Seq ",
+        "SCC": "Single-cell CITE-Seq",
+        "SCA": "Single-cell ATAC-Seq (Multiome) ",
+        "SNA": "Single Nuclear ATAC-Seq (Standalone)"
+      }
     }
   }
 };
+
+const removeRule = (rules, name) => {
+  const { [name]: _, ...other_rules } = rules;
+
+  return other_rules;
+}
+
+const removeToken = (tokens, name) => {
+  const { [name]: _, ...other_tokens } = tokens;
+
+  return other_tokens;
+}
 
 const reducer = (state, action) => {
   switch(action.type) {
@@ -107,68 +132,28 @@ const reducer = (state, action) => {
       return { ...state, rules: { ...state.rules, [action.name] : action.rule } }
     case 'ADD_TOKEN':
       return { ...state, tokens: { ...state.tokens, [action.token.name] : action.token } }
+    case 'ADD_TOKEN_VALUE':
+      return {
+        ...state,
+        tokens: {
+          ...state.tokens,
+          [action.name] : {
+            ...state.tokens[action.name],
+            values: {
+              ...state.tokens[action.name].values,
+              [ action.value ] : action.description
+            }
+          },
+        }
+      }
     case 'REMOVE_RULE':
-      const { [action.name]: _, ...other_rules } = state.rules;
-      return { ...state, rules: other_rules };
+      return { ...state, rules: removeRule(state.rules, action.name) };
+    case 'REMOVE_TOKEN':
+      return { ...state, tokens: removeToken(state.tokens, action.name) };
     default:
       return state;
   }
 };
-
-const AddToken = ({dispatch}) => {
-  const [ open, setOpen ] = useState(false);
-  const [ name, setName ] = useState('');
-  const [ label, setLabel ] = useState('');
-
-  const handleClose = () => {
-    setOpen(false);
-    setName('');
-    setLabel('');
-  }
-
-  const handleAdd = useCallback( () => {
-    dispatch({ type: 'ADD_TOKEN', token: { name, label, values: {} } });
-    handleClose();
-  }, [name, label]);
-
-  return <React.Fragment>
-    <Button 
-    variant='text'
-    startIcon={<AddIcon/>}
-    title='Add Token'
-    color='secondary'
-    onClick={() => setOpen(true)}>ADD TOKEN</Button>
-    <Dialog open={open} onClose={handleClose} aria-labelledby='form-dialog-title'>
-      <DialogTitle id='form-dialog-title'>Add a Token</DialogTitle>
-      <DialogContent>
-        <DialogContentText>Enter a token name and a label.</DialogContentText>
-        <TextField
-          autoFocus
-          margin='dense'
-          placeholder='TOKEN_NAME'
-          fullWidth
-          value={ name }
-          onChange={ e => setName(e.target.value.replace(/[^A-Za-z0-9_]/g, '').toUpperCase()) }
-        />
-        <TextField
-          margin='dense'
-          placeholder='Token label'
-          fullWidth
-          value={ label }
-          onChange={ e => setLabel(e.target.value) }
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color='primary'>
-          Cancel
-        </Button>
-        <Button onClick={ handleAdd } color='primary'>
-          Add
-        </Button>
-      </DialogActions>
-    </Dialog>
-  </React.Fragment>
-}
 
 const useStyles = makeStyles((theme) => ({
   header: {
@@ -227,72 +212,14 @@ const TokenValue = ({name,value,dispatch, token}) => {
   </Grid>
 }
 
-const AddTokenValue = ({token, dispatch}) => {
-  const [ open, setOpen ] = useState(false);
-  const [ value, setValue ] = useState('');
-  const [ description, setDescription ] = useState('');
-
-  const handleClose = () => {
-    setOpen(false);
-    setValue('');
-    setDescription('');
-  }
-
-  const handleAdd = useCallback( () => {
-    dispatch({ type: 'ADD_TOKEN', token: {
-      ...token, values: {
-        ...token.values,
-        [ value ] : description
-      }
-    }});
-    handleClose();
-  }, [ value, description]);
-
-  return <React.Fragment>
-    <Button 
-    variant='text'
-    startIcon={<AddIcon/>}
-    title='Add Token'
-    color='secondary'
-    onClick={() => setOpen(true)}>ADD VALUE</Button>
-    <Dialog open={open} onClose={handleClose} aria-labelledby='form-dialog-title'>
-      <DialogTitle id='form-dialog-title'>Add a Value</DialogTitle>
-      <DialogContent>
-        <DialogContentText>Enter a possible value and description for token {token.name}.</DialogContentText>
-        <TextField
-          autoFocus
-          margin='dense'
-          placeholder='Value'
-          fullWidth
-          value={ value }
-          onChange={ e => setValue(e.target.value) }
-        />
-        <TextField
-          margin='dense'
-          placeholder='Description'
-          fullWidth
-          value={ description }
-          onChange={ e => setDescription(e.target.value) }
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color='primary'>
-          Cancel
-        </Button>
-        <Button onClick={ handleAdd } color='primary'>
-          Add
-        </Button>
-      </DialogActions>
-    </Dialog>
-  </React.Fragment>
-}
-
 const Token = ({token, dispatch}) => {
   const classes = useStyles();
 
   return <Grid container className={classes.token}>
     <Grid item container direction='column' xs={2}>
-      <Grid item>{token.name}</Grid>
+      <Grid className={classes.strikeout} onClick={
+        () => dispatch({type: 'REMOVE_TOKEN', name: token.name })
+      } item>{token.name}</Grid>
       <Grid item><Typography color='secondary'>{token.label}</Typography></Grid>
     </Grid>
     <Grid item xs={10}>
@@ -301,65 +228,78 @@ const Token = ({token, dispatch}) => {
           name => <TokenValue key={name} name={name} value={token.values[name]} dispatch={dispatch} token={token}/>
         )
       }
-      <AddTokenValue token={token} dispatch={dispatch}/>
+      <AddDialog
+        title='Add a Value'
+        content={
+          <>
+          </>
+        }
+        buttonText='ADD VALUE'
+        update={ (value, description) => dispatch({ type: 'ADD_TOKEN_VALUE', name: token.name, value, description }) }
+        mask={ v => v.replace(/[^A-Za-z0-9_]/g, '').toLowerCase() }
+        placeholder1='Value'
+        placeholder2='Description'
+      />
     </Grid>
   </Grid>
 }
 
-const AddRule = ({dispatch}) => {
+const AddDialog = ({update, title, content, buttonText, placeholder1, placeholder2, mask=(e => e)}) => {
   const [ open, setOpen ] = useState(false);
-  const [ name, setName ] = useState('');
-  const [ rule, setRule ] = useState('');
+  const [ v1, setV1 ] = useState('');
+  const [ v2, setV2 ] = useState('');
 
   const handleClose = () => {
     setOpen(false);
-    setName('');
-    setRule('');
+    setV1('');
+    setV2('');
   }
 
   const handleAdd = useCallback( () => {
-    dispatch({ type: 'ADD_RULE', name, rule });
+    update(v1,v2);
     handleClose();
-  }, [name, rule]);
+  }, [v1, v2]);
 
   return <React.Fragment>
     <Button 
     variant='text'
     startIcon={<AddIcon/>}
-    title='Add Rule'
     color='secondary'
-    onClick={() => setOpen(true)}>ADD RULE</Button>
+    onClick={() => setOpen(true)}>{buttonText}</Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby='form-dialog-title'>
-      <DialogTitle id='form-dialog-title'>Add a Rule</DialogTitle>
+      <DialogTitle id='form-dialog-title'>{title}</DialogTitle>
       <DialogContent>
-        <DialogContentText>Enter a name and a new rule. A <b>rule</b> is a sequence of space-separated token or rule names.</DialogContentText>
+        <DialogContentText>
+          {content}
+        </DialogContentText>
         <TextField
           autoFocus
           margin='dense'
-          placeholder='rule_name'
+          placeholder={ placeholder1 }
           fullWidth
-          value={ name }
-          onChange={ e => setName(e.target.value.replace(/[^A-Za-z0-9_]/g, '').toLowerCase()) }
+          value={ v1 }
+          onChange={ e => setV1(mask(e.target.value)) }
         />
         <TextField
           margin='dense'
-          placeholder='Rule'
+          placeholder={ placeholder2 }
           fullWidth
-          value={ rule }
-          onChange={ e => setRule(e.target.value) }
+          value={ v2 }
+          onChange={ e => setV2(e.target.value) }
         />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color='primary'>
           Cancel
         </Button>
-        <Button onClick={ handleAdd } color='primary'>
+        <Button onClick={ handleAdd } color='primary' disabled={ !v1 || !v2 }>
           Add
         </Button>
       </DialogActions>
     </Dialog>
   </React.Fragment>
 }
+
 
 const Rule = ({name, rule, dispatch}) => {
   const classes = useStyles();
@@ -397,7 +337,15 @@ const RuleEditor = ({project_name}) => {
         }
       </CardContent>
       <CardActions>
-        <AddToken dispatch={dispatch}/>
+        <AddDialog
+          title='Add a Token'
+          content='Enter a token name and a label.'
+          buttonText='ADD TOKEN'
+          update={ (name, label) => dispatch({ type: 'ADD_TOKEN', token: { name, label, values: {} } }) }
+          mask={ v => v.replace(/[^A-Za-z0-9_]/g, '').toUpperCase() }
+          placeholder1='TOKEN_NAME'
+          placeholder2='Token label'
+        />
       </CardActions>
     </Card>
     <Card elevation={0}>
@@ -416,7 +364,21 @@ const RuleEditor = ({project_name}) => {
         }
       </CardContent>
       <CardActions>
-        <AddRule dispatch={dispatch}/>
+        <AddDialog
+          title='Add a Rule'
+          content={
+            <>
+              A <b>rule</b> is a sequence of space-separated token or rule names.
+              <br/>
+              Enter a name and a new rule.
+            </>
+          }
+          buttonText='ADD RULE'
+          update={ (name, rule) => dispatch({ type: 'ADD_RULE', name, rule }) }
+          mask={ v => v.replace(/[^A-Za-z0-9_]/g, '').toLowerCase() }
+          placeholder1='rule_name'
+          placeholder2='Rule'
+        />
       </CardActions>
     </Card>
     <Button onClick={
