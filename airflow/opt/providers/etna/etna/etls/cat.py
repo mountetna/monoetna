@@ -3,8 +3,6 @@ import os
 import re
 from typing import List, Optional
 
-import paramiko
-
 from airflow.decorators import task
 from airflow.models.taskinstance import Context
 from airflow.operators.python import get_current_context
@@ -25,7 +23,8 @@ class CatEtlHelpers(RemoteHelpersBase):
         self.log = logging.getLogger("airflow.task")
         self.magic_string = magic_string
 
-        # paramiko.sftp_file.SFTPFile.MAX_REQUEST_SIZE = pow(2, 22) # 4MB per chunk
+    def _trim_magic_string(self, original: str) -> str:
+        return re.sub(re.compile(self.magic_string), "", original)
 
     def alert_slack(self,
         ingested_files: XComArg,
@@ -93,7 +92,7 @@ class CatEtlHelpers(RemoteHelpersBase):
                     final_file_name = file.name
 
                     if remove_magic_string:
-                        final_file_name = file.name.replace(self.magic_string, "")
+                        final_file_name = self._trim_magic_string(file.name)
 
                     dest_path = os.path.join(folder_path or "", file.folder_path.replace(f"{cat._root_path()}/", ""))
                     self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, final_file_name)} ({file.size}).")
@@ -155,7 +154,7 @@ class CatEtlHelpers(RemoteHelpersBase):
                         final_file_name = file.name
 
                         if remove_magic_string:
-                            final_file_name = file.name.replace(self.magic_string, "")
+                            final_file_name = self._trim_magic_string(file.name)
 
                         self.log.info(f"Uploading {file.full_path} to {os.path.join(dest_path, final_file_name)} ({file.size}).")
 
