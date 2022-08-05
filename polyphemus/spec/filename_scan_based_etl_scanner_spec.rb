@@ -1,4 +1,5 @@
 require "securerandom"
+require_relative "../lib/filename_scan_based_etl_scanner"
 
 describe Polyphemus::FilenameScanBasedEtlScanner do
   class TestRsyncChange
