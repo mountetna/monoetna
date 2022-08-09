@@ -326,7 +326,7 @@ def test_cat_files_etl_ingest_metis_remove_oligo_by_default(mock_etna, mock_load
     #   are correctly handled
     set_up_mocks()
 
-    @cat_etl(version=1, hook=mock_cat_hook, magic_string="12")
+    @cat_etl(version=1, hook=mock_cat_hook, magic_string="12?")
     def test_ingesting_cat_files_ingest_metis_remove_oligo_by_default(helpers: CatEtlHelpers, tail_files: XComArg):
         helpers.ingest_to_metis(tail_files, folder_path="foo")
 
@@ -348,7 +348,7 @@ def test_cat_files_etl_ingest_c4_remove_oligo_by_default(mocked_c4, mock_load, r
     #   are correctly handled
     set_up_mocks()
 
-    @cat_etl(version=1, hook=mock_cat_hook, magic_string="12")
+    @cat_etl(version=1, hook=mock_cat_hook, magic_string="12?")
     def test_ingesting_cat_files_ingest_c4_remove_oligo_by_default(helpers: CatEtlHelpers, tail_files: XComArg):
         helpers.ingest_to_c4(tail_files, folder_path="foo")
 
@@ -370,7 +370,7 @@ def test_cat_files_etl_ingest_metis_do_not_remove_oligo(mock_etna, mock_load, re
     #   are correctly handled
     set_up_mocks()
 
-    @cat_etl(version=1, hook=mock_cat_hook, magic_string="12")
+    @cat_etl(version=1, hook=mock_cat_hook, magic_string="12?")
     def test_ingesting_cat_files_ingest_metis_do_not_remove_oligo(helpers: CatEtlHelpers, tail_files: XComArg):
         helpers.ingest_to_metis(tail_files, folder_path="foo", remove_magic_string=False)
 
@@ -392,7 +392,7 @@ def test_cat_files_etl_ingest_c4_do_not_remove_oligo(mocked_c4, mock_load, reset
     #   are correctly handled
     set_up_mocks()
 
-    @cat_etl(version=1, hook=mock_cat_hook, magic_string="12")
+    @cat_etl(version=1, hook=mock_cat_hook, magic_string="12?")
     def test_ingesting_cat_files_ingest_c4_do_not_remove_oligo(helpers: CatEtlHelpers, tail_files: XComArg):
         helpers.ingest_to_c4(tail_files, folder_path="foo", remove_magic_string=False)
 

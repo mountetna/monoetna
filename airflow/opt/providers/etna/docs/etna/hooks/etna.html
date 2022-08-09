@@ -239,11 +239,11 @@
     
     <span class="k">def</span> <span class="nf">get_retry_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Retry</span><span class="p">(</span>
-            <span class="n">total</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">total</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
             <span class="n">backoff_factor</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
             <span class="c1"># backoff_max=300, -- wait until 1.26.12+ of urllib3...</span>
-            <span class="n">connect</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
-            <span class="n">read</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">connect</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">read</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
             <span class="n">allowed_methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;OPTION&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;HEAD&#39;</span><span class="p">],</span>
             <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span>
         <span class="p">)</span>
@@ -405,11 +405,11 @@
     
     <span class="k">def</span> <span class="nf">get_retry_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Retry</span><span class="p">(</span>
-            <span class="n">total</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">total</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
             <span class="n">backoff_factor</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
             <span class="c1"># backoff_max=300, -- wait until 1.26.12+ of urllib3...</span>
-            <span class="n">connect</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
-            <span class="n">read</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">connect</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">read</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
             <span class="n">allowed_methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;OPTION&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;HEAD&#39;</span><span class="p">],</span>
             <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span>
         <span class="p">)</span>
@@ -776,11 +776,11 @@ for the efficiency of imports.</p>
             <summary>View Source</summary>
             <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">get_retry_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Retry</span><span class="p">(</span>
-            <span class="n">total</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">total</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
             <span class="n">backoff_factor</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
             <span class="c1"># backoff_max=300, -- wait until 1.26.12+ of urllib3...</span>
-            <span class="n">connect</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
-            <span class="n">read</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">connect</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">read</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
             <span class="n">allowed_methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;OPTION&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;HEAD&#39;</span><span class="p">],</span>
             <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span>
         <span class="p">)</span>
