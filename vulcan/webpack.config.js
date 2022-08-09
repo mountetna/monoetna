@@ -3,8 +3,9 @@ var MiniCssExtractPlugin = require('mini-css-extract-plugin');
 var webpack = require('webpack');
 
 module.exports = (env) => ({
-  mode: env.NODE_ENV || 'development',
+  mode: process.env.NODE_ENV || 'development',
   context: path.resolve(__dirname),
+  devtool: 'source-map',
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.scss', '.png', '.jpg', '.jpeg', '.svg', '.css'],
     alias: {
@@ -93,11 +94,6 @@ module.exports = (env) => ({
     // }),
     new MiniCssExtractPlugin({
       filename: 'public/css/vulcan.bundle.css',
-    }),
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: JSON.stringify(env ? env.NODE_ENV : 'development')
-      }
     })
-  ]
+  ],
 });

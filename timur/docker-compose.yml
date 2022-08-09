@@ -41,7 +41,7 @@ x-base-etna-services:
   'timur_webpack':
     &base-etna-webpack # The ruby webpack server watching for changes
     <<: *base-etna-service
-    command: npm run webpack
+    command: npm run webpack-dev
 
   'timur_db':
     &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.

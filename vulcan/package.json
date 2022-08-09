@@ -121,9 +121,9 @@
     "lint": "eslint --ext .jsx,.js.jsx,.js,ts,tsx ./lib/client/jsx",
     "lintfile": "$(npm bin)/eslint --ext .jsx,.js.jsx,.js ",
     "test": "tsc && eslint && jest && webpack",
-    "build": "./node_modules/webpack/bin/webpack.js --env production",
+    "build": "./node_modules/webpack/bin/webpack.js --node-env production",
     "build-dev": "./node_modules/webpack/bin/webpack.js",
-    "webpack": "./node_modules/webpack/bin/webpack.js --env production --watch",
+    "webpack": "./node_modules/webpack/bin/webpack.js --node-env production --watch",
     "webpack-dev": "./node_modules/webpack/bin/webpack.js --watch",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
