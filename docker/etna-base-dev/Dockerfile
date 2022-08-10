@@ -51,7 +51,7 @@ RUN useradd -ms /bin/bash aspera
 RUN su aspera -c /ibm-aspera-connect-3.11.0.5-linux-g2.12-64.sh
 
 RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | tar --strip-components=1 -xzC /usr/local/ \
-    && npm install -g yarn
+    && npm install -g yarn typescript webpack@4.46.0 webpack-cli@4.7.2
 
 RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
 

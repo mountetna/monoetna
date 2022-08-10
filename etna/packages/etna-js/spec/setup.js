@@ -11,7 +11,7 @@ const EnzymeAdapter = require('enzyme-adapter-react-16');
 // Setup enzyme's react adapter
 Enzyme.configure({adapter: new EnzymeAdapter()});
 
-global.fetch = require('node-fetch');
+global.fetch = require('isomorphic-fetch');
 
 nock.disableNetConnect();
 nock.emitter.on('no match', (...args) => {
@@ -31,6 +31,10 @@ nock.emitter.on('no match', (...args) => {
 
 // nodejs equivalent
 global.FormData = URLSearchParams;
+
+global.CONFIG = {
+  baseURL: 'http://localhost'
+};
 
 // For plots/actions/__tests__/manifest.test.js
 global.Routes = {
