@@ -30,6 +30,8 @@ shopt -s globstar
 ln -sf /etna/babel.config.js /app/babel.config.js
 ln -sf /etna/tsconfig.json /app/tsconfig.json
 ln -sf /etna/jest.config.js /app/jest.config.js
+ln -sf /etna/.eslintrc.js /app/.eslintrc.js
+ln -sf /etna/.eslintignore /app/.eslintignore
 ln -sf /etna/node_modules /app/node_modules
 
 if [ -n "$FULL_BUILD" ]; then
