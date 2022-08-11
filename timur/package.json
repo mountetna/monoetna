@@ -9,10 +9,10 @@
   "scripts": {
     "lint": "$(npm bin)/eslint --ext .jsx,.js.jsx,.js ./lib/client/jsx/** ",
     "lintfile": "$(npm bin)/eslint --ext .jsx,.js.jsx,.js ",
-    "test": "tsc && eslint lib && jest && webpack",
-    "build": "./node_modules/webpack/bin/webpack.js --node-env production",
-    "build-dev": "./node_modules/webpack/bin/webpack.js",
-    "webpack": "echo fs.inotify.max_user_watches=524288 && ./node_modules/webpack/bin/webpack.js --node-env production --watch",
-    "webpack-dev": "./node_modules/webpack/bin/webpack.js --watch"
+    "test": "tsc && eslint --ext .jsx,.js.jsx,.js,ts,tsx ./lib/client/jsx && jest && webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js",
+    "build": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --node-env production",
+    "build-dev": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js",
+    "webpack": "echo fs.inotify.max_user_watches=524288 && webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --node-env production --watch",
+    "webpack-dev": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --watch"
   }
 }

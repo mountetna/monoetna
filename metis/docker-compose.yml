@@ -5,7 +5,6 @@ x-base-etna-service:
   &base-etna-service # Base configuration used by most etna services.
   image: etna-base
   volumes: &base-etna-service-volumes
-    - metis-node-modules:/app/node_modules
     - .:/app:delegated
     - log-dir:/app/log:rw
     - tmp-dir:/app/tmp:rw
@@ -103,8 +102,6 @@ volumes:
     driver: local
     name: "db-data"
   opt-dir:
-    driver: local
-  metis-node-modules:
     driver: local
   metis-poetry-cache:
     driver: local
