@@ -5,7 +5,8 @@ module.exports = {
       project_name: 'labors',
       magma_host: 'https://magma.test',
       polyphemus_host: 'https://polyphemus.test',
-      vulcan_host: 'https://vulcan.test'
+      vulcan_host: 'https://vulcan.test',
+      baseURL: 'http://localhost'
     }
   },
   testURL: 'http://localhost',
@@ -22,7 +23,8 @@ module.exports = {
     '^enzyme-adapter-react-16$': '/etna/node_modules/enzyme-adapter-react-16',
     '^@material-ui/core/styles': '/etna/node_modules/@material-ui/core/styles',
     '^color$': '/etna/node_modules/color',
-    '^color-string$': '/etna/node_modules/color-string'
+    '^color-string$': '/etna/node_modules/color-string',
+    '\\.css$': 'identity-obj-proxy'
   },
   testMatch: [
     '**/test/**/?(*.)(spec|test).(j|t)s?(x)',
