@@ -1,5 +1,7 @@
 var path = require('path');
 var MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const EventHooksPlugin = require('event-hooks-webpack-plugin');
+const fs = require('fs-extra');
 var webpack = require('webpack');
 
 module.exports = (env) => ({
@@ -22,6 +24,10 @@ module.exports = (env) => ({
     ],
     alias: {
       'code-mirror': path.join(__dirname, 'node_modules/codemirror/lib'),
+      'font-awesome': path.join(
+        __dirname,
+        'node_modules/@fortawesome/fontawesome-free'
+      ),
       react: path.join(__dirname, 'node_modules/react'),
       'react-dom': path.join(__dirname, 'node_modules/react-dom'),
       'react-redux': path.join(__dirname, 'node_modules/react-redux')
@@ -40,12 +46,17 @@ module.exports = (env) => ({
   module: {
     rules: [
       {
+        test: /\.js$/,
+        loader: require.resolve('@open-wc/webpack-import-meta-loader')
+      },
+      {
         loader: 'babel-loader',
 
         // Skip any files outside of your project's `src` directory
         include: [
           path.resolve('/app', 'lib/client/jsx'),
           path.resolve('/etna', 'node_modules/etna-js/'),
+          path.resolve('/etna', 'node_modules/downzip/'),
           path.resolve('/app', 'stories/'),
           '/etna/packages/etna-js'
         ],
@@ -92,9 +103,29 @@ module.exports = (env) => ({
           path.resolve(__dirname, 'node_modules/etna-js/'),
           '/etna/packages/etna-js',
           path.resolve(__dirname, 'node_modules/react-notifications-component'),
+          path.resolve(__dirname, 'node_modules/codemirror/'),
           path.resolve('/app', 'lib/client/scss')
         ],
         use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader']
+      },
+      {
+        test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)(\?.*$|$)/,
+
+        include: [
+          path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free')
+        ],
+
+        loader: 'file-loader',
+
+        options: {
+          name: '[name].[ext]',
+          outputPath: 'public/fonts/',
+          publicPath: function (url) {
+            return url.match(/^public/)
+              ? url.replace(/public/, '')
+              : `/fonts/${url}`;
+          }
+        }
       }
     ]
   },
@@ -107,5 +138,13 @@ module.exports = (env) => ({
         NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
       }
     })
+    // new EventHooksPlugin({
+    //   'after-emit': (compilation, done) => {
+    //     if ('metis' === env.APP_NAME) {
+    //       console.log('\n\nCopying source files to compiled\n\n');
+    //       fs.copy('downzip-sw.js', 'public/js/downzip-sw.js', done);
+    //     }
+    //   }
+    // })
   ]
 });
