@@ -32,10 +32,6 @@ nock.emitter.on('no match', (...args) => {
 // nodejs equivalent
 global.FormData = URLSearchParams;
 
-global.CONFIG = {
-  baseURL: 'http://localhost'
-};
-
 // For plots/actions/__tests__/manifest.test.js
 global.Routes = {
   fetch_manifests_path: (projectName) =>
