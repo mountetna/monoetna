@@ -64,7 +64,7 @@ class FolderView extends React.Component {
   selectFolder(){
     let { folder_name, bucket_name, createFolder } = this.props;
 
-    let new_folder_name = prompt("Enter the folder name", "Untitled Folder");
+    let new_folder_name = prompt('Enter the folder name', 'Untitled Folder');
 
     if (new_folder_name) createFolder(bucket_name, folder_name, new_folder_name);
   }
@@ -124,7 +124,7 @@ class FolderView extends React.Component {
 const retrieveFiles = (bucket_name, folder_name) => ({type: 'RETRIEVE_FILES', bucket_name, folder_name});
 const fileSelected = (bucket_name, folder_name, file)=>({ type: 'FILE_SELECTED', file, folder_name, bucket_name });
 const createFolder = (bucket_name, parent_folder, folder_name)=>({ type: 'CREATE_FOLDER', folder_name, parent_folder, bucket_name });
-const showUploadModal = (startFileUpload, startDirectoryUpload) => ({ type: 'SHOW_DIALOG', dialog: { type: 'upload_dialog', startDirectoryUpload, startFileUpload } })
+const showUploadModal = (startFileUpload, startDirectoryUpload) => ({ type: 'SHOW_DIALOG', dialog: { type: 'upload_dialog', startDirectoryUpload, startFileUpload } });
 const listFilesRecursive = (bucket_name, folder_name) => ({ type: 'LIST_FILES_RECURSIVE', folder_name, bucket_name });
 const downloadFilesZip = (files, folder_name, bucket_name) => ({ type: 'DOWNLOAD_FILES_ZIP', files, folder_name, bucket_name });
 

@@ -1,13 +1,13 @@
-import {parseToken} from 'etna-js/utils/janus'
+import {parseToken} from 'etna-js/utils/janus';
 
 const userReducer = function(user, action) {
-  if (!user) user = { }
+  if (!user) user = { };
   switch(action.type) {
     case 'ADD_USER':
       return parseToken(action.token);
     default:
       return user;
   }
-}
+};
 
 export default userReducer;

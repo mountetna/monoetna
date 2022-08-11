@@ -18,7 +18,7 @@ const MoveFileDialog = ({
   const submit = useCallback(() => {
     onSubmit(bucketName, newFilePath);
     invoke({type: 'DISMISS_DIALOG'});
-  }, [bucketName, newFilePath]);
+  }, [bucketName, newFilePath, invoke, onSubmit]);
 
   return (
     <div className='move-file-dialog'>

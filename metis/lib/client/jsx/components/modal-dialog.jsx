@@ -4,7 +4,7 @@ import { camelCase, capitalize } from '../utils/format';
 
 import ConfigureBucket from './dialogs/configure-bucket-dialog';
 import Message from './dialogs/message-dialog';
-import UploadDialog from "./dialogs/upload-dialog";
+import UploadDialog from './dialogs/upload-dialog';
 import MoveFolder from './dialogs/move-folder-dialog';
 import MoveFile from './dialogs/move-file-dialog';
 import FileProperties from './dialogs/file-properties-dialog';
@@ -19,7 +19,7 @@ const ModalDialog = ({ dialog, dismissDialog }) => {
   let DialogComponent = DIALOGS[ capitalize(camelCase(type)) ];
 
   if (!DialogComponent) {
-    console.error("Modal", type, "could not be resolved.  Is it in DIALOGS?  Also it needs to be in snake casing");
+    console.error('Modal', type, 'could not be resolved.  Is it in DIALOGS?  Also it needs to be in snake casing');
     return null;
   }
 
@@ -28,7 +28,7 @@ const ModalDialog = ({ dialog, dismissDialog }) => {
       <DialogComponent { ...dialog_props } />
     </div>
   </div>;
-}
+};
 
 export default connect(
   ({dialog}) => ({dialog}),

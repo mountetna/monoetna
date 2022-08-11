@@ -19,11 +19,11 @@ const FolderControl = ({
 
   const unprotectFolder = useCallback(() => {
     invoke({type: 'UNPROTECT_FOLDER', folder, bucket_name});
-  }, [folder, bucket_name]);
+  }, [folder, bucket_name, invoke]);
 
   const protectFolder = useCallback(() => {
     invoke({type: 'PROTECT_FOLDER', folder, bucket_name});
-  }, [folder, bucket_name]);
+  }, [folder, bucket_name, invoke]);
 
   const renameFolder = useCallback(() => {
     let new_folder_name = prompt(
@@ -38,22 +38,24 @@ const FolderControl = ({
           'Invalid name -- cannot change the folder path'
         )
       );
-    } else if (new_folder_name)
-      invoke({
+    }
+ else if (new_folder_name) {
+invoke({
         type: 'RENAME_FOLDER',
         folder,
         new_folder_path: filePath(current_folder, new_folder_name),
         bucket_name
       });
-  }, [folder, current_folder, bucket_name]);
+}
+  }, [folder, current_folder, bucket_name, invoke]);
 
   const removeFolder = useCallback(() => {
     invoke({type: 'REMOVE_FOLDER', folder, bucket_name});
-  }, [folder, bucket_name]);
+  }, [folder, bucket_name, invoke]);
 
   const touchFolder = useCallback(() => {
     invoke({type: 'TOUCH_FOLDER', folder, bucket_name});
-  }, [folder, bucket_name]);
+  }, [folder, bucket_name, invoke]);
 
   const moveFolder = useCallback(
     (newBucketName, newFolderPath) => {
@@ -66,7 +68,7 @@ const FolderControl = ({
         current_folder: current_folder || ''
       });
     },
-    [folder, bucket_name, current_folder]
+    [folder, bucket_name, current_folder, invoke]
   );
 
   const moveFolderDialog = useCallback(() => {
@@ -79,7 +81,7 @@ const FolderControl = ({
       type: 'SHOW_DIALOG',
       dialog
     });
-  }, [moveFolder, bucket_name]);
+  }, [moveFolder, bucket_name, invoke]);
 
   let items: UiControlItem[] = folder.read_only
     ? [

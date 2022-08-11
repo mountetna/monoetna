@@ -3,7 +3,7 @@ import { filePath } from 'etna-js/utils/file';
 
 const browse_path = (bucket_name, folder_name, current_folder, log) => {
   let path = filePath(current_folder, folder_name);
-  return `/${CONFIG.project_name}/browse/${bucket_name}${path ? `/${path}` : ''}`
+  return `/${CONFIG.project_name}/browse/${bucket_name}${path ? `/${path}` : ''}`;
 };
 
 export const FolderLink = ({folder_name, log, bucket_name, folder_path}) =>
