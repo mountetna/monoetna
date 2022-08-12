@@ -137,14 +137,14 @@ module.exports = (env) => ({
       'process.env': {
         NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
       }
+    }),
+    new EventHooksPlugin({
+      'after-emit': (compilation, done) => {
+        if ('metis' === env.APP_NAME) {
+          console.log('\n\nCopying source files to compiled\n\n');
+          fs.copy('downzip-sw.js', 'public/js/downzip-sw.js', done);
+        }
+      }
     })
-    // new EventHooksPlugin({
-    //   'after-emit': (compilation, done) => {
-    //     if ('metis' === env.APP_NAME) {
-    //       console.log('\n\nCopying source files to compiled\n\n');
-    //       fs.copy('downzip-sw.js', 'public/js/downzip-sw.js', done);
-    //     }
-    //   }
-    // })
   ]
 });
