@@ -47,7 +47,7 @@ const DEFAULT_STATE = {
       "name": "PROJECT",
       "label": "project",
       "values": {
-        "mvir1": "COMET"
+        "COMET": "COMET"
       }
     },
     "SP": {
