@@ -20,13 +20,15 @@ module WithEtnaClients
   def magma_client
     @magma_client ||= Etna::Clients::Magma.new(
       token: token,
-      host: Polyphemus.instance.config(:magma, environment)[:host])
+      host: Polyphemus.instance.config(:magma, environment)[:host],
+      endpoint: Polyphemus.instance.config(:magma, environment)[:endpoint])
   end
 
   def metis_client
     @metis_client ||= Etna::Clients::Metis.new(
       token: token,
-      host: Polyphemus.instance.config(:metis, environment)[:host])
+      host: Polyphemus.instance.config(:metis, environment)[:host],
+      endpoint: Polyphemus.instance.config(:metis, environment)[:endpoint])
   end
 
   def metis_client=(client)

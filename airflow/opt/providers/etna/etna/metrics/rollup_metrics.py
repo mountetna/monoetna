@@ -55,4 +55,5 @@ class RollupMetricsCollector:
                 yield metric
 
 def register_rollup_metrics():
-    REGISTRY.register(RollupMetricsCollector())
+    # REGISTRY.register(RollupMetricsCollector())
+    pass

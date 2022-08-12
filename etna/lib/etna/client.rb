@@ -4,10 +4,11 @@ require 'rack/utils'
 
 module Etna
   class Client
-    def initialize(host, token, routes_available: true, ignore_ssl: false)
+    def initialize(host, token, routes_available: true, ignore_ssl: false, endpoint: nil)
       @host = host.sub(%r!/$!, '')
       @token = token
       @ignore_ssl = ignore_ssl
+      @endpoint = endpoint
 
       if routes_available
         set_routes
@@ -55,6 +56,7 @@ module Etna
       uri = request_uri(endpoint)
       multipart = Net::HTTP::Post::Multipart.new uri.request_uri, content
       multipart.add_field('Authorization', "Etna #{@token}")
+      multipart.add_field('Host', URI.parse(@host).host)
       request(uri, multipart, &block)
     end
 
@@ -139,11 +141,20 @@ module Etna
       URI("#{@host}#{endpoint}")
     end
 
+    def internal?
+      !@endpoint.nil?
+    end
+
+    def connection_uri
+      @connection_uri ||= URI.parse(internal? ? @endpoint : @host)
+    end
+
     def request_headers
       {
           'Content-Type' => 'application/json',
           'Accept' => 'application/json, text/*',
-          'Authorization' => "Etna #{@token}"
+          'Authorization' => "Etna #{@token}",
+          'Host' => URI.parse(@host).host
       }.update(
         @request_headers || {}
       )
@@ -169,11 +180,13 @@ module Etna
     end
 
     def request(uri, data)
+      verify_mode = @ignore_ssl ?
+        OpenSSL::SSL::VERIFY_NONE :
+        OpenSSL::SSL::VERIFY_PEER
+      use_ssl = connection_uri.scheme == "https"
+
       if block_given?
-        verify_mode = @ignore_ssl ?
-          OpenSSL::SSL::VERIFY_NONE :
-          OpenSSL::SSL::VERIFY_PEER
-        Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
+        Net::HTTP.start(connection_uri.host, connection_uri.port, use_ssl: use_ssl, verify_mode: verify_mode, read_timeout: 300) do |http|
           http.request(data) do |response|
             status_check!(response)
             yield response
@@ -183,7 +196,7 @@ module Etna
         verify_mode = @ignore_ssl ?
           OpenSSL::SSL::VERIFY_NONE :
           OpenSSL::SSL::VERIFY_PEER
-        Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
+        Net::HTTP.start(connection_uri.host, connection_uri.port, use_ssl: use_ssl, verify_mode: verify_mode, read_timeout: 300) do |http|
           response = http.request(data)
           status_check!(response)
           return response

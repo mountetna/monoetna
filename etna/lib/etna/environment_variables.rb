@@ -1,18 +1,22 @@
 module Etna
   module EnvironmentVariables
     # a <- b
-    def self.deep_merge(a, b)
+    def self.deep_merge(a, b, target=true)
       if a.is_a?(Hash)
         if b.is_a?(Hash)
           b.keys.each do |b_key|
-            a[b_key] = deep_merge(a[b_key], b[b_key])
+            a[b_key] = deep_merge(a[b_key], b[b_key], false)
           end
 
           return a
         end
       end
 
-      a.nil? ? b : a
+      if target
+        b.nil? ? a : b
+      else
+        a.nil? ? b : a
+      end
     end
 
     def self.load_from_env(prefix, root: {}, env: ENV, downcase: true, sep: '__', &path_to_value_mapper)
