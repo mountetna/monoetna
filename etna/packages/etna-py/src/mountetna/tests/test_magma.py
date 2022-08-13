@@ -73,3 +73,21 @@ def test_magma_query():
     )
     response = client.query({ "project_name":"ipi", "query": [ 'labor', [ 'country', '::equals', 'Nemea' ], '::all', 'country' ]})
     assert response.answer == [ [ 'The Nemean Lion', 'Nemea' ] ]
+
+
+@responses.activate
+def test_magma_query_tsv():
+    ''' it queries magma '''
+    body = "identifier\tcolumn1\tcolumn2\nrecord1\t1\tblahblah\nrecord2\t3.4\tanything you want"
+    responses.add(
+        responses.POST,
+        "https://magma.test/query",
+        body=body,
+        status=200
+    )
+    client = Magma(
+        auth=TokenAuth(token='token'),
+        hostname='magma.test'
+    )
+    response = client.query({ "project_name":"ipi", "query": [ 'labor', [ 'country', '::equals', 'Nemea' ], '::all', 'country' ], "format": "tsv"})
+    assert response.text == body

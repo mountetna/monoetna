@@ -1,5 +1,6 @@
 import dataclasses
 import typing
+from io import StringIO
 from inspect import isgenerator
 from typing import Dict, Optional, List
 from serde import serialize, deserialize
@@ -297,6 +298,8 @@ class Magma(EtnaClientBase):
             data=to_json(query),
             headers={"Content-Type": "application/json"},
         )
+        if 'tsv' == query['format']:
+            return StringIO(response.text)
 
         return from_json(QueryResponse, response.content)
 
