@@ -298,8 +298,8 @@ class Magma(EtnaClientBase):
             data=to_json(query),
             headers={"Content-Type": "application/json"},
         )
-        if 'tsv' == query['format']:
-            return StringIO(response.text)
+        if 'format' in query and 'tsv' == query['format']:
+            return StringIO(response.text).read()
 
         return from_json(QueryResponse, response.content)
 

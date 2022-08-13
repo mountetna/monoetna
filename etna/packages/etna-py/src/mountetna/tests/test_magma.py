@@ -90,4 +90,4 @@ def test_magma_query_tsv():
         hostname='magma.test'
     )
     response = client.query({ "project_name":"ipi", "query": [ 'labor', [ 'country', '::equals', 'Nemea' ], '::all', 'country' ], "format": "tsv"})
-    assert response.text == body
+    assert response == body
