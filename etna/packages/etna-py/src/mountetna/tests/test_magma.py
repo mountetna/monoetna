@@ -89,5 +89,6 @@ def test_magma_query_tsv():
         auth=TokenAuth(token='token'),
         hostname='magma.test'
     )
+
     response = client.query({ "project_name":"ipi", "query": [ 'labor', [ 'country', '::equals', 'Nemea' ], '::all', 'country' ], "format": "tsv"})
-    assert response == body
+    assert response.to_json() == '{"identifier":{"0":"record1","1":"record2"},"column1":{"0":1.0,"1":3.4},"column2":{"0":"blahblah","1":"anything you want"}}'
