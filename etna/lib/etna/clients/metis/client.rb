@@ -99,15 +99,29 @@ module Etna
           @etna_client.bucket_find(find_request.to_h))
       end
 
-      def download_file(file_or_url = File.new, &block)
+      def download_file(file_or_url = File.new, chunk_size: 1024 * 1024 * 2, &block)
         if file_or_url.instance_of?(File)
           download_path =  file_or_url.download_path
         else
           download_path = file_or_url.sub(%r!^https://[^/]*?/!, '/')
         end
 
-        @etna_client.get(download_path) do |response|
-          response.read_body(&block)
+        size = file_metadata(file_or_url)[:size]
+        bytes_read = 0
+        while bytes_read < size
+          uri = @etna_client.request_uri(download_path)
+          req = Net::HTTP::Get.new(uri.request_uri, core_headers.dup.update({
+            "Range" => "bytes=#{bytes_read}-#{[bytes_read + chunk_size, size].min}",
+          }))
+
+          chunk = nil
+          @etna_client.request(uri, req, max_retries: 3) do  |response|
+            chunk = response.read_body
+          end
+
+          break if chunk.nil?
+          block.call(chunk)
+          bytes_read += chunk.length
         end
       end
 

@@ -12,7 +12,7 @@ module Etna
           :record_names, keyword_init: true)
 
         def initialize(**kwds)
-          super(**({filesystem: Etna::Filesystem.new, concurrency: 10, record_names: "all"}.update(kwds)))
+          super(**({filesystem: Etna::Filesystem.new, concurrency: 5, record_names: "all"}.update(kwds)))
         end
 
         def magma_crud
@@ -36,7 +36,6 @@ module Etna
               model_filters: model_filters,
               page_size: 20,
           ) do |template, document|
-            logger&.info("Materializing #{template.name}##{document[template.identifier]}")
             templates[template.name] = template
 
             begin
@@ -113,6 +112,7 @@ module Etna
           filesystem.mkdir_p(File.dirname(dest_file))
           json = record_to_serialize.to_json
 
+          logger&.info("Materializing #{template.name}##{record[template.identifier]} (#{Etna::Formatting.as_size(size)})")
           filesystem.with_writeable(dest_file, "w", size_hint: json.bytes.length) do |io|
             io.write(json)
           end
