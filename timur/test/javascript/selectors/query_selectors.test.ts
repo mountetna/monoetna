@@ -4,7 +4,8 @@ import {
   selectMatrixAttributes,
   stepIsOneToMany,
   pathToColumn,
-  getPath
+  getPath,
+  createFigurePayload
 } from '../../../lib/client/jsx/selectors/query_selector';
 
 const models = {
@@ -230,3 +231,34 @@ describe('stepIsOneToMany', () => {
     expect(stepIsOneToMany(models, 'labor', 'victim')).toEqual(false);
   });
 });
+
+describe('createFigurePayload', () => {
+  it('stringifies elements in the query', () => {
+    const result = createFigurePayload({
+      query: {
+        user_columns: ["foo", "bar"],
+        query: "this is a query",
+        something: {key: "value"}
+      },
+      title: "A plot",
+      workflow: {
+        inputQueryMap: {
+          "1": "query",
+          "2": "user_columns",
+          "3": "something"
+        },
+        name: 'test'
+      }
+    });
+
+    expect(result).toEqual({
+      title: 'A plot',
+      workflow_name: 'test',
+      inputs: {
+        "1": "this is a query",
+        "2": JSON.stringify(["foo", "bar"]),
+        "3": JSON.stringify({key: "value"})
+      }
+    })
+  })
+})

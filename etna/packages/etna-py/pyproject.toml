@@ -1,13 +1,14 @@
 [tool.poetry]
 name = "mountetna"
-version = "0.1.3"
+version = "0.1.5"
 description = "Client package for Mount Etna data library"
 
 license = "GPL-2.0-only"
 
 authors = [
     "Zachary Collins <zachary.collins@ucsf.edu>",
-    "Saurabh Asthana <saurabh.asthana@ucsf.edu>"
+    "Saurabh Asthana <saurabh.asthana@ucsf.edu>",
+    "Cole Shaw <cole.shaw@ucsf.edu>"
 ]
 
 readme = 'README.md'  # Markdown files are supported
