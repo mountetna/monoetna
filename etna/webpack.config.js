@@ -30,7 +30,8 @@ module.exports = (env) => ({
       ),
       react: path.join(__dirname, 'node_modules/react'),
       'react-dom': path.join(__dirname, 'node_modules/react-dom'),
-      'react-redux': path.join(__dirname, 'node_modules/react-redux')
+      'react-redux': path.join(__dirname, 'node_modules/react-redux'),
+      stream: path.join(__dirname, 'node_modules/stream-browserify')
     },
     symlinks: false
   },
