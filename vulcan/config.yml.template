@@ -29,9 +29,9 @@ default: &default
   :log_level: info
   :archimedes_run_image: etnaagent/archimedes
   :archimedes_interpreters:
-    :r: etnaagent/archimedes-r:latest
-    :node: etnaagent/archimedes-node:latest
-    :python: etnaagent/archimedes:latest
+    :r: etnaagent/archimedes-r:production
+    :node: etnaagent/archimedes-node:production
+    :python: etnaagent/archimedes:production
   :archimedes_exec_volume: archimedes-exec
   :log_file: /dev/stdout
   :rsa_public: |
