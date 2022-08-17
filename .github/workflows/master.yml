@@ -28,13 +28,4 @@ jobs:
           NO_TEST: 1
         run: |
           make -j 4 release
-      - uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.SYNC_ACCESS_TOKEN }}
-          fetch-depth: 0
-      - name: push-staging
-        env:
-          IS_CI: 1
-        run: |
-          git push
           git push origin HEAD:staging --force
