@@ -1,5 +1,5 @@
 # FROM development-certs
-FROM etnaagent/archimedes-r-base:main
+FROM archimedes-r-base
 
 # Perform these steps first to allow better caching behavior
 WORKDIR /app
