@@ -15,4 +15,4 @@ if (file.size(h5seurat)==0) {
 
 scdata <- LoadH5Seurat(h5seurat)
 
-saveRDS(scdata, output_path("scdata.Rds"), compress = FALSE)
+saveRDS(scdata, output_path("scdata.Rds"))
