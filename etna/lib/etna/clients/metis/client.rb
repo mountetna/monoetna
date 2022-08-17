@@ -110,7 +110,7 @@ module Etna
         bytes_read = 0
         while bytes_read < size
           uri = @etna_client.request_uri(download_path)
-          req = Net::HTTP::Get.new(uri.request_uri, core_headers.dup.update({
+          req = Net::HTTP::Get.new(uri.request_uri, @etna_client.core_headers.dup.update({
             "Range" => "bytes=#{bytes_read}-#{[bytes_read + chunk_size, size].min}",
           }))
 
