@@ -9,7 +9,7 @@ import {projectNameFull} from '../utils/janus';
 import {fetchProjectsAction} from '../actions/janus-actions';
 import {useActionInvoker} from '../hooks/useActionInvoker';
 
-const Project = ({project_name, full_name, role, privileged}) => (
+const Project = ({project_name, project_name_full, role, privileged}) => (
   <div className='project'>
     <div className='project_name'>
       <a href={`/${project_name}`}>{project_name}</a>
@@ -18,7 +18,7 @@ const Project = ({project_name, full_name, role, privileged}) => (
       {role || 'viewer'}
       {privileged ? ', privileged access' : ''}
     </div>
-    <div className='full_name'>{full_name}</div>
+    <div className='full_name'>{project_name_full}</div>
   </div>
 );
 
@@ -57,7 +57,7 @@ const RootView = () => {
         .map(({project_name, ...perms}) => ({
           project_name,
           ...perms,
-          full_name: projectNameFull(projects, project_name)
+          project_name_full: projectNameFull(projects, project_name)
         }))
         .sort(({project_name: n1}, {project_name: n2}) =>
           n1 < n2 ? -1 : n1 > n2 ? 1 : 0
