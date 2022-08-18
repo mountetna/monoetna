@@ -151,7 +151,7 @@ def create_figure_with_snapshot
       something: "sha:abc",
     },
   )
-  
+
   # Tweak the snapshot to be slightly different
   current_yaml = fig.workflow_snapshot.cwl_as_yaml
   fig.workflow_snapshot.update(
@@ -243,4 +243,12 @@ end
 
 def below_editor_roles
   [:viewer, :guest]
+end
+
+def configure_etna_yml_ignore_dependencies(value=true)
+  Vulcan.instance.configure({
+    test: Vulcan.instance.env_config(:test).update({
+        ignore_dependencies: value
+    })
+  })
 end

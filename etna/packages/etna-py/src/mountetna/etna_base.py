@@ -13,6 +13,14 @@ def encode_path(*segments: str) -> str:
     return "/".join(quote(s) for s in segments)
 
 class EtnaSession(Session):
+    DEFAULT_RETRY = Retry(
+        total=5,
+        backoff_factor=1,
+        connect=5,
+        read=3,
+        status_forcelist=[502, 503, 504],
+    )
+
     @staticmethod
     def assert_status(response: requests.Response, *args, **kwds):
         if 200 <= response.status_code < 300:
@@ -37,18 +45,12 @@ class EtnaSession(Session):
 
         raise HTTPError(error_message, response=response)
 
-    def __init__(self, auth: Optional[AuthBase]):
+    def __init__(self, auth: Optional[AuthBase], retry: Optional[Retry] = None):
         super().__init__()
         self.mount(
             "https://",
             HTTPAdapter(
-                max_retries=Retry(
-                    total=5,
-                    backoff_factor=1,
-                    connect=5,
-                    read=3,
-                    status_forcelist=[502, 503, 504],
-                )
+                max_retries=retry if retry is not None else self.DEFAULT_RETRY
             )
         )
         if auth:
@@ -61,9 +63,9 @@ class EtnaClientBase:
     session: requests.Session
     hostname: str
 
-    def __init__(self, auth: Optional[AuthBase], hostname: str, session: Optional[Type[requests.Session]] = None):
+    def __init__(self, auth: Optional[AuthBase], hostname: str, session: Optional[Type[requests.Session]] = None, retry: Optional[Retry] = None):
         self.auth = auth
-        self.session = (session or EtnaSession)(auth=auth)
+        self.session = (session or EtnaSession)(auth=auth, retry=retry)
         self.hostname = hostname.replace('https://', '')
 
     @property

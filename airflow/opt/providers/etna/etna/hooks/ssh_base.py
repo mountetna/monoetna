@@ -23,15 +23,15 @@ class SSHBase(object):
         self.cursor = Variable.get(self.variable_key, default_var={}, deserialize_json=True)
 
     @contextlib.contextmanager
-    def sftp(self) -> SFTPClient:
+    def ssh(self) -> paramiko.SSHClient:
         """
-        Configures an SFTP connection. Using Python `with` syntax, so that the
+        Configures an SSH connection. Using Python `with` syntax, so that the
         connection is closed after usage.
 
         eg:
         ```
-        with hook.sftp() as sftp:
-            sftp.get("/directory")
+        with hook.ssh() as ssh:
+            ssh.get("/directory")
         ```
         """
         ssh = paramiko.SSHClient()
@@ -48,11 +48,28 @@ class SSHBase(object):
             username=self.hook.connection.login,
             password=self.hook.connection.password)
 
-        sftp = ssh.open_sftp()
+        yield ssh
 
-        yield sftp
+        ssh.close()
 
-        sftp.close()
+    @contextlib.contextmanager
+    def sftp(self) -> SFTPClient:
+        """
+        Configures an SFTP connection. Using Python `with` syntax, so that the
+        connection is closed after usage.
+
+        eg:
+        ```
+        with hook.sftp() as sftp:
+            sftp.get("/directory")
+        ```
+        """
+        with self.ssh() as ssh:
+            sftp = ssh.open_sftp()
+
+            yield sftp
+
+            sftp.close()
 
     def _extra(self) -> dict:
         if (self.hook.connection.extra != ''):
@@ -80,6 +97,9 @@ class SSHBase(object):
     def _key_type(self) -> str:
         return self._key_components()[0]
 
+    def _key_str(self) -> str:
+        return self._key_components()[1]
+
     def _host_key(self) -> str:
         key_class = {
             "ssh-rsa": paramiko.RSAKey,
@@ -92,5 +112,5 @@ class SSHBase(object):
             raise AirflowException(f"Unsupported SSH key type: {self._key_type()}")
 
         return key_class[self._key_type()](
-            data=base64.b64decode(self._key_components()[1])
+            data=base64.b64decode(self._key_str())
         )

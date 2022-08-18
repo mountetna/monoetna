@@ -79,6 +79,9 @@
                                 <a class="function" href="#EtnaHook.get_session">get_session</a>
                         </li>
                         <li>
+                                <a class="function" href="#EtnaHook.get_retry_policy">get_retry_policy</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#EtnaHook.metis">metis</a>
                         </li>
                         <li>
@@ -115,6 +118,8 @@
             <div class="pdoc-code codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">contextlib</span>
 <span class="kn">import</span> <span class="nn">typing</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">urllib3</span> <span class="kn">import</span> <span class="n">Retry</span>
 
 <span class="kn">import</span> <span class="nn">cached_property</span>
 <span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">DAG</span>
@@ -231,27 +236,50 @@
 
     <span class="k">def</span> <span class="nf">get_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">None</span>
+    
+    <span class="k">def</span> <span class="nf">get_retry_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Retry</span><span class="p">(</span>
+            <span class="n">total</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">backoff_factor</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+            <span class="c1"># backoff_max=300, -- wait until 1.26.12+ of urllib3...</span>
+            <span class="n">connect</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">read</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">allowed_methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;OPTION&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;HEAD&#39;</span><span class="p">],</span>
+            <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span>
+        <span class="p">)</span>
 
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
     <span class="k">def</span> <span class="nf">metis</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="s2">&quot;Metis&quot;</span><span class="p">]:</span>
         <span class="n">auth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_auth</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">Metis</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">),</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">())</span>
+        <span class="k">yield</span> <span class="n">Metis</span><span class="p">(</span>
+            <span class="n">auth</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">),</span>
+            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">(),</span>
+            <span class="n">retry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_retry_policy</span><span class="p">())</span>
 
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
     <span class="k">def</span> <span class="nf">janus</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="s2">&quot;Janus&quot;</span><span class="p">]:</span>
         <span class="n">auth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_auth</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">Janus</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;janus&quot;</span><span class="p">),</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">())</span>
+        <span class="k">yield</span> <span class="n">Janus</span><span class="p">(</span>
+            <span class="n">auth</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;janus&quot;</span><span class="p">),</span>
+            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">(),</span>
+            <span class="n">retry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_retry_policy</span><span class="p">())</span>
 
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
     <span class="k">def</span> <span class="nf">magma</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="s2">&quot;Magma&quot;</span><span class="p">]:</span>
         <span class="n">auth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_auth</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">Magma</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;magma&quot;</span><span class="p">),</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">())</span>
+        <span class="k">yield</span> <span class="n">Magma</span><span class="p">(</span>
+            <span class="n">auth</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;magma&quot;</span><span class="p">),</span>
+            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">(),</span>
+            <span class="n">retry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_retry_policy</span><span class="p">())</span>
 
 
     <span class="k">def</span> <span class="nf">generate_task_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -374,27 +402,50 @@
 
     <span class="k">def</span> <span class="nf">get_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">None</span>
+    
+    <span class="k">def</span> <span class="nf">get_retry_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Retry</span><span class="p">(</span>
+            <span class="n">total</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">backoff_factor</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+            <span class="c1"># backoff_max=300, -- wait until 1.26.12+ of urllib3...</span>
+            <span class="n">connect</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">read</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">allowed_methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;OPTION&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;HEAD&#39;</span><span class="p">],</span>
+            <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span>
+        <span class="p">)</span>
 
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
     <span class="k">def</span> <span class="nf">metis</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="s2">&quot;Metis&quot;</span><span class="p">]:</span>
         <span class="n">auth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_auth</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">Metis</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">),</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">())</span>
+        <span class="k">yield</span> <span class="n">Metis</span><span class="p">(</span>
+            <span class="n">auth</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">),</span>
+            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">(),</span>
+            <span class="n">retry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_retry_policy</span><span class="p">())</span>
 
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
     <span class="k">def</span> <span class="nf">janus</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="s2">&quot;Janus&quot;</span><span class="p">]:</span>
         <span class="n">auth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_auth</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">Janus</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;janus&quot;</span><span class="p">),</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">())</span>
+        <span class="k">yield</span> <span class="n">Janus</span><span class="p">(</span>
+            <span class="n">auth</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;janus&quot;</span><span class="p">),</span>
+            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">(),</span>
+            <span class="n">retry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_retry_policy</span><span class="p">())</span>
 
     <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
     <span class="k">def</span> <span class="nf">magma</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="s2">&quot;Magma&quot;</span><span class="p">]:</span>
         <span class="n">auth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_auth</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">Magma</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;magma&quot;</span><span class="p">),</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">())</span>
+        <span class="k">yield</span> <span class="n">Magma</span><span class="p">(</span>
+            <span class="n">auth</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;magma&quot;</span><span class="p">),</span>
+            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">(),</span>
+            <span class="n">retry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_retry_policy</span><span class="p">())</span>
 
 
     <span class="k">def</span> <span class="nf">generate_task_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -713,6 +764,33 @@ for the efficiency of imports.</p>
     
 
                             </div>
+                            <div id="EtnaHook.get_retry_policy" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#EtnaHook.get_retry_policy">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">get_retry_policy</span><span class="signature">(self)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">get_retry_policy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Retry</span><span class="p">(</span>
+            <span class="n">total</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">backoff_factor</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+            <span class="c1"># backoff_max=300, -- wait until 1.26.12+ of urllib3...</span>
+            <span class="n">connect</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">read</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="n">allowed_methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;OPTION&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="s1">&#39;HEAD&#39;</span><span class="p">],</span>
+            <span class="n">status_forcelist</span><span class="o">=</span><span class="p">[</span><span class="mi">502</span><span class="p">,</span> <span class="mi">503</span><span class="p">,</span> <span class="mi">504</span><span class="p">],</span>
+        <span class="p">)</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
                             <div id="EtnaHook.metis" class="classattr">
                                         <div class="attr function"><a class="headerlink" href="#EtnaHook.metis">#&nbsp;&nbsp</a>
 
@@ -733,7 +811,11 @@ for the efficiency of imports.</p>
         <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="s2">&quot;Metis&quot;</span><span class="p">]:</span>
         <span class="n">auth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_auth</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">Metis</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">),</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">())</span>
+        <span class="k">yield</span> <span class="n">Metis</span><span class="p">(</span>
+            <span class="n">auth</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;metis&quot;</span><span class="p">),</span>
+            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">(),</span>
+            <span class="n">retry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_retry_policy</span><span class="p">())</span>
 </pre></div>
 
         </details>
@@ -761,7 +843,11 @@ for the efficiency of imports.</p>
         <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="s2">&quot;Janus&quot;</span><span class="p">]:</span>
         <span class="n">auth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_auth</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">Janus</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;janus&quot;</span><span class="p">),</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">())</span>
+        <span class="k">yield</span> <span class="n">Janus</span><span class="p">(</span>
+            <span class="n">auth</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;janus&quot;</span><span class="p">),</span>
+            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">(),</span>
+            <span class="n">retry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_retry_policy</span><span class="p">())</span>
 </pre></div>
 
         </details>
@@ -789,7 +875,11 @@ for the efficiency of imports.</p>
         <span class="bp">self</span><span class="p">,</span> <span class="n">project_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">typing</span><span class="o">.</span><span class="n">ContextManager</span><span class="p">[</span><span class="s2">&quot;Magma&quot;</span><span class="p">]:</span>
         <span class="n">auth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_task_auth</span><span class="p">(</span><span class="n">project_name</span><span class="p">,</span> <span class="n">read_only</span><span class="p">)</span>
-        <span class="k">yield</span> <span class="n">Magma</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;magma&quot;</span><span class="p">),</span> <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">())</span>
+        <span class="k">yield</span> <span class="n">Magma</span><span class="p">(</span>
+            <span class="n">auth</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_hostname</span><span class="p">(</span><span class="s2">&quot;magma&quot;</span><span class="p">),</span>
+            <span class="n">session</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_session</span><span class="p">(),</span>
+            <span class="n">retry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_retry_policy</span><span class="p">())</span>
 </pre></div>
 
         </details>

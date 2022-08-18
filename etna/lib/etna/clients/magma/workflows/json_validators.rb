@@ -113,7 +113,11 @@ module Etna
         end
 
         def parent_reciprocal_attribute
-          @models.find_reciprocal(model: @model, link_attribute_name: @model.template.parent)
+          @models.find_reciprocal(
+            model: @model,
+            link_attribute_name: @model.name,
+            link_model: @models.model(@model.template.parent)
+          )
         end
 
         def name

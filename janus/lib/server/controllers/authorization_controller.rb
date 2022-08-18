@@ -1,6 +1,8 @@
 require_relative '../nonce'
 
 class AuthorizationController < Janus::Controller
+  include Etna::Instrumentation
+
   def login
     # Make sure the refer url is valid.
     unless refer_valid?(@params[:refer])
@@ -24,6 +26,7 @@ class AuthorizationController < Janus::Controller
       end
     end
   end
+
 
   def validate_login
     require_params(:email, :password)
@@ -50,6 +53,8 @@ class AuthorizationController < Janus::Controller
     # On success return the user info.
     respond_with_cookie(token, @params[:refer])
   end
+
+  time_it(:validate_login)
 
   # generates a nonce for users to sign
   def time_signature
@@ -87,6 +92,8 @@ class AuthorizationController < Janus::Controller
     end
 
     return success(user.create_token!)
+  rescue JWT::ExpiredSignature => e
+    raise Etna::Unauthorized, "failed to create token"
   end
 
   def build
