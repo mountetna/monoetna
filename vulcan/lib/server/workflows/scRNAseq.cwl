@@ -314,7 +314,7 @@ steps:
   convert_to_Seurat:
     run: scripts/convert_h5ad_to_Seurat.cwl
     in:
-      scdata.h5ad: Finalize_Output_Object/merged_anndata.h5ad
+      scdata.h5ad: Finalize_Output_Object/umap_workflow_anndata.h5ad
     out: [scdata.Rds]
   downloadSeuratData:
     run: ui-outputs/link.cwl

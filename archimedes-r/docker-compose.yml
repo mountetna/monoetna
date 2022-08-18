@@ -19,11 +19,9 @@ services:
       context: ./
       dockerfile: Dockerfile
     volumes:
-      - .:/app
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - archimedes-exec:/archimedes-exec
       - ../vulcan/lib/server/workflows/scripts:/app/vulcan_scripts
     environment:
       HOST_DIR: $PWD
-    # entrypoint: /entrypoints/development.sh
     command: echo hello!

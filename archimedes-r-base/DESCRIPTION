@@ -1,3 +1,6 @@
 Package: app
 Imports:
-    Seurat
+    Seurat,
+    SeuratDisk
+Remotes:
+    mojaveazure/seurat-disk

@@ -216,6 +216,31 @@
         "uwot"
       ]
     },
+    "SeuratDisk": {
+      "Package": "SeuratDisk",
+      "Version": "0.0.0.9020",
+      "Source": "GitHub",
+      "Remotes": "satijalab/seurat-data",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "seurat-disk",
+      "RemoteUsername": "mojaveazure",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "9b89970eac2a3bd770e744f63c7763419486b14c",
+      "Hash": "18d5d212bad69ae88d2e531c4edb496a",
+      "Requirements": [
+        "Matrix",
+        "R6",
+        "Seurat",
+        "SeuratObject",
+        "cli",
+        "crayon",
+        "hdf5r",
+        "rlang",
+        "stringi",
+        "withr"
+      ]
+    },
     "SeuratObject": {
       "Package": "SeuratObject",
       "Version": "4.1.0",
@@ -259,6 +284,24 @@
       "Repository": "CRAN",
       "Hash": "543776ae6848fde2f48ff3816d0628bc",
       "Requirements": []
+    },
+    "bit": {
+      "Package": "bit",
+      "Version": "4.0.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "f36715f14d94678eea9933af927bc15d",
+      "Requirements": []
+    },
+    "bit64": {
+      "Package": "bit64",
+      "Version": "4.0.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "9fe98599ca456d6552421db0d6772d8f",
+      "Requirements": [
+        "bit"
+      ]
     },
     "bitops": {
       "Package": "bitops",
@@ -656,6 +699,17 @@
       "Repository": "CRAN",
       "Hash": "32600a0bea839c4d0ac998d7c547ecf7",
       "Requirements": []
+    },
+    "hdf5r": {
+      "Package": "hdf5r",
+      "Version": "1.3.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "0870af1f511f6d6d1230e71856801f86",
+      "Requirements": [
+        "R6",
+        "bit64"
+      ]
     },
     "here": {
       "Package": "here",
