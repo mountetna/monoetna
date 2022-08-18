@@ -1,7 +1,5 @@
 FROM etna-base
 # Perform these steps first to allow better caching behavior
-COPY package.json package-lock.json /app/
-RUN npm install
 COPY . /app/
 ARG APP_NAME
 ARG FULL_BUILD=1
