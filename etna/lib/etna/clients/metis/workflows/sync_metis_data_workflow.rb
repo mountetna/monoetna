@@ -44,19 +44,24 @@ module Etna
 
           metadata = metis_client.file_metadata(url)
           size = metadata[:size]
-          etag = metadata[:etag]
 
           logger&.info("Copying file #{url} (#{Etna::Formatting.as_size(size)})")
 
-          filesystem.with_writeable(dest, "w", size_hint: size) do |io|
-            if stub
-              io.write("(stub) #{size} bytes")
-            else
-              metis_client.download_file(url) do |chunk|
-                io.write(chunk)
+          if filesystem.is_a?(Etna::Filesystem::Metis) && !stub
+            source_file = Etna::Filesystem::Metis::MetisSourceFile.new(metis_client, url)
+            filesystem.do_upload(source_file, dest, size_hint: size)
+          else
+            filesystem.with_writeable(dest, "w", size_hint: size) do |io|
+              if stub
+                io.write("(stub) #{size} bytes")
+              else
+                metis_client.download_file(url) do |chunk|
+                  io.write(chunk)
+                end
               end
             end
           end
+
         end
       end
     end

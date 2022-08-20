@@ -18,7 +18,7 @@ module Etna
           completed = 0.0
           start = Time.now
 
-          unless dest_file_or_io.is_a?(IO) || dest_file_or_io.is_a?(StringIO)
+          unless dest_file_or_io.respond_to?(:write)
             ::File.open(dest_file_or_io, 'w') do |io|
               return do_download(dest_file_or_io, metis_file, &block)
             end

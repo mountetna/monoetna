@@ -18,12 +18,14 @@ module Etna
           super({max_attempts: 3, metis_uid: SecureRandom.hex}.update(args))
         end
 
-        def do_upload(source_file_or_upload, dest_path, &block)
+        def do_upload(source_file_or_upload, dest_path, size_hint: nil, &block)
           unless source_file_or_upload.is_a?(Upload)
             upload = Upload.new(source_file: source_file_or_upload)
           else
             upload = source_file_or_upload
           end
+
+          upload.size_hint = size_hint unless size_hint.nil?
 
           dir = ::File.dirname(dest_path)
           metis_client.create_folder(CreateFolderRequest.new(
@@ -103,19 +105,20 @@ module Etna
 
         class Upload
           INITIAL_BLOB_SIZE = 2 ** 10
-          MAX_BLOB_SIZE = 2 ** 22
+          MAX_BLOB_SIZE = 1024 * 1024 * 40
           ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e'
 
-          attr_accessor :source_file, :next_blob_size, :current_byte_position
+          attr_accessor :source_file, :next_blob_size, :current_byte_position, :size_hint
 
-          def initialize(source_file: nil, next_blob_size: nil, current_byte_position: nil)
+          def initialize(source_file: nil, next_blob_size: nil, current_byte_position: nil, size_hint: nil)
             self.source_file = source_file
             self.next_blob_size = [file_size, INITIAL_BLOB_SIZE].min
             self.current_byte_position = 0
+            self.size_hint = size_hint
           end
 
           def file_size
-            ::File.size(source_file)
+            size_hint.nil? ? ::File.size(source_file) : size_hint
           end
 
           def advance_position!
@@ -143,7 +146,12 @@ module Etna
           end
 
           def next_blob_bytes
-            IO.binread(source_file, next_blob_size, current_byte_position)
+            if source_file.is_a?(File)
+              IO.binread(source_file, next_blob_size, current_byte_position)
+            else
+              source_file.seek(current_byte_position)
+              source_file.read(next_blob_size)
+            end
           end
 
           def resume_from!(upload_response)
