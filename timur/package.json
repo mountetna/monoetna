@@ -13,6 +13,6 @@
     "build": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --node-env production",
     "build-dev": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js",
     "webpack": "echo fs.inotify.max_user_watches=524288 && webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --node-env production --watch",
-    "webpack-dev": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --watch"
+    "webpack-dev": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --node-env development --watch"
   }
 }
