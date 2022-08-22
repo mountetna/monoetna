@@ -259,7 +259,7 @@ module Etna
 
       def read_handle
         @read_handle ||= begin
-          ReadHandle.new(@file_or_url)
+          ReadHandle.new(@file_or_url, @metis_client)
         end
       end
 
@@ -274,7 +274,7 @@ module Etna
       end
 
       def read(num_bytes, buff = nil)
-        result = read_handle.read_slice(@pos, num_bytes)
+        result = read_handle.read_slice(@pos, @pos + num_bytes)
         @pos += result.bytes.length
         buff << result unless buff.nil?
         result
@@ -295,8 +295,9 @@ module Etna
       end
 
       class ReadHandle
-        def initialize(file_or_url)
+        def initialize(file_or_url, metis_client)
           @file_or_url = file_or_url
+          @metis_client = metis_client
         end
 
         def metadata(metis_client)
@@ -312,7 +313,13 @@ module Etna
         end
 
         def read_slice(from, to)
-          @metis_client.download_file(@file_or_url, bytes_read: from, size: to, expected_etag: etag(metis_client)).join
+          @metis_client.download_file(
+            @file_or_url,
+            bytes_read: from,
+            size: to,
+            chunk_size: to - from,
+            expected_etag: etag(@metis_client)
+          ).join
         end
       end
     end
@@ -369,21 +376,40 @@ module Etna
         end
       end
 
-      def with_writeable(dest, opts = 'w', size_hint: nil, &block)
-        self.with_hot_pipe(opts, :do_streaming_upload, dest, size_hint) do |wp|
-          yield wp
+      def with_retries(max_retries, &block)
+        retries = 0
+        while true
+          begin
+            return yield
+          rescue => e
+            retries += 1
+            if retries > max_retries
+              raise e
+            end
+          end
         end
       end
 
-      def do_upload(rp, dest, size_hint: nil)
-        create_upload_workflow.do_upload(rp, dest, size_hint: size_hint)
+      def with_writeable(dest, opts = 'w', size_hint: nil, max_retries: 3, &block)
+        with_retries(max_retries) do
+          return with_hot_pipe(opts, :do_streaming_upload, dest, size_hint) do |wp|
+            yield wp
+          end
+        end
+      end
+
+      def do_upload(rp, dest, size_hint: nil, max_retries: 3)
+        with_retries(max_retries) do
+          create_upload_workflow.do_upload(rp, metis_path_of(dest), size_hint: size_hint)
+        end
       end
 
       def do_streaming_upload(rp, dest, size_hint)
         streaming_upload = Etna::Clients::Metis::MetisUploadWorkflow::StreamingIOUpload.new(readable_io: rp, size_hint: size_hint)
         create_upload_workflow.do_upload(
           streaming_upload,
-          metis_path_of(dest)
+          metis_path_of(dest),
+          size_hint: size_hint,
         )
       end
 

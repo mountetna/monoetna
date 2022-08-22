@@ -20,12 +20,10 @@ module Etna
 
         def do_upload(source_file_or_upload, dest_path, size_hint: nil, &block)
           unless source_file_or_upload.is_a?(Upload)
-            upload = Upload.new(source_file: source_file_or_upload)
+            upload = Upload.new(source_file: source_file_or_upload, size_hint: size_hint)
           else
             upload = source_file_or_upload
           end
-
-          upload.size_hint = size_hint unless size_hint.nil?
 
           dir = ::File.dirname(dest_path)
           metis_client.create_folder(CreateFolderRequest.new(
@@ -33,6 +31,7 @@ module Etna
               bucket_name: bucket_name,
               folder_path: dir,
           )) unless dir == "."
+
 
           authorize_response = metis_client.authorize_upload(AuthorizeUploadRequest.new(
               project_name: project_name,
@@ -87,8 +86,10 @@ module Etna
               end
 
               if e.status == 422
+                puts "Resetting upload, something went wrong..."
                 return upload_parts(upload, upload_path, attempt_number + 1, true, &block)
               elsif e.status >= 500
+                puts "Got error during upload, retrying without reset."
                 return upload_parts(upload, upload_path, attempt_number + 1, &block)
               end
 
@@ -112,9 +113,9 @@ module Etna
 
           def initialize(source_file: nil, next_blob_size: nil, current_byte_position: nil, size_hint: nil)
             self.source_file = source_file
+            self.size_hint = size_hint
             self.next_blob_size = [file_size, INITIAL_BLOB_SIZE].min
             self.current_byte_position = 0
-            self.size_hint = size_hint
           end
 
           def file_size
@@ -161,16 +162,11 @@ module Etna
         end
 
         class StreamingIOUpload < Upload
-          def initialize(readable_io:, size_hint: 0, **args)
+          def initialize(readable_io:, **args)
             @readable_io = readable_io
-            @size_hint = size_hint
             @read_position = 0
             @last_bytes = ""
             super(**args)
-          end
-
-          def file_size
-            @size_hint
           end
 
           def next_blob_bytes

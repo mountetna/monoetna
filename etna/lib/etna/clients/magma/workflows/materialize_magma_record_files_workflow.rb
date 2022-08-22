@@ -112,7 +112,7 @@ module Etna
           filesystem.mkdir_p(File.dirname(dest_file))
           json = record_to_serialize.to_json
 
-          logger&.info("Materializing #{template.name}##{record[template.identifier]} (#{Etna::Formatting.as_size(size)})")
+          logger&.info("Materializing #{template.name}##{record[template.identifier]} (#{Etna::Formatting.as_size(json.bytes.length)})")
           filesystem.with_writeable(dest_file, "w", size_hint: json.bytes.length) do |io|
             io.write(json)
           end

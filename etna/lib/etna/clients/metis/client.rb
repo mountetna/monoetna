@@ -117,12 +117,13 @@ module Etna
         puts "Size #{Etna::Formatting.as_size(size)}, bytes read #{bytes_read}"
         while bytes_read < size
           uri = @etna_client.request_uri(download_path)
+          range_to = [bytes_read + chunk_size, size].min - 1
           req = Net::HTTP::Get.new(uri.request_uri, @etna_client.core_headers.dup.update({
-            "Range" => "bytes=#{bytes_read}-#{[bytes_read + chunk_size, size].min}",
+            "Range" => "bytes=#{bytes_read}-#{range_to}",
           }))
 
           chunk = nil
-          puts "Downloading chunk #{Etna::Formatting.as_size(bytes_read)} / #{Etna::Formatting.as_size(size)}"
+          puts "Downloading chunk #{Etna::Formatting.as_size(bytes_read)}-#{Etna::Formatting.as_size(range_to)}"
           @etna_client.request(uri, req, max_retries: 3) do  |response|
             chunk = response.read_body
             etag = response['ETag'].gsub(/"/, '')
