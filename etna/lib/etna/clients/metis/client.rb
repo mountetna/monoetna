@@ -114,7 +114,6 @@ module Etna
 
         size = file_metadata(file_or_url)[:size] if size.nil?
         chunks = []
-        puts "Size #{Etna::Formatting.as_size(size)}, bytes read #{bytes_read}"
         while bytes_read < size
           uri = @etna_client.request_uri(download_path)
           range_to = [bytes_read + chunk_size, size].min - 1
@@ -123,7 +122,6 @@ module Etna
           }))
 
           chunk = nil
-          puts "Downloading chunk #{Etna::Formatting.as_size(bytes_read)}-#{Etna::Formatting.as_size(range_to)}"
           @etna_client.request(uri, req, max_retries: 3) do  |response|
             chunk = response.read_body
             etag = response['ETag'].gsub(/"/, '')
