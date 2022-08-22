@@ -49,6 +49,24 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         create_model('non_table_child', 'some_id', root_model_template.name, Etna::Clients::Magma::AttributeType::CHILD)
       end
 
+      let(:intra_model_collection_template) do
+        intra_model = create_model('intra_model_collection', 'another_id', root_model_template.name, Etna::Clients::Magma::AttributeType::CHILD)
+
+        intra_model.build_attributes.build_attribute('parent_modality').tap do |attr|
+          attr.name = attr.attribute_name = 'parent_modality'
+          attr.attribute_type = 'collection'
+          attr.link_model_name = intra_model.name
+          attr.link_attribute_name = 'associated_modalities'
+        end
+
+        intra_model.build_attributes.build_attribute('associated_modalities').tap do |attr|
+          attr.name = attr.attribute_name = 'associated_modalities'
+          attr.attribute_type = 'link'
+          attr.link_model_name = intra_model.name
+          attr.link_attribute_name = 'parent_modality'
+        end
+      end
+
       let(:root_matrix_attribute) do
         root_model_template.build_attributes.build_attribute('matrix_attr').tap do |attr|
           attr.attribute_name = attr.name = 'matrix_attr'
@@ -157,6 +175,30 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         end
       end
 
+      describe 'intra-model links and collections' do
+        before do
+          intra_model_collection_template
+        end
+
+        it 'are included in the spreadsheet' do
+          attribute_names = rows_as_hashes.map { |hash| hash[:attribute_name] }
+          expect(attribute_names).to include('parent_modality')
+          expect(attribute_names).to include('associated_modalities')
+
+          parent = rows_as_hashes.select do |row|
+            row[:attribute_name] == "parent_modality"
+          end.first
+          expect(parent[:link_model_name]).to eq("intra_model_collection")
+          expect(parent[:link_attribute_name]).to eq("associated_modalities")
+
+          associated = rows_as_hashes.select do |row|
+            row[:attribute_name] == "associated_modalities"
+          end.first
+          expect(associated[:link_model_name]).to eq("intra_model_collection")
+          expect(associated[:link_attribute_name]).to eq("parent_modality")
+        end
+      end
+
       describe 'matrix attributes' do
         before do
           root_matrix_attribute
@@ -203,7 +245,6 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
           raise err
         end
 
-        # Change this based on source model
         expect(changeset.matrix_constants.values.length).to eql(1)
         # Change this based on source model.  I hard coded my local mvir1 to have 3 rather than 80K for faster development.
         expect(changeset.matrix_constants.values.first.length).to eql(3)
