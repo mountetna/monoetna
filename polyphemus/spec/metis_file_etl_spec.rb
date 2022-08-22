@@ -63,13 +63,13 @@ describe Polyphemus::MetisFileEtl do
           'ETL__LIMIT' => '100',
           'ETL__PROJECT_BUCKET_PAIRS' => [['ipi', 'data'], ['mvir1', 'data']].to_json,
           # Adjust these when re-recording to get a decent batch
-          'ETL__CURSOR_ENV__UPDATED_AT' => '2021-11-24T22:50:00-00:00',
-          'ETL__CURSOR_ENV__BATCH_END_AT' => '2021-11-24T22:52:00-00:00',
+          'ETL__CURSOR_ENV__UPDATED_AT' => '2022-08-01T22:50:00-00:00',
+          'ETL__CURSOR_ENV__BATCH_END_AT' => '2022-08-24T22:52:00-00:00',
         }) do
           find_batch = etl_executor.subcommands['find_batch']
           find_batch.enable_from_environment
           # allow(find_batch).to receive(:dump_result)
-          metis_client = Etna::Clients::Metis.new(host: 'https://metis.ucsf.edu', token: ENV['TOKEN'] || TEST_TOKEN)
+          metis_client = Etna::Clients::Metis.new(host: 'https://metis.development.local', token: ENV['TOKEN'] || TEST_TOKEN)
           setup_client(metis_client)
 
           run_etl_command('metis_file_tail_etl', 'find_batch', '--from-environment')
