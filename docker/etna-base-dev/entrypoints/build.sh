@@ -27,14 +27,12 @@ shopt -s globstar
 #  bundle install -j "$(nproc)"
 #fi
 
-if [ ! -f /app/babel.config.js ]; then
-  ln -sf /etna/babel.config.js /app/babel.config.js
-  ln -sf /etna/tsconfig.json /app/tsconfig.json
-  ln -sf /etna/jest.config.js /app/jest.config.js
-  ln -sf /etna/.eslintrc.js /app/.eslintrc.js
-  ln -sf /etna/.eslintignore /app/.eslintignore
-  ln -sf /etna/node_modules /app/node_modules
-fi
+declare -a JsDependencies=("/app/babel.config.js" "/app/tsconfig.json" "/app/jest.config.js" " /app/.eslintrc.js" "/app/.eslintignore" "/app/node_modules")
+for js_dep in "${JsDependencies[@]}"; do
+  if [ ! -e $js_dep ]; then
+    ln -sf $(sed 's/app/etna/g' <<< "$js_dep") $js_dep
+  fi
+done
 
 if [ -n "$FULL_BUILD" ]; then
   # The images tend to build as root, which for host systems is unsafe,
