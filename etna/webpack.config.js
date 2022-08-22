@@ -36,8 +36,8 @@ module.exports = (env) => ({
     symlinks: false
   },
   entry: [
-    `./lib/client/jsx/${env.APP_NAME}.jsx`,
-    './lib/client/scss/application.scss'
+    path.resolve(`./lib/client/jsx/${env.APP_NAME}.jsx`),
+    path.resolve('./lib/client/scss/application.scss')
   ],
   output: {
     filename: `public/js/${env.APP_NAME}.bundle.js`,
@@ -144,6 +144,8 @@ module.exports = (env) => ({
         if ('metis' === env.APP_NAME) {
           console.log('\n\nCopying source files to compiled\n\n');
           fs.copy('downzip-sw.js', 'public/js/downzip-sw.js', done);
+        } else {
+          done();
         }
       }
     })

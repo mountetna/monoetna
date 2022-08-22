@@ -11,7 +11,6 @@ import 'codemirror/addon/search/search';
 import 'codemirror/addon/search/searchcursor';
 import 'codemirror/addon/search/jump-to-line';
 import 'codemirror/addon/dialog/dialog';
-import 'codemirror/addon/dialog/dialog.css';
 
 import JsonMap from 'json-source-map';
 

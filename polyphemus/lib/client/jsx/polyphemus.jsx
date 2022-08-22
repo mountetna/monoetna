@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
+import {Provider} from 'react-redux';
 import Cookies from 'js-cookie';
 
 import createStore from './store';
@@ -17,11 +17,11 @@ function Polyphemus() {
 
   // build the UI
   ReactDOM.render(
-    <Provider store={ store }>
-      <PolyphemusUI/>
+    <Provider store={store}>
+      <PolyphemusUI />
     </Provider>,
     document.getElementById('root')
   );
 }
 
-window.polyphemus = new Polyphemus();
+window.polyphemus = Polyphemus;
