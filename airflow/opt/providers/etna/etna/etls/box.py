@@ -87,6 +87,10 @@ class BoxEtlHelpers(RemoteHelpersBase):
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
                 num_ingested = 0
                 for file in files:
+                    if box.file_ingested_to_system(file):
+                        self.log.info(f"Skipping {file.name} because it has already been ingested.")
+                        continue
+
                     with box.ftps() as ftps:
                         sock = box.retrieve_file(ftps, file)
 

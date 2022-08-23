@@ -2091,6 +2091,10 @@ reading in multiple files that exist in the same record folder.</p>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempting to upload </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files to Metis&quot;</span><span class="p">)</span>
                 <span class="n">num_ingested</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">box</span><span class="o">.</span><span class="n">file_ingested_to_system</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> because it has already been ingested.&quot;</span><span class="p">)</span>
+                        <span class="k">continue</span>
+
                     <span class="k">with</span> <span class="n">box</span><span class="o">.</span><span class="n">ftps</span><span class="p">()</span> <span class="k">as</span> <span class="n">ftps</span><span class="p">:</span>
                         <span class="n">sock</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">retrieve_file</span><span class="p">(</span><span class="n">ftps</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
 
@@ -2266,6 +2270,10 @@ reading in multiple files that exist in the same record folder.</p>
                 <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempting to upload </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> files to Metis&quot;</span><span class="p">)</span>
                 <span class="n">num_ingested</span> <span class="o">=</span> <span class="mi">0</span>
                 <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">box</span><span class="o">.</span><span class="n">file_ingested_to_system</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> because it has already been ingested.&quot;</span><span class="p">)</span>
+                        <span class="k">continue</span>
+
                     <span class="k">with</span> <span class="n">box</span><span class="o">.</span><span class="n">ftps</span><span class="p">()</span> <span class="k">as</span> <span class="n">ftps</span><span class="p">:</span>
                         <span class="n">sock</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">retrieve_file</span><span class="p">(</span><span class="n">ftps</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
 

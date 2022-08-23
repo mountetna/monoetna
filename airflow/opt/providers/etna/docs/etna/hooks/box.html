@@ -142,6 +142,9 @@
                                 <a class="function" href="#Box.remove_file">remove_file</a>
                         </li>
                         <li>
+                                <a class="function" href="#Box.file_ingested_to_system">file_ingested_to_system</a>
+                        </li>
+                        <li>
                                 <a class="variable" href="#Box.variable_key">variable_key</a>
                         </li>
                 </ul>
@@ -420,6 +423,12 @@
 <span class="sd">        clean up after ingestion to Metis.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ftps</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">file_ingested_to_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">FtpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns if the file exists in the cursor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">file</span><span class="o">.</span><span class="n">full_path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">]</span> <span class="o">==</span> <span class="n">file</span><span class="o">.</span><span class="n">hash</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">variable_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1117,6 +1126,12 @@ for the efficiency of imports.</p>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ftps</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">file_ingested_to_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">FtpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns if the file exists in the cursor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">file</span><span class="o">.</span><span class="n">full_path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">]</span> <span class="o">==</span> <span class="n">file</span><span class="o">.</span><span class="n">hash</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">variable_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1407,6 +1422,30 @@ with socket.makefile('rb') as connection:
 
             <div class="docstring"><p>Removes the file from the FTP server, if user wants to automatically
 clean up after ingestion to Metis.</p>
+</div>
+
+
+                            </div>
+                            <div id="Box.file_ingested_to_system" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Box.file_ingested_to_system">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">file_ingested_to_system</span><span class="signature">(self, file: <a href="#FtpEntry">etna.hooks.box.FtpEntry</a>) -&gt; bool</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">file_ingested_to_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">FtpEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns if the file exists in the cursor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">file</span><span class="o">.</span><span class="n">full_path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">full_path</span><span class="p">]</span> <span class="o">==</span> <span class="n">file</span><span class="o">.</span><span class="n">hash</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Returns if the file exists in the cursor.</p>
 </div>
 
 
