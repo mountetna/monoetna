@@ -433,9 +433,6 @@ class Metis(EtnaClientBase):
         return response_obj
 
     def start_upload(self, request: "UploadStartRequest") -> "UploadResponse":
-        print(request)
-        print(self.prepare_url_unsafe(request.upload_path))
-        print(to_json(request))
         response = self.session.post(
             self.prepare_url_unsafe(request.upload_path),
             data=to_json(request),
