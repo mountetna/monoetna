@@ -150,7 +150,7 @@ describe Etna::Auth do
             }.to_json
           )
       end
-    
+
       it "redirects a user with no existing permissions for project" do
         token = Arachne.instance.sign.jwt_token(
           email: 'janus@two-faces.org',
@@ -158,7 +158,7 @@ describe Etna::Auth do
           perm: 'g:constellations',
           exp: (Time.now + 600).to_i
         )
-  
+
         auth_header(token)
         get('/test_project')
         expect(last_response.status).to eq(302)
@@ -166,14 +166,14 @@ describe Etna::Auth do
           "https://janus.example.org/test_project/cc?refer=http%3A%2F%2Fexample.org%2Ftest_project"
         )
       end
-  
+
       it "permits user with existing guest access" do
         token = Arachne.instance.sign.jwt_token(
           email: 'janus@two-faces.org',
           name: 'Janus Bifrons',
           perm: 'a:labors;e:olympics,argo;g:test_project'
         )
-  
+
         auth_header(token)
         get('/test_project')
         expect(last_response.status).to eq(200)
@@ -187,7 +187,7 @@ describe Etna::Auth do
           name: 'Janus Bifrons',
           perm: 'a:labors;e:olympics,argo;g:test_project'
         )
-  
+
         auth_header(token)
         get('/generic/route')
         expect(last_response.status).to eq(200)
@@ -347,7 +347,7 @@ describe Etna::Auth do
           perm: 'e:labors',
           exp: (Time.now + 600).to_i
         )
- 
+
         Arachne::Server.get('/test2', auth: { ignore_janus: true }) { success(nil) }
 
         auth_header(token)
@@ -406,13 +406,13 @@ describe Etna::Auth do
             perm: 'e:labors',
             exp: (Time.now + 600).to_i
           )
-   
+
           auth_header(token)
           get('/labors')
           expect(last_response.status).to eq(200)
           expect(WebMock).to have_requested(:get, %r!janus.example.org/api/user/projects!)
         end
-  
+
         it "denies the request if user does not have permission to non-resource project" do
           token = Arachne.instance.sign.jwt_token(
             email: 'janus@two-faces.org',
@@ -422,13 +422,13 @@ describe Etna::Auth do
             perm: 'e:labors',
             exp: (Time.now + 600).to_i
           )
-   
+
           auth_header(token)
           get('/secret')
           expect(last_response.status).to eq(403)
           expect(WebMock).to have_requested(:get, %r!janus.example.org/api/user/projects!).times(2)
         end
-  
+
         it "allows the request if user does not have permission to resource project" do
           token = Arachne.instance.sign.jwt_token(
             email: 'janus@two-faces.org',
@@ -438,14 +438,14 @@ describe Etna::Auth do
             perm: 'e:labors',
             exp: (Time.now + 600).to_i
           )
-   
+
           auth_header(token)
           get('/public')
           expect(last_response.status).to eq(200)
           expect(WebMock).to have_requested(:get, %r!janus.example.org/api/user/projects!)
         end
       end
-      
+
       context 'for non-task token' do
         it "allows the request if user has permissions to project" do
           token = Arachne.instance.sign.jwt_token(
@@ -455,13 +455,13 @@ describe Etna::Auth do
             perm: 'e:labors',
             exp: (Time.now + 600).to_i
           )
-   
+
           auth_header(token)
           get('/labors')
           expect(last_response.status).to eq(200)
           expect(WebMock).to have_requested(:get, %r!janus.example.org/api/user/projects!)
         end
-  
+
         it "denies the request if user does not have permission to non-resource project" do
           token = Arachne.instance.sign.jwt_token(
             email: 'janus@two-faces.org',
@@ -470,13 +470,13 @@ describe Etna::Auth do
             perm: 'e:labors',
             exp: (Time.now + 600).to_i
           )
-   
+
           auth_header(token)
           get('/secret')
           expect(last_response.status).to eq(403)
           expect(WebMock).to have_requested(:get, %r!janus.example.org/api/user/projects!).times(2)
         end
-  
+
         it "allows the request if user does not have permission to resource project" do
           token = Arachne.instance.sign.jwt_token(
             email: 'janus@two-faces.org',
@@ -485,7 +485,7 @@ describe Etna::Auth do
             perm: 'e:labors',
             exp: (Time.now + 600).to_i
           )
-   
+
           auth_header(token)
           get('/public')
           expect(last_response.status).to eq(200)
@@ -504,6 +504,9 @@ describe Etna::Auth do
 
       # A simple get route
       Arachne::Server.get('/test') { success(@params[:project_name]) }
+
+      # A download file route
+      Arachne::Server.get('/download/*file_path', {auth: {hmac: true}}) { success(@params[:file_path]) }
 
       # we set a key for the given id
       config = { hmac_keys: { arachne: SecureRandom.hex, athena: SecureRandom.hex  } }
@@ -591,6 +594,29 @@ describe Etna::Auth do
 
       expect(last_response.status).to eq(200)
       expect(last_response.body).to eq('tapestry')
+    end
+
+    it "succeeds with url params and special characters" do
+      raw_path = '/download/a simple file (with a comment).txt'
+      path = raw_path.split('/').map do |c|
+        URI.encode_www_form_component(c)
+      end.join('/')
+      input_hmac = make_hmac(
+        expiration: @time,
+        nonce: @nonce,
+        path: path,
+        headers: { project_name: 'tapestry', action: 'weave' }
+      )
+
+      mod_proxy_path = raw_path.gsub(' ', '+')
+
+      uri = URI::HTTP.build(input_hmac.url_params)
+
+      # the get succeeds
+      get("#{mod_proxy_path}?#{uri.query}")
+      puts last_response
+      expect(last_response.status).to eq(200)
+      expect(last_response.body).to eq(raw_path.split('/').last)
     end
 
     it "fails without an hmac signature" do
