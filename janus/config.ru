@@ -19,6 +19,7 @@ use Etna::SymbolizeParams
 use Rack::Static, urls: ['/css', '/js', '/fonts', '/img'], root: 'lib/client'
 use Etna::Auth
 use Etna::DescribeRoutes
+use Etna::SynchronizeDb
 
 use Janus::Throttle, max: 100
 use Janus::RefreshToken
