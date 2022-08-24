@@ -39,4 +39,4 @@ class TimurApplication {
   }
 }
 
-new TimurApplication();
+window.TimurApp = TimurApplication;
