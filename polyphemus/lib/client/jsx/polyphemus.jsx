@@ -24,4 +24,4 @@ function Polyphemus() {
   );
 }
 
-window.polyphemus = Polyphemus;
+window.polyphemus = new Polyphemus();
