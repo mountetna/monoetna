@@ -1,3 +1,5 @@
+require "addressable/uri"
+
 describe Etna::Auth do
   include Rack::Test::Methods
   attr_reader :app
@@ -597,9 +599,9 @@ describe Etna::Auth do
     end
 
     it "succeeds with url params and special characters" do
-      raw_path = '/download/a simple file (with a comment).txt'
+      raw_path = '/download/a simple+file (with a comment).txt'
       path = raw_path.split('/').map do |c|
-        URI.encode_www_form_component(c)
+        Addressable::URI.encode_component(c)
       end.join('/')
       input_hmac = make_hmac(
         expiration: @time,
@@ -608,12 +610,10 @@ describe Etna::Auth do
         headers: { project_name: 'tapestry', action: 'weave' }
       )
 
-      mod_proxy_path = raw_path.gsub(' ', '+')
-
       uri = URI::HTTP.build(input_hmac.url_params)
 
       # the get succeeds
-      get("#{mod_proxy_path}?#{uri.query}")
+      get("#{uri.path}?#{uri.query}")
       puts last_response
       expect(last_response.status).to eq(200)
       expect(last_response.body).to eq(raw_path.split('/').last)
