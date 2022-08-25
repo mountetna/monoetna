@@ -11,7 +11,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "tsc && && eslint --ext .jsx,.js.jsx,.js,ts,tsx ./lib/client/jsx && jest && webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js",
+    "test": "tsc && eslint --ext .jsx,.js.jsx,.js,ts,tsx ./lib/client/jsx && jest && webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js",
     "build": "webpack --node-env production --env APP_NAME=$APP_NAME --config /etna/webpack.config.js",
     "build-dev": "webpack --node-env development --env APP_NAME=$APP_NAME --config /etna/webpack.config.js",
     "webpack": "webpack --node-env production --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --watch",
