@@ -19,7 +19,7 @@ ENV BUNDLE_BIN="$BUNDLE_PATH/ruby/$RUBY_MAJOR_VERSION/bin"
 ENV BUNDLE_SILENCE_ROOT_WARNING=0
 ENV BUNDLE_APP_CONFIG="/etna/.bundle"
 ENV BUNDLE_GEMFILE="/etna/Gemfile"
-ENV PATH "/app/bin:/app/node_modules/.bin:$BUNDLE_BIN:$PATH:/home/aspera/.aspera/connect/bin"
+ENV PATH "/app/bin:/etna/node_modules/.bin:/app/node_modules/.bin:$BUNDLE_BIN:$PATH:/home/aspera/.aspera/connect/bin"
 
 COPY --from=0 /certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
 RUN chmod 644 /usr/local/share/ca-certificates/devRoot.crt && update-ca-certificates
@@ -51,7 +51,7 @@ RUN useradd -ms /bin/bash aspera
 RUN su aspera -c /ibm-aspera-connect-3.11.0.5-linux-g2.12-64.sh
 
 RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | tar --strip-components=1 -xzC /usr/local/ \
-    && npm install -g yarn typescript webpack@4.46.0 webpack-cli@4.7.2
+    && npm install -g yarn typescript
 
 RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
 

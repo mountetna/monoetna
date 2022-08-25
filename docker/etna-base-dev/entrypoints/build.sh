@@ -38,13 +38,11 @@ if [ ! -L "/app/node_modules" ]; then
   ln -sf "/etna/node_modules" "/app/node_modules"
 fi
 
-ls -alh /app
-
-if [ -n "$FULL_BUILD" ]; then
-  # The images tend to build as root, which for host systems is unsafe,
-  # but in containers is fine.
-  npm install --unsafe-perm
-fi
+# if [ -n "$FULL_BUILD" ]; then
+#   # The images tend to build as root, which for host systems is unsafe,
+#   # but in containers is fine.
+#   npm install --unsafe-perm
+# fi
 
 # Prepare the puma.sh into the /app/bin directory.
 ln -sf /entrypoints/puma.sh /app/bin/
