@@ -1,5 +1,6 @@
 require 'digest'
 require 'date'
+require "addressable/uri"
 require_relative "./censor"
 require_relative './instrumentation'
 
@@ -45,7 +46,7 @@ module Etna
       if params
         PARAM_TYPES.reduce(route) do |path,pat|
           path.gsub(pat) do
-            params[$1.to_sym].split('/').map { |c| block_given? ? yield(c) : URI.encode_www_form_component(c) }.join('/')
+            params[$1.to_sym].split('/').map { |c| block_given? ? yield(c) : Addressable::URI.encode_component(c) }.join('/')
           end
         end
       else
@@ -240,7 +241,7 @@ module Etna
         Hash[
           match.names.map(&:to_sym).zip(
             match.captures.map do |capture|
-              capture.split('/').map {|c| URI.decode_www_form_component(c) }.join('/')
+              capture.split('/').map {|c| Addressable::URI.unencode_component(c) }.join('/')
             end
           )
         ]
