@@ -46,7 +46,7 @@ module Etna
       if params
         PARAM_TYPES.reduce(route) do |path,pat|
           path.gsub(pat) do
-            params[$1.to_sym].split('/').map { |c| block_given? ? yield(c) : Addressable::URI.encode_component(c) }.join('/')
+            params[$1.to_sym].split('/').map { |c| block_given? ? yield(c) : Addressable::URI.normalized_encode(c) }.join('/')
           end
         end
       else

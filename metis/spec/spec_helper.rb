@@ -128,7 +128,7 @@ def json_body
 end
 
 def json_post(endpoint, hash)
-  post(endpoint.split('/').map { |c| Addressable::URI.encode_component(c) }.join('/'), hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
+  post(endpoint.split('/').map { |c| Addressable::URI.normalized_encode(c) }.join('/'), hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
 end
 
 def stubs
