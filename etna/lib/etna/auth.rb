@@ -148,7 +148,7 @@ module Etna
       hmac_params = {
         method: request.request_method,
         host: request.host,
-        path: encode_path(request.path),
+        path: request.path,
 
         expiration: etna_param(request, :expiration),
         id: etna_param(request, :id),
@@ -171,16 +171,6 @@ module Etna
       params(request).update(headers)
 
       return true
-    end
-
-    def encode_path(path)
-      # request.path is pulled from the webserver. In our case, Apache via
-      #   ProxyPass.
-      # However, Apache mod_proxy encodes this differently than URI.encode_www_form_component ... so we normalize it here according to how Etna::Route.path() behaves, so that Metis HMAC signing for
-      # upload / download URLs is compatible.
-      path.split("/").map do |c|
-        URI.encode_www_form_component(URI.decode_www_form_component(c))
-      end.join("/")
     end
   end
 end
