@@ -18,7 +18,7 @@ module Etna
       if [ approve_noauth(request), approve_hmac(request), approve_user(request) ].all?{|approved| !approved}
         return fail_or_redirect(request)
       end
-  
+
       @app.call(request.env)
     end
 
@@ -97,7 +97,7 @@ module Etna
 
       return payload unless route
 
-      begin      
+      begin
         permissions = permissions(payload)
 
         janus.resource_projects(token).each do |resource_project|
