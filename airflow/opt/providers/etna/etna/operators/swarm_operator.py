@@ -85,7 +85,7 @@ def create_service_definition(
         constraints.append("node.labels.volumes.data3==true")
         placement["Constraints"] = constraints
         mounts = [
-            m for m in container_spec.get("Mounts", [])
+            m for m in container_spec.get("Mounts", []) if "/db_dumps" not in m
         ]
         mounts.append("type=bind,source=/data3/metis/db_dumps,target=/db_dumps")
 
