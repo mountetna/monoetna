@@ -28,4 +28,14 @@ jobs:
           NO_TEST: 1
         run: |
           make -j 4 release
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push to staging branch
+        env:
+          IS_CI: 1
+        run: |
+          git config --global user.name 'GithubAction'
+          git config --global user.email 'mountetna@users.noreply.github.com'
+          git config --global core.mergeoptions --no-edit
           git push origin HEAD:staging --force
