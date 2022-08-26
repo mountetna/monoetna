@@ -84,12 +84,16 @@ def create_service_definition(
         ]
         constraints.append("node.labels.volumes.data3==true")
         placement["Constraints"] = constraints
+        mounts = [
+            m for m in container_spec.get("Mounts", [])
+        ]
+        mounts.append("type=bind,source=/data3/metis/db_dumps,target=/db_dumps")
 
 
     return SwarmServiceDefinition(
         image=container_spec["Image"],
         command=container_spec.get("Command", None),
-        mounts=container_spec.get("Mounts", []),
+        mounts=mounts or container_spec.get("Mounts", []),
         env=container_spec.get("Env", []),
         user=container_spec.get("User", None),
         tty=container_spec.get("TTY", None),
