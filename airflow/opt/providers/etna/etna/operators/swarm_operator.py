@@ -77,6 +77,7 @@ def create_service_definition(
         ]
         constraints.append("node.role!=manager")
         placement["Constraints"] = constraints
+    mounts = container_spec.get("Mounts", [])
     if ensure_backup_mount:
         constraints = [
             c for c in placement.get("Constraints", [])
@@ -85,7 +86,7 @@ def create_service_definition(
         constraints.append("node.labels.volumes.data3==true")
         placement["Constraints"] = constraints
         mounts = [
-            m for m in container_spec.get("Mounts", []) if "/db_dumps" not in m
+            m for m in mounts if "/db_dumps" not in m
         ]
         mounts.append("type=bind,source=/data3/metis/db_dumps,target=/db_dumps")
 
