@@ -57,6 +57,7 @@ def create_service_definition(
     data: Dict,
     local_network_ids: Optional[Set[str]] = None,
     allow_manager_nodes: Optional[bool] = False,
+    ensure_backup_mount: Optional[bool] = False,
     resources: Optional[Resources] = None,
 ) -> SwarmServiceDefinition:
 
@@ -76,6 +77,14 @@ def create_service_definition(
         ]
         constraints.append("node.role!=manager")
         placement["Constraints"] = constraints
+    if ensure_backup_mount:
+        constraints = [
+            c for c in placement.get("Constraints", [])
+            if "node.labels.volumes.data3" not in c
+        ]
+        constraints.append("node.labels.volumes.data3==true")
+        placement["Constraints"] = constraints
+
 
     return SwarmServiceDefinition(
         image=container_spec["Image"],
@@ -169,6 +178,7 @@ class DockerSwarmOperator(DockerOperatorBase):
     mem_limit: Optional[int]
     cpu_reservation: Optional[int]
     mem_reservation: Optional[int]
+    ensure_backup_mount: Optional[bool]
 
     def __init__(
             self,
@@ -182,6 +192,7 @@ class DockerSwarmOperator(DockerOperatorBase):
         mem_limit: Optional[int] = None,
         cpu_reservation: Optional[int] = None,
         mem_reservation: Optional[int] = None,
+        ensure_backup_mount: Optional[bool] = False,
         **kwds,
     ):
         self.mem_reservation = mem_reservation
@@ -191,6 +202,7 @@ class DockerSwarmOperator(DockerOperatorBase):
         self.source_service = source_service
         self.include_external_networks = include_external_networks
         self.allow_manager_nodes = allow_manager_nodes
+        self.ensure_backup_mount = ensure_backup_mount
         super(DockerSwarmOperator, self).__init__(*args, **kwds)
 
     def _start_task(self):
@@ -204,6 +216,7 @@ class DockerSwarmOperator(DockerOperatorBase):
             service_data,
             local_network_ids,
             allow_manager_nodes=self.allow_manager_nodes,
+            ensure_backup_mount=self.ensure_backup_mount,
             resources=Resources(
                 cpu_limit=self.cpu_limit,
                 cpu_reservation=self.cpu_reservation,
