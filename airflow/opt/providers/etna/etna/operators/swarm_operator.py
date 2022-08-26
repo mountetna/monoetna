@@ -88,7 +88,7 @@ def create_service_definition(
         mounts = [
             m for m in mounts if "/db_dumps" not in m
         ]
-        mounts.append("type=bind,source=/data3/metis/db_dumps,target=/db_dumps")
+        mounts.append("/data3/metis/db_dumps:/db_dumps")
 
 
     return SwarmServiceDefinition(
