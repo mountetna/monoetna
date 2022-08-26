@@ -221,7 +221,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
 
       VCR.use_cassette('add_project_models_workflow-timepoint-project.e2e') do
         # Change this name when re-recording the cassette file to ensure a new project is synced
-        test_project = "test_add_project_models_workflow_full_ezdk"
+        test_project = "test_add_project_models_workflow_full_ezdl"
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
             token: ENV['TOKEN'] || TEST_TOKEN, ignore_ssl: true,
@@ -246,8 +246,8 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         end
 
         expect(changeset.matrix_constants.values.length).to eql(1)
-        # Change this based on source model.  I hard coded my local mvir1 to have 3 rather than 80K for faster development.
-        expect(changeset.matrix_constants.values.first.length).to eql(3)
+        # Change this based on source model.  I hard coded my local mvir1 to have 4 rather than 80K for faster development.
+        expect(changeset.matrix_constants.values.first.length).to eql(4)
         changeset.matrix_constants.keys.each do |k|
           changeset.matrix_constants[k] = ['this', 'is', 'matrix', 'constant']
         end
@@ -261,9 +261,9 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
 
         expect(resulting_models.model_keys.sort).to eql([
             "admission_lab", "analyte", "clinical_lab", "comorbidity",
-            "cytof", "cytof_pool", "cytokine", "document", "immunoassay",
-            "olink", "patient", "project",
-            "rna_seq", "rna_seq_plate", "sc_rna_seq", "sc_rna_seq_pool", "symptom",
+            "cytof", "cytof_pool", "dna_seq", "document", "immunoassay",
+            "meta_seq", "patient", "project",
+            "rna_seq", "rna_seq_plate", "sc_rna_seq", "sc_rna_seq_pool", "symptom", "taxon",
             "timepoint", "treatment"
         ])
 
@@ -272,7 +272,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         expect(resulting_models.model('cytof_pool').template.attributes.attribute_keys.sort).to eql(["created_at", "cytof", "pool_name", "project", "updated_at"])
 
         # Ensure, however, that the core model and its tree fill out
-        expect(resulting_models.model('timepoint').template.attributes.attribute_keys.length).to eql(40)
+        expect(resulting_models.model('timepoint').template.attributes.attribute_keys.length).to eql(41)
         expect(resulting_models.model('rna_seq').template.attributes.attribute_keys.length).to eql(72)
         expect(resulting_models.model('rna_seq').template.attributes.attribute('gene_tpm').options).to eql(["this", "is", "matrix", "constant"])
       end
@@ -283,7 +283,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
 
       VCR.use_cassette('add_project_models_workflow-full-project.e2e') do
         # Change this name when re-recording the cassette file to ensure a new project is synced
-        test_project = "test_add_project_models_workflow_full_tzh"
+        test_project = "test_add_project_models_workflow_full_tzi"
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
             token: ENV['TOKEN'] || TEST_TOKEN, ignore_ssl: true,
@@ -308,8 +308,8 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
 
         # Change this based on source model
         expect(changeset.matrix_constants.values.length).to eql(1)
-        # Change this based on source model.  I hard coded my local mvir1 to have 3 rather than 80K for faster development.
-        expect(changeset.matrix_constants.values.first.length).to eql(3)
+        # Change this based on source model.  I hard coded my local mvir1 to have 4 rather than 80K for faster development.
+        expect(changeset.matrix_constants.values.first.length).to eql(4)
         changeset.matrix_constants.keys.each do |k|
           changeset.matrix_constants[k] = ['this', 'is', 'matrix', 'constant']
         end
@@ -322,16 +322,16 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         resulting_models = magma_client.retrieve(Etna::Clients::Magma::RetrievalRequest.new(project_name: test_project)).models
         expect(resulting_models.model_keys.sort).to eql([
           "admission_lab", "analyte", "clinical_lab", "comorbidity",
-          "cytof", "cytof_pool", "cytokine", "document", "immunoassay",
-          "olink", "patient", "project",
-          "rna_seq", "rna_seq_plate", "sc_rna_seq", "sc_rna_seq_pool", "symptom",
+          "cytof", "cytof_pool", "dna_seq", "document", "immunoassay",
+          "meta_seq", "patient", "project",
+          "rna_seq", "rna_seq_plate", "sc_rna_seq", "sc_rna_seq_pool", "symptom", "taxon",
           "timepoint", "treatment"
-        ])
+      ])
 
         # Ensure, unlike the above partial sync test, that the entire tree and all attributes are synced.
         expect(resulting_models.model('symptom').template.attributes.attribute_keys.sort).to eql(["bleeding_site", "created_at", "id", "name", "other_name", "patient", "present", "symptom_date", "symptom_reported_by", "updated_at"])
         expect(resulting_models.model('cytof_pool').template.attributes.attribute_keys.length).to eql(17)
-        expect(resulting_models.model('timepoint').template.attributes.attribute_keys.length).to eql(40)
+        expect(resulting_models.model('timepoint').template.attributes.attribute_keys.length).to eql(41)
         expect(resulting_models.model('rna_seq').template.attributes.attribute_keys.length).to eql(72)
         expect(resulting_models.model('rna_seq').template.attributes.attribute('gene_tpm').options).to eql(["this", "is", "matrix", "constant"])
       end
