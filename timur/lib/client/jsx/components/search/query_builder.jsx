@@ -1,20 +1,20 @@
 import React, {useCallback, useState, useEffect, useMemo} from 'react';
-import {connect} from "react-redux";
+import {connect} from 'react-redux';
 import {
   selectDisplayAttributeNamesAndTypes,
   selectSearchShowDisconnected,
   selectSortedAttributeNames
-} from "../../selectors/search";
+} from '../../selectors/search';
 import {
   setFilterString,
   setShowDisconnected,
   setSearchAttributeNames,
   setOutputPredicate
-} from "../../actions/search_actions";
-import {useModal} from "etna-js/components/ModalDialogContainer";
+} from '../../actions/search_actions';
+import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import TreeView, {getSelectedLeaves} from 'etna-js/components/TreeView';
-import SelectInput from "etna-js/components/inputs/select_input";
+import SelectInput from 'etna-js/components/inputs/select_input';
 import {selectIsEditor} from 'etna-js/selectors/user-selector';
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -27,18 +27,22 @@ export function QueryBuilder({
   attribute_names,
   setShowAdvanced,
   setOutputPredicate,
-  magma_state }) {
-
-  const { openModal } = useModal();
+  magma_state
+}) {
+  const {openModal} = useModal();
   const [filtersState, setFiltersState] = useState([]);
-  const show_disconnected = useReduxState(state => selectSearchShowDisconnected(state));
+  const show_disconnected = useReduxState((state) =>
+    selectSearchShowDisconnected(state)
+  );
 
   useEffect(() => {
     setFiltersState([]);
   }, [selectedModel]);
 
   useEffect(() => {
-    setFiltersState(filtersState.filter(({attribute}) => attribute_names.includes(attribute)));
+    setFiltersState(
+      filtersState.filter(({attribute}) => attribute_names.includes(attribute))
+    );
   }, [attribute_names]);
 
   useEffect(() => {
@@ -48,92 +52,123 @@ export function QueryBuilder({
     //   with matrix data are returned.
     let outputPredicates = filtersState.filter(({attribute}) => {
       if (!attribute) return false;
-      let template = magma_state.models[selectedModel].template;      
+      let template = magma_state.models[selectedModel].template;
 
-      return "matrix" === template.attributes[attribute].attribute_type;
+      return 'matrix' === template.attributes[attribute].attribute_type;
     });
-    
-    setFilterString(filtersState.map(({attribute, operator, operand}) => {
-      switch (operator) {
-        case 'Greater than':
-          operator = '>';
-          break;
-        case 'Less than':
-          operator = '<';
-          break;
-        case 'Equals':
-          operator = '=';
-          break;
-        case 'Contains':
-          operand = `.*${escapeRegExp(operand)}.*`;
-          operator = '~';
-          break;
-        case 'Starts with':
-          operand = `${escapeRegExp(operand)}.*`;
-          operator = '~';
-          break;
-        case 'Ends with':
-          operand = `.*${escapeRegExp(operand)}`;
-          operator = '~';
-          break;
-        case 'In':
-          operator = '[]';
-          break;
-        case 'Is null':
-          operand = null;
-          operator = '^@';
-          break;
-      }
 
-      return `${attribute}${operator}${operand}`;
-    }))
-    
-    if (outputPredicates) {
-      // Set any matrix attributes to slices
-      setOutputPredicate(outputPredicates.map(({attribute, operator, operand}) => {
+    setFilterString(
+      filtersState.map(({attribute, operator, operand}) => {
         switch (operator) {
+          case 'Greater than':
+            operator = '>';
+            break;
+          case 'Less than':
+            operator = '<';
+            break;
+          case 'Equals':
+            operator = '=';
+            break;
+          case 'Contains':
+            operand = `.*${escapeRegExp(operand)}.*`;
+            operator = '~';
+            break;
+          case 'Starts with':
+            operand = `${escapeRegExp(operand)}.*`;
+            operator = '~';
+            break;
+          case 'Ends with':
+            operand = `.*${escapeRegExp(operand)}`;
+            operator = '~';
+            break;
           case 'In':
             operator = '[]';
+            break;
+          case 'Is null':
+            operand = null;
+            operator = '^@';
             break;
         }
 
         return `${attribute}${operator}${operand}`;
-      }))
+      })
+    );
+
+    if (outputPredicates) {
+      // Set any matrix attributes to slices
+      setOutputPredicate(
+        outputPredicates.map(({attribute, operator, operand}) => {
+          switch (operator) {
+            case 'In':
+              operator = '[]';
+              break;
+          }
+
+          return `${attribute}${operator}${operand}`;
+        })
+      );
     }
   }, [setFilterString, setOutputPredicate, filtersState]);
 
   const onOpenAttributeFilter = () => {
-    openModal(<FilterAttributesModal display_attributes={display_attributes} selectedModel={selectedModel} />);
+    openModal(
+      <FilterAttributesModal
+        display_attributes={display_attributes}
+        selectedModel={selectedModel}
+      />
+    );
   };
 
   const onOpenFilters = () => {
-    openModal(<QueryFilterModal display_attributes={display_attributes} 
-                                filtersState={filtersState} 
-                                setFiltersState={setFiltersState} />);
+    openModal(
+      <QueryFilterModal
+        display_attributes={display_attributes}
+        filtersState={filtersState}
+        setFiltersState={setFiltersState}
+      />
+    );
   };
 
-  const columnsText = attribute_names.length === display_attributes.length ? 'All' : `${attribute_names.length} / ${display_attributes.length}`;
+  const columnsText =
+    attribute_names.length === display_attributes.length
+      ? 'All'
+      : `${attribute_names.length} / ${display_attributes.length}`;
   const filtersCount = filtersState.length + (show_disconnected ? 1 : 0);
-  const filtersText = filtersCount === 0 ? 'No filters' : filtersCount === 1 ? '1 filter' : `${filtersCount} filters`;
+  const filtersText =
+    filtersCount === 0
+      ? 'No filters'
+      : filtersCount === 1
+      ? '1 filter'
+      : `${filtersCount} filters`;
 
-  return <div className='query-builder'>
-    <a className='pointer' onClick={onOpenAttributeFilter}>
-      { columnsText } columns
-    </a>
-    <a className='pointer' onClick={onOpenFilters}>
-      { filtersText }
-    </a>
-  </div>;
+  return (
+    <div className='query-builder'>
+      <a className='pointer' onClick={onOpenAttributeFilter}>
+        {columnsText} columns
+      </a>
+      <a className='pointer' onClick={onOpenFilters}>
+        {filtersText}
+      </a>
+    </div>
+  );
 }
 
 function disabledAttributeForProject(projectName, modelName) {
-  return ([name, type]) => type === 'identifier' || type === 'parent'
+  return ([name, type]) => type === 'identifier' || type === 'parent';
 }
 
-function FilterAttributesModal({ setSearchAttributeNames, display_attributes, attributeNames, attributeNamesAndTypes, selectedModel }) {
-  const displayAttributeOptions = [['All', display_attributes.map(e => [e])]];
-  const { dismissModal } = useModal();
-  const [selectedState, setSelectedState] = useState(() => attributeNamesToSelected(attributeNames));
+function FilterAttributesModal({
+  setSearchAttributeNames,
+  display_attributes,
+  attributeNames,
+  attributeNamesAndTypes,
+  selectedModel
+}) {
+  const displayAttributeOptions = [['All', display_attributes.map((e) => [e])]];
+  const {dismissModal} = useModal();
+  const [selectedState, setSelectedState] = useState(() =>
+    attributeNamesToSelected(attributeNames)
+  );
 
   const disabledAttributeNames = useMemo(() => {
     return attributeNamesAndTypes
@@ -156,7 +191,9 @@ function FilterAttributesModal({ setSearchAttributeNames, display_attributes, at
         onSelectionsChange={setSelectedState}
       />
       <div className='actions'>
-        <button onClick={onOk} disabled={attributeNames.length === 0}>Ok</button>
+        <button onClick={onOk} disabled={attributeNames.length === 0}>
+          Ok
+        </button>
       </div>
     </div>
   );
@@ -165,9 +202,9 @@ function FilterAttributesModal({ setSearchAttributeNames, display_attributes, at
 FilterAttributesModal = connect(
   (state) => ({
     attributeNames: selectSortedAttributeNames(state),
-    attributeNamesAndTypes: selectDisplayAttributeNamesAndTypes(state),
+    attributeNamesAndTypes: selectDisplayAttributeNamesAndTypes(state)
   }),
-  { setSearchAttributeNames }
+  {setSearchAttributeNames}
 )(FilterAttributesModal);
 
 const operators = [
@@ -178,22 +215,24 @@ const operators = [
   'Starts with',
   'Ends with',
   'In',
-  'Is null',
+  'Is null'
 ];
 
 const defaultFilterRowState = {
   attribute: '',
   operator: operators[0],
-  operand: '',
-}
+  operand: ''
+};
 
 function QueryFilterModal({
-  attribute_names, can_edit,
-  show_disconnected, setShowDisconnected, 
+  attribute_names,
+  can_edit,
+  show_disconnected,
+  setShowDisconnected,
   filtersState: initialFiltersState,
   setFiltersState: updateParentFiltersState
 }) {
-  const { dismissModal } = useModal();
+  const {dismissModal} = useModal();
   let [filtersState, setLocalFiltersState] = useState(initialFiltersState);
 
   function setFiltersState(state) {
@@ -209,15 +248,21 @@ function QueryFilterModal({
           filtersState.splice(idx, 1);
         } else {
           if (idx === -1) {
-            filtersState = [...filtersState, { ...defaultFilterRowState, [rowAttribute]: value }];
+            filtersState = [
+              ...filtersState,
+              {...defaultFilterRowState, [rowAttribute]: value}
+            ];
           } else {
             filtersState = [...filtersState];
-            filtersState.splice(idx, 1, { ...filtersState[idx], [rowAttribute]: value });
+            filtersState.splice(idx, 1, {
+              ...filtersState[idx],
+              [rowAttribute]: value
+            });
           }
         }
         setFiltersState(filtersState);
-      }
-    }
+      };
+    };
   }
 
   const onFilterAttributeChange = FiltersStateHandler('attribute');
@@ -226,43 +271,51 @@ function QueryFilterModal({
 
   return (
     <div className='search-filters-modal'>
-      {filtersState.map(({attribute, operator, operand}, idx) => <div className='filters' key={idx}>
-        <SelectInput
-          values={attribute_names}
-          defaultValue={attribute}
-          onChange={onFilterAttributeChange(idx)}
-          showNone='enabled'
-          className='filter attribute'
-        />
+      {filtersState.map(({attribute, operator, operand}, idx) => (
+        <div className='filters' key={idx}>
+          <SelectInput
+            values={attribute_names}
+            defaultValue={attribute}
+            onChange={onFilterAttributeChange(idx)}
+            showNone='enabled'
+            className='filter attribute'
+          />
 
-        <SelectInput
-          values={operators}
-          defaultValue={operator}
-          onChange={onFilterOperatorChange(idx)}
-          showNone='enabled'
-          className='filter operator'
-        />
+          <SelectInput
+            values={operators}
+            defaultValue={operator}
+            onChange={onFilterOperatorChange(idx)}
+            showNone='enabled'
+            className='filter operator'
+          />
 
-        { "Is null" !== operator ? 
-          <input
-            type='text'
-            className='filter operand'
-            defaultValue={operand}
-            onBlur={(e) => onFilterOperandChange(idx)(e.target.value)}
-          /> : 
-          <input
-            type='text'
-            readOnly={true}
-            className='filter operand'
-            defaultValue="null"
-          /> }
+          {'Is null' !== operator ? (
+            <input
+              type='text'
+              className='filter operand'
+              defaultValue={operand}
+              onBlur={(e) => onFilterOperandChange(idx)(e.target.value)}
+            />
+          ) : (
+            <input
+              type='text'
+              readOnly={true}
+              className='filter operand'
+              defaultValue='null'
+            />
+          )}
 
-        <a className='pointer delete' onClick={() => onFilterOperandChange(idx)('')}>
-          <i className='fas fa-times'/>
-        </a>
-      </div>)}
+          <a
+            className='pointer delete'
+            onClick={() => onFilterOperandChange(idx)('')}
+          >
+            <i className='fas fa-times' />
+          </a>
+        </div>
+      ))}
       <div>
-        New Filter On <SelectInput
+        New Filter On{' '}
+        <SelectInput
           name='model'
           values={attribute_names}
           value=''
@@ -271,13 +324,16 @@ function QueryFilterModal({
         />
       </div>
       <div className='tray'>
-        { can_edit && 
+        {can_edit && (
           <label className='show-disconnected'>
             <input
-              checked={ !!show_disconnected }
-              onChange={ () => setShowDisconnected(!show_disconnected) }
-              type="checkbox"/> Show only disconnected records
-          </label> }
+              checked={!!show_disconnected}
+              onChange={() => setShowDisconnected(!show_disconnected)}
+              type='checkbox'
+            />{' '}
+            Show only disconnected records
+          </label>
+        )}
         <div className='actions'>
           <button onClick={dismissModal}>Ok</button>
         </div>
@@ -287,20 +343,21 @@ function QueryFilterModal({
 }
 
 QueryFilterModal = connect(
-  (state) => ({ attribute_names: selectSortedAttributeNames(state),
+  (state) => ({
+    attribute_names: selectSortedAttributeNames(state),
     show_disconnected: selectSearchShowDisconnected(state),
     can_edit: selectIsEditor(state)
   }),
-  { setShowDisconnected }
+  {setShowDisconnected}
 )(QueryFilterModal);
 
 function attributeNamesToSelected(attributeNames) {
   if (attributeNames === 'all') return null;
-  return { All: attributeNames.reduce((o, p) => (o[p] = true, o), {}) };
+  return {All: attributeNames.reduce((o, p) => ((o[p] = true), o), {})};
 }
 
 function attributeNamesToDisabled(attributeNames) {
-  return { All: attributeNames.reduce((o, p) => (o[p] = true, o), {}) };
+  return {All: attributeNames.reduce((o, p) => ((o[p] = true), o), {})};
 }
 
 export default connect(
@@ -311,5 +368,5 @@ export default connect(
   {
     setFilterString,
     setOutputPredicate
- }
+  }
 )(QueryBuilder);

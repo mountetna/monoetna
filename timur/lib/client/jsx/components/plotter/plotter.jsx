@@ -1,6 +1,6 @@
 // Framework libraries.
 import * as React from 'react';
-import { connect } from 'react-redux';
+import {connect} from 'react-redux';
 
 import DocumentWindow from '../document/document_window';
 import Dropdown from 'etna-js/components/inputs/dropdown';
@@ -9,12 +9,12 @@ import PlotLayout from './plot_layout';
 import PlotConfig from './plot_config';
 import PlotSeries from './plot_series';
 import Plot from '../plots/plot';
-import { plotTypes, plotConfig } from 'etna-js/plots/plot_config';
+import {plotTypes, plotConfig} from 'etna-js/plots/plot_config';
 import Resize from '../resize';
 
 import ErrorBoundary from '../error_boundary';
 
-import { pushLocation } from 'etna-js/actions/location_actions';
+import {pushLocation} from 'etna-js/actions/location_actions';
 import {
   requestPlots,
   saveNewPlot,
@@ -23,14 +23,8 @@ import {
   deletePlot
 } from '../../actions/plot_actions';
 
-import {
-  newPlot,
-  selectPlot,
-  getAllPlots
-} from '../../selectors/plot_selector';
-import {
-  MD5
-} from 'etna-js/plots/selectors/consignment_selector';
+import {newPlot, selectPlot, getAllPlots} from '../../selectors/plot_selector';
+import {MD5} from 'etna-js/plots/selectors/consignment_selector';
 // the basic plotter interface
 //
 // basics:
@@ -54,36 +48,36 @@ import {
 //  series vars, e.g. x y color
 const PLOT_TYPES = plotTypes();
 
-const SelectPlot = ({update, selected}) =>
+const SelectPlot = ({update, selected}) => (
   <div className='select-plot'>
     <Dropdown
       default_text='Select Plot'
-      list={ PLOT_TYPES }
-      onSelect={ index=>{
+      list={PLOT_TYPES}
+      onSelect={(index) => {
         update(PLOT_TYPES[index]);
       }}
       selected_index={PLOT_TYPES.indexOf(selected)}
     />
-  </div>;
-
-const PlotFailed = () => <div className='plot-failed'> <i className='fas fa-car-crash'/>
-  Plot failed.
-</div>;
-
-const Chart = connect(
-  (state,{plot}) => ({ plot: selectPlot(state,plot?plot.id:null) })
-)(
-  ({plot}) => <div className='chart'>
-
-    <ErrorBoundary replacement={PlotFailed}>
-      <Resize
-        render={width => (
-          <Plot plot={plot} width={width} />
-        )}
-      />
-    </ErrorBoundary>
   </div>
 );
+
+const PlotFailed = () => (
+  <div className='plot-failed'>
+    {' '}
+    <i className='fas fa-car-crash' />
+    Plot failed.
+  </div>
+);
+
+const Chart = connect((state, {plot}) => ({
+  plot: selectPlot(state, plot ? plot.id : null)
+}))(({plot}) => (
+  <div className='chart'>
+    <ErrorBoundary replacement={PlotFailed}>
+      <Resize render={(width) => <Plot plot={plot} width={width} />} />
+    </ErrorBoundary>
+  </div>
+));
 
 class Plotter extends React.Component {
   constructor(props) {
@@ -102,8 +96,8 @@ class Plotter extends React.Component {
   }
 
   componentDidUpdate() {
-    let { plot_id, plots } = this.props;
-    let { plot } = this.state;
+    let {plot_id, plots} = this.props;
+    let {plot} = this.state;
 
     if (plot_id && plots && !plot) this.selectPlot(plot_id, false);
   }
@@ -116,24 +110,24 @@ class Plotter extends React.Component {
     this.selectPlot(plot.id);
   }
 
-  selectPlot(id, push=true) {
-    let { plots, pushLocation } = this.props;
+  selectPlot(id, push = true) {
+    let {plots, pushLocation} = this.props;
     let plot;
 
-    switch(id) {
+    switch (id) {
       case 'new':
-        plot = newPlot()
+        plot = newPlot();
         break;
       case null:
         plot = null;
         break;
       default:
         // find it in the existing manifests
-        plot = plots.find(p => p.id == id);
+        plot = plots.find((p) => p.id == id);
         if (!plot) return;
 
         // copy it so you don't modify the store
-        plot = { ...plot };
+        plot = {...plot};
         break;
     }
 
@@ -143,16 +137,17 @@ class Plotter extends React.Component {
       editing: id == 'new'
     });
 
-    if (push) pushLocation(
-      id == null ?
-      Routes.plots_path(CONFIG.project_name) :
-      Routes.plot_path(CONFIG.project_name, id)
-    );
+    if (push)
+      pushLocation(
+        id == null
+          ? Routes.plots_path(CONFIG.project_name)
+          : Routes.plot_path(CONFIG.project_name, id)
+      );
   }
 
   updateField(field_name) {
-    return event => {
-      let { plot, md5sum } = this.state;
+    return (event) => {
+      let {plot, md5sum} = this.state;
       let new_md5sum;
 
       if (field_name == 'script') {
@@ -162,28 +157,28 @@ class Plotter extends React.Component {
       } else {
         plot[field_name] = event.target.value;
       }
-      this.setState({ plot, md5sum: new_md5sum || md5sum });
+      this.setState({plot, md5sum: new_md5sum || md5sum});
     };
   }
 
   updatePlotField(field_name) {
-    return value => {
-      let { plot } = this.state;
+    return (value) => {
+      let {plot} = this.state;
       plot[field_name] = value;
-      this.setState({ plot });
+      this.setState({plot});
     };
   }
 
   updatePlotConfiguration(field_name) {
-    return value => {
-      let { plot } = this.state;
-      let new_configuration = { ...plot.configuration, [field_name]: value };
+    return (value) => {
+      let {plot} = this.state;
+      let new_configuration = {...plot.configuration, [field_name]: value};
       this.updatePlotField('configuration')(new_configuration);
     };
   }
 
   savePlot() {
-    let { plot, editing } = this.state;
+    let {plot, editing} = this.state;
     // A new plot should have an id set to 0.
     if (plot.id <= 0) this.props.saveNewPlot(plot, this.setPlot.bind(this));
     else {
@@ -199,19 +194,22 @@ class Plotter extends React.Component {
   }
 
   copyPlot() {
-    let { plot } = this.state;
+    let {plot} = this.state;
     this.props.copyPlot(plot, this.setPlot.bind(this));
   }
 
   deletePlot() {
-    let { plot } = this.state;
+    let {plot} = this.state;
     if (confirm('Are you sure you want to remove this plot?')) {
       this.props.deletePlot(plot, () => this.selectPlot(null));
     }
   }
 
   revertPlot() {
-    let { plot: { id }, editing } = this.state;
+    let {
+      plot: {id},
+      editing
+    } = this.state;
 
     if (id > 0) this.selectPlot(id);
     else this.selectPlot(null);
@@ -220,7 +218,7 @@ class Plotter extends React.Component {
   }
 
   renderEditor() {
-    let { plot } = this.state;
+    let {plot} = this.state;
     let plot_config = plotConfig(plot.plot_type);
 
     return (
@@ -246,56 +244,64 @@ class Plotter extends React.Component {
             <PlotConfig
               config={plot_config}
               label={plot_config.label}
-              series_types={ plot_config.series_types }
+              series_types={plot_config.series_types}
               updateType={this.updatePlotField('plot_type')}
-              updateSeries={ this.updatePlotConfiguration('plot_series')}
+              updateSeries={this.updatePlotConfiguration('plot_series')}
               onChange={(name, value) => {
                 this.updatePlotConfiguration('variables')(value);
-              } }
-              variables={ plot.configuration.variables }
+              }}
+              variables={plot.configuration.variables}
               plot_series={plot.configuration.plot_series}
             />
           ) : (
-            <SelectPlot update={ this.updatePlotField('plot_type') } selected={ plot.plot_type }/>
+            <SelectPlot
+              update={this.updatePlotField('plot_type')}
+              selected={plot.plot_type}
+            />
           )}
-          { plot_config &&
-          <div className='ps-list-container'>
-            {plot.configuration.plot_series && plot.configuration.plot_series.map((series, index) => (
-              <PlotSeries
-                key={`ps-card-container-${index}`}
-                plot_series={series}
-                series_config={plot_config.series_types[ series.series_type]}
-                onDelete={() => {
-                  let new_plot_series = plot.configuration.plot_series.slice(0);
-                  new_plot_series.splice(index, 1);
-                  this.updatePlotConfiguration('plot_series')(new_plot_series);
-                }}
-                onChange={(name, value) => {
-                  let new_plot_series = plot.configuration.plot_series.slice(0);
-                  new_plot_series[index] = { ...series, [name]: value };
-                  this.updatePlotConfiguration('plot_series')(new_plot_series);
-                }}
-              />
-            ))}
-          </div>
-          }
+          {plot_config && (
+            <div className='ps-list-container'>
+              {plot.configuration.plot_series &&
+                plot.configuration.plot_series.map((series, index) => (
+                  <PlotSeries
+                    key={`ps-card-container-${index}`}
+                    plot_series={series}
+                    series_config={plot_config.series_types[series.series_type]}
+                    onDelete={() => {
+                      let new_plot_series =
+                        plot.configuration.plot_series.slice(0);
+                      new_plot_series.splice(index, 1);
+                      this.updatePlotConfiguration('plot_series')(
+                        new_plot_series
+                      );
+                    }}
+                    onChange={(name, value) => {
+                      let new_plot_series =
+                        plot.configuration.plot_series.slice(0);
+                      new_plot_series[index] = {...series, [name]: value};
+                      this.updatePlotConfiguration('plot_series')(
+                        new_plot_series
+                      );
+                    }}
+                  />
+                ))}
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
   renderPlot() {
-    let { plot } = this.state;
+    let {plot} = this.state;
 
-    return (
-      <Chart plot={ plot }/>
-    );
+    return <Chart plot={plot} />;
   }
   render() {
     // Variables.
-    let { plots } = this.props;
+    let {plots} = this.props;
 
-    let { plot, editing, md5sum } = this.state;
+    let {plot, editing, md5sum} = this.state;
 
     return (
       <DocumentWindow
