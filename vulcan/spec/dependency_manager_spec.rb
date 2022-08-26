@@ -11,6 +11,10 @@ describe Vulcan::DependencyManager do
   let(:session) { Session.new_session_for('project', 'test_workflow.cwl', 'storage_key', inputs, reference_figure_id: figure.id) }
   let(:dm) { Vulcan::DependencyManager.new }
 
+  before(:each) do
+    configure_etna_yml_ignore_dependencies(false)
+  end
+
   after(:each) do
     configure_etna_yml_ignore_dependencies(false)
   end
