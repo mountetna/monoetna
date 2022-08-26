@@ -892,7 +892,7 @@ describe AdminController do
         expect(last_response.status).to eq(200)
         expect(CcAgreement.count).to eq(2)
 
-        sleep(1)
+        sleep(3)
 
         json_post('/api/admin/door/cc', cc_text: "I promise to...", agreed: true)
 
