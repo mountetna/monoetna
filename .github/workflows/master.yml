@@ -28,7 +28,7 @@ jobs:
           NO_TEST: 1
         run: |
           make -j 4 release
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Push to staging branch
@@ -36,5 +36,4 @@ jobs:
           git config --global user.name 'GithubAction'
           git config --global user.email 'mountetna@users.noreply.github.com'
           git config --global core.mergeoptions --no-edit
-          git commit -m "Empty commit to trigger staging images build on merge" --allow-empty
           git push origin HEAD:staging --force
