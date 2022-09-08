@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Push to staging branch'
+      - name: Push to staging branch
         run: |
           git config --global user.name 'GithubAction'
           git config --global user.email 'mountetna@users.noreply.github.com'
