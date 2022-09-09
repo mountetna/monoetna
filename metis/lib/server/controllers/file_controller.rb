@@ -52,7 +52,7 @@ class FileController < Metis::Controller
     raise Etna::Error.new('File not found', 404) unless file&.has_data?
 
     raise Etna::Forbidden, 'File is read only' if file.read_only?
-    
+
     file.update(updated_at: Time.now, author: Metis::File.author(@user))
     file.refresh
 
@@ -165,32 +165,20 @@ class FileController < Metis::Controller
 
     revision_bucket_folders = {}
 
+    # The only read-only buckets that have the name matching
+    #   the owner should be from other apps, i.e. Magma
+    read_only_buckets = Metis::Bucket.where(
+      owner: Metis::Bucket::READ_ONLY_BUCKETS,
+      name: Metis::Bucket::READ_ONLY_BUCKETS
+    ).all
+
     revisions.each do |rev|
-      rev.set_bucket(rev.source, user_authorized_buckets)
+      rev.set_bucket(rev.source, user_authorized_buckets + read_only_buckets)
       rev.set_bucket(rev.dest, user_authorized_buckets)
     end
 
-    user_authorized_buckets.each do |bucket|
-      # Bulk-fetch all the unique folders that are in the
-      #   revisions.
-      bucket_folder_paths = revisions.
-        map(&:mpaths).flatten.
-        select{|p| p.bucket_matches?(bucket)}.
-        map(&:folder_path).flatten.compact.uniq
-
-      bucket_folders = bucket_folder_paths.map {
-        |folder_path| Metis::Folder.from_path(bucket, folder_path).last
-      }.flatten.compact
-
-      revisions.each do |rev|
-        if rev.source.mpath.bucket_matches?(bucket)
-          rev.set_folder(rev.source, bucket_folders)
-        end
-        if rev.dest.mpath.bucket_matches?(bucket)
-          rev.set_folder(rev.dest, bucket_folders)
-        end
-      end
-    end
+    set_revision_folder(revisions, user_authorized_buckets, set_dest: true)
+    set_revision_folder(revisions, read_only_buckets, set_dest: false)
 
     revisions.map { |rev| rev.validate }
 
@@ -206,6 +194,30 @@ class FileController < Metis::Controller
   end
 
   private
+
+  def set_revision_folder(revisions, buckets, set_dest: false)
+    buckets.each do |bucket|
+      # Bulk-fetch all the unique folders that are in the
+      #   revisions.
+      bucket_folder_paths = revisions.
+        map(&:mpaths).flatten.
+        select{|p| p.bucket_matches?(bucket)}.
+        map(&:folder_path).flatten.compact.uniq
+
+      bucket_folders = bucket_folder_paths.map {
+        |folder_path| Metis::Folder.from_path(bucket, folder_path).last
+      }.flatten.compact
+
+      revisions.each do |rev|
+        if rev.source.mpath.bucket_matches?(bucket)
+          rev.set_folder(rev.source, bucket_folders)
+        end
+        if set_dest && rev.dest.mpath.bucket_matches?(bucket)
+          rev.set_folder(rev.dest, bucket_folders)
+        end
+      end
+    end
+  end
 
   def construct_dest_info
     if Metis::Path.filepath_match.match(@params[:new_file_path])
