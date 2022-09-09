@@ -847,6 +847,32 @@ describe FileController do
         expect(new_wisdom_file.data_block).to eq(@magma_wisdom.data_block)
       end
 
+      it 'refuses to copy a file out of a different project\'s magma bucket' do
+        backup_bucket = default_bucket('backup')
+        backup_magma = create_read_only_bucket('backup', 'magma')
+        backup_wisdom = create_file('backup', 'backup-wisdom.txt', BACKUP_WISDOM, bucket: backup_bucket)
+        stubs.create_file('backup', 'magma', 'backup-wisdom.txt', BACKUP_WISDOM)
+
+        token_header(:editor)
+
+        expect(Metis::File.count).to eq(4)
+
+        bulk_copy([{
+          source: 'metis://backup/magma/wisdom.txt',
+          dest: 'metis://athena/files/restored-wisdom.txt'
+        }])
+
+        expect(last_response.status).to eq(422)
+
+        # the old file is untouched
+        backup_wisdom.refresh
+        expect(backup_wisdom.file_name).to eq('backup-wisdom.txt')
+        expect(backup_wisdom).to be_has_data
+
+        # there is no new file
+        expect(Metis::File.count).to eq(4)
+      end
+
       it 'refuses to copy a file into the Magma bucket' do
         token_header(:editor)
 

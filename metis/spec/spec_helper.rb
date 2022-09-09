@@ -380,6 +380,13 @@ which I command
 are immortal
 -- (c) Magma
 EOT
+BACKUP_WISDOM=<<EOT
+Although they are
+only breath, words
+which I command
+are immortal
+-- copy
+EOT
 HELMET=<<EOT
   xXx
  xO|Ox
