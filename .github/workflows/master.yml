@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.SYNC_ACCESS_TOKEN }}
       - name: docker login
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
@@ -31,11 +31,3 @@ jobs:
         run: |
           make -j 4 release
           git push origin HEAD:staging --force
-      - name: docker prune
-        run: docker system prune -f
-      - name: Build & Push staging tag images to dockerhub
-        env:
-          IMAGES_POSTFIX: :staging
-        run: |
-          make -B -j 4 release
-          git push origin HEAD:staging-build --force
