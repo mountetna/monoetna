@@ -32,7 +32,7 @@ jobs:
           make -j 4 release
           git push origin HEAD:staging --force
       - name: docker prune
-        run: docker system prune
+        run: docker system prune -f
       - name: Build & Push staging tag images to dockerhub
         env:
           IMAGES_POSTFIX: :staging
