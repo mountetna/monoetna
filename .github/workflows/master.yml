@@ -35,5 +35,5 @@ jobs:
         env:
           IMAGES_POSTFIX: :staging
         run: |
-          make -j 4 release
+          make -B -j 4 release
           git push origin HEAD:staging-build --force
