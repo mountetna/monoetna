@@ -11,11 +11,6 @@ concurrency:
 jobs:
   push-staging:
     runs-on: ubuntu-latest
-    env:
-      IS_CI: 1
-      PUSH_IMAGES: 1
-      IMAGES_PREFIX: etnaagent/
-      NO_TEST: 1
     steps:
       - uses: actions/checkout@v2
         with:
@@ -27,6 +22,10 @@ jobs:
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
       - name: Build & Push master tag images to dockerhub
         env:
+          IS_CI: 1
+          PUSH_IMAGES: 1
+          IMAGES_PREFIX: etnaagent/
+          NO_TEST: 1
           IMAGES_POSTFIX: :master
         run: |
           make -j 4 release
