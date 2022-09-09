@@ -442,7 +442,7 @@ end
 
 def create_read_only_bucket(project_name, bucket_name)
   stubs.create_bucket(project_name, bucket_name)
-  create( :bucket, project_name: project_name, name: bucket_name, owner: bucket_name, access: 'administrator')
+  create( :bucket, project_name: project_name, name: bucket_name, owner: bucket_name, access: 'viewer')
 end
 
 def create_upload(project_name, file_name, uid, params={})
