@@ -15,8 +15,6 @@ class Metis
       guest: 3
     }
 
-    READ_ONLY_BUCKETS = ['magma']
-
     def self.valid_bucket_name?(bucket_name)
       !!(bucket_name =~ /\A\w+\z/)
     end
@@ -75,6 +73,10 @@ class Metis
         description: description,
         count: Metis::File.where(bucket: self).count
       }
+    end
+
+    def reserved?
+      name == owner
     end
   end
 end

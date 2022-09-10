@@ -165,15 +165,7 @@ class FileController < Metis::Controller
 
     revision_bucket_folders = {}
 
-    # The only read-only buckets that have the name matching
-    #   the owner should be from other apps, i.e. Magma.
-    # Also restrict this to magma bucket within the same project,
-    #   so you cannot copy out of another project.
-    read_only_buckets = Metis::Bucket.where(
-      owner: Metis::Bucket::READ_ONLY_BUCKETS,
-      name: Metis::Bucket::READ_ONLY_BUCKETS,
-      project_name: @params[:project_name]
-    ).all
+    read_only_buckets = get_project_reserved_buckets
 
     revisions.each do |rev|
       rev.set_bucket(rev.source, user_authorized_buckets + read_only_buckets)
@@ -197,6 +189,18 @@ class FileController < Metis::Controller
   end
 
   private
+
+  def get_project_reserved_buckets
+    # The only read-only buckets that have the name matching
+    #   the owner should be from other apps, i.e. Magma.
+    # Also restrict this to magma bucket within the same project,
+    #   so you cannot copy out of another project.
+    Metis::Bucket.where(
+      project_name: @params[:project_name]
+    ).all.select do |bucket|
+      bucket.reserved?
+    end
+  end
 
   def set_revision_folder(revisions, buckets, set_dest: false)
     buckets.each do |bucket|
