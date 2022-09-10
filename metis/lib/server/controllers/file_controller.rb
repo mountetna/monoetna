@@ -191,15 +191,7 @@ class FileController < Metis::Controller
   private
 
   def get_project_reserved_buckets
-    # The only read-only buckets that have the name matching
-    #   the owner should be from other apps, i.e. Magma.
-    # Also restrict this to magma bucket within the same project,
-    #   so you cannot copy out of another project.
-    Metis::Bucket.where(
-      project_name: @params[:project_name]
-    ).all.select do |bucket|
-      bucket.reserved?
-    end
+    Metis::Bucket.reserved_buckets_for_project(@params[:project_name])
   end
 
   def set_revision_folder(revisions, buckets, set_dest: false)
