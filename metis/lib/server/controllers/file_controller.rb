@@ -165,7 +165,7 @@ class FileController < Metis::Controller
 
     revision_bucket_folders = {}
 
-    read_only_buckets = get_project_reserved_buckets
+    read_only_buckets = reserved_buckets
 
     revisions.each do |rev|
       rev.set_bucket(rev.source, user_authorized_buckets + read_only_buckets)
@@ -190,7 +190,7 @@ class FileController < Metis::Controller
 
   private
 
-  def get_project_reserved_buckets
+  def reserved_buckets
     Metis::Bucket.reserved_buckets_for_project(@params[:project_name])
   end
 
