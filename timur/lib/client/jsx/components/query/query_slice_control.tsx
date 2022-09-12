@@ -39,7 +39,7 @@ const QuerySliceControl = ({
           modelNames={modelNames}
           isColumnFilter={true}
           patchClause={handlePatchClause}
-          removeClause={removeSlice}
+          removeClause={() => {}}
           showRemoveIcon={false}
         />
       </Grid>
