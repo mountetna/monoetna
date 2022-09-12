@@ -6,15 +6,15 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 const RemoveIcon = React.memo(
   ({
-    canEdit,
+    showRemoveIcon,
     onClick,
     label
   }: {
-    canEdit: boolean;
+    showRemoveIcon: boolean;
     onClick: () => void;
     label: string;
   }) => {
-    if (!canEdit) return null;
+    if (!showRemoveIcon) return null;
 
     return (
       <Tooltip title={`Remove ${label}`} aria-label={`remove ${label}`}>

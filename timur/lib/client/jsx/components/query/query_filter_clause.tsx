@@ -24,7 +24,7 @@ const QueryFilterClause = ({
   isColumnFilter,
   waitTime,
   eager,
-  canRemove,
+  showRemoveIcon,
   patchClause,
   removeClause
 }: {
@@ -35,7 +35,7 @@ const QueryFilterClause = ({
   isColumnFilter: boolean;
   waitTime?: number;
   eager?: boolean;
-  canRemove: boolean;
+  showRemoveIcon: boolean;
   patchClause: (clause: QueryClause) => void;
   removeClause: () => void;
 }) => {
@@ -235,13 +235,11 @@ const QueryFilterClause = ({
         ) : null}
       </Grid>
       <Grid item xs={1} container justify='flex-end'>
-        {canRemove ? (
-          <RemoveIcon
-            canEdit={!isColumnFilter}
-            onClick={removeClause}
-            label='clause'
-          />
-        ) : null}
+        <RemoveIcon
+          showRemoveIcon={showRemoveIcon}
+          onClick={removeClause}
+          label='clause'
+        />
       </Grid>
     </Grid>
   );

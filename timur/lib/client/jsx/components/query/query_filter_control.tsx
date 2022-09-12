@@ -149,7 +149,9 @@ const QueryFilterControl = ({
                         handlePatchClause(updatedClause, index)
                       }
                       removeClause={() => handleRemoveClause(index)}
-                      canRemove={!(0 === index && 1 === filter.clauses.length)}
+                      showRemoveIcon={
+                        !(0 === index && 1 === filter.clauses.length)
+                      }
                     />
                   </Grid>
                 </Grid>
@@ -171,7 +173,11 @@ const QueryFilterControl = ({
       </Grid>
       <Grid item xs={1} container justify='flex-end'>
         <CopyIcon canEdit={true} onClick={copyFilter} label='filter' />
-        <RemoveIcon canEdit={true} onClick={removeFilter} label='filter' />
+        <RemoveIcon
+          showRemoveIcon={true}
+          onClick={removeFilter}
+          label='filter'
+        />
       </Grid>
     </>
   );

@@ -39,12 +39,12 @@ const QuerySliceControl = ({
           modelNames={modelNames}
           isColumnFilter={true}
           patchClause={handlePatchClause}
-          removeClause={() => {}}
-          canRemove={false}
+          removeClause={removeSlice}
+          showRemoveIcon={false}
         />
       </Grid>
       <Grid item xs={1} container justify='flex-end'>
-        <RemoveIcon canEdit={true} onClick={removeSlice} label='slice' />
+        <RemoveIcon showRemoveIcon={true} onClick={removeSlice} label='slice' />
       </Grid>
     </>
   );
