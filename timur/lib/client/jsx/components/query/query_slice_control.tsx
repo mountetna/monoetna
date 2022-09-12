@@ -40,6 +40,7 @@ const QuerySliceControl = ({
           isColumnFilter={true}
           patchClause={handlePatchClause}
           removeClause={() => {}}
+          canRemove={false}
         />
       </Grid>
       <Grid item xs={1} container justify='flex-end'>

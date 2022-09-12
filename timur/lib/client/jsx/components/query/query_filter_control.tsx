@@ -149,6 +149,7 @@ const QueryFilterControl = ({
                         handlePatchClause(updatedClause, index)
                       }
                       removeClause={() => handleRemoveClause(index)}
+                      canRemove={!(0 === index && 1 === filter.clauses.length)}
                     />
                   </Grid>
                 </Grid>
