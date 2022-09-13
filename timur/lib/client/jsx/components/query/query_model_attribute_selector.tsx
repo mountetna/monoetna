@@ -236,7 +236,7 @@ const QueryModelAttributeSelector = React.memo(
           <Grid item container justify='flex-end' xs={1}>
             <CopyIcon canEdit={canEdit} onClick={onCopyColumn} label='column' />
             <RemoveIcon
-              canEdit={canEdit}
+              showRemoveIcon={canEdit}
               onClick={onRemoveColumn}
               label='column'
             />
