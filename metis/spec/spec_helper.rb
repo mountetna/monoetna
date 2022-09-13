@@ -373,6 +373,20 @@ only breath, words
 which I command
 are immortal
 EOT
+MAGMA_WISDOM=<<EOT
+Although they are
+only breath, words
+which I command
+are immortal
+-- (c) Magma
+EOT
+BACKUP_WISDOM=<<EOT
+Although they are
+only breath, words
+which I command
+are immortal
+-- copy
+EOT
 HELMET=<<EOT
   xXx
  xO|Ox
@@ -424,6 +438,11 @@ def default_bucket(project_name)
     stubs.create_bucket(project_name, 'files')
     create( :bucket, project_name: project_name, name: 'files', owner: 'metis', access: 'viewer')
   end
+end
+
+def create_read_only_bucket(project_name, bucket_name)
+  stubs.create_bucket(project_name, bucket_name)
+  create( :bucket, project_name: project_name, name: bucket_name, owner: bucket_name, access: 'viewer')
 end
 
 def create_upload(project_name, file_name, uid, params={})

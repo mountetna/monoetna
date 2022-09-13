@@ -67,6 +67,17 @@ describe Metis::Bucket do
     get('/athena/list/my_bucket/')
     expect(last_response.status).to eq(403)
   end
+
+  it 'can fetch reserved buckets for a project' do
+    bucket = create(:bucket, project_name: 'athena', name: 'my_bucket', access: 'athena@olympus.org', owner: 'metis')
+    reserved_bucket = create(:bucket, project_name: 'athena', name: 'magma', access: 'athena@olympus.org', owner: 'magma')
+
+    expect(bucket.reserved?).to eq(false)
+    expect(reserved_bucket.reserved?).to eq(true)
+
+    expect(Metis::Bucket.reserved_buckets_for_project("foo").length).to eq(0)
+    expect(Metis::Bucket.reserved_buckets_for_project("athena")).to match_array([reserved_bucket])
+  end
 end
 
 describe BucketController do
