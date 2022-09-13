@@ -18,9 +18,15 @@ import RemoveIcon from './query_remove_icon';
 import Selector from './query_selector';
 
 const useStyles = makeStyles((theme) => ({
-  popper: {
+  option: {
     width: 'max-content',
     whiteSpace: 'nowrap'
+  },
+  listbox: {
+    width: 'max-content'
+  },
+  paper: {
+    width: 'max-content'
   }
 }));
 
@@ -218,9 +224,9 @@ const QueryFilterClause = ({
             distinctAttributeValues.length > 0 ? (
               <Autocomplete
                 classes={{
-                  option: classes.popper,
-                  listbox: classes.popper,
-                  paper: classes.popper
+                  option: classes.option,
+                  listbox: classes.listbox,
+                  paper: classes.paper
                 }}
                 id={uniqId(`operand-${clauseIndex}`)}
                 freeSolo
