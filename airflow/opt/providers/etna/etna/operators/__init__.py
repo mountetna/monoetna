@@ -30,7 +30,7 @@ def run_on_docker(
     cpu_reservation: Optional[int] = None,
     mem_reservation: Optional[int] = None,
     allow_manager_nodes=False,
-    constraints: Optional[List[str]] = None,
+    additional_constraints: Optional[List[str]] = None,
 ) -> DockerOperatorBase:
     if os.environ.get("DEV_MODE"):
         return run_in_container(
@@ -56,7 +56,7 @@ def run_on_docker(
         cpu_reservation=cpu_reservation,
         mem_reservation=mem_reservation,
         mem_limit=mem_limit,
-        constraints=constraints
+        additional_constraints=additional_constraints
     )
 
 
@@ -76,7 +76,7 @@ def run_in_swarm(
     cpu_reservation: Optional[int] = None,
     mem_reservation: Optional[int] = None,
     allow_manager_nodes=False,
-    constraints: Optional[List[str]] = None,
+    additional_constraints: Optional[List[str]] = None,
 ) -> DockerSwarmOperator:
     serialize_last_output = _prepare_input_outputs(output_b64, output_json)
 
@@ -93,7 +93,7 @@ def run_in_swarm(
         cpu_reservation=cpu_reservation,
         mem_reservation=mem_reservation,
         mem_limit=mem_limit,
-        constraints=constraints
+        additional_constraints=additional_constraints
     )
 
 
