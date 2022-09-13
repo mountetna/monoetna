@@ -211,7 +211,7 @@ class DockerSwarmOperator(DockerOperatorBase):
             service_data,
             local_network_ids,
             allow_manager_nodes=self.allow_manager_nodes,
-            constraints=self.constraints,
+            additional_constraints=self.additional_constraints,
             resources=Resources(
                 cpu_limit=self.cpu_limit,
                 cpu_reservation=self.cpu_reservation,
