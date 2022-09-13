@@ -8,7 +8,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {Debouncer} from 'etna-js/utils/debouncer';
-import {QueryClause} from '../../contexts/query/query_types';
+import {QuerySubclause} from '../../contexts/query/query_types';
 import {emptyQueryClauseStamp} from '../../selectors/query_selector';
 import FilterOperator from './query_filter_operator';
 import useQueryClause from './query_use_query_clause';
@@ -16,37 +16,29 @@ import {QueryGraph} from '../../utils/query_graph';
 import RemoveIcon from './query_remove_icon';
 import Selector from './query_selector';
 
-const QueryFilterClause = ({
-  clause,
-  clauseIndex,
-  modelNames,
+const QueryFilterSubclause = ({
+  subclause,
+  subclauseIndex,
   graph,
-  isColumnFilter,
   waitTime,
   eager,
-  showRemoveIcon,
-  canAddSubclause,
-  patchClause,
-  removeClause
+  patchSubclause,
+  removeSubclause
 }: {
-  clause: QueryClause;
-  clauseIndex: number;
-  modelNames: string[];
+  subclause: QuerySubclause;
+  subclauseIndex: number;
   graph: QueryGraph;
-  isColumnFilter: boolean;
   waitTime?: number;
   eager?: boolean;
-  showRemoveIcon: boolean;
-  canAddSubclause?: boolean;
-  patchClause: (clause: QueryClause) => void;
-  removeClause: () => void;
+  patchSubclause: (subclause: QuerySubclause) => void;
+  removeSubclause: () => void;
 }) => {
   const [operandValue, setOperandValue] = useState('' as string | number);
   const [previousOperandValue, setPreviousOperandValue] = useState(
     '' as string | number
   );
   const [previousAttributeName, setPreviousAttributeName] = useState(
-    clause.attributeName
+    subclause.attributeName
   );
   const [debouncer, setDebouncer] = useState(
     () => new Debouncer({windowMs: waitTime, eager})
@@ -246,4 +238,4 @@ const QueryFilterClause = ({
     </Grid>
   );
 };
-export default QueryFilterClause;
+export default QueryFilterSubclause;

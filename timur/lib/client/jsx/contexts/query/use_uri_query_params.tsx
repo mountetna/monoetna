@@ -2,6 +2,7 @@ import React, {useEffect} from 'react';
 import {QueryColumnState} from './query_column_context';
 import {QueryWhereState} from './query_where_context';
 import {QueryColumn} from './query_types';
+import {migrateSubclauses} from '../../utils/query_uri_params';
 
 export default function useUriQueryParams({
   columnState,
@@ -64,7 +65,9 @@ export default function useUriQueryParams({
     setQueryColumns(JSON.parse(searchParams.get('columns') || '[]'));
     setRootModel(searchParams.get('rootModel') || '');
     setWhereState({
-      recordFilters: JSON.parse(searchParams.get('recordFilters') || '[]'),
+      recordFilters: migrateSubclauses(
+        JSON.parse(searchParams.get('recordFilters') || '[]')
+      ),
       orRecordFilterIndices: JSON.parse(
         searchParams.get('orRecordFilterIndices') || '[]'
       )
