@@ -163,7 +163,7 @@ const QueryFilterClause = ({
           ) : null}
         </Grid>
       </Grid>
-      <Grid item xs={1} alignItems='center'>
+      <Grid item xs={1}>
         <RemoveIcon
           showRemoveIcon={showRemoveIcon}
           onClick={removeClause}

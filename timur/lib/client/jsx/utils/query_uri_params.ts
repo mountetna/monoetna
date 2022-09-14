@@ -6,10 +6,8 @@ import {
 
 export const isOldClauseFormat = (clause: QueryClause) => {
   return (
-    clause.attributeName &&
-    clause.attributeType &&
-    clause.operator &&
-    clause.operand
+    clause.attributeName && clause.attributeType && clause.operator
+    // clause.operand could be empty string as a valid entry
   );
 };
 

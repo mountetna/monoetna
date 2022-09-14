@@ -83,10 +83,14 @@ describe('QueryBuilder', () => {
             {
               modelName: 'prize',
               clause: {
-                attributeName: 'name',
-                operator: '::equals',
-                operand: 'Athens',
-                attributeType: 'identifier',
+                subclauses: [
+                  {
+                    attributeName: 'name',
+                    operator: '::equals',
+                    operand: 'Athens',
+                    attributeType: 'identifier'
+                  }
+                ],
                 modelName: 'prize',
                 any: true
               }
@@ -101,10 +105,14 @@ describe('QueryBuilder', () => {
             {
               modelName: 'prize',
               clause: {
-                attributeName: 'name',
-                operator: '::equals',
-                operand: 'Sparta',
-                attributeType: 'identifier',
+                subclauses: [
+                  {
+                    attributeName: 'name',
+                    operator: '::equals',
+                    operand: 'Sparta',
+                    attributeType: 'identifier'
+                  }
+                ],
                 modelName: 'prize',
                 any: true
               }
@@ -119,10 +127,14 @@ describe('QueryBuilder', () => {
             {
               modelName: 'victim',
               clause: {
-                attributeName: 'country',
-                operator: '::equals',
-                operand: 'Greece',
-                attributeType: 'string',
+                subclauses: [
+                  {
+                    attributeName: 'country',
+                    operator: '::equals',
+                    operand: 'Greece',
+                    attributeType: 'string'
+                  }
+                ],
                 modelName: 'victim',
                 any: true
               }
@@ -144,10 +156,14 @@ describe('QueryBuilder', () => {
           modelName: 'labor',
           clauses: [
             {
-              attributeName: 'year',
-              operator: '::=',
-              operand: 2,
-              attributeType: 'number',
+              subclauses: [
+                {
+                  attributeName: 'year',
+                  operator: '::=',
+                  operand: 2,
+                  attributeType: 'number'
+                }
+              ],
               modelName: 'labor',
               any: true
             }
@@ -158,7 +174,7 @@ describe('QueryBuilder', () => {
     };
   });
 
-  it('renders with Plot button', async () => {
+  fit('renders with Plot button', async () => {
     store = mockStore({
       magma: {models},
       janus: {projects: require('../../fixtures/project_names.json')},
