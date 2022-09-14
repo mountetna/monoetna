@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     padding: '0.5rem 0.5rem 0 0.5rem',
     marginBottom: '0.5rem',
-    height: '48px'
+    minHeight: '48px'
   },
   paddingLeft: {
     paddingLeft: 'calc(0.5rem - 4px)'
@@ -141,7 +141,6 @@ const QueryFilterControl = ({
                   <Grid item xs={11}>
                     <QueryFilterClause
                       clause={clause}
-                      clauseIndex={index}
                       graph={graph}
                       modelNames={Object.keys(modelChildren)}
                       isColumnFilter={false}
@@ -152,6 +151,7 @@ const QueryFilterControl = ({
                       showRemoveIcon={
                         !(0 === index && 1 === filter.clauses.length)
                       }
+                      canAddSubclause={true}
                     />
                   </Grid>
                 </Grid>

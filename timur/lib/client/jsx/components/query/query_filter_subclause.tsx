@@ -1,35 +1,57 @@
-// Generic filter component?
-// Model, attribute, operator, operand
-
 import React, {useMemo, useCallback, useState, useEffect} from 'react';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 import Autocomplete from '@material-ui/lab/Autocomplete';
+import {makeStyles} from '@material-ui/core/styles';
 
 import {Debouncer} from 'etna-js/utils/debouncer';
 import {QuerySubclause} from '../../contexts/query/query_types';
-import {emptyQueryClauseStamp} from '../../selectors/query_selector';
 import FilterOperator from './query_filter_operator';
-import useQueryClause from './query_use_query_clause';
+import useQuerySubclause from './query_use_query_subclause';
 import {QueryGraph} from '../../utils/query_graph';
 import RemoveIcon from './query_remove_icon';
 import Selector from './query_selector';
+import {Attribute} from '../../models/model_types';
+
+const useStyles = makeStyles((theme) => ({
+  option: {
+    width: 'max-content',
+    whiteSpace: 'nowrap'
+  },
+  listbox: {
+    width: 'max-content'
+  },
+  paper: {
+    width: 'max-content'
+  },
+  operand: {
+    paddingTop: '3px'
+  }
+}));
 
 const QueryFilterSubclause = ({
   subclause,
   subclauseIndex,
+  modelName,
+  modelAttributes,
   graph,
   waitTime,
   eager,
+  isColumnFilter,
+  showRemoveIcon,
   patchSubclause,
   removeSubclause
 }: {
   subclause: QuerySubclause;
   subclauseIndex: number;
+  modelName: string;
+  modelAttributes: Attribute[];
   graph: QueryGraph;
   waitTime?: number;
   eager?: boolean;
+  isColumnFilter: boolean;
+  showRemoveIcon: boolean;
   patchSubclause: (subclause: QuerySubclause) => void;
   removeSubclause: () => void;
 }) => {
@@ -43,6 +65,7 @@ const QueryFilterSubclause = ({
   const [debouncer, setDebouncer] = useState(
     () => new Debouncer({windowMs: waitTime, eager})
   );
+  const classes = useStyles();
 
   // Clear the existing debouncer and accept any new changes to the settings
   useEffect(() => {
@@ -51,39 +74,35 @@ const QueryFilterSubclause = ({
     return () => debouncer.reset();
   }, [waitTime, eager]);
 
-  const {
-    modelAttributes,
-    attributeType,
-    distinctAttributeValues,
-    fetchDistinctAttributeValues
-  } = useQueryClause({
-    clause,
-    graph,
-    isColumnFilter
-  });
+  const {attributeType, distinctAttributeValues, fetchDistinctAttributeValues} =
+    useQuerySubclause({
+      subclause,
+      graph,
+      modelName
+    });
 
   const filterOperator = useMemo(() => {
     return new FilterOperator({
-      clause,
+      subclause,
       isColumnFilter
     });
-  }, [clause, isColumnFilter]);
+  }, [subclause, isColumnFilter]);
 
   useEffect(() => {
     // When user selects a different attribute, update the type
-    if (attributeType !== clause.attributeType) {
-      patchClause({
-        ...clause,
+    if (attributeType !== subclause.attributeType) {
+      patchSubclause({
+        ...subclause,
         attributeType
       });
     }
-  }, [attributeType, clause, patchClause]);
+  }, [attributeType, subclause, patchSubclause]);
 
   useEffect(() => {
-    // When component loads, if clause already populated then
+    // When component loads, if subclause already populated then
     //    fetch the pre-selected attribute values.
     if (
-      '' !== clause.attributeName &&
+      '' !== subclause.attributeName &&
       filterOperator.hasPrepopulatedOperandOptions()
     ) {
       fetchDistinctAttributeValues();
@@ -93,15 +112,15 @@ const QueryFilterSubclause = ({
   useEffect(() => {
     // When user selects a different attribute, update the pre-populated options
     if (
-      previousAttributeName !== clause.attributeName &&
-      '' !== clause.attributeName &&
+      previousAttributeName !== subclause.attributeName &&
+      '' !== subclause.attributeName &&
       filterOperator.hasPrepopulatedOperandOptions()
     ) {
-      setPreviousAttributeName(clause.attributeName);
+      setPreviousAttributeName(subclause.attributeName);
       fetchDistinctAttributeValues();
     }
   }, [
-    clause.attributeName,
+    subclause.attributeName,
     filterOperator,
     previousAttributeName,
     fetchDistinctAttributeValues
@@ -109,33 +128,33 @@ const QueryFilterSubclause = ({
 
   const handleAttributeSelect = useCallback(
     (attributeName: string) => {
-      patchClause({
-        ...clause,
+      patchSubclause({
+        ...subclause,
         attributeName,
         operator: '',
         operand: ''
       });
     },
-    [clause, patchClause]
+    [subclause, patchSubclause]
   );
 
   const handleOperatorSelect = useCallback(
     (operator: string) =>
-      patchClause({
-        ...clause,
+      patchSubclause({
+        ...subclause,
         operator: filterOperator.magmify(operator)
       }),
-    [clause, patchClause, filterOperator]
+    [subclause, patchSubclause, filterOperator]
   );
 
   const handleOperandChange = useCallback(
     (operand: string) => {
-      patchClause({
-        ...clause,
+      patchSubclause({
+        ...subclause,
         operand: filterOperator.formatOperand(operand)
       });
     },
-    [patchClause, clause, filterOperator]
+    [patchSubclause, subclause, filterOperator]
   );
 
   const handleOperandChangeWithDebounce = useCallback(
@@ -146,63 +165,53 @@ const QueryFilterSubclause = ({
     [handleOperandChange, debouncer]
   );
 
-  const handleModelSelect = useCallback(
-    (modelName: string) => {
-      patchClause(emptyQueryClauseStamp(modelName));
-    },
-    [patchClause]
-  );
-
   // When the operand value changes, follow it
   useEffect(() => {
-    if (clause.operand !== previousOperandValue) {
+    if (subclause.operand !== previousOperandValue) {
       debouncer.reset();
-      setOperandValue(clause.operand);
-      setPreviousOperandValue(clause.operand);
+      setOperandValue(subclause.operand);
+      setPreviousOperandValue(subclause.operand);
     }
-  }, [clause.operand, debouncer, previousOperandValue]);
+  }, [subclause.operand, debouncer, previousOperandValue]);
 
   let uniqId = (idType: string): string =>
     `${idType}-Select-${Math.random().toString()}`;
 
   return (
-    <Grid container spacing={1} alignItems='center'>
-      <Grid item xs={3}>
-        <Selector
-          canEdit={true}
-          name={clause.modelName}
-          onSelect={handleModelSelect}
-          choiceSet={modelNames}
-          label='model'
-        />
-      </Grid>
-      <Grid item xs={3}>
+    <Grid container>
+      <Grid item xs={showRemoveIcon ? 4 : 5}>
         {modelAttributes.length > 0 ? (
           <Selector
             canEdit={true}
             label='attribute'
-            name={clause.attributeName}
+            name={subclause.attributeName}
             onSelect={handleAttributeSelect}
             choiceSet={modelAttributes.map((a) => a.attribute_name)}
           />
         ) : null}
       </Grid>
-      <Grid item xs={2}>
+      <Grid item xs={3}>
         <Selector
-          label={`operator-${clauseIndex}`}
+          label={`operator-${subclauseIndex}`}
           canEdit={true}
           name={filterOperator.prettify() || ''}
           choiceSet={Object.keys(filterOperator.options())}
           onSelect={handleOperatorSelect}
         />
       </Grid>
-      <Grid item xs={3}>
+      <Grid item xs={4}>
         {filterOperator.hasOperand() ? (
           <FormControl fullWidth>
             {filterOperator.hasPrepopulatedOperandOptions() &&
             distinctAttributeValues.length > 0 ? (
               <Autocomplete
-                id={uniqId(`operand-${clauseIndex}`)}
+                classes={{
+                  option: classes.option,
+                  listbox: classes.listbox,
+                  paper: classes.paper,
+                  root: classes.operand
+                }}
+                id={uniqId(`operand-${subclauseIndex}`)}
                 freeSolo
                 fullWidth
                 options={distinctAttributeValues}
@@ -218,7 +227,7 @@ const QueryFilterSubclause = ({
               />
             ) : (
               <TextField
-                id={uniqId(`operand-${clauseIndex}`)}
+                id={uniqId(`operand-${subclauseIndex}`)}
                 value={operandValue}
                 onChange={(e) =>
                   handleOperandChangeWithDebounce(e.target.value as string)
@@ -228,13 +237,15 @@ const QueryFilterSubclause = ({
           </FormControl>
         ) : null}
       </Grid>
-      <Grid item xs={1} container justify='flex-end'>
-        <RemoveIcon
-          showRemoveIcon={showRemoveIcon}
-          onClick={removeClause}
-          label='clause'
-        />
-      </Grid>
+      {showRemoveIcon ? (
+        <Grid item xs={1} container justify='flex-end'>
+          <RemoveIcon
+            showRemoveIcon={showRemoveIcon}
+            onClick={removeSubclause}
+            label='subclause'
+          />
+        </Grid>
+      ) : null}
     </Grid>
   );
 };

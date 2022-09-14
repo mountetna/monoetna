@@ -1,6 +1,6 @@
 import {Attribute} from 'etna-js/models/magma-model';
 
-interface QuerySubclause {
+export interface QuerySubclause {
   attributeName: string;
   attributeType: string;
   operator: string;

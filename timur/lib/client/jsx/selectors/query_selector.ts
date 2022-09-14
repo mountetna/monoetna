@@ -49,10 +49,7 @@ export const selectAllowedModelAttributes = (
 ): Attribute[] => {
   // Keep "identifier" because it's useful for ::has and ::lacks
   // Don't let folks query "up" the tree, only down it.
-  let unallowedAttributeTypes = [
-    'parent',
-    'link',
-  ];
+  let unallowedAttributeTypes = ['parent', 'link'];
 
   if (!includeChildrenModels) {
     unallowedAttributeTypes.push('child');
@@ -296,10 +293,11 @@ export const createFigurePayload = ({
 
       payload.inputs[cwlInput] = query[inputSource as keyof QueryPayload];
 
-      if (Array.isArray(payload.inputs[cwlInput]) || (
-        typeof payload.inputs[cwlInput] === 'object' &&
-        payload.inputs[cwlInput] !== null
-      )) {
+      if (
+        Array.isArray(payload.inputs[cwlInput]) ||
+        (typeof payload.inputs[cwlInput] === 'object' &&
+          payload.inputs[cwlInput] !== null)
+      ) {
         payload.inputs[cwlInput] = JSON.stringify(payload.inputs[cwlInput]);
       }
     }

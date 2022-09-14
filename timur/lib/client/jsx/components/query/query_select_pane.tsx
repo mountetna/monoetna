@@ -26,6 +26,12 @@ const useStyles = makeStyles((theme) => ({
   sliceSubheading: {
     color: 'gray',
     fontSize: '0.9rem'
+  },
+  shimLeft: {
+    paddingLeft: '1px'
+  },
+  shimLeft2: {
+    paddingLeft: '2px'
   }
 }));
 
@@ -154,10 +160,10 @@ const QuerySelectPane = () => {
           <Grid item xs={2}>
             <Typography>Model</Typography>
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={2}>
             <Typography>Attribute</Typography>
           </Grid>
-          <Grid item xs={4} className={classes.sliceHeading}>
+          <Grid item xs={5} className={classes.sliceHeading}>
             <Typography>Slices</Typography>
             <Grid item container>
               <Grid
@@ -171,16 +177,17 @@ const QuerySelectPane = () => {
                 <Grid item xs={3}>
                   Model
                 </Grid>
-                <Grid item xs={3}>
-                  Attribute
+                <Grid item xs={9} container>
+                  <Grid item xs={5}>
+                    Attribute
+                  </Grid>
+                  <Grid item xs={3} className={classes.shimLeft}>
+                    Operator
+                  </Grid>
+                  <Grid item xs={4} className={classes.shimLeft2}>
+                    Operand
+                  </Grid>
                 </Grid>
-                <Grid item xs={2}>
-                  Operator
-                </Grid>
-                <Grid item xs={3}>
-                  Operand
-                </Grid>
-                <Grid item xs={1} />
               </Grid>
               <Grid item xs={1} />
             </Grid>

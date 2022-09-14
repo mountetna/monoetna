@@ -201,7 +201,7 @@ const QueryModelAttributeSelector = React.memo(
           </Grid>
           {column.model_name && selectableModelAttributes.length > 0 ? (
             <React.Fragment>
-              <Grid item xs={3} container direction='row'>
+              <Grid item xs={2} container direction='row'>
                 <Grid
                   item
                   xs={showFilePredicates ? 9 : 12}
@@ -224,7 +224,7 @@ const QueryModelAttributeSelector = React.memo(
                   </Grid>
                 ) : null}
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={5}>
                 {isSliceable && canEdit ? (
                   <QuerySlicePane column={column} columnIndex={columnIndex} />
                 ) : null}
