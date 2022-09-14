@@ -6,6 +6,7 @@ import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 import Autocomplete from '@material-ui/lab/Autocomplete';
+import {makeStyles} from '@material-ui/core/styles';
 
 import {Debouncer} from 'etna-js/utils/debouncer';
 import {QueryClause} from '../../contexts/query/query_types';
@@ -16,6 +17,19 @@ import {QueryGraph} from '../../utils/query_graph';
 import RemoveIcon from './query_remove_icon';
 import Selector from './query_selector';
 
+const useStyles = makeStyles((theme) => ({
+  option: {
+    width: 'max-content',
+    whiteSpace: 'nowrap'
+  },
+  listbox: {
+    width: 'max-content'
+  },
+  paper: {
+    width: 'max-content'
+  }
+}));
+
 const QueryFilterClause = ({
   clause,
   clauseIndex,
@@ -24,6 +38,7 @@ const QueryFilterClause = ({
   isColumnFilter,
   waitTime,
   eager,
+  showRemoveIcon,
   patchClause,
   removeClause
 }: {
@@ -34,6 +49,7 @@ const QueryFilterClause = ({
   isColumnFilter: boolean;
   waitTime?: number;
   eager?: boolean;
+  showRemoveIcon: boolean;
   patchClause: (clause: QueryClause) => void;
   removeClause: () => void;
 }) => {
@@ -47,6 +63,7 @@ const QueryFilterClause = ({
   const [debouncer, setDebouncer] = useState(
     () => new Debouncer({windowMs: waitTime, eager})
   );
+  const classes = useStyles();
 
   // Clear the existing debouncer and accept any new changes to the settings
   useEffect(() => {
@@ -206,6 +223,11 @@ const QueryFilterClause = ({
             {filterOperator.hasPrepopulatedOperandOptions() &&
             distinctAttributeValues.length > 0 ? (
               <Autocomplete
+                classes={{
+                  option: classes.option,
+                  listbox: classes.listbox,
+                  paper: classes.paper
+                }}
                 id={uniqId(`operand-${clauseIndex}`)}
                 freeSolo
                 fullWidth
@@ -234,7 +256,7 @@ const QueryFilterClause = ({
       </Grid>
       <Grid item xs={1} container justify='flex-end'>
         <RemoveIcon
-          canEdit={!isColumnFilter}
+          showRemoveIcon={showRemoveIcon}
           onClick={removeClause}
           label='clause'
         />

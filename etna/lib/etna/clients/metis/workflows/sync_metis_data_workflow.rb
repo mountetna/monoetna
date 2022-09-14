@@ -22,26 +22,27 @@ module Etna
         end
 
         def copy_file(dest:, url:, stub: false)
-          # This does not work due to the magma bucket's restrictions, but if it did work, it'd be super sweet.
-          # url_match = DOWNLOAD_REGEX.match(url)
-          #
-          # if filesystem.instance_of?(Etna::Filesystem::Metis) && !url_match.nil?
-          #   bucket_name = url_match[:bucket_name]
-          #   project_name = url_match[:project_name]
-          #   file_path = url_match[:file_path]
-          #
-          #   metis_client.copy_files(
-          #     Etna::Clients::Metis::CopyFilesRequest.new(
-          #       project_name: project_name,
-          #       revisions: [
-          #         Etna::Clients::Metis::CopyRevision.new(
-          #           source: "metis://#{project_name}/#{bucket_name}/#{file_path}",
-          #           dest: "metis://#{filesystem.project_name}/#{filesystem.bucket_name}#{dest}",
-          #         )
-          #       ]
-          #     )
-          #   )
-          # end
+          url_match = DOWNLOAD_REGEX.match(url)
+
+          if filesystem.instance_of?(Etna::Filesystem::Metis) && !url_match.nil?
+            bucket_name = url_match[:bucket_name]
+            project_name = url_match[:project_name]
+            file_path = url_match[:file_path]
+
+            metis_client.copy_files(
+              Etna::Clients::Metis::CopyFilesRequest.new(
+                project_name: project_name,
+                revisions: [
+                  Etna::Clients::Metis::CopyRevision.new(
+                    source: "metis://#{project_name}/#{bucket_name}/#{file_path}",
+                    dest: "metis://#{filesystem.project_name}/#{filesystem.bucket_name}/#{dest}",
+                  )
+                ]
+              )
+            )
+
+            return
+          end
 
           metadata = metis_client.file_metadata(url)
           size = metadata[:size]
