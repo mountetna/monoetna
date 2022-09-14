@@ -41,7 +41,7 @@ const QueryFilterClause = ({
   waitTime,
   eager,
   showRemoveIcon,
-  canAddSubclause,
+  canAddSubclause = false,
   patchClause,
   removeClause
 }: {
@@ -52,7 +52,7 @@ const QueryFilterClause = ({
   waitTime?: number;
   eager?: boolean;
   showRemoveIcon: boolean;
-  canAddSubclause?: boolean;
+  canAddSubclause: boolean;
   patchClause: (clause: QueryClause) => void;
   removeClause: () => void;
 }) => {
@@ -120,7 +120,7 @@ const QueryFilterClause = ({
       </Grid>
       <Grid
         item
-        xs={showRemoveIcon ? 8 : 9}
+        xs={8}
         container
         direction='column'
         alignItems='center'
@@ -143,7 +143,7 @@ const QueryFilterClause = ({
                   }
                   removeSubclause={() => handleRemoveSubclause(index)}
                   isColumnFilter={isColumnFilter}
-                  showRemoveIcon={!isColumnFilter}
+                  showRemoveIcon={canAddSubclause}
                 />
               );
             }
@@ -163,15 +163,13 @@ const QueryFilterClause = ({
           ) : null}
         </Grid>
       </Grid>
-      {showRemoveIcon ? (
-        <Grid item xs={1} alignItems='center'>
-          <RemoveIcon
-            showRemoveIcon={showRemoveIcon}
-            onClick={removeClause}
-            label='clause'
-          />
-        </Grid>
-      ) : null}
+      <Grid item xs={1} alignItems='center'>
+        <RemoveIcon
+          showRemoveIcon={showRemoveIcon}
+          onClick={removeClause}
+          label='clause'
+        />
+      </Grid>
     </Grid>
   );
 };

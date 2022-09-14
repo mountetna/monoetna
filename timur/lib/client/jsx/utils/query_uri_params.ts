@@ -4,6 +4,24 @@ import {
   EmptyQuerySubclause
 } from '../contexts/query/query_types';
 
+export const isOldClauseFormat = (clause: QueryClause) => {
+  return (
+    clause.attributeName &&
+    clause.attributeType &&
+    clause.operator &&
+    clause.operand
+  );
+};
+
+export const cloneOldClauseFormat = (clause: QueryClause) => {
+  return {
+    attributeName: clause.attributeName || '',
+    attributeType: clause.attributeType || '',
+    operator: clause.operator || '',
+    operand: clause.operand || ''
+  };
+};
+
 export const migrateSubclauses = (
   recordFilters: QueryFilter[]
 ): QueryFilter[] => {
@@ -12,18 +30,8 @@ export const migrateSubclauses = (
       ...filter,
       clauses: filter.clauses.map((clause: QueryClause) => {
         let subclauses = [];
-        if (
-          clause.attributeName &&
-          clause.attributeType &&
-          clause.operator &&
-          clause.operand
-        ) {
-          subclauses.push({
-            attributeName: clause.attributeName,
-            attributeType: clause.attributeType,
-            operator: clause.operator,
-            operand: clause.operand
-          });
+        if (isOldClauseFormat(clause)) {
+          subclauses.push(cloneOldClauseFormat(clause));
           subclauses = subclauses.concat(clause.subclauses || []);
         } else {
           subclauses = [

@@ -3,7 +3,8 @@ import {
   QueryColumn,
   QueryFilter,
   QuerySlice,
-  QueryClause
+  QueryClause,
+  QuerySubclause
 } from '../contexts/query/query_types';
 import {QueryGraph} from './query_graph';
 import QuerySimplePathBuilder from './query_simple_path_builder';
@@ -19,6 +20,7 @@ import {
   nextInjectionPathItem
 } from './query_any_every_helpers';
 import FilterOperator from '../components/query/query_filter_operator';
+import {isOldClauseFormat, cloneOldClauseFormat} from './query_uri_params';
 
 export class QueryBuilder {
   graph: QueryGraph;
@@ -65,47 +67,65 @@ export class QueryBuilder {
     return [this.root, ...this.expandedOperands(this.recordFilters), '::count'];
   }
 
-  isNumeric(queryClause: QueryClause): boolean {
-    return FilterOperator.numericTypes.includes(queryClause.attributeType);
+  isNumeric(subclause: QuerySubclause): boolean {
+    return FilterOperator.numericTypes.includes(subclause.attributeType);
   }
 
   serializeQueryClause(queryClause: QueryClause): any[] {
     let result: any[] = [];
+    let subclauses: QuerySubclause[] = [];
 
-    result.push(queryClause.attributeName);
-    result.push(queryClause.operator);
-
-    if (
-      !this.isNumeric(queryClause) &&
-      FilterOperator.commaSeparatedOperators.includes(queryClause.operator)
-    ) {
-      result.push((queryClause.operand as string).split(','));
-    } else if (
-      FilterOperator.commaSeparatedOperators.includes(queryClause.operator) &&
-      this.isNumeric(queryClause)
-    ) {
-      result.push(
-        (queryClause.operand as string).split(',').map((o) => parseFloat(o))
-      );
-    } else if (
-      FilterOperator.terminalInvertOperators.includes(queryClause.operator)
-    ) {
-      // invert the model and attribute names, ignore operand
-      let length = result.length;
-      let tmpOperator = result[length - 1];
-      result[length - 1] = result[length - 2];
-      result[length - 2] = tmpOperator;
-    } else if (
-      FilterOperator.terminalOperators.includes(queryClause.operator)
-    ) {
-      // ignore operand
-    } else if (this.isNumeric(queryClause)) {
-      result.push(parseFloat(queryClause.operand as string));
-    } else {
-      result.push(queryClause.operand);
+    if (!queryClause.subclauses && isOldClauseFormat(queryClause)) {
+      subclauses.push(cloneOldClauseFormat(queryClause));
+    } else if (queryClause.subclauses) {
+      subclauses = [...queryClause.subclauses];
     }
 
-    return result;
+    subclauses.forEach((subclause: QuerySubclause) => {
+      let subclauseResult: any[] = [];
+
+      subclauseResult.push(subclause.attributeName);
+      subclauseResult.push(subclause.operator);
+
+      if (
+        !this.isNumeric(subclause) &&
+        FilterOperator.commaSeparatedOperators.includes(subclause.operator)
+      ) {
+        subclauseResult.push((subclause.operand as string).split(','));
+      } else if (
+        FilterOperator.commaSeparatedOperators.includes(subclause.operator) &&
+        this.isNumeric(subclause)
+      ) {
+        subclauseResult.push(
+          (subclause.operand as string).split(',').map((o) => parseFloat(o))
+        );
+      } else if (
+        FilterOperator.terminalInvertOperators.includes(subclause.operator)
+      ) {
+        // invert the model and attribute names, ignore operand
+        let length = subclauseResult.length;
+        let tmpOperator = subclauseResult[length - 1];
+        subclauseResult[length - 1] = subclauseResult[length - 2];
+        subclauseResult[length - 2] = tmpOperator;
+      } else if (
+        FilterOperator.terminalOperators.includes(subclause.operator)
+      ) {
+        // ignore operand
+      } else if (this.isNumeric(subclause)) {
+        subclauseResult.push(parseFloat(subclause.operand as string));
+      } else {
+        subclauseResult.push(subclause.operand);
+      }
+
+      result.push(subclauseResult);
+    });
+
+    if (1 === subclauses.length) {
+      return result[0];
+    } else {
+      result.splice(0, 0, '::and');
+      return result;
+    }
   }
 
   wrapQueryClause(filterModelName: string, clause: QueryClause): any[] {

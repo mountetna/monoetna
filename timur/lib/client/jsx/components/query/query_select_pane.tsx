@@ -177,7 +177,7 @@ const QuerySelectPane = () => {
                 <Grid item xs={3}>
                   Model
                 </Grid>
-                <Grid item xs={9} container>
+                <Grid item xs={8} container>
                   <Grid item xs={5}>
                     Attribute
                   </Grid>
@@ -187,6 +187,7 @@ const QuerySelectPane = () => {
                   <Grid item xs={4} className={classes.shimLeft2}>
                     Operand
                   </Grid>
+                  <Grid item xs={1} />
                 </Grid>
               </Grid>
               <Grid item xs={1} />
