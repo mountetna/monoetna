@@ -20,7 +20,10 @@ import {
   nextInjectionPathItem
 } from './query_any_every_helpers';
 import FilterOperator from '../components/query/query_filter_operator';
-import {isOldClauseFormat, cloneOldClauseFormat} from './query_uri_params';
+import {
+  isOldClauseFormat,
+  subclauseFromOldClauseFormat
+} from './query_uri_params';
 
 export class QueryBuilder {
   graph: QueryGraph;
@@ -76,7 +79,7 @@ export class QueryBuilder {
     let subclauses: QuerySubclause[] = [];
 
     if (!queryClause.subclauses && isOldClauseFormat(queryClause)) {
-      subclauses.push(cloneOldClauseFormat(queryClause));
+      subclauses.push(subclauseFromOldClauseFormat(queryClause));
     } else if (queryClause.subclauses) {
       subclauses = [...queryClause.subclauses];
     }

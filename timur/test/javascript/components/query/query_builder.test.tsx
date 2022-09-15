@@ -174,7 +174,7 @@ describe('QueryBuilder', () => {
     };
   });
 
-  fit('renders with Plot button', async () => {
+  it('renders with Plot button', async () => {
     store = mockStore({
       magma: {models},
       janus: {projects: require('../../fixtures/project_names.json')},

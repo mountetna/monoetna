@@ -1,7 +1,11 @@
 import {
   QueryFilter,
   QueryClause,
-  EmptyQuerySubclause
+  QueryColumn,
+  QuerySlice,
+  EmptyQuerySubclause,
+  EmptyQueryClause,
+  QuerySubclause
 } from '../contexts/query/query_types';
 
 export const isOldClauseFormat = (clause: QueryClause) => {
@@ -11,7 +15,9 @@ export const isOldClauseFormat = (clause: QueryClause) => {
   );
 };
 
-export const cloneOldClauseFormat = (clause: QueryClause) => {
+export const subclauseFromOldClauseFormat = (
+  clause: QueryClause
+): QuerySubclause => {
   return {
     attributeName: clause.attributeName || '',
     attributeType: clause.attributeType || '',
@@ -27,9 +33,9 @@ export const migrateSubclauses = (
     return {
       ...filter,
       clauses: filter.clauses.map((clause: QueryClause) => {
-        let subclauses = [];
+        let subclauses: QuerySubclause[] = [];
         if (isOldClauseFormat(clause)) {
-          subclauses.push(cloneOldClauseFormat(clause));
+          subclauses.push(subclauseFromOldClauseFormat(clause));
           subclauses = subclauses.concat(clause.subclauses || []);
         } else {
           subclauses = [
@@ -45,6 +51,36 @@ export const migrateSubclauses = (
           modelName: clause.modelName,
           any: clause.any,
           subclauses
+        };
+      })
+    };
+  });
+};
+
+export const migrateSlices = (columns: QueryColumn[]): QueryColumn[] => {
+  return columns.map((column: QueryColumn) => {
+    return {
+      ...column,
+      slices: column.slices.map((slice: QuerySlice) => {
+        let clause: QueryClause = {
+          modelName: slice.clause.modelName,
+          any: slice.clause.any
+        };
+        if (isOldClauseFormat(slice.clause)) {
+          clause.subclauses = [subclauseFromOldClauseFormat(slice.clause)];
+        } else {
+          clause.subclauses = [
+            ...(slice.clause.subclauses || [
+              {
+                ...EmptyQuerySubclause
+              }
+            ])
+          ];
+        }
+
+        return {
+          ...slice,
+          clause
         };
       })
     };

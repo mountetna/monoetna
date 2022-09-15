@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {QueryColumnState} from './query_column_context';
 import {QueryWhereState} from './query_where_context';
 import {QueryColumn} from './query_types';
-import {migrateSubclauses} from '../../utils/query_uri_params';
+import {migrateSubclauses, migrateSlices} from '../../utils/query_uri_params';
 
 export default function useUriQueryParams({
   columnState,
@@ -10,7 +10,9 @@ export default function useUriQueryParams({
   whereState,
   setQueryColumns,
   setRootModel,
-  setWhereState
+  setWhereState,
+  search,
+  pathname
 }: {
   columnState: QueryColumnState;
   rootModel: string;
@@ -18,9 +20,11 @@ export default function useUriQueryParams({
   setQueryColumns: (columns: QueryColumn[]) => void;
   setRootModel: (modelName: string) => void;
   setWhereState: (whereState: QueryWhereState) => void;
+  search?: string;
+  pathname?: string;
 }) {
-  const search = window.location.search;
-  const pathname = window.location.pathname;
+  if (!search) search = window.location.search;
+  if (!pathname) pathname = window.location.pathname;
 
   function serializeState(state: {[key: string]: any}, isJson: boolean = true) {
     return Object.entries(state)
@@ -62,7 +66,9 @@ export default function useUriQueryParams({
 
     if (serializedState === search) return;
 
-    setQueryColumns(JSON.parse(searchParams.get('columns') || '[]'));
+    setQueryColumns(
+      migrateSlices(JSON.parse(searchParams.get('columns') || '[]'))
+    );
     setRootModel(searchParams.get('rootModel') || '');
     setWhereState({
       recordFilters: migrateSubclauses(
