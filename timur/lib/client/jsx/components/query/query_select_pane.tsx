@@ -128,7 +128,7 @@ const QuerySelectPane = () => {
   };
 
   const handleOnDragEnd = useCallback(
-    (result) => {
+    (result: any) => {
       if (!result.destination) {
         return;
       }

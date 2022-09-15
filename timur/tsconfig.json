@@ -79,7 +79,7 @@
   "include": [
     "lib/client/**/*",
     "node_modules/etna-js/**/*",
-    "test/javascript/**/*"
+    "test/javascript/contexts/mock_component.tsx"
   ],
   "exclude": ["node_modules/etna-js/**/*.spec.ts"]
 }

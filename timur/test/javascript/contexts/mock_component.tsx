@@ -6,7 +6,7 @@ import useUriQueryParams from '../../../lib/client/jsx/contexts/query/use_uri_qu
 
 function convertToQueryString(hash: {[key: string]: any}): string {
   return queryString.stringify(
-    Object.entries(hash).reduce((acc, [key, value]) => {
+    Object.entries(hash).reduce((acc: any, [key, value]) => {
       acc[key] = JSON.stringify(value);
       return acc;
     }, {})
@@ -18,6 +18,11 @@ const MockComponent = ({
   setQueryColumns,
   setRootModel,
   input
+}: {
+  setWhereState: () => void;
+  setQueryColumns: () => void;
+  setRootModel: () => void;
+  input: {[key: string]: any};
 }) => {
   useUriQueryParams({
     rootModel: 'labor',

@@ -44,6 +44,8 @@ const useStyles = makeStyles((theme) => ({
 // For #768, because just resetting the selection doesn't
 //    happen early enough in the CodeMirror lifecycle...?
 class ErrorBoundary extends React.Component {
+  props: any;
+  state: any;
   constructor(props: any) {
     super(props);
     this.state = {hasError: false};
