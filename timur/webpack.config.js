@@ -13,6 +13,7 @@ module.exports = (env) => ({
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.scss', '.png', '.jpg', '.jpeg', '.svg'],
     alias: {
       'code-mirror': path.join(__dirname, 'node_modules/codemirror/lib'),
+      '@codemirror/state': path.join(__dirname, 'node_modules/@codemirror/state'),
       react: path.join(__dirname, 'node_modules/react'),
       'react-dom': path.join(__dirname, 'node_modules/react-dom'),
       'react-redux': path.join(__dirname, 'node_modules/react-redux'),
