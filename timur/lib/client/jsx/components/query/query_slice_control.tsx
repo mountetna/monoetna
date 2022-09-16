@@ -34,13 +34,13 @@ const QuerySliceControl = ({
       <Grid item container xs={11}>
         <QueryFilterClause
           clause={slice.clause}
-          clauseIndex={0}
           graph={graph}
           modelNames={modelNames}
           isColumnFilter={true}
           patchClause={handlePatchClause}
           removeClause={() => {}}
           showRemoveIcon={false}
+          canAddSubclause={false}
         />
       </Grid>
       <Grid item xs={1} container justify='flex-end'>

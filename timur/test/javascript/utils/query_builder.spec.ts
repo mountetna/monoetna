@@ -306,6 +306,60 @@ describe('QueryBuilder', () => {
     ]);
   });
 
+  it('combines multiple subclauses in filters', () => {
+    builder.addRootModel('monster');
+    builder.addColumns([stamp('monster', 'name', [])]);
+    builder.addRecordFilters([
+      {
+        modelName: 'labor',
+        anyMap: {},
+        clauses: [
+          {
+            attributeName: 'name',
+            operator: '::in',
+            operand: 'lion,hydra,apples',
+            attributeType: 'text',
+            modelName: 'labor',
+            any: true
+          },
+          {
+            subclauses: [
+              {
+                attributeName: 'number',
+                operator: '::>',
+                operand: '2',
+                attributeType: 'number'
+              },
+              {
+                attributeName: 'number',
+                operator: '::<=',
+                operand: '8',
+                attributeType: 'number'
+              }
+            ],
+            modelName: 'labor',
+            any: true
+          }
+        ]
+      }
+    ]);
+
+    expect(builder.query()).toEqual([
+      'monster',
+      [
+        'labor',
+        [
+          '::and',
+          ['name', '::in', ['lion', 'hydra', 'apples']],
+          ['::and', ['number', '::>', 2], ['number', '::<=', 8]]
+        ],
+        '::any'
+      ],
+      '::all',
+      ['name']
+    ]);
+  });
+
   it('does not wrap individual filters on root model in ::and', () => {
     builder.addRootModel('monster');
     builder.addColumns([stamp('monster', 'name', [])]);

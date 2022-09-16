@@ -1,10 +1,10 @@
 import * as _ from 'lodash';
 
-import {QueryClause} from '../../contexts/query/query_types';
+import {QuerySubclause} from '../../contexts/query/query_types';
 
 export default class FilterOperator {
   isColumnFilter: boolean;
-  clause: QueryClause;
+  subclause: QuerySubclause;
 
   static queryOperatorsByType: {[key: string]: {[key: string]: string}} = {
     base: {
@@ -62,31 +62,32 @@ export default class FilterOperator {
   static numericTypes: string[] = ['number', 'integer', 'float'];
 
   constructor({
-    clause,
+    subclause,
     isColumnFilter
   }: {
-    clause: QueryClause;
+    subclause: QuerySubclause;
     isColumnFilter: boolean;
   }) {
-    this.clause = clause;
+    this.subclause = subclause;
     this.isColumnFilter = isColumnFilter;
   }
 
   hasOperand(): boolean {
     return !(
-      FilterOperator.terminalOperators.includes(this.clause.operator) ||
-      FilterOperator.terminalInvertOperators.includes(this.clause.operator)
+      FilterOperator.terminalOperators.includes(this.subclause.operator) ||
+      FilterOperator.terminalInvertOperators.includes(this.subclause.operator)
     );
   }
 
   hasPrepopulatedOperandOptions(): boolean {
     return (
-      'string' === this.clause.attributeType && '' !== this.clause.attributeName
+      'string' === this.subclause.attributeType &&
+      '' !== this.subclause.attributeName
     );
   }
 
   attributeInputType(): string {
-    switch (this.clause.attributeType) {
+    switch (this.subclause.attributeType) {
       case 'string':
         return 'text';
       case 'date_time':
@@ -123,7 +124,7 @@ export default class FilterOperator {
   }
 
   prettify(): string {
-    return _.invert(this.optionsForAttribute())[this.clause.operator];
+    return _.invert(this.optionsForAttribute())[this.subclause.operator];
   }
 
   magmify(newOperator: string): string {
