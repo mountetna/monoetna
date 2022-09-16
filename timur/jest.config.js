@@ -7,7 +7,9 @@ module.exports = {
     }
   },
   testURL: 'http://localhost',
-  transformIgnorePatterns: ['node_modules/(?!(etna-js)/)'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(etna-js|@codemirror/legacy-modes)/)'
+  ],
   moduleNameMapper: {
     '^service-worker-loader!': '<rootDir>/__mocks__/service-worker-loader.js',
     '^.*[.](css|CSS)$': 'identity-obj-proxy',

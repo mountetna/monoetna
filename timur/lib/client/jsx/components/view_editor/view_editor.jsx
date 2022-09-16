@@ -17,35 +17,37 @@ export const useShallowEqualSelector = (selector) => {
   return useSelector(selector, shallowEqual);
 };
 
-
 // Main component for viewing/editing views.
 
 const ViewEditor = ({view_id}) => {
-  let [editing, setEditing] = useState(useSelector(state => state.editing));
+  let [editing, setEditing] = useState(useSelector((state) => state.editing));
   const dispatch = useDispatch();
   let [view, setActualView] = useState(null);
   const [canSave, setCanSave] = useState(true);
-  let views = useSelector(state => state.views);
+  let views = useSelector((state) => state.views);
 
   let setView = useCallback(
-    (view) => view ? setActualView(
-      {
-        ...view,
-        document: typeof(view.document) === 'string' ? view.document : JSON.stringify(view.document, null, '\t')
-      }
-    ) : setActualView(view), [setActualView]
+    (view) =>
+      view
+        ? setActualView({
+            ...view,
+            document:
+              typeof view.document === 'string'
+                ? view.document
+                : JSON.stringify(view.document, null, '\t')
+          })
+        : setActualView(view),
+    [setActualView]
   );
 
   //initial render
-  useEffect(
-    () => { requestAllViews()(dispatch) }, []
-  );
+  useEffect(() => {
+    requestAllViews()(dispatch);
+  }, []);
 
-  useEffect(
-    () => {
-      if (view_id && views && !view) selectView(view_id, false);
-    }, [ views ]
-  );
+  useEffect(() => {
+    if (view_id && views && !view) selectView(view_id, false);
+  }, [views]);
 
   const selectView = (id, push = true) => {
     switch (id) {
@@ -88,24 +90,24 @@ const ViewEditor = ({view_id}) => {
   const create = () => selectView('new', true);
 
   const hasLintingErrors = (value) => {
-    window.JSHINT(value);
-
-    return (
-      JSHINT.data().errors &&
-      JSHINT.data().errors.length > 0
-    );
-  }
+    try {
+      JSON.parse(value);
+      return false;
+    } catch (e) {
+      return true;
+    }
+  };
 
   const updateField = (field_name) => (event) => {
     if (field_name === 'document') {
       // the code editor does not emit an event, just the new value
       view.document = event;
-      
+
       setCanSave(!hasLintingErrors(event));
     } else {
       view[field_name] = event.target.value;
     }
-    setView({...view,});
+    setView({...view});
   };
 
   const onSave = () => {
@@ -119,23 +121,22 @@ const ViewEditor = ({view_id}) => {
       return;
     }
 
-    if (view_id == 'new')
-      saveNewView(savedView)(dispatch);
-    else
-      saveView(savedView)(dispatch);
+    if (view_id == 'new') saveNewView(savedView)(dispatch);
+    else saveView(savedView)(dispatch);
     if (editing) toggleEdit();
   };
 
   const revertView = () => {
     selectView(view.id);
+    console.log('reverting to', view, views);
     if (editing) toggleEdit();
   };
 
   const onDelete = () => {
-    if(confirm('Are you sure you want to remove this view?')){
+    if (confirm('Are you sure you want to remove this view?')) {
       deleteView(view, () => selectView(null))(dispatch);
     }
-  }
+  };
   const toggleEdit = () => {
     setEditing(!editing);
   };

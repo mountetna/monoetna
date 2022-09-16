@@ -131,6 +131,7 @@ const QueryFilterClause = ({
             (subclause: QuerySubclause, index: number) => {
               return (
                 <QueryFilterSubclause
+                  key={index}
                   subclause={subclause}
                   subclauseIndex={index}
                   graph={graph}

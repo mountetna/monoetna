@@ -3,13 +3,13 @@
 exports[`QueryBuilder renders with Plot button 1`] = `
 <DocumentFragment>
   <div
-    class="MuiGrid-root makeStyles-container MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-align-items-xs-center MuiGrid-grid-xs-12"
+    class="MuiGrid-root makeStyles-container-1 MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-align-items-xs-center MuiGrid-grid-xs-12"
   >
     <div
-      class="MuiGrid-root makeStyles-queryClause MuiGrid-container MuiGrid-align-items-xs-flex-start"
+      class="MuiGrid-root makeStyles-queryClause-4 MuiGrid-container MuiGrid-align-items-xs-flex-start"
     >
       <div
-        class="MuiGrid-root makeStyles-clauseTitle MuiGrid-item MuiGrid-grid-xs-1"
+        class="MuiGrid-root makeStyles-clauseTitle-3 MuiGrid-item MuiGrid-grid-xs-1"
       >
         From
       </div>
@@ -23,7 +23,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-8"
           >
             <div
-              class="MuiFormControl-root makeStyles-formControl"
+              class="MuiFormControl-root makeStyles-formControl-5"
             >
               <label
                 class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-shrink MuiFormLabel-filled"
@@ -73,7 +73,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                 class="MuiGrid-root MuiGrid-item"
               >
                 <button
-                  class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button"
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button-6"
                   tabindex="0"
                   type="button"
                 >
@@ -101,7 +101,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   />
                 </button>
                 <button
-                  class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button MuiButton-textSecondary"
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button-6 MuiButton-textSecondary"
                   tabindex="0"
                   type="button"
                 >
@@ -115,7 +115,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   />
                 </button>
                 <button
-                  class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button"
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button-6"
                   tabindex="0"
                   type="button"
                 >
@@ -129,7 +129,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   />
                 </button>
                 <button
-                  class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button"
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button-6"
                   tabindex="0"
                   type="button"
                 >
@@ -157,12 +157,12 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   />
                 </button>
                 <div
-                  class="makeStyles-disabledButton"
+                  class="makeStyles-disabledButton-8"
                 >
                   <button
                     aria-controls="plot-menu"
                     aria-haspopup="true"
-                    class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-disabled MuiButtonBase-disabled"
+                    class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary Mui-disabled Mui-disabled"
                     disabled=""
                     tabindex="-1"
                     type="button"
@@ -198,10 +198,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
       </div>
     </div>
     <div
-      class="MuiGrid-root makeStyles-queryClause MuiGrid-container MuiGrid-align-items-xs-flex-start"
+      class="MuiGrid-root makeStyles-queryClause-4 MuiGrid-container MuiGrid-align-items-xs-flex-start"
     >
       <div
-        class="MuiGrid-root makeStyles-clauseTitle MuiGrid-item MuiGrid-grid-xs-1"
+        class="MuiGrid-root makeStyles-clauseTitle-3 MuiGrid-item MuiGrid-grid-xs-1"
       >
         Where
       </div>
@@ -209,7 +209,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
         class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-11"
       >
         <div
-          class="MuiGrid-root makeStyles-header MuiGrid-container MuiGrid-justify-xs-center"
+          class="MuiGrid-root makeStyles-header-9 MuiGrid-container MuiGrid-justify-xs-center"
         >
           <div
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-1"
@@ -230,7 +230,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
               Model
             </div>
             <div
-              class="MuiGrid-root makeStyles-clauseHeading MuiGrid-item MuiGrid-grid-xs-9"
+              class="MuiGrid-root makeStyles-clauseHeading-10 MuiGrid-item MuiGrid-grid-xs-9"
             >
               <p
                 class="MuiTypography-root MuiTypography-body1"
@@ -241,7 +241,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                 class="MuiGrid-root MuiGrid-container MuiGrid-item"
               >
                 <div
-                  class="MuiGrid-root makeStyles-clauseSubheading MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item MuiGrid-align-items-xs-center"
+                  class="MuiGrid-root makeStyles-clauseSubheading-11 MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item MuiGrid-align-items-xs-center"
                 >
                   <div
                     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-1"
@@ -265,12 +265,12 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                         Attribute
                       </div>
                       <div
-                        class="MuiGrid-root makeStyles-shimLeft MuiGrid-item MuiGrid-grid-xs-3"
+                        class="MuiGrid-root makeStyles-shimLeft-12 MuiGrid-item MuiGrid-grid-xs-3"
                       >
                         Operator
                       </div>
                       <div
-                        class="MuiGrid-root makeStyles-shimLeft MuiGrid-item MuiGrid-grid-xs-4"
+                        class="MuiGrid-root makeStyles-shimLeft-12 MuiGrid-item MuiGrid-grid-xs-4"
                       >
                         Operand
                       </div>
@@ -301,14 +301,14 @@ exports[`QueryBuilder renders with Plot button 1`] = `
             >
               <span
                 aria-disabled="false"
-                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
+                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-13 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
               >
                 <span
                   class="MuiIconButton-label"
                 >
                   <input
                     aria-label="secondary checkbox"
-                    class="PrivateSwitchBase-input"
+                    class="PrivateSwitchBase-input-16"
                     data-indeterminate="false"
                     type="checkbox"
                     value=""
@@ -342,7 +342,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
                 >
                   <div
-                    class="MuiFormControl-root makeStyles-fullWidth"
+                    class="MuiFormControl-root makeStyles-fullWidth-22"
                   >
                     <div
                       class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -379,10 +379,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-grid-xs-9"
                 >
                   <div
-                    class="MuiGrid-root makeStyles-grid MuiGrid-container MuiGrid-direction-xs-column"
+                    class="MuiGrid-root makeStyles-grid-21 MuiGrid-container MuiGrid-direction-xs-column"
                   >
                     <div
-                      class="MuiPaper-root makeStyles-paper MuiPaper-elevation1 MuiPaper-rounded"
+                      class="MuiPaper-root makeStyles-paper-19 MuiPaper-elevation1 MuiPaper-rounded"
                     >
                       <div
                         class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
@@ -400,7 +400,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
                             >
                               <div
-                                class="MuiFormControl-root makeStyles-fullWidth"
+                                class="MuiFormControl-root makeStyles-fullWidth-22"
                               >
                                 <div
                                   class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -434,10 +434,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                               </div>
                             </div>
                             <div
-                              class="MuiGrid-root makeStyles-fullWidth MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-align-items-xs-center MuiGrid-grid-xs-8"
+                              class="MuiGrid-root makeStyles-fullWidth-25 MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-align-items-xs-center MuiGrid-grid-xs-8"
                             >
                               <div
-                                class="MuiGrid-root makeStyles-fullWidth MuiGrid-item"
+                                class="MuiGrid-root makeStyles-fullWidth-25 MuiGrid-item"
                               >
                                 <div
                                   class="MuiGrid-root MuiGrid-container"
@@ -446,7 +446,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                                     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
                                   >
                                     <div
-                                      class="MuiFormControl-root makeStyles-fullWidth"
+                                      class="MuiFormControl-root makeStyles-fullWidth-22"
                                     >
                                       <div
                                         class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -483,7 +483,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                                     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
                                   >
                                     <div
-                                      class="MuiFormControl-root makeStyles-fullWidth"
+                                      class="MuiFormControl-root makeStyles-fullWidth-22"
                                     >
                                       <div
                                         class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -571,11 +571,11 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                                 </div>
                               </div>
                               <div
-                                class="MuiGrid-root makeStyles-fullWidth MuiGrid-item"
+                                class="MuiGrid-root makeStyles-fullWidth-25 MuiGrid-item"
                               >
                                 <button
                                   aria-label="Add subclause"
-                                  class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addSubclauseBtn"
+                                  class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addSubclauseBtn-23"
                                   tabindex="0"
                                   title="Add subclause"
                                   type="button"
@@ -618,7 +618,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   >
                     <button
                       aria-label="Add and clause"
-                      class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-paddingLeft"
+                      class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-paddingLeft-20"
                       tabindex="0"
                       title="Add and clause"
                       type="button"
@@ -737,10 +737,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
       </div>
     </div>
     <div
-      class="MuiGrid-root makeStyles-queryClause MuiGrid-container MuiGrid-align-items-xs-flex-start"
+      class="MuiGrid-root makeStyles-queryClause-4 MuiGrid-container MuiGrid-align-items-xs-flex-start"
     >
       <div
-        class="MuiGrid-root makeStyles-clauseTitle MuiGrid-item MuiGrid-grid-xs-1"
+        class="MuiGrid-root makeStyles-clauseTitle-3 MuiGrid-item MuiGrid-grid-xs-1"
       >
         Columns
       </div>
@@ -748,7 +748,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
         class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-11"
       >
         <div
-          class="MuiGrid-root makeStyles-displayLabel MuiGrid-container"
+          class="MuiGrid-root makeStyles-displayLabel-30 MuiGrid-container"
         >
           <div
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
@@ -778,7 +778,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
             </p>
           </div>
           <div
-            class="MuiGrid-root makeStyles-sliceHeading MuiGrid-item MuiGrid-grid-xs-5"
+            class="MuiGrid-root makeStyles-sliceHeading-31 MuiGrid-item MuiGrid-grid-xs-5"
           >
             <p
               class="MuiTypography-root MuiTypography-body1"
@@ -789,7 +789,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
               class="MuiGrid-root MuiGrid-container MuiGrid-item"
             >
               <div
-                class="MuiGrid-root makeStyles-sliceSubheading MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-grid-xs-11"
+                class="MuiGrid-root makeStyles-sliceSubheading-32 MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-grid-xs-11"
               >
                 <div
                   class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
@@ -805,12 +805,12 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                     Attribute
                   </div>
                   <div
-                    class="MuiGrid-root makeStyles-shimLeft MuiGrid-item MuiGrid-grid-xs-3"
+                    class="MuiGrid-root makeStyles-shimLeft-33 MuiGrid-item MuiGrid-grid-xs-3"
                   >
                     Operator
                   </div>
                   <div
-                    class="MuiGrid-root makeStyles-shimLeft2 MuiGrid-item MuiGrid-grid-xs-4"
+                    class="MuiGrid-root makeStyles-shimLeft2-34 MuiGrid-item MuiGrid-grid-xs-4"
                   >
                     Operand
                   </div>
@@ -869,17 +869,17 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                 class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-2"
               >
                 <div
-                  class="MuiGrid-root makeStyles-topMargin MuiGrid-item MuiGrid-grid-xs-12"
+                  class="MuiGrid-root makeStyles-topMargin-36 MuiGrid-item MuiGrid-grid-xs-12"
                 >
                   <div
                     class="MuiFormControl-root MuiTextField-root query-column-attribute"
                   >
                     <div
-                      class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-disabled MuiInput-disabled MuiInputBase-formControl MuiInput-formControl"
+                      class="MuiInputBase-root MuiInput-root MuiInput-underline Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"
                     >
                       <input
                         aria-invalid="false"
-                        class="MuiInputBase-input MuiInput-input MuiInputBase-disabled MuiInput-disabled"
+                        class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled"
                         disabled=""
                         type="text"
                         value="name"
@@ -934,7 +934,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
                 >
                   <div
-                    class="MuiFormControl-root makeStyles-fullWidth"
+                    class="MuiFormControl-root makeStyles-fullWidth-22"
                   >
                     <div
                       class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -971,10 +971,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-2"
                 >
                   <div
-                    class="MuiGrid-root makeStyles-topMargin MuiGrid-item MuiGrid-grid-xs-12"
+                    class="MuiGrid-root makeStyles-topMargin-36 MuiGrid-item MuiGrid-grid-xs-12"
                   >
                     <div
-                      class="MuiFormControl-root makeStyles-fullWidth"
+                      class="MuiFormControl-root makeStyles-fullWidth-35"
                     >
                       <div
                         aria-expanded="false"
@@ -1062,10 +1062,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-5"
                 >
                   <div
-                    class="MuiGrid-root makeStyles-grid MuiGrid-container MuiGrid-direction-xs-column"
+                    class="MuiGrid-root makeStyles-grid-49 MuiGrid-container MuiGrid-direction-xs-column"
                   >
                     <div
-                      class="MuiPaper-root makeStyles-paper MuiPaper-elevation1 MuiPaper-rounded"
+                      class="MuiPaper-root makeStyles-paper-48 MuiPaper-elevation1 MuiPaper-rounded"
                     >
                       <div
                         class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-align-items-xs-center"
@@ -1080,7 +1080,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
                             >
                               <div
-                                class="MuiFormControl-root makeStyles-fullWidth"
+                                class="MuiFormControl-root makeStyles-fullWidth-22"
                               >
                                 <div
                                   class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -1114,10 +1114,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                               </div>
                             </div>
                             <div
-                              class="MuiGrid-root makeStyles-fullWidth MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-align-items-xs-center MuiGrid-grid-xs-8"
+                              class="MuiGrid-root makeStyles-fullWidth-25 MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-align-items-xs-center MuiGrid-grid-xs-8"
                             >
                               <div
-                                class="MuiGrid-root makeStyles-fullWidth MuiGrid-item"
+                                class="MuiGrid-root makeStyles-fullWidth-25 MuiGrid-item"
                               >
                                 <div
                                   class="MuiGrid-root MuiGrid-container"
@@ -1126,7 +1126,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                                     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-5"
                                   >
                                     <div
-                                      class="MuiFormControl-root makeStyles-fullWidth"
+                                      class="MuiFormControl-root makeStyles-fullWidth-22"
                                     >
                                       <div
                                         class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -1163,7 +1163,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                                     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
                                   >
                                     <div
-                                      class="MuiFormControl-root makeStyles-fullWidth"
+                                      class="MuiFormControl-root makeStyles-fullWidth-22"
                                     >
                                       <div
                                         class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -1222,7 +1222,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                                 </div>
                               </div>
                               <div
-                                class="MuiGrid-root makeStyles-fullWidth MuiGrid-item"
+                                class="MuiGrid-root makeStyles-fullWidth-25 MuiGrid-item"
                               />
                             </div>
                             <div
@@ -1388,7 +1388,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
                 >
                   <div
-                    class="MuiFormControl-root makeStyles-fullWidth"
+                    class="MuiFormControl-root makeStyles-fullWidth-22"
                   >
                     <div
                       class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -1425,10 +1425,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-2"
                 >
                   <div
-                    class="MuiGrid-root makeStyles-topMargin MuiGrid-item MuiGrid-grid-xs-12"
+                    class="MuiGrid-root makeStyles-topMargin-36 MuiGrid-item MuiGrid-grid-xs-12"
                   >
                     <div
-                      class="MuiFormControl-root makeStyles-fullWidth"
+                      class="MuiFormControl-root makeStyles-fullWidth-35"
                     >
                       <div
                         aria-expanded="false"
@@ -1516,10 +1516,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-5"
                 >
                   <div
-                    class="MuiGrid-root makeStyles-grid MuiGrid-container MuiGrid-direction-xs-column"
+                    class="MuiGrid-root makeStyles-grid-49 MuiGrid-container MuiGrid-direction-xs-column"
                   >
                     <div
-                      class="MuiPaper-root makeStyles-paper MuiPaper-elevation1 MuiPaper-rounded"
+                      class="MuiPaper-root makeStyles-paper-48 MuiPaper-elevation1 MuiPaper-rounded"
                     >
                       <div
                         class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-align-items-xs-center"
@@ -1534,7 +1534,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
                             >
                               <div
-                                class="MuiFormControl-root makeStyles-fullWidth"
+                                class="MuiFormControl-root makeStyles-fullWidth-22"
                               >
                                 <div
                                   class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -1568,10 +1568,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                               </div>
                             </div>
                             <div
-                              class="MuiGrid-root makeStyles-fullWidth MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-align-items-xs-center MuiGrid-grid-xs-8"
+                              class="MuiGrid-root makeStyles-fullWidth-25 MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-align-items-xs-center MuiGrid-grid-xs-8"
                             >
                               <div
-                                class="MuiGrid-root makeStyles-fullWidth MuiGrid-item"
+                                class="MuiGrid-root makeStyles-fullWidth-25 MuiGrid-item"
                               >
                                 <div
                                   class="MuiGrid-root MuiGrid-container"
@@ -1580,7 +1580,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                                     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-5"
                                   >
                                     <div
-                                      class="MuiFormControl-root makeStyles-fullWidth"
+                                      class="MuiFormControl-root makeStyles-fullWidth-22"
                                     >
                                       <div
                                         class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -1617,7 +1617,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                                     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
                                   >
                                     <div
-                                      class="MuiFormControl-root makeStyles-fullWidth"
+                                      class="MuiFormControl-root makeStyles-fullWidth-22"
                                     >
                                       <div
                                         class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -1676,7 +1676,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                                 </div>
                               </div>
                               <div
-                                class="MuiGrid-root makeStyles-fullWidth MuiGrid-item"
+                                class="MuiGrid-root makeStyles-fullWidth-25 MuiGrid-item"
                               />
                             </div>
                             <div
@@ -1842,7 +1842,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
                 >
                   <div
-                    class="MuiFormControl-root makeStyles-fullWidth"
+                    class="MuiFormControl-root makeStyles-fullWidth-22"
                   >
                     <div
                       class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -1879,10 +1879,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-2"
                 >
                   <div
-                    class="MuiGrid-root makeStyles-topMargin MuiGrid-item MuiGrid-grid-xs-12"
+                    class="MuiGrid-root makeStyles-topMargin-36 MuiGrid-item MuiGrid-grid-xs-12"
                   >
                     <div
-                      class="MuiFormControl-root makeStyles-fullWidth"
+                      class="MuiFormControl-root makeStyles-fullWidth-35"
                     >
                       <div
                         aria-expanded="false"
@@ -1970,10 +1970,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-5"
                 >
                   <div
-                    class="MuiGrid-root makeStyles-grid MuiGrid-container MuiGrid-direction-xs-column"
+                    class="MuiGrid-root makeStyles-grid-49 MuiGrid-container MuiGrid-direction-xs-column"
                   >
                     <div
-                      class="MuiPaper-root makeStyles-paper MuiPaper-elevation1 MuiPaper-rounded"
+                      class="MuiPaper-root makeStyles-paper-48 MuiPaper-elevation1 MuiPaper-rounded"
                     >
                       <div
                         class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-align-items-xs-center"
@@ -1988,7 +1988,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                               class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
                             >
                               <div
-                                class="MuiFormControl-root makeStyles-fullWidth"
+                                class="MuiFormControl-root makeStyles-fullWidth-22"
                               >
                                 <div
                                   class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -2022,10 +2022,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                               </div>
                             </div>
                             <div
-                              class="MuiGrid-root makeStyles-fullWidth MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-align-items-xs-center MuiGrid-grid-xs-8"
+                              class="MuiGrid-root makeStyles-fullWidth-25 MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-align-items-xs-center MuiGrid-grid-xs-8"
                             >
                               <div
-                                class="MuiGrid-root makeStyles-fullWidth MuiGrid-item"
+                                class="MuiGrid-root makeStyles-fullWidth-25 MuiGrid-item"
                               >
                                 <div
                                   class="MuiGrid-root MuiGrid-container"
@@ -2034,7 +2034,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                                     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-5"
                                   >
                                     <div
-                                      class="MuiFormControl-root makeStyles-fullWidth"
+                                      class="MuiFormControl-root makeStyles-fullWidth-22"
                                     >
                                       <div
                                         class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -2071,7 +2071,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                                     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
                                   >
                                     <div
-                                      class="MuiFormControl-root makeStyles-fullWidth"
+                                      class="MuiFormControl-root makeStyles-fullWidth-22"
                                     >
                                       <div
                                         class="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
@@ -2112,7 +2112,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                                     >
                                       <div
                                         aria-expanded="false"
-                                        class="MuiAutocomplete-root makeStyles-operand MuiAutocomplete-fullWidth MuiAutocomplete-hasClearIcon"
+                                        class="MuiAutocomplete-root makeStyles-operand-29 MuiAutocomplete-fullWidth MuiAutocomplete-hasClearIcon"
                                         data-testid="operand-autocomplete"
                                         role="combobox"
                                       >
@@ -2170,7 +2170,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                                 </div>
                               </div>
                               <div
-                                class="MuiGrid-root makeStyles-fullWidth MuiGrid-item"
+                                class="MuiGrid-root makeStyles-fullWidth-25 MuiGrid-item"
                               />
                             </div>
                             <div
@@ -2331,10 +2331,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
     </div>
   </div>
   <div
-    class="MuiGrid-root makeStyles-resultsPane MuiGrid-container"
+    class="MuiGrid-root makeStyles-resultsPane-40 MuiGrid-container"
   >
     <div
-      class="MuiGrid-root makeStyles-result MuiGrid-item"
+      class="MuiGrid-root makeStyles-result-38 MuiGrid-item"
     >
       <div>
         <div
@@ -2365,163 +2365,163 @@ exports[`QueryBuilder renders with Plot button 1`] = `
               >
                 query: [
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "monster"
                 </span>
                 ,[
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "labor"
                 </span>
                 ,[
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "year"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "::="
                 </span>
                 ,
                 <span
-                  class="ͼc"
+                  class="ͼd"
                 >
                   2
                 </span>
                 ],
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "::any"
                 </span>
                 ],
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "::all"
                 </span>
                 ,[[
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "labor"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "prize"
                 </span>
                 ,[
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "name"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "::equals"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "Athens"
                 </span>
                 ],
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "::first"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "name"
                 </span>
                 ],[
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "labor"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "prize"
                 </span>
                 ,[
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "name"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "::equals"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "Sparta"
                 </span>
                 ],
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "::first"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "name"
                 </span>
                 ],[
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "victim"
                 </span>
                 ,[
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "country"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "::equals"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "Italy"
                 </span>
                 ],
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "::first"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "country"
                 </span>
@@ -2532,25 +2532,25 @@ exports[`QueryBuilder renders with Plot button 1`] = `
               >
                 user_columns: [
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "monster.name"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "prize.name"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "prize.name"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "victim.country"
                 </span>
@@ -2565,10 +2565,10 @@ exports[`QueryBuilder renders with Plot button 1`] = `
       class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-grid-xs-12"
     >
       <div
-        class="MuiGrid-root makeStyles-config MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end"
+        class="MuiGrid-root makeStyles-config-39 MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end"
       >
         <div
-          class="MuiTypography-root makeStyles-container MuiTypography-body1"
+          class="MuiTypography-root makeStyles-container-41 MuiTypography-body1"
         >
           <label
             class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-align-items-xs-center"
@@ -2582,24 +2582,24 @@ exports[`QueryBuilder renders with Plot button 1`] = `
               class="MuiGrid-root MuiGrid-item"
             >
               <span
-                class="MuiSwitch-root WithStyles(ForwardRef(Switch))-root"
+                class="MuiSwitch-root WithStyles(ForwardRef(Switch))-root-42"
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiSwitch-switchBase WithStyles(ForwardRef(Switch))-switchBase MuiSwitch-colorSecondary PrivateSwitchBase-checked MuiSwitch-checked WithStyles(ForwardRef(Switch))-checked"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-13 MuiSwitch-switchBase WithStyles(ForwardRef(Switch))-switchBase-43 MuiSwitch-colorSecondary PrivateSwitchBase-checked-14 Mui-checked WithStyles(ForwardRef(Switch))-checked-46"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       checked=""
-                      class="PrivateSwitchBase-input MuiSwitch-input"
+                      class="PrivateSwitchBase-input-16 MuiSwitch-input"
                       name="expand-matrices-query"
                       type="checkbox"
                       value=""
                     />
                     <span
-                      class="MuiSwitch-thumb WithStyles(ForwardRef(Switch))-thumb"
+                      class="MuiSwitch-thumb WithStyles(ForwardRef(Switch))-thumb-44"
                     />
                   </span>
                   <span
@@ -2607,7 +2607,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   />
                 </span>
                 <span
-                  class="MuiSwitch-track WithStyles(ForwardRef(Switch))-track"
+                  class="MuiSwitch-track WithStyles(ForwardRef(Switch))-track-45"
                 />
               </span>
             </div>
@@ -2619,7 +2619,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
           </label>
         </div>
         <div
-          class="MuiTypography-root makeStyles-container MuiTypography-body1"
+          class="MuiTypography-root makeStyles-container-41 MuiTypography-body1"
         >
           <label
             class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-align-items-xs-center"
@@ -2633,24 +2633,24 @@ exports[`QueryBuilder renders with Plot button 1`] = `
               class="MuiGrid-root MuiGrid-item"
             >
               <span
-                class="MuiSwitch-root WithStyles(ForwardRef(Switch))-root"
+                class="MuiSwitch-root WithStyles(ForwardRef(Switch))-root-42"
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiSwitch-switchBase WithStyles(ForwardRef(Switch))-switchBase MuiSwitch-colorSecondary PrivateSwitchBase-checked MuiSwitch-checked WithStyles(ForwardRef(Switch))-checked"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-13 MuiSwitch-switchBase WithStyles(ForwardRef(Switch))-switchBase-43 MuiSwitch-colorSecondary PrivateSwitchBase-checked-14 Mui-checked WithStyles(ForwardRef(Switch))-checked-46"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       checked=""
-                      class="PrivateSwitchBase-input MuiSwitch-input"
+                      class="PrivateSwitchBase-input-16 MuiSwitch-input"
                       name="flatten-query"
                       type="checkbox"
                       value=""
                     />
                     <span
-                      class="MuiSwitch-thumb WithStyles(ForwardRef(Switch))-thumb"
+                      class="MuiSwitch-thumb WithStyles(ForwardRef(Switch))-thumb-44"
                     />
                   </span>
                   <span
@@ -2658,7 +2658,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
                   />
                 </span>
                 <span
-                  class="MuiSwitch-track WithStyles(ForwardRef(Switch))-track"
+                  class="MuiSwitch-track WithStyles(ForwardRef(Switch))-track-45"
                 />
               </span>
             </div>
@@ -2728,7 +2728,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
             >
               <button
                 aria-label="Previous page"
-                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-colorInherit MuiIconButton-disabled MuiButtonBase-disabled"
+                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-colorInherit Mui-disabled Mui-disabled"
                 disabled=""
                 tabindex="-1"
                 title="Previous page"
@@ -2751,7 +2751,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
               </button>
               <button
                 aria-label="Next page"
-                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-colorInherit MuiIconButton-disabled MuiButtonBase-disabled"
+                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-colorInherit Mui-disabled Mui-disabled"
                 disabled=""
                 tabindex="-1"
                 title="Next page"
@@ -2781,7 +2781,7 @@ exports[`QueryBuilder renders with Plot button 1`] = `
       >
         <table
           aria-label="result table"
-          class="MuiTable-root makeStyles-table"
+          class="MuiTable-root makeStyles-table-47"
         >
           <thead
             class="MuiTableHead-root"
