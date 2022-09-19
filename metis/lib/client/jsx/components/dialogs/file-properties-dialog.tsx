@@ -23,7 +23,7 @@ const FilePropertiesDialog = ({file}: {file: File}) => {
         );
       })}
       <div className='close'>
-        <span className={`button`} onClick={close}>
+        <span className={'button'} onClick={close}>
           Close
         </span>
       </div>

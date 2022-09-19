@@ -1,11 +1,11 @@
-import {listFilesRecursive} from "../file_actions";
-import {stubUrl, mockStore} from "etna-js/spec/helpers";
+import {listFilesRecursive} from '../file_actions';
+import {stubUrl, mockStore} from 'etna-js/spec/helpers';
 
 describe('file_actions', () => {
   describe('listFilesRecursive', () => {
     const bucket_name = 'test-bucket';
     function stubRecursiveListResponse(folderPath, contentsSpec) {
-      const joinableFolderPath = (folderPath ? folderPath + "/" : "");
+      const joinableFolderPath = (folderPath ? folderPath + '/' : '');
       const subFolders = Object.keys(contentsSpec.folders || {}).map(folder_name => ({
         folder_name,
         folder_path: joinableFolderPath + folder_name,
@@ -19,7 +19,7 @@ describe('file_actions', () => {
           folders: subFolders,
         },
         host: 'http://localhost',
-      })
+      });
 
       subFolders.forEach(({ folder_name, folder_path }) => {
         stubRecursiveListResponse(folder_path, contentsSpec.folders[folder_name]);
@@ -31,22 +31,22 @@ describe('file_actions', () => {
       const store = mockStore({});
 
       stubRecursiveListResponse(folder_name, {
-        files: ["b", "c", "a"],
+        files: ['b', 'c', 'a'],
         folders: {
-          "d": {
-            files: ["e", "g", "f"],
+          'd': {
+            files: ['e', 'g', 'f'],
             folders: {
-              "h": {
-                files: ["i"],
+              'h': {
+                files: ['i'],
                 folders: {},
               }
             }
           },
-          "j": {
-            files: ["k"],
+          'j': {
+            files: ['k'],
           }
         }
-      })
+      });
 
       const result = await listFilesRecursive({folder_name, bucket_name})(store.dispatch);
       expect(result.map(({file_path}) => file_path)).toEqual([
@@ -60,5 +60,5 @@ describe('file_actions', () => {
         `${folder_name}/j/k`,
       ]);
     });
-  })
+  });
 });

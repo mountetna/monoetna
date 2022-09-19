@@ -13,7 +13,7 @@ const ListColumnHead = ({ columnName, width, title, showName=true }) => {
       <span className='fa fa-chevron-down'></span>
     </div>
     }
-  </div>
+  </div>;
 };
 
 export default class ListHead extends React.Component{
