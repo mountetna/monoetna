@@ -22,7 +22,7 @@ export const postRenameFile = (project_name, bucket_name, file_name, new_file_pa
 
   if (new_bucket_name) payload.new_bucket_name = new_bucket_name;
   return json_post(`${window.location.origin}/${project_name}/file/rename/${bucket_name}/${file_name}`, payload);
-}
+};
 
 
 export const getTouchFile = (project_name, bucket_name, file_name) =>
