@@ -105,6 +105,24 @@ const FolderView = ({bucket_name, folder_name}) => {
     );
   }, [invoke, folder_name, bucket_name]);
 
+  const copyFile = useCallback(() => {
+    let metis_path = prompt(
+      'Enter the Metis path of the file to paste in this folder'
+    );
+
+    if (metis_path) {
+      invoke({
+        type: 'COPY_FILE',
+        folder_name,
+        bucket_name,
+        metis_path,
+        dest_metis_path: `metis://${
+          CONFIG.project_name
+        }/${bucket_name}/${folder_name}/${metis_path.split('/').at(-1)}`
+      });
+    }
+  }, [invoke, folder_name, bucket_name]);
+
   if (current_folder == INVALID) return <InvalidFolder />;
 
   let buttons = [
@@ -113,6 +131,13 @@ const FolderView = ({bucket_name, folder_name}) => {
       title: 'Create folder',
       icon: 'folder',
       overlay: 'plus',
+      role: 'editor'
+    },
+    {
+      onClick: copyFile,
+      title: 'Paste file with Metis path',
+      icon: 'cloud',
+      overlay: 'paste',
       role: 'editor'
     },
     {

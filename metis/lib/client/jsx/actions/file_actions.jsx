@@ -1,6 +1,7 @@
 import {
   postRetrieveFiles, postProtectFile, postUnprotectFile, postRenameFile, deleteFile,
-  getTouchFile
+  getTouchFile,
+  postCopyFiles
 } from '../api/files_api';
 import {errorMessage} from './message_actions';
 import {assertIsSome} from "etna-js/utils/asserts";
@@ -123,4 +124,14 @@ export const touchFile = ({bucket_name, file}) => (dispatch) => {
     .catch(
       errorMessage(dispatch, 'warning', 'File touching failed', error => error)
     );
+}
+
+export const copyFile = ({metis_path, dest_metis_path}) => (dispatch) => {
+  assertIsSome({metis_path, dest_metis_path});
+  return postCopyFiles(CONFIG.project_name, [{
+    source: metis_path,
+    dest: dest_metis_path
+  }]).then(({files}) =>
+    dispatch(addFiles(files))
+  );
 }
