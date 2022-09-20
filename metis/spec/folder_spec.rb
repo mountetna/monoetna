@@ -808,6 +808,22 @@ describe FolderController do
       expect(@helmet_folder.folders).to eq([])
     end
 
+    it 'refuses to move a folder into itself' do
+      @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/helmet')
+
+      @sketches_folder = create_folder('athena', 'sketches', folder: @helmet_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches')
+
+      token_header(:editor)
+      rename_folder('blueprints/helmet/sketches', 'blueprints/helmet/sketches/sketches')
+
+      expect(last_response.status).to eq(422)
+      @sketches_folder.refresh
+      expect(@sketches_folder.folder_path).to eq(['blueprints', 'helmet', 'sketches'])
+      expect(@sketches_folder.id).not_to eq(@sketches_folder.folder_id)
+    end
+
     it 'refuses to move a sub-folder to a non-existent tree' do
       @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
       stubs.create_folder('athena', 'files', 'blueprints/helmet')
