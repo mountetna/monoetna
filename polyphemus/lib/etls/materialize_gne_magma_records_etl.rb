@@ -1,9 +1,6 @@
 require_relative '../magma_record_etl'
 
 class Polyphemus::MaterializeGneMagmaRecordsEtl < Polyphemus::MagmaRecordEtl
-  MODEL_ATTRIBUTES_OVERRIDE = "/model_attributes"
-  MODEL_FILTERS_OVERRIDE = "/model_filters"
-
   def initialize(cursor_env: {}, scanner: build_scanner)
     super(project_model_pairs: [['mvir1', 'patient']], attribute_names: ['name', 'updated_at'], cursor_env: cursor_env, scanner: scanner)
   end
@@ -42,11 +39,15 @@ class Polyphemus::MaterializeGneMagmaRecordsEtl < Polyphemus::MagmaRecordEtl
   end
 
   def model_filter_override_exists?
-    ::File.exists?(MODEL_FILTERS_OVERRIDE)
+    ::File.exists?(model_filters_override_file)
   end
 
   def model_filter_override_content
-    JSON.parse(::File.read(MODEL_FILTERS_OVERRIDE))
+    JSON.parse(::File.read(model_filters_override_file))
+  end
+
+  def model_filters_override_file
+    Polyphemus.instance.config(:gne_model_filters) || ''
   end
 
   def model_attribute_pairs
@@ -72,10 +73,14 @@ class Polyphemus::MaterializeGneMagmaRecordsEtl < Polyphemus::MagmaRecordEtl
   end
 
   def model_attributes_override_exists?
-    ::File.exists?(MODEL_ATTRIBUTES_OVERRIDE)
+    ::File.exists?(model_attributes_override_file)
   end
 
   def model_attributes_override_contents
-    JSON.parse(::File.read(MODEL_ATTRIBUTES_OVERRIDE))
+    JSON.parse(::File.read(model_attributes_override_file))
+  end
+
+  def model_attributes_override_file
+    Polyphemus.instance.config(:gne_model_attributes) || ''
   end
 end
