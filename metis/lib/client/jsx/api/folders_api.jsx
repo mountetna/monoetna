@@ -17,7 +17,7 @@ export const postRenameFolder = (project_name, bucket_name, folder_name, new_fol
   if (new_bucket_name) payload.new_bucket_name = new_bucket_name;
 
   return json_post(`/${project_name}/folder/rename/${bucket_name}/${folder_name}`, payload);
-}
+};
 
 export const deleteFolder = (project_name, bucket_name, folder_name, recursive) =>
 json_delete(`/${project_name}/folder/remove/${bucket_name}/${folder_name}`, recursive ? {recursive: true } : {});

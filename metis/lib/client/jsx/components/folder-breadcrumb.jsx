@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { FolderLink, RootFolderLink } from './folder-link';
 
-const Chevron = () => <span className='folder-sep fas fa-chevron-right'/>
+const Chevron = () => <span className='folder-sep fas fa-chevron-right'/>;
 
 const FolderCrumb = ({folder_path, link, bucket_name, folder_name}) =>
   <div className='folder-link' title={folder_name}>
@@ -46,6 +46,6 @@ const FolderBreadcrumb = ({ folder_name, bucket_name }) => {
       }
     </div>
   );
-}
+};
 
-export default FolderBreadcrumb
+export default FolderBreadcrumb;

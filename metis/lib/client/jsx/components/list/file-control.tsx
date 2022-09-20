@@ -38,13 +38,15 @@ const FileControl = ({
           'Invalid name -- cannot change the path'
         )
       );
-    } else if (new_file_name)
-      invoke({
+    }
+ else if (new_file_name) {
+invoke({
         type: 'RENAME_FILE',
         file,
         new_file_path: filePath(current_folder, new_file_name),
         bucket_name
       });
+}
   }, [file, current_folder, bucket_name]);
 
   const removeFile = useCallback(() => {
@@ -79,7 +81,7 @@ const FileControl = ({
   }, [file]);
 
   const moveFile = useCallback(
-    (newBucketName, newFilePath) => {
+    (newBucketName: string, newFilePath: string) => {
       invoke({
         type: 'RENAME_FILE',
         file,
