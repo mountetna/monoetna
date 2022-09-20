@@ -27,9 +27,7 @@ class Polyphemus::MaterializeGneMagmaRecordsEtl < Polyphemus::MagmaRecordEtl
   private
 
   def model_filters
-    default_model_filters.update(
-        model_filter_override_exists? ? model_filter_override_content : {}
-    )
+    default_model_filters.update(model_filters_override)
   end
 
   def default_model_filters
@@ -38,22 +36,12 @@ class Polyphemus::MaterializeGneMagmaRecordsEtl < Polyphemus::MagmaRecordEtl
     }
   end
 
-  def model_filter_override_exists?
-    ::File.exists?(model_filters_override_file)
-  end
-
-  def model_filter_override_content
-    JSON.parse(::File.read(model_filters_override_file))
-  end
-
-  def model_filters_override_file
-    Polyphemus.instance.config(:gne_model_filters) || ''
+  def model_filters_override
+    Polyphemus.instance.config(:gne_model_filters) || {}
   end
 
   def model_attribute_pairs
-    default_model_attribute_pairs.update(
-        model_attributes_override_exists? ? model_attributes_override_contents : {}
-    )
+    default_model_attribute_pairs.update(model_attributes_override)
   end
 
   def default_model_attribute_pairs
@@ -72,15 +60,7 @@ class Polyphemus::MaterializeGneMagmaRecordsEtl < Polyphemus::MagmaRecordEtl
     result
   end
 
-  def model_attributes_override_exists?
-    ::File.exists?(model_attributes_override_file)
-  end
-
-  def model_attributes_override_contents
-    JSON.parse(::File.read(model_attributes_override_file))
-  end
-
-  def model_attributes_override_file
-    Polyphemus.instance.config(:gne_model_attributes) || ''
+  def model_attributes_override
+    Polyphemus.instance.config(:gne_model_attributes) || {}
   end
 end
