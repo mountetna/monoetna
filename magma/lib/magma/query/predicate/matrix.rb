@@ -54,7 +54,6 @@ class Magma
 
     def ensure_requested_identifiers
       return if @requested_identifiers.empty?
-
       @attribute.cache_rows(@requested_identifiers)
       @requested_identifiers.clear
     end
