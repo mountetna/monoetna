@@ -466,7 +466,7 @@ describe('QueryBuilder', () => {
     ]);
   });
 
-  it('adds matrix slice with multiple subclauses', () => {
+  it('adds matrix slice with multiple clauses', () => {
     builder.addRootModel('labor');
     builder.addColumns([
       stamp('labor', 'name', []),
