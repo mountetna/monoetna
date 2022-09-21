@@ -494,7 +494,7 @@ describe('QueryBuilder', () => {
                 attributeName: 'name',
                 operator: '::matches',
                 operand: 'ion',
-                attributeType: 'string'
+                attributeType: 'text'
               }
             ],
             modelName: 'monster',
