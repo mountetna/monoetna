@@ -216,8 +216,13 @@ export const attributeIsFile = (
   ]);
 };
 
-export const isMatrixSlice = (slice: QuerySlice) =>
-  '::slice' === slice.clause.operator;
+export const isMatrixSlice = (slice: QuerySlice) => {
+  if (!slice.clause.subclauses) return false;
+
+  return slice.clause.subclauses.some((subclause) => {
+    return '::slice' === subclause.operator;
+  });
+};
 
 export const hasMatrixSlice = (column: QueryColumn) => {
   return column.slices.some((slice) => isMatrixSlice(slice));
@@ -234,9 +239,16 @@ export const queryColumnMatrixHeadings = (column: QueryColumn) => {
   return column.slices
     .filter((slice) => isMatrixSlice(slice))
     .map((slice) => {
-      return (slice.clause.operand as string).split(',');
+      if (!slice.clause.subclauses) return null;
+
+      return (
+        slice.clause.subclauses.find((subclause) => {
+          return '::slice' === subclause.operator;
+        })?.operand as string
+      ).split(',');
     })
-    .flat();
+    .flat()
+    .filter((value) => null != value);
 };
 
 export const isIdentifierQuery = (
