@@ -2218,7 +2218,7 @@ describe QueryController do
       expect(json_body[:format]).to eq(["labors::monster#name", [["labors::sidekick#weapon_proficiencies", ["hands", "spear" ]]]])
     end
 
-    it 'returns nil for child models when filter applied' do
+    it 'returns valid values for child models when filter applied' do
       matrix = [
         [ 10, 11, 12, 13 ],
         [ 20, 21, 22, 23 ],
@@ -2228,6 +2228,8 @@ describe QueryController do
       lion_monster = create(:monster, name: 'Nemean Lion', labor: lion)
       victim_1 = create(:victim, name: 'John Doe', monster: lion_monster)
       sidekick_1 = create(:sidekick, name: 'Jane Doe', victim: victim_1, weapon_proficiencies: matrix[0])
+      victim_2 = create(:victim, name: 'Susan Doe', monster: lion_monster)
+      sidekick_2 = create(:sidekick, name: 'Brother Doe', victim: victim_2, weapon_proficiencies: matrix[1])
 
       query(
         [ 'monster',
@@ -2246,7 +2248,7 @@ describe QueryController do
       )
 
       expect(last_response.status).to eq(200)
-      expect(json_body[:answer].map(&:last)).to eq([[[nil, nil]]])
+      expect(json_body[:answer].map(&:last)).to eq([[[23, 21]]])
       expect(json_body[:format]).to eq(["labors::monster#name", [["labors::sidekick#weapon_proficiencies", ["hands", "spear" ]]]])
     end
 
