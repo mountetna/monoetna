@@ -219,6 +219,128 @@ describe Metis::FolderRenameRevision do
         )
     end
 
+    context 'recursive renaming' do
+        context 'is okay' do
+            it 'copying from subfolder to root' do
+                wisdom2_folder = create_folder('athena', 'wisdom2', folder: @wisdom_folder)
+                stubs.create_folder('athena', 'files/wisdom', 'wisdom2')
+
+                revision = Metis::FolderRenameRevision.new({
+                    source: 'metis://athena/files/wisdom/wisdom2',
+                    dest: 'metis://athena/files/wisdom3',
+                    user: @user
+                })
+
+                revision.source.bucket = default_bucket('athena')
+                revision.source.folder = @wisdom_folder
+                revision.dest.bucket = default_bucket('athena')
+                expect(revision.errors).to eq(nil)
+                revision.validate
+                expect(revision.errors.length).to eq(0)
+            end
+
+            it 'copying from subfolder to similarly-named subfolder' do
+                wisdom_dup_folder = create_folder('athena', 'wisdom', folder: @wisdom_folder)
+                stubs.create_folder('athena', 'files/wisdom', 'wisdom')
+                wisdom2_folder = create_folder('athena', 'wisdom2', folder: wisdom_dup_folder)
+                stubs.create_folder('athena', 'files/wisdom/wisdom', 'wisdom2')
+
+                revision = Metis::FolderRenameRevision.new({
+                    source: 'metis://athena/files/wisdom/wisdom/wisdom2',
+                    dest: 'metis://athena/files/wisdom/wisdom2',
+                    user: @user
+                })
+
+                revision.source.bucket = default_bucket('athena')
+                revision.source.folder = wisdom_dup_folder
+                revision.dest.bucket = default_bucket('athena')
+                revision.dest.folder = @wisdom_folder
+                expect(revision.errors).to eq(nil)
+                revision.validate
+                expect(revision.errors.length).to eq(0)
+            end
+
+            it 'copying from root to root' do
+                revision = Metis::FolderRenameRevision.new({
+                    source: 'metis://athena/files/wisdom',
+                    dest: 'metis://athena/files/wisdom2',
+                    user: @user
+                })
+
+                revision.source.bucket = default_bucket('athena')
+                revision.dest.bucket = default_bucket('athena')
+                expect(revision.errors).to eq(nil)
+                revision.validate
+                expect(revision.errors.length).to eq(0)
+            end
+        end
+
+        context 'adds error' do
+            it 'if trying to copy into itself at root level' do
+                revision = Metis::FolderRenameRevision.new({
+                    source: 'metis://athena/files/wisdom',
+                    dest: 'metis://athena/files/wisdom/wisdom',
+                    user: @user
+                })
+
+                revision.source.bucket = default_bucket('athena')
+                revision.dest.bucket = default_bucket('athena')
+                revision.dest.folder = @wisdom_folder
+                expect(revision.errors).to eq(nil)
+                revision.validate
+                expect(revision.errors.length).to eq(1)
+                expect(revision.errors[0]).to eq(
+                    "Cannot copy folder into itself: \"metis://athena/files/wisdom\""
+                )
+            end
+
+            it 'if trying to copy anywhere into its children path' do
+                wisdom_dup_folder = create_folder('athena', 'wisdom', folder: @wisdom_folder)
+                stubs.create_folder('athena', 'files/wisdom', 'wisdom')
+                wisdom2_folder = create_folder('athena', 'wisdom2', folder: wisdom_dup_folder)
+                stubs.create_folder('athena', 'files/wisdom/wisdom', 'wisdom2')
+
+                revision = Metis::FolderRenameRevision.new({
+                    source: 'metis://athena/files/wisdom/wisdom',
+                    dest: 'metis://athena/files/wisdom/wisdom/wisdom2/cyclic-wisdom',
+                    user: @user
+                })
+
+                revision.source.bucket = default_bucket('athena')
+                revision.dest.bucket = default_bucket('athena')
+                revision.dest.folder = @wisdom_folder
+                expect(revision.errors).to eq(nil)
+                revision.validate
+                expect(revision.errors.length).to eq(1)
+                expect(revision.errors[0]).to eq(
+                    "Cannot copy folder into itself: \"metis://athena/files/wisdom/wisdom\""
+                )
+            end
+
+            it 'if trying to copy into itself not at root level' do
+                wisdom2_folder = create_folder('athena', 'wisdom2', folder: @wisdom_folder)
+                stubs.create_folder('athena', 'files/wisdom', 'wisdom2')
+
+                revision = Metis::FolderRenameRevision.new({
+                    source: 'metis://athena/files/wisdom/wisdom2',
+                    dest: 'metis://athena/files/wisdom/wisdom2/wisdom2',
+                    user: @user
+                })
+
+                revision.source.bucket = default_bucket('athena')
+                revision.source.folder = @wisdom_folder
+                revision.dest.bucket = default_bucket('athena')
+                revision.dest.folder = wisdom2_folder
+                expect(revision.errors).to eq(nil)
+                revision.validate
+                expect(revision.errors.length).to eq(1)
+                expect(revision.errors[0]).to eq(
+                    "Cannot copy folder into itself: \"metis://athena/files/wisdom/wisdom2\""
+                )
+            end
+        end
+    end
+
     it 'executes the revision' do
         expect(Metis::Folder.count).to eq(1)
         expect(Metis::Folder.first.author).to eq('metis|Metis')
@@ -240,7 +362,7 @@ describe Metis::FolderRenameRevision do
         new_bucket_name = 'new_bucket'
         stubs.create_bucket(new_bucket_name, 'files')
         new_bucket = create( :bucket, project_name: new_bucket_name, name: 'files', owner: 'metis', access: 'viewer')
-        
+
         expect(Metis::Folder.count).to eq(1)
         expect(Metis::Folder.first.author).to eq('metis|Metis')
         revision = Metis::FolderRenameRevision.new({

@@ -32,7 +32,7 @@ export const removeFolder = ({bucket_name, folder, recursive}) => (dispatch) => 
         }
       )
     );
-}
+};
 
 
 export const protectFolder = ({bucket_name, folder}) => (dispatch) => {
@@ -43,7 +43,7 @@ export const protectFolder = ({bucket_name, folder}) => (dispatch) => {
     .catch(
       errorMessage(dispatch, 'warning', 'Folder protection failed', error => error)
     );
-}
+};
 
 export const unprotectFolder = ({bucket_name, folder}) => (dispatch) => {
   if (!confirm(`Are you sure you want to unprotect ${folder.folder_path}?`)) return;
@@ -55,7 +55,7 @@ export const unprotectFolder = ({bucket_name, folder}) => (dispatch) => {
     .catch(
       errorMessage(dispatch, 'warning', 'Folder unprotection failed', error => error)
     );
-}
+};
 
 export const renameFolder = ({bucket_name, folder, new_folder_path, new_bucket_name, current_folder}) => (dispatch) => {
   postRenameFolder(
@@ -68,7 +68,7 @@ export const renameFolder = ({bucket_name, folder, new_folder_path, new_bucket_n
     .catch(
       errorMessage(dispatch, 'warning', 'Folder renaming failed', error => error)
     );
-}
+};
 
 export const touchFolder = ({bucket_name, folder}) => (dispatch) => {
   getTouchFolder(
@@ -81,5 +81,5 @@ export const touchFolder = ({bucket_name, folder}) => (dispatch) => {
     .catch(
       errorMessage(dispatch, 'warning', 'Folder touching failed', error => error)
     );
-}
+};
 

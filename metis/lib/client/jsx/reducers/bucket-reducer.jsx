@@ -13,7 +13,7 @@ const removeFiles = (old_files, action) => {
   return Object.keys(old_files).filter(key => !(key in removed_keys)).reduce(
     (nf,key) => { nf[key] = old_files[key]; return nf; }, {}
   );
-}
+};
 
 const addBuckets = (old_buckets, action) => {
   let { buckets } = action;
@@ -27,7 +27,7 @@ const addBuckets = (old_buckets, action) => {
     ...old_buckets,
     ...new_buckets
   };
-}
+};
 
 const removeBucket = (old_buckets, action) => {
   let { bucket } = action;
@@ -35,7 +35,7 @@ const removeBucket = (old_buckets, action) => {
   let { [bucket.bucket_name]: deleted_bucket, ...new_buckets } = old_buckets;
 
   return new_buckets;
-}
+};
 
 const buckets = (old_buckets, action) => {
   if (!old_buckets) old_buckets = {};

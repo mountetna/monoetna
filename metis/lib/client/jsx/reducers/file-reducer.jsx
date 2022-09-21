@@ -13,7 +13,7 @@ const removeFiles = (old_files, action) => {
   return Object.keys(old_files).filter(key => !(key in removed_keys)).reduce(
     (nf,key) => { nf[key] = old_files[key]; return nf; }, {}
   );
-}
+};
 
 const addFiles = (old_files, action) => {
   let { files } = action;
@@ -28,7 +28,7 @@ const addFiles = (old_files, action) => {
     ...old_files,
     ...new_files
   };
-}
+};
 
 const files = (old_files, action) => {
   if (!old_files) old_files = {};

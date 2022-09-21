@@ -8,7 +8,7 @@ const basename = (path) => path.split(/\//).pop();
 const foldername = (file) => {
   let [ basename, ...folder_names ] = file.file_name.split(/\//).reverse();
   return folder_names.reverse().join('/');
-}
+};
 
 const ListEntryFileNameColumn = ({file, widths}) => (
   <ListEntryColumn className='name' widths={widths}>

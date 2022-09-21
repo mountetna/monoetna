@@ -38,13 +38,15 @@ const FolderControl = ({
           'Invalid name -- cannot change the folder path'
         )
       );
-    } else if (new_folder_name)
-      invoke({
+    }
+ else if (new_folder_name) {
+invoke({
         type: 'RENAME_FOLDER',
         folder,
         new_folder_path: filePath(current_folder, new_folder_name),
         bucket_name
       });
+}
   }, [folder, current_folder, bucket_name]);
 
   const removeFolder = useCallback(() => {
@@ -56,7 +58,7 @@ const FolderControl = ({
   }, [folder, bucket_name]);
 
   const moveFolder = useCallback(
-    (newBucketName, newFolderPath) => {
+    (newBucketName: string, newFolderPath: string) => {
       invoke({
         type: 'RENAME_FOLDER',
         folder,

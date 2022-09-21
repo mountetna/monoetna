@@ -5,7 +5,7 @@
 export const userFormat = (author) => {
   let [ email, name ] = author.split(/\|/);
   return name;
-}
+};
 
 export const dateFormat = (timestamp) => {
   if(timestamp == undefined || timestamp == null) return 'Unknown';
@@ -16,17 +16,18 @@ export const dateFormat = (timestamp) => {
   if (date.toDateString() == today.toDateString()) {
     let time = date.toLocaleString('en-us',{ hour: 'numeric', minute: 'numeric' });
     return `Today, ${time}`;
-  } else {
+  }
+ else {
     return date.toLocaleString('en-us', { month: 'short', day: 'numeric', year: 'numeric' });
   }
-}
+};
 
 /*
  * Change an integer of bytes into a human readable format.  
  * http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
  */
 
-const PREFIXES = ['K','M','G','T','P','E','Z','Y']
+const PREFIXES = ['K','M','G','T','P','E','Z','Y'];
 
 export const byteFormat = (bytes, si = false, unit='B') => {
   let thresh = si ? 1000 : 1024;
@@ -36,22 +37,22 @@ export const byteFormat = (bytes, si = false, unit='B') => {
   let places = Math.min(
     PREFIXES.length,
     Math.floor(Math.log(bytes) / Math.log(thresh))
-  )
+  );
   bytes = bytes / Math.pow(thresh, places);
 
 
   return `${bytes.toFixed(1)} ${PREFIXES[places-1]}${si ? 'i' : ''}${unit}`;
-}
+};
 
 export const snakeCase = (str) => {
   return str.split(/(?=[A-Z])/).join('_').toLowerCase();
-}
+};
 
 export const camelCase = (str) => {
   return str.toLowerCase().replace(
     /[^A-Za-z0-9]+([A-Za-z0-9])/g, 
     (_, chr) =>  chr.toUpperCase()
   );
-}
+};
 
 export const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);

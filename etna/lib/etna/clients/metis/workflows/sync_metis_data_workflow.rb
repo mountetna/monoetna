@@ -29,6 +29,13 @@ module Etna
             project_name = url_match[:project_name]
             file_path = url_match[:file_path]
 
+            # ensure target parent directory exists
+            metis_client.ensure_parent_folder_exists(
+              project_name: filesystem.project_name,
+              bucket_name: filesystem.bucket_name,
+              path: dest
+            )
+
             metis_client.copy_files(
               Etna::Clients::Metis::CopyFilesRequest.new(
                 project_name: project_name,
