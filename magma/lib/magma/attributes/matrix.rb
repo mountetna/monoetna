@@ -53,8 +53,12 @@ class Magma
     end
 
     def cache_rows(identifiers)
+      puts 'in cache_rows'
+      puts identifiers
+      puts cached_rows
       required_identifiers = identifiers - cached_rows.keys
 
+      puts required_identifiers
       return if required_identifiers.empty?
 
       rows = @magma_model.
@@ -62,12 +66,16 @@ class Magma
         select_map([@magma_model.identity.column_name.to_sym, column_name.to_sym]).
         to_h
 
+      puts rows
       cached_rows.update(rows)
     end
 
     def matrix_row_json(identifier, column_names)
       # since we want to retrieve rows in a single batch, we expect the row to
       # have been cached already by #cache_rows
+      puts 'in matrix_row_json'
+      puts identifier
+      puts cached_rows
       raise MatrixJsonError.new("matrix data not cached for #{identifier}") unless cached_rows.has_key?(identifier)
 
       if column_names

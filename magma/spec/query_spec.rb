@@ -2186,6 +2186,37 @@ describe QueryController do
       expect(json_body[:format]).to eq(["labors::labor#name", ["labors::labor#contributions", ["Athens", "Sparta" ]]])
     end
 
+    it 'returns a slice for child models' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      lion = create(:labor, name: 'Nemean Lion', number: 1, project: @project)
+      lion_monster = create(:monster, name: 'Nemean Lion', labor: lion)
+      victim_1 = create(:victim, name: 'John Doe', monster: lion_monster, weapon_proficiencies: matrix[0])
+
+      query(
+        [ 'labor',
+          '::all',
+          [[
+            'monster',
+            ['name', '::matches', 'ion'],
+            'victim',
+            '::first',
+            'weapon_proficiencies',
+            '::slice',
+            ['hands', 'spear']
+          ]]
+        ]
+      )
+      require 'pry'
+      binding.pry
+      expect(last_response.status).to eq(200)
+      expect(json_body[:answer].map(&:last)).to eq([13, 11])
+      expect(json_body[:format]).to eq(["labors::labor#name", ["labors::victim#weapon_proficiencies", ["hands", "spear" ]]])
+    end
+
     it 'complains about invalid slices' do
       matrix = [
         [ 10, 11, 12, 13 ],

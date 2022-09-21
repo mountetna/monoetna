@@ -124,6 +124,9 @@ victim:
     type: string
   birthday:
     type: shifted_date_time
+  weapon_proficiencies:
+    type: matrix
+    validation: '{"type":"Array", "value":["sword","spear","sling","hands"]}'
 wound:
   victim:
     type: parent

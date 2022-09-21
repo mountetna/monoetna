@@ -71,6 +71,7 @@ comments,model_name,identifier,parent_model_name,parent_link_type,attribute_name
 ,,,,,wound,,table,wound,victim,,Wound,,,,,,,,,
 ,,,,,weapon,,string,,,,Weapon,,,,,,,,,
 ,,,,,birthday,,shifted_date_time,,,,Birthday,,,,,,,,,
+,,,,,weapon_proficiencies,,matrix,,,,Weapon proficiencies,,,,$copy_from_original$cffba132536c33dcae61f25f21a08855,,,,,
 ,,,,,,,,,,,,,,,,,,,,
 ,wound,,,,,,,,,,,,,,,,,,,
 ,,id,victim,table,,,,,,,,,,,,,,,,
@@ -101,3 +102,9 @@ comments,model_name,identifier,parent_model_name,parent_link_type,attribute_name
 ,,,,,,,,,,,,,,,,,,,,Sparta
 ,,,,,,,,,,,,,,,,,,,,Sidon
 ,,,,,,,,,,,,,,,,,,,,Thebes
+,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,$copy_from_original$cffba132536c33dcae61f25f21a08855
+,,,,,,,,,,,,,,,,,,,,sword
+,,,,,,,,,,,,,,,,,,,,spear
+,,,,,,,,,,,,,,,,,,,,sling
+,,,,,,,,,,,,,,,,,,,,hands
