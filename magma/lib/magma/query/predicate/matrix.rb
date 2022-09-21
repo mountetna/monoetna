@@ -18,9 +18,6 @@ class Magma
       child Array
 
       extract do |table, identity|
-        puts "in ::slice"
-        puts table
-        puts identity
         @requested_identifiers << table.first[identity]
         MatrixValue.new(self, table.first[identity], @arguments[1])
       end
@@ -56,10 +53,8 @@ class Magma
     end
 
     def ensure_requested_identifiers
-      puts "in ensure_requested_identifiers"
-      puts @requested_identifiers
       return if @requested_identifiers.empty?
-      puts @requested_identifiers.empty?
+
       @attribute.cache_rows(@requested_identifiers)
       @requested_identifiers.clear
     end

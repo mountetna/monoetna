@@ -2194,15 +2194,17 @@ describe QueryController do
       ]
       lion = create(:labor, name: 'Nemean Lion', number: 1, project: @project)
       lion_monster = create(:monster, name: 'Nemean Lion', labor: lion)
-      victim_1 = create(:victim, name: 'John Doe', monster: lion_monster, weapon_proficiencies: matrix[0])
+      victim_1 = create(:victim, name: 'John Doe', monster: lion_monster)
+      sidekick_1 = create(:sidekick, name: 'Jane Doe', victim: victim_1, weapon_proficiencies: matrix[0])
 
       query(
-        [ 'labor',
+        [ 'monster',
           '::all',
           [[
-            'monster',
-            ['name', '::matches', 'ion'],
             'victim',
+            ['name', '::matches', 'Doe'],
+            '::first',
+            'sidekick',
             '::first',
             'weapon_proficiencies',
             '::slice',
@@ -2210,11 +2212,42 @@ describe QueryController do
           ]]
         ]
       )
-      require 'pry'
-      binding.pry
+
       expect(last_response.status).to eq(200)
-      expect(json_body[:answer].map(&:last)).to eq([13, 11])
-      expect(json_body[:format]).to eq(["labors::labor#name", ["labors::victim#weapon_proficiencies", ["hands", "spear" ]]])
+      expect(json_body[:answer].map(&:last)).to eq([[[13, 11]]])
+      expect(json_body[:format]).to eq(["labors::monster#name", [["labors::sidekick#weapon_proficiencies", ["hands", "spear" ]]]])
+    end
+
+    it 'returns nil for child models when filter applied' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      lion = create(:labor, name: 'Nemean Lion', number: 1, project: @project)
+      lion_monster = create(:monster, name: 'Nemean Lion', labor: lion)
+      victim_1 = create(:victim, name: 'John Doe', monster: lion_monster)
+      sidekick_1 = create(:sidekick, name: 'Jane Doe', victim: victim_1, weapon_proficiencies: matrix[0])
+
+      query(
+        [ 'monster',
+          '::all',
+          [[
+            'victim',
+            ['name', '::matches', 'Susan'],
+            '::first',
+            'sidekick',
+            '::first',
+            'weapon_proficiencies',
+            '::slice',
+            ['hands', 'spear']
+          ]]
+        ]
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:answer].map(&:last)).to eq([[[nil, nil]]])
+      expect(json_body[:format]).to eq(["labors::monster#name", [["labors::sidekick#weapon_proficiencies", ["hands", "spear" ]]]])
     end
 
     it 'complains about invalid slices' do
