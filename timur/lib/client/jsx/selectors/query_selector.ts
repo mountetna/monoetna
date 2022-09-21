@@ -235,17 +235,19 @@ export const emptyQueryClauseStamp = (modelName: string) => {
   };
 };
 
-export const queryColumnMatrixHeadings = (column: QueryColumn) => {
+export const queryColumnMatrixHeadings = (column: QueryColumn): string[] => {
   return column.slices
     .filter((slice) => isMatrixSlice(slice))
     .map((slice) => {
-      if (!slice.clause.subclauses) return null;
-
       return (
-        slice.clause.subclauses.find((subclause) => {
-          return '::slice' === subclause.operator;
-        })?.operand as string
-      ).split(',');
+        // Given the above isMatrixSlice filter, slice.clause.subclauses
+        //   should always exist, but this makes tsc happy.
+        (
+          (slice.clause.subclauses || []).find((subclause) => {
+            return '::slice' === subclause.operator;
+          })?.operand as string
+        ).split(',')
+      );
     })
     .flat()
     .filter((value) => null != value);
