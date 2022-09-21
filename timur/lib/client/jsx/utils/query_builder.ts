@@ -300,7 +300,6 @@ export class QueryBuilder {
     let includeAttributeName = true;
 
     matchingSlices.forEach((matchingSlice: QuerySlice) => {
-      console.log('matchingSlice', matchingSlice, isMatrixSlice(matchingSlice));
       if (isMatrixSlice(matchingSlice)) {
         // For matrices (i.e. ::slice), we'll construct it
         //   a little differently.
