@@ -56,10 +56,14 @@ describe('QueryBuilder', () => {
           anyMap: {biospecimen: true, sc_seq: true},
           clauses: [
             {
-              attributeName: 'tube_name',
-              operand: '',
-              operator: '::has',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'tube_name',
+                  operand: '',
+                  operator: '::has',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'sc_seq',
               any: true
             }
@@ -97,10 +101,14 @@ describe('QueryBuilder', () => {
         {
           modelName: 'labor',
           clause: {
-            attributeName: 'contributions',
-            operator: '::slice',
-            operand: 'Athens,Sidon',
-            attributeType: 'matrix',
+            subclauses: [
+              {
+                attributeName: 'contributions',
+                operator: '::slice',
+                operand: 'Athens,Sidon',
+                attributeType: 'matrix'
+              }
+            ],
             modelName: 'labor',
             any: true
           }
@@ -110,10 +118,14 @@ describe('QueryBuilder', () => {
         {
           modelName: 'prize',
           clause: {
-            attributeName: 'name',
-            operator: '::equals',
-            operand: 'Sparta',
-            attributeType: 'text',
+            subclauses: [
+              {
+                attributeName: 'name',
+                operator: '::equals',
+                operand: 'Sparta',
+                attributeType: 'text'
+              }
+            ],
             modelName: 'prize',
             any: true
           }
@@ -127,10 +139,14 @@ describe('QueryBuilder', () => {
         anyMap: {},
         clauses: [
           {
-            attributeName: 'name',
-            operator: '::in',
-            operand: 'lion,hydra,apples',
-            attributeType: 'text',
+            subclauses: [
+              {
+                attributeName: 'name',
+                operator: '::in',
+                operand: 'lion,hydra,apples',
+                attributeType: 'text'
+              }
+            ],
             modelName: 'labor',
             any: true
           }
@@ -141,10 +157,14 @@ describe('QueryBuilder', () => {
         anyMap: {},
         clauses: [
           {
-            attributeName: 'name',
-            operator: '::equals',
-            operand: 'Nemean Lion',
-            attributeType: 'text',
+            subclauses: [
+              {
+                attributeName: 'name',
+                operator: '::equals',
+                operand: 'Nemean Lion',
+                attributeType: 'text'
+              }
+            ],
             modelName: 'monster',
             any: true
           }
@@ -155,10 +175,14 @@ describe('QueryBuilder', () => {
         anyMap: {},
         clauses: [
           {
-            attributeName: 'number',
-            operator: '::equals',
-            operand: '2',
-            attributeType: 'number',
+            subclauses: [
+              {
+                attributeName: 'number',
+                operator: '::equals',
+                operand: '2',
+                attributeType: 'number'
+              }
+            ],
             modelName: 'labor',
             any: true
           }
@@ -168,10 +192,14 @@ describe('QueryBuilder', () => {
         modelName: 'prize',
         clauses: [
           {
-            attributeName: 'name',
-            operator: '::equals',
-            operand: 'Apples',
-            attributeType: 'text',
+            subclauses: [
+              {
+                attributeName: 'name',
+                operator: '::equals',
+                operand: 'Apples',
+                attributeType: 'text'
+              }
+            ],
             modelName: 'prize',
             any: true
           }
@@ -262,26 +290,38 @@ describe('QueryBuilder', () => {
         anyMap: {},
         clauses: [
           {
-            attributeName: 'name',
-            operator: '::in',
-            operand: 'lion,hydra,apples',
-            attributeType: 'text',
+            subclauses: [
+              {
+                attributeName: 'name',
+                operator: '::in',
+                operand: 'lion,hydra,apples',
+                attributeType: 'text'
+              }
+            ],
             modelName: 'labor',
             any: true
           },
           {
-            attributeName: 'number',
-            operator: '::>',
-            operand: '2',
-            attributeType: 'number',
+            subclauses: [
+              {
+                attributeName: 'number',
+                operator: '::>',
+                operand: '2',
+                attributeType: 'number'
+              }
+            ],
             modelName: 'labor',
             any: true
           },
           {
-            attributeName: 'number',
-            operator: '::<=',
-            operand: '8',
-            attributeType: 'number',
+            subclauses: [
+              {
+                attributeName: 'number',
+                operator: '::<=',
+                operand: '8',
+                attributeType: 'number'
+              }
+            ],
             modelName: 'labor',
             any: true
           }
@@ -315,10 +355,14 @@ describe('QueryBuilder', () => {
         anyMap: {},
         clauses: [
           {
-            attributeName: 'name',
-            operator: '::in',
-            operand: 'lion,hydra,apples',
-            attributeType: 'text',
+            subclauses: [
+              {
+                attributeName: 'name',
+                operator: '::in',
+                operand: 'lion,hydra,apples',
+                attributeType: 'text'
+              }
+            ],
             modelName: 'labor',
             any: true
           },
@@ -369,10 +413,14 @@ describe('QueryBuilder', () => {
         anyMap: {},
         clauses: [
           {
-            attributeName: 'name',
-            operator: '::in',
-            operand: 'lion,hydra,apples',
-            attributeType: 'text',
+            subclauses: [
+              {
+                attributeName: 'name',
+                operator: '::in',
+                operand: 'lion,hydra,apples',
+                attributeType: 'text'
+              }
+            ],
             modelName: 'monster',
             any: true
           }
@@ -396,10 +444,14 @@ describe('QueryBuilder', () => {
         {
           modelName: 'labor',
           clause: {
-            attributeName: 'contributions',
-            operator: '::slice',
-            operand: 'Athens,Sidon',
-            attributeType: 'matrix',
+            subclauses: [
+              {
+                attributeName: 'contributions',
+                operator: '::slice',
+                operand: 'Athens,Sidon',
+                attributeType: 'matrix'
+              }
+            ],
             modelName: 'labor',
             any: true
           }
@@ -414,6 +466,61 @@ describe('QueryBuilder', () => {
     ]);
   });
 
+  it('adds matrix slice with multiple clauses', () => {
+    builder.addRootModel('labor');
+    builder.addColumns([
+      stamp('labor', 'name', []),
+      stamp('victim', 'weapons', [
+        {
+          modelName: 'victim',
+          clause: {
+            subclauses: [
+              {
+                attributeName: 'weapons',
+                operator: '::slice',
+                operand: 'sword,hands',
+                attributeType: 'matrix'
+              }
+            ],
+            modelName: 'victim',
+            any: true
+          }
+        },
+        {
+          modelName: 'monster',
+          clause: {
+            subclauses: [
+              {
+                attributeName: 'name',
+                operator: '::matches',
+                operand: 'ion',
+                attributeType: 'text'
+              }
+            ],
+            modelName: 'monster',
+            any: true
+          }
+        }
+      ])
+    ]);
+
+    expect(builder.query()).toEqual([
+      'labor',
+      '::all',
+      [
+        [
+          'monster',
+          ['name', '::matches', 'ion'],
+          'victim',
+          '::first',
+          'weapons',
+          '::slice',
+          ['sword', 'hands']
+        ]
+      ]
+    ]);
+  });
+
   it('returns a count query string', () => {
     builder.addRootModel('monster');
     builder.addColumns([
@@ -425,10 +532,14 @@ describe('QueryBuilder', () => {
         {
           modelName: 'prize',
           clause: {
-            attributeName: 'name',
-            operator: '::equals',
-            operand: 'Sparta',
-            attributeType: 'text',
+            subclauses: [
+              {
+                attributeName: 'name',
+                operator: '::equals',
+                operand: 'Sparta',
+                attributeType: 'text'
+              }
+            ],
             modelName: 'prize',
             any: true
           }
@@ -440,10 +551,14 @@ describe('QueryBuilder', () => {
         modelName: 'labor',
         clauses: [
           {
-            attributeName: 'name',
-            operator: '::in',
-            operand: 'lion,hydra,apples',
-            attributeType: 'text',
+            subclauses: [
+              {
+                attributeName: 'name',
+                operator: '::in',
+                operand: 'lion,hydra,apples',
+                attributeType: 'text'
+              }
+            ],
             modelName: 'labor',
             any: true
           }
@@ -454,10 +569,14 @@ describe('QueryBuilder', () => {
         modelName: 'monster',
         clauses: [
           {
-            attributeName: 'name',
-            operator: '::equals',
-            operand: 'Nemean Lion',
-            attributeType: 'text',
+            subclauses: [
+              {
+                attributeName: 'name',
+                operator: '::equals',
+                operand: 'Nemean Lion',
+                attributeType: 'text'
+              }
+            ],
             modelName: 'monster',
             any: true
           }
@@ -485,10 +604,14 @@ describe('QueryBuilder', () => {
           modelName: 'wound',
           clauses: [
             {
-              attributeName: 'location',
-              operator: '::equals',
-              operand: 'arm',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'location',
+                  operator: '::equals',
+                  operand: 'arm',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'wound',
               any: true
             }
@@ -524,10 +647,14 @@ describe('QueryBuilder', () => {
           modelName: 'wound',
           clauses: [
             {
-              attributeName: 'location',
-              operator: '::equals',
-              operand: 'arm',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'location',
+                  operator: '::equals',
+                  operand: 'arm',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'wound',
               any: true
             }
@@ -559,10 +686,14 @@ describe('QueryBuilder', () => {
           modelName: 'victim',
           clauses: [
             {
-              attributeName: 'name',
-              operator: '::equals',
-              operand: 'Hercules',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::equals',
+                  operand: 'Hercules',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'victim',
               any: true
             }
@@ -589,10 +720,14 @@ describe('QueryBuilder', () => {
           modelName: 'wound',
           clauses: [
             {
-              attributeName: 'location',
-              operator: '::equals',
-              operand: 'arm',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'location',
+                  operator: '::equals',
+                  operand: 'arm',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'wound',
               any: true
             }
@@ -632,10 +767,14 @@ describe('QueryBuilder', () => {
           modelName: 'prize',
           clauses: [
             {
-              attributeName: 'name',
-              operator: '::equals',
-              operand: 'Apples',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::equals',
+                  operand: 'Apples',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'prize',
               any: true
             }
@@ -662,10 +801,14 @@ describe('QueryBuilder', () => {
           modelName: 'labor',
           clauses: [
             {
-              attributeName: 'name',
-              operator: '::in',
-              operand: 'Lion,Hydra',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::in',
+                  operand: 'Lion,Hydra',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'labor',
               any: true
             }
@@ -692,10 +835,14 @@ describe('QueryBuilder', () => {
           modelName: 'wound',
           clauses: [
             {
-              attributeName: 'location',
-              operator: '::equals',
-              operand: 'arm',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'location',
+                  operator: '::equals',
+                  operand: 'arm',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'wound',
               any: true
             }
@@ -731,10 +878,14 @@ describe('QueryBuilder', () => {
           modelName: 'wound',
           clauses: [
             {
-              attributeName: 'location',
-              operator: '::equals',
-              operand: 'arm',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'location',
+                  operator: '::equals',
+                  operand: 'arm',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'wound',
               any: true
             }
@@ -766,10 +917,14 @@ describe('QueryBuilder', () => {
           modelName: 'victim',
           clauses: [
             {
-              attributeName: 'name',
-              operator: '::equals',
-              operand: 'Hercules',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::equals',
+                  operand: 'Hercules',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'victim',
               any: true
             }
@@ -796,10 +951,14 @@ describe('QueryBuilder', () => {
           modelName: 'wound',
           clauses: [
             {
-              attributeName: 'location',
-              operator: '::equals',
-              operand: 'arm',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'location',
+                  operator: '::equals',
+                  operand: 'arm',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'wound',
               any: true
             }
@@ -839,10 +998,14 @@ describe('QueryBuilder', () => {
           modelName: 'prize',
           clauses: [
             {
-              attributeName: 'name',
-              operator: '::equals',
-              operand: 'Apples',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::equals',
+                  operand: 'Apples',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'prize',
               any: true
             }
@@ -873,10 +1036,14 @@ describe('QueryBuilder', () => {
           modelName: 'labor',
           clauses: [
             {
-              attributeName: 'name',
-              operator: '::in',
-              operand: 'Lion,Hydra',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::in',
+                  operand: 'Lion,Hydra',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'labor',
               any: true
             }
@@ -902,10 +1069,14 @@ describe('QueryBuilder', () => {
           modelName: 'labor',
           clauses: [
             {
-              attributeName: 'number',
-              operator: '::equals',
-              operand: '2',
-              attributeType: 'number',
+              subclauses: [
+                {
+                  attributeName: 'number',
+                  operator: '::equals',
+                  operand: '2',
+                  attributeType: 'number'
+                }
+              ],
               modelName: 'labor',
               any: true
             }
@@ -916,10 +1087,14 @@ describe('QueryBuilder', () => {
           modelName: 'labor',
           clauses: [
             {
-              attributeName: 'number',
-              operator: '::in',
-              operand: '1,3,5',
-              attributeType: 'number',
+              subclauses: [
+                {
+                  attributeName: 'number',
+                  operator: '::in',
+                  operand: '1,3,5',
+                  attributeType: 'number'
+                }
+              ],
               modelName: 'labor',
               any: true
             }
@@ -930,10 +1105,14 @@ describe('QueryBuilder', () => {
           modelName: 'labor',
           clauses: [
             {
-              attributeName: 'number',
-              operator: '::notin',
-              operand: '2,4,6',
-              attributeType: 'number',
+              subclauses: [
+                {
+                  attributeName: 'number',
+                  operator: '::notin',
+                  operand: '2,4,6',
+                  attributeType: 'number'
+                }
+              ],
               modelName: 'labor',
               any: true
             }
@@ -944,10 +1123,14 @@ describe('QueryBuilder', () => {
           modelName: 'labor',
           clauses: [
             {
-              attributeName: 'number',
-              operator: '::>=',
-              operand: '5,6',
-              attributeType: 'number',
+              subclauses: [
+                {
+                  attributeName: 'number',
+                  operator: '::>=',
+                  operand: '5,6',
+                  attributeType: 'number'
+                }
+              ],
               modelName: 'labor',
               any: true
             }
@@ -978,10 +1161,14 @@ describe('QueryBuilder', () => {
           modelName: 'labor',
           clauses: [
             {
-              attributeName: 'name',
-              operator: '::equals',
-              operand: '2',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::equals',
+                  operand: '2',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'labor',
               any: true
             }
@@ -992,10 +1179,14 @@ describe('QueryBuilder', () => {
           modelName: 'labor',
           clauses: [
             {
-              attributeName: 'name',
-              operator: '::in',
-              operand: '1,3,5',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::in',
+                  operand: '1,3,5',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'labor',
               any: true
             }
@@ -1006,10 +1197,14 @@ describe('QueryBuilder', () => {
           modelName: 'labor',
           clauses: [
             {
-              attributeName: 'name',
-              operator: '::notin',
-              operand: '2,4,6',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::notin',
+                  operand: '2,4,6',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'labor',
               any: true
             }
@@ -1020,10 +1215,14 @@ describe('QueryBuilder', () => {
           modelName: 'labor',
           clauses: [
             {
-              attributeName: 'name',
-              operator: '::>=',
-              operand: '5,6',
-              attributeType: 'text',
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::>=',
+                  operand: '5,6',
+                  attributeType: 'text'
+                }
+              ],
               modelName: 'labor',
               any: true
             }

@@ -68,6 +68,20 @@
       "hidden": false,
       "validation": null,
       "attribute_type": "table"
+    },
+    "weapons": {
+      "name": "weapons",
+      "attribute_name": "weapons",
+      "display_name": "weapons",
+      "options": ["sword", "spear", "sling", "hands"],
+      "restricted": false,
+      "read_only": false,
+      "hidden": false,
+      "validation": {
+        "type": "Array",
+        "value": ["sword", "spear", "sling", "hands"]
+      },
+      "attribute_type": "matrix"
     }
   },
   "identifier": "name",

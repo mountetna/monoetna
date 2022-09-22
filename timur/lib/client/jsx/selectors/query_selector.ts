@@ -216,8 +216,13 @@ export const attributeIsFile = (
   ]);
 };
 
-export const isMatrixSlice = (slice: QuerySlice) =>
-  '::slice' === slice.clause.operator;
+export const isMatrixSlice = (slice: QuerySlice) => {
+  if (!slice.clause.subclauses) return false;
+
+  return slice.clause.subclauses.some((subclause) => {
+    return '::slice' === subclause.operator;
+  });
+};
 
 export const hasMatrixSlice = (column: QueryColumn) => {
   return column.slices.some((slice) => isMatrixSlice(slice));
@@ -230,13 +235,22 @@ export const emptyQueryClauseStamp = (modelName: string) => {
   };
 };
 
-export const queryColumnMatrixHeadings = (column: QueryColumn) => {
+export const queryColumnMatrixHeadings = (column: QueryColumn): string[] => {
   return column.slices
     .filter((slice) => isMatrixSlice(slice))
     .map((slice) => {
-      return (slice.clause.operand as string).split(',');
+      return (
+        // Given the above isMatrixSlice filter, slice.clause.subclauses
+        //   should always exist, but this makes tsc happy.
+        (
+          (slice.clause.subclauses || []).find((subclause) => {
+            return '::slice' === subclause.operator;
+          })?.operand as string
+        ).split(',')
+      );
     })
-    .flat();
+    .flat()
+    .filter((value) => null != value);
 };
 
 export const isIdentifierQuery = (
