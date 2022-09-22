@@ -2252,7 +2252,7 @@ describe QueryController do
       expect(json_body[:format]).to eq(["labors::monster#name", [["labors::sidekick#weapon_proficiencies", ["hands", "spear" ]]]])
     end
 
-    it 'returns nil for child models when no matrix slice results' do
+    it 'returns no results for child models when no matrix slice results' do
       matrix = [
         [ 10, 11, 12, 13 ],
         [ 20, 21, 22, 23 ],
