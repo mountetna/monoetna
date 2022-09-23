@@ -58,7 +58,7 @@ invoke({
   }, [folder, bucket_name, invoke]);
 
   const moveFolder = useCallback(
-    (newBucketName, newFolderPath) => {
+    (newBucketName: string, newFolderPath: string) => {
       invoke({
         type: 'RENAME_FOLDER',
         folder,

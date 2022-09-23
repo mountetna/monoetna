@@ -18,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     padding: '0.5rem 0.5rem 0 0.5rem',
     marginBottom: '0.5rem',
-    height: '48px'
+    minHeight: '48px'
   },
   paddingLeft: {
     paddingLeft: 'calc(0.5rem - 4px)'
@@ -141,7 +141,6 @@ const QueryFilterControl = ({
                   <Grid item xs={11}>
                     <QueryFilterClause
                       clause={clause}
-                      clauseIndex={index}
                       graph={graph}
                       modelNames={Object.keys(modelChildren)}
                       isColumnFilter={false}
@@ -149,6 +148,10 @@ const QueryFilterControl = ({
                         handlePatchClause(updatedClause, index)
                       }
                       removeClause={() => handleRemoveClause(index)}
+                      showRemoveIcon={
+                        !(0 === index && 1 === filter.clauses.length)
+                      }
+                      canAddSubclause={true}
                     />
                   </Grid>
                 </Grid>
@@ -170,7 +173,11 @@ const QueryFilterControl = ({
       </Grid>
       <Grid item xs={1} container justify='flex-end'>
         <CopyIcon canEdit={true} onClick={copyFilter} label='filter' />
-        <RemoveIcon canEdit={true} onClick={removeFilter} label='filter' />
+        <RemoveIcon
+          showRemoveIcon={true}
+          onClick={removeFilter}
+          label='filter'
+        />
       </Grid>
     </>
   );

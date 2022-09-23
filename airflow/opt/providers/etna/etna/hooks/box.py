@@ -253,6 +253,12 @@ class Box(object):
         """
         ftps.delete(file.full_path)
 
+    def file_ingested_to_system(self, file: FtpEntry) -> bool:
+        """
+        Returns if the file exists in the cursor.
+        """
+        return file.full_path in self.cursor and self.cursor[file.full_path] == file.hash
+
     @property
     def variable_key(self):
         """

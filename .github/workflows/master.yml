@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
+          token: ${{ secrets.SYNC_ACCESS_TOKEN }}
       - name: docker login
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
@@ -24,8 +25,8 @@ jobs:
           IS_CI: 1
           PUSH_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
-          IMAGES_POSTFIX: :master
           NO_TEST: 1
+          IMAGES_POSTFIX: :master
         run: |
           make -j 4 release
           git push origin HEAD:staging --force

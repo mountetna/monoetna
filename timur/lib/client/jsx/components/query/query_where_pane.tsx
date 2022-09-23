@@ -32,6 +32,9 @@ const useStyles = makeStyles((theme) => ({
   clauseSubheading: {
     color: 'gray',
     fontSize: '0.9rem'
+  },
+  shimLeft: {
+    marginLeft: '-3px'
   }
 }));
 
@@ -156,14 +159,17 @@ const QueryWherePane = () => {
                     <Grid item xs={3}>
                       Model
                     </Grid>
-                    <Grid item xs={3}>
-                      Attribute
-                    </Grid>
-                    <Grid item xs={2}>
-                      Operator
-                    </Grid>
-                    <Grid item xs={3}>
-                      Operand
+                    <Grid item xs={8} container>
+                      <Grid item xs={4}>
+                        Attribute
+                      </Grid>
+                      <Grid item xs={3} className={classes.shimLeft}>
+                        Operator
+                      </Grid>
+                      <Grid item xs={4} className={classes.shimLeft}>
+                        Operand
+                      </Grid>
+                      <Grid item xs={1} />
                     </Grid>
                     <Grid item xs={1} />
                   </Grid>

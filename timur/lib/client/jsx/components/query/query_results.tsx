@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useMemo, useState} from 'react';
+import React, {useContext, useMemo} from 'react';
 import Grid from '@material-ui/core/Grid';
 import {makeStyles} from '@material-ui/core/styles';
 
@@ -9,11 +9,12 @@ import {userColumns} from '../../selectors/query_selector';
 import QueryTable from './query_table';
 import useTableEffects from './query_use_table_effects';
 import AntSwitch from './ant_switch';
+import ErrorBoundary from './error_boundary';
 
-import {defaultHighlightStyle} from '@codemirror/highlight';
 import {json} from '@codemirror/lang-json';
-import {EditorView} from '@codemirror/view';
-import {EditorSelection, EditorState} from '@codemirror/state';
+import {defaultHighlightStyle, syntaxHighlighting} from '@codemirror/language';
+import {EditorView} from 'codemirror';
+import {EditorState} from '@codemirror/state';
 import CodeMirror from 'rodemirror';
 
 const useStyles = makeStyles((theme) => ({
@@ -39,28 +40,6 @@ const useStyles = makeStyles((theme) => ({
     maxHeight: '100%'
   }
 }));
-
-// https://reactjs.org/docs/error-boundaries.html
-// For #768, because just resetting the selection doesn't
-//    happen early enough in the CodeMirror lifecycle...?
-class ErrorBoundary extends React.Component {
-  constructor(props: any) {
-    super(props);
-    this.state = {hasError: false};
-  }
-
-  static getDerivedStateFromError(error: any) {
-    // Update state so the next render will show the fallback UI.
-    return {hasError: true};
-  }
-  componentDidCatch(error: any, errorInfo: any) {
-    console.error(error);
-  }
-  render() {
-    // We'll still show the Component
-    return this.props.children;
-  }
-}
 
 const QueryResults = () => {
   const {
@@ -117,7 +96,7 @@ const QueryResults = () => {
 
   const extensions = useMemo(
     () => [
-      defaultHighlightStyle.fallback,
+      syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
       json(),
       EditorView.editable.of(false),
       EditorState.readOnly.of(true),
@@ -126,30 +105,13 @@ const QueryResults = () => {
     []
   );
 
-  const [selection, setSelection] = useState(
-    EditorSelection.create([EditorSelection.range(0, 0)])
-  );
-
-  useEffect(() => {
-    setSelection(EditorSelection.create([EditorSelection.range(0, 0)]));
-  }, [codeMirrorText]);
-
   if (!rootModel) return null;
 
   return (
     <Grid container className={classes.resultsPane}>
       <Grid item className={classes.result}>
         <ErrorBoundary>
-          <CodeMirror
-            extensions={extensions}
-            value={codeMirrorText}
-            selection={selection}
-            onUpdate={(v) => {
-              if (v.docChanged && v.selectionSet) {
-                setSelection(v.state.selection);
-              }
-            }}
-          />
+          <CodeMirror extensions={extensions} value={codeMirrorText} />
         </ErrorBoundary>
       </Grid>
       <Grid xs={12} item container direction='column'>

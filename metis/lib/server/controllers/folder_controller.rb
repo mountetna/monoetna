@@ -22,7 +22,7 @@ class FolderController < Metis::Controller
     raise Etna::BadRequest, "Invalid folder: #{@params[:folder_path]}" unless folder
 
     raise Etna::Forbidden, 'Folder is read-only' if folder.read_only?
-    
+
     folder.update(updated_at: Time.now, author: Metis::File.author(@user))
     folder.refresh
 

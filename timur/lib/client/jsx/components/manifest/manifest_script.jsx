@@ -1,8 +1,17 @@
 // Framework libraries.
-import * as React from 'react';
-import {Controlled as CodeMirror} from 'react-codemirror2';
-import 'codemirror/addon/mode/simple';
-import {defineSimpleMode} from 'codemirror';
+import React, {useMemo} from 'react';
+import {
+  defaultHighlightStyle,
+  syntaxHighlighting,
+  StreamLanguage
+} from '@codemirror/language';
+import {basicSetup, EditorView} from 'codemirror';
+import {EditorState} from '@codemirror/state';
+import {gutter, lineNumbers} from '@codemirror/view';
+import CodeMirror from 'rodemirror';
+import {simpleMode} from '@codemirror/legacy-modes/mode/simple-mode';
+
+import ErrorBoundary from '../query/error_boundary';
 
 const timur_lang = [
   {regex: /\#.*$/m, token: 'comment'},
@@ -22,42 +31,48 @@ const template = [
   {regex: /[^}]/, token: 'template-text'}
 ];
 
-defineSimpleMode('timur_lang', {
-  start: timur_lang,
-  template,
-  meta: {
-    lineComment: '#'
-  }
-});
+const ManifestScript = ({is_editing, onChange, script}) => {
+  let className = is_editing ? 'manifest-script editing' : 'manifest-script';
 
-export default class ManifestScript extends React.Component {
-  scroll() {
-    let {is_editing} = this.props;
-    if (this.editor && this.script) {
-      if (is_editing) this.script.scrollTop = this.editor.scrollTop;
-      else this.editor.scrollTop = this.script.scrollTop;
+  const extensions = useMemo(() => {
+    let config = [
+      basicSetup,
+      syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
+      EditorView.editable.of(is_editing),
+      EditorState.tabSize.of(2),
+      gutter({class: 'CodeMirror-lint-markers'}),
+      EditorState.readOnly.of(is_editing ? false : 'no-cursor'),
+      EditorView.lineWrapping,
+      EditorView.updateListener.of(function (e) {
+        if (e.docChanged) {
+          onChange(e.state.doc.toString());
+        }
+      }),
+      StreamLanguage.define(
+        simpleMode({
+          start: timur_lang,
+          template,
+          meta: {
+            lineComment: '#'
+          }
+        })
+      )
+    ];
+
+    if (is_editing) {
+      config.push(lineNumbers());
     }
-  }
 
-  render() {
-    let {is_editing, onChange, script} = this.props;
-    let className = is_editing ? 'manifest-script editing' : 'manifest-script';
+    return config;
+  }, [is_editing]);
 
-    return (
-      <div className={className}>
-        <CodeMirror
-          options={{
-            readOnly: is_editing ? false : 'nocursor',
-            lineNumbers: is_editing,
-            lineWrapping: true,
-            mode: 'timur_lang'
-          }}
-          value={script}
-          onBeforeChange={(editor, data, value) => {
-            onChange(value);
-          }}
-        />
-      </div>
-    );
-  }
-}
+  return (
+    <div className={className}>
+      <ErrorBoundary>
+        <CodeMirror extensions={extensions} value={script} />
+      </ErrorBoundary>
+    </div>
+  );
+};
+
+export default ManifestScript;

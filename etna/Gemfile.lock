@@ -24,8 +24,8 @@ GEM
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
-    addressable (2.7.0)
-      public_suffix (>= 2.0.2, < 5.0)
+    addressable (2.8.1)
+      public_suffix (>= 2.0.2, < 6.0)
     anyway_config (2.3.0)
       ruby-next-core (>= 0.14.0)
     aspera-cli (4.1.0)
@@ -117,7 +117,7 @@ GEM
     pry-byebug (3.9.0)
       byebug (~> 11.0)
       pry (~> 0.13.0)
-    public_suffix (4.0.6)
+    public_suffix (5.0.0)
     puma (5.6.4)
       nio4r (~> 2.0)
     racc (1.6.0)
@@ -205,6 +205,7 @@ PLATFORMS
 DEPENDENCIES
   activerecord
   activesupport (>= 4.2.6)
+  addressable (~> 2.8.1)
   aspera-cli (>= 4.1.0)
   concurrent-ruby
   curb
@@ -251,4 +252,4 @@ RUBY VERSION
    ruby 2.7.6p219
 
 BUNDLED WITH
-   2.3.15
+   2.3.21

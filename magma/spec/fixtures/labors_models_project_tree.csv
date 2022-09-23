@@ -71,6 +71,14 @@ comments,model_name,identifier,parent_model_name,parent_link_type,attribute_name
 ,,,,,wound,,table,wound,victim,,Wound,,,,,,,,,
 ,,,,,weapon,,string,,,,Weapon,,,,,,,,,
 ,,,,,birthday,,shifted_date_time,,,,Birthday,,,,,,,,,
+,,,,,sidekick,,collection,,,,Sidekick,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,
+,sidekick,,,,,,,,,,,,,,,,,,,
+,,name,victim,collection,,,,,,,,,,,,,,,,
+,,,,,created_at,,date_time,,,,Created At,,,,,,,true,,
+,,,,,updated_at,,date_time,,,,Updated At,,,,,,,true,,
+,,,,,name,,identifier,,,,Name,,,,,,,,,
+,,,,,weapon_proficiencies,,matrix,,,,Weapon proficiencies,,,,$copy_from_original$cffba132536c33dcae61f25f21a08855,,,,,
 ,,,,,,,,,,,,,,,,,,,,
 ,wound,,,,,,,,,,,,,,,,,,,
 ,,id,victim,table,,,,,,,,,,,,,,,,
@@ -101,3 +109,9 @@ comments,model_name,identifier,parent_model_name,parent_link_type,attribute_name
 ,,,,,,,,,,,,,,,,,,,,Sparta
 ,,,,,,,,,,,,,,,,,,,,Sidon
 ,,,,,,,,,,,,,,,,,,,,Thebes
+,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,$copy_from_original$cffba132536c33dcae61f25f21a08855
+,,,,,,,,,,,,,,,,,,,,sword
+,,,,,,,,,,,,,,,,,,,,spear
+,,,,,,,,,,,,,,,,,,,,sling
+,,,,,,,,,,,,,,,,,,,,hands

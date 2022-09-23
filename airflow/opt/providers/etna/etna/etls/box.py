@@ -64,7 +64,8 @@ class BoxEtlHelpers(RemoteHelpersBase):
         folder_path: str = None,
         flatten: bool = True,
         clean_up: bool = False,
-        split_folder_name: str = None) -> XComArg:
+        split_folder_name: str = None,
+        batch_size: int = 5) -> XComArg:
         """
         Given a list of Box files, will copy them to the given Metis project_name and bucket_name,
         mimicking the full directory structure from Box.
@@ -77,13 +78,19 @@ class BoxEtlHelpers(RemoteHelpersBase):
             flatten: bool, to flatten the Box folder structure or maintain it. Default is True.
             clean_up: bool, to remove the file from Box after ingest. Default is False.
             split_folder_name: str, if flatten=False, the folder name after which to copy the structure from Box. Generally would match what you use in filter_files() for folder_path_regex.
+            batch_size: int, number of files to save in the cursor, at a time. Default is 5.
         """
         @task
-        def ingest(files, project_name, bucket_name, folder_path):
+        def ingest(files, project_name, bucket_name, folder_path, batch_size):
             etna_hook = EtnaHook.for_project(project_name)
             with etna_hook.metis(project_name, read_only=False) as metis, self.hook.box() as box:
                 self.log.info(f"Attempting to upload {len(files)} files to Metis")
+                num_ingested = 0
                 for file in files:
+                    if box.file_ingested_to_system(file):
+                        self.log.info(f"Skipping {file.name} because it has already been ingested.")
+                        continue
+
                     with box.ftps() as ftps:
                         sock = box.retrieve_file(ftps, file)
 
@@ -106,11 +113,14 @@ class BoxEtlHelpers(RemoteHelpersBase):
                                 self.log.info("Removed the original file from Box.")
                             box.mark_file_as_ingested(file)
                             self.log.info(f"Done ingesting {file.full_path}.")
+                            num_ingested += 1
+                            if num_ingested % batch_size == 0:
+                                box.update_cursor()
                         sock.shutdown(socket.SHUT_RDWR)
                         sock.close()
                 box.update_cursor()
 
-        return ingest(files, project_name, bucket_name, folder_path)
+        return ingest(files, project_name, bucket_name, folder_path, batch_size)
 
 
 def load_box_files_batch(

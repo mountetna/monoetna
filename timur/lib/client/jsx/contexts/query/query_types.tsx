@@ -1,19 +1,36 @@
 import {Attribute} from 'etna-js/models/magma-model';
 
-export interface QueryClause {
+export interface QuerySubclause {
   attributeName: string;
   attributeType: string;
   operator: string;
   operand: string | number;
-  modelName: string;
-  any: boolean;
 }
 
-export const EmptyQueryClause: QueryClause = {
+export interface QueryClause {
+  modelName: string;
+  any: boolean;
+  subclauses?: QuerySubclause[];
+  // For migrating old, saved queries
+  attributeName?: string;
+  attributeType?: string;
+  operator?: string;
+  operand?: string | number;
+}
+
+export const EmptyQuerySubclause: QuerySubclause = {
   attributeName: '',
-  operator: '',
-  operand: '',
   attributeType: '',
+  operator: '',
+  operand: ''
+};
+
+export const EmptyQueryClause: QueryClause = {
+  subclauses: [
+    {
+      ...EmptyQuerySubclause
+    }
+  ],
   modelName: '',
   any: true
 };

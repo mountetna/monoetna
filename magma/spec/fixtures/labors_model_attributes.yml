@@ -124,6 +124,17 @@ victim:
     type: string
   birthday:
     type: shifted_date_time
+  sidekick:
+    type: collection
+sidekick:
+  victim:
+    type: parent
+    column_name: victim_id
+  name:
+    type: identifier
+  weapon_proficiencies:
+    type: matrix
+    validation: '{"type":"Array", "value":["sword","spear","sling","hands"]}'
 wound:
   victim:
     type: parent

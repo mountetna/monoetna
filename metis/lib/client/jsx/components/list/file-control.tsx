@@ -80,7 +80,7 @@ const FileControl = ({
   }, [file]);
 
   const moveFile = useCallback(
-    (newBucketName, newFilePath) => {
+    (newBucketName: string, newFilePath: string) => {
       invoke({
         type: 'RENAME_FILE',
         file,

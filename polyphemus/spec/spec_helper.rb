@@ -182,7 +182,7 @@ def stub_magma_all_pools(base_model, all_pools)
     }.to_json })
 end
 
-def stub_magma_setup(patient_documents)
+def stub_magma_setup(patient_documents, use_json: false)
   stub_request(:post, "#{MAGMA_HOST}/retrieve")
     .with(body: hash_including({ project_name: "mvir1", model_name: "patient",
                                  attribute_names: ["name", "consent", "restricted"], record_names: "all" }))
@@ -190,7 +190,7 @@ def stub_magma_setup(patient_documents)
       'models': { 'patient': { 'documents': patient_documents } },
     }.to_json })
 
-  stub_magma_update("mvir1")
+  use_json ? stub_magma_update_json : stub_magma_update("mvir1")
 end
 
 def stub_magma_update(project_name = nil)
@@ -344,7 +344,11 @@ end
 
 def stub_magma_update_json
   stub_request(:post, /#{MAGMA_HOST}\/update$/)
-    .to_return({ status: 200, body: {}.to_json, headers: { 'Content-Type': "application/json" } })
+  .to_return do |request|
+    params = JSON.parse(request.body)
+    @all_updates << params["revisions"] if @all_updates && params && params["revisions"]
+    { body: "{}", status: 200, headers: { 'Content-Type': "application/json" } }
+  end
 end
 
 def stub_redcap_data(stub = nil)

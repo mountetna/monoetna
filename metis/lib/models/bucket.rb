@@ -15,6 +15,16 @@ class Metis
       guest: 3
     }
 
+    def self.reserved_buckets_for_project(project_name)
+      # The only read-only buckets that have the name matching
+      #   the owner should be from other apps, i.e. Magma.
+      Metis::Bucket.where(
+        project_name: project_name
+      ).all.select do |bucket|
+        bucket.reserved?
+      end
+    end
+
     def self.valid_bucket_name?(bucket_name)
       !!(bucket_name =~ /\A\w+\z/)
     end
@@ -73,6 +83,10 @@ class Metis
         description: description,
         count: Metis::File.where(bucket: self).count
       }
+    end
+
+    def reserved?
+      name == owner
     end
   end
 end

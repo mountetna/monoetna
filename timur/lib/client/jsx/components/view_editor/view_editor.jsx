@@ -90,9 +90,12 @@ const ViewEditor = ({view_id}) => {
   const create = () => selectView('new', true);
 
   const hasLintingErrors = (value) => {
-    window.JSHINT(value);
-
-    return JSHINT.data().errors && JSHINT.data().errors.length > 0;
+    try {
+      JSON.parse(value);
+      return false;
+    } catch (e) {
+      return true;
+    }
   };
 
   const updateField = (field_name) => (event) => {
@@ -125,6 +128,7 @@ const ViewEditor = ({view_id}) => {
 
   const revertView = () => {
     selectView(view.id);
+    console.log('reverting to', view, views);
     if (editing) toggleEdit();
   };
 
