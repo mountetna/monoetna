@@ -143,7 +143,7 @@ module.exports = (env) => ({
       'after-emit': (compilation, done) => {
         if ('metis' === env.APP_NAME) {
           console.log('\n\nCopying source files to compiled\n\n');
-          fs.copy('downzip-sw.js', 'public/js/downzip-sw.js', done);
+          fs.copy('/etna/downzip-sw.js', 'public/js/downzip-sw.js', done);
         } else {
           done();
         }
