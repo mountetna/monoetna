@@ -19,13 +19,6 @@
   :gnomon:
     :host: https://gnomon.development.local
   :log_file: /dev/stdout
-  :db:
-    :adapter: postgres
-    :host: gnomon_db
-    :database: gnomon_development
-    :user: developer
-    :password: password
-    :search_path: [ public ]
   :auth_redirect: https://janus.development.local
   :token_name: JANUS_DEV_TOKEN
   :token_algo: RS256

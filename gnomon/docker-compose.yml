@@ -49,25 +49,11 @@ x-base-etna-services:
   'gnomon_app': &base-etna-app # The ruby webserver
     <<: *base-etna-service
     command: ./bin/puma.sh
-    depends_on:
-      - 'gnomon_db'
 
   'gnomon_webpack':
     &base-etna-webpack # The ruby webpack server watching for changes
     <<: *base-etna-service
     command: npm run webpack
-
-  'gnomon_db':
-    &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
-    image: development-psql
-    volumes:
-      - gnomon-db-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: 'gnomon_development'
-      POSTGRES_PASSWORD: password
-      POSTGRES_USER: developer
-      APP_NAME: 'gnomon'
-    container_name: 'gnomon_db_1'
 
   'gnomon_app_fe':
     &base-etna-fe # The application level apache frontend serving static assets, data, and proxying the main app.
