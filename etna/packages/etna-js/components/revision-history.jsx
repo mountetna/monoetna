@@ -18,7 +18,7 @@ import {defaultHighlightStyle, syntaxHighlighting} from '@codemirror/language';
 import {EditorState} from '@codemirror/state';
 import {gutter, lineNumbers} from '@codemirror/view';
 import CodeMirror from 'rodemirror';
-import {linter, lintGutter} from '@codemirror/lint';
+import {lintGutter} from '@codemirror/lint';
 
 import ErrorBoundary from './error_boundary';
 
