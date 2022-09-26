@@ -20,7 +20,6 @@ describe('file_actions', () => {
           })),
           folders: subFolders
         },
-        host: 'http://localhost'
       });
 
       subFolders.forEach(({folder_name, folder_path}) => {
