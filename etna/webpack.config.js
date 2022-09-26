@@ -139,11 +139,20 @@ module.exports = (env) => ({
         NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
       }
     }),
+    new webpack.LoaderOptionsPlugin({
+      options: {
+        publicPath: '/js/'
+      }
+    }),
     new EventHooksPlugin({
       'after-emit': (compilation, done) => {
         if ('metis' === env.APP_NAME) {
           console.log('\n\nCopying source files to compiled\n\n');
-          fs.copy('/etna/downzip-sw.js', 'public/js/downzip-sw.js', done);
+          fs.copy(
+            '/etna/node_modules/downzip/dist/downzip-sw.js',
+            'public/js/downzip-sw.js',
+            done
+          );
         } else {
           done();
         }
