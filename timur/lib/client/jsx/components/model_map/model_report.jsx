@@ -102,6 +102,8 @@ const ModelAttribute = ({
 
   const {attribute_type, attribute_group, description} = displayAttribute;
 
+  if (!template) return null;
+
   return (
     <TableRow className={`${classes.attribute} ${classes[diffType]}`}>
       {diffTemplate && (
@@ -193,8 +195,6 @@ const ModelReport = ({
   template,
   setAttribute
 }) => {
-  if (!template) return null;
-
   const dispatch = useDispatch();
 
   const classes = reportStyles();

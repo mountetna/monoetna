@@ -81,7 +81,7 @@ class TreeLayout {
     this.width = width;
     this.height = height;
 
-    for (var model_name in this.nodes) {
+    for (let model_name in this.nodes) {
       this.nodes[model_name].createLinks();
     }
 

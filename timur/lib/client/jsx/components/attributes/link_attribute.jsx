@@ -16,11 +16,11 @@ const LinkAttribute = ({
   reviseDocument
 }) => {
   if (mode != 'edit')
-    return (
+    {return (
       <div className='attribute'>
         {value && <MagmaLink link={value} model={attribute.link_model_name} />}
       </div>
-    );
+    );}
 
   if (revised_value && revised_value == value) {
     return (

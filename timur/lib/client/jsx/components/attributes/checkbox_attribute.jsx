@@ -16,7 +16,7 @@ const CheckboxAttribute = ({ mode, value, revised_value,
         defaultChecked={ revised_value } />
     </div>
   );
-}
+};
 
 export default connect(
   null,

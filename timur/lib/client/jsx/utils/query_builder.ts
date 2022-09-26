@@ -323,7 +323,7 @@ export class QueryBuilder {
     });
 
     if (includeAttributeName)
-      predicate.push(...this.attributeNameWithPredicate(column));
+      {predicate.push(...this.attributeNameWithPredicate(column));}
 
     return predicate;
   }

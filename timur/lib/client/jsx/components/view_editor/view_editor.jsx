@@ -45,10 +45,6 @@ const ViewEditor = ({view_id}) => {
     requestAllViews()(dispatch);
   }, []);
 
-  useEffect(() => {
-    if (view_id && views && !view) selectView(view_id, false);
-  }, [views]);
-
   const selectView = (id, push = true) => {
     switch (id) {
       case 'new':
@@ -75,13 +71,18 @@ const ViewEditor = ({view_id}) => {
         break;
     }
     setEditing(id === 'new');
-    if (push)
+    if (push) {
       pushLocation(
         id == null
           ? Routes.views_path(CONFIG.project_name)
           : Routes.curr_view_path(CONFIG.project_name, id)
       )(dispatch);
+    }
   };
+
+  useEffect(() => {
+    if (view_id && views && !view) selectView(view_id, false);
+  }, [views]);
 
   const activateView = (id) => {
     selectView(id);
@@ -110,6 +111,10 @@ const ViewEditor = ({view_id}) => {
     setView({...view});
   };
 
+  const toggleEdit = () => {
+    setEditing(!editing);
+  };
+
   const onSave = () => {
     // A new view should have an id set to 0.
     let savedView = {...view};
@@ -136,9 +141,6 @@ const ViewEditor = ({view_id}) => {
     if (confirm('Are you sure you want to remove this view?')) {
       deleteView(view, () => selectView(null))(dispatch);
     }
-  };
-  const toggleEdit = () => {
-    setEditing(!editing);
   };
 
   return (

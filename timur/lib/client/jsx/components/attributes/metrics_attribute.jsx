@@ -58,6 +58,48 @@ export class CategoryControl extends React.Component {
   }
 }
 
+export class Metric extends React.Component {
+  render() {
+    let {metric, showDetails} = this.props;
+
+    let metric_props = {
+      className: 'metric_box',
+      onClick: () => {
+        this.props.showDetails();
+      }
+    };
+
+    let title_props = {
+      className: metric.score + ' metric',
+      title: metric.details.length
+        ? metric.message + ' [ Click for details ]'
+        : metric.message
+    };
+
+    return (
+      <div {...metric_props}>
+        <div {...title_props}>&nbsp;</div>
+      </div>
+    );
+  }
+}
+
+export class CategoryMetrics extends React.Component {
+  render() {
+    let categories = this.props.metrics.map((metric) => {
+      let metric_props = {
+        key: metric.name,
+        record_name: this.props.record_name,
+        metric
+      };
+
+      return <Metric {...metric_props} />;
+    });
+
+    return <div className='category'>{categories}</div>;
+  }
+}
+
 export class RecordMetrics extends React.Component {
   renderCategoryMetrics() {
     let categories = Object.keys(this.props.metric_names);
@@ -94,32 +136,6 @@ export class RecordMetrics extends React.Component {
   }
 }
 
-export class Metric extends React.Component {
-  render() {
-    let {metric, showDetails} = this.props;
-
-    let metric_props = {
-      className: 'metric_box',
-      onClick: () => {
-        this.props.showDetails();
-      }
-    };
-
-    let title_props = {
-      className: metric.score + ' metric',
-      title: metric.details.length
-        ? metric.message + ' [ Click for details ]'
-        : metric.message
-    };
-
-    return (
-      <div {...metric_props}>
-        <div {...title_props}>&nbsp;</div>
-      </div>
-    );
-  }
-}
-
 const metricMapStateToProps = (state = {}, own_props) => {
   return state;
 };
@@ -139,7 +155,7 @@ const metricMapDispatchToProps = (dispatch, own_props) => {
 
   detail_messages = detail_messages.join('\n');
 
-  let messages = `# The test ${metric.name} on ${props.record_name} failed. ${detail_messages}`;
+  let messages = `# The test ${metric.name} on ${own_props.record_name} failed. ${detail_messages}`;
 
   return {
     showDetails: function () {
@@ -152,22 +168,6 @@ export const MetricContainer = ReactRedux.connect(
   metricMapStateToProps,
   metricMapDispatchToProps
 )(Metric);
-
-export class CategoryMetrics extends React.Component {
-  render() {
-    let categories = this.props.metrics.map((metric) => {
-      let metric_props = {
-        key: metric.name,
-        record_name: this.props.record_name,
-        metric
-      };
-
-      return <Metric {...metric_props} />;
-    });
-
-    return <div className='category'>{categories}</div>;
-  }
-}
 
 export class MetricsAttribute extends React.Component {
   constructor(props) {

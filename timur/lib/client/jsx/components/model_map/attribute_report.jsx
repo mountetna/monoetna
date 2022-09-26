@@ -57,8 +57,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const AttributeReport = ({attribute, model_name, counts}) => {
-  if (!attribute) return null;
-
   const dispatch = useDispatch();
 
   const [sample, setSample] = useState(null);
@@ -70,6 +68,8 @@ const AttributeReport = ({attribute, model_name, counts}) => {
   };
 
   const classes = useStyles();
+
+  if (!attribute) return null;
 
   return (
     <Grid className={classes.attribute_report}>

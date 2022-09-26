@@ -14,7 +14,7 @@ export default class TableAttribute extends React.Component {
     if (mode != 'browse') return <div className='attribute' />;
 
     if (!value || !value.length)
-      return <div className='attribute'>No data</div>;
+      {return <div className='attribute'>No data</div>;}
 
     return (
       <div className='attribute'>

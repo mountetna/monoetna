@@ -20,141 +20,17 @@ function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
-export function QueryBuilder({
-  display_attributes,
-  setFilterString,
-  selectedModel,
-  attribute_names,
-  setShowAdvanced,
-  setOutputPredicate,
-  magma_state
-}) {
-  const {openModal} = useModal();
-  const [filtersState, setFiltersState] = useState([]);
-  const show_disconnected = useReduxState((state) =>
-    selectSearchShowDisconnected(state)
-  );
-
-  useEffect(() => {
-    setFiltersState([]);
-  }, [selectedModel]);
-
-  useEffect(() => {
-    setFiltersState(
-      filtersState.filter(({attribute}) => attribute_names.includes(attribute))
-    );
-  }, [attribute_names]);
-
-  useEffect(() => {
-    // Matrix filters need to also be translated into output_predicates, too,
-    //   because in Magma they have to be sliced after leaving the
-    //   database. We leave them as input filters so that only records
-    //   with matrix data are returned.
-    let outputPredicates = filtersState.filter(({attribute}) => {
-      if (!attribute) return false;
-      let template = magma_state.models[selectedModel].template;
-
-      return 'matrix' === template.attributes[attribute].attribute_type;
-    });
-
-    setFilterString(
-      filtersState.map(({attribute, operator, operand}) => {
-        switch (operator) {
-          case 'Greater than':
-            operator = '>';
-            break;
-          case 'Less than':
-            operator = '<';
-            break;
-          case 'Equals':
-            operator = '=';
-            break;
-          case 'Contains':
-            operand = `.*${escapeRegExp(operand)}.*`;
-            operator = '~';
-            break;
-          case 'Starts with':
-            operand = `${escapeRegExp(operand)}.*`;
-            operator = '~';
-            break;
-          case 'Ends with':
-            operand = `.*${escapeRegExp(operand)}`;
-            operator = '~';
-            break;
-          case 'In':
-            operator = '[]';
-            break;
-          case 'Is null':
-            operand = null;
-            operator = '^@';
-            break;
-        }
-
-        return `${attribute}${operator}${operand}`;
-      })
-    );
-
-    if (outputPredicates) {
-      // Set any matrix attributes to slices
-      setOutputPredicate(
-        outputPredicates.map(({attribute, operator, operand}) => {
-          switch (operator) {
-            case 'In':
-              operator = '[]';
-              break;
-          }
-
-          return `${attribute}${operator}${operand}`;
-        })
-      );
-    }
-  }, [setFilterString, setOutputPredicate, filtersState]);
-
-  const onOpenAttributeFilter = () => {
-    openModal(
-      <FilterAttributesModal
-        display_attributes={display_attributes}
-        selectedModel={selectedModel}
-      />
-    );
-  };
-
-  const onOpenFilters = () => {
-    openModal(
-      <QueryFilterModal
-        display_attributes={display_attributes}
-        filtersState={filtersState}
-        setFiltersState={setFiltersState}
-      />
-    );
-  };
-
-  const columnsText =
-    attribute_names.length === display_attributes.length
-      ? 'All'
-      : `${attribute_names.length} / ${display_attributes.length}`;
-  const filtersCount = filtersState.length + (show_disconnected ? 1 : 0);
-  const filtersText =
-    filtersCount === 0
-      ? 'No filters'
-      : filtersCount === 1
-      ? '1 filter'
-      : `${filtersCount} filters`;
-
-  return (
-    <div className='query-builder'>
-      <a className='pointer' onClick={onOpenAttributeFilter}>
-        {columnsText} columns
-      </a>
-      <a className='pointer' onClick={onOpenFilters}>
-        {filtersText}
-      </a>
-    </div>
-  );
-}
-
 function disabledAttributeForProject(projectName, modelName) {
   return ([name, type]) => type === 'identifier' || type === 'parent';
+}
+
+function attributeNamesToSelected(attributeNames) {
+  if (attributeNames === 'all') return null;
+  return {All: attributeNames.reduce((o, p) => ((o[p] = true), o), {})};
+}
+
+function attributeNamesToDisabled(attributeNames) {
+  return {All: attributeNames.reduce((o, p) => ((o[p] = true), o), {})};
 }
 
 function FilterAttributesModal({
@@ -351,13 +227,137 @@ QueryFilterModal = connect(
   {setShowDisconnected}
 )(QueryFilterModal);
 
-function attributeNamesToSelected(attributeNames) {
-  if (attributeNames === 'all') return null;
-  return {All: attributeNames.reduce((o, p) => ((o[p] = true), o), {})};
-}
+export function QueryBuilder({
+  display_attributes,
+  setFilterString,
+  selectedModel,
+  attribute_names,
+  setShowAdvanced,
+  setOutputPredicate,
+  magma_state
+}) {
+  const {openModal} = useModal();
+  const [filtersState, setFiltersState] = useState([]);
+  const show_disconnected = useReduxState((state) =>
+    selectSearchShowDisconnected(state)
+  );
 
-function attributeNamesToDisabled(attributeNames) {
-  return {All: attributeNames.reduce((o, p) => ((o[p] = true), o), {})};
+  useEffect(() => {
+    setFiltersState([]);
+  }, [selectedModel]);
+
+  useEffect(() => {
+    setFiltersState(
+      filtersState.filter(({attribute}) => attribute_names.includes(attribute))
+    );
+  }, [attribute_names]);
+
+  useEffect(() => {
+    // Matrix filters need to also be translated into output_predicates, too,
+    //   because in Magma they have to be sliced after leaving the
+    //   database. We leave them as input filters so that only records
+    //   with matrix data are returned.
+    let outputPredicates = filtersState.filter(({attribute}) => {
+      if (!attribute) return false;
+      let template = magma_state.models[selectedModel].template;
+
+      return 'matrix' === template.attributes[attribute].attribute_type;
+    });
+
+    setFilterString(
+      filtersState.map(({attribute, operator, operand}) => {
+        switch (operator) {
+          case 'Greater than':
+            operator = '>';
+            break;
+          case 'Less than':
+            operator = '<';
+            break;
+          case 'Equals':
+            operator = '=';
+            break;
+          case 'Contains':
+            operand = `.*${escapeRegExp(operand)}.*`;
+            operator = '~';
+            break;
+          case 'Starts with':
+            operand = `${escapeRegExp(operand)}.*`;
+            operator = '~';
+            break;
+          case 'Ends with':
+            operand = `.*${escapeRegExp(operand)}`;
+            operator = '~';
+            break;
+          case 'In':
+            operator = '[]';
+            break;
+          case 'Is null':
+            operand = null;
+            operator = '^@';
+            break;
+        }
+
+        return `${attribute}${operator}${operand}`;
+      })
+    );
+
+    if (outputPredicates) {
+      // Set any matrix attributes to slices
+      setOutputPredicate(
+        outputPredicates.map(({attribute, operator, operand}) => {
+          switch (operator) {
+            case 'In':
+              operator = '[]';
+              break;
+          }
+
+          return `${attribute}${operator}${operand}`;
+        })
+      );
+    }
+  }, [setFilterString, setOutputPredicate, filtersState]);
+
+  const onOpenAttributeFilter = () => {
+    openModal(
+      <FilterAttributesModal
+        display_attributes={display_attributes}
+        selectedModel={selectedModel}
+      />
+    );
+  };
+
+  const onOpenFilters = () => {
+    openModal(
+      <QueryFilterModal
+        display_attributes={display_attributes}
+        filtersState={filtersState}
+        setFiltersState={setFiltersState}
+      />
+    );
+  };
+
+  const columnsText =
+    attribute_names.length === display_attributes.length
+      ? 'All'
+      : `${attribute_names.length} / ${display_attributes.length}`;
+  const filtersCount = filtersState.length + (show_disconnected ? 1 : 0);
+  const filtersText =
+    filtersCount === 0
+      ? 'No filters'
+      : filtersCount === 1
+      ? '1 filter'
+      : `${filtersCount} filters`;
+
+  return (
+    <div className='query-builder'>
+      <a className='pointer' onClick={onOpenAttributeFilter}>
+        {columnsText} columns
+      </a>
+      <a className='pointer' onClick={onOpenFilters}>
+        {filtersText}
+      </a>
+    </div>
+  );
 }
 
 export default connect(

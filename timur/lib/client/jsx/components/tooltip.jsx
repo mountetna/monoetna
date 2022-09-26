@@ -1,9 +1,9 @@
 import React, {Component} from 'react';
 
-var Tooltip = React.createClass({
+let Tooltip = React.createClass({
   render: function () {
-    var self = this;
-    var max_char_width = Math.max.apply(
+    let self = this;
+    let max_char_width = Math.max.apply(
       null,
       Object.keys(this.props.display).map(function (name) {
         return name.length + self.props.display[name].toString().length;
@@ -23,7 +23,7 @@ var Tooltip = React.createClass({
           height={15 * Object.keys(self.props.display).length}
         />
         {Object.keys(this.props.display).map(function (name, i) {
-          var value = self.props.display[name];
+          let value = self.props.display[name];
           return (
             <text
               key={i}

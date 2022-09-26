@@ -126,6 +126,18 @@ export function Search({
       )
     : null;
 
+  function setPage(page, newSearch) {
+    // The page model offset + 1
+    page++;
+    // Need to re-fetch a page if the user has clicked a new set of
+    //    attribute names from the TreeView
+    newSearch = newSearch || attributesNamesState !== lastLoadedAttributeState;
+    if (!cache.isCached(page.toString()) || newSearch) {
+      loadDocuments(page, newSearch);
+    }
+    setSearchPage(page);
+  }
+
   return (
     <div id='search'>
       <div className='control'>
@@ -159,18 +171,6 @@ export function Search({
       </div>
     </div>
   );
-
-  function setPage(page, newSearch) {
-    // The page model offset + 1
-    page++;
-    // Need to re-fetch a page if the user has clicked a new set of
-    //    attribute names from the TreeView
-    newSearch = newSearch || attributesNamesState !== lastLoadedAttributeState;
-    if (!cache.isCached(page.toString()) || newSearch) {
-      loadDocuments(page, newSearch);
-    }
-    setSearchPage(page);
-  }
 }
 
 export default connect(

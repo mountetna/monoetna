@@ -8,12 +8,12 @@ class Pager extends Component {
 
   rewindPage() {
     if (this.props.current_page > 1)
-      this.props.set_page(this.props.current_page - 1);
+      {this.props.set_page(this.props.current_page - 1);}
   }
 
   advancePage() {
     if (this.props.current_page < this.props.pages)
-      this.props.set_page(this.props.current_page + 1);
+      {this.props.set_page(this.props.current_page + 1);}
   }
 
   enterPage() {

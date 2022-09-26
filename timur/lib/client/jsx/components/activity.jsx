@@ -19,9 +19,9 @@ export default class Activity extends React.Component{
           <span className="action" dangerouslySetInnerHTML={ { __html: markdown(activity.action) } } /> 
           on 
           <MagmaLink link={activity.record_name} model={activity.model_name}/>
-        </div>
+        </div>;
       })
     }
-    </div>
+    </div>;
   }
 }

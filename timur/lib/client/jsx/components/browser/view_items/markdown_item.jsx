@@ -21,7 +21,7 @@ const MarkdownItem = ({item, ...props}) => {
   let {attribute_name, text} = item;
 
   if (attribute_name)
-    return (
+    {return (
       <div className='item'>
         <AttributeViewer
           {...props}
@@ -29,7 +29,7 @@ const MarkdownItem = ({item, ...props}) => {
           attribute_name={attribute_name}
         />
       </div>
-    );
+    );}
 
   return (
     <div className='item'>

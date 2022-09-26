@@ -75,6 +75,64 @@ function camelize(str) {
     .replace(/\s+/g, '');
 }
 
+function browserStateOf({model_name, record_name, tab_name}) {
+  return (state) => {
+    const template = selectTemplate(state, model_name);
+    const record = selectDocument(state, model_name, record_name);
+    const revision = selectRevision(state, model_name, record_name) || {};
+    const view = selectView(state, model_name, template);
+    const can_edit = selectIsEditor(state);
+
+    const tab = view && tab_name && view.tabs.find((t) => t.name == tab_name);
+
+    return {
+      template,
+      revision,
+      view,
+      record,
+      tab,
+      can_edit,
+      tab_name,
+      record_name,
+      model_name
+    };
+  };
+}
+
+function useEditActions(setMode, browserState) {
+  const invoke = useActionInvoker();
+  const {revision, model_name, template, record_name} = browserState;
+
+  function cancelEdits() {
+    setMode('browse');
+    invoke(discardRevision(record_name, model_name));
+  }
+
+  function postEdits() {
+    setMode('submit');
+
+    invoke(
+      sendRevisions(
+        model_name,
+        template,
+        {[record_name]: revision},
+        () => setMode('browse'),
+        () => setMode('edit')
+      )
+    );
+  }
+
+  function approveEdits() {
+    if (Object.keys(revision).length > 0) postEdits();
+    else cancelEdits();
+  }
+
+  return {
+    cancelEdits,
+    approveEdits
+  };
+}
+
 export default function Browser({model_name, record_name, tab_name}) {
   const invoke = useActionInvoker();
   const browserState = useReduxState(
@@ -204,62 +262,4 @@ export default function Browser({model_name, record_name, tab_name}) {
       />
     </div>
   );
-}
-
-function browserStateOf({model_name, record_name, tab_name}) {
-  return (state) => {
-    const template = selectTemplate(state, model_name);
-    const record = selectDocument(state, model_name, record_name);
-    const revision = selectRevision(state, model_name, record_name) || {};
-    const view = selectView(state, model_name, template);
-    const can_edit = selectIsEditor(state);
-
-    const tab = view && tab_name && view.tabs.find((t) => t.name == tab_name);
-
-    return {
-      template,
-      revision,
-      view,
-      record,
-      tab,
-      can_edit,
-      tab_name,
-      record_name,
-      model_name
-    };
-  };
-}
-
-function useEditActions(setMode, browserState) {
-  const invoke = useActionInvoker();
-  const {revision, model_name, template, record_name} = browserState;
-
-  return {
-    cancelEdits,
-    approveEdits
-  };
-
-  function cancelEdits() {
-    setMode('browse');
-    invoke(discardRevision(record_name, model_name));
-  }
-
-  function postEdits() {
-    setMode('submit');
-
-    invoke(
-      sendRevisions(
-        model_name,
-        template,
-        {[record_name]: revision},
-        () => setMode('browse'),
-        () => setMode('edit')
-      )
-    );
-  }
-
-  function approveEdits() {
-    if (Object.keys(revision).length > 0) postEdits();
-    else cancelEdits();
-  }
 }

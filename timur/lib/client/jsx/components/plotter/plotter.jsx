@@ -138,11 +138,11 @@ class Plotter extends React.Component {
     });
 
     if (push)
-      pushLocation(
+      {pushLocation(
         id == null
           ? Routes.plots_path(CONFIG.project_name)
           : Routes.plot_path(CONFIG.project_name, id)
-      );
+      );}
   }
 
   updateField(field_name) {

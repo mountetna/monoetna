@@ -170,7 +170,7 @@ const QueryControlButtons = () => {
 
   useEffect(() => {
     if (JSON.stringify(query) !== queryString)
-      setQueryString(JSON.stringify(query));
+      {setQueryString(JSON.stringify(query));}
   }, [query, setQueryString, queryString]);
 
   function resetQuery() {

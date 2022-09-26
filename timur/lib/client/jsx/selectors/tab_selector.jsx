@@ -1,33 +1,6 @@
 import {sortAttributes} from '../utils/attributes';
 import {defaultMemoize} from 'reselect';
 
-export const defaultView = defaultMemoize((template) => {
-  if (!template) return null;
-
-  let view = {tabs: []};
-
-  let groups = Object.values(template.attributes)
-    .map((a) => a.attribute_group)
-    .filter((_) => _);
-
-  if (groups.length == 0) view.tabs = basicView(template);
-  else view.tabs = groupView(template);
-
-  return view;
-});
-
-export const selectView = (state, model_name, template) => {
-  if (!state.views) return null;
-
-  let view = state.views[model_name];
-
-  if (!view) return null;
-
-  if (Object.keys(view).length == 0) return defaultView(template);
-
-  return view;
-};
-
 const attributeItem = (attribute_name) => ({type: 'magma', attribute_name});
 
 const filterAttributes = (attributes, types, exclude = false) =>
@@ -127,3 +100,30 @@ export const getAttributes = ({panes}) =>
       items.filter(hasMagmaAttribute).map((item) => item.attribute_name)
     )
     .flat();
+
+export const defaultView = defaultMemoize((template) => {
+  if (!template) return null;
+
+  let view = {tabs: []};
+
+  let groups = Object.values(template.attributes)
+    .map((a) => a.attribute_group)
+    .filter((_) => _);
+
+  if (groups.length == 0) view.tabs = basicView(template);
+  else view.tabs = groupView(template);
+
+  return view;
+});
+
+export const selectView = (state, model_name, template) => {
+  if (!state.views) return null;
+
+  let view = state.views[model_name];
+
+  if (!view) return null;
+
+  if (Object.keys(view).length == 0) return defaultView(template);
+
+  return view;
+};
