@@ -3,8 +3,8 @@ import React, {useContext, useMemo} from 'react';
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import StepOutput from '../steps/step_output';
-import {completedUiOutputSteps} from "../../../selectors/workflow_selectors";
-import {useWorkflow} from "../../../contexts/workflow_context";
+import {completedUiOutputSteps} from '../../../selectors/workflow_selectors';
+import {useWorkflow} from '../../../contexts/workflow_context';
 
 export default function OutputFeed() {
   // Shows stream of Output, Plots, etc.,

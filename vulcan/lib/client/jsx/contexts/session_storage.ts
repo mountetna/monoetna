@@ -67,7 +67,7 @@ export function useLocalSessionStorage(
       try {
         const parsedSession: VulcanFigureSession = JSON.parse(storedSession);
         if (parsedSession.project_name !== project_name)
-          return Promise.resolve(null);
+          {return Promise.resolve(null);}
         return Promise.resolve(parsedSession);
       } catch (e) {
         // No guarantees that the stored session is really valid, gracefully clear that session in that case.

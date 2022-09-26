@@ -1,4 +1,4 @@
-import {DataEnvelope} from "./input_types";
+import {DataEnvelope} from './input_types';
 
 export type Monoid<DataElement, C extends DataElement> = {
   unit: C,
@@ -9,7 +9,7 @@ export function flattener<DataElement, C extends DataElement = DataElement>({uni
   return function flattenData(data: DataEnvelope<DataElement> | undefined | null): C {
     if (!data) return unit;
     return Object.values(data).reduce<C>(concat, unit);
-  }
+  };
 }
 
 const collator = new Intl.Collator(undefined, {
@@ -21,11 +21,11 @@ export const flattenStringOptions = flattener<StringOptions, string[]>({
   unit: [],
   concat(a, b) {
     return [
-      ...(typeof a === "string" ? [a] : a),
-      ...(typeof b === "string" ? [b] : b),
-    ].sort(collator.compare)
+      ...(typeof a === 'string' ? [a] : a),
+      ...(typeof b === 'string' ? [b] : b),
+    ].sort(collator.compare);
   }
-})
+});
 
 export function defaultSelector<T>(unit: T) {
   return function selectDefault(data: DataEnvelope<T> | null | undefined): T {
@@ -36,11 +36,11 @@ export function defaultSelector<T>(unit: T) {
     }
 
     return unit;
-  }
+  };
 }
 
 export const selectDefaultNumber = defaultSelector(0);
-export const selectDefaultString = defaultSelector("");
+export const selectDefaultString = defaultSelector('');
 export const selectDefaultBoolean = defaultSelector(false);
 
 export function joinNesting<T>(data: DataEnvelope<DataEnvelope<T>> | undefined | null): DataEnvelope<T> {

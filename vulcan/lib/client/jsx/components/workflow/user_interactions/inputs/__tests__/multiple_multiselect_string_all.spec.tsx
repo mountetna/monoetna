@@ -1,15 +1,15 @@
 import React from 'react';
 import {mount, ReactWrapper} from 'enzyme';
 import {DataEnvelope, InputSpecification} from '../input_types';
-import MultipleInput from "../multiple_input";
-import MultiselectStringInput from "../multiselect_string";
-import {StringOptions} from "../monoids";
-import {Maybe, some} from "../../../../../selectors/maybe";
+import MultipleInput from '../multiple_input';
+import MultiselectStringInput from '../multiselect_string';
+import {StringOptions} from '../monoids';
+import {Maybe, some} from '../../../../../selectors/maybe';
 
 describe('MultipleMultiselectStringAllInput', () => {
   const MultipleMultiselectStringAllInput = MultipleInput(MultiselectStringInput);
   let data: DataEnvelope<DataEnvelope<StringOptions>>;
-  let value: Maybe<DataEnvelope<string[]>>
+  let value: Maybe<DataEnvelope<string[]>>;
   let onChange: jest.Mock;
 
   function openDropdown(component: ReactWrapper, inputIndex: number) {

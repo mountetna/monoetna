@@ -36,18 +36,18 @@ export function setSession(session: SessionStatusResponse['session']) {
   return actionObject('SET_SESSION', {session});
 }
 
-export function setSessionAndFigure(figureSession: VulcanFigureSession) {
-  return setSessionAndFigureSeparately(
-    selectFigure(figureSession),
-    selectSession(figureSession)
-  );
-}
-
 export function setSessionAndFigureSeparately(
   figure: VulcanFigure,
   session: VulcanSession
 ) {
   return actionObject('SET_SESSION_AND_FIGURE', {figure, session});
+}
+
+export function setSessionAndFigure(figureSession: VulcanFigureSession) {
+  return setSessionAndFigureSeparately(
+    selectFigure(figureSession),
+    selectSession(figureSession)
+  );
 }
 
 // Fully replaces the inputs state.

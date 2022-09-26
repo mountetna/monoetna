@@ -3,8 +3,8 @@ import Icon from 'etna-js/components/icon';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import Step from './step';
-import {completedUiOutputSteps} from "../../../selectors/workflow_selectors";
-import {useWorkflow} from "../../../contexts/workflow_context";
+import {completedUiOutputSteps} from '../../../selectors/workflow_selectors';
+import {useWorkflow} from '../../../contexts/workflow_context';
 
 export default function StepsList() {
   const [open, setOpen] = useState(false);

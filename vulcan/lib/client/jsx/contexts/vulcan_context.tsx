@@ -1,14 +1,14 @@
 import React, {useReducer, createContext, useRef, useState, useCallback} from 'react';
 import VulcanReducer, {defaultVulcanState, VulcanState} from '../reducers/vulcan_reducer';
-import {VulcanAction} from "../actions/vulcan_actions";
-import {defaultSessionStorageHelpers, useLocalSessionStorage} from "./session_storage";
-import {defaultApiHelpers, useApi} from "./api";
-import {useWorkflowsLoading} from "./workflows_loading";
-import {useDataBuffering} from "./data_buffering";
-import {defaultSessionSyncHelpers, useSessionSync} from "./session_sync";
-import {defaultInputStateManagement, useInputStateManagement} from "./input_state_management";
-import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
-import {defaultConfirmationHelpers, useConfirmation} from "./confirmation";
+import {VulcanAction} from '../actions/vulcan_actions';
+import {defaultSessionStorageHelpers, useLocalSessionStorage} from './session_storage';
+import {defaultApiHelpers, useApi} from './api';
+import {useWorkflowsLoading} from './workflows_loading';
+import {useDataBuffering} from './data_buffering';
+import {defaultSessionSyncHelpers, useSessionSync} from './session_sync';
+import {defaultInputStateManagement, useInputStateManagement} from './input_state_management';
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import {defaultConfirmationHelpers, useConfirmation} from './confirmation';
 
 export const defaultContext = {
   state: defaultVulcanState as VulcanState,
@@ -16,7 +16,7 @@ export const defaultContext = {
                                            // installed.
   dispatch: (a: VulcanAction) => console.warn('action dispatched but not handled', a),
   useActionInvoker: (() => () => null) as typeof useActionInvoker, ...defaultConfirmationHelpers, ...defaultSessionStorageHelpers, ...defaultApiHelpers, ...defaultSessionSyncHelpers, ...defaultInputStateManagement,
-}
+};
 
 export type VulcanContextData = typeof defaultContext;
 export const VulcanContext = createContext(defaultContext);

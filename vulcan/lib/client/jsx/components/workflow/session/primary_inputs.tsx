@@ -46,20 +46,6 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function PrimaryInputs() {
-  const {commitSessionInputChanges, dispatch} = useContext(VulcanContext);
-
-  return (
-    <WithBufferedInputs
-      commitSessionInputChanges={commitSessionInputChanges}
-      dispatch={dispatch}
-      stepName={null}
-    >
-      <PrimaryInputsInner />
-    </WithBufferedInputs>
-  );
-}
-
 function PrimaryInputsInner() {
   const {state} = useContext(VulcanContext);
   const {inputs, setInputs} = useContext(BufferedInputsContext);
@@ -157,5 +143,19 @@ function PrimaryInputsInner() {
           })}
       </Collapse>
     </Card>
+  );
+}
+
+export default function PrimaryInputs() {
+  const {commitSessionInputChanges, dispatch} = useContext(VulcanContext);
+
+  return (
+    <WithBufferedInputs
+      commitSessionInputChanges={commitSessionInputChanges}
+      dispatch={dispatch}
+      stepName={null}
+    >
+      <PrimaryInputsInner />
+    </WithBufferedInputs>
   );
 }

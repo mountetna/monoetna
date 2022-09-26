@@ -14,5 +14,5 @@ export default function ConsignmentOutput({data}) {
         </div>
       );
     })}
-  </React.Fragment>
+  </React.Fragment>;
 }

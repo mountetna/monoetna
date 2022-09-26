@@ -2,9 +2,9 @@ import React, {useContext} from 'react';
 import {defaultContext, VulcanContext, VulcanProvider} from '../../../../contexts/vulcan_context';
 import renderer, {act} from 'react-test-renderer';
 import PrimaryInputs from '../primary_inputs';
-import {createWorkflowFixture} from "../../../../test_utils/fixtures";
-import {awaitBefore, integrateElement, setupBefore} from "../../../../test_utils/integration";
-import {useWorkflowUtils} from "../../../../test_utils/workflow_utils";
+import {createWorkflowFixture} from '../../../../test_utils/fixtures';
+import {awaitBefore, integrateElement, setupBefore} from '../../../../test_utils/integration';
+import {useWorkflowUtils} from '../../../../test_utils/workflow_utils';
 
 describe('PrimaryInputs', () => {
   const integrated = setupBefore(() => integrateElement(<PrimaryInputs/>));
@@ -47,8 +47,8 @@ describe('PrimaryInputs', () => {
       }
     });
 
-    workflowHelpers.value.setWorkflow(workflow.name, workflow)
-  })
+    workflowHelpers.value.setWorkflow(workflow.name, workflow);
+  });
 
   it('renders each type of input', async () => {
     const {stateRef} = contextData.value;

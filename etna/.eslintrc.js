@@ -15,6 +15,7 @@ module.exports = {
   },
   globals: {
     Routes: false,
+    ROUTES: false,
     CONFIG: false
   },
   settings: {

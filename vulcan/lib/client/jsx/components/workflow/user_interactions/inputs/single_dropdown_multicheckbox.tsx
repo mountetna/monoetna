@@ -4,10 +4,10 @@ import React, {useCallback, useMemo, useState,} from 'react';
 
 import CheckboxesInput from './checkboxes';
 import {DataEnvelope, WithInputParams} from './input_types';
-import {Maybe, some} from "../../../../selectors/maybe";
-import {joinNesting} from "./monoids";
-import {useMemoized} from "../../../../selectors/workflow_selectors";
-import {useSetsDefault} from "./useSetsDefault";
+import {Maybe, some} from '../../../../selectors/maybe';
+import {joinNesting} from './monoids';
+import {useMemoized} from '../../../../selectors/workflow_selectors';
+import {useSetsDefault} from './useSetsDefault';
 import { TextField } from '@material-ui/core';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
@@ -68,7 +68,7 @@ export default function SingleDropdownMulticheckbox({ data, onChange, ...props }
     onChange(some({
       ...value,
       [dropdownValue]: [...values[0]],
-    }))
+    }));
   }, [dropdownValue, onChange, value]);
 
   return (

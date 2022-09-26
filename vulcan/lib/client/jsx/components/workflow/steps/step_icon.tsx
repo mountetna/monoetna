@@ -6,7 +6,7 @@ import AnimatedClock from './animated_clock';
 import {WorkflowStep} from '../../../api_types';
 import {labelOfStepOrGroupedStep, statusStringOfStepOrGroupedStep} from '../../../selectors/workflow_selectors';
 import {STATUS} from '../../../api_types';
-import {WorkflowStepGroup} from "../user_interactions/inputs/input_types";
+import {WorkflowStepGroup} from '../user_interactions/inputs/input_types';
 import {makeStyles} from '@material-ui/core/styles';
 import Tooltip from '@material-ui/core/Tooltip';
 import CheckIcon from '@material-ui/icons/Check';
@@ -56,7 +56,7 @@ const StepIcon = ({
 
   return <Tooltip title={label}>
     <IconComponent className={`${classes[ statusStr ]} ${classes.icon}`}/>
-  </Tooltip>
-}
+  </Tooltip>;
+};
 
 export default StepIcon;

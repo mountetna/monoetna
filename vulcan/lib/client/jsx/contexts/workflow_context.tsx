@@ -1,6 +1,6 @@
 import React, {useContext, useMemo} from 'react';
-import {VulcanContext} from "./vulcan_context";
-import {defaultWorkflow} from "../api_types";
+import {VulcanContext} from './vulcan_context';
+import {defaultWorkflow} from '../api_types';
 
 export function useWorkflow() {
   const {state} = useContext(VulcanContext);

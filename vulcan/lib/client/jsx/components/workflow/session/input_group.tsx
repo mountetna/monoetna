@@ -9,8 +9,8 @@ import UserInput from '../user_interactions/inputs/user_input';
 import {
   completedSteps, isPendingUiQuery, pendingSteps, uiQueryOfStep, useMemoized
 } from '../../../selectors/workflow_selectors';
-import {BoundInputSpecification} from "../user_interactions/inputs/input_types";
-import {useWorkflow} from "../../../contexts/workflow_context";
+import {BoundInputSpecification} from '../user_interactions/inputs/input_types';
+import {useWorkflow} from '../../../contexts/workflow_context';
 
 import IconButton from '@material-ui/core/IconButton';
 import AccordionSummary from '@material-ui/core/AccordionSummary';

@@ -2,7 +2,7 @@ import XYPlot from 'etna-js/plots/components/xy_plot/xy_plot';
 import Plot from './plot';
 import Domain from './domain';
 import Series from './series';
-import {WorkflowStep} from "../api_types";
+import {WorkflowStep} from '../api_types';
 
 // export default class XYPlotModel extends Plot {
 //   public type: string = 'xy';

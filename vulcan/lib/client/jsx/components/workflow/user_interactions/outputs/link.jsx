@@ -8,5 +8,5 @@ export default function LinkOutput({data}) {
           <Link link={url}>{url.split('/').slice(-1)}</Link>
         </React.Fragment>
     )}
-  </React.Fragment>
+  </React.Fragment>;
 }

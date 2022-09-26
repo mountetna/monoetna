@@ -29,10 +29,10 @@ import {
 import {
   AllInnerValuesNotEmptyValidator,
 } from './validators/all_inner_values_not_empty_validator';
-import MultipleInput from "./multiple_input";
-import SingleDropdownMulticheckbox from "./single_dropdown_multicheckbox";
-import {stepOfSource} from "../../../../selectors/workflow_selectors";
-import AllOutputValuesNotEmptyValidator from "./validators/all_output_values_not_empty_validator"
+import MultipleInput from './multiple_input';
+import SingleDropdownMulticheckbox from './single_dropdown_multicheckbox';
+import {stepOfSource} from '../../../../selectors/workflow_selectors';
+import AllOutputValuesNotEmptyValidator from './validators/all_output_values_not_empty_validator';
 import DiffExpSC from './scDGE';
 import DataTransformation from './data_transformation';
 import AllInnerKeysNotNullValidator from './validators/all_inner_keys_not_null_validator';
@@ -44,7 +44,7 @@ function configureComponent<Value, DataElement>(
   Input: InputBackendComponent<any, Value, DataElement>,
   validator: InputValidator<Value, DataElement>,
 ) {
-  if (type in components) throw new Error(`Duplicate definition for ${type}`)
+  if (type in components) throw new Error(`Duplicate definition for ${type}`);
   components[type] = [Input, validator];
 }
 
@@ -65,7 +65,7 @@ configureComponent(TYPE.ANY_VIZ, AnyPlotly, PlusSubsetValidator('rows_use',AllOu
 configureComponent(TYPE.DIFF_EXP_SC, DiffExpSC, PlusSubsetValidator('subset',AllOutputValuesNotEmptyValidator));
 
 configureComponent(TYPE.SINGLE_DROPDOWN_MULTICHECKBOX, SingleDropdownMulticheckbox, NotEmptyValidator);
-configureComponent(TYPE.MULTIPLE_MULTISELECT_STRING_ALL, MultipleInput(MultiselectStringInput), AllInnerValuesNotEmptyValidator)
+configureComponent(TYPE.MULTIPLE_MULTISELECT_STRING_ALL, MultipleInput(MultiselectStringInput), AllInnerValuesNotEmptyValidator);
 
 
 function backendComponentOf(
@@ -96,7 +96,7 @@ export default function UserInput({
     }
     // On unmount, remove all errors associated with the input
     return () => {
-      dispatch(removeValidationErrors(errors))
+      dispatch(removeValidationErrors(errors));
     };
   }, [dispatch, Validator, value, source, label, data]);
 
