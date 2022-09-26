@@ -8,10 +8,15 @@ import {
 } from '../api/files_api';
 import {errorMessage} from './message_actions';
 import {assertIsSome} from 'etna-js/utils/asserts';
-import DownZip from 'downzip/dist/main';
+import DownZip from 'downzip';
 import {selectFilesInCurrentFolder} from '../selectors/folder-selector';
 
-const downZip = new DownZip({scope: document.location.pathname});
+const downZip = new DownZip();
+const mapScriptUrl = (scriptUrl) => {
+  debugger;
+  return `/js${scriptUrl}`;
+};
+downZip.register({mapScriptUrl});
 const addFiles = (files) => ({type: 'ADD_FILES', files});
 const addFolders = (folders) => ({type: 'ADD_FOLDERS', folders});
 const removeFiles = (files) => ({type: 'REMOVE_FILES', files});
