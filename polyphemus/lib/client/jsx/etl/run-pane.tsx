@@ -54,6 +54,37 @@ type ComplexParam = {
   value: string;
 };
 
+const DefaultSelect = ({
+  value,
+  opts,
+  name,
+  update
+}: {
+  value: Value;
+  opts: SelectParam[];
+  name: string;
+  update: (name: string, value: string | boolean) => void;
+}) => {
+  const defaultOption = opts.find((o) => o.default);
+
+  useEffect(() => {
+    if (defaultOption) update(name, defaultOption.value);
+  }, [defaultOption]);
+
+  return (
+    <Select
+      value={value || ''}
+      onChange={(e) => update(name, e.target.value as string)}
+    >
+      {opts.map((opt) => (
+        <MenuItem key={opt.value} value={opt.value}>
+          {`${opt.value}${opt.description ? ` - ${opt.description}` : ''}`}
+        </MenuItem>
+      ))}
+    </Select>
+  );
+};
+
 const Param = ({
   value,
   opts,
@@ -68,23 +99,8 @@ const Param = ({
   config: any;
 }) => {
   if (Array.isArray(opts)) {
-    const defaultOption = opts.find((o) => o.default);
-
-    useEffect(() => {
-      if (defaultOption) update(name, defaultOption.value);
-    }, [defaultOption]);
-
     return (
-      <Select
-        value={value || ''}
-        onChange={(e) => update(name, e.target.value as string)}
-      >
-        {opts.map((opt) => (
-          <MenuItem key={opt.value} value={opt.value}>
-            {`${opt.value}${opt.description ? ` - ${opt.description}` : ''}`}
-          </MenuItem>
-        ))}
-      </Select>
+      <DefaultSelect value={value} opts={opts} name={name} update={update} />
     );
   } else if (_.isObject(opts)) {
     if (opts.type && opts.type === 'options' && opts.value === 'model_names') {

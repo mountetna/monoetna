@@ -8,7 +8,7 @@ import {defaultHighlightStyle, syntaxHighlighting} from '@codemirror/language';
 import {EditorState, Text} from '@codemirror/state';
 import {gutter, lineNumbers} from '@codemirror/view';
 import CodeMirror from 'rodemirror';
-import {lintGutter, linter, Diagnostic} from '@codemirror/lint';
+import {lintGutter, linter, Diagnostic, LintSource} from '@codemirror/lint';
 
 import ErrorBoundary from 'etna-js/components/error_boundary';
 
@@ -39,13 +39,13 @@ const errorMessage = (error: any) => {
 function getErrorPosition(error: SyntaxError, doc: Text): number {
   let m;
   if ((m = error.message.match(/at position (\d+)/)))
-    return Math.min(+m[1], doc.length);
+    {return Math.min(+m[1], doc.length);}
   if ((m = error.message.match(/at line (\d+) column (\d+)/)))
-    return Math.min(doc.line(+m[1]).from + +m[2] - 1, doc.length);
+    {return Math.min(doc.line(+m[1]).from + +m[2] - 1, doc.length);}
   return 0;
 }
 
-export const validator = (schema: any): Function => {
+export const validator = (schema: any): LintSource => {
   const validate = ajv.compile(schema);
 
   return (view: EditorView): Diagnostic[] => {
@@ -76,20 +76,21 @@ export const validator = (schema: any): Function => {
 
     if (valid || !validate.errors) return [];
     console.log(validate.errors);
-    return validate
-      .errors!.map((error) => {
-        let pointer = json.pointers[error.instancePath];
+    return validate.errors.reduce((acc: Diagnostic[], error) => {
+      let pointer = json.pointers[error.instancePath];
 
-        if (!pointer) return null;
+      if (pointer) {
         console.log('pointer', pointer, error);
-        return {
+        acc.push({
           from: pointer.value.pos,
           to: pointer.valueEnd.pos,
           message: errorMessage(error),
           severity: 'error'
-        };
-      })
-      .filter((_) => _);
+        } as Diagnostic);
+      }
+
+      return acc;
+    }, []);
   };
 };
 
@@ -112,14 +113,7 @@ const ConfigScript = ({
   script: string;
   onChange: Function;
 }) => {
-  // let [editor, setEditor] = useState<Editor | null>(null);
-
   const classes = useStyles();
-
-  // useEffect(() => {
-  //   if (editor)
-  //     CodeMirror.registerHelper('lint', 'json', validator(schema, editor));
-  // }, [editor]);
 
   const extensions = useMemo(
     () => [
