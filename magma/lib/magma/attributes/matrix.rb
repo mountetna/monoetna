@@ -68,7 +68,8 @@ class Magma
     def matrix_row_json(identifier, column_names)
       # since we want to retrieve rows in a single batch, we expect the row to
       # have been cached already by #cache_rows
-      raise MatrixJsonError.new("matrix data not cached for #{identifier}") unless cached_rows.has_key?(identifier)
+      # raise MatrixJsonError.new("matrix data not cached for #{identifier}") unless cached_rows.has_key?(identifier)
+      return column_names ? Array.new(column_names.length, nil).to_json : nil.to_json unless cached_rows.has_key?(identifier)
 
       if column_names
         indexes = column_indexes(column_names)

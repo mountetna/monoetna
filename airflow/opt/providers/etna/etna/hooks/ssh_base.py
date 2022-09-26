@@ -3,6 +3,7 @@ import contextlib
 import json
 import logging
 from typing import Tuple
+from io import StringIO
 import paramiko
 from paramiko.sftp_client import SFTPClient
 
@@ -46,7 +47,8 @@ class SSHBase(object):
         ssh.connect(
             self.hook.connection.host,
             username=self.hook.connection.login,
-            password=self.hook.connection.password)
+            password=self.hook.connection.password,
+            pkey=self._private_key())
 
         yield ssh
 
@@ -100,7 +102,7 @@ class SSHBase(object):
     def _key_str(self) -> str:
         return self._key_components()[1]
 
-    def _host_key(self) -> str:
+    def _host_key(self) -> paramiko.pkey.PKey:
         key_class = {
             "ssh-rsa": paramiko.RSAKey,
             "ssh-ed25519": paramiko.Ed25519Key,
@@ -114,3 +116,11 @@ class SSHBase(object):
         return key_class[self._key_type()](
             data=base64.b64decode(self._key_str())
         )
+
+    def _private_key(self) -> paramiko.pkey.PKey:
+        private_key_str = self._get_extra('private_key', '')
+
+        if '' == private_key_str:
+            return None
+
+        return paramiko.rsakey.RSAKey.from_private_key(StringIO(private_key_str))
