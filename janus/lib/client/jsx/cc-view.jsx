@@ -1,42 +1,42 @@
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
-import {json_get, json_post} from "etna-js/utils/fetch";
-import {Button, Checkbox, CircularProgress, Container, FormControlLabel, Typography} from "@material-ui/core";
-import {makeStyles} from "@material-ui/core/styles";
+import {json_get, json_post} from 'etna-js/utils/fetch';
+import {Button, Checkbox, CircularProgress, Container, FormControlLabel, Typography} from '@material-ui/core';
+import {makeStyles} from '@material-ui/core/styles';
 import DOMPurify from 'dompurify';
-import * as marked from 'marked'
+import * as marked from 'marked';
 
 const useStyles = makeStyles((theme) => {
-  const blockTags = ["h1", "h2", "h3", "h4", "h5", "h6", "p", "b", "li", "ul", "ol", "pre", "code", "blockquote"];
-  const nonBlockTags = ["hr", "em", "strong", "del", "a", "img"];
+  const blockTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'li', 'ul', 'ol', 'pre', 'code', 'blockquote'];
+  const nonBlockTags = ['hr', 'em', 'strong', 'del', 'a', 'img'];
   const cc = {};
 
   blockTags.forEach((tag) => {
-    cc[`& ${tag}`] = { ...theme.typography[tag], margin: "15px 0px" };
+    cc[`& ${tag}`] = { ...theme.typography[tag], margin: '15px 0px' };
   });
 
   nonBlockTags.forEach((tag) => {
     if (tag in theme.typography) cc[`& ${tag}`] = { ...theme.typography[tag] };
   });
 
-  cc["& li"]["marginLeft"] = 25;
-  cc["& ul"]["listStyle"] = "disc outside none";
-  cc["& ol"]["listStyleType"] = "upper-roman;";
+  cc['& li']['marginLeft'] = 25;
+  cc['& ul']['listStyle'] = 'disc outside none';
+  cc['& ol']['listStyleType'] = 'upper-roman;';
 
   return {
     loadingRoot: {
-      minWidth: "100%",
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center"
+      minWidth: '100%',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center'
     },
     loadingArt: {
-      display: "flex",
-      alignItems: "center"
+      display: 'flex',
+      alignItems: 'center'
     },
     cc,
     agree: {
-      margin: "15px 25px",
+      margin: '15px 25px',
     }
   };
 });
@@ -45,19 +45,19 @@ export function CcView({project_name}) {
   const [project, setProject] = useState(null);
   const [agreed, setAgreed] = useState(false);
   useEffect(() => {
-    json_get(`/api/user/projects`)
+    json_get('/api/user/projects')
       .then(
         ({projects}) => {
           projects.forEach((p) => {
             if (project_name === p.project_name) setProject(p);
-          })
+          });
         }
-      )
+      );
   }, []);
 
   const classes = useStyles();
 
-  const cc_text = project && project.cc_text ? project.cc_text : "";
+  const cc_text = project && project.cc_text ? project.cc_text : '';
   const requiresAgreement = project ? project.requires_agreement && cc_text : false;
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export function CcView({project_name}) {
     if (!requiresAgreement) {
       // window.location.href = CONFIG['timur_host'];
     }
-  }, [project, requiresAgreement])
+  }, [project, requiresAgreement]);
 
   const onClickAgree = useCallback(e => {
     setAgreed(e.target.checked);
@@ -81,8 +81,8 @@ export function CcView({project_name}) {
       } else {
         window.location.href = refer;
       }
-    })
-  }, [agreed])
+    });
+  }, [agreed]);
 
 
   const ccHtml = useMemo(() => DOMPurify.sanitize(marked.marked(cc_text)), [cc_text]);
@@ -92,7 +92,7 @@ export function CcView({project_name}) {
       <center>
         <CircularProgress color="inherit" />
       </center>
-    </div>
+    </div>;
   }
   if (!requiresAgreement) return null;
 
@@ -106,11 +106,11 @@ export function CcView({project_name}) {
       dangerouslySetInnerHTML={{ __html: ccHtml}}
       />
 
-    <div className={classes.agree} style={{clear: "both"}}>
+    <div className={classes.agree} style={{clear: 'both'}}>
       <FormControlLabel control={<Checkbox checked={agreed} onChange={onClickAgree} />} label="I agree to the above conditions" />
-      <Button style={{float: "right"}} onClick={onClickSubmit}>
+      <Button style={{float: 'right'}} onClick={onClickSubmit}>
         Submit
       </Button>
     </div>
-  </Container>
+  </Container>;
 }

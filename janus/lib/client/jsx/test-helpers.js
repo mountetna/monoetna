@@ -16,7 +16,7 @@ export const stubUrl = ({
         ...headers
       }
     );
-}
+};
 
 export const cleanStubs = () => nock.cleanAll();
 
@@ -28,6 +28,6 @@ export const mockStore = configureMockStore([
 export const mockDate = () => {
   const currentDate = new Date();
   global.Date = jest.fn(() => currentDate);
-}
+};
 
 export const mockFetch = () => global.fetch = fetch;

@@ -21,7 +21,7 @@ import AddRemove from './flags-add-remove';
 
 const useStyles = makeStyles((theme) => ({
   controls: {
-    padding: "15px"
+    padding: '15px'
   },
   manage: {
     position: 'relative'
@@ -91,16 +91,16 @@ const UserTable = () => {
     setSelected(selected.length > 0 ? [] : filteredUsers);
   }
 
+  function isSelected(user: UserFlagsInterface) {
+    return selected.filter((u) => u.email === user.email).length > 0;
+  }
+
   function onClickUser(user: UserFlagsInterface) {
     if (!isSelected(user)) {
       setSelected([...selected].concat([user]));
     } else {
       setSelected([...selected].filter((u) => u.email !== user.email));
     }
-  }
-
-  function isSelected(user: UserFlagsInterface) {
-    return selected.filter((u) => u.email === user.email).length > 0;
   }
 
   function openAddRemoveFlags() {
@@ -110,7 +110,14 @@ const UserTable = () => {
   return (
     <Grid container direction='column'>
       <Grid container item xs={12} className={classes.controls}>
-        <Grid container spacing={1} item xs={9} alignItems='flex-end' justify='flex-start'>
+        <Grid
+          container
+          spacing={1}
+          item
+          xs={9}
+          alignItems='flex-end'
+          justify='flex-start'
+        >
           <TableControls
             onChangeSearch={setSearchTerm}
             onChangeProjects={setSearchProjects}
@@ -119,12 +126,19 @@ const UserTable = () => {
             flagOptions={[...new Set(users.map((u) => u.flags || []).flat())]}
           />
         </Grid>
-        <Grid container className={classes.manage} item xs={3} alignItems='flex-end' justify='flex-start'>
+        <Grid
+          container
+          className={classes.manage}
+          item
+          xs={3}
+          alignItems='flex-end'
+          justify='flex-start'
+        >
           {selected.length > 0 ? (
             <Button onClick={openAddRemoveFlags}>Manage Flags</Button>
           ) : null}
           {addRemoveOpen && selected.length > 0 ? (
-            <AddRemove selectedUsers={selected}/>
+            <AddRemove selectedUsers={selected} />
           ) : null}
         </Grid>
       </Grid>

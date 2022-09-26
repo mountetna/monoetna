@@ -5,7 +5,8 @@ module.exports = {
       project_name: 'labors',
       magma_host: 'https://magma.test',
       polyphemus_host: 'https://polyphemus.test',
-      vulcan_host: 'https://vulcan.test'
+      vulcan_host: 'https://vulcan.test',
+      baseURL: 'http://localhost'
     }
   },
   testURL: 'http://localhost',

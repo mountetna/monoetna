@@ -7,7 +7,7 @@ import Button from '@material-ui/core/Button';
 const copyToken = (e) => {
   let token = Cookies.get(CONFIG.token_name);
   if (token) copyText(token);
-}
+};
 
 const Identity = ({user}) => 
   <div id='identity-group'>

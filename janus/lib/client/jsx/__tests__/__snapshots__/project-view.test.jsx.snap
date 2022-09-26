@@ -32,12 +32,12 @@ exports[`ProjectView renders statically for an editor 1`] = `
           className="MuiGrid-root makeStyles-setting-7 MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
         >
           <div
-            className="MuiGrid-root MuiGrid-grid-xs-2"
+            className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
           >
             Project Type
           </div>
           <div
-            className="MuiGrid-root MuiGrid-grid-xs-10"
+            className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-10"
           >
             <div
               className="MuiInputBase-root MuiInput-root MuiInput-underline"
@@ -321,12 +321,12 @@ exports[`ProjectView renders with inputs for an administrator 1`] = `
           className="MuiGrid-root makeStyles-setting-7 MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center"
         >
           <div
-            className="MuiGrid-root MuiGrid-grid-xs-2"
+            className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
           >
             Project Type
           </div>
           <div
-            className="MuiGrid-root MuiGrid-grid-xs-10"
+            className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-10"
           >
             <div
               className="MuiInputBase-root MuiInput-root MuiInput-underline"

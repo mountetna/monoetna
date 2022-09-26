@@ -13,9 +13,9 @@ import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 import {Notifications} from 'etna-js/components/Notifications';
 import Messages from 'etna-js/components/messages';
 import { createEtnaTheme } from 'etna-js/style/theme';
-import {CcView} from "./cc-view";
+import {CcView} from './cc-view';
 
-const theme = createEtnaTheme("#3684fd","#77c");
+const theme = createEtnaTheme('#3684fd','#77c');
 
 const ROUTES = [
   {
@@ -68,6 +68,6 @@ const JanusUI = () => {
       </div>
     </ThemeProvider>
   );
-}
+};
 
 export default JanusUI;
