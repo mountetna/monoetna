@@ -39,7 +39,8 @@ class C4Hook(SSHHook):
             "relabeling": {},
             "placeholders": {
                 "host": "c4.ucsf.edu",
-                "extra": "{\n  \"root_path\": \"/airflow/ingest\",\n  \"host_key\": \"ssh-<key type> <ssh-key>\"\n}"
+                "extra": "{\n  \"root_path\": \"/airflow/ingest\",\n  \"host_key\": \"ssh-<key type> <ssh-key>\"\n}",
+                "private_key": "private-key-string"
             },
         }
 
