@@ -74,7 +74,7 @@ class Magma
     require_relative 'magma/attribute'
     require_relative 'magma/model'
     require_relative 'magma/identifier'
-    require_relative 'magma/rule'
+    require_relative 'magma/grammar'
   end
 
   class Magma::ValidationError < StandardError
