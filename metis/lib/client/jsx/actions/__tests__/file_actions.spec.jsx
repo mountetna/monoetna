@@ -5,11 +5,13 @@ describe('file_actions', () => {
   describe('listFilesRecursive', () => {
     const bucket_name = 'test-bucket';
     function stubRecursiveListResponse(folderPath, contentsSpec) {
-      const joinableFolderPath = (folderPath ? folderPath + '/' : '');
-      const subFolders = Object.keys(contentsSpec.folders || {}).map(folder_name => ({
-        folder_name,
-        folder_path: joinableFolderPath + folder_name,
-      }));
+      const joinableFolderPath = folderPath ? folderPath + '/' : '';
+      const subFolders = Object.keys(contentsSpec.folders || {}).map(
+        (folder_name) => ({
+          folder_name,
+          folder_path: joinableFolderPath + folder_name
+        })
+      );
 
       stubUrl({
         verb: 'get',
@@ -20,6 +22,7 @@ describe('file_actions', () => {
           })),
           folders: subFolders
         },
+        host: 'http://localhost'
       });
 
       subFolders.forEach(({folder_name, folder_path}) => {
