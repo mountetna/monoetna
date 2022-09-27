@@ -1,5 +1,5 @@
 class Magma
-  class Rule < Sequel::Model
+  class Grammar < Sequel::Model
     one_to_many :identifiers
   end
 end
