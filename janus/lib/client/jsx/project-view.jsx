@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {json_post, json_get} from 'etna-js/utils/fetch';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
@@ -8,9 +8,6 @@ import {showMessages} from 'etna-js/actions/message_actions';
 
 import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import CardHeader from '@material-ui/core/CardHeader';
 import Typography from '@material-ui/core/Typography';
 import Checkbox from '@material-ui/core/Checkbox';
 import TextField from '@material-ui/core/TextField';
@@ -24,7 +21,16 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 
-import {Controlled} from 'react-codemirror2';
+import {basicSetup, EditorView} from 'codemirror';
+import {markdown} from '@codemirror/lang-markdown';
+import {defaultHighlightStyle, syntaxHighlighting} from '@codemirror/language';
+import {EditorState} from '@codemirror/state';
+import {gutter, lineNumbers} from '@codemirror/view';
+import CodeMirror from 'rodemirror';
+import {lintGutter} from '@codemirror/lint';
+
+import ErrorBoundary from 'etna-js/components/error_boundary';
+
 import SaveCancel from './save-cancel';
 import {projectTypeFor} from './utils/project';
 
@@ -290,6 +296,27 @@ const ProjectView = ({project_name}) => {
     projectCoc != project.cc_text ||
     projectContact != project.contact_email;
 
+  const extensions = useMemo(
+    () => [
+      basicSetup,
+      syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
+      markdown(),
+      EditorView.editable.of(true),
+      EditorState.readOnly.of(false),
+      EditorView.lineWrapping,
+      EditorState.tabSize.of(2),
+      gutter({class: 'CodeMirror-lint-markers'}),
+      lineNumbers(),
+      lintGutter(),
+      EditorView.updateListener.of(function (e) {
+        if (e.docChanged) {
+          setProjectCoc(e.state.doc.toString());
+        }
+      })
+    ],
+    []
+  );
+
   return (
     <div id='project-view'>
       <Grid container direction='column'>
@@ -315,20 +342,9 @@ const ProjectView = ({project_name}) => {
               <>
                 <Setting title='Code of Conduct Agreement'>
                   <Grid className={classes.editor}>
-                    <Controlled
-                      options={{
-                        readOnly: false,
-                        lineNumbers: true,
-                        lineWrapping: true,
-                        mode: 'markdown',
-                        lint: true,
-                        tabSize: 2
-                      }}
-                      value={projectCoc}
-                      onBeforeChange={(editor, data, value) => {
-                        setProjectCoc(value);
-                      }}
-                    />
+                    <ErrorBoundary>
+                      <CodeMirror extensions={extensions} value={projectCoc} />
+                    </ErrorBoundary>
                   </Grid>
                 </Setting>
                 <Setting title='Contact email'>
