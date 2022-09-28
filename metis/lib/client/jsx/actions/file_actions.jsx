@@ -11,7 +11,7 @@ import {assertIsSome} from 'etna-js/utils/asserts';
 import DownZip from 'downzip/src/downzip';
 import {selectFilesInCurrentFolder} from '../selectors/folder-selector';
 
-const downZip = new DownZip({scope: document.location.pathname});
+const downZip = new DownZip();
 downZip.register();
 const addFiles = (files) => ({type: 'ADD_FILES', files});
 const addFolders = (folders) => ({type: 'ADD_FOLDERS', folders});
