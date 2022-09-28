@@ -57,7 +57,7 @@ module.exports = (env) => ({
         include: [
           path.resolve('/app', 'lib/client/jsx'),
           path.resolve('/etna', 'node_modules/etna-js/'),
-          path.resolve('/etna', 'node_modules/downzip/'),
+          path.resolve('/etna', 'node_modules/downzip/src'),
           path.resolve('/app', 'stories/'),
           '/etna/packages/etna-js'
         ],
@@ -137,11 +137,6 @@ module.exports = (env) => ({
     new webpack.DefinePlugin({
       'process.env': {
         NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
-      }
-    }),
-    new webpack.LoaderOptionsPlugin({
-      options: {
-        publicPath: '/js/'
       }
     }),
     new EventHooksPlugin({
