@@ -172,6 +172,14 @@ declare module 'etna-js/components/revision-history' {
   }): any {};
 }
 
+declare module 'etna-js/components/project-header' {
+  export = function ProjectHeader(params: {
+    project_name: string;
+    project_name_full: string;
+    className: string|null;
+  }): any {};
+}
+
 declare module 'etna-js/components/flat-button' {
   export = function FlatButton(params: {
     className?: string;
