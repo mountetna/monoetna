@@ -10,7 +10,7 @@ export default function QueryTsvOptionsModal({onDownload}: {onDownload: any}) {
 
   const options = [
     {
-      label: 'Transpose',
+      label: 'Transpose (may time out)',
       onChange: setTranspose,
       checked: !!transpose
     }

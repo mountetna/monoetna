@@ -53,7 +53,7 @@ export default function SearchTsvOptionsModal({selectedModel}) {
       checked: !!expandMatrices
     },
     {
-      label: 'Transpose',
+      label: 'Transpose (may time out)',
       onChange: setTranspose,
       checked: !!transpose
     }
