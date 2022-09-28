@@ -10,9 +10,9 @@ module.exports = {
     }
   },
   testURL: 'http://localhost',
-  transformIgnorePatterns: ['node_modules/(?!(etna-js|@codemirror)/)'],
+  transformIgnorePatterns: ['node_modules/(?!(etna-js|@codemirror|downzip)/)'],
   moduleNameMapper: {
-    '^service-worker-loader!': '/etna/__mocks__/service-worker-loader.js',
+    '^service-worker-loader!': '/app/__mocks__/service-worker-loader.js',
     '^.*[.](css|CSS)$': 'identity-obj-proxy',
     '^react$': '/etna/node_modules/react',
     '^react-redux$': '/etna/node_modules/react-redux',
