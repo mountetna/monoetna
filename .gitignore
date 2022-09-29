@@ -77,3 +77,5 @@ venv/
 __pycache__
 
 *.marker
+
+rootCA-key.pem
