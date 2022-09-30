@@ -175,8 +175,8 @@ declare module 'etna-js/components/revision-history' {
 declare module 'etna-js/components/project-header' {
   export = function ProjectHeader(params: {
     project_name: string;
-    project_name_full: string;
-    className: string|null;
+    project_name_full?: string;
+    className?: string;
   }): any {};
 }
 
