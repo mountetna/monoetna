@@ -8,6 +8,8 @@ Sequel.migration do
       column :config, :json, null: false
       DateTime :created_at, null: false
 
+      check{version_number > 0}
+
       index [:project_name, :version_number], unique: true
     end
 
