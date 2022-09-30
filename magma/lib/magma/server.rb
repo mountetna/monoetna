@@ -4,6 +4,7 @@ require_relative '../magma'
 require_relative '../magma/server/retrieve'
 require_relative '../magma/server/query'
 require_relative '../magma/server/update'
+require_relative '../magma/server/gnomon'
 require_relative '../magma/server/update_model'
 
 class Magma
@@ -23,6 +24,9 @@ class Magma
     post '/update', as: :update, action: 'update#action', auth: { user: { can_edit?: :project_name } } 
 
     post '/update_model', action: 'update_model#action', auth: { user: { is_admin?: :project_name } }
+
+    get '/gnomon/:project_name', action: 'gnomon#get', auth: { user: { can_view?: :project_name } }
+    post '/gnomon/:project_name', action: 'gnomon#set', auth: { user: { is_admin?: :project_name } }
 
     get '/' do
       [ 200, {}, [ 'Magma is available.' ] ]

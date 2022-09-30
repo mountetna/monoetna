@@ -357,6 +357,10 @@ FactoryBot.define do
   factory :wound, class: Labors::Wound do
     to_create(&:save)
   end
+
+  factory :grammar, class: Magma::Grammar do
+    to_create(&:save)
+  end
 end
 
 def fixture(name)
@@ -374,6 +378,9 @@ end
 AUTH_USERS = {
   superuser: {
     email: 'zeus@twelve-labors.org', name: 'Zeus', perm: 'a:administration'
+  },
+  admin: {
+    email: 'hera@twelve-labors.org', name: 'Hera', perm: 'a:labors'
   },
   editor: {
     email: 'eurystheus@twelve-labors.org', name: 'Eurystheus', perm: 'e:labors'
