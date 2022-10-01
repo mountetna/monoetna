@@ -17,7 +17,9 @@ class GnomonController < Magma::Controller
 
     version_number = (old_grammar&.version_number || 0) + 1
 
-    raise Etna::BadRequest, "Badly formed config."  unless Magma::Grammar.validate(@params[:config])
+    errors = Magma::Grammar.validate(@params[:config])
+
+    return failure(422, errors: errors) unless errors.empty?
 
     grammar = Magma::Grammar.create(
       project_name: @params[:project_name],

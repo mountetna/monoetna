@@ -64,18 +64,18 @@ class Magma
     end
 
     class Validation
-      attr_reader :errors
-
       def initialize(config)
         @config = config
-        @errors = []
       end
 
       def valid?
         schema = JSONSchemer.schema(
           JSON.parse(Magma::Grammar.to_schema.to_json)
         )
-        schema.valid?(JSON.parse(@config.to_json))
+
+        schema.validate(JSON.parse(@config.to_json)).map do |error|
+          JSONSchemer::Errors.pretty(error)
+        end
       end
     end
 
