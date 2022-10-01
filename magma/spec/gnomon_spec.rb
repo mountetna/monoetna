@@ -64,7 +64,7 @@ describe GnomonController do
     post('/gnomon/labors', config: config)
 
     expect(last_response.status).to eq(422)
-    expect(json_body).to eq(error: "Badly formed config.")
+    expect(json_body).to eq(errors: ["property '/text' is invalid: error_type=schema"])
     expect(Magma::Grammar.count).to eq(0)
   end
 end
