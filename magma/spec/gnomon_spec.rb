@@ -13,10 +13,19 @@ describe GnomonController do
       "TOK": {
         label: "Token",
         values: {
-          "VAL": "Value",
+          "VAL": "Value"
+        }
+      },
+      "TOKEN": {
+        label: "Token",
+        values: {
+          "VAL": "Value"
         }
       }
     },
+    synonyms: [
+      [ "TOK", "TOKEN" ]
+    ],
     rules: {
       "rule": "TOK"
     }
@@ -44,7 +53,7 @@ describe GnomonController do
 
     config = VALID_CONFIG
     auth_header(:admin)
-    post('/gnomon/labors', config: config)
+    json_post('/gnomon/labors', config: config)
 
     expect(last_response.status).to eq(200)
 
@@ -61,10 +70,13 @@ describe GnomonController do
       text: "Some content"
     }
     auth_header(:admin)
-    post('/gnomon/labors', config: config)
+    json_post('/gnomon/labors', config: config)
 
     expect(last_response.status).to eq(422)
-    expect(json_body).to eq(errors: ["property '/text' is invalid: error_type=schema"])
+    expect(json_body).to match_array(errors: [
+      "root is missing required keys: tokens, rules",
+      "property '/text' is invalid: error_type=schema"
+    ])
     expect(Magma::Grammar.count).to eq(0)
   end
 end
