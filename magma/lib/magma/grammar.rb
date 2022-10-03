@@ -1,6 +1,25 @@
 
 class Magma
   class Grammar < Sequel::Model
+    class Synonym
+      def self.to_schema
+        {
+          gnomon_synonyms: {
+            type: "array",
+            items: {
+              "$ref": "#/definitions/gnomon_synonym"
+            }
+          },
+          gnomon_synonym: {
+            type: "array",
+            items: {
+              type: "string",
+              pattern: "^[A-Z]+$"
+            }
+          }
+        }
+      end
+    end
     class Rule
       def self.to_schema
         {
@@ -49,16 +68,21 @@ class Magma
         definitions: [
           Magma::Grammar::Rule,
           Magma::Grammar::Token,
+          Magma::Grammar::Synonym,
         ].map(&:to_schema).reduce(&:merge),
 	type: "object",
         properties: {
           "tokens": {
             "$ref": "#/definitions/gnomon_tokens"
           },
+          "synonyms": {
+            "$ref": "#/definitions/gnomon_synonyms"
+          },
           "rules": {
             "$ref": "#/definitions/gnomon_rules"
           }
         },
+        required: [ "tokens", "rules" ],
         additionalProperties: false
       }
     end
@@ -73,7 +97,9 @@ class Magma
           JSON.parse(Magma::Grammar.to_schema.to_json)
         )
 
-        schema.validate(JSON.parse(@config.to_json)).map do |error|
+        errors = schema.validate(JSON.parse(@config.to_json))
+
+        errors.map do |error|
           JSONSchemer::Errors.pretty(error)
         end
       end
