@@ -1,13 +1,13 @@
-import {act} from "react-test-renderer";
-import * as React from "react";
-import {stubUrl} from "etna-js/spec/helpers";
-import {defaultVulcanSession} from "../../api_types";
-import {workflowsResponse} from "../../test_utils/fixtures/workflows-response";
-import {statusWithDownloads} from "../../test_utils/fixtures/status-with-downloads";
-import {statusWithoutDownloads} from "../../test_utils/fixtures/status-without-downloads";
-import {integrateElement, setupBefore} from "../../test_utils/integration";
-import {useContext} from "react";
-import {VulcanContext} from "../vulcan_context";
+import {act} from 'react-test-renderer';
+import * as React from 'react';
+import {stubUrl} from 'etna-js/spec/helpers';
+import {defaultVulcanSession} from '../../api_types';
+import {workflowsResponse} from '../../test_utils/fixtures/workflows-response';
+import {statusWithDownloads} from '../../test_utils/fixtures/status-with-downloads';
+import {statusWithoutDownloads} from '../../test_utils/fixtures/status-without-downloads';
+import {integrateElement, setupBefore} from '../../test_utils/integration';
+import {useContext} from 'react';
+import {VulcanContext} from '../vulcan_context';
 
 describe('contexts/api', () => {
   const integrated = setupBefore(() => integrateElement(null, {
@@ -37,7 +37,7 @@ describe('contexts/api', () => {
         verb: 'get',
         url: 'https://download2',
         response(a, b, cb) {
-          cb(null, [200, "1-23"]);
+          cb(null, [200, '1-23']);
         }
       })).then(() => stubUrl({
         verb: 'post',
@@ -62,5 +62,5 @@ describe('contexts/api', () => {
       await showErrors(Promise.reject(new Error('Oh snap!'))).catch(() => 0);
     });
 
-  })
+  });
 });

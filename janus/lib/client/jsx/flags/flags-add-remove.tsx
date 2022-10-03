@@ -47,39 +47,11 @@ const AddRemoveFlag = ({
   let {setUsers} = useContext(FlagsContext);
   const classes = useStyles();
 
-  useEffect(() => {
-    if (payloads.length > 0) {
-      executeUpdate(payloads);
-    }
-  }, [payloads]);
-
   function reset() {
     setHasError(false);
     setMessage('');
     setPayloads([]);
     setInputFlag('');
-  }
-
-  function onAddFlag() {
-    if ('' === inputFlag) return;
-
-    setPayloads(
-      selectedUsers.map((user) => ({
-        email: user.email,
-        flags: [...(user.flags || [])].concat([inputFlag])
-      }))
-    );
-  }
-
-  function onRemoveFlag() {
-    if ('' === inputFlag) return;
-
-    setPayloads(
-      selectedUsers.map((user) => ({
-        email: user.email,
-        flags: [...(user.flags || [])].filter((f) => f !== inputFlag)
-      }))
-    );
   }
 
   function executeUpdate(payloads: UpdatePayload[]) {
@@ -102,6 +74,34 @@ const AddRemoveFlag = ({
           setHasError(true);
         });
       });
+  }
+
+  useEffect(() => {
+    if (payloads.length > 0) {
+      executeUpdate(payloads);
+    }
+  }, [payloads]);
+
+  function onAddFlag() {
+    if ('' === inputFlag) return;
+
+    setPayloads(
+      selectedUsers.map((user) => ({
+        email: user.email,
+        flags: [...(user.flags || [])].concat([inputFlag])
+      }))
+    );
+  }
+
+  function onRemoveFlag() {
+    if ('' === inputFlag) return;
+
+    setPayloads(
+      selectedUsers.map((user) => ({
+        email: user.email,
+        flags: [...(user.flags || [])].filter((f) => f !== inputFlag)
+      }))
+    );
   }
 
   return (
@@ -131,7 +131,8 @@ const AddRemoveFlag = ({
         >
           Add Flag
         </Button>
-        <Button color='secondary'
+        <Button
+          color='secondary'
           className={classes.button}
           startIcon={<RemoveIcon />}
           onClick={onRemoveFlag}

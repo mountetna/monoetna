@@ -8,7 +8,7 @@ export const getRunIntervalTime = (run:number) => (run != RUN_ONCE && run != RUN
 export const formatTime = (time:Date|string) => Intl.DateTimeFormat('en-US', {
    year: 'numeric', month: 'short', day: 'numeric',
    hour: 'numeric', minute: 'numeric'
-}).format(new Date(time))
+}).format(new Date(time));
 
 export const runTime = (ran_at:string, run:number) => {
   if (run == RUN_NEVER) return 'never';
@@ -21,5 +21,5 @@ export const runTime = (ran_at:string, run:number) => {
   if (runAt < now) return 'pending';
 
   return formatTime( runAt );
-}
+};
 

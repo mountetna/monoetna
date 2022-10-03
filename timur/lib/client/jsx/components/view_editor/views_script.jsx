@@ -9,7 +9,7 @@ import {gutter, lineNumbers} from '@codemirror/view';
 import CodeMirror from 'rodemirror';
 import {linter, lintGutter} from '@codemirror/lint';
 
-import ErrorBoundary from '../query/error_boundary';
+import ErrorBoundary from 'etna-js/components/error_boundary';
 
 function ViewScript(props) {
   let {is_editing, onChange, script} = props;

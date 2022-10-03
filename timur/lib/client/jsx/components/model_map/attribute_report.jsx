@@ -1,5 +1,5 @@
-import React, { useState, Component } from 'react';
-import { useDispatch } from 'react-redux';
+import React, {useState, Component} from 'react';
+import {useDispatch} from 'react-redux';
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -57,62 +57,73 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const AttributeReport = ({attribute, model_name, counts}) => {
-  if (!attribute) return null;
-
   const dispatch = useDispatch();
 
-  const [ sample, setSample ] = useState(null);
+  const [sample, setSample] = useState(null);
 
   const showSample = () => {
-    requestAnswer({ query: [
-      model_name, '::distinct', attribute.attribute_name
-    ]})(dispatch).then(
-      ({answer}) => setSample(answer)
-    )
-  }
+    requestAnswer({
+      query: [model_name, '::distinct', attribute.attribute_name]
+    })(dispatch).then(({answer}) => setSample(answer));
+  };
 
   const classes = useStyles();
 
-  return <Grid className={ classes.attribute_report }>
-    <Card className={ classes.attribute_card} >
-      <MapHeading name='Attribute' title={attribute.attribute_name}>
-        {
-          attribute.attribute_type == 'string' && <Tooltip title='Show data sample'>
-            <Button
-              onClick={ showSample }
-              size='small'
-              color='secondary'>Sample</Button>
-          </Tooltip>
-        }
-      </MapHeading>
-      <CardContent className={ classes.content }>
-        {
-          ATT_ATTS.map(att => {
-            switch(att) {
+  if (!attribute) return null;
+
+  return (
+    <Grid className={classes.attribute_report}>
+      <Card className={classes.attribute_card}>
+        <MapHeading name='Attribute' title={attribute.attribute_name}>
+          {attribute.attribute_type == 'string' && (
+            <Tooltip title='Show data sample'>
+              <Button onClick={showSample} size='small' color='secondary'>
+                Sample
+              </Button>
+            </Tooltip>
+          )}
+        </MapHeading>
+        <CardContent className={classes.content}>
+          {ATT_ATTS.map((att) => {
+            switch (att) {
               case 'validation':
-                return [ att, attribute.validation ? JSON.stringify(attribute.validation.value) : null ];
+                return [
+                  att,
+                  attribute.validation
+                    ? JSON.stringify(attribute.validation.value)
+                    : null
+                ];
               case 'validation_type':
-                return [ att, attribute.validation?.type ]
+                return [att, attribute.validation?.type];
               default:
-                return [ att, attribute[att] ];
+                return [att, attribute[att]];
             }
-          }).filter( ([name,value]) => value).map( ([name, value]) =>
-            <Grid container key={name}>
-              <Grid item xs={3} className={ classes.type }>{name}</Grid>
-              <Grid item xs={9} className={ classes.value }>{value}</Grid>
-            </Grid>
-          )
-        }
-        {
-          sample && 
+          })
+            .filter(([name, value]) => value)
+            .map(([name, value]) => (
+              <Grid container key={name}>
+                <Grid item xs={3} className={classes.type}>
+                  {name}
+                </Grid>
+                <Grid item xs={9} className={classes.value}>
+                  {value}
+                </Grid>
+              </Grid>
+            ))}
+          {sample && (
             <Grid container>
-              <Grid item xs={3} className={ classes.type }>sample</Grid>
-              <Grid item xs={9} className={ classes.value }>{sample.length > 0 ? JSON.stringify(sample) : <i>No values</i>}</Grid>
+              <Grid item xs={3} className={classes.type}>
+                sample
+              </Grid>
+              <Grid item xs={9} className={classes.value}>
+                {sample.length > 0 ? JSON.stringify(sample) : <i>No values</i>}
+              </Grid>
             </Grid>
-        }
-      </CardContent>
-    </Card>
-  </Grid>;
-}
+          )}
+        </CardContent>
+      </Card>
+    </Grid>
+  );
+};
 
 export default AttributeReport;

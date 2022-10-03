@@ -26,7 +26,7 @@ const MapHeading = ({className, name, title, children}) => {
       <Grid style={{ width: 'auto', flex: 1, alignItems: 'end', justifyContent: 'right' }} container>
       { children }
       </Grid>
-    </Grid>
-}
+    </Grid>;
+};
 
 export default MapHeading;

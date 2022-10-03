@@ -34,7 +34,7 @@ exports[`RedcapForm renders blank for new config 1`] = `
         </div>
       </div>
       <div
-        class="MuiGrid-root makeStyles-tab_buttons MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end"
+        class="MuiGrid-root makeStyles-tab_buttons MuiGrid-container MuiGrid-item MuiGrid-justify-content-xs-flex-end"
       >
         <button
           class="MuiButtonBase-root MuiIconButton-root"
@@ -120,7 +120,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
         </div>
       </div>
       <div
-        class="MuiGrid-root makeStyles-tab_buttons MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end"
+        class="MuiGrid-root makeStyles-tab_buttons MuiGrid-container MuiGrid-item MuiGrid-justify-content-xs-flex-end"
       >
         <button
           class="MuiButtonBase-root MuiIconButton-root"
@@ -158,7 +158,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
           class="MuiGrid-root makeStyles-model_row MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item"
         >
           <div
-            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-1"
             title=""
           >
             remove
@@ -186,7 +186,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
           class="MuiGrid-root makeStyles-model_row MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item"
         >
           <div
-            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-1"
             title=""
           >
             each
@@ -269,7 +269,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
           class="MuiGrid-root makeStyles-model_row MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item"
         >
           <div
-            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-1"
             title="The \`invert\` option constructs the REDCap id from the Magma record name; only used for biospecimens where the ID is unknown in REDCap."
           >
             invert
@@ -312,7 +312,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
           class="MuiGrid-root makeStyles-model_row MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item"
         >
           <div
-            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-1"
             title="\`identifier_fields\` must be specified when the REDCap form provides the Timur record name."
           >
             identifier_fields
@@ -341,7 +341,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
           class="MuiGrid-root makeStyles-model_row MuiGrid-container MuiGrid-spacing-xs-1 MuiGrid-item"
         >
           <div
-            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-1"
+            class="MuiGrid-root makeStyles-model_row_name MuiGrid-container MuiGrid-item MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-1"
             title=""
           >
             scripts
@@ -428,7 +428,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
                   class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
                 >
                   <div
-                    class="MuiGrid-root MuiGrid-container MuiGrid-justify-xs-flex-end"
+                    class="MuiGrid-root MuiGrid-container MuiGrid-justify-content-xs-flex-end"
                   >
                     <button
                       class="MuiButtonBase-root MuiIconButton-root"
@@ -499,7 +499,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
                     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
                   >
                     <div
-                      class="MuiGrid-root MuiGrid-container MuiGrid-justify-xs-flex-end"
+                      class="MuiGrid-root MuiGrid-container MuiGrid-justify-content-xs-flex-end"
                     >
                       <button
                         class="MuiButtonBase-root MuiIconButton-root"
@@ -565,7 +565,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
                             </p>
                           </div>
                           <div
-                            class="MuiGrid-root makeStyles-remove_value MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end"
+                            class="MuiGrid-root makeStyles-remove_value MuiGrid-container MuiGrid-item MuiGrid-justify-content-xs-flex-end"
                           >
                             <button
                               class="MuiButtonBase-root MuiIconButton-root"
@@ -617,7 +617,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
                             />
                           </div>
                           <div
-                            class="MuiGrid-root makeStyles-remove_value MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end"
+                            class="MuiGrid-root makeStyles-remove_value MuiGrid-container MuiGrid-item MuiGrid-justify-content-xs-flex-end"
                           >
                             <button
                               class="MuiButtonBase-root MuiIconButton-root"
@@ -720,7 +720,7 @@ exports[`RedcapForm renders renders with existing config 1`] = `
                     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-4"
                   >
                     <div
-                      class="MuiGrid-root MuiGrid-container MuiGrid-justify-xs-flex-end"
+                      class="MuiGrid-root MuiGrid-container MuiGrid-justify-content-xs-flex-end"
                     >
                       <button
                         class="MuiButtonBase-root MuiIconButton-root"

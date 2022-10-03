@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import { WorkflowStepGroup } from '../user_interactions/inputs/input_types';
-import StepUserInput from "./step_user_input";
+import StepUserInput from './step_user_input';
 
 const collator = new Intl.Collator(undefined, {
   numeric: true, sensitivity: 'base'

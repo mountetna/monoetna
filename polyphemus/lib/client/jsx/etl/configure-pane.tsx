@@ -17,8 +17,10 @@ import ConfigScript from './config-script';
 import EtlPane, {EtlPaneHeader} from './etl-pane';
 import RedcapForm from './redcap-form';
 import RevisionHistory from 'etna-js/components/revision-history';
-import { json_get } from 'etna-js/utils/fetch';
+import {json_get} from 'etna-js/utils/fetch';
 import {formatTime} from './run-state';
+
+import {Job} from '../polyphemus';
 
 const useStyles = makeStyles((theme) => ({
   savebar: {
@@ -59,7 +61,7 @@ const ConfigurePane = ({
   const [editedScript, setEditedScript] = useState('');
   const [editedConfig, setEditedConfig] = useState({});
   const [comment, setComment] = useState('');
-  const [showRevisions, setShowRevisions] = useState<boolean|null>(null);
+  const [showRevisions, setShowRevisions] = useState<boolean | null>(null);
   const [showJson, setShowJson] = useState(false);
 
   const JobForm = job ? FORMS[job.name] : null;
@@ -139,19 +141,23 @@ const ConfigurePane = ({
               <HistoryIcon />
             </IconButton>
           </Tooltip>
-          { showRevisions != null && <RevisionHistory
-              getRevisions={() => json_get(
-                `/api/etl/${project_name}/revisions/${name}`)}
+          {showRevisions != null && (
+            <RevisionHistory
+              getRevisions={() =>
+                json_get(`/api/etl/${project_name}/revisions/${name}`)
+              }
               open={showRevisions}
-              revisionDoc={ revision => JSON.stringify(revision.config, null, 2) }
-              update={({config:newConfig}) => {
+              revisionDoc={(revision) =>
+                JSON.stringify(revision.config, null, 2)
+              }
+              update={({config: newConfig}) => {
                 setEditedConfig(newConfig);
                 setEditedScript(JSON.stringify(newConfig, null, 2));
                 setShowRevisions(false);
               }}
               onClose={() => setShowRevisions(false)}
             />
-          }
+          )}
         </Grid>
       </EtlPaneHeader>
       {!JobForm || showJson ? (

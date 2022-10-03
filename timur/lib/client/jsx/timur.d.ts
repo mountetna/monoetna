@@ -1,1 +1,1 @@
-declare var CONFIG: {[key: string]: any};
+declare const CONFIG: {[key: string]: any};

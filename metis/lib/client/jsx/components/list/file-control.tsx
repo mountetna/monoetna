@@ -19,11 +19,11 @@ const FileControl = ({
 
   const unprotectFile = useCallback(() => {
     invoke({type: 'UNPROTECT_FILE', file, bucket_name});
-  }, [file, bucket_name]);
+  }, [file, bucket_name, invoke]);
 
   const protectFile = useCallback(() => {
     invoke({type: 'PROTECT_FILE', file, bucket_name});
-  }, [file, bucket_name]);
+  }, [file, bucket_name, invoke]);
 
   const renameFile = useCallback(() => {
     let new_file_name = prompt(
@@ -38,34 +38,33 @@ const FileControl = ({
           'Invalid name -- cannot change the path'
         )
       );
-    }
- else if (new_file_name) {
-invoke({
+    } else if (new_file_name) {
+      invoke({
         type: 'RENAME_FILE',
         file,
         new_file_path: filePath(current_folder, new_file_name),
         bucket_name
       });
-}
-  }, [file, current_folder, bucket_name]);
+    }
+  }, [file, current_folder, bucket_name, invoke]);
 
   const removeFile = useCallback(() => {
     invoke({type: 'REMOVE_FILE', file, bucket_name});
-  }, [file, bucket_name]);
+  }, [file, bucket_name, invoke]);
 
   const copyLink = useCallback(() => {
     copyText(file.download_url);
-  }, [file.download_url, bucket_name]);
+  }, [file.download_url]);
 
   const copyMetisPath = useCallback(() => {
     copyText(
       `metis://${file.project_name}/${file.bucket_name}/${file.file_path}`
     );
-  }, [file, bucket_name]);
+  }, [file]);
 
   const touchFile = useCallback(() => {
     invoke({type: 'TOUCH_FILE', file, bucket_name});
-  }, [file, bucket_name]);
+  }, [file, bucket_name, invoke]);
 
   const downloadFile = useCallback(() => {
     let download = document.createElement('a');
@@ -91,7 +90,7 @@ invoke({
         current_folder: current_folder || ''
       });
     },
-    [file, bucket_name, current_folder]
+    [file, bucket_name, current_folder, invoke]
   );
 
   const moveFileDialog = useCallback(() => {
@@ -104,7 +103,7 @@ invoke({
       type: 'SHOW_DIALOG',
       dialog
     });
-  }, [moveFile, bucket_name]);
+  }, [moveFile, bucket_name, invoke]);
 
   const filePropertiesDialog = useCallback(() => {
     let dialog = {
@@ -115,7 +114,7 @@ invoke({
       type: 'SHOW_DIALOG',
       dialog
     });
-  }, [file]);
+  }, [file, invoke]);
 
   let items: UiControlItem[] = [
     {label: 'Download file', callback: downloadFile, role: 'viewer'},

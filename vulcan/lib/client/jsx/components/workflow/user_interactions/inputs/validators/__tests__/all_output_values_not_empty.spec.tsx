@@ -1,6 +1,6 @@
 import AllOutputValuesNotEmptyValidator from '../all_output_values_not_empty_validator';
 import {DataEnvelope, ValidationInputSpecification} from '../../input_types';
-import {some} from "../../../../../../selectors/maybe";
+import {some} from '../../../../../../selectors/maybe';
 
 describe('AllOutputValuesNotEmptyValidator', () => {
   let input: ValidationInputSpecification<DataEnvelope<any>, DataEnvelope<any>>;

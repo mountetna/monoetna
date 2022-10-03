@@ -27,11 +27,11 @@ const ViewPane = ({ pane, ...item_props}) => {
             key={name}
             item={item}
             {...item_props}
-          />
+          />;
         }).filter(_=>_)
       }
     </div>
   </div>;
-}
+};
 
 export default ViewPane;

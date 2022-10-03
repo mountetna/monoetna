@@ -342,7 +342,7 @@ export default function DataTransformationInput({
   }, [originalData]);
 
   if (!originalData || value.length === 0 || value[0].length === 0)
-    return <div>No data frame!</div>;
+    {return <div>No data frame!</div>;}
 
   return (
     <>

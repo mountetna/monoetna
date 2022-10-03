@@ -3,11 +3,11 @@ import {connect} from 'react-redux';
 import {findRoute, setRoutes} from './router';
 
 import {VulcanProvider} from './contexts/vulcan_context';
-import { ThemeProvider } from '@material-ui/core/styles';
+import {ThemeProvider} from '@material-ui/core/styles';
 
-import { createEtnaTheme } from 'etna-js/style/theme';
+import {createEtnaTheme} from 'etna-js/style/theme';
 
-const theme = createEtnaTheme("#ffaa44","#948f8e");
+const theme = createEtnaTheme('#ffaa44', '#948f8e');
 
 // Components.
 import Browser from './components/browser.tsx';
@@ -22,7 +22,7 @@ import RootView from 'etna-js/components/RootView';
 
 import {ModalDialogContainer} from 'etna-js/components/ModalDialogContainer';
 import {Notifications} from 'etna-js/components/Notifications';
-import ReactModal from "react-modal";
+import ReactModal from 'react-modal';
 
 const ROUTES = [
   {
@@ -52,6 +52,12 @@ const ROUTES = [
 setRoutes(ROUTES);
 
 const Empty = () => <div />;
+
+// Used To simulate remount whenever router params changes
+// TODO: Can this be removed post refactoring?
+function RemountOnParamsChange({params, children}) {
+  return children;
+}
 
 class VulcanUI extends React.Component {
   constructor(props) {
@@ -112,12 +118,6 @@ class VulcanUI extends React.Component {
       </React.Fragment>
     );
   }
-}
-
-// Used To simulate remount whenever router params changes
-// TODO: Can this be removed post refactoring?
-function RemountOnParamsChange({params, children}) {
-  return children;
 }
 
 export default connect(

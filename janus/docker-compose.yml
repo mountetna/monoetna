@@ -1,5 +1,4 @@
-
-version: "3.4"
+version: '3.4'
 
 x-base-etna-service:
   &base-etna-service # Base configuration used by most etna services.
@@ -11,7 +10,6 @@ x-base-etna-service:
     - janus-public-dir:/app/public:rw
     - janus-data-dir:/app/data:rw
     - janus-opt-dir:/usr/opt:rw
-    - janus-node-modules:/app/node_modules
     - ../etna:/etna:delegated
   environment: &base-etna-env
     'JANUS_ENV': 'development'
@@ -41,7 +39,7 @@ x-base-etna-services:
   'janus_webpack':
     &base-etna-webpack # The ruby webpack server watching for changes
     <<: *base-etna-service
-    command: npm run webpack
+    command: npm run webpack-dev
 
   'janus_db':
     &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
@@ -82,30 +80,26 @@ volumes:
     driver: local
   janus-db-data10:
     driver: local
-    name: "janus-db-data10"
+    name: 'janus-db-data10'
   janus-log-dir:
     driver: local
-    name: "janus-log-dir"
+    name: 'janus-log-dir'
   janus-tmp-dir:
     driver: local
-    name: "janus-tmp-dir"
+    name: 'janus-tmp-dir'
   janus-public-dir:
     driver: local
-    name: "janus-public-dir"
+    name: 'janus-public-dir'
   janus-data-dir:
     driver: local
-    name: "janus-data-dir"
+    name: 'janus-data-dir'
   janus-opt-data:
     driver: local
   janus-opt-dir:
     driver: local
-  janus-node-modules:
-    driver: local
-    name: "janus-node-modules"
 
 services:
   <<: *base-etna-services
   janus_db:
     <<: *base-etna-db
     image: development-psql
-

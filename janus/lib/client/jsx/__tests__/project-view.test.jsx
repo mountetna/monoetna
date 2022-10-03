@@ -17,30 +17,30 @@ describe('ProjectView', () => {
             {
               affiliation: null,
               privileged: true,
-              project_name: "ports",
+              project_name: 'ports',
               role,
-              user_email: "janus@two-faces.org",
-              user_name: "Janus Bifrons"
+              user_email: 'janus@two-faces.org',
+              user_name: 'Janus Bifrons'
             },
             {
-              affiliation: "ILWU Local 34",
+              affiliation: 'ILWU Local 34',
               privileged: null,
-              project_name: "ports",
-              role: "editor",
-              user_email: "portunus@two-faces.org",
-              user_name: "Portunus"
+              project_name: 'ports',
+              role: 'editor',
+              user_email: 'portunus@two-faces.org',
+              user_name: 'Portunus'
             }
           ],
-          project_name: "ports",
-          project_name_full: "Ports"
+          project_name: 'ports',
+          project_name_full: 'Ports'
         }
       }
     });
 
     return mockStore({
       user: {
-        email: "janus@two-faces.org",
-        name: "Janus Bifrons",
+        email: 'janus@two-faces.org',
+        name: 'Janus Bifrons',
         permissions: {
           ports: {
             privileged: true,
@@ -50,7 +50,7 @@ describe('ProjectView', () => {
         }
       }
     });
-  }
+  };
 
   it('renders statically for an editor', async () => {
     let store = setRole('editor');
@@ -65,7 +65,7 @@ describe('ProjectView', () => {
         await new Promise((resolve) => setTimeout(resolve, 20));
     });
 
-    expect( component.toJSON() ).toMatchSnapshot()
+    expect( component.toJSON() ).toMatchSnapshot();
   });
 
   it('renders with inputs for an administrator', async () => {
@@ -81,6 +81,6 @@ describe('ProjectView', () => {
         await new Promise((resolve) => setTimeout(resolve, 20));
     });
 
-    expect( component.toJSON() ).toMatchSnapshot()
+    expect( component.toJSON() ).toMatchSnapshot();
   });
 });

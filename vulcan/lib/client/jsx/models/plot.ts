@@ -1,5 +1,5 @@
-import {WorkflowStep} from "../api_types";
-import Series from "./series";
+import {WorkflowStep} from '../api_types';
+import Series from './series';
 
 export default class Plot {
   public configObj: any = {};

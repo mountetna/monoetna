@@ -5,12 +5,15 @@ import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 const BucketControl = ({bucket}) => {
   const invoke = useActionInvoker();
 
-  function updateBucket(bucket) {
-    invoke({
-      type: 'UPDATE_BUCKET',
-      bucket
-    });
-  }
+  const updateBucket = useCallback(
+    (bucket) => {
+      invoke({
+        type: 'UPDATE_BUCKET',
+        bucket
+      });
+    },
+    [invoke]
+  );
 
   const configureBucket = useCallback(() => {
     let {bucket_name, description, access} = bucket;
@@ -26,7 +29,7 @@ const BucketControl = ({bucket}) => {
       type: 'SHOW_DIALOG',
       dialog
     });
-  }, [bucket.bucket_name, bucket.description, bucket.access, invoke]);
+  }, [invoke, bucket, updateBucket]);
 
   const destroyBucket = useCallback(() => {
     invoke({

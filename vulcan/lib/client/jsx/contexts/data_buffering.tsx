@@ -1,10 +1,10 @@
-import {Dispatch} from "react";
-import {setDownloadedData, VulcanAction} from "../actions/vulcan_actions";
-import {defaultApiHelpers} from "./api";
-import {VulcanState} from "../reducers/vulcan_reducer";
-import {shouldDownloadStep} from "../selectors/workflow_selectors";
-import {useAsync} from "etna-js/utils/cancellable_helpers";
-import {runAttempts} from "etna-js/utils/retryable";
+import {Dispatch} from 'react';
+import {setDownloadedData, VulcanAction} from '../actions/vulcan_actions';
+import {defaultApiHelpers} from './api';
+import {VulcanState} from '../reducers/vulcan_reducer';
+import {shouldDownloadStep} from '../selectors/workflow_selectors';
+import {useAsync} from 'etna-js/utils/cancellable_helpers';
+import {runAttempts} from 'etna-js/utils/retryable';
 
 export function useDataBuffering(
     state: VulcanState,

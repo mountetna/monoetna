@@ -1,4 +1,4 @@
-import React, {Component} from "react";
+import React, {Component} from 'react';
 
 class Pager extends Component {
   constructor() {
@@ -8,12 +8,12 @@ class Pager extends Component {
 
   rewindPage() {
     if (this.props.current_page > 1)
-      this.props.set_page(this.props.current_page - 1);
+      {this.props.set_page(this.props.current_page - 1);}
   }
 
   advancePage() {
     if (this.props.current_page < this.props.pages)
-      this.props.set_page(this.props.current_page + 1);
+      {this.props.set_page(this.props.current_page + 1);}
   }
 
   enterPage() {
@@ -26,13 +26,13 @@ class Pager extends Component {
 
   renderReport() {
     return (
-      <div className="report" onClick={() => this.setState({editing: true})}>
-        Page{" "}
+      <div className='report' onClick={() => this.setState({editing: true})}>
+        Page{' '}
         {this.state.editing ? (
           <input
-            className="page_edit"
-            ref="page_edit"
-            type="text"
+            className='page_edit'
+            ref='page_edit'
+            type='text'
             defaultValue={this.props.current_page}
             autoFocus
             onBlur={this.enterPage.bind(this)}
@@ -40,7 +40,7 @@ class Pager extends Component {
           />
         ) : (
           this.props.current_page
-        )}{" "}
+        )}{' '}
         of {this.props.pages}
       </div>
     );
@@ -50,12 +50,12 @@ class Pager extends Component {
     if (this.props.current_page > 1) {
       return (
         <span
-          className="turner active fas fa-chevron-left"
+          className='turner active fas fa-chevron-left'
           onClick={this.rewindPage.bind(this)}
         />
       );
     } else {
-      return <span className="turner inactive fas fa-chevron-left" />;
+      return <span className='turner inactive fas fa-chevron-left' />;
     }
   }
 
@@ -63,18 +63,18 @@ class Pager extends Component {
     if (this.props.current_page < this.props.pages) {
       return (
         <span
-          className="turner active fas fa-chevron-right"
+          className='turner active fas fa-chevron-right'
           onClick={this.advancePage.bind(this)}
         />
       );
     } else {
-      return <span className="turner inactive fas fa-chevron-right" />;
+      return <span className='turner inactive fas fa-chevron-right' />;
     }
   }
 
   render() {
     return (
-      <div className="pager">
+      <div className='pager'>
         {this.renderLeft()}
         {this.renderReport()}
         {this.renderRight()}

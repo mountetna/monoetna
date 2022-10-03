@@ -11,7 +11,7 @@ const ShiftedDateTimeAttribute = (props) => {
   const {mode, value} = props;
 
   if (mode == 'edit' && isPrivileged(user, CONFIG.project_name))
-    return <DateTimeAttribute {...props} />;
+    {return <DateTimeAttribute {...props} />;}
 
   return <div className='attribute'>{formatDate(value)}</div>;
 };
