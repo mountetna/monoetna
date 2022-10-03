@@ -405,7 +405,7 @@ end
 
 def json_post(endpoint, hash)
   post(
-    "/#{endpoint.reverse.chomp('/').reverse}",
+    "/#{endpoint.to_s.reverse.chomp('/').reverse}",
     hash.to_json,
     {'CONTENT_TYPE'=> 'application/json'}
   )
