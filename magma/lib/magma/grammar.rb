@@ -89,8 +89,11 @@ class Magma
     end
 
     class Validation
+      attr_reader :errors
+
       def initialize(config)
         @config = config
+        @errors = []
       end
 
       def valid?
