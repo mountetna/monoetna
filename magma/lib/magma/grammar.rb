@@ -97,15 +97,43 @@ class Magma
       end
 
       def valid?
+        require 'pry'
+        binding.pry
+        validations.each do |validation|
+          send(validation)
+        end
+
+        errors.empty?
+      end
+
+      private
+
+      def validations
+        [
+          :validate_schema,
+          :validate_rules
+        ]
+      end
+
+      def validate_schema
         schema = JSONSchemer.schema(
           JSON.parse(Magma::Grammar.to_schema.to_json)
         )
+        valid_schema = schema.valid?(JSON.parse(@config.to_json))
 
-        errors = schema.validate(JSON.parse(@config.to_json))
+        @errors << "Invalid schema." unless valid_schema
 
-        errors.map do |error|
-          JSONSchemer::Errors.pretty(error)
-        end
+        valid_schema
+      end
+
+      def validate_rules
+        rule_parser = Magma::RuleParser.new(config)
+
+        valid_rules = rule_parser.valid?
+
+        @errors += rule_parser.errors unless valid_rules
+
+        valid_rules
       end
     end
 
@@ -145,7 +173,7 @@ class Magma
     private
 
     def rule_parser
-      @rule_parser || Magma::RuleParser.new(self)
+      @rule_parser || Magma::RuleParser.new(config)
     end
   end
 end
