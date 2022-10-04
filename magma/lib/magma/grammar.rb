@@ -21,6 +21,12 @@ class Magma
         }
       end
     end
+    class GrammarError < Exception
+    end
+
+    class UnrecognizedIdentifierError < GrammarError
+    end
+
     class Rule
       def self.to_schema
         {
@@ -60,7 +66,27 @@ class Magma
           }
         }
       end
+
+      attr_reader :name
+
+      def initialize(name, definition)
+        @name = name
+        @definition = definition
+      end
+
+      def label
+        @definition['label']
+      end
+
+      def regex
+        /(#{@definition['values'].keys.join("|")})/
+      end
+
+      def to_sym
+        name.upcase.to_sym
+      end
     end
+
     def self.to_schema
       {
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -97,8 +123,6 @@ class Magma
       end
 
       def valid?
-        require 'pry'
-        binding.pry
         validations.each do |validation|
           send(validation)
         end
@@ -127,7 +151,7 @@ class Magma
       end
 
       def validate_rules
-        rule_parser = Magma::RuleParser.new(config)
+        rule_parser = Magma::RuleParser.new(@config)
 
         valid_rules = rule_parser.valid?
 
@@ -138,6 +162,30 @@ class Magma
     end
 
     one_to_many :identifiers
+
+    DEFAULT_NUMERIC_INCREMENT = '.n'
+
+    def tokens
+      config['tokens'].map do |token_name, token_definition|
+        Magma::Grammar::Token.new(token_name, token_definition)
+      end
+    end
+
+    def rules
+      @rules ||= config['rules'].keys.map do |rule_name|
+        [rule_name, rule_parser.fetch(rule_name)]
+      end.to_h
+    end
+
+    def model_name(identifier)
+      matching_rule = rules.find do |rule_name, rule_definition|
+        identifier =~ rule_definition.regex
+      end
+
+      raise UnrecognizedIdentifierError.new("#{identifier} does not match any rules.") if matching_rule.nil?
+
+      matching_rule.first
+    end
 
     class << self
       def for_project(project_name)
@@ -173,7 +221,14 @@ class Magma
     private
 
     def rule_parser
-      @rule_parser || Magma::RuleParser.new(config)
+      @rule_parser ||= begin
+        parser = Magma::RuleParser.new(config)
+
+        valid = parser.valid?
+        raise Magma::RuleParser::RuleParseError.new("Config errors: #{parser.errors}") unless valid
+
+        parser
+      end
     end
   end
 end

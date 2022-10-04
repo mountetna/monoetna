@@ -12,7 +12,7 @@ class Magma
     class RuleDefinition
       attr_reader :name
 
-      def initialize(name, raw, config, expansion_cache={})
+      def initialize(name, config, expansion_cache={})
         @name = name
         @config = config
         @expansion_cache = expansion_cache
@@ -32,16 +32,12 @@ class Magma
         raw.strip.empty?
       end
 
-      def self_referential?
-        raw =~ /#{placeholder}/
-      end
-
       def placeholder
         ".#{@name}"
       end
 
       def regex
-        /#{expanded_definition}/
+        /^#{tokenized_definition}$/
       end
 
       def expanded_definition(seen_placeholders = [])
@@ -50,21 +46,21 @@ class Magma
 
           raw.split(" ").map do |token|
 
-            raise RecursiveRuleError.new("Rule #{@name} may be recursive! #{token} appears to lead to circular logic.") if seen_placeholders.include?(token)
+            raise RecursiveRuleError.new("Rule \"#{@name}\" may be recursive! It's token \"#{token}\" appears to lead to circular logic.") if seen_placeholders.include?(token)
 
             seen_placeholders << token if other_rule_placeholders.include?(token)
 
-            if other_rule_placeholders.include?(token) && expansion_cache.include?(token)
-              result << expansion_cache[token]
+            if other_rule_placeholders.include?(token) && @expansion_cache.include?(token)
+              result << @expansion_cache[token]
             elsif other_rule_placeholders.include?(token)
               other_definition = RuleDefinition.from_placeholder(
                 token,
-                @all_rules,
-                expansion_cache
+                @config,
+                @expansion_cache
               )
 
               other_expanded_definition = other_definition.expanded_definition(seen_placeholders)
-              expansion_cache[token] = other_expanded_definition
+              @expansion_cache[token] = other_expanded_definition
               result << other_expanded_definition
             else
               result << token
@@ -89,16 +85,20 @@ class Magma
 
       def tokenized_definition
         expanded_definition.split(" ").map do |token|
-          if token == Magma::Grammar::DEFAULT_NUMERIC_INCREMENT
-            "\d+"
+          if token == numeric_increment
+            "\\d+"
           else
-
+            "(#{values_for_token(token).join("|")})"
           end
         end.join("")
       end
 
+      def values_for_token(token)
+        all_tokens[token]['values'].keys
+      end
+
       def self.convert_placeholder_to_name(placeholder)
-        placeholder.replace(".", "")
+        placeholder.sub(".", "")
       end
 
       def other_rule_placeholders
@@ -107,6 +107,10 @@ class Magma
         end.map do |other_name|
           ".#{other_name}"
         end
+      end
+
+      def numeric_increment
+        @config['numeric_increment'] || Magma::Grammar::DEFAULT_NUMERIC_INCREMENT
       end
     end
 
@@ -136,7 +140,7 @@ class Magma
 
     def construct_rules
       expansion_cache = {}
-      @config['rules'].map do |rule_name, rule_definition|
+      @config['rules']&.map do |rule_name, rule_definition|
         @rules[rule_name] = RuleDefinition.new(
           rule_name,
           @config,
@@ -152,7 +156,6 @@ class Magma
         :validate_no_duplicate_rules,
         :validate_no_blank_rules,
         :validate_all_tokens_defined,
-        :validate_no_self_referential_rules,
         :validate_no_recursive_rules
       ]
     end
@@ -161,8 +164,6 @@ class Magma
       @config['numeric_increment'] || Magma::Grammar::DEFAULT_NUMERIC_INCREMENT
     end
 
-    def
-
     def validate_no_duplicate_rules
       seen_rule_definitions = []
       duplicate_definitions = []
@@ -170,20 +171,18 @@ class Magma
       # First get RuleDefinition for all rules, and
       #   collect the expanded_definition. Then
       #   check for duplicates.
-      expanded_rules = @rules.map do |rule_definition|
+      expanded_rules = @rules.map do |rule_name, rule_definition|
         rule_definition.expanded_definition
       rescue RecursiveRuleError => e
         nil # We'll validate recursive rules in a different validation
-      end
+      end.compact
 
       duplicate_exists = expanded_rules.any? do |rule_definition|
         duplicated = seen_rule_definitions.include?(rule_definition)
 
-        duplicated ?
-          duplicate_definitions << rule_definition :
-          seen_rule_definitions << rule_defintion
+        (duplicated ? duplicate_definitions : seen_rule_definitions) << rule_definition
 
-        return duplicated
+        duplicated
       end
 
       @errors << "Duplicate rule definition exists: #{duplicate_definitions}" if duplicate_exists
@@ -192,7 +191,7 @@ class Magma
     end
 
     def validate_no_blank_rules
-      blank_rule = @rules.map do |rule_definition|
+      blank_rule = @rules.any? do |rule_name, rule_definition|
         rule_definition.empty?
       end
 
@@ -206,7 +205,7 @@ class Magma
     end
 
     def all_rule_placeholders
-      @all_rule_placeholders ||= @rules.map do |rule_definition|
+      @all_rule_placeholders ||= @rules.map do |rule_name, rule_definition|
         rule_definition.placeholder
       end
     end
@@ -217,8 +216,7 @@ class Magma
 
     def validate_all_tokens_defined
       unidentified_tokens = []
-      require 'pry'
-      binding.pry
+
       unknown_token_exists = @config['rules'].any? do |rule_name, rule_definition|
         rule_definition.split(" ").any? do |rule_token|
           unknown = !allowed_rule_tokens.include?(rule_token)
@@ -234,23 +232,13 @@ class Magma
       !unknown_token_exists
     end
 
-    def validate_no_self_referential_rules
-      self_referential_rule = @rules.map do |rule_definition|
-        rule_definition.self_referential?
-      end
-
-      @errors << "Rules cannot refer to themselves" if self_referential_rule
-
-      self_referential_rule
-    end
-
     def validate_no_recursive_rules
       recursive_errors = []
 
-      @rules.each do |rule_definition|
+      @rules.each do |rule_name, rule_definition|
         rule_definition.expanded_definition
       rescue RecursiveRuleError => e
-        recursive_errors << e
+        recursive_errors << e.message
       end
 
       @errors += recursive_errors unless recursive_errors.empty?
