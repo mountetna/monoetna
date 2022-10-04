@@ -54,6 +54,12 @@ class Magma
         false
       end
 
+      def illegal_increment_location?
+        return false unless raw =~ /\.n/
+
+        !(raw.strip =~ /\.n$/)
+      end
+
       def expanded_definition(seen_placeholders = [])
         @expanded_definition ||= [].tap do |result|
           seen_placeholders << placeholder
@@ -277,7 +283,15 @@ class Magma
     end
 
     def validate_numeric_increment_at_end
+      numeric_increment_at_end_errors = []
 
+      @rules.each do |rule_name, rule_definition|
+        numeric_increment_at_end_errors << "Rule \"#{rule_name}\" can only use the numeric increment \".n\" at the end." if rule_definition.illegal_increment_location?
+      end
+
+      @errors += numeric_increment_at_end_errors unless numeric_increment_at_end_errors.empty?
+
+      numeric_increment_at_end_errors.empty?
     end
   end
 end

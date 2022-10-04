@@ -353,6 +353,63 @@ describe Magma::Grammar do
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Rule \"first\" contains duplicate tokens."])
       end
+
+      it 'uses a token multiple times across rules' do
+        config = {
+          'tokens' => {
+            'TOK' => {
+              'label' => 'Token',
+              'values' => {
+                'SCC' => 'Single-cell CITEseq',
+                'SCG' => 'Single-cell GEX'
+              }
+            },
+            'SEP' => {
+              'label' => 'Separator',
+              'values' => {
+                '-' => '-'
+              }
+            }
+          },
+          'rules' => {
+            'first' => 'TOK',
+            'second' => '.first SEP TOK'
+          }
+        }
+
+        validator = Magma::Grammar::Validation.new(config)
+
+        expect(validator.valid?).to eq(false)
+        expect(validator.errors).to eq(["Rule \"second\" contains duplicate tokens."])
+      end
+
+      it 'uses a numeric incrementor in the middle of a rule' do
+        config = {
+          'tokens' => {
+            'TOK' => {
+              'label' => 'Token',
+              'values' => {
+                'SCC' => 'Single-cell CITEseq',
+                'SCG' => 'Single-cell GEX'
+              }
+            },
+            'SEP' => {
+              'label' => 'Separator',
+              'values' => {
+                '-' => '-'
+              }
+            }
+          },
+          'rules' => {
+            'first' => 'TOK .n SEP',
+          }
+        }
+
+        validator = Magma::Grammar::Validation.new(config)
+
+        expect(validator.valid?).to eq(false)
+        expect(validator.errors).to eq(["Rule \"first\" can only use the numeric increment \".n\" at the end."])
+      end
     end
   end
 end
