@@ -173,8 +173,8 @@ describe Magma::Grammar do
             }
           },
           'rules' => {
-            'first' => 'TOK SEP TOK',
-            'second' => 'TOK SEP TOK'
+            'first' => 'TOK SEP .n',
+            'second' => 'TOK SEP .n'
           }
         }
 
@@ -202,7 +202,7 @@ describe Magma::Grammar do
             }
           },
           'rules' => {
-            'first' => 'TOK SEP TOK',
+            'first' => 'TOK SEP .n',
             'second' => '.first'
           }
         }
@@ -289,6 +289,34 @@ describe Magma::Grammar do
           },
           'rules' => {
             'first' => '.first SEP TOK'
+          }
+        }
+
+        validator = Magma::Grammar::Validation.new(config)
+
+        expect(validator.valid?).to eq(false)
+        expect(validator.errors).to eq(["Rule \"first\" may be recursive! It's token \".first\" appears to lead to circular logic."])
+      end
+
+      it 'uses a token multiple times' do
+        config = {
+          'tokens' => {
+            'TOK' => {
+              'label' => 'Token',
+              'values' => {
+                'SCC' => 'Single-cell CITEseq',
+                'SCG' => 'Single-cell GEX'
+              }
+            },
+            'SEP' => {
+              'label' => 'Separator',
+              'values' => {
+                '-' => '-'
+              }
+            }
+          },
+          'rules' => {
+            'first' => 'TOK SEP TOK'
           }
         }
 
