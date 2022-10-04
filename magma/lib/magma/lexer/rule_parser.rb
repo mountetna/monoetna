@@ -40,6 +40,20 @@ class Magma
         /^#{tokenized_definition}$/
       end
 
+      def duplicative_tokens?
+        seen_tokens = []
+
+        expanded_definition.split(" ").each do |token|
+          next if Magma::Grammar::SEPARATOR_TOKENS.include?(token) || numeric_increment == token
+
+          return true if seen_tokens.include?(token)
+
+          seen_tokens << token
+        end
+
+        false
+      end
+
       def expanded_definition(seen_placeholders = [])
         @expanded_definition ||= [].tap do |result|
           seen_placeholders << placeholder
@@ -156,7 +170,9 @@ class Magma
         :validate_no_duplicate_rules,
         :validate_no_blank_rules,
         :validate_all_tokens_defined,
-        :validate_no_recursive_rules
+        :validate_no_recursive_rules,
+        :validate_no_duplicate_tokens,
+        :validate_numeric_increment_at_end,
       ]
     end
 
@@ -244,6 +260,24 @@ class Magma
       @errors += recursive_errors unless recursive_errors.empty?
 
       recursive_errors.empty?
+    end
+
+    def validate_no_duplicate_tokens
+      duplicate_tokens_errors = []
+
+      @rules.each do |rule_name, rule_definition|
+        duplicate_tokens_errors << "Rule \"#{rule_name}\" contains duplicate tokens." if rule_definition.duplicative_tokens?
+      rescue RecursiveRuleError => e
+        nil # We'll validate recursive rules in a different validation
+      end
+
+      @errors += duplicate_tokens_errors unless duplicate_tokens_errors.empty?
+
+      duplicate_tokens_errors.empty?
+    end
+
+    def validate_numeric_increment_at_end
+
     end
   end
 end

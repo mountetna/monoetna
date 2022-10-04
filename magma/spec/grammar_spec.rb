@@ -11,6 +11,20 @@ describe Magma::Grammar do
               SCG: 'Single-cell GEX'
             }
           },
+          COH: {
+            label: 'Cohort',
+            values: {
+              HS: 'Homo Sapien',
+              MS: 'More Sapien'
+            }
+          },
+          TMP: {
+            label: 'Timepoint',
+            values: {
+              D: 'Day',
+              DN: 'Day Negative'
+            }
+          },
           SEP: {
             label: 'Separator',
             values: {
@@ -23,48 +37,48 @@ describe Magma::Grammar do
 
     it 'simple' do
       @config[:rules] = {
-        first: 'TOK SEP TOK'
+        first: 'TOK SEP .n'
       }
 
       grammar = create(:grammar, project_name: 'labors', version_number: 1, config: @config)
 
-      expect(grammar.tokens.length).to eq(2)
+      expect(grammar.tokens.length).to eq(4)
       expect(grammar.rules.length).to eq(@config[:rules].length)
 
-      expect(grammar.rules['first'].regex).to eq(/^(SCC|SCG)(-)(SCC|SCG)$/)
+      expect(grammar.rules['first'].regex).to eq(/^(SCC|SCG)(-)\d+$/)
       expect { grammar.model_name("I-am-a-little-tea-pot") }.to raise_error(Magma::Grammar::UnrecognizedIdentifierError)
-      expect(grammar.model_name("SCG-SCC")).to eq('first')
+      expect(grammar.model_name("SCG-1")).to eq('first')
     end
 
     it 'with numeric incrementor' do
       @config[:rules] = {
-        first: 'TOK SEP TOK',
+        first: 'COH',
         second: '.first SEP TOK .n',
       }
 
       grammar = create(:grammar, project_name: 'labors', version_number: 1, config: @config)
 
-      expect(grammar.tokens.length).to eq(2)
+      expect(grammar.tokens.length).to eq(4)
       expect(grammar.rules.length).to eq(@config[:rules].length)
 
-      expect(grammar.rules['second'].regex).to eq(/^(SCC|SCG)(-)(SCC|SCG)(-)(SCC|SCG)\d+$/)
-      expect(grammar.model_name("SCG-SCC-SCC2")).to eq('second')
+      expect(grammar.rules['second'].regex).to eq(/^(HS|MS)(-)(SCC|SCG)\d+$/)
+      expect(grammar.model_name("MS-SCC2")).to eq('second')
     end
 
     it 'composite that build upon other rules' do
       @config[:rules] = {
-        first: 'TOK SEP TOK',
-        second: '.first SEP TOK .n',
+        first: 'COH',
+        second: '.first SEP TMP .n',
         third: '.second SEP TOK .n'
       }
 
       grammar = create(:grammar, project_name: 'labors', version_number: 1, config: @config)
 
-      expect(grammar.tokens.length).to eq(2)
+      expect(grammar.tokens.length).to eq(4)
       expect(grammar.rules.length).to eq(@config[:rules].length)
 
-      expect(grammar.rules['third'].regex).to eq(/^(SCC|SCG)(-)(SCC|SCG)(-)(SCC|SCG)\d+(-)(SCC|SCG)\d+$/)
-      expect(grammar.model_name("SCG-SCC-SCC1-SCG10")).to eq('third')
+      expect(grammar.rules['third'].regex).to eq(/^(HS|MS)(-)(D|DN)\d+(-)(SCC|SCG)\d+$/)
+      expect(grammar.model_name("HS-D1-SCG10")).to eq('third')
     end
   end
 
@@ -77,17 +91,31 @@ describe Magma::Grammar do
             'values' => {
               'SCC' => 'Single-cell CITEseq',
               'SCG' => 'Single-cell GEX'
-            }
+            },
           },
           'SEP' => {
             'label' => 'Separator',
             'values' => {
               '-' => '-'
             }
-          }
+          },
+          'COH' => {
+            'label' => 'Cohort',
+            'values' => {
+              'HS' => 'Homo Sapien',
+              'MS' => 'More Sapien'
+            }
+          },
+          'TMP' => {
+            'label' => 'Timepoint',
+            'values' => {
+              'D' => 'Day',
+              'DN' => 'Day Negative'
+            }
+          },
         },
         'rules' => {
-          'first' => 'TOK SEP TOK',
+          'first' => 'COH',
           'second' => '.first SEP TOK .n'
         }
       }
@@ -181,7 +209,7 @@ describe Magma::Grammar do
         validator = Magma::Grammar::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
-        expect(validator.errors).to eq(["Duplicate rule definition exists: [\"TOK SEP TOK\"]"])
+        expect(validator.errors).to eq(["Duplicate rule definition exists: [\"TOK SEP .n\"]"])
       end
 
       it 'is duplicated using a rule name' do
@@ -210,7 +238,7 @@ describe Magma::Grammar do
         validator = Magma::Grammar::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
-        expect(validator.errors).to eq(["Duplicate rule definition exists: [\"TOK SEP TOK\"]"])
+        expect(validator.errors).to eq(["Duplicate rule definition exists: [\"TOK SEP .n\"]"])
       end
 
       it 'is recursive' do
@@ -323,7 +351,7 @@ describe Magma::Grammar do
         validator = Magma::Grammar::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
-        expect(validator.errors).to eq(["Rule \"first\" may be recursive! It's token \".first\" appears to lead to circular logic."])
+        expect(validator.errors).to eq(["Rule \"first\" contains duplicate tokens."])
       end
     end
   end

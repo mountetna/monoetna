@@ -21,6 +21,7 @@ class Magma
         }
       end
     end
+
     class GrammarError < Exception
     end
 
@@ -41,6 +42,7 @@ class Magma
         }
       end
     end
+
     class Token
       def self.to_schema
         {
@@ -65,25 +67,6 @@ class Magma
             }
           }
         }
-      end
-
-      attr_reader :name
-
-      def initialize(name, definition)
-        @name = name
-        @definition = definition
-      end
-
-      def label
-        @definition['label']
-      end
-
-      def regex
-        /(#{@definition['values'].keys.join("|")})/
-      end
-
-      def to_sym
-        name.upcase.to_sym
       end
     end
 
@@ -164,6 +147,7 @@ class Magma
     one_to_many :identifiers
 
     DEFAULT_NUMERIC_INCREMENT = '.n'
+    SEPARATOR_TOKENS = ['SEP', 'SEPARATOR']
 
     def tokens
       config['tokens'].map do |token_name, token_definition|
@@ -206,16 +190,16 @@ class Magma
         version_number: version_number,
         created_at: created_at
       }
+    end
+
     def tokens
       config['tokens']
     end
 
     def rules
-      config['rules'].map do |token, rule|
-        rule_parser.parse(rule)
-        # Then what happens??
-        Magma::Rule.new(token: token, regex: rule_parser.parse(rule))
-      end
+      config['rules'].keys.map do |rule_name|
+        [ rule_name, rule_parser.fetch(rule_name) ]
+      end.to_h
     end
 
     private
