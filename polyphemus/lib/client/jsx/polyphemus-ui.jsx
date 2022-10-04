@@ -10,7 +10,7 @@ import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 import { createEtnaTheme } from 'etna-js/style/theme';
 import { MagmaProvider } from 'etna-js/contexts/magma-context';
 
-const theme = createEtnaTheme("#688d30","#d18e47");
+const theme = createEtnaTheme('#688d30','#d18e47');
 
 const ROUTES = [
   {
@@ -41,6 +41,6 @@ const PolyphemusUI = () => {
       </ThemeProvider>
     </MagmaProvider>
   );
-}
+};
 
 export default PolyphemusUI;

@@ -1,7 +1,7 @@
 import React from 'react';
 import {NotEmptyValidator} from '../not_empty_validator';
 import {ValidationInputSpecification} from '../../input_types';
-import {some} from "../../../../../../selectors/maybe";
+import {some} from '../../../../../../selectors/maybe';
 
 describe('NotEmptyValidator', () => {
   let input: ValidationInputSpecification<any>;

@@ -45,6 +45,15 @@ const FileValue = ({value, predicate}) =>
     <a href={value.url}> {value.path} </a>
   );
 
+function browserStateOf() {
+  return (state) => {
+    const uploads = selectUploads(state);
+    return {
+      uploads
+    };
+  };
+}
+
 export default function FileAttribute(props) {
   const invoke = useActionInvoker();
   const [metis, setMetis] = useState(false);
@@ -190,13 +199,4 @@ export default function FileAttribute(props) {
       <FileValue value={revised_value} />
     </div>
   );
-}
-
-function browserStateOf() {
-  return (state) => {
-    const uploads = selectUploads(state);
-    return {
-      uploads
-    };
-  };
 }

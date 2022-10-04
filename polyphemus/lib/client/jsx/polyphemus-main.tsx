@@ -8,6 +8,7 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import EtlConfig from './etl/etl-config';
 import EtlCreate from './etl/etl-create';
+import {Etl, Job} from './polyphemus';
 
 import {MagmaContext} from 'etna-js/contexts/magma-context';
 
@@ -42,7 +43,7 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
 
   useEffect(() => {
     json_get(`/api/etl/${project_name}/configs`).then(setEtls);
-    json_get(`/api/etl/jobs`).then(setJobs);
+    json_get('/api/etl/jobs').then(setJobs);
     getDocuments(
       {
         project_name,

@@ -10,7 +10,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 
-const projectRoleKey = (p) => p.role + p.project_name_full.toUpperCase()
+const projectRoleKey = (p) => p.role + p.project_name_full.toUpperCase();
 
 const UserProjects = ({projects, user}) => {
   return <div id='user-projects'>
@@ -43,7 +43,7 @@ const UserProjects = ({projects, user}) => {
         </TableBody>
       </Table>
     </TableContainer>
-  </div>
-}
+  </div>;
+};
 
 export default UserProjects;

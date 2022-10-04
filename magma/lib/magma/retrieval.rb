@@ -4,10 +4,14 @@ class Magma
   class Retrieval
     attr_reader :attribute_names
     MAX_PAGE_SIZE=10_000
+    MATRIX_PAGE_SIZE=50
 
     def initialize(model, record_names, attribute_names, opts={})
+      @model = model
+      @record_names = record_names
+
       opts = {
-        page_size: MAX_PAGE_SIZE,
+        page_size: some_matrix_names?(attribute_names) ? MATRIX_PAGE_SIZE : MAX_PAGE_SIZE,
         page: 1
       }.merge(opts)
 
@@ -20,9 +24,6 @@ class Magma
       @order = opts[:order]
       @show_disconnected = opts[:show_disconnected]
       @output_predicates = opts[:output_predicates] || []
-
-      @model = model
-      @record_names = record_names
 
       # the retrieval filters out attributes that are not allowed
       @requested_attribute_names = attribute_names
@@ -55,6 +56,13 @@ class Magma
         att.is_a?(Magma::TableAttribute) && requested?(att) && !restricted?(att)
       end
     end
+
+    def some_matrix_names?(attribute_names)
+      attribute_names == "all" || (attribute_names.is_a?(Array) && attribute_names.any? do |attribute_name|
+        @model.attributes[attribute_name].is_a?(Magma::MatrixAttribute)
+      end)
+    end
+
 
     def records
       to_records(question.answer)

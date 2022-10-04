@@ -15,7 +15,7 @@ export function useLegendHover(
     (e: any) => {
       // Re-find the element to grab the
       //   trace number
-      for (var i = 0; i < elements.length; i++) {
+      for (let i = 0; i < elements.length; i++) {
         if (e.target !== elements[i]) continue;
 
         onHover(i);
@@ -34,7 +34,7 @@ export function useLegendHover(
   useEffect(() => {
     if (listenersAttached || !hasElements) return;
 
-    for (var i = 0; i < elements.length; i++) {
+    for (let i = 0; i < elements.length; i++) {
       elements[i].addEventListener('mouseover', onHoverLegendToggle);
       elements[i].addEventListener('mouseout', resetHoverLegendToggle);
     }
@@ -43,7 +43,7 @@ export function useLegendHover(
   }, [elements, onHoverLegendToggle, resetHoverLegendToggle, listenersAttached, hasElements]);
 
   const removeEventListeners = useCallback(() => {
-    for (var i = 0; i < elements.length; i++) {
+    for (let i = 0; i < elements.length; i++) {
       elements[i].removeEventListener('mouseover', onHoverLegendToggle);
       elements[i].removeEventListener('mouseout', resetHoverLegendToggle);
     }
@@ -51,5 +51,5 @@ export function useLegendHover(
 
   useEffect(() => {
     return () => removeEventListeners();
-  }, [removeEventListeners])
+  }, [removeEventListeners]);
 }

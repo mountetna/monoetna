@@ -1,8 +1,8 @@
 import React from 'react';
 import {WithInputParams} from './input_types';
-import {some} from "../../../../selectors/maybe";
-import {useSetsDefault} from "./useSetsDefault";
-import {selectDefaultString} from "./monoids";
+import {some} from '../../../../selectors/maybe';
+import {useSetsDefault} from './useSetsDefault';
+import {selectDefaultString} from './monoids';
 import { TextField } from '@material-ui/core';
 
 export default function StringInput({onChange, label, minWidth, data, ...props}: WithInputParams<{label?: string, minWidth?: number}, string, string>) {
@@ -20,5 +20,5 @@ export default function StringInput({onChange, label, minWidth, data, ...props}:
         style={{minWidth: minWidth || 200}}
       />
     </div>
-  )
+  );
 }

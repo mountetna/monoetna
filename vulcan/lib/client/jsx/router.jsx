@@ -16,10 +16,10 @@ const route_regexp = (template) => template.
 const routeParts = (template) => {
   let parts = [];
   // this does not replace, merely uses replace() to scan
-  if (template) template.replace(
+  if (template) {template.replace(
     ROUTE_PART,
     (part) => parts.push(part.replace(/^./,''))
-  );
+  );}
   return parts;
 };
 
@@ -52,7 +52,7 @@ const routeParams = ({path,hash}, route) => {
     {}
   );
   return params;
-}
+};
 
 export const setRoutes = (routes) => {
   window.Routes = window.Routes || {};
@@ -67,10 +67,10 @@ export const setRoutes = (routes) => {
         routePath(route.template, params);
     }
   });
-}
+};
 
 export const findRoute = (location, routes) => {
   let route = routes.find(route => matchRoute(location,route));
   let params = route  && routeParams(location, route);
   return { route, params };
-}
+};

@@ -5,13 +5,26 @@ import React, {Dispatch, PropsWithChildren, useMemo, useState} from 'react';
 import * as _ from 'lodash';
 
 import {DataEnvelope, WithInputParams} from './input_types';
-import { useSetsDefault } from './useSetsDefault';
-import { some } from '../../../../selectors/maybe';
-import { Accordion, AccordionDetails, AccordionSummary, Grid, Typography } from '@material-ui/core';
-import { pick } from 'lodash';
-import { key_wrap, stringPiece, dropdownPiece, multiselectPiece, checkboxPiece, sliderPiece } from './user_input_pieces';
-import { subsetDataFramePiece } from './subsetDataFrame_piece';
-import { reorderPiece } from './reorder_piece';
+import {useSetsDefault} from './useSetsDefault';
+import {some} from '../../../../selectors/maybe';
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Grid,
+  Typography
+} from '@material-ui/core';
+import {pick} from 'lodash';
+import {
+  key_wrap,
+  stringPiece,
+  dropdownPiece,
+  multiselectPiece,
+  checkboxPiece,
+  sliderPiece
+} from './user_input_pieces';
+import {subsetDataFramePiece} from './subsetDataFrame_piece';
+import {ReorderPiece} from './reorder_piece';
 
 /*
 Docmentation last updated: Apr 15, 2022
@@ -41,7 +54,7 @@ CWL Call: (parenthesis = optional)
       plot_setup: user_plot_setup/plot_setup
       data_frame: <in_step>/data_frame
     out: [plot.json, plot.png]
-  
+
 Creation from python:
   Imports:
     from archimedes.functions.dataflow import output_path
@@ -49,7 +62,7 @@ Creation from python:
   dataframe:
     'df.to_json(output_path("data_frame"))', where df is a pandas.DataFrame with attributes in columns and data points/obsevations in rows.
   continuous_cols, discrete_cols:
-    'output_column_types(df, "continuous_cols", "discrete_cols")', with the same df used for 'dataframe' 
+    'output_column_types(df, "continuous_cols", "discrete_cols")', with the same df used for 'dataframe'
   preset:
     'output_json(preset, "preset")' where preset is a dict which one could pass to the target plotter function (in 'archimedes/archimedes/functions/plotting') via 'viz_fxn(**preset)'
     Example, a umap where color_by is pre-selected in an upstream ui, and umap embeddings are stored in columns named '0' and '1':
@@ -73,148 +86,47 @@ JSX:
       A vector of column names of data_frame which contain discrete data.
     ?preset:
       A hash where keys = input pieces that should be hidden from the user & values = the preset value that should be used for that input. E.g. The x_by and y_by inputs are hardset within the umap workflow as '0' and '1', so a user has no choice here and should not be able to adjust those fields!
-  
+
   'value', object where (key,val) pairs mostly equate to (key,val) pairs that could be splatted into an archimedes visualization funciton.
-      
+
   Major design notes:
     - Organized around having pairs of input-names and associated component-setups.
-    - An 'input_sets' object defines the set of inputs that are used for a given visualization type.  Thus, after a plot-type choice, necessary inputs are known and the set of necessary ui pieces can be compiled. 
+    - An 'input_sets' object defines the set of inputs that are used for a given visualization type.  Thus, after a plot-type choice, necessary inputs are known and the set of necessary ui pieces can be compiled.
     - (key,val) pairs of the optional 'presets' input will cause any inputs' component-setup to be removed from the displayed set, while also providing the value to give to 'value[key]'.
-  
+
 */
 
-export function ScatterPlotly({
-  data, onChange, value
-}: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, "scatter_plot")
-}
-
-export function BarPlotly({
-  data, onChange, value
-}: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, "bar_plot")
-}
-
-export function YPlotly({
-  data, onChange, value
-}: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, "y_plot")
-}
-
-export function AnyPlotly({
-  data, onChange, value
-}: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, null)
-}
-
-function VisualizationUI({
-  data, onChange, ...props
-}: WithInputParams<{}, DataEnvelope<any>, any>, setPlotType: string | null = null) {
-  const preset = useMemo(() => data && data['preset'], [data]);
-  const hide = useMemo(() => preset && Object.keys(preset), [preset]);
-  const defaultValue = whichDefaults(setPlotType, preset);
-  const value = useSetsDefault(defaultValue, props.value, onChange);
-  const [expandedDrawers, setExpandedDrawers] = useState(['primary features']);
-  const plotType = (value && value['plot_type']) ? value['plot_type'] as string : null;
-
-  const data_frame: DataEnvelope<any> = useMemo(() => {
-    if (data == null) return {};
-    if (data['data_frame'] == null) return {};
-    return data['data_frame']
-  }, [data]);
-  
-  const columns: string[] = useMemo(() => {
-    if (data_frame == null || data_frame == {}) return [];
-    return Object.keys(data_frame)
-  }, [data_frame]);
-  
-  const continuous_columns: string[] = useMemo(() => {
-    if (data == null) return [];
-    if (data['continuous_cols'] == null) return columns; // Should build a warning here instead?
-    return data['continuous_cols']
-  }, [data]);
-  const discrete_columns: string[] = useMemo(() => {
-    if (data == null) return [];
-    if (data['discrete_cols'] == null) return columns; // Should build a warning here instead?
-    return data['discrete_cols']
-  }, [data]);
-
-  const x_by = (value && Object.keys(value).includes('x_by')) ? value.x_by as string | null : null
-  const y_by = (value && Object.keys(value).includes('y_by')) ? value.y_by as string | null : null
-  const color_by = (value && Object.keys(value).includes('color_by')) ? value.color_by as string | null : null
-  const extra_inputs = useExtraInputs(
-    columns, data_frame, plotType,
-    continuous_columns, discrete_columns,
-    x_by, y_by, color_by)
-  
-  const shownSetupValues = useMemo(() => {
-    if (plotType==null) return {}
-    const initial = {...value}
-    if (Object.keys(initial).includes('plot_type')) {delete initial['plot_type']}
-    return remove_hidden(initial, hide);
-  }, [value, hide])
-  
-  const updatePlotType = (newType: string, key: string) => {
-    onChange(some(whichDefaults(newType, preset)))
-  }
-
-  const updateValue = (newValue: any, key: string, prevValues = {...value}) => {
-    prevValues[key] = newValue;
-    onChange(some(prevValues));
-  };
-  
-  function toggleDrawerExpansion(drawerTitle: string) {
-    if (expandedDrawers.includes(drawerTitle)) {
-      setExpandedDrawers(expandedDrawers.filter(t => t!=drawerTitle))
-    } else {
-      setExpandedDrawers(expandedDrawers.concat(drawerTitle))
-    }
-  }
-
-  // Components
-  const pickPlot = (setPlotType!=null) ? null : (
-    <div>
-      {dropdownPiece(
-      'plot_type', updatePlotType, plotType, "Plot Type",
-      Object.keys(input_sets), false)}
-    </div>
-  )
-  
-  const inner = (plotType == null) ? null : (
-    <Grid container direction='column'>
-      {Object.entries(input_sets[plotType]).map(([group_name, val]) => {
-        const group_values: DataEnvelope<any> = pick(shownSetupValues,val)
-        const open = expandedDrawers.includes(group_name);
-        // console.log('group_values', group_values)
-        return (Object.keys(group_values).length > 0) ? <InputWrapper key={group_name} title={group_name} values={group_values} open={open} toggleOpen={toggleDrawerExpansion}>
-          {Object.entries(group_values).map(([key, val]) => {
-            return <ComponentUse key={key} k={key} value={val} extra_inputs={extra_inputs[key]} updateValue={updateValue}/>
-          })}
-          </InputWrapper> : null
-      })}
-    </Grid>
-  )
-  
-  // console.log(props.value);
-  
-  return (
-    <div key='VizUI'>
-      {pickPlot}
-      {inner}
-    </div>
-  );
-
+const defaults: DataEnvelope<any> = {
+  x_by: null,
+  y_by: null,
+  plots: ['box', 'violin'],
+  color_by: 'make',
+  scale_by: 'fraction',
+  size: 5,
+  plot_title: 'make',
+  legend_title: 'make',
+  xlab: 'make',
+  ylab: 'make',
+  color_order: 'increasing',
+  order_when_continuous_color: false,
+  x_scale: 'linear',
+  y_scale: 'linear',
+  rows_use: {},
+  x_order: 'increasing',
+  y_order: 'increasing'
 };
 
-const remove_hidden = (vals: DataEnvelope<any>, hide: string[] | null | undefined) => {
-  
+const remove_hidden = (
+  vals: DataEnvelope<any>,
+  hide: string[] | null | undefined
+) => {
   let values = {...vals};
 
   if (hide == null || hide.length === 0 || values.length === 0) {
     return values;
   }
-  
-  const keys = Object.keys(values)
+
+  const keys = Object.keys(values);
   for (let ind = 0; ind < keys.length; ind++) {
     if (hide.includes(keys[ind])) delete values[keys[ind]];
   }
@@ -222,76 +134,43 @@ const remove_hidden = (vals: DataEnvelope<any>, hide: string[] | null | undefine
 };
 
 const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
-  'scatter_plot': {
-    'primary features': ["x_by", "y_by", "color_by", 'size'],
-    'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'coordinates': ['x_scale', 'y_scale'],
+  scatter_plot: {
+    'primary features': ['x_by', 'y_by', 'color_by', 'size'],
+    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    coordinates: ['x_scale', 'y_scale'],
     'data focus': ['rows_use', 'color_order', 'order_when_continuous_color']
     //'default_adjust': {'color_by': "make"}
   },
-  'bar_plot': {
-    'primary features': ["x_by", "y_by", "scale_by"],
-    'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
+  bar_plot: {
+    'primary features': ['x_by', 'y_by', 'scale_by'],
+    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
     'data focus': ['rows_use']
   },
-  'y_plot': {
-    'primary features': ["x_by", "y_by", "plots", "color_by"],
-    'titles': ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'coordinates': ['y_scale'],
+  y_plot: {
+    'primary features': ['x_by', 'y_by', 'plots', 'color_by'],
+    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    coordinates: ['y_scale'],
     'data focus': ['rows_use', 'x_order']
     //'default_adjust': {'color_by': "make"}
   }
-}
-
-const input_constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = {
-  'scatter_plot': {
-    'x_by': "continuous",
-    'y_by': "continuous"
-  },
-  'bar_plot': {
-    'x_by': "discrete",
-    'y_by': "discrete"
-  },
-  'y_plot': {
-    'x_by': "discrete",
-    'y_by': "continuous",
-    'color_by': "discrete"
-  }
-}
-
-const defaults: DataEnvelope<any> = {
-  'x_by': null,
-  'y_by': null,
-  'plots': ['box', 'violin'],
-  'color_by': 'make',
-  'scale_by': 'fraction',
-  'size': 5,
-  'plot_title': 'make',
-  'legend_title': 'make',
-  'xlab': 'make',
-  'ylab': 'make',
-  'color_order': 'increasing',
-  'order_when_continuous_color': false,
-  'x_scale': 'linear',
-  'y_scale': 'linear',
-  'rows_use': {},
-  'x_order': 'increasing',
-  'y_order': 'increasing'
 };
 
-function whichDefaults(plotType: string|null, preset: DataEnvelope<any> | null | undefined) {
-  if (plotType == null) return {plot_type: plotType}
-  
-  const inputs = Object.values(input_sets[plotType]).flat()
+function whichDefaults(
+  plotType: string | null,
+  preset: DataEnvelope<any> | null | undefined
+) {
+  if (plotType == null) return {plot_type: plotType};
+
+  const inputs = Object.values(input_sets[plotType]).flat();
 
   let initial_vals = {...defaults};
-  
+
   // Remove input:value pairs that aren't in this Viz type
   const def_keys = Object.keys(defaults);
   for (let ind = 0; ind < def_keys.length; ind++) {
     if (!inputs.includes(def_keys[ind])) delete initial_vals[def_keys[ind]];
   }
-  
+
   // // Replace any values if different default given for this plot type
   // Broken during a redesign, but should be restorable easily!
   // if (input_sets[plotType]['default_adjust'] != null) {
@@ -313,90 +192,342 @@ function whichDefaults(plotType: string|null, preset: DataEnvelope<any> | null |
   return {plot_type: plotType, ...initial_vals};
 }
 
-function useExtraInputs(
-  options: string[], full_data: DataEnvelope<any>,
-  plot_type: string | null,
-  continuous: string[], discrete: string[],
-  x_by: string | null, y_by: string | null, color_by: string | null,
-  constraints: DataEnvelope<DataEnvelope<"continuous"|"discrete">> = input_constraints
-  ) {
-  
-  function get_options(input_name: string) {
-    if (plot_type==null) return options
-    if (Object.keys(constraints[plot_type]).includes(input_name)) {
-      if (constraints[plot_type][input_name]=="continuous") return continuous
-      if (constraints[plot_type][input_name]=="discrete") return discrete
+const input_constraints: DataEnvelope<DataEnvelope<'continuous' | 'discrete'>> =
+  {
+    scatter_plot: {
+      x_by: 'continuous',
+      y_by: 'continuous'
+    },
+    bar_plot: {
+      x_by: 'discrete',
+      y_by: 'discrete'
+    },
+    y_plot: {
+      x_by: 'discrete',
+      y_by: 'continuous',
+      color_by: 'discrete'
     }
-    return options
+  };
+
+function useExtraInputs(
+  options: string[],
+  full_data: DataEnvelope<any>,
+  plot_type: string | null,
+  continuous: string[],
+  discrete: string[],
+  x_by: string | null,
+  y_by: string | null,
+  color_by: string | null,
+  constraints: DataEnvelope<
+    DataEnvelope<'continuous' | 'discrete'>
+  > = input_constraints
+) {
+  function get_options(input_name: string) {
+    if (plot_type == null) return options;
+    if (Object.keys(constraints[plot_type]).includes(input_name)) {
+      if (constraints[plot_type][input_name] == 'continuous') return continuous;
+      if (constraints[plot_type][input_name] == 'discrete') return discrete;
+    }
+    return options;
   }
-  
+
   const extra_inputs: DataEnvelope<any[]> = useMemo(() => {
     return {
       // label, then for any extras
-      'plot_title': ['Plot Title'],
-      'legend_title': ['Legend Title'],
-      'xlab': ['X-Axis Title'],
-      'ylab': ['Y-Axis Title'],
-      'x_by': ['X-Axis Data', get_options('x_by'), false],
-      'y_by': ['Y-Axis Data', get_options('y_by'), false],
-      'color_by': ['Color Data', ['make'].concat(get_options('color_by')), false],
-      'plots': ['Data Representations', ['violin', 'box']],
-      'color_order': ['Point Render & (discrete) Color Assignment Order', full_data, color_by, discrete],
-      'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
-      'size': ['Point Size', 0.1, 50],
-      'scale_by': ['Scale Y by counts or fraction', ['counts', 'fraction'], true, 200, x_by==y_by],
-      'x_scale': ['Adjust scaling of the X-Axis', ['linear', 'log10', 'log10(val+1)']],
-      'y_scale': ['Adjust scaling of the Y-Axis', ['linear', 'log10', 'log10(val+1)']],
-      'rows_use': ['Focus on a subset of the incoming data', full_data, false, "secondary"],
-      'x_order': ['Order of X-Axis Groupings', full_data, x_by, discrete],
-      'y_order': ['Order of Y-Axis Groupings', full_data, y_by, discrete],
-    }
-  }, [options, plot_type, constraints, continuous, discrete, x_by, y_by, color_by]);
+      plot_title: ['Plot Title'],
+      legend_title: ['Legend Title'],
+      xlab: ['X-Axis Title'],
+      ylab: ['Y-Axis Title'],
+      x_by: ['X-Axis Data', get_options('x_by'), false],
+      y_by: ['Y-Axis Data', get_options('y_by'), false],
+      color_by: ['Color Data', ['make'].concat(get_options('color_by')), false],
+      plots: ['Data Representations', ['violin', 'box']],
+      color_order: [
+        'Point Render & (discrete) Color Assignment Order',
+        full_data,
+        color_by,
+        discrete
+      ],
+      order_when_continuous_color: [
+        'Follow selected render ordering when color is continuous?'
+      ],
+      size: ['Point Size', 0.1, 50],
+      scale_by: [
+        'Scale Y by counts or fraction',
+        ['counts', 'fraction'],
+        true,
+        200,
+        x_by == y_by
+      ],
+      x_scale: [
+        'Adjust scaling of the X-Axis',
+        ['linear', 'log10', 'log10(val+1)']
+      ],
+      y_scale: [
+        'Adjust scaling of the Y-Axis',
+        ['linear', 'log10', 'log10(val+1)']
+      ],
+      rows_use: [
+        'Focus on a subset of the incoming data',
+        full_data,
+        false,
+        'secondary'
+      ],
+      x_order: ['Order of X-Axis Groupings', full_data, x_by, discrete],
+      y_order: ['Order of Y-Axis Groupings', full_data, y_by, discrete]
+    };
+  }, [
+    options,
+    plot_type,
+    constraints,
+    continuous,
+    discrete,
+    x_by,
+    y_by,
+    color_by
+  ]);
 
   return extra_inputs;
 }
 
-const comps: DataEnvelope<Function> = {
-  'plot_title': stringPiece,
-  'legend_title': stringPiece,
-  'xlab': stringPiece,
-  'ylab': stringPiece,
-  'x_by': dropdownPiece,
-  'y_by': dropdownPiece,
-  'color_by': dropdownPiece,
-  'plots': multiselectPiece,
-  'color_order': reorderPiece,
-  'order_when_continuous_color': checkboxPiece,
-  'size': sliderPiece,
-  'scale_by': dropdownPiece,
-  'x_scale': dropdownPiece,
-  'y_scale': dropdownPiece,
-  'rows_use': subsetDataFramePiece,
-  'x_order': reorderPiece,
-  'y_order': reorderPiece
-}
-
-function InputWrapper({title, values, open, toggleOpen, children}: PropsWithChildren<{title:string, values: DataEnvelope<any>, open: boolean, toggleOpen: Dispatch<string>}>) {
+function InputWrapper({
+  title,
+  values,
+  open,
+  toggleOpen,
+  children
+}: PropsWithChildren<{
+  title: string;
+  values: DataEnvelope<any>;
+  open: boolean;
+  toggleOpen: Dispatch<string>;
+}>) {
   return (
-    <Accordion elevation={0} expanded={open} onChange={ () => toggleOpen(title) }>
+    <Accordion elevation={0} expanded={open} onChange={() => toggleOpen(title)}>
       <AccordionSummary
-        style={{background: '#eee', cursor: 'pointer', minHeight: '32px',  height: '32px'}}>
+        style={{
+          background: '#eee',
+          cursor: 'pointer',
+          minHeight: '32px',
+          height: '32px'
+        }}
+      >
         <Typography>{title}</Typography>
       </AccordionSummary>
       <AccordionDetails
-        style={{padding: 0, paddingLeft: 15, borderBottom: '1px solid #eee'}}>
+        style={{padding: 0, paddingLeft: 15, borderBottom: '1px solid #eee'}}
+      >
         <Grid container direction='column'>
           {children}
         </Grid>
       </AccordionDetails>
     </Accordion>
-  )
+  );
 }
 
-const ComponentUse = ({k, value, extra_inputs, updateValue}: {k: string, value: any, extra_inputs: any, updateValue: Function}) => {
-    
-  const comp_use: Function = comps[k]
-  return(
-    comp_use(k, updateValue, value, ...extra_inputs)
-  )
+const comps: DataEnvelope<Function> = {
+  plot_title: stringPiece,
+  legend_title: stringPiece,
+  xlab: stringPiece,
+  ylab: stringPiece,
+  x_by: dropdownPiece,
+  y_by: dropdownPiece,
+  color_by: dropdownPiece,
+  plots: multiselectPiece,
+  color_order: ReorderPiece,
+  order_when_continuous_color: checkboxPiece,
+  size: sliderPiece,
+  scale_by: dropdownPiece,
+  x_scale: dropdownPiece,
+  y_scale: dropdownPiece,
+  rows_use: subsetDataFramePiece,
+  x_order: ReorderPiece,
+  y_order: ReorderPiece
 };
+
+const ComponentUse = ({
+  k,
+  value,
+  extra_inputs,
+  updateValue
+}: {
+  k: string;
+  value: any;
+  extra_inputs: any;
+  updateValue: Function;
+}) => {
+  const comp_use: Function = comps[k];
+  return comp_use(k, updateValue, value, ...extra_inputs);
+};
+
+function VisualizationUI(
+  {data, onChange, ...props}: WithInputParams<{}, DataEnvelope<any>, any>,
+  setPlotType: string | null = null
+) {
+  const preset = useMemo(() => data && data['preset'], [data]);
+  const hide = useMemo(() => preset && Object.keys(preset), [preset]);
+  const defaultValue = whichDefaults(setPlotType, preset);
+  const value = useSetsDefault(defaultValue, props.value, onChange);
+  const [expandedDrawers, setExpandedDrawers] = useState(['primary features']);
+  const plotType =
+    value && value['plot_type'] ? (value['plot_type'] as string) : null;
+
+  const data_frame: DataEnvelope<any> = useMemo(() => {
+    if (data == null) return {};
+    if (data['data_frame'] == null) return {};
+    return data['data_frame'];
+  }, [data]);
+
+  const columns: string[] = useMemo(() => {
+    if (data_frame == null || 0 === Object.keys(data_frame).length) return [];
+    return Object.keys(data_frame);
+  }, [data_frame]);
+
+  const continuous_columns: string[] = useMemo(() => {
+    if (data == null) return [];
+    if (data['continuous_cols'] == null) return columns; // Should build a warning here instead?
+    return data['continuous_cols'];
+  }, [data]);
+  const discrete_columns: string[] = useMemo(() => {
+    if (data == null) return [];
+    if (data['discrete_cols'] == null) return columns; // Should build a warning here instead?
+    return data['discrete_cols'];
+  }, [data]);
+
+  const x_by =
+    value && Object.keys(value).includes('x_by')
+      ? (value.x_by as string | null)
+      : null;
+  const y_by =
+    value && Object.keys(value).includes('y_by')
+      ? (value.y_by as string | null)
+      : null;
+  const color_by =
+    value && Object.keys(value).includes('color_by')
+      ? (value.color_by as string | null)
+      : null;
+  const extra_inputs = useExtraInputs(
+    columns,
+    data_frame,
+    plotType,
+    continuous_columns,
+    discrete_columns,
+    x_by,
+    y_by,
+    color_by
+  );
+
+  const shownSetupValues = useMemo(() => {
+    if (plotType == null) return {};
+    const initial = {...value};
+    if (Object.keys(initial).includes('plot_type')) {
+      delete initial['plot_type'];
+    }
+    return remove_hidden(initial, hide);
+  }, [value, hide]);
+
+  const updatePlotType = (newType: string, key: string) => {
+    onChange(some(whichDefaults(newType, preset)));
+  };
+
+  const updateValue = (newValue: any, key: string, prevValues = {...value}) => {
+    prevValues[key] = newValue;
+    onChange(some(prevValues));
+  };
+
+  function toggleDrawerExpansion(drawerTitle: string) {
+    if (expandedDrawers.includes(drawerTitle)) {
+      setExpandedDrawers(expandedDrawers.filter((t) => t != drawerTitle));
+    } else {
+      setExpandedDrawers(expandedDrawers.concat(drawerTitle));
+    }
+  }
+
+  // Components
+  const pickPlot =
+    setPlotType != null ? null : (
+      <div>
+        {dropdownPiece(
+          'plot_type',
+          updatePlotType,
+          plotType,
+          'Plot Type',
+          Object.keys(input_sets),
+          false
+        )}
+      </div>
+    );
+
+  const inner =
+    plotType == null ? null : (
+      <Grid container direction='column'>
+        {Object.entries(input_sets[plotType]).map(([group_name, val]) => {
+          const group_values: DataEnvelope<any> = pick(shownSetupValues, val);
+          const open = expandedDrawers.includes(group_name);
+          // console.log('group_values', group_values)
+          return Object.keys(group_values).length > 0 ? (
+            <InputWrapper
+              key={group_name}
+              title={group_name}
+              values={group_values}
+              open={open}
+              toggleOpen={toggleDrawerExpansion}
+            >
+              {Object.entries(group_values).map(([key, val]) => {
+                return (
+                  <ComponentUse
+                    key={key}
+                    k={key}
+                    value={val}
+                    extra_inputs={extra_inputs[key]}
+                    updateValue={updateValue}
+                  />
+                );
+              })}
+            </InputWrapper>
+          ) : null;
+        })}
+      </Grid>
+    );
+
+  // console.log(props.value);
+
+  return (
+    <div key='VizUI'>
+      {pickPlot}
+      {inner}
+    </div>
+  );
+}
+
+export function ScatterPlotly({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, 'scatter_plot');
+}
+
+export function BarPlotly({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, 'bar_plot');
+}
+
+export function YPlotly({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, 'y_plot');
+}
+
+export function AnyPlotly({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, null);
+}

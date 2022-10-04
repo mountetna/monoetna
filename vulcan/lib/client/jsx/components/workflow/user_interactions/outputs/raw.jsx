@@ -4,7 +4,7 @@ function stringify(d) {
   try {
     return JSON.stringify(d);
   } catch {
-    return d + "";
+    return d + '';
   }
 }
 
@@ -16,5 +16,5 @@ export default function RawOutput({data}) {
 
       return <div className='raw-view' key={k}>{stringify(d)}</div>;
     })}
-  </React.Fragment>
+  </React.Fragment>;
 }

@@ -20,7 +20,7 @@ const _AllInnerKeysNotNullValidator = (
   if (innerKeys.length === 0) return ['Inner hash is empty!'];
 
   if (innerKeys.some((key) => isNullish(innerHash[key])))
-    return ['Contains undefined inner hashes.'];
+    {return ['Contains undefined inner hashes.'];}
 
   let errors: string[] = [];
 

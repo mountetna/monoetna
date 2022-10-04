@@ -38,9 +38,9 @@ export default function AdvancedSessionControls({
       (updatedFigure) => {
         dispatch(setSessionAndFigure(updatedFigure));
         if (updatedFigure.workflow_snapshot)
-          dispatch(
+          {dispatch(
             setWorkflow(updatedFigure.workflow_snapshot, session.project_name)
-          );
+          );}
         handleClose();
       }
     );

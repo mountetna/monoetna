@@ -11,8 +11,8 @@ describe('JanusMain', () => {
   beforeEach(() => {
     store = mockStore({
       user: {
-	email: "janus@two-faces.org",
-	name: "Janus Bifrons",
+	email: 'janus@two-faces.org',
+	name: 'Janus Bifrons',
 	permissions: { }
       }
     });
@@ -26,19 +26,19 @@ describe('JanusMain', () => {
         status: 200,
         response: {projects: [
           {
-            project_name: "tunnel",
-            project_name_full: "Tunnel",
-            role: "viewer",
+            project_name: 'tunnel',
+            project_name_full: 'Tunnel',
+            role: 'viewer',
             privileged: true
           }, {
-            project_name: "mirror",
-            project_name_full: "Mirror",
-            role: "editor",
+            project_name: 'mirror',
+            project_name_full: 'Mirror',
+            role: 'editor',
             privileged: null
           }, {
-            project_name: "gateway",
-            project_name_full: "Gateway",
-            role: "editor",
+            project_name: 'gateway',
+            project_name_full: 'Gateway',
+            role: 'editor',
             privileged: null
           } ]}
       })
@@ -54,6 +54,6 @@ describe('JanusMain', () => {
         await new Promise((resolve) => setTimeout(resolve, 15));
     });
 
-    expect( component.toJSON() ).toMatchSnapshot()
+    expect( component.toJSON() ).toMatchSnapshot();
   });
 });

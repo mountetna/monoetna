@@ -9,7 +9,7 @@ const Variable = ({name,config,value,onChange}) =>
 export default class PlotVariables extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { show_optional: null }
+    this.state = { show_optional: null };
   }
 
   render() {

@@ -5,7 +5,6 @@ x-base-etna-service:
   &base-etna-service # Base configuration used by most etna services.
   image: etna-base
   volumes: &base-etna-service-volumes
-    - timur-node-modules:/app/node_modules
     - .:/app:delegated
     - timur-log-dir:/app/log:rw
     - timur-tmp-dir:/app/tmp:rw
@@ -41,7 +40,7 @@ x-base-etna-services:
   'timur_webpack':
     &base-etna-webpack # The ruby webpack server watching for changes
     <<: *base-etna-service
-    command: npm run webpack
+    command: npm run webpack-dev
 
   'timur_db':
     &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
@@ -88,9 +87,6 @@ volumes:
     name: "timur-data-dir"
   timur-opt-dir:
     driver: local
-  timur-node-modules:
-    driver: local
-    name: "timur-node-modules"
 
 networks:
   edge_net:

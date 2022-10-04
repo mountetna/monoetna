@@ -9,8 +9,8 @@ import LinkOutput from '../user_interactions/outputs/link';
 import PlotOutput from '../user_interactions/outputs/plot';
 import ConsignmentOutput from '../user_interactions/outputs/consignment';
 
-import {statusOfStep, uiOutputOfStep, stepInputDataUrls, stepInputDataRaw} from "../../../selectors/workflow_selectors";
-import {WorkflowStep} from "../../../api_types";
+import {statusOfStep, uiOutputOfStep, stepInputDataUrls, stepInputDataRaw} from '../../../selectors/workflow_selectors';
+import {WorkflowStep} from '../../../api_types';
 
 const OUTPUTS = {
   default: LinkOutput,

@@ -108,8 +108,8 @@ export default function WorkflowManager({
     };
     // To allows correct values to pass through, set session before letting auto-pass trigger.
     dispatch(setSession(session));
-    if (workflow && workflow.vignette?.includes("Primary inputs are skippable") && completedSteps(workflow, state.status).length<1) {
-      dispatch(setAutoPassStep(null))
+    if (workflow && workflow.vignette?.includes('Primary inputs are skippable') && completedSteps(workflow, state.status).length<1) {
+      dispatch(setAutoPassStep(null));
     }
   }, [workflowName, state, projectName, dispatch]);
 

@@ -11,8 +11,8 @@ describe('ProjectsView', () => {
   beforeEach(() => {
     store = mockStore({
       user: {
-	email: "janus@two-faces.org",
-	name: "Janus Bifrons",
+	email: 'janus@two-faces.org',
+	name: 'Janus Bifrons',
         permissions: { 
           administration: {
             privileged: false,
@@ -32,9 +32,9 @@ describe('ProjectsView', () => {
         status: 200,
         response: {
           projects: [
-            { project_name: "gateway", project_name_full: "Gateway"},
-            { project_name: "tunnel", project_name_full: "Tunnel"},
-            { project_name: "mirror", project_name_full: "Mirror"}
+            { project_name: 'gateway', project_name_full: 'Gateway'},
+            { project_name: 'tunnel', project_name_full: 'Tunnel'},
+            { project_name: 'mirror', project_name_full: 'Mirror'}
           ]
         }
       })
@@ -50,6 +50,6 @@ describe('ProjectsView', () => {
         await new Promise((resolve) => setTimeout(resolve, 15));
     });
 
-    expect( component.toJSON() ).toMatchSnapshot()
+    expect( component.toJSON() ).toMatchSnapshot();
   });
 });

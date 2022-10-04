@@ -32,7 +32,7 @@ const PlotWithEffects = ({
   useEffect(() => {
     if (-1 !== highlightedTrace) {
       let copy = [...data];
-      for (var i = 0; i < copy.length; i++) {
+      for (let i = 0; i < copy.length; i++) {
         if (i === highlightedTrace) {
           copy[i] = emphasizeTrace(copy[i]);
         } else {

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import StepName from './step_name';
-import {WorkflowStep} from "../../../api_types";
+import {WorkflowStep} from '../../../api_types';
 
 export default function Step({step}: {step: WorkflowStep}) {
   return (

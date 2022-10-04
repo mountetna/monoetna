@@ -22,13 +22,12 @@ function MultiSelector({
   label: string;
   onChange: (selection: string[]) => void;
 }) {
+  function unpackOption(opt: string) {
+    return opt.split(DELIMITER)[0].trim();
+  }
 
   function onSelect(selection: string[]) {
     onChange(selection.map((s) => unpackOption(s)));
-  }
-
-  function unpackOption(opt: string) {
-    return opt.split(DELIMITER)[0].trim();
   }
 
   return (
@@ -39,12 +38,7 @@ function MultiSelector({
         options={options.sort()}
         getOptionLabel={(option) => unpackOption(option)} // This shows up in the chip
         onChange={(e, value) => onSelect(value as string[])}
-        renderInput={(params: any) => (
-          <TextField
-            {...params}
-            label={label}
-          />
-        )}
+        renderInput={(params: any) => <TextField {...params} label={label} />}
         renderOption={(option, state) => <span>{option}</span>}
         filterOptions={(options, state) => {
           let regex = new RegExp(state.inputValue);

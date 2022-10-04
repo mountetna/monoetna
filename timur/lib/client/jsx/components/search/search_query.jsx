@@ -2,19 +2,18 @@ import React, {useState} from 'react';
 import {connect} from 'react-redux';
 import SelectInput from 'etna-js/components/inputs/select_input';
 import Toggle from 'etna-js/components/inputs/toggle';
-import {selectModelNames} from "etna-js/selectors/magma";
-import {useModal} from "etna-js/components/ModalDialogContainer";
+import {selectModelNames} from 'etna-js/selectors/magma';
+import {useModal} from 'etna-js/components/ModalDialogContainer';
+import {selectSearchFilterString} from '../../selectors/search';
 import {
-  selectSearchFilterString
-} from "../../selectors/search";
-import {
-  setFilterString, setSearchAttributeNames
-} from "../../actions/search_actions";
-import QueryBuilder from "./query_builder";
+  setFilterString,
+  setSearchAttributeNames
+} from '../../actions/search_actions';
+import QueryBuilder from './query_builder';
 import DisabledButton from './disabled_button';
 import SearchTsvOptionsModal from './search_tsv_options_modal';
 
-const TableSelect = ({model_names, selectedModel, onSelectTableChange}) =>
+const TableSelect = ({model_names, selectedModel, onSelectTableChange}) => (
   <div className='table-select'>
     <span className='label'>Search table</span>
     <SelectInput
@@ -24,9 +23,10 @@ const TableSelect = ({model_names, selectedModel, onSelectTableChange}) =>
       onChange={onSelectTableChange}
       showNone='enabled'
     />
-  </div>;
+  </div>
+);
 
-const PageSelect = ({pageSize, setPageSize}) =>
+const PageSelect = ({pageSize, setPageSize}) => (
   <div className='page-select'>
     <span className='label'>Page size</span>
     <SelectInput
@@ -35,43 +35,63 @@ const PageSelect = ({pageSize, setPageSize}) =>
       onChange={setPageSize}
       showNone='disabled'
     />
-  </div>;
+  </div>
+);
 
 export function SearchQuery({
-  selectedModel, setFilterString, loading, model_names, onSelectTableChange,
-  pageSize, setPageSize, setPage, display_attributes, filter_string
+  selectedModel,
+  setFilterString,
+  loading,
+  model_names,
+  onSelectTableChange,
+  pageSize,
+  setPageSize,
+  setPage,
+  display_attributes,
+  filter_string
 }) {
   const buttonDisabled = !selectedModel || loading;
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const { openModal } = useModal();
+  const {openModal} = useModal();
 
-  const advancedSearch = <div className='advanced-search'>
-    <input
-      type='text'
-      className='filter'
-      placeholder='Filter query'
-      defaultValue={filter_string}
-      onBlur={(e) => setFilterString(e.target.value)}
-    />
-  </div>;
+  const advancedSearch = (
+    <div className='advanced-search'>
+      <input
+        type='text'
+        className='filter'
+        placeholder='Filter query'
+        defaultValue={filter_string}
+        onBlur={(e) => setFilterString(e.target.value)}
+      />
+    </div>
+  );
 
   return (
     <div className='query'>
-      <TableSelect { ...{ selectedModel, model_names, onSelectTableChange } }/>
-      <PageSelect { ...{pageSize, setPageSize} }/>
+      <TableSelect {...{selectedModel, model_names, onSelectTableChange}} />
+      <PageSelect {...{pageSize, setPageSize}} />
 
       <div className='query-options'>
-      { selectedModel && <div className='query-mode'>
-          <Toggle
-            label={ showAdvanced ? 'Raw' : 'Basic' }
-            selected={ showAdvanced }
-            onClick={() => setShowAdvanced(!showAdvanced)}/>
-        </div>
-      }
-      { selectedModel &&
-          (showAdvanced ? advancedSearch : <QueryBuilder setShowAdvanced={setShowAdvanced} selectedModel={selectedModel} display_attributes={display_attributes} />)
-      }
+        {selectedModel && (
+          <div className='query-mode'>
+            <Toggle
+              label={showAdvanced ? 'Raw' : 'Basic'}
+              selected={showAdvanced}
+              onClick={() => setShowAdvanced(!showAdvanced)}
+            />
+          </div>
+        )}
+        {selectedModel &&
+          (showAdvanced ? (
+            advancedSearch
+          ) : (
+            <QueryBuilder
+              setShowAdvanced={setShowAdvanced}
+              selectedModel={selectedModel}
+              display_attributes={display_attributes}
+            />
+          ))}
       </div>
       <DisabledButton
         id='search-pg-search-btn'
@@ -91,7 +111,6 @@ export function SearchQuery({
   );
 }
 
-
 export default connect(
   (state) => ({
     model_names: selectModelNames(state),
@@ -102,4 +121,3 @@ export default connect(
     setFilterString
   }
 )(SearchQuery);
-

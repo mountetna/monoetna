@@ -1,7 +1,7 @@
 import {DataEnvelope, InputValidator, ValidationInputSpecification} from '../input_types';
 import {inputValueNonEmpty} from '../../../../../selectors/workflow_selectors';
-import {mapSome, maybeOfNullable, withDefault} from "../../../../../selectors/maybe";
-import {joinNesting} from "../monoids";
+import {mapSome, maybeOfNullable, withDefault} from '../../../../../selectors/maybe';
+import {joinNesting} from '../monoids';
 
 const _AllInnerValuesNotEmptyValidator = (
   input: ValidationInputSpecification<DataEnvelope<any>, DataEnvelope<any>>, strong = false

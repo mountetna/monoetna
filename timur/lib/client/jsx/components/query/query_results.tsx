@@ -9,7 +9,7 @@ import {userColumns} from '../../selectors/query_selector';
 import QueryTable from './query_table';
 import useTableEffects from './query_use_table_effects';
 import AntSwitch from './ant_switch';
-import ErrorBoundary from './error_boundary';
+import ErrorBoundary from 'etna-js/components/error_boundary';
 
 import {json} from '@codemirror/lang-json';
 import {defaultHighlightStyle, syntaxHighlighting} from '@codemirror/language';

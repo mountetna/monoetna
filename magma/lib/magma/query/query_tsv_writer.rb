@@ -23,7 +23,9 @@ class Magma
     def standard_records
       yield tsv_header
 
-      yield to_tsv(@question.answer)
+      @question.each_page_answer do |answer|
+        yield to_tsv(answer)
+      end
     end
 
     def transpose_records

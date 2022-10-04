@@ -19,7 +19,12 @@ import {
   WorkflowStepGroup
 } from '../components/workflow/user_interactions/inputs/input_types';
 import {useMemo} from 'react';
-import {mapSome, Maybe, maybeOfNullable, withDefault} from 'etna-js/selectors/maybe';
+import {
+  mapSome,
+  Maybe,
+  maybeOfNullable,
+  withDefault
+} from 'etna-js/selectors/maybe';
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
   workflow && workflow.name ? workflow.name : null;
@@ -100,14 +105,16 @@ export function splitSource(source: string): [string | undefined, string] {
 }
 
 export const uiOutputOfStep = (step: WorkflowStep) => {
-  if (step.run && step.run.startsWith(RUN.UI_OUTPUT))
+  if (step.run && step.run.startsWith(RUN.UI_OUTPUT)) {
     return step.run.split('/')[1].replace('.cwl', '');
+  }
   return null;
 };
 
 export const uiQueryOfStep = (step: WorkflowStep) => {
-  if (step.run && step.run.startsWith(RUN.UI_QUERY))
+  if (step.run && step.run.startsWith(RUN.UI_QUERY)) {
     return step.run.split('/')[1].replace('.cwl', '');
+  }
   return null;
 };
 
@@ -136,6 +143,10 @@ export const stepInputDataUrls = (
 export function allWorkflowPrimaryInputSources(workflow: Workflow): string[] {
   return Object.keys(workflow.inputs);
 }
+
+export const sourceNameOfReference = (ref: [string, string]) => {
+  return ref.join('/');
+};
 
 export function inputSourcesOfStep(step: WorkflowStep) {
   return step.out.map((outputName) =>
@@ -185,7 +196,13 @@ export function isNullish(value: any) {
   return value == null || value === 'null' || value === '';
 }
 
-export function dataOfSource(source: string, workflow: Workflow | null, status: VulcanState['status'], data: VulcanState['data'], session: VulcanState['session']): [any] | null {
+export function dataOfSource(
+  source: string,
+  workflow: Workflow | null,
+  status: VulcanState['status'],
+  data: VulcanState['data'],
+  session: VulcanState['session']
+): [any] | null {
   if (!workflow) return null;
   const [originalStepName, outputName] = splitSource(source);
   const originalStep = originalStepName
@@ -228,6 +245,10 @@ export function allSourcesForStepName(
   return allExpectedOutputSources(step);
 }
 
+export const isDataConsumer = (step: WorkflowStep) =>
+  uiQueryOfStep(step) != null ||
+  [null, OUTPUT_COMPONENT.LINK].indexOf(uiOutputOfStep(step)) === -1;
+
 export function shouldDownloadStep(
   stepName: string,
   workflow: Workflow,
@@ -240,24 +261,6 @@ export function shouldDownloadStep(
       return sourceStep === stepName && sourceOutputName == outputName;
     });
   });
-}
-
-export const isDataConsumer = (step: WorkflowStep) =>
-  uiQueryOfStep(step) != null ||
-  [null, OUTPUT_COMPONENT.LINK].indexOf(uiOutputOfStep(step)) === -1;
-
-export function isPendingUiQuery(
-  step: WorkflowStep,
-  status: VulcanState['status'],
-  data: VulcanState['data'],
-  session: VulcanState['session']
-) {
-  const bufferedData = stepInputDataRaw(step, status, data, session);
-  return (
-    uiQueryOfStep(step) &&
-    statusOfStep(step, status)?.status == 'pending' &&
-    step.in.every(({id}) => id in bufferedData)
-  );
 }
 
 export const stepInputDataRaw = (
@@ -287,15 +290,25 @@ export const stepInputDataRaw = (
   return result;
 };
 
-export const sourceNameOfReference = (ref: [string, string]) => {
-  return ref.join('/');
-};
+export function isPendingUiQuery(
+  step: WorkflowStep,
+  status: VulcanState['status'],
+  data: VulcanState['data'],
+  session: VulcanState['session']
+) {
+  const bufferedData = stepInputDataRaw(step, status, data, session);
+  return (
+    uiQueryOfStep(step) &&
+    statusOfStep(step, status)?.status == 'pending' &&
+    step.in.every(({id}) => id in bufferedData)
+  );
+}
 
 export const stepOutputs = (step: WorkflowStep | undefined | '') => {
   if (!step) return [];
 
-  return step.out.map(name => sourceNameOfReference([step.name, name]))
-}
+  return step.out.map((name) => sourceNameOfReference([step.name, name]));
+};
 
 export const sourceNamesOfStep = (step: WorkflowStep) => {
   // return stepOutputs(step); Originally this...
@@ -306,10 +319,13 @@ export const sourceNamesOfStep = (step: WorkflowStep) => {
   // But only take one output so that the input widget itself is not
   //   rendered multiple times in the UI.
   return [sourceNameOfReference([step.name, step.out[0]])];
-}
+};
 
-export function missingOutputsForStep(step: WorkflowStep, inputs: VulcanState['session']['inputs']): { [k: string]: null } {
-  const result: { [k: string]: null } = {};
+export function missingOutputsForStep(
+  step: WorkflowStep,
+  inputs: VulcanState['session']['inputs']
+): {[k: string]: null} {
+  const result: {[k: string]: null} = {};
 
   step.out.forEach((outputName) => {
     const source = sourceNameOfReference([step.name, outputName]);
@@ -323,21 +339,21 @@ export function missingOutputsForStep(step: WorkflowStep, inputs: VulcanState['s
   return result;
 }
 
-export function completedUiOutputSteps(
-  workflow: Workflow,
-  status: VulcanState['status']
-): WorkflowStep[] {
-  return completedSteps(workflow, status).filter(
-    (step) => !!uiOutputOfStep(step)
-  );
-}
-
 export function completedSteps(
   workflow: Workflow,
   status: VulcanState['status']
 ): WorkflowStep[] {
   return workflow.steps[0].filter(
     (step) => statusOfStep(step, status)?.status === 'complete'
+  );
+}
+
+export function completedUiOutputSteps(
+  workflow: Workflow,
+  status: VulcanState['status']
+): WorkflowStep[] {
+  return completedSteps(workflow, status).filter(
+    (step) => !!uiOutputOfStep(step)
   );
 }
 
@@ -399,9 +415,9 @@ export function groupUiSteps(uiSteps: WorkflowStep[]): WorkflowStepGroup[] {
   return result;
 }
 
-export function filterEmptyValues(values: {
+export function filterEmptyValues(values: {[k: string]: any}): {
   [k: string]: any;
-}): {[k: string]: any} {
+} {
   const result: {[k: string]: any} = {};
 
   Object.keys(values).forEach((k) => {
