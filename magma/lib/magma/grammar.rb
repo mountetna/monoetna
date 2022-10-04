@@ -1,3 +1,4 @@
+require_relative './lexer/rule_parser'
 
 class Magma
   class Grammar < Sequel::Model
@@ -126,6 +127,22 @@ class Magma
         version_number: version_number,
         created_at: created_at
       }
+    def tokens
+      config['tokens']
+    end
+
+    def rules
+      config['rules'].map do |token, rule|
+        rule_parser.parse(rule)
+        # Then what happens??
+        Magma::Rule.new(token: token, regex: rule_parser.parse(rule))
+      end
+    end
+
+    private
+
+    def rule_parser
+      @rule_parser || Magma::RuleParser.new(self)
     end
   end
 end
