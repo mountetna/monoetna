@@ -13,7 +13,7 @@ volumes:
     driver: local
   gnomon-node-modules:
     driver: local
-      
+
 x-base-etna-service:
   &base-etna-service # Base configuration used by most etna services.
   image: etna-base
@@ -55,6 +55,18 @@ x-base-etna-services:
     <<: *base-etna-service
     command: npm run webpack
 
+  'gnomon_db':
+    &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
+    image: development-psql
+    volumes:
+      - gnomon-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: 'gnomon_db_development'
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+      APP_NAME: 'gnomon'
+    container_name: 'gnomon_db_1'
+
   'gnomon_app_fe':
     &base-etna-fe # The application level apache frontend serving static assets, data, and proxying the main app.
     image: etna-apache
@@ -67,7 +79,7 @@ x-base-etna-services:
     environment:
       APP_NAME: 'gnomon_app_fe'
 
-version: "3.4"
+version: '3.4'
 
 networks:
   edge_net:
