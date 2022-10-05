@@ -80,10 +80,28 @@ describe Magma::Grammar do
       expect(grammar.rules['third'].regex).to eq(/^(HS|MS)(-)(D|DN)\d+(-)(SCC|SCG)\d+$/)
       expect(grammar.model_name("HS-D1-SCG10")).to eq('third')
     end
+
+    it 'with multiple separators' do
+      @config[:rules] = {
+        first: 'COH SEP TMP SEP TOK .n'
+      }
+      @config[:tokens][:SEP][:values] = {
+        '-': '-',
+        '_': '_'
+      }
+
+      grammar = create(:grammar, project_name: 'labors', version_number: 1, config: @config)
+
+      expect(grammar.tokens.length).to eq(4)
+      expect(grammar.rules.length).to eq(@config[:rules].length)
+
+      expect(grammar.rules['first'].regex).to eq(/^(HS|MS)(-|_)(D|DN)(-|_)(SCC|SCG)\d+$/)
+      expect(grammar.model_name("HS-D_SCG10")).to eq('first')
+    end
   end
 
   describe Magma::Grammar::Validation do
-    it 'throws no errors on valid rules' do
+    it 'throws no errors on valid config' do
       config = {
         'tokens' => {
           'TOK' => {
@@ -106,6 +124,20 @@ describe Magma::Grammar do
               'MS' => 'More Sapien'
             }
           },
+          'COHO' => {
+            'label' => 'Cohort',
+            'values' => {
+              'HS2' => 'Homo Sapien',
+              'MS2' => 'More Sapien'
+            }
+          },
+          'COHORT' => {
+            'label' => 'Cohort',
+            'values' => {
+              'HS3' => 'Homo Sapien',
+              'MS3' => 'More Sapien'
+            }
+          },
           'TMP' => {
             'label' => 'Timepoint',
             'values' => {
@@ -117,13 +149,249 @@ describe Magma::Grammar do
         'rules' => {
           'first' => 'COH',
           'second' => '.first SEP TOK .n'
-        }
+        },
+        'synonyms' => [
+          [ 'COH', 'COHORT', 'COHO' ]
+        ]
       }
 
       validator = Magma::Grammar::Validation.new(config)
 
       expect(validator.valid?).to eq(true)
       expect(validator.errors).to eq([])
+    end
+
+    context 'complains if synonyms' do
+      it 'not have exact same number of key:value pairs' do
+        config = {
+          'tokens' => {
+            'TOK' => {
+              'label' => 'Token',
+              'values' => {
+                'SCC' => 'Single-cell CITEseq',
+                'SCG' => 'Single-cell GEX'
+              },
+            },
+            'SEP' => {
+              'label' => 'Separator',
+              'values' => {
+                '-' => '-'
+              }
+            },
+            'COH' => {
+              'label' => 'Cohort',
+              'values' => {
+                'HS' => 'Homo Sapien',
+                'MS' => 'More Sapien'
+              }
+            },
+            'COHO' => {
+              'label' => 'Cohort',
+              'values' => {
+                'HS2' => 'Homo Sapien'
+              }
+            },
+            'COHORT' => {
+              'label' => 'Cohort',
+              'values' => {
+                'MS3' => 'More Sapien'
+              }
+            },
+            'TMP' => {
+              'label' => 'Timepoint',
+              'values' => {
+                'D' => 'Day',
+                'DN' => 'Day Negative'
+              }
+            },
+          },
+          'rules' => {
+            'first' => 'COH',
+            'second' => '.first SEP TOK .n'
+          },
+          'synonyms' => [
+            [ 'COH', 'COHORT', 'COHO' ]
+          ]
+        }
+
+        validator = Magma::Grammar::Validation.new(config)
+
+        expect(validator.valid?).to eq(false)
+        expect(validator.errors).to eq(["Synonyms \"COH\", \"COHO\", \"COHORT\" do not have an equal number of values.", "Synonyms \"COH\", \"COHO\", \"COHORT\" do not have matching values."])
+      end
+
+      it 'do not have matching values' do
+        config = {
+          'tokens' => {
+            'TOK' => {
+              'label' => 'Token',
+              'values' => {
+                'SCC' => 'Single-cell CITEseq',
+                'SCG' => 'Single-cell GEX'
+              },
+            },
+            'SEP' => {
+              'label' => 'Separator',
+              'values' => {
+                '-' => '-'
+              }
+            },
+            'COH' => {
+              'label' => 'Cohort',
+              'values' => {
+                'HS' => 'Homo Sapien',
+                'MS' => 'More Sapien'
+              }
+            },
+            'COHO' => {
+              'label' => 'Cohort',
+              'values' => {
+                'HS2' => 'Homo Sapien',
+                'MS2' => 'More Sapien2'
+              }
+            },
+            'COHORT' => {
+              'label' => 'Cohort',
+              'values' => {
+                'HS3' => 'Homo Sapien3',
+                'MS3' => 'More Sapien'
+              }
+            },
+            'TMP' => {
+              'label' => 'Timepoint',
+              'values' => {
+                'D' => 'Day',
+                'DN' => 'Day Negative'
+              }
+            },
+          },
+          'rules' => {
+            'first' => 'COH',
+            'second' => '.first SEP TOK .n'
+          },
+          'synonyms' => [
+            [ 'COH', 'COHORT', 'COHO' ]
+          ]
+        }
+
+        validator = Magma::Grammar::Validation.new(config)
+
+        expect(validator.valid?).to eq(false)
+        expect(validator.errors).to eq(["Synonyms \"COH\", \"COHO\", \"COHORT\" do not have matching values."])
+      end
+
+      it 'do not have unique values' do
+        config = {
+          'tokens' => {
+            'TOK' => {
+              'label' => 'Token',
+              'values' => {
+                'SCC' => 'Single-cell CITEseq',
+                'SCG' => 'Single-cell GEX'
+              },
+            },
+            'SEP' => {
+              'label' => 'Separator',
+              'values' => {
+                '-' => '-'
+              }
+            },
+            'COH' => {
+              'label' => 'Cohort',
+              'values' => {
+                'HS' => 'Homo Sapien',
+                'MS' => 'Homo Sapien'
+              }
+            },
+            'COHO' => {
+              'label' => 'Cohort',
+              'values' => {
+                'HS2' => 'Homo Sapien',
+                'MS2' => 'Homo Sapien'
+              }
+            },
+            'COHORT' => {
+              'label' => 'Cohort',
+              'values' => {
+                'HS3' => 'Homo Sapien',
+                'MS3' => 'Homo Sapien'
+              }
+            },
+            'TMP' => {
+              'label' => 'Timepoint',
+              'values' => {
+                'D' => 'Day',
+                'DN' => 'Day Negative'
+              }
+            },
+          },
+          'rules' => {
+            'first' => 'COH',
+            'second' => '.first SEP TOK .n'
+          },
+          'synonyms' => [
+            [ 'COH', 'COHORT', 'COHO' ]
+          ]
+        }
+
+        validator = Magma::Grammar::Validation.new(config)
+
+        expect(validator.valid?).to eq(false)
+        expect(validator.errors).to eq(["Synonyms \"COH\", \"COHO\", \"COHORT\" do not have unique values."])
+      end
+
+      it 'includes undefined token' do
+        config = {
+          'tokens' => {
+            'TOK' => {
+              'label' => 'Token',
+              'values' => {
+                'SCC' => 'Single-cell CITEseq',
+                'SCG' => 'Single-cell GEX'
+              },
+            },
+            'SEP' => {
+              'label' => 'Separator',
+              'values' => {
+                '-' => '-'
+              }
+            },
+            'COH' => {
+              'label' => 'Cohort',
+              'values' => {
+                'HS' => 'Homo Sapien',
+                'MS' => 'More Sapien'
+              }
+            },
+            'COHORT' => {
+              'label' => 'Cohort',
+              'values' => {
+                'HS3' => 'Homo Sapien',
+                'MS3' => 'More Sapien'
+              }
+            },
+            'TMP' => {
+              'label' => 'Timepoint',
+              'values' => {
+                'D' => 'Day',
+                'DN' => 'Day Negative'
+              }
+            },
+          },
+          'rules' => {
+            'first' => 'COH',
+            'second' => '.first SEP TOK .n'
+          },
+          'synonyms' => [
+            [ 'COH', 'COHORT', 'COHO' ]
+          ]
+        }
+
+        validator = Magma::Grammar::Validation.new(config)
+
+        expect(validator.valid?).to eq(false)
+        expect(validator.errors).to eq(["Missing token definitions for: \"COHO\", for synonyms \"COH\", \"COHO\", \"COHORT\"."])
+      end
     end
 
     context 'complains if rule' do
