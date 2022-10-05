@@ -1,7 +1,7 @@
-import React, {Component} from 'react'
+import React, {Component} from 'react';
 
-class Resize extends Component{
-  constructor(props){
+class Resize extends Component {
+  constructor(props) {
     super(props);
 
     this.state = {
@@ -11,38 +11,40 @@ class Resize extends Component{
     this.fitParentContainer = this.fitParentContainer.bind(this);
   }
 
-  componentDidMount(){
+  componentDidMount() {
     this.fitParentContainer();
     window.addEventListener('resize', this.fitParentContainer);
   }
 
-  componentWillUnmount(){
+  componentWillUnmount() {
     window.removeEventListener('resize', this.fitParentContainer);
   }
 
-  fitParentContainer(){
+  fitParentContainer() {
     let {container_width} = this.state;
-    let current_container_width = this.chartContainer
-      .getBoundingClientRect().width;  
+    let current_container_width =
+      this.chartContainer.getBoundingClientRect().width;
 
     let should_resize = container_width !== current_container_width;
 
-    if(should_resize){
+    if (should_resize) {
       this.setState({
         container_width: current_container_width
       });
     }
   }
 
-  render(){
+  render() {
     let {container_width} = this.state;
     let should_render_chart = container_width !== null;
     let ref_props = {
-      ref: (el) => {this.chartContainer = el},
+      ref: (el) => {
+        this.chartContainer = el;
+      },
       className: 'resize-wrapper'
     };
 
-    return(
+    return (
       <div {...ref_props}>
         {should_render_chart && this.props.render(container_width)}
       </div>

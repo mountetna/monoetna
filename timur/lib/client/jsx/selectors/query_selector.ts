@@ -183,7 +183,7 @@ export const pathToColumn = (
 
     if (!Array.isArray(array[startingIndex])) {
       if (array[startingIndex] === indexlessHeading)
-        return startingIndex.toString();
+        {return startingIndex.toString();}
       else return '-1';
     }
 

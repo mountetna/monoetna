@@ -1,7 +1,7 @@
-import {Dispatch, useEffect} from "react";
-import {setWorkflows, VulcanAction} from "../actions/vulcan_actions";
-import {defaultApiHelpers} from "./api";
-import {Cancellable} from "etna-js/utils/cancellable";
+import {Dispatch, useEffect} from 'react';
+import {setWorkflows, VulcanAction} from '../actions/vulcan_actions';
+import {defaultApiHelpers} from './api';
+import {Cancellable} from 'etna-js/utils/cancellable';
 
 export function useWorkflowsLoading(
     key: string,

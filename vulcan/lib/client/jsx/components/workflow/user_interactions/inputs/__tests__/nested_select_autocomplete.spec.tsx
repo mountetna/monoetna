@@ -45,7 +45,7 @@ describe('NestedSelectAutocompleteInput', () => {
         }}
         value={value}
         data={data.value}
-      />
+      />;
     })
   );
 

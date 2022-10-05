@@ -33,7 +33,7 @@ const TokenBuilder = ({user}) => {
       try {
         req = JSON.parse(payload);
       } catch (e) {
-        setError(e.message)
+        setError(e.message);
         return;
       }
 
@@ -41,7 +41,7 @@ const TokenBuilder = ({user}) => {
       req['exp'] = (new Date(date)).getTime() / 1000;
       json_post('/api/tokens/build',req).then(
 	(token) => { copyText(token); setError(null); }
-      ).catch( p => p.then( ({error}) => setError(error) ) )
+      ).catch( p => p.then( ({error}) => setError(error) ) );
     }, [payload, date]
   );
   const classes = useStyles();
@@ -67,6 +67,6 @@ const TokenBuilder = ({user}) => {
       </MuiPickersUtilsProvider>
     </div>
   </div>;
-}
+};
 
 export default TokenBuilder;

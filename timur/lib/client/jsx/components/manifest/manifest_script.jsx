@@ -11,7 +11,7 @@ import {gutter, lineNumbers} from '@codemirror/view';
 import CodeMirror from 'rodemirror';
 import {simpleMode} from '@codemirror/legacy-modes/mode/simple-mode';
 
-import ErrorBoundary from '../query/error_boundary';
+import ErrorBoundary from 'etna-js/components/error_boundary';
 
 const timur_lang = [
   {regex: /\#.*$/m, token: 'comment'},

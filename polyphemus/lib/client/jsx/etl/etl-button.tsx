@@ -7,7 +7,7 @@ const EtlButton = ({children, mode, selected, onClick}:{children:React.ReactNode
     <IconButton color={ mode == selected ? 'secondary' : 'default' } onClick={() => onClick(mode)} size='small' aria-label={mode}>
       {children}
     </IconButton>
-  </Tooltip>
+  </Tooltip>;
 };
 
 export default EtlButton;

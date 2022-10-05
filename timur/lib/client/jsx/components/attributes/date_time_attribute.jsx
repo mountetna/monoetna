@@ -17,8 +17,8 @@ const DateTimeAttribute = ({value, mode, revised_value,
           document, template, attribute, new_date && new_date.toISOString()
         )
       } />
-  </div>
-}
+  </div>;
+};
 
 export default connect(
   null,

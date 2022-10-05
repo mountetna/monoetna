@@ -12,27 +12,27 @@ function PlusSubsetValidator(
       
       const out = OtherValidator({...input, data: input.value as DataEnvelope<any>});
       
-      let subset_check: string[] = []
+      let subset_check: string[] = [];
       if (input.value!=null) {
         
-        let if_some_null: DataEnvelope<any> = {}
-        if_some_null[subset_key] = {}
-        const subset = withDefault(input.value,if_some_null)[subset_key] as DataEnvelope<(string|number|null)[][]>
+        let if_some_null: DataEnvelope<any> = {};
+        if_some_null[subset_key] = {};
+        const subset = withDefault(input.value,if_some_null)[subset_key] as DataEnvelope<(string|number|null)[][]>;
         
         if (!_.isEmpty(subset)) {
-          let bad_conditions: string[] = []
+          let bad_conditions: string[] = [];
           subset['methods'].forEach( (def, index) => {
             if (def.some(x => x==null) || def.length<2) {
-              bad_conditions.push(''+(index+1))
+              bad_conditions.push(''+(index+1));
             }
-          })
-          subset_check = (bad_conditions.length==0) ? [] : ['Subset condition(s) '+ bad_conditions.toString() +' are incomplete.']
+          });
+          subset_check = (bad_conditions.length==0) ? [] : ['Subset condition(s) '+ bad_conditions.toString() +' are incomplete.'];
         }
       }
       
-      out.push(...subset_check)
-      return out
-    }
+      out.push(...subset_check);
+      return out;
+    };
   }
   
-export default PlusSubsetValidator
+export default PlusSubsetValidator;

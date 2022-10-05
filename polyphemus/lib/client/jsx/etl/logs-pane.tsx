@@ -1,12 +1,18 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import Button from '@material-ui/core/Button';
+import React, {useEffect, useState, useMemo} from 'react';
 import EtlPane, {EtlPaneHeader} from './etl-pane';
 import {makeStyles} from '@material-ui/core/styles';
-import { Controlled } from 'react-codemirror2';
-import Typography from '@material-ui/core/Typography';
-import { json_get } from 'etna-js/utils/fetch';
+import {json_get} from 'etna-js/utils/fetch';
 
-const useStyles = makeStyles( theme => ({
+import {basicSetup, EditorView} from 'codemirror';
+import {defaultHighlightStyle, syntaxHighlighting} from '@codemirror/language';
+import {EditorState} from '@codemirror/state';
+import {gutter, lineNumbers} from '@codemirror/view';
+import CodeMirror from 'rodemirror';
+import {lintGutter} from '@codemirror/lint';
+
+import ErrorBoundary from 'etna-js/components/error_boundary';
+
+const useStyles = makeStyles((theme) => ({
   editor: {
     border: '1px solid #ccc',
     height: '200px',
@@ -15,38 +21,57 @@ const useStyles = makeStyles( theme => ({
   }
 }));
 
-const LogsPane = ({selected, name, project_name}:{selected:string|null,name:string,project_name:string}) => {
+const LogsPane = ({
+  selected,
+  name,
+  project_name
+}: {
+  selected: string | null;
+  name: string;
+  project_name: string;
+}) => {
   const classes = useStyles();
-  const [ output, setOutput ] = useState('');
+  const [output, setOutput] = useState('');
 
-  useEffect( () => {
-    json_get(
-      `/api/etl/${project_name}/output/${name}`
-    ).then(
-      ({output}) => setOutput(output)
-    )
+  useEffect(() => {
+    json_get(`/api/etl/${project_name}/output/${name}`).then(({output}) =>
+      setOutput(output)
+    );
   }, []);
 
+  const extensions = useMemo(
+    () => [
+      basicSetup,
+      syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
+      EditorView.editable.of(false),
+      EditorState.readOnly.of(true),
+      EditorView.lineWrapping,
+      EditorState.tabSize.of(2),
+      gutter({class: 'CodeMirror-lint-markers'}),
+      lineNumbers(),
+      lintGutter()
+    ],
+    []
+  );
 
-  return <EtlPane mode='logs' selected={selected}>
-    <EtlPaneHeader title='Logs'/>
-    <div className={classes.editor}>
-      <Controlled
-        options = {{
-          readOnly: true,
-          lineNumbers: true,
-          lineWrapping: true,
-          mode: 'text',
-          gutters: ['CodeMirror-lint-markers'],
-          lint: false,
-          tabSize: 2
-        }}
-        value={output}
-        onBeforeChange={(editor, data, value) => { }}
-      />
-    </div>
-    { output && <a href={URL.createObjectURL(new Blob([output], { type: 'text/plain' }))} download={ `log-${project_name}-${name}.txt` }>Download log</a> }
-  </EtlPane>
-}
+  return (
+    <EtlPane mode='logs' selected={selected}>
+      <EtlPaneHeader title='Logs' />
+      <div className={classes.editor}>
+        <ErrorBoundary>
+          <CodeMirror extensions={extensions} value={output} />
+        </ErrorBoundary>
+      </div>
+      {output && (
+        <a
+          href={URL.createObjectURL(new Blob([output], {type: 'text/plain'}))}
+          download={`log-${project_name}-${name}.txt`}
+        >
+          Download log
+        </a>
+      )}
+    </EtlPane>
+  );
+};
 
 export default LogsPane;

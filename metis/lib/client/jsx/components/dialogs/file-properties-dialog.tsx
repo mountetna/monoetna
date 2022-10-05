@@ -10,7 +10,7 @@ const FilePropertiesDialog = ({file}: {file: File}) => {
 
   const close = useCallback(() => {
     invoke({type: 'DISMISS_DIALOG'});
-  }, []);
+  }, [invoke]);
 
   return (
     <div className='file-properties-dialog'>

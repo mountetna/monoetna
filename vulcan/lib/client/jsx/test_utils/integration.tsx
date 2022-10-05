@@ -1,19 +1,30 @@
-import {ReactElement, useContext} from "react";
-import {act, create} from "react-test-renderer";
+import {ReactElement, useContext} from 'react';
+import {act, create} from 'react-test-renderer';
 import {
-  defaultContext, ProviderProps, VulcanContext, VulcanContextData, VulcanProvider
-} from "../contexts/vulcan_context";
-import {Provider} from "react-redux";
-import {VulcanStore} from "../vulcan_store";
-import * as React from "react";
-import {BlockingAsyncMock, createFakeStorage, UnbufferedAsyncMock} from "./mocks";
-import {Maybe, some} from "../selectors/maybe";
+  defaultContext,
+  ProviderProps,
+  VulcanContext,
+  VulcanContextData,
+  VulcanProvider
+} from '../contexts/vulcan_context';
+import {Provider} from 'react-redux';
+import {VulcanStore} from '../vulcan_store';
+import * as React from 'react';
+import {
+  BlockingAsyncMock,
+  createFakeStorage,
+  UnbufferedAsyncMock
+} from './mocks';
+import {Maybe, some} from '../selectors/maybe';
 
-type InnerElementConstructor = (hookElement: ReactElement, contextData: VulcanContextData) => ReactElement;
+type InnerElementConstructor = (
+  hookElement: ReactElement,
+  contextData: VulcanContextData
+) => ReactElement;
 
 export function integrateElement(
   element: ReactElement | null | InnerElementConstructor = null,
-  providerOverrides: Partial<ProviderProps & VulcanContextData> = {},
+  providerOverrides: Partial<ProviderProps & VulcanContextData> = {}
 ) {
   // Default provide mocks should proceed the spread below.
   providerOverrides = {
@@ -21,8 +32,9 @@ export function integrateElement(
     getData: defaultContext.getData,
     pollStatus: defaultContext.pollStatus,
     postInputs: defaultContext.postInputs,
-    storage: createFakeStorage(), ...providerOverrides,
-  }
+    storage: createFakeStorage(),
+    ...providerOverrides
+  };
 
   const store = VulcanStore();
 
@@ -33,11 +45,18 @@ export function integrateElement(
   let PreHookContainer = function PreHookContainer() {
     if (preHook) prehookResult[0] = preHook();
     return null;
+  };
+
+  function ProvidesElementFunction({
+    element,
+    prehook
+  }: {
+    element: InnerElementConstructor;
+    prehook: ReactElement;
+  }) {
+    const contextData = useContext(VulcanContext);
+    return element(prehook, contextData);
   }
-
-  const node = create(rerender())
-
-  return {node, runHook, provideOverrides, replaceElement, blockingAsyncMock, unbufferedAsyncMock};
 
   // Regenerates the react element tree to create or update.
   // Manages & injects the prehook as well as the inner element.
@@ -49,28 +68,28 @@ export function integrateElement(
       PreHookContainer = function PreHookContainer() {
         if (preHook) prehookResult[0] = preHook();
         return null;
-      }
+      };
     }
 
-    const prehook = <PreHookContainer key={renderIdx + "-prehook"}/>;
-    const inner = element instanceof Function ?
-      <ProvidesElementFunction element={element} prehook={prehook}/> :
-      <React.Fragment>
-        {prehook}
-        {element}
-      </React.Fragment>;
+    const prehook = <PreHookContainer key={renderIdx + '-prehook'} />;
+    const inner =
+      element instanceof Function ? (
+        <ProvidesElementFunction element={element} prehook={prehook} />
+      ) : (
+        <React.Fragment>
+          {prehook}
+          {element}
+        </React.Fragment>
+      );
 
-    return <Provider store={store}>
-      <VulcanProvider {...providerOverrides}>
-        {inner}
-      </VulcanProvider>
-    </Provider>;
+    return (
+      <Provider store={store}>
+        <VulcanProvider {...providerOverrides}>{inner}</VulcanProvider>
+      </Provider>
+    );
   }
 
-  function ProvidesElementFunction({element, prehook}: { element: InnerElementConstructor, prehook: ReactElement }) {
-    const contextData = useContext(VulcanContext);
-    return element(prehook, contextData);
-  }
+  const node = create(rerender());
 
   function runHook<T>(hook: () => T): T {
     act(function () {
@@ -84,7 +103,7 @@ export function integrateElement(
   function getContext(): VulcanContextData {
     return runHook(function () {
       return useContext(VulcanContext);
-    })
+    });
   }
 
   function provideOverrides(p: Partial<ProviderProps & VulcanContextData>) {
@@ -97,17 +116,37 @@ export function integrateElement(
     return getContext();
   }
 
-  function blockingAsyncMock<K extends keyof VulcanContextData, T>(k: K): VulcanContextData[K] extends (...a: any[]) => Promise<T> ? BlockingAsyncMock<any[], T> : never {
+  function blockingAsyncMock<K extends keyof VulcanContextData, T>(
+    k: K
+  ): VulcanContextData[K] extends (...a: any[]) => Promise<T>
+    ? BlockingAsyncMock<any[], T>
+    : never {
     const mock = new BlockingAsyncMock<any[], T>(defaultContext[k] as any, act);
     provideOverrides({[k]: mock.mock});
     return mock as any;
   }
 
-  function unbufferedAsyncMock<K extends keyof VulcanContextData, T>(k: K): VulcanContextData[K] extends (...a: any[]) => Promise<T> ? UnbufferedAsyncMock<any[], T> : never {
-    const mock = new UnbufferedAsyncMock<any[], T>(defaultContext[k] as any, act);
+  function unbufferedAsyncMock<K extends keyof VulcanContextData, T>(
+    k: K
+  ): VulcanContextData[K] extends (...a: any[]) => Promise<T>
+    ? UnbufferedAsyncMock<any[], T>
+    : never {
+    const mock = new UnbufferedAsyncMock<any[], T>(
+      defaultContext[k] as any,
+      act
+    );
     provideOverrides({[k]: mock.mock});
     return mock as any;
   }
+
+  return {
+    node,
+    runHook,
+    provideOverrides,
+    replaceElement,
+    blockingAsyncMock,
+    unbufferedAsyncMock
+  };
 }
 
 export class ValueCell<ValueType> {
@@ -116,7 +155,9 @@ export class ValueCell<ValueType> {
 
   constructor(
     protected factory: () => Promise<ValueType> | ValueType,
-    protected scheduler: (f: () => Promise<void>) => Promise<void> = async f => await f(),
+    protected scheduler: (f: () => Promise<void>) => Promise<void> = async (
+      f
+    ) => await f()
   ) {
     this.originalFactory = factory;
     this.setup();
@@ -124,19 +165,21 @@ export class ValueCell<ValueType> {
 
   get value(): ValueType {
     if (this.cached) return this.cached[0];
-    throw new Error('.value not ready, did you forget to await .ensure() in a definition?')
+    throw new Error(
+      '.value not ready, did you forget to await .ensure() in a definition?'
+    );
   }
 
   protected setup() {
     beforeAll(() => {
       this.factory = this.originalFactory;
-    })
+    });
 
     beforeEach(() => this.ensure());
 
     afterEach(() => {
       this.cached = null;
-    })
+    });
   }
 
   async ensure() {
@@ -151,25 +194,28 @@ export class ValueCell<ValueType> {
     throw new Error('Ensure did not ensure value creation, bug.');
   }
 
-  replace(newF: (f: () => Promise<ValueType> | ValueType) => (Promise<ValueType> | ValueType)) {
+  replace(
+    newF: (
+      f: () => Promise<ValueType> | ValueType
+    ) => Promise<ValueType> | ValueType
+  ) {
     let lastFactory: () => Promise<ValueType> | ValueType;
     beforeAll(() => {
-      const curFactory = lastFactory = this.factory;
-      this.factory = () => newF(curFactory)
-    })
+      const curFactory = (lastFactory = this.factory);
+      this.factory = () => newF(curFactory);
+    });
 
     afterAll(() => {
       this.factory = lastFactory;
-    })
+    });
   }
 }
 
 export function setupBefore<T>(f: () => T) {
-  return new ValueCell(f, async inner => {
+  return new ValueCell(f, async (inner) => {
     // Run the inner, synchronous
     await inner();
-    await act(async () => {
-    });
+    await act(async () => {});
   });
 }
 

@@ -1,10 +1,10 @@
 import React, {useCallback} from 'react';
 import {WithInputParams} from './input_types';
-import {some} from "../../../../selectors/maybe";
-import BooleanInput from "./boolean";
-import {flattenStringOptions, StringOptions} from "./monoids";
-import {useMemoized} from "../../../../selectors/workflow_selectors";
-import {useSetsDefault} from "./useSetsDefault";
+import {some} from '../../../../selectors/maybe';
+import BooleanInput from './boolean';
+import {flattenStringOptions, StringOptions} from './monoids';
+import {useMemoized} from '../../../../selectors/workflow_selectors';
+import {useSetsDefault} from './useSetsDefault';
 
 export default function CheckboxesInput({data, onChange, ...props}: WithInputParams<{}, string[], StringOptions>) {
   const options = useMemoized(flattenStringOptions, data);

@@ -29,70 +29,6 @@ const FileCollectionValue = ({value, predicate}) =>
     <a href={value.url}> {value.original_filename || value.path} </a>
   );
 
-export default function FileCollectionAttribute(props) {
-  let {mode, value, revised_value, predicate} = props;
-
-  const browserState = useReduxState(browserStateOf());
-  const {uploads} = browserState;
-
-  const {callReviseDocument} = useFileCollectionActions(props);
-
-  var collator = new Intl.Collator(undefined, {
-    numeric: true,
-    sensitivity: 'base'
-  });
-
-  if (mode != 'edit') {
-    const sortedCollection = useMemo(
-      () =>
-        [...(value || [])].sort((a, b) => {
-          // `path` should be the index-ordered, Magma generated name.
-          // `original_filename` would be the user-selected file name.
-          return collator.compare(a.path, b.path);
-        }),
-      [value]
-    );
-
-    return (
-      <div className='attribute'>
-        <div className='collection'>
-          {sortedCollection.map((single_file) => (
-            <div key={single_file.url} className='collection_item'>
-              <FileCollectionValue value={single_file} predicate={predicate} />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const sortedRevisedCollection = useMemo(
-    () =>
-      [...(revised_value || [])].sort((a, b) => {
-        // `path` should be the index-ordered, Magma generated name.
-        // `original_filename` would be the user-selected file name.
-        return collator.compare(a.path, b.path);
-      }),
-    [revised_value]
-  );
-
-  return (
-    <div className='attribute file-collection list_input'>
-      <div>
-        <ListInput
-          placeholder='Link Files'
-          className='link_text'
-          values={sortedRevisedCollection || []}
-          itemInput={FileInput}
-          onChange={(files) => {
-            callReviseDocument(files);
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
 function browserStateOf() {
   return (state) => {
     const uploads = selectUploads(state);
@@ -104,20 +40,6 @@ function browserStateOf() {
 
 function useFileCollectionActions(props) {
   const invoke = useActionInvoker();
-
-  return {
-    callReviseDocument
-  };
-
-  function callReviseDocument(files) {
-    let {document, template, attribute} = props;
-
-    // The record format for files is different than the
-    //   update format, so we have to account for that here.
-    files = formatFileCollectionRevisions(files);
-
-    invoke(reviseDocument(document, template, attribute, files));
-  }
 
   function formatFileCollectionRevisions(files) {
     // Need to reformat {original_filename: '', path: '', url: ''} to
@@ -146,4 +68,103 @@ function useFileCollectionActions(props) {
 
     return updatedFiles;
   }
+
+  function callReviseDocument(files) {
+    let {document, template, attribute} = props;
+
+    // The record format for files is different than the
+    //   update format, so we have to account for that here.
+    files = formatFileCollectionRevisions(files);
+
+    invoke(reviseDocument(document, template, attribute, files));
+  }
+
+  return {
+    callReviseDocument
+  };
+}
+
+const ViewOnlyFileCollectionAttribute = ({value, predicate, collator}) => {
+  const sortedCollection = useMemo(
+    () =>
+      [...(value || [])].sort((a, b) => {
+        // `path` should be the index-ordered, Magma generated name.
+        // `original_filename` would be the user-selected file name.
+        return collator.compare(a.path, b.path);
+      }),
+    [value]
+  );
+
+  return (
+    <div className='attribute'>
+      <div className='collection'>
+        {sortedCollection.map((single_file) => (
+          <div key={single_file.url} className='collection_item'>
+            <FileCollectionValue value={single_file} predicate={predicate} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const EditableFileCollectionAttribute = ({
+  revised_value,
+  callReviseDocument,
+  collator
+}) => {
+  const sortedRevisedCollection = useMemo(
+    () =>
+      [...(revised_value || [])].sort((a, b) => {
+        // `path` should be the index-ordered, Magma generated name.
+        // `original_filename` would be the user-selected file name.
+        return collator.compare(a.path, b.path);
+      }),
+    [revised_value]
+  );
+
+  return (
+    <div className='attribute file-collection list_input'>
+      <div>
+        <ListInput
+          placeholder='Link Files'
+          className='link_text'
+          values={sortedRevisedCollection || []}
+          itemInput={FileInput}
+          onChange={(files) => {
+            callReviseDocument(files);
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default function FileCollectionAttribute(props) {
+  let {mode, value, revised_value, predicate} = props;
+
+  const {callReviseDocument} = useFileCollectionActions(props);
+
+  let collator = new Intl.Collator(undefined, {
+    numeric: true,
+    sensitivity: 'base'
+  });
+
+  if (mode != 'edit') {
+    return (
+      <ViewOnlyFileCollectionAttribute
+        value={value}
+        predicate={predicate}
+        collator={collator}
+      />
+    );
+  }
+
+  return (
+    <EditableFileCollectionAttribute
+      revised_value={revised_value}
+      collator={collator}
+      callReviseDocument={callReviseDocument}
+    />
+  );
 }

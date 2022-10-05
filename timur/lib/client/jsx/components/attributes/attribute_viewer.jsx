@@ -59,7 +59,7 @@ const AttributeViewer = (props) => {
     revised_value={revised_value}
     attribute={attribute}
     {...props}
-  />
-}
+  />;
+};
 
 export default AttributeViewer;

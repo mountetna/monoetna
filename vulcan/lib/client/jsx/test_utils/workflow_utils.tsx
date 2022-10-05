@@ -32,23 +32,6 @@ import {
   statusOfStep
 } from '../selectors/workflow_selectors';
 
-export function useWorkflowUtils(): WorkflowUtils {
-  const {dispatch, stateRef} = useContext(VulcanContext);
-  const [utils] = useState(() => {
-    return new WorkflowUtils(dispatch, stateRef);
-  });
-  return utils;
-}
-
-export function workflowUtilsBuilder() {
-  const stateRef = {current: defaultVulcanState};
-  return new WorkflowUtils(dispatch, stateRef);
-
-  function dispatch(action: VulcanAction) {
-    stateRef.current = VulcanReducer(stateRef.current, action);
-  }
-}
-
 export class WorkflowUtils {
   public workflow: Readonly<Workflow> = defaultWorkflow;
   public steps: {[k: string]: WorkflowStep} = {};
@@ -124,7 +107,7 @@ export class WorkflowUtils {
     this.setWorkflow(workflow.name, workflow);
     return input;
   }
-  
+
   setVignette(vignette: string) {
     let workflow = {...this.workflow, vignette: vignette};
     this.setWorkflow(workflow.name, workflow);
@@ -170,4 +153,20 @@ export class WorkflowUtils {
     this.dispatch(setDownloadedData(url, value));
     return newStatus;
   }
+}
+
+export function useWorkflowUtils(): WorkflowUtils {
+  const {dispatch, stateRef} = useContext(VulcanContext);
+  const [utils] = useState(() => {
+    return new WorkflowUtils(dispatch, stateRef);
+  });
+  return utils;
+}
+
+export function workflowUtilsBuilder() {
+  const stateRef = {current: defaultVulcanState};
+  function dispatch(action: VulcanAction) {
+    stateRef.current = VulcanReducer(stateRef.current, action);
+  }
+  return new WorkflowUtils(dispatch, stateRef);
 }

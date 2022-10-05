@@ -42,15 +42,15 @@ describe('SelectAutocompleteInput', () => {
   });
 
   it('reflects input.value when provided, and no label (not given)', () => {    
-    input.value = ['1']
+    input.value = ['1'];
     const component = mount(
       <SelectAutocompleteInput data={input.data} value={input.value} onChange={onChange} />
     );
 
-    const textFieldProps = component.find(TextField).prop('inputProps') as BaseTextFieldProps
+    const textFieldProps = component.find(TextField).prop('inputProps') as BaseTextFieldProps;
     expect(component.find(Autocomplete).length).toEqual(1);
     expect(onChange).not.toHaveBeenCalled();
-    expect(textFieldProps['value']).toEqual('1')
+    expect(textFieldProps['value']).toEqual('1');
 
     expect(component.text()).toEqual('');
   });
@@ -59,7 +59,7 @@ describe('SelectAutocompleteInput', () => {
     const component = mount(
       <SelectAutocompleteInput data={input.data} value={input.value} onChange={onChange} maxOptions={1}/>
     );
-    expect(component.find(FormHelperText).length).toEqual(1)
-    expect(component.text()).toEqual('4 options, only 1 shown')
-  })
+    expect(component.find(FormHelperText).length).toEqual(1);
+    expect(component.text()).toEqual('4 options, only 1 shown');
+  });
 });

@@ -27,10 +27,15 @@ shopt -s globstar
 #  bundle install -j "$(nproc)"
 #fi
 
-if [ -n "$FULL_BUILD" ]; then
-  # The images tend to build as root, which for host systems is unsafe,
-  # but in containers is fine.
-  npm install --unsafe-perm
+declare -a JsDependencies=("/app/babel.config.js" "/app/tsconfig.json" "/app/jest.config.js" " /app/.eslintrc.js" "/app/.eslintignore")
+for js_dep in "${JsDependencies[@]}"; do
+  if [ ! -e $js_dep ]; then
+    ln -sf $(sed 's/app/etna/g' <<< "$js_dep") $js_dep
+  fi
+done
+
+if [ ! -L "/app/node_modules" ]; then
+  ln -sf "/etna/node_modules" "/app/node_modules"
 fi
 
 # Prepare the puma.sh into the /app/bin directory.

@@ -220,7 +220,7 @@ const QueryFilterSubclause = ({
                   // Only send event if user manually clears the value
                   //   or selects a non-empty-string option.
                   if ('' !== v || 'reset' !== r)
-                    handleOperandChangeWithDebounce(v || '');
+                    {handleOperandChangeWithDebounce(v || '');}
                 }}
                 inputValue={operandValue.toString()}
                 data-testid='operand-autocomplete'

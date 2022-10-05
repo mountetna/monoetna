@@ -18,7 +18,7 @@ const MoveFolderDialog = ({
   const submit = useCallback(() => {
     onSubmit(bucketName, newFolderPath);
     invoke({type: 'DISMISS_DIALOG'});
-  }, [bucketName, newFolderPath]);
+  }, [bucketName, newFolderPath, invoke, onSubmit]);
 
   return (
     <div className='move-folder-dialog'>

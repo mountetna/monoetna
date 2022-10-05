@@ -1,4 +1,3 @@
-
 volumes:
   polyphemus-app-gems:
     driver: local
@@ -14,8 +13,6 @@ volumes:
     driver: local
   polyphemus-opt-dir:
     driver: local
-  polyphemus-node-modules:
-    driver: local
   polyphemus-ssh-dir:
     driver: local
 
@@ -24,7 +21,6 @@ x-base-etna-service:
   image: etna-base
   volumes: &base-etna-service-volumes
     - .:/app:delegated
-    - polyphemus-node-modules:/app/node_modules
     - polyphemus-log-dir:/app/log:rw
     - polyphemus-tmp-dir:/app/tmp:rw
     - polyphemus-public-dir:/app/public:rw
@@ -61,7 +57,7 @@ x-base-etna-services:
   'polyphemus_webpack':
     &base-etna-webpack # The ruby webpack server watching for changes
     <<: *base-etna-service
-    command: npm run webpack
+    command: npm run webpack-dev
 
   'polyphemus_db':
     &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
@@ -87,7 +83,7 @@ x-base-etna-services:
     environment:
       APP_NAME: 'polyphemus_app_fe'
 
-version: "3.4"
+version: '3.4'
 
 networks:
   edge_net:

@@ -1,6 +1,6 @@
-import {setStatus, setWorkflow, setWorkflows, VulcanAction} from "../actions/vulcan_actions";
-import {workflowsResponse} from "./fixtures/workflows-response";
-import {statusWithoutDownloads} from "./fixtures/status-without-downloads";
+import {setStatus, setWorkflow, setWorkflows, VulcanAction} from '../actions/vulcan_actions';
+import {workflowsResponse} from './fixtures/workflows-response';
+import {statusWithoutDownloads} from './fixtures/status-without-downloads';
 import {
     defaultFigure,
     defaultSessionStatusResponse,
@@ -11,8 +11,8 @@ import {
     Workflow,
     WorkflowsResponse,
     WorkflowStep
-} from "../api_types";
-import {defaultSession, VulcanState} from "../reducers/vulcan_reducer";
+} from '../api_types';
+import {defaultSession, VulcanState} from '../reducers/vulcan_reducer';
 
 export function createWorkflowFixture(workflow: Partial<Workflow>): Workflow {
     return { ...workflowsResponse['workflows'][0], projects: ['test'], ...workflow };
@@ -39,7 +39,7 @@ export function createSessionFixture(workflow_name: string, session: Partial<Vul
         ...defaultSession,
         ...session,
         workflow_name,
-    }
+    };
 }
 
 export function createStoredSessionFixture(workflow_name: string, session: Partial<VulcanSession> = {}, figure: Partial<VulcanFigure> = {}): VulcanSession & VulcanFigure {
@@ -49,7 +49,7 @@ export function createStoredSessionFixture(workflow_name: string, session: Parti
         ...session,
         ...figure,
         workflow_name,
-    }
+    };
 }
 
 export function createUpdatedStatusFixture(workflow: Workflow, status: VulcanState['status'], ...statusPatches: Partial<StepStatus>[]): [StepStatus[]] {
@@ -76,6 +76,6 @@ export function createUpdatedStatusResponseFixture(state: VulcanState, response:
 
 export function findWorkflowFromResponse(response: WorkflowsResponse, n: string): Workflow {
     const result = response.workflows.find(({name}) => name === n);
-    if (!result) throw new Error("Workflow named " + n + " not found on the response");
+    if (!result) throw new Error('Workflow named ' + n + ' not found on the response');
     return result;
 }

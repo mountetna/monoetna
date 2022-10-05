@@ -6,6 +6,28 @@ import React, {Component, useMemo} from 'react';
 import ListInput from 'etna-js/components/inputs/list_input';
 import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
 
+const ViewOnlyCollectionAttribute = ({value, attribute}) => {
+  let collator = new Intl.Collator(undefined, {
+    numeric: true,
+    sensitivity: 'base'
+  });
+  const sortedCollection = useMemo(
+    () => [...(value || [])].sort(collator.compare),
+    [value]
+  );
+  return (
+    <div className='attribute'>
+      <div className='collection'>
+        {sortedCollection.map((link) => (
+          <div key={link} className='collection_item'>
+            <MagmaLink link={link} model={attribute.link_model_name} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const CollectionAttribute = ({
   mode,
   value,
@@ -16,25 +38,7 @@ const CollectionAttribute = ({
   reviseDocument
 }) => {
   if (mode != 'edit') {
-    var collator = new Intl.Collator(undefined, {
-      numeric: true,
-      sensitivity: 'base'
-    });
-    const sortedCollection = useMemo(
-      () => [...(value || [])].sort(collator.compare),
-      [value]
-    );
-    return (
-      <div className='attribute'>
-        <div className='collection'>
-          {sortedCollection.map((link) => (
-            <div key={link} className='collection_item'>
-              <MagmaLink link={link} model={attribute.link_model_name} />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <ViewOnlyCollectionAttribute value={value} attribute={attribute} />;
   }
 
   return (

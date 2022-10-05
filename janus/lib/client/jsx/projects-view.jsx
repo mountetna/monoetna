@@ -13,7 +13,6 @@ import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {json_post, json_get} from 'etna-js/utils/fetch';
 import {isSuperEditor} from 'etna-js/utils/janus';
-import {updateProject} from './api/janus_api';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 
 import {makeStyles} from '@material-ui/core/styles';
@@ -25,11 +24,16 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import Checkbox from '@material-ui/core/Checkbox';
 
-import SaveCancel from './save-cancel';
-import { projectTypeFor } from './utils/project';
+import {projectTypeFor} from './utils/project';
 
+const defaultProjectsContext = {
+  state: {
+    projects: []
+  }
+};
+
+const ProjectsContext = createContext(defaultProjectsContext);
 
 const Project = ({project}) => {
   const [changed, setChanged] = useState(false);
@@ -45,21 +49,18 @@ const Project = ({project}) => {
     setChanged(false);
   }, [project.resource]);
 
-
   return (
     <TableRow key={project.project_name}>
       <TableCell>
         <a href={`/${project.project_name}`}>{project.project_name}</a>
       </TableCell>
       <TableCell>{project.project_name_full}</TableCell>
-      <TableCell>
-        { projectTypeFor(project) }
-      </TableCell>
+      <TableCell>{projectTypeFor(project)}</TableCell>
     </TableRow>
   );
 };
 
-const projectStyles = makeStyles( theme => ({
+const projectStyles = makeStyles((theme) => ({
   table_container: {
     height: 'calc(100vh - 61px - 38px - 73px)',
     width: 'calc(100% - 2px)'
@@ -69,30 +70,35 @@ const projectStyles = makeStyles( theme => ({
 const Projects = ({projects}) => {
   const classes = projectStyles();
 
-  return <div id='admin-projects'>
-    <div className='title'>Projects</div>
-    <TableContainer component={Paper} className={classes.table_container}>
-      <Table aria-label='all projects'>
-        <TableHead>
-          <TableRow>
-            <TableCell>Project Name</TableCell>
-            <TableCell>Title</TableCell>
-            <TableCell>Type</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {projects.sort((p1, p2) =>
-              p1.project_name_full.localeCompare(p2.project_name_full)
-            ).map((project) => (
-              <Project key={project.project_name} project={project} />
-            ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  </div>
-}
+  return (
+    <div id='admin-projects'>
+      <div className='title'>Projects</div>
+      <TableContainer component={Paper} className={classes.table_container}>
+        <Table aria-label='all projects'>
+          <TableHead>
+            <TableRow>
+              <TableCell>Project Name</TableCell>
+              <TableCell>Title</TableCell>
+              <TableCell>Type</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {projects
+              .sort((p1, p2) =>
+                p1.project_name_full.localeCompare(p2.project_name_full)
+              )
+              .map((project) => (
+                <Project key={project.project_name} project={project} />
+              ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </div>
+  );
+};
 
-const postAddProject = (project) => json_post('/api/admin/add_project', project);
+const postAddProject = (project) =>
+  json_post('/api/admin/add_project', project);
 
 const NewProject = ({retrieveAllProjects}) => {
   let [newproject, setNewProject] = useState({});
@@ -165,22 +171,6 @@ const ProjectsView = () => {
   );
 };
 
-const ProjectsViewWrapper = () => {
-  return (
-    <ProjectsProvider>
-      <ProjectsView />
-    </ProjectsProvider>
-  );
-};
-
-const defaultProjectsContext = {
-  state: {
-    projects: []
-  }
-};
-
-const ProjectsContext = createContext(defaultProjectsContext);
-
 const ProjectsProvider = (props) => {
   const [state, setState] = useState(
     props.state || defaultProjectsContext.state
@@ -205,6 +195,14 @@ const ProjectsProvider = (props) => {
     >
       {props.children}
     </ProjectsContext.Provider>
+  );
+};
+
+const ProjectsViewWrapper = () => {
+  return (
+    <ProjectsProvider>
+      <ProjectsView />
+    </ProjectsProvider>
   );
 };
 

@@ -63,6 +63,64 @@ export const defaultVulcanState = {
 
 export type VulcanState = Readonly<typeof defaultVulcanState>;
 
+function filterStaleInputs(
+  state: VulcanState,
+  action: {type: 'SET_STATUS'} & {
+    status: [StepStatus[]];
+    submittingStep: Maybe<string>;
+  }
+) {
+  const {workflow} = state;
+  if (!workflow) return state;
+
+  return withDefault(
+    mapSome(action.submittingStep, (submittingStep) => {
+      let newState = {...state};
+      let newInputs = state.session.inputs;
+      let newData = state.data;
+
+      const hashesOfSteps = {} as {[k: string]: string};
+      action.status[0].forEach((stepStatus) => {
+        hashesOfSteps[stepStatus.name] = stepStatus.hash;
+      });
+
+      for (let stepStatus of state.status[0]) {
+        // The submitting step is pushing a new value from the client up, thus
+        // it should not have its input made stale.
+        if (stepStatus.name === submittingStep) continue;
+
+        if (hashesOfSteps[stepStatus.name] !== stepStatus.hash) {
+          const step = stepOfStatus(stepStatus, workflow);
+          if (!step) continue;
+          allExpectedOutputSources(step).forEach((outputSource) => {
+            if (newState === state) {
+              newState = {
+                ...state,
+                session: {...state.session, inputs: {...state.session.inputs}}
+              };
+              newInputs = state.session.inputs;
+            }
+            delete newInputs[outputSource];
+          });
+
+          if (stepStatus.downloads) {
+            Object.values(stepStatus.downloads).forEach((url) => {
+              if (newState === state) {
+                newState = {...state, data: {...state.data}};
+                newData = newState.data;
+              }
+              delete newData[url];
+            });
+          }
+        }
+      }
+
+      return newState;
+    }),
+    state
+  );
+}
+
 export default function VulcanReducer(
   state: VulcanState,
   action: VulcanAction
@@ -86,8 +144,9 @@ export default function VulcanReducer(
         workflowProjects === undefined ||
         (workflowProjects !== null &&
           !workflowProjects.includes(action.projectName))
-      )
+      ) {
         return state;
+      }
 
       return {
         ...state,
@@ -268,62 +327,4 @@ export default function VulcanReducer(
     default:
       return state;
   }
-}
-
-function filterStaleInputs(
-  state: VulcanState,
-  action: {type: 'SET_STATUS'} & {
-    status: [StepStatus[]];
-    submittingStep: Maybe<string>;
-  }
-) {
-  const {workflow} = state;
-  if (!workflow) return state;
-
-  return withDefault(
-    mapSome(action.submittingStep, (submittingStep) => {
-      let newState = {...state};
-      let newInputs = state.session.inputs;
-      let newData = state.data;
-
-      const hashesOfSteps = {} as {[k: string]: string};
-      action.status[0].forEach((stepStatus) => {
-        hashesOfSteps[stepStatus.name] = stepStatus.hash;
-      });
-
-      for (let stepStatus of state.status[0]) {
-        // The submitting step is pushing a new value from the client up, thus
-        // it should not have its input made stale.
-        if (stepStatus.name === submittingStep) continue;
-
-        if (hashesOfSteps[stepStatus.name] !== stepStatus.hash) {
-          const step = stepOfStatus(stepStatus, workflow);
-          if (!step) continue;
-          allExpectedOutputSources(step).forEach((outputSource) => {
-            if (newState === state) {
-              newState = {
-                ...state,
-                session: {...state.session, inputs: {...state.session.inputs}}
-              };
-              newInputs = state.session.inputs;
-            }
-            delete newInputs[outputSource];
-          });
-
-          if (stepStatus.downloads) {
-            Object.values(stepStatus.downloads).forEach((url) => {
-              if (newState === state) {
-                newState = {...state, data: {...state.data}};
-                newData = newState.data;
-              }
-              delete newData[url];
-            });
-          }
-        }
-      }
-
-      return newState;
-    }),
-    state
-  );
 }

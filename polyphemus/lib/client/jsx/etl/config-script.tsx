@@ -1,17 +1,16 @@
 // Framework libraries.
-import React, { useState, useEffect } from 'react';
-import { Controlled } from 'react-codemirror2';
-
-import CodeMirror, { Editor } from 'codemirror';
+import React, {useMemo} from 'react';
 import {makeStyles} from '@material-ui/core/styles';
 
-import 'codemirror/mode/javascript/javascript';
-import 'codemirror/addon/lint/lint';
-import 'codemirror/addon/search/search';
-import 'codemirror/addon/search/searchcursor';
-import 'codemirror/addon/search/jump-to-line';
-import 'codemirror/addon/dialog/dialog';
-import 'codemirror/addon/dialog/dialog.css';
+import {basicSetup, EditorView} from 'codemirror';
+import {json} from '@codemirror/lang-json';
+import {defaultHighlightStyle, syntaxHighlighting} from '@codemirror/language';
+import {EditorState, Text} from '@codemirror/state';
+import {gutter, lineNumbers} from '@codemirror/view';
+import CodeMirror from 'rodemirror';
+import {lintGutter, linter, Diagnostic, LintSource} from '@codemirror/lint';
+
+import ErrorBoundary from 'etna-js/components/error_boundary';
 
 import JsonMap from 'json-source-map';
 
@@ -22,29 +21,37 @@ const ajv = new Ajv({
   verbose: true
 });
 
-const errorMessage = (error : any) => {
+const errorMessage = (error: any) => {
   let addendum;
-  switch(error.keyword) {
+  switch (error.keyword) {
     case 'additionalProperties':
       addendum = error.params.additionalProperty;
       break;
     case 'enum':
       addendum = error.params.allowedValues.join(', ');
       break;
-  };
-  return [
-    error.instancePath,
-    error.message,
-    addendum
-  ].filter(_=>_).join(' ');
+  }
+  return [error.instancePath, error.message, addendum]
+    .filter((_) => _)
+    .join(' ');
+};
+
+function getErrorPosition(error: SyntaxError, doc: Text): number {
+  let m;
+  if ((m = error.message.match(/at position (\d+)/)))
+    {return Math.min(+m[1], doc.length);}
+  if ((m = error.message.match(/at line (\d+) column (\d+)/)))
+    {return Math.min(doc.line(+m[1]).from + +m[2] - 1, doc.length);}
+  return 0;
 }
 
-export const validator = (schema:any, editor:Editor): Function => {
+export const validator = (schema: any): LintSource => {
   const validate = ajv.compile(schema);
 
-  return (text:string) => {
+  return (view: EditorView): Diagnostic[] => {
     // first see if the json can parse
-    let json:any;
+    let json: any;
+    const text = view.state.doc.toString();
 
     // ignore blank texts
     if (!text) return [];
@@ -53,79 +60,88 @@ export const validator = (schema:any, editor:Editor): Function => {
       json = JsonMap.parse(text);
     } catch (error) {
       // parse the error message and report the line numbers
-      let { message } = error;
+      const pos = getErrorPosition(error, view.state.doc);
 
-      let match = message.match(/^(?<message>[\s\S]*) at position (?<pos>\d+)/m);
-      if (match) {
-        return [
-          {
-            from: editor.posFromIndex(parseInt(match.groups.pos)),
-            to: editor.posFromIndex(parseInt(match.groups.pos)),
-            severity: 'error',
-            message: match.groups.message
-          }
-        ]
-      }
-      return [];
+      return [
+        {
+          from: pos,
+          to: pos,
+          severity: 'error',
+          message: error.message
+        }
+      ];
     }
 
     let valid = validate(json.data);
 
     if (valid || !validate.errors) return [];
+    console.log(validate.errors);
+    return validate.errors.reduce((acc: Diagnostic[], error) => {
+      let pointer = json.pointers[error.instancePath];
 
-    return validate.errors!.map(
-      error => {
-        let pointer = json.pointers[error.instancePath];
-
-        if (!pointer) return null;
-
-        return {
-          from: CodeMirror.Pos(pointer.value.line, pointer.value.column),
-          to: CodeMirror.Pos(pointer.valueEnd.line, pointer.valueEnd.column),
+      if (pointer) {
+        console.log('pointer', pointer, error);
+        acc.push({
+          from: pointer.value.pos,
+          to: pointer.valueEnd.pos,
           message: errorMessage(error),
           severity: 'error'
-        }
+        } as Diagnostic);
       }
-    ).filter(_=>_);
-  }
-}
 
-const useStyles = makeStyles( theme => ({
+      return acc;
+    }, []);
+  };
+};
+
+const useStyles = makeStyles((theme) => ({
   editor: {
     border: '1px solid #ccc',
     height: '200px',
     resize: 'vertical',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    overflowY: 'auto'
   }
 }));
 
-const ConfigScript = ({ schema, script, onChange } : { schema: any, script: string, onChange: Function } ) => {
-  let [ editor, setEditor ] = useState<Editor| null>(null);
-
+const ConfigScript = ({
+  schema,
+  script,
+  onChange
+}: {
+  schema: any;
+  script: string;
+  onChange: Function;
+}) => {
   const classes = useStyles();
 
-  useEffect(
-    () => {
-      if (editor) CodeMirror.registerHelper("lint", "json", validator(schema, editor))
-    }, [ editor ]
+  const extensions = useMemo(
+    () => [
+      basicSetup,
+      syntaxHighlighting(defaultHighlightStyle, {fallback: true}),
+      json(),
+      EditorView.editable.of(true),
+      EditorState.readOnly.of(false),
+      EditorView.lineWrapping,
+      EditorState.tabSize.of(2),
+      gutter({class: 'CodeMirror-lint-markers'}),
+      lineNumbers(),
+      lintGutter(),
+      linter(validator(schema)),
+      EditorView.updateListener.of(function (e) {
+        if (e.docChanged) {
+          onChange(e.state.doc.toString());
+        }
+      })
+    ],
+    []
   );
 
   return (
     <div className={classes.editor}>
-      <Controlled
-        options = {{
-          readOnly: false,
-          lineNumbers: true,
-          lineWrapping: true,
-          mode: 'application/json',
-          gutters: ['CodeMirror-lint-markers'],
-          lint: true,
-          tabSize: 2
-        }}
-        editorDidMount={ setEditor }
-        value={script}
-        onBeforeChange={(editor, data, value) => { onChange(value); }}
-      />
+      <ErrorBoundary>
+        <CodeMirror extensions={extensions} value={script} />
+      </ErrorBoundary>
     </div>
   );
 };

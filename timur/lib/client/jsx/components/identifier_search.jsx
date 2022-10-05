@@ -48,7 +48,7 @@ class IdentifierSearch extends React.Component{
     let { identifiers } = this.props;
 
     if (!has_focus || !identifiers || !match_string || match_string.length < 2)
-      return null;
+      {return null;}
 
     let match_exp = new RegExp(match_string, 'i');
 

@@ -1,11 +1,11 @@
-import {defaultApiHelpers} from "./api";
-import {Dispatch, MutableRefObject} from "react";
-import {VulcanState} from "../reducers/vulcan_reducer";
-import {checkCommittedStepPending, finishPolling, setSession, setStatus, startPolling, VulcanAction} from "../actions/vulcan_actions";
-import {SessionStatusResponse} from "../api_types";
-import {hasNoRunningSteps} from "../selectors/workflow_selectors";
-import {runPromise, useAsyncCallback} from "etna-js/utils/cancellable_helpers";
-import {Maybe} from "../selectors/maybe";
+import {defaultApiHelpers} from './api';
+import {Dispatch, MutableRefObject} from 'react';
+import {VulcanState} from '../reducers/vulcan_reducer';
+import {checkCommittedStepPending, finishPolling, setSession, setStatus, startPolling, VulcanAction} from '../actions/vulcan_actions';
+import {SessionStatusResponse} from '../api_types';
+import {hasNoRunningSteps} from '../selectors/workflow_selectors';
+import {runPromise, useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
+import {Maybe} from '../selectors/maybe';
 
 export const defaultSessionSyncHelpers = {
   requestPoll(post = false, submittingStep: Maybe<string> = null): Promise<unknown> {
@@ -60,7 +60,7 @@ export function useSessionSync(state: MutableRefObject<VulcanState>,
       updateFromSessionResponse(response, dispatch, null);
     }
   }, [dispatch, pollStatus, postInputs, state], () => {
-    dispatch(finishPolling())
+    dispatch(finishPolling());
   });
 
   return {

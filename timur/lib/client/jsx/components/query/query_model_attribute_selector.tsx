@@ -53,13 +53,13 @@ const AttributeSelector = React.memo(
     const classes = useStyles();
 
     if (!canEdit)
-      return (
+      {return (
         <TextField
           disabled
           value={column.attribute_name}
           className='query-column-attribute'
         />
-      );
+      );}
 
     return (
       <FormControl className={classes.fullWidth}>
