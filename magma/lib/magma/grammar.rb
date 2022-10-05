@@ -126,11 +126,12 @@ class Magma
         schema = JSONSchemer.schema(
           JSON.parse(Magma::Grammar.to_schema.to_json)
         )
-        valid_schema = schema.valid?(JSON.parse(@config.to_json))
 
-        @errors << "Invalid schema." unless valid_schema
+        schema_errors = schema.validate(JSON.parse(@config.to_json))
 
-        valid_schema
+        @errors += schema_errors.map do |error|
+          JSONSchemer::Errors.pretty(error)
+        end
       end
 
       def validate_rules
@@ -179,7 +180,9 @@ class Magma
       end
 
       def validate(config)
-        Magma::Grammar::Validation.new(config).valid?
+        validation = Magma::Grammar::Validation.new(config)
+
+        validation.valid? ? [] : validation.errors
       end
     end
 

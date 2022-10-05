@@ -223,7 +223,7 @@ class Magma
     end
 
     def all_token_placeholders
-      @all_token_values ||= @config['tokens'].keys
+      @all_token_values ||= (@config['tokens']&.keys || [])
     end
 
     def all_rule_placeholders
@@ -239,7 +239,7 @@ class Magma
     def validate_all_tokens_defined
       unidentified_tokens = []
 
-      unknown_token_exists = @config['rules'].any? do |rule_name, rule_definition|
+      unknown_token_exists = @config['rules']&.any? do |rule_name, rule_definition|
         rule_definition.split(" ").any? do |rule_token|
           unknown = !allowed_rule_tokens.include?(rule_token)
 

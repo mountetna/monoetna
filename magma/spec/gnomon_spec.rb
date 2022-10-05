@@ -40,7 +40,7 @@ describe GnomonController do
 
   it 'gets the most recent grammar' do
     grammar = create(:grammar, project_name: 'labors', version_number: 1, config: {})
-    grammar2 = create(:grammar, project_name: 'labors', version_number: 2, config: VALID_CONFIG)
+    grammar2 = create(:grammar, project_name: 'labors', version_number: 2, config: JSON.parse(VALID_CONFIG.to_json))
     auth_header(:viewer)
     get('/gnomon/labors')
 
