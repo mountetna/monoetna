@@ -36,6 +36,10 @@ class Magma
         ".#{@name}"
       end
 
+      def tokens
+        expanded_definition.split(" ")
+      end
+
       def regex
         /^#{tokenized_definition}$/
       end
@@ -43,7 +47,7 @@ class Magma
       def duplicative_tokens?
         seen_tokens = []
 
-        expanded_definition.split(" ").each do |token|
+        tokens.each do |token|
           next if Magma::Grammar::SEPARATOR_TOKENS.include?(token) || numeric_increment == token
 
           return true if seen_tokens.include?(token)
@@ -58,6 +62,16 @@ class Magma
         return false unless raw =~ /\.n/
 
         !(raw.strip =~ /\.n$/)
+      end
+
+      def has_required_tokens?(decomposition)
+        (tokens - decomposition.keys).empty?
+      end
+
+      def compose(decomposition)
+        tokens.map do |token|
+          decomposition[token]
+        end.join('')
       end
 
       def expanded_definition(seen_placeholders = [])
@@ -89,6 +103,10 @@ class Magma
         end.join(" ")
       end
 
+      def decomposition(identifier)
+        tokens.zip(regex.match(identifier).to_a[1..-1])
+      end
+
       private
 
       def all_rules
@@ -106,7 +124,7 @@ class Magma
       def tokenized_definition
         expanded_definition.split(" ").map do |token|
           if token == numeric_increment
-            "\\d+"
+            "(\\d+)"
           else
             "(#{values_for_token(token).join("|")})"
           end
@@ -169,6 +187,26 @@ class Magma
       end
     end
 
+    def expand_synonyms(decomposition)
+      # add any synonym tokens to decomposition
+
+      merge = {}
+      decomposition.each do |token_name, token_value|
+        next if Magma::Grammar::SEPARATOR_TOKENS.include?(token_name)
+
+        @config['synonyms']&.each do |syn_set|
+          next unless syn_set.include?(token_name)
+          syn_set.each do |syn|
+            key, value = @config['tokens'][syn]['values'].find do |key,value|
+              value == @config['tokens'][token_name]['values'][token_value]
+            end
+            merge[syn] = key
+          end
+        end
+      end
+      decomposition.merge(merge)
+    end
+
     private
 
     def validations
@@ -179,6 +217,7 @@ class Magma
         :validate_no_recursive_rules,
         :validate_no_duplicate_tokens,
         :validate_numeric_increment_at_end,
+        :validate_single_separator
       ]
     end
 
@@ -292,6 +331,15 @@ class Magma
       @errors += numeric_increment_at_end_errors unless numeric_increment_at_end_errors.empty?
 
       numeric_increment_at_end_errors.empty?
+    end
+
+    def validate_single_separator
+      all_tokens = @config['tokens'] || {}
+
+      defined_separators = Magma::Grammar::SEPARATOR_TOKENS & all_tokens.keys
+      @errors << "No separator token defined!" unless defined_separators.size > 0
+      @errors << "More than one separator token defined!" unless defined_separators.size < 2
+      @errors << "More than one separator token defined!" unless defined_separators.all? {|sep| all_tokens[sep].fetch('values').size == 1}
     end
   end
 end

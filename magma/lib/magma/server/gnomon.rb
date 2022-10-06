@@ -17,7 +17,7 @@ class GnomonController < Magma::Controller
 
     version_number = (old_grammar&.version_number || 0) + 1
 
-    errors = Magma::Grammar.validate(@params[:config])
+    errors = Magma::Grammar.validate(JSON.parse(@params[:config].to_json))
 
     return failure(422, errors: errors) unless errors.empty?
 
@@ -28,5 +28,15 @@ class GnomonController < Magma::Controller
     )
 
     return success_json(grammar.to_hash)
+  end
+
+  def decompose
+    grammar = Magma::Grammar.for_project(@params[:project_name])
+
+    result = grammar.decompose(@params[:identifier])
+
+    raise Etna::BadRequest, "Could not decompose identifier #{@params[:identifier]} for #{@params[:project_name]}" unless result
+
+    success_json(result)
   end
 end

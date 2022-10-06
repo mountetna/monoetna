@@ -62,9 +62,11 @@ class Magma
                 type: "object",
                 patternProperties: {
                   ".*": { type: "string" }
-                }
+                },
+                minProperties: 1
               }
-            }
+            },
+            required: [ "values", "label" ]
           }
         }
       end
@@ -120,8 +122,17 @@ class Magma
           :validate_no_undefined_tokens,
           :validate_tokens_same_length,
           :validate_unique_values,
+          :validate_no_duplicate_tokens,
           :validate_matching_values
         ]
+      end
+
+      def validate_no_duplicate_tokens
+        counts = @config['synonyms'].flatten.tally.select do |tok, count|
+          count > 1
+        end
+
+        @errors << "Duplicate tokens #{counts.keys.join(", ")} in synonyms" unless counts.empty?
       end
 
       def validate_no_undefined_tokens
@@ -249,7 +260,7 @@ class Magma
     one_to_many :identifiers
 
     DEFAULT_NUMERIC_INCREMENT = '.n'
-    SEPARATOR_TOKENS = ['SEP', 'SEPARATOR']
+    SEPARATOR_TOKENS = ['SEP']
 
     def tokens
       config['tokens'].map do |token_name, token_definition|
@@ -304,6 +315,23 @@ class Magma
       config['rules'].keys.map do |rule_name|
         [ rule_name, rule_parser.fetch(rule_name) ]
       end.to_h
+    end
+
+    def decompose(identifier)
+      name, rule = rules.find do |name,r| identifier =~ r.regex end
+
+      return nil if !rule
+
+      tokens = rule.decomposition(identifier)
+
+      decomposition = rule_parser.expand_synonyms(tokens.to_h)
+
+      {
+        tokens: tokens,
+        rules: rules.map do |name, rule|
+          rule.has_required_tokens?(decomposition) ? [ name, rule.compose(decomposition) ] : nil
+        end.compact.to_h
+      }
     end
 
     private

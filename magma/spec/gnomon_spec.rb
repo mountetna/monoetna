@@ -10,24 +10,63 @@ describe GnomonController do
 
   VALID_CONFIG={
     tokens: {
-      "TOK": {
-        label: "Token",
+      PROJECT: {
+        label: "project",
         values: {
-          "VAL": "Value"
+          "The Twelve Labors of Hercules": "The Twelve Labors of Hercules"
         }
       },
-      "TOKEN": {
-        label: "Token",
+      PROJ: {
+        label: "project",
         values: {
-          "VAL": "Value"
+          "LABORS": "The Twelve Labors of Hercules"
+        }
+      },
+      LABOR: {
+        label: "labor",
+        values: {
+          "The Nemean Lion": "The Nemean Lion",
+          "The Lernean Hydra": "The Lernean Hydra"
+        }
+      },
+      LAB: {
+        label: "labor",
+        values: {
+          "LION": "The Nemean Lion",
+          "HYDRA": "The Lernean Hydra"
+        }
+      },
+      VILL: {
+        label: "Village type",
+        values: {
+          "V": "Village",
+          "H": "Hamlet"
+        }
+      },
+      VICT: {
+        label: "Victim type",
+        values: {
+          "S": "Soldier",
+          "C": "Civilian"
+        }
+      },
+      SEP: {
+        label: "Separator",
+        values: {
+          "-": "# Separator"
         }
       }
+
     },
     synonyms: [
-      [ "TOK", "TOKEN" ]
+      [ "PROJ", "PROJECT" ],
+      [ "LAB", "LABOR" ]
     ],
     rules: {
-      "rule": "TOK"
+      project: "PROJECT",
+      labor: "LABOR",
+      village: "PROJ SEP LAB SEP VILL .n",
+      victim: ".village SEP VICT .n"
     }
   }
 
@@ -75,8 +114,19 @@ describe GnomonController do
     expect(last_response.status).to eq(422)
     expect(json_body).to match_array(errors: [
       "root is missing required keys: tokens, rules",
-      "property '/text' is invalid: error_type=schema"
+      "property '/text' is invalid: error_type=schema",
+      "No separator token defined!"
     ])
     expect(Magma::Grammar.count).to eq(0)
+  end
+
+  it 'decomposes an identifier' do
+    grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
+    auth_header(:viewer)
+    get('/gnomon/labors/decompose/LABORS-LION-H2-C1')
+    get('/gnomon/labors/decompose/LABORS-LION-H2-C1')
+
+    expect(last_response.status).to eq(200)
+    expect(json_body).to eq({})
   end
 end

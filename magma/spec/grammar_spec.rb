@@ -45,7 +45,7 @@ describe Magma::Grammar do
       expect(grammar.tokens.length).to eq(4)
       expect(grammar.rules.length).to eq(@config[:rules].length)
 
-      expect(grammar.rules['first'].regex).to eq(/^(SCC|SCG)(-)\d+$/)
+      expect(grammar.rules['first'].regex).to eq(/^(SCC|SCG)(-)(\d+)$/)
       expect { grammar.model_name("I-am-a-little-tea-pot") }.to raise_error(Magma::Grammar::UnrecognizedIdentifierError)
       expect(grammar.model_name("SCG-1")).to eq('first')
     end
@@ -61,7 +61,7 @@ describe Magma::Grammar do
       expect(grammar.tokens.length).to eq(4)
       expect(grammar.rules.length).to eq(@config[:rules].length)
 
-      expect(grammar.rules['second'].regex).to eq(/^(HS|MS)(-)(SCC|SCG)\d+$/)
+      expect(grammar.rules['second'].regex).to eq(/^(HS|MS)(-)(SCC|SCG)(\d+)$/)
       expect(grammar.model_name("MS-SCC2")).to eq('second')
     end
 
@@ -77,26 +77,8 @@ describe Magma::Grammar do
       expect(grammar.tokens.length).to eq(4)
       expect(grammar.rules.length).to eq(@config[:rules].length)
 
-      expect(grammar.rules['third'].regex).to eq(/^(HS|MS)(-)(D|DN)\d+(-)(SCC|SCG)\d+$/)
+      expect(grammar.rules['third'].regex).to eq(/^(HS|MS)(-)(D|DN)(\d+)(-)(SCC|SCG)(\d+)$/)
       expect(grammar.model_name("HS-D1-SCG10")).to eq('third')
-    end
-
-    it 'with multiple separators' do
-      @config[:rules] = {
-        first: 'COH SEP TMP SEP TOK .n'
-      }
-      @config[:tokens][:SEP][:values] = {
-        '-': '-',
-        '_': '_'
-      }
-
-      grammar = create(:grammar, project_name: 'labors', version_number: 1, config: @config)
-
-      expect(grammar.tokens.length).to eq(4)
-      expect(grammar.rules.length).to eq(@config[:rules].length)
-
-      expect(grammar.rules['first'].regex).to eq(/^(HS|MS)(-|_)(D|DN)(-|_)(SCC|SCG)\d+$/)
-      expect(grammar.model_name("HS-D_SCG10")).to eq('first')
     end
   end
 
@@ -338,6 +320,67 @@ describe Magma::Grammar do
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Synonyms \"COH\", \"COHO\", \"COHORT\" do not have unique values."])
+      end
+
+      it 'have duplicated tokens' do
+        config = {
+          'tokens' => {
+            'TOK' => {
+              'label' => 'Token',
+              'values' => {
+                'SCC' => 'Single-cell CITEseq',
+                'SCG' => 'Single-cell GEX'
+              },
+            },
+            'SEP' => {
+              'label' => 'Separator',
+              'values' => {
+                '-' => '-'
+              }
+            },
+            'COH' => {
+              'label' => 'Cohort',
+              'values' => {
+                'HS' => 'Homo Sapien',
+                'MS' => 'Momo Sapien'
+              }
+            },
+            'COHO' => {
+              'label' => 'Cohort',
+              'values' => {
+                'HS2' => 'Homo Sapien',
+                'MS2' => 'Momo Sapien'
+              }
+            },
+            'COHORT' => {
+              'label' => 'Cohort',
+              'values' => {
+                'HS3' => 'Homo Sapien',
+                'MS3' => 'Momo Sapien'
+              }
+            },
+            'TMP' => {
+              'label' => 'Timepoint',
+              'values' => {
+                'D' => 'Day',
+                'DN' => 'Day Negative'
+              }
+            },
+          },
+          'rules' => {
+            'first' => 'COH',
+            'second' => '.first SEP TOK .n'
+          },
+          'synonyms' => [
+            [ 'COH', 'COHORT', 'COHO' ],
+            [ 'COH', 'COHORT', 'COHO' ]
+          ]
+        }
+
+        validator = Magma::Grammar::Validation.new(config)
+
+        expect(validator.valid?).to eq(false)
+        expect(validator.errors).to eq(["Duplicate tokens COH, COHORT, COHO in synonyms"])
       end
 
       it 'includes undefined token' do
@@ -678,6 +721,35 @@ describe Magma::Grammar do
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Rule \"first\" can only use the numeric increment \".n\" at the end."])
       end
+    end
+
+    it 'complains with multiple separators' do
+      config = {
+        'tokens' => {
+          'TOK' => {
+            'label' => 'Token',
+            'values' => {
+              'SCC' => 'Single-cell CITEseq',
+              'SCG' => 'Single-cell GEX'
+            }
+          },
+          'SEP' => {
+            'label' => 'Separator',
+            'values' => {
+              '-' => '-',
+              '_' => '_'
+            }
+          }
+        },
+        'rules' => {
+          'first' => 'TOK SEP .n',
+        }
+      }
+
+      validator = Magma::Grammar::Validation.new(config)
+
+      expect(validator.valid?).to eq(false)
+      expect(validator.errors).to eq(["More than one separator token defined!"])
     end
   end
 end
