@@ -19,7 +19,6 @@ x-base-etna-service:
   image: etna-base
   volumes: &base-etna-service-volumes
     - .:/app:delegated
-    - gnomon-node-modules:/app/node_modules
     - gnomon-log-dir:/app/log:rw
     - gnomon-tmp-dir:/app/tmp:rw
     - gnomon-public-dir:/app/public:rw
