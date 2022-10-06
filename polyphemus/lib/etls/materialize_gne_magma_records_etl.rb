@@ -13,7 +13,8 @@ class Polyphemus::MaterializeGneMagmaRecordsEtl < Polyphemus::MagmaRecordEtl
         record_names: record_names,
         model_filters: model_filters,
         metis_client: metis_client, magma_client: magma_client, logger: logger,
-        project_name: 'mvir1', model_name: 'patient', filesystem: filesystem)
+        project_name: 'mvir1', model_name: 'patient', filesystem: filesystem,
+        concurrency: 5)
 
     workflow.materialize_all("Upload")
     logger.info("Done")
