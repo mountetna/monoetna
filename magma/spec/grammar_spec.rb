@@ -78,6 +78,7 @@ describe Magma::Grammar do
       expect(grammar.rules.length).to eq(@config[:rules].length)
 
       expect(grammar.rules['third'].regex).to eq(/^(HS|MS)(-)(D|DN)\d+(-)(SCC|SCG)\d+$/)
+      expect(grammar.rules['third'].regex(with_increment: false)).to eq(/^(HS|MS)(-)(D|DN)\d+(-)(SCC|SCG)$/)
       expect(grammar.model_name("HS-D1-SCG10")).to eq('third')
     end
 

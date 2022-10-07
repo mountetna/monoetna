@@ -29,4 +29,44 @@ class GnomonController < Magma::Controller
 
     return success_json(grammar.to_hash)
   end
+
+  def increment
+    require_params(:project_name, :rule_name, :identifier_root)
+
+    grammar = Magma::Grammar.for_project(@params[:project_name])
+
+    return failure(422, errors: ["No grammar defined for that project"]) if grammar.nil?
+
+    rule = grammar.rules[@params[:rule_name]]
+
+    return failure(422, errors: [
+      "That rule is not incrementable."
+    ]) unless rule.incrementable?
+
+    return failure(422, errors: [
+      "Identifier root \"#{@params[:identifier_root]}\" does not match the rule definition."
+    ]) unless rule.regex(with_increment: false) =~ @params[:identifier_root]
+
+    newest_identifier = Magma::Identifier.where(
+      rule: rule.name
+    ).where { identifier =~ RegExp.new(@params[:identifier_root]) }.order(:created_at).last
+
+    decomposition = rule.decomposition(newest_identifier)
+    decomposition["#{rule.name}_counter"] += 1
+
+    next_identifier = Magma::Identifier.create(
+      rule: rule.name,
+      project_name: project_name,
+      author: @user.name,
+      identifier: rule.compose(decomposition)
+    )
+
+    return success_json(next_identifier.to_hash)
+  end
+
+  private
+
+  def project_name
+    @params[:project_name]
+  end
 end

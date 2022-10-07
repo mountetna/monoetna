@@ -36,8 +36,12 @@ class Magma
         ".#{@name}"
       end
 
-      def regex
-        /^#{tokenized_definition}$/
+      def regex(with_increment: true)
+        /^#{tokenized_definition(with_increment: with_increment)}$/
+      end
+
+      def incrementable?
+        raw.strip =~ /\.n$/
       end
 
       def duplicative_tokens?
@@ -103,8 +107,12 @@ class Magma
         @raw ||= all_rules[@name]
       end
 
-      def tokenized_definition
-        expanded_definition.split(" ").map do |token|
+      def tokenized_definition(with_increment: true)
+        tokens = expanded_definition.split(" ")
+
+        tokens.pop if !with_increment && tokens.last == numeric_increment
+
+        tokens.map do |token|
           if token == numeric_increment
             "\\d+"
           else
