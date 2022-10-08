@@ -1,168 +1,13 @@
 class Magma
   class RuleParser
-    class RuleParseError < Exception
-    end
-
-    class RecursiveRuleError < RuleParseError
-    end
-
-    class UndefinedRuleError < RuleParseError
-    end
-
-    class RuleDefinition
-      attr_reader :name
-
-      def initialize(name, config, expansion_cache={})
-        @name = name
-        @config = config
-        @expansion_cache = expansion_cache
-      end
-
-      def self.from_placeholder(placeholder, config, expansion_cache)
-        rule_name = self.convert_placeholder_to_name(placeholder)
-
-        Magma::RuleParser::RuleDefinition.new(
-          rule_name,
-          config,
-          expansion_cache
-        )
-      end
-
-      def empty?
-        raw.strip.empty?
-      end
-
-      def placeholder
-        ".#{@name}"
-      end
-
-      def tokens
-        expanded_definition.split(" ")
-      end
-
-      def regex
-        /^#{tokenized_definition}$/
-      end
-
-      def duplicative_tokens?
-        seen_tokens = []
-
-        tokens.each do |token|
-          next if Magma::Grammar::SEPARATOR_TOKENS.include?(token) || numeric_increment == token
-
-          return true if seen_tokens.include?(token)
-
-          seen_tokens << token
-        end
-
-        false
-      end
-
-      def illegal_increment_location?
-        return false unless raw =~ /\.n/
-
-        !(raw.strip =~ /\.n$/)
-      end
-
-      def has_required_tokens?(decomposition)
-        (tokens - decomposition.keys).empty?
-      end
-
-      def compose(decomposition)
-        tokens.map do |token|
-          decomposition[token]
-        end.join('')
-      end
-
-      def expanded_definition(seen_placeholders = [])
-        @expanded_definition ||= [].tap do |result|
-          seen_placeholders << placeholder
-
-          raw.split(" ").map do |token|
-
-            raise RecursiveRuleError.new("Rule \"#{@name}\" may be recursive! It's token \"#{token}\" appears to lead to circular logic.") if seen_placeholders.include?(token)
-
-            seen_placeholders << token if other_rule_placeholders.include?(token)
-
-            if other_rule_placeholders.include?(token) && @expansion_cache.include?(token)
-              result << @expansion_cache[token]
-            elsif other_rule_placeholders.include?(token)
-              other_definition = RuleDefinition.from_placeholder(
-                token,
-                @config,
-                @expansion_cache
-              )
-
-              other_expanded_definition = other_definition.expanded_definition(seen_placeholders)
-              @expansion_cache[token] = other_expanded_definition
-              result << other_expanded_definition
-            else
-              result << token
-            end
-          end
-        end.join(" ")
-      end
-
-      def decomposition(identifier)
-        tokens.zip(regex.match(identifier).to_a[1..-1])
-      end
-
-      private
-
-      def all_rules
-        @all_rules ||= @config['rules']
-      end
-
-      def all_tokens
-        @all_tokens ||= @config['tokens']
-      end
-
-      def raw
-        @raw ||= all_rules[@name]
-      end
-
-      def tokenized_definition
-        expanded_definition.split(" ").map do |token|
-          if token == numeric_increment
-            "(\\d+)"
-          else
-            "(#{values_for_token(token).join("|")})"
-          end
-        end.join("")
-      end
-
-      def values_for_token(token)
-        all_tokens[token]['values'].keys
-      end
-
-      def self.convert_placeholder_to_name(placeholder)
-        placeholder.sub(".", "")
-      end
-
-      def other_rule_placeholders
-        other_names = all_rules.keys.reject do |rule_name|
-          rule_name == @name
-        end.map do |other_name|
-          ".#{other_name}"
-        end
-      end
-
-      def numeric_increment
-        @config['numeric_increment'] || Magma::Grammar::DEFAULT_NUMERIC_INCREMENT
-      end
-    end
-
     attr_reader :errors
 
     def initialize(config)
       @config = config
-      @rules = {}
       @errors = []
     end
 
     def valid?
-      construct_rules
-
       validations.each do |validation|
         send(validation)
       end
@@ -171,20 +16,34 @@ class Magma
     end
 
     def fetch(rule_name)
-      raise UndefinedRuleError.new("#{rule_name} undefined") unless @rules[rule_name]
+      raise UndefinedRuleError.new("#{rule_name} undefined") unless rules[rule_name]
 
-      @rules[rule_name]
+      rules[rule_name]
     end
 
-    def construct_rules
-      expansion_cache = {}
-      @config['rules']&.map do |rule_name, rule_definition|
-        @rules[rule_name] = RuleDefinition.new(
-          rule_name,
-          @config,
-          expansion_cache
-        )
-      end
+    def rules
+      @rules ||= @config['rules']&.map do |rule_name, rule_definition|
+        [
+          rule_name, 
+          Magma::RuleDefinition.new(
+            self,
+            rule_name,
+            rule_definition
+          )
+        ]
+      end.to_h || {}
+    end
+
+    def rule_names
+      rules.keys
+    end
+
+    def synonyms
+      @synonyms ||= @config['synonyms'] || []
+    end
+
+    def tokens
+      @tokens ||= @config['tokens'] || {}
     end
 
     def expand_synonyms(decomposition)
@@ -194,11 +53,11 @@ class Magma
       decomposition.each do |token_name, token_value|
         next if Magma::Grammar::SEPARATOR_TOKENS.include?(token_name)
 
-        @config['synonyms']&.each do |syn_set|
+        synonyms.each do |syn_set|
           next unless syn_set.include?(token_name)
           syn_set.each do |syn|
-            key, value = @config['tokens'][syn]['values'].find do |key,value|
-              value == @config['tokens'][token_name]['values'][token_value]
+            key, value = tokens[syn]['values'].find do |key,value|
+              value == tokens[token_name]['values'][token_value]
             end
             merge[syn] = key
           end
@@ -207,13 +66,21 @@ class Magma
       decomposition.merge(merge)
     end
 
+    def is_separator_token?(token)
+      Magma::Grammar::SEPARATOR_TOKENS.include?(token)
+    end
+
+    def is_numeric_token?(token)
+      (@config['numeric_increment'] || Magma::Grammar::DEFAULT_NUMERIC_INCREMENT) == token || token =~ /_counter$/
+    end
+
     private
 
     def validations
       [
+        :validate_all_tokens_defined,
         :validate_no_duplicate_rules,
         :validate_no_blank_rules,
-        :validate_all_tokens_defined,
         :validate_no_recursive_rules,
         :validate_no_duplicate_tokens,
         :validate_numeric_increment_at_end,
@@ -229,30 +96,26 @@ class Magma
       seen_rule_definitions = []
       duplicate_definitions = []
 
-      # First get RuleDefinition for all rules, and
-      #   collect the expanded_definition. Then
-      #   check for duplicates.
-      expanded_rules = @rules.map do |rule_name, rule_definition|
-        rule_definition.expanded_definition
-      rescue RecursiveRuleError => e
+      # check using the regex to avoid ambiguity
+      expanded_rules = rules.map do |rule_name, rule_definition|
+        [ rule_name, rule_definition.regex ]
+      rescue Magma::RecursiveRuleError => e
         nil # We'll validate recursive rules in a different validation
-      end.compact
+      end.compact.to_h
 
-      duplicate_exists = expanded_rules.any? do |rule_definition|
-        duplicated = seen_rule_definitions.include?(rule_definition)
-
-        (duplicated ? duplicate_definitions : seen_rule_definitions) << rule_definition
-
-        duplicated
+      duplicate_exists = expanded_rules.keys.group_by do |rule_name|
+        expanded_rules[rule_name]
+      end.select do |rule_def, rule_names|
+        rule_names.count > 1
       end
 
-      @errors << "Duplicate rule definition exists: #{duplicate_definitions}" if duplicate_exists
+      @errors << "Duplicate rule definition exists: #{duplicate_exists.map {|rule_def,names| "[ #{names.join(', ')} ]"}.join(", ")}" unless duplicate_exists.empty?
 
-      !duplicate_exists
+      duplicate_exists.empty?
     end
 
     def validate_no_blank_rules
-      blank_rule = @rules.any? do |rule_name, rule_definition|
+      blank_rule = rules.any? do |rule_name, rule_definition|
         rule_definition.empty?
       end
 
@@ -266,7 +129,7 @@ class Magma
     end
 
     def all_rule_placeholders
-      @all_rule_placeholders ||= @rules.map do |rule_name, rule_definition|
+      @all_rule_placeholders ||= rules.map do |rule_name, rule_definition|
         rule_definition.placeholder
       end
     end
@@ -296,9 +159,9 @@ class Magma
     def validate_no_recursive_rules
       recursive_errors = []
 
-      @rules.each do |rule_name, rule_definition|
+      rules.each do |rule_name, rule_definition|
         rule_definition.expanded_definition
-      rescue RecursiveRuleError => e
+      rescue Magma::RecursiveRuleError => e
         recursive_errors << e.message
       end
 
@@ -310,9 +173,9 @@ class Magma
     def validate_no_duplicate_tokens
       duplicate_tokens_errors = []
 
-      @rules.each do |rule_name, rule_definition|
+      rules.each do |rule_name, rule_definition|
         duplicate_tokens_errors << "Rule \"#{rule_name}\" contains duplicate tokens." if rule_definition.duplicative_tokens?
-      rescue RecursiveRuleError => e
+      rescue Magma::RecursiveRuleError => e
         nil # We'll validate recursive rules in a different validation
       end
 
@@ -324,7 +187,7 @@ class Magma
     def validate_numeric_increment_at_end
       numeric_increment_at_end_errors = []
 
-      @rules.each do |rule_name, rule_definition|
+      rules.each do |rule_name, rule_definition|
         numeric_increment_at_end_errors << "Rule \"#{rule_name}\" can only use the numeric increment \".n\" at the end." if rule_definition.illegal_increment_location?
       end
 

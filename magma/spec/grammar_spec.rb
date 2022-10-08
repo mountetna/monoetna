@@ -520,7 +520,7 @@ describe Magma::Grammar do
         validator = Magma::Grammar::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
-        expect(validator.errors).to eq(["Duplicate rule definition exists: [\"TOK SEP .n\"]"])
+        expect(validator.errors).to eq(["Duplicate rule definition exists: [ first, second ]"])
       end
 
       it 'is duplicated using a rule name' do
@@ -549,7 +549,7 @@ describe Magma::Grammar do
         validator = Magma::Grammar::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
-        expect(validator.errors).to eq(["Duplicate rule definition exists: [\"TOK SEP .n\"]"])
+        expect(validator.errors).to eq(["Duplicate rule definition exists: [ first, second ]"])
       end
 
       it 'is recursive' do
@@ -578,7 +578,7 @@ describe Magma::Grammar do
         validator = Magma::Grammar::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
-        expect(validator.errors).to eq(["Rule \"second\" may be recursive! It's token \".first\" appears to lead to circular logic.", "Rule \"first\" may be recursive! It's token \".second\" appears to lead to circular logic."])
+        expect(validator.errors).to eq(["Rule \"second\" may be recursive! Its token \".first\" appears to lead to circular logic.", "Rule \"first\" may be recursive! Its token \".second\" appears to lead to circular logic."])
       end
 
       it 'is blank' do
@@ -634,7 +634,7 @@ describe Magma::Grammar do
         validator = Magma::Grammar::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
-        expect(validator.errors).to eq(["Rule \"first\" may be recursive! It's token \".first\" appears to lead to circular logic."])
+        expect(validator.errors).to eq(["Rule \"first\" may be recursive! Its token \".first\" appears to lead to circular logic."])
       end
 
       it 'uses a token multiple times' do

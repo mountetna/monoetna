@@ -124,9 +124,26 @@ describe GnomonController do
     grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
     auth_header(:viewer)
     get('/gnomon/labors/decompose/LABORS-LION-H2-C1')
-    get('/gnomon/labors/decompose/LABORS-LION-H2-C1')
 
     expect(last_response.status).to eq(200)
-    expect(json_body).to eq({})
+    expect(json_body).to eq(
+      rules: {
+        labor: "The Nemean Lion",
+        project: "The Twelve Labors of Hercules",
+        victim: "LABORS-LION-H2-C1",
+        village: "LABORS-LION-H2"
+      },
+      tokens: [
+        ["PROJ", "LABORS"],
+        ["SEP", "-"],
+        ["LAB", "LION"],
+        ["SEP", "-"],
+        ["VILL", "H"],
+        ["village_counter", "2"],
+        ["SEP", "-"],
+        ["VICT", "C"],
+        ["victim_counter", "1"]
+      ]
+    )
   end
 end

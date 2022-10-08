@@ -1,3 +1,5 @@
+require_relative './lexer/rule_errors'
+require_relative './lexer/rule_definition'
 require_relative './lexer/rule_parser'
 
 class Magma
@@ -341,7 +343,7 @@ class Magma
         parser = Magma::RuleParser.new(config)
 
         valid = parser.valid?
-        raise Magma::RuleParser::RuleParseError.new("Config errors: #{parser.errors}") unless valid
+        raise Magma::RuleParseError.new("Config errors: #{parser.errors}") unless valid
 
         parser
       end
