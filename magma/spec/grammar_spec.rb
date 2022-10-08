@@ -1,5 +1,4 @@
-describe Magma::Grammar do
-
+describe Magma::Gnomon::Grammar do
   context 'builds rules' do
     before(:each) do
       @config = {
@@ -46,7 +45,7 @@ describe Magma::Grammar do
       expect(grammar.rules.length).to eq(@config[:rules].length)
 
       expect(grammar.rules['first'].regex).to eq(/^(SCC|SCG)(-)(\d+)$/)
-      expect { grammar.model_name("I-am-a-little-tea-pot") }.to raise_error(Magma::Grammar::UnrecognizedIdentifierError)
+      expect { grammar.model_name("I-am-a-little-tea-pot") }.to raise_error(Magma::Gnomon::UnrecognizedIdentifierError)
       expect(grammar.model_name("SCG-1")).to eq('first')
     end
 
@@ -82,7 +81,7 @@ describe Magma::Grammar do
     end
   end
 
-  describe Magma::Grammar::Validation do
+  describe Magma::Gnomon::Validation do
     it 'throws no errors on valid config' do
       config = {
         'tokens' => {
@@ -137,7 +136,7 @@ describe Magma::Grammar do
         ]
       }
 
-      validator = Magma::Grammar::Validation.new(config)
+      validator = Magma::Gnomon::Validation.new(config)
 
       expect(validator.valid?).to eq(true)
       expect(validator.errors).to eq([])
@@ -196,7 +195,7 @@ describe Magma::Grammar do
           ]
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Synonyms \"COH\", \"COHO\", \"COHORT\" do not have an equal number of values.", "Synonyms \"COH\", \"COHO\", \"COHORT\" do not have matching values."])
@@ -256,7 +255,7 @@ describe Magma::Grammar do
           ]
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Synonyms \"COH\", \"COHO\", \"COHORT\" do not have matching values."])
@@ -316,7 +315,7 @@ describe Magma::Grammar do
           ]
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Synonyms \"COH\", \"COHO\", \"COHORT\" do not have unique values."])
@@ -377,7 +376,7 @@ describe Magma::Grammar do
           ]
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Duplicate tokens COH, COHORT, COHO in synonyms"])
@@ -430,7 +429,7 @@ describe Magma::Grammar do
           ]
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Missing token definitions for: \"COHO\", for synonyms \"COH\", \"COHO\", \"COHORT\"."])
@@ -460,7 +459,7 @@ describe Magma::Grammar do
           }
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Unknown tokens used: [\"ABC\"]"])
@@ -488,7 +487,7 @@ describe Magma::Grammar do
           }
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Unknown tokens used: [\".imaginary\"]"])
@@ -517,7 +516,7 @@ describe Magma::Grammar do
           }
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Duplicate rule definition exists: [ first, second ]"])
@@ -546,7 +545,7 @@ describe Magma::Grammar do
           }
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Duplicate rule definition exists: [ first, second ]"])
@@ -575,7 +574,7 @@ describe Magma::Grammar do
           }
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Rule \"second\" may be recursive! Its token \".first\" appears to lead to circular logic.", "Rule \"first\" may be recursive! Its token \".second\" appears to lead to circular logic."])
@@ -603,7 +602,7 @@ describe Magma::Grammar do
           }
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Rules cannot contain only whitespace"])
@@ -631,7 +630,7 @@ describe Magma::Grammar do
           }
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Rule \"first\" may be recursive! Its token \".first\" appears to lead to circular logic."])
@@ -659,7 +658,7 @@ describe Magma::Grammar do
           }
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Rule \"first\" contains duplicate tokens."])
@@ -688,7 +687,7 @@ describe Magma::Grammar do
           }
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Rule \"second\" contains duplicate tokens."])
@@ -716,7 +715,7 @@ describe Magma::Grammar do
           }
         }
 
-        validator = Magma::Grammar::Validation.new(config)
+        validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
         expect(validator.errors).to eq(["Rule \"first\" can only use the numeric increment \".n\" at the end."])
@@ -746,7 +745,7 @@ describe Magma::Grammar do
         }
       }
 
-      validator = Magma::Grammar::Validation.new(config)
+      validator = Magma::Gnomon::Validation.new(config)
 
       expect(validator.valid?).to eq(false)
       expect(validator.errors).to eq(["More than one separator token defined!"])

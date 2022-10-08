@@ -96,7 +96,7 @@ describe GnomonController do
 
     expect(last_response.status).to eq(200)
 
-    expect(Magma::Grammar.count).to eq(2)
+    expect(Magma::Gnomon::Grammar.count).to eq(2)
 
     expect(json_body.slice(:config, :version_number)).to eq(
       config: config,
@@ -117,7 +117,7 @@ describe GnomonController do
       "property '/text' is invalid: error_type=schema",
       "No separator token defined!"
     ])
-    expect(Magma::Grammar.count).to eq(0)
+    expect(Magma::Gnomon::Grammar.count).to eq(0)
   end
 
   it 'decomposes an identifier' do
