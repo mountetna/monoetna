@@ -221,6 +221,16 @@ describe GnomonController do
         expect(last_response.body).to eq("1")
         expect(Magma::Gnomon::Identifier.count).to eq(1)
       end
+
+      it 'change in parent token counter' do
+        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+        expect(Magma::Gnomon::Identifier.count).to eq(1)
+        auth_header(:admin)
+        post('/gnomon/labors/increment/victim/LABORS-LION-H1-C')
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to eq("1")
+        expect(Magma::Gnomon::Identifier.count).to eq(1)
+      end
     end
 
     context 'throws exception when' do
