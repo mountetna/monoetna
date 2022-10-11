@@ -40,6 +40,10 @@ class GnomonController < Magma::Controller
     rule = grammar.rules[@params[:rule_name]]
 
     return failure(422, errors: [
+      "Unknown rule name, \"#{@params[:rule_name]}\"."
+    ]) if rule.nil?
+
+    return failure(422, errors: [
       "That rule is not incrementable."
     ]) unless rule.incrementable?
 
@@ -47,18 +51,27 @@ class GnomonController < Magma::Controller
       "Identifier root \"#{@params[:identifier_root]}\" does not match the rule definition."
     ]) unless rule.regex(with_increment: false) =~ @params[:identifier_root]
 
+    # This should be in a rule#next method
     newest_identifier = Magma::Identifier.where(
       rule: rule.name
     ).where { identifier =~ RegExp.new(@params[:identifier_root]) }.order(:created_at).last
 
-    decomposition = rule.decomposition(newest_identifier)
-    decomposition["#{rule.name}_counter"] += 1
+    next_identifier_string = nil
+
+    if newest_identifier.nil?
+      next_identifier_string = "#{@params[:identifier_root]}1"
+    else
+      decomposition = rule.decomposition(newest_identifier)
+      decomposition["#{rule.name}_counter"] += 1
+      next_identifier_string = rule.compose(decomposition)
+    end
+    # down to here
 
     next_identifier = Magma::Identifier.create(
       rule: rule.name,
       project_name: project_name,
       author: @user.name,
-      identifier: rule.compose(decomposition)
+      identifier: next_identifier_string
     )
 
     return success_json(next_identifier.to_hash)
