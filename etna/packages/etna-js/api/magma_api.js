@@ -1,6 +1,6 @@
 import {checkStatus, headers} from '../utils/fetch';
 
-const magmaPath = (endpoint) => `${CONFIG.magma_host}/${endpoint}`;
+export const magmaPath = (endpoint) => `${CONFIG.magma_host}/${endpoint}`;
 
 const magmaPost = (endpoint, fetch, params) => {
   return fetch(magmaPath(endpoint), {

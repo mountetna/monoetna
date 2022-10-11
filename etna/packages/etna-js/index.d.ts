@@ -177,6 +177,7 @@ declare module 'etna-js/components/project-header' {
     project_name: string;
     project_name_full?: string;
     className?: string;
+    children?: any;
   }): any {};
 }
 

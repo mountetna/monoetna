@@ -1,5 +1,8 @@
 import React, {useState, useEffect, useCallback, useReducer} from 'react';
 import { copyText, pasteText } from 'etna-js/utils/copy';
+import { json_get, json_post } from 'etna-js/utils/fetch';
+import { capitalize } from 'etna-js/utils/format';
+import { magmaPath } from 'etna-js/api/magma_api';
 
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
@@ -23,10 +26,9 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
-
 import ProjectHeader from 'etna-js/components/project-header';
 
-const DEFAULT_STATE = {
+const OLD_DEFAULT_STATE = {
   "rules": {
     "project": "PROJECT",
     "subject": "PROJ SEP SP .n",
@@ -109,6 +111,21 @@ const DEFAULT_STATE = {
   }
 };
 
+window.comet = OLD_DEFAULT_STATE;
+
+const DEFAULT_STATE = {
+  "rules": { },
+  "tokens": {
+    "SEP": {
+      "name": "SEP",
+      "label": "separator",
+      "values": {
+        "-": "# Separator"
+      }
+    },
+  }
+};
+
 const removeRule = (rules, name) => {
   const { [name]: _, ...other_rules } = rules;
 
@@ -123,6 +140,8 @@ const removeToken = (tokens, name) => {
 
 const reducer = (state, action) => {
   switch(action.type) {
+    case 'SET':
+      return action.state;
     case 'PASTE':
       return {
         rules: { ...action.paste.rules },
@@ -181,6 +200,8 @@ const useStyles = makeStyles((theme) => ({
   },
   value: {
   },
+  addButton: {
+  },
   strikeout: {
     '&:hover': {
       textDecoration: 'line-through',
@@ -237,14 +258,13 @@ const Token = ({token, dispatch}) => {
         buttonText='ADD VALUE'
         update={ (value, description) => dispatch({ type: 'ADD_TOKEN_VALUE', name: token.name, value, description }) }
         mask={ v => v.replace(/[^A-Za-z0-9_]/g, '').toLowerCase() }
-        placeholder1='Value'
-        placeholder2='Description'
+        placeholders={[ 'Value', 'Description' ]}
       />
     </Grid>
   </Grid>
 }
 
-const AddDialog = ({update, title, content, buttonText, placeholder1, placeholder2, mask=(e => e)}) => {
+const AddDialog = ({update, title, content, buttonText, placeholders, mask=(e => e)}) => {
   const [ open, setOpen ] = useState(false);
   const [ v1, setV1 ] = useState('');
   const [ v2, setV2 ] = useState('');
@@ -275,14 +295,14 @@ const AddDialog = ({update, title, content, buttonText, placeholder1, placeholde
         <TextField
           autoFocus
           margin='dense'
-          placeholder={ placeholder1 }
+          placeholder={ placeholders[0] }
           fullWidth
           value={ v1 }
           onChange={ e => setV1(mask(e.target.value)) }
         />
         <TextField
           margin='dense'
-          placeholder={ placeholder2 }
+          placeholder={ placeholders[1] }
           fullWidth
           value={ v2 }
           onChange={ e => setV2(e.target.value) }
@@ -311,48 +331,89 @@ const Rule = ({name, rule, dispatch}) => {
   </Grid>
 }
 
+const RuleEditorPane = ({type, update, mask, desc, placeholders, children}) => {
+  return <Card elevation={0}>
+    <CardContent>
+      <Typography gutterBottom variant="h5" component="h2">
+        {capitalize(type)+'s'}
+      </Typography>
+      { children }
+    </CardContent>
+    <CardActions>
+      <AddDialog
+        title={`Add a ${capitalize(type)}`}
+        content={desc}
+        buttonText={ `ADD ${type.toUpperCase()}` }
+        update={ update }
+        mask={ mask }
+        placeholders={ placeholders }
+      />
+    </CardActions>
+  </Card>
+}
+
 const RuleEditor = ({project_name}) => {
   const classes = useStyles();
 
   const [ state, dispatch ] = useReducer(reducer, DEFAULT_STATE);
 
+  const [ savedState, setSavedState ] = useState({});
+
+  const changed = state != savedState;
+
+  useEffect( () => {
+    json_get(magmaPath(`/gnomon/${project_name}/`)).then(
+      ({config}) => {
+        dispatch({ type: 'SET', state: config });
+        setSavedState(config);
+      }
+    )
+  }, [] );
+
+  const saveRules = useCallback(
+    () => {
+      json_post(magmaPath(`/gnomon/${project_name}`), { config: state }).then(
+        () => setSavedState(state)
+      );
+    }, [ state, savedState ]
+  )
+
   return <Grid>
-    <ProjectHeader project_name={project_name} className={classes.header}/>
-    <Card elevation={0}>
-      <CardContent>
-        <Typography gutterBottom variant="h5" component="h2">
-          Tokens
-        </Typography>
-        <Grid container className={classes.header}>
-          <Grid item xs={2}>Name</Grid>
-          <Grid item xs={10} container style={{ width: 'auto' }}>
-            <Grid item xs={2}>Value</Grid>
-            <Grid item xs={2}>Description</Grid>
-          </Grid>
+    <ProjectHeader project_name={project_name} className={classes.header}>
+      {
+        changed && <Button onClick={ saveRules }>Save</Button>
+      }
+    </ProjectHeader>
+    <RuleEditorPane type='token'
+      desc='Enter a token name and a label.'
+      update={ (name, label) => dispatch({ type: 'ADD_TOKEN', token: { name, label, values: {} } }) }
+      mask={ v => v.replace(/[^A-Za-z0-9_]/g, '').toUpperCase() }
+      placeholders={['TOKEN_NAME', 'Token label']}>
+      <Grid container className={classes.header}>
+        <Grid item xs={2}>Name</Grid>
+        <Grid item xs={10} container style={{ width: 'auto' }}>
+          <Grid item xs={2}>Value</Grid>
+          <Grid item xs={2}>Description</Grid>
         </Grid>
-        {
-          Object.keys(state.tokens).map(
-            name => <Token key={name} token={state.tokens[name]} dispatch={dispatch}/>
-          )
-        }
-      </CardContent>
-      <CardActions>
-        <AddDialog
-          title='Add a Token'
-          content='Enter a token name and a label.'
-          buttonText='ADD TOKEN'
-          update={ (name, label) => dispatch({ type: 'ADD_TOKEN', token: { name, label, values: {} } }) }
-          mask={ v => v.replace(/[^A-Za-z0-9_]/g, '').toUpperCase() }
-          placeholder1='TOKEN_NAME'
-          placeholder2='Token label'
-        />
-      </CardActions>
-    </Card>
-    <Card elevation={0}>
-      <CardContent>
-        <Typography gutterBottom variant="h5" component="h2">
-          Rules
-        </Typography>
+      </Grid>
+      {
+        Object.keys(state.tokens).map(
+          name => <Token key={name} token={state.tokens[name]} dispatch={dispatch}/>
+        )
+      }
+    </RuleEditorPane>
+    <RuleEditorPane
+      type='rule'
+      desc={
+        <>
+          A <b>rule</b> is a sequence of space-separated token or rule names.
+          <br/>
+          Enter a name and a new rule.
+        </>
+      }
+      update={ (name, rule) => dispatch({ type: 'ADD_RULE', name, rule }) }
+      mask={ v => v.replace(/[^A-Za-z0-9_]/g, '').toLowerCase() }
+      placeholders={['rule_name', 'Rule']}>
         <Grid container className={classes.header}>
           <Grid item xs={2}>Label</Grid>
           <Grid item xs={10}>Rule</Grid>
@@ -362,34 +423,14 @@ const RuleEditor = ({project_name}) => {
             name => <Rule key={name} name={name} rule={state.rules[name]} dispatch={dispatch}/>
           )
         }
-      </CardContent>
-      <CardActions>
-        <AddDialog
-          title='Add a Rule'
-          content={
-            <>
-              A <b>rule</b> is a sequence of space-separated token or rule names.
-              <br/>
-              Enter a name and a new rule.
-            </>
-          }
-          buttonText='ADD RULE'
-          update={ (name, rule) => dispatch({ type: 'ADD_RULE', name, rule }) }
-          mask={ v => v.replace(/[^A-Za-z0-9_]/g, '').toLowerCase() }
-          placeholder1='rule_name'
-          placeholder2='Rule'
-        />
-      </CardActions>
-    </Card>
-    <Button onClick={
-      () => copyText( JSON.stringify(state,null,2) )
-    }>Copy</Button>
+    </RuleEditorPane>
+
+    <Button onClick={ () => copyText( JSON.stringify(state,null,2) ) }>Copy</Button>
     <TextField inputProps={{ id: 'paste' }}/>
     <Button onClick={
-      () => {
-        const paste = JSON.parse(document.querySelector('#paste').value);
-        dispatch({ type: 'PASTE', paste })
-      }
+      () => dispatch({
+        type: 'PASTE', paste: JSON.parse(document.querySelector('#paste').value)
+      })
     }>Paste</Button>
   </Grid>
 }

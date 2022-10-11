@@ -8,12 +8,15 @@ const useStyles = makeStyles( theme => ({
     padding: '10px 15px 5px'
   }
 }));
-const ProjectHeader = ({project_name, project_name_full, className}) => {
+const ProjectHeader = ({project_name, project_name_full, className, children }) => {
   const classes = useStyles();
   return <Grid item container className={`${classes.header} ${className}`} >
     <Typography color='primary' variant='h5'>
       {project_name_full || project_name}
     </Typography>
+    {
+      children
+    }
   </Grid>
 }
 
