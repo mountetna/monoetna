@@ -73,7 +73,6 @@ class Magma
     Sequel.extension :migration
     require_relative 'magma/attribute'
     require_relative 'magma/model'
-    require_relative 'magma/identifier'
     require_relative 'magma/gnomon'
   end
 

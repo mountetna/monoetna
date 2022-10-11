@@ -49,6 +49,33 @@ class Magma
         (tokens - decomposition.keys).empty?
       end
 
+      def from_decomposition(decomposition, project_name)
+        return nil unless has_required_tokens?(decomposition)
+
+        composed_identifier = compose(decomposition)
+
+        identifier_record = Magma::Gnomon::Identifier.where(
+          project_name: project_name,
+          rule: @name,
+          identifier: composed_identifier
+        ).first
+
+        magma_model = Magma.instance.get_project(project_name)&.models[ @name.to_sym ]
+
+        magma_record = magma_model&.where(
+          magma_model.identity.name => composed_identifier
+        )&.first
+
+        [
+          @name,
+          {
+            name: composed_identifier,
+            name_created_at: identifier_record&.created_at&.iso8601,
+            record_created_at: magma_record&.created_at&.iso8601
+          }
+        ]
+      end
+
       def compose(decomposition)
         tokens.map do |token|
           decomposition[token]

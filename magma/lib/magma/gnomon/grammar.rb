@@ -114,7 +114,7 @@ class Magma
           project_name: project_name,
           config: config,
           version_number: version_number,
-          created_at: created_at
+          created_at: created_at.iso8601
         }
       end
 
@@ -140,7 +140,7 @@ class Magma
         {
           tokens: tokens,
           rules: rules.map do |name, rule|
-            rule.has_required_tokens?(decomposition) ? [ name, rule.compose(decomposition) ] : nil
+            rule.from_decomposition(decomposition, project_name)
           end.compact.to_h
         }
       end
@@ -148,14 +148,7 @@ class Magma
       private
 
       def rule_parser
-        @rule_parser ||= begin
-          parser = Magma::Gnomon::GrammarParser.new(config)
-
-          valid = parser.valid?
-          raise Magma::Gnomon::GrammarParseError.new("Config errors: #{parser.errors}") unless valid
-
-          parser
-        end
+        @rule_parser ||= Magma::Gnomon::GrammarParser.new(config)
       end
     end
   end

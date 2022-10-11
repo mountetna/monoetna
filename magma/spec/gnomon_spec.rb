@@ -120,18 +120,48 @@ describe GnomonController do
     expect(Magma::Gnomon::Grammar.count).to eq(0)
   end
 
+  def create_identifier(id, params={})
+    identifier = create(
+      :identifier, {
+        project_name: 'labors',
+        author: "Hera|hera@twelve-labors.org",
+        identifier: id,
+      }.merge(params)
+    )
+  end
+
   it 'decomposes an identifier' do
+    Timecop.freeze
     grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
+    identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
+    identifier2 = create_identifier("The Nemean Lion", rule: 'labor', grammar: grammar)
+    record = create(:project, name: "The Twelve Labors of Hercules")
     auth_header(:viewer)
     get('/gnomon/labors/decompose/LABORS-LION-H2-C1')
 
     expect(last_response.status).to eq(200)
     expect(json_body).to eq(
       rules: {
-        labor: "The Nemean Lion",
-        project: "The Twelve Labors of Hercules",
-        victim: "LABORS-LION-H2-C1",
-        village: "LABORS-LION-H2"
+        project: {
+          name: "The Twelve Labors of Hercules",
+          name_created_at: Time.now.iso8601,
+          record_created_at: Time.now.iso8601
+        },
+        labor: {
+          name: "The Nemean Lion",
+          name_created_at: Time.now.iso8601,
+          record_created_at: nil
+        },
+        victim: {
+          name: "LABORS-LION-H2-C1",
+          name_created_at: nil,
+          record_created_at: nil
+        },
+        village: {
+          name: "LABORS-LION-H2",
+          name_created_at: nil,
+          record_created_at: nil
+        }
       },
       tokens: [
         ["PROJ", "LABORS"],
@@ -145,5 +175,15 @@ describe GnomonController do
         ["victim_counter", "1"]
       ]
     )
+    Timecop.return
+  end
+
+  it 'does not decompose an invalid identifier' do
+    grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
+    auth_header(:viewer)
+    get('/gnomon/labors/decompose/LABORS-LOON-H2-C1')
+
+    expect(last_response.status).to eq(422)
+    expect(json_body[:error]).to eq("Could not decompose identifier LABORS-LOON-H2-C1 for labors")
   end
 end
