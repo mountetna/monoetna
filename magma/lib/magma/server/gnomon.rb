@@ -33,7 +33,7 @@ class GnomonController < Magma::Controller
   def increment
     require_params(:project_name, :rule_name, :identifier_root)
 
-    grammar = Magma::Grammar.for_project(@params[:project_name])
+    grammar = Magma::Gnomon::Grammar.for_project(project_name)
 
     return failure(422, errors: ["No grammar defined for that project"]) if grammar.nil?
 
@@ -43,38 +43,17 @@ class GnomonController < Magma::Controller
       "Unknown rule name, \"#{@params[:rule_name]}\"."
     ]) if rule.nil?
 
-    return failure(422, errors: [
+    next_value = rule.next(@params[:identifier_root])
+
+    return success(next_value)
+  rescue Magma::Gnomon::UnincrementableRuleError => e
+    failure(422, errors: [
       "That rule is not incrementable."
-    ]) unless rule.incrementable?
-
-    return failure(422, errors: [
-      "Identifier root \"#{@params[:identifier_root]}\" does not match the rule definition."
-    ]) unless rule.regex(with_increment: false) =~ @params[:identifier_root]
-
-    # This should be in a rule#next method
-    newest_identifier = Magma::Identifier.where(
-      rule: rule.name
-    ).where { identifier =~ RegExp.new(@params[:identifier_root]) }.order(:created_at).last
-
-    next_identifier_string = nil
-
-    if newest_identifier.nil?
-      next_identifier_string = "#{@params[:identifier_root]}1"
-    else
-      decomposition = rule.decomposition(newest_identifier)
-      decomposition["#{rule.name}_counter"] += 1
-      next_identifier_string = rule.compose(decomposition)
-    end
-    # down to here
-
-    next_identifier = Magma::Identifier.create(
-      rule: rule.name,
-      project_name: project_name,
-      author: @user.name,
-      identifier: next_identifier_string
-    )
-
-    return success_json(next_identifier.to_hash)
+    ])
+  rescue Magma::Gnomon::UnrecognizedIdentifierError => e
+    failure(422, errors: [
+      "Identifier root \"#{@params[:identifier_root]}\" does not match the rule definition for \"#{@params[:rule_name]}\"."
+    ])
   end
 
   def decompose

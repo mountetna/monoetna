@@ -11,5 +11,8 @@ class Magma
 
     class UnrecognizedIdentifierError < GrammarError
     end
+
+    class UnincrementableRuleError < GrammarError
+    end
   end
 end

@@ -21,8 +21,8 @@ class Magma
         expanded_definition.split(" ")
       end
 
-      def regex
-        /^#{tokenized_definition}$/
+      def regex(with_increment: true)
+        /^#{tokenized_definition(with_increment: with_increment)}$/
       end
 
       def duplicative_tokens?
@@ -39,8 +39,12 @@ class Magma
         false
       end
 
+      def incrementable?
+        !!(raw.strip =~ /\.n$/)
+      end
+
       def illegal_increment_location?
-        return false unless raw =~ /\.n/
+        return false unless incrementable?
 
         !(raw.strip =~ /\.n$/)
       end
@@ -117,7 +121,30 @@ class Magma
         tokens.zip(regex.match(identifier).to_a[1..-1])
       end
 
+      def next(identifier_root)
+        raise UnincrementableRuleError.new("Rule \"#{name}\" cannot be incremented.") unless incrementable?
+
+        raise UnrecognizedIdentifierError.new("\"#{identifier_root}\" does not match rule \"#{name}\".") unless regex(with_increment: false) =~ identifier_root
+
+        newest_identifier = latest_identifier(identifier_root)
+
+        if newest_identifier.nil?
+          next_value = 1
+        else
+          decomposition = decomposition(newest_identifier.identifier)
+          next_value = decomposition.last.last.to_i + 1
+        end
+
+        next_value
+      end
+
       private
+
+      def latest_identifier(identifier_root)
+        Magma::Gnomon::Identifier.where(
+          rule: name
+        ).where { identifier =~ Regexp.new(identifier_root) }.order(:created_at).last
+      end
 
       def all_rules
         @all_rules ||= @config['rules']
@@ -131,8 +158,12 @@ class Magma
         @definition
       end
 
-      def tokenized_definition
-        expanded_definition.split(" ").map do |token|
+      def tokenized_definition(with_increment: true)
+        tokens = expanded_definition.split(" ")
+
+        tokens.pop if !with_increment && @parser.is_numeric_token?(tokens.last)
+
+        tokens.map do |token|
           if @parser.is_numeric_token?(token)
             "(\\d+)"
           else
