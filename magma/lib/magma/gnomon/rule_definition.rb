@@ -44,7 +44,7 @@ class Magma
       end
 
       def illegal_increment_location?
-        return false unless incrementable?
+        return false unless raw =~ /\.n/
 
         !(raw.strip =~ /\.n$/)
       end
