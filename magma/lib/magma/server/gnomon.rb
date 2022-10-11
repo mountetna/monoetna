@@ -48,7 +48,7 @@ class GnomonController < Magma::Controller
     return success(next_value)
   rescue Magma::Gnomon::UnincrementableRuleError => e
     failure(422, errors: [
-      "That rule is not incrementable."
+      "Rule \"#{@params[:rule_name]}\" is not incrementable."
     ])
   rescue Magma::Gnomon::UnrecognizedIdentifierError => e
     failure(422, errors: [
