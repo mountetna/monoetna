@@ -358,7 +358,11 @@ FactoryBot.define do
     to_create(&:save)
   end
 
-  factory :grammar, class: Magma::Grammar do
+  factory :grammar, class: Magma::Gnomon::Grammar do
+    to_create(&:save)
+  end
+
+  factory :identifier, class: Magma::Gnomon::Identifier do
     to_create(&:save)
   end
 end
