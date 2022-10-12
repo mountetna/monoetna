@@ -274,4 +274,87 @@ describe GnomonController do
       end
     end
   end
+
+  context 'list API' do
+
+    it 'throws exception when no grammar for project' do
+      auth_header(:viewer)
+      get('/gnomon/labors/list/victim')
+      expect(last_response.status).to eq(422)
+    end
+
+    context 'with grammar' do
+      before(:each) do
+        @grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
+      end
+
+      it 'returns all identifiers with no regex param' do
+        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+        auth_header(:viewer)
+        get('/gnomon/labors/list/victim')
+        expect(last_response.status).to eq(200)
+
+        expect(json_body.length).to eq(1)
+        expect(json_body.first).to include({
+          identifier: "LABORS-LION-H2-C1",
+          author: "Hera|hera@twelve-labors.org"})
+        expect(json_body.first[:name_created_at]).not_to eq(nil)
+        expect(json_body.first[:record_created_at]).to eq(nil)
+      end
+
+      it 'correctly filters using the regex param' do
+        identifier1 = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+        identifier2 = create_identifier("LABORS-LION-H2-C2", rule: 'victim', grammar: @grammar)
+
+        auth_header(:viewer)
+        get('/gnomon/labors/list/victim?regex=C2')
+        expect(last_response.status).to eq(200)
+
+        expect(json_body.length).to eq(1)
+        expect(json_body.first).to include({
+          identifier: "LABORS-LION-H2-C2",
+          author: "Hera|hera@twelve-labors.org"})
+
+        get('/gnomon/labors/list/victim?regex=LION')
+        expect(last_response.status).to eq(200)
+
+        expect(json_body.length).to eq(2)
+        expect(json_body.map { |id| id[:identifier] }).to match_array([
+          "LABORS-LION-H2-C1",
+          "LABORS-LION-H2-C2"
+        ])
+      end
+
+      it 'correctly supplies record creation times from Magma' do
+        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+
+        project = create(:project, name: 'The Twelve Labors of Hercules')
+        lion = create(:labor, :lion, project: project)
+
+        lion_monster = create(:monster, :lion, labor: lion)
+
+        victim = create(:victim, name: 'LABORS-LION-H2-C1', monster: lion_monster, country: 'Italy')
+
+        auth_header(:viewer)
+        get('/gnomon/labors/list/victim')
+        expect(last_response.status).to eq(200)
+
+        expect(json_body.length).to eq(1)
+        expect(json_body.first).to include({
+          identifier: "LABORS-LION-H2-C1",
+          author: "Hera|hera@twelve-labors.org"})
+        expect(json_body.first[:name_created_at]).not_to eq(nil)
+        expect(json_body.first[:record_created_at]).not_to eq(nil)
+      end
+
+      context 'throws exception when' do
+        it 'invalid rule name provided' do
+          identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+          auth_header(:viewer)
+          get('/gnomon/labors/list/alias')
+          expect(last_response.status).to eq(422)
+        end
+      end
+    end
+  end
 end
