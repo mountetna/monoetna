@@ -2,11 +2,7 @@ require_relative 'controller'
 
 class GnomonController < Magma::Controller
   def get
-    grammar = Magma::Gnomon::Grammar.for_project(project_name)
-
-    if !grammar
-      raise Etna::BadRequest, "No grammar found for project #{project_name}."
-    end
+    grammar = require_grammar
 
     return success_json(grammar.to_hash)
   end
@@ -32,16 +28,8 @@ class GnomonController < Magma::Controller
 
   def increment
     require_params(:project_name, :rule_name, :identifier_root)
-
-    grammar = Magma::Gnomon::Grammar.for_project(project_name)
-
-    return failure(422, errors: ["No grammar defined for that project"]) if grammar.nil?
-
-    rule = grammar.rules[rule_name]
-
-    return failure(422, errors: [
-      "Unknown rule name, \"#{rule_name}\"."
-    ]) if rule.nil?
+    grammar = require_grammar
+    rule = require_rule(grammar)
 
     next_value = rule.next(@params[:identifier_root])
 
@@ -57,7 +45,7 @@ class GnomonController < Magma::Controller
   end
 
   def decompose
-    grammar = Magma::Gnomon::Grammar.for_project(project_name)
+    grammar = require_grammar
 
     result = grammar.decompose(@params[:identifier])
 
@@ -67,15 +55,8 @@ class GnomonController < Magma::Controller
   end
 
   def list
-    grammar = Magma::Gnomon::Grammar.for_project(project_name)
-
-    return failure(422, errors: ["No grammar defined for that project"]) if grammar.nil?
-
-    rule = grammar.rules[rule_name]
-
-    return failure(422, errors: [
-      "Unknown rule name, \"#{rule_name}\"."
-    ]) if rule.nil?
+    grammar = require_grammar
+    rule = require_rule(grammar)
 
     search_term = Regexp.new(@params[:regex] || ".*")
     identifiers = Magma::Gnomon::Identifier.where(
@@ -89,6 +70,24 @@ class GnomonController < Magma::Controller
   end
 
   private
+
+  def require_grammar
+    grammar = Magma::Gnomon::Grammar.for_project(project_name)
+
+    if !grammar
+      raise Etna::BadRequest, "No grammar found for project #{project_name}."
+    end
+
+    grammar
+  end
+
+  def require_rule(grammar)
+    rule = grammar.rules[rule_name]
+
+    raise Etna::BadRequest, "Unknown rule name, \"#{rule_name}\"." if rule.nil?
+
+    rule
+  end
 
   def project_name
     @params[:project_name]
