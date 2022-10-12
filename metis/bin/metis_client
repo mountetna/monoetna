@@ -1222,6 +1222,67 @@ EOT
     end
   end
 
+  class Checksum < Command
+    usage "checksum <local_directory>"
+
+    def parse(args)
+      parse_opts(args) do |opts|
+        opts.on("-f", "--file", "Recursive folder removal") do |file|
+          options[:file] = file
+        end
+      end
+    end
+
+    def md5_cache
+      @md5_cache ||= {}
+    end
+
+    def load_md5_cache(md5file)
+      md5dir = ::File.dirname(md5file)
+
+      File.readlines(md5file).each do |line|
+        checksum, file_name = line.chomp.split(/\s+/, 2)
+        full_path = ::File.join( md5dir, file_name )
+        next unless ::File.exists?(full_path)
+
+        md5_cache[full_path] = checksum
+      end
+    end
+
+    def run(local_directory)
+      # collect all files and folders
+      folders, files = Dir[::File.join(local_directory, "**", "*")].partition { |f| ::File.directory?(f) }
+
+      puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
+
+      md5files = files.select do |file|
+        ::File.basename(file) == options[:file]
+      end
+
+      md5files.each do |md5file|
+        load_md5_cache(md5file)
+      end
+
+      # compute md5sums
+      files.each.with_index do |file,i|
+        print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}      \r"
+
+        next if md5_cache[file]
+
+        md5_cache[file] = %x{ md5sum "#{file}" }.split(' ')[0]
+      end
+      puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}      "
+
+      File.open("md5checksum.txt", "w") do |f|
+        output =  md5_cache.map do |file_name, checksum|
+          "#{checksum}  #{file_name}"
+        end.join("\n")
+
+        f.puts output
+      end
+    end
+  end
+
   class Nuke < Command
     usage "nuke <local_directory>"
 
@@ -1238,7 +1299,7 @@ EOT
         # compute md5sums
         file_md5s = files.map.with_index do |file,i|
           print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}\r"
-          [ file, %x{ md5sum #{file} }.split(' ')[0] ]
+          [ file, %x{ md5sum "#{file}" }.split(' ')[0] ]
         end.to_h
         puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}\n"
 
@@ -1255,6 +1316,8 @@ EOT
           else
             remaining_size += ::File.size(file)
           end
+        rescue Exception => e
+          puts "Could not delete #{file}! #{e.message}"
         end
       end
 
@@ -1295,7 +1358,7 @@ EOT
         # compute md5sums
         file_md5s = files.map.with_index do |file,i|
           print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}\r"
-          [ file, %x{ md5sum #{file} }.split(' ')[0] ]
+          [ file, %x{ md5sum "#{file}" }.split(' ')[0] ]
         end.to_h
         puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}\n"
 
