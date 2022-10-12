@@ -325,6 +325,52 @@ describe GnomonController do
         ])
       end
 
+      context 'restricted records' do
+        it 'non-privileged user does not see record_created_at times' do
+          identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+
+          project = create(:project, name: 'The Twelve Labors of Hercules')
+          lion = create(:labor, :lion, project: project)
+
+          lion_monster = create(:monster, :lion, labor: lion)
+
+          victim = create(:victim, name: 'LABORS-LION-H2-C1', monster: lion_monster, country: 'Italy', restricted: true)
+
+          auth_header(:viewer)
+          get('/gnomon/labors/list/victim')
+          expect(last_response.status).to eq(200)
+
+          expect(json_body.length).to eq(1)
+          expect(json_body.first).to include({
+            identifier: "LABORS-LION-H2-C1",
+            author: "Hera|hera@twelve-labors.org"})
+          expect(json_body.first[:name_created_at]).not_to eq(nil)
+          expect(json_body.first[:record_created_at]).to eq(nil)
+        end
+
+        it 'privileged user does see record_created_at times' do
+          identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+
+          project = create(:project, name: 'The Twelve Labors of Hercules')
+          lion = create(:labor, :lion, project: project)
+
+          lion_monster = create(:monster, :lion, labor: lion)
+
+          victim = create(:victim, name: 'LABORS-LION-H2-C1', monster: lion_monster, country: 'Italy', restricted: true)
+
+          auth_header(:privileged_editor)
+          get('/gnomon/labors/list/victim')
+          expect(last_response.status).to eq(200)
+
+          expect(json_body.length).to eq(1)
+          expect(json_body.first).to include({
+            identifier: "LABORS-LION-H2-C1",
+            author: "Hera|hera@twelve-labors.org"})
+          expect(json_body.first[:name_created_at]).not_to eq(nil)
+          expect(json_body.first[:record_created_at]).not_to eq(nil)
+        end
+      end
+
       it 'correctly supplies record creation times from Magma' do
         identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
 
