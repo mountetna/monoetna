@@ -98,7 +98,7 @@ class Metis
     end
 
     def self.author(user)
-      [ user.email, user.name ].join('|')
+      user.display_name
     end
 
     def self.exists?(file_name, bucket, parent_folder)

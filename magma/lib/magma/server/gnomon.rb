@@ -35,13 +35,9 @@ class GnomonController < Magma::Controller
 
     return success(next_value)
   rescue Magma::Gnomon::UnincrementableRuleError => e
-    failure(422, errors: [
-      "Rule \"#{rule_name}\" is not incrementable."
-    ])
+    raise Etna::BadRequest, "Rule \"#{rule_name}\" is not incrementable."
   rescue Magma::Gnomon::UnrecognizedIdentifierError => e
-    failure(422, errors: [
-      "Identifier root \"#{@params[:identifier_root]}\" does not match the rule definition for \"#{rule_name}\"."
-    ])
+    raise Etna::BadRequest, "Identifier root \"#{@params[:identifier_root]}\" does not match the rule definition for \"#{rule_name}\"."
   end
 
   def decompose
@@ -67,6 +63,25 @@ class GnomonController < Magma::Controller
     end
 
     success_json(identifiers)
+  end
+
+  def generate
+    grammar = require_grammar
+    rule = require_rule(grammar)
+
+    raise Etna::BadRequest, "Invalid identifier \"#{@params[:identifier]}\" for rule \"#{rule_name}\" for #{project_name}" unless rule.valid?(@params[:identifier])
+
+    identifier = Magma::Gnomon::Identifier.create(
+      project_name: project_name,
+      rule: rule_name,
+      author: @user.display_name,
+      identifier: @params[:identifier],
+      grammar: grammar
+    )
+
+    success_json(identifier.to_hash(@user))
+  rescue Sequel::UniqueConstraintViolation => e
+    raise Etna::BadRequest, "Identifier \"#{@params[:identifier]}\" for rule \"#{rule_name}\" already exists"
   end
 
   private
