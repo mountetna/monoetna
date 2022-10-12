@@ -75,6 +75,7 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
 <span class="kn">import</span> <span class="nn">paramiko</span>
 <span class="kn">from</span> <span class="nn">paramiko.sftp_client</span> <span class="kn">import</span> <span class="n">SFTPClient</span>
 
@@ -118,7 +119,8 @@
         <span class="n">ssh</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
             <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
-            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">,</span>
+            <span class="n">pkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_private_key</span><span class="p">())</span>
 
         <span class="k">yield</span> <span class="n">ssh</span>
 
@@ -172,7 +174,7 @@
     <span class="k">def</span> <span class="nf">_key_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_components</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">_host_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_host_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">pkey</span><span class="o">.</span><span class="n">PKey</span><span class="p">:</span>
         <span class="n">key_class</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;ssh-rsa&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">RSAKey</span><span class="p">,</span>
             <span class="s2">&quot;ssh-ed25519&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">Ed25519Key</span><span class="p">,</span>
@@ -186,6 +188,14 @@
         <span class="k">return</span> <span class="n">key_class</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">()](</span>
             <span class="n">data</span><span class="o">=</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_str</span><span class="p">())</span>
         <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_private_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">pkey</span><span class="o">.</span><span class="n">PKey</span><span class="p">:</span>
+        <span class="n">private_key_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_extra</span><span class="p">(</span><span class="s1">&#39;private_key&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;&#39;</span> <span class="o">==</span> <span class="n">private_key_str</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">rsakey</span><span class="o">.</span><span class="n">RSAKey</span><span class="o">.</span><span class="n">from_private_key</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">private_key_str</span><span class="p">))</span>
 </pre></div>
 
         </details>
@@ -234,7 +244,8 @@
         <span class="n">ssh</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
             <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
-            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">,</span>
+            <span class="n">pkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_private_key</span><span class="p">())</span>
 
         <span class="k">yield</span> <span class="n">ssh</span>
 
@@ -288,7 +299,7 @@
     <span class="k">def</span> <span class="nf">_key_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key_components</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">_host_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_host_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">pkey</span><span class="o">.</span><span class="n">PKey</span><span class="p">:</span>
         <span class="n">key_class</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;ssh-rsa&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">RSAKey</span><span class="p">,</span>
             <span class="s2">&quot;ssh-ed25519&quot;</span><span class="p">:</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">Ed25519Key</span><span class="p">,</span>
@@ -302,6 +313,14 @@
         <span class="k">return</span> <span class="n">key_class</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_type</span><span class="p">()](</span>
             <span class="n">data</span><span class="o">=</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key_str</span><span class="p">())</span>
         <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_private_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">pkey</span><span class="o">.</span><span class="n">PKey</span><span class="p">:</span>
+        <span class="n">private_key_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_extra</span><span class="p">(</span><span class="s1">&#39;private_key&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;&#39;</span> <span class="o">==</span> <span class="n">private_key_str</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">paramiko</span><span class="o">.</span><span class="n">rsakey</span><span class="o">.</span><span class="n">RSAKey</span><span class="o">.</span><span class="n">from_private_key</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">private_key_str</span><span class="p">))</span>
 </pre></div>
 
         </details>
@@ -382,7 +401,8 @@
         <span class="n">ssh</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">host</span><span class="p">,</span>
             <span class="n">username</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">login</span><span class="p">,</span>
-            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">)</span>
+            <span class="n">password</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hook</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">password</span><span class="p">,</span>
+            <span class="n">pkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_private_key</span><span class="p">())</span>
 
         <span class="k">yield</span> <span class="n">ssh</span>
 
