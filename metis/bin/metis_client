@@ -1226,8 +1226,9 @@ EOT
     usage "checksum <local_directory>"
 
     def parse(args)
+      options[:file] = "md5checksum.txt"
       parse_opts(args) do |opts|
-        opts.on("-f", "--file", "Recursive folder removal") do |file|
+        opts.on("-f", "--file FILE", "Recursive folder removal") do |file|
           options[:file] = file
         end
       end
@@ -1242,7 +1243,7 @@ EOT
 
       File.readlines(md5file).each do |line|
         checksum, file_name = line.chomp.split(/\s+/, 2)
-        full_path = ::File.join( md5dir, file_name )
+        full_path = Pathname.new(::File.join( md5dir, file_name )).cleanpath.to_s
         next unless ::File.exists?(full_path)
 
         md5_cache[full_path] = checksum
@@ -1265,9 +1266,11 @@ EOT
 
       # compute md5sums
       files.each.with_index do |file,i|
+        file = Pathname.new(file).cleanpath.to_s
+
         print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}      \r"
 
-        next if md5_cache[file]
+        next if ::File.basename(file) == options[:file] || md5_cache[file]
 
         md5_cache[file] = %x{ md5sum "#{file}" }.split(' ')[0]
       end
@@ -1280,29 +1283,45 @@ EOT
 
         f.puts output
       end
+
+      return folders, files, md5_cache
     end
   end
 
   class Nuke < Command
     usage "nuke <local_directory>"
 
+    def parse(args)
+      options[:file] = "md5checksum.txt"
+      parse_opts(args) do |opts|
+        opts.on("-f", "--file FILE", "Recursive folder removal") do |file|
+          options[:file] = file
+        end
+      end
+    end
+
+    def make_md5_cache(local_directory)
+      cmd = MetisShell::Checksum.new(@shell)
+      args = cmd.parse(["--file", options[:file], local_directory])
+      cmd.run(*args)
+    end
+
+    def is_checksum_file?(file)
+      ::File.basename(file) == options[:file]
+    end
+
+    def is_subdir_checksum_file?(file)
+      is_checksum_file?(file) && !is_root_checksum_file?(file)
+    end
+
+    def is_root_checksum_file?(file)
+      file == options[:file]
+    end
+
     def run(local_directory)
-      # collect all files and folders
-      folders, files = Dir[::File.join(local_directory, "**", "*")].partition { |f| ::File.directory?(f) }
-
-      puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
-
-      deleted_files = deleted_folders = 0
-      remaining_size = 0
+      folders, files, file_md5s = make_md5_cache(local_directory)
 
       unless files.empty?
-        # compute md5sums
-        file_md5s = files.map.with_index do |file,i|
-          print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}\r"
-          [ file, %x{ md5sum "#{file}" }.split(' ')[0] ]
-        end.to_h
-        puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}\n"
-
         # check with metis
         response = @shell.client.exists(file_md5s.values)
 
@@ -1310,7 +1329,7 @@ EOT
         found = ::Set.new(response[:found])
 
         file_md5s.each do |file, md5|
-          if found.include?(md5)
+          if found.include?(md5) && !is_checksum_file?(file)
             ::File.delete(file)
             deleted_files += 1
           else
@@ -1323,7 +1342,15 @@ EOT
 
       # remove all empty folders
       folders.sort.each do |folder|
-        if ::Dir.exists?(folder) && ::Dir.empty?(folder)
+        next unless ::Dir.exists?(folder)
+        # remove checksum file if necessary
+        files = Dir[folder]
+
+        if files.size == 1 && is_subdir_checksum_file?(files.first)
+          ::File.delete(file)
+        end
+
+        if ::Dir.empty?(folder)
           ::Dir.delete(folder)
           deleted_folders += 1
         end
