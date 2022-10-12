@@ -138,6 +138,10 @@ class Magma
         next_value
       end
 
+      def valid?(identifier)
+        !!(regex =~ identifier)
+      end
+
       private
 
       def latest_identifier(identifier_root)

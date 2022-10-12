@@ -30,6 +30,7 @@ class Magma
     post '/gnomon/:project_name/increment/:rule_name/:identifier_root', action: 'gnomon#increment', auth: { user: { is_admin?: :project_name } }
     get '/gnomon/:project_name/decompose/*identifier', action: 'gnomon#decompose', auth: { user: { can_view?: :project_name } }
     get '/gnomon/:project_name/list/:rule_name', action: 'gnomon#list', auth: { user: { can_view?: :project_name } }
+    post '/gnomon/:project_name/generate/:rule_name/:identifier', action: 'gnomon#generate', auth: { user: { is_admin?: :project_name } }
 
     get '/' do
       [ 200, {}, [ 'Magma is available.' ] ]

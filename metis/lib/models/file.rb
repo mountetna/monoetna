@@ -98,7 +98,7 @@ class Metis
     end
 
     def self.author(user)
-      [ user.email, user.name ].join('|')
+      user.display_name
     end
 
     def self.exists?(file_name, bucket, parent_folder)
@@ -168,7 +168,7 @@ class Metis
     end
 
     def to_hash(request: nil, file_path: nil, with_path: true)
-      
+
 
       params = {
         folder_id: folder_id,

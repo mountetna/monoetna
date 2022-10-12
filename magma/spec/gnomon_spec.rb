@@ -403,4 +403,57 @@ describe GnomonController do
       end
     end
   end
+
+  context 'generate API' do
+
+    it 'throws exception when no grammar for project' do
+      auth_header(:admin)
+      post('/gnomon/labors/generate/victim/LABORS-LION-H2-C1')
+      expect(last_response.status).to eq(422)
+    end
+
+    context 'with grammar' do
+      before(:each) do
+        @grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
+      end
+
+      it 'creates the identifier' do
+        identifier = "LABORS-LION-H2-C1"
+        expect(Magma::Gnomon::Identifier.count).to eq(0)
+        auth_header(:admin)
+        post("/gnomon/labors/generate/victim/#{identifier}")
+        expect(last_response.status).to eq(200)
+        expect(json_body[:identifier]).to eq(identifier)
+        expect(Magma::Gnomon::Identifier.count).to eq(1)
+        expect(Magma::Gnomon::Identifier.first[:identifier]).to eq(identifier)
+      end
+
+      context 'throws exception when' do
+        it 'invalid rule name provided' do
+          auth_header(:admin)
+          post('/gnomon/labors/generate/alias/LABORS-LION-H2-C1')
+          expect(last_response.status).to eq(422)
+        end
+
+        it 'non-admin tries to generate an identifier' do
+          auth_header(:viewer)
+          post('/gnomon/labors/generate/victim/LABORS-LION-H2-C1')
+          expect(last_response.status).to eq(403)
+        end
+
+        it 'identifier already exists' do
+          identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+          auth_header(:admin)
+          post('/gnomon/labors/generate/victim/LABORS-LION-H2-C1')
+          expect(last_response.status).to eq(422)
+        end
+
+        it 'identifier does not match rule' do
+          auth_header(:admin)
+          post('/gnomon/labors/generate/victim/LABORS-LION-H2-X1')
+          expect(last_response.status).to eq(422)
+        end
+      end
+    end
+  end
 end
