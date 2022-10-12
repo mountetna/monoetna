@@ -410,6 +410,7 @@ describe GnomonController do
       auth_header(:admin)
       post('/gnomon/labors/generate/victim/LABORS-LION-H2-C1')
       expect(last_response.status).to eq(422)
+      expect(Magma::Gnomon::Identifier.count).to eq(0)
     end
 
     context 'with grammar' do
@@ -433,12 +434,14 @@ describe GnomonController do
           auth_header(:admin)
           post('/gnomon/labors/generate/alias/LABORS-LION-H2-C1')
           expect(last_response.status).to eq(422)
+          expect(Magma::Gnomon::Identifier.count).to eq(0)
         end
 
         it 'non-admin tries to generate an identifier' do
           auth_header(:viewer)
           post('/gnomon/labors/generate/victim/LABORS-LION-H2-C1')
           expect(last_response.status).to eq(403)
+          expect(Magma::Gnomon::Identifier.count).to eq(0)
         end
 
         it 'identifier already exists' do
@@ -446,12 +449,14 @@ describe GnomonController do
           auth_header(:admin)
           post('/gnomon/labors/generate/victim/LABORS-LION-H2-C1')
           expect(last_response.status).to eq(422)
+          expect(Magma::Gnomon::Identifier.count).to eq(0)
         end
 
         it 'identifier does not match rule' do
           auth_header(:admin)
           post('/gnomon/labors/generate/victim/LABORS-LION-H2-X1')
           expect(last_response.status).to eq(422)
+          expect(Magma::Gnomon::Identifier.count).to eq(0)
         end
       end
     end
