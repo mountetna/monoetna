@@ -97,6 +97,7 @@
     <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">additional_constraints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DockerOperatorBase</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;DEV_MODE&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">run_in_container</span><span class="p">(</span>
@@ -122,6 +123,7 @@
         <span class="n">cpu_reservation</span><span class="o">=</span><span class="n">cpu_reservation</span><span class="p">,</span>
         <span class="n">mem_reservation</span><span class="o">=</span><span class="n">mem_reservation</span><span class="p">,</span>
         <span class="n">mem_limit</span><span class="o">=</span><span class="n">mem_limit</span><span class="p">,</span>
+        <span class="n">additional_constraints</span><span class="o">=</span><span class="n">additional_constraints</span>
     <span class="p">)</span>
 
 
@@ -141,6 +143,7 @@
     <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">additional_constraints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DockerSwarmOperator</span><span class="p">:</span>
     <span class="n">serialize_last_output</span> <span class="o">=</span> <span class="n">_prepare_input_outputs</span><span class="p">(</span><span class="n">output_b64</span><span class="p">,</span> <span class="n">output_json</span><span class="p">)</span>
 
@@ -157,6 +160,7 @@
         <span class="n">cpu_reservation</span><span class="o">=</span><span class="n">cpu_reservation</span><span class="p">,</span>
         <span class="n">mem_reservation</span><span class="o">=</span><span class="n">mem_reservation</span><span class="p">,</span>
         <span class="n">mem_limit</span><span class="o">=</span><span class="n">mem_limit</span><span class="p">,</span>
+        <span class="n">additional_constraints</span><span class="o">=</span><span class="n">additional_constraints</span>
     <span class="p">)</span>
 
 
@@ -220,7 +224,8 @@
     mem_limit: Union[int, NoneType] = None,
     cpu_reservation: Union[int, NoneType] = None,
     mem_reservation: Union[int, NoneType] = None,
-    allow_manager_nodes=False
+    allow_manager_nodes=False,
+    additional_constraints: Union[List[str], NoneType] = None
 ) -&gt; <a href="operators/docker_operator_base.html#DockerOperatorBase">etna.operators.docker_operator_base.DockerOperatorBase</a></span>:
     </div>
 
@@ -242,6 +247,7 @@
     <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">additional_constraints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DockerOperatorBase</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;DEV_MODE&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">run_in_container</span><span class="p">(</span>
@@ -267,6 +273,7 @@
         <span class="n">cpu_reservation</span><span class="o">=</span><span class="n">cpu_reservation</span><span class="p">,</span>
         <span class="n">mem_reservation</span><span class="o">=</span><span class="n">mem_reservation</span><span class="p">,</span>
         <span class="n">mem_limit</span><span class="o">=</span><span class="n">mem_limit</span><span class="p">,</span>
+        <span class="n">additional_constraints</span><span class="o">=</span><span class="n">additional_constraints</span>
     <span class="p">)</span>
 </pre></div>
 
@@ -293,7 +300,8 @@
     mem_limit: Union[int, NoneType] = None,
     cpu_reservation: Union[int, NoneType] = None,
     mem_reservation: Union[int, NoneType] = None,
-    allow_manager_nodes=False
+    allow_manager_nodes=False,
+    additional_constraints: Union[List[str], NoneType] = None
 ) -&gt; <a href="operators/swarm_operator.html#DockerSwarmOperator">etna.operators.swarm_operator.DockerSwarmOperator</a></span>:
     </div>
 
@@ -315,6 +323,7 @@
     <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">additional_constraints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DockerSwarmOperator</span><span class="p">:</span>
     <span class="n">serialize_last_output</span> <span class="o">=</span> <span class="n">_prepare_input_outputs</span><span class="p">(</span><span class="n">output_b64</span><span class="p">,</span> <span class="n">output_json</span><span class="p">)</span>
 
@@ -331,6 +340,7 @@
         <span class="n">cpu_reservation</span><span class="o">=</span><span class="n">cpu_reservation</span><span class="p">,</span>
         <span class="n">mem_reservation</span><span class="o">=</span><span class="n">mem_reservation</span><span class="p">,</span>
         <span class="n">mem_limit</span><span class="o">=</span><span class="n">mem_limit</span><span class="p">,</span>
+        <span class="n">additional_constraints</span><span class="o">=</span><span class="n">additional_constraints</span>
     <span class="p">)</span>
 </pre></div>
 
