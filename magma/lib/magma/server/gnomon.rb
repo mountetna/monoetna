@@ -30,6 +30,32 @@ class GnomonController < Magma::Controller
     return success_json(grammar.to_hash)
   end
 
+  def increment
+    require_params(:project_name, :rule_name, :identifier_root)
+
+    grammar = Magma::Gnomon::Grammar.for_project(project_name)
+
+    return failure(422, errors: ["No grammar defined for that project"]) if grammar.nil?
+
+    rule = grammar.rules[@params[:rule_name]]
+
+    return failure(422, errors: [
+      "Unknown rule name, \"#{@params[:rule_name]}\"."
+    ]) if rule.nil?
+
+    next_value = rule.next(@params[:identifier_root])
+
+    return success(next_value)
+  rescue Magma::Gnomon::UnincrementableRuleError => e
+    failure(422, errors: [
+      "Rule \"#{@params[:rule_name]}\" is not incrementable."
+    ])
+  rescue Magma::Gnomon::UnrecognizedIdentifierError => e
+    failure(422, errors: [
+      "Identifier root \"#{@params[:identifier_root]}\" does not match the rule definition for \"#{@params[:rule_name]}\"."
+    ])
+  end
+
   def decompose
     grammar = Magma::Gnomon::Grammar.for_project(@params[:project_name])
 
@@ -38,5 +64,11 @@ class GnomonController < Magma::Controller
     raise Etna::BadRequest, "Could not decompose identifier #{@params[:identifier]} for #{@params[:project_name]}" unless result
 
     success_json(result)
+  end
+
+  private
+
+  def project_name
+    @params[:project_name]
   end
 end

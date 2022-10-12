@@ -186,4 +186,92 @@ describe GnomonController do
     expect(last_response.status).to eq(422)
     expect(json_body[:error]).to eq("Could not decompose identifier LABORS-LOON-H2-C1 for labors")
   end
+
+  context 'counter API' do
+    it 'throws exception with no grammar defined' do
+      expect(Magma::Gnomon::Identifier.count).to eq(0)
+      auth_header(:admin)
+      post('/gnomon/labors/increment/victim/LABORS-LION-H2-C')
+      expect(last_response.status).to eq(422)
+      expect(Magma::Gnomon::Identifier.count).to eq(0)
+    end
+
+    context 'with valid grammar' do
+      before(:each) do
+        @grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
+      end
+
+      context 'generates the next identifier when' do
+        it 'none exist' do
+          auth_header(:admin)
+          post('/gnomon/labors/increment/victim/LABORS-LION-H2-C')
+          expect(last_response.status).to eq(200)
+          expect(last_response.body).to eq("1")
+        end
+
+        it 'does not create the identifier' do
+          expect(Magma::Gnomon::Identifier.count).to eq(0)
+          auth_header(:admin)
+          post('/gnomon/labors/increment/victim/LABORS-LION-H2-C')
+          expect(last_response.status).to eq(200)
+          expect(last_response.body).to eq("1")
+          expect(Magma::Gnomon::Identifier.count).to eq(0)
+        end
+
+        it 'sequence exists' do
+          identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+          auth_header(:admin)
+          post('/gnomon/labors/increment/victim/LABORS-LION-H2-C')
+          expect(last_response.status).to eq(200)
+          expect(last_response.body).to eq("2")
+        end
+
+        it 'sequence in other token value exists' do
+          identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+          auth_header(:admin)
+          post('/gnomon/labors/increment/victim/LABORS-LION-H2-S')
+          expect(last_response.status).to eq(200)
+          expect(last_response.body).to eq("1")
+        end
+
+        it 'change in parent token counter' do
+          identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+          auth_header(:admin)
+          post('/gnomon/labors/increment/victim/LABORS-LION-H1-C')
+          expect(last_response.status).to eq(200)
+          expect(last_response.body).to eq("1")
+        end
+      end
+
+      context 'throws exception when' do
+        it 'user is not an administrator' do
+          auth_header(:viewer)
+          post('/gnomon/labors/increment/victim/LABORS-LION-H2-C')
+          expect(last_response.status).to eq(403)
+        end
+
+        it 'rule does not exist' do
+          auth_header(:admin)
+          post('/gnomon/labors/increment/habitat/LABORS-MARSH')
+          expect(last_response.status).to eq(422)
+        end
+
+        it 'identifier_root does not match rule' do
+          auth_header(:admin)
+          post('/gnomon/labors/increment/victim/LABORS-LION-H2-Q')
+          expect(last_response.status).to eq(422)
+          post('/gnomon/labors/increment/victim/LABORS-PARROT-H')
+          expect(last_response.status).to eq(422)
+        end
+
+        it 'but does not create identifier' do
+          expect(Magma::Gnomon::Identifier.count).to eq(0)
+          auth_header(:admin)
+          post('/gnomon/labors/increment/victim/LABORS-LION-H2-Q')
+          expect(last_response.status).to eq(422)
+          expect(Magma::Gnomon::Identifier.count).to eq(0)
+        end
+      end
+    end
+  end
 end

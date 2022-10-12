@@ -21,12 +21,13 @@ class Magma
 
     post '/query', as: :query, action: 'query#action', auth: { user: { can_view?: :project_name } }
 
-    post '/update', as: :update, action: 'update#action', auth: { user: { can_edit?: :project_name } } 
+    post '/update', as: :update, action: 'update#action', auth: { user: { can_edit?: :project_name } }
 
     post '/update_model', action: 'update_model#action', auth: { user: { is_admin?: :project_name } }
 
     get '/gnomon/:project_name', action: 'gnomon#get', auth: { user: { can_view?: :project_name } }
     post '/gnomon/:project_name', action: 'gnomon#set', auth: { user: { is_admin?: :project_name } }
+    post '/gnomon/:project_name/increment/:rule_name/:identifier_root', action: 'gnomon#increment', auth: { user: { is_admin?: :project_name } }
     get '/gnomon/:project_name/decompose/*identifier', action: 'gnomon#decompose', auth: { user: { can_view?: :project_name } }
 
     get '/' do
