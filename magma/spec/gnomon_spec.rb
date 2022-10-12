@@ -371,7 +371,7 @@ describe GnomonController do
         end
       end
 
-      it 'correctly supplies record creation times from Magma' do
+      it 'correctly supplies record creation times from Magma for unrestricted records' do
         identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
 
         project = create(:project, name: 'The Twelve Labors of Hercules')
