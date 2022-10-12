@@ -362,7 +362,7 @@ const RuleEditor = ({project_name}) => {
   const changed = state != savedState;
 
   useEffect( () => {
-    json_get(magmaPath(`/gnomon/${project_name}/`)).then(
+    json_get(magmaPath(`gnomon/${project_name}/`)).then(
       ({config}) => {
         dispatch({ type: 'SET', state: config });
         setSavedState(config);
@@ -372,7 +372,7 @@ const RuleEditor = ({project_name}) => {
 
   const saveRules = useCallback(
     () => {
-      json_post(magmaPath(`/gnomon/${project_name}`), { config: state }).then(
+      json_post(magmaPath(`gnomon/${project_name}`), { config: state }).then(
         () => setSavedState(state)
       );
     }, [ state, savedState ]

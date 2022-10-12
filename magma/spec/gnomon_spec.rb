@@ -275,6 +275,37 @@ describe GnomonController do
     end
   end
 
+  context 'rule API' do
+    it 'throws exception when no grammar for project' do
+      auth_header(:viewer)
+      get('/gnomon/labors/rule/victim')
+      expect(last_response.status).to eq(422)
+    end
+
+    context 'with grammar' do
+      before(:each) do
+        @grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
+      end
+
+      it 'returns a tokenization of the rule' do
+        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+        auth_header(:viewer)
+        get('/gnomon/labors/rule/village')
+        expect(last_response.status).to eq(200)
+        expect(json_body[:rule]).to eq(
+          [
+            {label: "project", values: {LABORS: "The Twelve Labors of Hercules"}, name: "PROJ"},
+            {label: "Separator", values: {'-': "# Separator"}, name: "SEP"},
+            {label: "labor", values: {LION: "The Nemean Lion", HYDRA: "The Lernean Hydra"}, name: "LAB"},
+            {label: "Separator", values: {'-': "# Separator"}, name: "SEP"},
+            {label: "Village type", values: {V: "Village", H: "Hamlet"}, name: "VILL"},
+            {name: "n", label: "village_counter"}
+          ]
+        )
+      end
+    end
+  end
+
   context 'list API' do
 
     it 'throws exception when no grammar for project' do

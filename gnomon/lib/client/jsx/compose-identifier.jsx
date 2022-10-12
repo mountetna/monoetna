@@ -14,6 +14,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Typography from '@material-ui/core/Typography';
 import ProjectHeader from 'etna-js/components/project-header';
 import {makeStyles} from '@material-ui/core/styles';
+import { json_get, json_post } from 'etna-js/utils/fetch';
+import { magmaPath } from 'etna-js/api/magma_api';
 
 import Letter from './letter';
 import Bracket from './bracket';
@@ -99,7 +101,7 @@ const ResolvedEditor = ({token}) => (
   />
 );
 
-const CounterEditor = ({token, value, update, pos}) => (
+const CounterEditor = ({token, tokens, value, update, pos, seq, project_name}) => (
   <React.Fragment>
     <TextField
       onChange={ e => update(pos, e.target.value) }
@@ -110,7 +112,14 @@ const CounterEditor = ({token, value, update, pos}) => (
       label={token.label}/>
     {
       !value && token.filled && <IconButton
-        size='small' title={ `Fill the next available value for ${token.label}`}>
+        onClick={ () => {
+          const pre = tokens.slice(0,pos).map( t => t.seq ).join('');
+          json_post(magmaPath(`gnomon/${project_name}/increment/${token.label.replace('_counter','')}/${pre}`)).then(
+            value => update(pos, value)
+          )
+        }}
+        size='small'
+        title={ `Fill the next available value for ${token.label}`}>
         <PlusOneIcon/>
       </IconButton>
     }
@@ -189,83 +198,23 @@ const Token = ({token, value}) => {
   </Grid>
 }
 
-const ComposeIdentifier = ({project_name}) => {
+const ComposeIdentifier = ({project_name, rule_name}) => {
   const classes = useStyles();
 
   // 'MVIR1-HS169-D0PL1-CTK1';
 
   // a string of tokens we must satisfy
-  const model = {
-    tokens: [
-      {
-        name: 'PROJ',
-        label: 'project',
-        values: { 'MVIR1': 'COMET' }
-      },
-      {
-        name: 'SEP',
-        values: { '-' : '# Separator' }
-      },
-      {
-        name: 'SP',
-        label: 'species',
-        values: { 'HS' : 'Homo Sapiens' }
-      },
-      {
-        name: 'n',
-        label: 'Subject counter'
-      },
-      {
-        name: 'SEP',
-        values: { '-' : '# Separator' }
-      },
-      {
-        name: 'TP',
-        label: 'timepoint',
-        values: { 'D' : 'Day', 'DN' : 'Negative Day', 'M' : 'Month' }
-      },
-      {
-        name: 'n',
-        label: 'Timepoint counter'
-      },
-      {
-        name: 'BSP',
-        label: 'biospecimen',
-        values: {
-          'PL' : 'Plasma',
-          'BLD' : 'Blood',
-          'PBMC' : 'PBMCs',
-          'SR' : 'Serum',
-          'ETA' : 'Endotracheal Aspirate'
-        }
-      },
-      {
-        name: 'n',
-        label: 'Biospecimen counter'
-      },
-      {
-        name: 'SEP',
-        values: { '-' : '# Separator' }
-      },
-      {
-        name: 'IMM',
-        label: 'immunoassay',
-        values: {
-          'CTK': 'Cytokine',
-          'VAG' : 'Viral Antigen',
-          'PDV' : 'Viral PhIP-Seq',
-          'LNK' : 'Olink',
-          'RSL' : 'Rescan Luminex'
-        }
-      },
-      {
-        name: 'n',
-        label: 'Immunoassay counter'
-      },
-    ]
-  };
-
-  const [ values, setValues ] = useState(model.tokens.map(t=>''));
+  const [ tokens, setTokens ] = useState([]);
+  const [ values, setValues ] = useState([]);
+  
+  useEffect( () => {
+    json_get(magmaPath(`gnomon/${project_name}/rule/${rule_name}`)).then(
+      ({rule}) => {
+        setTokens(rule);
+        setValues( rule.map(t => '') );
+      }
+    )
+  }, [] );
 
   const setValue = useCallback( (i, val) => {
     let newValues = [ ... values ];
@@ -296,23 +245,23 @@ const ComposeIdentifier = ({project_name}) => {
     return [ pos + seq.length, height, new_filled ]
   }, [values]);
 
-  const [ _, height ] = model.tokens.reduce( updateToken, [ 0, 0, true ] );
+  const [ _, height ] = tokens.reduce( updateToken, [ 0, 0, true ] );
 
-  const seq = model.tokens.map( t => t.seq ).join('');
+  const seq = tokens.map( t => t.seq ).join('');
 
   return <Grid>
     <ProjectHeader project_name={ project_name } className={classes.header}/>
     <Grid container alignItems='center' className={classes.composer} style={{ width: 40 * (seq.length+1) }}>
       <Grid container className={classes.tokens}>
       {
-        model.tokens.map(
-          (token, i) => <TokenEditor key={i} token={token} seq={seq} height={height} update={setValue} value={ values[i] } pos={i}/>
+        tokens.map(
+          (token, i) => <TokenEditor key={i} token={token} seq={seq} tokens={tokens} height={height} update={setValue} value={ values[i] } pos={i} project_name={project_name}/>
         )
       }
       </Grid>
       {
-        model.tokens.map(
-          (token,i) => <Token key={i} token={token} value={ values[i] } />
+        tokens.map(
+          (token, i) => <Token key={i} token={token} value={ values[i] }/>
         )
       }
     </Grid>

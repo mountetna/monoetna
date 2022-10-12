@@ -65,6 +65,14 @@ class GnomonController < Magma::Controller
     success_json(identifiers)
   end
 
+  def rule
+    grammar = require_grammar
+    rule = require_rule(grammar)
+
+    rule_tokenization = rule.tokens.map{|t| grammar.tokens[t]&.merge(name: t) || { name: 'n', label: t } }
+    success_json(rule: rule_tokenization)
+  end
+
   def generate
     grammar = require_grammar
     rule = require_rule(grammar)

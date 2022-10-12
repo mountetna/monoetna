@@ -28,7 +28,7 @@ const ROUTES = [
     component: DecomposeIdentifier
   },
   {
-    template: ':project_name/create/:model_name',
+    template: ':project_name/create/:rule_name',
     component: ComposeIdentifier
   },
   {
