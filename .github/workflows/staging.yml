@@ -28,5 +28,6 @@ jobs:
           IMAGES_POSTFIX: :staging
           NO_TEST: 1
         run: |
+          make -C etna release
           make -j 4 release
           git push origin HEAD:staging-build --force
