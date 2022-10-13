@@ -7,7 +7,6 @@ var webpack = require('webpack');
 module.exports = (env) => ({
   mode: process.env.NODE_ENV || 'development',
   context: '/app',
-  devtool: 'source-map',
   resolve: {
     modules: ['/etna/node_modules'],
     extensions: [
