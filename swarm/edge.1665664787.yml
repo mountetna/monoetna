@@ -1,0 +1,102 @@
+version: '3.8'
+services:
+
+  edge-apache:
+    image: etnaagent/edge-apache:production
+    volumes:
+      - httpd.conf.d:/usr/opt/httpd.conf.d:ro
+      - /etc/ssl:/etc/ssl:ro
+    deploy:
+      mode: replicated
+      labels:
+        - autoupdate=true
+      replicas: 1
+      placement: &edge-placement
+        constraints:
+          - node.role == worker
+          - node.labels.is_edge == true
+    networks:
+      - edge_bridge
+    ports:
+      - 80:80
+      - 443:443
+
+  backup:
+    image: etnaagent/metis:production
+    command: "true"
+    volumes:
+      - httpd.conf.d:/usr/opt/httpd.conf.d:ro
+      - /etc/ssl:/etc/ssl:ro
+      - disk_backup:/db_dumps
+    deploy:
+      labels:
+        - autoupdate=true
+      placement:
+        constraints:
+          - node.labels.etna-worker == true
+          - node.labels.volumes.data3 == true
+          - node.labels.is_edge != true
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 200mb
+          
+  apply-config: &apply-config
+    configs:
+      - main.conf.erb
+    image: etnaagent/config-agent:production
+    volumes:
+      - httpd.conf.d:/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/ssl:/etc/ssl:ro
+    deploy:
+      labels:
+        - autoupdate=true
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: none
+
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 200mb
+      placement:
+        <<: *edge-placement
+
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        source /lib/config-helpers
+        template /main.conf.erb main.conf
+        cat main.conf | docker run --rm -i -v /etc/ssl:/etc/ssl:ro etnaagent/edge-apache:production bash -c 'cat > /usr/opt/httpd.conf.d/main.conf && httpd -t'
+        enable main.conf
+        edge_node="$$(docker ps --filter name=edge_edge-apache -q || true)"
+        if [ -n "$$edge_node" ]; then
+          docker exec "$$edge_node" apachectl -k graceful
+        else
+          echo "Could not find edge_edge-apache on local node"
+          exit 1
+        fi
+
+volumes:
+
+  httpd.conf.d:
+  disk_backup:
+    name: disk_backup
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: "/data3/metis/db_dumps"
+
+networks:
+  edge_bridge:
+    external: true
+
+configs:
+  main.conf.erb:
+    external: true
+    name: ${MAIN_CONF_ERB:-main.conf.erb}
