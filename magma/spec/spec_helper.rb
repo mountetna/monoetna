@@ -244,13 +244,14 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     FactoryBot.find_definitions
-    DatabaseCleaner[:sequel].db = Magma.instance.db
-    DatabaseCleaner.strategy = :transaction
-    DatabaseCleaner.clean_with(:truncation, except: ["models", "attributes", "schema_info"])
+    #DatabaseCleaner[:sequel].db = Magma.instance.db
+    #DatabaseCleaner.strategy = :transaction
+    #DatabaseCleaner.clean_with(:truncation, except: ["models", "attributes", "schema_info"])
   end
 
   config.around(:each) do |example|
-    DatabaseCleaner.cleaning { example.run }
+    #DatabaseCleaner.cleaning { example.run }
+    Magma.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){example.run}
   end
 end
 

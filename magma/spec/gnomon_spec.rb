@@ -480,7 +480,7 @@ describe GnomonController do
           auth_header(:admin)
           post('/gnomon/labors/generate/victim/LABORS-LION-H2-C1')
           expect(last_response.status).to eq(422)
-          expect(Magma::Gnomon::Identifier.count).to eq(0)
+          expect(Magma::Gnomon::Identifier.count).to eq(1)
         end
 
         it 'identifier does not match rule' do
