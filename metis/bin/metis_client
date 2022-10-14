@@ -1228,7 +1228,7 @@ EOT
     def parse(args)
       options[:file] = "md5checksum.txt"
       parse_opts(args) do |opts|
-        opts.on("-f", "--file FILE", "Recursive folder removal") do |file|
+        opts.on("-f", "--file FILE", "Use FILE as the pattern to find and write checksum files") do |file|
           options[:file] = file
         end
       end
@@ -1294,7 +1294,7 @@ EOT
     def parse(args)
       options[:file] = "md5checksum.txt"
       parse_opts(args) do |opts|
-        opts.on("-f", "--file FILE", "Recursive folder removal") do |file|
+        opts.on("-f", "--file FILE", "Use FILE as the pattern to find and write checksum files") do |file|
           options[:file] = file
         end
       end
