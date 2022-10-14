@@ -1321,6 +1321,8 @@ EOT
     def run(local_directory)
       folders, files, file_md5s = make_md5_cache(local_directory)
 
+      deleted_files = deleted_folders = 0
+      remaining_size = 0
       unless files.empty?
         # check with metis
         response = @shell.client.exists(file_md5s.values)
