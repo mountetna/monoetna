@@ -13,7 +13,7 @@ jobs:
   build-production:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           token: ${{ secrets.SYNC_ACCESS_TOKEN }}
       - name: docker login
@@ -28,6 +28,6 @@ jobs:
           IMAGES_POSTFIX: :production
           NO_TEST: 1
         run: |
+          make -C etna release
           make -j 4 release
           git push origin HEAD:production-build --force
-
