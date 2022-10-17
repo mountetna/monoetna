@@ -1,4 +1,4 @@
-import React, {useState, Component} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useDispatch} from 'react-redux';
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
@@ -66,6 +66,10 @@ const AttributeReport = ({attribute, model_name, counts}) => {
       query: [model_name, '::distinct', attribute.attribute_name]
     })(dispatch).then(({answer}) => setSample(answer));
   };
+
+  useEffect(() => {
+    setSample(null);
+  }, [attribute]);
 
   const classes = useStyles();
 
