@@ -6,7 +6,7 @@ class Magma
     #
     # This is a request for all objects of type "sample", so it's return type should be:
     #   [ Sample ]
-    # 
+    #
 
     # This object takes several arguments:
     #   1) It can accept an arbitrary list of filters, which are
@@ -64,12 +64,14 @@ class Magma
     verb '::first' do
       child :record_child
       extract do |table,return_identity|
-        child_extract(
-          table.group_by do |row|
-            row[identity]
-          end.first&.last,
-          identity
-        )
+        table.empty? ?
+          nil :
+          child_extract(
+            table.group_by do |row|
+              row[identity]
+            end.first&.last,
+            identity
+          )
       end
       format do
         child_format
