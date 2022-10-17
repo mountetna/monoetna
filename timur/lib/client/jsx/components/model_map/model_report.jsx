@@ -290,7 +290,7 @@ const ModelReport = ({
     ).then(({models}) => setDiffTemplate(models[model_name].template));
   };
   const attributes = Object.values({
-    ...template.attributes,
+    ...(template?.attributes || {}),
     ...(diffTemplate && diffTemplate.attributes)
   });
 
