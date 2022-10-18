@@ -16,7 +16,7 @@ class Polyphemus::SyncGneMetisFilesEtl < Polyphemus::MetisFileEtl
         project_name: 'mvir1', bucket_name: BUCKET,
         filesystem: filesystem)
 
-    concurrency = 1
+    concurrency = 3
 
     semaphore = Concurrent::Semaphore.new(concurrency)
     errors = Queue.new
