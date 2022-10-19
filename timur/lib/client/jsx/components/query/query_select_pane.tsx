@@ -74,7 +74,7 @@ const QuerySelectPane = () => {
         model_name: column.model_name,
         slices: [],
         attribute_name: attributeName,
-        display_label: `${newDefaultLabel}`
+        display_label: newDefaultLabel
       });
     },
     [patchQueryColumn]
