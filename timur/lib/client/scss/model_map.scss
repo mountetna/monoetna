@@ -1,4 +1,4 @@
-@import "globals";
+@import 'globals';
 
 svg#map {
   overflow: visible;
@@ -29,9 +29,66 @@ svg#map {
     background: #cfc;
   }
 
-  transform: translate(-50%,-50%);
+  transform: translate(-50%, -50%);
   &:hover {
     background: #cec;
   }
 }
 
+.add-attribute-modal {
+  width: 600px;
+  padding: 20px;
+  border-radius: 2px;
+  background: white;
+  max-height: 70vh;
+  line-height: 200%;
+  font-family: $body_font;
+
+  .header {
+    border-bottom: 2px solid darkgreen;
+  }
+
+  .options-tray {
+    flex-direction: column;
+  }
+
+  .options-action-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+
+    .button {
+      &.save {
+        @include green_button;
+      }
+
+      &.cancel {
+        @include red_button;
+      }
+
+      margin: 1rem;
+    }
+  }
+
+  .tray {
+    display: flex;
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: $thin-rule;
+
+    input {
+      margin-right: 1rem;
+    }
+    label {
+      flex: 1 1 auto;
+    }
+    .actions {
+      flex: 1 1 auto;
+      text-align: right;
+
+      button {
+        @include green_button;
+      }
+    }
+  }
+}

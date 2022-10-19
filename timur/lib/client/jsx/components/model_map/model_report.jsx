@@ -30,6 +30,10 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Tooltip from '@material-ui/core/Tooltip';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Chip from '@material-ui/core/Chip';
+import AddIcon from '@material-ui/icons/Add';
+
+import AddAttributeModal from './add_attribute_modal';
+import {useModal} from 'etna-js/components/ModalDialogContainer';
 
 const attributeStyles = makeStyles((theme) => ({
   attribute: {
@@ -44,6 +48,11 @@ const attributeStyles = makeStyles((theme) => ({
     width: '30px',
     color: 'gray',
     cursor: 'default'
+  },
+  addBtn: {},
+  add: {
+    width: '30px',
+    color: 'green'
   },
   type: {
     color: 'gray',
@@ -74,6 +83,30 @@ const diffTypes = {
   present: {ind: '+', title: 'Present in this model'},
   absent: {ind: '-', title: 'Absent in this model'},
   changed: {ind: 'c', title: 'Changed in this model'}
+};
+
+const AddModelAttribute = ({handleAddAttribute}) => {
+  const classes = attributeStyles();
+  const {openModal} = useModal();
+
+  return (
+    <TableRow>
+      <TableCell className={classes.add} align='left' title='Add Attribute'>
+        <Tooltip title='Add Attribute' aria-label='Add Attribute'>
+          <Button
+            className={classes.addBtn}
+            startIcon={<AddIcon />}
+            onClick={() => {
+              openModal(<AddAttributeModal onSave={handleAddAttribute} />);
+            }}
+          >
+            Attribute
+          </Button>
+        </Tooltip>
+      </TableCell>
+      <TableCell />
+    </TableRow>
+  );
 };
 
 const ModelAttribute = ({
@@ -418,6 +451,7 @@ const ModelReport = ({
                   diffTemplate={diffTemplate}
                 />
               ))}
+            <AddModelAttribute />
           </TableBody>
         </Table>
       </TableContainer>
