@@ -17,7 +17,8 @@ const useStyles = makeStyles((theme) => ({
     border: '1px solid #ccc',
     height: '200px',
     resize: 'vertical',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    overflowY: 'auto'
   }
 }));
 
