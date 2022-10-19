@@ -64,9 +64,7 @@ const QuerySelectPane = () => {
     (columnIndex: number, column: QueryColumn, attributeName: string) => {
       const previousDefaultLabel = `${column.model_name}.${column.attribute_name}`;
 
-      const newDefaultLabel = ['', previousDefaultLabel].includes(
-        column.display_label
-      )
+      const newLabel = ['', previousDefaultLabel].includes(column.display_label)
         ? `${column.model_name}.${attributeName}`
         : column.display_label;
 
@@ -74,7 +72,7 @@ const QuerySelectPane = () => {
         model_name: column.model_name,
         slices: [],
         attribute_name: attributeName,
-        display_label: newDefaultLabel
+        display_label: newLabel
       });
     },
     [patchQueryColumn]
