@@ -1,5 +1,5 @@
 import {useDispatch} from 'react-redux';
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useMemo} from 'react';
 import {sortAttributeList} from '../../utils/attributes';
 import SelectProjectModelDialog from '../select_project_model';
 import {requestAnswer} from 'etna-js/actions/magma_actions';
@@ -34,6 +34,9 @@ import AddIcon from '@material-ui/icons/Add';
 
 import AddAttributeModal from './add_attribute_modal';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
+import {selectUser} from 'etna-js/selectors/user-selector';
+import {isAdmin} from 'etna-js/utils/janus';
+import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 const attributeStyles = makeStyles((theme) => ({
   attribute: {
@@ -85,7 +88,7 @@ const diffTypes = {
   changed: {ind: 'c', title: 'Changed in this model'}
 };
 
-const AddModelAttribute = ({handleAddAttribute}) => {
+const ManageModelActions = ({handleAddAttribute}) => {
   const classes = attributeStyles();
   const {openModal} = useModal();
 
@@ -104,6 +107,8 @@ const AddModelAttribute = ({handleAddAttribute}) => {
           </Button>
         </Tooltip>
       </TableCell>
+      <TableCell />
+      <TableCell />
       <TableCell />
     </TableRow>
   );
@@ -230,6 +235,7 @@ const ModelReport = ({
 }) => {
   const dispatch = useDispatch();
 
+  const user = useReduxState((state) => selectUser(state));
   const classes = reportStyles();
 
   const modelCount = counts[model_name]?.count;
@@ -326,6 +332,10 @@ const ModelReport = ({
     ...(template?.attributes || {}),
     ...(diffTemplate && diffTemplate.attributes)
   });
+
+  const isAdminUser = useMemo(() => {
+    return isAdmin(user, CONFIG.project_name);
+  }, [user, CONFIG.project_name]);
 
   return (
     <Grid className={classes.model_report}>
@@ -451,7 +461,7 @@ const ModelReport = ({
                   diffTemplate={diffTemplate}
                 />
               ))}
-            <AddModelAttribute />
+            {isAdminUser && <ManageModelActions />}
           </TableBody>
         </Table>
       </TableContainer>

@@ -1,5 +1,8 @@
 import React, {useState, useCallback, useEffect} from 'react';
 
+import TextField from '@material-ui/core/TextField';
+import MenuItem from '@material-ui/core/MenuItem';
+
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 
@@ -33,22 +36,31 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
     invoke(dismissModal());
   }, [invoke, dismissModal]);
 
+  const attributeTypes = ['string', 'shifted_date_time', 'date_time'];
+
   return (
     <div className='add-attribute-modal'>
       <div className='header'>Add Attribute</div>
       <div className='options-tray tray'>
-        <label>
-          <input onChange={setName} type='text' />
-          Attribute name
-        </label>
-        <label>
-          <input onChange={setDescription} type='text' />
-          Attribute description
-        </label>
-        <label>
-          <input onChange={setType} type='text' />
-          Attribute type
-        </label>
+        <TextField id='attribute-name' label='Name' onChange={setName} />
+        <TextField
+          id='attribute-description'
+          label='Description'
+          onChange={setDescription}
+        />
+        <TextField
+          id='attribute-type'
+          select
+          value=''
+          label='Type'
+          onChange={(e: any) => setType(e.target.value)}
+        >
+          {attributeTypes.sort().map((option, i) => (
+            <MenuItem key={i} value={option}>
+              {option}
+            </MenuItem>
+          ))}
+        </TextField>
       </div>
       <div className='options-action-wrapper'>
         <DisabledButton
