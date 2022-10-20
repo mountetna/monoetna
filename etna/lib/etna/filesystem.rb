@@ -66,7 +66,9 @@ module Etna
       def mkio(file, opts, size_hint: nil, &block)
         rd, wd = IO.pipe
 
-        pid = spawn(*mkcommand(rd, wd, file, opts, size_hint: size_hint))
+        cmd = mkcommand(rd, wd, file, opts, size_hint: size_hint)
+        puts "in mkio: #{cmd}"
+        pid = spawn(*cmd)
         q = Queue.new
 
         closer = Thread.new do
@@ -184,8 +186,21 @@ module Etna
           cmd << @key_file
         end
 
+        cmd << "-O"
+        cmd << @port.to_s
+
         cmd << "-P"
         cmd << @port.to_s
+
+        cmd << "-v"
+        cmd << "-k"
+        cmd << "0"
+        cmd << "--file-manifest=text"
+        cmd << "--file-manifest-path=/var/tmp"
+        cmd << "--file-checksum=md5"
+        cmd << "-l"
+        cmd << "100m"
+        cmd << "--overwrite=always"
 
         remote_path = file
         # https://download.asperasoft.com/download/docs/entsrv/3.9.1/es_admin_linux/webhelp/index.html#dita/stdio_2.html
@@ -212,6 +227,7 @@ module Etna
           cmd << {in: rd}
         end
 
+        puts "end of mkcmd: #{cmd}"
         cmd
       end
     end
@@ -228,7 +244,8 @@ module Etna
             if e.instance_of?(String) && e.start_with?("stdio://")
               "stdio-tar://"
             elsif e == file
-              ::File.dirname(file)
+              dir = ::File.dirname(file)
+              dir[0] == '/' ? dir : "/#{dir}"
             else
               e
             end

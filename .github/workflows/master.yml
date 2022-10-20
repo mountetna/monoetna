@@ -12,7 +12,7 @@ jobs:
   push-staging:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 1
           token: ${{ secrets.SYNC_ACCESS_TOKEN }}
@@ -28,5 +28,6 @@ jobs:
           NO_TEST: 1
           IMAGES_POSTFIX: :master
         run: |
+          make -C etna release
           make -j 4 release
           git push origin HEAD:staging --force

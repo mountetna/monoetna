@@ -244,6 +244,27 @@ describe QueryController do
         expect(json_body[:answer].map(&:last)).to match_array([ 'poison' ])
         expect(json_body[:format]).to eq([ 'labors::prize#id', 'labors::prize#name' ])
       end
+
+      it 'supports ::first' do
+        poison = create(:prize, name: 'poison', worth: 5, labor: @hydra)
+        poop = create(:prize, name: 'poop', labor: @stables)
+
+        query(['prize', ['worth', '::>', 1], '::first', 'name'])
+
+        expect(json_body[:answer]).to eq('poison')
+        expect(json_body[:format]).to eq('labors::prize#name')
+      end
+
+      it 'supports ::first with no results' do
+        poison = create(:prize, name: 'poison', worth: 5, labor: @hydra)
+        poop = create(:prize, name: 'poop', labor: @stables)
+
+        query(['prize', ['worth', '::>', 10], '::first', 'name'])
+
+        expect(last_response.status).to eq(200)
+        expect(json_body[:answer]).to eq(nil)
+        expect(json_body[:format]).to eq('labors::prize#name')
+      end
     end
 
     it 'supports ::first' do
