@@ -61,10 +61,7 @@ export const postOpts = (body) => ({
 });
 export const deleteOpts = {method: 'DELETE', ...opts};
 
-export const json_fetch = (method) => (
-  path,
-  params
-) =>
+export const json_fetch = (method) => (path, params) =>
   base_json_fetch(method)(`${CONFIG.baseURL || ''}${path}`, params);
 
 export const json_get = json_fetch('GET');
@@ -81,7 +78,9 @@ export const handleFetchError = (e) => {
     let errStr = response.error
       ? response.error
       : response.errors
-      ? response.errors.map((error) => `* ${error}`)
+      ? response.errors.map(
+          (error) => `* ${error.message ? error.message : error}`
+        )
       : response;
     errStr = [`### Our request was refused.\n\n${errStr}`];
     return Promise.reject(errStr);
@@ -92,7 +91,8 @@ export const handleFetchSuccess = (response) => {
   if (response && typeof response === 'object' && 'error' in response) {
     console.error(response.error);
     return Promise.reject([
-      `There was a ${response.type} error. ${response.error}`]);
+      `There was a ${response.type} error. ${response.error}`
+    ]);
   }
   return Promise.resolve(response);
 };

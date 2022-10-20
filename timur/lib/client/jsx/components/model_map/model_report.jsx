@@ -37,6 +37,8 @@ import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {isAdmin} from 'etna-js/utils/janus';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
+import {showMessages} from 'etna-js/actions/message_actions';
+import {addAttribute} from '../../api/magma_api';
 
 const attributeStyles = makeStyles((theme) => ({
   attribute: {
@@ -234,6 +236,8 @@ const ModelReport = ({
   setAttribute
 }) => {
   const dispatch = useDispatch();
+  const invoke = useActionInvoker();
+  const {dismissModal} = useModal();
 
   const user = useReduxState((state) => selectUser(state));
   const classes = reportStyles();
@@ -336,6 +340,28 @@ const ModelReport = ({
   const isAdminUser = useMemo(() => {
     return isAdmin(user, CONFIG.project_name);
   }, [user, CONFIG.project_name]);
+
+  const handleAddAttribute = useCallback(
+    ({name, description, type}) => {
+      addAttribute({
+        model_name,
+        name,
+        description,
+        type
+      })
+        .then((resp) => {
+          // TODO: update the model attributes on the page
+        })
+        .catch((err) => {
+          console.log(err);
+          invoke(showMessages(err));
+        })
+        .finally(() => {
+          invoke(dismissModal());
+        });
+    },
+    [model_name, invoke, dismissModal]
+  );
 
   return (
     <Grid className={classes.model_report}>
@@ -461,7 +487,9 @@ const ModelReport = ({
                   diffTemplate={diffTemplate}
                 />
               ))}
-            {isAdminUser && <ManageModelActions />}
+            {isAdminUser && (
+              <ManageModelActions handleAddAttribute={handleAddAttribute} />
+            )}
           </TableBody>
         </Table>
       </TableContainer>
