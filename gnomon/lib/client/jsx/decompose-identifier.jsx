@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect } from 'react';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import Typography from '@material-ui/core/Typography';
@@ -7,6 +7,21 @@ import {makeStyles} from '@material-ui/core/styles';
 import Letter from './letter';
 import Bracket from './bracket';
 import Corner from './corner';
+import { json_get, json_post } from 'etna-js/utils/fetch';
+import { dateFormat } from 'etna-js/utils/format';
+import { magmaPath } from 'etna-js/api/magma_api';
+import {getDocuments} from 'etna-js/api/magma_api';
+import TokenEditor from './token-editor';
+import CheckBoxOutlinedIcon from '@material-ui/icons/CheckBoxOutlined';
+import LaunchIcon from '@material-ui/icons/Launch';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const useStyles = makeStyles((theme) => ({
   header: {
@@ -17,11 +32,14 @@ const useStyles = makeStyles((theme) => ({
     position: 'absolute'
   },
   letters: {
-    width: '100%'
+    width: '100%',
+    position: 'absolute',
+    top: -100
   },
   rules: {
     width: '100%',
-    position: 'absolute'
+    position: 'absolute',
+    top: 0
   },
   decomposer: {
     marginLeft: 20,
@@ -68,134 +86,139 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const isSeparator = letter => letter.match(/[\.\-\_]/)
-const isCounter = (pos,mask) => mask[pos] == '1';
+const isSeparator = token => token == 'SEP';
+const isCounter = token => token.match(/_counter/);
 
-const RuleLink = ({project_name, identifier, name, isModel}) => (
-  name == 'project'
-    ? <Link color='secondary' href={ `${CONFIG.timur_host}/${project_name}` }>{identifier}</Link>
-    : isModel
-    ? <Link color='secondary' href={ `${CONFIG.timur_host}/${project_name}/browse/${name}/${identifier}` }>{identifier}</Link>
-    : identifier
-)
 
-const Rule = ({rule, order, total, project_name, identifier, models}) => {
-  const voff = 40;
-  return <Grid style={{ position: 'absolute', left: 0, top: 0 }}>
-    <Bracket
-      top={ voff + 2.5 + order * 25 }
-      left={ rule.from * 40 }
-      width={ (rule.to - rule.from + 1) * 40 }/>
-    {/* text */}
-    <Grid style={{
-      whiteSpace: 'nowrap',
-      position: 'absolute',
-      top: voff - 5 + 25 * order,
-      left: 50 + identifier.length * 40 }}>
-    { rule.label } - <RuleLink
-    identifier={ identifier.slice( rule.from, rule.to+1 ) }
-    name={rule.label}
-    project_name={project_name}
-    isModel={ models.includes(rule.label ) }
-    />
-    </Grid>
-    {/* pointer */}
-    <Grid style={{
-      position: 'absolute',
-      opacity: 0.1,
-      width: identifier.length * 40 - (rule.to) * 40 + 5,
-      left: (1+rule.to) * 40 + 1,
-      top: voff + 7.5 + 25 * order,
-      borderTop: '1px solid black'
-      }}/>
-  </Grid>
+const Rule = ({rule, rule_name, project_name}) => {
+  return <TableRow>
+    <TableCell component="th" scope="row">
+      {rule_name}
+    </TableCell>
+    <TableCell>{rule.name}</TableCell>
+    <TableCell align="center">{ rule.name_created_at ? <CheckBoxOutlinedIcon/> : null }</TableCell>
+    <TableCell align="center">
+      {
+        rule.record_created_at
+        ?  <Link
+              color='secondary'
+              href={`${CONFIG.timur_host}/${project_name}/browse/${rule_name}/${rule.name}`}>
+              {dateFormat(rule.record_created_at)}
+            </Link>
+          : null
+      }
+    </TableCell>
+  </TableRow>
 }
 
-const Token = ({token, order, total, identifier}) => {
-  const voff = 40;
-  return <Grid style={{ position: 'absolute', left: 0, top: 0 }}>
-    <Bracket
-      bottom={voff}
-      left={ token.from * 40 + 2 }
-      width={  (token.to - token.from + 1) * 40 - 4 }/>
-    {/* text */}
-    <Grid style={{
-      whiteSpace: 'nowrap',
-      position: 'absolute',
-      bottom: voff + 25 * (total - order),
-      left: 50 + identifier.length * 40 }}>
-      { token.label } : { token.description }
-    </Grid>
-    <Corner
-      bottom={ voff + 10 }
-      left={ (token.to + token.from + 1) * 20 }
-      top={ 25 * (total - order) + voff + 10 }
-      right={ identifier.length * 40 + 45 }
-    />
-  </Grid>
-}
+const tokenLabel = (token_name, grammar) => (
+  token_name in grammar.tokens ? grammar.tokens[token_name].label : token_name
+);
+const tokenDescription = (token_name, value, grammar) => (
+  token_name in grammar.tokens ? grammar.tokens[token_name].values[value] : 'Numeric counter'
+);
 
 const DecomposeIdentifier = ({project_name, identifier}) => {
   const classes = useStyles();
 
-  identifier = 'MVIR1-HS169-D0PL1-CTK1';
+  const [ decomposition, setDecomposition ] = useState(null);
+  const [ grammar, setGrammar ] = useState(null);
+  const [ models, setModels ] = useState([]);
 
-  const models = [ 'project', 'subject', 'timepoint', 'immunoassay' ]
+  useEffect( () => {
+    json_get(magmaPath(`gnomon/${project_name}/decompose/${identifier}`)).then(
+      decomposition => setDecomposition(decomposition)
+    );
+    json_get(magmaPath(`gnomon/${project_name}/`)).then(
+      ({config}) => {
+        setGrammar(config);
+      }
+    );
+    getDocuments(
+      {
+        project_name,
+        model_name: 'all',
+        record_names: [],
+        attribute_names: 'all'
+      },
+      fetch
+    )
+      .then(({models}) => setModels(Object.keys(models)))
+      .catch((e) => console.log({e}));
+  }, [] );
 
-  const decomposition = {
-    rules: [
-      { from: 0, to: 4, label: 'project' },
-      { from: 0, to: 10, label: 'subject' },
-      { from: 0, to: 13, label: 'timepoint' },
-      { from: 0, to: 16, label: 'biospecimen' },
-      { from: 0, to: 21, label: 'immunoassay' },
-    ],
-    tokens: [
-      { from: 0, to: 4, label: 'project', description: 'COMET' },
-      { from: 6, to: 7, label: 'species', description: 'Homo sapiens' },
-      { from: 12, to: 12, label: 'day', description: 'Day' },
-      { from: 14, to: 15, label: 'biospecimen', description: 'Plasma' },
-      { from: 18, to: 20, label: 'immunoassay', description: 'Cytokine' }
-    ],
-    counters: '0000000011100100100001'
-  }
+  let from = 0;
+  let to = 0;
+  let height = -1;
+  const total = decomposition ? decomposition.tokens.filter(([token,seq]) => !isSeparator(token)).length : 0;
 
   return <Grid>
     <ProjectHeader project_name={ project_name } className={classes.header}/>
     <Grid container alignItems='center' justify='center' className={classes.decomposer} style={{ width: 40 * identifier.length }}>
       <Grid container alignItems='center' justify='center' className={classes.tokens}>
         {
-          decomposition.tokens.map(
-            (token,i) => <Token key={i} token={token} order={i} total={ decomposition.tokens.length } identifier={identifier}/>
+          grammar && decomposition && decomposition.tokens.map(
+            ([token,seq],i) => {
+              from = to;
+              to = from + seq.length;
+
+              if (isSeparator(token)) return <div/>;
+
+              height = height + 1;
+
+              return <TokenEditor
+                key={i}
+                token={{ from, to, height, type: 'resolved', label: tokenLabel(token, grammar)}}
+                description={ tokenDescription(token, seq, grammar) }
+                seq={identifier}
+                height={total}
+                pos={i}
+                voff={120}/>
+            }
           )
         }
-      </Grid>
-      {
-        identifier.split('').map(
-          (l,i) => <Letter key={i}
-            className={
-              `${
-                isSeparator(l) ? classes.separator : classes.letter
-              } ${
-                isCounter(i, decomposition.counters) ? classes.counter : ''
-              }`
-            }
-            letter={l} />
-        )
-      }
-      <Grid container alignItems='center' justify='center' className={classes.rules}>
+        <Grid item container className={classes.letters}>
         {
-          decomposition.rules.map(
-            (rule,i) => <Rule
-            key={i}
-            rule={rule}
-            order={i}
-            total={ decomposition.rules.length }
-            identifier={identifier}
-            models={models}
-            project_name={project_name}
-            />
-          )
+          decomposition && decomposition.tokens.map(
+            ([token, seq], i) => seq.split('').map( 
+              (l,j) => <Letter key={`${i}.${j}`}
+                className={
+                  `${
+                    isSeparator(token) ? classes.separator : classes.letter
+                  } ${
+                    isCounter(token) ? classes.counter : ''
+                  }`
+                }
+                letter={l} />
+            )
+          ).flat()
+        }
+        </Grid>
+        {
+          decomposition && <TableContainer component={Paper} className={classes.rules}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Rule</TableCell>
+                  <TableCell>Identifier</TableCell>
+                  <TableCell align="center">Named</TableCell>
+                  <TableCell align="center">Recorded</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {
+                  Object.keys(decomposition.rules).map(
+                    (rule_name,i) => <Rule
+                    key={i}
+                    rule={decomposition.rules[rule_name]}
+                    rule_name={rule_name}
+                    project_name={project_name}
+                    />
+                  )
+                }
+              </TableBody>
+            </Table>
+          </TableContainer>
         }
       </Grid>
     </Grid>
