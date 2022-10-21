@@ -18,5 +18,11 @@ class Janus
         token_name: Janus.instance.config(:token_name),
       }.merge(config_hosts).to_json
     end
+
+    def respond_with_cookie(token, refer)
+      Etna::Redirect(@request).to(refer) do |response|
+        Janus.instance.set_token_cookie(response,token)
+      end
+    end
   end
 end

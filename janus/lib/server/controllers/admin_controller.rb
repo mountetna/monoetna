@@ -1,6 +1,6 @@
 class AdminController < Janus::Controller
   def main
-    @janus_user = User[email: @user.email]
+    @janus_user =  janus_user
     erb_view(:client)
   end
 
@@ -110,14 +110,31 @@ class AdminController < Janus::Controller
           project_name_full: @params[:project_name_full]
       )
 
-      magma_client.update_model(
-        Etna::Clients::Magma::UpdateModelRequest.new(
-          project_name: project.project_name,
-          actions: [
-            Etna::Clients::Magma::AddProjectAction.new
-          ]
+      Permission.create(project: project, user: janus_user, role: 'administrator')
+
+      janus_user.refresh
+      refreshed_token = janus_user.create_token!
+
+      magma_client = magma_client(refreshed_token)
+
+      begin
+        magma_client.update_model(
+          Etna::Clients::Magma::UpdateModelRequest.new(
+            project_name: project.project_name,
+            actions: [
+              Etna::Clients::Magma::AddProjectAction.new
+            ]
+          )
         )
-      )
+
+        magma_client.update_json(Etna::Clients::Magma::UpdateRequest.new(
+          project_name: project.project_name,
+          revisions: {
+              'project' => { project.project_name => { name: project.project_name } },
+          }))
+      end if magma_client
+
+      Janus.instance.set_token_cookie(@response, refreshed_token)
     end
 
     @response.redirect('/')
@@ -140,8 +157,6 @@ class AdminController < Janus::Controller
   def flag_user
     require_params(:flags, :email)
 
-    user = User.find(email: @params[:email])
-
     if @params[:flags] &&
         !(@params[:flags].is_a?(Array) &&
             @params[:flags].all? { |f| f.is_a?(String) && f =~ /^\w+$/ })
@@ -150,9 +165,9 @@ class AdminController < Janus::Controller
 
     raise Etna::BadRequest, "No such user #{@params[:email]}" unless user
 
-    user.update(flags: @params[:flags])
+    janus_user.update(flags: @params[:flags])
 
-    success_json(user.to_hash)
+    success_json(janus_user.to_hash)
   end
 
   def update_cc_agreement
@@ -175,8 +190,7 @@ class AdminController < Janus::Controller
       agreed: !!@params[:agreed]
     )
 
-    user = User[email: @user.email]
-    user.set_guest_permissions!(project_name)
+    janus_user.set_guest_permissions!(project_name)
 
     if project.contact_email && project.contact_email.length > 0 && @params[:agreed]
       send_email(
@@ -187,7 +201,7 @@ class AdminController < Janus::Controller
       )
     end
 
-    token = user.create_token!
+    token = janus_user.create_token!
     Janus.instance.set_token_cookie(@response, token)
     success_json(agreement.to_hash)
   end
@@ -207,10 +221,16 @@ class AdminController < Janus::Controller
     @params[:contact_email]&.empty? || @params[:contact_email]&.strip&.rpartition('@')&.last == Janus.instance.config(:token_domain)
   end
 
-  def magma_client
+  def magma_client(token)
+    return nil unless Janus.instance.config(:magma) && Janus.instance.config(:magma)[:host]
+
     Etna::Clients::Magma.new(
       host: Janus.instance.config(:magma)[:host],
-      token: @user.token
+      token: token
     )
+  end
+
+  def janus_user
+    User[email: @user.email]
   end
 end
