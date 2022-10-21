@@ -17,8 +17,17 @@ describe('Browser', () => {
   };
 
   beforeEach(() => {
+    stubUrl({
+      verb: 'get',
+      path: '/api/user/projects',
+      host: 'https://janus.test',
+      status: 200,
+      response: {}
+    });
+
     global.CONFIG = {
-      project_name: 'labors'
+      project_name: 'labors',
+      janus_host: 'https://janus.test'
     };
 
     store = mockStore({
