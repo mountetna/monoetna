@@ -195,8 +195,7 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
       }
     })
     if (option_sets != null) {
-      // Need to remove the toUpperCase before merge!
-      return(''.concat(...option_sets).toUpperCase())
+      return(''.concat(...option_sets))
     }
   }, [tokens, values])
   console.log({currentOptionsRegex})
