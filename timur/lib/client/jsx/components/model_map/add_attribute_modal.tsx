@@ -11,15 +11,16 @@ import DisabledButton from '../search/disabled_button';
 
 const useStyles = makeStyles((theme) => ({
   popover: {
-    zIndex: '30000 !important' // etna modal is 20000
+    zIndex: '30000 !important' as any // etna modal is 20000
   }
 }));
 
 export default function AddAttributeModal({onSave}: {onSave: any}) {
   const [disabled, setDisabled] = useState(true);
-  const [name, setName] = useState(null);
-  const [description, setDescription] = useState(null);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [type, setType] = useState('');
+  const [group, setGroup] = useState('');
   const {dismissModal} = useModal();
   const invoke = useActionInvoker();
   const classes = useStyles();
@@ -28,12 +29,13 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
     onSave({
       name,
       description,
-      type
+      type,
+      group
     });
-  }, [name, description, type]);
+  }, [name, description, type, group]);
 
   useEffect(() => {
-    if (name && description && type) {
+    if (name && type) {
       setDisabled(false);
     } else {
       setDisabled(true);
@@ -44,7 +46,17 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
     invoke(dismissModal());
   }, [invoke, dismissModal]);
 
-  const attributeTypes = ['string', 'shifted_date_time', 'date_time'];
+  const attributeTypes = [
+    'string',
+    'shifted_date_time',
+    'date_time',
+    'boolean',
+    'file',
+    'image',
+    'file_collection',
+    'float',
+    'integer'
+  ];
 
   return (
     <div className='add-attribute-modal model-actions-modal'>
@@ -57,8 +69,13 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
         />
         <TextField
           id='attribute-description'
-          label='Description'
+          label='Description (optional)'
           onChange={(e) => setDescription(e.target.value)}
+        />
+        <TextField
+          id='attribute-group'
+          label='Group (optional; comma-separated list)'
+          onChange={(e) => setGroup(e.target.value)}
         />
         <TextField
           id='attribute-type'

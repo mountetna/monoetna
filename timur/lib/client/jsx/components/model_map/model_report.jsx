@@ -39,6 +39,7 @@ import {isAdmin} from 'etna-js/utils/janus';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {showMessages} from 'etna-js/actions/message_actions';
 import {addAttribute} from '../../api/magma_api';
+import {addTemplatesAndDocuments} from 'etna-js/actions/magma_actions';
 
 const attributeStyles = makeStyles((theme) => ({
   attribute: {
@@ -338,29 +339,26 @@ const ModelReport = ({
   });
 
   const isAdminUser = useMemo(() => {
+    if (!user || 0 === Object.keys(user).length) return false;
+
     return isAdmin(user, CONFIG.project_name);
   }, [user, CONFIG.project_name]);
 
   const handleAddAttribute = useCallback(
-    ({name, description, type}) => {
+    (params) => {
+      dismissModal();
       addAttribute({
         model_name,
-        name,
-        description,
-        type
+        ...params
       })
-        .then((resp) => {
-          // TODO: update the model attributes on the page
+        .then(({models}) => {
+          invoke(addTemplatesAndDocuments(models));
         })
         .catch((err) => {
-          console.log(err);
           invoke(showMessages(err));
-        })
-        .finally(() => {
-          invoke(dismissModal());
         });
     },
-    [model_name, invoke, dismissModal]
+    [model_name, invoke, dismissModal, addTemplatesAndDocuments]
   );
 
   return (
