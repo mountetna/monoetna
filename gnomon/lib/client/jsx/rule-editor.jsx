@@ -257,7 +257,7 @@ const Token = ({token, dispatch}) => {
         }
         buttonText='ADD VALUE'
         update={ (value, description) => dispatch({ type: 'ADD_TOKEN_VALUE', name: token.name, value, description }) }
-        mask={ v => v.replace(/[^A-Za-z0-9_]/g, '').toLowerCase() }
+        mask={ v => v }
         placeholders={[ 'Value', 'Description' ]}
       />
     </Grid>
