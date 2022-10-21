@@ -109,6 +109,15 @@ class AdminController < Janus::Controller
           project_name: @params[:project_name],
           project_name_full: @params[:project_name_full]
       )
+
+      magma_client.update_model(
+        Etna::Clients::Magma::UpdateModelRequest.new(
+          project_name: project.project_name,
+          actions: [
+            Etna::Clients::Magma::AddProjectAction.new
+          ]
+        )
+      )
     end
 
     @response.redirect('/')
@@ -196,5 +205,12 @@ class AdminController < Janus::Controller
 
   def valid_contact?
     @params[:contact_email]&.empty? || @params[:contact_email]&.strip&.rpartition('@')&.last == Janus.instance.config(:token_domain)
+  end
+
+  def magma_client
+    Etna::Clients::Magma.new(
+      host: Janus.instance.config(:magma)[:host],
+      token: @user.token
+    )
   end
 end
