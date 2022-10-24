@@ -157,6 +157,8 @@ class AdminController < Janus::Controller
   def flag_user
     require_params(:flags, :email)
 
+    user = User.find(email: @params[:email])
+
     if @params[:flags] &&
         !(@params[:flags].is_a?(Array) &&
             @params[:flags].all? { |f| f.is_a?(String) && f =~ /^\w+$/ })
@@ -165,9 +167,9 @@ class AdminController < Janus::Controller
 
     raise Etna::BadRequest, "No such user #{@params[:email]}" unless user
 
-    janus_user.update(flags: @params[:flags])
+    user.update(flags: @params[:flags])
 
-    success_json(janus_user.to_hash)
+    success_json(user.to_hash)
   end
 
   def update_cc_agreement
