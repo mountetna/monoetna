@@ -34,7 +34,6 @@ export const requestView = (model_name, success, error) => (dispatch) =>
       return e.then((body) => {
         if (body && body.error && body.error.includes('No such view')) {
           // Default view
-          console.log('adding default view', model_name)
           dispatch(addView(model_name, {}));
           return {};
         }
