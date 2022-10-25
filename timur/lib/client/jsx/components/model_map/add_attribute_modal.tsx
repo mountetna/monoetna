@@ -27,10 +27,10 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
 
   const handleOnSave = useCallback(() => {
     onSave({
-      name,
+      attribute_name: name,
       description,
       type,
-      group
+      attribute_group: group
     });
   }, [name, description, type, group]);
 

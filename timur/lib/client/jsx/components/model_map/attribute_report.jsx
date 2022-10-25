@@ -1,14 +1,22 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {useDispatch} from 'react-redux';
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import {makeStyles} from '@material-ui/core/styles';
-import {useReduxState} from 'etna-js/hooks/useReduxState';
-import {requestAnswer} from 'etna-js/actions/magma_actions';
-import MapHeading from './map_heading';
 import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
+import EditIcon from '@material-ui/icons/Edit';
+
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import {requestAnswer} from 'etna-js/actions/magma_actions';
+import {useModal} from 'etna-js/components/ModalDialogContainer';
+
+import {showMessages} from 'etna-js/actions/message_actions';
+import {addTemplatesAndDocuments} from 'etna-js/actions/magma_actions';
+import {updateAttribute} from '../../api/magma_api';
+import MapHeading from './map_heading';
+import EditAttributeModal from './edit_attribute_modal';
 
 const ATT_ATTS = [
   'attribute_type',
@@ -53,13 +61,17 @@ const useStyles = makeStyles((theme) => ({
     wordWrap: 'break-word',
     width: '0px',
     overflowY: 'auto'
+  },
+  button: {
+    margin: '0.5rem'
   }
 }));
 
 const AttributeReport = ({attribute, model_name, counts}) => {
   const dispatch = useDispatch();
-
+  const invoke = useActionInvoker();
   const [sample, setSample] = useState(null);
+  const {openModal, dismissModal} = useModal();
 
   const showSample = () => {
     requestAnswer({
@@ -73,15 +85,55 @@ const AttributeReport = ({attribute, model_name, counts}) => {
 
   const classes = useStyles();
 
+  const handleEditAttribute = useCallback(
+    (params) => {
+      dismissModal();
+      updateAttribute({
+        model_name,
+        ...params
+      })
+        .then(({models}) => {
+          invoke(addTemplatesAndDocuments(models));
+        })
+        .catch((err) => {
+          invoke(showMessages(err));
+        });
+    },
+    [invoke, model_name, dismissModal, addTemplatesAndDocuments]
+  );
+
   if (!attribute) return null;
 
   return (
     <Grid className={classes.attribute_report}>
       <Card className={classes.attribute_card}>
         <MapHeading name='Attribute' title={attribute.attribute_name}>
+          <Tooltip title='Edit Attribute'>
+            <Button
+              startIcon={<EditIcon />}
+              onClick={() => {
+                openModal(
+                  <EditAttributeModal
+                    attribute={attribute}
+                    onSave={handleEditAttribute}
+                  />
+                );
+              }}
+              size='small'
+              color='secondary'
+              className={classes.button}
+            >
+              Edit
+            </Button>
+          </Tooltip>
           {attribute.attribute_type == 'string' && (
             <Tooltip title='Show data sample'>
-              <Button onClick={showSample} size='small' color='secondary'>
+              <Button
+                onClick={showSample}
+                size='small'
+                color='secondary'
+                className={classes.button}
+              >
                 Sample
               </Button>
             </Tooltip>
