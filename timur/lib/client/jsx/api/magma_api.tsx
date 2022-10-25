@@ -11,7 +11,6 @@ export type Attribute = {
   attribute_name: string;
   attribute_type: string;
   attribute_group?: string;
-  unique?: string;
   display_name?: string;
   restricted?: boolean;
   read_only?: boolean;
