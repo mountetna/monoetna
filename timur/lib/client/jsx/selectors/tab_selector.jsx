@@ -51,7 +51,8 @@ const basicView = ({attributes}) => {
     ]
   };
 
-  return [overview, tables].filter((t) => t.panes[0].items.length);
+  if (0 === tables.panes[0].items.length) return [overview];
+  else return [overview, tables];
 };
 
 const groupView = ({attributes}) => {
@@ -87,7 +88,7 @@ const groupView = ({attributes}) => {
 };
 
 export const getDefaultTab = (view) =>
-  view && view.tabs ? view.tabs[0].name : 'default';
+  view && view.tabs && view.tabs[0] ? view.tabs[0].name : 'default';
 
 export const hasMagmaAttribute = (item) =>
   item.type == 'magma' ||

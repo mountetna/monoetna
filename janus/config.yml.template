@@ -16,7 +16,7 @@
     :host: https://polyphemus.development.local
   :auth_redirect: https://janus.development.local
   :pass_algo: sha256
-  :pass_salt: 
+  :pass_salt:
   :token_algo: RS256
   :token_salt: qwerty
   :token_name: JANUS_DEV_TOKEN
@@ -76,7 +76,7 @@
   :log_file: /dev/null
 
   :pass_algo: sha256
-  :pass_salt: 
+  :pass_salt:
   :token_algo: RS256
   :token_name: JANUS_TOKEN
   :token_domain: janus.test
@@ -120,3 +120,5 @@
     CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
     NQIDAQAB
     -----END PUBLIC KEY-----
+  :magma:
+    :host: https://magma.test
