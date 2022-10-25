@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {useDispatch} from 'react-redux';
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
@@ -11,6 +11,9 @@ import EditIcon from '@material-ui/icons/Edit';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {requestAnswer} from 'etna-js/actions/magma_actions';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
+import {selectUser} from 'etna-js/selectors/user-selector';
+import {isAdmin} from 'etna-js/utils/janus';
+import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 import {showMessages} from 'etna-js/actions/message_actions';
 import {addTemplatesAndDocuments} from 'etna-js/actions/magma_actions';
@@ -72,6 +75,7 @@ const AttributeReport = ({attribute, model_name, counts}) => {
   const invoke = useActionInvoker();
   const [sample, setSample] = useState(null);
   const {openModal, dismissModal} = useModal();
+  const user = useReduxState((state) => selectUser(state));
 
   const showSample = () => {
     requestAnswer({
@@ -102,30 +106,38 @@ const AttributeReport = ({attribute, model_name, counts}) => {
     [invoke, model_name, dismissModal, addTemplatesAndDocuments]
   );
 
+  const isAdminUser = useMemo(() => {
+    if (!user || 0 === Object.keys(user).length) return false;
+
+    return isAdmin(user, CONFIG.project_name);
+  }, [user, CONFIG.project_name]);
+
   if (!attribute) return null;
 
   return (
     <Grid className={classes.attribute_report}>
       <Card className={classes.attribute_card}>
         <MapHeading name='Attribute' title={attribute.attribute_name}>
-          <Tooltip title='Edit Attribute'>
-            <Button
-              startIcon={<EditIcon />}
-              onClick={() => {
-                openModal(
-                  <EditAttributeModal
-                    attribute={attribute}
-                    onSave={handleEditAttribute}
-                  />
-                );
-              }}
-              size='small'
-              color='secondary'
-              className={classes.button}
-            >
-              Edit
-            </Button>
-          </Tooltip>
+          {isAdminUser && (
+            <Tooltip title='Edit Attribute'>
+              <Button
+                startIcon={<EditIcon />}
+                onClick={() => {
+                  openModal(
+                    <EditAttributeModal
+                      attribute={attribute}
+                      onSave={handleEditAttribute}
+                    />
+                  );
+                }}
+                size='small'
+                color='secondary'
+                className={classes.button}
+              >
+                Edit
+              </Button>
+            </Tooltip>
+          )}
           {attribute.attribute_type == 'string' && (
             <Tooltip title='Show data sample'>
               <Button

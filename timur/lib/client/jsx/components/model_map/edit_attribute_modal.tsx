@@ -43,10 +43,12 @@ export default function EditAttributeModal({
   }, [invoke, dismissModal]);
 
   const updateAttribute = useCallback(
-    (updatePairs: [string, string][]) => {
-      let tmpAttribute = {...updatedAttribute};
+    (updatePairs: [string, string | boolean][]) => {
+      let tmpAttribute: Attribute = {...updatedAttribute};
       updatePairs.forEach(([key, value]) => {
-        tmpAttribute[key] = value;
+        (tmpAttribute as Record<keyof Attribute, string | boolean>)[
+          key as keyof Attribute
+        ] = value;
       });
       setUpdatedAttribute(tmpAttribute);
     },
