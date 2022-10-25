@@ -115,6 +115,7 @@ window.comet = OLD_DEFAULT_STATE;
 
 const DEFAULT_STATE = {
   "rules": { },
+  "synonyms": [],
   "tokens": {
     "SEP": {
       "name": "SEP",
@@ -138,6 +139,20 @@ const removeToken = (tokens, name) => {
   return other_tokens;
 }
 
+const updateSet = (state, action) => {
+  const synonyms = state.synonyms || [];
+  const update_set = [
+    ...synonyms[action.pos].slice(0, action.ind),
+    ...synonyms[action.pos].slice(action.ind+1)
+  ];
+
+  return [
+    ...synonyms.slice(0,action.pos),
+    ...update_set.length > 0 ? [ update_set ] : [],
+    ...synonyms.slice(action.pos+1)
+  ]
+}
+
 const reducer = (state, action) => {
   switch(action.type) {
     case 'SET':
@@ -147,6 +162,10 @@ const reducer = (state, action) => {
         rules: { ...action.paste.rules },
         tokens: { ...action.paste.tokens }
       };
+    case 'UPDATE_SET':
+      return { ...state, synonyms: updateSet(state, action) };
+    case 'ADD_SYNONYM_SET':
+      return { ...state, synonyms: [ ...(state.synonyms || []), action.set ] }
     case 'ADD_RULE':
       return { ...state, rules: { ...state.rules, [action.name] : action.rule } }
     case 'ADD_TOKEN':
@@ -178,6 +197,11 @@ const useStyles = makeStyles((theme) => ({
   header: {
     borderBottom: '1px solid #eee'
   },
+  buttons: {
+    '& > *': {
+      margin: '0px 10px'
+    }
+  },
   token: {
     borderBottom: '1px solid #eee',
     padding: '10px 0px'
@@ -199,8 +223,6 @@ const useStyles = makeStyles((theme) => ({
     overflowY: 'clip'
   },
   value: {
-  },
-  addButton: {
   },
   strikeout: {
     '&:hover': {
@@ -230,6 +252,20 @@ const TokenValue = ({name,value,dispatch, token}) => {
     className={`${classes.value} ${classes.strikeout}`} container>
     <Grid item xs={2}>{name}</Grid>
     <Grid item xs={2}>{value}</Grid>
+  </Grid>
+}
+
+const Synonym = ({set, pos, dispatch}) => {
+  const classes = useStyles();
+
+  return <Grid container className={classes.token}>
+      {
+        set.map(
+          (name, ind) => <Grid onClick={ () => dispatch({ type: 'UPDATE_SET', pos, ind }) } key={name} item xs={1}>
+            <Typography>{name}</Typography>
+          </Grid>
+        )
+      }
   </Grid>
 }
 
@@ -264,7 +300,7 @@ const Token = ({token, dispatch}) => {
   </Grid>
 }
 
-const AddDialog = ({update, title, content, buttonText, placeholders, mask=(e => e)}) => {
+const AddDialog = ({update, title, content, buttonText, placeholders, mask=(e => e), mask2=(e => e)}) => {
   const [ open, setOpen ] = useState(false);
   const [ v1, setV1 ] = useState('');
   const [ v2, setV2 ] = useState('');
@@ -305,7 +341,7 @@ const AddDialog = ({update, title, content, buttonText, placeholders, mask=(e =>
           placeholder={ placeholders[1] }
           fullWidth
           value={ v2 }
-          onChange={ e => setV2(e.target.value) }
+          onChange={ e => setV2(mask2(e.target.value)) }
         />
       </DialogContent>
       <DialogActions>
@@ -331,7 +367,7 @@ const Rule = ({name, rule, dispatch}) => {
   </Grid>
 }
 
-const RuleEditorPane = ({type, update, mask, desc, placeholders, children}) => {
+const RuleEditorPane = ({type, update, mask, mask2, desc, placeholders, children}) => {
   return <Card elevation={0}>
     <CardContent>
       <Typography gutterBottom variant="h5" component="h2">
@@ -346,6 +382,7 @@ const RuleEditorPane = ({type, update, mask, desc, placeholders, children}) => {
         buttonText={ `ADD ${type.toUpperCase()}` }
         update={ update }
         mask={ mask }
+        mask2={ mask2 }
         placeholders={ placeholders }
       />
     </CardActions>
@@ -357,7 +394,9 @@ const RuleEditor = ({project_name}) => {
 
   const [ state, dispatch ] = useReducer(reducer, DEFAULT_STATE);
 
-  const [ savedState, setSavedState ] = useState({});
+  console.log({state})
+
+  const [ savedState, setSavedState ] = useState(DEFAULT_STATE);
 
   const changed = state != savedState;
 
@@ -378,16 +417,25 @@ const RuleEditor = ({project_name}) => {
     }, [ state, savedState ]
   )
 
+  const revertRules = useCallback(
+    () => dispatch({ type: 'SET', state: savedState }), [ state, savedState ]
+  )
+
+  const upcase = v => v.replace(/[^A-Za-z0-9_]/g, '').toUpperCase();
+
   return <Grid>
     <ProjectHeader project_name={project_name} className={classes.header}>
       {
-        changed && <Button onClick={ saveRules }>Save</Button>
+        changed && <div className={classes.buttons}>
+          <Button onClick={ saveRules }>Save</Button>
+          <Button color='secondary' onClick={ revertRules }>Revert</Button>
+        </div>
       }
     </ProjectHeader>
     <RuleEditorPane type='token'
       desc='Enter a token name and a label.'
       update={ (name, label) => dispatch({ type: 'ADD_TOKEN', token: { name, label, values: {} } }) }
-      mask={ v => v.replace(/[^A-Za-z0-9_]/g, '').toUpperCase() }
+      mask={ upcase }
       placeholders={['TOKEN_NAME', 'Token label']}>
       <Grid container className={classes.header}>
         <Grid item xs={2}>Name</Grid>
@@ -399,6 +447,18 @@ const RuleEditor = ({project_name}) => {
       {
         Object.keys(state.tokens).map(
           name => <Token key={name} token={state.tokens[name]} dispatch={dispatch}/>
+        )
+      }
+    </RuleEditorPane>
+    <RuleEditorPane type='synonym'
+      desc='Add a pair of synonyms.'
+      update={ (name1,name2) => dispatch({ type: 'ADD_SYNONYM_SET', set: [ name1, name2 ]}) }
+      mask={ upcase }
+      mask2={ upcase }
+      placeholders={['TOKEN_NAME1', 'TOKEN_NAME2']}>
+      {
+        state.synonyms?.map(
+          (synonym_set,i) => <Synonym key={i} pos={i} set={synonym_set} dispatch={dispatch}/>
         )
       }
     </RuleEditorPane>
