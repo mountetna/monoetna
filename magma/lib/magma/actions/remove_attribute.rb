@@ -15,12 +15,16 @@ class Magma
     end
 
     def validations
-      [:validate_attribute_exists, :validate_not_primary_key]
+      [
+        :validate_attribute_exists,
+        :validate_not_primary_key,
+        :validate_not_link,
+        :validate_not_break_graph
+      ]
     end
 
     def validate_not_primary_key
       return unless attribute
-      p attribute
       return unless attribute.primary_key? || attribute.is_a?(Magma::IdentifierAttribute)
 
       @errors << Magma::ActionError.new(
@@ -38,12 +42,40 @@ class Magma
       )
     end
 
-    def validate_restricted_attribute
-      return if @action_params[:attribute_name] != 'restricted' || !@action_params[:restricted]
+    def validate_not_link
+      return unless attribute
+
+      link_attributes = [
+        Magma::LinkAttribute,
+        Magma::ChildAttribute,
+        Magma::CollectionAttribute
+      ]
+
+      return unless link_attributes.include?(attribute.class)
+
+      # parent -> collection should raise a break-graph error, instead
+      return if (attribute.is_a?(Magma::CollectionAttribute) || attribute.is_a?(Magma::ChildAttribute)) && attribute.link_model.attributes[attribute.link_attribute_name.to_sym].is_a?(Magma::ParentAttribute)
 
       @errors << Magma::ActionError.new(
-        message: "restricted column may not, itself, be restricted",
-        source: @action_params.slice(:project_name, :model_name, :attribute_name, :restricted)
+        message: 'Use remove_link action to remove a link attribute',
+        source: @action_params.slice(:attribute_name, :model_name)
+      )
+    end
+
+    def validate_not_break_graph
+      return unless attribute
+
+      breaking_attributes = [
+        Magma::ForeignKeyAttribute,
+        Magma::TableAttribute,
+        Magma::CollectionAttribute,
+        Magma::ParentAttribute
+      ]
+      return unless breaking_attributes.include?(attribute.class)
+
+      @errors << Magma::ActionError.new(
+        message: 'Use reparent_model action to change this attribute',
+        source: @action_params.slice(:attribute_name, :model_name)
       )
     end
 
