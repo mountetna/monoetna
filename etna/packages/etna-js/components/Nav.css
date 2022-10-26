@@ -27,6 +27,9 @@
 .etna-polyphemus {
   background: url('~etna-js/images/polyphemus.svg');
 }
+.etna-gnomon-logo {
+  background: url('~etna-js/images/gnomon.svg');
+}
 
 .etna-login {
   display: flex;

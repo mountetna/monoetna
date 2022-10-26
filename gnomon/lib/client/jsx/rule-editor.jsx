@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useCallback, useReducer} from 'react';
 import { copyText, pasteText } from 'etna-js/utils/copy';
 import { json_get, json_post } from 'etna-js/utils/fetch';
-import { capitalize } from 'etna-js/utils/format';
+import { capitalize, jsonFormat } from 'etna-js/utils/format';
 import { magmaPath } from 'etna-js/api/magma_api';
 
 import Typography from '@material-ui/core/Typography';
@@ -341,12 +341,11 @@ const RuleEditor = ({project_name}) => {
   const classes = useStyles();
 
   const [ state, dispatch ] = useReducer(reducer, DEFAULT_STATE);
-
-  console.log({state})
-
   const [ savedState, setSavedState ] = useState(DEFAULT_STATE);
+  const [ editedScript, setEditedScript ] = useState(jsonFormat(DEFAULT_STATE));
   const [ showRevisions, setShowRevisions ] = useState(null);
-  const [comment, setComment] = useState('');
+  const [ comment, setComment ] = useState('');
+  const [ showJson, setShowJson ] = useState(false);
 
   const changed = state != savedState;
 
@@ -364,7 +363,7 @@ const RuleEditor = ({project_name}) => {
       json_post(magmaPath(`gnomon/${project_name}`), { config: state }).then(
         () => setSavedState(state)
       );
-    }, [ state, savedState ]
+    }, [ state, editedScript, savedState, showJson ]
   )
 
   const revertRules = useCallback(
