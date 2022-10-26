@@ -12,7 +12,9 @@ import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
+import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
+import HistoryIcon from '@material-ui/icons/HistoryRounded';
 import AddIcon from '@material-ui/icons/Add';
 
 import Card from '@material-ui/core/Card';
@@ -27,91 +29,9 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
 import ProjectHeader from 'etna-js/components/project-header';
+import RevisionHistory from 'etna-js/components/revision-history';
 
-const OLD_DEFAULT_STATE = {
-  "rules": {
-    "project": "PROJECT",
-    "subject": "PROJ SEP SP .n",
-    "timepoint": ".subject SEP TP .n",
-    "biospecimen": ".timepoint BSP .n",
-    "immunoassay": ".biospecimen SEP IMM .n",
-    "sc_seq": ".biospecimen SEP SCA .n"
-  },
-  "tokens": {
-    "PROJ": {
-      "name": "PROJ",
-      "label": "project",
-      "values": {
-        "MVIR1": "COMET"
-      }
-    },
-    "PROJECT": {
-      "name": "PROJECT",
-      "label": "project",
-      "values": {
-        "COMET": "COMET"
-      }
-    },
-    "SP": {
-      "name": "SP",
-      "label": "species",
-      "values": {
-        "HS": "Homo sapiens"
-      }
-    },
-    "BSP": {
-      "name": "BSP",
-      "label": "biospecimen",
-      "values": {
-        "PL": "Plasma",
-        "SR": "Serum",
-        "ETA": "Endotracheal aspirate",
-        "BLD": "Whole blood",
-        "NAS": "Nasal swab",
-        "PBMC": "PBMCs"
-      }
-    },
-    "IMM": {
-      "name": "IMM",
-      "label": "immunoassay",
-      "values": {
-        "CTK": "Cytokine",
-        "VAG": "Viral Antigen",
-        "LNK": "Olink"
-      }
-    },
-    "TP": {
-      "name": "TP",
-      "label": "timepoint",
-      "values": {
-        "D": "Day",
-        "DN": "Negative Day",
-        "M": "Month"
-      }
-    },
-    "SEP": {
-      "name": "SEP",
-      "label": "separator",
-      "values": {
-        "-": "# Separator"
-      }
-    },
-    "SCA": {
-      "name": "SCA",
-      "label": "single-cell assay",
-      "values": {
-        "SCG": "Single-cell Gene Expression",
-        "SCB": "Single-cell BCR Seq ",
-        "SCT": "Single-cell TCR Seq ",
-        "SCC": "Single-cell CITE-Seq",
-        "SCA": "Single-cell ATAC-Seq (Multiome) ",
-        "SNA": "Single Nuclear ATAC-Seq (Standalone)"
-      }
-    }
-  }
-};
-
-window.comet = OLD_DEFAULT_STATE;
+const upcase = v => v.replace(/[^A-Za-z0-9_]/g, '').toUpperCase();
 
 const DEFAULT_STATE = {
   "rules": { },
@@ -139,7 +59,7 @@ const removeToken = (tokens, name) => {
   return other_tokens;
 }
 
-const updateSet = (state, action) => {
+const removeSynFromSet = (state, action) => {
   const synonyms = state.synonyms || [];
   const update_set = [
     ...synonyms[action.pos].slice(0, action.ind),
@@ -153,6 +73,20 @@ const updateSet = (state, action) => {
   ]
 }
 
+const addSynToSet = (state, action) => {
+  const synonyms = state.synonyms || [];
+  const update_set = [
+    ...synonyms[action.pos].slice(0, action.ind),
+    ...synonyms[action.pos].slice(action.ind+1)
+  ];
+
+  return [
+    ...synonyms.slice(0,action.pos),
+    [ ...synonyms[action.pos], action.token_name ],
+    ...synonyms.slice(action.pos+1)
+  ]
+}
+
 const reducer = (state, action) => {
   switch(action.type) {
     case 'SET':
@@ -162,8 +96,10 @@ const reducer = (state, action) => {
         rules: { ...action.paste.rules },
         tokens: { ...action.paste.tokens }
       };
-    case 'UPDATE_SET':
-      return { ...state, synonyms: updateSet(state, action) };
+    case 'REMOVE_SYN_FROM_SET':
+      return { ...state, synonyms: removeSynFromSet(state, action) };
+    case 'ADD_SYN_TO_SET':
+      return { ...state, synonyms: addSynToSet(state, action) };
     case 'ADD_SYNONYM_SET':
       return { ...state, synonyms: [ ...(state.synonyms || []), action.set ] }
     case 'ADD_RULE':
@@ -200,7 +136,9 @@ const useStyles = makeStyles((theme) => ({
   buttons: {
     '& > *': {
       margin: '0px 10px'
-    }
+    },
+    justifyContent: 'space-between',
+    width: 'auto'
   },
   token: {
     borderBottom: '1px solid #eee',
@@ -261,11 +199,21 @@ const Synonym = ({set, pos, dispatch}) => {
   return <Grid container className={classes.token}>
       {
         set.map(
-          (name, ind) => <Grid onClick={ () => dispatch({ type: 'UPDATE_SET', pos, ind }) } key={name} item xs={1}>
+          (name, ind) => <Grid className={classes.strikeout} onClick={ () => dispatch({ type: 'REMOVE_SYN_FROM_SET', pos, ind }) } key={name} item xs={1}>
             <Typography>{name}</Typography>
           </Grid>
         )
       }
+      <Grid item xs={1}>
+        <AddDialog
+          title={`Add a synonym`}
+          content={`Add a new synonym for ${set.join(', ')}`}
+          buttonText={ `ADD SYNONYM` }
+        update={ token_name => dispatch({ type: 'ADD_SYN_TO_SET', pos, token_name }) }
+          mask={ upcase }
+          placeholders={ [ 'TOKEN_NAME' ] }
+        />
+      </Grid>
   </Grid>
 }
 
@@ -336,19 +284,19 @@ const AddDialog = ({update, title, content, buttonText, placeholders, mask=(e =>
           value={ v1 }
           onChange={ e => setV1(mask(e.target.value)) }
         />
-        <TextField
+        { placeholders[1] && <TextField
           margin='dense'
           placeholder={ placeholders[1] }
           fullWidth
           value={ v2 }
           onChange={ e => setV2(mask2(e.target.value)) }
-        />
+        /> }
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color='primary'>
           Cancel
         </Button>
-        <Button onClick={ handleAdd } color='primary' disabled={ !v1 || !v2 }>
+        <Button onClick={ handleAdd } color='primary' disabled={ !v1 || (placeholders[1] && !v2) }>
           Add
         </Button>
       </DialogActions>
@@ -397,6 +345,8 @@ const RuleEditor = ({project_name}) => {
   console.log({state})
 
   const [ savedState, setSavedState ] = useState(DEFAULT_STATE);
+  const [ showRevisions, setShowRevisions ] = useState(null);
+  const [comment, setComment] = useState('');
 
   const changed = state != savedState;
 
@@ -421,16 +371,55 @@ const RuleEditor = ({project_name}) => {
     () => dispatch({ type: 'SET', state: savedState }), [ state, savedState ]
   )
 
-  const upcase = v => v.replace(/[^A-Za-z0-9_]/g, '').toUpperCase();
-
   return <Grid>
     <ProjectHeader project_name={project_name} className={classes.header}>
       {
-        changed && <div className={classes.buttons}>
-          <Button onClick={ saveRules }>Save</Button>
-          <Button color='secondary' onClick={ revertRules }>Revert</Button>
-        </div>
+        changed && <Grid container className={classes.buttons}>
+            <Grid item>
+              <TextField
+                size='small'
+                style={{width: 300}}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder='Revision comment'
+              />
+            </Grid>
+            <Grid item>
+              <Button
+                disabled={comment == ''}
+                onClick={ saveRules }>Save</Button>
+            </Grid>
+            <Grid item>
+              <Button color='secondary' onClick={ revertRules }>Revert</Button>
+            </Grid>
+        </Grid>
       }
+      <Tooltip title='revision history'>
+        <IconButton
+          onClick={() => setShowRevisions(true)}
+          size='small'
+          aria-label='revision history'
+        >
+          <HistoryIcon />
+        </IconButton>
+      </Tooltip>
+      {showRevisions != null && (
+        <RevisionHistory
+          getRevisions={() =>
+            json_get(magmaPath(`gnomon/${project_name}/revisions`))
+          }
+          dateField='created_at'
+          open={showRevisions}
+          revisionDoc={(revision) =>
+            JSON.stringify(revision.config, null, 2)
+          }
+          update={({config}) => {
+            dispatch({ type: 'SET', state: config});
+            setShowRevisions(false);
+          }}
+          onClose={() => setShowRevisions(false)}
+        />
+      )}
     </ProjectHeader>
     <RuleEditorPane type='token'
       desc='Enter a token name and a label.'

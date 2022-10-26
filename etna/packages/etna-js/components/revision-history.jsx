@@ -82,6 +82,7 @@ const diff = ({revision, current, prev, revisionDoc, diffType}) => {
 const RevisionHistory = ({
   getRevisions,
   revisionDoc,
+  dateField='updated_at',
   update,
   open,
   onClose
@@ -177,7 +178,7 @@ const RevisionHistory = ({
                   )}
                 </Grid>
                 <Grid xs={4} item>
-                  <Typography>{formatTime(revision.updated_at)}</Typography>
+                  <Typography>{formatTime(revision[dateField])}</Typography>
                 </Grid>
               </Grid>
               <Collapse in={selectedRevision == i} timeout='auto' unmountOnExit>

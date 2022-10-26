@@ -92,6 +92,14 @@ class GnomonController < Magma::Controller
     raise Etna::BadRequest, "Identifier \"#{@params[:identifier]}\" for rule \"#{rule_name}\" already exists"
   end
 
+  def revisions
+   grammars = Magma::Gnomon::Grammar.where(
+     project_name: project_name
+   ).reverse(:version_number).all
+
+    success_json(grammars.map(&:to_revision))
+  end
+
   private
 
   def require_grammar

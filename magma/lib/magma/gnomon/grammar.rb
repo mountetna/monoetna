@@ -109,6 +109,10 @@ class Magma
         end
       end
 
+      def to_revision
+        to_hash.slice(:config, :created_at, :version_number).merge(comment: comment)
+      end
+
       def to_hash
         {
           project_name: project_name,
