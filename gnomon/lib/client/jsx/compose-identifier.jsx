@@ -8,10 +8,19 @@ import IconButton from '@material-ui/core/IconButton';
 import ProjectHeader from 'etna-js/components/project-header';
 import {makeStyles} from '@material-ui/core/styles';
 import { json_get, json_post } from 'etna-js/utils/fetch';
+import { dateFormat } from 'etna-js/utils/format';
 import { magmaPath, getDocuments } from 'etna-js/api/magma_api';
 
 import Letter from './letter';
 import TokenEditor, { firstKey, firstValue } from './token-editor';
+
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
 
 import {isAdmin} from 'etna-js/utils/janus';
 
@@ -25,7 +34,7 @@ const useStyles = makeStyles((theme) => ({
   },
   composer: {
     marginLeft: 20,
-    height: 'calc(100vh - 61px - 48px - 120px)',
+    height: 'calc(100vh - 61px - 48px - 250px)',
     position: 'relative',
     overflowY: 'clip'
   },
@@ -35,6 +44,10 @@ const useStyles = makeStyles((theme) => ({
     background: '#aaa',
     color: '#fff',
     borderBottom: '1px solid black'
+  },
+  ids_table: {
+    height: 250,
+    overflowX: 'hidden'
   },
   counter: {
     background: '#fff',
@@ -66,33 +79,40 @@ const Token = ({token, value}) => {
 
 function matchIds(ids, idRegex) {
   if (ids == null) return null
-  let outIds = {...ids}
   const re = new RegExp("^"+idRegex+"$")
-  for (const [key, value] of Object.entries(ids)) {
-    const matches = value.filter((val) => re.test(val))
-    if (matches.length > 0) {
-      outIds[key] = matches
-    } else {
-      delete outIds[key]
-    }
-  }
-  return outIds
+  return ids.filter((val) => re.test(val.identifier))
 }
 
 const IdsShower = ({ids}) => {
   const classes = useStyles();
   console.log('matches:', ids)
   console.log(ids == {})
-  return ids == null ? null : <Grid container direction="column">
-    {
-      Object.keys(ids).length === 0 ? <Grid item={{position: 'relative'}}> No Matching Identifiers </Grid> :
-        Object.entries(ids).map( (model) => {
-          return <Grid item={{position: 'relative'}}>
-            {model[0] + ":\n" + model[1].join(", ")}
-          </Grid>
-        })
-    }
-  </Grid>
+  if (ids == null) return null
+  if (ids.length === 0) return <div> No Matching Identifiers </div>
+  return <TableContainer className={classes.ids_table} component={Paper}>
+    <Table stickyHeader size="small">
+      <TableHead>
+        <TableRow>
+          <TableCell>Name</TableCell>
+          <TableCell align="right">Author</TableCell>
+          <TableCell align="right">Named at</TableCell>
+          <TableCell align="right">Recorded at</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {ids.map((id) => (
+          <TableRow key={id.identifier}>
+            <TableCell component="th" scope="row">
+              {id.identifier}
+            </TableCell>
+            <TableCell align="right">{id.author}</TableCell>
+            <TableCell align="right">{dateFormat(id.name_created_at)}</TableCell>
+            <TableCell align="right">{dateFormat(id.record_created_at)}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  </TableContainer>
 }
 
 const ComposeIdentifier = ({project_name, rule_name}) => {
@@ -104,7 +124,7 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
   const [ tokens, setTokens ] = useState([]);
   const [ values, setValues ] = useState([]);
 
-  const [ projIds, setProjectIds ] = useState(null)
+  const [ ids, setIds ] = useState(null)
   
   useEffect( () => {
     json_get(magmaPath(`gnomon/${project_name}/rule/${rule_name}`)).then(
@@ -115,33 +135,9 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
     )
   }, [] );
 
-  // Retrieve project ids for showing matches.
-  // **ToDo: Make this work off of gnomon values. Currently works off of what's created in magma.**
-  // useEffect( () => {
-  //   json_get(magmaPath(`gnomon/${project_name}/list/${rule_name}`)).then(
-  //     ({rule}) => {
-  //       setProjectIds(rule);
-  //     }
-  //   )
-  // }, [] );
   useEffect( () => {
-    const x = getDocuments(
-      {
-        project_name,
-        model_name: 'all',
-        record_names: 'all',
-        attribute_names: 'identifier'
-      },
-      fetch
-    )
-    setProjectIds(
-      x.then( (val) => {
-        let id_obj = {...val.models}
-        Object.keys(id_obj).map( (model_name) => {
-          id_obj[model_name] = Object.keys(id_obj[model_name].documents)
-        })
-        setProjectIds(id_obj)
-      })
+    json_get(magmaPath(`gnomon/${project_name}/list/${rule_name}`)).then(
+      id_list => setIds(id_list)
     )
   }, [] );
 
@@ -180,7 +176,7 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
 
   console.log({tokens})
   console.log({values})
-  console.log({projIds})
+  console.log({ids})
 
   const currentOptionsRegex = useMemo( () => {
     const option_sets = (tokens == null || tokens == []) ? null : tokens.map( (val, k) => {
@@ -216,8 +212,7 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
           )
         }
       </Grid>
-      <hr/>
-      <IdsShower ids={matchIds(projIds, currentOptionsRegex)}/>
+      <IdsShower ids={matchIds(ids, currentOptionsRegex)}/>
   </Grid>
 }
 
