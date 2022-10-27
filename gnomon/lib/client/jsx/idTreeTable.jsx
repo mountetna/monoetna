@@ -38,16 +38,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const SaveButton = ({project_name, rule_name, identifier}) => {
-  return <Button
-      onClick={() => json_post(magmaPath(`gnomon/${project_name}/generate/${rule_name}/${identifier}`))
-      }
-      >
-      Create Name
-    </Button>
-}
-
-const Rule = ({rule, rule_name, project_name, allowCreation=false}) => {
+const Rule = ({rule, rule_name, project_name}) => {
   return <TableRow>
     <TableCell component="th" scope="row">
       {rule_name}
@@ -65,18 +56,10 @@ const Rule = ({rule, rule_name, project_name, allowCreation=false}) => {
           : ""
       }
     </TableCell>
-    {allowCreation ?
-      <TableCell align="right">
-        <SaveButton
-          project_name={project_name}
-          rule_name={rule_name}
-          identifier={rule.name}
-          />
-      </TableCell> : null}
   </TableRow>
 }
 
-export const LinkedIdTable = ({decomposition, project_name, classes = useStyles, allowCreation = false}) => {
+export const IdTreeTable = ({decomposition, project_name, classes = useStyles, allowCreation = false}) => {
   return <TableContainer component={Paper} className={classes.rules}>
     <Table size="small">
       <TableHead>
@@ -85,7 +68,6 @@ export const LinkedIdTable = ({decomposition, project_name, classes = useStyles,
           <TableCell>Identifier</TableCell>
           <TableCell align="center">Named</TableCell>
           <TableCell align="center">Recorded</TableCell>
-          {allowCreation ? <TableCell align="right"> Create Names </TableCell> : null}
         </TableRow>
       </TableHead>
       <TableBody>
@@ -96,7 +78,6 @@ export const LinkedIdTable = ({decomposition, project_name, classes = useStyles,
             rule={decomposition.rules[rule_name]}
             rule_name={rule_name}
             project_name={project_name}
-            allowCreation={allowCreation}
             />
           )
         }

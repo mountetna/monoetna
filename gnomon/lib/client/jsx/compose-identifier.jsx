@@ -21,7 +21,7 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import { LinkedIdTable } from './idTreeTable';
+import { IdTreeTable } from './idTreeTable';
 
 import {isAdmin} from 'etna-js/utils/janus';
 
@@ -119,6 +119,18 @@ const MatchingNamesTable = ({names, rule_name}) => {
       </Table>
     </TableContainer>
   </Grid>
+}
+
+const CreateButton = ({project_name, rule_name, identifier}) => {
+  return <Button
+      onClick={() => json_post(magmaPath(`gnomon/${project_name}/generate/${rule_name}/${identifier}`))
+        .catch( (e) => console.log(e) )
+      }
+      size='large'
+      color='primary'
+      >
+      Save This Identifier
+    </Button>
 }
 
 const ComposeIdentifier = ({project_name, rule_name}) => {
@@ -228,8 +240,18 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
         </Grid>
       </Grid>
       <Grid item>
-        Targetted Name (and upstream names):
-        {decomposition==null ? " Idenifier is incomplete" : <LinkedIdTable decomposition={decomposition} project_name={project_name} allowCreation={true}/>}
+        Targetted Identifier (and upstream identifiers):
+        {decomposition==null ? " Idenifier is incomplete" : 
+          decomposition.rules[rule_name].name_created_at ? " Identifier exists" : <CreateButton
+              project_name={project_name}
+              rule_name={rule_name}
+              identifier={currentOptionsRegex}
+              />}
+          {decomposition==null ? null : 
+            <Grid item>
+              <IdTreeTable decomposition={decomposition} project_name={project_name}/>
+            </Grid>
+          }
       </Grid>
       <Grid item>
         <MatchingNamesTable names={matchIds(names, currentOptionsRegex)} rule_name={rule_name}/>

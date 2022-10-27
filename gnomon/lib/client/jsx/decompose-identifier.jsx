@@ -22,7 +22,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Tooltip from '@material-ui/core/Tooltip';
-import { LinkedIdTable } from './idTreeTable';
+import { IdTreeTable } from './idTreeTable';
 
 const useStyles = makeStyles((theme) => ({
   header: {
@@ -173,7 +173,7 @@ const DecomposeIdentifier = ({project_name, identifier}) => {
           ).flat()
         }
         </Grid>
-          { decomposition && <LinkedIdTable decomposition={decomposition} project_name={project_name}/> }
+          { decomposition && <IdTreeTable decomposition={decomposition} project_name={project_name}/> }
       </Grid>
     </Grid>
   </Grid>
