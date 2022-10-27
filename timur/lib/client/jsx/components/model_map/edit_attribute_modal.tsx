@@ -9,17 +9,8 @@ import {useModal} from 'etna-js/components/ModalDialogContainer';
 
 import DisabledButton from '../search/disabled_button';
 import {Attribute} from '../../api/magma_api';
-
-function ShrinkingLabelTextField(props: any) {
-  return (
-    <TextField
-      {...props}
-      InputLabelProps={{
-        shrink: props.value ? true : false
-      }}
-    />
-  );
-}
+import {SNAKE_CASE, COMMA_SEP} from '../../utils/edit_map';
+import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 
 export default function EditAttributeModal({
   onSave,
@@ -93,6 +84,7 @@ export default function EditAttributeModal({
               ['new_attribute_name', e.target.value]
             ])
           }
+          validationRegex={SNAKE_CASE}
         />
         <ShrinkingLabelTextField
           id='edit-attribute-description'
@@ -109,6 +101,7 @@ export default function EditAttributeModal({
           onChange={(e: React.ChangeEvent<any>) =>
             updateAttribute([['attribute_group', e.target.value]])
           }
+          validationRegex={COMMA_SEP}
         />
         <ShrinkingLabelTextField
           id='edit-attribute-display-name'

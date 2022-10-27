@@ -8,6 +8,8 @@ import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 
 import DisabledButton from '../search/disabled_button';
+import {ShrinkingLabelTextField} from './shrinking_label_text_field';
+import {COMMA_SEP, SNAKE_CASE} from '../../utils/edit_map';
 
 const useStyles = makeStyles((theme) => ({
   popover: {
@@ -62,20 +64,25 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
     <div className='add-attribute-modal model-actions-modal'>
       <div className='header'>Add Attribute</div>
       <div className='options-tray tray'>
-        <TextField
+        <ShrinkingLabelTextField
           id='attribute-name'
           label='Name'
+          value={name}
           onChange={(e) => setName(e.target.value)}
+          validationRegex={SNAKE_CASE}
         />
-        <TextField
+        <ShrinkingLabelTextField
           id='attribute-description'
+          value={description}
           label='Description (optional)'
           onChange={(e) => setDescription(e.target.value)}
         />
-        <TextField
+        <ShrinkingLabelTextField
           id='attribute-group'
+          value={group}
           label='Group (optional; comma-separated list)'
           onChange={(e) => setGroup(e.target.value)}
+          validationRegex={COMMA_SEP}
         />
         <TextField
           id='attribute-type'
