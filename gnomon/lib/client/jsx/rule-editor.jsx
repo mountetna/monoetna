@@ -94,11 +94,6 @@ const reducer = (state, action) => {
   switch(action.type) {
     case 'SET':
       return action.state;
-    case 'PASTE':
-      return {
-        rules: { ...action.paste.rules },
-        tokens: { ...action.paste.tokens }
-      };
     case 'REMOVE_SYN_FROM_SET':
       return { ...state, synonyms: removeSynFromSet(state, action) };
     case 'ADD_SYN_TO_SET':
@@ -529,14 +524,6 @@ const RuleEditor = ({project_name}) => {
               )
             }
         </RuleEditorPane>
-
-        <Button onClick={ () => copyText( JSON.stringify(editedState,null,2) ) }>Copy</Button>
-        <TextField inputProps={{ id: 'paste' }}/>
-        <Button onClick={
-          () => dispatch({
-            type: 'PASTE', paste: JSON.parse(document.querySelector('#paste').value)
-          })
-        }>Paste</Button>
       </>
     }
   </Grid>
