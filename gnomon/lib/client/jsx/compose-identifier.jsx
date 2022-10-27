@@ -49,7 +49,7 @@ const useStyles = makeStyles((theme) => ({
     borderBottom: '1px solid black'
   },
   matchTable: {
-    height: 250,
+    maxHeight: 250,
     overflowX: 'hidden'
   },
   counter: {
