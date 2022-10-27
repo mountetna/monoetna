@@ -16,6 +16,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import IconButton from '@material-ui/core/IconButton';
 import HistoryIcon from '@material-ui/icons/HistoryRounded';
 import AddIcon from '@material-ui/icons/Add';
+import CodeIcon from '@material-ui/icons/Code';
 
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
@@ -135,8 +136,9 @@ const useStyles = makeStyles((theme) => ({
   },
   buttons: {
     '& > *': {
-      margin: '0px 10px'
+      margin: '0px 5px'
     },
+    marginLeft: '40px',
     justifyContent: 'space-between',
     width: 'auto'
   },
@@ -162,6 +164,11 @@ const useStyles = makeStyles((theme) => ({
   },
   value: {
   },
+  noprint: {
+    "@media print": {
+      display: 'none'
+    }
+  },
   strikeout: {
     '&:hover': {
       textDecoration: 'line-through',
@@ -171,27 +178,6 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-
-const TokenValue = ({name,value,dispatch, token}) => {
-  const classes = useStyles();
-  return <Grid
-    onClick={
-      () => {
-        const { [name]: _, ...other_values } = token.values;
-        dispatch({
-          type: 'ADD_TOKEN',
-          token: {
-            ...token,
-            values: other_values
-          }
-        });
-      }
-    }
-    className={`${classes.value} ${classes.strikeout}`} container>
-    <Grid item xs={2}>{name}</Grid>
-    <Grid item xs={2}>{value}</Grid>
-  </Grid>
-}
 
 const Synonym = ({set, pos, dispatch}) => {
   const classes = useStyles();
@@ -214,6 +200,27 @@ const Synonym = ({set, pos, dispatch}) => {
           placeholders={ [ 'TOKEN_NAME' ] }
         />
       </Grid>
+  </Grid>
+}
+
+const TokenValue = ({name,value,dispatch, token}) => {
+  const classes = useStyles();
+  return <Grid
+    onClick={
+      () => {
+        const { [name]: _, ...other_values } = token.values;
+        dispatch({
+          type: 'ADD_TOKEN',
+          token: {
+            ...token,
+            values: other_values
+          }
+        });
+      }
+    }
+    className={`${classes.value} ${classes.strikeout}`} container>
+    <Grid item xs={2}>{name}</Grid>
+    <Grid item xs={10}>{value}</Grid>
   </Grid>
 }
 
@@ -253,6 +260,8 @@ const AddDialog = ({update, title, content, buttonText, placeholders, mask=(e =>
   const [ v1, setV1 ] = useState('');
   const [ v2, setV2 ] = useState('');
 
+  const classes = useStyles();
+
   const handleClose = () => {
     setOpen(false);
     setV1('');
@@ -269,6 +278,7 @@ const AddDialog = ({update, title, content, buttonText, placeholders, mask=(e =>
     variant='text'
     startIcon={<AddIcon/>}
     color='secondary'
+    className={classes.noprint}
     onClick={() => setOpen(true)}>{buttonText}</Button>
     <Dialog open={open} onClose={handleClose} aria-labelledby='form-dialog-title'>
       <DialogTitle id='form-dialog-title'>{title}</DialogTitle>
@@ -340,40 +350,48 @@ const RuleEditorPane = ({type, update, mask, mask2, desc, placeholders, children
 const RuleEditor = ({project_name}) => {
   const classes = useStyles();
 
-  const [ state, dispatch ] = useReducer(reducer, DEFAULT_STATE);
+  const [ editedState, dispatch ] = useReducer(reducer, DEFAULT_STATE);
   const [ savedState, setSavedState ] = useState(DEFAULT_STATE);
   const [ editedScript, setEditedScript ] = useState(jsonFormat(DEFAULT_STATE));
   const [ showRevisions, setShowRevisions ] = useState(null);
   const [ comment, setComment ] = useState('');
   const [ showJson, setShowJson ] = useState(false);
 
-  const changed = state != savedState;
+  const changed = editedState != savedState;
+
+  const setEditedState = state => dispatch({ type: 'SET', state });
 
   useEffect( () => {
     json_get(magmaPath(`gnomon/${project_name}/`)).then(
       ({config}) => {
-        dispatch({ type: 'SET', state: config });
+        setEditedState(config);
+        setEditedScript(jsonFormat(config));
         setSavedState(config);
+        setSavedScript(jsonFormat(config))
       }
     )
   }, [] );
 
   const saveRules = useCallback(
     () => {
-      json_post(magmaPath(`gnomon/${project_name}`), { config: state }).then(
-        () => setSavedState(state)
+      json_post(magmaPath(`gnomon/${project_name}`), { config: editedState }).then(
+        () => {
+          setSavedState(editedState);
+          setSavedScript(jsonFormat(editedState));
+        }
       );
-    }, [ state, editedScript, savedState, showJson ]
+    }, [ editedState, editedScript, savedState, showJson ]
   )
 
   const revertRules = useCallback(
-    () => dispatch({ type: 'SET', state: savedState }), [ state, savedState ]
+    () => dispatch({ type: 'SET', state: savedState }), [ editedState, savedState ]
   )
 
   return <Grid>
     <ProjectHeader project_name={project_name} className={classes.header}>
+      <Grid container className={classes.buttons}>
       {
-        changed && <Grid container className={classes.buttons}>
+        changed && <>
             <Grid item>
               <TextField
                 size='small'
@@ -391,10 +409,22 @@ const RuleEditor = ({project_name}) => {
             <Grid item>
               <Button color='secondary' onClick={ revertRules }>Revert</Button>
             </Grid>
-        </Grid>
+        </>
       }
+      <Tooltip title={showJson ? 'show form' : 'show json'}>
+        <IconButton
+          disabled={changed}
+          onClick={() => setShowJson(!showJson)}
+          size='small'
+          aria-label='revision history'
+          color={showJson ? 'primary' : 'default'}
+        >
+          <CodeIcon />
+        </IconButton>
+      </Tooltip>
       <Tooltip title='revision history'>
         <IconButton
+          className={classes.noprint}
           onClick={() => setShowRevisions(true)}
           size='small'
           aria-label='revision history'
@@ -419,67 +449,74 @@ const RuleEditor = ({project_name}) => {
           onClose={() => setShowRevisions(false)}
         />
       )}
-    </ProjectHeader>
-    <RuleEditorPane type='token'
-      desc='Enter a token name and a label.'
-      update={ (name, label) => dispatch({ type: 'ADD_TOKEN', token: { name, label, values: {} } }) }
-      mask={ upcase }
-      placeholders={['TOKEN_NAME', 'Token label']}>
-      <Grid container className={classes.header}>
-        <Grid item xs={2}>Name</Grid>
-        <Grid item xs={10} container style={{ width: 'auto' }}>
-          <Grid item xs={2}>Value</Grid>
-          <Grid item xs={2}>Description</Grid>
-        </Grid>
       </Grid>
-      {
-        Object.keys(state.tokens).map(
-          name => <Token key={name} token={state.tokens[name]} dispatch={dispatch}/>
-        )
-      }
-    </RuleEditorPane>
-    <RuleEditorPane type='synonym'
-      desc='Add a pair of synonyms.'
-      update={ (name1,name2) => dispatch({ type: 'ADD_SYNONYM_SET', set: [ name1, name2 ]}) }
-      mask={ upcase }
-      mask2={ upcase }
-      placeholders={['TOKEN_NAME1', 'TOKEN_NAME2']}>
-      {
-        state.synonyms?.map(
-          (synonym_set,i) => <Synonym key={i} pos={i} set={synonym_set} dispatch={dispatch}/>
-        )
-      }
-    </RuleEditorPane>
-    <RuleEditorPane
-      type='rule'
-      desc={
-        <>
-          A <b>rule</b> is a sequence of space-separated token or rule names.
-          <br/>
-          Enter a name and a new rule.
-        </>
-      }
-      update={ (name, rule) => dispatch({ type: 'ADD_RULE', name, rule }) }
-      mask={ v => v.replace(/[^A-Za-z0-9_]/g, '').toLowerCase() }
-      placeholders={['rule_name', 'Rule']}>
-        <Grid container className={classes.header}>
-          <Grid item xs={2}>Label</Grid>
-          <Grid item xs={10}>Rule</Grid>
-        </Grid>
-        {
-          Object.keys(state.rules).map(
-            name => <Rule key={name} name={name} rule={state.rules[name]} dispatch={dispatch}/>
-          )
-        }
-    </RuleEditorPane>
+    </ProjectHeader>
 
-    <Button onClick={ () => copyText( JSON.stringify(state,null,2) ) }>Copy</Button>
-    <TextField inputProps={{ id: 'paste' }}/>
-    <Button onClick={
-      () => dispatch({
-        type: 'PASTE', paste: JSON.parse(document.querySelector('#paste').value)
-      })
-    }>Paste</Button>
+    {
+      showJson ? (<div>{editedScript}</div>) :
+      <>
+        <RuleEditorPane type='token'
+          desc='Enter a token name and a label.'
+          update={ (name, label) => dispatch({ type: 'ADD_TOKEN', token: { name, label, values: {} } }) }
+          mask={ upcase }
+          placeholders={['TOKEN_NAME', 'Token label']}>
+          <Grid container className={classes.header}>
+            <Grid item xs={2}>Name</Grid>
+            <Grid item xs={10} container style={{ width: 'auto' }}>
+              <Grid item xs={2}>Value</Grid>
+              <Grid item xs={2}>Description</Grid>
+            </Grid>
+          </Grid>
+          {
+            Object.keys(editedState.tokens).map(
+              name => <Token key={name} token={editedState.tokens[name]} dispatch={dispatch}/>
+            )
+          }
+        </RuleEditorPane>
+        <RuleEditorPane type='synonym'
+          desc='Add a pair of synonyms.'
+          update={ (name1,name2) => dispatch({ type: 'ADD_SYNONYM_SET', set: [ name1, name2 ]}) }
+          mask={ upcase }
+          mask2={ upcase }
+          placeholders={['TOKEN_NAME1', 'TOKEN_NAME2']}>
+          {
+            editedState.synonyms?.map(
+              (synonym_set,i) => <Synonym key={i} pos={i} set={synonym_set} dispatch={dispatch}/>
+            )
+          }
+        </RuleEditorPane>
+        <RuleEditorPane
+          type='rule'
+          desc={
+            <>
+              A <b>rule</b> is a sequence of space-separated token or rule names.
+              <br/>
+              Enter a name and a new rule.
+            </>
+          }
+          update={ (name, rule) => dispatch({ type: 'ADD_RULE', name, rule }) }
+          mask={ v => v.replace(/[^A-Za-z0-9_]/g, '').toLowerCase() }
+          placeholders={['rule_name', 'Rule']}>
+            <Grid container className={classes.header}>
+              <Grid item xs={2}>Label</Grid>
+              <Grid item xs={10}>Rule</Grid>
+            </Grid>
+            {
+              Object.keys(editedState.rules).map(
+                name => <Rule key={name} name={name} rule={editedState.rules[name]} dispatch={dispatch}/>
+              )
+            }
+        </RuleEditorPane>
+
+        <Button onClick={ () => copyText( JSON.stringify(editedState,null,2) ) }>Copy</Button>
+        <TextField inputProps={{ id: 'paste' }}/>
+        <Button onClick={
+          () => dispatch({
+            type: 'PASTE', paste: JSON.parse(document.querySelector('#paste').value)
+          })
+        }>Paste</Button>
+      </>
+    }
   </Grid>
 }
 
