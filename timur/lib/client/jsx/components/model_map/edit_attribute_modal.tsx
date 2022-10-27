@@ -10,6 +10,17 @@ import {useModal} from 'etna-js/components/ModalDialogContainer';
 import DisabledButton from '../search/disabled_button';
 import {Attribute} from '../../api/magma_api';
 
+function ShrinkingLabelTextField(props) {
+  return (
+    <TextField
+      {...props}
+      InputLabelProps={{
+        shrink: props.value ? true : false
+      }}
+    />
+  );
+}
+
 export default function EditAttributeModal({
   onSave,
   attribute
@@ -18,9 +29,18 @@ export default function EditAttributeModal({
   attribute: Attribute;
 }) {
   const [disabled, setDisabled] = useState(true);
-  const [updatedAttribute, setUpdatedAttribute] = useState({...attribute});
+  const [updatedAttribute, setUpdatedAttribute] = useState({});
   const {dismissModal} = useModal();
   const invoke = useActionInvoker();
+
+  useEffect(() => {
+    setUpdatedAttribute({
+      ...attribute,
+      validation: attribute.validation
+        ? JSON.stringify(attribute.validation)
+        : ''
+    });
+  }, []);
 
   const handleOnSave = useCallback(() => {
     onSave({
@@ -59,7 +79,7 @@ export default function EditAttributeModal({
     <div className='edit-attribute-modal model-actions-modal'>
       <div className='header'>Edit Attribute</div>
       <div className='options-tray tray'>
-        <TextField
+        <ShrinkingLabelTextField
           id='edit-attribute-name'
           label='Name'
           value={updatedAttribute.attribute_name}
@@ -70,13 +90,13 @@ export default function EditAttributeModal({
             ])
           }
         />
-        <TextField
+        <ShrinkingLabelTextField
           id='edit-attribute-description'
           label='Description'
           value={updatedAttribute.description}
           onChange={(e) => updateAttribute([['description', e.target.value]])}
         />
-        <TextField
+        <ShrinkingLabelTextField
           id='edit-attribute-group'
           label='Group (comma-separated list)'
           value={updatedAttribute.attribute_group}
@@ -84,19 +104,17 @@ export default function EditAttributeModal({
             updateAttribute([['attribute_group', e.target.value]])
           }
         />
-        <TextField
+        <ShrinkingLabelTextField
           id='edit-attribute-display-name'
           label='Display Name'
           value={updatedAttribute.display_name}
           onChange={(e) => updateAttribute([['display_name', e.target.value]])}
         />
-        <TextField
+        <ShrinkingLabelTextField
           id='edit-attribute-validation'
           label='Validation (JSON object with `type` and `value`)'
-          value={JSON.stringify(updatedAttribute.validation)}
-          onChange={(e) =>
-            updateAttribute([['validation', JSON.parse(e.target.value)]])
-          }
+          value={updatedAttribute.validation}
+          onChange={(e) => updateAttribute([['validation', e.target.value]])}
         />
         <FormControlLabel
           control={
