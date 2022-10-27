@@ -8,7 +8,7 @@ class GnomonController < Magma::Controller
   end
 
   def set
-    require_param(:config)
+    require_param(:config, :comment)
     old_grammar = Magma::Gnomon::Grammar.for_project(project_name)
 
     version_number = (old_grammar&.version_number || 0) + 1
@@ -20,6 +20,7 @@ class GnomonController < Magma::Controller
     grammar = Magma::Gnomon::Grammar.create(
       project_name: project_name,
       config: @params[:config],
+      comment: @params[:comment],
       version_number: version_number
     )
 

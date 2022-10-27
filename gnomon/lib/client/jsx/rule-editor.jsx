@@ -32,6 +32,8 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import ProjectHeader from 'etna-js/components/project-header';
 import RevisionHistory from 'etna-js/components/revision-history';
 
+import RuleScript from './rule-script';
+
 const upcase = v => v.replace(/[^A-Za-z0-9_]/g, '').toUpperCase();
 
 const DEFAULT_STATE = {
@@ -353,38 +355,52 @@ const RuleEditor = ({project_name}) => {
   const [ editedState, dispatch ] = useReducer(reducer, DEFAULT_STATE);
   const [ savedState, setSavedState ] = useState(DEFAULT_STATE);
   const [ editedScript, setEditedScript ] = useState(jsonFormat(DEFAULT_STATE));
+  const [ savedScript, setSavedScript ] = useState(jsonFormat(DEFAULT_STATE));
   const [ showRevisions, setShowRevisions ] = useState(null);
   const [ comment, setComment ] = useState('');
+  const [ error, setError ] = useState('');
   const [ showJson, setShowJson ] = useState(false);
 
-  const changed = editedState != savedState;
+  const changed = showJson ? editedScript != savedScript : editedState != savedState;
 
   const setEditedState = state => dispatch({ type: 'SET', state });
 
+  const unifyState = config => {
+    const script = jsonFormat(config)
+    setEditedState(config);
+    setEditedScript(script);
+    setSavedState(config);
+    setSavedScript(script)
+  }
+
   useEffect( () => {
     json_get(magmaPath(`gnomon/${project_name}/`)).then(
-      ({config}) => {
-        setEditedState(config);
-        setEditedScript(jsonFormat(config));
-        setSavedState(config);
-        setSavedScript(jsonFormat(config))
-      }
+      ({config}) => unifyState(config)
     )
   }, [] );
 
   const saveRules = useCallback(
     () => {
-      json_post(magmaPath(`gnomon/${project_name}`), { config: editedState }).then(
+      const newState = showJson ? JSON.parse(editedScript) : editedState;
+      json_post(magmaPath(`gnomon/${project_name}`), { config: newState, comment }).then(
         () => {
-          setSavedState(editedState);
-          setSavedScript(jsonFormat(editedState));
+          unifyState(newState);
+          setError('');
         }
+      ).catch(
+        e => e.then( ({errors}) =>  setError( errors.join('; ')))
       );
     }, [ editedState, editedScript, savedState, showJson ]
   )
 
   const revertRules = useCallback(
-    () => dispatch({ type: 'SET', state: savedState }), [ editedState, savedState ]
+    () => {
+      setEditedState(savedState);
+      setEditedScript(savedScript);
+      setError('');
+      setComment('');
+
+    }, [ editedState, savedState ]
   )
 
   return <Grid>
@@ -414,7 +430,10 @@ const RuleEditor = ({project_name}) => {
       <Tooltip title={showJson ? 'show form' : 'show json'}>
         <IconButton
           disabled={changed}
-          onClick={() => setShowJson(!showJson)}
+          onClick={() => {
+            setShowJson(!showJson);
+            setError('');
+          }}
           size='small'
           aria-label='revision history'
           color={showJson ? 'primary' : 'default'}
@@ -449,11 +468,14 @@ const RuleEditor = ({project_name}) => {
           onClose={() => setShowRevisions(false)}
         />
       )}
+      {
+        error && <Typography color='error'>{error}</Typography>
+      }
       </Grid>
     </ProjectHeader>
 
     {
-      showJson ? (<div>{editedScript}</div>) :
+      showJson ? (<RuleScript script={editedScript} update={setEditedScript}/>) :
       <>
         <RuleEditorPane type='token'
           desc='Enter a token name and a label.'
