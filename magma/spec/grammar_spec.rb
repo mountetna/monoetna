@@ -39,7 +39,7 @@ describe Magma::Gnomon::Grammar do
         first: 'TOK SEP .n'
       }
 
-      grammar = create(:grammar, project_name: 'labors', version_number: 1, config: @config)
+      grammar = create(:grammar, project_name: 'labors', version_number: 1, config: @config, comment: 'first')
 
       expect(grammar.tokens.length).to eq(4)
       expect(grammar.rules.length).to eq(@config[:rules].length)
@@ -55,7 +55,7 @@ describe Magma::Gnomon::Grammar do
         second: '.first SEP TOK .n',
       }
 
-      grammar = create(:grammar, project_name: 'labors', version_number: 1, config: @config)
+      grammar = create(:grammar, project_name: 'labors', version_number: 1, config: @config, comment: 'first')
 
       expect(grammar.tokens.length).to eq(4)
       expect(grammar.rules.length).to eq(@config[:rules].length)
@@ -71,7 +71,7 @@ describe Magma::Gnomon::Grammar do
         third: '.second SEP TOK .n'
       }
 
-      grammar = create(:grammar, project_name: 'labors', version_number: 1, config: @config)
+      grammar = create(:grammar, project_name: 'labors', version_number: 1, config: @config, comment: 'first')
 
       expect(grammar.tokens.length).to eq(4)
       expect(grammar.rules.length).to eq(@config[:rules].length)

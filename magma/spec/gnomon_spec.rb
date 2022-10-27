@@ -8,6 +8,10 @@ describe GnomonController do
     OUTER_APP
   end
 
+  def create_grammar(params={})
+    grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' }.merge(params))
+  end
+
   VALID_CONFIG={
     tokens: {
       PROJECT: {
@@ -78,8 +82,8 @@ describe GnomonController do
   end
 
   it 'gets the most recent grammar' do
-    grammar = create(:grammar, project_name: 'labors', version_number: 1, config: {})
-    grammar2 = create(:grammar, project_name: 'labors', version_number: 2, config: VALID_CONFIG)
+    grammar = create_grammar(version_number: 1, config: {})
+    grammar2 = create_grammar(version_number: 2, config: VALID_CONFIG)
     auth_header(:viewer)
     get('/gnomon/labors')
 
@@ -88,11 +92,11 @@ describe GnomonController do
   end
 
   it 'sets a new grammar' do
-    grammar = create(:grammar, project_name: 'labors', version_number: 1, config: {})
+    grammar = create_grammar
 
     config = VALID_CONFIG
     auth_header(:admin)
-    json_post('/gnomon/labors', config: config)
+    json_post('/gnomon/labors', config: config, comment: 'eh')
 
     expect(last_response.status).to eq(200)
 
@@ -109,7 +113,7 @@ describe GnomonController do
       text: "Some content"
     }
     auth_header(:admin)
-    json_post('/gnomon/labors', config: config)
+    json_post('/gnomon/labors', config: config, comment: 'eh')
 
     expect(last_response.status).to eq(422)
     expect(json_body).to match_array(errors: [
@@ -132,7 +136,7 @@ describe GnomonController do
 
   it 'decomposes an identifier' do
     Timecop.freeze
-    grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
+    grammar = create_grammar(config: VALID_CONFIG)
     identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
     identifier2 = create_identifier("The Nemean Lion", rule: 'labor', grammar: grammar)
     record = create(:project, name: "The Twelve Labors of Hercules")
@@ -179,7 +183,7 @@ describe GnomonController do
   end
 
   it 'does not decompose an invalid identifier' do
-    grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
+    grammar = create_grammar(config: VALID_CONFIG)
     auth_header(:viewer)
     get('/gnomon/labors/decompose/LABORS-LOON-H2-C1')
 
@@ -198,7 +202,7 @@ describe GnomonController do
 
     context 'with valid grammar' do
       before(:each) do
-        @grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
+        @grammar = create_grammar(config: VALID_CONFIG)
       end
 
       context 'generates the next identifier when' do
@@ -284,7 +288,7 @@ describe GnomonController do
 
     context 'with grammar' do
       before(:each) do
-        @grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
+        @grammar = create_grammar(config: VALID_CONFIG)
       end
 
       it 'returns a tokenization of the rule' do
@@ -316,7 +320,7 @@ describe GnomonController do
 
     context 'with grammar' do
       before(:each) do
-        @grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
+        @grammar = create_grammar(config: VALID_CONFIG)
       end
 
       it 'returns all identifiers with no regex param' do
@@ -446,7 +450,7 @@ describe GnomonController do
 
     context 'with grammar' do
       before(:each) do
-        @grammar = create(:grammar, project_name: 'labors', version_number: 1, config: VALID_CONFIG)
+        @grammar = create_grammar(config: VALID_CONFIG)
       end
 
       it 'creates the identifier' do
