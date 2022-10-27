@@ -22,6 +22,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import { IdTreeTable } from './idTreeTable';
+import { Typography, Toolbar }from '@material-ui/core';
 
 import {isAdmin} from 'etna-js/utils/janus';
 
@@ -40,6 +41,12 @@ const useStyles = makeStyles((theme) => ({
     height: 'calc( (100vh - 61px - 48px) * 0.6)',
     position: 'relative',
     overflowY: 'auto'
+  },
+  create: {
+    position: 'absolute',
+    top: 'calc( (100vh - 61px - 48px) * 0.45)',
+    left: 20,
+    width: 400
   },
   resolved: {
   },
@@ -89,9 +96,9 @@ function matchIds(ids, idRegex) {
 const MatchingNamesTable = ({names, rule_name}) => {
   const classes = useStyles();
   if (names == null) return null
-  if (names.length === 0) return <Grid> Current Name Matches: No Matching Identifiers </Grid>
   return <Grid item>
-    Current Name Matches:
+    <Toolbar>Current Name Matches:</Toolbar>
+    { (names.length === 0) ? "No Matching Identifiers" :
     <TableContainer className={classes.matchTable} component={Paper}>
       <Table stickyHeader size="small">
         <TableHead>
@@ -118,6 +125,7 @@ const MatchingNamesTable = ({names, rule_name}) => {
         </TableBody>
       </Table>
     </TableContainer>
+    }
   </Grid>
 }
 
@@ -129,7 +137,7 @@ const CreateButton = ({project_name, rule_name, identifier}) => {
       size='large'
       color='primary'
       >
-      Save This Identifier
+      Create
     </Button>
 }
 
@@ -237,21 +245,26 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
               (token, i) => <Token key={i} token={token} value={ values[i] }/>
             )
           }
+          <Grid item container direction='column' className={classes.create} alignItems='center'>
+          {decomposition==null ? " Identifier is incomplete" : 
+          decomposition.rules[rule_name].name_created_at ? " Identifier exists" : <>
+                <CreateButton
+                  project_name={project_name}
+                  rule_name={rule_name}
+                  identifier={currentOptionsRegex}
+                  />
+                <Typography>Identifiers marked * below will be assigned.</Typography>
+              </>}
+          </Grid>
         </Grid>
       </Grid>
       <Grid item>
-        Targetted Identifier (and upstream identifiers):
-        {decomposition==null ? " Idenifier is incomplete" : 
-          decomposition.rules[rule_name].name_created_at ? " Identifier exists" : <CreateButton
-              project_name={project_name}
-              rule_name={rule_name}
-              identifier={currentOptionsRegex}
-              />}
-          {decomposition==null ? null : 
-            <Grid item>
-              <IdTreeTable decomposition={decomposition} project_name={project_name}/>
-            </Grid>
-          }
+        {decomposition==null ? null : 
+          <Grid item>
+            <Toolbar>Targetted Identifier (and upstream identifiers):</Toolbar>
+            <IdTreeTable decomposition={decomposition} project_name={project_name} markNotCreated={true}/>
+          </Grid>
+        }
       </Grid>
       <Grid item>
         <MatchingNamesTable names={matchIds(names, currentOptionsRegex)} rule_name={rule_name}/>

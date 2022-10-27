@@ -38,12 +38,12 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const Rule = ({rule, rule_name, project_name}) => {
+const Rule = ({rule, rule_name, project_name, markNotCreated}) => {
   return <TableRow>
     <TableCell component="th" scope="row">
       {rule_name}
     </TableCell>
-    <TableCell>{rule.name}</TableCell>
+    <TableCell>{rule.name + (!markNotCreated || rule.name_created_at ? "" : "*")}</TableCell>
     <TableCell align="center">{ rule.name_created_at ? <CheckBoxOutlinedIcon/> : null }</TableCell>
     <TableCell align="center">
       {
@@ -59,25 +59,32 @@ const Rule = ({rule, rule_name, project_name}) => {
   </TableRow>
 }
 
-export const IdTreeTable = ({decomposition, project_name, classes = useStyles, allowCreation = false}) => {
+export const IdTreeTable = ({decomposition, project_name, classes = useStyles, markNotCreated = false}) => {
+  const primary_rule = decomposition.rule_name
+  console.log({decomposition})
   return <TableContainer component={Paper} className={classes.rules}>
     <Table size="small">
       <TableHead>
         <TableRow>
           <TableCell>Rule</TableCell>
           <TableCell>Identifier</TableCell>
-          <TableCell align="center">Named</TableCell>
-          <TableCell align="center">Recorded</TableCell>
+          <TableCell align="center">
+            <Tooltip title="Identifiers previously assigned to a real entity" placement="top"><Typography>Created</Typography></Tooltip>
+          </TableCell>
+          <TableCell align="center">
+          <Tooltip title="Identifiers with data in the Data Library" placement="top"><Typography>Recorded</Typography></Tooltip>
+          </TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
         {
-          Object.keys(decomposition.rules).map(
+          Object.keys(decomposition.rules).sort( (a,b) => b==primary_rule ? 1 : a==primary_rule ? -1 : 0 ).map(
             (rule_name,i) => <Rule
             key={i}
             rule={decomposition.rules[rule_name]}
             rule_name={rule_name}
             project_name={project_name}
+            markNotCreated={markNotCreated}
             />
           )
         }
