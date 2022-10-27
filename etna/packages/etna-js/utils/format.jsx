@@ -21,6 +21,8 @@ export const dateFormat = (timestamp) => {
   }
 };
 
+export const jsonFormat = obj => JSON.stringify(obj, null, 2);
+
 /*
  * Change an integer of bytes into a human readable format.
  * http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
