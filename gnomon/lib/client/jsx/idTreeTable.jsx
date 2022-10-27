@@ -40,7 +40,7 @@ const useStyles = makeStyles((theme) => ({
 
 const SaveButton = ({project_name, rule_name, identifier}) => {
   return <Button
-      onClick={() => json_get(magmaPath(`gnomon/${project_name}/generate/${rule_name}/${identifier}`))
+      onClick={() => json_post(magmaPath(`gnomon/${project_name}/generate/${rule_name}/${identifier}`))
       }
       >
       Create Name
