@@ -21,6 +21,7 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
+import { LinkedIdTable } from './idTreeTable';
 
 import {isAdmin} from 'etna-js/utils/janus';
 
@@ -29,14 +30,16 @@ const useStyles = makeStyles((theme) => ({
     borderBottom: '1px solid #eee'
   },
   tokens: {
-    width: '100%',
     position: 'absolute'
   },
-  composer: {
+  mainContent:{
     marginLeft: 20,
-    height: 'calc(100vh - 61px - 48px - 250px)',
+    width: 'calc( 100vw - 40px )'
+  },
+  composer: {
+    height: 'calc( (100vh - 61px - 48px) * 0.6)',
     position: 'relative',
-    overflowY: 'clip'
+    overflowY: 'auto'
   },
   resolved: {
   },
@@ -45,7 +48,7 @@ const useStyles = makeStyles((theme) => ({
     color: '#fff',
     borderBottom: '1px solid black'
   },
-  ids_table: {
+  matchTable: {
     height: 250,
     overflowX: 'hidden'
   },
@@ -83,36 +86,39 @@ function matchIds(ids, idRegex) {
   return ids.filter((val) => re.test(val.identifier))
 }
 
-const IdsShower = ({ids}) => {
+const MatchingNamesTable = ({names, rule_name}) => {
   const classes = useStyles();
-  console.log('matches:', ids)
-  console.log(ids == {})
-  if (ids == null) return null
-  if (ids.length === 0) return <div> No Matching Identifiers </div>
-  return <TableContainer className={classes.ids_table} component={Paper}>
-    <Table stickyHeader size="small">
-      <TableHead>
-        <TableRow>
-          <TableCell>Name</TableCell>
-          <TableCell align="right">Author</TableCell>
-          <TableCell align="right">Named at</TableCell>
-          <TableCell align="right">Recorded at</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {ids.map((id) => (
-          <TableRow key={id.identifier}>
-            <TableCell component="th" scope="row">
-              {id.identifier}
-            </TableCell>
-            <TableCell align="right">{id.author}</TableCell>
-            <TableCell align="right">{dateFormat(id.name_created_at)}</TableCell>
-            <TableCell align="right">{dateFormat(id.record_created_at)}</TableCell>
+  if (names == null) return null
+  if (names.length === 0) return <Grid> Current Name Matches: No Matching Identifiers </Grid>
+  return <Grid item>
+    Current Name Matches:
+    <TableContainer className={classes.matchTable} component={Paper}>
+      <Table stickyHeader size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>Rule</TableCell>
+            <TableCell>Identifier</TableCell>
+            <TableCell align="left">Author</TableCell>
+            <TableCell align="right">Named</TableCell>
+            <TableCell align="right">Recorded</TableCell>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </TableContainer>
+        </TableHead>
+        <TableBody>
+          {names.map((name) => (
+            <TableRow key={name.identifier}>
+              <TableCell component="th" scope="row">
+                {rule_name}
+              </TableCell>
+              <TableCell align="left">{name.identifier}</TableCell>
+              <TableCell align="left">{name.author}</TableCell>
+              <TableCell align="right">{dateFormat(name.name_created_at)}</TableCell>
+              <TableCell align="right">{dateFormat(name.record_created_at)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  </Grid>
 }
 
 const ComposeIdentifier = ({project_name, rule_name}) => {
@@ -124,9 +130,13 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
   const [ tokens, setTokens ] = useState([]);
   const [ values, setValues ] = useState([]);
 
-  const [ ids, setIds ] = useState(null)
+  const [ names, setNames ] = useState(null)
+  const [ decomposition, setDecomposition ] = useState(null)
   
   useEffect( () => {
+    json_get(magmaPath(`gnomon/${project_name}/list/${rule_name}`)).then(
+      id_list => setNames(id_list)
+    )
     json_get(magmaPath(`gnomon/${project_name}/rule/${rule_name}`)).then(
       ({rule}) => {
         setTokens(rule);
@@ -135,16 +145,9 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
     )
   }, [] );
 
-  useEffect( () => {
-    json_get(magmaPath(`gnomon/${project_name}/list/${rule_name}`)).then(
-      id_list => setIds(id_list)
-    )
-  }, [] );
-
   const setValue = useCallback( (i, val) => {
     let newValues = [ ... values ];
     newValues[i] = val;
-    console.log({newValues});
     setValues( newValues );
   }, [ values ]);
 
@@ -174,10 +177,6 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
 
   const seq = tokens.map( t => t.seq ).join('');
 
-  console.log({tokens})
-  console.log({values})
-  console.log({ids})
-
   const currentOptionsRegex = useMemo( () => {
     const option_sets = (tokens == null || tokens == []) ? null : tokens.map( (val, k) => {
       if (["resolved", "hidden"].includes(val.type)) {
@@ -191,28 +190,51 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
       }
     })
     if (option_sets != null) {
-      return(''.concat(...option_sets))
+      const regex = ''.concat(...option_sets)
+      if (tokens.length !== 0 && tokens[tokens.length-1]['filled']) {
+        json_get(magmaPath(`gnomon/${project_name}/decompose/${regex}`)).then(
+          decomposition => setDecomposition(decomposition)
+        );
+      } else {
+        if (decomposition != null) setDecomposition(null)
+      }
+      return regex
     }
-  }, [tokens, values])
-  console.log({currentOptionsRegex})
+  }, [values])
   
+  console.log({currentOptionsRegex})
+  console.log({tokens})
+  console.log({values})
+  console.log({names})
+  console.log({decomposition})
+
   return <Grid>
     <ProjectHeader project_name={ project_name } className={classes.header}/>
-      <Grid container alignItems='center' className={classes.composer} style={{ width: 40 * (seq.length+1) }}>
-        <Grid container className={classes.tokens}>
-        {
-          tokens.map(
-            (token, i) => <TokenEditor key={i} token={token} seq={seq} tokens={tokens} height={height} update={setValue} value={ values[i] } pos={i} project_name={project_name}/>
-          )
-        }
+    <Grid container direction='column' className={classes.mainContent}>
+      <Grid item>
+        <Grid container alignItems='center' className={classes.composer} >
+          <Grid container className={classes.tokens} style={{ width: 40 * (seq.length+1) }}>
+          {
+            tokens.map(
+              (token, i) => <TokenEditor key={i} token={token} seq={seq} tokens={tokens} height={height} update={setValue} value={ values[i] } pos={i} project_name={project_name}/>
+            )
+          }
+          </Grid>
+          {
+            tokens.map(
+              (token, i) => <Token key={i} token={token} value={ values[i] }/>
+            )
+          }
         </Grid>
-        {
-          tokens.map(
-            (token, i) => <Token key={i} token={token} value={ values[i] }/>
-          )
-        }
       </Grid>
-      <IdsShower ids={matchIds(ids, currentOptionsRegex)}/>
+      <Grid item>
+        Targetted Name (and upstream names):
+        {decomposition==null ? " Idenifier is incomplete" : <LinkedIdTable decomposition={decomposition} project_name={project_name} allowCreation={true}/>}
+      </Grid>
+      <Grid item>
+        <MatchingNamesTable names={matchIds(names, currentOptionsRegex)} rule_name={rule_name}/>
+      </Grid>
+    </Grid>
   </Grid>
 }
 

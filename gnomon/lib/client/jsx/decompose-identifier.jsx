@@ -22,6 +22,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Tooltip from '@material-ui/core/Tooltip';
+import { LinkedIdTable } from './idTreeTable';
 
 const useStyles = makeStyles((theme) => ({
   header: {
@@ -88,28 +89,6 @@ const useStyles = makeStyles((theme) => ({
 
 const isSeparator = token => token == 'SEP';
 const isCounter = token => token.match(/_counter/);
-
-
-const Rule = ({rule, rule_name, project_name}) => {
-  return <TableRow>
-    <TableCell component="th" scope="row">
-      {rule_name}
-    </TableCell>
-    <TableCell>{rule.name}</TableCell>
-    <TableCell align="center">{ rule.name_created_at ? <CheckBoxOutlinedIcon/> : null }</TableCell>
-    <TableCell align="center">
-      {
-        rule.record_created_at
-        ?  <Link
-              color='secondary'
-              href={`${CONFIG.timur_host}/${project_name}/browse/${rule_name}/${rule.name}`}>
-              {dateFormat(rule.record_created_at)}
-            </Link>
-          : null
-      }
-    </TableCell>
-  </TableRow>
-}
 
 const tokenLabel = (token_name, grammar) => (
   token_name in grammar.tokens ? grammar.tokens[token_name].label : token_name
@@ -194,32 +173,7 @@ const DecomposeIdentifier = ({project_name, identifier}) => {
           ).flat()
         }
         </Grid>
-        {
-          decomposition && <TableContainer component={Paper} className={classes.rules}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Rule</TableCell>
-                  <TableCell>Identifier</TableCell>
-                  <TableCell align="center">Named</TableCell>
-                  <TableCell align="center">Recorded</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {
-                  Object.keys(decomposition.rules).map(
-                    (rule_name,i) => <Rule
-                    key={i}
-                    rule={decomposition.rules[rule_name]}
-                    rule_name={rule_name}
-                    project_name={project_name}
-                    />
-                  )
-                }
-              </TableBody>
-            </Table>
-          </TableContainer>
-        }
+          { decomposition && <LinkedIdTable decomposition={decomposition} project_name={project_name}/> }
       </Grid>
     </Grid>
   </Grid>
