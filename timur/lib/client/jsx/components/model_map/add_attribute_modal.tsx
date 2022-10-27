@@ -69,7 +69,7 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
           label='Name'
           value={name}
           onChange={(e) => setName(e.target.value)}
-          validationRegex={SNAKE_CASE}
+          pattern={SNAKE_CASE}
         />
         <ShrinkingLabelTextField
           id='attribute-description'
@@ -82,7 +82,7 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
           value={group}
           label='Group (optional; comma-separated list)'
           onChange={(e) => setGroup(e.target.value)}
-          validationRegex={COMMA_SEP}
+          pattern={COMMA_SEP}
         />
         <TextField
           id='attribute-type'

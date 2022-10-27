@@ -15,7 +15,7 @@ export type Attribute = {
   restricted?: boolean;
   read_only?: boolean;
   hidden?: boolean;
-  validation?: string;
+  validation?: {[key: string]: any};
 };
 
 export type LinkAttribute = Attribute & {
@@ -61,7 +61,13 @@ type RenameAttributeAction = {
 
 // Basically params returned by the server but not
 //   accepted as part of an update_attribute action.
-const uneditableAttributes = ['desc', 'name', 'attribute_type', 'options'];
+const uneditableAttributes = [
+  'desc',
+  'name',
+  'attribute_type',
+  'options',
+  'match'
+];
 
 const cleanPayload = (
   payload: (

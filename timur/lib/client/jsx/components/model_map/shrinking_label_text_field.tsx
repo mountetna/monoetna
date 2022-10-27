@@ -7,12 +7,12 @@ export function ShrinkingLabelTextField(props: any) {
 
   const handleValidation = useCallback(
     (e: React.ChangeEvent<any>) => {
-      if (!props.validationRegex) {
+      if (!props.pattern) {
         props.onChange(e);
       } else {
         const input = e.target.value;
 
-        if (!input.match(new RegExp(props.validationRegex))) {
+        if (!input.match(new RegExp(props.pattern))) {
           setError(true);
         } else {
           setError(false);
@@ -29,6 +29,9 @@ export function ShrinkingLabelTextField(props: any) {
       error={error}
       InputLabelProps={{
         shrink: props.value ? true : false
+      }}
+      inputProps={{
+        pattern: props.pattern
       }}
       onChange={handleValidation}
     />
