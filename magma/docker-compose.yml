@@ -1,4 +1,3 @@
-
 version: '3.4'
 
 x-base-etna-service:
@@ -11,8 +10,8 @@ x-base-etna-service:
     - magma-public-dir:/app/public:rw
     - magma-data-dir:/app/data:rw
     - magma-opt-dir:/usr/opt:rw
-    - magma-node-modules:/app/node_modules
     - ../etna:/etna:delegated
+    - etna-node-modules:/etna/node_modules
   environment: &base-etna-env
     'MAGMA_ENV': 'development'
     APP_NAME: 'magma'
@@ -80,29 +79,28 @@ volumes:
     driver: local
   magma-db-data:
     driver: local
-    name: "magma-db-data"
+    name: 'magma-db-data'
   magma-log-dir:
     driver: local
-    name: "magma-log-dir"
+    name: 'magma-log-dir'
   magma-tmp-dir:
     driver: local
-    name: "magma-tmp-dir"
+    name: 'magma-tmp-dir'
   magma-public-dir:
     driver: local
-    name: "magma-public-dir"
+    name: 'magma-public-dir'
   magma-data-dir:
     driver: local
-    name: "magma-data-dir"
+    name: 'magma-data-dir'
   magma-opt-dir:
     driver: local
-  magma-node-modules:
+  etna-node-modules:
     driver: local
-    name: "magma-node-modules"
+    name: 'etna-node-modules'
 
 services:
   <<: *base-etna-services
-  "magma_webpack":
+  'magma_webpack':
     image: alpine
     # Magma does not really have a webpack setup
     command: echo 1
-

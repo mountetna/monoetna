@@ -1,5 +1,4 @@
-
-version: "3.4"
+version: '3.4'
 
 x-base-etna-service:
   &base-etna-service # Base configuration used by most etna services.
@@ -12,6 +11,7 @@ x-base-etna-service:
     - timur-data-dir:/app/data:rw
     - timur-opt-dir:/usr/opt:rw
     - ../etna:/etna:delegated
+    - etna-node-modules:/etna/node_modules
   environment: &base-etna-env
     'TIMUR_ENV': 'development'
     APP_NAME: 'timur'
@@ -70,22 +70,24 @@ x-base-etna-services:
 volumes:
   timur-db-data:
     driver: local
-    name: "timur-db-data"
+    name: 'timur-db-data'
   timur-log-dir:
     driver: local
-    name: "timur-log-dir"
+    name: 'timur-log-dir'
   timur-tmp-dir:
     driver: local
-    name: "timur-tmp-dir"
+    name: 'timur-tmp-dir'
   timur-public-dir:
     driver: local
-    name: "timur-public-dir"
+    name: 'timur-public-dir'
   timur-app-gems:
     driver: local
   timur-data-dir:
     driver: local
-    name: "timur-data-dir"
+    name: 'timur-data-dir'
   timur-opt-dir:
+    driver: local
+  etna-node-modules:
     driver: local
 
 networks:
@@ -98,4 +100,3 @@ networks:
 
 services:
   <<: *base-etna-services
-

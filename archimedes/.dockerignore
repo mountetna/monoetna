@@ -1,4 +1,1 @@
 # Add project specific dockerignore items.  Base is taken from docker/.dockerignore
-.idea
-.pytest_cache
-tests/.pytest_cache

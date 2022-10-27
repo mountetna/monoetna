@@ -27,6 +27,14 @@ shopt -s globstar
 #  bundle install -j "$(nproc)"
 #fi
 
+
+# The images tend to build as root, which for host systems is unsafe,
+# but in containers is fine.
+if [[ -n "$FULL_BUILD" && "$APP_NAME" = "etna" ]]; then
+  cd /etna && npm install --unsafe-perm
+fi
+
+
 declare -a JsDependencies=("/app/babel.config.js" "/app/tsconfig.json" "/app/jest.config.js" " /app/.eslintrc.js" "/app/.eslintignore")
 for js_dep in "${JsDependencies[@]}"; do
   if [ ! -e $js_dep ]; then

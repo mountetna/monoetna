@@ -15,6 +15,8 @@ volumes:
     driver: local
   polyphemus-ssh-dir:
     driver: local
+  etna-node-modules:
+    driver: local
 
 x-base-etna-service:
   &base-etna-service # Base configuration used by most etna services.
@@ -29,6 +31,7 @@ x-base-etna-service:
     - ../etna:/etna:delegated
     - /tmp/metrics.prom:/tmp/metrics.prom
     - polyphemus-ssh-dir:/root/.ssh:rw
+    - etna-node-modules:/etna/node_modules
   environment: &base-etna-env
     'POLYPHEMUS_ENV': 'development'
     APP_NAME: 'polyphemus'
