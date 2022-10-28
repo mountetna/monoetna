@@ -48,6 +48,36 @@ describe('AttributeReport', () => {
 
     await waitFor(() => screen.getByText('Edit'));
 
+    expect(screen.queryByText('Remove')).toBeFalsy();
+    expect(asFragment()).toMatchSnapshot();
+  });
+
+  it('renders with remove attribute buttons for admin user, removable attribute', async () => {
+    store = mockStore({
+      magma: {
+        models: {
+          monster: require('../fixtures/template_monster.json')
+        }
+      },
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {
+        permissions: {
+          labors: {
+            role: 'administrator'
+          }
+        }
+      }
+    });
+
+    const {asFragment} = render(
+      <Provider store={store}>
+        <AttributeReport attribute={monster.attributes.species} />
+      </Provider>
+    );
+
+    await waitFor(() => screen.getByText('Remove'));
+
+    expect(screen.getByText('Edit')).toBeTruthy();
     expect(asFragment()).toMatchSnapshot();
   });
 });

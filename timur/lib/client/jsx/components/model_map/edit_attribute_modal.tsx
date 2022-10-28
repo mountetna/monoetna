@@ -136,6 +136,14 @@ export default function EditAttributeModal({
             updateAttribute([['display_name', e.target.value]])
           }
         />
+        <ShrinkingLabelTextField
+          id='edit-attribute-format-hint'
+          label='Format Hint'
+          value={updatedAttribute.format_hint}
+          onChange={(e: React.ChangeEvent<any>) =>
+            updateAttribute([['format_hint', e.target.value]])
+          }
+        />
         <TextField
           id='edit-attribute-validation-type'
           select

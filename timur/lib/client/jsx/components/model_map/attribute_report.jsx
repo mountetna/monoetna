@@ -21,6 +21,7 @@ import {addTemplatesAndDocuments} from 'etna-js/actions/magma_actions';
 import {updateAttribute, removeAttribute} from '../../api/magma_api';
 import MapHeading from './map_heading';
 import EditAttributeModal from './edit_attribute_modal';
+import {REMOVE_ATTRIBUTE_TYPES} from '../../utils/edit_map';
 
 const ATT_ATTS = [
   'attribute_type',
@@ -89,19 +90,25 @@ const ManageAttributeActions = ({
     }
   }, [handleRemoveAttribute]);
 
+  const isRemovableAttribute = useMemo(() => {
+    return REMOVE_ATTRIBUTE_TYPES.includes(attribute.attribute_type);
+  }, [attribute, REMOVE_ATTRIBUTE_TYPES]);
+
   return (
     <>
-      <Tooltip title='Remove Attribute'>
-        <Button
-          startIcon={<DeleteIcon />}
-          onClick={handleConfirmRemove}
-          size='small'
-          color='primary'
-          className={classes.button}
-        >
-          Remove
-        </Button>
-      </Tooltip>
+      {isRemovableAttribute && (
+        <Tooltip title='Remove Attribute'>
+          <Button
+            startIcon={<DeleteIcon />}
+            onClick={handleConfirmRemove}
+            size='small'
+            color='primary'
+            className={classes.button}
+          >
+            Remove
+          </Button>
+        </Tooltip>
+      )}
       <Tooltip title='Edit Attribute'>
         <Button
           startIcon={<EditIcon />}

@@ -12,6 +12,7 @@ export type Attribute = {
   attribute_type: string;
   attribute_group?: string;
   display_name?: string;
+  format_hint?: string;
   restricted?: boolean;
   read_only?: boolean;
   hidden?: boolean;
@@ -42,6 +43,7 @@ type UpdateAttributeParams = {
   description?: string;
   attribute_group?: string;
   display_name?: string;
+  format_hint?: string;
   validation?: string;
   hidden?: boolean;
   read_only?: boolean;
