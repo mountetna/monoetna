@@ -1,6 +1,6 @@
 Sequel::Schema::AlterTableGenerator.class_eval do
-  def drop_if_exists_constraint(name)
-    @operations << {:op => :drop_if_exists_constraint, :name => name}
+  def drop_foreign_constraint_if_exists(column)
+    @operations << {:op => :drop_if_exists_constraint, :type => :foreign_key, :columns => [column]}
     nil
   end
 end
@@ -10,10 +10,11 @@ Sequel::Database.class_eval do
     orig = alter_table_drop_constraint_sql(table, op)
     l, r = orig.split("CONSTRAINT")
     "#{l}CONSTRAINT IF EXISTS#{r}"
-  end
-
-  def drop_foreign_constraint_if_exists(column)
-    @operations << opts.merge(:op => :drop_if_exists_constraint, :type => :foreign_key, :columns => [column])
+  rescue Sequel::Error => e
+    # If e is a "missing foreign key" then there is no way to construct
+    #   the constraint name, because a foreign key does not exist.
+    # So skip the drop_constraint in this case.
+    raise e unless e.message =~ /^Missing foreign key for/
     nil
   end
 end
@@ -175,10 +176,16 @@ class Magma
       now = DateTime.now.to_time.to_i
       new_name = "#{name}_#{now}_backup"
 
-      [
-        "drop_foreign_constraint_if_exists :#{name}",
-        "rename_column :#{name}, :#{new_name}",
-      ]
+      operations = []
+
+      # Drop constraints in case someone re-links to the same
+      #   foreign table.
+      # require 'pry'
+      # binding.pry
+      operations << "drop_foreign_constraint_if_exists :#{name}"
+      operations << "rename_column :#{name}, :#{new_name}"
+
+      operations
     end
 
     def unique_entry name

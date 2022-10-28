@@ -193,6 +193,30 @@ EOT
       Labors::Prize.attributes[:worth] = worth
     end
 
+    it 'removes attributes when column name does not match attribute name' do
+      worth = Labors::Prize.attributes[:worth]
+
+      action = Magma::RenameAttributeAction.new("labors", {
+        action: "rename_attribute",
+        model_name: "prize",
+        attribute_name: "worth",
+        new_attribute_name: "worthiness"
+      })
+      action.perform
+
+      expect(Labors::Prize.attributes.keys.include?(:worthiness)).to eq(true)
+      remove_attribute(Labors::Prize,:worthiness)
+
+      migration = Labors::Prize.migration
+      expect(migration.to_s).to eq <<EOT.chomp
+    alter_table(Sequel[:labors][:prizes]) do
+      drop_foreign_constraint_if_exists :#{worth.column_name}
+      rename_column :#{worth.column_name}, :#{worth.column_name}_946684800_backup
+    end
+EOT
+      Labors::Prize.attributes[:worth] = worth
+    end
+
     it 'makes no changes when removing child, collection or table attributes' do
       monster = Labors::Labor.attributes[:monster]
       prize = Labors::Labor.attributes[:prize]
