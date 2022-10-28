@@ -23,7 +23,7 @@ export type LinkAttribute = Attribute & {
   link_attribute_name: string;
 };
 
-type AddAttributeRequest = {
+type AddAttributeParams = {
   model_name: string;
   attribute_name: string;
   description?: string;
@@ -31,11 +31,11 @@ type AddAttributeRequest = {
   attribute_group?: string;
 };
 
-type AddAttributeAction = AddAttributeRequest & {
+type AddAttributeAction = AddAttributeParams & {
   action_name: 'add_attribute';
 };
 
-type UpdateAttributeRequest = {
+type UpdateAttributeParams = {
   model_name: string;
   attribute_name: string;
   new_attribute_name?: string;
@@ -48,7 +48,7 @@ type UpdateAttributeRequest = {
   restricted?: boolean;
 };
 
-type UpdateAttributeAction = UpdateAttributeRequest & {
+type UpdateAttributeAction = UpdateAttributeParams & {
   action_name: 'update_attribute';
 };
 
@@ -57,6 +57,15 @@ type RenameAttributeAction = {
   model_name: string;
   attribute_name: string;
   new_attribute_name: string;
+};
+
+type RemoveAttributeParams = {
+  model_name: string;
+  attribute_name: string;
+};
+
+type RemoveAttributeAction = RemoveAttributeParams & {
+  action_name: 'remove_attribute';
 };
 
 // Basically params returned by the server but not
@@ -74,6 +83,7 @@ const cleanPayload = (
     | AddAttributeAction
     | UpdateAttributeAction
     | RenameAttributeAction
+    | RemoveAttributeAction
   )[]
 ) => {
   return payload.map((action: any) => {
@@ -92,6 +102,7 @@ const updateModel = (
     | AddAttributeAction
     | UpdateAttributeAction
     | RenameAttributeAction
+    | RemoveAttributeAction
   )[]
 ) => {
   payload = cleanPayload(payload);
@@ -109,7 +120,7 @@ const updateModel = (
     .catch(handleFetchError);
 };
 
-export const addAttribute = (params: AddAttributeRequest) => {
+export const addAttribute = (params: AddAttributeParams) => {
   return updateModel([
     {
       action_name: 'add_attribute',
@@ -118,7 +129,7 @@ export const addAttribute = (params: AddAttributeRequest) => {
   ]);
 };
 
-export const updateAttribute = (params: UpdateAttributeRequest) => {
+export const updateAttribute = (params: UpdateAttributeParams) => {
   let updateAction: UpdateAttributeAction = {
     action_name: 'update_attribute',
     ...params
@@ -140,6 +151,17 @@ export const updateAttribute = (params: UpdateAttributeRequest) => {
       new_attribute_name: params.new_attribute_name
     });
   }
+
+  return updateModel(actions);
+};
+
+export const removeAttribute = (params: RemoveAttributeParams) => {
+  let removeAction: RemoveAttributeAction = {
+    action_name: 'remove_attribute',
+    ...params
+  };
+
+  let actions: RemoveAttributeAction[] = [removeAction];
 
   return updateModel(actions);
 };

@@ -7,6 +7,7 @@ import {makeStyles} from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
 import EditIcon from '@material-ui/icons/Edit';
+import DeleteIcon from '@material-ui/icons/Delete';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {requestAnswer} from 'etna-js/actions/magma_actions';
@@ -17,7 +18,7 @@ import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 import {showMessages} from 'etna-js/actions/message_actions';
 import {addTemplatesAndDocuments} from 'etna-js/actions/magma_actions';
-import {updateAttribute} from '../../api/magma_api';
+import {updateAttribute, removeAttribute} from '../../api/magma_api';
 import MapHeading from './map_heading';
 import EditAttributeModal from './edit_attribute_modal';
 
@@ -70,6 +71,59 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+const ManageAttributeActions = ({
+  handleEditAttribute,
+  attribute,
+  handleRemoveAttribute
+}) => {
+  const classes = useStyles();
+  const {openModal} = useModal();
+
+  const handleConfirmRemove = useCallback(() => {
+    if (
+      confirm(
+        'Removing an attribute is not reversible -- are you sure? If you may want to use the attribute later, you can make it "hidden" so users cannot see it.'
+      )
+    ) {
+      handleRemoveAttribute();
+    }
+  }, [handleRemoveAttribute]);
+
+  return (
+    <>
+      <Tooltip title='Remove Attribute'>
+        <Button
+          startIcon={<DeleteIcon />}
+          onClick={handleConfirmRemove}
+          size='small'
+          color='primary'
+          className={classes.button}
+        >
+          Remove
+        </Button>
+      </Tooltip>
+      <Tooltip title='Edit Attribute'>
+        <Button
+          startIcon={<EditIcon />}
+          onClick={() => {
+            openModal(
+              <EditAttributeModal
+                attribute={attribute}
+                onSave={handleEditAttribute}
+              />
+            );
+          }}
+          size='small'
+          color='secondary'
+          className={classes.button}
+        >
+          Edit
+        </Button>
+      </Tooltip>
+    </>
+  );
+};
+
 const AttributeReport = ({attribute, model_name, counts}) => {
   const dispatch = useDispatch();
   const invoke = useActionInvoker();
@@ -103,8 +157,21 @@ const AttributeReport = ({attribute, model_name, counts}) => {
           invoke(showMessages(err));
         });
     },
-    [invoke, model_name, dismissModal, addTemplatesAndDocuments]
+    [invoke, model_name, dismissModal, showMessages, addTemplatesAndDocuments]
   );
+
+  const handleRemoveAttribute = useCallback(() => {
+    removeAttribute({
+      model_name,
+      attribute_name: attribute.name
+    })
+      .then(({models}) => {
+        invoke(addTemplatesAndDocuments(models));
+      })
+      .catch((err) => {
+        invoke(showMessages(err));
+      });
+  }, [attribute, invoke, addTemplatesAndDocuments, showMessages]);
 
   const isAdminUser = useMemo(() => {
     if (!user || 0 === Object.keys(user).length) return false;
@@ -119,24 +186,11 @@ const AttributeReport = ({attribute, model_name, counts}) => {
       <Card className={classes.attribute_card}>
         <MapHeading name='Attribute' title={attribute.attribute_name}>
           {isAdminUser && (
-            <Tooltip title='Edit Attribute'>
-              <Button
-                startIcon={<EditIcon />}
-                onClick={() => {
-                  openModal(
-                    <EditAttributeModal
-                      attribute={attribute}
-                      onSave={handleEditAttribute}
-                    />
-                  );
-                }}
-                size='small'
-                color='secondary'
-                className={classes.button}
-              >
-                Edit
-              </Button>
-            </Tooltip>
+            <ManageAttributeActions
+              attribute={attribute}
+              handleEditAttribute={handleEditAttribute}
+              handleRemoveAttribute={handleRemoveAttribute}
+            />
           )}
           {attribute.attribute_type == 'string' && (
             <Tooltip title='Show data sample'>
