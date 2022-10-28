@@ -145,6 +145,7 @@ describe GnomonController do
 
     expect(last_response.status).to eq(200)
     expect(json_body).to eq(
+      rule_name: "victim",
       rules: {
         project: {
           name: "The Twelve Labors of Hercules",
