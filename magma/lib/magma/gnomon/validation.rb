@@ -115,6 +115,9 @@ class Magma
       def validate_tokens_same_length
         @config['synonyms'].each do |synonym_set|
           tokens = tokens_for_synonyms(synonym_set)
+
+          next if tokens.empty?
+
           reference_length = tokens.values.first['values'].keys.length
           different_lengths = tokens.any? do |token_name, token_definition|
             token_definition['values'].keys.length != reference_length
@@ -144,6 +147,7 @@ class Magma
       def validate_matching_values
         @config['synonyms'].each do |synonym_set|
           tokens = tokens_for_synonyms(synonym_set)
+          next if tokens.empty?
           reference_values = Set.new(tokens.values.first['values'].values)
           different_values = tokens.any? do |token_name, token_definition|
             Set.new(token_definition['values'].values) != reference_values

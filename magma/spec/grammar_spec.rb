@@ -383,7 +383,7 @@ describe Magma::Gnomon::Grammar do
         expect(validator.errors).to eq(["Duplicate tokens COH, COHORT, COHO in synonyms"])
       end
 
-      it 'includes undefined token' do
+      it 'includes undefined tokens' do
         config = {
           'tokens' => {
             'TOK' => {
@@ -426,14 +426,14 @@ describe Magma::Gnomon::Grammar do
             'second' => '.first SEP TOK .n'
           },
           'synonyms' => [
-            [ 'COH', 'COHORT', 'COHO' ]
+            [ 'COVEN', 'COWWORT', 'COHO' ]
           ]
         }
 
         validator = Magma::Gnomon::Validation.new(config)
 
         expect(validator.valid?).to eq(false)
-        expect(validator.errors).to eq(["Missing token definitions for: \"COHO\", for synonyms \"COH\", \"COHO\", \"COHORT\"."])
+        expect(validator.errors).to eq(['Missing token definitions for: "COHO", "COVEN", "COWWORT", for synonyms "COHO", "COVEN", "COWWORT".'])
       end
     end
 
