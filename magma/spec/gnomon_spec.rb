@@ -458,11 +458,31 @@ describe GnomonController do
         expect(Magma::Gnomon::Identifier.count).to eq(0)
         auth_header(:admin)
         post("/gnomon/labors/generate/victim/#{identifier}")
+
+        rules = {
+          labor: "The Nemean Lion",
+          project: "The Twelve Labors of Hercules",
+          victim: "LABORS-LION-H2-C1",
+          village: "LABORS-LION-H2"
+        }
         expect(last_response.status).to eq(200)
-        expect(json_body[:identifier]).to eq(identifier)
-        expect(Magma::Gnomon::Identifier.count).to eq(1)
-        expect(Magma::Gnomon::Identifier.first[:identifier]).to eq(identifier)
+        expect(json_body[:identifier]).to eq("LABORS-LION-H2-C1")
+        expect(json_body[:rules]).to eq(rules)
+        expect(Magma::Gnomon::Identifier.count).to eq(4)
+        expect(Magma::Gnomon::Identifier.select_map(
+          [ :rule, :identifier ]
+        ).to_h.symbolize_keys).to eq(rules)
       end
+
+      it 'ignores identifiers that already exists' do
+        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+        auth_header(:admin)
+        post('/gnomon/labors/generate/victim/LABORS-LION-H2-C1')
+        expect(last_response.status).to eq(200)
+        expect(json_body[:rules].size).to eq(3)
+        expect(Magma::Gnomon::Identifier.count).to eq(4)
+      end
+
 
       context 'throws exception when' do
         it 'invalid rule name provided' do
@@ -477,14 +497,6 @@ describe GnomonController do
           post('/gnomon/labors/generate/victim/LABORS-LION-H2-C1')
           expect(last_response.status).to eq(403)
           expect(Magma::Gnomon::Identifier.count).to eq(0)
-        end
-
-        it 'identifier already exists' do
-          identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
-          auth_header(:admin)
-          post('/gnomon/labors/generate/victim/LABORS-LION-H2-C1')
-          expect(last_response.status).to eq(422)
-          expect(Magma::Gnomon::Identifier.count).to eq(1)
         end
 
         it 'identifier does not match rule' do
