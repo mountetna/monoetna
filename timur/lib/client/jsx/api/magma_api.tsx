@@ -15,7 +15,7 @@ export type Attribute = {
   restricted?: boolean;
   read_only?: boolean;
   hidden?: boolean;
-  validation?: {[key: string]: any};
+  validation?: {[key: string]: any} | null;
 };
 
 export type LinkAttribute = Attribute & {

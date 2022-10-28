@@ -101,7 +101,7 @@ export default function EditAttributeModal({
       <div className='options-tray tray'>
         <ShrinkingLabelTextField
           id='edit-attribute-name'
-          label='Name'
+          label='Name (snake_case)'
           value={updatedAttribute.attribute_name}
           onChange={(e: React.ChangeEvent<any>) =>
             updateAttribute([
@@ -227,7 +227,4 @@ export default function EditAttributeModal({
       </div>
     </div>
   );
-}
-function useMemo(arg0: () => boolean, arg1: any[]) {
-  throw new Error('Function not implemented.');
 }

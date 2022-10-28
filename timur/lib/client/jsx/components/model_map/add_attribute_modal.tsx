@@ -66,22 +66,24 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
       <div className='options-tray tray'>
         <ShrinkingLabelTextField
           id='attribute-name'
-          label='Name'
+          label='Name (snake_case)'
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e: React.ChangeEvent<any>) => setName(e.target.value)}
           pattern={SNAKE_CASE}
         />
         <ShrinkingLabelTextField
           id='attribute-description'
           value={description}
           label='Description (optional)'
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e: React.ChangeEvent<any>) =>
+            setDescription(e.target.value)
+          }
         />
         <ShrinkingLabelTextField
           id='attribute-group'
           value={group}
           label='Group (optional; comma-separated list)'
-          onChange={(e) => setGroup(e.target.value)}
+          onChange={(e: React.ChangeEvent<any>) => setGroup(e.target.value)}
           pattern={COMMA_SEP}
         />
         <TextField
@@ -96,7 +98,7 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
               }
             }
           }}
-          onChange={(e: any) => setType(e.target.value)}
+          onChange={(e: React.ChangeEvent<any>) => setType(e.target.value)}
         >
           {attributeTypes.sort().map((option, i) => (
             <MenuItem key={i} value={option}>
