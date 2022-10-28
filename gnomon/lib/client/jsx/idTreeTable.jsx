@@ -60,7 +60,7 @@ const Rule = ({rule, rule_name, project_name, markNotCreated}) => {
 }
 
 export const IdTreeTable = ({decomposition, project_name, classes = useStyles, markNotCreated = false}) => {
-  const primary_rule = decomposition.rule_name
+  const primary_rule = decomposition != null ? decomposition.rule_name : null
   console.log({decomposition})
   return <TableContainer component={Paper} className={classes.rules}>
     <Table size="small">
@@ -78,7 +78,7 @@ export const IdTreeTable = ({decomposition, project_name, classes = useStyles, m
       </TableHead>
       <TableBody>
         {
-          Object.keys(decomposition.rules).sort( (a,b) => b==primary_rule ? 1 : a==primary_rule ? -1 : 0 ).map(
+          decomposition != null ? Object.keys(decomposition.rules).sort( (a,b) => b==primary_rule ? 1 : a==primary_rule ? -1 : 0 ).map(
             (rule_name,i) => <Rule
             key={i}
             rule={decomposition.rules[rule_name]}
@@ -86,7 +86,15 @@ export const IdTreeTable = ({decomposition, project_name, classes = useStyles, m
             project_name={project_name}
             markNotCreated={markNotCreated}
             />
-          )
+          ) :
+          <TableRow>
+            <TableCell component="th" scope="row">
+              Awaiting Completed Idenfitifier Composition...
+            </TableCell>
+            <TableCell> {""} </TableCell>
+            <TableCell> {""} </TableCell>
+            <TableCell> {""} </TableCell>
+          </TableRow>
         }
       </TableBody>
     </Table>

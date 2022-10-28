@@ -259,12 +259,10 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
         </Grid>
       </Grid>
       <Grid item>
-        {decomposition==null ? null : 
-          <Grid item>
-            <Toolbar>Targetted Identifier (and upstream identifiers):</Toolbar>
-            <IdTreeTable decomposition={decomposition} project_name={project_name} markNotCreated={true}/>
-          </Grid>
-        }
+        <Grid item>
+          <Toolbar>Targetted Identifier (and upstream identifiers):</Toolbar>
+          <IdTreeTable decomposition={decomposition} project_name={project_name} markNotCreated={true}/>
+        </Grid>
       </Grid>
       <Grid item>
         <MatchingNamesTable names={matchIds(names, currentOptionsRegex)} rule_name={rule_name}/>
