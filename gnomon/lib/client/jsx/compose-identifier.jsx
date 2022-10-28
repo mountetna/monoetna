@@ -222,11 +222,11 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
     }
   }, [values])
   
-  console.log({currentOptionsRegex})
-  console.log({tokens})
-  console.log({values})
-  console.log({names})
-  console.log({decomposition})
+  // console.log({currentOptionsRegex})
+  // console.log({tokens})
+  // console.log({values})
+  // console.log({names})
+  // console.log({decomposition})
 
   return <Grid>
     <ProjectHeader project_name={ project_name } className={classes.header}/>

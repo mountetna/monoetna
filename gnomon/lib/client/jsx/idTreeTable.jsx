@@ -61,7 +61,7 @@ const Rule = ({rule, rule_name, project_name, markNotCreated}) => {
 
 export const IdTreeTable = ({decomposition, project_name, classes = useStyles, markNotCreated = false}) => {
   const primary_rule = decomposition != null ? decomposition.rule_name : null
-  console.log({decomposition})
+  // console.log({decomposition})
   return <TableContainer component={Paper} className={classes.rules}>
     <Table size="small">
       <TableHead>
@@ -69,7 +69,7 @@ export const IdTreeTable = ({decomposition, project_name, classes = useStyles, m
           <TableCell>Rule</TableCell>
           <TableCell>Identifier</TableCell>
           <TableCell align="center">
-            <Tooltip title="Identifiers previously assigned to a real entity" placement="top"><Typography>Created</Typography></Tooltip>
+            <Tooltip title="Identifiers previously assigned for a current or planned entity" placement="top"><Typography>Created</Typography></Tooltip>
           </TableCell>
           <TableCell align="center">
           <Tooltip title="Identifiers with data in the Data Library" placement="top"><Typography>Recorded</Typography></Tooltip>
