@@ -3,8 +3,8 @@ class Magma
     class RuleDefinition
       attr_reader :name
 
-      def initialize(parser, name, definition)
-        @parser = parser
+      def initialize(grammar, name, definition)
+        @grammar = grammar
         @name = name
         @definition = definition
       end
@@ -29,7 +29,7 @@ class Magma
         seen_tokens = []
 
         tokens.each do |token|
-          next if @parser.is_separator_token?(token) || @parser.is_numeric_token?(token)
+          next if @grammar.tokens.is_separator?(token) || @grammar.tokens.is_numeric?(token)
 
           return true if seen_tokens.include?(token)
 
@@ -96,14 +96,14 @@ class Magma
               next
             end
 
-            if @parser.is_numeric_token?(token)
+            if @grammar.tokens.is_numeric?(token)
               result << "#{@name}_counter"
               next
             end
 
             rule_name = token[1..-1]
 
-            unless @parser.rules[rule_name]
+            unless @grammar.rules[rule_name]
               result << token
               next
             end
@@ -112,7 +112,7 @@ class Magma
 
             expanded_rules << rule_name
 
-            result << @parser.rules[ rule_name ].expanded_definition( expanded_rules )
+            result << @grammar.rules[ rule_name ].expanded_definition( expanded_rules )
           end
         end.join(" ")
       end
@@ -154,10 +154,6 @@ class Magma
         @all_rules ||= @config['rules']
       end
 
-      def all_tokens
-        @parser.tokens
-      end
-
       def raw
         @definition
       end
@@ -165,19 +161,15 @@ class Magma
       def tokenized_definition(with_increment: true)
         tokens = expanded_definition.split(" ")
 
-        tokens.pop if !with_increment && @parser.is_numeric_token?(tokens.last)
+        tokens.pop if !with_increment && @grammar.tokens.is_numeric?(tokens.last)
 
         tokens.map do |token|
-          if @parser.is_numeric_token?(token)
+          if @grammar.tokens.is_numeric?(token)
             "(\\d+)"
           else
-            "(#{values_for_token(token).join("|")})"
+            "(#{@grammar.tokens.values(token).join("|")})"
           end
         end.join("")
-      end
-
-      def values_for_token(token)
-        all_tokens[token]&.fetch('values')&.keys || []
       end
 
       def self.convert_placeholder_to_name(placeholder)

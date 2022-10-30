@@ -70,7 +70,9 @@ class GnomonController < Magma::Controller
     grammar = require_grammar
     rule = require_rule(grammar)
 
-    rule_tokenization = rule.tokens.map{|t| grammar.tokens[t]&.merge(name: t) || { name: 'n', label: t } }
+    rule_tokenization = rule.tokens.map do |t|
+      grammar.parser.tokens.with_name(t) || { name: 'n', label: t }
+    end
     success_json(rule: rule_tokenization)
   end
 
@@ -141,7 +143,7 @@ class GnomonController < Magma::Controller
   end
 
   def require_rule(grammar)
-    rule = grammar.rules[rule_name]
+    rule = grammar.parser.rules[rule_name]
 
     raise Etna::BadRequest, "Unknown rule name, \"#{rule_name}\"." if rule.nil?
 

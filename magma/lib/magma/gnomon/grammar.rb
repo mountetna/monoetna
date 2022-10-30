@@ -1,68 +1,16 @@
 class Magma
   module Gnomon
     class Grammar < Sequel::Model
-      SYNONYM_SCHEMA= {
-        gnomon_synonyms: {
-          type: "array",
-          items: {
-            "$ref": "#/definitions/gnomon_synonym"
-          }
-        },
-        gnomon_synonym: {
-          type: "array",
-          items: {
-            type: "string",
-            pattern: "^[A-Z]+$"
-          }
-        }
-      }
-
-      RULE_SCHEMA= {
-        gnomon_rules: {
-          type: "object",
-          patternProperties: {
-            "^\\w+$": {
-              type: "string"
-            }
-          }
-        }
-      }
-
-      TOKEN_SCHEMA= {
-        gnomon_tokens: {
-          type: "object",
-          patternProperties: {
-            "^[A-Z]+$": {
-              "$ref": "#/definitions/gnomon_token"
-            }
-          }
-        },
-        gnomon_token: {
-          type: "object",
-          properties: {
-            label: { type: "string" },
-            values: {
-              type: "object",
-              patternProperties: {
-                ".*": { type: "string" }
-              },
-              minProperties: 1
-            }
-          },
-          required: [ "values", "label" ]
-        }
-      }
-
       def self.to_schema
         {
           "$schema": "http://json-schema.org/draft-07/schema#",
           title: "Gnomon Grammar",
           description: "This grammar defines a set of tokens and rules which can be used to match or create valid identifiers for a Mount Etna project.",
           definitions: [
-            RULE_SCHEMA,
-            TOKEN_SCHEMA,
-            SYNONYM_SCHEMA,
-          ].reduce(&:merge),
+            Magma::Gnomon::Tokens,
+            Magma::Gnomon::Synonyms,
+            Magma::Gnomon::Rules,
+          ].map(&:to_schema).reduce(&:merge),
           type: "object",
           properties: {
             "tokens": {
@@ -86,13 +34,11 @@ class Magma
       SEPARATOR_TOKENS = ['SEP']
 
       def model_name(identifier)
-        matching_rule = rules.find do |rule_name, rule_definition|
-          identifier =~ rule_definition.regex
-        end
+        matching_rule = parser.rules.for(identifier)
 
         raise Magma::Gnomon::UnrecognizedIdentifierError.new("#{identifier} does not match any rules.") if matching_rule.nil?
 
-        matching_rule.first
+        matching_rule.name
       end
 
       class << self
@@ -103,7 +49,9 @@ class Magma
         end
 
         def validate(config)
-          validation = Magma::Gnomon::Validation.new(config)
+          parser = Magma::Gnomon::Grammar::Parser.new(config)
+
+          validation = Magma::Gnomon::Validation.new(parser)
 
           validation.valid? ? [] : validation.errors
         end
@@ -122,37 +70,49 @@ class Magma
         }
       end
 
-      def tokens
-        config['tokens']
+      class Parser
+        attr_reader :config
+
+        def initialize(config)
+          @config = config
+        end
+
+        def tokens
+          @tokens ||= Magma::Gnomon::Tokens.new(self)
+        end
+
+        def rules
+          @rules ||= Magma::Gnomon::Rules.new(self)
+        end
+
+        def synonyms
+          @synonyms ||= Magma::Gnomon::Synonyms.new(self)
+        end
+
+        def numeric_increment
+          config['numeric_increment'] || Magma::Gnomon::Grammar::DEFAULT_NUMERIC_INCREMENT
+        end
       end
 
-      def rules
-        config['rules'].keys.map do |rule_name|
-          [ rule_name, rule_parser.fetch(rule_name) ]
-        end.to_h
+      def parser
+        @parser ||= Parser.new(config)
       end
 
       def decompose(identifier)
-        name, rule = rules.find do |name,r| identifier =~ r.regex end
+        rule = parser.rules.for(identifier)
 
         return nil if !rule
 
         tokens = rule.decomposition(identifier)
 
-        decomposition = rule_parser.expand_synonyms(tokens.to_h)
+        decomposition = parser.synonyms.expand(tokens.to_h)
 
         {
           tokens: tokens,
-          rules: rules.map do |name, rule|
+          rules: parser.rules.map do |name, rule|
             rule.from_decomposition(decomposition, project_name)
           end.compact.to_h
         }
-      end
-
-      private
-
-      def rule_parser
-        @rule_parser ||= Magma::Gnomon::GrammarParser.new(config)
       end
     end
   end

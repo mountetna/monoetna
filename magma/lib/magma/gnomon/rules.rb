@@ -1,10 +1,24 @@
 class Magma
   module Gnomon
-    class GrammarParser
+    class Rules
+      include Enumerable
+      def self.to_schema
+        {
+          gnomon_rules: {
+            type: "object",
+            patternProperties: {
+              "^\\w+$": {
+                type: "string"
+              }
+            }
+          }
+        }
+      end
+
       attr_reader :errors
 
-      def initialize(config)
-        @config = config
+      def initialize(grammar)
+        @grammar = grammar
         @errors = []
       end
 
@@ -22,57 +36,26 @@ class Magma
         rules[rule_name]
       end
 
-      def rules
-        @rules ||= @config['rules']&.map do |rule_name, rule_definition|
-          [
-            rule_name, 
-            Magma::Gnomon::RuleDefinition.new(
-              self,
-              rule_name,
-              rule_definition
-            )
-          ]
-        end.to_h || {}
+      def for(identifier)
+        name, rule = rules.find do |rule_name, rule_definition|
+          identifier =~ rule_definition.regex
+        end
+
+        return rule
+      end
+
+      def each
+        rules.each do |name, rule|
+          yield name, rule
+        end
+      end
+
+      def [](rule_name)
+        rules[rule_name]
       end
 
       def rule_names
         rules.keys
-      end
-
-      def synonyms
-        @synonyms ||= @config['synonyms'] || []
-      end
-
-      def tokens
-        @tokens ||= @config['tokens'] || {}
-      end
-
-      def expand_synonyms(decomposition)
-        # add any synonym tokens to decomposition
-
-        merge = {}
-        decomposition.each do |token_name, token_value|
-          next if Magma::Gnomon::Grammar::SEPARATOR_TOKENS.include?(token_name)
-
-          synonyms.each do |syn_set|
-            next unless syn_set.include?(token_name)
-            syn_set.each do |syn|
-              key, value = tokens[syn]['values'].find do |key,value|
-                value == tokens[token_name]['values'][token_value]
-              end
-              merge[syn] = key
-            end
-          end
-        end
-        decomposition.merge(merge)
-      end
-
-      def is_separator_token?(token)
-        Magma::Gnomon::Grammar::SEPARATOR_TOKENS.include?(token)
-      end
-
-      def is_numeric_token?(token)
-        (@config['numeric_increment'] || Magma::Gnomon::Grammar::DEFAULT_NUMERIC_INCREMENT) == token || token =~ /_counter$/
       end
 
       private
@@ -85,12 +68,7 @@ class Magma
           :validate_no_recursive_rules,
           :validate_no_duplicate_tokens,
           :validate_numeric_increment_at_end,
-          :validate_single_separator
         ]
-      end
-
-      def numeric_increment
-        @config['numeric_increment'] || Magma::Gnomon::Grammar::DEFAULT_NUMERIC_INCREMENT
       end
 
       def validate_no_duplicate_rules
@@ -125,24 +103,22 @@ class Magma
         blank_rule
       end
 
-      def all_token_placeholders
-        @all_token_values ||= (@config['tokens']&.keys || [])
-      end
-
-      def all_rule_placeholders
-        @all_rule_placeholders ||= rules.map do |rule_name, rule_definition|
-          rule_definition.placeholder
-        end
-      end
-
       def allowed_rule_tokens
-        @allowed_rule_tokens ||= all_token_placeholders + all_rule_placeholders + [numeric_increment]
+        @allowed_rule_tokens ||= begin
+          all_token_placeholders = @grammar.tokens.token_names
+
+          all_rule_placeholders = rules.map do |rule_name, rule_definition|
+            rule_definition.placeholder
+          end
+
+          all_token_placeholders + all_rule_placeholders + [@grammar.numeric_increment]
+        end
       end
 
       def validate_all_tokens_defined
         unidentified_tokens = []
 
-        unknown_token_exists = @config['rules']&.any? do |rule_name, rule_definition|
+        unknown_token_exists = config&.any? do |rule_name, rule_definition|
           rule_definition.split(" ").any? do |rule_token|
             unknown = !allowed_rule_tokens.include?(rule_token)
 
@@ -197,13 +173,21 @@ class Magma
         numeric_increment_at_end_errors.empty?
       end
 
-      def validate_single_separator
-        all_tokens = @config['tokens'] || {}
+      def config
+        @grammar.config['rules'] || {}
+      end
 
-        defined_separators = Magma::Gnomon::Grammar::SEPARATOR_TOKENS & all_tokens.keys
-        @errors << "No separator token defined!" unless defined_separators.size > 0
-        @errors << "More than one separator token defined!" unless defined_separators.size < 2
-        @errors << "More than one separator token defined!" unless defined_separators.all? {|sep| all_tokens[sep].fetch('values').size == 1}
+      def rules
+        @rules ||= config&.map do |rule_name, rule_definition|
+          [
+            rule_name, 
+            Magma::Gnomon::RuleDefinition.new(
+              @grammar,
+              rule_name,
+              rule_definition
+            )
+          ]
+        end.to_h || {}
       end
     end
   end
