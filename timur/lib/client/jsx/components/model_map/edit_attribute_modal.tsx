@@ -51,7 +51,10 @@ export default function EditAttributeModal({
     if (validationType && validationValue) {
       params.validation = {
         type: validationType,
-        value: isArrayValidation ? validationValue.split(',') : validationValue
+        value:
+          isArrayValidation && !Array.isArray(validationValue)
+            ? validationValue.split(',')
+            : validationValue
       };
     } else {
       params.validation = null;
