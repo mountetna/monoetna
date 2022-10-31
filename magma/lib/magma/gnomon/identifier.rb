@@ -38,6 +38,41 @@ class Magma
       def record_query
         [rule, ["::identifier", "::equals", identifier], "::all", "created_at"]
       end
+
+      def self.backfill(project_name, rule_name, author, dry_run: true)
+        grammar = Magma::Gnomon::Grammar.for_project(project_name)
+        raise "No grammar for #{project_name}" unless grammar
+        rule = grammar.rules[rule_name]
+        raise "No such #{rule_name} for #{project_name}" unless rule
+        
+        magma_model = Magma.instance.get_model(project_name, rule_name)
+        identifiers = magma_model.select_map(magma_model.identity.attribute_name.to_sym)
+        bad_identifiers = []
+        good_identifiers = []
+        identifiers.each do |identifier|
+          unless rule.valid?(identifier)
+            bad_identifiers << identifier
+            next
+          end
+          good_identifiers << {
+            project_name: project_name,
+            rule: rule_name,
+            author: author,
+            created_at: DateTime.now,
+            identifier: identifier,
+            grammar_id: grammar.id
+          }
+        end
+
+        # Database insertion
+        Magma::Gnomon::Identifier.multi_insert(good_identifiers) unless dry_run
+
+        puts "#{good_identifiers.length} ids backfilled, #{bad_identifiers.length} do not match current grammar."
+        unless bad_identifiers.empty?
+          puts "Bad Identifiers:" 
+          puts bad_identifiers.join(", ")
+        end
+      end
     end
   end
 end

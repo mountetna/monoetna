@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useContext} from 'react';
+import React, {useState, useEffect, useCallback, useContext, useMemo} from 'react';
 
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
@@ -8,10 +8,21 @@ import IconButton from '@material-ui/core/IconButton';
 import ProjectHeader from 'etna-js/components/project-header';
 import {makeStyles} from '@material-ui/core/styles';
 import { json_get, json_post } from 'etna-js/utils/fetch';
-import { magmaPath } from 'etna-js/api/magma_api';
+import { dateFormat } from 'etna-js/utils/format';
+import { magmaPath, getDocuments } from 'etna-js/api/magma_api';
 
 import Letter from './letter';
 import TokenEditor, { firstKey, firstValue } from './token-editor';
+
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
+import { IdTreeTable } from './idTreeTable';
+import { Typography, Toolbar }from '@material-ui/core';
 
 import {isAdmin} from 'etna-js/utils/janus';
 
@@ -20,14 +31,22 @@ const useStyles = makeStyles((theme) => ({
     borderBottom: '1px solid #eee'
   },
   tokens: {
-    width: '100%',
     position: 'absolute'
   },
-  composer: {
+  mainContent:{
     marginLeft: 20,
-    height: 'calc(100vh - 61px - 48px)',
+    width: 'calc( 100vw - 40px )'
+  },
+  composer: {
+    height: 'calc( (100vh - 61px - 48px) * 0.6)',
     position: 'relative',
-    overflowY: 'clip'
+    overflowY: 'auto'
+  },
+  create: {
+    position: 'absolute',
+    top: 'calc( (100vh - 61px - 48px) * 0.45)',
+    left: 20,
+    width: 400
   },
   resolved: {
   },
@@ -35,6 +54,10 @@ const useStyles = makeStyles((theme) => ({
     background: '#aaa',
     color: '#fff',
     borderBottom: '1px solid black'
+  },
+  matchTable: {
+    maxHeight: 250,
+    overflowX: 'hidden'
   },
   counter: {
     background: '#fff',
@@ -64,6 +87,60 @@ const Token = ({token, value}) => {
   </Grid>
 }
 
+function matchIds(ids, idRegex) {
+  if (ids == null) return null
+  const re = new RegExp("^"+idRegex+"$")
+  return ids.filter((val) => re.test(val.identifier))
+}
+
+const MatchingNamesTable = ({names, rule_name}) => {
+  const classes = useStyles();
+  if (names == null) return null
+  return <Grid item>
+    <Toolbar>Current Name Matches:</Toolbar>
+    { (names.length === 0) ? "No Matching Identifiers" :
+    <TableContainer className={classes.matchTable} component={Paper}>
+      <Table stickyHeader size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>Rule</TableCell>
+            <TableCell>Identifier</TableCell>
+            <TableCell align="left">Author</TableCell>
+            <TableCell align="right">Named</TableCell>
+            <TableCell align="right">Recorded</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {names.map((name) => (
+            <TableRow key={name.identifier}>
+              <TableCell component="th" scope="row">
+                {rule_name}
+              </TableCell>
+              <TableCell align="left">{name.identifier}</TableCell>
+              <TableCell align="left">{name.author}</TableCell>
+              <TableCell align="right">{dateFormat(name.name_created_at)}</TableCell>
+              <TableCell align="right">{dateFormat(name.record_created_at)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+    }
+  </Grid>
+}
+
+const CreateButton = ({project_name, rule_name, identifier}) => {
+  return <Button
+      onClick={() => json_post(magmaPath(`gnomon/${project_name}/generate/${rule_name}/${identifier}`))
+        .catch( (e) => console.log(e) )
+      }
+      size='large'
+      color='primary'
+      >
+      Create
+    </Button>
+}
+
 const ComposeIdentifier = ({project_name, rule_name}) => {
   const classes = useStyles();
 
@@ -72,8 +149,14 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
   // a string of tokens we must satisfy
   const [ tokens, setTokens ] = useState([]);
   const [ values, setValues ] = useState([]);
+
+  const [ names, setNames ] = useState(null)
+  const [ decomposition, setDecomposition ] = useState(null)
   
   useEffect( () => {
+    json_get(magmaPath(`gnomon/${project_name}/list/${rule_name}`)).then(
+      id_list => setNames(id_list)
+    )
     json_get(magmaPath(`gnomon/${project_name}/rule/${rule_name}`)).then(
       ({rule}) => {
         setTokens(rule);
@@ -85,7 +168,6 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
   const setValue = useCallback( (i, val) => {
     let newValues = [ ... values ];
     newValues[i] = val;
-    console.log({newValues});
     setValues( newValues );
   }, [ values ]);
 
@@ -115,21 +197,76 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
 
   const seq = tokens.map( t => t.seq ).join('');
 
+  const currentOptionsRegex = useMemo( () => {
+    const option_sets = (tokens == null || tokens == []) ? null : tokens.map( (val, k) => {
+      if (["resolved", "hidden"].includes(val.type)) {
+        return val.seq
+      } else if (values[k] != '') {
+        return values[k]
+      } else if (val.type == 'counter') {
+        return '[0-9]+'
+      } else {
+        return '(' + Object.keys(val.values).join('|') + ')'
+      }
+    })
+    if (option_sets != null) {
+      const regex = ''.concat(...option_sets)
+      if (tokens.length !== 0 && tokens[tokens.length-1]['filled']) {
+        json_get(magmaPath(`gnomon/${project_name}/decompose/${regex}`)).then(
+          decomposition => setDecomposition(decomposition)
+        );
+      } else {
+        if (decomposition != null) setDecomposition(null)
+      }
+      return regex
+    }
+  }, [values])
+  
+  // console.log({currentOptionsRegex})
+  // console.log({tokens})
+  // console.log({values})
+  // console.log({names})
+  // console.log({decomposition})
+
   return <Grid>
     <ProjectHeader project_name={ project_name } className={classes.header}/>
-    <Grid container alignItems='center' className={classes.composer} style={{ width: 40 * (seq.length+1) }}>
-      <Grid container className={classes.tokens}>
-      {
-        tokens.map(
-          (token, i) => <TokenEditor key={i} token={token} seq={seq} tokens={tokens} height={height} update={setValue} value={ values[i] } pos={i} project_name={project_name}/>
-        )
-      }
+    <Grid container direction='column' className={classes.mainContent}>
+      <Grid item>
+        <Grid container alignItems='center' className={classes.composer} >
+          <Grid container className={classes.tokens} style={{ width: 40 * (seq.length+1) }}>
+          {
+            tokens.map(
+              (token, i) => <TokenEditor key={i} token={token} seq={seq} tokens={tokens} height={height} update={setValue} value={ values[i] } pos={i} project_name={project_name}/>
+            )
+          }
+          </Grid>
+          {
+            tokens.map(
+              (token, i) => <Token key={i} token={token} value={ values[i] }/>
+            )
+          }
+          <Grid item container direction='column' className={classes.create} alignItems='center'>
+          {decomposition==null ? " Identifier is incomplete" : 
+          decomposition.rules[rule_name].name_created_at ? " Identifier exists" : <>
+                <CreateButton
+                  project_name={project_name}
+                  rule_name={rule_name}
+                  identifier={currentOptionsRegex}
+                  />
+                <Typography>Identifiers marked * below will be assigned.</Typography>
+              </>}
+          </Grid>
+        </Grid>
       </Grid>
-      {
-        tokens.map(
-          (token, i) => <Token key={i} token={token} value={ values[i] }/>
-        )
-      }
+      <Grid item>
+        <Grid item>
+          <Toolbar>Targetted Identifier (and upstream identifiers):</Toolbar>
+          <IdTreeTable decomposition={decomposition} project_name={project_name} markNotCreated={true}/>
+        </Grid>
+      </Grid>
+      <Grid item>
+        <MatchingNamesTable names={matchIds(names, currentOptionsRegex)} rule_name={rule_name}/>
+      </Grid>
     </Grid>
   </Grid>
 }

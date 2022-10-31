@@ -109,6 +109,7 @@ class Magma
 
         {
           tokens: tokens,
+          rule_name: rule.name,
           rules: parser.rules.map do |name, rule|
             rule.from_decomposition(decomposition, project_name)
           end.compact.to_h
