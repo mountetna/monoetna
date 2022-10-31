@@ -48,6 +48,7 @@ describe('AttributeReport', () => {
 
     await waitFor(() => screen.getByText('Edit'));
 
+    expect(screen.getByText('Edit')).toBeTruthy();
     expect(screen.queryByText('Remove')).toBeFalsy();
     expect(asFragment()).toMatchSnapshot();
   });
@@ -78,6 +79,7 @@ describe('AttributeReport', () => {
     await waitFor(() => screen.getByText('Remove'));
 
     expect(screen.getByText('Edit')).toBeTruthy();
+    expect(screen.getByText('Remove')).toBeTruthy();
     expect(asFragment()).toMatchSnapshot();
   });
 });
