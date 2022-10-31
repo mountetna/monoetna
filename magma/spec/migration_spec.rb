@@ -194,7 +194,7 @@ EOT
     end
 
     it 'removes attributes when column name does not match attribute name' do
-      worth = Labors::Prize.attributes[:worth]
+      worth = Labors::Prize.attributes[:worth].dup
 
       action = Magma::RenameAttributeAction.new("labors", {
         action: "rename_attribute",
