@@ -1,6 +1,6 @@
 import React from 'react';
 import {Provider} from 'react-redux';
-import {mockStore} from '../helpers';
+import {mockStore, stubUrl} from '../helpers';
 import {render, screen, waitFor, fireEvent} from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import renderer from 'react-test-renderer';
