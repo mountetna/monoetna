@@ -158,12 +158,6 @@ class AuthorizationController < Janus::Controller
     erb_view(:login_form)
   end
 
-  def respond_with_cookie(token, refer)
-    Etna::Redirect(@request).to(refer) do |response|
-      Janus.instance.set_token_cookie(response,token)
-    end
-  end
-
   private
 
   def refer_valid?(refer)
