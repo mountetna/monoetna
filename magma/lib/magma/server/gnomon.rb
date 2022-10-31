@@ -70,7 +70,9 @@ class GnomonController < Magma::Controller
     grammar = require_grammar
     rule = require_rule(grammar)
 
-    rule_tokenization = rule.tokens.map{|t| grammar.tokens[t]&.merge(name: t) || { name: 'n', label: t } }
+    rule_tokenization = rule.tokens.map do |t|
+      grammar.parser.tokens.with_name(t) || { name: 'n', label: t }
+    end
     success_json(rule: rule_tokenization)
   end
 
@@ -80,17 +82,44 @@ class GnomonController < Magma::Controller
 
     raise Etna::BadRequest, "Invalid identifier \"#{@params[:identifier]}\" for rule \"#{rule_name}\" for #{project_name}" unless rule.valid?(@params[:identifier])
 
-    identifier = Magma::Gnomon::Identifier.create(
-      project_name: project_name,
-      rule: rule_name,
-      author: @user.display_name,
-      identifier: @params[:identifier],
-      grammar: grammar
-    )
+    decomposition = grammar.decompose(@params[:identifier])
 
-    success_json(identifier.to_hash(@user))
-  rescue Sequel::UniqueConstraintViolation => e
-    raise Etna::BadRequest, "Identifier \"#{@params[:identifier]}\" for rule \"#{rule_name}\" already exists"
+    identifier = nil
+
+    # find existing identifiers
+    existing_identifiers = Magma::Gnomon::Identifier.where(
+      project_name: project_name,
+      identifier: decomposition[:rules].values.map{|r| r[:name]}
+    ).all.map do |id|
+      [ id.identifier, id ]
+    end.to_h
+
+    decomposition[:rules].each do |match_rule_name, rule|
+      if existing_identifiers[rule[:name]]
+        identifier = existing_identifiers[rule[:name]] if rule_name == match_rule_name
+        next
+      end
+
+      rule_id = Magma::Gnomon::Identifier.create(
+        project_name: project_name,
+        rule: match_rule_name,
+        author: @user.display_name,
+        identifier: rule[:name],
+        grammar: grammar
+      )
+
+      identifier = rule_id if rule_name == match_rule_name
+    end
+
+    success_json(
+      identifier.to_hash(@user).merge(
+        rules: decomposition[:rules].filter do |rule_name, rule|
+          !existing_identifiers[rule[:name]]
+        end.map do |rule_name, rule|
+          [ rule_name, rule[:name] ]
+        end.to_h
+      )
+    )
   end
 
   def revisions
@@ -114,7 +143,7 @@ class GnomonController < Magma::Controller
   end
 
   def require_rule(grammar)
-    rule = grammar.rules[rule_name]
+    rule = grammar.parser.rules[rule_name]
 
     raise Etna::BadRequest, "Unknown rule name, \"#{rule_name}\"." if rule.nil?
 
