@@ -11,6 +11,30 @@ const monster = require('../fixtures/template_monster.json');
 describe('AttributeReport', () => {
   let store = mockStore({});
 
+  beforeEach(() => {
+    stubUrl({
+      verb: 'post',
+      path: '/retrieve',
+      host: 'https://magma.test',
+      status: 200,
+      response: {}
+    });
+
+    stubUrl({
+      verb: 'get',
+      path: '/api/user/projects',
+      host: 'https://janus.test',
+      status: 200,
+      response: {}
+    });
+
+    global.CONFIG = {
+      magma_host: 'https://magma.test',
+      janus_host: 'https://janus.test',
+      project_name: 'labors'
+    };
+  });
+
   it('renders', () => {
     const tree = renderer
       .create(
