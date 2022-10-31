@@ -176,16 +176,12 @@ class Magma
       now = DateTime.now.to_time.to_i
       new_name = "#{name}_#{now}_backup"
 
-      operations = []
-
-      # Drop constraints in case someone re-links to the same
-      #   foreign table.
-      # require 'pry'
-      # binding.pry
-      operations << "drop_foreign_constraint_if_exists :#{name}"
-      operations << "rename_column :#{name}, :#{new_name}"
-
-      operations
+      # Drop constraints so can add new records without specifying
+      #   a FK.
+      [
+        "drop_foreign_constraint_if_exists :#{name}",
+        "rename_column :#{name}, :#{new_name}"
+      ]
     end
 
     def unique_entry name
