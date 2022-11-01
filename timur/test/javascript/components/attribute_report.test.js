@@ -7,6 +7,7 @@ import renderer from 'react-test-renderer';
 import AttributeReport from '../../../lib/client/jsx/components/model_map/attribute_report';
 
 const monster = require('../fixtures/template_monster.json');
+const habitat = require('../fixtures/template_habitat.json');
 
 describe('AttributeReport', () => {
   let store = mockStore({});
@@ -47,11 +48,51 @@ describe('AttributeReport', () => {
     expect(tree).toMatchSnapshot();
   });
 
-  it('renders with model action buttons for admin user', async () => {
+  it('renders without model action buttons for editor user', async () => {
     store = mockStore({
       magma: {
         models: {
-          monster: require('../fixtures/template_monster.json')
+          monster: {
+            template: require('../fixtures/template_monster.json')
+          },
+          habitat: {
+            template: require('../fixtures/template_habitat.json')
+          }
+        }
+      },
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {
+        permissions: {
+          labors: {
+            role: 'editor'
+          }
+        }
+      }
+    });
+
+    const {asFragment} = render(
+      <Provider store={store}>
+        <AttributeReport attribute={monster.attributes.species} />
+      </Provider>
+    );
+
+    await waitFor(() => screen.getByText('Species'));
+
+    expect(screen.queryByText('Edit')).toBeFalsy();
+    expect(screen.queryByText('Remove')).toBeFalsy();
+    expect(asFragment()).toMatchSnapshot();
+  });
+
+  it('renders without model action buttons for admin user, non-editable attribute', async () => {
+    store = mockStore({
+      magma: {
+        models: {
+          monster: {
+            template: require('../fixtures/template_monster.json')
+          },
+          habitat: {
+            template: require('../fixtures/template_habitat.json')
+          }
         }
       },
       janus: {projects: require('../fixtures/project_names.json')},
@@ -70,9 +111,9 @@ describe('AttributeReport', () => {
       </Provider>
     );
 
-    await waitFor(() => screen.getByText('Edit'));
+    await waitFor(() => screen.getByText('Name'));
 
-    expect(screen.getByText('Edit')).toBeTruthy();
+    expect(screen.queryByText('Edit')).toBeFalsy();
     expect(screen.queryByText('Remove')).toBeFalsy();
     expect(asFragment()).toMatchSnapshot();
   });
@@ -81,7 +122,12 @@ describe('AttributeReport', () => {
     store = mockStore({
       magma: {
         models: {
-          monster: require('../fixtures/template_monster.json')
+          monster: {
+            template: require('../fixtures/template_monster.json')
+          },
+          habitat: {
+            template: require('../fixtures/template_habitat.json')
+          }
         }
       },
       janus: {projects: require('../fixtures/project_names.json')},
@@ -104,6 +150,76 @@ describe('AttributeReport', () => {
 
     expect(screen.getByText('Edit')).toBeTruthy();
     expect(screen.getByText('Remove')).toBeTruthy();
+    expect(asFragment()).toMatchSnapshot();
+  });
+
+  it('renders with remove link button for admin user, link attribute', async () => {
+    store = mockStore({
+      magma: {
+        models: {
+          monster: {
+            template: require('../fixtures/template_monster.json')
+          },
+          habitat: {
+            template: require('../fixtures/template_habitat.json')
+          }
+        }
+      },
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {
+        permissions: {
+          labors: {
+            role: 'administrator'
+          }
+        }
+      }
+    });
+
+    const {asFragment} = render(
+      <Provider store={store}>
+        <AttributeReport attribute={monster.attributes.habitat} />
+      </Provider>
+    );
+
+    await waitFor(() => screen.getByText('Remove Link'));
+
+    expect(screen.queryByText('Edit')).toBeFalsy();
+    expect(screen.getByText('Remove Link')).toBeTruthy();
+    expect(asFragment()).toMatchSnapshot();
+  });
+
+  it('renders with remove link button for admin user, collection (link) attribute', async () => {
+    store = mockStore({
+      magma: {
+        models: {
+          monster: {
+            template: require('../fixtures/template_monster.json')
+          },
+          habitat: {
+            template: require('../fixtures/template_habitat.json')
+          }
+        }
+      },
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {
+        permissions: {
+          labors: {
+            role: 'administrator'
+          }
+        }
+      }
+    });
+
+    const {asFragment} = render(
+      <Provider store={store}>
+        <AttributeReport attribute={habitat.attributes.monster} />
+      </Provider>
+    );
+
+    await waitFor(() => screen.getByText('Remove Link'));
+
+    expect(screen.queryByText('Edit')).toBeFalsy();
+    expect(screen.getByText('Remove Link')).toBeTruthy();
     expect(asFragment()).toMatchSnapshot();
   });
 });

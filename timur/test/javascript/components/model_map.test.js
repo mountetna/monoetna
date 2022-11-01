@@ -78,6 +78,8 @@ describe('ModelMap', () => {
 
     await waitFor(() => screen.getByText('Attribute'));
 
+    expect(screen.getByText('Link')).toBeTruthy();
+    expect(screen.getByText('Attribute')).toBeTruthy();
     expect(asFragment()).toMatchSnapshot();
   });
 
