@@ -18,7 +18,7 @@ export default function AddLinkModal({onSave}: {onSave: any}) {
   const [reciprocalAttributeName, setReciprocalAttributeName] = useState('');
   const [reciprocalLinkType, setReciprocalLinkType] = useState('');
 
-  const models = useReduxState((state) => selectModels(state));
+  const models = useReduxState((state: any) => selectModels(state));
 
   const {dismissModal} = useModal();
   const invoke = useActionInvoker();
