@@ -42,7 +42,7 @@ class Magma
       def self.backfill(project_name, rule_name, author, dry_run: true)
         grammar = Magma::Gnomon::Grammar.for_project(project_name)
         raise "No grammar for #{project_name}" unless grammar
-        rule = grammar.rules[rule_name]
+        rule = grammar.parser.rules[rule_name]
         raise "No such #{rule_name} for #{project_name}" unless rule
         
         magma_model = Magma.instance.get_model(project_name, rule_name)

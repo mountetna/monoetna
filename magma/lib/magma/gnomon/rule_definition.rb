@@ -131,7 +131,7 @@ class Magma
         if newest_identifier.nil?
           next_value = 1
         else
-          decomposition = decomposition(newest_identifier.identifier)
+          decomposition = decomposition(newest_identifier)
           next_value = decomposition.last.last.to_i + 1
         end
 
@@ -145,9 +145,12 @@ class Magma
       private
 
       def latest_identifier(identifier_root)
+        match_id = Regexp.new(identifier_root + '(\d+)$')
         Magma::Gnomon::Identifier.where(
           rule: name
-        ).where { identifier =~ Regexp.new(identifier_root) }.order(:created_at).last
+        ).where { identifier =~ match_id }.select_map(:identifier).max_by do |id|
+          id.match(match_id)[1].to_i
+        end
       end
 
       def all_rules
