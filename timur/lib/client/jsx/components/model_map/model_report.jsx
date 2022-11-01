@@ -31,14 +31,16 @@ import Tooltip from '@material-ui/core/Tooltip';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Chip from '@material-ui/core/Chip';
 import AddIcon from '@material-ui/icons/Add';
+import LinkIcon from '@material-ui/icons/Link';
 
 import AddAttributeModal from './add_attribute_modal';
+import AddLinkModal from './add_link_modal';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {isAdmin} from 'etna-js/utils/janus';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {showMessages} from 'etna-js/actions/message_actions';
-import {addAttribute} from '../../api/magma_api';
+import {addAttribute, addLink} from '../../api/magma_api';
 import {addTemplatesAndDocuments} from 'etna-js/actions/magma_actions';
 
 const attributeStyles = makeStyles((theme) => ({
@@ -55,7 +57,9 @@ const attributeStyles = makeStyles((theme) => ({
     color: 'gray',
     cursor: 'default'
   },
-  addBtn: {},
+  addBtn: {
+    margin: '0.5rem'
+  },
   add: {
     width: '30px',
     color: 'green'
@@ -91,7 +95,7 @@ const diffTypes = {
   changed: {ind: 'c', title: 'Changed in this model'}
 };
 
-const ManageModelActions = ({handleAddAttribute}) => {
+const ManageModelActions = ({handleAddAttribute, handleAddLink, modelName}) => {
   const classes = attributeStyles();
   const {openModal} = useModal();
 
@@ -107,6 +111,17 @@ const ManageModelActions = ({handleAddAttribute}) => {
             }}
           >
             Attribute
+          </Button>
+        </Tooltip>
+        <Tooltip title='Add Link' aria-label='Add Link'>
+          <Button
+            className={classes.addBtn}
+            startIcon={<LinkIcon />}
+            onClick={() => {
+              openModal(<AddLinkModal onSave={handleAddLink} />);
+            }}
+          >
+            Link
           </Button>
         </Tooltip>
       </TableCell>
@@ -344,13 +359,10 @@ const ModelReport = ({
     return isAdmin(user, CONFIG.project_name);
   }, [user, CONFIG.project_name]);
 
-  const handleAddAttribute = useCallback(
-    (params) => {
+  const executeAction = useCallback(
+    (action) => {
       dismissModal();
-      addAttribute({
-        model_name,
-        ...params
-      })
+      action
         .then(({models}) => {
           invoke(addTemplatesAndDocuments(models));
         })
@@ -358,7 +370,31 @@ const ModelReport = ({
           invoke(showMessages(err));
         });
     },
-    [model_name, invoke, dismissModal, addTemplatesAndDocuments]
+    [invoke, addTemplatesAndDocuments, showMessages]
+  );
+
+  const handleAddAttribute = useCallback(
+    (params) => {
+      executeAction(
+        addAttribute({
+          model_name,
+          ...params
+        })
+      );
+    },
+    [model_name, executeAction]
+  );
+
+  const handleAddLink = useCallback(
+    (params) => {
+      executeAction(
+        addLink({
+          modelName: model_name,
+          ...params
+        })
+      );
+    },
+    [model_name]
   );
 
   return (
@@ -486,7 +522,10 @@ const ModelReport = ({
                 />
               ))}
             {isAdminUser && (
-              <ManageModelActions handleAddAttribute={handleAddAttribute} />
+              <ManageModelActions
+                handleAddAttribute={handleAddAttribute}
+                handleAddLink={handleAddLink}
+              />
             )}
           </TableBody>
         </Table>

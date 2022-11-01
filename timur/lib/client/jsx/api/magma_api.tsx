@@ -70,6 +70,25 @@ type RemoveAttributeAction = RemoveAttributeParams & {
   action_name: 'remove_attribute';
 };
 
+type AddLinkParams = {
+  modelName: string;
+  linkAttributeName: string;
+  reciprocalAttributeName: string;
+  reciprocalModelName: string;
+  reciprocalLinkType: 'link' | 'child' | 'collection';
+};
+
+type LinkAction = {
+  model_name: string;
+  attribute_name: string;
+  type: 'link' | 'child' | 'collection';
+};
+
+type AddLinkAction = {
+  action_name: 'add_link';
+  links: [LinkAction, LinkAction];
+};
+
 // Basically params returned by the server but not
 //   accepted as part of an update_attribute action.
 const uneditableAttributes = [
@@ -86,6 +105,7 @@ const cleanPayload = (
     | UpdateAttributeAction
     | RenameAttributeAction
     | RemoveAttributeAction
+    | AddLinkAction
   )[]
 ) => {
   return payload.map((action: any) => {
@@ -105,6 +125,7 @@ const updateModel = (
     | UpdateAttributeAction
     | RenameAttributeAction
     | RemoveAttributeAction
+    | AddLinkAction
   )[]
 ) => {
   payload = cleanPayload(payload);
@@ -164,6 +185,28 @@ export const removeAttribute = (params: RemoveAttributeParams) => {
   };
 
   let actions: RemoveAttributeAction[] = [removeAction];
+
+  return updateModel(actions);
+};
+
+export const addLink = (params: AddLinkParams) => {
+  let addLinkAction: AddLinkAction = {
+    action_name: 'add_link',
+    links: [
+      {
+        model_name: params.modelName,
+        attribute_name: params.linkAttributeName,
+        type: 'link'
+      },
+      {
+        model_name: params.reciprocalModelName,
+        attribute_name: params.reciprocalAttributeName,
+        type: params.reciprocalLinkType
+      }
+    ]
+  };
+
+  let actions: AddLinkAction[] = [addLinkAction];
 
   return updateModel(actions);
 };

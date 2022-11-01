@@ -12,7 +12,7 @@ export function ShrinkingLabelTextField(props: any) {
       } else {
         const input = e.target.value;
 
-        if (!input.match(new RegExp(props.pattern))) {
+        if ('' !== input && !input.match(new RegExp(props.pattern))) {
           setError(true);
         } else {
           setError(false);
