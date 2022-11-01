@@ -87,21 +87,9 @@ class Magma
     end
 
     def attribute
+      return nil unless model
       return nil unless @action_params[:attribute_name].respond_to?(:to_sym)
       @attribute ||= model.attributes[@action_params[:attribute_name].to_sym]
     end
-  end
-
-  def model
-    @model ||= Magma.instance.get_model(
-      @project_name,
-      @action_params[:model_name]
-    )
-  end
-
-  def attribute
-    return nil unless model
-    return nil unless @action_params[:attribute_name].respond_to?(:to_sym)
-    @attribute ||= model.attributes[@action_params[:attribute_name].to_sym]
   end
 end
