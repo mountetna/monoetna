@@ -32,15 +32,17 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import Chip from '@material-ui/core/Chip';
 import AddIcon from '@material-ui/icons/Add';
 import LinkIcon from '@material-ui/icons/Link';
+import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
 
 import AddAttributeModal from './add_attribute_modal';
 import AddLinkModal from './add_link_modal';
+import AddModelModal from './add_model_modal';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {isAdmin} from 'etna-js/utils/janus';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {showMessages} from 'etna-js/actions/message_actions';
-import {addAttribute, addLink} from '../../api/magma_api';
+import {addAttribute, addLink, addModel} from '../../api/magma_api';
 import {addTemplatesAndDocuments} from 'etna-js/actions/magma_actions';
 
 const attributeStyles = makeStyles((theme) => ({
@@ -95,39 +97,49 @@ const diffTypes = {
   changed: {ind: 'c', title: 'Changed in this model'}
 };
 
-const ManageModelActions = ({handleAddAttribute, handleAddLink, modelName}) => {
+const ManageModelActions = ({
+  handleAddAttribute,
+  handleAddLink,
+  handleAddModel
+}) => {
   const classes = attributeStyles();
   const {openModal} = useModal();
 
   return (
     <TableRow>
-      <TableCell className={classes.add} align='left' title='Add Attribute'>
-        <Tooltip title='Add Attribute' aria-label='Add Attribute'>
-          <Button
-            className={classes.addBtn}
-            startIcon={<AddIcon />}
-            onClick={() => {
-              openModal(<AddAttributeModal onSave={handleAddAttribute} />);
-            }}
-          >
-            Attribute
-          </Button>
-        </Tooltip>
-        <Tooltip title='Add Link' aria-label='Add Link'>
-          <Button
-            className={classes.addBtn}
-            startIcon={<LinkIcon />}
-            onClick={() => {
-              openModal(<AddLinkModal onSave={handleAddLink} />);
-            }}
-          >
-            Link
-          </Button>
-        </Tooltip>
-      </TableCell>
-      <TableCell />
-      <TableCell />
-      <TableCell />
+      <Tooltip title='Add Attribute' aria-label='Add Attribute'>
+        <Button
+          className={classes.addBtn}
+          startIcon={<AddIcon />}
+          onClick={() => {
+            openModal(<AddAttributeModal onSave={handleAddAttribute} />);
+          }}
+        >
+          Attribute
+        </Button>
+      </Tooltip>
+      <Tooltip title='Add Link' aria-label='Add Link'>
+        <Button
+          className={classes.addBtn}
+          startIcon={<LinkIcon />}
+          onClick={() => {
+            openModal(<AddLinkModal onSave={handleAddLink} />);
+          }}
+        >
+          Link
+        </Button>
+      </Tooltip>
+      <Tooltip title='Add Model' aria-label='Add Model'>
+        <Button
+          className={classes.addBtn}
+          startIcon={<LibraryAddIcon />}
+          onClick={() => {
+            openModal(<AddModelModal onSave={handleAddModel} />);
+          }}
+        >
+          Model
+        </Button>
+      </Tooltip>
     </TableRow>
   );
 };
@@ -397,6 +409,18 @@ const ModelReport = ({
     [model_name]
   );
 
+  const handleAddModel = useCallback(
+    (params) => {
+      executeAction(
+        addModel({
+          parent_model_name: model_name,
+          ...params
+        })
+      );
+    },
+    [model_name]
+  );
+
   return (
     <Grid className={classes.model_report}>
       <MapHeading className={classes.heading} name='Model' title={model_name}>
@@ -525,6 +549,7 @@ const ModelReport = ({
               <ManageModelActions
                 handleAddAttribute={handleAddAttribute}
                 handleAddLink={handleAddLink}
+                handleAddModel={handleAddModel}
               />
             )}
           </TableBody>

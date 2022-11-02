@@ -98,6 +98,17 @@ type RemoveLinkAction = RemoveLinkParams & {
   action_name: 'remove_link';
 };
 
+type AddModelParams = {
+  model_name: string;
+  identifier: string;
+  parent_model_name: string;
+  parent_link_type: 'child' | 'collection';
+};
+
+type AddModelAction = AddModelParams & {
+  action_name: 'add_model';
+};
+
 // Basically params returned by the server but not
 //   accepted as part of an update_attribute action.
 const uneditableAttributes = [
@@ -116,6 +127,7 @@ const cleanPayload = (
     | RemoveAttributeAction
     | AddLinkAction
     | RemoveLinkAction
+    | AddModelAction
   )[]
 ) => {
   return payload.map((action: any) => {
@@ -137,6 +149,7 @@ const updateModel = (
     | RemoveAttributeAction
     | AddLinkAction
     | RemoveLinkAction
+    | AddModelAction
   )[]
 ) => {
   payload = cleanPayload(payload);
@@ -229,6 +242,17 @@ export const removeLink = (params: RemoveLinkParams) => {
   };
 
   let actions: RemoveLinkAction[] = [removeAction];
+
+  return updateModel(actions);
+};
+
+export const addModel = (params: AddModelParams) => {
+  let addModelAction: AddModelAction = {
+    action_name: 'add_model',
+    ...params
+  };
+
+  let actions: AddModelAction[] = [addModelAction];
 
   return updateModel(actions);
 };
