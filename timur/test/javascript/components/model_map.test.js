@@ -78,8 +78,36 @@ describe('ModelMap', () => {
 
     await waitFor(() => screen.getByText('Attribute'));
 
-    expect(screen.getByText('Link')).toBeTruthy();
-    expect(screen.getByText('Attribute')).toBeTruthy();
+    expect(screen.getByTitle('Add Link')).toBeTruthy();
+    expect(screen.getByTitle('Add Attribute')).toBeTruthy();
+    expect(screen.getByTitle('Add Model')).toBeTruthy();
+    expect(asFragment()).toMatchSnapshot();
+  });
+
+  it('renders without model action buttons for editor user', async () => {
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {
+        permissions: {
+          labors: {
+            role: 'editor'
+          }
+        }
+      }
+    });
+
+    const {asFragment} = render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    await waitFor(() => screen.getByText('monster'));
+
+    expect(screen.queryByTitle('Add Link')).toBeFalsy();
+    expect(screen.queryByTitle('Add Attribute')).toBeFalsy();
+    expect(screen.queryByTitle('Add Model')).toBeFalsy();
     expect(asFragment()).toMatchSnapshot();
   });
 
