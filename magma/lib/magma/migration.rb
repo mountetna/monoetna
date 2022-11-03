@@ -50,13 +50,15 @@ class Magma
 
     def to_s
       @changes.map do |key,lines|
-        [
-          space("#{key} do", 2),
-          lines.map do |line|
-            space(line,3)
-          end,
-          space('end',2)
-        ].flatten.join("\n")
+        lines.empty? ?
+          space(key, 2) :
+          [
+            space("#{key} do", 2),
+            lines.map do |line|
+              space(line,3)
+            end,
+            space('end',2)
+          ].flatten.join("\n")
       end.join("\n").chomp
     end
 
@@ -236,15 +238,30 @@ class Magma
   class RemoveModelMigration < Migration
     def initialize(model)
       super
+
+      drop_index = "alter_table(#{Magma::Migration.table_name(model)})"
+      change(drop_index, remove_indices)
+
       now = DateTime.now.to_time.to_i
       new_name = "Sequel[:#{model.project_name}][:#{model.implicit_table_name}_#{now}_backup]"
       table_rename = "rename_table(#{Magma::Migration.table_name(model)}, #{new_name})"
       change(table_rename, [])
     end
 
-    def to_s
-      # No block required, so overwrite this.
-      @changes.keys.join("\n")
+    private
+
+    def remove_indices
+      # Need to remove the FK index so can
+      #   re-add model with the same name, if needed
+      [
+        "drop_index [:#{parent_attribute.column_name}]"
+      ]
+    end
+
+    def parent_attribute
+      @model.attributes.values.select do |attribute|
+        attribute.is_a?(Magma::ParentAttribute)
+      end.first
     end
   end
 end

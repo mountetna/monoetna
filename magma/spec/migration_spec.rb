@@ -370,4 +370,38 @@ EOT
       end
     end
   end
+
+  context 'remove model migrations' do
+    let(:now) { DateTime.now.to_time.to_i }
+    let(:backup_table_name) { "sidekicks_#{now}_backup" }
+
+    before(:each) do
+      Timecop.freeze('2000-01-01') # 946684800 since epoch
+      @project = Magma.instance.get_project("labors")
+      @sidekick_model = Magma.instance.db[:models].where(project_name: 'labors', model_name: 'sidekick').first
+      @sidekick_attributes = @project.models[:sidekick].attributes.values
+      @reciprocal_attribute = @project.models[:victim].attributes[:sidekick].dup
+    end
+
+    after(:each) do
+      Timecop.return
+      model = @project.load_model(@sidekick_model)
+      model.load_attributes(@sidekick_attributes)
+      @project.models[model.model_name] = model
+      @project.models[:victim].load_attributes([@reciprocal_attribute])
+    end
+
+    it 'suggests a remove model migration and removes indices' do
+      @project.models[:victim].attributes.delete(:sidekick)
+
+      migration = @project.migrations.first
+
+      expect(migration.to_s).to eq <<EOT.chomp
+    alter_table(Sequel[:labors][:sidekicks]) do
+      drop_index [:victim_id]
+    end
+    rename_table(Sequel[:labors][:sidekicks], Sequel[:labors][:#{backup_table_name}])
+EOT
+    end
+  end
 end
