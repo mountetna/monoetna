@@ -81,6 +81,38 @@ habitat:
     type: identifier
   monster:
     type: collection
+  vegetation:
+    type: collection
+  rodents:
+    type: collection
+climate:
+  project:
+    type: parent
+    column_name: project_id
+  name:
+    type: identifier
+  vegetation:
+    type: collection
+vegetation:
+  habitat:
+    type: parent
+    column_name: habitat_id
+  name:
+    type: identifier
+  climate:
+    type: link
+    link_model_name: climate
+    column_name: climate_id
+rodents:
+  habitat:
+    type: parent
+    column_name: habitat_id
+  name:
+    type: identifier
+  friends:
+    type: link
+    link_model_name: rodent
+    column_name: rodent_id
 prize:
   labor:
     type: parent
@@ -145,3 +177,11 @@ wound:
     type: integer
   received_date:
     type: shifted_date_time
+  treatment:
+    type: table
+treatment:
+  wound:
+    type: parent
+    column_name: wound_id
+  notes:
+    type: string

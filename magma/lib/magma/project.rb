@@ -45,8 +45,38 @@ class Magma
       link_models + link_models.map{|m| ordered_models(m)}.flatten
     end
 
+    def remove_detached_models
+      detached_models.each do |model|
+        models.delete(model.model_name)
+        Magma.instance.db[:models].where(
+          project_name: @project_name.to_s,
+          model_name: model.model_name.to_s
+        ).delete
+
+        project_module = Kernel.const_get(model.project_name.to_s.camel_case.to_sym)
+        project_module.send(:remove_const, model.model_name.to_s.camel_case.to_sym)
+      end
+    end
+
+    def detached_model_migrations
+      # Should be as a result of a remove_model action
+      detached_models.map do |removed_model|
+        Magma::RemoveModelMigration.new(removed_model)
+      end
+    end
+
+    def detached_models
+      models.values.reject do |model|
+        graph_models.include?(model)
+      end
+    end
+
+    def graph_models
+      [ models[:project] ] + ordered_models(models[:project])
+    end
+
     def migrations
-      ([ models[:project] ] + ordered_models(models[:project])).map(&:migration).reject(&:empty?)
+      (graph_models.map(&:migration) + detached_model_migrations).reject(&:empty?)
     end
 
     def load_model(model_data)

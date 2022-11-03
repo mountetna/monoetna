@@ -232,4 +232,19 @@ class Magma
       end
     end
   end
+
+  class RemoveModelMigration < Migration
+    def initialize(model)
+      super
+      now = DateTime.now.to_time.to_i
+      new_name = "Sequel[:#{model.project_name}][:#{model.implicit_table_name}_#{now}_backup]"
+      table_rename = "rename_table(#{Magma::Migration.table_name(model)}, #{new_name})"
+      change(table_rename, [])
+    end
+
+    def to_s
+      # No block required, so overwrite this.
+      @changes.keys.join("\n")
+    end
+  end
 end
