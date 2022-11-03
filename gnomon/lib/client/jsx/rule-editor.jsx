@@ -386,7 +386,7 @@ const RuleEditor = ({project_name}) => {
       ).catch(
         e => e.then( ({errors}) =>  setError( errors.join('; ')))
       );
-    }, [ editedState, editedScript, savedState, showJson ]
+    }, [ editedState, editedScript, savedState, showJson, comment ]
   )
 
   const revertRules = useCallback(
