@@ -47,21 +47,9 @@ class Magma
 
     def remove_detached_models
       detached_models.each do |model|
-        models.delete(model.model_name)
-        Magma.instance.db[:models].where(
-          project_name: @project_name.to_s,
-          model_name: model.model_name.to_s
-        ).delete
-
-        project_module = Kernel.const_get(model.project_name.to_s.camel_case.to_sym)
-        project_module.send(:remove_const, model.model_name.to_s.camel_case.to_sym)
-      end
-    end
-
-    def detached_model_migrations
-      # Should be as a result of a remove_model action
-      detached_models.map do |removed_model|
-        Magma::RemoveModelMigration.new(removed_model)
+        remove_model_definition(model)
+        remove_model_attributes(model)
+        remove_model_class(model)
       end
     end
 
@@ -69,10 +57,6 @@ class Magma
       models.values.reject do |model|
         graph_models.include?(model)
       end
-    end
-
-    def graph_models
-      [ models[:project] ] + ordered_models(models[:project])
     end
 
     def migrations
@@ -93,6 +77,37 @@ class Magma
     end
 
     private
+
+    def remove_model_definition(model)
+      models.delete(model.model_name)
+      Magma.instance.db[:models].where(
+        project_name: @project_name.to_s,
+        model_name: model.model_name.to_s
+      ).delete
+    end
+
+    def remove_model_attributes(model)
+      Magma.instance.db[:attributes].where(
+        project_name: @project_name.to_s,
+        model_name: model.model_name.to_s
+      ).delete
+    end
+
+    def remove_model_class(model)
+      project_module = Kernel.const_get(model.project_name.to_s.camel_case.to_sym)
+      project_module.send(:remove_const, model.model_name.to_s.camel_case.to_sym)
+    end
+
+    def detached_model_migrations
+      # Should be as a result of a remove_model action
+      detached_models.map do |removed_model|
+        Magma::RemoveModelMigration.new(removed_model)
+      end
+    end
+
+    def graph_models
+      [ models[:project] ] + ordered_models(models[:project])
+    end
 
     def project_container
       @project_container ||=

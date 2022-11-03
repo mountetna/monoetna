@@ -201,6 +201,9 @@ describe Magma::ModelUpdateActions do
               Magma.instance.db["SELECT * FROM \"labors\".\"#{backup_table_name}\""].count
             }.to raise_error(Sequel::DatabaseError)
           }
+          expect(
+            Magma.instance.db[:attributes].where(project_name: "labors", model_name: "sidekick").count > 0
+          ).to eq(true)
 
           expect(actions.perform).to eq(true)
 
@@ -220,6 +223,9 @@ describe Magma::ModelUpdateActions do
               Magma.instance.db["SELECT * FROM \"labors\".\"#{backup_table_name}\""].count
             }.not_to raise_error(Sequel::DatabaseError)
           }
+          expect(
+            Magma.instance.db[:attributes].where(project_name: "labors", model_name: "sidekick").count
+          ).to eq(0)
         end
       end
     end
