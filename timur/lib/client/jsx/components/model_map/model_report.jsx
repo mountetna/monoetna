@@ -33,6 +33,7 @@ import Chip from '@material-ui/core/Chip';
 import AddIcon from '@material-ui/icons/Add';
 import LinkIcon from '@material-ui/icons/Link';
 import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
+import DeleteIcon from '@material-ui/icons/Delete';
 
 import AddAttributeModal from './add_attribute_modal';
 import AddLinkModal from './add_link_modal';
@@ -42,8 +43,16 @@ import {selectUser} from 'etna-js/selectors/user-selector';
 import {isAdmin} from 'etna-js/utils/janus';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {showMessages} from 'etna-js/actions/message_actions';
-import {addAttribute, addLink, addModel} from '../../api/magma_api';
-import {addTemplatesAndDocuments} from 'etna-js/actions/magma_actions';
+import {
+  addAttribute,
+  addLink,
+  addModel,
+  removeModel
+} from '../../api/magma_api';
+import {
+  addTemplatesAndDocuments,
+  removeModelAction
+} from 'etna-js/actions/magma_actions';
 
 const attributeStyles = makeStyles((theme) => ({
   attribute: {
@@ -100,13 +109,22 @@ const diffTypes = {
 const ManageModelActions = ({
   handleAddAttribute,
   handleAddLink,
-  handleAddModel
+  handleAddModel,
+  handleRemoveModel
 }) => {
   const classes = attributeStyles();
   const {openModal} = useModal();
 
+  const confirmRemoveModel = useCallback(() => {
+    if (confirm('Removing a model is not reversible -- are you sure?')) {
+      handleRemoveModel();
+    }
+  }, [handleRemoveModel]);
+
+  // TODO: need to calculate here if a model is a leaf?
+
   return (
-    <TableRow>
+    <>
       <Tooltip title='Add Attribute' aria-label='Add Attribute'>
         <Button
           className={classes.addBtn}
@@ -129,7 +147,7 @@ const ManageModelActions = ({
           Link
         </Button>
       </Tooltip>
-      <Tooltip title='Add Model' aria-label='Add Model'>
+      <Tooltip title='Add Child Model' aria-label='Add Child Model'>
         <Button
           className={classes.addBtn}
           startIcon={<LibraryAddIcon />}
@@ -137,10 +155,19 @@ const ManageModelActions = ({
             openModal(<AddModelModal onSave={handleAddModel} />);
           }}
         >
+          Child Model
+        </Button>
+      </Tooltip>
+      <Tooltip title='Remove Model' aria-label='Remove Model'>
+        <Button
+          className={classes.addBtn}
+          startIcon={<DeleteIcon />}
+          onClick={confirmRemoveModel}
+        >
           Model
         </Button>
       </Tooltip>
-    </TableRow>
+    </>
   );
 };
 
@@ -374,7 +401,7 @@ const ModelReport = ({
   const executeAction = useCallback(
     (action) => {
       dismissModal();
-      action
+      return action
         .then(({models}) => {
           invoke(addTemplatesAndDocuments(models));
         })
@@ -420,6 +447,12 @@ const ModelReport = ({
     },
     [model_name]
   );
+
+  const handleRemoveModel = useCallback(() => {
+    executeAction(removeModel({model_name})).then(() =>
+      invoke(removeModelAction(model_name))
+    );
+  }, [model_name]);
 
   return (
     <Grid className={classes.model_report}>
@@ -545,15 +578,16 @@ const ModelReport = ({
                   diffTemplate={diffTemplate}
                 />
               ))}
-            {isAdminUser && (
-              <ManageModelActions
-                handleAddAttribute={handleAddAttribute}
-                handleAddLink={handleAddLink}
-                handleAddModel={handleAddModel}
-              />
-            )}
           </TableBody>
         </Table>
+        {isAdminUser && (
+          <ManageModelActions
+            handleAddAttribute={handleAddAttribute}
+            handleAddLink={handleAddLink}
+            handleAddModel={handleAddModel}
+            handleRemoveModel={handleRemoveModel}
+          />
+        )}
       </TableContainer>
     </Grid>
   );

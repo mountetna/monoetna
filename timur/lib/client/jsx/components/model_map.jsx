@@ -18,7 +18,7 @@ import ModelReport from './model_map/model_report';
 import ModelMapGraphic from './model_map/model_map_graphic';
 
 import {requestModels} from 'etna-js/actions/magma_actions';
-import {selectTemplate} from 'etna-js/selectors/magma';
+import {selectTemplate, selectModelNames} from 'etna-js/selectors/magma';
 import {fetchProjectsAction} from 'etna-js/actions/janus-actions';
 import {selectProjects} from 'etna-js/selectors/janus-selector';
 import {projectNameFull} from 'etna-js/utils/janus';
@@ -79,6 +79,7 @@ const ModelMap = ({}) => {
   const invoke = useActionInvoker();
 
   const state = useReduxState();
+  const modelNames = useReduxState((state) => selectModelNames(state));
   const template = selectTemplate(state, model);
   const projects = selectProjects(state);
 
@@ -95,6 +96,12 @@ const ModelMap = ({}) => {
     invoke(requestModels());
     invoke(fetchProjectsAction());
   }, []);
+
+  useEffect(() => {
+    if (!modelNames.includes(model)) {
+      setModel('project');
+    }
+  }, [modelNames, model]);
 
   const [width, height] = [600, 600];
 

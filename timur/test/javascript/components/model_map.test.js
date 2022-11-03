@@ -80,7 +80,7 @@ describe('ModelMap', () => {
 
     expect(screen.getByTitle('Add Link')).toBeTruthy();
     expect(screen.getByTitle('Add Attribute')).toBeTruthy();
-    expect(screen.getByTitle('Add Model')).toBeTruthy();
+    expect(screen.getByTitle('Add Child Model')).toBeTruthy();
     expect(asFragment()).toMatchSnapshot();
   });
 
@@ -107,7 +107,7 @@ describe('ModelMap', () => {
 
     expect(screen.queryByTitle('Add Link')).toBeFalsy();
     expect(screen.queryByTitle('Add Attribute')).toBeFalsy();
-    expect(screen.queryByTitle('Add Model')).toBeFalsy();
+    expect(screen.queryByTitle('Add Child Model')).toBeFalsy();
     expect(asFragment()).toMatchSnapshot();
   });
 
