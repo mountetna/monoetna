@@ -40,6 +40,7 @@ import AddLinkModal from './add_link_modal';
 import AddModelModal from './add_model_modal';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {selectUser} from 'etna-js/selectors/user-selector';
+import {selectModels} from 'etna-js/selectors/magma';
 import {isAdmin} from 'etna-js/utils/janus';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {showMessages} from 'etna-js/actions/message_actions';
@@ -53,6 +54,7 @@ import {
   addTemplatesAndDocuments,
   removeModelAction
 } from 'etna-js/actions/magma_actions';
+import {isLeafModel} from '../../utils/edit_map';
 
 const attributeStyles = makeStyles((theme) => ({
   attribute: {
@@ -110,7 +112,8 @@ const ManageModelActions = ({
   handleAddAttribute,
   handleAddLink,
   handleAddModel,
-  handleRemoveModel
+  handleRemoveModel,
+  isLeaf
 }) => {
   const classes = attributeStyles();
   const {openModal} = useModal();
@@ -158,15 +161,17 @@ const ManageModelActions = ({
           Child Model
         </Button>
       </Tooltip>
-      <Tooltip title='Remove Model' aria-label='Remove Model'>
-        <Button
-          className={classes.addBtn}
-          startIcon={<DeleteIcon />}
-          onClick={confirmRemoveModel}
-        >
-          Model
-        </Button>
-      </Tooltip>
+      {isLeaf && (
+        <Tooltip title='Remove Model' aria-label='Remove Model'>
+          <Button
+            className={classes.addBtn}
+            startIcon={<DeleteIcon />}
+            onClick={confirmRemoveModel}
+          >
+            Model
+          </Button>
+        </Tooltip>
+      )}
     </>
   );
 };
@@ -295,6 +300,7 @@ const ModelReport = ({
   const {dismissModal} = useModal();
 
   const user = useReduxState((state) => selectUser(state));
+  const models = useReduxState((state) => selectModels(state));
   const classes = reportStyles();
 
   const modelCount = counts[model_name]?.count;
@@ -454,6 +460,12 @@ const ModelReport = ({
     );
   }, [model_name]);
 
+  const isLeaf = useMemo(() => {
+    if (!models || !model_name || !models[model_name]) return;
+
+    return isLeafModel(models[model_name]);
+  }, [model_name, models]);
+
   return (
     <Grid className={classes.model_report}>
       <MapHeading className={classes.heading} name='Model' title={model_name}>
@@ -586,6 +598,7 @@ const ModelReport = ({
             handleAddLink={handleAddLink}
             handleAddModel={handleAddModel}
             handleRemoveModel={handleRemoveModel}
+            isLeaf={isLeaf}
           />
         )}
       </TableContainer>

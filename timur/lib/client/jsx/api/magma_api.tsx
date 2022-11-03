@@ -19,6 +19,12 @@ export type Attribute = {
   validation?: {[key: string]: any} | null;
 };
 
+export type Model = {
+  template: {
+    attributes: Attribute[];
+  };
+};
+
 export type LinkAttribute = Attribute & {
   link_model_name: string;
   link_attribute_name: string;
