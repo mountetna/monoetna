@@ -17,9 +17,6 @@ import Bracket from './bracket';
 import Corner from './corner';
 import Line from './line';
 
-export const firstValue = token => Object.values(token.values)[0];
-export const firstKey = token => Object.keys(token.values)[0];
-
 const resolvedStyle = makeStyles( theme => ({
   resolved: {
     "& .MuiInputBase-root.Mui-disabled": {
@@ -30,6 +27,8 @@ const resolvedStyle = makeStyles( theme => ({
     }
   }
 }) )
+
+const firstValue = token => Object.values(token.values)[0];
 
 const ResolvedEditor = ({token, description}) => {
   const classes = resolvedStyle();
@@ -107,17 +106,14 @@ const tokenEditorStyles = makeStyles((theme) => ({
 }));
 
 const TokenEditor = params => {
-  const {token, voff=40, seq, height, value, pos, update} = params;
+  const {token, voff=40, seq, lh=70, w=75, height, value, pos, update} = params;
   const classes = tokenEditorStyles()
 
   if (token.type == 'hidden') return null;
 
   const EditorComponent = eval( `${ token.type.charAt(0).toUpperCase() + token.type.slice(1) }Editor`);
 
-  const lh = 70;
-  const w = 75;
-
-  const ch = (height / 2 - token.height - 0.5) * lh;
+  const ch = (height / 2 - token.height) * lh;
 
   return <Grid className={classes.token_editor} style={{position: 'absolute', left: 0, top: 0}}>
     <Bracket

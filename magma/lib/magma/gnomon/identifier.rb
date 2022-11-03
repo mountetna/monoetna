@@ -8,7 +8,7 @@ class Magma
       def to_hash(user)
         {
           identifier: identifier,
-          name_created_at: created_at,
+          name_created_at: created_at.iso8601,
           author: author,
           record_created_at: record_created_at(user)
         }

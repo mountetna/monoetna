@@ -8,6 +8,7 @@ import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
+import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
@@ -129,7 +130,7 @@ const reducer = (state, action) => {
 
 const useStyles = makeStyles((theme) => ({
   header: {
-    borderBottom: '1px solid #eee'
+    borderBottom: '1px solid #ccc'
   },
   buttons: {
     '& > *': {
@@ -153,11 +154,9 @@ const useStyles = makeStyles((theme) => ({
   rows: {
     flex: '1 1 auto'
   },
-  editor: {
-    marginLeft: 20,
-    height: 'calc(100vh - 61px - 48px)',
-    position: 'relative',
-    overflowY: 'clip'
+  rule_editor: {
+    margin: '10px',
+    border: '1px solid #ccc'
   },
   value: {
   },
@@ -323,7 +322,9 @@ const Rule = ({name, rule, dispatch}) => {
 }
 
 const RuleEditorPane = ({type, update, mask, mask2, desc, placeholders, children}) => {
-  return <Card elevation={0}>
+  const classes = useStyles();
+
+  return <Card className={ classes.rule_editor } elevation={0}>
     <CardContent>
       <Typography gutterBottom variant="h5" component="h2">
         {capitalize(type)+'s'}

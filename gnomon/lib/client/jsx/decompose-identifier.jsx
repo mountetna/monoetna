@@ -22,7 +22,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Tooltip from '@material-ui/core/Tooltip';
-import { IdTreeTable } from './idTreeTable';
+import { IdTreeTable } from './match-tables';
 
 const useStyles = makeStyles((theme) => ({
   header: {

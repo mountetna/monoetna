@@ -111,15 +111,9 @@ class GnomonController < Magma::Controller
       identifier = rule_id if rule_name == match_rule_name
     end
 
-    success_json(
-      identifier.to_hash(@user).merge(
-        rules: decomposition[:rules].filter do |rule_name, rule|
-          !existing_identifiers[rule[:name]]
-        end.map do |rule_name, rule|
-          [ rule_name, rule[:name] ]
-        end.to_h
-      )
-    )
+    decomposition = grammar.decompose(@params[:identifier])
+
+    success_json(decomposition)
   end
 
   def revisions
