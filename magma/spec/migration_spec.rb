@@ -404,4 +404,66 @@ EOT
 EOT
     end
   end
+
+  context 'reparent model migrations' do
+    let(:now) { DateTime.now.to_time.to_i }
+
+    def reparent_model(model, new_parent_model)
+      attribute = model.attributes.values.select do |attr|
+        attr.is_a?(Magma::ParentAttribute)
+      end.first
+      reciprocal_model = Magma.instance.get_model('labors', attribute.link_model_name)
+
+      new_parent_attribute = attribute.dup
+      new_model_name = new_parent_model.model_name.to_s
+      new_parent_attribute.attribute_name = new_model_name
+      new_parent_attribute.link_model_name = new_model_name
+      new_parent_attribute.magma_model = new_parent_model
+      new_parent_attribute.column_name = "#{new_model_name}_id"
+
+      reciprocal_attribute = reciprocal_model.attributes[attribute.link_attribute_name.to_sym].dup
+      reciprocal_attribute.model_name = new_model_name
+
+      new_parent_model.attributes[reciprocal_attribute.attribute_name.to_sym] = reciprocal_attribute
+      reciprocal_model.attributes.delete(attribute.link_attribute_name.to_sym)
+      model.attributes.delete(attribute.attribute_name.to_sym)
+      model.attributes[new_parent_attribute.attribute_name.to_sym] = new_parent_attribute
+    end
+
+    before(:each) do
+      Timecop.freeze('2000-01-01') # 946684800 since epoch
+    end
+
+    after(:each) do
+      Timecop.return
+      reparent_model(Labors::Sidekick, Labors::Victim)
+    end
+
+    it 'suggests new foreign key column and backs up old one' do
+      victim = Labors::Sidekick.attributes[:victim].dup
+      sidekick = Labors::Habitat.attributes[:sidekick].dup
+
+      reparent_model(Labors::Sidekick, Labors::Monster)
+
+      migration = Labors::Sidekick.migration
+      expect(migration.to_s).to eq <<EOT.chomp
+    alter_table(Sequel[:labors][:sidekicks]) do
+      add_foreign_key :monster_id, Sequel[:labors][:monsters]
+      add_index :monster_id
+      drop_foreign_constraint_if_exists :#{victim.column_name}
+      rename_column :#{victim.column_name}, :#{victim.column_name}_946684800_backup
+    end
+EOT
+
+      reciprocal_migration = Labors::Victim.migration
+      # Because the FK is on Labors::Sidekick, no migration needed
+      #   for Labors::Victim.
+      expect(reciprocal_migration.to_s).to be_empty
+
+      new_parent_migration = Labors::Monster.migration
+      # Because the FK is on Labors::Sidekick, no migration needed
+      #   for Labors::Monster.
+      expect(new_parent_migration.to_s).to be_empty
+    end
+  end
 end
