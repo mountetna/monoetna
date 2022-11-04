@@ -265,7 +265,7 @@ const setValue = (state, action) => {
     regex: regexForTokens(tokens)
   }
 }
-const reducer = (state, action) => {
+export const reducer = (state, action) => {
   switch(action.type) {
     case 'SET_TOKENS':
       return setTokens(state, action);
@@ -284,6 +284,8 @@ const ComposeIdentifier = ({project_name, rule_name, classes=useStyles()}) => {
     tokens: [],
     seq: ''
   });
+
+  console.log({state});
 
   const [ names, setNames ] = useState(null);
   const [ decomposition, setDecomposition ] = useState(null);

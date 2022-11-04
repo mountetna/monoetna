@@ -1,78 +1,78 @@
 
 require 'json'
 
+VALID_CONFIG={
+  tokens: {
+    PROJECT: {
+      label: "project",
+      values: {
+        "The Twelve Labors of Hercules": "The Twelve Labors of Hercules"
+      }
+    },
+    PROJ: {
+      label: "project",
+      values: {
+        "LABORS": "The Twelve Labors of Hercules"
+      }
+    },
+    LABOR: {
+      label: "labor",
+      values: {
+        "The Nemean Lion": "The Nemean Lion",
+        "The Lernean Hydra": "The Lernean Hydra"
+      }
+    },
+    LAB: {
+      label: "labor",
+      values: {
+        "LION": "The Nemean Lion",
+        "HYDRA": "The Lernean Hydra"
+      }
+    },
+    VILL: {
+      label: "Village type",
+      values: {
+        "V": "Village",
+        "H": "Hamlet"
+      }
+    },
+    VICT: {
+      label: "Victim type",
+      values: {
+        "S": "Soldier",
+        "C": "Civilian"
+      }
+    },
+    SEP: {
+      label: "Separator",
+      values: {
+        "-": "# Separator"
+      }
+    }
+
+  },
+  synonyms: [
+    [ "PROJ", "PROJECT" ],
+    [ "LAB", "LABOR" ]
+  ],
+  rules: {
+    project: "PROJECT",
+    labor: "LABOR",
+    village: "PROJ SEP LAB SEP VILL .n",
+    victim: ".village SEP VICT .n"
+  }
+}
+
+def create_grammar(params={})
+  grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' }.merge(params))
+end
+
 describe GnomonController do
   include Rack::Test::Methods
 
   def app
     OUTER_APP
   end
-
-  def create_grammar(params={})
-    grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' }.merge(params))
-  end
-
-  VALID_CONFIG={
-    tokens: {
-      PROJECT: {
-        label: "project",
-        values: {
-          "The Twelve Labors of Hercules": "The Twelve Labors of Hercules"
-        }
-      },
-      PROJ: {
-        label: "project",
-        values: {
-          "LABORS": "The Twelve Labors of Hercules"
-        }
-      },
-      LABOR: {
-        label: "labor",
-        values: {
-          "The Nemean Lion": "The Nemean Lion",
-          "The Lernean Hydra": "The Lernean Hydra"
-        }
-      },
-      LAB: {
-        label: "labor",
-        values: {
-          "LION": "The Nemean Lion",
-          "HYDRA": "The Lernean Hydra"
-        }
-      },
-      VILL: {
-        label: "Village type",
-        values: {
-          "V": "Village",
-          "H": "Hamlet"
-        }
-      },
-      VICT: {
-        label: "Victim type",
-        values: {
-          "S": "Soldier",
-          "C": "Civilian"
-        }
-      },
-      SEP: {
-        label: "Separator",
-        values: {
-          "-": "# Separator"
-        }
-      }
-
-    },
-    synonyms: [
-      [ "PROJ", "PROJECT" ],
-      [ "LAB", "LABOR" ]
-    ],
-    rules: {
-      project: "PROJECT",
-      labor: "LABOR",
-      village: "PROJ SEP LAB SEP VILL .n",
-      victim: ".village SEP VICT .n"
-    }
-  }
 
   it 'complains if there is no grammar' do
     auth_header(:viewer)
@@ -467,8 +467,8 @@ describe GnomonController do
           village: "LABORS-LION-H2"
         }
         expect(last_response.status).to eq(200)
-        expect(json_body[:identifier]).to eq("LABORS-LION-H2-C1")
-        expect(json_body[:rules]).to eq(rules)
+        expect(json_body[:tokens].map(&:last).join).to eq("LABORS-LION-H2-C1")
+        expect(json_body[:rules].to_h{|k,v| [ k,v[:name] ]}).to eq(rules)
         expect(Magma::Gnomon::Identifier.count).to eq(4)
         expect(Magma::Gnomon::Identifier.select_map(
           [ :rule, :identifier ]
@@ -480,7 +480,7 @@ describe GnomonController do
         auth_header(:admin)
         post('/gnomon/labors/generate/victim/LABORS-LION-H2-C1')
         expect(last_response.status).to eq(200)
-        expect(json_body[:rules].size).to eq(3)
+        expect(json_body[:rules].size).to eq(4)
         expect(Magma::Gnomon::Identifier.count).to eq(4)
       end
 
@@ -507,6 +507,49 @@ describe GnomonController do
           expect(Magma::Gnomon::Identifier.count).to eq(0)
         end
       end
+    end
+  end
+end
+
+describe Magma::Gnomon::Identifier do
+  context 'backfills' do
+    it 'only good identifiers' do
+      grammar = create_grammar(config: VALID_CONFIG)
+
+      victim1 = create(:victim, name: 'Outis Koutsonadis')
+      victim2 = create(:victim, name: 'Susan Doe')
+      victim3 = create(:victim, name: 'LABORS-LION-H2-C1')
+      victim4 = create(:victim, name: 'LABORS-HYDRA-H1-C1')
+
+      expect {
+        Magma::Gnomon::Identifier.backfill(
+          'labors', 'victim', 'eurystheus@twelve-labors.org|Eurystheus',
+          dry_run: false
+        )
+
+      }.to output("2 ids backfilled, 2 do not match current grammar.\nBad Identifiers:\nOutis Koutsonadis, Susan Doe\n").to_stdout
+
+      expect(Magma::Gnomon::Identifier.select_map(:identifier)).to match_array([
+        'LABORS-LION-H2-C1', 'LABORS-HYDRA-H1-C1'
+      ])
+    end
+
+    it 'dry-runs' do
+      grammar = create_grammar(config: VALID_CONFIG)
+
+      victim1 = create(:victim, name: 'Outis Koutsonadis')
+      victim2 = create(:victim, name: 'Susan Doe')
+      victim3 = create(:victim, name: 'LABORS-LION-H2-C1')
+      victim4 = create(:victim, name: 'LABORS-HYDRA-H1-C1')
+
+      expect {
+        Magma::Gnomon::Identifier.backfill(
+          'labors', 'victim', 'eurystheus@twelve-labors.org|Eurystheus'
+        )
+
+      }.to output("2 ids backfilled, 2 do not match current grammar.\nBad Identifiers:\nOutis Koutsonadis, Susan Doe\n").to_stdout
+
+      expect(Magma::Gnomon::Identifier.count).to eq(0)
     end
   end
 end
