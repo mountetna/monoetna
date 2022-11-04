@@ -167,6 +167,8 @@ sidekick:
   weapon_proficiencies:
     type: matrix
     validation: '{"type":"Array", "value":["sword","spear","sling","hands"]}'
+  restricted:
+    type: boolean
 wound:
   victim:
     type: parent

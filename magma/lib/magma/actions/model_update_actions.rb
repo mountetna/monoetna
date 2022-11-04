@@ -10,6 +10,7 @@ require_relative 'add_dictionary'
 require_relative 'set_date_shift_root'
 require_relative 'remove_link'
 require_relative 'remove_model'
+require_relative 'reparent_model'
 require 'rollbar'
 
 class Magma
@@ -159,7 +160,7 @@ class Magma
         action_class = "Magma::#{action_params[:action_name].classify}Action".safe_constantize
 
         if action_class
-          action_params.update({user: @user}) if action_params[:action_name] == 'add_project'
+          action_params.update({user: @user}) if actions_requiring_user.include?(action_params[:action_name])
 
           @actions << action_class.new(
             project_name,
@@ -171,6 +172,10 @@ class Magma
           )
         end
       end
+    end
+
+    def actions_requiring_user
+      ['add_project', 'reparent_model']
     end
   end
 end

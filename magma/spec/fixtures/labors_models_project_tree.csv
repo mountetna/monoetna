@@ -79,6 +79,7 @@ comments,model_name,identifier,parent_model_name,parent_link_type,attribute_name
 ,,,,,updated_at,,date_time,,,,Updated At,,,,,,,true,,
 ,,,,,name,,identifier,,,,Name,,,,,,,,,
 ,,,,,weapon_proficiencies,,matrix,,,,Weapon proficiencies,,,,$copy_from_original$cffba132536c33dcae61f25f21a08855,,,,,
+,,,,,restricted,,boolean,,,,Restricted,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,
 ,wound,,,,,,,,,,,,,,,,,,,
 ,,id,victim,table,,,,,,,,,,,,,,,,
