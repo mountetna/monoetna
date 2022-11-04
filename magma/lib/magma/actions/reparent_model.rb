@@ -96,9 +96,9 @@ class Magma
     end
 
     def current_parent_model
-      @current_parent_model ||= get_model(parent_attribute.link_model_name)
+      @current_parent_model ||= get_model(current_parent_attribute.link_model_name)
     rescue NameError => e
-      raise e unless e.message =~ /^Could not find.*#{parent_attribute.link_model_name}$/
+      raise e unless e.message =~ /^Could not find.*#{current_parent_attribute.link_model_name}$/
       nil
     end
 
@@ -151,21 +151,8 @@ class Magma
     end
 
     def model_has_data?(model_to_inspect)
-      retrieval = Magma::Retrieval.new(
-        model_to_inspect,
-        'all',
-        'identifier',
-        collapse_tables: true,
-        show_disconnected: true,
-        user: user,
-        restrict: false # need to check all the data, even if the user cannot see it
-      )
-
-      retrieval.count > 0
-    end
-
-    def user
-      @action_params[:user]
+      # Just look for records, don't need to check restrictions
+      model_to_inspect.count > 0
     end
 
     def child_models_of(model_to_inspect)
@@ -182,10 +169,46 @@ class Magma
       child_models.map(&:model_name)
     end
 
-    def parent_attribute
-      model.attributes.values.select do |attribute|
+    def current_parent_attribute
+      @current_parent_attribute ||= model.attributes.values.select do |attribute|
         attribute.is_a?(Magma::ParentAttribute)
       end.first
+    end
+
+    def swap_parent_attribute
+      # Add to new_parent
+      set_new_parent
+
+      # Remove from current_parent
+      update_current_parent
+
+    end
+
+    def update_current_parent
+      model.attributes.delete(current_parent_attribute.attribute_name.to_sym)
+      current_parent_model.attributes.delete(reciprocal_attribute_name)
+    end
+
+    def new_parent_attribute
+      @new_parent_attribute ||= begin
+        @new_attr = current_parent_attribute.dup
+        new_model_name = new_parent_model.model_name.to_s
+        @new_attr.attribute_name = new_model_name
+        @new_attr.link_model_name = new_model_name
+        @new_attr.magma_model = new_parent_model
+        @new_attr.column_name = "#{new_model_name}_id"
+
+        @new_attr
+      end
+    end
+
+    def reciprocal_attribute_name
+      current_parent_attribute.link_attribute_name.to_sym
+    end
+
+    def set_new_parent
+      new_parent_model.attributes[reciprocal_attribute_name] = new_parent_attribute
+      model.attributes[new_parent_model.model_name.to_sym] = new_parent_attribute
     end
   end
 end

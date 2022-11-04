@@ -15,23 +15,26 @@ describe Magma::ReparentModelAction do
       end
 
       before do
-        @original_parent_attribute = Labors::Victim.attributes[:sidekick].dup
+        @original_reciprocal_attribute = Labors::Victim.attributes[:sidekick].dup
+        @original_parent_attribute = Labors::Sidekick.attributes[:victim].dup
       end
 
       after do
         # Re-add parent relationship
-        Labors::Victim.attributes[:sidekick] = @original_parent_attribute
+        Labors::Victim.attributes[:sidekick] = @original_reciprocal_attribute
+        Labors::Sidekick.attributes[:victim] = @original_parent_attribute
+        Labors::Monster.attributes.delete(:sidekick)
       end
 
       it "removes the model link and attaches it to the new parent" do
-        project = Magma.instance.get_project(:labors)
-
-        expect(project.detached_models.length).to eq(0)
+        expect(Labors::Monster.attributes[:sidekick]).to be_nil
+        expect(Labors::Sidekick.attributes[:victim]).not_to be_nil
+        expect(Labors::Victim.attributes[:sidekick]).not_to be_nil
 
         expect(action.perform).to eq(true)
 
-        expect(project.detached_models.length).to eq(1)
-        expect(project.detached_models).to match_array([Labors::Sidekick])
+        expect(Labors::Monster.attributes[:sidekick]).not_to be_nil
+        expect(Labors::Sidekick.attributes[:victim]).to be_nil
         expect(Labors::Victim.attributes[:sidekick]).to be_nil
       end
     end
@@ -46,24 +49,27 @@ describe Magma::ReparentModelAction do
       end
 
       before do
-        @original_parent_attribute = Labors::Wound.attributes[:treatment].dup
+        @original_reciprocal_attribute = Labors::Wound.attributes[:treatment].dup
+        @original_parent_attribute = Labors::Treatment.attributes[:wound].dup
       end
 
       after do
         # Re-add parent relationship
-        Labors::Wound.attributes[:treatment] = @original_parent_attribute
+        Labors::Wound.attributes[:treatment] = @original_reciprocal_attribute
+        Labors::Treatment.attributes[:wound] = @original_parent_attribute
+        Labors::Monster.attributes.delete(:treatment)
       end
 
       it "removes the model link and attaches it to the new parent" do
-        project = Magma.instance.get_project(:labors)
-
-        expect(project.detached_models.length).to eq(0)
+        expect(Labors::Monster.attributes[:treatment]).to be_nil
+        expect(Labors::Wound.attributes[:treatment]).not_to be_nil
+        expect(Labors::Treatment.attributes[:wound]).not_to be_nil
 
         expect(action.perform).to eq(true)
 
-        expect(project.detached_models.length).to eq(1)
-        expect(project.detached_models).to match_array([Labors::Treatment])
+        expect(Labors::Monster.attributes[:treatment]).not_to be_nil
         expect(Labors::Wound.attributes[:treatment]).to be_nil
+        expect(Labors::Treatment.attributes[:wound]).to be_nil
       end
     end
 
@@ -77,24 +83,27 @@ describe Magma::ReparentModelAction do
       end
 
       before do
+        @original_reciprocal_attribute = Labors::Vegetation.attributes[:habitat].dup
         @original_parent_attribute = Labors::Habitat.attributes[:vegetation].dup
       end
 
       after do
         # Re-add parent relationship
+        Labors::Vegetation.attributes[:habitat] = @original_reciprocal_attribute
         Labors::Habitat.attributes[:vegetation] = @original_parent_attribute
+        Labors::Victim.attributes.delete(:vegetation)
       end
 
       it "removes the model link and attaches it to the new parent" do
-        project = Magma.instance.get_project(:labors)
-
-        expect(project.detached_models.length).to eq(0)
+        expect(Labors::Victim.attributes[:vegetation]).to be_nil
+        expect(Labors::Habitat.attributes[:vegetation]).not_to be_nil
+        expect(Labors::Vegetation.attributes[:habitat]).not_to be_nil
 
         expect(action.perform).to eq(true)
 
-        expect(project.detached_models.length).to eq(1)
-        expect(project.detached_models).to match_array([Labors::Vegetation])
+        expect(Labors::Victim.attributes[:vegetation]).not_to be_nil
         expect(Labors::Habitat.attributes[:vegetation]).to be_nil
+        expect(Labors::Vegetation.attributes[:habitat]).to be_nil
       end
     end
 
@@ -103,29 +112,32 @@ describe Magma::ReparentModelAction do
         {
           action_name: "reparent_model",
           model_name: "rodent",
-          parent_model_name: "monster"
+          parent_model_name: "victim"
         }
       end
 
       before do
+        @original_reciprocal_attribute = Labors::Rodent.attributes[:habitat].dup
         @original_parent_attribute = Labors::Habitat.attributes[:rodent].dup
       end
 
       after do
         # Re-add parent relationship
+        Labors::Rodent.attributes[:habitat] = @original_reciprocal_attribute
         Labors::Habitat.attributes[:rodent] = @original_parent_attribute
+        Labors::Victim.attributes.delete(:rodent)
       end
 
       it "removes the model link and attaches it to the new parent" do
-        project = Magma.instance.get_project(:labors)
-
-        expect(project.detached_models.length).to eq(0)
+        expect(Labors::Victim.attributes[:rodent]).to be_nil
+        expect(Labors::Habitat.attributes[:rodent]).not_to be_nil
+        expect(Labors::Rodent.attributes[:habitat]).not_to be_nil
 
         expect(action.perform).to eq(true)
 
-        expect(project.detached_models.length).to eq(1)
-        expect(project.detached_models).to match_array([Labors::Rodent])
+        expect(Labors::Victim.attributes[:rodent]).not_to be_nil
         expect(Labors::Habitat.attributes[:rodent]).to be_nil
+        expect(Labors::Rodent.attributes[:habitat]).to be_nil
       end
     end
   end

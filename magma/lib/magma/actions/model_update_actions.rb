@@ -160,7 +160,7 @@ class Magma
         action_class = "Magma::#{action_params[:action_name].classify}Action".safe_constantize
 
         if action_class
-          action_params.update({user: @user}) if actions_requiring_user.include?(action_params[:action_name])
+          action_params.update({user: @user}) if action_params[:action_name] == 'add_project'
 
           @actions << action_class.new(
             project_name,
@@ -172,10 +172,6 @@ class Magma
           )
         end
       end
-    end
-
-    def actions_requiring_user
-      ['add_project', 'reparent_model']
     end
   end
 end
