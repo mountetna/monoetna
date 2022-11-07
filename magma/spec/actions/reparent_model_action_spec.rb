@@ -29,12 +29,16 @@ describe Magma::ReparentModelAction do
       it "removes the model link and attaches it to the new parent" do
         expect(Labors::Monster.attributes[:sidekick]).to be_nil
         expect(Labors::Sidekick.attributes[:victim]).not_to be_nil
+        expect(Labors::Sidekick.attributes[:monster]).to be_nil
         expect(Labors::Victim.attributes[:sidekick]).not_to be_nil
 
         expect(action.perform).to eq(true)
 
         expect(Labors::Monster.attributes[:sidekick]).not_to be_nil
+        expect(Labors::Monster.attributes[:sidekick].class).to eq(Magma::CollectionAttribute)
         expect(Labors::Sidekick.attributes[:victim]).to be_nil
+        expect(Labors::Sidekick.attributes[:monster]).not_to be_nil
+        expect(Labors::Sidekick.attributes[:monster].class).to eq(Magma::ParentAttribute)
         expect(Labors::Victim.attributes[:sidekick]).to be_nil
       end
     end
@@ -63,12 +67,16 @@ describe Magma::ReparentModelAction do
       it "removes the model link and attaches it to the new parent" do
         expect(Labors::Monster.attributes[:treatment]).to be_nil
         expect(Labors::Wound.attributes[:treatment]).not_to be_nil
+        expect(Labors::Treatment.attributes[:monster]).to be_nil
         expect(Labors::Treatment.attributes[:wound]).not_to be_nil
 
         expect(action.perform).to eq(true)
 
         expect(Labors::Monster.attributes[:treatment]).not_to be_nil
+        expect(Labors::Monster.attributes[:treatment].class).to eq(Magma::TableAttribute)
         expect(Labors::Wound.attributes[:treatment]).to be_nil
+        expect(Labors::Treatment.attributes[:monster]).not_to be_nil
+        expect(Labors::Treatment.attributes[:monster].class).to eq(Magma::ParentAttribute)
         expect(Labors::Treatment.attributes[:wound]).to be_nil
       end
     end
@@ -97,12 +105,14 @@ describe Magma::ReparentModelAction do
       it "removes the model link and attaches it to the new parent" do
         expect(Labors::Victim.attributes[:vegetation]).to be_nil
         expect(Labors::Habitat.attributes[:vegetation]).not_to be_nil
+        expect(Labors::Vegetation.attributes[:victim]).to be_nil
         expect(Labors::Vegetation.attributes[:habitat]).not_to be_nil
 
         expect(action.perform).to eq(true)
 
         expect(Labors::Victim.attributes[:vegetation]).not_to be_nil
         expect(Labors::Habitat.attributes[:vegetation]).to be_nil
+        expect(Labors::Vegetation.attributes[:victim]).not_to be_nil
         expect(Labors::Vegetation.attributes[:habitat]).to be_nil
       end
     end

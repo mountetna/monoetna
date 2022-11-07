@@ -123,6 +123,15 @@ type RemoveModelAction = RemoveModelParams & {
   action_name: 'remove_model';
 };
 
+type ReparentModelParams = {
+  model_name: string;
+  parent_model_name: string;
+};
+
+type ReparentModelAction = ReparentModelParams & {
+  action_name: 'reparent_model';
+};
+
 // Basically params returned by the server but not
 //   accepted as part of an update_attribute action.
 const uneditableAttributes = [
@@ -143,6 +152,7 @@ const cleanPayload = (
     | RemoveLinkAction
     | AddModelAction
     | RemoveModelAction
+    | ReparentModelAction
   )[]
 ) => {
   return payload.map((action: any) => {
@@ -166,6 +176,7 @@ const updateModel = (
     | RemoveLinkAction
     | AddModelAction
     | RemoveModelAction
+    | ReparentModelAction
   )[]
 ) => {
   payload = cleanPayload(payload);
@@ -280,6 +291,17 @@ export const removeModel = (params: RemoveModelParams) => {
   };
 
   let actions: RemoveModelAction[] = [removeModelAction];
+
+  return updateModel(actions);
+};
+
+export const reparentModel = (params: ReparentModelParams) => {
+  let reparentModelAction: ReparentModelAction = {
+    action_name: 'reparent_model',
+    ...params
+  };
+
+  let actions: ReparentModelAction[] = [reparentModelAction];
 
   return updateModel(actions);
 };

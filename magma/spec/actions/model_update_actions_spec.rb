@@ -228,6 +228,102 @@ describe Magma::ModelUpdateActions do
           ).to eq(0)
         end
       end
+
+      context 'when reparenting a model' do
+        let(:actions) do
+          Magma::ModelUpdateActions.build(
+              "labors",
+              [
+                  {
+                      action_name: "reparent_model",
+                      model_name: "sidekick",
+                      parent_model_name: "monster"
+                  },
+              ],
+              user,
+              model_versions
+          )
+        end
+
+        let(:now) { DateTime.now.to_time.to_i }
+
+        before(:each) do
+          Timecop.freeze('2000-01-01') # 946684800 since epoch
+          db = Sequel.connect(Magma.instance.config(:db))
+          db[:models].where(project_name: 'labors').update(version: 0)
+
+          @project = Magma.instance.get_project("labors")
+          @sidekick_model = Magma.instance.db[:models].where(project_name: 'labors', model_name: 'sidekick').first
+
+          @sidekick_attributes = @project.models[:sidekick].attributes.values
+
+          @reciprocal_attribute = @project.models[:victim].attributes[:sidekick].dup
+        end
+
+        after(:each) do
+          Timecop.return
+          Magma.instance.db[:models].where(project_name: 'labors').update(version: 0)
+
+          model = @project.load_model(@sidekick_model)
+          model.load_attributes(@sidekick_attributes)
+          @project.models[model.model_name] = model
+          @project.models[:victim].load_attributes([@reciprocal_attribute])
+
+          @project.models[:monster].attributes.delete(:sidekick)
+        end
+
+        it 'reparents model from project in memory and switches foreign key' do
+          project = Magma.instance.get_project(:labors)
+          expect(project.models[:sidekick]).not_to be_nil
+          expect {
+            Labors::Sidekick
+          }.not_to raise_error(NameError)
+
+          backup_foreign_key_name = "victim_id_#{now}_backup"
+
+          Magma.instance.db.transaction(:rollback=>:always) {
+            expect {
+              Magma.instance.db["SELECT #{backup_foreign_key_name} FROM \"labors\".\"sidekicks\""].count
+            }.to raise_error(Sequel::DatabaseError)
+          }
+          Magma.instance.db.transaction(:rollback=>:always) {
+            expect {
+              Magma.instance.db["SELECT victim_id FROM \"labors\".\"sidekicks\""].count
+            }.not_to raise_error(Sequel::DatabaseError)
+          }
+          expect(
+            Magma.instance.db[:attributes].where(project_name: "labors", model_name: "sidekick", attribute_name: "victim").count > 0
+          ).to eq(true)
+          expect(
+            Magma.instance.db[:attributes].where(project_name: "labors", model_name: "sidekick", attribute_name: "monster").count > 0
+          ).to eq(false)
+
+          expect(actions.perform).to eq(true)
+
+          expect(project.models[:sidekick]).not_to be_nil
+
+          expect {
+            Labors::Sidekick
+          }.not_to raise_error(NameError)
+
+          Magma.instance.db.transaction(:rollback=>:always) {
+            expect {
+              Magma.instance.db["SELECT #{backup_foreign_key_name} FROM \"labors\".\"sidekicks\""].count
+            }.not_to raise_error(Sequel::DatabaseError)
+          }
+          Magma.instance.db.transaction(:rollback=>:always) {
+            expect {
+              Magma.instance.db["SELECT victim_id FROM \"labors\".\"sidekicks\""].count
+            }.to raise_error(Sequel::DatabaseError)
+          }
+          expect(
+            Magma.instance.db[:attributes].where(project_name: "labors", model_name: "sidekick", attribute_name: "victim").count > 0
+          ).to eq(false)
+          expect(
+            Magma.instance.db[:attributes].where(project_name: "labors", model_name: "sidekick", attribute_name: "monster").count > 0
+          ).to eq(true)
+        end
+      end
     end
 
     context "when an action fails" do

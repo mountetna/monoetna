@@ -116,6 +116,9 @@ class Magma
       "#{SPC*pad}#{txt}"
     end
 
+    def now
+      DateTime.now.to_time.to_i
+    end
   end
   class CreateMigration < Migration
     def initialize(model)
@@ -175,7 +178,6 @@ class Magma
     end
 
     def remove_column_entry name
-      now = DateTime.now.to_time.to_i
       new_name = "#{name}_#{now}_backup"
 
       # Drop constraints so can add new records without specifying
@@ -242,7 +244,6 @@ class Magma
       drop_index = "alter_table(#{Magma::Migration.table_name(model)})"
       change(drop_index, remove_indices)
 
-      now = DateTime.now.to_time.to_i
       new_name = "Sequel[:#{model.project_name}][:#{model.implicit_table_name}_#{now}_backup]"
       table_rename = "rename_table(#{Magma::Migration.table_name(model)}, #{new_name})"
       change(table_rename, [])

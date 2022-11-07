@@ -182,6 +182,53 @@ class Magma
       # Remove from current_parent
       update_current_parent
 
+      save_new_attribute
+      save_reciprocal_attribute
+      current_reciprocal_attribute.delete
+      current_parent_attribute.delete
+
+      reload_attributes
+    end
+
+    def reload_attributes
+      model.load_attributes(model.attributes.values)
+    end
+
+    def save_new_attribute
+      new_parent_attribute.save
+    rescue Sequel::ValidationFailed => e
+      Magma.instance.logger.log_error(e)
+      @errors << Magma::ActionError.new(
+        message: 'Create new parent attribute failed',
+        source: @action_params.slice(:project_name, :model_name, :parent_model_name),
+        reason: e
+      )
+    end
+
+    def save_reciprocal_attribute
+      new_reciprocal_attribute.save
+    rescue Sequel::ValidationFailed => e
+      Magma.instance.logger.log_error(e)
+      @errors << Magma::ActionError.new(
+        message: 'Create new reciprocal attribute failed',
+        source: @action_params.slice(:project_name, :model_name, :parent_model_name),
+        reason: e
+      )
+    end
+
+    def attribute_params
+      fields = [:model_name, :attribute_name, :type] +
+        Magma::Attribute::EDITABLE_OPTIONS
+
+      new_model_name = new_parent_model.model_name.to_s
+
+      current_parent_attribute.to_hash.slice(*fields).merge(
+        project_name: @project_name,
+        magma_model: new_parent_model,
+        attribute_name: new_model_name,
+        link_model_name: new_model_name,
+        column_name: "#{new_model_name}_id"
+      )
     end
 
     def update_current_parent
@@ -190,16 +237,34 @@ class Magma
     end
 
     def new_parent_attribute
-      @new_parent_attribute ||= begin
-        @new_attr = current_parent_attribute.dup
-        new_model_name = new_parent_model.model_name.to_s
-        @new_attr.attribute_name = new_model_name
-        @new_attr.link_model_name = new_model_name
-        @new_attr.magma_model = new_parent_model
-        @new_attr.column_name = "#{new_model_name}_id"
+      @new_parent_attribute ||= Magma::ParentAttribute.new(
+        attribute_params
+      )
+    end
 
-        @new_attr
-      end
+    def new_reciprocal_attribute
+      @new_reciprocal_attribute ||= current_reciprocal_attribute.class.new(
+        reciprocal_attribute_params
+      )
+    end
+
+    def reciprocal_attribute_params
+      fields = [:model_name, :attribute_name, :type] +
+        Magma::Attribute::EDITABLE_OPTIONS
+
+        current_reciprocal_attribute.to_hash.slice(*fields).merge(
+        project_name: @project_name,
+        magma_model: model,
+        attribute_name: model.model_name,
+        link_model_name: model.model_name,
+        link_attribute_name: new_parent_model.model_name,
+        column_name: model.model_name,
+        model_name: new_parent_model.model_name
+      )
+    end
+
+    def current_reciprocal_attribute
+      @current_reciprocal_attribute ||= current_parent_model.attributes[reciprocal_attribute_name]
     end
 
     def reciprocal_attribute_name
@@ -207,7 +272,7 @@ class Magma
     end
 
     def set_new_parent
-      new_parent_model.attributes[reciprocal_attribute_name] = new_parent_attribute
+      new_parent_model.attributes[reciprocal_attribute_name] = new_reciprocal_attribute
       model.attributes[new_parent_model.model_name.to_sym] = new_parent_attribute
     end
   end

@@ -34,10 +34,12 @@ import AddIcon from '@material-ui/icons/Add';
 import LinkIcon from '@material-ui/icons/Link';
 import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
 import DeleteIcon from '@material-ui/icons/Delete';
+import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
 
 import AddAttributeModal from './add_attribute_modal';
 import AddLinkModal from './add_link_modal';
 import AddModelModal from './add_model_modal';
+import ReparentModelModal from './reparent_model_modal';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {selectModels} from 'etna-js/selectors/magma';
@@ -48,7 +50,8 @@ import {
   addAttribute,
   addLink,
   addModel,
-  removeModel
+  removeModel,
+  reparentModel
 } from '../../api/magma_api';
 import {
   addTemplatesAndDocuments,
@@ -113,7 +116,10 @@ const ManageModelActions = ({
   handleAddLink,
   handleAddModel,
   handleRemoveModel,
-  isLeaf
+  handleReparentModel,
+  isLeaf,
+  canReparent,
+  modelName
 }) => {
   const classes = attributeStyles();
   const {openModal} = useModal();
@@ -161,6 +167,24 @@ const ManageModelActions = ({
           Child Model
         </Button>
       </Tooltip>
+      {canReparent && (
+        <Tooltip title='Reparent Model' aria-label='Reparent Model'>
+          <Button
+            className={classes.addBtn}
+            startIcon={<SwapHorizIcon />}
+            onClick={() => {
+              openModal(
+                <ReparentModelModal
+                  modelName={modelName}
+                  onSave={handleReparentModel}
+                />
+              );
+            }}
+          >
+            Reparent Model
+          </Button>
+        </Tooltip>
+      )}
       {isLeaf && (
         <Tooltip title='Remove Model' aria-label='Remove Model'>
           <Button
@@ -460,11 +484,22 @@ const ModelReport = ({
     );
   }, [model_name]);
 
+  const handleReparentModel = useCallback(
+    (parent_model_name) => {
+      executeAction(reparentModel({model_name, parent_model_name}));
+    },
+    [model_name]
+  );
+
   const isLeaf = useMemo(() => {
     if (!models || !model_name || !models[model_name]) return;
 
     return isLeafModel(models[model_name]);
   }, [model_name, models]);
+
+  const canReparent = useMemo(() => {
+    return !!template?.parent;
+  }, [template]);
 
   return (
     <Grid className={classes.model_report}>
@@ -598,7 +633,10 @@ const ModelReport = ({
             handleAddLink={handleAddLink}
             handleAddModel={handleAddModel}
             handleRemoveModel={handleRemoveModel}
+            handleReparentModel={handleReparentModel}
             isLeaf={isLeaf}
+            canReparent={canReparent}
+            modelName={model_name}
           />
         )}
       </TableContainer>
