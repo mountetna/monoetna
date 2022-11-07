@@ -56,16 +56,49 @@ class GnomonController < Magma::Controller
     rule = require_rule(grammar)
 
     search_term = Regexp.new(@params[:regex] || ".*")
+
     identifiers = Magma::Gnomon::Identifier.where(
       project_name: project_name,
       rule: rule_name
-    ).where { identifier =~ search_term }.map do |id|
-      id.to_hash(@user)
-    end
+    ).where { identifier =~ search_term }.all
 
-    success_json(identifiers)
+    question = Magma::Question.new(
+      project_name,
+      [ rule_name, ["::identifier", "::in", identifiers.map(&:identifier)], "::all", "created_at" ],
+      show_disconnected: false,
+      restrict: !@user.can_see_restricted?(project_name),
+      user: @user,
+      timeout: Magma.instance.config(:query_timeout)
+    )
+
+    records_created_at = question.answer.to_h
+
+    success_json(
+      identifiers.map do |id|
+        id.to_hash.merge(
+          record_created_at: records_created_at[id.identifier]
+        )
+      end
+    )
   end
 
+  private
+  def record(user)
+    model = Magma.instance.get_model(project_name, rule)
+
+    question = Magma::Question.new(
+      project_name,
+      record_query,
+      show_disconnected: false,
+      restrict: !user.can_see_restricted?(project_name),
+      user: user,
+      timeout: Magma.instance.config(:query_timeout)
+    )
+
+    question.answer
+  end
+
+  public
   def rule
     grammar = require_grammar
     rule = require_rule(grammar)

@@ -42,12 +42,12 @@ const useStyles = makeStyles(theme => ({
 const Rule = ({rule, rule_name, project_name, markNotCreated, highlight, highlight2}) => {
   const classes = useStyles();
   return <TableRow className={(highlight2 && !rule.name_created_at) ? classes.highlight2 : highlight ? classes.highlight : ''}>
-    <TableCell component="th" scope="row">
+    <TableCell component='th' scope='row'>
       {rule_name}
     </TableCell>
-    <TableCell>{rule.name + (!markNotCreated || rule.name_created_at ? "" : "*")}</TableCell>
-    <TableCell align="center">{dateFormat(rule.name_created_at, null)}</TableCell>
-    <TableCell align="center">
+    <TableCell>{rule.name + (!markNotCreated || rule.name_created_at ? '' : '*')}</TableCell>
+    <TableCell align='center'>{dateFormat(rule.name_created_at, null)}</TableCell>
+    <TableCell align='center'>
       {
         rule.record_created_at
         ?  <Link
@@ -55,7 +55,7 @@ const Rule = ({rule, rule_name, project_name, markNotCreated, highlight, highlig
               href={`${CONFIG.timur_host}/${project_name}/browse/${rule_name}/${rule.name}`}>
               {dateFormat(rule.record_created_at)}
             </Link>
-          : ""
+          : ''
       }
     </TableCell>
   </TableRow>
@@ -67,17 +67,17 @@ export const IdTreeTable = ({decomposition, project_name, className, markNotCrea
   const primary_rule = decomposition != null ? decomposition.rule_name : null;
   const identifier = getIdentifier(decomposition);
   return <TableContainer className={className}>
-    <Table stickyHeader size="small">
+    <Table stickyHeader size='small'>
       <TableHead>
         {
           decomposition && <TableRow>
             <TableCell>Rule</TableCell>
             <TableCell>Identifier</TableCell>
-            <TableCell align="center">
-              <Tooltip title="Identifiers previously assigned for a current or planned entity" placement="top"><Typography>Created</Typography></Tooltip>
+            <TableCell align='center'>
+              <Tooltip title='Identifiers previously assigned for a current or planned entity' placement='top'><Typography>Created</Typography></Tooltip>
             </TableCell>
-            <TableCell align="center">
-            <Tooltip title="Identifiers with data in the Data Library" placement="top"><Typography>Recorded</Typography></Tooltip>
+            <TableCell align='center'>
+            <Tooltip title='Identifiers with data in the Data Library' placement='top'><Typography>Recorded</Typography></Tooltip>
             </TableCell>
           </TableRow>
         }
@@ -117,14 +117,14 @@ export const MatchingNamesTable = ({names, rule_name, decomposition, className})
   const none = names.length == 0;
   const identifier = getIdentifier(decomposition);
   return <TableContainer className={className}>
-    <Table stickyHeader size="small">
+    <Table stickyHeader size='small'>
       <TableHead>
         {
            !none && <TableRow>
             <TableCell>Identifier</TableCell>
-            <TableCell align="left">Author</TableCell>
-            <TableCell align="right">Created</TableCell>
-            <TableCell align="right">Recorded</TableCell>
+            <TableCell align='left'>Author</TableCell>
+            <TableCell align='right'>Created</TableCell>
+            <TableCell align='right'>Recorded</TableCell>
           </TableRow>
         }
       </TableHead>
@@ -138,10 +138,10 @@ export const MatchingNamesTable = ({names, rule_name, decomposition, className})
           : <TableBody>
           {names.map((name) => (
             <TableRow key={name.identifier} className={ identifier == name.identifier ? classes.highlight : '' }>
-              <TableCell align="left">{name.identifier}</TableCell>
-              <TableCell align="left"><Author author={name.author}/></TableCell>
-              <TableCell align="right">{dateFormat(name.name_created_at, null)}</TableCell>
-              <TableCell align="right">{dateFormat(name.record_created_at, null)}</TableCell>
+              <TableCell align='left'>{name.identifier}</TableCell>
+              <TableCell align='left'><Author author={name.author}/></TableCell>
+              <TableCell align='right'>{dateFormat(name.name_created_at, null)}</TableCell>
+              <TableCell align='right'>{dateFormat(name.record_created_at, null)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

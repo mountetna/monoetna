@@ -45,8 +45,7 @@ const GnomonMain = ({project_name}: {project_name: string}) => {
 
   const [ identifier, setIdentifier ] = useState('');
 
-  const [ rules, setRules ] = useState(null);
-  const [ error, setError ] = useState(null);
+  const [ rules, setRules ] = useState<string[]|null>(null);
 
   const onEnterIdentifier = useCallback( e => {
     if (e.key == 'Enter') {
@@ -84,7 +83,7 @@ const GnomonMain = ({project_name}: {project_name: string}) => {
               <Select value='' onChange={ onSelectRule } displayEmpty>
                 <MenuItem value='' disabled>Create an identifier</MenuItem>
                 {
-                  rules && rules.map( rule => <MenuItem key={rule} value={rule}>{rule}</MenuItem> )
+                  rules && rules?.map( rule => <MenuItem key={rule} value={rule}>{rule}</MenuItem> )
                 }
               </Select>
             </FormControl>

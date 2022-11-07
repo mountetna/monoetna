@@ -12,7 +12,7 @@ import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 
 import { createEtnaTheme } from 'etna-js/style/theme';
 
-const theme = createEtnaTheme("#333","#999");
+const theme = createEtnaTheme('#333','#999');
 
 const ROUTES = [
   {

@@ -5,12 +5,11 @@ class Magma
       many_to_one :renamed_to, class: self, key: :renamed_to_id
       one_to_many :aliases, class: self, key: :renamed_to_id
 
-      def to_hash(user)
+      def to_hash
         {
           identifier: identifier,
           name_created_at: created_at.iso8601,
-          author: author,
-          record_created_at: record_created_at(user)
+          author: author
         }
       end
 
@@ -21,8 +20,6 @@ class Magma
       end
 
       def record(user)
-        model = Magma.instance.get_model(project_name, rule)
-
         question = Magma::Question.new(
           project_name,
           record_query,

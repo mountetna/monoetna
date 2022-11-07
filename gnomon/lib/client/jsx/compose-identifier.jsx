@@ -140,7 +140,7 @@ const Token = ({token, value}) => {
 
 function matchIds(ids, idRegex) {
   if (ids == null) return null
-  const re = new RegExp("^"+idRegex+"$")
+  const re = new RegExp('^'+idRegex+'$')
   return ids.filter(id => re.test(id.identifier))
 }
 
@@ -176,7 +176,7 @@ const regexForTokens = (tokens) => {
   if (tokens == null || tokens == []) return null;
 
   const regex = tokens.map( (token, i) => {
-    if (["resolved", "hidden"].includes(token.type)) return token.seq;
+    if (['resolved', 'hidden'].includes(token.type)) return token.seq;
     else if (token.value != '') return token.value;
     else if (token.type == 'counter') return '[0-9]+';
     else return `(${ Object.keys(token.values).join('|') })`;
@@ -187,12 +187,12 @@ const regexForTokens = (tokens) => {
 
 const setTokens = (state, action) => {
   const [ _, tokens ] = action.tokens.reduce(
-    // - "filled" means all *previous* tokens are assigned, viz., either a
+    // - 'filled' means all *previous* tokens are assigned, viz., either a
     //   single-value token or have a user-specified value
-    // - "assigned" means your current token has an assigned value
-    // - "type" is a fixed class for displaying the token and does not change
-    // - "seq" is the current displayed string (either the token placeholder or a value)
-    // - "height" is the cumulative count of visible tokens (mostly ignoring separators)
+    // - 'assigned' means your current token has an assigned value
+    // - 'type' is a fixed class for displaying the token and does not change
+    // - 'seq' is the current displayed string (either the token placeholder or a value)
+    // - 'height' is the cumulative count of visible tokens (mostly ignoring separators)
     ([filled, newTokens], token, i) => {
       let seq, type, assigned;
       let new_filled = filled;
@@ -276,16 +276,14 @@ export const reducer = (state, action) => {
   }
 }
 
-const ComposeIdentifier = ({project_name, rule_name, classes=useStyles()}) => {
+const ComposeIdentifier = ({project_name, rule_name}) => {
   // 'MVIR1-HS169-D0PL1-CTK1';
-
+  const classes=useStyles();
   // a string of tokens we must satisfy
   const [ state, dispatch ] = useReducer(reducer, {
     tokens: [],
     seq: ''
   });
-
-  console.log({state});
 
   const [ names, setNames ] = useState(null);
   const [ decomposition, setDecomposition ] = useState(null);
@@ -366,10 +364,10 @@ const ComposeIdentifier = ({project_name, rule_name, classes=useStyles()}) => {
         </Grid>
       </Grid>
       <Grid item container className={classes.tables}>
-        <TableWithTitle title="Matching Rules" className={classes.table_column}>
+        <TableWithTitle title='Matching Rules' className={classes.table_column}>
           <IdTreeTable className={classes.match_rules} decomposition={decomposition} project_name={project_name} markNotCreated={true} highlight={ highlight }/>
         </TableWithTitle>
-        <TableWithTitle title="Matching Names" className={classes.table_column}>
+        <TableWithTitle title='Matching Names' className={classes.table_column}>
           <MatchingNamesTable className={classes.match_names} names={matchIds(names, regex)} rule_name={rule_name} decomposition={decomposition}/>
         </TableWithTitle>
       </Grid>

@@ -19,14 +19,14 @@ import Line from './line';
 
 const resolvedStyle = makeStyles( theme => ({
   resolved: {
-    "& .MuiInputBase-root.Mui-disabled": {
-      color: "black"
+    '& .MuiInputBase-root.Mui-disabled': {
+      color: 'black'
     },
-    "& .MuiInputLabel-root.Mui-disabled": {
-      color: "rgba(0,0,0,0.5)"
+    '& .MuiInputLabel-root.Mui-disabled': {
+      color: 'rgba(0,0,0,0.5)'
     }
   }
-}) )
+}) );
 
 const firstValue = token => Object.values(token.values)[0];
 
@@ -39,7 +39,7 @@ const ResolvedEditor = ({token, description}) => {
     InputLabelProps={{ shrink: true }}
     InputProps={{ readOnly: true }}
     value={ description || firstValue(token) }
-  />
+  />;
 };
 
 const CounterEditor = ({token, tokens, value, update, pos, seq, project_name}) => (
@@ -49,7 +49,7 @@ const CounterEditor = ({token, tokens, value, update, pos, seq, project_name}) =
       value={value}
       InputLabelProps={{ shrink: true }}
       size='small'
-      inputProps={{ pattern: "[0-9]*" }}
+      inputProps={{ pattern: '[0-9]*' }}
       label={token.label}/>
     {
       !value && token.filled && <IconButton
@@ -57,7 +57,7 @@ const CounterEditor = ({token, tokens, value, update, pos, seq, project_name}) =
           const pre = tokens.slice(0,pos).map( t => t.seq ).join('');
           json_post(magmaPath(`gnomon/${project_name}/increment/${token.label.replace('_counter','')}/${pre}`)).then(
             value => update(pos, value)
-          )
+          );
         }}
         size='small'
         title={ `Fill the next available value for ${token.label}`}>
@@ -107,7 +107,7 @@ const tokenEditorStyles = makeStyles((theme) => ({
 
 const TokenEditor = params => {
   const {token, voff=40, seq, lh=70, w=75, height, value, pos, update} = params;
-  const classes = tokenEditorStyles()
+  const classes = tokenEditorStyles();
 
   if (token.type == 'hidden') return null;
 
@@ -150,7 +150,7 @@ const TokenEditor = params => {
       bottom={ 7 + ch }
       top={ 7 + ch }
     />
-  </Grid>
-}
+  </Grid>;
+};
 
 export default TokenEditor;

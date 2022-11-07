@@ -330,6 +330,7 @@ declare module 'etna-js/utils/debouncer' {
 declare module 'etna-js/api/magma_api' {
   export function getAnswer(question: any, exchange: any): Promise<T>;
   export function getDocuments(doc_args: any, fetch: Function): Promise<T>;
+  export function magmaPath(endpoint: string): string;
 }
 
 declare module 'etna-js/utils/copy' {

@@ -38,14 +38,14 @@ import RuleScript from './rule-script';
 const upcase = v => v.replace(/[^A-Za-z0-9_]/g, '').toUpperCase();
 
 const DEFAULT_STATE = {
-  "rules": { },
-  "synonyms": [],
-  "tokens": {
-    "SEP": {
-      "name": "SEP",
-      "label": "separator",
-      "values": {
-        "-": "# Separator"
+  'rules': { },
+  'synonyms': [],
+  'tokens': {
+    'SEP': {
+      'name': 'SEP',
+      'label': 'separator',
+      'values': {
+        '-': '# Separator'
       }
     },
   }
@@ -55,13 +55,13 @@ const removeRule = (rules, name) => {
   const { [name]: _, ...other_rules } = rules;
 
   return other_rules;
-}
+};
 
 const removeToken = (tokens, name) => {
   const { [name]: _, ...other_tokens } = tokens;
 
   return other_tokens;
-}
+};
 
 const removeSynFromSet = (state, action) => {
   const synonyms = state.synonyms || [];
@@ -74,8 +74,8 @@ const removeSynFromSet = (state, action) => {
     ...synonyms.slice(0,action.pos),
     ...update_set.length > 0 ? [ update_set ] : [],
     ...synonyms.slice(action.pos+1)
-  ]
-}
+  ];
+};
 
 const addSynToSet = (state, action) => {
   const synonyms = state.synonyms || [];
@@ -88,8 +88,8 @@ const addSynToSet = (state, action) => {
     ...synonyms.slice(0,action.pos),
     [ ...synonyms[action.pos], action.token_name ],
     ...synonyms.slice(action.pos+1)
-  ]
-}
+  ];
+};
 
 const reducer = (state, action) => {
   switch(action.type) {
@@ -100,11 +100,11 @@ const reducer = (state, action) => {
     case 'ADD_SYN_TO_SET':
       return { ...state, synonyms: addSynToSet(state, action) };
     case 'ADD_SYNONYM_SET':
-      return { ...state, synonyms: [ ...(state.synonyms || []), action.set ] }
+      return { ...state, synonyms: [ ...(state.synonyms || []), action.set ] };
     case 'ADD_RULE':
-      return { ...state, rules: { ...state.rules, [action.name] : action.rule } }
+      return { ...state, rules: { ...state.rules, [action.name] : action.rule } };
     case 'ADD_TOKEN':
-      return { ...state, tokens: { ...state.tokens, [action.token.name] : action.token } }
+      return { ...state, tokens: { ...state.tokens, [action.token.name] : action.token } };
     case 'ADD_TOKEN_VALUE':
       return {
         ...state,
@@ -118,14 +118,14 @@ const reducer = (state, action) => {
             }
           },
         }
-      }
+      };
     case 'REMOVE_RULE':
       return { ...state, rules: removeRule(state.rules, action.name) };
     case 'REMOVE_TOKEN':
       return { ...state, tokens: removeToken(state.tokens, action.name) };
     default:
       return state;
-  }
+  };
 };
 
 const useStyles = makeStyles((theme) => ({
@@ -161,7 +161,7 @@ const useStyles = makeStyles((theme) => ({
   value: {
   },
   noprint: {
-    "@media print": {
+    '@media print': {
       display: 'none'
     }
   },
@@ -174,6 +174,64 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
+const AddDialog = ({update, title, content, buttonText, placeholders, mask=(e => e), mask2=(e => e)}) => {
+  const [ open, setOpen ] = useState(false);
+  const [ v1, setV1 ] = useState('');
+  const [ v2, setV2 ] = useState('');
+
+  const classes = useStyles();
+
+  const handleClose = () => {
+    setOpen(false);
+    setV1('');
+    setV2('');
+  };
+
+  const handleAdd = useCallback( () => {
+    update(v1,v2);
+    handleClose();
+  }, [v1, v2]);
+
+  return <React.Fragment>
+    <Button 
+    variant='text'
+    startIcon={<AddIcon/>}
+    color='secondary'
+    className={classes.noprint}
+    onClick={() => setOpen(true)}>{buttonText}</Button>
+    <Dialog open={open} onClose={handleClose} aria-labelledby='form-dialog-title'>
+      <DialogTitle id='form-dialog-title'>{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          {content}
+        </DialogContentText>
+        <TextField
+          autoFocus
+          margin='dense'
+          placeholder={ placeholders[0] }
+          fullWidth
+          value={ v1 }
+          onChange={ e => setV1(mask(e.target.value)) }
+        />
+        { placeholders[1] && <TextField
+          margin='dense'
+          placeholder={ placeholders[1] }
+          fullWidth
+          value={ v2 }
+          onChange={ e => setV2(mask2(e.target.value)) }
+        /> }
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} color='primary'>
+          Cancel
+        </Button>
+        <Button onClick={ handleAdd } color='primary' disabled={ !v1 || (placeholders[1] && !v2) }>
+          Add
+        </Button>
+      </DialogActions>
+    </Dialog>
+  </React.Fragment>;
+};
 
 const Synonym = ({set, pos, dispatch}) => {
   const classes = useStyles();
@@ -188,9 +246,9 @@ const Synonym = ({set, pos, dispatch}) => {
       }
       <Grid item xs={1}>
         <AddDialog
-          title={`Add a synonym`}
+          title='Add a synonym'
           content={`Add a new synonym for ${set.join(', ')}`}
-          buttonText={ `ADD SYNONYM` }
+          buttonText='ADD SYNONYM'
         update={ token_name => dispatch({ type: 'ADD_SYN_TO_SET', pos, token_name }) }
           mask={ upcase }
           placeholders={ [ 'TOKEN_NAME' ] }
@@ -248,68 +306,8 @@ const Token = ({token, dispatch}) => {
         placeholders={[ 'Value', 'Description' ]}
       />
     </Grid>
-  </Grid>
-}
-
-const AddDialog = ({update, title, content, buttonText, placeholders, mask=(e => e), mask2=(e => e)}) => {
-  const [ open, setOpen ] = useState(false);
-  const [ v1, setV1 ] = useState('');
-  const [ v2, setV2 ] = useState('');
-
-  const classes = useStyles();
-
-  const handleClose = () => {
-    setOpen(false);
-    setV1('');
-    setV2('');
-  }
-
-  const handleAdd = useCallback( () => {
-    update(v1,v2);
-    handleClose();
-  }, [v1, v2]);
-
-  return <React.Fragment>
-    <Button 
-    variant='text'
-    startIcon={<AddIcon/>}
-    color='secondary'
-    className={classes.noprint}
-    onClick={() => setOpen(true)}>{buttonText}</Button>
-    <Dialog open={open} onClose={handleClose} aria-labelledby='form-dialog-title'>
-      <DialogTitle id='form-dialog-title'>{title}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          {content}
-        </DialogContentText>
-        <TextField
-          autoFocus
-          margin='dense'
-          placeholder={ placeholders[0] }
-          fullWidth
-          value={ v1 }
-          onChange={ e => setV1(mask(e.target.value)) }
-        />
-        { placeholders[1] && <TextField
-          margin='dense'
-          placeholder={ placeholders[1] }
-          fullWidth
-          value={ v2 }
-          onChange={ e => setV2(mask2(e.target.value)) }
-        /> }
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color='primary'>
-          Cancel
-        </Button>
-        <Button onClick={ handleAdd } color='primary' disabled={ !v1 || (placeholders[1] && !v2) }>
-          Add
-        </Button>
-      </DialogActions>
-    </Dialog>
-  </React.Fragment>
-}
-
+  </Grid>;
+};
 
 const Rule = ({name, rule, dispatch}) => {
   const classes = useStyles();
@@ -318,15 +316,15 @@ const Rule = ({name, rule, dispatch}) => {
     container className={`${classes.rule} ${classes.strikeout}`}>
     <Grid item xs={2}>{ name }</Grid>
     <Grid item xs={10}>{ rule }</Grid>
-  </Grid>
-}
+  </Grid>;
+};
 
 const RuleEditorPane = ({type, update, mask, mask2, desc, placeholders, children}) => {
   const classes = useStyles();
 
   return <Card className={ classes.rule_editor } elevation={0}>
     <CardContent>
-      <Typography gutterBottom variant="h5" component="h2">
+      <Typography gutterBottom variant='h5' component='h2'>
         {capitalize(type)+'s'}
       </Typography>
       { children }
@@ -342,8 +340,8 @@ const RuleEditorPane = ({type, update, mask, mask2, desc, placeholders, children
         placeholders={ placeholders }
       />
     </CardActions>
-  </Card>
-}
+  </Card>;
+};
 
 const RuleEditor = ({project_name}) => {
   const classes = useStyles();
@@ -367,7 +365,7 @@ const RuleEditor = ({project_name}) => {
     setEditedScript(script);
     setSavedState(config);
     setSavedScript(script)
-  }
+  };
 
   useEffect( () => {
     json_get(magmaPath(`gnomon/${project_name}/`)).then(
@@ -387,7 +385,7 @@ const RuleEditor = ({project_name}) => {
         e => e.then( ({errors}) =>  setError( errors.join('; ')))
       );
     }, [ editedState, editedScript, savedState, showJson, comment ]
-  )
+  );
 
   const revertRules = useCallback(
     () => {
@@ -397,7 +395,7 @@ const RuleEditor = ({project_name}) => {
       setComment('');
 
     }, [ editedState, savedState ]
-  )
+  );
 
   return <Grid>
     <ProjectHeader project_name={project_name} className={classes.header}>
@@ -527,7 +525,7 @@ const RuleEditor = ({project_name}) => {
         </RuleEditorPane>
       </>
     }
-  </Grid>
-}
+  </Grid>;
+};
 
 export default RuleEditor;
