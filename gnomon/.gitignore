@@ -5,7 +5,6 @@ trash.rb
 
 /node_modules/
 /client/js/
-/client/img/
 /client/fonts/
 /tmp
 /log
@@ -13,7 +12,6 @@ trash.rb
 
 *.swp
 *.eot
-*.svg
 *.ttf
 *.woff
 *.woff2

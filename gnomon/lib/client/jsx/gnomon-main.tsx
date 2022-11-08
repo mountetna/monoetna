@@ -1,5 +1,4 @@
 import React, {useState, useEffect, useCallback, useContext} from 'react';
-import { useDispatch } from 'react-redux';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
@@ -11,6 +10,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import ProjectHeader from 'etna-js/components/project-header';
 
 import {requestAnswer} from 'etna-js/actions/magma_actions';
+import { json_get } from 'etna-js/utils/fetch';
+import { magmaPath } from 'etna-js/api/magma_api';
 
 const useStyles = makeStyles((theme) => ({
   frame: {
@@ -44,8 +45,7 @@ const GnomonMain = ({project_name}: {project_name: string}) => {
 
   const [ identifier, setIdentifier ] = useState('');
 
-  const [ models, setModels ] = useState(null);
-  const [ error, setError ] = useState(null);
+  const [ rules, setRules ] = useState<string[]|null>(null);
 
   const onEnterIdentifier = useCallback( e => {
     if (e.key == 'Enter') {
@@ -53,19 +53,14 @@ const GnomonMain = ({project_name}: {project_name: string}) => {
     }
   }, [ identifier ]);
 
-  const onSelectModel = useCallback( e => {
+  const onSelectRule = useCallback( e => {
     window.location.href = `/${project_name}/create/${e.target.value}`;
   }, [] );
 
-  const dispatch = useDispatch();
-
   useEffect(() => {
-    requestAnswer({
-      project_name,
-      query: '::model_names'
-    })(dispatch).then(
-      ({answer}) => { setModels(answer.sort()); setError(null); }
-    ).catch( e => e.then( ({error}) => setError(error) ) );
+    json_get(magmaPath(`gnomon/${project_name}`)).then(
+      ({config}) => setRules(Object.keys(config.rules || {}))
+    )
   }, []);
 
   return (
@@ -85,10 +80,10 @@ const GnomonMain = ({project_name}: {project_name: string}) => {
           <Grid><Typography color='secondary'>∼ OR ∼</Typography></Grid>
           <Grid>
             <FormControl variant='outlined'>
-              <Select value='' onChange={ onSelectModel } displayEmpty>
+              <Select value='' onChange={ onSelectRule } displayEmpty>
                 <MenuItem value='' disabled>Create an identifier</MenuItem>
                 {
-                  models && models.map( m => <MenuItem key={m} value={m}>{m}</MenuItem> )
+                  rules && rules?.map( rule => <MenuItem key={rule} value={rule}>{rule}</MenuItem> )
                 }
               </Select>
             </FormControl>

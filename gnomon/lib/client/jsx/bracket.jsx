@@ -1,8 +1,9 @@
 import React from 'react';
 import Grid from '@material-ui/core/Grid';
 
-const Bracket = ({top, bottom, left, width}) => (
+const Bracket = ({top, bottom, left, width, className}) => (
   <Grid
+    className={className}
     style={{
       position: 'absolute',
       top, bottom, left, width,

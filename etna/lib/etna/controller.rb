@@ -133,7 +133,7 @@ MESSAGE_END
     end
 
     def config_hosts
-      [:janus, :magma, :timur, :metis, :vulcan, :polyphemus].map do |host|
+      [:janus, :magma, :timur, :metis, :vulcan, :polyphemus, :gnomon].map do |host|
         [ :"#{host}_host", @server.send(:application).config(host)&.dig(:host) ]
       end.to_h.compact
     end

@@ -1,5 +1,15 @@
 
 class Gnomon
+  class Migrate < Etna::Command
+    usage 'Run migrations for the current environment.'
+    string_flags << '--version'
+
+    def execute(version: nil)
+    end
+
+    def setup(config)
+    end
+  end
   class Console < Etna::Command
     usage 'Open a console with a connected Gnomon instance.'
 

@@ -19,12 +19,14 @@ Dockerfile:
 	if [ ! -e Dockerfile ]; then cp $(call find_project_file,etna-base,Dockerfile.etna-ruby.default) Dockerfile; fi
 
 run-image-test::
-	docker-compose up -d $(app_db_name) || true
-	docker run --rm $(EXTRA_DOCKER_ARGS) -e $(app_name_capitalized)_ENV=test \
-			-e APP_NAME=$(app_name) -e RELEASE_TEST=1 -e CI_SECRET=$${CI_SECRET} \
-			-e IS_CI=$${IS_CI} -e WAIT_FOR_DB=1 -e UPDATE_STATE=1 \
-			--network monoetna_default $(fullTag) \
-			/entrypoints/development.sh rspec
+	if [ -d spec ]; then \
+		docker-compose up -d $(app_db_name) || true; \
+		docker run --rm $(EXTRA_DOCKER_ARGS) -e $(app_name_capitalized)_ENV=test \
+				-e APP_NAME=$(app_name) -e RELEASE_TEST=1 -e CI_SECRET=$${CI_SECRET} \
+				-e IS_CI=$${IS_CI} -e WAIT_FOR_DB=1 -e UPDATE_STATE=1 \
+				--network monoetna_default $(fullTag) \
+				/entrypoints/development.sh rspec; \
+	fi
 
 update-ready::
 	docker-compose up -d $(app_db_name)

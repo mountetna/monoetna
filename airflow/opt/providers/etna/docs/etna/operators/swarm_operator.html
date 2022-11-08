@@ -163,6 +163,7 @@
     <span class="n">local_network_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">allow_manager_nodes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">resources</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Resources</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">additional_constraints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SwarmServiceDefinition</span><span class="p">:</span>
 
     <span class="n">spec</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Spec&quot;</span><span class="p">]</span>
@@ -181,6 +182,9 @@
         <span class="p">]</span>
         <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;node.role!=manager&quot;</span><span class="p">)</span>
         <span class="n">placement</span><span class="p">[</span><span class="s2">&quot;Constraints&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">constraints</span>
+
+    <span class="k">if</span> <span class="n">additional_constraints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">placement</span><span class="p">[</span><span class="s2">&quot;Constraints&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">additional_constraints</span>
 
     <span class="k">return</span> <span class="n">SwarmServiceDefinition</span><span class="p">(</span>
         <span class="n">image</span><span class="o">=</span><span class="n">container_spec</span><span class="p">[</span><span class="s2">&quot;Image&quot;</span><span class="p">],</span>
@@ -274,6 +278,7 @@
     <span class="n">mem_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
     <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
     <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">additional_constraints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -287,6 +292,7 @@
         <span class="n">mem_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">additional_constraints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwds</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mem_reservation</span> <span class="o">=</span> <span class="n">mem_reservation</span>
@@ -296,6 +302,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">source_service</span> <span class="o">=</span> <span class="n">source_service</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">include_external_networks</span> <span class="o">=</span> <span class="n">include_external_networks</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">allow_manager_nodes</span> <span class="o">=</span> <span class="n">allow_manager_nodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">additional_constraints</span> <span class="o">=</span> <span class="n">additional_constraints</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DockerSwarmOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_start_task</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -309,6 +316,7 @@
             <span class="n">service_data</span><span class="p">,</span>
             <span class="n">local_network_ids</span><span class="p">,</span>
             <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">allow_manager_nodes</span><span class="p">,</span>
+            <span class="n">additional_constraints</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">additional_constraints</span><span class="p">,</span>
             <span class="n">resources</span><span class="o">=</span><span class="n">Resources</span><span class="p">(</span>
                 <span class="n">cpu_limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cpu_limit</span><span class="p">,</span>
                 <span class="n">cpu_reservation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cpu_reservation</span><span class="p">,</span>
@@ -631,7 +639,8 @@
     data: Dict,
     local_network_ids: Union[Set[str], NoneType] = None,
     allow_manager_nodes: Union[bool, NoneType] = False,
-    resources: Union[docker.types.services.Resources, NoneType] = None
+    resources: Union[docker.types.services.Resources, NoneType] = None,
+    additional_constraints: Union[List[str], NoneType] = None
 ) -&gt; <a href="#SwarmServiceDefinition">etna.operators.swarm_operator.SwarmServiceDefinition</a></span>:
     </div>
 
@@ -642,6 +651,7 @@
     <span class="n">local_network_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">allow_manager_nodes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">resources</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Resources</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">additional_constraints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SwarmServiceDefinition</span><span class="p">:</span>
 
     <span class="n">spec</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;Spec&quot;</span><span class="p">]</span>
@@ -660,6 +670,9 @@
         <span class="p">]</span>
         <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;node.role!=manager&quot;</span><span class="p">)</span>
         <span class="n">placement</span><span class="p">[</span><span class="s2">&quot;Constraints&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">constraints</span>
+
+    <span class="k">if</span> <span class="n">additional_constraints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">placement</span><span class="p">[</span><span class="s2">&quot;Constraints&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">additional_constraints</span>
 
     <span class="k">return</span> <span class="n">SwarmServiceDefinition</span><span class="p">(</span>
         <span class="n">image</span><span class="o">=</span><span class="n">container_spec</span><span class="p">[</span><span class="s2">&quot;Image&quot;</span><span class="p">],</span>
@@ -805,6 +818,7 @@
     <span class="n">mem_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
     <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
     <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">additional_constraints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -818,6 +832,7 @@
         <span class="n">mem_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">additional_constraints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwds</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mem_reservation</span> <span class="o">=</span> <span class="n">mem_reservation</span>
@@ -827,6 +842,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">source_service</span> <span class="o">=</span> <span class="n">source_service</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">include_external_networks</span> <span class="o">=</span> <span class="n">include_external_networks</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">allow_manager_nodes</span> <span class="o">=</span> <span class="n">allow_manager_nodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">additional_constraints</span> <span class="o">=</span> <span class="n">additional_constraints</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DockerSwarmOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_start_task</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -840,6 +856,7 @@
             <span class="n">service_data</span><span class="p">,</span>
             <span class="n">local_network_ids</span><span class="p">,</span>
             <span class="n">allow_manager_nodes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">allow_manager_nodes</span><span class="p">,</span>
+            <span class="n">additional_constraints</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">additional_constraints</span><span class="p">,</span>
             <span class="n">resources</span><span class="o">=</span><span class="n">Resources</span><span class="p">(</span>
                 <span class="n">cpu_limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cpu_limit</span><span class="p">,</span>
                 <span class="n">cpu_reservation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cpu_reservation</span><span class="p">,</span>
@@ -1229,6 +1246,7 @@ the KubernetesExecutor ::
     mem_limit: Union[int, NoneType] = None,
     cpu_reservation: Union[int, NoneType] = None,
     mem_reservation: Union[int, NoneType] = None,
+    additional_constraints: Union[List[str], NoneType] = None,
     **kwds
 )</span>
     </div>
@@ -1247,6 +1265,7 @@ the KubernetesExecutor ::
         <span class="n">mem_limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">cpu_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">mem_reservation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">additional_constraints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwds</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mem_reservation</span> <span class="o">=</span> <span class="n">mem_reservation</span>
@@ -1256,6 +1275,7 @@ the KubernetesExecutor ::
         <span class="bp">self</span><span class="o">.</span><span class="n">source_service</span> <span class="o">=</span> <span class="n">source_service</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">include_external_networks</span> <span class="o">=</span> <span class="n">include_external_networks</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">allow_manager_nodes</span> <span class="o">=</span> <span class="n">allow_manager_nodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">additional_constraints</span> <span class="o">=</span> <span class="n">additional_constraints</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DockerSwarmOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
 </pre></div>
 

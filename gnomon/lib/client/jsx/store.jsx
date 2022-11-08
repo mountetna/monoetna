@@ -9,8 +9,9 @@ const createStore = () => {
 
   let middleWares = [thunk];
 
-  if (process.env.NODE_ENV != 'production')
+  if (process.env.NODE_ENV != 'production') {
     middleWares.unshift(ReduxLogger.createLogger({collapsed: true}));
+  }
 
   return Redux.createStore(
     Redux.combineReducers(reducers),
