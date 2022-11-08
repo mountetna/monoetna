@@ -192,6 +192,8 @@ class Magma
 
     def reload_attributes
       model.load_attributes(model.attributes.values)
+      current_parent_model.load_attributes(current_parent_model.attributes.values)
+      new_parent_model.load_attributes(new_parent_model.attributes.values)
     end
 
     def save_new_attribute
