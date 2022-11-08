@@ -446,8 +446,7 @@ EOT
       reparent_model(Labors::Sidekick, Labors::Monster)
 
       migration = Labors::Sidekick.migration
-      require 'pry'
-      binding.pry
+
       expect(migration.to_s).to eq <<EOT.chomp
     alter_table(Sequel[:labors][:sidekicks]) do
       add_foreign_key :monster_id, Sequel[:labors][:monsters]
