@@ -62,15 +62,17 @@ const QuerySelectPane = () => {
 
   const handleOnSelectAttribute = useCallback(
     (columnIndex: number, column: QueryColumn, attributeName: string) => {
+      const previousDefaultLabel = `${column.model_name}.${column.attribute_name}`;
+
+      const newLabel = ['', previousDefaultLabel].includes(column.display_label)
+        ? `${column.model_name}.${attributeName}`
+        : column.display_label;
+
       patchQueryColumn(columnIndex, {
         model_name: column.model_name,
         slices: [],
         attribute_name: attributeName,
-        display_label: `${
-          column.display_label === ''
-            ? `${column.model_name}.${attributeName}`
-            : column.display_label
-        }`
+        display_label: newLabel
       });
     },
     [patchQueryColumn]
@@ -213,11 +215,7 @@ const QuerySelectPane = () => {
                     canEdit={0 !== index}
                     graph={graph}
                     onSelectModel={(modelName: string) =>
-                      handleOnSelectModel(
-                        index,
-                        modelName,
-                        column.display_label
-                      )
+                      handleOnSelectModel(index, modelName, '')
                     }
                     onSelectAttribute={(attributeName: string) =>
                       handleOnSelectAttribute(index, column, attributeName)

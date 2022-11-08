@@ -16,3 +16,4 @@ Dockerfile
 config.yml
 Makefile
 *.mk
+*.swp

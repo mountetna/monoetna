@@ -1,5 +1,6 @@
 class User < Sequel::Model
   include Etna::Instrumentation
+
   one_to_many :permissions
 
   def validate
@@ -118,7 +119,7 @@ class User < Sequel::Model
         permission.project&.project_name == project
     end
   end
-  
+
   def set_guest_permissions!(project_name)
     # For given project: if agreed, ensure at least guest access; if explicitly !agreed, remove guest access; if no cc aggreement, do nothing
     cc_agreements_project = CcAgreement.where(user_email: email, project_name: project_name).all
