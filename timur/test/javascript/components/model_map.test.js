@@ -57,7 +57,7 @@ describe('ModelMap', () => {
     expect(tree).toMatchSnapshot();
   });
 
-  it('renders with model action buttons for admin user', async () => {
+  it('renders with model action buttons for admin user (no reparent model for project)', async () => {
     store = mockStore({
       magma: {models},
       janus: {projects: require('../fixtures/project_names.json')},
@@ -81,6 +81,38 @@ describe('ModelMap', () => {
     expect(screen.getByTitle('Add Link')).toBeTruthy();
     expect(screen.getByTitle('Add Attribute')).toBeTruthy();
     expect(screen.getByTitle('Add Child Model')).toBeTruthy();
+    expect(screen.queryByTitle('Reparent Model')).toBeFalsy();
+    expect(asFragment()).toMatchSnapshot();
+  });
+
+  it('renders with reparent model action buttons for admin user, non-project', async () => {
+    store = mockStore({
+      magma: {models},
+      janus: {projects: require('../fixtures/project_names.json')},
+      user: {
+        permissions: {
+          labors: {
+            role: 'administrator'
+          }
+        }
+      }
+    });
+
+    const {asFragment} = render(
+      <Provider store={store}>
+        <ModelMap />
+      </Provider>
+    );
+
+    await waitFor(() => screen.getByText('Attribute'));
+
+    const monsterModel = screen.getByText('monster');
+    fireEvent.click(monsterModel);
+
+    expect(screen.getByTitle('Add Link')).toBeTruthy();
+    expect(screen.getByTitle('Add Attribute')).toBeTruthy();
+    expect(screen.getByTitle('Add Child Model')).toBeTruthy();
+    expect(screen.getByTitle('Reparent Model')).toBeTruthy();
     expect(asFragment()).toMatchSnapshot();
   });
 
@@ -108,6 +140,7 @@ describe('ModelMap', () => {
     expect(screen.queryByTitle('Add Link')).toBeFalsy();
     expect(screen.queryByTitle('Add Attribute')).toBeFalsy();
     expect(screen.queryByTitle('Add Child Model')).toBeFalsy();
+    expect(screen.queryByTitle('Reparent Model')).toBeFalsy();
     expect(asFragment()).toMatchSnapshot();
   });
 

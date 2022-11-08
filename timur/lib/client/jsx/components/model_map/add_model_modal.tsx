@@ -64,7 +64,7 @@ export default function AddModelModal({onSave}: {onSave: any}) {
     [existingModelNames]
   );
 
-  const modelLinkTypeOptions = ['child', 'collection'];
+  const modelLinkTypeOptions = ['child', 'collection', 'table'];
 
   return (
     <div className='add-model-modal model-actions-modal'>
