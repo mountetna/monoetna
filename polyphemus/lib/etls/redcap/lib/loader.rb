@@ -3,7 +3,6 @@ module Redcap
     def self.to_schema
       {
         "$schema": "http://json-schema.org/draft-07/schema#",
-	"$id": "https://example.com/product.schema.json",
 	title: "Redcap Loader",
 	description: "This loader takes data from a Redcap host and imports it into Magma according to a specified mapping template. It requires a Redcap API token.",
         definitions: [

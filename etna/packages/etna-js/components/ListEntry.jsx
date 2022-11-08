@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import {userFormat, dateFormat} from '../utils/format';
+import {authorFormat, dateFormat} from '../utils/format';
 
 import Icon from './icon';
 
@@ -22,7 +22,7 @@ export const ListEntryTypeColumn = ({icon, widths}) => (
 export const ListEntryUpdatedColumn = ({obj, widths}) => (
   <ListEntryColumn className='updated' widths={widths}>
     <div className='list-entry-updated-name'>
-      {dateFormat(obj.updated_at)} by {userFormat(obj.author)}
+      {dateFormat(obj.updated_at)} by {authorFormat(obj.author)}
     </div>
   </ListEntryColumn>
 );

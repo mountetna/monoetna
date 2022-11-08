@@ -10,6 +10,7 @@ import WorkflowsCarousel from './dashboard/workflows_carousel';
 import FiguresGrid from './dashboard/figures_grid';
 import FiguresControls from './dashboard/figures_controls';
 import WorkflowControls from './dashboard/workflow_controls';
+import ProjectHeader from 'etna-js/components/project-header';
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -40,11 +41,7 @@ export default function Dashboard({project_name}: {project_name: string}) {
   return (
     <main className='vulcan-dashboard'>
       <Grid container direction='column'>
-        <Grid item container className={classes.title}>
-          <Typography color='primary' variant='h5'>
-            {project_name}
-          </Typography>
-        </Grid>
+        <ProjectHeader project_name={ project_name } className={classes.title}/>
         <Grid item container className={classes.tableHeader}>
           <Grid item xs={2}>
             <Typography

@@ -28,8 +28,8 @@ RUN apt-get update \
       tk \
       --no-install-recommends
 
-# add postgres 10 repo for debian stretch
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
+# add postgres 10 repo for debian bionic
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
 RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 
 RUN apt-get update \

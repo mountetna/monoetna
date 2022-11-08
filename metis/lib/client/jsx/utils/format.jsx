@@ -2,11 +2,6 @@
  * Change a timestamp in to a human readable format.
  */
 
-export const userFormat = (author) => {
-  let [email, name] = author.split(/\|/);
-  return name;
-};
-
 export const dateFormat = (timestamp) => {
   if (timestamp == undefined || timestamp == null) return 'Unknown';
 

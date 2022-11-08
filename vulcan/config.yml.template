@@ -21,6 +21,8 @@ default: &default
     :host: https://janus.development.local
   :polyphemus:
     :host: https://polyphemus.development.local
+  :gnomon:
+    :host: https://gnomon.development.local
   :auth_redirect: https://janus.development.local
   :data_folder: /app/data
   :workflows_folder: /app/lib/server/workflows

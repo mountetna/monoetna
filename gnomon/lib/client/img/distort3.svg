@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   viewBox="100 150 200 200"
+   version="1.1"
+   id="svg8">
+  <defs>
+  <radialGradient id="r" >
+      <stop offset="0" stop-color="red">
+          <animate attributeName="offset" values="0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0.125" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="orange">
+          <animate attributeName="offset" values="0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0.125;0.25" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="green">
+          <animate attributeName="offset" values="0;0;0;0;0;0;0;0;0;0;0;0;0;0;0.125;0.25;0.375" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="red">
+          <animate attributeName="offset" values="0;0;0;0;0;0;0;0;0;0;0;0;0;0.125;0.25;0.375;0.5" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="yellow">
+          <animate attributeName="offset" values="0;0;0;0;0;0;0;0;0;0;0;0;0.125;0.25;0.375;0.5;0.625" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="orange">
+          <animate attributeName="offset" values="0;0;0;0;0;0;0;0;0;0;0;0.125;0.25;0.375;0.5;0.625;0.75" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="purple">
+          <animate attributeName="offset" values="0;0;0;0;0;0;0;0;0;0;0.125;0.25;0.375;0.5;0.625;0.75;0.875" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="orange">
+          <animate attributeName="offset" values="0;0;0;0;0;0;0;0;0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="red">
+          <animate attributeName="offset" values="0;0;0;0;0;0;0;0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="orange">
+          <animate attributeName="offset" values="0;0;0;0;0;0;0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="green">
+          <animate attributeName="offset" values="0;0;0;0;0;0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="red">
+          <animate attributeName="offset" values="0;0;0;0;0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="yellow">
+          <animate attributeName="offset" values="0;0;0;0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1;1;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="orange">
+          <animate attributeName="offset" values="0;0;0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1;1;1;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="purple">
+          <animate attributeName="offset" values="0;0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1;1;1;1;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="orange">
+          <animate attributeName="offset" values="0;0.125;0.25;0.375;0.5;0.625;0.75;0.875;1;1;1;1;1;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="red">
+          <animate attributeName="offset" values="0.125;0.25;0.375;0.5;0.625;0.75;0.875;1;1;1;1;1;1;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="orange">
+          <animate attributeName="offset" values="0.25;0.375;0.5;0.625;0.75;0.875;1;1;1;1;1;1;1;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="green">
+          <animate attributeName="offset" values="0.375;0.5;0.625;0.75;0.875;1;1;1;1;1;1;1;1;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="red">
+          <animate attributeName="offset" values="0.5;0.625;0.75;0.875;1;1;1;1;1;1;1;1;1;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="yellow">
+          <animate attributeName="offset" values="0.625;0.75;0.875;1;1;1;1;1;1;1;1;1;1;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="orange">
+          <animate attributeName="offset" values="0.75;0.875;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="purple">
+          <animate attributeName="offset" values="0.875;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+      <stop offset="0" stop-color="orange">
+          <animate attributeName="offset" values="1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1" dur="2s" repeatCount="indefinite"/>
+      </stop>
+
+</radialGradient>
+<filter id="distort">
+  <feGaussianBlur stdDeviation="10"/>
+</filter>
+  </defs>
+  <circle filter="url(#distort)" cx="200" cy="200" r="200" fill="url(#r)"/>
+</svg>
