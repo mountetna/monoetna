@@ -119,9 +119,6 @@ class Magma
       migrations = @project.migrations
       return if migrations.all?(&:empty?)
 
-      puts "migrations"
-      puts migrations.map(&:class)
-
       sequel_migration = eval("
         Sequel.migration do
           up do
