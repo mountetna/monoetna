@@ -262,14 +262,19 @@ describe Magma::ModelUpdateActions do
 
         after(:each) do
           Timecop.return
-          Magma.instance.db[:models].where(project_name: 'labors').update(version: 0)
-
-          model = @project.load_model(@sidekick_model)
-          model.load_attributes(@sidekick_attributes)
-          @project.models[model.model_name] = model
-          @project.models[:victim].load_attributes([@reciprocal_attribute])
-
-          @project.models[:monster].attributes.delete(:sidekick)
+          revert_action = Magma::ModelUpdateActions.build(
+            "labors",
+            [
+                {
+                    action_name: "reparent_model",
+                    model_name: "sidekick",
+                    parent_model_name: "victim"
+                },
+            ],
+            user,
+            model_versions
+          )
+          revert_action.perform
         end
 
         it 'reparents model from project in memory and switches foreign key' do

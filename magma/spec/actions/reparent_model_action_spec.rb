@@ -1,10 +1,12 @@
 describe Magma::ReparentModelAction do
   let(:action) { Magma::ReparentModelAction.new("labors", action_params) }
+  let(:revert_action) { Magma::ReparentModelAction.new("labors", revert_params) }
 
   before(:each) { Timecop.freeze('2000-01-01') } # 946684800
   after(:each) { Timecop.return }
 
   describe "#perform" do
+    let(:project) { Magma.instance.get_project("labors") }
     context "for child/collection parent_link_type" do
       let(:action_params) do
         {
@@ -13,17 +15,16 @@ describe Magma::ReparentModelAction do
           parent_model_name: "monster"
         }
       end
-
-      before do
-        @original_reciprocal_attribute = Labors::Victim.attributes[:sidekick].dup
-        @original_parent_attribute = Labors::Sidekick.attributes[:victim].dup
+      let(:revert_params) do
+        {
+          action_name: "reparent_model",
+          model_name: "sidekick",
+          parent_model_name: "victim"
+        }
       end
 
       after do
-        # Re-add parent relationship
-        Labors::Victim.attributes[:sidekick] = @original_reciprocal_attribute
-        Labors::Sidekick.attributes[:victim] = @original_parent_attribute
-        Labors::Monster.attributes.delete(:sidekick)
+        revert_action.perform
       end
 
       it "removes the model link and attaches it to the new parent" do
@@ -52,16 +53,16 @@ describe Magma::ReparentModelAction do
         }
       end
 
-      before do
-        @original_reciprocal_attribute = Labors::Wound.attributes[:treatment].dup
-        @original_parent_attribute = Labors::Treatment.attributes[:wound].dup
+      let(:revert_params) do
+        {
+          action_name: "reparent_model",
+          model_name: "treatment",
+          parent_model_name: "wound"
+        }
       end
 
       after do
-        # Re-add parent relationship
-        Labors::Wound.attributes[:treatment] = @original_reciprocal_attribute
-        Labors::Treatment.attributes[:wound] = @original_parent_attribute
-        Labors::Monster.attributes.delete(:treatment)
+        revert_action.perform
       end
 
       it "removes the model link and attaches it to the new parent" do
@@ -90,16 +91,16 @@ describe Magma::ReparentModelAction do
         }
       end
 
-      before do
-        @original_reciprocal_attribute = Labors::Vegetation.attributes[:habitat].dup
-        @original_parent_attribute = Labors::Habitat.attributes[:vegetation].dup
+      let(:revert_params) do
+        {
+          action_name: "reparent_model",
+          model_name: "vegetation",
+          parent_model_name: "habitat"
+        }
       end
 
       after do
-        # Re-add parent relationship
-        Labors::Vegetation.attributes[:habitat] = @original_reciprocal_attribute
-        Labors::Habitat.attributes[:vegetation] = @original_parent_attribute
-        Labors::Victim.attributes.delete(:vegetation)
+        revert_action.perform
       end
 
       it "removes the model link and attaches it to the new parent" do
@@ -126,16 +127,16 @@ describe Magma::ReparentModelAction do
         }
       end
 
-      before do
-        @original_reciprocal_attribute = Labors::Rodent.attributes[:habitat].dup
-        @original_parent_attribute = Labors::Habitat.attributes[:rodent].dup
+      let(:revert_params) do
+        {
+          action_name: "reparent_model",
+          model_name: "rodent",
+          parent_model_name: "habitat"
+        }
       end
 
       after do
-        # Re-add parent relationship
-        Labors::Rodent.attributes[:habitat] = @original_reciprocal_attribute
-        Labors::Habitat.attributes[:rodent] = @original_parent_attribute
-        Labors::Victim.attributes.delete(:rodent)
+        revert_action.perform
       end
 
       it "removes the model link and attaches it to the new parent" do
