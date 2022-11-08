@@ -20,8 +20,8 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import { IdTreeTable, MatchingNamesTable } from './match-tables';
-import { Typography, Toolbar, Tooltip }from '@material-ui/core';
+import { TableWithTitle, IdTreeTable, MatchingNamesTable } from './match-tables';
+import { Typography, Tooltip }from '@material-ui/core';
 
 import {isAdmin} from 'etna-js/utils/janus';
 
@@ -32,12 +32,6 @@ require('../img/distort3.svg');
 const useStyles = makeStyles((theme) => ({
   header: {
     borderBottom: '1px solid #eee'
-  },
-  table_header: {
-    borderBottom: '1px solid #ccc',
-    minHeight: 'auto',
-    padding: '0px 15px',
-    background: '#eee'
   },
   tables: {
     flex: '0 0 275px',
@@ -142,16 +136,6 @@ function matchIds(ids, idRegex) {
   if (ids == null) return null
   const re = new RegExp('^'+idRegex+'$')
   return ids.filter(id => re.test(id.identifier))
-}
-
-const TableWithTitle = ({title, className, children}) => {
-  const classes = useStyles();
-  return <Grid className={className} item>
-    <Toolbar disableGutters={true} className={classes.table_header}>
-      <Typography variant='h6' >{title}</Typography>
-    </Toolbar>
-    { children }
-  </Grid>
 }
 
 const CreateButton = ({project_name, rule_name, identifier, onMouseOver, onMouseOut, update}) => {

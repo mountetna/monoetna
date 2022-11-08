@@ -22,11 +22,25 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Tooltip from '@material-ui/core/Tooltip';
-import { IdTreeTable } from './match-tables';
+import { TableWithTitle, IdTreeTable } from './match-tables';
 
 const useStyles = makeStyles((theme) => ({
   header: {
     borderBottom: '1px solid #eee'
+  },
+  error: {
+    padding: '25px'
+  },
+  tables: {
+    flex: '0 0 275px',
+    width: '100%'
+  },
+  table_column: {
+    flex: '0 0 50%',
+    borderRight: '1px solid #ccc',
+    borderTop: '1px solid #ccc',
+    height: 275,
+    overflowY: 'scroll'
   },
   tokens: {
     width: '100%',
@@ -35,7 +49,7 @@ const useStyles = makeStyles((theme) => ({
   letters: {
     width: '100%',
     position: 'absolute',
-    top: -100
+    top: -20
   },
   rules: {
     width: '100%',
@@ -43,10 +57,13 @@ const useStyles = makeStyles((theme) => ({
     top: 0
   },
   decomposer: {
-    marginLeft: 20,
-    height: 'calc(100vh - 61px - 48px)',
+    height: 'calc(100vh - 61px - 48px - 275px)',
+    flex: '1 1 auto',
+    width: '100%',
     position: 'relative',
-    overflowY: 'clip'
+    overflowY: 'scroll',
+    paddingLeft: '10px',
+    marginRight: '10px'
   },
   letter: {
     border: '1px solid #ccc',
@@ -81,6 +98,12 @@ const useStyles = makeStyles((theme) => ({
     fontSize: '10px',
     color: '#444'
   },
+  mainContent: {
+    height: 'calc(100vh - 61px - 48px)',
+    flexDirection: 'column',
+    overflowY: 'auto',
+    overflowX: 'hidden'
+  },
   token: {
     position: 'absolute',
     bottom: '50px'
@@ -102,11 +125,17 @@ const DecomposeIdentifier = ({project_name, identifier}) => {
 
   const [ decomposition, setDecomposition ] = useState(null);
   const [ grammar, setGrammar ] = useState(null);
+  const [ error, setError ] = useState('');
   const [ models, setModels ] = useState([]);
 
   useEffect( () => {
     json_get(magmaPath(`gnomon/${project_name}/decompose/${identifier}`)).then(
-      decomposition => setDecomposition(decomposition)
+      decomposition => {
+        setDecomposition(decomposition);
+        setError('');
+      }
+    ).catch(
+      e => e.then( ({error}) => setError(error) )
     );
     json_get(magmaPath(`gnomon/${project_name}/`)).then(
       ({config}) => {
@@ -128,53 +157,76 @@ const DecomposeIdentifier = ({project_name, identifier}) => {
 
   let from = 0;
   let to = 0;
-  let height = -1;
+  let height = 0;
   const total = decomposition ? decomposition.tokens.filter(([token,seq]) => !isSeparator(token)).length : 0;
+  const tokens = (!decomposition || !grammar) ? null : decomposition.tokens.map(
+    ([token,seq],i) => {
+      from = to;
+      to = from + seq.length;
+      
+      if (!isSeparator(token)) height = height + 1;
+
+      return {
+        from, to, height, name: token, seq, type: 'resolved', label: tokenLabel(token, grammar)
+      }
+    }
+  );
+
+  const lh = 70;
+  const dh = Math.max(height * lh + 10, 150);
+  const dw = Math.max(40 * (identifier.length+1), 400);
+
+  console.log({dh,dw});
 
   return <Grid>
     <ProjectHeader project_name={ project_name } className={classes.header}/>
-    <Grid container alignItems='center' justify='center' className={classes.decomposer} style={{ width: 40 * identifier.length }}>
-      <Grid container alignItems='center' justify='center' className={classes.tokens}>
-        {
-          grammar && decomposition && decomposition.tokens.map(
-            ([token,seq],i) => {
-              from = to;
-              to = from + seq.length;
+    <Grid container direction='row' className={classes.mainContent}>
+      { error ? <Grid container className={classes.error}><Typography color='error'>{error}</Typography></Grid> : <Grid item container className={classes.decomposer}>
+        <Grid item container alignItems='center' style={{ height: dh }}>
+          <Grid container className={classes.tokens} style={{ width: dw }}>
+            {
+              tokens && tokens.map(
+                (token,i) => {
 
-              if (isSeparator(token)) return <div/>;
+                  if (isSeparator(token.name)) return <div/>;
 
-              height = height + 1;
-
-              return <TokenEditor
-                key={i}
-                token={{ from, to, height, type: 'resolved', label: tokenLabel(token, grammar)}}
-                description={ tokenDescription(token, seq, grammar) }
-                seq={identifier}
-                height={total}
-                pos={i}
-                voff={120}/>
-            }
-          )
-        }
-        <Grid item container className={classes.letters}>
-        {
-          decomposition && decomposition.tokens.map(
-            ([token, seq], i) => seq.split('').map( 
-              (l,j) => <Letter key={`${i}.${j}`}
-                className={
-                  `${
-                    isSeparator(token) ? classes.separator : classes.letter
-                  } ${
-                    isCounter(token) ? classes.counter : ''
-                  }`
+                  return <TokenEditor
+                    key={i}
+                    token={token}
+                    description={ tokenDescription(token.name, token.seq, grammar) }
+                    seq={identifier}
+                    height={total}
+                    pos={i}
+                    voff={40}/>
                 }
-                letter={l} />
-            )
-          ).flat()
-        }
+              )
+            }
+            <Grid item container className={classes.letters}>
+            {
+              decomposition && decomposition.tokens.map(
+                ([token, seq], i) => seq.split('').map( 
+                  (l,j) => <Letter key={`${i}.${j}`}
+                    className={
+                      `${
+                        isSeparator(token) ? classes.separator : classes.letter
+                      } ${
+                        isCounter(token) ? classes.counter : ''
+                      }`
+                    }
+                    letter={l} />
+                )
+              ).flat()
+            }
+            </Grid>
+          </Grid>
         </Grid>
-          { decomposition && <IdTreeTable decomposition={decomposition} project_name={project_name}/> }
+      </Grid> }
+      { decomposition && <Grid item container className={classes.tables}>
+        <TableWithTitle title='Matching Rules' className={classes.table_column}>
+          <IdTreeTable className={classes.match_rules} decomposition={decomposition} project_name={project_name}/>
+        </TableWithTitle>
       </Grid>
+      }
     </Grid>
   </Grid>
 }

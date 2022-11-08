@@ -22,6 +22,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Tooltip from '@material-ui/core/Tooltip';
+import Toolbar from '@material-ui/core/Toolbar';
 import Button from '@material-ui/core/Button';
 
 const useStyles = makeStyles(theme => ({
@@ -36,8 +37,24 @@ const useStyles = makeStyles(theme => ({
     '& .MuiTableCell-body': {
       color: 'black'
     }
+  },
+  table_header: {
+    borderBottom: '1px solid #ccc',
+    minHeight: 'auto',
+    padding: '0px 15px',
+    background: '#eee'
   }
 }))
+
+export const TableWithTitle = ({title, className, children}) => {
+  const classes = useStyles();
+  return <Grid className={className} item>
+    <Toolbar disableGutters={true} className={classes.table_header}>
+      <Typography variant='h6' >{title}</Typography>
+    </Toolbar>
+    { children }
+  </Grid>
+}
 
 const Rule = ({rule, rule_name, project_name, markNotCreated, highlight, highlight2}) => {
   const classes = useStyles();
