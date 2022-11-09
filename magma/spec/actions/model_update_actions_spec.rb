@@ -251,30 +251,18 @@ describe Magma::ModelUpdateActions do
           Timecop.freeze('2000-01-01') # 946684800 since epoch
           db = Sequel.connect(Magma.instance.config(:db))
           db[:models].where(project_name: 'labors').update(version: 0)
-
-          @project = Magma.instance.get_project("labors")
-          @sidekick_model = Magma.instance.db[:models].where(project_name: 'labors', model_name: 'sidekick').first
-
-          @sidekick_attributes = @project.models[:sidekick].attributes.values
-
-          @reciprocal_attribute = @project.models[:victim].attributes[:sidekick].dup
         end
 
         after(:each) do
-          Timecop.return
-          revert_action = Magma::ModelUpdateActions.build(
+          revert_action = Magma::ReparentModelAction.new(
             "labors",
-            [
-                {
-                    action_name: "reparent_model",
-                    model_name: "sidekick",
-                    parent_model_name: "victim"
-                },
-            ],
-            user,
-            model_versions
-          )
+            {
+                action_name: "reparent_model",
+                model_name: "sidekick",
+                parent_model_name: "victim"
+            })
           revert_action.perform
+          Timecop.return
         end
 
         it 'reparents model from project in memory and switches foreign key' do

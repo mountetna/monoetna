@@ -183,6 +183,7 @@ class Magma
       # Drop constraints so can add new records without specifying
       #   a FK.
       [
+        "drop_index :#{name}, if_exists: true",
         "drop_foreign_constraint_if_exists :#{name}",
         "rename_column :#{name}, :#{new_name}"
       ]
@@ -203,7 +204,7 @@ class Magma
     private
 
     def missing_attributes
-      @model.attributes.reject { |name, attr| attr.primary_key? }.map do |name,att|
+      @missing_attributes ||= @model.attributes.reject { |name, attr| attr.primary_key? }.map do |name,att|
         next if schema_supports_attribute?(@model, att)
         attribute_migration(att)
       end.compact.flatten
@@ -211,7 +212,7 @@ class Magma
 
 
     def changed_attributes
-      @model.attributes.reject { |name, attr| attr.primary_key? }.map do |name,att|
+      @changed_attributes ||= @model.attributes.reject { |name, attr| attr.primary_key? }.map do |name,att|
         next unless schema_supports_attribute?(@model,att)
         next if schema_unchanged?(@model,att)
         column_type_entry(att.column_name, att.database_type)
@@ -219,7 +220,7 @@ class Magma
     end
 
     def removed_attributes
-      @model.schema.map do |name, db_opts|
+      @removed_attributes ||= @model.schema.map do |name, db_opts|
         next if @model.attributes[name]
         next if @model.attributes[ name.to_s.sub(/_id$/,'').to_sym ]
         next if @model.attributes[ name.to_s.sub(/_type$/,'').to_sym ]

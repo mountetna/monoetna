@@ -194,6 +194,7 @@ EOT
       migration = Labors::Prize.migration
       expect(migration.to_s).to eq <<EOT.chomp
     alter_table(Sequel[:labors][:prizes]) do
+      drop_index :#{worth.column_name}, if_exists: true
       drop_foreign_constraint_if_exists :#{worth.column_name}
       rename_column :#{worth.column_name}, :#{worth.column_name}_946684800_backup
     end
@@ -218,6 +219,7 @@ EOT
       migration = Labors::Prize.migration
       expect(migration.to_s).to eq <<EOT.chomp
     alter_table(Sequel[:labors][:prizes]) do
+      drop_index :#{worth.column_name}, if_exists: true
       drop_foreign_constraint_if_exists :#{worth.column_name}
       rename_column :#{worth.column_name}, :#{worth.column_name}_946684800_backup
     end
@@ -249,6 +251,7 @@ EOT
       migration = Labors::Monster.migration
       expect(migration.to_s).to eq <<EOT.chomp
     alter_table(Sequel[:labors][:monsters]) do
+      drop_index :#{habitat.column_name}, if_exists: true
       drop_foreign_constraint_if_exists :#{habitat.column_name}
       rename_column :#{habitat.column_name}, :#{habitat.column_name}_946684800_backup
     end
@@ -270,6 +273,7 @@ EOT
       migration = Labors::Monster.migration
       expect(migration.to_s).to eq <<EOT.chomp
     alter_table(Sequel[:labors][:monsters]) do
+      drop_index :#{habitat.column_name}, if_exists: true
       drop_foreign_constraint_if_exists :#{habitat.column_name}
       rename_column :#{habitat.column_name}, :#{habitat.column_name}_946684800_backup
     end
@@ -301,6 +305,7 @@ EOT
       migration = Labors::Monster.migration
       expect(migration.to_s).to eq <<EOT.chomp
     alter_table(Sequel[:labors][:monsters]) do
+      drop_index :#{habitat.column_name}, if_exists: true
       drop_foreign_constraint_if_exists :#{habitat.column_name}
       rename_column :#{habitat.column_name}, :#{habitat.column_name}_946684800_backup
     end
@@ -327,6 +332,7 @@ EOT
       expect(migration.to_s).to eq <<EOT.chomp
     alter_table(Sequel[:labors][:prizes]) do
       add_column :weight, Float
+      drop_index :#{worth.column_name}, if_exists: true
       drop_foreign_constraint_if_exists :#{worth.column_name}
       rename_column :#{worth.column_name}, :#{worth.column_name}_946684800_backup
     end
@@ -385,9 +391,7 @@ EOT
 
     after(:each) do
       Timecop.return
-      model = @project.load_model(@sidekick_model)
-      model.load_attributes(@sidekick_attributes)
-      @project.models[model.model_name] = model
+      @project.models[:sidekick].load_attributes(@sidekick_attributes)
       @project.models[:victim].load_attributes([@reciprocal_attribute])
     end
 
@@ -409,25 +413,14 @@ EOT
     let(:now) { DateTime.now.to_time.to_i }
 
     def reparent_model(model, new_parent_model)
-      attribute = model.attributes.values.select do |attr|
-        attr.is_a?(Magma::ParentAttribute)
-      end.first
-      reciprocal_model = Magma.instance.get_model('labors', attribute.link_model_name)
-
-      new_parent_attribute = attribute.dup
-      new_model_name = new_parent_model.model_name.to_s
-      new_parent_attribute.attribute_name = new_model_name
-      new_parent_attribute.link_model_name = new_model_name
-      new_parent_attribute.magma_model = new_parent_model
-      new_parent_attribute.column_name = "#{new_model_name}_id"
-
-      reciprocal_attribute = reciprocal_model.attributes[attribute.link_attribute_name.to_sym].dup
-      reciprocal_attribute.model_name = new_model_name
-
-      new_parent_model.attributes[reciprocal_attribute.attribute_name.to_sym] = reciprocal_attribute
-      reciprocal_model.attributes.delete(attribute.link_attribute_name.to_sym)
-      model.attributes.delete(attribute.attribute_name.to_sym)
-      model.attributes[new_parent_attribute.attribute_name.to_sym] = new_parent_attribute
+      action = Magma::ReparentModelAction.new(
+        "labors",
+      {
+        action_name: "reparent_model",
+        model_name: model,
+        parent_model_name: new_parent_model
+      })
+      action.perform
     end
 
     before(:each) do
@@ -436,14 +429,14 @@ EOT
 
     after(:each) do
       Timecop.return
-      reparent_model(Labors::Sidekick, Labors::Victim)
+      reparent_model('sidekick', 'victim')
     end
 
     it 'suggests new foreign key column and backs up old one' do
       victim = Labors::Sidekick.attributes[:victim].dup
       sidekick = Labors::Habitat.attributes[:sidekick].dup
 
-      reparent_model(Labors::Sidekick, Labors::Monster)
+      reparent_model('sidekick', 'monster')
 
       migration = Labors::Sidekick.migration
 
@@ -451,6 +444,7 @@ EOT
     alter_table(Sequel[:labors][:sidekicks]) do
       add_foreign_key :monster_id, Sequel[:labors][:monsters]
       add_index :monster_id
+      drop_index :#{victim.column_name}, if_exists: true
       drop_foreign_constraint_if_exists :#{victim.column_name}
       rename_column :#{victim.column_name}, :#{victim.column_name}_946684800_backup
     end
