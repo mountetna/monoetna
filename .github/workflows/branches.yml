@@ -22,6 +22,7 @@ jobs:
           - magma
           - janus
           - vulcan
+          - gnomon
           - polyphemus
           - timur
           - etna

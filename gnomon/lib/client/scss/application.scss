@@ -1,0 +1,17 @@
+@import 'global';
+@import 'logo';
+@import 'main';
+
+body {
+  padding: 0px;
+  margin: 0px;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+#nav {
+  flex-grow: 1;
+}

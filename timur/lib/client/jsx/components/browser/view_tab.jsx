@@ -26,8 +26,8 @@ const ViewTab = ({tab, ...pane_props}) => {
     <div id='tab'>
       {Object.keys(tab_groups).map((pane_group, i) => (
         <div className='pane_group' key={i}>
-          {tab_groups[pane_group].map((pane) => (
-            <ViewPane {...pane_props} pane={pane} key={pane.name} />
+          {tab_groups[pane_group].map((pane, j) => (
+            <ViewPane {...pane_props} pane={pane} key={j} />
           ))}
         </div>
       ))}

@@ -5,7 +5,12 @@
   align-items: center;
   border-bottom: 1px solid lightgray;
   justify-content: space-between;
+}
 
+@media print {
+  .etna-nav {
+    display: none;
+  }
 }
 
 .etna-logo {
@@ -26,6 +31,9 @@
 }
 .etna-polyphemus {
   background: url('~etna-js/images/polyphemus.svg');
+}
+.etna-gnomon-logo {
+  background: url('~etna-js/images/gnomon.svg');
 }
 
 .etna-login {
