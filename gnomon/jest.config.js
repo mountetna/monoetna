@@ -1,0 +1,1 @@
+/etna/jest.config.js

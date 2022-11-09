@@ -1,0 +1,27 @@
+.DS_Store
+npm-debug.log
+trash.rb
+/server/secrets.rb
+
+/node_modules/
+/client/js/
+/client/fonts/
+/tmp
+/log
+/source
+
+*.swp
+*.eot
+*.ttf
+*.woff
+*.woff2
+config.yml
+.bundle
+coverage
+spec/examples.txt
+
+# Keep in a separate repo
+lib/etls/redcap/projects
+lib/etls/renaming/projects
+
+.projects-mark

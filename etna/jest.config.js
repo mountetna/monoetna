@@ -14,7 +14,7 @@ module.exports = {
   transformIgnorePatterns: ['node_modules/(?!(etna-js|@codemirror|downzip)/)'],
   moduleNameMapper: {
     '^service-worker-loader!': '/app/__mocks__/service-worker-loader.js',
-    '^.*[.](css|CSS)$': 'identity-obj-proxy',
+    '^.*[.](svg|css|CSS)$': 'identity-obj-proxy',
     '^react$': '/etna/node_modules/react',
     '^react-redux$': '/etna/node_modules/react-redux',
     '^react-codemirror2$': '/etna/node_modules/react-codemirror2',
@@ -25,7 +25,6 @@ module.exports = {
     '^@material-ui/core/styles': '/etna/node_modules/@material-ui/core/styles',
     '^color$': '/etna/node_modules/color',
     '^color-string$': '/etna/node_modules/color-string',
-    '\\.css$': 'identity-obj-proxy'
   },
   testMatch: [
     '**/test/**/?(*.)(spec|test).(j|t)s?(x)',

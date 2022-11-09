@@ -2,13 +2,14 @@
  * Change a timestamp in to a human readable format.
  */
 
-export const userFormat = (author) => {
-  let [ email, name ] = author.split(/\|/);
-  return name;
+export const authorFormat = author => {
+  const [ email, name ] = author.split('|');
+
+  return { name, email }
 }
 
-export const dateFormat = (timestamp) => {
-  if (timestamp == undefined || timestamp == null) return 'Unknown';
+export const dateFormat = (timestamp, missing='Unknown') => {
+  if (timestamp == undefined || timestamp == null) return missing;
 
   let date = new Date(timestamp);
   let today = new Date();
@@ -20,6 +21,8 @@ export const dateFormat = (timestamp) => {
     return date.toLocaleString('en-us', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 };
+
+export const jsonFormat = obj => JSON.stringify(obj, null, 2);
 
 /*
  * Change an integer of bytes into a human readable format.
