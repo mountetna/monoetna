@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ListEntryUpdatedColumn renders correctly 1`] = `
+<DocumentFragment>
+  <div
+    class="list-entry-column-group updated"
+  >
+    <div
+      class="list-entry-updated-name"
+    >
+      Sep 19, 2022 by Zeus Almighty
+    </div>
+  </div>
+</DocumentFragment>
+`;
