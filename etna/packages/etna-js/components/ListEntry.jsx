@@ -22,7 +22,7 @@ export const ListEntryTypeColumn = ({icon, widths}) => (
 export const ListEntryUpdatedColumn = ({obj, widths}) => (
   <ListEntryColumn className='updated' widths={widths}>
     <div className='list-entry-updated-name'>
-      {dateFormat(obj.updated_at)} by {authorFormat(obj.author)}
+      {dateFormat(obj.updated_at)} by {authorFormat(obj.author).name}
     </div>
   </ListEntryColumn>
 );
