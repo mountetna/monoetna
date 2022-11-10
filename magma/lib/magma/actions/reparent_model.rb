@@ -45,7 +45,7 @@ class Magma
       return unless tree_has_data?
 
       @errors << Magma::ActionError.new(
-        message: 'Cannot reparent a model with data records in its tree (including in child models).',
+        message: 'Cannot reparent a model with data records in its tree (including restricted data or data in child models).',
         source: @action_params.slice(:model_name)
       )
     end
