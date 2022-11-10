@@ -5,18 +5,24 @@ import React, {
   useState,
   useReducer
 } from 'react';
-import {connect} from 'react-redux';
 
 import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
+import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
+import Tooltip from '@material-ui/core/Tooltip';
+import Button from '@material-ui/core/Button';
 
 import AttributeReport from './model_map/attribute_report';
-
 import MapHeading from './model_map/map_heading';
 import ModelReport from './model_map/model_report';
 import ModelMapGraphic from './model_map/model_map_graphic';
+import AddModelModal from './model_map/add_model_modal';
 
+import {addModel} from '../api/magma_api';
+
+import {selectUser} from 'etna-js/selectors/user-selector';
+import {isAdmin} from 'etna-js/utils/janus';
+import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {requestModels} from 'etna-js/actions/magma_actions';
 import {selectTemplate, selectModelNames} from 'etna-js/selectors/magma';
 import {fetchProjectsAction} from 'etna-js/actions/janus-actions';
@@ -24,6 +30,7 @@ import {selectProjects} from 'etna-js/selectors/janus-selector';
 import {projectNameFull} from 'etna-js/utils/janus';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import useMagmaActions from './model_map/use_magma_actions';
 
 const mapStyle = makeStyles((theme) => ({
   report: {
@@ -77,11 +84,13 @@ const ModelMap = ({}) => {
   const [model, setModel] = useState('project');
   const [attribute_name, setAttribute] = useState(null);
   const invoke = useActionInvoker();
-
+  const {openModal} = useModal();
   const state = useReduxState();
   const modelNames = useReduxState((state) => selectModelNames(state));
   const template = selectTemplate(state, model);
   const projects = selectProjects(state);
+  const {executeAction} = useMagmaActions();
+  const user = useReduxState((state) => selectUser(state));
 
   const attribute =
     template && attribute_name ? template.attributes[attribute_name] : null;
@@ -110,6 +119,20 @@ const ModelMap = ({}) => {
 
   const classes = mapStyle();
 
+  const handleAddModel = useCallback((params) => {
+    executeAction(
+      addModel({
+        ...params
+      })
+    );
+  }, []);
+
+  const isAdminUser = useMemo(() => {
+    if (!user || 0 === Object.keys(user).length) return false;
+
+    return isAdmin(user, CONFIG.project_name);
+  }, [user, CONFIG.project_name]);
+
   return (
     <Grid className={classes.model_map} container>
       <Grid item className='map'>
@@ -117,7 +140,21 @@ const ModelMap = ({}) => {
           className={classes.heading}
           name='Project'
           title={full_name}
-        />
+        >
+          {isAdminUser && (
+            <Tooltip title='Add Model' aria-label='Add Model'>
+              <Button
+                className={classes.addBtn}
+                startIcon={<LibraryAddIcon />}
+                onClick={() => {
+                  openModal(<AddModelModal onSave={handleAddModel} />);
+                }}
+              >
+                Model
+              </Button>
+            </Tooltip>
+          )}
+        </MapHeading>
         <ModelMapGraphic
           width={width}
           height={height}
@@ -133,11 +170,13 @@ const ModelMap = ({}) => {
           model_name={model}
           template={template}
           setAttribute={setAttribute}
+          isAdminUser={isAdminUser}
         />
         <AttributeReport
           counts={counts[model]}
           attribute={attribute}
           model_name={model}
+          isAdminUser={isAdminUser}
         />
       </Grid>
     </Grid>

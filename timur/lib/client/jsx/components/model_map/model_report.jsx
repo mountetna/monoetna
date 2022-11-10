@@ -32,13 +32,11 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import Chip from '@material-ui/core/Chip';
 import AddIcon from '@material-ui/icons/Add';
 import LinkIcon from '@material-ui/icons/Link';
-import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
 
 import AddAttributeModal from './add_attribute_modal';
 import AddLinkModal from './add_link_modal';
-import AddModelModal from './add_model_modal';
 import ReparentModelModal from './reparent_model_modal';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {selectUser} from 'etna-js/selectors/user-selector';
@@ -49,7 +47,6 @@ import {showMessages} from 'etna-js/actions/message_actions';
 import {
   addAttribute,
   addLink,
-  addModel,
   removeModel,
   reparentModel
 } from '../../api/magma_api';
@@ -58,6 +55,7 @@ import {
   removeModelAction
 } from 'etna-js/actions/magma_actions';
 import {isLeafModel} from '../../utils/edit_map';
+import useMagmaActions from './use_magma_actions';
 
 const attributeStyles = makeStyles((theme) => ({
   attribute: {
@@ -114,7 +112,6 @@ const diffTypes = {
 const ManageModelActions = ({
   handleAddAttribute,
   handleAddLink,
-  handleAddModel,
   handleRemoveModel,
   handleReparentModel,
   isLeaf,
@@ -129,8 +126,6 @@ const ManageModelActions = ({
       handleRemoveModel();
     }
   }, [handleRemoveModel]);
-
-  // TODO: need to calculate here if a model is a leaf?
 
   return (
     <>
@@ -154,17 +149,6 @@ const ManageModelActions = ({
           }}
         >
           Link
-        </Button>
-      </Tooltip>
-      <Tooltip title='Add Child Model' aria-label='Add Child Model'>
-        <Button
-          className={classes.addBtn}
-          startIcon={<LibraryAddIcon />}
-          onClick={() => {
-            openModal(<AddModelModal onSave={handleAddModel} />);
-          }}
-        >
-          Child Model
         </Button>
       </Tooltip>
       {canReparent && (
@@ -192,7 +176,7 @@ const ManageModelActions = ({
             startIcon={<DeleteIcon />}
             onClick={confirmRemoveModel}
           >
-            Model
+            Remove Model
           </Button>
         </Tooltip>
       )}
@@ -317,13 +301,13 @@ const ModelReport = ({
   updateCounts,
   counts,
   template,
-  setAttribute
+  setAttribute,
+  isAdminUser
 }) => {
   const dispatch = useDispatch();
   const invoke = useActionInvoker();
-  const {dismissModal} = useModal();
+  const {executeAction} = useMagmaActions();
 
-  const user = useReduxState((state) => selectUser(state));
   const models = useReduxState((state) => selectModels(state));
   const classes = reportStyles();
 
@@ -422,26 +406,6 @@ const ModelReport = ({
     ...(diffTemplate && diffTemplate.attributes)
   });
 
-  const isAdminUser = useMemo(() => {
-    if (!user || 0 === Object.keys(user).length) return false;
-
-    return isAdmin(user, CONFIG.project_name);
-  }, [user, CONFIG.project_name]);
-
-  const executeAction = useCallback(
-    (action) => {
-      dismissModal();
-      return action
-        .then(({models}) => {
-          invoke(addTemplatesAndDocuments(models));
-        })
-        .catch((err) => {
-          invoke(showMessages(err));
-        });
-    },
-    [invoke, addTemplatesAndDocuments, showMessages]
-  );
-
   const handleAddAttribute = useCallback(
     (params) => {
       executeAction(
@@ -459,18 +423,6 @@ const ModelReport = ({
       executeAction(
         addLink({
           modelName: model_name,
-          ...params
-        })
-      );
-    },
-    [model_name]
-  );
-
-  const handleAddModel = useCallback(
-    (params) => {
-      executeAction(
-        addModel({
-          parent_model_name: model_name,
           ...params
         })
       );
@@ -631,7 +583,6 @@ const ModelReport = ({
           <ManageModelActions
             handleAddAttribute={handleAddAttribute}
             handleAddLink={handleAddLink}
-            handleAddModel={handleAddModel}
             handleRemoveModel={handleRemoveModel}
             handleReparentModel={handleReparentModel}
             isLeaf={isLeaf}

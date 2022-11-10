@@ -1,8 +1,9 @@
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 
+import {makeStyles} from '@material-ui/core/styles';
+
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
-
 import {selectModels} from 'etna-js/selectors/magma';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 
@@ -10,13 +11,25 @@ import {SNAKE_CASE, SNAKE_CASE_STRICT} from '../../utils/edit_map';
 import DisabledButton from '../search/disabled_button';
 import ModalSelect from './modal_select';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
+import AntSwitch from '../query/ant_switch';
+
+const useStyles = makeStyles((theme) => ({
+  switch: {
+    marginTop: '1rem'
+  },
+  filler: {
+    height: '48px'
+  }
+}));
 
 export default function AddModelModal({onSave}: {onSave: any}) {
   const [disabled, setDisabled] = useState(true);
   const [identifier, setIdentifier] = useState('');
+  const [parentModelName, setParentModelName] = useState('');
   const [childModelName, setChildModelName] = useState('');
-  const [modelLinkType, setModelLinkType] = useState('');
+  const [isTable, setIsTable] = useState(false);
   const [childModelNameExists, setChildModelNameExists] = useState(false);
+  const classes = useStyles();
 
   const models = useReduxState((state: any) => selectModels(state));
 
@@ -25,11 +38,12 @@ export default function AddModelModal({onSave}: {onSave: any}) {
 
   const handleOnSave = useCallback(() => {
     onSave({
-      identifier,
+      identifier: isTable ? 'id' : identifier,
       model_name: childModelName,
-      parent_link_type: modelLinkType
+      parent_link_type: isTable ? 'table' : 'collection',
+      parent_model_name: parentModelName
     });
-  }, [identifier, childModelName, modelLinkType]);
+  }, [identifier, childModelName, isTable, parentModelName]);
 
   const existingModelNames = useMemo(() => {
     return Object.keys(models);
@@ -37,16 +51,15 @@ export default function AddModelModal({onSave}: {onSave: any}) {
 
   useEffect(() => {
     if (
-      identifier &&
+      (isTable ? true : identifier) &&
       childModelName &&
-      modelLinkType &&
       !childModelNameExists
     ) {
       setDisabled(false);
     } else {
       setDisabled(true);
     }
-  }, [childModelNameExists, identifier, childModelName, modelLinkType]);
+  }, [childModelNameExists, identifier, childModelName, isTable]);
 
   const handleOnCancel = useCallback(() => {
     invoke(dismissModal());
@@ -64,24 +77,20 @@ export default function AddModelModal({onSave}: {onSave: any}) {
     [existingModelNames]
   );
 
-  const modelLinkTypeOptions = ['child', 'collection', 'table'];
-
   return (
     <div className='add-model-modal model-actions-modal'>
       <div className='header'>Add Model</div>
       <div className='options-tray tray'>
-        <ShrinkingLabelTextField
-          id='model-identifier'
-          label='Identifier (snake_case)'
-          value={identifier}
-          onChange={(e: React.ChangeEvent<any>) =>
-            setIdentifier(e.target.value)
-          }
-          pattern={SNAKE_CASE}
+        <ModalSelect
+          id='parent-model-name'
+          value={parentModelName}
+          label='Parent Model'
+          onChange={setParentModelName}
+          options={existingModelNames}
         />
         <ShrinkingLabelTextField
           id='child-model-name'
-          label='Child Model Name (snake_case no numbers)'
+          label='New Model Name (snake_case no numbers)'
           value={childModelName}
           additionalError={childModelNameExists}
           onChange={(e: React.ChangeEvent<any>) =>
@@ -89,13 +98,28 @@ export default function AddModelModal({onSave}: {onSave: any}) {
           }
           pattern={SNAKE_CASE_STRICT}
         />
-        <ModalSelect
-          id='model-type'
-          value={modelLinkType}
-          label='Link Type'
-          onChange={setModelLinkType}
-          options={modelLinkTypeOptions}
-        />
+        <div className={classes.switch}>
+          <AntSwitch
+            leftOption='Standard Model'
+            rightOption='Table'
+            name='Model Type'
+            checked={isTable}
+            onChange={() => setIsTable(!isTable)}
+          />
+        </div>
+        {!isTable ? (
+          <ShrinkingLabelTextField
+            id='model-identifier'
+            label='Identifier attribute name (snake_case)'
+            value={identifier}
+            onChange={(e: React.ChangeEvent<any>) =>
+              setIdentifier(e.target.value)
+            }
+            pattern={SNAKE_CASE}
+          />
+        ) : (
+          <div className={classes.filler}></div>
+        )}
       </div>
       <div className='options-action-wrapper'>
         <DisabledButton
