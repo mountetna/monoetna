@@ -13,7 +13,7 @@ const useMagmaActions = () => {
     (action: any, closeModal = true) => {
       if (closeModal) dismissModal();
       return action
-        .then(({models}) => {
+        .then(({models}: {models: any}) => {
           invoke(addTemplatesAndDocuments(models));
         })
         .catch((err: any) => {

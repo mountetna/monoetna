@@ -1,5 +1,5 @@
 import {useDispatch} from 'react-redux';
-import React, {useState, useCallback, useMemo} from 'react';
+import React, {useState, useCallback, useMemo, useEffect} from 'react';
 import {sortAttributeList} from '../../utils/attributes';
 import SelectProjectModelDialog from '../select_project_model';
 import {requestAnswer} from 'etna-js/actions/magma_actions';
@@ -304,6 +304,7 @@ const ModelReport = ({
   setAttribute,
   isAdminUser
 }) => {
+  const [canReparent, setCanReparent] = useState(false);
   const dispatch = useDispatch();
   const invoke = useActionInvoker();
   const {executeAction} = useMagmaActions();
@@ -449,9 +450,16 @@ const ModelReport = ({
     return isLeafModel(models[model_name]);
   }, [model_name, models]);
 
-  const canReparent = useMemo(() => {
-    return !!template?.parent;
-  }, [template]);
+  useEffect(() => {
+    if (counts[model_name]?.count) {
+      setCanReparent(counts[model_name].count <= 0);
+    } else {
+      getAnswer([model_name, '::count'], (count) => {
+        updateCounts({type: 'MODEL_COUNT', model_name, count});
+        setCanReparent(0 == count);
+      });
+    }
+  }, [model_name, counts]);
 
   return (
     <Grid className={classes.model_report}>

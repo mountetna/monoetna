@@ -142,7 +142,10 @@ describe('AttributeReport', () => {
 
     const {asFragment} = render(
       <Provider store={store}>
-        <AttributeReport attribute={monster.attributes.species} />
+        <AttributeReport
+          attribute={monster.attributes.species}
+          isAdminUser={true}
+        />
       </Provider>
     );
 
@@ -150,6 +153,7 @@ describe('AttributeReport', () => {
 
     expect(screen.getByText('Edit')).toBeTruthy();
     expect(screen.getByText('Remove')).toBeTruthy();
+    expect(screen.queryByText('Remove Link')).toBeFalsy();
     expect(asFragment()).toMatchSnapshot();
   });
 
@@ -177,7 +181,10 @@ describe('AttributeReport', () => {
 
     const {asFragment} = render(
       <Provider store={store}>
-        <AttributeReport attribute={monster.attributes.habitat} />
+        <AttributeReport
+          attribute={monster.attributes.habitat}
+          isAdminUser={true}
+        />
       </Provider>
     );
 
@@ -212,7 +219,10 @@ describe('AttributeReport', () => {
 
     const {asFragment} = render(
       <Provider store={store}>
-        <AttributeReport attribute={habitat.attributes.monster} />
+        <AttributeReport
+          attribute={habitat.attributes.monster}
+          isAdminUser={true}
+        />
       </Provider>
     );
 

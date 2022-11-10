@@ -32,6 +32,18 @@ describe('ModelMap', () => {
       response: {}
     });
 
+    stubUrl({
+      verb: 'post',
+      path: '/query',
+      host: 'https://magma.test',
+      status: 200,
+      response: {
+        answer: 0
+      },
+      request: () => true,
+      times: 20
+    });
+
     global.CONFIG = {
       magma_host: 'https://magma.test',
       janus_host: 'https://janus.test',
@@ -57,7 +69,19 @@ describe('ModelMap', () => {
     expect(tree).toMatchSnapshot();
   });
 
-  it('renders with model action buttons for admin user (no reparent model for project)', async () => {
+  it('renders with model action buttons for admin user (no reparent model btn with records)', async () => {
+    stubUrl({
+      verb: 'post',
+      path: '/query',
+      host: 'https://magma.test',
+      status: 200,
+      response: {
+        answer: 1
+      },
+      request: () => true,
+      times: 20
+    });
+
     store = mockStore({
       magma: {models},
       janus: {projects: require('../fixtures/project_names.json')},
@@ -76,16 +100,28 @@ describe('ModelMap', () => {
       </Provider>
     );
 
-    await waitFor(() => screen.getByText('Attribute'));
+    await waitFor(() => screen.findByText('Attribute'));
 
     expect(screen.getByTitle('Add Link')).toBeTruthy();
     expect(screen.getByTitle('Add Attribute')).toBeTruthy();
-    expect(screen.getByTitle('Add Child Model')).toBeTruthy();
+    expect(screen.getByTitle('Add Model')).toBeTruthy();
     expect(screen.queryByTitle('Reparent Model')).toBeFalsy();
     expect(asFragment()).toMatchSnapshot();
   });
 
-  it('renders with reparent model action buttons for admin user, non-project', async () => {
+  it('renders with reparent model action buttons for admin user, no-record model', async () => {
+    stubUrl({
+      verb: 'post',
+      path: '/query',
+      host: 'https://magma.test',
+      status: 200,
+      response: {
+        answer: 0
+      },
+      request: () => true,
+      times: 20
+    });
+
     store = mockStore({
       magma: {models},
       janus: {projects: require('../fixtures/project_names.json')},
@@ -104,14 +140,15 @@ describe('ModelMap', () => {
       </Provider>
     );
 
-    await waitFor(() => screen.getByText('Attribute'));
+    await waitFor(() => screen.findByText('Attribute'));
 
     const monsterModel = screen.getByText('monster');
     fireEvent.click(monsterModel);
 
+    await waitFor(() => screen.getByText('Reparent Model'));
     expect(screen.getByTitle('Add Link')).toBeTruthy();
     expect(screen.getByTitle('Add Attribute')).toBeTruthy();
-    expect(screen.getByTitle('Add Child Model')).toBeTruthy();
+    expect(screen.getByTitle('Add Model')).toBeTruthy();
     expect(screen.getByTitle('Reparent Model')).toBeTruthy();
     expect(asFragment()).toMatchSnapshot();
   });
@@ -135,11 +172,11 @@ describe('ModelMap', () => {
       </Provider>
     );
 
-    await waitFor(() => screen.getByText('monster'));
+    await waitFor(() => screen.findByText('monster'));
 
     expect(screen.queryByTitle('Add Link')).toBeFalsy();
     expect(screen.queryByTitle('Add Attribute')).toBeFalsy();
-    expect(screen.queryByTitle('Add Child Model')).toBeFalsy();
+    expect(screen.queryByTitle('Add Model')).toBeFalsy();
     expect(screen.queryByTitle('Reparent Model')).toBeFalsy();
     expect(asFragment()).toMatchSnapshot();
   });
