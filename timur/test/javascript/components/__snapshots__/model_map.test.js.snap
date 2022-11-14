@@ -975,38 +975,7 @@ exports[`ModelMap renders with model action buttons for admin user (no reparent 
         <div
           class="MuiGrid-root MuiGrid-container"
           style="width: auto; flex: 1; align-items: end; justify-content: right;"
-        >
-          <button
-            aria-label="Add Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text"
-            tabindex="0"
-            title="Add Model"
-            type="button"
-          >
-            <span
-              class="MuiButton-label"
-            >
-              <span
-                class="MuiButton-startIcon MuiButton-iconSizeMedium"
-              >
-                <svg
-                  aria-hidden="true"
-                  class="MuiSvgIcon-root"
-                  focusable="false"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"
-                  />
-                </svg>
-              </span>
-              Model
-            </span>
-            <span
-              class="MuiTouchRipple-root"
-            />
-          </button>
-        </div>
+        />
       </div>
       <svg
         height="600"
@@ -1395,6 +1364,36 @@ exports[`ModelMap renders with model action buttons for admin user (no reparent 
               class="MuiTouchRipple-root"
             />
           </button>
+          <button
+            aria-label="Add Model"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27"
+            tabindex="0"
+            title="Add Model"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeMedium"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"
+                  />
+                </svg>
+              </span>
+              Model
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
         </div>
       </div>
     </div>
@@ -1427,38 +1426,7 @@ exports[`ModelMap renders with reparent model action buttons for admin user, no-
         <div
           class="MuiGrid-root MuiGrid-container"
           style="width: auto; flex: 1; align-items: end; justify-content: right;"
-        >
-          <button
-            aria-label="Add Model"
-            class="MuiButtonBase-root MuiButton-root MuiButton-text"
-            tabindex="0"
-            title="Add Model"
-            type="button"
-          >
-            <span
-              class="MuiButton-label"
-            >
-              <span
-                class="MuiButton-startIcon MuiButton-iconSizeMedium"
-              >
-                <svg
-                  aria-hidden="true"
-                  class="MuiSvgIcon-root"
-                  focusable="false"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"
-                  />
-                </svg>
-              </span>
-              Model
-            </span>
-            <span
-              class="MuiTouchRipple-root"
-            />
-          </button>
-        </div>
+        />
       </div>
       <svg
         height="600"
@@ -1949,6 +1917,36 @@ exports[`ModelMap renders with reparent model action buttons for admin user, no-
                 </svg>
               </span>
               Link
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+          <button
+            aria-label="Add Model"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27"
+            tabindex="0"
+            title="Add Model"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeMedium"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"
+                  />
+                </svg>
+              </span>
+              Model
             </span>
             <span
               class="MuiTouchRipple-root"

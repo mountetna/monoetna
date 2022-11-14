@@ -34,21 +34,21 @@ import AddIcon from '@material-ui/icons/Add';
 import LinkIcon from '@material-ui/icons/Link';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
+import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
 
 import AddAttributeModal from './add_attribute_modal';
 import AddLinkModal from './add_link_modal';
 import ReparentModelModal from './reparent_model_modal';
+import AddModelModal from './add_model_modal';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
-import {selectUser} from 'etna-js/selectors/user-selector';
 import {selectModels} from 'etna-js/selectors/magma';
-import {isAdmin} from 'etna-js/utils/janus';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
-import {showMessages} from 'etna-js/actions/message_actions';
 import {
   addAttribute,
   addLink,
   removeModel,
-  reparentModel
+  reparentModel,
+  addModel
 } from '../../api/magma_api';
 import {
   addTemplatesAndDocuments,
@@ -88,7 +88,8 @@ const attributeStyles = makeStyles((theme) => ({
     margin: '5px'
   },
   counts: {
-    width: '20%'
+    width: '10%',
+    minWidth: '120px'
   },
   ident: {},
   changed: {
@@ -112,6 +113,7 @@ const diffTypes = {
 const ManageModelActions = ({
   handleAddAttribute,
   handleAddLink,
+  handleAddModel,
   handleRemoveModel,
   handleReparentModel,
   isLeaf,
@@ -149,6 +151,17 @@ const ManageModelActions = ({
           }}
         >
           Link
+        </Button>
+      </Tooltip>
+      <Tooltip title='Add Model' aria-label='Add Model'>
+        <Button
+          className={classes.addBtn}
+          startIcon={<LibraryAddIcon />}
+          onClick={() => {
+            openModal(<AddModelModal onSave={handleAddModel} />);
+          }}
+        >
+          Model
         </Button>
       </Tooltip>
       {canReparent && (
@@ -236,7 +249,7 @@ const ModelAttribute = ({
       <TableCell align='left'>{attribute_group}</TableCell>
       <TableCell align='left'>{description}</TableCell>
       {count != undefined && (
-        <TableCell className={classes.count} align='left'>
+        <TableCell className={classes.counts} align='left'>
           <Grid container alignItems='center'>
             {count}
             <LinearProgress
@@ -318,14 +331,8 @@ const ModelReport = ({
   const getAnswer = (query, handle) =>
     requestAnswer({query})(dispatch).then(({answer}) => handle(answer));
 
-  const countModel = () => {
-    if (modelCount != undefined) return;
-
-    updateCounts({type: 'MODEL_COUNT', model_name, count: -1});
-
-    getAnswer([model_name, '::count'], (count) =>
-      updateCounts({type: 'MODEL_COUNT', model_name, count})
-    );
+  const countAttributes = () => {
+    if (attributeCounts != undefined) return;
 
     Object.keys(template.attributes).forEach((attribute_name) => {
       let query = [model_name, ['::has', attribute_name], '::count'];
@@ -444,6 +451,18 @@ const ModelReport = ({
     [model_name]
   );
 
+  const handleAddModel = useCallback(
+    (params) => {
+      executeAction(
+        addModel({
+          ...params,
+          parent_model_name: model_name
+        })
+      );
+    },
+    [model_name]
+  );
+
   const isLeaf = useMemo(() => {
     if (!models || !model_name || !models[model_name]) return;
 
@@ -500,13 +519,13 @@ const ModelReport = ({
             Compare with another model
           </MenuItem>
           <MenuItem
-            disabled={modelCount != undefined}
+            disabled={attributeCounts != undefined}
             onClick={() => {
-              countModel(model_name);
+              countAttributes(model_name);
               setAnchor(null);
             }}
           >
-            Count records and attributes
+            Count attributes
           </MenuItem>
         </Menu>
       </MapHeading>
@@ -593,6 +612,7 @@ const ModelReport = ({
             handleAddLink={handleAddLink}
             handleRemoveModel={handleRemoveModel}
             handleReparentModel={handleReparentModel}
+            handleAddModel={handleAddModel}
             isLeaf={isLeaf}
             canReparent={canReparent}
             modelName={model_name}

@@ -1,6 +1,7 @@
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 
 import {makeStyles} from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
@@ -9,7 +10,6 @@ import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 import {SNAKE_CASE, SNAKE_CASE_STRICT} from '../../utils/edit_map';
 import DisabledButton from '../search/disabled_button';
-import ModalSelect from './modal_select';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 import AntSwitch from '../query/ant_switch';
 
@@ -25,7 +25,6 @@ const useStyles = makeStyles((theme) => ({
 export default function AddModelModal({onSave}: {onSave: any}) {
   const [disabled, setDisabled] = useState(true);
   const [identifier, setIdentifier] = useState('');
-  const [parentModelName, setParentModelName] = useState('');
   const [childModelName, setChildModelName] = useState('');
   const [isTable, setIsTable] = useState(false);
   const [childModelNameExists, setChildModelNameExists] = useState(false);
@@ -40,10 +39,9 @@ export default function AddModelModal({onSave}: {onSave: any}) {
     onSave({
       identifier: isTable ? 'id' : identifier,
       model_name: childModelName,
-      parent_link_type: isTable ? 'table' : 'collection',
-      parent_model_name: parentModelName
+      parent_link_type: isTable ? 'table' : 'collection'
     });
-  }, [identifier, childModelName, isTable, parentModelName]);
+  }, [identifier, childModelName, isTable]);
 
   const existingModelNames = useMemo(() => {
     return Object.keys(models);
@@ -81,13 +79,6 @@ export default function AddModelModal({onSave}: {onSave: any}) {
     <div className='add-model-modal model-actions-modal'>
       <div className='header'>Add Model</div>
       <div className='options-tray tray'>
-        <ModalSelect
-          id='parent-model-name'
-          value={parentModelName}
-          label='Parent Model'
-          onChange={setParentModelName}
-          options={existingModelNames}
-        />
         <ShrinkingLabelTextField
           id='child-model-name'
           label='New Model Name (snake_case no numbers)'
@@ -100,12 +91,22 @@ export default function AddModelModal({onSave}: {onSave: any}) {
         />
         <div className={classes.switch}>
           <AntSwitch
-            leftOption='Standard Model'
+            leftOption='Collection'
             rightOption='Table'
             name='Model Type'
             checked={isTable}
             onChange={() => setIsTable(!isTable)}
           />
+          {isTable ? (
+            <Typography>
+              The model will contain tabular data associated with the parent
+              record.
+            </Typography>
+          ) : (
+            <Typography>
+              The model will be a collection of named records.
+            </Typography>
+          )}
         </div>
         {!isTable ? (
           <ShrinkingLabelTextField

@@ -8,17 +8,11 @@ import React, {
 
 import Grid from '@material-ui/core/Grid';
 import {makeStyles} from '@material-ui/core/styles';
-import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
-import Tooltip from '@material-ui/core/Tooltip';
-import Button from '@material-ui/core/Button';
 
 import AttributeReport from './model_map/attribute_report';
 import MapHeading from './model_map/map_heading';
 import ModelReport from './model_map/model_report';
 import ModelMapGraphic from './model_map/model_map_graphic';
-import AddModelModal from './model_map/add_model_modal';
-
-import {addModel} from '../api/magma_api';
 
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {isAdmin} from 'etna-js/utils/janus';
@@ -84,12 +78,10 @@ const ModelMap = ({}) => {
   const [model, setModel] = useState('project');
   const [attribute_name, setAttribute] = useState(null);
   const invoke = useActionInvoker();
-  const {openModal} = useModal();
   const state = useReduxState();
   const modelNames = useReduxState((state) => selectModelNames(state));
   const template = selectTemplate(state, model);
   const projects = selectProjects(state);
-  const {executeAction} = useMagmaActions();
   const user = useReduxState((state) => selectUser(state));
 
   const attribute =
@@ -119,14 +111,6 @@ const ModelMap = ({}) => {
 
   const classes = mapStyle();
 
-  const handleAddModel = useCallback((params) => {
-    executeAction(
-      addModel({
-        ...params
-      })
-    );
-  }, []);
-
   const isAdminUser = useMemo(() => {
     if (!user || 0 === Object.keys(user).length) return false;
 
@@ -140,21 +124,7 @@ const ModelMap = ({}) => {
           className={classes.heading}
           name='Project'
           title={full_name}
-        >
-          {isAdminUser && (
-            <Tooltip title='Add Model' aria-label='Add Model'>
-              <Button
-                className={classes.addBtn}
-                startIcon={<LibraryAddIcon />}
-                onClick={() => {
-                  openModal(<AddModelModal onSave={handleAddModel} />);
-                }}
-              >
-                Model
-              </Button>
-            </Tooltip>
-          )}
-        </MapHeading>
+        ></MapHeading>
         <ModelMapGraphic
           width={width}
           height={height}
