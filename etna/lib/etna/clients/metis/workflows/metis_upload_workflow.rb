@@ -18,9 +18,9 @@ module Etna
           super({max_attempts: 3, metis_uid: SecureRandom.hex}.update(args))
         end
 
-        def do_upload(source_file_or_upload, dest_path, &block)
+        def do_upload(source_file_or_upload, dest_path, size_hint: nil, &block)
           unless source_file_or_upload.is_a?(Upload)
-            upload = Upload.new(source_file: source_file_or_upload)
+            upload = Upload.new(source_file: source_file_or_upload, size_hint: size_hint)
           else
             upload = source_file_or_upload
           end
@@ -31,6 +31,7 @@ module Etna
               bucket_name: bucket_name,
               folder_path: dir,
           )) unless dir == "."
+
 
           authorize_response = metis_client.authorize_upload(AuthorizeUploadRequest.new(
               project_name: project_name,
@@ -85,8 +86,10 @@ module Etna
               end
 
               if e.status == 422
+                puts "Resetting upload, something went wrong..."
                 return upload_parts(upload, upload_path, attempt_number + 1, true, &block)
               elsif e.status >= 500
+                puts "Got error during upload, retrying without reset."
                 return upload_parts(upload, upload_path, attempt_number + 1, &block)
               end
 
@@ -103,19 +106,20 @@ module Etna
 
         class Upload
           INITIAL_BLOB_SIZE = 2 ** 10
-          MAX_BLOB_SIZE = 2 ** 22
+          MAX_BLOB_SIZE = 1024 * 1024 * 40
           ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e'
 
-          attr_accessor :source_file, :next_blob_size, :current_byte_position
+          attr_accessor :source_file, :next_blob_size, :current_byte_position, :size_hint
 
-          def initialize(source_file: nil, next_blob_size: nil, current_byte_position: nil)
+          def initialize(source_file: nil, next_blob_size: nil, current_byte_position: nil, size_hint: nil)
             self.source_file = source_file
+            self.size_hint = size_hint
             self.next_blob_size = [file_size, INITIAL_BLOB_SIZE].min
             self.current_byte_position = 0
           end
 
           def file_size
-            ::File.size(source_file)
+            size_hint.nil? ? ::File.size(source_file) : size_hint
           end
 
           def advance_position!
@@ -143,7 +147,12 @@ module Etna
           end
 
           def next_blob_bytes
-            IO.binread(source_file, next_blob_size, current_byte_position)
+            if source_file.is_a?(File)
+              IO.binread(source_file, next_blob_size, current_byte_position)
+            else
+              source_file.seek(current_byte_position)
+              source_file.read(next_blob_size)
+            end
           end
 
           def resume_from!(upload_response)
@@ -153,16 +162,11 @@ module Etna
         end
 
         class StreamingIOUpload < Upload
-          def initialize(readable_io:, size_hint: 0, **args)
+          def initialize(readable_io:, **args)
             @readable_io = readable_io
-            @size_hint = size_hint
             @read_position = 0
             @last_bytes = ""
             super(**args)
-          end
-
-          def file_size
-            @size_hint
           end
 
           def next_blob_bytes

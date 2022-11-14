@@ -4,10 +4,11 @@ require 'rack/utils'
 
 module Etna
   class Client
-    def initialize(host, token, routes_available: true, ignore_ssl: false)
+    def initialize(host, token, routes_available: true, ignore_ssl: false, endpoint: nil)
       @host = host.sub(%r!/$!, '')
       @token = token
       @ignore_ssl = ignore_ssl
+      @endpoint = endpoint
 
       if routes_available
         set_routes
@@ -25,7 +26,7 @@ module Etna
     end
 
     def signed_route_path(route, params)
-      path = route_path(route,params)
+      path = route_path(route, params)
 
       signatory = params.delete(:signatory)
 
@@ -55,6 +56,7 @@ module Etna
       uri = request_uri(endpoint)
       multipart = Net::HTTP::Post::Multipart.new uri.request_uri, content
       multipart.add_field('Authorization', "Etna #{@token}")
+      multipart.add_field('Host', URI.parse(@host).host)
       request(uri, multipart, &block)
     end
 
@@ -78,6 +80,73 @@ module Etna
       body_request(Net::HTTP::Delete, endpoint, params, &block)
     end
 
+    def core_headers
+      {
+        'Authorization' => "Etna #{@token}",
+        'Host' => URI.parse(@host).host
+      }
+    end
+
+    def request_headers
+      {
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json, text/*',
+        'Authorization' => "Etna #{@token}",
+        'Host' => URI.parse(@host).host
+      }.update(
+        @request_headers || {}
+      )
+    end
+
+    # Be, very careful how you use retries.
+    # First off, a failure on the client does not necessarily mean a failure on the server -- remember, an action could
+    # have succeeded and the database saved, but the connection break from that point on.  The client cannot know what
+    # the state of the server is at the time of an error.
+    # Secondly, when retrying with a block, --the block will simply be called again!-- even if the retry is the result
+    # of a previous call to the block.  IE: Blocks + retry does NOT guarantee only a single call to the block.
+    # Fundamentally, you NEED idempotency for retries to make sense.  Otherwise you WILL have state inconsistency and
+    # subtle dangerous bugs.
+    # 1.  Is it a GET request?  Or if not, is it a request that will always return the same result (even if applied multiple times?)
+    # 2.  Is the block action safe to rerun multiple times from --any point--?  Remember exceptions result in unusual code paths.
+    def request(uri, data, max_retries: nil)
+      verify_mode = @ignore_ssl ?
+        OpenSSL::SSL::VERIFY_NONE :
+        OpenSSL::SSL::VERIFY_PEER
+      use_ssl = connection_uri.scheme == "https"
+
+      retries = -1
+
+      while retries < 0 || (!max_retries.nil? && retries < max_retries)
+        begin
+          if block_given?
+            return Net::HTTP.start(connection_uri.host, connection_uri.port, use_ssl: use_ssl, verify_mode: verify_mode, read_timeout: 300) do |http|
+              http.request(data) do |response|
+                status_check!(response)
+                yield response
+              end
+            end
+          else
+            verify_mode = @ignore_ssl ?
+              OpenSSL::SSL::VERIFY_NONE :
+              OpenSSL::SSL::VERIFY_PEER
+            return Net::HTTP.start(connection_uri.host, connection_uri.port, use_ssl: use_ssl, verify_mode: verify_mode, read_timeout: 300) do |http|
+              response = http.request(data)
+              status_check!(response)
+              return response
+            end
+          end
+        rescue *retryable_errors => e
+          retries += 1
+          # Consider better approach, very naive exponential backoff.
+          sleep([2 ** (retries), 15].min)
+        end
+      end
+    end
+
+    def request_uri(endpoint)
+      URI("#{@host}#{endpoint}")
+    end
+
     private
 
     def set_routes
@@ -94,7 +163,7 @@ module Etna
 
           unless missing_params.empty?
             raise ArgumentError, "Missing required #{missing_params.size > 1 ?
-                'params' : 'param'} #{missing_params.join(', ')}"
+              'params' : 'param'} #{missing_params.join(', ')}"
           end
 
           response = send(
@@ -135,26 +204,20 @@ module Etna
       request(uri, req, &block)
     end
 
-    def request_uri(endpoint)
-      URI("#{@host}#{endpoint}")
+    def internal?
+      !@endpoint.nil?
     end
 
-    def request_headers
-      {
-          'Content-Type' => 'application/json',
-          'Accept' => 'application/json, text/*',
-          'Authorization' => "Etna #{@token}"
-      }.update(
-        @request_headers || {}
-      )
+    def connection_uri
+      @connection_uri ||= URI.parse(internal? ? @endpoint : @host)
     end
 
     def status_check!(response)
       status = response.code.to_i
       if status >= 400
         msg = response.content_type == 'application/json' ?
-            json_error(response.body) :
-            response.body
+          json_error(response.body) :
+          response.body
         raise Etna::Error.new(msg, status)
       end
     end
@@ -168,27 +231,37 @@ module Etna
       end
     end
 
-    def request(uri, data)
-      if block_given?
-        verify_mode = @ignore_ssl ?
-          OpenSSL::SSL::VERIFY_NONE :
-          OpenSSL::SSL::VERIFY_PEER
-        Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
-          http.request(data) do |response|
-            status_check!(response)
-            yield response
-          end
-        end
-      else
-        verify_mode = @ignore_ssl ?
-          OpenSSL::SSL::VERIFY_NONE :
-          OpenSSL::SSL::VERIFY_PEER
-        Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
-          response = http.request(data)
-          status_check!(response)
-          return response
-        end
-      end
+    def retryable_errors
+      retry_exceptions = [
+        Errno::ECONNREFUSED,
+        Errno::ECONNRESET,
+        Errno::ENETRESET,
+        Errno::EPIPE,
+        Errno::ECONNABORTED,
+        Errno::EHOSTDOWN,
+        Errno::EHOSTUNREACH,
+        Errno::EINVAL,
+        Errno::ETIMEDOUT,
+        Net::ReadTimeout,
+        Net::HTTPFatalError,
+        Net::ProtocolError,
+        Net::HTTPRequestTimeOut,
+        Net::HTTPGatewayTimeOut,
+        Net::HTTPBadGateway,
+        Net::HTTPRetriableError,
+        Net::HTTPServiceUnavailable,
+        Net::OpenTimeout,
+        EOFError,
+        Timeout::Error
+      ]
+
+      begin
+        retry_exceptions << Net::HTTPRequestTimeout
+        retry_exceptions << Net::HTTPGatewayTimeout
+        retry_exceptions << Net::WriteTimeout
+      end if RUBY_VERSION > "2.5.8"
+
+      retry_exceptions
     end
   end
 end

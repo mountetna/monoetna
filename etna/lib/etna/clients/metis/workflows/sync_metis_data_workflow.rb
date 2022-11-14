@@ -12,7 +12,6 @@ module Etna
           response = metis_client.list_folder(ListFolderRequest.new(project_name: project_name, bucket_name: bucket_name, folder_path: src))
 
           response.files.all.each do |file|
-            logger&.info("Copying file #{file.file_path} (#{Etna::Formatting.as_size(file.size)})")
             copy_file(dest: ::File.join(dest, file.file_name), url: file.download_url)
           end
 
@@ -54,50 +53,23 @@ module Etna
           metadata = metis_client.file_metadata(url)
           size = metadata[:size]
 
-          tmp_file = dest
-          upload_timings = []
-          upload_amount = 0
-          last_rate = 0.00001
-          remaining = size
+          logger&.info("Copying file #{url} (#{Etna::Formatting.as_size(size)})")
 
-          filesystem.with_writeable(tmp_file, "w", size_hint: size) do |io|
-            if stub
-              io.write("(stub) #{size} bytes")
-            else
-              metis_client.download_file(url) do |chunk|
-                io.write(chunk)
-
-                upload_timings << [chunk.length, Time.now.to_f]
-                upload_amount += chunk.length
-                remaining -= chunk.length
-
-                if upload_timings.length > 150
-                  s, _ = upload_timings.shift
-                  upload_amount -= s
-                end
-
-                _, start_time = upload_timings.first
-                _, end_time = upload_timings.last
-
-                if start_time == end_time
-                  next
-                end
-
-                rate = upload_amount / (end_time - start_time)
-
-                if rate / last_rate > 1.3 || rate / last_rate < 0.7
-                  logger&.info("Uploading #{Etna::Formatting.as_size(rate)} per second, #{Etna::Formatting.as_size(remaining)} remaining")
-
-                  if rate == 0
-                    last_rate = 0.0001
-                  else
-                    last_rate = rate
-                  end
+          if filesystem.is_a?(Etna::Filesystem::Metis) && !stub
+            source_file = Etna::Filesystem::Metis::MetisSourceFile.new(metis_client, url)
+            filesystem.do_upload(source_file, dest, size_hint: size)
+          else
+            filesystem.with_writeable(dest, "w", size_hint: size) do |io|
+              if stub
+                io.write("(stub) #{size} bytes")
+              else
+                metis_client.download_file(url) do |chunk|
+                  io.write(chunk)
                 end
               end
-
             end
           end
+
         end
       end
     end

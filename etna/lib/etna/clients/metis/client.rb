@@ -9,11 +9,12 @@ require_relative '../base_client'
 module Etna
   module Clients
     class Metis < Etna::Clients::BaseClient
+      class EtagDidNotMatchError < Error; end
 
-      def initialize(host:, token:, ignore_ssl: false)
+      def initialize(host:, token:, ignore_ssl: false, endpoint: nil)
         raise 'Metis client configuration is missing host.' unless host
         raise 'Metis client configuration is missing token.' unless token
-        @etna_client = ::Etna::Client.new(host, token, ignore_ssl: ignore_ssl)
+        @etna_client = ::Etna::Client.new(host, token, ignore_ssl: ignore_ssl, endpoint: endpoint)
 
         @token = token
       end
@@ -99,16 +100,48 @@ module Etna
           @etna_client.bucket_find(find_request.to_h))
       end
 
-      def download_file(file_or_url = File.new, &block)
+      def download_file(file_or_url = File.new,
+        chunk_size: 1024 * 1024 * 30,
+        bytes_read: 0,
+        size: nil,
+        expected_etag: nil,
+        &block)
         if file_or_url.instance_of?(File)
           download_path =  file_or_url.download_path
         else
           download_path = file_or_url.sub(%r!^https://[^/]*?/!, '/')
         end
 
-        @etna_client.get(download_path) do |response|
-          response.read_body(&block)
+        size = file_metadata(file_or_url)[:size] if size.nil?
+        chunks = []
+        while bytes_read < size
+          uri = @etna_client.request_uri(download_path)
+          range_to = [bytes_read + chunk_size, size].min - 1
+          req = Net::HTTP::Get.new(uri.request_uri, @etna_client.core_headers.dup.update({
+            "Range" => "bytes=#{bytes_read}-#{range_to}",
+          }))
+
+          chunk = nil
+          @etna_client.request(uri, req, max_retries: 3) do  |response|
+            chunk = response.read_body
+            etag = response['ETag'].gsub(/"/, '')
+            unless expected_etag.nil?
+              if etag != expected_etag
+                raise EtagDidNotMatchError.new
+              end
+            end
+          end
+
+          break if chunk.nil?
+          if block_given?
+            block.call(chunk)
+          else
+            chunks.append(chunk)
+          end
+          bytes_read += chunk.bytes.length
         end
+
+        chunks
       end
 
       def file_metadata(file_or_url = File.new)

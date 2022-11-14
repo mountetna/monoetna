@@ -15,11 +15,11 @@ describe Etna::EnvironmentVariables do
     before(:each) do
       env["#{prefix}__A_B_C"] = "123"
       env["#{prefix}__aValueIsYou"] = "abc"
-      env["#{prefix}__some_hash"] = { "a" => 456 }
+      env["#{prefix}__some_hash"] = { "a" => 456, "b" => 120 }
     end
 
     it 'works in the happy case' do
-      expect(loaded).to eql({"a_b_c"=>"123", "avalueisyou"=>"abc", "some_hash"=>{"a"=>456}})
+      expect(loaded).to eql({"a_b_c"=>"123", "avalueisyou"=>"abc", "some_hash"=>{"a"=>456, "b" => 120}})
     end
 
     describe 'with environment variables lacking the prefix' do
@@ -40,6 +40,19 @@ describe Etna::EnvironmentVariables do
 
       it 'merges on the parent hash' do
         expect(loaded).to eql({"a_b_c"=>"123", "avalueisyou"=>"abc", "some_hash"=>{"a"=>456, "b" => 123}})
+      end
+
+      describe 'but when the key ordering differs' do
+        before(:each) do
+          some_hash = env["#{prefix}__some_hash"]
+          env.delete("#{prefix}__some_hash")
+          env["#{prefix}__some_hash"] = some_hash
+          expect(env.keys.to_a).to eql(["PRE__A_B_C", "PRE__aValueIsYou", "PRE__some_hash__b", "PRE__some_hash"])
+        end
+
+        it 'merges on the parent hash' do
+          expect(loaded).to eql({"a_b_c"=>"123", "avalueisyou"=>"abc", "some_hash"=>{"a"=>456, "b" => 123}})
+        end
       end
     end
   end

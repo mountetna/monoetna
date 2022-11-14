@@ -93,6 +93,7 @@ services:
       - source: known_hosts
         target: /root/.ssh/known_hosts
     networks:
+      edge_bridge:
       db:
       prometheus:
       fe:

@@ -114,12 +114,12 @@ module Etna
 
         @config_file = File.join(Dir.mktmpdir, "config.yml")
         config = {}
-        config["config"] = {"version" => `#{ascli_bin} --version`.chomp}
-        config["default"] = {"server" => "clifilesystem"}
+        config["config"] = { "version" => `#{ascli_bin} --version`.chomp }
+        config["default"] = { "server" => "clifilesystem" }
         server_config = config["clifilesystem"] = {
-            "url" => "ssh://#{host}:#{port}",
-            "username" => username,
-            "ssh_options" => {append_all_supported_algorithms: true},
+          "url" => "ssh://#{host}:#{port}",
+          "username" => username,
+          "ssh_options" => { append_all_supported_algorithms: true },
         }
 
         if password
@@ -216,7 +216,7 @@ module Etna
           cmd << remote_path
           cmd << local_path
 
-          cmd << {out: wd}
+          cmd << { out: wd }
         elsif opts.include?('w')
           cmd << '--mode=send'
           cmd << "--host=#{@host}"
@@ -224,7 +224,7 @@ module Etna
           cmd << local_path
           cmd << remote_path
 
-          cmd << {in: rd}
+          cmd << { in: rd }
         end
 
         puts "end of mkcmd: #{cmd}"
@@ -267,6 +267,80 @@ module Etna
       end
     end
 
+    class MetisSourceFile
+      def initialize(metis_client, file_or_url)
+        @metis_client = metis_client
+        @file_or_url = file_or_url
+        @pos = 0
+      end
+
+      def read_handle
+        @read_handle ||= begin
+          ReadHandle.new(@file_or_url, @metis_client)
+        end
+      end
+
+      def upload_workflow
+        @upload_workflow ||= Etna::Clients::Metis::MetisUploadWorkflow.new(
+          metis_client: @metis_client,
+          metis_uid: SecureRandom.uuid,
+          project_name: path_match[:project_name],
+          bucket_name: path_match[:bucket_name],
+          max_attempts: 3
+        )
+      end
+
+      def read(num_bytes, buff = nil)
+        result = read_handle.read_slice(@pos, @pos + num_bytes)
+        @pos += result.bytes.length
+        buff << result unless buff.nil?
+        result
+      end
+
+      def seek(pos, whence = IO::SEEK_SET)
+        read_handle # seek only works for head handles
+
+        case whence
+        when IO::SEEK_SET
+          @pos = pos
+        when IO::SEEK_CUR
+          @pos += pos
+        when IO::SEEK_END
+          @pos = read_handle.file_size(@metis_client) + pos
+        else
+        end
+      end
+
+      class ReadHandle
+        def initialize(file_or_url, metis_client)
+          @file_or_url = file_or_url
+          @metis_client = metis_client
+        end
+
+        def metadata(metis_client)
+          @metadata ||= metis_client.file_metadata(@file_or_url)
+        end
+
+        def etag(metis_client)
+          metadata(metis_client)[:etag]
+        end
+
+        def file_size(metis_client)
+          metadata(metis_client)[:size]
+        end
+
+        def read_slice(from, to)
+          @metis_client.download_file(
+            @file_or_url,
+            bytes_read: from,
+            size: to,
+            chunk_size: to - from,
+            expected_etag: etag(@metis_client)
+          ).join
+        end
+      end
+    end
+
     class Metis < Filesystem
       attr_reader :project_name, :bucket_name
 
@@ -283,79 +357,93 @@ module Etna
         joined[0] == "/" ? joined.slice(1..-1) : joined
       end
 
-      def create_upload_workflow
-        Etna::Clients::Metis::MetisUploadWorkflow.new(metis_client: @metis_client, metis_uid: @metis_uid, project_name: @project_name, bucket_name: @bucket_name, max_attempts: 3)
-      end
-
       def with_hot_pipe(opts, receiver, *args, &block)
         rp, wp = IO.pipe
+        executor = Concurrent::SingleThreadExecutor.new(fallback_policy: :abort)
         begin
-          executor = Concurrent::SingleThreadExecutor.new(fallback_policy: :abort)
-          begin
-            if opts.include?('w')
-              future = Concurrent::Promises.future_on(executor) do
-                self.send(receiver, rp, *args)
-              rescue => e
-                Etna::Application.instance.logger.log_error(e)
-                raise e
-              ensure
-                rp.close
-              end
-
-              yield wp
-            else
-              future = Concurrent::Promises.future_on(executor) do
-                self.send(receiver, wp, *args)
-              rescue => e
-                Etna::Application.instance.logger.log_error(e)
-                raise e
-              ensure
-                wp.close
-              end
-
-              yield rp
+          if opts.include?('w')
+            future = Concurrent::Promises.future_on(executor) do
+              self.send(receiver, rp, *args)
+            rescue => e
+              Etna::Application.instance.logger.log_error(e)
+              raise e
+            ensure
+              rp.close
             end
 
-            future.wait!
-          ensure
-            executor.shutdown
-            executor.kill unless executor.wait_for_termination(5)
+            yield wp
+          else
+            future = Concurrent::Promises.future_on(executor) do
+              self.send(receiver, wp, *args)
+            rescue => e
+              Etna::Application.instance.logger.log_error(e)
+              raise e
+            ensure
+              wp.close
+            end
+
+            yield rp
           end
+          future.wait!
         ensure
-          rp.close
           wp.close
+          rp.close
+          executor.shutdown
+          executor.kill unless executor.wait_for_termination(5)
+        end
+      end
+
+      def with_retries(max_retries, &block)
+        retries = 0
+        while true
+          begin
+            return yield
+          rescue => e
+            retries += 1
+            if retries > max_retries
+              raise e
+            end
+          end
+        end
+      end
+
+      def with_writeable(dest, opts = 'w', size_hint: nil, max_retries: 3, &block)
+        with_retries(max_retries) do
+          return with_hot_pipe(opts, :do_streaming_upload, dest, size_hint) do |wp|
+            yield wp
+          end
+        end
+      end
+
+      def do_upload(rp, dest, size_hint: nil, max_retries: 3)
+        with_retries(max_retries) do
+          create_upload_workflow.do_upload(rp, metis_path_of(dest), size_hint: size_hint)
         end
       end
 
       def do_streaming_upload(rp, dest, size_hint)
         streaming_upload = Etna::Clients::Metis::MetisUploadWorkflow::StreamingIOUpload.new(readable_io: rp, size_hint: size_hint)
         create_upload_workflow.do_upload(
-            streaming_upload,
-            metis_path_of(dest)
+          streaming_upload,
+          metis_path_of(dest),
+          size_hint: size_hint,
         )
       end
 
-      def with_writeable(dest, opts = 'w', size_hint: nil, &block)
-        self.with_hot_pipe(opts, :do_streaming_upload, dest, size_hint) do |wp|
-          yield wp
-        end
-      end
-
-      def create_download_workflow
-        Etna::Clients::Metis::MetisDownloadWorkflow.new(metis_client: @metis_client, project_name: @project_name, bucket_name: @bucket_name, max_attempts: 3)
-      end
-
-      def do_streaming_download(wp, metis_file)
-        create_download_workflow.do_download(wp, metis_file)
+      def create_upload_workflow
+        Etna::Clients::Metis::MetisUploadWorkflow.new(
+          metis_client: @metis_client,
+          metis_uid: SecureRandom.hex,
+          project_name: @project_name,
+          bucket_name: @bucket_name,
+          max_attempts: 3
+        )
       end
 
       def with_readable(src, opts = 'r', &block)
         metis_file = list_metis_directory(::File.dirname(src)).files.all.find { |f| f.file_name == ::File.basename(src) }
         raise "Metis file at #{@project_name}/#{@bucket_name}/#{@root}/#{src} not found.  No such file" if metis_file.nil?
-
-        self.with_hot_pipe(opts, :do_streaming_download, metis_file) do |rp|
-          yield rp
-        end
+        yield MetisSourceFile.new(@metis_client, metis_file)
       end
 
       def list_metis_directory(path)
@@ -364,9 +452,9 @@ module Etna
 
       def mkdir_p(dir)
         create_folder_request = Etna::Clients::Metis::CreateFolderRequest.new(
-            project_name: @project_name,
-            bucket_name: @bucket_name,
-            folder_path: metis_path_of(dir),
+          project_name: @project_name,
+          bucket_name: @bucket_name,
+          folder_path: metis_path_of(dir),
         )
         @metis_client.create_folder(create_folder_request)
       end
@@ -390,7 +478,7 @@ module Etna
         end
 
         response.files.all.any? { |f| f.file_name == ::File.basename(src) } ||
-            response.folders.all.any? { |f| f.folder_name == ::File.basename(src) }
+          response.folders.all.any? { |f| f.folder_name == ::File.basename(src) }
       end
     end
 
@@ -425,7 +513,7 @@ module Etna
         "#{@username}:#{@password}"
       end
 
-      def curl_cmd(path, opts=[])
+      def curl_cmd(path, opts = [])
         connection = Curl::Easy.new(url(path))
         connection.http_auth_types = :basic
         connection.username = @username
@@ -458,7 +546,7 @@ module Etna
         cmd << url(file)
 
         if opts.include?('r')
-          cmd << {out: wd}
+          cmd << { out: wd }
         end
 
         cmd
@@ -478,7 +566,7 @@ module Etna
       end
 
       def ls(dir)
-        dir = dir + "/" unless "/" == dir[-1]  # Trailing / makes curl list directory
+        dir = dir + "/" unless "/" == dir[-1] # Trailing / makes curl list directory
 
         return @dir_listings[dir] if @dir_listings.has_key?(dir)
 
