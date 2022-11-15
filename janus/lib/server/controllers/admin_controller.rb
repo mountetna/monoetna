@@ -102,6 +102,8 @@ class AdminController < Janus::Controller
 
     raise Etna::BadRequest, 'project_name_full cannot be empty' if @params[:project_name_full].nil? || @params[:project_name_full].empty?
 
+    raise Etna::BadRequest, 'template_project_name does not exist' if template_project_name_provided? && !template_project_exists?
+
     project = Project[project_name: @params[:project_name]]
 
     if project.nil?
@@ -132,6 +134,8 @@ class AdminController < Janus::Controller
           revisions: {
               'project' => { project.project_name => { name: project.project_name } },
           }))
+
+        copy_project_template(magma_client) if template_project_name_provided?
       end if magma_client
 
       Janus.instance.set_token_cookie(@response, refreshed_token)
@@ -234,5 +238,40 @@ class AdminController < Janus::Controller
 
   def janus_user
     User[email: @user.email]
+  end
+
+  def template_project_name_provided?
+    !!@params[:template_project_name]
+  end
+
+  def template_project_exists?
+    return false unless template_project_name_provided?
+
+    !Project[project_name: @params[:template_project_name]].nil?
+  end
+
+  def copy_project_template(target_client)
+    # Do this in a separate thread ... can take more than 1 minute, so
+    #   the connection times out.
+    Thread.new do
+      begin
+        source_models = target_client.retrieve(
+          Etna::Clients::Magma::RetrievalRequest.new(
+            project_name: @params[:template_project_name]
+          )
+        ).models
+
+        workflow = Etna::Clients::Magma::ModelSynchronizationWorkflow.new(
+          target_client: target_client,
+          source_models: source_models,
+          target_project: @params[:project_name]
+        )
+        workflow.ensure_model_tree('project')
+      rescue => e
+        puts "Error in thread for copying project template!"
+        puts e.message
+        puts e.backtrace
+      end
+    end
   end
 end
