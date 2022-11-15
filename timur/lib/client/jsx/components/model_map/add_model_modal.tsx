@@ -22,7 +22,13 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function AddModelModal({modelName, onSave}: {onSave: any}) {
+export default function AddModelModal({
+  modelName,
+  onSave
+}: {
+  onSave: any;
+  modelName: string;
+}) {
   const [disabled, setDisabled] = useState(true);
   const [identifier, setIdentifier] = useState('');
   const [childModelName, setChildModelName] = useState('');
