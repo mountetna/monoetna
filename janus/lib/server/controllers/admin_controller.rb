@@ -268,9 +268,8 @@ class AdminController < Janus::Controller
         )
         workflow.ensure_model_tree('project')
       rescue => e
-        puts "Error in thread for copying project template!"
-        puts e.message
-        puts e.backtrace
+        Janus.instance.logger.error("Error in thread for copying project template! #{e.message}")
+        Janus.instance.logger.log_error(e)
       end
     end
   end
