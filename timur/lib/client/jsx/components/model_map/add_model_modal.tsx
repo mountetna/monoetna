@@ -22,7 +22,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-export default function AddModelModal({onSave}: {onSave: any}) {
+export default function AddModelModal({modelName, onSave}: {onSave: any}) {
   const [disabled, setDisabled] = useState(true);
   const [identifier, setIdentifier] = useState('');
   const [childModelName, setChildModelName] = useState('');
@@ -79,6 +79,12 @@ export default function AddModelModal({onSave}: {onSave: any}) {
     <div className='add-model-modal model-actions-modal'>
       <div className='header'>Add Model</div>
       <div className='options-tray tray'>
+        <ShrinkingLabelTextField
+          id='parent-model-name'
+          label='Parent Model Name'
+          value={modelName}
+          disabled={true}
+        />
         <ShrinkingLabelTextField
           id='child-model-name'
           label='New Model Name (snake_case no numbers)'

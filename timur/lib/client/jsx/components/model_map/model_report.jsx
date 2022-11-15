@@ -158,7 +158,9 @@ const ManageModelActions = ({
           className={classes.addBtn}
           startIcon={<LibraryAddIcon />}
           onClick={() => {
-            openModal(<AddModelModal onSave={handleAddModel} />);
+            openModal(
+              <AddModelModal modelName={modelName} onSave={handleAddModel} />
+            );
           }}
         >
           Model
