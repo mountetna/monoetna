@@ -69,100 +69,6 @@ exports[`AttributeReport renders 1`] = `
 </div>
 `;
 
-exports[`AttributeReport renders with model action buttons for admin user 1`] = `
-<DocumentFragment>
-  <div
-    class="MuiGrid-root makeStyles-attribute_report-2"
-  >
-    <div
-      class="MuiPaper-root MuiCard-root makeStyles-attribute_card-3 MuiPaper-elevation1 MuiPaper-rounded"
-    >
-      <div
-        class="MuiGrid-root makeStyles-heading-8 undefined MuiGrid-container"
-      >
-        <h6
-          class="MuiTypography-root makeStyles-name-9 MuiTypography-h6"
-        >
-          Attribute
-        </h6>
-         
-        <h6
-          class="MuiTypography-root makeStyles-title-10 MuiTypography-h6"
-        >
-          name
-        </h6>
-        <div
-          class="MuiGrid-root MuiGrid-container"
-          style="width: auto; flex: 1; align-items: end; justify-content: right;"
-        >
-          <button
-            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button-7 MuiButton-textSecondary MuiButton-textSizeSmall MuiButton-sizeSmall"
-            tabindex="0"
-            title="Edit Attribute"
-            type="button"
-          >
-            <span
-              class="MuiButton-label"
-            >
-              <span
-                class="MuiButton-startIcon MuiButton-iconSizeSmall"
-              >
-                <svg
-                  aria-hidden="true"
-                  class="MuiSvgIcon-root"
-                  focusable="false"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-                  />
-                </svg>
-              </span>
-              Edit
-            </span>
-            <span
-              class="MuiTouchRipple-root"
-            />
-          </button>
-        </div>
-      </div>
-      <div
-        class="MuiCardContent-root makeStyles-content-4"
-      >
-        <div
-          class="MuiGrid-root MuiGrid-container"
-        >
-          <div
-            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
-          >
-            attribute_type
-          </div>
-          <div
-            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
-          >
-            identifier
-          </div>
-        </div>
-        <div
-          class="MuiGrid-root MuiGrid-container"
-        >
-          <div
-            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
-          >
-            display_name
-          </div>
-          <div
-            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
-          >
-            Name
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</DocumentFragment>
-`;
-
 exports[`AttributeReport renders with remove attribute buttons for admin user, removable attribute 1`] = `
 <DocumentFragment>
   <div
@@ -247,6 +153,394 @@ exports[`AttributeReport renders with remove attribute buttons for admin user, r
               class="MuiTouchRipple-root"
             />
           </button>
+          <button
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button-7 MuiButton-textSecondary MuiButton-textSizeSmall MuiButton-sizeSmall"
+            tabindex="0"
+            title="Show data sample"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              Sample
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+        </div>
+      </div>
+      <div
+        class="MuiCardContent-root makeStyles-content-4"
+      >
+        <div
+          class="MuiGrid-root MuiGrid-container"
+        >
+          <div
+            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
+          >
+            attribute_type
+          </div>
+          <div
+            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
+          >
+            string
+          </div>
+        </div>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+        >
+          <div
+            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
+          >
+            display_name
+          </div>
+          <div
+            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
+          >
+            Species
+          </div>
+        </div>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+        >
+          <div
+            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
+          >
+            validation_type
+          </div>
+          <div
+            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
+          >
+            Regexp
+          </div>
+        </div>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+        >
+          <div
+            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
+          >
+            validation
+          </div>
+          <div
+            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
+          >
+            "^[a-z\\\\s]+$"
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`AttributeReport renders with remove link button for admin user, collection (link) attribute 1`] = `
+<DocumentFragment>
+  <div
+    class="MuiGrid-root makeStyles-attribute_report-2"
+  >
+    <div
+      class="MuiPaper-root MuiCard-root makeStyles-attribute_card-3 MuiPaper-elevation1 MuiPaper-rounded"
+    >
+      <div
+        class="MuiGrid-root makeStyles-heading-8 undefined MuiGrid-container"
+      >
+        <h6
+          class="MuiTypography-root makeStyles-name-9 MuiTypography-h6"
+        >
+          Attribute
+        </h6>
+         
+        <h6
+          class="MuiTypography-root makeStyles-title-10 MuiTypography-h6"
+        >
+          monster
+        </h6>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+          style="width: auto; flex: 1; align-items: end; justify-content: right;"
+        >
+          <button
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button-7 MuiButton-textPrimary MuiButton-textSizeSmall MuiButton-sizeSmall"
+            tabindex="0"
+            title="Remove Link"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeSmall"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                  />
+                </svg>
+              </span>
+              Remove Link
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+        </div>
+      </div>
+      <div
+        class="MuiCardContent-root makeStyles-content-4"
+      >
+        <div
+          class="MuiGrid-root MuiGrid-container"
+        >
+          <div
+            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
+          >
+            attribute_type
+          </div>
+          <div
+            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
+          >
+            collection
+          </div>
+        </div>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+        >
+          <div
+            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
+          >
+            link_model_name
+          </div>
+          <div
+            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
+          >
+            monster
+          </div>
+        </div>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+        >
+          <div
+            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
+          >
+            display_name
+          </div>
+          <div
+            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
+          >
+            Monster
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`AttributeReport renders with remove link button for admin user, link attribute 1`] = `
+<DocumentFragment>
+  <div
+    class="MuiGrid-root makeStyles-attribute_report-2"
+  >
+    <div
+      class="MuiPaper-root MuiCard-root makeStyles-attribute_card-3 MuiPaper-elevation1 MuiPaper-rounded"
+    >
+      <div
+        class="MuiGrid-root makeStyles-heading-8 undefined MuiGrid-container"
+      >
+        <h6
+          class="MuiTypography-root makeStyles-name-9 MuiTypography-h6"
+        >
+          Attribute
+        </h6>
+         
+        <h6
+          class="MuiTypography-root makeStyles-title-10 MuiTypography-h6"
+        >
+          habitat
+        </h6>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+          style="width: auto; flex: 1; align-items: end; justify-content: right;"
+        >
+          <button
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button-7 MuiButton-textPrimary MuiButton-textSizeSmall MuiButton-sizeSmall"
+            tabindex="0"
+            title="Remove Link"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeSmall"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                  />
+                </svg>
+              </span>
+              Remove Link
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+        </div>
+      </div>
+      <div
+        class="MuiCardContent-root makeStyles-content-4"
+      >
+        <div
+          class="MuiGrid-root MuiGrid-container"
+        >
+          <div
+            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
+          >
+            attribute_type
+          </div>
+          <div
+            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
+          >
+            link
+          </div>
+        </div>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+        >
+          <div
+            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
+          >
+            link_model_name
+          </div>
+          <div
+            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
+          >
+            habitat
+          </div>
+        </div>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+        >
+          <div
+            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
+          >
+            display_name
+          </div>
+          <div
+            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
+          >
+            Habitat
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`AttributeReport renders without model action buttons for admin user, non-editable attribute 1`] = `
+<DocumentFragment>
+  <div
+    class="MuiGrid-root makeStyles-attribute_report-2"
+  >
+    <div
+      class="MuiPaper-root MuiCard-root makeStyles-attribute_card-3 MuiPaper-elevation1 MuiPaper-rounded"
+    >
+      <div
+        class="MuiGrid-root makeStyles-heading-8 undefined MuiGrid-container"
+      >
+        <h6
+          class="MuiTypography-root makeStyles-name-9 MuiTypography-h6"
+        >
+          Attribute
+        </h6>
+         
+        <h6
+          class="MuiTypography-root makeStyles-title-10 MuiTypography-h6"
+        >
+          name
+        </h6>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+          style="width: auto; flex: 1; align-items: end; justify-content: right;"
+        />
+      </div>
+      <div
+        class="MuiCardContent-root makeStyles-content-4"
+      >
+        <div
+          class="MuiGrid-root MuiGrid-container"
+        >
+          <div
+            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
+          >
+            attribute_type
+          </div>
+          <div
+            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
+          >
+            identifier
+          </div>
+        </div>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+        >
+          <div
+            class="MuiGrid-root makeStyles-type-5 MuiGrid-item MuiGrid-grid-xs-3"
+          >
+            display_name
+          </div>
+          <div
+            class="MuiGrid-root makeStyles-value-6 MuiGrid-item MuiGrid-grid-xs-9"
+          >
+            Name
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`AttributeReport renders without model action buttons for editor user 1`] = `
+<DocumentFragment>
+  <div
+    class="MuiGrid-root makeStyles-attribute_report-2"
+  >
+    <div
+      class="MuiPaper-root MuiCard-root makeStyles-attribute_card-3 MuiPaper-elevation1 MuiPaper-rounded"
+    >
+      <div
+        class="MuiGrid-root makeStyles-heading-8 undefined MuiGrid-container"
+      >
+        <h6
+          class="MuiTypography-root makeStyles-name-9 MuiTypography-h6"
+        >
+          Attribute
+        </h6>
+         
+        <h6
+          class="MuiTypography-root makeStyles-title-10 MuiTypography-h6"
+        >
+          species
+        </h6>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+          style="width: auto; flex: 1; align-items: end; justify-content: right;"
+        >
           <button
             class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button-7 MuiButton-textSecondary MuiButton-textSizeSmall MuiButton-sizeSmall"
             tabindex="0"

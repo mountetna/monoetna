@@ -9,19 +9,20 @@ import Tooltip from '@material-ui/core/Tooltip';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {requestAnswer} from 'etna-js/actions/magma_actions';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
-import {selectUser} from 'etna-js/selectors/user-selector';
-import {isAdmin} from 'etna-js/utils/janus';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
+import {selectModels} from 'etna-js/selectors/magma';
 
-import {showMessages} from 'etna-js/actions/message_actions';
-import {addTemplatesAndDocuments} from 'etna-js/actions/magma_actions';
-import {updateAttribute, removeAttribute} from '../../api/magma_api';
+import {
+  updateAttribute,
+  removeAttribute,
+  removeLink
+} from '../../api/magma_api';
 import MapHeading from './map_heading';
 import EditAttributeModal from './edit_attribute_modal';
-import {REMOVE_ATTRIBUTE_TYPES} from '../../utils/edit_map';
+import {EDITABLE_ATTRIBUTE_TYPES} from '../../utils/edit_map';
+import useMagmaActions from './use_magma_actions';
 
 const ATT_ATTS = [
   'attribute_type',
@@ -75,10 +76,22 @@ const useStyles = makeStyles((theme) => ({
 const ManageAttributeActions = ({
   handleEditAttribute,
   attribute,
-  handleRemoveAttribute
+  handleRemoveAttribute,
+  handleRemoveLink
 }) => {
   const classes = useStyles();
   const {openModal} = useModal();
+
+  const models = useReduxState((state) => selectModels(state));
+
+  const reciprocalAttribute = useMemo(() => {
+    if (!attribute.link_model_name || !attribute.link_attribute_name)
+      return null;
+
+    return models[attribute.link_model_name].template.attributes[
+      attribute.link_attribute_name
+    ];
+  }, [models, attribute]);
 
   const handleConfirmRemove = useCallback(() => {
     if (
@@ -90,25 +103,59 @@ const ManageAttributeActions = ({
     }
   }, [handleRemoveAttribute]);
 
-  const isRemovableAttribute = useMemo(() => {
-    return REMOVE_ATTRIBUTE_TYPES.includes(attribute.attribute_type);
-  }, [attribute, REMOVE_ATTRIBUTE_TYPES]);
+  const handleConfirmRemoveLink = useCallback(() => {
+    if (
+      confirm(
+        'Removing a link is not reversible, and affects both models -- are you sure?'
+      )
+    ) {
+      handleRemoveLink();
+    }
+  }, [handleRemoveLink]);
+
+  const isEditableAttribute = useMemo(() => {
+    return EDITABLE_ATTRIBUTE_TYPES.includes(attribute.attribute_type);
+  }, [attribute, EDITABLE_ATTRIBUTE_TYPES]);
+
+  const isLinkAttribute = useMemo(() => {
+    if (!reciprocalAttribute) return false;
+
+    return (
+      'link' === attribute.attribute_type ||
+      'link' === reciprocalAttribute.attribute_type
+    );
+  }, [attribute, reciprocalAttribute]);
+
+  if (isLinkAttribute)
+    return (
+      <Tooltip title='Remove Link'>
+        <Button
+          startIcon={<DeleteIcon />}
+          onClick={handleConfirmRemoveLink}
+          size='small'
+          color='primary'
+          className={classes.button}
+        >
+          Remove Link
+        </Button>
+      </Tooltip>
+    );
+
+  if (!isEditableAttribute) return null;
 
   return (
     <>
-      {isRemovableAttribute && (
-        <Tooltip title='Remove Attribute'>
-          <Button
-            startIcon={<DeleteIcon />}
-            onClick={handleConfirmRemove}
-            size='small'
-            color='primary'
-            className={classes.button}
-          >
-            Remove
-          </Button>
-        </Tooltip>
-      )}
+      <Tooltip title='Remove Attribute'>
+        <Button
+          startIcon={<DeleteIcon />}
+          onClick={handleConfirmRemove}
+          size='small'
+          color='primary'
+          className={classes.button}
+        >
+          Remove
+        </Button>
+      </Tooltip>
       <Tooltip title='Edit Attribute'>
         <Button
           startIcon={<EditIcon />}
@@ -131,12 +178,11 @@ const ManageAttributeActions = ({
   );
 };
 
-const AttributeReport = ({attribute, model_name, counts}) => {
+const AttributeReport = ({attribute, model_name, isAdminUser}) => {
   const dispatch = useDispatch();
-  const invoke = useActionInvoker();
   const [sample, setSample] = useState(null);
-  const {openModal, dismissModal} = useModal();
-  const user = useReduxState((state) => selectUser(state));
+
+  const {executeAction} = useMagmaActions();
 
   const showSample = () => {
     requestAnswer({
@@ -152,39 +198,34 @@ const AttributeReport = ({attribute, model_name, counts}) => {
 
   const handleEditAttribute = useCallback(
     (params) => {
-      dismissModal();
-      updateAttribute({
-        model_name,
-        ...params
-      })
-        .then(({models}) => {
-          invoke(addTemplatesAndDocuments(models));
-        })
-        .catch((err) => {
-          invoke(showMessages(err));
-        });
+      executeAction(
+        updateAttribute({
+          model_name,
+          ...params
+        }),
+        false
+      );
     },
-    [invoke, model_name, dismissModal, showMessages, addTemplatesAndDocuments]
+    [executeAction, model_name, updateAttribute]
   );
 
   const handleRemoveAttribute = useCallback(() => {
-    removeAttribute({
-      model_name,
-      attribute_name: attribute.name
-    })
-      .then(({models}) => {
-        invoke(addTemplatesAndDocuments(models));
+    executeAction(
+      removeAttribute({
+        model_name,
+        attribute_name: attribute.name
       })
-      .catch((err) => {
-        invoke(showMessages(err));
-      });
-  }, [attribute, invoke, addTemplatesAndDocuments, showMessages]);
+    );
+  }, [executeAction, model_name, removeAttribute, attribute]);
 
-  const isAdminUser = useMemo(() => {
-    if (!user || 0 === Object.keys(user).length) return false;
-
-    return isAdmin(user, CONFIG.project_name);
-  }, [user, CONFIG.project_name]);
+  const handleRemoveLink = useCallback(() => {
+    executeAction(
+      removeLink({
+        model_name,
+        attribute_name: attribute.name
+      })
+    );
+  }, [executeAction, model_name, removeLink, attribute]);
 
   if (!attribute) return null;
 
@@ -197,6 +238,7 @@ const AttributeReport = ({attribute, model_name, counts}) => {
               attribute={attribute}
               handleEditAttribute={handleEditAttribute}
               handleRemoveAttribute={handleRemoveAttribute}
+              handleRemoveLink={handleRemoveLink}
             />
           )}
           {attribute.attribute_type == 'string' && (

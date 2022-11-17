@@ -1,4 +1,4 @@
-describe Magma::UpdateAttributeAction do
+describe Magma::RemoveAttributeAction do
   let(:action) { Magma::RemoveAttributeAction.new("labors", action_params) }
   let(:action_params) do
     {

@@ -8,6 +8,9 @@ require_relative 'rename_attribute'
 require_relative 'add_project'
 require_relative 'add_dictionary'
 require_relative 'set_date_shift_root'
+require_relative 'remove_link'
+require_relative 'remove_model'
+require_relative 'reparent_model'
 require 'rollbar'
 
 class Magma
@@ -125,6 +128,9 @@ class Magma
       ")
 
       sequel_migration.apply(db, :up)
+
+      @project.remove_detached_models
+
       restart_server
     end
 

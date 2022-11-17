@@ -19,6 +19,12 @@ export type Attribute = {
   validation?: {[key: string]: any} | null;
 };
 
+export type Model = {
+  template: {
+    attributes: Attribute[];
+  };
+};
+
 export type LinkAttribute = Attribute & {
   link_model_name: string;
   link_attribute_name: string;
@@ -70,6 +76,62 @@ type RemoveAttributeAction = RemoveAttributeParams & {
   action_name: 'remove_attribute';
 };
 
+type AddLinkParams = {
+  modelName: string;
+  linkAttributeName: string;
+  reciprocalAttributeName: string;
+  reciprocalModelName: string;
+  reciprocalLinkType: 'link' | 'child' | 'collection';
+};
+
+type LinkAction = {
+  model_name: string;
+  attribute_name: string;
+  type: 'link' | 'child' | 'collection';
+};
+
+type AddLinkAction = {
+  action_name: 'add_link';
+  links: [LinkAction, LinkAction];
+};
+
+type RemoveLinkParams = {
+  model_name: string;
+  attribute_name: string;
+};
+
+type RemoveLinkAction = RemoveLinkParams & {
+  action_name: 'remove_link';
+};
+
+type AddModelParams = {
+  model_name: string;
+  identifier: string;
+  parent_model_name: string;
+  parent_link_type: 'child' | 'collection';
+};
+
+type AddModelAction = AddModelParams & {
+  action_name: 'add_model';
+};
+
+type RemoveModelParams = {
+  model_name: string;
+};
+
+type RemoveModelAction = RemoveModelParams & {
+  action_name: 'remove_model';
+};
+
+type ReparentModelParams = {
+  model_name: string;
+  parent_model_name: string;
+};
+
+type ReparentModelAction = ReparentModelParams & {
+  action_name: 'reparent_model';
+};
+
 // Basically params returned by the server but not
 //   accepted as part of an update_attribute action.
 const uneditableAttributes = [
@@ -86,6 +148,11 @@ const cleanPayload = (
     | UpdateAttributeAction
     | RenameAttributeAction
     | RemoveAttributeAction
+    | AddLinkAction
+    | RemoveLinkAction
+    | AddModelAction
+    | RemoveModelAction
+    | ReparentModelAction
   )[]
 ) => {
   return payload.map((action: any) => {
@@ -105,6 +172,11 @@ const updateModel = (
     | UpdateAttributeAction
     | RenameAttributeAction
     | RemoveAttributeAction
+    | AddLinkAction
+    | RemoveLinkAction
+    | AddModelAction
+    | RemoveModelAction
+    | ReparentModelAction
   )[]
 ) => {
   payload = cleanPayload(payload);
@@ -164,6 +236,72 @@ export const removeAttribute = (params: RemoveAttributeParams) => {
   };
 
   let actions: RemoveAttributeAction[] = [removeAction];
+
+  return updateModel(actions);
+};
+
+export const addLink = (params: AddLinkParams) => {
+  let addLinkAction: AddLinkAction = {
+    action_name: 'add_link',
+    links: [
+      {
+        model_name: params.modelName,
+        attribute_name: params.linkAttributeName,
+        type: 'link'
+      },
+      {
+        model_name: params.reciprocalModelName,
+        attribute_name: params.reciprocalAttributeName,
+        type: params.reciprocalLinkType
+      }
+    ]
+  };
+
+  let actions: AddLinkAction[] = [addLinkAction];
+
+  return updateModel(actions);
+};
+
+export const removeLink = (params: RemoveLinkParams) => {
+  let removeAction: RemoveLinkAction = {
+    action_name: 'remove_link',
+    ...params
+  };
+
+  let actions: RemoveLinkAction[] = [removeAction];
+
+  return updateModel(actions);
+};
+
+export const addModel = (params: AddModelParams) => {
+  let addModelAction: AddModelAction = {
+    action_name: 'add_model',
+    ...params
+  };
+
+  let actions: AddModelAction[] = [addModelAction];
+
+  return updateModel(actions);
+};
+
+export const removeModel = (params: RemoveModelParams) => {
+  let removeModelAction: RemoveModelAction = {
+    action_name: 'remove_model',
+    ...params
+  };
+
+  let actions: RemoveModelAction[] = [removeModelAction];
+
+  return updateModel(actions);
+};
+
+export const reparentModel = (params: ReparentModelParams) => {
+  let reparentModelAction: ReparentModelAction = {
+    action_name: 'reparent_model',
+    ...params
+  };
+
+  let actions: ReparentModelAction[] = [reparentModelAction];
 
   return updateModel(actions);
 };
