@@ -40,6 +40,7 @@ import AddAttributeModal from './add_attribute_modal';
 import AddLinkModal from './add_link_modal';
 import ReparentModelModal from './reparent_model_modal';
 import AddModelModal from './add_model_modal';
+import RemoveModelModal from './remove_model_modal';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {selectModels} from 'etna-js/selectors/magma';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
@@ -123,12 +124,6 @@ const ManageModelActions = ({
   const classes = attributeStyles();
   const {openModal} = useModal();
 
-  const confirmRemoveModel = useCallback(() => {
-    if (confirm('Removing a model is not reversible -- are you sure?')) {
-      handleRemoveModel();
-    }
-  }, [handleRemoveModel]);
-
   return (
     <>
       <Tooltip title='Add Attribute' aria-label='Add Attribute'>
@@ -189,7 +184,14 @@ const ManageModelActions = ({
           <Button
             className={classes.addBtn}
             startIcon={<DeleteIcon />}
-            onClick={confirmRemoveModel}
+            onClick={() => {
+              openModal(
+                <RemoveModelModal
+                  modelName={modelName}
+                  onSave={handleRemoveModel}
+                />
+              );
+            }}
           >
             Remove Model
           </Button>
