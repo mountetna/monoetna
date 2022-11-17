@@ -24,6 +24,10 @@ class Metis
       !x
       end
 
+      def self.remove_double_slashes(path)
+        ::File.join(path.split("/"))
+      end
+
       def self.path_from_parts(project_name, bucket_name, file_path)
         ::File.join("metis://", project_name, bucket_name, file_path)
       end

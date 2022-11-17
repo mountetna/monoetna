@@ -120,7 +120,7 @@ class FolderController < Metis::Controller
       dest_bucket = require_bucket(@params[:new_bucket_name])
     end
 
-    new_folder_path = ::File.join(@params[:new_folder_path].split("/"))
+    new_folder_path = Metis::Path.remove_double_slashes(@params[:new_folder_path])
 
     revision = Metis::FolderRenameRevision.new({
       source: Metis::Path.path_from_parts(
