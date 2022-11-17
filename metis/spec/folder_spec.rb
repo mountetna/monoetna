@@ -42,9 +42,9 @@ describe FolderController do
       [:editor, :guest].each do |role|
         token_header(role)
         get('/athena/list/files/')
-  
+
         expect(last_response.status).to eq(200)
-  
+
         expect(json_body[:files].first).to include(
           file_name: 'wisdom.txt',
           author: 'metis|Metis',
@@ -62,7 +62,7 @@ describe FolderController do
         )
       end
     end
-  
+
     it 'should return a list of files and folders using a folder_id' do
       # our files
       token_header(:editor)
@@ -789,6 +789,20 @@ describe FolderController do
       expect(@blueprints_folder.folder).to eq(contents_folder)
     end
 
+    it 'can move a folder to a new folder with extra slashes' do
+      contents_folder = create_folder('athena', 'contents')
+      stubs.create_folder('athena', 'files', 'contents')
+
+      token_header(:editor)
+      rename_folder('blueprints', 'contents//blueprints')
+      stubs.add_folder('athena', 'files', 'contents/blueprints')
+
+      expect(last_response.status).to eq(200)
+      @blueprints_folder.refresh
+      expect(@blueprints_folder.folder_path).to eq(['contents', 'blueprints'])
+      expect(@blueprints_folder.folder).to eq(contents_folder)
+    end
+
     it 'can move a sub-folder to a different folder' do
       @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
       stubs.create_folder('athena', 'files', 'blueprints/helmet')
@@ -970,7 +984,7 @@ describe FolderController do
       @blueprints_folder.refresh
       expect(last_response.status).to eq(403)
       expect(@blueprints_folder.updated_at.iso8601).to eq(@creation_time.iso8601)
-      
+
     end
   end
 

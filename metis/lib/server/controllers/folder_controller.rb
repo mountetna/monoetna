@@ -120,6 +120,8 @@ class FolderController < Metis::Controller
       dest_bucket = require_bucket(@params[:new_bucket_name])
     end
 
+    new_folder_path = ::File.join(@params[:new_folder_path].split("/"))
+
     revision = Metis::FolderRenameRevision.new({
       source: Metis::Path.path_from_parts(
         @params[:project_name],
@@ -129,7 +131,7 @@ class FolderController < Metis::Controller
       dest: Metis::Path.path_from_parts(
         @params[:project_name],
         dest_bucket.name,
-        @params[:new_folder_path]
+        new_folder_path
       ),
       user: @user
     })
@@ -139,7 +141,7 @@ class FolderController < Metis::Controller
 
     # we need the dest parent folder here, so we call File#path_parts
     source_folder_path, _ = Metis::File.path_parts(@params[:folder_path])
-    dest_folder_path, _ = Metis::File.path_parts(@params[:new_folder_path])
+    dest_folder_path, _ = Metis::File.path_parts(new_folder_path)
 
     revision.set_folder(
       revision.source,

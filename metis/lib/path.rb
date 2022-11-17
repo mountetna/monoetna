@@ -25,7 +25,7 @@ class Metis
       end
 
       def self.path_from_parts(project_name, bucket_name, file_path)
-        "metis://#{project_name}/#{bucket_name}/#{file_path}"
+        ::File.join("metis://", project_name, bucket_name, file_path)
       end
 
       def project_name
