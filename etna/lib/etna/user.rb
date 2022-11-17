@@ -71,5 +71,9 @@ module Etna
     def active? project=nil
       permissions.keys.length > 0
     end
+
+    def display_name
+      [ email, name ].join('|')
+    end
   end
 end

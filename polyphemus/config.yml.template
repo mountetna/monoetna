@@ -16,6 +16,8 @@
   :polyphemus:
     :host: https://polyphemus.development.local
     :token: my-token # create a long lived token with janus
+  :gnomon:
+    :host: https://gnomon.development.local
   :log_file: /dev/stdout
   :db:
     :adapter: postgres

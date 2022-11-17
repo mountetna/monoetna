@@ -7,6 +7,8 @@ class Janus
 
   def setup_db(load_models=true)
     @db = Sequel.connect(config(:db))
+    Sequel::Model.plugin :timestamps, force: true, update_on_create: true
+
     @db.extension :connection_validator
     @db.extension :pg_json
     @db.pool.connection_validation_timeout = -1

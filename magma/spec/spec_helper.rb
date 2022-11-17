@@ -244,13 +244,14 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     FactoryBot.find_definitions
-    DatabaseCleaner[:sequel].db = Magma.instance.db
-    DatabaseCleaner.strategy = :transaction
-    DatabaseCleaner.clean_with(:truncation, except: ["models", "attributes", "schema_info"])
+    #DatabaseCleaner[:sequel].db = Magma.instance.db
+    #DatabaseCleaner.strategy = :transaction
+    #DatabaseCleaner.clean_with(:truncation, except: ["models", "attributes", "schema_info"])
   end
 
   config.around(:each) do |example|
-    DatabaseCleaner.cleaning { example.run }
+    #DatabaseCleaner.cleaning { example.run }
+    Magma.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){example.run}
   end
 end
 
@@ -357,6 +358,14 @@ FactoryBot.define do
   factory :wound, class: Labors::Wound do
     to_create(&:save)
   end
+
+  factory :grammar, class: Magma::Gnomon::Grammar do
+    to_create(&:save)
+  end
+
+  factory :identifier, class: Magma::Gnomon::Identifier do
+    to_create(&:save)
+  end
 end
 
 def fixture(name)
@@ -374,6 +383,9 @@ end
 AUTH_USERS = {
   superuser: {
     email: 'zeus@twelve-labors.org', name: 'Zeus', perm: 'a:administration'
+  },
+  admin: {
+    email: 'hera@twelve-labors.org', name: 'Hera', perm: 'a:labors'
   },
   editor: {
     email: 'eurystheus@twelve-labors.org', name: 'Eurystheus', perm: 'e:labors'
@@ -397,7 +409,11 @@ def auth_header(user_type)
 end
 
 def json_post(endpoint, hash)
-  post("/#{endpoint}", hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
+  post(
+    "/#{endpoint.to_s.reverse.chomp('/').reverse}",
+    hash.to_json,
+    {'CONTENT_TYPE'=> 'application/json'}
+  )
 end
 
 def setup_metis_bucket_stubs(project_name)
@@ -463,4 +479,3 @@ end
 def iso_date_str(value)
   DateTime.parse(value).iso8601
 end
-

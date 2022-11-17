@@ -166,7 +166,7 @@ describe AdminController do
       door.refresh
       expect(door.requires_agreement).to eq(false)
     end
-    
+
     it 'can set the code of conduct text' do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
 
@@ -557,7 +557,7 @@ describe AdminController do
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
-      
+
       expect(user2.permissions.length).to eq(0)
 
       auth_header(:janus)
@@ -755,16 +755,42 @@ describe AdminController do
 
   context '#add_project' do
     it 'allows a superuser to add a new project' do
+      stub_request(:post, /https:\/\/magma.test\/update_model/).
+      to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
+      stub_request(:post, /https:\/\/magma.test\/update$/).
+      to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
+
+      create_zeus
+
+      expect(Project.count).to eq(1)
+
       auth_header(:superuser)
       json_post('/api/admin/add_project', project_name: 'door', project_name_full: "Doors")
 
       expect(last_response.status).to eq(302)
       expect(last_response.headers['Location']).to eq('/')
 
-      expect(Project.count).to eq(1)
-      project = Project.first
+      expect(Project.count).to eq(2)
+      project = Project.last
 
       expect(project.project_name).to eq('door')
+      expect(WebMock).to have_requested(:post, "https://magma.test/update_model").
+      with(body: {
+        project_name: 'door',
+        actions: [{action_name: "add_project"}]
+      })
+      expect(WebMock).to have_requested(:post, "https://magma.test/update").
+      with(body: {
+        project_name: 'door',
+        revisions: {
+          project: {
+            door: {
+              name: 'door'
+            }
+          }
+        },
+        dry_run: false
+      })
     end
 
     it 'does not allow admins to add a new project' do

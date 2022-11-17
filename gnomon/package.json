@@ -1,0 +1,18 @@
+{
+  "name": "Gnomon",
+  "version": "1.0.0",
+  "description": "Gnomon is a naming service for Etna applications. It is based on the [etna](https://github.com/mountetna/etna) gem.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mountetna/monoetna.git"
+  },
+  "scripts": {
+    "lint": "$(npm bin)/eslint --ext .jsx,.js.jsx,.js ./lib/client/jsx/** ",
+    "lintfile": "$(npm bin)/eslint --ext .jsx,.js.jsx,.js ",
+    "test": "tsc && eslint --ext .jsx,.js.jsx,.js,ts,tsx ./lib/client/jsx && jest && webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js",
+    "build": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --node-env production",
+    "build-dev": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js",
+    "webpack": "echo fs.inotify.max_user_watches=524288 && webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --node-env production --watch",
+    "webpack-dev": "webpack --env APP_NAME=$APP_NAME --config /etna/webpack.config.js --node-env development --watch"
+  }
+}

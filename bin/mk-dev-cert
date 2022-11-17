@@ -24,4 +24,4 @@ fi
 
 
 cd $DIR/../development-certs/certs
-CACERT=$PWD/rootCA.pem exec mkcert ${1}.development.local
+CAROOT=$PWD exec mkcert ${1}.development.local
