@@ -1,10 +1,7 @@
 import React, {useState, useCallback, useEffect} from 'react';
 
-import TextField from '@material-ui/core/TextField';
 import Checkbox from '@material-ui/core/Checkbox';
-import MenuItem from '@material-ui/core/MenuItem';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import {makeStyles} from '@material-ui/core/styles';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
@@ -13,12 +10,7 @@ import DisabledButton from '../search/disabled_button';
 import {Attribute} from '../../api/magma_api';
 import {SNAKE_CASE, COMMA_SEP, VALIDATION_TYPES} from '../../utils/edit_map';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
-
-const useStyles = makeStyles((theme) => ({
-  popover: {
-    zIndex: '30000 !important' as any // etna modal is 20000
-  }
-}));
+import ModalSelect from './modal_select';
 
 export default function EditAttributeModal({
   onSave,
@@ -37,8 +29,6 @@ export default function EditAttributeModal({
   );
   const {dismissModal} = useModal();
   const invoke = useActionInvoker();
-  const classes = useStyles();
-
   const isArrayValidation = 'Array' === validationType;
 
   const handleOnSave = useCallback(() => {
@@ -51,7 +41,10 @@ export default function EditAttributeModal({
     if (validationType && validationValue) {
       params.validation = {
         type: validationType,
-        value: isArrayValidation ? validationValue.split(',') : validationValue
+        value:
+          isArrayValidation && !Array.isArray(validationValue)
+            ? validationValue.split(',')
+            : validationValue
       };
     } else {
       params.validation = null;
@@ -136,29 +129,24 @@ export default function EditAttributeModal({
             updateAttribute([['display_name', e.target.value]])
           }
         />
-        <TextField
+        <ShrinkingLabelTextField
+          id='edit-attribute-format-hint'
+          label='Format Hint'
+          value={updatedAttribute.format_hint}
+          onChange={(e: React.ChangeEvent<any>) =>
+            updateAttribute([['format_hint', e.target.value]])
+          }
+        />
+        <ModalSelect
           id='edit-attribute-validation-type'
-          select
-          value={validationType}
           label='Validation Type'
-          SelectProps={{
-            MenuProps: {
-              PopoverClasses: {
-                root: classes.popover
-              }
-            }
-          }}
-          onChange={(e: any) => {
+          value={validationType}
+          onChange={(value: string) => {
             setValidationValue('');
-            setValidationType(e.target.value);
+            setValidationType(value);
           }}
-        >
-          {VALIDATION_TYPES.sort().map((option, i) => (
-            <MenuItem key={i} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </TextField>
+          options={VALIDATION_TYPES}
+        />
         {validationType && (
           <ShrinkingLabelTextField
             id='edit-attribute-validation-value'

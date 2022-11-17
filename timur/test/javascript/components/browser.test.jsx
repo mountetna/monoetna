@@ -18,6 +18,14 @@ describe('Browser', () => {
 
   beforeEach(() => {
     stubUrl({
+      verb: 'post',
+      path: '/retrieve',
+      host: 'https://magma.test',
+      status: 200,
+      response: {}
+    });
+
+    stubUrl({
       verb: 'get',
       path: '/api/user/projects',
       host: 'https://janus.test',
@@ -27,6 +35,7 @@ describe('Browser', () => {
 
     global.CONFIG = {
       project_name: 'labors',
+      magma_host: 'https://magma.test',
       janus_host: 'https://janus.test'
     };
 
