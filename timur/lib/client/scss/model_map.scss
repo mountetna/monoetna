@@ -37,7 +37,10 @@ svg#map {
 
 .add-attribute-modal,
 .edit-attribute-modal,
-.add-link-modal {
+.add-link-modal,
+.add-model-modal,
+.reparent-model-modal,
+.remove-model-modal {
   width: 600px;
   padding: 20px;
   border-radius: 2px;

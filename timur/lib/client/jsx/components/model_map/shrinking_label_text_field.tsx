@@ -2,7 +2,7 @@ import React, {useState, useCallback} from 'react';
 
 import TextField from '@material-ui/core/TextField';
 
-export function ShrinkingLabelTextField(props: any) {
+export function ShrinkingLabelTextField({additionalError, ...props}: any) {
   const [error, setError] = useState(false);
 
   const handleValidation = useCallback(
@@ -26,7 +26,7 @@ export function ShrinkingLabelTextField(props: any) {
   return (
     <TextField
       {...props}
-      error={error}
+      error={error || additionalError}
       InputLabelProps={{
         shrink: props.value ? true : false
       }}

@@ -50,13 +50,15 @@ class Magma
 
     def to_s
       @changes.map do |key,lines|
-        [
-          space("#{key} do", 2),
-          lines.map do |line|
-            space(line,3)
-          end,
-          space('end',2)
-        ].flatten.join("\n")
+        lines.empty? ?
+          space(key, 2) :
+          [
+            space("#{key} do", 2),
+            lines.map do |line|
+              space(line,3)
+            end,
+            space('end',2)
+          ].flatten.join("\n")
       end.join("\n").chomp
     end
 
@@ -114,6 +116,9 @@ class Magma
       "#{SPC*pad}#{txt}"
     end
 
+    def now
+      DateTime.now.to_time.to_i
+    end
   end
   class CreateMigration < Migration
     def initialize(model)
@@ -173,12 +178,12 @@ class Magma
     end
 
     def remove_column_entry name
-      now = DateTime.now.to_time.to_i
       new_name = "#{name}_#{now}_backup"
 
       # Drop constraints so can add new records without specifying
       #   a FK.
       [
+        "drop_index :#{name}, if_exists: true",
         "drop_foreign_constraint_if_exists :#{name}",
         "rename_column :#{name}, :#{new_name}"
       ]
@@ -199,7 +204,7 @@ class Magma
     private
 
     def missing_attributes
-      @model.attributes.reject { |name, attr| attr.primary_key? }.map do |name,att|
+      @missing_attributes ||= @model.attributes.reject { |name, attr| attr.primary_key? }.map do |name,att|
         next if schema_supports_attribute?(@model, att)
         attribute_migration(att)
       end.compact.flatten
@@ -207,7 +212,7 @@ class Magma
 
 
     def changed_attributes
-      @model.attributes.reject { |name, attr| attr.primary_key? }.map do |name,att|
+      @changed_attributes ||= @model.attributes.reject { |name, attr| attr.primary_key? }.map do |name,att|
         next unless schema_supports_attribute?(@model,att)
         next if schema_unchanged?(@model,att)
         column_type_entry(att.column_name, att.database_type)
@@ -215,7 +220,7 @@ class Magma
     end
 
     def removed_attributes
-      @model.schema.map do |name, db_opts|
+      @removed_attributes ||= @model.schema.map do |name, db_opts|
         next if @model.attributes[name]
         next if @model.attributes[ name.to_s.sub(/_id$/,'').to_sym ]
         next if @model.attributes[ name.to_s.sub(/_type$/,'').to_sym ]
@@ -230,6 +235,35 @@ class Magma
       @model.attributes.any? do |attribute_name, attribute|
         attribute.column_name.to_sym == name
       end
+    end
+  end
+
+  class RemoveModelMigration < Migration
+    def initialize(model)
+      super
+
+      drop_index = "alter_table(#{Magma::Migration.table_name(model)})"
+      change(drop_index, remove_indices)
+
+      new_name = "Sequel[:#{model.project_name}][:#{model.implicit_table_name}_#{now}_backup]"
+      table_rename = "rename_table(#{Magma::Migration.table_name(model)}, #{new_name})"
+      change(table_rename, [])
+    end
+
+    private
+
+    def remove_indices
+      # Need to remove the FK index so can
+      #   re-add model with the same name, if needed
+      [
+        "drop_index [:#{parent_attribute.column_name}]"
+      ]
+    end
+
+    def parent_attribute
+      @model.attributes.values.select do |attribute|
+        attribute.is_a?(Magma::ParentAttribute)
+      end.first
     end
   end
 end

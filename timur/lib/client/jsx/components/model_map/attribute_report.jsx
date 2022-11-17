@@ -9,16 +9,11 @@ import Tooltip from '@material-ui/core/Tooltip';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {requestAnswer} from 'etna-js/actions/magma_actions';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
-import {selectUser} from 'etna-js/selectors/user-selector';
-import {isAdmin} from 'etna-js/utils/janus';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectModels} from 'etna-js/selectors/magma';
 
-import {showMessages} from 'etna-js/actions/message_actions';
-import {addTemplatesAndDocuments} from 'etna-js/actions/magma_actions';
 import {
   updateAttribute,
   removeAttribute,
@@ -27,6 +22,7 @@ import {
 import MapHeading from './map_heading';
 import EditAttributeModal from './edit_attribute_modal';
 import {EDITABLE_ATTRIBUTE_TYPES} from '../../utils/edit_map';
+import useMagmaActions from './use_magma_actions';
 
 const ATT_ATTS = [
   'attribute_type',
@@ -182,12 +178,11 @@ const ManageAttributeActions = ({
   );
 };
 
-const AttributeReport = ({attribute, model_name, counts}) => {
+const AttributeReport = ({attribute, model_name, isAdminUser}) => {
   const dispatch = useDispatch();
-  const invoke = useActionInvoker();
   const [sample, setSample] = useState(null);
-  const {openModal, dismissModal} = useModal();
-  const user = useReduxState((state) => selectUser(state));
+
+  const {executeAction} = useMagmaActions();
 
   const showSample = () => {
     requestAnswer({
@@ -201,27 +196,14 @@ const AttributeReport = ({attribute, model_name, counts}) => {
 
   const classes = useStyles();
 
-  const executeAction = useCallback(
-    (action) => {
-      action
-        .then(({models}) => {
-          invoke(addTemplatesAndDocuments(models));
-        })
-        .catch((err) => {
-          invoke(showMessages(err));
-        });
-    },
-    [invoke, addTemplatesAndDocuments, showMessages]
-  );
-
   const handleEditAttribute = useCallback(
     (params) => {
-      dismissModal();
       executeAction(
         updateAttribute({
           model_name,
           ...params
-        })
+        }),
+        false
       );
     },
     [executeAction, model_name, updateAttribute]
@@ -244,12 +226,6 @@ const AttributeReport = ({attribute, model_name, counts}) => {
       })
     );
   }, [executeAction, model_name, removeLink, attribute]);
-
-  const isAdminUser = useMemo(() => {
-    if (!user || 0 === Object.keys(user).length) return false;
-
-    return isAdmin(user, CONFIG.project_name);
-  }, [user, CONFIG.project_name]);
 
   if (!attribute) return null;
 

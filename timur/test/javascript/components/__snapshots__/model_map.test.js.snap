@@ -950,7 +950,7 @@ exports[`ModelMap renders an incomplete graph 1`] = `
 </div>
 `;
 
-exports[`ModelMap renders with model action buttons for admin user 1`] = `
+exports[`ModelMap renders with model action buttons for admin user (no reparent model btn with records) 1`] = `
 <DocumentFragment>
   <div
     class="MuiGrid-root makeStyles-model_map-2 MuiGrid-container"
@@ -1302,82 +1302,1043 @@ exports[`ModelMap renders with model action buttons for admin user 1`] = `
                   class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                 />
               </tr>
+            </tbody>
+          </table>
+          <button
+            aria-label="Add Attribute"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27"
+            tabindex="0"
+            title="Add Attribute"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeMedium"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                  />
+                </svg>
+              </span>
+              Attribute
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+          <button
+            aria-label="Add Link"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27"
+            tabindex="0"
+            title="Add Link"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeMedium"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
+                  />
+                </svg>
+              </span>
+              Link
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+          <button
+            aria-label="Add Model"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27"
+            tabindex="0"
+            title="Add Model"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeMedium"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"
+                  />
+                </svg>
+              </span>
+              Model
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`ModelMap renders with reparent model action buttons for admin user, no-record model 1`] = `
+<DocumentFragment>
+  <div
+    class="MuiGrid-root makeStyles-model_map-2 MuiGrid-container"
+  >
+    <div
+      class="MuiGrid-root map MuiGrid-item"
+    >
+      <div
+        class="MuiGrid-root makeStyles-heading-5 makeStyles-heading-4 MuiGrid-container"
+      >
+        <h6
+          class="MuiTypography-root makeStyles-name-6 MuiTypography-h6"
+        >
+          Project
+        </h6>
+         
+        <h6
+          class="MuiTypography-root makeStyles-title-7 MuiTypography-h6"
+        >
+          The Twelve Labors of Hercules
+        </h6>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+          style="width: auto; flex: 1; align-items: end; justify-content: right;"
+        />
+      </div>
+      <svg
+        height="600"
+        id="map"
+        width="600"
+      >
+        <defs>
+          <marker
+            id="arrow"
+            markerHeight="3"
+            markerUnits="strokeWidth"
+            markerWidth="3"
+            orient="auto"
+            refX="0"
+            refY="1"
+          >
+            <path
+              d="M0,0 L0,2 L3,1 z"
+            />
+          </marker>
+        </defs>
+        <g
+          class="model_link"
+        >
+          <line
+            marker-end="url(#arrow)"
+            x1="300"
+            x2="300"
+            y1="150"
+            y2="280"
+          />
+        </g>
+        <g
+          class="model_link"
+        >
+          <line
+            marker-end="url(#arrow)"
+            x1="300"
+            x2="300"
+            y1="300"
+            y2="430"
+          />
+        </g>
+      </svg>
+      <div
+        class="model_node  "
+        style="top: 300px; left: 300px;"
+      >
+        labor
+      </div>
+      <div
+        class="model_node selected "
+        style="top: 450px; left: 300px;"
+      >
+        monster
+      </div>
+      <div
+        class="model_node  "
+        style="top: 150px; left: 300px;"
+      >
+        project
+      </div>
+    </div>
+    <div
+      class="MuiGrid-root makeStyles-report-1 MuiGrid-container MuiGrid-direction-xs-column"
+    >
+      <div
+        class="MuiGrid-root makeStyles-model_report-8"
+      >
+        <div
+          class="MuiGrid-root makeStyles-heading-5 makeStyles-heading-9 MuiGrid-container"
+        >
+          <h6
+            class="MuiTypography-root makeStyles-name-6 MuiTypography-h6"
+          >
+            Model
+          </h6>
+           
+          <h6
+            class="MuiTypography-root makeStyles-title-7 MuiTypography-h6"
+          >
+            monster
+          </h6>
+          <div
+            class="MuiGrid-root MuiGrid-container"
+            style="width: auto; flex: 1; align-items: end; justify-content: right;"
+          >
+            <div
+              class="MuiChip-root"
+            >
+              <span
+                class="MuiChip-label"
+              >
+                0 records
+              </span>
+            </div>
+            <button
+              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiIconButton-label"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+                  />
+                </svg>
+              </span>
+              <span
+                class="MuiTouchRipple-root"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="MuiFormControl-root MuiTextField-root makeStyles-filter-12 MuiFormControl-fullWidth"
+        >
+          <div
+            class="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-fullWidth MuiInputBase-formControl MuiInputBase-adornedStart MuiOutlinedInput-adornedStart MuiInputBase-marginDense MuiOutlinedInput-marginDense"
+          >
+            <div
+              class="MuiInputAdornment-root MuiInputAdornment-positionStart MuiInputAdornment-marginDense"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                />
+              </svg>
+            </div>
+            <input
+              aria-invalid="false"
+              class="MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputAdornedStart MuiOutlinedInput-inputAdornedStart MuiInputBase-inputMarginDense MuiOutlinedInput-inputMarginDense"
+              placeholder="Filter attributes, e.g. \\"rna type:file\\""
+              type="text"
+              value=""
+            />
+            <fieldset
+              aria-hidden="true"
+              class="PrivateNotchedOutline-root-19 MuiOutlinedInput-notchedOutline"
+              style="padding-left: 8px;"
+            >
+              <legend
+                class="PrivateNotchedOutline-legend-20"
+                style="width: 0.01px;"
+              >
+                <span>
+                  ​
+                </span>
+              </legend>
+            </fieldset>
+          </div>
+        </div>
+        <div
+          class="MuiPaper-root MuiTableContainer-root makeStyles-table-11 MuiPaper-elevation1 MuiPaper-rounded"
+        >
+          <table
+            class="MuiTable-root MuiTable-stickyHeader"
+          >
+            <thead
+              class="MuiTableHead-root"
+            >
               <tr
-                class="MuiTableRow-root"
+                class="MuiTableRow-root MuiTableRow-head"
+              >
+                <th
+                  class="MuiTableCell-root MuiTableCell-head makeStyles-type-15 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                  scope="col"
+                >
+                  <span
+                    aria-disabled="false"
+                    class="MuiButtonBase-root MuiTableSortLabel-root MuiTableSortLabel-active"
+                    role="button"
+                    tabindex="0"
+                  >
+                    type
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root MuiTableSortLabel-icon MuiTableSortLabel-iconDirectionAsc"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"
+                      />
+                    </svg>
+                  </span>
+                </th>
+                <th
+                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                  scope="col"
+                >
+                  <span
+                    aria-disabled="false"
+                    class="MuiButtonBase-root MuiTableSortLabel-root"
+                    role="button"
+                    tabindex="0"
+                  >
+                    attribute
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root MuiTableSortLabel-icon MuiTableSortLabel-iconDirectionAsc"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"
+                      />
+                    </svg>
+                  </span>
+                </th>
+                <th
+                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                  scope="col"
+                >
+                  <span
+                    aria-disabled="false"
+                    class="MuiButtonBase-root MuiTableSortLabel-root"
+                    role="button"
+                    tabindex="0"
+                  >
+                    group
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root MuiTableSortLabel-icon MuiTableSortLabel-iconDirectionAsc"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"
+                      />
+                    </svg>
+                  </span>
+                </th>
+                <th
+                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                  scope="col"
+                >
+                  <span
+                    aria-disabled="false"
+                    class="MuiButtonBase-root MuiTableSortLabel-root"
+                    role="button"
+                    tabindex="0"
+                  >
+                    description
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root MuiTableSortLabel-icon MuiTableSortLabel-iconDirectionAsc"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"
+                      />
+                    </svg>
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="MuiTableBody-root"
+            >
+              <tr
+                class="MuiTableRow-root makeStyles-attribute-23 makeStyles-ident-32"
               >
                 <td
-                  class="MuiTableCell-root MuiTableCell-body makeStyles-add-28 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
-                  title="Add Attribute"
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  <button
-                    aria-label="Add Attribute"
-                    class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27"
-                    tabindex="0"
-                    title="Add Attribute"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label"
-                    >
-                      <span
-                        class="MuiButton-startIcon MuiButton-iconSizeMedium"
-                      >
-                        <svg
-                          aria-hidden="true"
-                          class="MuiSvgIcon-root"
-                          focusable="false"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                          />
-                        </svg>
-                      </span>
-                      Attribute
-                    </span>
-                    <span
-                      class="MuiTouchRipple-root"
-                    />
-                  </button>
-                  <button
-                    aria-label="Add Link"
-                    class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27"
-                    tabindex="0"
-                    title="Add Link"
-                    type="button"
-                  >
-                    <span
-                      class="MuiButton-label"
-                    >
-                      <span
-                        class="MuiButton-startIcon MuiButton-iconSizeMedium"
-                      >
-                        <svg
-                          aria-hidden="true"
-                          class="MuiSvgIcon-root"
-                          focusable="false"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
-                          />
-                        </svg>
-                      </span>
-                      Link
-                    </span>
-                    <span
-                      class="MuiTouchRipple-root"
-                    />
-                  </button>
+                  parent
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall"
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                >
+                  labor 
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                 />
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall"
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+              </tr>
+              <tr
+                class="MuiTableRow-root makeStyles-attribute-23 makeStyles-ident-32"
+              >
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                >
+                  identifier
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                >
+                  name 
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                 />
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall"
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+              </tr>
+              <tr
+                class="MuiTableRow-root makeStyles-attribute-23 makeStyles-ident-32"
+              >
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                >
+                  collection
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                >
+                  aspect 
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+              </tr>
+              <tr
+                class="MuiTableRow-root makeStyles-attribute-23 makeStyles-ident-32"
+              >
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                >
+                  collection
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                >
+                  victim 
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+              </tr>
+              <tr
+                class="MuiTableRow-root makeStyles-attribute-23 makeStyles-ident-32"
+              >
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                >
+                  link
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                >
+                  habitat 
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+              </tr>
+              <tr
+                class="MuiTableRow-root makeStyles-attribute-23 makeStyles-ident-32"
+              >
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                >
+                  file
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                >
+                  stats 
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+              </tr>
+              <tr
+                class="MuiTableRow-root makeStyles-attribute-23 makeStyles-ident-32"
+              >
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                >
+                  file_collection
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                >
+                  certificates 
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+              </tr>
+              <tr
+                class="MuiTableRow-root makeStyles-attribute-23 makeStyles-ident-32"
+              >
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                >
+                  string
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                >
+                  species 
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+              </tr>
+            </tbody>
+          </table>
+          <button
+            aria-label="Add Attribute"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27"
+            tabindex="0"
+            title="Add Attribute"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeMedium"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                  />
+                </svg>
+              </span>
+              Attribute
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+          <button
+            aria-label="Add Link"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27"
+            tabindex="0"
+            title="Add Link"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeMedium"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
+                  />
+                </svg>
+              </span>
+              Link
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+          <button
+            aria-label="Add Model"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27"
+            tabindex="0"
+            title="Add Model"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeMedium"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"
+                  />
+                </svg>
+              </span>
+              Model
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+          <button
+            aria-label="Reparent Model"
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-addBtn-27"
+            tabindex="0"
+            title="Reparent Model"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              <span
+                class="MuiButton-startIcon MuiButton-iconSizeMedium"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"
+                  />
+                </svg>
+              </span>
+              Reparent Model
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`ModelMap renders without model action buttons for editor user 1`] = `
+<DocumentFragment>
+  <div
+    class="MuiGrid-root makeStyles-model_map-2 MuiGrid-container"
+  >
+    <div
+      class="MuiGrid-root map MuiGrid-item"
+    >
+      <div
+        class="MuiGrid-root makeStyles-heading-5 makeStyles-heading-4 MuiGrid-container"
+      >
+        <h6
+          class="MuiTypography-root makeStyles-name-6 MuiTypography-h6"
+        >
+          Project
+        </h6>
+         
+        <h6
+          class="MuiTypography-root makeStyles-title-7 MuiTypography-h6"
+        >
+          The Twelve Labors of Hercules
+        </h6>
+        <div
+          class="MuiGrid-root MuiGrid-container"
+          style="width: auto; flex: 1; align-items: end; justify-content: right;"
+        />
+      </div>
+      <svg
+        height="600"
+        id="map"
+        width="600"
+      >
+        <defs>
+          <marker
+            id="arrow"
+            markerHeight="3"
+            markerUnits="strokeWidth"
+            markerWidth="3"
+            orient="auto"
+            refX="0"
+            refY="1"
+          >
+            <path
+              d="M0,0 L0,2 L3,1 z"
+            />
+          </marker>
+        </defs>
+        <g
+          class="model_link"
+        >
+          <line
+            marker-end="url(#arrow)"
+            x1="300"
+            x2="300"
+            y1="150"
+            y2="280"
+          />
+        </g>
+        <g
+          class="model_link"
+        >
+          <line
+            marker-end="url(#arrow)"
+            x1="300"
+            x2="300"
+            y1="300"
+            y2="430"
+          />
+        </g>
+      </svg>
+      <div
+        class="model_node  "
+        style="top: 300px; left: 300px;"
+      >
+        labor
+      </div>
+      <div
+        class="model_node  "
+        style="top: 450px; left: 300px;"
+      >
+        monster
+      </div>
+      <div
+        class="model_node selected "
+        style="top: 150px; left: 300px;"
+      >
+        project
+      </div>
+    </div>
+    <div
+      class="MuiGrid-root makeStyles-report-1 MuiGrid-container MuiGrid-direction-xs-column"
+    >
+      <div
+        class="MuiGrid-root makeStyles-model_report-8"
+      >
+        <div
+          class="MuiGrid-root makeStyles-heading-5 makeStyles-heading-9 MuiGrid-container"
+        >
+          <h6
+            class="MuiTypography-root makeStyles-name-6 MuiTypography-h6"
+          >
+            Model
+          </h6>
+           
+          <h6
+            class="MuiTypography-root makeStyles-title-7 MuiTypography-h6"
+          >
+            project
+          </h6>
+          <div
+            class="MuiGrid-root MuiGrid-container"
+            style="width: auto; flex: 1; align-items: end; justify-content: right;"
+          >
+            <button
+              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
+              tabindex="0"
+              type="button"
+            >
+              <span
+                class="MuiIconButton-label"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+                  />
+                </svg>
+              </span>
+              <span
+                class="MuiTouchRipple-root"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          class="MuiFormControl-root MuiTextField-root makeStyles-filter-12 MuiFormControl-fullWidth"
+        >
+          <div
+            class="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-fullWidth MuiInputBase-formControl MuiInputBase-adornedStart MuiOutlinedInput-adornedStart MuiInputBase-marginDense MuiOutlinedInput-marginDense"
+          >
+            <div
+              class="MuiInputAdornment-root MuiInputAdornment-positionStart MuiInputAdornment-marginDense"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                />
+              </svg>
+            </div>
+            <input
+              aria-invalid="false"
+              class="MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputAdornedStart MuiOutlinedInput-inputAdornedStart MuiInputBase-inputMarginDense MuiOutlinedInput-inputMarginDense"
+              placeholder="Filter attributes, e.g. \\"rna type:file\\""
+              type="text"
+              value=""
+            />
+            <fieldset
+              aria-hidden="true"
+              class="PrivateNotchedOutline-root-19 MuiOutlinedInput-notchedOutline"
+              style="padding-left: 8px;"
+            >
+              <legend
+                class="PrivateNotchedOutline-legend-20"
+                style="width: 0.01px;"
+              >
+                <span>
+                  ​
+                </span>
+              </legend>
+            </fieldset>
+          </div>
+        </div>
+        <div
+          class="MuiPaper-root MuiTableContainer-root makeStyles-table-11 MuiPaper-elevation1 MuiPaper-rounded"
+        >
+          <table
+            class="MuiTable-root MuiTable-stickyHeader"
+          >
+            <thead
+              class="MuiTableHead-root"
+            >
+              <tr
+                class="MuiTableRow-root MuiTableRow-head"
+              >
+                <th
+                  class="MuiTableCell-root MuiTableCell-head makeStyles-type-15 MuiTableCell-alignRight MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                  scope="col"
+                >
+                  <span
+                    aria-disabled="false"
+                    class="MuiButtonBase-root MuiTableSortLabel-root MuiTableSortLabel-active"
+                    role="button"
+                    tabindex="0"
+                  >
+                    type
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root MuiTableSortLabel-icon MuiTableSortLabel-iconDirectionAsc"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"
+                      />
+                    </svg>
+                  </span>
+                </th>
+                <th
+                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                  scope="col"
+                >
+                  <span
+                    aria-disabled="false"
+                    class="MuiButtonBase-root MuiTableSortLabel-root"
+                    role="button"
+                    tabindex="0"
+                  >
+                    attribute
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root MuiTableSortLabel-icon MuiTableSortLabel-iconDirectionAsc"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"
+                      />
+                    </svg>
+                  </span>
+                </th>
+                <th
+                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                  scope="col"
+                >
+                  <span
+                    aria-disabled="false"
+                    class="MuiButtonBase-root MuiTableSortLabel-root"
+                    role="button"
+                    tabindex="0"
+                  >
+                    group
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root MuiTableSortLabel-icon MuiTableSortLabel-iconDirectionAsc"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"
+                      />
+                    </svg>
+                  </span>
+                </th>
+                <th
+                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignLeft MuiTableCell-sizeSmall MuiTableCell-stickyHeader"
+                  scope="col"
+                >
+                  <span
+                    aria-disabled="false"
+                    class="MuiButtonBase-root MuiTableSortLabel-root"
+                    role="button"
+                    tabindex="0"
+                  >
+                    description
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root MuiTableSortLabel-icon MuiTableSortLabel-iconDirectionAsc"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"
+                      />
+                    </svg>
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="MuiTableBody-root"
+            >
+              <tr
+                class="MuiTableRow-root makeStyles-attribute-23 makeStyles-ident-32"
+              >
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                >
+                  identifier
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                >
+                  name 
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                >
+                  Name for this project
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root makeStyles-attribute-23 makeStyles-ident-32"
+              >
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                >
+                  collection
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                >
+                  labor 
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+              </tr>
+              <tr
+                class="MuiTableRow-root makeStyles-attribute-23 makeStyles-ident-32"
+              >
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
+                >
+                  table
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                >
+                  codex 
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
+                />
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignLeft MuiTableCell-sizeSmall"
                 />
               </tr>
             </tbody>
