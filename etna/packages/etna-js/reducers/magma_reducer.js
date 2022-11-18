@@ -20,7 +20,8 @@
 import {
   REVISE_DOCUMENT,
   DISCARD_REVISION,
-  ADD_TEMPLATES_AND_DOCUMENTS
+  ADD_TEMPLATES_AND_DOCUMENTS,
+  REMOVE_MODEL
 } from '../actions/magma_actions';
 
 import {UPLOAD_COMPLETE} from '../upload/workers/uploader';
@@ -97,15 +98,22 @@ var models = function (models, action) {
     case ADD_TEMPLATES_AND_DOCUMENTS:
       return {
         ...models,
-        ...Object.entries(action.models).reduce((acc, [modelName, modelData]) => {
-          acc[modelName] = model(models[modelName], {
-            type: ADD_TEMPLATES_AND_DOCUMENTS,
-            template: modelData.template,
-            documents: modelData.documents
-          });
-          return acc;
-        }, {})
+        ...Object.entries(action.models).reduce(
+          (acc, [modelName, modelData]) => {
+            acc[modelName] = model(models[modelName], {
+              type: ADD_TEMPLATES_AND_DOCUMENTS,
+              template: modelData.template,
+              documents: modelData.documents
+            });
+            return acc;
+          },
+          {}
+        )
       };
+    case REMOVE_MODEL:
+      let clone = {...models};
+      delete clone[action.modelName];
+      return clone;
     case REVISE_DOCUMENT:
     case DISCARD_REVISION:
       return {
@@ -127,6 +135,7 @@ var magmaReducer = function (magma, action) {
     case ADD_TEMPLATES_AND_DOCUMENTS:
     case REVISE_DOCUMENT:
     case DISCARD_REVISION:
+    case REMOVE_MODEL:
       return {
         ...magma,
         models: models(magma.models, action)
