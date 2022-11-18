@@ -35,7 +35,12 @@ svg#map {
   }
 }
 
-.add-attribute-modal {
+.add-attribute-modal,
+.edit-attribute-modal,
+.add-link-modal,
+.add-model-modal,
+.reparent-model-modal,
+.remove-model-modal {
   width: 600px;
   padding: 20px;
   border-radius: 2px;
@@ -46,6 +51,8 @@ svg#map {
 
   .header {
     border-bottom: 2px solid darkgreen;
+    font-weight: 700;
+    font-size: larger;
   }
 
   .options-tray {

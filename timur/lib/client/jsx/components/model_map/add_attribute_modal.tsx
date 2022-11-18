@@ -1,19 +1,12 @@
 import React, {useState, useCallback, useEffect} from 'react';
 
-import TextField from '@material-ui/core/TextField';
-import MenuItem from '@material-ui/core/MenuItem';
-import {makeStyles} from '@material-ui/core/styles';
-
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 
 import DisabledButton from '../search/disabled_button';
-
-const useStyles = makeStyles((theme) => ({
-  popover: {
-    zIndex: '30000 !important' as any // etna modal is 20000
-  }
-}));
+import {ShrinkingLabelTextField} from './shrinking_label_text_field';
+import {COMMA_SEP, SNAKE_CASE} from '../../utils/edit_map';
+import ModalSelect from './modal_select';
 
 export default function AddAttributeModal({onSave}: {onSave: any}) {
   const [disabled, setDisabled] = useState(true);
@@ -23,14 +16,13 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
   const [group, setGroup] = useState('');
   const {dismissModal} = useModal();
   const invoke = useActionInvoker();
-  const classes = useStyles();
 
   const handleOnSave = useCallback(() => {
     onSave({
-      name,
+      attribute_name: name,
       description,
       type,
-      group
+      attribute_group: group
     });
   }, [name, description, type, group]);
 
@@ -62,41 +54,35 @@ export default function AddAttributeModal({onSave}: {onSave: any}) {
     <div className='add-attribute-modal model-actions-modal'>
       <div className='header'>Add Attribute</div>
       <div className='options-tray tray'>
-        <TextField
+        <ShrinkingLabelTextField
           id='attribute-name'
-          label='Name'
-          onChange={(e) => setName(e.target.value)}
+          label='Name (snake_case)'
+          value={name}
+          onChange={(e: React.ChangeEvent<any>) => setName(e.target.value)}
+          pattern={SNAKE_CASE}
         />
-        <TextField
+        <ShrinkingLabelTextField
           id='attribute-description'
+          value={description}
           label='Description (optional)'
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e: React.ChangeEvent<any>) =>
+            setDescription(e.target.value)
+          }
         />
-        <TextField
+        <ShrinkingLabelTextField
           id='attribute-group'
+          value={group}
           label='Group (optional; comma-separated list)'
-          onChange={(e) => setGroup(e.target.value)}
+          onChange={(e: React.ChangeEvent<any>) => setGroup(e.target.value)}
+          pattern={COMMA_SEP}
         />
-        <TextField
+        <ModalSelect
           id='attribute-type'
-          select
           value={type}
           label='Type'
-          SelectProps={{
-            MenuProps: {
-              PopoverClasses: {
-                root: classes.popover
-              }
-            }
-          }}
-          onChange={(e: any) => setType(e.target.value)}
-        >
-          {attributeTypes.sort().map((option, i) => (
-            <MenuItem key={i} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </TextField>
+          onChange={setType}
+          options={attributeTypes}
+        />
       </div>
       <div className='options-action-wrapper'>
         <DisabledButton
