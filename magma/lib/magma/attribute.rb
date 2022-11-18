@@ -226,7 +226,7 @@ class Magma
       return unless attribute_group
       parts = attribute_group.split(",", -1)
       return if parts.all? { |p| p =~ SNAKE_CASE_WORD }
-      errors.add(:attribute_group, "must be snake_case with no spaces")
+      errors.add(:attribute_group, "must contain a comma-separated set of snake_case values with no spaces")
     end
 
     def validate_type

@@ -151,7 +151,9 @@ class Magma
     else
       # Oh boy.  Not ideal, but best effort here.  This could end up just restarting the wrong puma process if
       # it was hosted together.  Ideally we're running these processes in separate containers so it should be ok.
-      `pidof puma | tail -n 1`.chomp.to_i
+      pid = `pgrep -f puma`.chomp
+      return nil if pid.empty?
+      pid.to_i
     end
   end
 end
