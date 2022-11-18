@@ -1,9 +1,27 @@
 import React from 'react';
 import {render, screen, waitFor, fireEvent} from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
+
+import {stubUrl} from '../helpers';
 import ViewTab from '../../../lib/client/jsx/components/browser/view_tab';
 
 describe('ViewTab', () => {
+  beforeEach(() => {
+    stubUrl({
+      verb: 'get',
+      path: '/api/user/projects',
+      host: 'https://janus.test',
+      status: 200,
+      response: {}
+    });
+
+    global.CONFIG = {
+      magma_host: 'https://magma.test',
+      janus_host: 'https://janus.test',
+      project_name: 'labors'
+    };
+  });
+
   it('renders without a regex', async () => {
     const {asFragment} = render(
       <ViewTab
