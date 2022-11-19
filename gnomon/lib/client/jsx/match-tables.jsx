@@ -17,6 +17,7 @@ import LaunchIcon from '@material-ui/icons/Launch';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
+import TableSortLabel from '@material-ui/core/TableSortLabel';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
@@ -80,45 +81,47 @@ const Rule = ({rule, rule_name, project_name, markNotCreated, highlight, highlig
 
 const getIdentifier = decomposition => decomposition ? decomposition.tokens.map(t => t[1]).join('') : null;
 
-export const IdTreeTable = ({decomposition, project_name, className, markNotCreated = false, highlight=false}) => {
+export const IdTreeTable = ({decomposition, project_name, markNotCreated = false, highlight=false, ...props}) => {
   const primary_rule = decomposition != null ? decomposition.rule_name : null;
   const identifier = getIdentifier(decomposition);
-  return <TableContainer className={className}>
-    <Table stickyHeader size='small'>
-      <TableHead>
-        {
-          decomposition && <TableRow>
-            <TableCell>Rule</TableCell>
-            <TableCell>Identifier</TableCell>
-            <TableCell align='center'>
-              <Tooltip title='Identifiers previously assigned for a current or planned entity' placement='top'><Typography>Created</Typography></Tooltip>
-            </TableCell>
-            <TableCell align='center'>
-            <Tooltip title='Identifiers with data in the Data Library' placement='top'><Typography>Recorded</Typography></Tooltip>
-            </TableCell>
-          </TableRow>
-        }
-      </TableHead>
-      <TableBody>
-        {
-          decomposition != null ? Object.keys(decomposition.rules).sort( (a,b) => b==primary_rule ? 1 : a==primary_rule ? -1 : 0 ).map(
-            (rule_name,i) => <Rule
-            key={i}
-            rule={decomposition.rules[rule_name]}
-            rule_name={rule_name}
-            highlight={ decomposition.rules[rule_name].name == identifier }
-            highlight2={highlight}
-            project_name={project_name}
-            markNotCreated={markNotCreated}
-            />
-          ) :
-          <TableRow>
-            <TableCell colSpan={4}><Typography variant='body1' color='secondary' component='em'>Identifier is incomplete</Typography></TableCell>
-          </TableRow>
-        }
-      </TableBody>
-    </Table>
-  </TableContainer>
+  const classes = useStyles();
+
+  return <MatchTable
+    headCells={[ 
+      {
+        name: 'Rule',
+        key: 'rule_name',
+        contents: rule => rule.rule_name
+      },
+      {
+        name: 'Identifier',
+        key: 'name',
+        contents: rule => rule.name + (!markNotCreated || rule.name_created_at ? '' : '*')
+      },
+      {
+        name: 'Created',
+        align: 'center',
+        title: 'Identifiers previously assigned for a current or planned entity',
+        contents: rule => dateFormat(rule.name_created_at, null)
+      },
+      {
+        name: 'Recorded',
+        align: 'center',
+        title: 'Identifiers with data in the Data Library',
+        contents: rule => rule.record_created_at ? <Link
+          color='secondary'
+          href={`${CONFIG.timur_host}/${project_name}/browse/${rule.rule_name}/${rule.name}`}>
+          {dateFormat(rule.record_created_at)}
+        </Link> : ''
+      }
+    ]}
+    items={!decomposition ? [] : Object.keys(decomposition.rules).map( rule_name => ({ ...decomposition.rules[rule_name], rule_name}))}
+    itemClassName={ rule => (highlight && !rule.name_created_at) ? classes.highlight2 : rule.name == identifier ? classes.highlight : ''}
+    emptyText='Identifier is incomplete'
+    csvName={ `${primary_rule}-matching-rules-${(new Date()).toISOString().slice(0,10)}.csv` }
+    {...props}
+  />
+  //decomposition != null ? Object.keys(decomposition.rules).sort( (a,b) => b==primary_rule ? 1 : a==primary_rule ? -1 : 0 ).map(
 }
 
 const Author = ({author}) => {
@@ -128,42 +131,117 @@ const Author = ({author}) => {
   </Tooltip>
 }
 
-export const MatchingNamesTable = ({names, rule_name, decomposition, className}) => {
+export const MatchingNamesTable = ({names, rule_name, decomposition, ...props}) => {
   const classes = useStyles();
   if (names == null) return null
-  const none = names.length == 0;
   const identifier = getIdentifier(decomposition);
-  return <TableContainer className={className}>
-    <Table stickyHeader size='small'>
-      <TableHead>
-        {
-           !none && <TableRow>
-            <TableCell>Identifier</TableCell>
-            <TableCell align='left'>Author</TableCell>
-            <TableCell align='right'>Created</TableCell>
-            <TableCell align='right'>Recorded</TableCell>
-          </TableRow>
-        }
-      </TableHead>
+
+  return <MatchTable
+    headCells={ [
       {
-        none ?
-          <TableBody>
-            <TableRow>
-              <TableCell colSpan={5}><Typography variant='body1' color='secondary' component='em'>None</Typography></TableCell>
-            </TableRow>
-          </TableBody>
-          : <TableBody>
-          {names.map((name) => (
-            <TableRow key={name.identifier} className={ identifier == name.identifier ? classes.highlight : '' }>
-              <TableCell align='left'>{name.identifier}</TableCell>
-              <TableCell align='left'><Author author={name.author}/></TableCell>
-              <TableCell align='right'>{dateFormat(name.name_created_at, null)}</TableCell>
-              <TableCell align='right'>{dateFormat(name.record_created_at, null)}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+        name: 'Identifier',
+        key: 'identifier',
+        contents: name => name.identifier
+      },
+      {
+        name: 'Author',
+        align: 'left',
+        key: 'author',
+        contents: name => <Author author={name.author}/>
+      },
+      {
+        name: 'Created',
+        align: 'right',
+        key: 'name_created_at',
+        contents: name => dateFormat(name.name_created_at, null)
+      },
+      {
+        name: 'Recorded',
+        align: 'right',
+        key: 'record_created_at',
+        contents: name => dateFormat(name.record_created_at, null)
       }
-    </Table>
-  </TableContainer>
+    ] }
+    items={names}
+    itemClassName={ name => identifier == name.identifier ? classes.highlight : '' }
+    emptyText='None'
+    csvName={ `${rule_name}-matching-names-${(new Date()).toISOString().slice(0,10)}.csv` }
+    {...props}
+  />
 }
 
+export const MatchTable = ({headCells, csvName, tableClassName, boxClassName, title, items, itemClassName, emptyText }) => {
+  const [ orderBy, setOrderBy ] = useState(headCells[0].key);
+  const [ order, setOrder ] = useState('asc');
+  const classes = useStyles();
+
+  const show = items && items.length > 0;
+
+  const download = () => {
+    const data = items.map(
+      item => headCells.map( head => item[ head.key ] ).join(',')
+    ).join('\n');
+    const blob = new Blob([data], { type: 'text/csv' });
+    const a = document.createElement('a')
+    a.setAttribute('href', window.URL.createObjectURL(blob) )
+    a.setAttribute('download', csvName);
+    a.click()
+  }
+
+  return <Grid className={boxClassName} item>
+    <Toolbar disableGutters={true} className={classes.table_header}>
+      <Grid item xs={10}><Typography variant='h6' >{title}</Typography></Grid>
+      { show && <Grid item align='right' xs={2}><Button onClick={ download }>TSV</Button></Grid> }
+    </Toolbar>
+    <TableContainer className={tableClassName}>
+      <Table stickyHeader size='small'>
+        <TableHead>
+          {
+             show && <TableRow>
+              {
+                headCells.map(
+                  head => <TableCell key={head.key} align={head.align}>
+                    <TableSortLabel
+                      active={orderBy === head.key}
+                      direction={orderBy === head.key ? order : 'asc'}
+                      onClick={(key => e => {
+                        setOrderBy(key);
+                        setOrder( orderBy === key && order === 'asc' ? 'desc' : 'asc' );
+                      })(head.key)}>
+                    {
+                      head.tooltip ?
+                        <Tooltip title={head.title} placement='top'>
+                          <Typography component='span'>{head.name}</Typography>
+                        </Tooltip>
+                        : <Typography component='span'>{head.name}</Typography>
+                    }
+                    </TableSortLabel>
+                  </TableCell>
+                )
+              }
+            </TableRow>
+          }
+        </TableHead>
+        {
+          !show ?
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={5}><Typography variant='body1' color='secondary' component='em'>{emptyText}</Typography></TableCell>
+              </TableRow>
+            </TableBody>
+            : <TableBody>
+              {items.sort( (i1, i2) => (order == 'desc' ? 1 : -1) * (i1[ orderBy ]||'').localeCompare((i2[orderBy]||''))).map((item, i) => (
+              <TableRow key={i} className={itemClassName(item)}>
+                {
+                  headCells.map(
+                    head => <TableCell key={head.key} align={head.align}>{ head.contents( item ) }</TableCell>
+                  )
+                }
+              </TableRow>
+            ))}
+          </TableBody>
+        }
+      </Table>
+    </TableContainer>
+  </Grid>
+}

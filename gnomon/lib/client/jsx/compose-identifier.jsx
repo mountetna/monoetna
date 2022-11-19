@@ -348,12 +348,20 @@ const ComposeIdentifier = ({project_name, rule_name}) => {
         </Grid>
       </Grid>
       <Grid item container className={classes.tables}>
-        <TableWithTitle title='Matching Rules' className={classes.table_column}>
-          <IdTreeTable className={classes.match_rules} decomposition={decomposition} project_name={project_name} markNotCreated={true} highlight={ highlight }/>
-        </TableWithTitle>
-        <TableWithTitle title='Matching Names' className={classes.table_column}>
-          <MatchingNamesTable className={classes.match_names} names={matchIds(names, regex)} rule_name={rule_name} decomposition={decomposition}/>
-        </TableWithTitle>
+        <IdTreeTable
+          title='Matching Rules'
+          boxClassName={classes.table_column}
+          tableClassName={classes.match_rules}
+          decomposition={decomposition}
+          project_name={project_name}
+          markNotCreated={true}
+          highlight={ highlight }/>
+        <MatchingNamesTable
+          tableClassName={classes.match_names}
+          names={matchIds(names, regex)}
+          rule_name={rule_name}
+          decomposition={decomposition}
+          title='Matching Names' boxClassName={classes.table_column}/>
       </Grid>
     </Grid>
   </Grid>
