@@ -20,7 +20,7 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import { TableWithTitle, IdTreeTable, MatchingNamesTable } from './match-tables';
+import { IdTreeTable, MatchingNamesTable } from './match-tables';
 import { Typography, Tooltip }from '@material-ui/core';
 
 import {isAdmin} from 'etna-js/utils/janus';

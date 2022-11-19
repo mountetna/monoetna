@@ -47,38 +47,81 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-export const TableWithTitle = ({title, className, children}) => {
+export const MatchTable = ({headCells, csvName, tableClassName, boxClassName, title, items, itemClassName, emptyText }) => {
+  const [ orderBy, setOrderBy ] = useState(headCells[0].key);
+  const [ order, setOrder ] = useState('asc');
   const classes = useStyles();
-  return <Grid className={className} item>
+
+  const show = items && items.length > 0;
+
+  const download = () => {
+    const data = items.map(
+      item => headCells.map( head => item[ head.key ] ).join('\t')
+    ).join('\n');
+    const blob = new Blob([data], { type: 'text/csv' });
+    const a = document.createElement('a')
+    a.setAttribute('href', window.URL.createObjectURL(blob) )
+    a.setAttribute('download', csvName);
+    a.click()
+  }
+
+  return <Grid className={boxClassName} item>
     <Toolbar disableGutters={true} className={classes.table_header}>
-      <Typography variant='h6' >{title}</Typography>
+      <Grid item xs={10}><Typography variant='h6' >{title}</Typography></Grid>
+      { show && <Grid item align='right' xs={2}><Button onClick={ download }>TSV</Button></Grid> }
     </Toolbar>
-    { children }
+    <TableContainer className={tableClassName}>
+      <Table stickyHeader size='small'>
+        <TableHead>
+          {
+             show && <TableRow>
+              {
+                headCells.map(
+                  head => <TableCell key={head.key} align={head.align}>
+                    <TableSortLabel
+                      active={orderBy === head.key}
+                      direction={orderBy === head.key ? order : 'asc'}
+                      onClick={(key => e => {
+                        setOrderBy(key);
+                        setOrder( orderBy === key && order === 'asc' ? 'desc' : 'asc' );
+                      })(head.key)}>
+                    {
+                      head.tooltip ?
+                        <Tooltip title={head.title} placement='top'>
+                          <Typography component='span'>{head.name}</Typography>
+                        </Tooltip>
+                        : <Typography component='span'>{head.name}</Typography>
+                    }
+                    </TableSortLabel>
+                  </TableCell>
+                )
+              }
+            </TableRow>
+          }
+        </TableHead>
+        {
+          !show ?
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={5}><Typography variant='body1' color='secondary' component='em'>{emptyText}</Typography></TableCell>
+              </TableRow>
+            </TableBody>
+            : <TableBody>
+              {items.sort( (i1, i2) => (order == 'desc' ? 1 : -1) * (i1[ orderBy ]||'').localeCompare((i2[orderBy]||''))).map((item, i) => (
+              <TableRow key={i} className={itemClassName(item)}>
+                {
+                  headCells.map(
+                    head => <TableCell key={head.key} align={head.align}>{ head.contents( item ) }</TableCell>
+                  )
+                }
+              </TableRow>
+            ))}
+          </TableBody>
+        }
+      </Table>
+    </TableContainer>
   </Grid>
 }
-
-const Rule = ({rule, rule_name, project_name, markNotCreated, highlight, highlight2}) => {
-  const classes = useStyles();
-  return <TableRow className={(highlight2 && !rule.name_created_at) ? classes.highlight2 : highlight ? classes.highlight : ''}>
-    <TableCell component='th' scope='row'>
-      {rule_name}
-    </TableCell>
-    <TableCell>{rule.name + (!markNotCreated || rule.name_created_at ? '' : '*')}</TableCell>
-    <TableCell align='center'>{dateFormat(rule.name_created_at, null)}</TableCell>
-    <TableCell align='center'>
-      {
-        rule.record_created_at
-        ?  <Link
-              color='secondary'
-              href={`${CONFIG.timur_host}/${project_name}/browse/${rule_name}/${rule.name}`}>
-              {dateFormat(rule.record_created_at)}
-            </Link>
-          : ''
-      }
-    </TableCell>
-  </TableRow>
-}
-
 const getIdentifier = decomposition => decomposition ? decomposition.tokens.map(t => t[1]).join('') : null;
 
 export const IdTreeTable = ({decomposition, project_name, markNotCreated = false, highlight=false, ...props}) => {
@@ -168,80 +211,4 @@ export const MatchingNamesTable = ({names, rule_name, decomposition, ...props}) 
     csvName={ `${rule_name}-matching-names-${(new Date()).toISOString().slice(0,10)}.csv` }
     {...props}
   />
-}
-
-export const MatchTable = ({headCells, csvName, tableClassName, boxClassName, title, items, itemClassName, emptyText }) => {
-  const [ orderBy, setOrderBy ] = useState(headCells[0].key);
-  const [ order, setOrder ] = useState('asc');
-  const classes = useStyles();
-
-  const show = items && items.length > 0;
-
-  const download = () => {
-    const data = items.map(
-      item => headCells.map( head => item[ head.key ] ).join('\t')
-    ).join('\n');
-    const blob = new Blob([data], { type: 'text/csv' });
-    const a = document.createElement('a')
-    a.setAttribute('href', window.URL.createObjectURL(blob) )
-    a.setAttribute('download', csvName);
-    a.click()
-  }
-
-  return <Grid className={boxClassName} item>
-    <Toolbar disableGutters={true} className={classes.table_header}>
-      <Grid item xs={10}><Typography variant='h6' >{title}</Typography></Grid>
-      { show && <Grid item align='right' xs={2}><Button onClick={ download }>TSV</Button></Grid> }
-    </Toolbar>
-    <TableContainer className={tableClassName}>
-      <Table stickyHeader size='small'>
-        <TableHead>
-          {
-             show && <TableRow>
-              {
-                headCells.map(
-                  head => <TableCell key={head.key} align={head.align}>
-                    <TableSortLabel
-                      active={orderBy === head.key}
-                      direction={orderBy === head.key ? order : 'asc'}
-                      onClick={(key => e => {
-                        setOrderBy(key);
-                        setOrder( orderBy === key && order === 'asc' ? 'desc' : 'asc' );
-                      })(head.key)}>
-                    {
-                      head.tooltip ?
-                        <Tooltip title={head.title} placement='top'>
-                          <Typography component='span'>{head.name}</Typography>
-                        </Tooltip>
-                        : <Typography component='span'>{head.name}</Typography>
-                    }
-                    </TableSortLabel>
-                  </TableCell>
-                )
-              }
-            </TableRow>
-          }
-        </TableHead>
-        {
-          !show ?
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={5}><Typography variant='body1' color='secondary' component='em'>{emptyText}</Typography></TableCell>
-              </TableRow>
-            </TableBody>
-            : <TableBody>
-              {items.sort( (i1, i2) => (order == 'desc' ? 1 : -1) * (i1[ orderBy ]||'').localeCompare((i2[orderBy]||''))).map((item, i) => (
-              <TableRow key={i} className={itemClassName(item)}>
-                {
-                  headCells.map(
-                    head => <TableCell key={head.key} align={head.align}>{ head.contents( item ) }</TableCell>
-                  )
-                }
-              </TableRow>
-            ))}
-          </TableBody>
-        }
-      </Table>
-    </TableContainer>
-  </Grid>
 }
