@@ -179,7 +179,7 @@ export const MatchTable = ({headCells, csvName, tableClassName, boxClassName, ti
 
   const download = () => {
     const data = items.map(
-      item => headCells.map( head => item[ head.key ] ).join(',')
+      item => headCells.map( head => item[ head.key ] ).join('\t')
     ).join('\n');
     const blob = new Blob([data], { type: 'text/csv' });
     const a = document.createElement('a')
