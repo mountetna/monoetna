@@ -51,7 +51,10 @@ import {
   reparentModel,
   addModel
 } from '../../api/magma_api';
-import {removeModelAction} from 'etna-js/actions/magma_actions';
+import {
+  addTemplatesAndDocuments,
+  removeModelAction
+} from 'etna-js/actions/magma_actions';
 import {isLeafModel} from '../../utils/edit_map';
 import useMagmaActions from './use_magma_actions';
 
@@ -471,7 +474,7 @@ const ModelReport = ({
   }, [model_name, models]);
 
   useEffect(() => {
-    if (counts[model_name]?.count != null) {
+    if (counts[model_name]?.count) {
       setCanReparent(counts[model_name].count <= 0);
     } else {
       getAnswer([model_name, '::count'], (count) => {
