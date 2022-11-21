@@ -47,7 +47,7 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-export const MatchTable = ({headCells, csvName, tableClassName, boxClassName, title, items, itemClassName, emptyText }) => {
+export const MatchTable = ({headCells, tsvName, tableClassName, boxClassName, title, items, itemClassName, emptyText }) => {
   const [ orderBy, setOrderBy ] = useState(headCells[0].key);
   const [ order, setOrder ] = useState('asc');
   const classes = useStyles();
@@ -58,10 +58,10 @@ export const MatchTable = ({headCells, csvName, tableClassName, boxClassName, ti
     const data = items.map(
       item => headCells.map( head => item[ head.key ] ).join('\t')
     ).join('\n');
-    const blob = new Blob([data], { type: 'text/csv' });
+    const blob = new Blob([data], { type: 'text/tsv' });
     const a = document.createElement('a')
     a.setAttribute('href', window.URL.createObjectURL(blob) )
-    a.setAttribute('download', csvName);
+    a.setAttribute('download', tsvName);
     a.click()
   }
 
@@ -161,7 +161,7 @@ export const IdTreeTable = ({decomposition, project_name, markNotCreated = false
     items={!decomposition ? [] : Object.keys(decomposition.rules).map( rule_name => ({ ...decomposition.rules[rule_name], rule_name}))}
     itemClassName={ rule => (highlight && !rule.name_created_at) ? classes.highlight2 : rule.name == identifier ? classes.highlight : ''}
     emptyText='Identifier is incomplete'
-    csvName={ `${primary_rule}-matching-rules-${(new Date()).toISOString().slice(0,10)}.csv` }
+    tsvName={ `${primary_rule}-matching-rules-${(new Date()).toISOString().slice(0,10)}.tsv` }
     {...props}
   />
   //decomposition != null ? Object.keys(decomposition.rules).sort( (a,b) => b==primary_rule ? 1 : a==primary_rule ? -1 : 0 ).map(
@@ -208,7 +208,7 @@ export const MatchingNamesTable = ({names, rule_name, decomposition, ...props}) 
     items={names}
     itemClassName={ name => identifier == name.identifier ? classes.highlight : '' }
     emptyText='None'
-    csvName={ `${rule_name}-matching-names-${(new Date()).toISOString().slice(0,10)}.csv` }
+    tsvName={ `${rule_name}-matching-names-${(new Date()).toISOString().slice(0,10)}.tsv` }
     {...props}
   />
 }
