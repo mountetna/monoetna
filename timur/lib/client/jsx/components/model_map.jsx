@@ -5,25 +5,26 @@ import React, {
   useState,
   useReducer
 } from 'react';
-import {connect} from 'react-redux';
 
 import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
 
 import AttributeReport from './model_map/attribute_report';
-
 import MapHeading from './model_map/map_heading';
 import ModelReport from './model_map/model_report';
 import ModelMapGraphic from './model_map/model_map_graphic';
 
+import {selectUser} from 'etna-js/selectors/user-selector';
+import {isAdmin} from 'etna-js/utils/janus';
+import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {requestModels} from 'etna-js/actions/magma_actions';
-import {selectTemplate} from 'etna-js/selectors/magma';
+import {selectTemplate, selectModelNames} from 'etna-js/selectors/magma';
 import {fetchProjectsAction} from 'etna-js/actions/janus-actions';
 import {selectProjects} from 'etna-js/selectors/janus-selector';
 import {projectNameFull} from 'etna-js/utils/janus';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import useMagmaActions from './model_map/use_magma_actions';
 
 const mapStyle = makeStyles((theme) => ({
   report: {
@@ -77,10 +78,11 @@ const ModelMap = ({}) => {
   const [model, setModel] = useState('project');
   const [attribute_name, setAttribute] = useState(null);
   const invoke = useActionInvoker();
-
   const state = useReduxState();
+  const modelNames = useReduxState((state) => selectModelNames(state));
   const template = selectTemplate(state, model);
   const projects = selectProjects(state);
+  const user = useReduxState((state) => selectUser(state));
 
   const attribute =
     template && attribute_name ? template.attributes[attribute_name] : null;
@@ -96,12 +98,24 @@ const ModelMap = ({}) => {
     invoke(fetchProjectsAction());
   }, []);
 
+  useEffect(() => {
+    if (!modelNames.includes(model)) {
+      setModel('project');
+    }
+  }, [modelNames, model]);
+
   const [width, height] = [600, 600];
 
   const full_name =
     projectNameFull(projects, CONFIG.project_name) || CONFIG.project_name;
 
   const classes = mapStyle();
+
+  const isAdminUser = useMemo(() => {
+    if (!user || 0 === Object.keys(user).length) return false;
+
+    return isAdmin(user, CONFIG.project_name);
+  }, [user, CONFIG.project_name]);
 
   return (
     <Grid className={classes.model_map} container>
@@ -110,7 +124,7 @@ const ModelMap = ({}) => {
           className={classes.heading}
           name='Project'
           title={full_name}
-        />
+        ></MapHeading>
         <ModelMapGraphic
           width={width}
           height={height}
@@ -126,11 +140,13 @@ const ModelMap = ({}) => {
           model_name={model}
           template={template}
           setAttribute={setAttribute}
+          isAdminUser={isAdminUser}
         />
         <AttributeReport
           counts={counts[model]}
           attribute={attribute}
           model_name={model}
+          isAdminUser={isAdminUser}
         />
       </Grid>
     </Grid>

@@ -141,7 +141,7 @@ describe Magma::AddAttributeAction do
       context "but one of the elements is non snake_case" do
         let(:attribute_groups) { ["a", "b-!A.A", "c"] }
         it "works" do
-          expect(action_errors).to eql("attribute_group must be snake_case with no spaces")
+          expect(action_errors).to eql("attribute_group must contain a comma-separated set of snake_case values with no spaces")
         end
       end
     end
@@ -153,7 +153,7 @@ describe Magma::AddAttributeAction do
         [ "infor\nmation", ' information', 'info_group	' , '1x_info'].each do |group|
           @attribute_group = group
           expect(action.validate).to eq(false)
-          expect(action.errors.first[:message]).to eq("attribute_group must be snake_case with no spaces")
+          expect(action.errors.first[:message]).to eq("attribute_group must contain a comma-separated set of snake_case values with no spaces")
         end
       end
     end

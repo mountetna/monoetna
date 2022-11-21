@@ -6,6 +6,7 @@ module.exports = {
       magma_host: 'https://magma.test',
       polyphemus_host: 'https://polyphemus.test',
       vulcan_host: 'https://vulcan.test',
+      janus_host: 'https://janus.test',
       baseURL: 'http://localhost'
     }
   },
