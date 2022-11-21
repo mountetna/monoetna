@@ -823,6 +823,180 @@ describe AdminController do
 
       expect(Project.count).to eq(0)
     end
+
+    it 'fails if template_project_name does not exist' do
+      stub_request(:post, /https:\/\/magma.test\/update_model/).
+      to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
+      stub_request(:post, /https:\/\/magma.test\/update$/).
+      to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
+
+      create_zeus
+
+      expect(Project.count).to eq(1)
+
+      auth_header(:superuser)
+      json_post('/api/admin/add_project', project_name: 'door', project_name_full: "Doors", template_project_name: 'window')
+
+      expect(last_response.status).to eq(422)
+
+      expect(Project.count).to eq(1)
+    end
+
+    it 'calls magma when provided a template_project_name' do
+      stub_request(:post, /https:\/\/magma.test\/update_model/).
+      to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
+      stub_request(:post, /https:\/\/magma.test\/update$/).
+      to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
+
+
+      stub_request(:post, /https:\/\/magma.test\/retrieve$/).
+      with(body: /administration/).
+      to_return(status: 200, body: {
+        models: {
+          project: {
+            template: {
+              identifier: 'name',
+              name: 'project',
+              attributes: {
+                name: {
+                  attribute_name: 'name',
+                  attribute_type: 'identifier'
+                },
+                subject: {
+                  attribute_type: 'collection',
+                  attribute_name: 'subject',
+                  link_model_name: 'subject',
+                  link_attribute_name: 'project'
+                }
+              }
+            }
+          },
+          subject: {
+            template: {
+              name: 'subject',
+              identifier: 'name',
+              parent: 'project',
+              attributes: {
+                name: {
+                  attribute_name: 'name',
+                  attribute_type: 'identifier'
+                },
+                project: {
+                  attribute_name: 'project',
+                  attribute_type: 'parent',
+                  link_model_name: 'project',
+                  link_attribute_name: 'subject'
+                }
+              }
+            }
+          }
+        }
+      }.to_json, headers: {'Content-Type': 'application/json'})
+
+      stub_request(:post, /https:\/\/magma.test\/retrieve$/).
+      with(body: /door/).
+      to_return(status: 200, body: {
+        models: {
+          project: {
+            template: {
+              identifier: 'name',
+              name: 'project',
+              attributes: {
+                name: {
+                  attribute_name: 'name',
+                  attribute_type: 'identifier'
+                }
+              }
+            }
+          }
+        }
+      }.to_json, headers: {'Content-Type': 'application/json'}).then.
+      to_return(status: 200, body: {
+        models: {
+          project: {
+            template: {
+              identifier: 'name',
+              name: 'project',
+              attributes: {
+                name: {
+                  attribute_name: 'name',
+                  attribute_type: 'identifier'
+                },
+                subject: {
+                  attribute_type: 'collection',
+                  attribute_name: 'subject',
+                  link_model_name: 'subject',
+                  link_attribute_name: 'project'
+                }
+              }
+            }
+          },
+          subject: {
+            template: {
+              name: 'subject',
+              identifier: 'name',
+              parent: 'project',
+              attributes: {
+                name: {
+                  attribute_name: 'name',
+                  attribute_type: 'identifier'
+                },
+                project: {
+                  attribute_name: 'project',
+                  attribute_type: 'parent',
+                  link_model_name: 'project',
+                  link_attribute_name: 'subject'
+                }
+              }
+            }
+          }
+        }
+      }.to_json, headers: {'Content-Type': 'application/json'})
+
+      create_zeus
+
+      expect(Project.count).to eq(1)
+
+      auth_header(:superuser)
+      json_post('/api/admin/add_project', project_name: 'door', project_name_full: "Doors", template_project_name: 'administration')
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location']).to eq('/')
+
+      expect(Project.count).to eq(2)
+      project = Project.last
+
+      expect(project.project_name).to eq('door')
+      expect(WebMock).to have_requested(:post, "https://magma.test/update_model").
+      with(body: {
+        project_name: 'door',
+        actions: [{action_name: "add_project"}]
+      })
+      expect(WebMock).to have_requested(:post, "https://magma.test/update").
+      with(body: {
+        project_name: 'door',
+        revisions: {
+          project: {
+            door: {
+              name: 'door'
+            }
+          }
+        },
+        dry_run: false
+      })
+      expect(WebMock).to have_requested(:post, "https://magma.test/update_model").
+      with(body: {
+        project_name: 'door',
+        actions: [{
+          action_name: "add_model",
+          model_name: "subject",
+          parent_model_name: "project",
+          parent_link_type: "collection",
+          identifier: "name",
+          date_shift_root: false
+        }]
+      })
+    end
   end
 
   context '#flag_user' do

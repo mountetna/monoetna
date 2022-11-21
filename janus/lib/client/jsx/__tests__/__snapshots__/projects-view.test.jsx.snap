@@ -150,7 +150,7 @@ Array [
       className="item"
     >
       <div
-        className="cell"
+        className="cell pad-top"
       >
         <div
           className="MuiFormControl-root MuiTextField-root"
@@ -177,7 +177,7 @@ Array [
         </div>
       </div>
       <div
-        className="cell"
+        className="cell pad-top"
       >
         <div
           className="MuiFormControl-root MuiTextField-root"
@@ -204,7 +204,75 @@ Array [
         </div>
       </div>
       <div
-        className="cell submit"
+        className="cell"
+      >
+        <div
+          className="MuiFormControl-root MuiTextField-root"
+        >
+          <label
+            className="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-shrink MuiFormLabel-filled"
+            data-shrink={true}
+            htmlFor="new-project-template"
+            id="new-project-template-label"
+          >
+            Model Template
+          </label>
+          <div
+            className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+            onClick={[Function]}
+          >
+            <div
+              aria-haspopup="listbox"
+              aria-labelledby="new-project-template-label new-project-template"
+              className="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input"
+              id="new-project-template"
+              onBlur={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onMouseDown={[Function]}
+              role="button"
+              tabIndex={0}
+            >
+              <span
+                dangerouslySetInnerHTML={
+                  Object {
+                    "__html": "&#8203;",
+                  }
+                }
+              />
+            </div>
+            <input
+              aria-describedby="new-project-template-helper-text"
+              aria-hidden={true}
+              autoFocus={false}
+              className="MuiSelect-nativeInput"
+              onAnimationStart={[Function]}
+              onChange={[Function]}
+              required={false}
+              tabIndex={-1}
+              value="coprojects_template"
+            />
+            <svg
+              aria-hidden={true}
+              className="MuiSvgIcon-root MuiSelect-icon"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M7 10l5 5 5-5z"
+              />
+            </svg>
+          </div>
+          <p
+            className="MuiFormHelperText-root MuiFormHelperText-filled"
+            id="new-project-template-helper-text"
+          >
+            Models and attributes will be copied from this project into the new project
+          </p>
+        </div>
+      </div>
+      <div
+        className="cell submit pad-top"
       >
         <span
           className="icon-grp icon-grp-approve  fa-stack fa-fw"
