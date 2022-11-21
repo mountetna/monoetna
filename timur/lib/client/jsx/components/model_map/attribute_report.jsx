@@ -23,7 +23,9 @@ import MapHeading from './map_heading';
 import EditAttributeModal from './edit_attribute_modal';
 import {
   EDITABLE_ATTRIBUTE_TYPES,
-  REMOVABLE_ATTRIBUTE_TYPES
+  REMOVABLE_ATTRIBUTE_TYPES,
+  UNREMOVABLE_ATTRIBUTE_NAMES,
+  UNEDITABLE_ATTRIBUTE_NAMES
 } from '../../utils/edit_map';
 import useMagmaActions from './use_magma_actions';
 
@@ -117,12 +119,18 @@ const ManageAttributeActions = ({
   }, [handleRemoveLink]);
 
   const isEditableAttribute = useMemo(() => {
-    return EDITABLE_ATTRIBUTE_TYPES.includes(attribute.attribute_type);
-  }, [attribute, EDITABLE_ATTRIBUTE_TYPES]);
+    return (
+      EDITABLE_ATTRIBUTE_TYPES.includes(attribute.attribute_type) &&
+      !UNEDITABLE_ATTRIBUTE_NAMES.includes(attribute.attribute_name)
+    );
+  }, [attribute, EDITABLE_ATTRIBUTE_TYPES, UNEDITABLE_ATTRIBUTE_NAMES]);
 
   const isRemovableAttribute = useMemo(() => {
-    return REMOVABLE_ATTRIBUTE_TYPES.includes(attribute.attribute_type);
-  }, [attribute, REMOVABLE_ATTRIBUTE_TYPES]);
+    return (
+      REMOVABLE_ATTRIBUTE_TYPES.includes(attribute.attribute_type) &&
+      !UNREMOVABLE_ATTRIBUTE_NAMES.includes(attribute.attribute_name)
+    );
+  }, [attribute, REMOVABLE_ATTRIBUTE_TYPES, UNREMOVABLE_ATTRIBUTE_NAMES]);
 
   const isLinkAttribute = useMemo(() => {
     if (!reciprocalAttribute) return false;
