@@ -14,7 +14,10 @@ import {selectUser} from 'etna-js/selectors/user-selector';
 import {json_post, json_get} from 'etna-js/utils/fetch';
 import {isSuperEditor} from 'etna-js/utils/janus';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import {showMessages} from 'etna-js/actions/message_actions';
 
+import MenuItem from '@material-ui/core/MenuItem';
 import {makeStyles} from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import Table from '@material-ui/core/Table';
@@ -62,7 +65,7 @@ const Project = ({project}) => {
 
 const projectStyles = makeStyles((theme) => ({
   table_container: {
-    height: 'calc(100vh - 61px - 38px - 73px)',
+    height: 'calc(100vh - 61px - 38px - 105px)',
     width: 'calc(100% - 2px)'
   }
 }));
@@ -100,17 +103,32 @@ const Projects = ({projects}) => {
 const postAddProject = (project) =>
   json_post('/api/admin/add_project', project);
 
-const NewProject = ({retrieveAllProjects}) => {
+const NewProject = ({currentProjects, retrieveAllProjects}) => {
   let [newproject, setNewProject] = useState({});
   let [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [projectTemplate, setProjectTemplate] = useState('coprojects_template');
+  const invoke = useActionInvoker();
 
   const [_, addProject] = useAsyncWork(
     function addProject() {
-      postAddProject(newproject)
+      let clone = {...newproject};
+
+      if (projectTemplate) {
+        clone.template_project_name = projectTemplate;
+      }
+      setLoading(true);
+      invoke(
+        showMessages([
+          "Loading the new project's models and attributes in the background. This can take 5-10 minutes depending on the source project. Please check Timur at that time to view your new project."
+        ])
+      );
+      postAddProject(clone)
         .then(() => {
           retrieveAllProjects();
           setNewProject({});
           setError(null);
+          setLoading(false);
         })
         .catch((e) => e.then(({error}) => setError(error)));
     },
@@ -122,7 +140,7 @@ const NewProject = ({retrieveAllProjects}) => {
       <div className='title'>New Project</div>
       {error && <div className='error'>Error: {error}</div>}
       <div className='item'>
-        <div className='cell'>
+        <div className='cell pad-top'>
           <TextField
             placeholder='project_name'
             value={newproject.project_name || ''}
@@ -131,7 +149,7 @@ const NewProject = ({retrieveAllProjects}) => {
             }
           />
         </div>
-        <div className='cell'>
+        <div className='cell pad-top'>
           <TextField
             placeholder='Project Title'
             value={newproject.project_name_full || ''}
@@ -140,8 +158,29 @@ const NewProject = ({retrieveAllProjects}) => {
             }
           />
         </div>
-        <div className='cell submit'>
-          <Icon className='approve' icon='magic' onClick={addProject} />
+        <div className='cell'>
+          <TextField
+            select
+            id='new-project-template'
+            value={projectTemplate}
+            label='Model Template'
+            helperText='Models and attributes will be copied from this project into the new project'
+            onChange={(e) => setProjectTemplate(e.target.value)}
+          >
+            {currentProjects.map((project, index) => (
+              <MenuItem key={index} value={project.project_name}>
+                {project.project_name_full}
+              </MenuItem>
+            ))}
+          </TextField>
+        </div>
+        <div className='cell submit pad-top'>
+          <Icon
+            className='approve'
+            icon='magic'
+            disabled={loading}
+            onClick={addProject}
+          />
         </div>
       </div>
     </div>
@@ -165,7 +204,10 @@ const ProjectsView = () => {
     <>
       <Projects user={user} projects={projects} />
       {isSuperEditor(user) && (
-        <NewProject retrieveAllProjects={retrieveAllProjects} />
+        <NewProject
+          currentProjects={projects}
+          retrieveAllProjects={retrieveAllProjects}
+        />
       )}
     </>
   );
