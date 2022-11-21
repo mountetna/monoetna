@@ -22,24 +22,24 @@ a {
 
 $janus-color: #333366;
 @function thin-rule($alpha, $color: $janus-color) {
-  @return 1px solid rgba($color,$alpha)
+  @return 1px solid rgba($color, $alpha);
 }
 
 $thin_rule: thin-rule(0.1);
 
 @mixin janus-box {
   .title {
-    font-size: 1.0em;
+    font-size: 1em;
     border-bottom: 1px solid #4431c6;
     padding: 10px;
     padding-left: 15px;
     margin: 0;
   }
   .item {
-    border-bottom: 1px solid rgba(#6d9eb0,0.1);
+    border-bottom: 1px solid rgba(#6d9eb0, 0.1);
     padding: 7px;
     padding-left: 15px;
-    font-size: 1.0em;
+    font-size: 1em;
   }
 }
 
@@ -78,6 +78,10 @@ $thin_rule: thin-rule(0.1);
     display: flex;
     .cell {
       padding-right: 5px;
+
+      &.pad-top {
+        padding-top: 1rem;
+      }
     }
   }
 }
@@ -97,11 +101,10 @@ $thin_rule: thin-rule(0.1);
   }
 }
 
-
 @mixin janus-button {
   border-radius: 2px;
-  border: 1px solid rgba($janus-color,0.1);
-  background: rgba($janus-color,0.1);
+  border: 1px solid rgba($janus-color, 0.1);
+  background: rgba($janus-color, 0.1);
   padding: 2px 4px;
   cursor: pointer;
   color: $janus-color;
@@ -119,5 +122,5 @@ $thin_rule: thin-rule(0.1);
   padding: 0px 3px;
   color: black;
   background: none;
-  font-size: 1.0em;
+  font-size: 1em;
 }
