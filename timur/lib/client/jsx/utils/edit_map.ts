@@ -8,7 +8,7 @@ export const COMMA_SEP = '^[a-zA-Z0-9]*(,[a-zA-Z0-9]*)*$';
 
 export const VALIDATION_TYPES = ['Array', 'Regexp'];
 
-export const EDITABLE_ATTRIBUTE_TYPES = [
+export const REMOVABLE_ATTRIBUTE_TYPES = [
   'string',
   'date_time',
   'shifted_date_time',
@@ -18,6 +18,11 @@ export const EDITABLE_ATTRIBUTE_TYPES = [
   'file',
   'image',
   'file_collection'
+];
+
+export const EDITABLE_ATTRIBUTE_TYPES = [
+  ...REMOVABLE_ATTRIBUTE_TYPES,
+  'identifier'
 ];
 
 const CHILD_ATTRIBUTE_TYPES = ['table', 'child', 'collection'];

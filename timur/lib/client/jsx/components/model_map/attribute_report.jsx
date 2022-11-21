@@ -21,7 +21,10 @@ import {
 } from '../../api/magma_api';
 import MapHeading from './map_heading';
 import EditAttributeModal from './edit_attribute_modal';
-import {EDITABLE_ATTRIBUTE_TYPES} from '../../utils/edit_map';
+import {
+  EDITABLE_ATTRIBUTE_TYPES,
+  REMOVABLE_ATTRIBUTE_TYPES
+} from '../../utils/edit_map';
 import useMagmaActions from './use_magma_actions';
 
 const ATT_ATTS = [
@@ -117,6 +120,10 @@ const ManageAttributeActions = ({
     return EDITABLE_ATTRIBUTE_TYPES.includes(attribute.attribute_type);
   }, [attribute, EDITABLE_ATTRIBUTE_TYPES]);
 
+  const isRemovableAttribute = useMemo(() => {
+    return REMOVABLE_ATTRIBUTE_TYPES.includes(attribute.attribute_type);
+  }, [attribute, REMOVABLE_ATTRIBUTE_TYPES]);
+
   const isLinkAttribute = useMemo(() => {
     if (!reciprocalAttribute) return false;
 
@@ -145,17 +152,19 @@ const ManageAttributeActions = ({
 
   return (
     <>
-      <Tooltip title='Remove Attribute'>
-        <Button
-          startIcon={<DeleteIcon />}
-          onClick={handleConfirmRemove}
-          size='small'
-          color='primary'
-          className={classes.button}
-        >
-          Remove
-        </Button>
-      </Tooltip>
+      {isRemovableAttribute && (
+        <Tooltip title='Remove Attribute'>
+          <Button
+            startIcon={<DeleteIcon />}
+            onClick={handleConfirmRemove}
+            size='small'
+            color='primary'
+            className={classes.button}
+          >
+            Remove
+          </Button>
+        </Tooltip>
+      )}
       <Tooltip title='Edit Attribute'>
         <Button
           startIcon={<EditIcon />}
@@ -202,8 +211,7 @@ const AttributeReport = ({attribute, model_name, isAdminUser}) => {
         updateAttribute({
           model_name,
           ...params
-        }),
-        false
+        })
       );
     },
     [executeAction, model_name, updateAttribute]
