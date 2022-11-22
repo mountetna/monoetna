@@ -108,6 +108,7 @@ export interface Workflow {
   description?: string;
   tags?: string[];
   lastModified?: string;
+  inputQueryMap?: {[k: string]: string};
 }
 
 export const defaultWorkflow: Workflow = {

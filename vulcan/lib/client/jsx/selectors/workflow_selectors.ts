@@ -15,6 +15,7 @@ import {
 } from '../api_types';
 import {VulcanState} from '../reducers/vulcan_reducer';
 import {
+  BoundInputSpecification,
   DataEnvelope,
   WorkflowStepGroup
 } from '../components/workflow/user_interactions/inputs/input_types';
@@ -489,4 +490,20 @@ export function defaultInputs(workflow: Workflow) {
     },
     {}
   );
+}
+
+export function isQueryInputGroup(
+  workflow: Workflow,
+  inputs: BoundInputSpecification[]
+) {
+  console.log('workflow', workflow, inputs);
+  if (!workflow.inputQueryMap || 0 === inputs.length) return false;
+
+  const inputNames = inputs.map((input) => input.name);
+  console.log(
+    'inputNames',
+    inputNames.sort(),
+    Object.keys(workflow.inputQueryMap).sort()
+  );
+  return Object.keys(workflow.inputQueryMap).sort() == inputNames.sort();
 }
