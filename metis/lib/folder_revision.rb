@@ -10,7 +10,7 @@ class Metis
       #   here we have to reconstruct the entire path by concatenating
       #   mpath.folder_path + mpath.file_name.
       mpath_w_objs.mpath.folder_path ?
-        "#{mpath_w_objs.mpath.folder_path}/#{mpath_w_objs.mpath.file_name}" :
+        ::File.join(mpath_w_objs.mpath.folder_path, mpath_w_objs.mpath.file_name) :
         mpath_w_objs.mpath.file_name
     end
 
