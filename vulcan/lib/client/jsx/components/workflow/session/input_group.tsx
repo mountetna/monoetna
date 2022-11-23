@@ -75,7 +75,9 @@ export default function InputGroup({
 
   const classes = useStyles();
 
-  console.log('in input_group', isQueryInputGroup(workflow, inputs));
+  const showQueryEditor = useMemo(() => {
+    return isQueryInputGroup(workflow, inputs);
+  }, [workflow, inputs]);
 
   return (
     <Accordion elevation={0} expanded={expanded} onChange={select}>

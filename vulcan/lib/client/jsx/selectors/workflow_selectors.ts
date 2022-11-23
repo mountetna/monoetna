@@ -496,14 +496,12 @@ export function isQueryInputGroup(
   workflow: Workflow,
   inputs: BoundInputSpecification[]
 ) {
-  console.log('workflow', workflow, inputs);
   if (!workflow.inputQueryMap || 0 === inputs.length) return false;
 
   const inputNames = inputs.map((input) => input.name);
-  console.log(
-    'inputNames',
-    inputNames.sort(),
-    Object.keys(workflow.inputQueryMap).sort()
+
+  return _.isEqual(
+    Object.keys(workflow.inputQueryMap).sort(),
+    inputNames.sort()
   );
-  return Object.keys(workflow.inputQueryMap).sort() == inputNames.sort();
 }
