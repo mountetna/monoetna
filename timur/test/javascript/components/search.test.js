@@ -8,9 +8,9 @@ import Search, {
 } from '../../../lib/client/jsx/components/search/search';
 
 const models = {
-  monster: {template: require('../fixtures/template_monster.json')},
-  labor: {template: require('../fixtures/template_labor.json')},
-  project: {template: require('../fixtures/template_project.json')}
+  monster: {template: require('etna-js/spec/fixtures/template_monster.json')},
+  labor: {template: require('etna-js/spec/fixtures/template_labor.json')},
+  project: {template: require('etna-js/spec/fixtures/template_project.json')}
 };
 
 describe('Search', () => {

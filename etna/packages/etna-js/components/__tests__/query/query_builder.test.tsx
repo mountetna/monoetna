@@ -3,10 +3,10 @@ import {render, screen, waitFor, fireEvent} from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import userEvent from '@testing-library/user-event';
 
-import {mockStore, querySpecWrapper, stubUrl} from '../../helpers';
-import QueryBuilder from '../../../../lib/client/jsx/components/query/query_builder';
-import {QueryGraph} from '../../../../lib/client/jsx/utils/query_graph';
-import {defaultQueryResultsParams} from '../../../../lib/client/jsx/contexts/query/query_results_context';
+import {mockStore, querySpecWrapper, stubUrl} from '../../../spec/helpers';
+import QueryBuilder from '../../query/query_builder';
+import {QueryGraph} from '../../../utils/query/query_graph';
+import {defaultQueryResultsParams} from '../../../contexts/query/query_results_context';
 
 const models = {
   monster: {
@@ -44,16 +44,16 @@ const models = {
 describe('QueryBuilder', () => {
   let store;
   let graph = new QueryGraph(models);
-  let mockColumnState;
-  let mockGraphState;
-  let mockWhereState;
+  let mockColumnState: any;
+  let mockGraphState: any;
+  let mockWhereState: any;
 
   beforeEach(() => {
     stubUrl({
       verb: 'post',
       host: 'https://magma.test',
       path: '/query',
-      request: (body) => true,
+      request: (body: any) => true,
       status: 200,
       response: {answer: ['Greece', 'Italy', 'France']}
     });
@@ -62,7 +62,7 @@ describe('QueryBuilder', () => {
       verb: 'get',
       host: 'https://vulcan.test',
       path: '/api/labors/workflows?tag=plotting',
-      request: (body) => true,
+      request: (body: any) => true,
       status: 200,
       response: {workflows: []}
     });

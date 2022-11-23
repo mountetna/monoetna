@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 
 import {selectModels} from 'etna-js/selectors/magma';
 
-import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraph} from '../../utils/query/query_graph';
 
 const useQueryGraph = (reduxState: any, graph: QueryGraph, setGraph: any) => {
   useEffect(() => {

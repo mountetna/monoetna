@@ -1,4 +1,4 @@
-import {QueryColumn} from '../../../lib/client/jsx/contexts/query/query_types';
+import {QueryColumn} from '../../../contexts/query/query_types';
 import {
   selectMatrixModelNames,
   selectMatrixAttributes,
@@ -6,7 +6,7 @@ import {
   pathToColumn,
   getPath,
   createFigurePayload
-} from '../../../lib/client/jsx/selectors/query_selector';
+} from '../../../selectors/query/query_selector';
 
 const models = {
   prize: {
@@ -236,16 +236,16 @@ describe('createFigurePayload', () => {
   it('stringifies elements in the query', () => {
     const result = createFigurePayload({
       query: {
-        user_columns: ["foo", "bar"],
-        query: "this is a query",
-        something: {key: "value"}
+        user_columns: ['foo', 'bar'],
+        query: 'this is a query',
+        something: {key: 'value'}
       },
-      title: "A plot",
+      title: 'A plot',
       workflow: {
         inputQueryMap: {
-          "1": "query",
-          "2": "user_columns",
-          "3": "something"
+          '1': 'query',
+          '2': 'user_columns',
+          '3': 'something'
         },
         name: 'test'
       }
@@ -255,10 +255,10 @@ describe('createFigurePayload', () => {
       title: 'A plot',
       workflow_name: 'test',
       inputs: {
-        "1": "this is a query",
-        "2": JSON.stringify(["foo", "bar"]),
-        "3": JSON.stringify({key: "value"})
+        '1': 'this is a query',
+        '2': JSON.stringify(['foo', 'bar']),
+        '3': JSON.stringify({key: 'value'})
       }
-    })
-  })
-})
+    });
+  });
+});

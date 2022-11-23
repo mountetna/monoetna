@@ -2,10 +2,10 @@ import React from 'react';
 import {renderHook} from '@testing-library/react-hooks';
 import '@testing-library/jest-dom/extend-expect';
 
-import {mockStore, querySpecWrapper} from '../../helpers';
-import useTableEffects from '../../../../lib/client/jsx/components/query/query_use_table_effects';
-import {QueryGraph} from '../../../../lib/client/jsx/utils/query_graph';
-import {defaultQueryResultsParams} from '../../../../lib/client/jsx/contexts/query/query_results_context';
+import {mockStore, querySpecWrapper} from '../../../spec/helpers';
+import useTableEffects from '../../query/query_use_table_effects';
+import {QueryGraph} from '../../../utils/query/query_graph';
+import {defaultQueryResultsParams} from '../../../contexts/query/query_results_context';
 
 const models = {
   monster: {

@@ -1,7 +1,6 @@
 import React, {useState, createContext, useCallback} from 'react';
 
-import {QueryGraph} from '../../utils/query_graph';
-import useQueryGraph from './use_query_graph';
+import {QueryGraph} from '../../utils/query/query_graph';
 
 const defaultGraphState = {
   rootModel: null as string | null,
@@ -46,8 +45,6 @@ export const QueryGraphProvider = (
     },
     [state]
   );
-
-  // useQueryGraph(state.graph, setGraph);
 
   return (
     <QueryGraphContext.Provider

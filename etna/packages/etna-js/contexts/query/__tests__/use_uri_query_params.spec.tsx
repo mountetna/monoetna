@@ -6,9 +6,9 @@ import '@testing-library/jest-dom/extend-expect';
 import TestComponent from './mock_component';
 
 describe('useUriQueryParams', () => {
-  let setColumnsMock;
-  let setWhereMock;
-  let setRootMock;
+  let setColumnsMock: any;
+  let setWhereMock: any;
+  let setRootMock: any;
 
   beforeEach(() => {
     setColumnsMock = jest.fn();

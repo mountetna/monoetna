@@ -7,9 +7,9 @@ import {mockStore, stubUrl} from '../helpers';
 import ModelMap from '../../../lib/client/jsx/components/model_map';
 
 const models = {
-  monster: {template: require('../fixtures/template_monster.json')},
-  labor: {template: require('../fixtures/template_labor.json')},
-  project: {template: require('../fixtures/template_project.json')}
+  monster: {template: require('etna-js/spec/fixtures/template_monster.json')},
+  labor: {template: require('etna-js/spec/fixtures/template_labor.json')},
+  project: {template: require('etna-js/spec/fixtures/template_project.json')}
 };
 
 describe('ModelMap', () => {
@@ -54,7 +54,7 @@ describe('ModelMap', () => {
   it('renders', () => {
     store = mockStore({
       magma: {models},
-      janus: {projects: require('../fixtures/project_names.json')}
+      janus: {projects: require('etna-js/spec/fixtures/project_names.json')}
     });
 
     // Wrap with Provider here so store gets passed down to child components in Context
@@ -84,7 +84,7 @@ describe('ModelMap', () => {
 
     store = mockStore({
       magma: {models},
-      janus: {projects: require('../fixtures/project_names.json')},
+      janus: {projects: require('etna-js/spec/fixtures/project_names.json')},
       user: {
         permissions: {
           labors: {
@@ -124,7 +124,7 @@ describe('ModelMap', () => {
 
     store = mockStore({
       magma: {models},
-      janus: {projects: require('../fixtures/project_names.json')},
+      janus: {projects: require('etna-js/spec/fixtures/project_names.json')},
       user: {
         permissions: {
           labors: {
@@ -156,7 +156,7 @@ describe('ModelMap', () => {
   it('renders without model action buttons for editor user', async () => {
     store = mockStore({
       magma: {models},
-      janus: {projects: require('../fixtures/project_names.json')},
+      janus: {projects: require('etna-js/spec/fixtures/project_names.json')},
       user: {
         permissions: {
           labors: {

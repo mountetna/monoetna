@@ -1,8 +1,9 @@
 import * as React from 'react';
 import {connect} from 'react-redux';
-import {findRoute, setRoutes} from 'etna-js/dispatchers/router';
-
 import {ThemeProvider} from '@material-ui/core/styles';
+
+import {findRoute, setRoutes} from 'etna-js/dispatchers/router';
+import QueryPage from 'etna-js/components/query/query_page';
 
 // Components.
 import Manifests from './components/manifest/manifests';
@@ -21,7 +22,6 @@ import Search from './components/search/search';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {ModalDialogContainer} from 'etna-js/components/ModalDialogContainer';
 import {Notifications} from 'etna-js/components/Notifications';
-import QueryPage from './components/query/query_page';
 
 import {createEtnaTheme} from 'etna-js/style/theme';
 

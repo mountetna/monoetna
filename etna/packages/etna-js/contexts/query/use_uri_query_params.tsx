@@ -2,7 +2,10 @@ import React, {useEffect} from 'react';
 import {QueryColumnState} from './query_column_context';
 import {QueryWhereState} from './query_where_context';
 import {QueryColumn} from './query_types';
-import {migrateSubclauses, migrateSlices} from '../../utils/query_uri_params';
+import {
+  migrateSubclauses,
+  migrateSlices
+} from '../../utils/query/query_uri_params';
 
 export default function useUriQueryParams({
   columnState,

@@ -6,8 +6,8 @@ import '@testing-library/jest-dom/extend-expect';
 import renderer from 'react-test-renderer';
 import AttributeReport from '../../../lib/client/jsx/components/model_map/attribute_report';
 
-const monster = require('../fixtures/template_monster.json');
-const habitat = require('../fixtures/template_habitat.json');
+const monster = require('etna-js/spec/fixtures/template_monster.json');
+const habitat = require('etna-js/spec/fixtures/template_habitat.json');
 
 describe('AttributeReport', () => {
   let store = mockStore({});
@@ -53,14 +53,14 @@ describe('AttributeReport', () => {
       magma: {
         models: {
           monster: {
-            template: require('../fixtures/template_monster.json')
+            template: require('etna-js/spec/fixtures/template_monster.json')
           },
           habitat: {
-            template: require('../fixtures/template_habitat.json')
+            template: require('etna-js/spec/fixtures/template_habitat.json')
           }
         }
       },
-      janus: {projects: require('../fixtures/project_names.json')},
+      janus: {projects: require('etna-js/spec/fixtures/project_names.json')},
       user: {
         permissions: {
           labors: {
@@ -88,14 +88,14 @@ describe('AttributeReport', () => {
       magma: {
         models: {
           monster: {
-            template: require('../fixtures/template_monster.json')
+            template: require('etna-js/spec/fixtures/template_monster.json')
           },
           habitat: {
-            template: require('../fixtures/template_habitat.json')
+            template: require('etna-js/spec/fixtures/template_habitat.json')
           }
         }
       },
-      janus: {projects: require('../fixtures/project_names.json')},
+      janus: {projects: require('etna-js/spec/fixtures/project_names.json')},
       user: {
         permissions: {
           labors: {
@@ -123,14 +123,14 @@ describe('AttributeReport', () => {
       magma: {
         models: {
           monster: {
-            template: require('../fixtures/template_monster.json')
+            template: require('etna-js/spec/fixtures/template_monster.json')
           },
           habitat: {
-            template: require('../fixtures/template_habitat.json')
+            template: require('etna-js/spec/fixtures/template_habitat.json')
           }
         }
       },
-      janus: {projects: require('../fixtures/project_names.json')},
+      janus: {projects: require('etna-js/spec/fixtures/project_names.json')},
       user: {
         permissions: {
           labors: {
@@ -162,14 +162,14 @@ describe('AttributeReport', () => {
       magma: {
         models: {
           monster: {
-            template: require('../fixtures/template_monster.json')
+            template: require('etna-js/spec/fixtures/template_monster.json')
           },
           habitat: {
-            template: require('../fixtures/template_habitat.json')
+            template: require('etna-js/spec/fixtures/template_habitat.json')
           }
         }
       },
-      janus: {projects: require('../fixtures/project_names.json')},
+      janus: {projects: require('etna-js/spec/fixtures/project_names.json')},
       user: {
         permissions: {
           labors: {
@@ -200,14 +200,14 @@ describe('AttributeReport', () => {
       magma: {
         models: {
           monster: {
-            template: require('../fixtures/template_monster.json')
+            template: require('etna-js/spec/fixtures/template_monster.json')
           },
           habitat: {
-            template: require('../fixtures/template_habitat.json')
+            template: require('etna-js/spec/fixtures/template_habitat.json')
           }
         }
       },
-      janus: {projects: require('../fixtures/project_names.json')},
+      janus: {projects: require('etna-js/spec/fixtures/project_names.json')},
       user: {
         permissions: {
           labors: {

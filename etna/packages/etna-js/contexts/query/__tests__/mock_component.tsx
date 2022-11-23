@@ -2,7 +2,7 @@ import React from 'react';
 
 const queryString = require('query-string');
 
-import useUriQueryParams from '../../../lib/client/jsx/contexts/query/use_uri_query_params';
+import useUriQueryParams from '../use_uri_query_params';
 
 function convertToQueryString(hash: {[key: string]: any}): string {
   return queryString.stringify(

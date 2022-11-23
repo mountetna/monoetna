@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import {Attribute, Model} from '../models/model_types';
+import {Attribute, Model} from 'etna-js/models/magma-model';
 import {
   EmptyQueryClause,
   QueryColumn,
@@ -9,8 +9,8 @@ import {
   QueryPayload,
   Workflow,
   CreateFigurePayload
-} from '../contexts/query/query_types';
-import {QueryGraph} from '../utils/query_graph';
+} from '../../contexts/query/query_types';
+import {QueryGraph} from '../../utils/query/query_graph';
 
 export const modelHasAttribute = (
   magmaModels: {[key: string]: Model},
@@ -182,9 +182,9 @@ export const pathToColumn = (
     let startingIndex = parseInt(startingIndexPlusMatrixColId);
 
     if (!Array.isArray(array[startingIndex])) {
-      if (array[startingIndex] === indexlessHeading)
-        {return startingIndex.toString();}
-      else return '-1';
+      if (array[startingIndex] === indexlessHeading) {
+        return startingIndex.toString();
+      } else return '-1';
     }
 
     fullPath = getPath(array[startingIndex], indexlessHeading, [startingIndex]);

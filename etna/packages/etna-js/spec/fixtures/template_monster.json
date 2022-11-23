@@ -95,6 +95,19 @@
       "hidden": false,
       "validation": null,
       "attribute_type": "collection"
+    },
+    "habitat": {
+      "name": "habitat",
+      "attribute_name": "habitat",
+      "model_name": "habitat",
+      "link_model_name": "habitat",
+      "link_attribute_name": "monster",
+      "display_name": "Habitat",
+      "restricted": false,
+      "read_only": false,
+      "hidden": false,
+      "validation": null,
+      "attribute_type": "link"
     }
   },
   "identifier": "name",

@@ -2,10 +2,10 @@ import React from 'react';
 import {render, fireEvent, waitFor, screen} from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 
-import {mockStore, querySpecWrapper} from '../../helpers';
-import QueryResults from '../../../../lib/client/jsx/components/query/query_results';
-import {QueryGraph} from '../../../../lib/client/jsx/utils/query_graph';
-import {defaultQueryResultsParams} from '../../../../lib/client/jsx/contexts/query/query_results_context';
+import {mockStore, querySpecWrapper} from '../../../spec/helpers';
+import QueryResults from '../../query/query_results';
+import {QueryGraph} from '../../../utils/query/query_graph';
+import {defaultQueryResultsParams} from '../../../contexts/query/query_results_context';
 
 const models = {
   monster: {

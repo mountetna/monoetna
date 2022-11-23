@@ -5,7 +5,7 @@ import renderer from 'react-test-renderer';
 import {mockStore} from '../helpers';
 import ModelViewer from '../../../lib/client/jsx/components/model_viewer';
 
-const MONSTER = require('../fixtures/template_monster.json');
+const MONSTER = require('etna-js/spec/fixtures/template_monster.json');
 
 describe('ModelViewer', () => {
   let store;
