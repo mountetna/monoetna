@@ -29,6 +29,26 @@ describe Metis::Path do
         expect(path).to eq('metis://athena/files/blueprints/helmet/helmet.jpg')
     end
 
+    it 'returns a full Metis path from parts with trailing slash' do
+        path = Metis::Path.path_from_parts('athena', 'files/', 'learn-wisdom.txt')
+        expect(path).to eq('metis://athena/files/learn-wisdom.txt')
+
+        path = Metis::Path.path_from_parts('athena', 'files/', 'blueprints/helmet/helmet.jpg')
+        expect(path).to eq('metis://athena/files/blueprints/helmet/helmet.jpg')
+    end
+
+    context '#remove_double_slashes' do
+        it 'works with relative paths' do
+            path = Metis::Path.remove_double_slashes('athena/files//learn-wisdom.txt')
+            expect(path).to eq('athena/files/learn-wisdom.txt')
+        end
+
+        it 'works with metis paths' do
+            path = Metis::Path.remove_double_slashes('metis://athena/files//learn-wisdom.txt')
+            expect(path).to eq('metis://athena/files/learn-wisdom.txt')
+        end
+    end
+
     it 'correctly returns the file path' do
         path = Metis::Path.new(
             'metis://athena/files/blueprints/helmet/helmet.jpg'

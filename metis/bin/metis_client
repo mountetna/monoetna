@@ -132,7 +132,7 @@ end
 class Client
 
   attr_reader :logger
-  
+
   class Error < StandardError
   end
 
@@ -384,13 +384,13 @@ class MetisClient < Client
     return json_body(response)
   end
 
-  def rename_folder(project_name,bucket_name,folder_path,new_folder_path)
-    response = json_post("/#{project_name}/folder/rename/#{bucket_name}/#{encode_path(folder_path)}", new_folder_path: new_folder_path)
+  def rename_folder(project_name,bucket_name,folder_path,new_folder_path, new_bucket_name=nil)
+    response = json_post("/#{project_name}/folder/rename/#{bucket_name}/#{encode_path(folder_path)}", new_folder_path: new_folder_path, new_bucket_name: new_bucket_name)
     raise MetisClient::Error, "Could not rename folder #{folder_path}\n#{error(response)}" unless response.code == "200"
   end
 
-  def rename_file(project_name,bucket_name,file_path,new_file_path)
-    response = json_post("/#{project_name}/file/rename/#{bucket_name}/#{encode_path(file_path)}", new_file_path: new_file_path)
+  def rename_file(project_name,bucket_name,file_path,new_file_path, new_bucket_name=nil)
+    response = json_post("/#{project_name}/file/rename/#{bucket_name}/#{encode_path(file_path)}", new_file_path: new_file_path, new_bucket_name: new_bucket_name)
     raise MetisClient::Error, "Could not rename file #{file_path}\n#{error(response)}" unless response.code == "200"
   end
 
@@ -601,7 +601,7 @@ EOT
       raise ShellError, 'No project is selected' if !@shell.project_name
 
       path = @shell.relative_path(path)
-      new_path = @shell.relative_path(new_path)
+      new_path = @shell.relative_path(new_path) unless new_path.start_with?("metis://")
 
       name = ::File.basename(path)
 
@@ -615,8 +615,14 @@ EOT
 
       if file
         bucket_name, file_path = path.split('/',2)
-        bucket_name, new_file_path = new_path.split('/',2)
-        @shell.client.rename_file(@shell.project_name, bucket_name, file_path, new_file_path)
+        if new_path.start_with?("metis://")
+          match = metis_path(new_path)
+          new_bucket_name = match[:bucket]
+          new_folder_path = match[:file_path]
+        else
+          bucket_name, new_file_path = new_path.split('/',2)
+        end
+        @shell.client.rename_file(@shell.project_name, bucket_name, file_path, new_file_path, new_bucket_name)
         return
       end
 
@@ -626,8 +632,14 @@ EOT
 
       if folder
         bucket_name, folder_path = path.split('/',2)
-        bucket_name, new_folder_path = new_path.split('/',2)
-        @shell.client.rename_folder(@shell.project_name, bucket_name, folder_path, new_folder_path)
+        if new_path.start_with?("metis://")
+          match = metis_path(new_path)
+          new_bucket_name = match[:bucket]
+          new_folder_path = match[:file_path]
+        else
+          bucket_name, new_folder_path = new_path.split('/',2)
+        end
+        @shell.client.rename_folder(@shell.project_name, bucket_name, folder_path, new_folder_path, new_bucket_name)
         return
       end
     end
