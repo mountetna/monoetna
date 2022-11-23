@@ -35,6 +35,7 @@ import LinkIcon from '@material-ui/icons/Link';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
 import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
+import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 
 import AddAttributeModal from './add_attribute_modal';
 import AddLinkModal from './add_link_modal';
@@ -101,6 +102,18 @@ const attributeStyles = makeStyles((theme) => ({
   },
   absent: {
     backgroundColor: 'rgba(255,0,0,0.1)'
+  },
+  hiddenIcon: {
+    marginRight: '1rem'
+  },
+  typeWrapper: {
+    display: 'flex',
+    justifyContent: 'right'
+  },
+  hiddenTypeWrapper: {
+    display: 'flex',
+    justifyContent: 'right',
+    paddingTop: '0.35rem'
   }
 }));
 
@@ -207,7 +220,8 @@ const ModelAttribute = ({
   diffTemplate,
   setAttribute,
   count,
-  modelCount
+  modelCount,
+  isHidden
 }) => {
   const classes = attributeStyles();
 
@@ -241,7 +255,16 @@ const ModelAttribute = ({
         </TableCell>
       )}
       <TableCell className={classes.type} align='right'>
-        {attribute_type}
+        <div
+          className={isHidden ? classes.hiddenTypeWrapper : classes.typeWrapper}
+        >
+          {isHidden ? (
+            <div className={classes.hiddenIcon}>
+              <VisibilityOffIcon />
+            </div>
+          ) : null}
+          {attribute_type}
+        </div>
       </TableCell>
       <TableCell
         className={attribute ? classes.value : classes.missing}
@@ -321,6 +344,7 @@ const ModelReport = ({
   setAttribute,
   isAdminUser
 }) => {
+  const [showHiddenAttributes, setShowHiddenAttributes] = useState(false);
   const [canReparent, setCanReparent] = useState(false);
   const dispatch = useDispatch();
   const invoke = useActionInvoker();
@@ -531,6 +555,16 @@ const ModelReport = ({
           >
             Count attributes
           </MenuItem>
+          {isAdminUser && (
+            <MenuItem
+              onClick={() => {
+                setShowHiddenAttributes(!showHiddenAttributes);
+                setAnchor(null);
+              }}
+            >
+              Toggle hidden attributes
+            </MenuItem>
+          )}
         </Menu>
       </MapHeading>
       <SelectProjectModelDialog
@@ -593,7 +627,9 @@ const ModelReport = ({
           <TableBody>
             {sortByOrder(attributes)
               .filter(
-                (attribute) => !attribute.hidden && matchesFilter(attribute)
+                (attribute) =>
+                  (showHiddenAttributes ? true : !attribute.hidden) &&
+                  matchesFilter(attribute)
               )
               .map((attribute) => (
                 <ModelAttribute
@@ -606,6 +642,7 @@ const ModelReport = ({
                   modelCount={modelCount}
                   template={template}
                   diffTemplate={diffTemplate}
+                  isHidden={attribute.hidden}
                 />
               ))}
           </TableBody>
