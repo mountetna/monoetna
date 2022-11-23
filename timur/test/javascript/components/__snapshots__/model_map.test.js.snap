@@ -415,7 +415,11 @@ exports[`ModelMap renders 1`] = `
                 aria-sort={null}
                 className="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
               >
-                identifier
+                <div
+                  className="makeStyles-typeWrapper-37"
+                >
+                  identifier
+                </div>
               </td>
               <td
                 aria-sort={null}
@@ -444,7 +448,11 @@ exports[`ModelMap renders 1`] = `
                 aria-sort={null}
                 className="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
               >
-                collection
+                <div
+                  className="makeStyles-typeWrapper-37"
+                >
+                  collection
+                </div>
               </td>
               <td
                 aria-sort={null}
@@ -471,7 +479,11 @@ exports[`ModelMap renders 1`] = `
                 aria-sort={null}
                 className="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
               >
-                table
+                <div
+                  className="makeStyles-typeWrapper-37"
+                >
+                  table
+                </div>
               </td>
               <td
                 aria-sort={null}
@@ -867,7 +879,11 @@ exports[`ModelMap renders an incomplete graph 1`] = `
                 aria-sort={null}
                 className="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
               >
-                identifier
+                <div
+                  className="makeStyles-typeWrapper-37"
+                >
+                  identifier
+                </div>
               </td>
               <td
                 aria-sort={null}
@@ -896,7 +912,11 @@ exports[`ModelMap renders an incomplete graph 1`] = `
                 aria-sort={null}
                 className="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
               >
-                collection
+                <div
+                  className="makeStyles-typeWrapper-37"
+                >
+                  collection
+                </div>
               </td>
               <td
                 aria-sort={null}
@@ -923,7 +943,11 @@ exports[`ModelMap renders an incomplete graph 1`] = `
                 aria-sort={null}
                 className="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
               >
-                table
+                <div
+                  className="makeStyles-typeWrapper-37"
+                >
+                  table
+                </div>
               </td>
               <td
                 aria-sort={null}
@@ -1246,7 +1270,11 @@ exports[`ModelMap renders with model action buttons for admin user (no reparent 
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  identifier
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    identifier
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
@@ -1268,7 +1296,11 @@ exports[`ModelMap renders with model action buttons for admin user (no reparent 
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  collection
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    collection
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
@@ -1288,7 +1320,11 @@ exports[`ModelMap renders with model action buttons for admin user (no reparent 
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  table
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    table
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
@@ -1706,7 +1742,11 @@ exports[`ModelMap renders with reparent model action buttons for admin user, no-
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  parent
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    parent
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
@@ -1726,7 +1766,11 @@ exports[`ModelMap renders with reparent model action buttons for admin user, no-
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  identifier
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    identifier
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
@@ -1746,7 +1790,11 @@ exports[`ModelMap renders with reparent model action buttons for admin user, no-
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  collection
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    collection
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
@@ -1766,7 +1814,11 @@ exports[`ModelMap renders with reparent model action buttons for admin user, no-
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  collection
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    collection
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
@@ -1786,7 +1838,11 @@ exports[`ModelMap renders with reparent model action buttons for admin user, no-
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  link
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    link
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
@@ -1806,7 +1862,11 @@ exports[`ModelMap renders with reparent model action buttons for admin user, no-
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  file
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    file
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
@@ -1826,7 +1886,11 @@ exports[`ModelMap renders with reparent model action buttons for admin user, no-
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  file_collection
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    file_collection
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
@@ -1846,7 +1910,11 @@ exports[`ModelMap renders with reparent model action buttons for admin user, no-
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  string
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    string
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
@@ -2285,7 +2353,11 @@ exports[`ModelMap renders without model action buttons for editor user 1`] = `
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  identifier
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    identifier
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
@@ -2307,7 +2379,11 @@ exports[`ModelMap renders without model action buttons for editor user 1`] = `
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  collection
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    collection
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
@@ -2327,7 +2403,11 @@ exports[`ModelMap renders without model action buttons for editor user 1`] = `
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-type-29 MuiTableCell-alignRight MuiTableCell-sizeSmall"
                 >
-                  table
+                  <div
+                    class="makeStyles-typeWrapper-37"
+                  >
+                    table
+                  </div>
                 </td>
                 <td
                   class="MuiTableCell-root MuiTableCell-body makeStyles-value-24 MuiTableCell-alignLeft MuiTableCell-sizeSmall"
