@@ -11,6 +11,9 @@ version: '3.4'
 volumes:
   etna-app-gems:
     driver: local
+  etna-node-modules:
+    driver: local
+    name: 'etna-node-modules'
 
 services:
   etna_app:
@@ -23,6 +26,7 @@ services:
       - ../docker/etna-base/entrypoints:/entrypoints:ro
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
+      - etna-node-modules:/etna/node_modules
     environment:
       SKIP_DB_WAIT: 1
     networks:

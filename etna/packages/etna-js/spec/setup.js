@@ -11,7 +11,7 @@ const EnzymeAdapter = require('enzyme-adapter-react-16');
 // Setup enzyme's react adapter
 Enzyme.configure({adapter: new EnzymeAdapter()});
 
-global.fetch = require('node-fetch');
+global.fetch = require('isomorphic-fetch');
 
 nock.disableNetConnect();
 nock.emitter.on('no match', (...args) => {

@@ -1,0 +1,33 @@
+@import 'global';
+@import 'logo';
+@import 'nav';
+@import 'dropdown';
+@import 'main';
+@import 'admin';
+@import 'reset';
+@import 'project';
+@import 'login';
+@import 'messages';
+
+body {
+  padding: 0px;
+  margin: 0px;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+#janus-group {
+  padding: 0;
+  margin: 0;
+  .button {
+    @include janus-button;
+  }
+}
+
+.react-codemirror2, .CodeMirror {
+  height: 100%;
+  width: 100%;
+}

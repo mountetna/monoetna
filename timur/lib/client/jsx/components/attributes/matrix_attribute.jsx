@@ -13,7 +13,7 @@ export default class MatrixAttribute extends React.Component {
       !['browse', 'model_viewer'].includes(mode) ||
       row.every((value) => null == value)
     )
-      return <div className='attribute' />;
+      {return <div className='attribute' />;}
 
     if (!row || !row.length) return <div className='attribute'>No data</div>;
 

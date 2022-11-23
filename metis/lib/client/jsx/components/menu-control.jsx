@@ -18,7 +18,7 @@ const MenuList  = ({items, control, dismiss}) => {
       )
     }
   </ul>;
-}
+};
 
 class MenuControl extends React.Component{
   constructor(props) {
@@ -26,7 +26,7 @@ class MenuControl extends React.Component{
     this.control = React.createRef();
     this.state = {
       list_open: false
-    }
+    };
 
     this.close = this.close.bind(this);
   }
@@ -72,10 +72,10 @@ class MenuControl extends React.Component{
           list_open && <MenuList control={ this.control } items={items} dismiss={ this.close } />
         }
       </div>
-    )
+    );
   }
 }
 
 export default connect(
   state => ({ user_role: selectUserRole(state) })
-)(MenuControl)
+)(MenuControl);

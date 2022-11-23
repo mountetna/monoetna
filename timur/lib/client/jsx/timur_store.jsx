@@ -51,7 +51,7 @@ export const timurStore = () => {
   ];
 
   if (process.env.NODE_ENV != 'production')
-    middlewares.push(createLogger({collapsed: true}));
+    {middlewares.push(createLogger({collapsed: true}));}
 
   return createStore(reducers, {}, applyMiddleware(...middlewares));
 };

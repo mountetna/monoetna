@@ -1,5 +1,9 @@
 require "rspec"
 
+def tsv_question(project_name, query)
+  return Magma::Question.new(project_name, query, page_size: 50)
+end
+
 describe Magma::QueryTSVWriter do
   it "should write a tsv with all attributes and records from multiple models" do
     project = create(:project, name: "The Twelve Labors of Hercules")
@@ -26,7 +30,7 @@ describe Magma::QueryTSVWriter do
     create(:wound, victim: shawn_doe, location: "Arm", severity: 1)
     create(:wound, victim: shawn_doe, location: "Leg", severity: 1)
 
-    question = Magma::Question.new(
+    question = tsv_question(
       "labors",
       ["monster", "::all",
        [
@@ -87,7 +91,7 @@ describe Magma::QueryTSVWriter do
     create(:wound, victim: shawn_doe, location: "Arm", severity: 1)
     create(:wound, victim: shawn_doe, location: "Leg", severity: 1)
 
-    question = Magma::Question.new(
+    question = tsv_question(
       "labors",
       ["victim", "::all",
        [
@@ -154,7 +158,7 @@ describe Magma::QueryTSVWriter do
     create(:wound, victim: shawn_doe, location: "Arm", severity: 1)
     create(:wound, victim: shawn_doe, location: "Leg", severity: 1)
 
-    question = Magma::Question.new(
+    question = tsv_question(
       "labors",
       ["monster", "::all",
        [
@@ -196,7 +200,7 @@ describe Magma::QueryTSVWriter do
     cattle = create(:labor, name: "Cattle of Geryon", number: 10, contributions: matrix[1], project: project)
     apples = create(:labor, name: "Golden Apples of the Hesperides", number: 11, contributions: matrix[2], project: project)
 
-    question = Magma::Question.new(
+    question = tsv_question(
       "labors",
       ["labor", "::all",
        [
@@ -248,7 +252,7 @@ describe Magma::QueryTSVWriter do
     cattle = create(:labor, name: "Cattle of Geryon 4", number: 10, contributions: matrix[1], project: project)
     apples = create(:labor, name: "Golden Apples of the Hesperides 4", number: 11, project: project)
 
-    question = Magma::Question.new(
+    question = tsv_question(
       "labors",
       ["labor", "::all",
        [
@@ -301,7 +305,7 @@ describe Magma::QueryTSVWriter do
     cattle = create(:labor, name: "Cattle of Geryon", number: 10, contributions: matrix[1], project: project)
     apples = create(:labor, name: "Golden Apples of the Hesperides", number: 11, contributions: matrix[2], project: project)
 
-    question = Magma::Question.new(
+    question = tsv_question(
       "labors",
       ["labor", "::all",
        [
@@ -358,7 +362,7 @@ describe Magma::QueryTSVWriter do
     cattle = create(:labor, name: "Cattle of Geryon", number: 10, contributions: matrix[1], project: project)
     apples = create(:labor, name: "Golden Apples of the Hesperides", number: 11, contributions: matrix[2], project: project)
 
-    question = Magma::Question.new(
+    question = tsv_question(
       "labors",
       ["labor", "::all",
        [
@@ -407,7 +411,7 @@ describe Magma::QueryTSVWriter do
     cattle = create(:labor, name: "Cattle of Geryon", number: 10, contributions: matrix[1], project: project)
     apples = create(:labor, name: "Golden Apples of the Hesperides", number: 11, contributions: matrix[2], project: project)
 
-    question = Magma::Question.new(
+    question = tsv_question(
       "labors",
       ["labor", "::all",
        [
@@ -461,7 +465,7 @@ describe Magma::QueryTSVWriter do
     cattle = create(:labor, name: "Cattle of Geryon", number: 10, contributions: matrix[1], project: project)
     apples = create(:labor, name: "Golden Apples of the Hesperides", number: 11, contributions: matrix[2], project: project)
 
-    question = Magma::Question.new(
+    question = tsv_question(
       "labors",
       ["labor", "::all",
        [
@@ -497,7 +501,7 @@ describe Magma::QueryTSVWriter do
     cattle = create(:labor, name: "Cattle of Geryon", number: 10, contributions: matrix[1], project: project)
     apples = create(:labor, name: "Golden Apples of the Hesperides", number: 11, contributions: matrix[2], project: project)
 
-    question = Magma::Question.new(
+    question = tsv_question(
       "labors",
       ["labor", "::all",
        [
@@ -534,7 +538,7 @@ describe Magma::QueryTSVWriter do
     cattle = create(:labor, name: "Cattle of Geryon", number: 10, contributions: matrix[1], project: project)
     apples = create(:labor, name: "Golden Apples of the Hesperides", number: 11, contributions: matrix[2], project: project)
 
-    question = Magma::Question.new(
+    question = tsv_question(
       "labors",
       ["labor", "::all",
        [
@@ -563,7 +567,7 @@ describe Magma::QueryTSVWriter do
     cattle = create(:labor, name: "Cattle of Geryon", number: 10, contributions: matrix[1], project: project)
     apples = create(:labor, name: "Golden Apples of the Hesperides", number: 11, contributions: matrix[2], project: project)
 
-    question = Magma::Question.new(
+    question = tsv_question(
       "labors",
       ["labor", "::all",
        [
@@ -625,7 +629,7 @@ describe Magma::QueryTSVWriter do
     cattle = create(:labor, name: "Cattle of Geryon", number: 10, contributions: matrix[1], project: project)
     apples = create(:labor, name: "Golden Apples of the Hesperides", number: 11, contributions: matrix[2], project: project)
 
-    question = Magma::Question.new(
+    question = tsv_question(
       "labors",
       ["labor", "::all",
        [

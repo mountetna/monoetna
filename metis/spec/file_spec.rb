@@ -597,6 +597,28 @@ describe FileController do
       expect(new_wisdom_file.data_block).to eq(@wisdom_file.data_block)
     end
 
+    it 'can copy a file to a new folder with accidental double slashes' do
+      contents_folder = create_folder('athena', 'contents')
+      stubs.create_folder('athena', 'files', 'contents')
+
+      token_header(:editor)
+      copy_file('wisdom.txt', 'contents//wisdom.txt')
+
+      expect(last_response.status).to eq(200)
+
+      # the original is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # a new file exists in a new folder
+      new_wisdom_file = Metis::File.last
+      expect(new_wisdom_file.file_path).to eq('contents/wisdom.txt')
+      expect(new_wisdom_file.folder).to eq(contents_folder)
+      expect(new_wisdom_file).to be_has_data
+      expect(new_wisdom_file.data_block).to eq(@wisdom_file.data_block)
+    end
+
     it 'will not copy a file to a read-only folder' do
       contents_folder = create_folder('athena', 'contents', read_only: true)
       stubs.create_folder('athena', 'files', 'contents')
@@ -812,6 +834,96 @@ describe FileController do
       expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
       expect(new_wisdom_file).to be_has_data
       expect(new_wisdom_file.data_block).to eq(@wisdom_file.data_block)
+    end
+
+    context 'with magma bucket' do
+      before(:each) do
+        @magma_bucket = create_read_only_bucket('athena', 'magma')
+
+        @magma_wisdom = create_file('athena', 'magma_wisdom.txt', MAGMA_WISDOM, bucket: @magma_bucket)
+        stubs.create_file('athena', 'magma', 'magma_wisdom.txt', MAGMA_WISDOM)
+      end
+
+      it 'copies a file out of the magma bucket' do
+        token_header(:editor)
+
+        expect(Metis::File.count).to eq(3)
+
+        bulk_copy([{
+          source: 'metis://athena/magma/magma_wisdom.txt',
+          dest: 'metis://athena/files/stolen-wisdom.txt'
+        }])
+
+        expect(last_response.status).to eq(200)
+
+        # the old file is untouched
+        @magma_wisdom.refresh
+        expect(@magma_wisdom.file_name).to eq('magma_wisdom.txt')
+        expect(@magma_wisdom).to be_has_data
+
+        # there is a new file
+        expect(Metis::File.count).to eq(4)
+        new_wisdom_file = Metis::File.last
+        expect(new_wisdom_file.file_name).to eq('stolen-wisdom.txt')
+        expect(new_wisdom_file).to be_has_data
+        expect(new_wisdom_file.data_block).to eq(@magma_wisdom.data_block)
+      end
+
+      it 'refuses to copy a file out of a different project\'s magma bucket' do
+        backup_bucket = default_bucket('backup')
+        backup_magma = create_read_only_bucket('backup', 'magma')
+        backup_wisdom = create_file('backup', 'backup-wisdom.txt', BACKUP_WISDOM, bucket: backup_bucket)
+        stubs.create_file('backup', 'magma', 'backup-wisdom.txt', BACKUP_WISDOM)
+
+        token_header(:editor)
+
+        expect(Metis::File.count).to eq(4)
+
+        bulk_copy([{
+          source: 'metis://backup/magma/wisdom.txt',
+          dest: 'metis://athena/files/restored-wisdom.txt'
+        }])
+
+        expect(last_response.status).to eq(422)
+
+        # the old file is untouched
+        backup_wisdom.refresh
+        expect(backup_wisdom.file_name).to eq('backup-wisdom.txt')
+        expect(backup_wisdom).to be_has_data
+
+        # there is no new file
+        expect(Metis::File.count).to eq(4)
+      end
+
+      it 'refuses to copy a file into the Magma bucket' do
+        token_header(:editor)
+
+        expect(Metis::File.count).to eq(3)
+
+        bulk_copy([{
+          source: 'metis://athena/files/wisdom.txt',
+          dest: "metis://athena/magma/athena-wisdom.txt"
+        }])
+
+        @wisdom_file.refresh
+        expect(last_response.status).to eq(422)
+        expect(json_body[:errors].length).to eq(1)
+        expect(json_body[:errors][0]).to eq(
+          {"dest": "metis://athena/magma/athena-wisdom.txt",
+          "errors": ["Invalid bucket \"magma\" in project \"athena\". Check the bucket name and your permissions."],
+          "source": "metis://athena/files/wisdom.txt"}
+        )
+
+        # the original is untouched
+        expect(@wisdom_file.file_name).to eq('wisdom.txt')
+        expect(@wisdom_file).to be_has_data
+
+        # there is no new file
+        expect(Metis::File.count).to eq(3)
+        expect(Metis::File.all.map { |f| f.file_name }).to match_array([
+          'wisdom.txt', 'helmet.jpg', 'magma_wisdom.txt'
+        ])
+      end
     end
 
     it 'refuses to copy a file to an invalid name' do
@@ -1640,7 +1752,7 @@ describe FileController do
       @helmet_file.refresh
       expect(last_response.status).to eq(403)
       expect(@helmet_file.updated_at.iso8601).to eq(@creation_time.iso8601)
-      
+
     end
   end
 end

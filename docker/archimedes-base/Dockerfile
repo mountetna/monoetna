@@ -7,7 +7,7 @@ WORKDIR /app
 ENV DOCKER_VERSION 19.03.12
 ENV PYTHON_VERSION 3.8
 ENV DOCKERIZE_VERSION 0.5.0
-ENV POETRY_VERSION 1.1.4
+ENV POETRY_VERSION 1.1.15
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
 ENV PATH "/app/bin:/opt/poetry/bin:$PATH"
 ENV POETRY_HOME "/opt/poetry"
@@ -28,8 +28,8 @@ RUN apt-get update \
       tk \
       --no-install-recommends
 
-# add postgres 10 repo for debian stretch
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
+# add postgres 10 repo for debian bionic
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
 RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 
 RUN apt-get update \

@@ -18,6 +18,7 @@ export const REVISE_DOCUMENT = 'REVISE_DOCUMENT';
 export const DISCARD_REVISION = 'DISCARD_REVISION';
 export const ADD_PREDICATES = 'ADD_PREDICATES;';
 export const ADD_TEMPLATES_AND_DOCUMENTS = 'ADD_TEMPLATES_AND_DOCUMENTS';
+export const REMOVE_MODEL = 'REMOVE_MODEL';
 
 export const reviseDocument = (
   document,
@@ -54,6 +55,13 @@ export const addTemplatesAndDocuments = (models) => {
   return {
     type: ADD_TEMPLATES_AND_DOCUMENTS,
     models
+  }
+}
+
+export const removeModelAction = (modelName) => {
+  return {
+    type: REMOVE_MODEL,
+    modelName
   }
 }
 

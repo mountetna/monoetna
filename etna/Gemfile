@@ -27,6 +27,7 @@ gem "prometheus-client"
 gem 'spreadsheet'
 gem 'activerecord'
 gem 'activesupport', '>= 4.2.6'
+gem 'addressable', '~> 2.8.1'
 
 gem "yabeda"
 gem "yabeda-prometheus"

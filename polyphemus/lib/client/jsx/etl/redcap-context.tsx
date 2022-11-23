@@ -14,4 +14,4 @@ export const RedcapProvider = ({children}:{children:React.ReactNode}) => {
   }}>
     {children}
   </RedcapContext.Provider>);
-}
+};

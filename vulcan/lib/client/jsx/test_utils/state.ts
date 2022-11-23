@@ -1,7 +1,7 @@
-import {VulcanAction} from "../actions/vulcan_actions";
-import VulcanReducer, {defaultVulcanState, VulcanState} from "../reducers/vulcan_reducer";
-import {renderHook, act} from "@testing-library/react-hooks";
-import {Dispatch} from "react";
+import {VulcanAction} from '../actions/vulcan_actions';
+import VulcanReducer, {defaultVulcanState, VulcanState} from '../reducers/vulcan_reducer';
+import {renderHook, act} from '@testing-library/react-hooks';
+import {Dispatch} from 'react';
 
 
 export function stateFromActions<T = void>(actions: VulcanAction[], hook?: (dispatch: Dispatch<VulcanAction>,

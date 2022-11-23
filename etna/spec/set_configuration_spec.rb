@@ -31,6 +31,7 @@ describe EtnaApp::Config::Set do
             polyphemus: { host: "https://polyphemus.development.local" },
             timur: { host: "https://timur.development.local" },
             ignore_ssl: true,
+            docker: nil
         },
     })
 

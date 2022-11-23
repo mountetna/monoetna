@@ -153,6 +153,10 @@ describe Etna::Server do
 
     get "/silk/a+b+c"
     expect(last_response.status).to eq(200)
+    expect(last_response.body).to eq("a+b+c")
+
+    get "/silk/a%20b%20c"
+    expect(last_response.status).to eq(200)
     expect(last_response.body).to eq("a b c")
 
     get "/silk/a/b/c"

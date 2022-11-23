@@ -14,5 +14,6 @@ use Etna::ParseBody
 use Etna::SymbolizeParams
 use Etna::Auth
 use Etna::DescribeRoutes
+use Etna::SynchronizeDb
 
 run Timur::Server.new

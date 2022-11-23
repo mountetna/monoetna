@@ -9,13 +9,13 @@ import SelectAutocompleteInput from './select_autocomplete';
 import FloatInput from './float';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
-  return {'a': v}
+  return {'a': v};
 }
 
 export function key_wrap(k: string[]) {
   let de: DataEnvelope<string> = {};
   for (let ind = 0; ind < k.length; ind++) {
-    de[k[ind]]="0";
+    de[k[ind]]='0';
   }
   return de;
 }
@@ -24,7 +24,7 @@ export function arrayLevels(original: any[]) {
   function onlyUnique(value: any, index: number, self: any) {
     return self.indexOf(value) === index;
   }
-  return Array.from(original).filter(onlyUnique)
+  return Array.from(original).filter(onlyUnique);
 }
 
 /*
@@ -41,7 +41,7 @@ Some "pieces" have additional inputs, but the first 4 are ALWAYS:
 */
 
 export function stringPiece(
-  key: string, changeFxn: Function, value: string = "",
+  key: string, changeFxn: Function, value: string = '',
   label: string | undefined = undefined, minWidth: number = 150) {
     return (
       <StringInput
@@ -50,9 +50,9 @@ export function stringPiece(
         value={maybeOfNullable(value)}
         data={val_wrap(value)}
         minWidth={minWidth}
-        onChange={ value => changeFxn(withDefault(value,""), key)}
+        onChange={ value => changeFxn(withDefault(value,''), key)}
       />
-    )
+    );
   };
 
 export function floatPiece(
@@ -67,7 +67,7 @@ export function floatPiece(
         minWidth={minWidth}
         onChange={ value => changeFxn(withDefault(value,null), key)}
       />
-    )
+    );
   };
 
 export function checkboxPiece(
@@ -81,7 +81,7 @@ export function checkboxPiece(
         data={val_wrap(value)}
         onChange={ value => changeFxn(withDefault(value,false), key)}
       />
-    )
+    );
   }
 
 export function dropdownPiece(
@@ -97,7 +97,7 @@ export function dropdownPiece(
         disabled={disabled}
         onChange={ (value) => changeFxn(withDefault(value,null), key) }
       />
-    )
+    );
   }
 
 export function multiselectPiece(
@@ -115,7 +115,7 @@ export function multiselectPiece(
           onChange={(val: Maybe<string[]>) => changeFxn(withDefault(val, null), key)}
         />
       </div>
-    )
+    );
   }
 
 export function sliderPiece(
@@ -134,24 +134,24 @@ export function sliderPiece(
             valueLabelDisplay="auto"
           />
         </div>
-    )
+    );
   }
 
 export function rangePiece(
-  key: string, changeFxn: Function, value: (string|number|null)[] = ["exactly", null, "below", null],
+  key: string, changeFxn: Function, value: (string|number|null)[] = ['exactly', null, 'below', null],
   label: string) {
     const updateSlot = (newValue: string|number|null, slot: number, current_full = value) => {
-      let next_full = [...current_full]
-      next_full[slot] = newValue
-      return next_full
-    }
+      let next_full = [...current_full];
+      next_full[slot] = newValue;
+      return next_full;
+    };
     
     return(
       <div key={key}>
         <div style={{display: 'inline-flex'}}>
           {dropdownPiece(
             key+'_lower_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue, 0), key), value[0] as string,
-            label + ", From", ["exactly","above"], true, 120)}
+            label + ', From', ['exactly','above'], true, 120)}
           {floatPiece(
             key+'_lower_value', (newValue: number | null) => changeFxn(updateSlot(newValue, 1), key), value[1] as number,
             'Min-value', 120)}
@@ -159,11 +159,11 @@ export function rangePiece(
         <div style={{display: 'inline-flex'}}>
           {dropdownPiece(
             key+'_upper_bound_type', (newValue: string | null) => changeFxn(updateSlot(newValue, 2), key), value[2] as string,
-            "To", ["exactly","below"], true, 120)}
+            'To', ['exactly','below'], true, 120)}
           {floatPiece(
             key+'_upper_value', (newValue: number | null) => changeFxn(updateSlot(newValue, 3), key), value[3] as number,
             'Max-value', 120)}
         </div>
       </div>
-    )
+    );
   }

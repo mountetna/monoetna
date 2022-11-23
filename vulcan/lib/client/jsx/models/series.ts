@@ -73,7 +73,7 @@ export default class Series {
       !this.colorBy ||
       -1 === this.secondaryData.row_names.indexOf(this.colorBy)
     )
-      return null;
+      {return null;}
 
     let [startColor, endColor] = autoColors(2);
 

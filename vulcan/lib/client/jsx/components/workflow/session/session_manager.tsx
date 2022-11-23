@@ -216,7 +216,7 @@ export default function SessionManager() {
       requestPoll();
       setOpenRevisions(false);
       if (workflow_snapshot)
-        dispatch(setWorkflow(workflow_snapshot, session.project_name));
+        {dispatch(setWorkflow(workflow_snapshot, session.project_name));}
     },
     [dispatch, session, requestPoll]
   );
@@ -329,7 +329,7 @@ export default function SessionManager() {
         )}
         {state.pollingState ? (
           <FlatButton
-            className={`header-btn`}
+            className={'header-btn'}
             icon='stop'
             label='Stop'
             title='Stop workflow'
@@ -337,7 +337,7 @@ export default function SessionManager() {
           />
         ) : (
           <FlatButton
-            className={`header-btn run`}
+            className={'header-btn run'}
             icon='play'
             label='Run'
             title='Run workflow'

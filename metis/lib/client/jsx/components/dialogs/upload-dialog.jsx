@@ -1,16 +1,16 @@
 import React, { useCallback } from 'react';
-import {connect} from "react-redux";
+import {connect} from 'react-redux';
 
 function UploadDialog({ dismissDialog, startFileUpload, startDirectoryUpload }) {
   const onUploadDirectory = useCallback(() => {
     dismissDialog();
     startDirectoryUpload();
-  }, [startDirectoryUpload, dismissDialog])
+  }, [startDirectoryUpload, dismissDialog]);
 
   const onUploadFile = useCallback(() => {
     dismissDialog();
     startFileUpload();
-  }, [startFileUpload, dismissDialog])
+  }, [startFileUpload, dismissDialog]);
 
   return (<div className='upload-dialog'>
     <div className='title'>Which type of upload?</div>

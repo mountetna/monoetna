@@ -69,7 +69,7 @@ class Manifests extends React.Component {
     let {manifest} = this.state;
 
     if (manifest_id && manifests && !manifest)
-      this.selectManifest(manifest_id, false);
+      {this.selectManifest(manifest_id, false);}
   }
 
   create() {
@@ -117,11 +117,11 @@ class Manifests extends React.Component {
     });
 
     if (push)
-      pushLocation(
+      {pushLocation(
         id == null
           ? Routes.manifests_path(CONFIG.project_name)
           : Routes.manifest_path(CONFIG.project_name, id)
-      );
+      );}
   }
 
   updateField(field_name) {
@@ -144,7 +144,7 @@ class Manifests extends React.Component {
     let {manifest, editing} = this.state;
     // A new manifest should have an id set to 0.
     if (manifest.id <= 0)
-      this.props.saveNewManifest(manifest, this.setManifest.bind(this));
+      {this.props.saveNewManifest(manifest, this.setManifest.bind(this));}
     else this.props.saveManifest(manifest);
 
     if (editing) this.toggleEdit();

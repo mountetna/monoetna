@@ -76,7 +76,7 @@ describe('autoPass, in WithBufferedInputs', () => {
   const aStep = awaitBefore(async () => {
     return workflowHelpers.value.addStep('astep', {
       out: ['a', 'b'],
-      doc: "blah blah blah",
+      doc: 'blah blah blah',
       run: 'ui-queries/some-input'
     });
   });
@@ -84,13 +84,13 @@ describe('autoPass, in WithBufferedInputs', () => {
   const bStep = awaitBefore(async () => {
     return workflowHelpers.value.addStep('bstep', {
       out: ['a', 'b'],
-      doc: "SKIPPABLE. blah blah blah",
+      doc: 'SKIPPABLE. blah blah blah',
       run: 'ui-queries/some-input'
     });
   });
 
   describe('for primary inputs', () => {
-    stepName.replace(() => null)
+    stepName.replace(() => null);
     describe('assuming vignette trigger caught by WorkflorManager', () => {
       // Vignette check now happens upstream
       // const addVignetteWithTrigger = awaitBefore(async () => {
@@ -98,18 +98,18 @@ describe('autoPass, in WithBufferedInputs', () => {
       // });
       const setAutoPass = awaitBefore(async () => {
         contextData.value.dispatch(setAutoPassStep(stepName.value));
-      })
+      });
       const setPrimaryInputs = awaitBefore(async () => {
         bufferInputsContextData.value.setInputs(() => {
-          return { a: [true], b: [true], c: [true] }
-        })
-      })
+          return { a: [true], b: [true], c: [true] };
+        });
+      });
       it('autoPass initiated', async () => {
         const {stateRef} = contextData.value;
-        expect(stateRef.current.autoPassSteps).toEqual([])
-        expect(stateRef.current.triggerRun).toEqual([stepName.value])
-      })
-    })
+        expect(stateRef.current.autoPassSteps).toEqual([]);
+        expect(stateRef.current.triggerRun).toEqual([stepName.value]);
+      });
+    });
     // Vignette check now happens upstream
     // describe('for primary inputs, w/out vignette string', () => {
     //   const addVignetteWithoutTrigger = awaitBefore(async () => {
@@ -126,24 +126,24 @@ describe('autoPass, in WithBufferedInputs', () => {
     //     expect(stateRef.current.triggerRun).toEqual([])
     //   })
     // });
-  })
+  });
 
   describe('for stepUserInputs w/ doc string', () => {
-    stepName.replace(() => 'bstep')
+    stepName.replace(() => 'bstep');
     describe('eligible', () => {
       const setStepInputs = awaitBefore(async () => {
         bufferInputsContextData.value.setInputs(() => {
-          return { 'bstep/b': [true], 'bstep/a': [true] }
-        })
-      })
+          return { 'bstep/b': [true], 'bstep/a': [true] };
+        });
+      });
       it('switch shown', async () => {
         const {stateRef} = contextData.value;
-        expect(stateRef.current.autoPassSteps).toEqual([])
-        expect(stateRef.current.triggerRun).toEqual([])
+        expect(stateRef.current.autoPassSteps).toEqual([]);
+        expect(stateRef.current.triggerRun).toEqual([]);
         const {node} = integrated.value;
         expect(node.root.findAllByType(Switch).length).toEqual(1);
-        expect(node.root.findAllByProps({className:'reset-or-commit-inputs'}).length).toEqual(1)
-      })
+        expect(node.root.findAllByProps({className:'reset-or-commit-inputs'}).length).toEqual(1);
+      });
       // fit('adds to autoPassSteps on toggle', async () => {
       //   const {node} = integrated.value;
       //   await act(async () => {
@@ -153,37 +153,37 @@ describe('autoPass, in WithBufferedInputs', () => {
       //   console.log(contextData.value.stateRef.current)
       //   expect(contextData.value.stateRef.current.autoPassSteps).toEqual(['bstep'])
       // })
-    })
+    });
     describe('turned on', () => {
       const setAutoPass = awaitBefore(async () => {
         contextData.value.dispatch(setAutoPassStep(stepName.value));
-      })
+      });
       describe('no validation errors', () => {
         it('indeed', () => {
           const {stateRef} = contextData.value;
           expect(stateRef.current.validationErrors).toEqual([]);
           expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
           expect(stateRef.current.triggerRun).toEqual([]);
-        })
+        });
         describe('on inputs set', () => {
           const setStepInputs = awaitBefore(async () => {
             bufferInputsContextData.value.setInputs(() => {
-              return { 'bstep/b': [true], 'bstep/a': [true] }
-            })
-          })
+              return { 'bstep/b': [true], 'bstep/a': [true] };
+            });
+          });
           it('triggers Run', async () => {
             const {stateRef} = contextData.value;
             expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
             expect(stateRef.current.triggerRun).toEqual(['bstep']);
-          })
-        })
+          });
+        });
         describe('with previous session inputs for step', () => {
           testSession.replace(() =>
             createSessionFixture('test', {
               project_name: 'test',
               inputs: {'bstep/a': [true]}
             })
-          )
+          );
           const setupSession = awaitBefore(async () => {
             await testSession.ensure();
             contextData.value.dispatch(setSession(testSession.value));
@@ -202,62 +202,62 @@ describe('autoPass, in WithBufferedInputs', () => {
           it('indeed', () => {
             const {stateRef} = contextData.value;
             // input values do exist beforehand
-            expect(Object.keys(stateRef.current.session.inputs).filter((val: string) => val.includes(stepName.value as string)).length).toBeGreaterThanOrEqual(1)
+            expect(Object.keys(stateRef.current.session.inputs).filter((val: string) => val.includes(stepName.value as string)).length).toBeGreaterThanOrEqual(1);
             expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
             expect(stateRef.current.triggerRun).toEqual([]);
-          })
+          });
           describe('on passing new inputs', () => {
             const setStepInputs = awaitBefore(async () => {
               bufferInputsContextData.value.setInputs(() => {
-                return { 'bstep/b': [true], 'bstep/a': [true] }
-              })
-            })
+                return { 'bstep/b': [true], 'bstep/a': [true] };
+              });
+            });
             it('does NOT initiate autoPass', () => {
               const {stateRef} = contextData.value;
               expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
               expect(stateRef.current.triggerRun).toEqual([]);
-            })
-          })
-        })
-      })
+            });
+          });
+        });
+      });
       describe('with validation errors', () => {
         const addValidationError = awaitBefore(async () => {
           contextData.value.dispatch(
             addValidationErrors('bstep', 'the label', ['some error'])
           );
-        })
+        });
         it('indeed', () => {
           const {stateRef} = contextData.value;
-          expect(stateRef.current.validationErrors).toEqual([["bstep","the label",["some error"]]]);
-        })
+          expect(stateRef.current.validationErrors).toEqual([['bstep','the label',['some error']]]);
+        });
         describe('on attempting to set inputs', () => {
           const setStepInputs = awaitBefore(async () => {
             bufferInputsContextData.value.setInputs(() => {
-              return { 'bstep/b': [true], 'bstep/a': [true] }
-            })
-          })
+              return { 'bstep/b': [true], 'bstep/a': [true] };
+            });
+          });
           it('does NOT initiate autoPass, ', async () => {
             const {stateRef} = contextData.value;
             expect(stateRef.current.autoPassSteps).toEqual(['bstep']);
             expect(stateRef.current.triggerRun).toEqual([]);
-          })
-        })
-      })
-    })
-  })
+          });
+        });
+      });
+    });
+  });
   describe('for stepUserInputs w/out doc string', () => {
-    stepName.replace(() => 'astep')
+    stepName.replace(() => 'astep');
     describe('not eligible', () => {
       it('switch not shown', async () => {
         await act(async () => {
           bufferInputsContextData.value.setInputs(() => {
-            return { 'astep/b': [true], 'astep/a': [true] }
-          })
+            return { 'astep/b': [true], 'astep/a': [true] };
+          });
         });
         const {node} = integrated.value;
-        expect(node.root.findAllByProps({className:'reset-or-commit-inputs'}).length).toEqual(1)
+        expect(node.root.findAllByProps({className:'reset-or-commit-inputs'}).length).toEqual(1);
         expect(node.root.findAllByType(Switch).length).toEqual(0);
-      })
-    })
-  })
+      });
+    });
+  });
 });

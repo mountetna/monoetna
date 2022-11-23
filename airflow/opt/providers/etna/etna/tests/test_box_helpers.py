@@ -224,6 +224,7 @@ def set_up_mocks():
     mock_box.return_value.file_size.return_value = 0
     mock_box.return_value.retrieve_file.return_value = mock_socket
     mock_box.return_value.remove_file = mock_remove_file
+    mock_box.return_value.file_ingested_to_system.return_value = False
     mock_box.return_value.__enter__ = mock_box
     mock_box.return_value.__exit__ = mock_box
     mock_box_hook.box = mock_box
@@ -274,6 +275,31 @@ def test_metis_files_etl_ingest_without_clean_up(mock_etna, mock_load, reset_db)
 
     mock_metis().upload_file.assert_any_call("triage", "waiting_room", "foo/123.txt", mock.ANY, 1)
     mock_retrieve_file.assert_called()
+    mock_remove_file.assert_not_called()
+
+
+@mock.patch('providers.etna.etna.etls.decorators.load_box_files_batch', side_effect=[mock_tail(), []])
+@mock.patch.object(EtnaHook, 'for_project', return_value=mock_etna_hook)
+def test_metis_files_etl_ingest_skip_if_in_cursor(mock_etna, mock_load, reset_db):
+
+    # Mock all this stuff so the context managers in ingest_to_metis
+    #   are correctly handled
+    set_up_mocks()
+
+    mock_box.return_value.file_ingested_to_system.return_value = True
+
+    @box_etl("k_folder", version=1, hook=mock_box_hook)
+    def test_ingesting_metis_files_ingest_without_clean_up(helpers: BoxEtlHelpers, tail_files: XComArg):
+        helpers.ingest_to_metis(tail_files, folder_path="foo")
+
+    test_ingesting_metis_files_ingest_without_clean_up: DAG
+
+    start_date = parser.parse("2022-01-01 00:00:00 +0000")
+    end_date = start_date + timedelta(days=1, minutes=1)
+    run_dag(test_ingesting_metis_files_ingest_without_clean_up, start_date, end_date)
+
+    mock_metis().upload_file.assert_not_called()
+    mock_retrieve_file.assert_not_called()
     mock_remove_file.assert_not_called()
 
 

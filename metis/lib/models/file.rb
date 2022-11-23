@@ -98,7 +98,7 @@ class Metis
     end
 
     def self.author(user)
-      [ user.email, user.name ].join('|')
+      user.display_name
     end
 
     def self.exists?(file_name, bucket, parent_folder)
@@ -121,6 +121,7 @@ class Metis
         old_dest_file = Metis::File.from_path(dest_bucket, params[:dest_file_path])
         old_dest_file.data_block = params[:source_data_block]
         old_dest_file.save
+        old_dest_file.refresh
         return old_dest_file
       else
         return Metis::File.create(
@@ -160,7 +161,7 @@ class Metis
     one_to_many :uploads
 
     def file_hash
-      data_block.md5_hash
+      current_data_block.md5_hash
     end
 
     def read_only?
@@ -168,7 +169,6 @@ class Metis
     end
 
     def to_hash(request: nil, file_path: nil, with_path: true)
-      
 
       params = {
         folder_id: folder_id,
@@ -179,9 +179,9 @@ class Metis
         created_at: created_at.iso8601,
         author: author,
         file_hash: file_hash,
-        archive_id: data_block.archive_id,
+        archive_id: current_data_block.archive_id,
         read_only: read_only?,
-        size: data_block.size,
+        size: current_data_block.size,
       }
 
       if with_path
@@ -203,7 +203,7 @@ class Metis
     end
 
     def has_data?
-      data_block.has_data?
+      current_data_block.has_data?
     end
 
     def can_remove?
@@ -251,6 +251,17 @@ class Metis
 
       update(**new_params)
       refresh
+    end
+
+    private
+
+    def current_data_block
+      # possible concurrency issues between hashing thread and other threads
+      return data_block if data_block
+
+      self.refresh
+
+      data_block
     end
   end
 end

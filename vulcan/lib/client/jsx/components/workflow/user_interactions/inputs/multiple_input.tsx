@@ -1,16 +1,20 @@
 import React, {useCallback} from 'react';
-import {DataEnvelope, InputBackendComponent, WithInputParams} from './input_types';
+import {
+  DataEnvelope,
+  InputBackendComponent,
+  WithInputParams
+} from './input_types';
 import InputHelp from './input_help';
-import {Maybe, some} from "../../../../selectors/maybe";
-import {joinNesting} from "./monoids";
-import {useMemoized} from "../../../../selectors/workflow_selectors";
-import {useSetsDefault} from "./useSetsDefault";
+import {Maybe, some} from '../../../../selectors/maybe';
+import {joinNesting} from './monoids';
+import {useMemoized} from '../../../../selectors/workflow_selectors';
+import {useSetsDefault} from './useSetsDefault';
 
 // Constructs a backend component by composing a dictionary of homogenous inner inputs, accepting each of their
 // individual inner data payloads and setting a value mapping each inner input's value.
-export default function MultipleInput<Value, Values>(InnerInput: InputBackendComponent<{}, Value, Values>) {
-  return MultiInput;
-
+export default function MultipleInput<Value, Values>(
+  InnerInput: InputBackendComponent<{}, Value, Values>
+) {
   function MultiInput({
     data,
     onChange,
@@ -19,19 +23,24 @@ export default function MultipleInput<Value, Values>(InnerInput: InputBackendCom
     const options = useMemoized(joinNesting, data);
     const values = useSetsDefault({}, props.value, onChange);
 
-    const onChangeValue = useCallback((label: string, v: Maybe<Value>) => {
-      const newValues = {...values};
-      if (v) {
-        newValues[label] = v[0];
-      } else {
-        delete newValues[label]
-      }
+    const onChangeValue = useCallback(
+      (label: string, v: Maybe<Value>) => {
+        const newValues = {...values};
+        if (v) {
+          newValues[label] = v[0];
+        } else {
+          delete newValues[label];
+        }
 
-      onChange(some(newValues));
-    }, [onChange, values])
+        onChange(some(newValues));
+      },
+      [onChange, values]
+    );
 
-    return (<div>
-        {Object.keys(options).map(label => (<div key={label} className='view_item'>
+    return (
+      <div>
+        {Object.keys(options).map((label) => (
+          <div key={label} className='view_item'>
             <div className='item_name'>{label}</div>
             <div className='item_view'>
               <InnerInput
@@ -41,7 +50,11 @@ export default function MultipleInput<Value, Values>(InnerInput: InputBackendCom
                 onChange={(value) => onChangeValue(label, value)}
               />
             </div>
-          </div>))}
-      </div>);
+          </div>
+        ))}
+      </div>
+    );
   }
+
+  return MultiInput;
 }

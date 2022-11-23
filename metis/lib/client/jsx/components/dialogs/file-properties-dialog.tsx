@@ -10,7 +10,7 @@ const FilePropertiesDialog = ({file}: {file: File}) => {
 
   const close = useCallback(() => {
     invoke({type: 'DISMISS_DIALOG'});
-  }, []);
+  }, [invoke]);
 
   return (
     <div className='file-properties-dialog'>
@@ -23,7 +23,7 @@ const FilePropertiesDialog = ({file}: {file: File}) => {
         );
       })}
       <div className='close'>
-        <span className={`button`} onClick={close}>
+        <span className={'button'} onClick={close}>
           Close
         </span>
       </div>

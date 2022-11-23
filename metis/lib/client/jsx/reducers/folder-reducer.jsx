@@ -14,7 +14,7 @@ const addFolders = (action, old_folders) => {
     ...old_folders,
     ...new_folders
   };
-}
+};
 
 const removeFolders = (action, old_folders) => {
   let { folders } = action;
@@ -31,7 +31,7 @@ const removeFolders = (action, old_folders) => {
   }, {});
 
   return new_folders;
-}
+};
 
 const folders = (old_folders, action) => {
   if (!old_folders) old_folders = {};

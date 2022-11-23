@@ -15,16 +15,17 @@ const Item = ({item, ...props}) => {
     image: ImageItem
   }[item.type];
 
-  if (Component) return <Component item={item} {...props}/>;
+  if (Component) return <Component item={item} {...props} />;
 
   console.log(`No display class for item ${item.name} with type ${item.type}`);
 
   return null;
-}
+};
 
-const ItemViewer = ({item, ...props}) =>
-<div className='item_view'>
-  <Item item={item} {...props}/>
-</div>;
+const ItemViewer = ({item, ...props}) => (
+  <div className='item_view'>
+    <Item item={item} {...props} />
+  </div>
+);
 
 export default ItemViewer;

@@ -251,3 +251,11 @@ end
 def parse_cookie(set_cookie='')
   Hash[set_cookie.split(/; /).map { |param| param.split(/=/) }]
 end
+
+def create_zeus
+  super_user = create(:user, name: 'Zeus Almighty', email: 'zeus@olympus.org')
+  admin = create(:project, project_name: 'administration', project_name_full: 'Administration')
+  perm = create(:permission, project: admin, user: super_user, role: 'administrator', privileged: true)
+
+  super_user
+end

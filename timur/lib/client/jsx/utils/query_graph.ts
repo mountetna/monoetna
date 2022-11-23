@@ -27,7 +27,7 @@ export class QueryGraph {
         this.allowedModels.add(modelName);
 
         if (!this.unallowedModels.includes(template.parent))
-          this.graph.addConnection(template.parent, modelName);
+          {this.graph.addConnection(template.parent, modelName);}
 
         Object.values(template.attributes)
           .filter(

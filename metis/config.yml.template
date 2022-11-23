@@ -40,6 +40,8 @@
     :host: https://vulcan.development.local
   :polyphemus:
     :host: https://polyphemus.development.local
+  :gnomon:
+    :host: https://gnomon.development.local
   :log_file: log/error.log
   :auth_redirect: https://janus.development.local
   :token_name: JANUS_DEV_TOKEN

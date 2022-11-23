@@ -71,10 +71,14 @@ describe('QueryResults', () => {
             {
               modelName: 'prize',
               clause: {
-                attributeName: 'name',
-                operator: '::equals',
-                operand: 'Athens',
-                attributeType: 'text',
+                subclauses: [
+                  {
+                    attributeName: 'name',
+                    operator: '::equals',
+                    operand: 'Athens',
+                    attributeType: 'text'
+                  }
+                ],
                 modelName: 'prize',
                 any: true
               }
@@ -91,10 +95,14 @@ describe('QueryResults', () => {
           modelName: 'labor',
           clauses: [
             {
-              attributeName: 'year',
-              operator: '::equals',
-              operand: 2,
-              attributeType: 'number',
+              subclauses: [
+                {
+                  attributeName: 'year',
+                  operator: '::equals',
+                  operand: 2,
+                  attributeType: 'number'
+                }
+              ],
               modelName: 'labor',
               any: true
             }
@@ -149,10 +157,14 @@ describe('QueryResults', () => {
             {
               modelName: 'prize',
               clause: {
-                attributeName: 'name',
-                operator: '::equals',
-                operand: 'Athens',
-                attributeType: 'text',
+                subclauses: [
+                  {
+                    attributeName: 'name',
+                    operator: '::equals',
+                    operand: 'Athens',
+                    attributeType: 'text'
+                  }
+                ],
                 modelName: 'prize',
                 any: true
               }
@@ -167,10 +179,14 @@ describe('QueryResults', () => {
             {
               modelName: 'labor',
               clause: {
-                attributeName: 'contributions',
-                operator: '::slice',
-                operand: 'Athens,Sparta',
-                attributeType: 'matrix',
+                subclauses: [
+                  {
+                    attributeName: 'contributions',
+                    operator: '::slice',
+                    operand: 'Athens,Sparta',
+                    attributeType: 'matrix'
+                  }
+                ],
                 modelName: 'labor',
                 any: true
               }
@@ -187,10 +203,14 @@ describe('QueryResults', () => {
           modelName: 'labor',
           clauses: [
             {
-              attributeName: 'year',
-              operator: '::equals',
-              operand: 2,
-              attributeType: 'number',
+              subclauses: [
+                {
+                  attributeName: 'year',
+                  operator: '::equals',
+                  operand: 2,
+                  attributeType: 'number'
+                }
+              ],
               modelName: 'labor',
               any: true
             }

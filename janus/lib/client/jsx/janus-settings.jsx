@@ -41,7 +41,7 @@ const KeysSettings = ({user, setUser}) => {
           ({user}) => { setUser(user); setError('Saved!'); }
       ).catch(
         e => e.then( ({error}) => setError(error) )
-      ).finally(() => setDisabled(false))
+      ).finally(() => setDisabled(false));
     }, [pem]
   );
 
@@ -67,8 +67,8 @@ const KeysSettings = ({user, setUser}) => {
       <Button onClick={uploadKey} disabled={disabled}>Upload Key</Button>
       { error && <span className='error'>{error}</span> }
     </div>
-  </div>
-}
+  </div>;
+};
 
 const TaskTokenSettings = ({user}) => {
   let [ project_name, setProjectName ] = useState(null);
@@ -105,7 +105,7 @@ const TaskTokenSettings = ({user}) => {
       </Button>
     </div>
   </div>;
-}
+};
 
 const JanusSettings = () => {
   let user = useReduxState( state => selectUser(state) );
@@ -114,7 +114,7 @@ const JanusSettings = () => {
 
   useEffect(
     () => {
-      json_get('/api/user/info').then(({user}) => setUser(user))
+      json_get('/api/user/info').then(({user}) => setUser(user));
     }, []
   );
 
@@ -123,6 +123,6 @@ const JanusSettings = () => {
     <TaskTokenSettings user={ user }/>
     { isSuperuser(user) && <TokenBuilder user={ user }/> }
   </div>;
-}
+};
 
 export default JanusSettings;

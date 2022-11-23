@@ -1,11 +1,11 @@
-import {BufferedChannel, Trigger, UnbufferedChannel} from "etna-js/utils/semaphore";
+import {BufferedChannel, Trigger, UnbufferedChannel} from 'etna-js/utils/semaphore';
 
 export function createFakeStorage(): Storage {
   const storage: { [k: string]: string } = {};
 
   return {
     setItem(key: string, value: string) {
-      storage[key] = value + "";
+      storage[key] = value + '';
     },
     get length() {
       return Object.keys(storage).length;
@@ -23,7 +23,7 @@ export function createFakeStorage(): Storage {
     key(index: number): string | null {
       return Object.keys(storage)[index];
     }
-  }
+  };
 }
 
 class AsyncMock<A extends any[], T, C extends UnbufferedChannel<[A, Trigger<T>]>> {

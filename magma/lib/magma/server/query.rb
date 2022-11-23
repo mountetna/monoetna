@@ -24,7 +24,7 @@ class QueryController < Magma::Controller
         timeout: Magma.instance.config(:query_timeout),
         page: @params[:page],
         order: @params[:order],
-        page_size: @params[:page_size],
+        page_size: format == "tsv" ? 50 : @params[:page_size],
       )
 
       case format

@@ -1,137 +1,197 @@
-import * as React from 'react';
-import { connect } from 'react-redux';
+import React, {useEffect, useCallback, useRef} from 'react';
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import {useReduxState} from 'etna-js/hooks/useReduxState';
 
-import ListBody  from './list/list-body';
-import ListHead  from './list/list-head';
+import ListBody from './list/list-body';
+import ListHead from './list/list-head';
 import FolderBreadcrumb from './folder-breadcrumb';
 import ControlBar from './control-bar';
 
 import {selectCurrentFolder} from '../selectors/directory-selector';
 
 const COLUMNS = [
-  { name: 'type', width: '60px' },
-  { name: 'name', width: '60%' },
-  { name: 'status', width: '90px', hide: true },
-  { name: 'updated', width: '30%' },
-  { name: 'size', width: '10%' },
-  { name: 'control', width: '100px', hide: true }
+  {name: 'type', width: '60px'},
+  {name: 'name', width: '60%'},
+  {name: 'status', width: '90px', hide: true},
+  {name: 'updated', width: '30%'},
+  {name: 'size', width: '10%'},
+  {name: 'control', width: '100px', hide: true}
 ];
 
-const COLUMN_WIDTHS = COLUMNS.reduce( (widths,column) => {
+const COLUMN_WIDTHS = COLUMNS.reduce((widths, column) => {
   widths[column.name] = column.width;
   return widths;
-}, {} );
+}, {});
 
 const INVALID = '\ninvalid\n';
 
-const InvalidFolder = () => <div className='invalid-folder-view-group'>
-  Invalid folder!
-</div>;
+const InvalidFolder = () => (
+  <div className='invalid-folder-view-group'>Invalid folder!</div>
+);
 
-class FolderView extends React.Component {
-  componentDidMount() {
-    let { bucket_name, folder_name, retrieveFiles } = this.props;
+const FolderView = ({bucket_name, folder_name}) => {
+  const invoke = useActionInvoker();
+  const current_folder = useReduxState((state) => selectCurrentFolder(state));
+  const uploadFileInput = useRef(null);
+  const uploadDirInput = useRef(null);
 
-    retrieveFiles(bucket_name, folder_name);
-  }
+  useEffect(() => {
+    invoke({type: 'RETRIEVE_FILES', bucket_name, folder_name});
+  }, []);
 
-  selectUpload() {
-    this.props.showUploadModal(
-      () => this.uploadFileInput.click(),
-      () => this.uploadDirInput.click(),
-    );
-  }
-
-  prepareFiles(event, input) {
-    let { bucket_name, folder_name, fileSelected } = this.props;
-    if (event === undefined) return;
-    let { files } = input;
-
-    for (let i = 0; i < files.length; i++) fileSelected(bucket_name, folder_name, files[i]);
-
-    // Reset the input field.
-    input.value = '';
-  }
-
-  fileSelected(event){
-    this.prepareFiles(event, this.uploadFileInput);
-  }
-
-  dirSelected(event) {
-    this.prepareFiles(event, this.uploadDirInput);
-  }
-
-  selectFolder(){
-    let { folder_name, bucket_name, createFolder } = this.props;
-
-    let new_folder_name = prompt("Enter the folder name", "Untitled Folder");
-
-    if (new_folder_name) createFolder(bucket_name, folder_name, new_folder_name);
-  }
-
-  selectFolderDownload() {
-    let { bucket_name, folder_name } = this.props;
-    this.props.listFilesRecursive(bucket_name, folder_name).then(files => {
-      return this.props.downloadFilesZip(files, this.props.folder_name, this.props.bucket_name);
+  const selectUpload = useCallback(() => {
+    invoke({
+      type: 'SHOW_DIALOG',
+      dialog: {
+        type: 'upload_dialog',
+        startDirectoryUpload: () => uploadDirInput.current.click(),
+        startFileUpload: () => uploadFileInput.current.click()
+      }
     });
-  }
+  }, [invoke]);
 
-  render() {
-    let { bucket_name, folder_name, current_folder } = this.props;
-    if (current_folder == INVALID) return <InvalidFolder/>;
+  const prepareFiles = useCallback(
+    (event, input) => {
+      if (event === undefined) return;
+      let {files} = input.current;
 
-    let buttons = [
-      { onClick: this.selectFolder.bind(this), title: 'Create folder', icon: 'folder', overlay: 'plus', role: 'editor' },
-      { onClick: this.selectUpload.bind(this), title: 'Upload file(s)', icon: 'upload', role: 'editor' },
-      { onClick: this.selectFolderDownload.bind(this), title: 'Download directory as zip', icon: 'download', role: 'viewer' },
-    ];
+      for (let i = 0; i < files.length; i++) {
+        invoke({
+          type: 'FILE_SELECTED',
+          file: files[i],
+          folder_name,
+          bucket_name
+        });
+      }
 
-    return (
-      <div className='folder-view-group'>
-        <div className='control-group'>
-          <FolderBreadcrumb folder_name={folder_name} bucket_name={bucket_name}/>
-          <ControlBar buttons={buttons}>
-            { /* For uploading individual files */ }
-            <input name='upload-file'
-              type='file'
-              multiple='multiple'
-              style={ {display: 'none'} }
-              ref={ (input) => this.uploadFileInput = input }
-              onChange={ this.fileSelected.bind(this) }
-            />
+      // Reset the input field.
+      input.value = '';
+    },
+    [invoke, folder_name, bucket_name]
+  );
 
-            { /* For uploading directories */ }
-            <input name='upload-directory'
-              type='file'
-              webkitdirectory='webkitdirectory'
-              directory='directory'
-              multiple='multiple'
-              style={ {display: 'none'} }
-              ref={ (input) => this.uploadDirInput = input }
-              onChange={ this.dirSelected.bind(this) }
-            />
-          </ControlBar>
-        </div>
-        <div className='listing-group'>
-          <ListHead columns={ COLUMNS }/>
-          <ListBody widths={ COLUMN_WIDTHS } folder_name={folder_name} bucket_name={bucket_name}/>
-        </div>
-      </div>
+  const fileSelected = useCallback(
+    (event) => {
+      prepareFiles(event, uploadFileInput);
+    },
+    [prepareFiles]
+  );
+
+  const dirSelected = useCallback(
+    (event) => {
+      prepareFiles(event, uploadDirInput);
+    },
+    [prepareFiles]
+  );
+
+  const selectFolder = useCallback(() => {
+    let new_folder_name = prompt('Enter the folder name', 'Untitled Folder');
+
+    if (new_folder_name) {
+      invoke({
+        type: 'CREATE_FOLDER',
+        parent_folder: folder_name,
+        folder_name: new_folder_name,
+        bucket_name
+      });
+    }
+  }, [invoke, folder_name, bucket_name]);
+
+  const selectFolderDownload = useCallback(() => {
+    invoke({type: 'LIST_FILES_RECURSIVE', folder_name, bucket_name}).then(
+      (files) => {
+        invoke({type: 'DOWNLOAD_FILES_ZIP', files, folder_name, bucket_name});
+      }
     );
-  }
-}
+  }, [invoke, folder_name, bucket_name]);
 
-const retrieveFiles = (bucket_name, folder_name) => ({type: 'RETRIEVE_FILES', bucket_name, folder_name});
-const fileSelected = (bucket_name, folder_name, file)=>({ type: 'FILE_SELECTED', file, folder_name, bucket_name });
-const createFolder = (bucket_name, parent_folder, folder_name)=>({ type: 'CREATE_FOLDER', folder_name, parent_folder, bucket_name });
-const showUploadModal = (startFileUpload, startDirectoryUpload) => ({ type: 'SHOW_DIALOG', dialog: { type: 'upload_dialog', startDirectoryUpload, startFileUpload } })
-const listFilesRecursive = (bucket_name, folder_name) => ({ type: 'LIST_FILES_RECURSIVE', folder_name, bucket_name });
-const downloadFilesZip = (files, folder_name, bucket_name) => ({ type: 'DOWNLOAD_FILES_ZIP', files, folder_name, bucket_name });
+  const copyFile = useCallback(() => {
+    let metis_path = prompt(
+      'Enter the Metis path of the file to paste in this folder'
+    );
 
-export default connect(
-  // map state
-  state => ({ current_folder: selectCurrentFolder(state) }),
+    if (metis_path) {
+      invoke({
+        type: 'COPY_FILE',
+        folder_name,
+        bucket_name,
+        metis_path,
+        dest_metis_path: `metis://${
+          CONFIG.project_name
+        }/${bucket_name}/${folder_name}/${metis_path.split('/').at(-1)}`
+      });
+    }
+  }, [invoke, folder_name, bucket_name]);
 
-  // map dispatch
-  { retrieveFiles, fileSelected, createFolder, showUploadModal, listFilesRecursive, downloadFilesZip }
-)(FolderView);
+  if (current_folder == INVALID) return <InvalidFolder />;
+
+  let buttons = [
+    {
+      onClick: selectFolder,
+      title: 'Create folder',
+      icon: 'folder',
+      overlay: 'plus',
+      role: 'editor'
+    },
+    {
+      onClick: copyFile,
+      title: 'Paste file with Metis path',
+      icon: 'cloud',
+      overlay: 'paste',
+      role: 'editor'
+    },
+    {
+      onClick: selectUpload,
+      title: 'Upload file(s)',
+      icon: 'upload',
+      role: 'editor'
+    },
+    {
+      onClick: selectFolderDownload,
+      title: 'Download directory as zip',
+      icon: 'download',
+      role: 'viewer'
+    }
+  ];
+
+  return (
+    <div className='folder-view-group'>
+      <div className='control-group'>
+        <FolderBreadcrumb folder_name={folder_name} bucket_name={bucket_name} />
+        <ControlBar buttons={buttons}>
+          {/* For uploading individual files */}
+          <input
+            name='upload-file'
+            type='file'
+            multiple='multiple'
+            style={{display: 'none'}}
+            ref={uploadFileInput}
+            onChange={fileSelected}
+          />
+
+          {/* For uploading directories */}
+          <input
+            name='upload-directory'
+            type='file'
+            webkitdirectory='webkitdirectory'
+            directory='directory'
+            multiple='multiple'
+            style={{display: 'none'}}
+            ref={uploadDirInput}
+            onChange={dirSelected}
+          />
+        </ControlBar>
+      </div>
+      <div className='listing-group'>
+        <ListHead columns={COLUMNS} />
+        <ListBody
+          widths={COLUMN_WIDTHS}
+          folder_name={folder_name}
+          bucket_name={bucket_name}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default FolderView;

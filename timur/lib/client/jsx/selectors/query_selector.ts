@@ -49,10 +49,7 @@ export const selectAllowedModelAttributes = (
 ): Attribute[] => {
   // Keep "identifier" because it's useful for ::has and ::lacks
   // Don't let folks query "up" the tree, only down it.
-  let unallowedAttributeTypes = [
-    'parent',
-    'link',
-  ];
+  let unallowedAttributeTypes = ['parent', 'link'];
 
   if (!includeChildrenModels) {
     unallowedAttributeTypes.push('child');
@@ -186,7 +183,7 @@ export const pathToColumn = (
 
     if (!Array.isArray(array[startingIndex])) {
       if (array[startingIndex] === indexlessHeading)
-        return startingIndex.toString();
+        {return startingIndex.toString();}
       else return '-1';
     }
 
@@ -219,8 +216,13 @@ export const attributeIsFile = (
   ]);
 };
 
-export const isMatrixSlice = (slice: QuerySlice) =>
-  '::slice' === slice.clause.operator;
+export const isMatrixSlice = (slice: QuerySlice) => {
+  if (!slice.clause.subclauses) return false;
+
+  return slice.clause.subclauses.some((subclause) => {
+    return '::slice' === subclause.operator;
+  });
+};
 
 export const hasMatrixSlice = (column: QueryColumn) => {
   return column.slices.some((slice) => isMatrixSlice(slice));
@@ -233,13 +235,22 @@ export const emptyQueryClauseStamp = (modelName: string) => {
   };
 };
 
-export const queryColumnMatrixHeadings = (column: QueryColumn) => {
+export const queryColumnMatrixHeadings = (column: QueryColumn): string[] => {
   return column.slices
     .filter((slice) => isMatrixSlice(slice))
     .map((slice) => {
-      return (slice.clause.operand as string).split(',');
+      return (
+        // Given the above isMatrixSlice filter, slice.clause.subclauses
+        //   should always exist, but this makes tsc happy.
+        (
+          (slice.clause.subclauses || []).find((subclause) => {
+            return '::slice' === subclause.operator;
+          })?.operand as string
+        ).split(',')
+      );
     })
-    .flat();
+    .flat()
+    .filter((value) => null != value);
 };
 
 export const isIdentifierQuery = (
@@ -296,10 +307,11 @@ export const createFigurePayload = ({
 
       payload.inputs[cwlInput] = query[inputSource as keyof QueryPayload];
 
-      if (Array.isArray(payload.inputs[cwlInput]) || (
-        typeof payload.inputs[cwlInput] === 'object' &&
-        payload.inputs[cwlInput] !== null
-      )) {
+      if (
+        Array.isArray(payload.inputs[cwlInput]) ||
+        (typeof payload.inputs[cwlInput] === 'object' &&
+          payload.inputs[cwlInput] !== null)
+      ) {
         payload.inputs[cwlInput] = JSON.stringify(payload.inputs[cwlInput]);
       }
     }

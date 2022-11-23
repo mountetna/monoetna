@@ -11,16 +11,16 @@ describe('JanusSettings', () => {
   beforeEach(() => {
     store = mockStore({
       user: {
-        email: "janus@two-faces.org",
-        name: "Janus Bifrons",
+        email: 'janus@two-faces.org',
+        name: 'Janus Bifrons',
         permissions: { }
       }
     });
   });
 
   const createNodeMock = element => {
-    if (element.type === "textarea") {
-      return document.createElement("textarea");
+    if (element.type === 'textarea') {
+      return document.createElement('textarea');
     } else {
       return null;
     }
@@ -34,8 +34,8 @@ describe('JanusSettings', () => {
         status: 200,
         response: {
           user: {
-            email: "janus@two-faces.org",                                  
-            name: "Janus Bifrons",
+            email: 'janus@two-faces.org',                                  
+            name: 'Janus Bifrons',
             public_key: '74:68:69:73:69:73:6e:6f:74:72:61:6e:64:6f:6d:21'
           }
         }
@@ -53,6 +53,6 @@ describe('JanusSettings', () => {
         await new Promise((resolve) => setTimeout(resolve, 15));
     });
 
-    expect( component.toJSON() ).toMatchSnapshot()
+    expect( component.toJSON() ).toMatchSnapshot();
   });
 });

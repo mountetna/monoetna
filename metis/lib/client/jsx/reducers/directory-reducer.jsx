@@ -8,7 +8,8 @@ import {
 } from 'etna-js/upload/workers/uploader';
 
 const directory = (state, action) => {
-  if (!state) state = {
+  if (!state) {
+state = {
     folders: {},
     files: {},
     buckets: [],
@@ -16,6 +17,7 @@ const directory = (state, action) => {
     fails: [],
     current_folder: null
   };
+}
 
   switch (action.type) {
     case UPDATE_UPLOADS:
@@ -54,7 +56,7 @@ const directory = (state, action) => {
         ...state,
         current_folder: action.folder_name,
         current_bucket: action.bucket_name
-      }
+      };
     default:
       return state;
       break;

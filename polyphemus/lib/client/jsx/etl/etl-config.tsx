@@ -27,6 +27,8 @@ import SecretsPane from './secrets-pane';
 import {formatTime, runTime} from './run-state';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 
+import {Etl, Job} from '../polyphemus';
+
 const StatusIcon = ({status}: {status: string}) => {
   let IconComponent: any;
   if (status == 'completed') IconComponent = CheckIcon;

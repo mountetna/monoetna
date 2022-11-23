@@ -42,19 +42,19 @@ exports[`QueryResults expands and nests matrix columns 1`] = `
               >
                 user_columns: [
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "monster.name"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "prize.name"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "labor.contributions"
                 </span>
@@ -69,7 +69,7 @@ exports[`QueryResults expands and nests matrix columns 1`] = `
       class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-grid-xs-12"
     >
       <div
-        class="MuiGrid-root makeStyles-config MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end"
+        class="MuiGrid-root makeStyles-config MuiGrid-container MuiGrid-item MuiGrid-justify-content-xs-flex-end"
       >
         <div
           class="MuiTypography-root makeStyles-container MuiTypography-body1"
@@ -175,7 +175,7 @@ exports[`QueryResults expands and nests matrix columns 1`] = `
         </div>
       </div>
       <div
-        class="MuiGrid-root MuiGrid-container MuiGrid-direction-xs-column MuiGrid-align-items-xs-flex-end MuiGrid-justify-xs-flex-end"
+        class="MuiGrid-root MuiGrid-container MuiGrid-direction-xs-column MuiGrid-align-items-xs-flex-end MuiGrid-justify-content-xs-flex-end"
       >
         <div
           class="MuiTablePagination-root"
@@ -371,13 +371,13 @@ exports[`QueryResults renders 1`] = `
               >
                 user_columns: [
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "monster.name"
                 </span>
                 ,
                 <span
-                  class="ͼd"
+                  class="ͼe"
                 >
                   "prize.name"
                 </span>
@@ -392,7 +392,7 @@ exports[`QueryResults renders 1`] = `
       class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-direction-xs-column MuiGrid-grid-xs-12"
     >
       <div
-        class="MuiGrid-root makeStyles-config MuiGrid-container MuiGrid-item MuiGrid-justify-xs-flex-end"
+        class="MuiGrid-root makeStyles-config MuiGrid-container MuiGrid-item MuiGrid-justify-content-xs-flex-end"
       >
         <div
           class="MuiTypography-root makeStyles-container MuiTypography-body1"
@@ -498,7 +498,7 @@ exports[`QueryResults renders 1`] = `
         </div>
       </div>
       <div
-        class="MuiGrid-root MuiGrid-container MuiGrid-direction-xs-column MuiGrid-align-items-xs-flex-end MuiGrid-justify-xs-flex-end"
+        class="MuiGrid-root MuiGrid-container MuiGrid-direction-xs-column MuiGrid-align-items-xs-flex-end MuiGrid-justify-content-xs-flex-end"
       >
         <div
           class="MuiTablePagination-root"

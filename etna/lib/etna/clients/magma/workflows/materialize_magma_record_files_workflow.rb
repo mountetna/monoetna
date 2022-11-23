@@ -41,6 +41,7 @@ module Etna
 
             begin
               if (error = errors.pop(true))
+                logger&.error(error)
                 raise error
               end
             rescue ThreadError
@@ -51,6 +52,7 @@ module Etna
               begin
                 materialize_record(dest, template, document)
               rescue => e
+                logger&.error(e)
                 errors << e
               ensure
                 semaphore.release
@@ -62,6 +64,7 @@ module Etna
 
           begin
             if (error = errors.pop(true))
+              logger&.error(error)
               raise error
             end
           rescue ThreadError

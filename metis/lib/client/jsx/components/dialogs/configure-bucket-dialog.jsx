@@ -9,14 +9,14 @@ const VALID_NAME = /^\w+$/;
 
 class ConfigureBucketDialog extends React.Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
       bucket_name: '',
       description: '',
       access: '',
       access_email: '',
       errors: []
-    }
+    };
   }
 
   componentDidMount() {
@@ -44,10 +44,10 @@ class ConfigureBucketDialog extends React.Component {
 
     let errors = [];
 
-    if (!VALID_NAME.test(bucket_name)) errors.push('Invalid bucket name.')
+    if (!VALID_NAME.test(bucket_name)) errors.push('Invalid bucket name.');
 
     if (access_email) {
-      access = access_email.split(/[\s\;\,]+/)
+      access = access_email.split(/[\s\;\,]+/);
       if (access.some(email => !VALID_EMAIL.test(email))) {
         errors.push('Invalid email ids in access list.');
       }
@@ -61,8 +61,7 @@ class ConfigureBucketDialog extends React.Component {
       return;
     }
 
-    if (createBucket)
-      createBucket({ bucket_name, description, access, owner: 'metis' });
+    if (createBucket) {createBucket({ bucket_name, description, access, owner: 'metis' });}
     else {
       updateBucket({
         bucket_name: this.props.bucket_name,

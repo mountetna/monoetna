@@ -19,7 +19,7 @@ const RemovePane = ({update,selected}:{update:Function,selected:string|null}) =>
         <Button onClick={ () => update({ archived: true }) }>Remove</Button>
       </Grid>
     </EtlPaneHeader>
-  </EtlPane>
-}
+  </EtlPane>;
+};
 
 export default RemovePane;

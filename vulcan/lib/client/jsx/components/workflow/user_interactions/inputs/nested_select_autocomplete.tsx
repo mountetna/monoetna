@@ -4,11 +4,11 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import * as _ from 'lodash';
 
-import {WithInputParams} from "./input_types";
-import {some} from "../../../../selectors/maybe";
-import {useMemoized} from "../../../../selectors/workflow_selectors";
-import {joinNesting} from "./monoids";
-import {useSetsDefault} from "./useSetsDefault";
+import {WithInputParams} from './input_types';
+import {some} from '../../../../selectors/maybe';
+import {useMemoized} from '../../../../selectors/workflow_selectors';
+import {joinNesting} from './monoids';
+import {useSetsDefault} from './useSetsDefault';
 import { InputLabel, TextField } from '@material-ui/core';
 import SelectAutocompleteInput from './select_autocomplete';
 
@@ -17,8 +17,8 @@ function getPath(options: OptionSet, leaf: string): string[] {
     if (value && typeof value === 'object') {
       // Look one step ahead for our leaf nodes
       if (Object.keys(value).includes(leaf) && null == value[leaf])
-        return [key, leaf];
-      const path = getPath(value, leaf)
+        {return [key, leaf];}
+      const path = getPath(value, leaf);
       if (path.length > 0) return [key, ...getPath(value, leaf)];
     } else if (null == value && key == leaf) {
       return [key];
@@ -33,7 +33,7 @@ function getOptions(
   optionSet: OptionSet
 ): string[] | null {
   if (null == desiredPath || desiredPath.length === 0)
-    return Object.keys(optionSet);
+    {return Object.keys(optionSet);}
   // _.at always returns an array, so unwrap it.
   let results = _.at(optionSet, desiredPath.join('.'))[0];
   if (results) return Object.keys(results);
@@ -57,7 +57,7 @@ function LeafOptions({
   if (value!=null && !options_in.includes(value)) {
     // non-null starting value, but path has not yet been properly determined?
     // console.log('skipping LeafOptions due to value mismatch')
-    return null
+    return null;
   }
   return (
     <SelectAutocompleteInput
@@ -70,13 +70,13 @@ function LeafOptions({
       data={{a: options_in}}
       maxOptions={maxOptions}
     />
-  )
+  );
 }
 
 type OptionSet = {[k: string]: null | OptionSet};
 
 export default function NestedSelectAutocompleteInput({ label, data, onChange, ...props }: WithInputParams<{label?: string}, string|null, OptionSet>) {
-  const value = useSetsDefault(null, props.value, onChange)
+  const value = useSetsDefault(null, props.value, onChange);
   const allOptions = useMemoized(joinNesting, data);
   const [path, setPath] = useState([] as string[]);
   
@@ -85,7 +85,7 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
       const updatedPath = getPath(allOptions, value);
       setPath(updatedPath);
     }
-  }, [allOptions, value])
+  }, [allOptions, value]);
 
   const handleSelect = useCallback(
     (value: string | null, depth: number) => {

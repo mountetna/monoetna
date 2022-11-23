@@ -165,10 +165,19 @@ declare module 'etna-js/utils/markdown' {
 declare module 'etna-js/components/revision-history' {
   export = function RevisionHistory(params: {
     getRevisions: () => Promise;
-    revisionDoc: (revision:any) => string;
-    update: (revision:any) => void;
+    revisionDoc: (revision: any) => string;
+    update: (revision: any) => void;
     open: boolean;
     onClose: () => void;
+  }): any {};
+}
+
+declare module 'etna-js/components/project-header' {
+  export = function ProjectHeader(params: {
+    project_name: string;
+    project_name_full?: string;
+    className?: string;
+    children?: any;
   }): any {};
 }
 
@@ -299,6 +308,7 @@ declare module 'etna-js/selectors/user-selector' {
 declare module 'etna-js/actions/magma_actions' {
   export function requestModels(): any;
   export function requestAnswer(question: any): any;
+  export function addTemplatesAndDocuments(models: any[]): any;
 }
 
 declare module 'etna-js/utils/debounce' {
@@ -321,6 +331,7 @@ declare module 'etna-js/utils/debouncer' {
 declare module 'etna-js/api/magma_api' {
   export function getAnswer(question: any, exchange: any): Promise<T>;
   export function getDocuments(doc_args: any, fetch: Function): Promise<T>;
+  export function magmaPath(endpoint: string): string;
 }
 
 declare module 'etna-js/utils/copy' {

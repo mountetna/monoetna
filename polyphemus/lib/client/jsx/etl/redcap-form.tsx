@@ -44,6 +44,8 @@ import {Debouncer} from 'etna-js/utils/debouncer';
 
 import {makeStyles, Theme} from '@material-ui/core/styles';
 
+import {Job} from '../polyphemus';
+
 const useStyles = makeStyles((theme: Theme) => ({
   form: {
     height: '500px',
@@ -227,7 +229,7 @@ const ValueRow = ({
   );
 
   if (opts === undefined) valueComponent = <Typography>{value}</Typography>;
-  else if (opts.type === 'string')
+  else if (opts.type === 'string') {
     valueComponent = (
       <TextField
         fullWidth
@@ -235,7 +237,7 @@ const ValueRow = ({
         onChange={(e) => debouncedUpdate(e.target.value)}
       />
     );
-  else if (opts.type == 'array')
+  } else if (opts.type == 'array') {
     valueComponent = (
       <TextField
         placeholder='Comma-separated list'
@@ -246,7 +248,7 @@ const ValueRow = ({
         }
       />
     );
-  else if (opts.type == 'boolean')
+  } else if (opts.type == 'boolean') {
     valueComponent = (
       <SmallCheckbox
         checked={value}
@@ -255,7 +257,7 @@ const ValueRow = ({
         }
       />
     );
-  else if (opts.enum)
+  } else if (opts.enum) {
     valueComponent = (
       <Select value={value} onChange={(e) => update(e.target.value)}>
         {opts.enum.sort().map((v: string) => (
@@ -265,6 +267,7 @@ const ValueRow = ({
         ))}
       </Select>
     );
+  }
 
   return (
     <Card className={classes.value_row} variant='outlined' elevation={0}>
@@ -359,11 +362,12 @@ const AddProp = ({
                 ? {redcap_field: attribute_value, value: 'value'}
                 : attribute_value;
 
-            if (newValue != undefined)
+            if (newValue != undefined) {
               update({
                 ...oldValue,
                 [newProp]: newValue
               });
+            }
 
             close();
           }}
@@ -402,7 +406,7 @@ const RedcapAttribute = ({
     [attribute_value, update]
   );
 
-  if (typeof attribute_value === 'string')
+  if (typeof attribute_value === 'string') {
     valueComponent = (
       <TextField
         placeholder='redcap_field'
@@ -410,7 +414,7 @@ const RedcapAttribute = ({
         value={attribute_value}
       />
     );
-  else {
+  } else {
     const sort: {[key: string]: number | undefined} = {
       value: 2,
       redcap_field: 1

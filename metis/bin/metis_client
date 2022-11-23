@@ -132,7 +132,7 @@ end
 class Client
 
   attr_reader :logger
-  
+
   class Error < StandardError
   end
 
@@ -384,13 +384,13 @@ class MetisClient < Client
     return json_body(response)
   end
 
-  def rename_folder(project_name,bucket_name,folder_path,new_folder_path)
-    response = json_post("/#{project_name}/folder/rename/#{bucket_name}/#{encode_path(folder_path)}", new_folder_path: new_folder_path)
+  def rename_folder(project_name,bucket_name,folder_path,new_folder_path, new_bucket_name=nil)
+    response = json_post("/#{project_name}/folder/rename/#{bucket_name}/#{encode_path(folder_path)}", new_folder_path: new_folder_path, new_bucket_name: new_bucket_name)
     raise MetisClient::Error, "Could not rename folder #{folder_path}\n#{error(response)}" unless response.code == "200"
   end
 
-  def rename_file(project_name,bucket_name,file_path,new_file_path)
-    response = json_post("/#{project_name}/file/rename/#{bucket_name}/#{encode_path(file_path)}", new_file_path: new_file_path)
+  def rename_file(project_name,bucket_name,file_path,new_file_path, new_bucket_name=nil)
+    response = json_post("/#{project_name}/file/rename/#{bucket_name}/#{encode_path(file_path)}", new_file_path: new_file_path, new_bucket_name: new_bucket_name)
     raise MetisClient::Error, "Could not rename file #{file_path}\n#{error(response)}" unless response.code == "200"
   end
 
@@ -601,7 +601,7 @@ EOT
       raise ShellError, 'No project is selected' if !@shell.project_name
 
       path = @shell.relative_path(path)
-      new_path = @shell.relative_path(new_path)
+      new_path = @shell.relative_path(new_path) unless new_path.start_with?("metis://")
 
       name = ::File.basename(path)
 
@@ -615,8 +615,14 @@ EOT
 
       if file
         bucket_name, file_path = path.split('/',2)
-        bucket_name, new_file_path = new_path.split('/',2)
-        @shell.client.rename_file(@shell.project_name, bucket_name, file_path, new_file_path)
+        if new_path.start_with?("metis://")
+          match = metis_path(new_path)
+          new_bucket_name = match[:bucket]
+          new_folder_path = match[:file_path]
+        else
+          bucket_name, new_file_path = new_path.split('/',2)
+        end
+        @shell.client.rename_file(@shell.project_name, bucket_name, file_path, new_file_path, new_bucket_name)
         return
       end
 
@@ -626,8 +632,14 @@ EOT
 
       if folder
         bucket_name, folder_path = path.split('/',2)
-        bucket_name, new_folder_path = new_path.split('/',2)
-        @shell.client.rename_folder(@shell.project_name, bucket_name, folder_path, new_folder_path)
+        if new_path.start_with?("metis://")
+          match = metis_path(new_path)
+          new_bucket_name = match[:bucket]
+          new_folder_path = match[:file_path]
+        else
+          bucket_name, new_folder_path = new_path.split('/',2)
+        end
+        @shell.client.rename_folder(@shell.project_name, bucket_name, folder_path, new_folder_path, new_bucket_name)
         return
       end
     end
@@ -1222,8 +1234,33 @@ EOT
     end
   end
 
-  class Nuke < Command
-    usage "nuke <local_directory>"
+  class Checksum < Command
+    usage "checksum <local_directory>"
+
+    def parse(args)
+      options[:file] = "md5checksum.txt"
+      parse_opts(args) do |opts|
+        opts.on("-f", "--file FILE", "Use FILE as the pattern to find and write checksum files") do |file|
+          options[:file] = file
+        end
+      end
+    end
+
+    def md5_cache
+      @md5_cache ||= {}
+    end
+
+    def load_md5_cache(md5file)
+      md5dir = ::File.dirname(md5file)
+
+      File.readlines(md5file).each do |line|
+        checksum, file_name = line.chomp.split(/\s+/, 2)
+        full_path = Pathname.new(::File.join( md5dir, file_name )).cleanpath.to_s
+        next unless ::File.exists?(full_path)
+
+        md5_cache[full_path] = checksum
+      end
+    end
 
     def run(local_directory)
       # collect all files and folders
@@ -1231,17 +1268,74 @@ EOT
 
       puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
 
+      md5files = files.select do |file|
+        ::File.basename(file) == options[:file]
+      end
+
+      md5files.each do |md5file|
+        load_md5_cache(md5file)
+      end
+
+      # compute md5sums
+      files.each.with_index do |file,i|
+        file = Pathname.new(file).cleanpath.to_s
+
+        print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}      \r"
+
+        next if ::File.basename(file) == options[:file] || md5_cache[file]
+
+        md5_cache[file] = %x{ md5sum "#{file}" }.split(' ')[0]
+      end
+      puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}      "
+
+      File.open("md5checksum.txt", "w") do |f|
+        output =  md5_cache.map do |file_name, checksum|
+          "#{checksum}  #{file_name}"
+        end.join("\n")
+
+        f.puts output
+      end
+
+      return folders, files, md5_cache
+    end
+  end
+
+  class Nuke < Command
+    usage "nuke <local_directory>"
+
+    def parse(args)
+      options[:file] = "md5checksum.txt"
+      parse_opts(args) do |opts|
+        opts.on("-f", "--file FILE", "Use FILE as the pattern to find and write checksum files") do |file|
+          options[:file] = file
+        end
+      end
+    end
+
+    def make_md5_cache(local_directory)
+      cmd = MetisShell::Checksum.new(@shell)
+      args = cmd.parse(["--file", options[:file], local_directory])
+      cmd.run(*args)
+    end
+
+    def is_checksum_file?(file)
+      ::File.basename(file) == options[:file]
+    end
+
+    def is_subdir_checksum_file?(file)
+      is_checksum_file?(file) && !is_root_checksum_file?(file)
+    end
+
+    def is_root_checksum_file?(file)
+      file == options[:file]
+    end
+
+    def run(local_directory)
+      folders, files, file_md5s = make_md5_cache(local_directory)
+
       deleted_files = deleted_folders = 0
       remaining_size = 0
-
       unless files.empty?
-        # compute md5sums
-        file_md5s = files.map.with_index do |file,i|
-          print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}\r"
-          [ file, %x{ md5sum #{file} }.split(' ')[0] ]
-        end.to_h
-        puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}\n"
-
         # check with metis
         response = @shell.client.exists(file_md5s.values)
 
@@ -1249,18 +1343,28 @@ EOT
         found = ::Set.new(response[:found])
 
         file_md5s.each do |file, md5|
-          if found.include?(md5)
+          if found.include?(md5) && !is_checksum_file?(file)
             ::File.delete(file)
             deleted_files += 1
           else
             remaining_size += ::File.size(file)
           end
+        rescue Exception => e
+          puts "Could not delete #{file}! #{e.message}"
         end
       end
 
       # remove all empty folders
       folders.sort.each do |folder|
-        if ::Dir.exists?(folder) && ::Dir.empty?(folder)
+        next unless ::Dir.exists?(folder)
+        # remove checksum file if necessary
+        files = Dir[folder]
+
+        if files.size == 1 && is_subdir_checksum_file?(files.first)
+          ::File.delete(file)
+        end
+
+        if ::Dir.empty?(folder)
           ::Dir.delete(folder)
           deleted_folders += 1
         end
@@ -1295,7 +1399,7 @@ EOT
         # compute md5sums
         file_md5s = files.map.with_index do |file,i|
           print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}\r"
-          [ file, %x{ md5sum #{file} }.split(' ')[0] ]
+          [ file, %x{ md5sum "#{file}" }.split(' ')[0] ]
         end.to_h
         puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}\n"
 

@@ -64,8 +64,8 @@ const QueryTable = ({
           count={numRecords}
           rowsPerPage={pageSize}
           page={page}
-          onChangePage={handlePageChange}
-          onChangeRowsPerPage={handlePageSizeChange}
+          onPageChange={handlePageChange}
+          onRowsPerPageChange={handlePageSizeChange}
         />
       </Grid>
       <TableContainer>

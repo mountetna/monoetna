@@ -13,7 +13,7 @@ jobs:
   build-production:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           token: ${{ secrets.SYNC_ACCESS_TOKEN }}
       - name: docker login
@@ -28,6 +28,11 @@ jobs:
           IMAGES_POSTFIX: :production
           NO_TEST: 1
         run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          make -C etna release
           make -j 4 release
           git push origin HEAD:production-build --force
-

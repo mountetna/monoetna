@@ -39,5 +39,5 @@ export const destroyBucket = ({bucket}) => (dispatch) => {
     .catch(
       errorMessage(dispatch, 'warning', 'Bucket removal failed', error => error)
     );
-}
+};
 

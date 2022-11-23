@@ -310,7 +310,7 @@ class Polyphemus
 
           update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
           update_request.update_revision("#{base_model}_pool", pool, restricted: true)
-          magma_client.update(update_request)
+          magma_client.update_json(update_request)
         else
           logger.info "#{base_model}_pool #{pool} does not include a restricted patient, relaxing."
 
@@ -322,7 +322,7 @@ class Polyphemus
 
           update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
           update_request.update_revision("#{base_model}_pool", pool, restricted: false)
-          magma_client.update(update_request)
+          magma_client.update_json(update_request)
         end
       end
     end
@@ -341,7 +341,7 @@ class Polyphemus
         Rollbar.info("Attempting to restrict access to #{name}")
         update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
         update_request.update_revision('patient', name, restricted: true)
-        magma_client.update(update_request)
+        magma_client.update_json(update_request)
       end
     end
 
@@ -362,7 +362,7 @@ class Polyphemus
         Rollbar.info("Attempting to unrestrict access to #{name}")
         update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
         update_request.update_revision('patient', name, restricted: false)
-        magma_client.update(update_request)
+        magma_client.update_json(update_request)
       end
     end
 

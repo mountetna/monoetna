@@ -58,6 +58,7 @@ def create_service_definition(
     local_network_ids: Optional[Set[str]] = None,
     allow_manager_nodes: Optional[bool] = False,
     resources: Optional[Resources] = None,
+    additional_constraints: Optional[List[str]] = None,
 ) -> SwarmServiceDefinition:
 
     spec = data["Spec"]
@@ -76,6 +77,9 @@ def create_service_definition(
         ]
         constraints.append("node.role!=manager")
         placement["Constraints"] = constraints
+
+    if additional_constraints is not None:
+        placement["Constraints"] += additional_constraints
 
     return SwarmServiceDefinition(
         image=container_spec["Image"],
@@ -169,6 +173,7 @@ class DockerSwarmOperator(DockerOperatorBase):
     mem_limit: Optional[int]
     cpu_reservation: Optional[int]
     mem_reservation: Optional[int]
+    additional_constraints: Optional[List[str]]
 
     def __init__(
             self,
@@ -182,6 +187,7 @@ class DockerSwarmOperator(DockerOperatorBase):
         mem_limit: Optional[int] = None,
         cpu_reservation: Optional[int] = None,
         mem_reservation: Optional[int] = None,
+        additional_constraints: Optional[List[str]] = None,
         **kwds,
     ):
         self.mem_reservation = mem_reservation
@@ -191,6 +197,7 @@ class DockerSwarmOperator(DockerOperatorBase):
         self.source_service = source_service
         self.include_external_networks = include_external_networks
         self.allow_manager_nodes = allow_manager_nodes
+        self.additional_constraints = additional_constraints
         super(DockerSwarmOperator, self).__init__(*args, **kwds)
 
     def _start_task(self):
@@ -204,6 +211,7 @@ class DockerSwarmOperator(DockerOperatorBase):
             service_data,
             local_network_ids,
             allow_manager_nodes=self.allow_manager_nodes,
+            additional_constraints=self.additional_constraints,
             resources=Resources(
                 cpu_limit=self.cpu_limit,
                 cpu_reservation=self.cpu_reservation,
