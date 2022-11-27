@@ -115,7 +115,7 @@ describe Magma::Project do
     let(:model) { project.models[:monster] }
 
     it 'returns ordered models for labors project' do
-      expect(project.ordered_models(model)).to match_array([Labors::Victim, Labors::Aspect, Labors::Sidekick, Labors::Wound])
+      expect(project.ordered_models(model)).to match_array([Labors::Victim, Labors::Aspect, Labors::Sidekick, Labors::Wound, Labors::Treatment])
     end
   end
 end

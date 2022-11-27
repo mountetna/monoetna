@@ -1,5 +1,5 @@
 import {useDispatch} from 'react-redux';
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useMemo, useEffect} from 'react';
 import {sortAttributeList} from '../../utils/attributes';
 import SelectProjectModelDialog from '../select_project_model';
 import {requestAnswer} from 'etna-js/actions/magma_actions';
@@ -30,6 +30,34 @@ import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Tooltip from '@material-ui/core/Tooltip';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Chip from '@material-ui/core/Chip';
+import AddIcon from '@material-ui/icons/Add';
+import LinkIcon from '@material-ui/icons/Link';
+import DeleteIcon from '@material-ui/icons/Delete';
+import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
+import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
+import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
+
+import AddAttributeModal from './add_attribute_modal';
+import AddLinkModal from './add_link_modal';
+import ReparentModelModal from './reparent_model_modal';
+import AddModelModal from './add_model_modal';
+import RemoveModelModal from './remove_model_modal';
+import {useModal} from 'etna-js/components/ModalDialogContainer';
+import {selectModels} from 'etna-js/selectors/magma';
+import {useReduxState} from 'etna-js/hooks/useReduxState';
+import {
+  addAttribute,
+  addLink,
+  removeModel,
+  reparentModel,
+  addModel
+} from '../../api/magma_api';
+import {
+  addTemplatesAndDocuments,
+  removeModelAction
+} from 'etna-js/actions/magma_actions';
+import {isLeafModel} from '../../utils/edit_map';
+import useMagmaActions from './use_magma_actions';
 
 const attributeStyles = makeStyles((theme) => ({
   attribute: {
@@ -45,6 +73,13 @@ const attributeStyles = makeStyles((theme) => ({
     color: 'gray',
     cursor: 'default'
   },
+  addBtn: {
+    margin: '0.5rem'
+  },
+  add: {
+    width: '30px',
+    color: 'green'
+  },
   type: {
     color: 'gray',
     width: '25%',
@@ -55,7 +90,8 @@ const attributeStyles = makeStyles((theme) => ({
     margin: '5px'
   },
   counts: {
-    width: '20%'
+    width: '10%',
+    minWidth: '120px'
   },
   ident: {},
   changed: {
@@ -66,6 +102,18 @@ const attributeStyles = makeStyles((theme) => ({
   },
   absent: {
     backgroundColor: 'rgba(255,0,0,0.1)'
+  },
+  hiddenIcon: {
+    marginRight: '1rem'
+  },
+  typeWrapper: {
+    display: 'flex',
+    justifyContent: 'right'
+  },
+  hiddenTypeWrapper: {
+    display: 'flex',
+    justifyContent: 'right',
+    paddingTop: '0.35rem'
   }
 }));
 
@@ -76,13 +124,104 @@ const diffTypes = {
   changed: {ind: 'c', title: 'Changed in this model'}
 };
 
+const ManageModelActions = ({
+  handleAddAttribute,
+  handleAddLink,
+  handleAddModel,
+  handleRemoveModel,
+  handleReparentModel,
+  isLeaf,
+  canReparent,
+  modelName
+}) => {
+  const classes = attributeStyles();
+  const {openModal} = useModal();
+
+  return (
+    <>
+      <Tooltip title='Add Attribute' aria-label='Add Attribute'>
+        <Button
+          className={classes.addBtn}
+          startIcon={<AddIcon />}
+          onClick={() => {
+            openModal(<AddAttributeModal onSave={handleAddAttribute} />);
+          }}
+        >
+          Attribute
+        </Button>
+      </Tooltip>
+      <Tooltip title='Add Link' aria-label='Add Link'>
+        <Button
+          className={classes.addBtn}
+          startIcon={<LinkIcon />}
+          onClick={() => {
+            openModal(<AddLinkModal onSave={handleAddLink} />);
+          }}
+        >
+          Link
+        </Button>
+      </Tooltip>
+      <Tooltip title='Add Model' aria-label='Add Model'>
+        <Button
+          className={classes.addBtn}
+          startIcon={<LibraryAddIcon />}
+          onClick={() => {
+            openModal(
+              <AddModelModal modelName={modelName} onSave={handleAddModel} />
+            );
+          }}
+        >
+          Model
+        </Button>
+      </Tooltip>
+      {canReparent && (
+        <Tooltip title='Reparent Model' aria-label='Reparent Model'>
+          <Button
+            className={classes.addBtn}
+            startIcon={<SwapHorizIcon />}
+            onClick={() => {
+              openModal(
+                <ReparentModelModal
+                  modelName={modelName}
+                  onSave={handleReparentModel}
+                />
+              );
+            }}
+          >
+            Reparent Model
+          </Button>
+        </Tooltip>
+      )}
+      {isLeaf && (
+        <Tooltip title='Remove Model' aria-label='Remove Model'>
+          <Button
+            className={classes.addBtn}
+            startIcon={<DeleteIcon />}
+            onClick={() => {
+              openModal(
+                <RemoveModelModal
+                  modelName={modelName}
+                  onSave={handleRemoveModel}
+                />
+              );
+            }}
+          >
+            Remove Model
+          </Button>
+        </Tooltip>
+      )}
+    </>
+  );
+};
+
 const ModelAttribute = ({
   attribute_name,
   template,
   diffTemplate,
   setAttribute,
   count,
-  modelCount
+  modelCount,
+  isHidden
 }) => {
   const classes = attributeStyles();
 
@@ -116,7 +255,16 @@ const ModelAttribute = ({
         </TableCell>
       )}
       <TableCell className={classes.type} align='right'>
-        {attribute_type}
+        <div
+          className={isHidden ? classes.hiddenTypeWrapper : classes.typeWrapper}
+        >
+          {isHidden ? (
+            <div className={classes.hiddenIcon}>
+              <VisibilityOffIcon />
+            </div>
+          ) : null}
+          {attribute_type}
+        </div>
       </TableCell>
       <TableCell
         className={attribute ? classes.value : classes.missing}
@@ -128,7 +276,7 @@ const ModelAttribute = ({
       <TableCell align='left'>{attribute_group}</TableCell>
       <TableCell align='left'>{description}</TableCell>
       {count != undefined && (
-        <TableCell className={classes.count} align='left'>
+        <TableCell className={classes.counts} align='left'>
           <Grid container alignItems='center'>
             {count}
             <LinearProgress
@@ -193,10 +341,16 @@ const ModelReport = ({
   updateCounts,
   counts,
   template,
-  setAttribute
+  setAttribute,
+  isAdminUser
 }) => {
+  const [showHiddenAttributes, setShowHiddenAttributes] = useState(false);
+  const [canReparent, setCanReparent] = useState(false);
   const dispatch = useDispatch();
+  const invoke = useActionInvoker();
+  const {executeAction} = useMagmaActions();
 
+  const models = useReduxState((state) => selectModels(state));
   const classes = reportStyles();
 
   const modelCount = counts[model_name]?.count;
@@ -205,14 +359,8 @@ const ModelReport = ({
   const getAnswer = (query, handle) =>
     requestAnswer({query})(dispatch).then(({answer}) => handle(answer));
 
-  const countModel = () => {
-    if (modelCount != undefined) return;
-
-    updateCounts({type: 'MODEL_COUNT', model_name, count: -1});
-
-    getAnswer([model_name, '::count'], (count) =>
-      updateCounts({type: 'MODEL_COUNT', model_name, count})
-    );
+  const countAttributes = () => {
+    if (attributeCounts != undefined) return;
 
     Object.keys(template.attributes).forEach((attribute_name) => {
       let query = [model_name, ['::has', attribute_name], '::count'];
@@ -294,6 +442,72 @@ const ModelReport = ({
     ...(diffTemplate && diffTemplate.attributes)
   });
 
+  const handleAddAttribute = useCallback(
+    (params) => {
+      executeAction(
+        addAttribute({
+          model_name,
+          ...params
+        })
+      );
+    },
+    [model_name, executeAction]
+  );
+
+  const handleAddLink = useCallback(
+    (params) => {
+      executeAction(
+        addLink({
+          modelName: model_name,
+          ...params
+        })
+      );
+    },
+    [model_name]
+  );
+
+  const handleRemoveModel = useCallback(() => {
+    executeAction(removeModel({model_name})).then(() =>
+      invoke(removeModelAction(model_name))
+    );
+  }, [model_name]);
+
+  const handleReparentModel = useCallback(
+    (parent_model_name) => {
+      executeAction(reparentModel({model_name, parent_model_name}));
+    },
+    [model_name]
+  );
+
+  const handleAddModel = useCallback(
+    (params) => {
+      executeAction(
+        addModel({
+          ...params,
+          parent_model_name: model_name
+        })
+      );
+    },
+    [model_name]
+  );
+
+  const isLeaf = useMemo(() => {
+    if (!models || !model_name || !models[model_name]) return;
+
+    return isLeafModel(models[model_name]);
+  }, [model_name, models]);
+
+  useEffect(() => {
+    if (counts[model_name]?.count) {
+      setCanReparent(counts[model_name].count <= 0);
+    } else {
+      getAnswer([model_name, '::count'], (count) => {
+        updateCounts({type: 'MODEL_COUNT', model_name, count});
+        setCanReparent(0 == count);
+      });
+    }
+  }, [model_name, counts]);
+
   return (
     <Grid className={classes.model_report}>
       <MapHeading className={classes.heading} name='Model' title={model_name}>
@@ -333,14 +547,24 @@ const ModelReport = ({
             Compare with another model
           </MenuItem>
           <MenuItem
-            disabled={modelCount != undefined}
+            disabled={attributeCounts != undefined}
             onClick={() => {
-              countModel(model_name);
+              countAttributes(model_name);
               setAnchor(null);
             }}
           >
-            Count records and attributes
+            Count attributes
           </MenuItem>
+          {isAdminUser && (
+            <MenuItem
+              onClick={() => {
+                setShowHiddenAttributes(!showHiddenAttributes);
+                setAnchor(null);
+              }}
+            >
+              Toggle hidden attributes
+            </MenuItem>
+          )}
         </Menu>
       </MapHeading>
       <SelectProjectModelDialog
@@ -403,7 +627,9 @@ const ModelReport = ({
           <TableBody>
             {sortByOrder(attributes)
               .filter(
-                (attribute) => !attribute.hidden && matchesFilter(attribute)
+                (attribute) =>
+                  (showHiddenAttributes ? true : !attribute.hidden) &&
+                  matchesFilter(attribute)
               )
               .map((attribute) => (
                 <ModelAttribute
@@ -416,10 +642,23 @@ const ModelReport = ({
                   modelCount={modelCount}
                   template={template}
                   diffTemplate={diffTemplate}
+                  isHidden={attribute.hidden}
                 />
               ))}
           </TableBody>
         </Table>
+        {isAdminUser && (
+          <ManageModelActions
+            handleAddAttribute={handleAddAttribute}
+            handleAddLink={handleAddLink}
+            handleRemoveModel={handleRemoveModel}
+            handleReparentModel={handleReparentModel}
+            handleAddModel={handleAddModel}
+            isLeaf={isLeaf}
+            canReparent={canReparent}
+            modelName={model_name}
+          />
+        )}
       </TableContainer>
     </Grid>
   );
