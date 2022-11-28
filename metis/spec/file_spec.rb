@@ -597,6 +597,28 @@ describe FileController do
       expect(new_wisdom_file.data_block).to eq(@wisdom_file.data_block)
     end
 
+    it 'can copy a file to a new folder with accidental double slashes' do
+      contents_folder = create_folder('athena', 'contents')
+      stubs.create_folder('athena', 'files', 'contents')
+
+      token_header(:editor)
+      copy_file('wisdom.txt', 'contents//wisdom.txt')
+
+      expect(last_response.status).to eq(200)
+
+      # the original is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # a new file exists in a new folder
+      new_wisdom_file = Metis::File.last
+      expect(new_wisdom_file.file_path).to eq('contents/wisdom.txt')
+      expect(new_wisdom_file.folder).to eq(contents_folder)
+      expect(new_wisdom_file).to be_has_data
+      expect(new_wisdom_file.data_block).to eq(@wisdom_file.data_block)
+    end
+
     it 'will not copy a file to a read-only folder' do
       contents_folder = create_folder('athena', 'contents', read_only: true)
       stubs.create_folder('athena', 'files', 'contents')

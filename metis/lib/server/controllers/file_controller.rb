@@ -219,8 +219,10 @@ class FileController < Metis::Controller
   end
 
   def construct_dest_info
-    if Metis::Path.filepath_match.match(@params[:new_file_path])
-      dest = Metis::Path.new(@params[:new_file_path])
+    new_file_path = Metis::Path.remove_double_slashes(@params[:new_file_path])
+
+    if Metis::Path.filepath_match.match(new_file_path)
+      dest = Metis::Path.new(new_file_path)
       dest_bucket = require_bucket(dest.bucket_name, dest.project_name)
       return dest, dest_bucket
     end
@@ -233,7 +235,7 @@ class FileController < Metis::Controller
     dest_path = Metis::Path.path_from_parts(
       @params[:project_name],
       dest_bucket.name,
-      @params[:new_file_path]
+      new_file_path
     )
 
     return Metis::Path.new(dest_path), dest_bucket
