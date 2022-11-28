@@ -1079,6 +1079,359 @@ describe FolderController do
     end
   end
 
+  context '#copy' do
+    before(:each) do
+      @blueprints_folder = create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
+
+      @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/helmet')
+
+      @sketches_folder = create_folder('athena', 'sketches', folder: @helmet_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches')
+
+      @helmet_file = create_file('athena', 'helmet-sketch.jpg', HELMET, folder: @sketches_folder)
+      stubs.create_file('athena', 'files', 'blueprints/helmet/sketches/helmet-sketch.jpg', HELMET)
+
+      @failed_sketches_folder = create_folder('athena', 'failed-sketches', folder: @sketches_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches/failed-sketches')
+
+      @greenprints_folder = create_folder('athena', 'greenprints')
+      stubs.create_folder('athena', 'files', 'greenprints')
+
+      @user = Etna::User.new({
+        name: 'Athena',
+        email: 'athena@olympus.org',
+        perm: 'a:athena'
+      })
+    end
+
+    context 'in the same bucket' do
+      it 'throws exception if try to copy to child' do
+        expect(Metis::Folder.count).to eq(5)
+
+        expect {
+          @blueprints_folder.copy(
+            new_parent_folder: @sketches_folder,
+            user: @user
+          )
+        }.to raise_error(Metis::Folder::CopyError)
+
+        expect(Metis::Folder.count).to eq(5)
+      end
+
+      it 'works when source is at root of bucket' do
+        expect(Metis::Folder.count).to eq(5)
+        expect(@greenprints_folder.folders.length).to eq(0)
+
+        @blueprints_folder.copy(
+          new_parent_folder: @greenprints_folder,
+          user: @user
+        )
+
+        expect(Metis::Folder.count).to eq(9)
+
+        @blueprints_folder.refresh
+        expect(@blueprints_folder.folder_id).to eq(nil)
+
+        @greenprints_folder.refresh
+        expect(@greenprints_folder.folders.length).to eq(1)
+      end
+
+      it 'works when dest is at root of bucket' do
+        expect(Metis::Folder.count).to eq(5)
+        expect(@sketches_folder.folders.length).to eq(1)
+
+        expect(Metis::Folder.where(bucket_id: default_bucket('athena').id, folder_id: nil).count).to eq(2)
+
+        @failed_sketches_folder.copy(
+          user: @user
+        )
+
+        expect(Metis::Folder.count).to eq(6)
+
+        expect(Metis::Folder.where(bucket_id: default_bucket('athena').id, folder_id: nil).count).to eq(3)
+
+        @sketches_folder.refresh
+        expect(@sketches_folder.folders.length).to eq(1)
+
+        @failed_sketches_folder.refresh
+        expect(@failed_sketches_folder.folder_id).to eq(@sketches_folder.id)
+      end
+
+      it 'copies file and folder contents' do
+        expect(Metis::Folder.count).to eq(5)
+        expect(Metis::File.count).to eq(1)
+        expect(@greenprints_folder.folders.length).to eq(0)
+
+        @helmet_folder.copy(
+          new_parent_folder: @greenprints_folder,
+          user: @user
+        )
+
+        expect(Metis::Folder.count).to eq(8)
+        expect(Metis::File.count).to eq(2)
+        expect(Metis::File.last.data_block).to eq(Metis::File.first.data_block)
+
+        @greenprints_folder.refresh
+        expect(@greenprints_folder.folders.length).to eq(1)
+      end
+    end
+
+    context 'to a different bucket' do
+      before(:each) do
+        stubs.create_bucket('athena', 'backups')
+        @backup_bucket = create( :bucket, project_name: 'athena', name: 'backups', owner: 'metis', access: 'viewer')
+      end
+
+      it 'works when source and dest are at root of bucket' do
+        expect(default_bucket('athena').folders.length).to eq(5)
+        expect(@backup_bucket.folders.length).to eq(0)
+        expect(Metis::Folder.where(bucket_id: @backup_bucket.id, folder_id: nil).count).to eq(0)
+
+        @blueprints_folder.copy(
+          new_bucket: @backup_bucket,
+          user: @user
+        )
+
+        default_bucket('athena').refresh
+        @backup_bucket.refresh
+        expect(default_bucket('athena').folders.length).to eq(5)
+        expect(@backup_bucket.folders.length).to eq(4)
+        expect(Metis::Folder.where(bucket_id: @backup_bucket.id, folder_id: nil).count).to eq(1)
+      end
+
+      it 'works for subfolders' do
+        backup_prints_folder = create_folder('athena', 'prints', bucket: @backup_bucket)
+        stubs.create_folder('athena', 'backups', 'prints')
+
+        expect(backup_prints_folder.folders.length).to eq(0)
+        expect(default_bucket('athena').folders.length).to eq(5)
+        expect(@backup_bucket.folders.length).to eq(1)
+
+        @helmet_folder.copy(
+          new_parent_folder: backup_prints_folder,
+          new_bucket: @backup_bucket,
+          user: @user
+        )
+
+        default_bucket('athena').refresh
+        @backup_bucket.refresh
+        backup_prints_folder.refresh
+        expect(default_bucket('athena').folders.length).to eq(5)
+        expect(@backup_bucket.folders.length).to eq(4)
+        expect(backup_prints_folder.folders.length).to eq(1)
+      end
+
+      it 'copies file and folder contents' do
+        backup_prints_folder = create_folder('athena', 'prints', bucket: @backup_bucket)
+        stubs.create_folder('athena', 'backups', 'prints')
+
+        expect(default_bucket('athena').folders.length).to eq(5)
+        expect(Metis::File.count).to eq(1)
+        expect(@backup_bucket.folders.length).to eq(1)
+
+        @blueprints_folder.copy(
+          new_parent_folder: backup_prints_folder,
+          new_bucket: @backup_bucket,
+          user: @user
+        )
+
+        default_bucket('athena').refresh
+        @backup_bucket.refresh
+        expect(default_bucket('athena').folders.length).to eq(5)
+        expect(@backup_bucket.folders.length).to eq(5)
+        expect(Metis::File.count).to eq(2)
+        expect(Metis::File.last.data_block).to eq(Metis::File.first.data_block)
+        expect(Metis::File.last.bucket_id).not_to eq(Metis::File.first.bucket_id)
+      end
+    end
+  end
+
+  context 'controller#copy' do
+    def copy_folder path, new_path, new_bucket_name=nil
+      json_post(
+        "/athena/folder/copy/files/#{path}",
+        new_parent_folder: new_path,
+        new_bucket_name: new_bucket_name)
+    end
+
+    before(:each) do
+      @blueprints_folder = create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
+
+      @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/helmet')
+
+      @sketches_folder = create_folder('athena', 'sketches', folder: @helmet_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches')
+
+      @helmet_file = create_file('athena', 'helmet-sketch.jpg', HELMET, folder: @sketches_folder)
+      stubs.create_file('athena', 'files', 'blueprints/helmet/sketches/helmet-sketch.jpg', HELMET)
+
+      @failed_sketches_folder = create_folder('athena', 'failed-sketches', folder: @sketches_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches/failed-sketches')
+
+      @greenprints_folder = create_folder('athena', 'greenprints')
+      stubs.create_folder('athena', 'files', 'greenprints')
+
+      @user = Etna::User.new({
+        name: 'Athena',
+        email: 'athena@olympus.org',
+        perm: 'a:athena'
+      })
+    end
+
+    context 'in the same bucket' do
+      it 'throws exception if try to copy to child' do
+        expect(Metis::Folder.count).to eq(5)
+
+        token_header(:editor)
+        copy_folder(
+          ::File.join(@blueprints_folder.folder_path),
+          ::File.join(@sketches_folder.folder_path))
+
+        expect(last_response.status).to eq(422)
+        expect(json_body[:errors]).to match_array([
+          "Cannot copy folder into itself: \"metis://athena/files/blueprints\""
+        ])
+
+        expect(Metis::Folder.count).to eq(5)
+      end
+
+      it 'works when source is at root of bucket' do
+        expect(Metis::Folder.count).to eq(5)
+        expect(@greenprints_folder.folders.length).to eq(0)
+
+        token_header(:editor)
+        copy_folder(
+          ::File.join(@blueprints_folder.folder_path),
+          ::File.join(@greenprints_folder.folder_path))
+
+        expect(Metis::Folder.count).to eq(9)
+
+        @blueprints_folder.refresh
+        expect(@blueprints_folder.folder_id).to eq(nil)
+
+        @greenprints_folder.refresh
+        expect(@greenprints_folder.folders.length).to eq(1)
+      end
+
+      it 'works when dest is at root of bucket' do
+        expect(Metis::Folder.count).to eq(5)
+        expect(@sketches_folder.folders.length).to eq(1)
+
+        expect(Metis::Folder.where(bucket_id: default_bucket('athena').id, folder_id: nil).count).to eq(2)
+
+        token_header(:editor)
+        copy_folder(
+          ::File.join(@failed_sketches_folder.folder_path),
+          "/")
+
+        expect(Metis::Folder.count).to eq(6)
+
+        expect(Metis::Folder.where(bucket_id: default_bucket('athena').id, folder_id: nil).count).to eq(3)
+
+        @sketches_folder.refresh
+        expect(@sketches_folder.folders.length).to eq(1)
+
+        @failed_sketches_folder.refresh
+        expect(@failed_sketches_folder.folder_id).to eq(@sketches_folder.id)
+      end
+
+      it 'copies file and folder contents' do
+        expect(Metis::Folder.count).to eq(5)
+        expect(Metis::File.count).to eq(1)
+        expect(@greenprints_folder.folders.length).to eq(0)
+
+        token_header(:editor)
+        copy_folder(
+          ::File.join(@helmet_folder.folder_path),
+          ::File.join(@greenprints_folder.folder_path))
+
+        expect(Metis::Folder.count).to eq(8)
+        expect(Metis::File.count).to eq(2)
+        expect(Metis::File.last.data_block).to eq(Metis::File.first.data_block)
+
+        @greenprints_folder.refresh
+        expect(@greenprints_folder.folders.length).to eq(1)
+      end
+    end
+
+    context 'to a different bucket' do
+      before(:each) do
+        stubs.create_bucket('athena', 'backups')
+        @backup_bucket = create( :bucket, project_name: 'athena', name: 'backups', owner: 'metis', access: 'viewer')
+      end
+
+      it 'works when source and dest are at root of bucket' do
+        expect(default_bucket('athena').folders.length).to eq(5)
+        expect(@backup_bucket.folders.length).to eq(0)
+        expect(Metis::Folder.where(bucket_id: @backup_bucket.id, folder_id: nil).count).to eq(0)
+
+        token_header(:editor)
+        copy_folder(
+          ::File.join(@blueprints_folder.folder_path),
+          "/",
+          @backup_bucket.name
+        )
+
+        default_bucket('athena').refresh
+        @backup_bucket.refresh
+        expect(default_bucket('athena').folders.length).to eq(5)
+        expect(@backup_bucket.folders.length).to eq(4)
+        expect(Metis::Folder.where(bucket_id: @backup_bucket.id, folder_id: nil).count).to eq(1)
+      end
+
+      it 'works for subfolders' do
+        backup_prints_folder = create_folder('athena', 'prints', bucket: @backup_bucket)
+        stubs.create_folder('athena', 'backups', 'prints')
+
+        expect(backup_prints_folder.folders.length).to eq(0)
+        expect(default_bucket('athena').folders.length).to eq(5)
+        expect(@backup_bucket.folders.length).to eq(1)
+
+        token_header(:editor)
+        copy_folder(
+          ::File.join(@helmet_folder.folder_path),
+          ::File.join(backup_prints_folder.folder_path),
+          @backup_bucket.name
+        )
+
+        default_bucket('athena').refresh
+        @backup_bucket.refresh
+        backup_prints_folder.refresh
+        expect(default_bucket('athena').folders.length).to eq(5)
+        expect(@backup_bucket.folders.length).to eq(4)
+        expect(backup_prints_folder.folders.length).to eq(1)
+      end
+
+      it 'copies file and folder contents' do
+        backup_prints_folder = create_folder('athena', 'prints', bucket: @backup_bucket)
+        stubs.create_folder('athena', 'backups', 'prints')
+
+        expect(default_bucket('athena').folders.length).to eq(5)
+        expect(Metis::File.count).to eq(1)
+        expect(@backup_bucket.folders.length).to eq(1)
+
+        token_header(:editor)
+        copy_folder(
+          ::File.join(@blueprints_folder.folder_path),
+          ::File.join(backup_prints_folder.folder_path),
+          @backup_bucket.name
+        )
+
+        default_bucket('athena').refresh
+        @backup_bucket.refresh
+        expect(default_bucket('athena').folders.length).to eq(5)
+        expect(@backup_bucket.folders.length).to eq(5)
+        expect(Metis::File.count).to eq(2)
+        expect(Metis::File.last.data_block).to eq(Metis::File.first.data_block)
+        expect(Metis::File.last.bucket_id).not_to eq(Metis::File.first.bucket_id)
+      end
+    end
+  end
+
   context '#child_folders' do
     before(:each) do
       @blueprints_folder = create_folder('athena', 'blueprints')
