@@ -235,7 +235,25 @@ describe Metis::FolderCopyRevision do
     expect(revision.errors[0]).to eq(
         "Parent folder is the same as current: \"metis://athena/files/wisdom\""
     )
-end
+  end
+
+  it 'adds error message if trying to copy into same parent directory' do
+    revision = Metis::FolderCopyRevision.new({
+        source: 'metis://athena/files/wisdom',
+        dest: 'metis://athena/files/',
+        user: @user
+    })
+
+    revision.source.bucket = default_bucket('athena')
+    revision.source.folder = @wisdom_folder
+    revision.dest.bucket = default_bucket('athena')
+    expect(revision.errors).to eq(nil)
+    revision.validate
+    expect(revision.errors.length).to eq(1)
+    expect(revision.errors[0]).to eq(
+        "Parent folder is the same as current: \"metis://athena/files/wisdom\""
+    )
+  end
 
   context 'recursive renaming' do
       context 'is okay' do
@@ -245,12 +263,12 @@ end
 
               revision = Metis::FolderCopyRevision.new({
                   source: 'metis://athena/files/wisdom/wisdom2',
-                  dest: 'metis://athena/files/wisdom3',
+                  dest: 'metis://athena/files/',
                   user: @user
               })
 
               revision.source.bucket = default_bucket('athena')
-              revision.source.folder = @wisdom_folder
+              revision.source.folder = wisdom2_folder
               revision.dest.bucket = default_bucket('athena')
               expect(revision.errors).to eq(nil)
               revision.validate

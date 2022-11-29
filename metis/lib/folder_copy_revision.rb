@@ -33,7 +33,7 @@ class Metis
       # Not okay if the source folder is a root folder and the dest is
       #   a root folder, too (i.e. dest.folder == nil), so would be
       #   copying into itself.
-      return unless @source.folder.folder_id == nil && @dest.folder == nil
+      return unless @source.folder != nil && @source.folder.folder_id == nil && @dest.folder == nil
 
       @errors << "Parent folder is the same as current: \"#{@source.mpath.path}\""
     end
