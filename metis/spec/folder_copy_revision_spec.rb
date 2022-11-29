@@ -219,6 +219,24 @@ describe Metis::FolderCopyRevision do
       )
   end
 
+  it 'adds error message if trying to copy into current parent folder' do
+    revision = Metis::FolderCopyRevision.new({
+        source: 'metis://athena/files/wisdom',
+        dest: 'metis://athena/files/',
+        user: @user
+    })
+
+    revision.source.bucket = default_bucket('athena')
+    revision.source.folder = @wisdom_folder
+    revision.dest.bucket = default_bucket('athena')
+    expect(revision.errors).to eq(nil)
+    revision.validate
+    expect(revision.errors.length).to eq(1)
+    expect(revision.errors[0]).to eq(
+        "Parent folder is the same as current: \"metis://athena/files/wisdom\""
+    )
+end
+
   context 'recursive renaming' do
       context 'is okay' do
           it 'copying from subfolder to root' do

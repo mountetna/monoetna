@@ -1120,6 +1120,19 @@ describe FolderController do
         expect(Metis::Folder.count).to eq(5)
       end
 
+      it 'throws exception if try to copy to itself' do
+        expect(Metis::Folder.count).to eq(5)
+
+        expect {
+          @blueprints_folder.copy(
+            new_parent_folder: @blueprints_folder,
+            user: @user
+          )
+        }.to raise_error(Metis::Folder::CopyError)
+
+        expect(Metis::Folder.count).to eq(5)
+      end
+
       it 'works when source is at root of bucket' do
         expect(Metis::Folder.count).to eq(5)
         expect(@greenprints_folder.folders.length).to eq(0)
@@ -1290,6 +1303,22 @@ describe FolderController do
         copy_folder(
           ::File.join(@blueprints_folder.folder_path),
           ::File.join(@sketches_folder.folder_path))
+
+        expect(last_response.status).to eq(422)
+        expect(json_body[:errors]).to match_array([
+          "Cannot copy folder into itself: \"metis://athena/files/blueprints\""
+        ])
+
+        expect(Metis::Folder.count).to eq(5)
+      end
+
+      it 'throws exception if try to copy to self' do
+        expect(Metis::Folder.count).to eq(5)
+
+        token_header(:editor)
+        copy_folder(
+          ::File.join(@blueprints_folder.folder_path),
+          ::File.join(@blueprints_folder.folder_path))
 
         expect(last_response.status).to eq(422)
         expect(json_body[:errors]).to match_array([

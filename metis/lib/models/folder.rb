@@ -186,6 +186,7 @@ class Metis
 
     def copy(new_parent_folder: nil, new_bucket: nil, user:)
       raise CopyError.new("Cannot copy into child folder.") if new_parent_folder && child_folders.include?(new_parent_folder)
+      raise CopyError.new("Cannot copy into itself.") if new_parent_folder && new_parent_folder == self
 
       new_folder = Metis::Folder.create(
         folder_name: folder_name,

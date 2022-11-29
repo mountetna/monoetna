@@ -24,9 +24,19 @@ class Metis
     def validate
       super
       validate_non_recursive_copy
+      validate_new_parent_folder
     end
 
     private
+
+    def validate_new_parent_folder
+      # Not okay if the source folder is a root folder and the dest is
+      #   a root folder, too (i.e. dest.folder == nil), so would be
+      #   copying into itself.
+      return unless @source.folder.folder_id == nil && @dest.folder == nil
+
+      @errors << "Parent folder is the same as current: \"#{@source.mpath.path}\""
+    end
 
     def validate_non_recursive_copy
       return unless dest_path_inside_source
@@ -38,10 +48,12 @@ class Metis
       # Copying from root-to-root is okay
       return false if @source.folder.nil? && @dest.folder.nil?
 
-      # Copying from some subfolder to root is okay
+      # Otherwise, copying from some subfolder to root is okay
       return false if @dest.folder.nil?
       # Not okay where the source folder is a root folder and is the dest folder
       return @dest.folder.folder_name == @source.mpath.file_name && @dest.folder.folder.nil? if @source.folder.nil?
+
+      return true if @source.folder == @dest.folder
 
       # Should return `true` if source is a folder, and it
       #   lies anywhere on the path of @dest.folder up to root
