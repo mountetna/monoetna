@@ -237,6 +237,23 @@ describe Metis::FolderCopyRevision do
     )
   end
 
+  it 'works for copying into same parent in different bucket' do
+    new_bucket = create( :bucket, project_name: 'athena', name: 'backups', owner: 'metis', access: 'viewer')
+
+    revision = Metis::FolderCopyRevision.new({
+        source: 'metis://athena/files/wisdom',
+        dest: 'metis://athena/backups/',
+        user: @user
+    })
+
+    revision.source.bucket = default_bucket('athena')
+    revision.source.folder = @wisdom_folder
+    revision.dest.bucket = new_bucket
+    expect(revision.errors).to eq(nil)
+    revision.validate
+    expect(revision.errors.length).to eq(0)
+  end
+
   it 'adds error message if trying to copy into same parent directory' do
     revision = Metis::FolderCopyRevision.new({
         source: 'metis://athena/files/wisdom',

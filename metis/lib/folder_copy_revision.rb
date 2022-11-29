@@ -30,6 +30,8 @@ class Metis
     private
 
     def validate_new_parent_folder
+      return if @source.bucket != @dest.bucket
+
       # Not okay if the source folder is a root folder and the dest is
       #   a root folder, too (i.e. dest.folder == nil), so would be
       #   copying into itself.
