@@ -38,15 +38,14 @@ const FolderControl = ({
           'Invalid name -- cannot change the folder path'
         )
       );
-    }
- else if (new_folder_name) {
-invoke({
+    } else if (new_folder_name) {
+      invoke({
         type: 'RENAME_FOLDER',
         folder,
         new_folder_path: filePath(current_folder, new_folder_name),
         bucket_name
       });
-}
+    }
   }, [folder, current_folder, bucket_name, invoke]);
 
   const removeFolder = useCallback(() => {
@@ -71,6 +70,19 @@ invoke({
     [folder, bucket_name, current_folder, invoke]
   );
 
+  const copyFolder = useCallback(
+    (newBucketName: string, parentFolderPath: string) => {
+      invoke({
+        type: 'COPY_FOLDER',
+        folder,
+        new_parent_folder: '' === parentFolderPath ? '/' : parentFolderPath,
+        new_bucket_name: newBucketName,
+        bucket_name
+      });
+    },
+    [folder, bucket_name, invoke]
+  );
+
   const moveFolderDialog = useCallback(() => {
     let dialog = {
       type: 'move-folder',
@@ -82,6 +94,18 @@ invoke({
       dialog
     });
   }, [moveFolder, bucket_name, invoke]);
+
+  const copyFolderDialog = useCallback(() => {
+    let dialog = {
+      type: 'copy-folder',
+      onSubmit: copyFolder,
+      currentBucketName: bucket_name
+    };
+    invoke({
+      type: 'SHOW_DIALOG',
+      dialog
+    });
+  }, [copyFolder, bucket_name, invoke]);
 
   let items: UiControlItem[] = folder.read_only
     ? [
@@ -116,6 +140,11 @@ invoke({
           label: 'Move folder',
           callback: moveFolderDialog,
           role: 'editor'
+        },
+        {
+          label: 'Copy folder',
+          callback: copyFolderDialog,
+          role: 'administrator'
         }
       ];
   return <MenuControl items={items} />;

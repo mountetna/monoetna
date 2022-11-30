@@ -24,16 +24,41 @@ class Metis
       !x
       end
 
+      def self.root_folder_path_match
+        # Assumes Metis root folder paths are in the form
+        #    metis://<project>/<bucket>
+        # Splitting the above produces
+        #   ["metis", "", "<project>", "<bucket>"]
+
+        @root_folder_path_match ||= %r!
+        \A
+          metis:\/\/
+          (?<project_name>(\w+))
+          /
+          (?<bucket_name>(\w+))
+          /?
+        \z
+      !x
+      end
+
+      def self.remove_double_slashes(path)
+        return ::File.join(path.split("/")) unless path.start_with?("metis://")
+
+        ::File.join("metis://", path.split("metis://").last.split("/"))
+      end
+
       def self.path_from_parts(project_name, bucket_name, file_path)
-        "metis://#{project_name}/#{bucket_name}/#{file_path}"
+        ::File.join("metis://", project_name, bucket_name, file_path.split("/"))
       end
 
       def project_name
-        valid? ? Metis::Path.filepath_match.match(@path)[:project_name] : nil
+        valid? ?
+          path_regex[:project_name] :
+          nil
       end
 
       def bucket_name
-        valid? ? Metis::Path.filepath_match.match(@path)[:bucket_name] : nil
+        valid? ? path_regex[:bucket_name] : nil
       end
 
       def bucket_matches?(bucket)
@@ -41,7 +66,7 @@ class Metis
       end
 
       def folder_matches?(folder)
-        folder.folder_path.join('/') == folder_path &&
+        ::File.join(folder.folder_path) == folder_path &&
         folder.project_name == project_name
       end
 
@@ -51,7 +76,9 @@ class Metis
       end
 
       def file_path
-        valid? ? Metis::Path.filepath_match.match(@path)[:file_path] : nil
+        valid? && matches_filepath? ?
+          Metis::Path.filepath_match.match(@path)[:file_path] :
+          nil
       end
 
       def file_name
@@ -60,7 +87,21 @@ class Metis
       end
 
       def valid?
+        matches_filepath? || matches_root_folder_path?
+      end
+
+      def matches_filepath?
         !!Metis::Path.filepath_match.match(@path)
+      end
+
+      def matches_root_folder_path?
+        !!Metis::Path.root_folder_path_match.match(@path)
+      end
+
+      def path_regex
+        matches_filepath? ?
+          Metis::Path.filepath_match.match(@path) :
+          Metis::Path.root_folder_path_match.match(@path)
       end
     end
   end
