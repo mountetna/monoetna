@@ -702,10 +702,9 @@
     },
     "hdf5r": {
       "Package": "hdf5r",
-      "Version": "1.3.5",
+      "Version": "1.3.7",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "0870af1f511f6d6d1230e71856801f86",
       "Requirements": [
         "R6",
         "bit64"
