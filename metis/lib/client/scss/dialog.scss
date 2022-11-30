@@ -47,7 +47,6 @@
       }
     }
 
-
     .upload-dialog {
       width: 300px;
       font-family: $base-font;
@@ -67,7 +66,8 @@
     .config-dialog,
     .move-folder-dialog,
     .move-file-dialog,
-    .file-properties-dialog {
+    .file-properties-dialog,
+    .copy-folder-dialog {
       width: 300px;
       font-family: $base-font;
       padding: 5px;
@@ -77,7 +77,7 @@
       }
       .errors {
         display: block;
-        background: rgba(255,0,0,0.1);
+        background: rgba(255, 0, 0, 0.1);
         color: darkred;
         font-size: 0.8em;
         margin: 5px;
@@ -101,12 +101,13 @@
           padding-top: 3px;
           font-size: 0.8em;
           flex: 1 1;
-          select, input {
+          select,
+          input {
             border: 0px;
             border-bottom: $medium-rule;
           }
           input {
-            font-size: 1.0em;
+            font-size: 1em;
             width: 95%;
           }
         }
@@ -120,7 +121,6 @@
           color: #222;
           padding: 3px;
           font-size: 0.8em;
-
         }
       }
 
@@ -163,7 +163,6 @@
           }
         }
       }
-
 
       .ingest-selector {
         margin-bottom: 1rem;

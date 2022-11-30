@@ -8,6 +8,7 @@ import UploadDialog from './dialogs/upload-dialog';
 import MoveFolder from './dialogs/move-folder-dialog';
 import MoveFile from './dialogs/move-file-dialog';
 import FileProperties from './dialogs/file-properties-dialog';
+import CopyFolder from './dialogs/copy-folder-dialog';
 
 const DIALOGS = {
   ConfigureBucket,
@@ -15,7 +16,8 @@ const DIALOGS = {
   UploadDialog,
   MoveFolder,
   MoveFile,
-  FileProperties
+  FileProperties,
+  CopyFolder
 };
 
 const ModalDialog = ({dialog, dismissDialog}) => {
