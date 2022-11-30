@@ -1,11 +1,11 @@
-FROM r-base:4.2.1
+FROM r-base:4.2.2
 
 RUN apt-get update \
    && apt-get install -y \
       curl \
-      libopenblas-base \
       libcurl4-openssl-dev \
       libssl-dev \
+      libopenblas-dev \
       wget \
       gnupg \
       bash-completion \
