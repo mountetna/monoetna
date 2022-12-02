@@ -42,6 +42,7 @@ def metis_etl(
     propagate_updates=True,
     hook: Optional[EtnaHook] = None,
     inject_params: Mapping[str, str] = {},
+    retries: Optional[int] = 10,
 ):
     """
     A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.
@@ -62,17 +63,17 @@ def metis_etl(
     def instantiate_dag(fn):
         @functools.wraps(fn)
         def setup_tail():
-            @task
+            @task(retries=retries)
             def tail_folders() -> List[Folder]:
                 with hook.metis() as metis:
                     return pickled(load_metis_folders_batch(metis, bucket_name))
 
-            @task
+            @task(retries=retries)
             def tail_files() -> List[File]:
                 with hook.metis() as metis:
                     return pickled(load_metis_files_batch(metis, bucket_name))
 
-            @task
+            @task(retries=retries)
             def propagate_folder_updated_at(folders: List[Folder]):
                 result: List[str] = []
                 # For new etl startup, this step is not necessary.
@@ -129,6 +130,7 @@ def box_etl(
     hook: Optional[BoxHook] = None,
     project_name: str = "administration",
     inject_params: Mapping[str, str] = {},
+    retries: Optional[int] = 10,
 ):
     """
     A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.
@@ -151,7 +153,7 @@ def box_etl(
     def instantiate_dag(fn):
         @functools.wraps(fn)
         def setup_tail():
-            @task
+            @task(retries=retries)
             def tail_files() -> List[File]:
                 with hook.box() as box:
                     return pickled(load_box_files_batch(box, folder_name))
@@ -187,7 +189,8 @@ def cat_etl(
     project_name: str = "administration",
     inject_params: Mapping[str, str] = {},
     magic_string: str = "DSCOLAB_",
-    ignore_directories: List[str] = ['Stats', 'test', 'Reports', 'test_DM', 'ec-test']
+    ignore_directories: List[str] = ['Stats', 'test', 'Reports', 'test_DM', 'ec-test'],
+    retries: Optional[int] = 10,
 ):
     """
     A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.
@@ -207,7 +210,7 @@ def cat_etl(
     def instantiate_dag(fn):
         @functools.wraps(fn)
         def setup_tail():
-            @task
+            @task(retries=retries)
             def tail_files() -> List[File]:
                 with hook.cat() as cat:
                     return pickled(load_cat_files_batch(cat, magic_string, ignore_directories))
@@ -242,6 +245,7 @@ def etl(
     interval: timedelta,
     version: Union[int, str],
     inject_params: Mapping = {},
+    retries: Optional[int] = 10,
 ):
     def instantiate_dag(fn):
         start_date = system_epoch
