@@ -1,4 +1,5 @@
 require_relative '../../folder_rename_revision'
+require_relative '../../folder_copy_revision'
 
 class FolderController < Metis::Controller
   def list
@@ -149,6 +150,48 @@ class FolderController < Metis::Controller
     revision.set_folder(
       revision.dest,
       [require_folder(dest_bucket, dest_folder_path)].compact) if dest_folder_path
+
+    revision.validate
+
+    return failure(422, errors: revision.errors) unless revision.valid?
+
+    return success_json(folders: [ revision.revise!.to_hash ])
+  end
+
+  def copy
+    require_param(:new_parent_folder)
+
+    source_bucket = require_bucket
+
+    dest_bucket = source_bucket
+    if @params[:new_bucket_name]
+      dest_bucket = require_bucket(@params[:new_bucket_name])
+    end
+
+    new_parent_folder_path = Metis::Path.remove_double_slashes(@params[:new_parent_folder])
+
+    revision = Metis::FolderCopyRevision.new({
+      source: Metis::Path.path_from_parts(
+        @params[:project_name],
+        source_bucket.name,
+        @params[:folder_path]
+      ),
+      dest: Metis::Path.path_from_parts(
+        @params[:project_name],
+        dest_bucket.name,
+        new_parent_folder_path
+      ),
+      user: @user
+    })
+
+    revision.set_bucket(revision.source, [source_bucket, dest_bucket])
+    revision.set_bucket(revision.dest, [source_bucket, dest_bucket])
+
+    # Don't' use set_folder because that will look for the parent folders as
+    #   if the path passed in is for a file ...
+    #   but in this case, the user is passing in folder paths already.
+    revision.source.folder = require_folder(source_bucket, @params[:folder_path])
+    revision.dest.folder = require_folder(dest_bucket, new_parent_folder_path) unless new_parent_folder_path.empty?
 
     revision.validate
 

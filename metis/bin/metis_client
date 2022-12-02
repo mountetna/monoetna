@@ -19,6 +19,10 @@ require 'singleton'
 CONFIG_FILE='~/.metis.json'
 LOG_FILE='~/.metis.log'
 
+def clean_path(path)
+  Pathname.new(path).cleanpath.to_s.force_encoding('UTF-8')
+end
+
 def github_contents
   uri = URI('https://raw.githubusercontent.com/mountetna/monoetna/master/metis/bin/metis_client')
   response = Net::HTTP.get_response(uri)
@@ -822,7 +826,7 @@ EOT
   class Project < Command
     usage "project [<project_name>]"
     def run(project_name=nil)
-      raise ShellError, "No such project#{project_name && " '#{project_name}'" }. Try:\n#{@shell.project_list.join("\t")}" unless @shell.project_list.include?(project_name)
+      raise ShellError, "No such project#{project_name && " '#{project_name}'" }. Try:\n#{@shell.project_list.join("\t")}" if (@shell.project_list & [ project_name, 'administration' ]).empty?
 
       @shell.project_name = project_name
       @cwd = nil
@@ -982,8 +986,7 @@ EOT
       raise ShellError, 'No remote folder selected!' unless @shell.relative_path(remote_path)
 
       path = local_path =~ %r!^/! ?
-        local_path :
-        Pathname.new(::File.join(*[Dir.pwd, local_path].compact)).cleanpath.to_s
+        local_path : clean_path(::File.join(*[Dir.pwd, local_path].compact))
 
       begin
         # Download a folder
@@ -1076,6 +1079,15 @@ EOT
 
   class Put < Command
     usage "put <input_file1> ... [<input_fileN>] <remote_folder_path>"
+
+    def parse(args)
+      parse_opts(args) do |opts|
+        opts.on("-F", "--fix-filenames", "List file properties") do |n|
+          options[:fix_filenames] = true
+        end
+      end
+    end
+
     def run(*input_files, folder_path)
       raise ShellError, 'No remote folder selected!' unless folder_path
 
@@ -1105,7 +1117,7 @@ EOT
 
     def upload_folder(input_folder, folder_path, folder)
       actual_path = ::File.expand_path(input_folder)
-      folder_name = ::File.basename(actual_path)
+      folder_name = corrected_file_name(::File.basename(actual_path))
       new_folder_path = ::File.join(folder_path, folder_name).sub(%r!^/!,'')
 
       # see if it exists
@@ -1125,10 +1137,19 @@ EOT
       end
     end
 
+    NON_FILE_MATCH=/[\]\[<>:;,?"*\|\/\x00-\x1f]+/
+
+    def corrected_file_name(file_name)
+      return file_name unless options[:fix_filenames]
+
+      # smash all illegal characters to _
+      return file_name.gsub(NON_FILE_MATCH, '_')
+    end
+
     def upload_file(input_file, folder_path, folder)
       # We go through the full upload cycle. First, authorize the upload
       actual_path = ::File.expand_path(input_file)
-      file_name = ::File.basename(actual_path)
+      file_name = corrected_file_name(::File.basename(actual_path))
       bucket_name, new_folder_path = folder_path.split('/',2)
       new_file_path = ::File.join(*[new_folder_path, file_name].compact)
 
@@ -1253,9 +1274,9 @@ EOT
     def load_md5_cache(md5file)
       md5dir = ::File.dirname(md5file)
 
-      File.readlines(md5file).each do |line|
+      File.readlines(md5file, encoding: "UTF-8").each do |line|
         checksum, file_name = line.chomp.split(/\s+/, 2)
-        full_path = Pathname.new(::File.join( md5dir, file_name )).cleanpath.to_s
+        full_path = clean_path(::File.join( md5dir, file_name ))
         next unless ::File.exists?(full_path)
 
         md5_cache[full_path] = checksum
@@ -1278,21 +1299,21 @@ EOT
 
       # compute md5sums
       files.each.with_index do |file,i|
-        file = Pathname.new(file).cleanpath.to_s
+        file = clean_path(file)
 
         print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}      \r"
 
         next if ::File.basename(file) == options[:file] || md5_cache[file]
 
-        md5_cache[file] = %x{ md5sum "#{file}" }.split(' ')[0]
+        md5_cache[file] = %x{ md5sum #{Shellwords.escape(file)} }.split(' ')[0]
       end
       puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}      "
 
-      File.open("md5checksum.txt", "w") do |f|
-        output =  md5_cache.map do |file_name, checksum|
-          "#{checksum}  #{file_name}"
-        end.join("\n")
+      output =  md5_cache.map do |file_name, checksum|
+        "#{checksum}  #{file_name}"
+      end.join("\n")
 
+      File.open("md5checksum.txt", "w") do |f|
         f.puts output
       end
 
@@ -1358,9 +1379,9 @@ EOT
       folders.sort.each do |folder|
         next unless ::Dir.exists?(folder)
         # remove checksum file if necessary
-        files = Dir[folder]
+        remaining_files = Dir[folder]
 
-        if files.size == 1 && is_subdir_checksum_file?(files.first)
+        if remaining_files.size == 1 && is_subdir_checksum_file?(remaining_files.first)
           ::File.delete(file)
         end
 
@@ -1671,7 +1692,7 @@ EOT
     when '/' then nil
     when %r!^/! then file_path.gsub(%r!^/!,'')
     else
-      Pathname.new(::File.join(*[@cwd, file_path].compact)).cleanpath.to_s
+      clean_path(::File.join(*[@cwd, file_path].compact))
     end
     path unless path =~ /^\./
   end

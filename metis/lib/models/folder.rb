@@ -9,6 +9,9 @@ class Metis
 
     one_to_many :files
 
+    class CopyError < Exception
+    end
+
     def self.mkdir_p(bucket, folder_path, project_name, author)
       existing_folders = Metis::Folder.from_path(bucket, folder_path, allow_partial_match: true)
       folder_names = folder_path.split(%r!/!)
@@ -168,7 +171,7 @@ class Metis
 
       new_params[:author] = Metis::File.author(user) if user
 
-      update(**new_params)      
+      update(**new_params)
 
       # Need to recursively update all sub-folders and files
       files.each { |file|
@@ -179,6 +182,27 @@ class Metis
       }
 
       refresh
+    end
+
+    def copy(new_parent_folder: nil, new_bucket: nil, user:)
+      raise CopyError.new("Cannot copy into child folder.") if new_parent_folder && child_folders.include?(new_parent_folder)
+      raise CopyError.new("Cannot copy into itself.") if new_parent_folder && new_parent_folder == self
+
+      new_folder = Metis::Folder.create(
+        folder_name: folder_name,
+        bucket_id: new_bucket.nil? ? bucket.id : new_bucket.id,
+        folder_id: new_parent_folder&.id,
+        project_name: project_name,
+        author: Metis::File.author(user),
+      )
+
+      # Need to recursively update all sub-folders and files
+      files.each { |file|
+        copy_file(new_folder, file, user)
+      }
+      folders.each { |folder|
+        folder.copy(new_parent_folder: new_folder, new_bucket: new_bucket, user: user)
+      }
     end
 
     def remove_contents!
@@ -217,6 +241,40 @@ class Metis
       my_hash.delete(:folder_path) if !with_path
 
       return my_hash
+    end
+
+    private
+
+    def copy_file(new_folder, file, user)
+      revision = Metis::CopyRevision.new({
+        source: Metis::Path.path_from_parts(
+          project_name,
+          bucket.name,
+          ::File.join(folder_path, file.file_name)
+        ),
+        dest: Metis::Path.path_from_parts(
+          project_name,
+          new_folder.bucket.name,
+          ::File.join(new_folder.folder_path, file.file_name)
+        ),
+        user: user
+      })
+
+      revision.set_bucket(revision.source, [bucket])
+      revision.set_bucket(revision.dest, [new_folder.bucket])
+
+      revision.set_folder(
+        revision.source,
+        [self])
+      revision.set_folder(
+        revision.dest,
+        [new_folder])
+
+      revision.validate
+
+      raise Etna::BadRequest, revision.errors.join("\n") unless revision.valid?
+
+      revision.revise!
     end
   end
 end
