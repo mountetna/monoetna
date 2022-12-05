@@ -9,6 +9,7 @@ import CancelIcon from '@material-ui/icons/Cancel';
 import Button from '@material-ui/core/Button';
 
 import QueryPage from 'etna-js/components/query/query_page';
+import VulcanQueryControlButtons from 'etna-js/components/query/vulcan_query_control_buttons';
 
 const useStyles = makeStyles((theme) => ({
   dialog: {
@@ -39,7 +40,10 @@ function QueryEditorDialog({onClose}: {onClose: () => void}) {
     <>
       <DialogTitle>Edit Query</DialogTitle>
       <DialogContent className={classes.dialog}>
-        <QueryPage syncQueryParams={false} />
+        <QueryPage
+          syncQueryParams={false}
+          queryControlButtons={<VulcanQueryControlButtons />}
+        />
       </DialogContent>
       <DialogActions>
         <Button

@@ -122,7 +122,7 @@ export default function InputGroup({
               <Dialog
                 open={openQueryEditorDialog}
                 onClose={handleOnClose}
-                maxWidth='xl'
+                fullScreen={true}
                 disableAutoFocus={true}
                 disableEnforceFocus={true}
               >

@@ -4,6 +4,7 @@ import thunk from 'redux-thunk';
 import {createLogger} from 'redux-logger';
 
 // Reducers.
+import magma from 'etna-js/reducers/magma_reducer';
 import messages from 'etna-js/reducers/message_reducer';
 import exchanges from 'etna-js/reducers/exchanges_reducer';
 import location from 'etna-js/reducers/location_reducer';
@@ -18,7 +19,8 @@ export const VulcanStore = () => {
     location,
     janus,
     user,
-    consignments
+    consignments,
+    magma
   });
 
   let middlewares = [thunk];
