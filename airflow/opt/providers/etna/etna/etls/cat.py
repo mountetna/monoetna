@@ -33,7 +33,9 @@ class CatEtlHelpers(RemoteHelpersBase):
         bucket_name: str,
         channel: str = "data-ingest-ping",
         target_system: str = "Metis",
-        member_ids: Optional[List[str]] = None):
+        member_ids: Optional[List[str]] = None,
+        retries: Optional[int] = 10,
+        depends_on_past: Optional[bool] = False):
         """
         Sends a Slack message to the data-ingest-ping channel, notifying of
             the number of files uploaded.
@@ -46,9 +48,11 @@ class CatEtlHelpers(RemoteHelpersBase):
             channel: str, the Slack channel to post to, default data-ingest-ping
             target_system: str, where the files were ingested to, for the Slack message. Default of "Metis".
             member_ids: Optional[List[str]], list of Slack member ids to be notified of task completion.
+            retries: Optional[int], number of retries for this task. Default of 10.
+            depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.
         """
 
-        @task
+        @task(retries=retries, depends_on_past=depends_on_past)
         def alert(ingested_files, ingested, project_name, bucket_name):
             self.alert(
                 ingested_files,
@@ -66,7 +70,9 @@ class CatEtlHelpers(RemoteHelpersBase):
         files: XComArg,
         folder_path: str = None,
         remove_magic_string: bool = True,
-        batch_size: int = 5) -> XComArg:
+        batch_size: int = 5,
+        retries: Optional[int] = 10,
+        depends_on_past: Optional[bool] = False) -> XComArg:
         """
         Given a list of CAT files, will copy them to the given C4 path,
         mimicking the full directory structure from the CAT.
@@ -76,8 +82,10 @@ class CatEtlHelpers(RemoteHelpersBase):
             folder_path: str, existing folder path to dump the files in. Default is C4 root_path configuration + folder structure on CAT.
             remove_magic_string: bool, remove the magic string from the file name. Default is True.
             batch_size: int, will save the cursor every X files that are ingested. Default is 5.
+            retries: Optional[int], number of retries for this task. Default of 10.
+            depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.
         """
-        @task
+        @task(retries=retries, depends_on_past=depends_on_past)
         def ingest(files, folder_path):
             c4_hook = C4Hook.for_project()
             ingested_files = []
@@ -122,7 +130,9 @@ class CatEtlHelpers(RemoteHelpersBase):
         bucket_name: str = "waiting_room",
         folder_path: str = None,
         remove_magic_string: bool = True,
-        batch_size: int = 5) -> XComArg:
+        batch_size: int = 5,
+        retries: Optional[int] = 10,
+        depends_on_past: Optional[bool] = False) -> XComArg:
         """
         Given a list of files, will copy them to the given Metis project_name and bucket_name,
         mimicking the full directory structure from the CAT.
@@ -134,8 +144,10 @@ class CatEtlHelpers(RemoteHelpersBase):
             folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.
             remove_magic_string: bool, remove the magic string from the file name. Default is True.
             batch_size: int, will save the cursor every X files that are ingested. Default is 5.
+            retries: Optional[int], number of retries for this task. Default of 10.
+            depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.
         """
-        @task
+        @task(retries=retries, depends_on_past=depends_on_past)
         def ingest(files, project_name, bucket_name, folder_path):
             etna_hook = EtnaHook.for_project(project_name)
             ingested_files = []
