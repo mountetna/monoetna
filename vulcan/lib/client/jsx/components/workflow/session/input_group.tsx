@@ -1,4 +1,10 @@
-import React, {useState, useContext, useEffect, useMemo} from 'react';
+import React, {
+  useState,
+  useContext,
+  useEffect,
+  useMemo,
+  useCallback
+} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
@@ -13,6 +19,9 @@ import {
 import {BoundInputSpecification} from '../user_interactions/inputs/input_types';
 import {useWorkflow} from '../../../contexts/workflow_context';
 
+import Dialog from '@material-ui/core/Dialog';
+import EditIcon from '@material-ui/icons/Edit';
+import Button from '@material-ui/core/Button';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import Grid from '@material-ui/core/Grid';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
@@ -20,12 +29,17 @@ import Accordion from '@material-ui/core/Accordion';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
 
+import QueryEditorDialog from './query_editor_dialog';
+
 const useStyles = makeStyles((theme) => ({
   header: {
     background: '#eee',
     cursor: 'pointer',
     minHeight: '32px',
     height: '32px'
+  },
+  button: {
+    margin: '1rem'
   },
   group: {
     padding: 0,
@@ -51,6 +65,7 @@ export default function InputGroup({
   select,
   expanded
 }: Props) {
+  const [openQueryEditorDialog, setOpenQueryEditorDialog] = useState(false);
   const {state} = useContext(VulcanContext);
   const {workflow} = useWorkflow();
   let {session, status, data} = state;
@@ -79,6 +94,10 @@ export default function InputGroup({
     return isQueryInputGroup(workflow, inputs);
   }, [workflow, inputs]);
 
+  const handleOnClose = useCallback(() => {
+    setOpenQueryEditorDialog(false);
+  }, []);
+
   return (
     <Accordion elevation={0} expanded={expanded} onChange={select}>
       <AccordionSummary className={classes.header}>
@@ -89,6 +108,28 @@ export default function InputGroup({
           {sortedInputs.map((input, index) => {
             return <UserInput input={input} key={index} />;
           })}
+          {showQueryEditor && (
+            <>
+              <Button
+                className={classes.button}
+                onClick={() => setOpenQueryEditorDialog(true)}
+                color='primary'
+                startIcon={<EditIcon />}
+                variant='contained'
+              >
+                Edit query
+              </Button>
+              <Dialog
+                open={openQueryEditorDialog}
+                onClose={handleOnClose}
+                maxWidth='xl'
+                disableAutoFocus={true}
+                disableEnforceFocus={true}
+              >
+                <QueryEditorDialog onClose={handleOnClose} />
+              </Dialog>
+            </>
+          )}
         </Grid>
       </AccordionDetails>
     </Accordion>

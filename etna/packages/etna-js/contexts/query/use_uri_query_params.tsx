@@ -15,7 +15,8 @@ export default function useUriQueryParams({
   setRootModel,
   setWhereState,
   search,
-  pathname
+  pathname,
+  syncQueryParams = true
 }: {
   columnState: QueryColumnState;
   rootModel: string;
@@ -25,6 +26,7 @@ export default function useUriQueryParams({
   setWhereState: (whereState: QueryWhereState) => void;
   search?: string;
   pathname?: string;
+  syncQueryParams: boolean;
 }) {
   if (!search) search = window.location.search;
   if (!pathname) pathname = window.location.pathname;
@@ -41,6 +43,8 @@ export default function useUriQueryParams({
 
   // Update the search params to reflect current state
   useEffect(() => {
+    if (!syncQueryParams) return;
+
     let searchParams = new URLSearchParams(search);
     searchParams.set('rootModel', rootModel);
     Object.entries(whereState).forEach(([key, value]: [string, any]) => {
@@ -53,11 +57,12 @@ export default function useUriQueryParams({
     if (search !== searchParams.toString()) {
       history.pushState({}, '', `${pathname}?${searchParams.toString()}`);
     }
-  }, [rootModel, search, whereState, columnState, pathname]);
+  }, [rootModel, search, whereState, columnState, pathname, syncQueryParams]);
 
   // Set current state to reflect query params only on component load
   useEffect(() => {
     if (search === '') return;
+    if (!syncQueryParams) return;
 
     let searchParams = new URLSearchParams(search);
 

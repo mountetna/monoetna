@@ -20,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const QueryControls = () => {
+const QueryControls = ({syncQueryParams}: {syncQueryParams: boolean}) => {
   const classes = useStyles();
   const {
     state: {rootModel},
@@ -35,7 +35,8 @@ const QueryControls = () => {
     setQueryColumns,
     rootModel: rootModel || '',
     whereState,
-    setWhereState
+    setWhereState,
+    syncQueryParams
   });
 
   return (

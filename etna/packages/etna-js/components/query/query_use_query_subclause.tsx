@@ -5,6 +5,7 @@ import {Cancellable} from 'etna-js/utils/cancellable';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
 import {requestAnswer} from 'etna-js/actions/magma_actions';
+import {handleFetchError} from 'etna-js/utils/fetch';
 import {QuerySubclause} from '../../contexts/query/query_types';
 import {QueryGraph} from '../../utils/query/query_graph';
 
@@ -53,8 +54,9 @@ const useQuerySubclause = ({
         .then(({result, cancelled}: any) => {
           if (result && !cancelled) setDistinctAttributeValues(result.answer);
         })
+        .catch(handleFetchError)
         .catch((e: any) => {
-          invoke(showMessages([e]));
+          invoke(showMessages(e));
         });
     }
 

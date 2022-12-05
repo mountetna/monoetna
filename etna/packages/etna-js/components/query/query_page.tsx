@@ -10,7 +10,7 @@ import {QueryGraphProvider} from '../../contexts/query/query_graph_context';
 import {QueryResultsProvider} from '../../contexts/query/query_results_context';
 import QueryBuilder from './query_builder';
 
-const QueryPage = ({}) => {
+const QueryPage = ({syncQueryParams}: {syncQueryParams: boolean}) => {
   const invoke = useActionInvoker();
 
   useEffect(() => {
@@ -25,7 +25,7 @@ const QueryPage = ({}) => {
             <QueryResultsProvider>
               <Grid container direction='column' className='query-page'>
                 <Grid item xs={12}>
-                  <QueryBuilder />
+                  <QueryBuilder syncQueryParams={syncQueryParams} />
                 </Grid>
               </Grid>
             </QueryResultsProvider>
