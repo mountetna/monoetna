@@ -1,4 +1,3 @@
-import {sortAttributes} from '../utils/attributes';
 import {defaultMemoize} from 'reselect';
 
 const attributeItem = (attribute_name) => ({type: 'magma', attribute_name});

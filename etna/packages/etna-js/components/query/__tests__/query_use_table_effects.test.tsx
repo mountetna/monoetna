@@ -3,7 +3,7 @@ import {renderHook} from '@testing-library/react-hooks';
 import '@testing-library/jest-dom/extend-expect';
 
 import {mockStore, querySpecWrapper} from '../../../spec/helpers';
-import useTableEffects from '../../query/query_use_table_effects';
+import useTableEffects from '../query_use_table_effects';
 import {QueryGraph} from '../../../utils/query/query_graph';
 import {defaultQueryResultsParams} from '../../../contexts/query/query_results_context';
 

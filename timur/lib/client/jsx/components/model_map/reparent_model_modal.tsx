@@ -6,7 +6,7 @@ import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {selectModels} from 'etna-js/selectors/magma';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 
-import DisabledButton from '../search/disabled_button';
+import DisabledButton from 'etna-js/components/disabled_button';
 import ModalSelect from './modal_select';
 
 export default function ReparentModelModal({

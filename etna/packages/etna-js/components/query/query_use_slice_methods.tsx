@@ -7,7 +7,7 @@ import {
   selectMatrixModelNames,
   selectCollectionModelNames,
   emptyQueryClauseStamp
-} from '../../selectors/query_selector';
+} from '../../selectors/query/query_selector';
 
 const useSliceMethods = (
   columnIndex: number,

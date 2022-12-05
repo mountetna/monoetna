@@ -4,13 +4,13 @@ import SelectInput from 'etna-js/components/inputs/select_input';
 import Toggle from 'etna-js/components/inputs/toggle';
 import {selectModelNames} from 'etna-js/selectors/magma';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
-import {selectSearchFilterString} from '../../selectors/search';
+import {selectSearchFilterString} from 'etna-js/selectors/search';
 import {
   setFilterString,
   setSearchAttributeNames
 } from '../../actions/search_actions';
 import QueryBuilder from './query_builder';
-import DisabledButton from './disabled_button';
+import DisabledButton from 'etna-js/components/disabled_button';
 import SearchTsvOptionsModal from './search_tsv_options_modal';
 
 const TableSelect = ({model_names, selectedModel, onSelectTableChange}) => (

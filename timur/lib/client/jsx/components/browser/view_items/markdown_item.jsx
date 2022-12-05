@@ -4,9 +4,9 @@ import * as React from 'react';
 import {MagmaName} from './magma_item';
 import {DefaultName} from '../item_name';
 
-import MarkdownAttribute from '../../attributes/markdown_attribute';
-import AttributeViewer from '../../attributes/attribute_viewer';
-import MarkdownViewer from '../../markdown_viewer';
+import MarkdownAttribute from 'etna-js/components/attributes/markdown_attribute';
+import AttributeViewer from 'etna-js/components/attributes/attribute_viewer';
+import MarkdownViewer from 'etna-js/components/markdown_viewer';
 
 export const MarkdownName = (props) => {
   let {item} = props;
@@ -20,8 +20,8 @@ export const MarkdownName = (props) => {
 const MarkdownItem = ({item, ...props}) => {
   let {attribute_name, text} = item;
 
-  if (attribute_name)
-    {return (
+  if (attribute_name) {
+    return (
       <div className='item'>
         <AttributeViewer
           {...props}
@@ -29,7 +29,8 @@ const MarkdownItem = ({item, ...props}) => {
           attribute_name={attribute_name}
         />
       </div>
-    );}
+    );
+  }
 
   return (
     <div className='item'>

@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import Grid from '@material-ui/core/Grid';
 
 import {QueryClause, QuerySlice} from '../../contexts/query/query_types';
-import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraph} from '../../utils/query/query_graph';
 import QueryFilterClause from './query_filter_clause';
 import RemoveIcon from './query_remove_icon';
 

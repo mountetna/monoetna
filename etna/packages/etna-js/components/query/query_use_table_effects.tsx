@@ -11,8 +11,8 @@ import {
   attributeIsMatrix,
   hasMatrixSlice,
   queryColumnMatrixHeadings
-} from '../../selectors/query_selector';
-import {QueryGraph} from '../../utils/query_graph';
+} from '../../selectors/query/query_selector';
+import {QueryGraph} from '../../utils/query/query_graph';
 
 const useTableEffects = ({
   columns,

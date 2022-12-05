@@ -6,7 +6,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 
-import DisabledButton from '../search/disabled_button';
+import DisabledButton from 'etna-js/components/disabled_button';
 import {Attribute} from '../../api/magma_api';
 import {SNAKE_CASE, COMMA_SEP, VALIDATION_TYPES} from '../../utils/edit_map';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';

@@ -390,3 +390,5 @@ declare module 'etna-js/hooks/useAsyncWork' {
 declare module 'etna-js/utils/janus' {
   export function isGuest(user: any, project_name: string): boolean;
 }
+
+declare var CONFIG;

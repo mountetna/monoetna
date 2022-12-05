@@ -1,4 +1,4 @@
-import {QueryGraph} from '../../../lib/client/jsx/utils/query_graph';
+import {QueryGraph} from '../query_graph';
 
 const models = {
   monster: {

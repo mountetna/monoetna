@@ -3,7 +3,7 @@ import React, {useState, useCallback, useEffect} from 'react';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 
-import DisabledButton from '../search/disabled_button';
+import DisabledButton from 'etna-js/components/disabled_button';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 import {COMMA_SEP, SNAKE_CASE} from '../../utils/edit_map';
 import ModalSelect from './modal_select';

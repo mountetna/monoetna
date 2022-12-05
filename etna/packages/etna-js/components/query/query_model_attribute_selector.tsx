@@ -6,18 +6,18 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import TextField from '@material-ui/core/TextField';
 import Paper from '@material-ui/core/Paper';
 
-import {Attribute} from '../../models/model_types';
+import {Attribute} from '../../models/magma-model';
 
 import useSliceMethods from './query_use_slice_methods';
 import {QueryColumn} from '../../contexts/query/query_types';
 import {
   selectAllowedModelAttributes,
   attributeIsFile
-} from '../../selectors/query_selector';
+} from '../../selectors/query/query_selector';
 import QuerySlicePane from './query_slice_pane';
 
 import {visibleSortedAttributesWithUpdatedAt} from '../../utils/attributes';
-import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraph} from '../../utils/query/query_graph';
 import RemoveIcon from './query_remove_icon';
 import CopyIcon from './query_copy_icon';
 import Selector from './query_selector';
@@ -52,14 +52,15 @@ const AttributeSelector = React.memo(
   }) => {
     const classes = useStyles();
 
-    if (!canEdit)
-      {return (
+    if (!canEdit) {
+      return (
         <TextField
           disabled
           value={column.attribute_name}
           className='query-column-attribute'
         />
-      );}
+      );
+    }
 
     return (
       <FormControl className={classes.fullWidth}>
@@ -187,7 +188,7 @@ const QueryModelAttributeSelector = React.memo(
           <Grid item xs={2}>
             <TextField
               value={column.display_label}
-              onChange={(e) => onChangeLabel(e.target.value)}
+              onChange={(e: any) => onChangeLabel(e.target.value)}
             />
           </Grid>
           <Grid item xs={2}>

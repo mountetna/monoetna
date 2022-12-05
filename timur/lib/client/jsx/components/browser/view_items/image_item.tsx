@@ -1,8 +1,8 @@
 // Framework libraries.
 import * as React from 'react';
 
-import ImageAttribute from '../../attributes/image_attribute';
-import AttributeViewer from '../../attributes/attribute_viewer';
+import ImageAttribute from 'etna-js/components/attributes/image_attribute';
+import AttributeViewer from 'etna-js/components/attributes/attribute_viewer';
 
 const ImageItem = ({item, ...props}: {item: any}) => {
   let {attribute_name} = item;

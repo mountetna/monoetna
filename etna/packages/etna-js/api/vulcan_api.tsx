@@ -31,7 +31,7 @@ export const createAndOpenFigure = (payload: CreateFigurePayload) => {
   )
     .then(checkStatus)
     .then(handleFetchSuccess)
-    .then(({figure_id}) => {
+    .then(({figure_id}: {figure_id: string}) => {
       window.open(
         `${CONFIG.vulcan_host}/${CONFIG.project_name}/figure/${figure_id}`,
         '_blank'

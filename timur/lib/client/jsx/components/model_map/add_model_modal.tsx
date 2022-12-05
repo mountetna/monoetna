@@ -9,9 +9,9 @@ import {selectModels} from 'etna-js/selectors/magma';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 import {SNAKE_CASE, SNAKE_CASE_STRICT} from '../../utils/edit_map';
-import DisabledButton from '../search/disabled_button';
+import DisabledButton from 'etna-js/components/disabled_button';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
-import AntSwitch from '../query/ant_switch';
+import AntSwitch from 'etna-js/components/query/ant_switch';
 
 const useStyles = makeStyles((theme) => ({
   switch: {

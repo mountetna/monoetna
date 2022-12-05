@@ -1,7 +1,7 @@
 // Construct a query graph from the Magma Models,
 //   so we can traverse and ask it questions.
 import {DirectedGraph} from 'etna-js/utils/directed_graph';
-import {Model, Template, Attribute} from '../models/model_types';
+import {Model, Template, Attribute} from '../../models/magma-model';
 
 export class QueryGraph {
   models: {[key: string]: Model};
@@ -26,8 +26,9 @@ export class QueryGraph {
         let template: Template = modelDefinition.template;
         this.allowedModels.add(modelName);
 
-        if (!this.unallowedModels.includes(template.parent))
-          {this.graph.addConnection(template.parent, modelName);}
+        if (!this.unallowedModels.includes(template.parent)) {
+          this.graph.addConnection(template.parent, modelName);
+        }
 
         Object.values(template.attributes)
           .filter(

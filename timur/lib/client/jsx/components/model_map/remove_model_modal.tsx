@@ -6,7 +6,7 @@ import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {makeStyles} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 
-import DisabledButton from '../search/disabled_button';
+import DisabledButton from 'etna-js/components/disabled_button';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 
 const useStyles = makeStyles((theme) => ({

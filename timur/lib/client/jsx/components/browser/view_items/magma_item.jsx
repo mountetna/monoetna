@@ -1,7 +1,7 @@
 // Framework libraries.
 import * as React from 'react';
 
-import AttributeViewer from '../../attributes/attribute_viewer';
+import AttributeViewer from 'etna-js/components/attributes/attribute_viewer';
 
 const isRevised = (revision, record, att_name) =>
   att_name in revision && record[att_name] != revision[att_name];

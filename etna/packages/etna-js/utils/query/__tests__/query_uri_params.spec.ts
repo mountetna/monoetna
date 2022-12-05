@@ -1,4 +1,4 @@
-import {migrateSubclauses} from '../../../lib/client/jsx/utils/query_uri_params';
+import {migrateSubclauses} from '../query_uri_params';
 
 describe('migrateSubclauses', () => {
   describe('old clause format', () => {

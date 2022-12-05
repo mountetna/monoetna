@@ -15,12 +15,13 @@ const IdentifierAttribute = ({
   attribute,
   reviseDocument
 }) => {
-  if (mode != 'edit')
-    {return (
+  if (mode != 'edit') {
+    return (
       <div className='attribute'>
         {value && <MagmaLink link={value} model={template.name} />}
       </div>
-    );}
+    );
+  }
 
   return (
     <div className='attribute'>

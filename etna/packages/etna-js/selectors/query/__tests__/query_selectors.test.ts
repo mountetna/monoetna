@@ -237,8 +237,7 @@ describe('createFigurePayload', () => {
     const result = createFigurePayload({
       query: {
         user_columns: ['foo', 'bar'],
-        query: 'this is a query',
-        something: {key: 'value'}
+        query: 'this is a query'
       },
       title: 'A plot',
       workflow: {
@@ -247,7 +246,8 @@ describe('createFigurePayload', () => {
           '2': 'user_columns',
           '3': 'something'
         },
-        name: 'test'
+        name: 'test',
+        displayName: 'test'
       }
     });
 

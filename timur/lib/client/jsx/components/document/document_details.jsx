@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import {formatDate} from '../../utils/dates';
+import {formatDate} from 'etna-js/utils/dates';
 
 const AccessRadio = ({onUpdate, access, value, disabled}) =>
   access != value && disabled ? (

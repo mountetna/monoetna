@@ -7,8 +7,8 @@ import Tooltip from '@material-ui/core/Tooltip';
 import AddIcon from '@material-ui/icons/Add';
 
 import {QueryClause, QueryFilter} from '../../contexts/query/query_types';
-import {emptyQueryClauseStamp} from '../../selectors/query_selector';
-import {QueryGraph} from '../../utils/query_graph';
+import {emptyQueryClauseStamp} from '../../selectors/query/query_selector';
+import {QueryGraph} from '../../utils/query/query_graph';
 import QueryFilterClause from './query_filter_clause';
 import RemoveIcon from './query_remove_icon';
 import CopyIcon from './query_copy_icon';

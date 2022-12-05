@@ -2,9 +2,9 @@ import React, {useMemo} from 'react';
 import _ from 'lodash';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {selectAllowedModelAttributes} from '../../selectors/query_selector';
+import {selectAllowedModelAttributes} from '../../selectors/query/query_selector';
 import {visibleSortedAttributesWithUpdatedAt} from '../../utils/attributes';
-import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraph} from '../../utils/query/query_graph';
 
 const useQueryClause = ({
   modelName,

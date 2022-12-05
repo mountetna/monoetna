@@ -6,7 +6,7 @@ import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
 import {requestAnswer} from 'etna-js/actions/magma_actions';
 import {QuerySubclause} from '../../contexts/query/query_types';
-import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraph} from '../../utils/query/query_graph';
 
 const useQuerySubclause = ({
   subclause,

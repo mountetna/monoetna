@@ -12,7 +12,7 @@ import {
   QueryColumn
 } from '../../contexts/query/query_types';
 import {Cancellable} from 'etna-js/utils/cancellable';
-import {queryPayload} from '../../selectors/query_selector';
+import {queryPayload} from '../../selectors/query/query_selector';
 
 const useResultsActions = ({
   countQuery,

@@ -13,9 +13,9 @@ import {
   QueryClause,
   QuerySubclause
 } from '../../contexts/query/query_types';
-import {emptyQueryClauseStamp} from '../../selectors/query_selector';
+import {emptyQueryClauseStamp} from '../../selectors/query/query_selector';
 import useQueryClause from './query_use_query_clause';
-import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraph} from '../../utils/query/query_graph';
 import RemoveIcon from './query_remove_icon';
 import Selector from './query_selector';
 import QueryFilterSubclause from './query_filter_subclause';

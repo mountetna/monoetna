@@ -30,7 +30,7 @@ import {
   QueryResultsContext,
   defaultQueryResultsParams
 } from '../../contexts/query/query_results_context';
-import {QueryBuilder} from '../../utils/query_builder';
+import {QueryBuilder} from '../../utils/query/query_builder';
 import useTableEffects from './query_use_table_effects';
 import useResultsActions from './query_use_results_actions';
 import QueryTsvOptionsModal from './query_tsv_options_modal';
@@ -169,8 +169,9 @@ const QueryControlButtons = () => {
   ]);
 
   useEffect(() => {
-    if (JSON.stringify(query) !== queryString)
-      {setQueryString(JSON.stringify(query));}
+    if (JSON.stringify(query) !== queryString) {
+      setQueryString(JSON.stringify(query));
+    }
   }, [query, setQueryString, queryString]);
 
   function resetQuery() {

@@ -5,7 +5,7 @@ import {makeStyles} from '@material-ui/core/styles';
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import {QueryColumnContext} from '../../contexts/query/query_column_context';
 import {QueryResultsContext} from '../../contexts/query/query_results_context';
-import {userColumns} from '../../selectors/query_selector';
+import {userColumns} from '../../selectors/query/query_selector';
 import QueryTable from './query_table';
 import useTableEffects from './query_use_table_effects';
 import AntSwitch from './ant_switch';

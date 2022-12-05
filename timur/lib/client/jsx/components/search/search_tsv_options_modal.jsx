@@ -5,14 +5,14 @@ import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
 import {requestTSV} from 'etna-js/actions/magma_actions';
 
-import TsvOptionsModal from './tsv_options_modal';
+import TsvOptionsModal from 'etna-js/components/tsv_options_modal';
 
 import {
   selectSearchFilterString,
   selectSearchShowDisconnected,
   selectSortedAttributeNames,
   selectSearchOutputPredicate
-} from '../../selectors/search';
+} from 'etna-js/selectors/search';
 
 export default function SearchTsvOptionsModal({selectedModel}) {
   const [expandMatrices, setExpandMatrices] = useState(false);
@@ -59,5 +59,11 @@ export default function SearchTsvOptionsModal({selectedModel}) {
     }
   ];
 
-  return <TsvOptionsModal options={options} onDownload={onDownload} disabled={false} />;
+  return (
+    <TsvOptionsModal
+      options={options}
+      onDownload={onDownload}
+      disabled={false}
+    />
+  );
 }

@@ -4,7 +4,7 @@ import {
   selectDisplayAttributeNamesAndTypes,
   selectSearchShowDisconnected,
   selectSortedAttributeNames
-} from '../../selectors/search';
+} from 'etna-js/selectors/search';
 import {
   setFilterString,
   setShowDisconnected,

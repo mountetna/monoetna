@@ -27,10 +27,10 @@ import {
   QueryResultsState
 } from '../contexts/query/query_results_context';
 
-export const mockStore = (state, middleware = []) =>
+export const mockStore = (state: any, middleware = []) =>
   configureMockStore([thunk, ...middleware])(state);
 
-function nockDebug(...args) {
+function nockDebug(...args: any) {
   if (process.env['NOCK_DEBUG'] === '1') {
     console.log(...args);
   }
@@ -136,7 +136,7 @@ export function delay(ms: number) {
 }
 
 global.expect.extend({
-  toResolve: async (promise) => {
+  toResolve: async (promise: any) => {
     const resolved = await promise.then(
       () => true,
       () => false
@@ -176,7 +176,7 @@ export const querySpecWrapper =
     mockWhereState: QueryWhereState;
     mockGraphState: QueryGraphState;
     mockResultsState: QueryResultsState;
-    store: typeof mockStore;
+    store: any;
   }) =>
   ({children}: {children?: any}) =>
     (

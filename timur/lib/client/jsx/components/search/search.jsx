@@ -16,7 +16,7 @@ import {
   selectExpandedDisplayAttributeNames,
   selectSortedDisplayAttributeNames,
   selectSearchOutputPredicate
-} from '../../selectors/search';
+} from 'etna-js/selectors/search';
 import {
   cacheSearchPage,
   setSearchPageSize,
@@ -27,7 +27,7 @@ import {
   setSelectedModel
 } from '../../actions/search_actions';
 
-import ModelViewer from '../model_viewer';
+import ModelViewer from 'etna-js/components/model_viewer';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 import SearchQuery from './search_query';
 import {showMessages} from 'etna-js/actions/message_actions';

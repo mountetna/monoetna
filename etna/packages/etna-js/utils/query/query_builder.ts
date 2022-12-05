@@ -5,7 +5,7 @@ import {
   QuerySlice,
   QueryClause,
   QuerySubclause
-} from '../contexts/query/query_types';
+} from '../../contexts/query/query_types';
 import {QueryGraph} from './query_graph';
 import QuerySimplePathBuilder from './query_simple_path_builder';
 import QueryFilterPathBuilder from './query_filter_path_builder';
@@ -14,12 +14,12 @@ import {
   isMatrixSlice,
   getPath,
   isIdentifierQuery
-} from '../selectors/query_selector';
+} from '../../selectors/query/query_selector';
 import {
   injectValueAtPath,
   nextInjectionPathItem
 } from './query_any_every_helpers';
-import FilterOperator from '../components/query/query_filter_operator';
+import FilterOperator from '../../components/query/query_filter_operator';
 import {
   isOldClauseFormat,
   subclauseFromOldClauseFormat
@@ -322,8 +322,9 @@ export class QueryBuilder {
       }
     });
 
-    if (includeAttributeName)
-      {predicate.push(...this.attributeNameWithPredicate(column));}
+    if (includeAttributeName) {
+      predicate.push(...this.attributeNameWithPredicate(column));
+    }
 
     return predicate;
   }

@@ -2,7 +2,7 @@ import React, {useState, useCallback} from 'react';
 
 import LinearProgress from '@material-ui/core/LinearProgress';
 
-import TsvOptionsModal from '../search/tsv_options_modal';
+import TsvOptionsModal from '../tsv_options_modal';
 
 export default function QueryTsvOptionsModal({onDownload}: {onDownload: any}) {
   const [transpose, setTranspose] = useState(false);

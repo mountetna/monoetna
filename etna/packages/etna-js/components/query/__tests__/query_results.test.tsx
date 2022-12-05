@@ -3,7 +3,7 @@ import {render, fireEvent, waitFor, screen} from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 
 import {mockStore, querySpecWrapper} from '../../../spec/helpers';
-import QueryResults from '../../query/query_results';
+import QueryResults from '../query_results';
 import {QueryGraph} from '../../../utils/query/query_graph';
 import {defaultQueryResultsParams} from '../../../contexts/query/query_results_context';
 

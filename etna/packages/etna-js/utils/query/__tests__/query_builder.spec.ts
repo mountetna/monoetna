@@ -1,6 +1,6 @@
-import {QueryBuilder} from '../../../lib/client/jsx/utils/query_builder';
-import {QueryGraph} from '../../../lib/client/jsx/utils/query_graph';
-import {QuerySlice} from '../../../lib/client/jsx/contexts/query/query_types';
+import {QueryBuilder} from '../query_builder';
+import {QueryGraph} from '../query_graph';
+import {QuerySlice} from '../../../contexts/query/query_types';
 
 function stampTemplate(template: any) {
   return {

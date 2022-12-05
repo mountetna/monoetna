@@ -6,7 +6,7 @@ import {
   EmptyQuerySubclause,
   EmptyQueryClause,
   QuerySubclause
-} from '../contexts/query/query_types';
+} from '../../contexts/query/query_types';
 
 export const isOldClauseFormat = (clause: QueryClause) => {
   return (

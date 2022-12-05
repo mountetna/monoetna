@@ -9,10 +9,10 @@ import {Debouncer} from 'etna-js/utils/debouncer';
 import {QuerySubclause} from '../../contexts/query/query_types';
 import FilterOperator from './query_filter_operator';
 import useQuerySubclause from './query_use_query_subclause';
-import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraph} from '../../utils/query/query_graph';
 import RemoveIcon from './query_remove_icon';
 import Selector from './query_selector';
-import {Attribute} from '../../models/model_types';
+import {Attribute} from '../../models/magma-model';
 
 const useStyles = makeStyles((theme) => ({
   option: {
@@ -219,8 +219,9 @@ const QueryFilterSubclause = ({
                 onInputChange={(e, v, r) => {
                   // Only send event if user manually clears the value
                   //   or selects a non-empty-string option.
-                  if ('' !== v || 'reset' !== r)
-                    {handleOperandChangeWithDebounce(v || '');}
+                  if ('' !== v || 'reset' !== r) {
+                    handleOperandChangeWithDebounce(v || '');
+                  }
                 }}
                 inputValue={operandValue.toString()}
                 data-testid='operand-autocomplete'

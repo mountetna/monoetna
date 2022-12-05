@@ -1,4 +1,4 @@
-import {injectValueAtPath} from '../../../lib/client/jsx/utils/query_any_every_helpers';
+import {injectValueAtPath} from '../query_any_every_helpers';
 
 describe('injectValueAtPath', () => {
   it('correctly injects and appends ::any', () => {

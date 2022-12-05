@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 
 import AttributeViewer from '../attributes/attribute_viewer';
-import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraph} from '../../utils/query/query_graph';
 import {QueryTableColumn} from '../../contexts/query/query_types';
 
 const QueryTableAttributeViewer = ({

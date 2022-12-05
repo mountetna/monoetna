@@ -7,7 +7,7 @@ import {selectModels} from 'etna-js/selectors/magma';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 import {SNAKE_CASE} from '../../utils/edit_map';
-import DisabledButton from '../search/disabled_button';
+import DisabledButton from 'etna-js/components/disabled_button';
 import ModalSelect from './modal_select';
 import {ShrinkingLabelTextField} from './shrinking_label_text_field';
 

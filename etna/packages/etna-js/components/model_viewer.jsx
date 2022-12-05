@@ -7,7 +7,7 @@ import {
   selectDocuments,
   displayAttributes
 } from 'etna-js/selectors/magma';
-import AttributeViewer from './attributes/attribute_viewer';
+import AttributeViewer from 'etna-js/components/attributes/attribute_viewer';
 
 const ModelViewer = ({
   record_names,
@@ -37,11 +37,10 @@ const ModelViewer = ({
         template={template}
         record={row.original}
         attribute_name={att_name}
-        mode="model_viewer"
+        mode='model_viewer'
       />
     )
   }));
-
 
   let data = record_names.map((record_name) => documents[record_name]);
 
@@ -53,7 +52,9 @@ const ModelViewer = ({
       setPage={setPage}
       columns={columns}
       data={data}
-    >{children}</TableViewer>
+    >
+      {children}
+    </TableViewer>
   );
 };
 

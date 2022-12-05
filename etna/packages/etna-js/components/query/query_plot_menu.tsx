@@ -29,7 +29,7 @@ import {Workflow} from '../../contexts/query/query_types';
 import {
   queryPayload,
   createFigurePayload
-} from '../../selectors/query_selector';
+} from '../../selectors/query/query_selector';
 
 const PlotIcons: {
   [key: string]: OverridableComponent<SvgIconTypeMap<{}, 'svg'>>;
@@ -113,7 +113,7 @@ const usePlotActions = ({
         .then(() => {
           setPlotLoading(original);
         })
-        .catch((e) => invoke(showMessages(Array.isArray(e) ? e : [e])));
+        .catch((e: any) => invoke(showMessages(Array.isArray(e) ? e : [e])));
     },
     [plotLoading, setPlotLoading, columns, expandMatrices, queryString, invoke]
   );
@@ -236,10 +236,10 @@ const QueryPlotMenu = () => {
 
   useEffect(() => {
     fetchWorkflows()
-      .then(({workflows}) => {
+      .then(({workflows}: {workflows: Workflow[]}) => {
         setPlottingWorkflows(workflows);
       })
-      .catch((e) =>
+      .catch((e: any) =>
         invoke(
           showMessages([
             'Error fetching workflows from Vulcan. Plotting disabled.'

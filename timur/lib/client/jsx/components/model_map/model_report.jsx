@@ -1,6 +1,6 @@
 import {useDispatch} from 'react-redux';
 import React, {useState, useCallback, useMemo, useEffect} from 'react';
-import {sortAttributeList} from '../../utils/attributes';
+import {sortAttributeList} from 'etna-js/utils/attributes';
 import SelectProjectModelDialog from '../select_project_model';
 import {requestAnswer} from 'etna-js/actions/magma_actions';
 import {getDocuments} from 'etna-js/api/magma_api';

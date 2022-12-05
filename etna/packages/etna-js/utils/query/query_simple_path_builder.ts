@@ -1,5 +1,5 @@
-import {Model} from '../models/model_types';
-import {stepIsOneToMany} from '../selectors/query_selector';
+import {Model} from '../../models/magma-model';
+import {stepIsOneToMany} from '../../selectors/query/query_selector';
 
 export default class QuerySimplePathBuilder {
   path: string[];

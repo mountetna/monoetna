@@ -4,7 +4,7 @@ import '@testing-library/jest-dom/extend-expect';
 import userEvent from '@testing-library/user-event';
 
 import {mockStore, querySpecWrapper, stubUrl} from '../../../spec/helpers';
-import QueryBuilder from '../../query/query_builder';
+import QueryBuilder from '../query_builder';
 import {QueryGraph} from '../../../utils/query/query_graph';
 import {defaultQueryResultsParams} from '../../../contexts/query/query_results_context';
 

@@ -12,7 +12,7 @@ import TablePagination from '@material-ui/core/TablePagination';
 
 import {QueryTableColumn} from '../../contexts/query/query_types';
 import QueryTableAttributeViewer from './query_table_attribute_viewer';
-import {QueryGraph} from '../../utils/query_graph';
+import {QueryGraph} from '../../utils/query/query_graph';
 
 const useStyles = makeStyles({
   table: {
