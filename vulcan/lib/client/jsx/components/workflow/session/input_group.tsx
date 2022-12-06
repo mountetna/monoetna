@@ -6,6 +6,8 @@ import React, {
   useCallback
 } from 'react';
 
+import {some} from 'etna-js/selectors/maybe';
+
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import UserInput from '../user_interactions/inputs/user_input';
@@ -14,7 +16,8 @@ import {
   isPendingUiQuery,
   pendingSteps,
   uiQueryOfStep,
-  isQueryInputGroup
+  isQueryInputGroup,
+  workflowHasQueryUserColumnsMapped
 } from '../../../selectors/workflow_selectors';
 import {BoundInputSpecification} from '../user_interactions/inputs/input_types';
 import {useWorkflow} from '../../../contexts/workflow_context';
@@ -98,6 +101,39 @@ export default function InputGroup({
     setOpenQueryEditorDialog(false);
   }, []);
 
+  const handleOnSave = useCallback(
+    ({query, userColumns}) => {
+      if (workflowHasQueryUserColumnsMapped(workflow)) {
+        const queryInput = Object.entries(workflow.inputQueryMap).find(
+          ([_, queryTerm]) => 'query' === queryTerm
+        );
+        if (queryInput) {
+          const queryInputName = queryInput[0];
+          sortedInputs
+            .find(
+              (input: BoundInputSpecification) => input.name === queryInputName
+            )
+            ?.onChange(some(JSON.stringify(query)));
+        }
+
+        const userColumnsInput = Object.entries(workflow.inputQueryMap).find(
+          ([_, queryTerm]) => 'user_columns' === queryTerm
+        );
+        console.log('userColumnsInput', userColumnsInput);
+        if (userColumnsInput) {
+          const userColumnsInputName = userColumnsInput[0];
+          sortedInputs
+            .find(
+              (input: BoundInputSpecification) =>
+                input.name === userColumnsInputName
+            )
+            ?.onChange(some(JSON.stringify(userColumns)));
+        }
+      }
+    },
+    [sortedInputs, workflow]
+  );
+
   return (
     <Accordion elevation={0} expanded={expanded} onChange={select}>
       <AccordionSummary className={classes.header}>
@@ -126,7 +162,10 @@ export default function InputGroup({
                 disableAutoFocus={true}
                 disableEnforceFocus={true}
               >
-                <QueryEditorDialog onClose={handleOnClose} />
+                <QueryEditorDialog
+                  onClose={handleOnClose}
+                  onSave={handleOnSave}
+                />
               </Dialog>
             </>
           )}

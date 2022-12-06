@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -33,7 +33,21 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-function QueryEditorDialog({onClose}: {onClose: () => void}) {
+function QueryEditorDialog({
+  onClose,
+  onSave
+}: {
+  onClose: () => void;
+  onSave: ({
+    query,
+    userColumns
+  }: {
+    query: string | any[];
+    userColumns: string[];
+  }) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [userColumns, setUserColumns] = useState([]);
   const classes = useStyles();
 
   return (
@@ -42,7 +56,14 @@ function QueryEditorDialog({onClose}: {onClose: () => void}) {
       <DialogContent className={classes.dialog}>
         <QueryPage
           syncQueryParams={false}
-          queryControlButtons={<VulcanQueryControlButtons />}
+          queryControlButtons={
+            <VulcanQueryControlButtons
+              onUpdateQuery={({query, userColumns}) => {
+                setQuery(query);
+                setUserColumns(userColumns);
+              }}
+            />
+          }
         />
       </DialogContent>
       <DialogActions>
@@ -56,6 +77,10 @@ function QueryEditorDialog({onClose}: {onClose: () => void}) {
         </Button>
         <Button
           onClick={() => {
+            onSave({
+              query,
+              userColumns
+            });
             onClose();
           }}
           startIcon={<SaveIcon />}

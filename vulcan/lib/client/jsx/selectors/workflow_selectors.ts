@@ -505,3 +505,11 @@ export function isQueryInputGroup(
     inputNames.sort()
   );
 }
+
+export function workflowHasQueryUserColumnsMapped(workflow: Workflow) {
+  return (
+    workflow.inputQueryMap &&
+    Object.values(workflow.inputQueryMap).includes('query') &&
+    Object.values(workflow.inputQueryMap).includes('user_columns')
+  );
+}

@@ -8,9 +8,12 @@ import {QueryResultsContext} from '../../contexts/query/query_results_context';
 import {EmptyQueryResponse} from '../../contexts/query/query_types';
 import QueryModelSelector from './query_model_selector';
 import QueryClause from './query_clause';
-import QueryControlButtons from './query_control_buttons';
 
-const QueryFromPane = () => {
+const QueryFromPane = ({
+  queryControlButtons
+}: {
+  queryControlButtons: React.FC;
+}) => {
   const {
     state: {graph, rootModel},
     setRootModel
@@ -45,7 +48,7 @@ const QueryFromPane = () => {
           />
         </Grid>
         <Grid item container alignItems='center' justify='flex-end' xs={4}>
-          {rootModel ? <QueryControlButtons /> : null}
+          {rootModel ? queryControlButtons : null}
         </Grid>
       </Grid>
     </QueryClause>

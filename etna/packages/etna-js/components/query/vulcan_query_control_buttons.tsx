@@ -9,13 +9,8 @@ import * as _ from 'lodash';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
-import ReplayIcon from '@material-ui/icons/Replay';
-import ShareIcon from '@material-ui/icons/Share';
-
 import {makeStyles} from '@material-ui/core/styles';
 
-import {useModal} from 'etna-js/components/ModalDialogContainer';
-import {copyText} from 'etna-js/utils/copy';
 import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 import {
   QueryColumnContext,
@@ -25,15 +20,11 @@ import {
   QueryWhereContext,
   defaultQueryWhereParams
 } from '../../contexts/query/query_where_context';
-import {
-  QueryResultsContext,
-  defaultQueryResultsParams
-} from '../../contexts/query/query_results_context';
+import {QueryResultsContext} from '../../contexts/query/query_results_context';
 import {QueryBuilder} from '../../utils/query/query_builder';
 import useTableEffects from './query_use_table_effects';
 import useResultsActions from './query_use_results_actions';
-import QueryTsvOptionsModal from './query_tsv_options_modal';
-import QueryPlotMenu from './query_plot_menu';
+import {userColumns} from '../../selectors/query/query_selector';
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -41,18 +32,25 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const QueryControlButtons = () => {
+const VulcanQueryControlButtons = ({
+  onUpdateQuery
+}: {
+  onUpdateQuery: ({
+    query,
+    userColumns
+  }: {
+    query: string | any[];
+    userColumns: string[];
+  }) => void;
+}) => {
   const {
-    state: {graph, rootModel},
-    setRootModel
+    state: {graph, rootModel}
   } = useContext(QueryGraphContext);
   const {
-    state: {columns},
-    setQueryColumns
+    state: {columns}
   } = useContext(QueryColumnContext);
   const {
-    state: {recordFilters, orRecordFilterIndices},
-    setWhereState
+    state: {recordFilters, orRecordFilterIndices}
   } = useContext(QueryWhereContext);
   const {
     state: {
@@ -65,8 +63,7 @@ const QueryControlButtons = () => {
       maxColumns
     },
     setQueryString,
-    setDataAndNumRecords,
-    setResultsState
+    setDataAndNumRecords
   } = useContext(QueryResultsContext);
 
   const [lastColumns, setLastColumns] = useState(
@@ -82,8 +79,6 @@ const QueryControlButtons = () => {
   const [lastFlattenQuery, setLastFlattenQuery] = useState(flattenQuery);
   const [lastPage, setLastPage] = useState(page);
   const [lastPageSize, setLastPageSize] = useState(pageSize);
-
-  const {openModal} = useModal();
 
   const classes = useStyles();
 
@@ -130,7 +125,7 @@ const QueryControlButtons = () => {
     maxColumns
   });
 
-  const {runQuery, downloadData} = useResultsActions({
+  const {runQuery} = useResultsActions({
     countQuery: count,
     query,
     page,
@@ -170,19 +165,12 @@ const QueryControlButtons = () => {
   useEffect(() => {
     if (JSON.stringify(query) !== queryString) {
       setQueryString(JSON.stringify(query));
+      onUpdateQuery({
+        query,
+        userColumns: userColumns(columns)
+      });
     }
-  }, [query, setQueryString, queryString]);
-
-  function resetQuery() {
-    setRootModel(null);
-    setResultsState(defaultQueryResultsParams);
-    setQueryColumns(defaultQueryColumnParams.columns);
-    setWhereState(defaultQueryWhereParams);
-  }
-
-  function copyLink() {
-    copyText(window.location.href);
-  }
+  }, [query, setQueryString, queryString, columns, onUpdateQuery]);
 
   const disableQueryBtn = useMemo(() => {
     return (
@@ -219,36 +207,12 @@ const QueryControlButtons = () => {
       <Grid item>
         <Button
           className={classes.button}
-          color='default'
-          onClick={resetQuery}
-          startIcon={<ReplayIcon />}
-        >
-          Reset Query
-        </Button>
-        <Button
-          className={classes.button}
           color='secondary'
           onClick={handleRunQuery}
           disabled={disableQueryBtn}
         >
           Query
         </Button>
-        <Button
-          className={classes.button}
-          onClick={() => {
-            openModal(<QueryTsvOptionsModal onDownload={downloadData} />);
-          }}
-        >
-          {'\u21af TSV'}
-        </Button>
-        <Button
-          className={classes.button}
-          onClick={copyLink}
-          startIcon={<ShareIcon />}
-        >
-          Copy Link
-        </Button>
-        <QueryPlotMenu />
       </Grid>
       <Grid item>
         {formattedColumns.length > maxColumns ? (
@@ -264,4 +228,4 @@ const QueryControlButtons = () => {
   );
 };
 
-export default QueryControlButtons;
+export default VulcanQueryControlButtons;

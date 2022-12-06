@@ -2,21 +2,23 @@
 import * as React from 'react';
 import Link from 'etna-js/components/link';
 
-export default class MagmaLink extends React.Component{
+export default class MagmaLink extends React.Component {
+  render() {
+    let {link, model} = this.props;
 
-  render(){
-    let { link, model } = this.props;
-
-    return(
+    return (
       <Link
         link={
-          Routes.browse_model_path(
-            CONFIG.project_name,
-            model,
-            encodeURIComponent(link)
-          )
-        }>
-        { link }
+          Routes.browse_model_path
+            ? Routes.browse_model_path(
+                CONFIG.project_name,
+                model,
+                encodeURIComponent(link)
+              )
+            : '#'
+        }
+      >
+        {link}
       </Link>
     );
   }

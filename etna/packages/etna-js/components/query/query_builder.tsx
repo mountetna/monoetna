@@ -7,7 +7,13 @@ import {QueryGraphContext} from '../../contexts/query/query_graph_context';
 
 import useQueryGraph from '../../contexts/query/use_query_graph';
 
-const QueryBuilder = ({syncQueryParams}: {syncQueryParams: boolean}) => {
+const QueryBuilder = ({
+  syncQueryParams,
+  queryControlButtons
+}: {
+  syncQueryParams: boolean;
+  queryControlButtons: React.FC;
+}) => {
   const {
     state: {graph},
     setGraph
@@ -20,7 +26,10 @@ const QueryBuilder = ({syncQueryParams}: {syncQueryParams: boolean}) => {
 
   return (
     <React.Fragment>
-      <QueryControls syncQueryParams={syncQueryParams} />
+      <QueryControls
+        syncQueryParams={syncQueryParams}
+        queryControlButtons={queryControlButtons}
+      />
       <QueryResults />
     </React.Fragment>
   );

@@ -4,6 +4,7 @@ import {ThemeProvider} from '@material-ui/core/styles';
 
 import {findRoute, setRoutes} from 'etna-js/dispatchers/router';
 import QueryPage from 'etna-js/components/query/query_page';
+import QueryControlButtons from 'etna-js/components/query/query_control_buttons';
 
 // Components.
 import Manifests from './components/manifest/manifests';
@@ -149,6 +150,10 @@ class TimurUI extends React.Component {
 
     // this key allows us to remount the component when the params change
     let key = JSON.stringify(params);
+
+    if (QueryPage === Component) {
+      params.queryControlButtons = <QueryControlButtons />;
+    }
 
     return (
       <React.Fragment>

@@ -20,7 +20,13 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const QueryControls = ({syncQueryParams}: {syncQueryParams: boolean}) => {
+const QueryControls = ({
+  syncQueryParams,
+  queryControlButtons
+}: {
+  syncQueryParams: boolean;
+  queryControlButtons: React.FC;
+}) => {
   const classes = useStyles();
   const {
     state: {rootModel},
@@ -49,7 +55,7 @@ const QueryControls = ({syncQueryParams}: {syncQueryParams: boolean}) => {
       direction='column'
       xs={12}
     >
-      <QueryFromPane />
+      <QueryFromPane queryControlButtons={queryControlButtons} />
       <QueryWherePane />
       <QuerySelectPane />
     </Grid>
