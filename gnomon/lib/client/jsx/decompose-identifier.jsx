@@ -22,7 +22,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import Tooltip from '@material-ui/core/Tooltip';
-import { TableWithTitle, IdTreeTable } from './match-tables';
+import { IdTreeTable } from './match-tables';
 
 const useStyles = makeStyles((theme) => ({
   header: {
@@ -222,9 +222,11 @@ const DecomposeIdentifier = ({project_name, identifier}) => {
         </Grid>
       </Grid> }
       { decomposition && <Grid item container className={classes.tables}>
-        <TableWithTitle title='Matching Rules' className={classes.table_column}>
-          <IdTreeTable className={classes.match_rules} decomposition={decomposition} project_name={project_name}/>
-        </TableWithTitle>
+        <IdTreeTable
+          title='Matching Rules' boxClassName={classes.table_column}
+          tableClassName={classes.match_rules}
+          decomposition={decomposition}
+          project_name={project_name}/>
       </Grid>
       }
     </Grid>
