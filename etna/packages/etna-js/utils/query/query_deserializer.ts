@@ -45,8 +45,6 @@ QueryGraphText
 }
 */
 
-import {range} from 'lodash';
-
 export class QueryDeserializer {
   query: any[];
   userColumns: string[];
@@ -67,11 +65,11 @@ export class QueryDeserializer {
     //   we will just have to keep the Or filters at the end of the
     //   filters list. So here we'll just check for the presence of
     //   ::or and return those indices here.
-    this.rawFilters()
+    return this.rawFilters()
       .filter((filter) => filter !== '::and')
       .map((filter, index) => {
         if (Array.isArray(filter) && filter[0] === '::or') {
-          return [...Array(filter.length).keys()].map((val) => val + index);
+          return [...Array(filter.length - 1).keys()].map((val) => val + index);
         }
         return null;
       })
@@ -83,11 +81,13 @@ export class QueryDeserializer {
 
   rawFilters() {
     // Computed from the query between indices 0 and the location of "::all"
-    return this.query.slice(1, this.query.indexOf(':all'));
+    return this.query.slice(1, this.query.indexOf(':all') - 1).flat(1);
   }
 
   rawColumns() {
     // Computed from the query between the location of "::all" and end
-    return this.query.slice(this.query.indexOf('::all'), this.query.length);
+    return this.query
+      .slice(this.query.indexOf('::all') + 1, this.query.length)
+      .flat(1);
   }
 }
