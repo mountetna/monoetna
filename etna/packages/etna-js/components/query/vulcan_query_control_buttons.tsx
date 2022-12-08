@@ -211,7 +211,7 @@ const VulcanQueryControlButtons = ({
           onClick={handleRunQuery}
           disabled={disableQueryBtn}
         >
-          Query
+          Preview Data
         </Button>
       </Grid>
       <Grid item>
