@@ -211,7 +211,86 @@ describe('QueryDeserializer', () => {
     expect(deserializer.rootModel()).toEqual('monster');
   });
 
-  it('correctly constructs recordFilters', () => {});
+  describe('recordFilters', () => {
+    it('works with just one on root model', () => {
+      const deserializer = new QueryDeserializer(
+        ['monster', ['name', '::equals', 'Nemean Lion'], '::all', ['name']],
+        ['monster.name']
+      );
 
-  it('correctly constructs columns', () => {});
+      expect(deserializer.recordFilters()).toEqual([
+        {
+          modelName: 'monster',
+          anyMap: {},
+          clauses: [
+            {
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::equals',
+                  operand: 'Nemean Lion',
+                  attributeType: '' // Hopefully this gets populated correctly on the UI side, later...
+                }
+              ],
+              modelName: 'monster',
+              any: true
+            }
+          ]
+        }
+      ]);
+    });
+
+    it('works with multiple model filters joined by ::and', () => {});
+
+    it('correctly sets ::every in anyMap', () => {});
+
+    it('includes multiple subclauses in root model filter', () => {});
+
+    it('includes multiple subclauses in non-root model filter', () => {});
+
+    it('comma-joins ::in operands', () => {
+      const deserializer = new QueryDeserializer(
+        [
+          'monster',
+          ['name', '::in', ['Nemean Lion', 'Lernean Hydra']],
+          '::all',
+          ['name']
+        ],
+        ['monster.name']
+      );
+
+      expect(deserializer.recordFilters()).toEqual([
+        {
+          modelName: 'monster',
+          anyMap: {},
+          clauses: [
+            {
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::in',
+                  operand: 'Nemean Lion,Lernean Hydra',
+                  attributeType: '' // Hopefully this gets populated correctly on the UI side, later...
+                }
+              ],
+              modelName: 'monster',
+              any: true
+            }
+          ]
+        }
+      ]);
+    });
+
+    it('correctly constructs inverted operators', () => {});
+
+    it('correctly constructs terminal operators', () => {});
+  });
+
+  describe('columns', () => {
+    it('works with no edited user_columns', () => {});
+
+    it('works with edited user_columns', () => {});
+
+    it('comma-joins ::slice operands', () => {});
+  });
 });

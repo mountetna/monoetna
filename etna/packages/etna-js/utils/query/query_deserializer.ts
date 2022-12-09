@@ -44,50 +44,185 @@ QueryGraphText
   rootModel: "patient"
 }
 */
-
+import {
+  QueryFilter,
+  QueryColumn,
+  QueryClause,
+  QuerySubclause,
+  EmptyQuerySubclause
+} from '../../contexts/query/query_types';
+import QueryFilterOperator from '../../components/query/query_filter_operator';
 export class QueryDeserializer {
   query: any[];
   userColumns: string[];
+  operatorHelper: QueryFilterOperator;
+
+  and: string;
+  or: string;
+  all: string;
+  every: string;
+  any: string;
 
   constructor(query: any[], userColumns: string[]) {
     this.query = query;
     this.userColumns = userColumns;
+
+    this.and = '::and';
+    this.or = '::or';
+    this.all = '::all';
+    this.every = '::every';
+    this.any = '::any';
+
+    this.operatorHelper = new QueryFilterOperator({
+      subclause: {...EmptyQuerySubclause},
+      isColumnFilter: false
+    });
   }
 
   rootModel() {
     return this.query[0];
   }
 
-  recordFilters() {}
+  recordFilters(): QueryFilter[] {
+    // If the first element of this.rawFilters() is "::and", then there
+    //   must be more than 1 filter.
+    // Otherwise, just one filter, that we return.
+    const rawFilters = this.rawFilters();
 
-  orRecordFilterIndices() {
+    if (this.isCompositeFilter(rawFilters)) {
+      // This could still be an ::and on the rootModel(), or
+      //   could include paths to other models...deal with that
+      //   separately.
+      return [];
+    } else {
+      return [this.toFilter(rawFilters)];
+    }
+  }
+
+  isCompositeFilter(rawFilter: any[]): boolean {
+    // If the first element is ::and or ::or, then is a composition of
+    //   multiple filters.
+    return this.and === rawFilter[0] || this.or === rawFilter[0];
+  }
+
+  toFilter(rawFilterArray: any[]): QueryFilter {
+    // Model is same as this.rootModel() unless the last element is
+    //   this.any or this.every. In which case we have to find
+    //   the filter model by digging into the nested arrays.
+    let modelName: string;
+    let anyMap = {};
+    let clauses: QueryClause[];
+
+    if (
+      ![this.any, this.every].includes(
+        rawFilterArray[rawFilterArray.length - 1]
+      )
+    ) {
+      modelName = this.rootModel();
+      clauses = [
+        {
+          modelName,
+          any: true,
+          subclauses: [this.toSubclause(rawFilterArray)]
+        }
+      ];
+    } else {
+      modelName = 'blah';
+      clauses = [];
+    }
+
+    return {
+      modelName,
+      anyMap,
+      clauses
+    };
+  }
+
+  toSubclause(rawSubclause: any[]): QuerySubclause {
+    // For subclauses, I think attributeType will populate itself
+    //   in the useQuerySubclauses hook, so we leave it as "" here.
+    // For subclauses, some operators have only 2 arguments (::true, ::false, ::untrue). Use this.operatorHelper() to detect these.
+    //      - Some of these are even flipped! ::has, ::lacks come before attributeName
+    // ::in (and others) requires us to comma-join the array to a single string.
+    //
+    // rawSubclause must be an array, i.e. ["name", "::=", "foo"]
+    //   - It can be nested.
+    //   - It can include the path to a different model, instead of just being an attribute on the rootModel()
+    //   - It can also start with ::and or ::or ...
+    let subclause = {...EmptyQuerySubclause};
+
+    if (this.hasNestedSubclauses(rawSubclause)) {
+    } else {
+      let testInvertedOperator = rawSubclause[0];
+      let testOperator = rawSubclause[1];
+      if (
+        QueryFilterOperator.terminalInvertOperators.includes(
+          testInvertedOperator
+        )
+      ) {
+        subclause.operator = testInvertedOperator;
+        subclause.attributeName = rawSubclause[1];
+      } else if (QueryFilterOperator.terminalOperators.includes(testOperator)) {
+        subclause.operator = testOperator;
+        subclause.attributeName = rawSubclause[0];
+      } else {
+        // Must include an operand!
+        subclause.attributeName = rawSubclause[0];
+        subclause.operator = rawSubclause[1];
+
+        if (
+          QueryFilterOperator.commaSeparatedOperators.includes(
+            subclause.operator
+          )
+        ) {
+          subclause.operand = rawSubclause[2].join(',');
+        } else {
+          subclause.operand = rawSubclause[2];
+        }
+      }
+    }
+
+    return subclause;
+  }
+
+  hasNestedSubclauses(rawSubclause: any[]): boolean {
+    // Any element except the last one (i.e. from a ::in or ::slice operand)
+    //   that is an Array, indicates a nested subclause.
+    return rawSubclause
+      .slice(0, rawSubclause.length - 1)
+      .some((subclause: any) => Array.isArray(subclause));
+  }
+
+  orRecordFilterIndices(): number[] {
     // There is no way to get the original order of the filters here, so
     //   we will just have to keep the Or filters at the end of the
     //   filters list. So here we'll just check for the presence of
     //   ::or and return those indices here.
     return this.rawFilters()
-      .filter((filter) => filter !== '::and')
+      .filter((filter) => this.and !== filter)
       .map((filter, index) => {
-        if (Array.isArray(filter) && filter[0] === '::or') {
+        if (Array.isArray(filter) && this.or === filter[0]) {
           return [...Array(filter.length - 1).keys()].map((val) => val + index);
         }
         return null;
       })
       .filter((_) => _)
-      .flat();
+      .flat() as number[];
   }
 
-  columns() {}
+  columns(): QueryColumn[] {}
 
   rawFilters() {
     // Computed from the query between indices 0 and the location of "::all"
-    return this.query.slice(1, this.query.indexOf(':all') - 1).flat(1);
+    return this.query.slice(1, this.allIndex()).flat(1);
   }
 
   rawColumns() {
     // Computed from the query between the location of "::all" and end
-    return this.query
-      .slice(this.query.indexOf('::all') + 1, this.query.length)
-      .flat(1);
+    return this.query.slice(this.allIndex() + 1, this.query.length).flat(1);
+  }
+
+  allIndex() {
+    return this.query.indexOf(this.all);
   }
 }
