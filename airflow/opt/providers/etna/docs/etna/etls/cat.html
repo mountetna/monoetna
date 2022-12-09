@@ -105,7 +105,9 @@
         <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;data-ingest-ping&quot;</span><span class="p">,</span>
         <span class="n">target_system</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Metis&quot;</span><span class="p">,</span>
-        <span class="n">member_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">member_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">depends_on_past</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends a Slack message to the data-ingest-ping channel, notifying of</span>
 <span class="sd">            the number of files uploaded.</span>
@@ -118,9 +120,11 @@
 <span class="sd">            channel: str, the Slack channel to post to, default data-ingest-ping</span>
 <span class="sd">            target_system: str, where the files were ingested to, for the Slack message. Default of &quot;Metis&quot;.</span>
 <span class="sd">            member_ids: Optional[List[str]], list of Slack member ids to be notified of task completion.</span>
+<span class="sd">            retries: Optional[int], number of retries for this task. Default of 10.</span>
+<span class="sd">            depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="nd">@task</span>
+        <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="n">depends_on_past</span><span class="o">=</span><span class="n">depends_on_past</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">alert</span><span class="p">(</span><span class="n">ingested_files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">alert</span><span class="p">(</span>
                 <span class="n">ingested_files</span><span class="p">,</span>
@@ -138,7 +142,9 @@
         <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
         <span class="n">folder_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">depends_on_past</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a list of CAT files, will copy them to the given C4 path,</span>
 <span class="sd">        mimicking the full directory structure from the CAT.</span>
@@ -148,8 +154,10 @@
 <span class="sd">            folder_path: str, existing folder path to dump the files in. Default is C4 root_path configuration + folder structure on CAT.</span>
 <span class="sd">            remove_magic_string: bool, remove the magic string from the file name. Default is True.</span>
 <span class="sd">            batch_size: int, will save the cursor every X files that are ingested. Default is 5.</span>
+<span class="sd">            retries: Optional[int], number of retries for this task. Default of 10.</span>
+<span class="sd">            depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nd">@task</span>
+        <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="n">depends_on_past</span><span class="o">=</span><span class="n">depends_on_past</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">c4_hook</span> <span class="o">=</span> <span class="n">C4Hook</span><span class="o">.</span><span class="n">for_project</span><span class="p">()</span>
             <span class="n">ingested_files</span> <span class="o">=</span> <span class="p">[]</span>
@@ -194,7 +202,9 @@
         <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;waiting_room&quot;</span><span class="p">,</span>
         <span class="n">folder_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">depends_on_past</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a list of files, will copy them to the given Metis project_name and bucket_name,</span>
 <span class="sd">        mimicking the full directory structure from the CAT.</span>
@@ -206,8 +216,10 @@
 <span class="sd">            folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.</span>
 <span class="sd">            remove_magic_string: bool, remove the magic string from the file name. Default is True.</span>
 <span class="sd">            batch_size: int, will save the cursor every X files that are ingested. Default is 5.</span>
+<span class="sd">            retries: Optional[int], number of retries for this task. Default of 10.</span>
+<span class="sd">            depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nd">@task</span>
+        <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="n">depends_on_past</span><span class="o">=</span><span class="n">depends_on_past</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">etna_hook</span> <span class="o">=</span> <span class="n">EtnaHook</span><span class="o">.</span><span class="n">for_project</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span>
             <span class="n">ingested_files</span> <span class="o">=</span> <span class="p">[]</span>
@@ -320,7 +332,9 @@
         <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;data-ingest-ping&quot;</span><span class="p">,</span>
         <span class="n">target_system</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Metis&quot;</span><span class="p">,</span>
-        <span class="n">member_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">member_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">depends_on_past</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends a Slack message to the data-ingest-ping channel, notifying of</span>
 <span class="sd">            the number of files uploaded.</span>
@@ -333,9 +347,11 @@
 <span class="sd">            channel: str, the Slack channel to post to, default data-ingest-ping</span>
 <span class="sd">            target_system: str, where the files were ingested to, for the Slack message. Default of &quot;Metis&quot;.</span>
 <span class="sd">            member_ids: Optional[List[str]], list of Slack member ids to be notified of task completion.</span>
+<span class="sd">            retries: Optional[int], number of retries for this task. Default of 10.</span>
+<span class="sd">            depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="nd">@task</span>
+        <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="n">depends_on_past</span><span class="o">=</span><span class="n">depends_on_past</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">alert</span><span class="p">(</span><span class="n">ingested_files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">alert</span><span class="p">(</span>
                 <span class="n">ingested_files</span><span class="p">,</span>
@@ -353,7 +369,9 @@
         <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
         <span class="n">folder_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">depends_on_past</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a list of CAT files, will copy them to the given C4 path,</span>
 <span class="sd">        mimicking the full directory structure from the CAT.</span>
@@ -363,8 +381,10 @@
 <span class="sd">            folder_path: str, existing folder path to dump the files in. Default is C4 root_path configuration + folder structure on CAT.</span>
 <span class="sd">            remove_magic_string: bool, remove the magic string from the file name. Default is True.</span>
 <span class="sd">            batch_size: int, will save the cursor every X files that are ingested. Default is 5.</span>
+<span class="sd">            retries: Optional[int], number of retries for this task. Default of 10.</span>
+<span class="sd">            depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nd">@task</span>
+        <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="n">depends_on_past</span><span class="o">=</span><span class="n">depends_on_past</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">c4_hook</span> <span class="o">=</span> <span class="n">C4Hook</span><span class="o">.</span><span class="n">for_project</span><span class="p">()</span>
             <span class="n">ingested_files</span> <span class="o">=</span> <span class="p">[]</span>
@@ -409,7 +429,9 @@
         <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;waiting_room&quot;</span><span class="p">,</span>
         <span class="n">folder_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">depends_on_past</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a list of files, will copy them to the given Metis project_name and bucket_name,</span>
 <span class="sd">        mimicking the full directory structure from the CAT.</span>
@@ -421,8 +443,10 @@
 <span class="sd">            folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.</span>
 <span class="sd">            remove_magic_string: bool, remove the magic string from the file name. Default is True.</span>
 <span class="sd">            batch_size: int, will save the cursor every X files that are ingested. Default is 5.</span>
+<span class="sd">            retries: Optional[int], number of retries for this task. Default of 10.</span>
+<span class="sd">            depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nd">@task</span>
+        <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="n">depends_on_past</span><span class="o">=</span><span class="n">depends_on_past</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">etna_hook</span> <span class="o">=</span> <span class="n">EtnaHook</span><span class="o">.</span><span class="n">for_project</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span>
             <span class="n">ingested_files</span> <span class="o">=</span> <span class="p">[]</span>
@@ -507,7 +531,9 @@
     bucket_name: str,
     channel: str = &#39;data-ingest-ping&#39;,
     target_system: str = &#39;Metis&#39;,
-    member_ids: Union[List[str], NoneType] = None
+    member_ids: Union[List[str], NoneType] = None,
+    retries: Union[int, NoneType] = 10,
+    depends_on_past: Union[bool, NoneType] = False
 )</span>:
     </div>
 
@@ -520,7 +546,9 @@
         <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;data-ingest-ping&quot;</span><span class="p">,</span>
         <span class="n">target_system</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Metis&quot;</span><span class="p">,</span>
-        <span class="n">member_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">member_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">depends_on_past</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sends a Slack message to the data-ingest-ping channel, notifying of</span>
 <span class="sd">            the number of files uploaded.</span>
@@ -533,9 +561,11 @@
 <span class="sd">            channel: str, the Slack channel to post to, default data-ingest-ping</span>
 <span class="sd">            target_system: str, where the files were ingested to, for the Slack message. Default of &quot;Metis&quot;.</span>
 <span class="sd">            member_ids: Optional[List[str]], list of Slack member ids to be notified of task completion.</span>
+<span class="sd">            retries: Optional[int], number of retries for this task. Default of 10.</span>
+<span class="sd">            depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="nd">@task</span>
+        <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="n">depends_on_past</span><span class="o">=</span><span class="n">depends_on_past</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">alert</span><span class="p">(</span><span class="n">ingested_files</span><span class="p">,</span> <span class="n">ingested</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">alert</span><span class="p">(</span>
                 <span class="n">ingested_files</span><span class="p">,</span>
@@ -561,7 +591,9 @@
     bucket_name: str, bucket name for the message
     channel: str, the Slack channel to post to, default data-ingest-ping
     target_system: str, where the files were ingested to, for the Slack message. Default of "Metis".
-    member_ids: Optional[List[str]], list of Slack member ids to be notified of task completion.</p>
+    member_ids: Optional[List[str]], list of Slack member ids to be notified of task completion.
+    retries: Optional[int], number of retries for this task. Default of 10.
+    depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.</p>
 </div>
 
 
@@ -576,7 +608,9 @@
     files: airflow.models.xcom_arg.XComArg,
     folder_path: str = None,
     remove_magic_string: bool = True,
-    batch_size: int = 5
+    batch_size: int = 5,
+    retries: Union[int, NoneType] = 10,
+    depends_on_past: Union[bool, NoneType] = False
 ) -&gt; airflow.models.xcom_arg.XComArg</span>:
     </div>
 
@@ -587,7 +621,9 @@
         <span class="n">files</span><span class="p">:</span> <span class="n">XComArg</span><span class="p">,</span>
         <span class="n">folder_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">depends_on_past</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a list of CAT files, will copy them to the given C4 path,</span>
 <span class="sd">        mimicking the full directory structure from the CAT.</span>
@@ -597,8 +633,10 @@
 <span class="sd">            folder_path: str, existing folder path to dump the files in. Default is C4 root_path configuration + folder structure on CAT.</span>
 <span class="sd">            remove_magic_string: bool, remove the magic string from the file name. Default is True.</span>
 <span class="sd">            batch_size: int, will save the cursor every X files that are ingested. Default is 5.</span>
+<span class="sd">            retries: Optional[int], number of retries for this task. Default of 10.</span>
+<span class="sd">            depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nd">@task</span>
+        <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="n">depends_on_past</span><span class="o">=</span><span class="n">depends_on_past</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">c4_hook</span> <span class="o">=</span> <span class="n">C4Hook</span><span class="o">.</span><span class="n">for_project</span><span class="p">()</span>
             <span class="n">ingested_files</span> <span class="o">=</span> <span class="p">[]</span>
@@ -646,7 +684,9 @@ mimicking the full directory structure from the CAT.</p>
     files: List of files from tail_files or filter_files call
     folder_path: str, existing folder path to dump the files in. Default is C4 root_path configuration + folder structure on CAT.
     remove_magic_string: bool, remove the magic string from the file name. Default is True.
-    batch_size: int, will save the cursor every X files that are ingested. Default is 5.</p>
+    batch_size: int, will save the cursor every X files that are ingested. Default is 5.
+    retries: Optional[int], number of retries for this task. Default of 10.
+    depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.</p>
 </div>
 
 
@@ -663,7 +703,9 @@ mimicking the full directory structure from the CAT.</p>
     bucket_name: str = &#39;waiting_room&#39;,
     folder_path: str = None,
     remove_magic_string: bool = True,
-    batch_size: int = 5
+    batch_size: int = 5,
+    retries: Union[int, NoneType] = 10,
+    depends_on_past: Union[bool, NoneType] = False
 ) -&gt; airflow.models.xcom_arg.XComArg</span>:
     </div>
 
@@ -676,7 +718,9 @@ mimicking the full directory structure from the CAT.</p>
         <span class="n">bucket_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;waiting_room&quot;</span><span class="p">,</span>
         <span class="n">folder_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">remove_magic_string</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">depends_on_past</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XComArg</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Given a list of files, will copy them to the given Metis project_name and bucket_name,</span>
 <span class="sd">        mimicking the full directory structure from the CAT.</span>
@@ -688,8 +732,10 @@ mimicking the full directory structure from the CAT.</p>
 <span class="sd">            folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.</span>
 <span class="sd">            remove_magic_string: bool, remove the magic string from the file name. Default is True.</span>
 <span class="sd">            batch_size: int, will save the cursor every X files that are ingested. Default is 5.</span>
+<span class="sd">            retries: Optional[int], number of retries for this task. Default of 10.</span>
+<span class="sd">            depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nd">@task</span>
+        <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">,</span> <span class="n">depends_on_past</span><span class="o">=</span><span class="n">depends_on_past</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">ingest</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">project_name</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">,</span> <span class="n">folder_path</span><span class="p">):</span>
             <span class="n">etna_hook</span> <span class="o">=</span> <span class="n">EtnaHook</span><span class="o">.</span><span class="n">for_project</span><span class="p">(</span><span class="n">project_name</span><span class="p">)</span>
             <span class="n">ingested_files</span> <span class="o">=</span> <span class="p">[]</span>
@@ -748,7 +794,9 @@ mimicking the full directory structure from the CAT.</p>
     bucket_name: str, the target Metis bucket name. Default is <code>waiting_room</code>
     folder_path: str, existing folder path to dump the files in. Default is Box hostname + folder structure in Box.
     remove_magic_string: bool, remove the magic string from the file name. Default is True.
-    batch_size: int, will save the cursor every X files that are ingested. Default is 5.</p>
+    batch_size: int, will save the cursor every X files that are ingested. Default is 5.
+    retries: Optional[int], number of retries for this task. Default of 10.
+    depends_on_past: Apache Airflow depends_on_past flag -- can only run if the previous run succeeded. Default of False.</p>
 </div>
 
 

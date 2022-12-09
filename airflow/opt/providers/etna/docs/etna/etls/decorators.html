@@ -105,6 +105,7 @@
     <span class="n">propagate_updates</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">hook</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">EtnaHook</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">inject_params</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+    <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.</span>
@@ -125,17 +126,17 @@
     <span class="k">def</span> <span class="nf">instantiate_dag</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
         <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">setup_tail</span><span class="p">():</span>
-            <span class="nd">@task</span>
+            <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">)</span>
             <span class="k">def</span> <span class="nf">tail_folders</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Folder</span><span class="p">]:</span>
                 <span class="k">with</span> <span class="n">hook</span><span class="o">.</span><span class="n">metis</span><span class="p">()</span> <span class="k">as</span> <span class="n">metis</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span><span class="n">load_metis_folders_batch</span><span class="p">(</span><span class="n">metis</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">))</span>
 
-            <span class="nd">@task</span>
+            <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">)</span>
             <span class="k">def</span> <span class="nf">tail_files</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">File</span><span class="p">]:</span>
                 <span class="k">with</span> <span class="n">hook</span><span class="o">.</span><span class="n">metis</span><span class="p">()</span> <span class="k">as</span> <span class="n">metis</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span><span class="n">load_metis_files_batch</span><span class="p">(</span><span class="n">metis</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">))</span>
 
-            <span class="nd">@task</span>
+            <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">)</span>
             <span class="k">def</span> <span class="nf">propagate_folder_updated_at</span><span class="p">(</span><span class="n">folders</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Folder</span><span class="p">]):</span>
                 <span class="n">result</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="c1"># For new etl startup, this step is not necessary.</span>
@@ -192,6 +193,7 @@
     <span class="n">hook</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BoxHook</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;administration&quot;</span><span class="p">,</span>
     <span class="n">inject_params</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+    <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.</span>
@@ -214,7 +216,7 @@
     <span class="k">def</span> <span class="nf">instantiate_dag</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
         <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">setup_tail</span><span class="p">():</span>
-            <span class="nd">@task</span>
+            <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">)</span>
             <span class="k">def</span> <span class="nf">tail_files</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">File</span><span class="p">]:</span>
                 <span class="k">with</span> <span class="n">hook</span><span class="o">.</span><span class="n">box</span><span class="p">()</span> <span class="k">as</span> <span class="n">box</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span><span class="n">load_box_files_batch</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">))</span>
@@ -250,7 +252,8 @@
     <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;administration&quot;</span><span class="p">,</span>
     <span class="n">inject_params</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
     <span class="n">magic_string</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DSCOLAB_&quot;</span><span class="p">,</span>
-    <span class="n">ignore_directories</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Stats&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;Reports&#39;</span><span class="p">,</span> <span class="s1">&#39;test_DM&#39;</span><span class="p">,</span> <span class="s1">&#39;ec-test&#39;</span><span class="p">]</span>
+    <span class="n">ignore_directories</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Stats&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;Reports&#39;</span><span class="p">,</span> <span class="s1">&#39;test_DM&#39;</span><span class="p">,</span> <span class="s1">&#39;ec-test&#39;</span><span class="p">],</span>
+    <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.</span>
@@ -270,7 +273,7 @@
     <span class="k">def</span> <span class="nf">instantiate_dag</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
         <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">setup_tail</span><span class="p">():</span>
-            <span class="nd">@task</span>
+            <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">)</span>
             <span class="k">def</span> <span class="nf">tail_files</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">File</span><span class="p">]:</span>
                 <span class="k">with</span> <span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span><span class="n">load_cat_files_batch</span><span class="p">(</span><span class="n">cat</span><span class="p">,</span> <span class="n">magic_string</span><span class="p">,</span> <span class="n">ignore_directories</span><span class="p">))</span>
@@ -305,6 +308,7 @@
     <span class="n">interval</span><span class="p">:</span> <span class="n">timedelta</span><span class="p">,</span>
     <span class="n">version</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
     <span class="n">inject_params</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">=</span> <span class="p">{},</span>
+    <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="k">def</span> <span class="nf">instantiate_dag</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
         <span class="n">start_date</span> <span class="o">=</span> <span class="n">system_epoch</span>
@@ -351,7 +355,8 @@
     version: Union[int, str],
     propagate_updates=True,
     hook: Union[<a href="../hooks/etna.html#EtnaHook">etna.hooks.etna.EtnaHook</a>, NoneType] = None,
-    inject_params: Mapping[str, str] = {}
+    inject_params: Mapping[str, str] = {},
+    retries: Union[int, NoneType] = 10
 )</span>:
     </div>
 
@@ -364,6 +369,7 @@
     <span class="n">propagate_updates</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">hook</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">EtnaHook</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">inject_params</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+    <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.</span>
@@ -384,17 +390,17 @@
     <span class="k">def</span> <span class="nf">instantiate_dag</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
         <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">setup_tail</span><span class="p">():</span>
-            <span class="nd">@task</span>
+            <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">)</span>
             <span class="k">def</span> <span class="nf">tail_folders</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Folder</span><span class="p">]:</span>
                 <span class="k">with</span> <span class="n">hook</span><span class="o">.</span><span class="n">metis</span><span class="p">()</span> <span class="k">as</span> <span class="n">metis</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span><span class="n">load_metis_folders_batch</span><span class="p">(</span><span class="n">metis</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">))</span>
 
-            <span class="nd">@task</span>
+            <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">)</span>
             <span class="k">def</span> <span class="nf">tail_files</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">File</span><span class="p">]:</span>
                 <span class="k">with</span> <span class="n">hook</span><span class="o">.</span><span class="n">metis</span><span class="p">()</span> <span class="k">as</span> <span class="n">metis</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span><span class="n">load_metis_files_batch</span><span class="p">(</span><span class="n">metis</span><span class="p">,</span> <span class="n">bucket_name</span><span class="p">))</span>
 
-            <span class="nd">@task</span>
+            <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">)</span>
             <span class="k">def</span> <span class="nf">propagate_folder_updated_at</span><span class="p">(</span><span class="n">folders</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Folder</span><span class="p">]):</span>
                 <span class="n">result</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="c1"># For new etl startup, this step is not necessary.</span>
@@ -472,7 +478,8 @@ scoped to the given project_name, bucket_name pair.</p>
     version: Union[int, str],
     hook: Union[<a href="../hooks/box.html#BoxHook">etna.hooks.box.BoxHook</a>, NoneType] = None,
     project_name: str = &#39;administration&#39;,
-    inject_params: Mapping[str, str] = {}
+    inject_params: Mapping[str, str] = {},
+    retries: Union[int, NoneType] = 10
 )</span>:
     </div>
 
@@ -484,6 +491,7 @@ scoped to the given project_name, bucket_name pair.</p>
     <span class="n">hook</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BoxHook</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;administration&quot;</span><span class="p">,</span>
     <span class="n">inject_params</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+    <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.</span>
@@ -506,7 +514,7 @@ scoped to the given project_name, bucket_name pair.</p>
     <span class="k">def</span> <span class="nf">instantiate_dag</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
         <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">setup_tail</span><span class="p">():</span>
-            <span class="nd">@task</span>
+            <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">)</span>
             <span class="k">def</span> <span class="nf">tail_files</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">File</span><span class="p">]:</span>
                 <span class="k">with</span> <span class="n">hook</span><span class="o">.</span><span class="n">box</span><span class="p">()</span> <span class="k">as</span> <span class="n">box</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span><span class="n">load_box_files_batch</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">folder_name</span><span class="p">))</span>
@@ -563,7 +571,8 @@ scoped to the given folder in Box. The folder must be shared with the Etna servi
     project_name: str = &#39;administration&#39;,
     inject_params: Mapping[str, str] = {},
     magic_string: str = &#39;DSCOLAB_&#39;,
-    ignore_directories: List[str] = [&#39;Stats&#39;, &#39;test&#39;, &#39;Reports&#39;, &#39;test_DM&#39;, &#39;ec-test&#39;]
+    ignore_directories: List[str] = [&#39;Stats&#39;, &#39;test&#39;, &#39;Reports&#39;, &#39;test_DM&#39;, &#39;ec-test&#39;],
+    retries: Union[int, NoneType] = 10
 )</span>:
     </div>
 
@@ -575,7 +584,8 @@ scoped to the given folder in Box. The folder must be shared with the Etna servi
     <span class="n">project_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;administration&quot;</span><span class="p">,</span>
     <span class="n">inject_params</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
     <span class="n">magic_string</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DSCOLAB_&quot;</span><span class="p">,</span>
-    <span class="n">ignore_directories</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Stats&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;Reports&#39;</span><span class="p">,</span> <span class="s1">&#39;test_DM&#39;</span><span class="p">,</span> <span class="s1">&#39;ec-test&#39;</span><span class="p">]</span>
+    <span class="n">ignore_directories</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Stats&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;Reports&#39;</span><span class="p">,</span> <span class="s1">&#39;test_DM&#39;</span><span class="p">,</span> <span class="s1">&#39;ec-test&#39;</span><span class="p">],</span>
+    <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A decorator that converts a decorated function into a DAG by the same name, using all tasks instantiated within.</span>
@@ -595,7 +605,7 @@ scoped to the given folder in Box. The folder must be shared with the Etna servi
     <span class="k">def</span> <span class="nf">instantiate_dag</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
         <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">setup_tail</span><span class="p">():</span>
-            <span class="nd">@task</span>
+            <span class="nd">@task</span><span class="p">(</span><span class="n">retries</span><span class="o">=</span><span class="n">retries</span><span class="p">)</span>
             <span class="k">def</span> <span class="nf">tail_files</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">File</span><span class="p">]:</span>
                 <span class="k">with</span> <span class="n">hook</span><span class="o">.</span><span class="n">cat</span><span class="p">()</span> <span class="k">as</span> <span class="n">cat</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">pickled</span><span class="p">(</span><span class="n">load_cat_files_batch</span><span class="p">(</span><span class="n">cat</span><span class="p">,</span> <span class="n">magic_string</span><span class="p">,</span> <span class="n">ignore_directories</span><span class="p">))</span>
@@ -650,7 +660,8 @@ including the <code>magic_string</code> in CAT.</p>
     project_name: str,
     interval: datetime.timedelta,
     version: Union[int, str],
-    inject_params: Mapping = {}
+    inject_params: Mapping = {},
+    retries: Union[int, NoneType] = 10
 )</span>:
     </div>
 
@@ -661,6 +672,7 @@ including the <code>magic_string</code> in CAT.</p>
     <span class="n">interval</span><span class="p">:</span> <span class="n">timedelta</span><span class="p">,</span>
     <span class="n">version</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
     <span class="n">inject_params</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">=</span> <span class="p">{},</span>
+    <span class="n">retries</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="k">def</span> <span class="nf">instantiate_dag</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
         <span class="n">start_date</span> <span class="o">=</span> <span class="n">system_epoch</span>
