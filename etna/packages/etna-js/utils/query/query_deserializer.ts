@@ -83,6 +83,31 @@ export class QueryDeserializer {
     return this.query[0];
   }
 
+  flattenFilters(rawFilters: any[]): QueryFilter[] {
+    let filterArrays: any[] = [];
+    let queue: any[] = [...rawFilters];
+
+    while (queue.length > 0) {
+      let filter = queue.shift();
+
+      let firstArg = filter[0];
+      if (filter === this.and || filter === this.or) {
+        continue;
+      } else if (
+        Array.isArray(filter) &&
+        (firstArg === this.and || firstArg === this.or)
+      ) {
+        filter.slice(1).forEach((nestedFilter) => {
+          queue.push(nestedFilter);
+        });
+      } else {
+        filterArrays.push(this.toFilter(filter));
+      }
+    }
+
+    return filterArrays;
+  }
+
   recordFilters(): QueryFilter[] {
     // If the first element of this.rawFilters() is "::and", then there
     //   must be more than 1 filter.
@@ -93,31 +118,41 @@ export class QueryDeserializer {
       // This could still be an ::and on the rootModel(), or
       //   could include paths to other models...deal with that
       //   separately.
-      return [];
+      return this.flattenFilters(rawFilters);
     } else {
       return [this.toFilter(rawFilters)];
     }
   }
 
+  isAndFilter(rawFilter: any[]): boolean {
+    return this.and === rawFilter[0];
+  }
+
+  isOrFilter(rawFilter: any[]): boolean {
+    return this.or === rawFilter[0];
+  }
+
   isCompositeFilter(rawFilter: any[]): boolean {
     // If the first element is ::and or ::or, then is a composition of
     //   multiple filters.
-    return this.and === rawFilter[0] || this.or === rawFilter[0];
+    return this.isAndFilter(rawFilter) || this.isOrFilter(rawFilter);
+  }
+
+  isCollectionModelFilter(rawFilterArray: any[]): boolean {
+    return [this.any, this.every].includes(
+      rawFilterArray[rawFilterArray.length - 1]
+    );
   }
 
   toFilter(rawFilterArray: any[]): QueryFilter {
     // Model is same as this.rootModel() unless the last element is
     //   this.any or this.every. In which case we have to find
     //   the filter model by digging into the nested arrays.
-    let modelName: string;
-    let anyMap = {};
-    let clauses: QueryClause[];
+    let modelName: string = '';
+    let anyMap: {[key: string]: boolean} = {};
+    let clauses: QueryClause[] = [];
 
-    if (
-      ![this.any, this.every].includes(
-        rawFilterArray[rawFilterArray.length - 1]
-      )
-    ) {
+    if (!this.isCollectionModelFilter(rawFilterArray)) {
       modelName = this.rootModel();
       clauses = [
         {
@@ -127,8 +162,52 @@ export class QueryDeserializer {
         }
       ];
     } else {
-      modelName = 'blah';
-      clauses = [];
+      // The model name that goes into the QueryFilter has to be
+      //   the most nested filter's model (first argument?). This is
+      //   typically the value before the innermost array value...
+      // Have to also populate the anyMap now, too.
+      let lastModelFilter: any[] = [];
+      let queue: any[] = [rawFilterArray];
+      let clause: QueryClause = {
+        modelName,
+        any: true,
+        subclauses: []
+      };
+
+      while (queue.length > 0) {
+        let filter = queue.shift();
+
+        let firstArg = filter[0];
+        if (filter === this.and || filter === this.or) {
+          continue;
+        } else if (
+          Array.isArray(filter) &&
+          (firstArg === this.and || firstArg === this.or)
+        ) {
+          filter.slice(1).forEach((nestedFilter) => {
+            queue.push(nestedFilter);
+          });
+        } else if (this.isCollectionModelFilter(filter)) {
+          lastModelFilter = [...filter];
+          modelName = lastModelFilter[0]; // is this always true?
+          anyMap[modelName] =
+            lastModelFilter[lastModelFilter.length - 1] === this.any;
+          filter
+            .filter((value: any) => Array.isArray(value))
+            .forEach((nestedFilter: any[]) => {
+              queue.push(nestedFilter);
+            });
+        } else if (
+          QueryFilterOperator.allOperators().some((op) => filter.includes(op))
+        ) {
+          clause.subclauses?.push(this.toSubclause(filter));
+        }
+      }
+
+      clause.modelName = modelName;
+      clause.any = anyMap[modelName];
+
+      clauses.push(clause);
     }
 
     return {
@@ -210,7 +289,9 @@ export class QueryDeserializer {
       .flat() as number[];
   }
 
-  columns(): QueryColumn[] {}
+  columns(): QueryColumn[] {
+    return [];
+  }
 
   rawFilters() {
     // Computed from the query between indices 0 and the location of "::all"

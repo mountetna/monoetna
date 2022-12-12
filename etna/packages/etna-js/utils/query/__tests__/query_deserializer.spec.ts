@@ -211,6 +211,122 @@ describe('QueryDeserializer', () => {
     expect(deserializer.rootModel()).toEqual('monster');
   });
 
+  describe('#flattenFilter', () => {
+    it('handles nested ::and and ::or filters', () => {
+      const deserializer = new QueryDeserializer(
+        [
+          'monster',
+          [
+            '::and',
+            ['labor', ['name', '::in', ['lion', 'hydra', 'apples']], '::any'],
+            ['name', '::equals', 'Nemean Lion'],
+            [
+              '::or',
+              ['labor', ['year', '::<', 2022], '::every'],
+              ['labor', ['number', '::equals', 2], '::any']
+            ]
+          ],
+          '::all',
+          ['name']
+        ],
+        ['monster.name']
+      );
+
+      expect(
+        deserializer.flattenFilters([
+          '::and',
+          ['labor', ['name', '::in', ['lion', 'hydra', 'apples']], '::any'],
+          ['name', '::equals', 'Nemean Lion'],
+          [
+            '::or',
+            ['labor', ['year', '::<', 2022], '::every'],
+            ['labor', ['number', '::equals', 2], '::any']
+          ]
+        ])
+      ).toEqual([
+        {
+          anyMap: {
+            labor: true
+          },
+          clauses: [
+            {
+              any: true,
+              modelName: 'labor',
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  attributeType: '',
+                  operand: 'lion,hydra,apples',
+                  operator: '::in'
+                }
+              ]
+            }
+          ],
+          modelName: 'labor'
+        },
+        {
+          anyMap: {},
+          clauses: [
+            {
+              any: true,
+              modelName: 'monster',
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  attributeType: '',
+                  operand: 'Nemean Lion',
+                  operator: '::equals'
+                }
+              ]
+            }
+          ],
+          modelName: 'monster'
+        },
+
+        {
+          anyMap: {
+            labor: false
+          },
+          clauses: [
+            {
+              any: false,
+              modelName: 'labor',
+              subclauses: [
+                {
+                  attributeName: 'year',
+                  attributeType: '',
+                  operand: 2022,
+                  operator: '::<'
+                }
+              ]
+            }
+          ],
+          modelName: 'labor'
+        },
+        {
+          anyMap: {
+            labor: true
+          },
+          clauses: [
+            {
+              any: true,
+              modelName: 'labor',
+              subclauses: [
+                {
+                  attributeName: 'number',
+                  attributeType: '',
+                  operand: 2,
+                  operator: '::equals'
+                }
+              ]
+            }
+          ],
+          modelName: 'labor'
+        }
+      ]);
+    });
+  });
+
   describe('recordFilters', () => {
     it('works with just one on root model', () => {
       const deserializer = new QueryDeserializer(

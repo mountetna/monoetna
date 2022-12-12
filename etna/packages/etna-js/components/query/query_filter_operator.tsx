@@ -61,6 +61,21 @@ export default class FilterOperator {
 
   static numericTypes: string[] = ['number', 'integer', 'float'];
 
+  static allOperators(): string[] {
+    return [
+      ...new Set(
+        Object.values(FilterOperator.queryOperatorsByType).reduce(
+          (operators: string[], textOperatorMap) => {
+            operators = operators.concat(Object.values(textOperatorMap));
+
+            return operators;
+          },
+          []
+        )
+      )
+    ];
+  }
+
   constructor({
     subclause,
     isColumnFilter

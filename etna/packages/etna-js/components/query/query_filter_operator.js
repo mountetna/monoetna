@@ -10,6 +10,27 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
+};
 exports.__esModule = true;
 var _ = require("lodash");
 var FilterOperator = /** @class */ (function () {
@@ -18,6 +39,12 @@ var FilterOperator = /** @class */ (function () {
         this.subclause = subclause;
         this.isColumnFilter = isColumnFilter;
     }
+    FilterOperator.allOperators = function () {
+        return __spreadArray([], __read(new Set(Object.values(FilterOperator.queryOperatorsByType).reduce(function (operators, textOperatorMap) {
+            operators = operators.concat(Object.values(textOperatorMap));
+            return operators;
+        }, []))));
+    };
     FilterOperator.prototype.hasOperand = function () {
         return !(FilterOperator.terminalOperators.includes(this.subclause.operator) ||
             FilterOperator.terminalInvertOperators.includes(this.subclause.operator));
