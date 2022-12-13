@@ -356,9 +356,142 @@ describe('QueryDeserializer', () => {
       ]);
     });
 
-    it('works with multiple model filters joined by ::and', () => {});
+    it('works with multiple model filters joined by ::and', () => {
+      const deserializer = new QueryDeserializer(
+        [
+          'monster',
+          [
+            '::and',
+            ['victim', ['name', '::equals', 'Susan'], '::any'],
+            ['habitat', ['temperature', '::<=', 35], '::any'],
+            ['age', '::>', 3]
+          ],
+          '::all',
+          ['name']
+        ],
+        ['monster.name']
+      );
 
-    it('correctly sets ::every in anyMap', () => {});
+      expect(deserializer.recordFilters()).toEqual([
+        {
+          modelName: 'victim',
+          anyMap: {
+            victim: true
+          },
+          clauses: [
+            {
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::equals',
+                  operand: 'Susan',
+                  attributeType: ''
+                }
+              ],
+              modelName: 'victim',
+              any: true
+            }
+          ]
+        },
+        {
+          modelName: 'habitat',
+          anyMap: {
+            habitat: true
+          },
+          clauses: [
+            {
+              subclauses: [
+                {
+                  attributeName: 'temperature',
+                  operator: '::<=',
+                  operand: 35,
+                  attributeType: ''
+                }
+              ],
+              modelName: 'habitat',
+              any: true
+            }
+          ]
+        },
+        {
+          modelName: 'monster',
+          anyMap: {},
+          clauses: [
+            {
+              subclauses: [
+                {
+                  attributeName: 'age',
+                  operator: '::>',
+                  operand: 3,
+                  attributeType: ''
+                }
+              ],
+              modelName: 'monster',
+              any: true
+            }
+          ]
+        }
+      ]);
+    });
+
+    it('correctly sets ::every in anyMap', () => {
+      const deserializer = new QueryDeserializer(
+        [
+          'monster',
+          [
+            '::and',
+            ['victim', ['name', '::equals', 'Susan'], '::every'],
+            ['habitat', ['temperature', '::<=', 35], '::every']
+          ],
+          '::all',
+          ['name']
+        ],
+        ['monster.name']
+      );
+
+      expect(deserializer.recordFilters()).toEqual([
+        {
+          modelName: 'victim',
+          anyMap: {
+            victim: false
+          },
+          clauses: [
+            {
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::equals',
+                  operand: 'Susan',
+                  attributeType: ''
+                }
+              ],
+              modelName: 'victim',
+              any: false
+            }
+          ]
+        },
+        {
+          modelName: 'habitat',
+          anyMap: {
+            habitat: false
+          },
+          clauses: [
+            {
+              subclauses: [
+                {
+                  attributeName: 'temperature',
+                  operator: '::<=',
+                  operand: 35,
+                  attributeType: ''
+                }
+              ],
+              modelName: 'habitat',
+              any: false
+            }
+          ]
+        }
+      ]);
+    });
 
     it('includes multiple subclauses for root model filter', () => {
       const deserializer = new QueryDeserializer(
@@ -591,5 +724,7 @@ describe('QueryDeserializer', () => {
     it('works with edited user_columns', () => {});
 
     it('comma-joins ::slice operands', () => {});
+
+    it('correctly populates matrix displayLabels', () => {});
   });
 });
