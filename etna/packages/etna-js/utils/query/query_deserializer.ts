@@ -55,7 +55,6 @@ import QueryFilterOperator from '../../components/query/query_filter_operator';
 export class QueryDeserializer {
   query: any[];
   userColumns: string[];
-  operatorHelper: QueryFilterOperator;
 
   and: string;
   or: string;
@@ -72,11 +71,6 @@ export class QueryDeserializer {
     this.all = '::all';
     this.every = '::every';
     this.any = '::any';
-
-    this.operatorHelper = new QueryFilterOperator({
-      subclause: {...EmptyQuerySubclause},
-      isColumnFilter: false
-    });
   }
 
   rootModel() {
@@ -230,7 +224,7 @@ export class QueryDeserializer {
   toSubclause(rawSubclause: any[]): QuerySubclause {
     // For subclauses, I think attributeType will populate itself
     //   in the useQuerySubclauses hook, so we leave it as "" here.
-    // For subclauses, some operators have only 2 arguments (::true, ::false, ::untrue). Use this.operatorHelper() to detect these.
+    // For subclauses, some operators have only 2 arguments (::true, ::false, ::untrue). Use QueryFilterOperator to detect these.
     //      - Some of these are even flipped! ::has, ::lacks come before attributeName
     // ::in (and others) requires us to comma-join the array to a single string.
     //
