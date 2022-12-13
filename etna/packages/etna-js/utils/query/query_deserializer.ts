@@ -168,10 +168,10 @@ export class QueryDeserializer {
       // Have to also populate the anyMap now, too.
       let lastModelFilter: any[] = [];
       let queue: any[] = [rawFilterArray];
-      let clause: QueryClause = {
-        modelName,
-        any: true,
-        subclauses: []
+      let activeClauses: {[key: string]: QueryClause} = {};
+      let lastActiveClause: QueryClause = {
+        modelName: '',
+        any: true
       };
 
       while (queue.length > 0) {
@@ -189,9 +189,22 @@ export class QueryDeserializer {
           });
         } else if (this.isCollectionModelFilter(filter)) {
           lastModelFilter = [...filter];
-          modelName = lastModelFilter[0]; // is this always true?
-          anyMap[modelName] =
-            lastModelFilter[lastModelFilter.length - 1] === this.any;
+          let currentModelName = lastModelFilter[0]; // is this always true?
+          let isAny = lastModelFilter[lastModelFilter.length - 1] === this.any;
+
+          if ('' === modelName) {
+            modelName = currentModelName;
+            anyMap[currentModelName] = isAny;
+          }
+
+          if (!activeClauses[currentModelName]) {
+            activeClauses[currentModelName] = {
+              modelName: currentModelName,
+              any: isAny,
+              subclauses: []
+            };
+          }
+          lastActiveClause = activeClauses[currentModelName];
           filter
             .filter((value: any) => Array.isArray(value))
             .forEach((nestedFilter: any[]) => {
@@ -200,14 +213,11 @@ export class QueryDeserializer {
         } else if (
           QueryFilterOperator.allOperators().some((op) => filter.includes(op))
         ) {
-          clause.subclauses?.push(this.toSubclause(filter));
+          lastActiveClause.subclauses?.push(this.toSubclause(filter));
         }
       }
 
-      clause.modelName = modelName;
-      clause.any = anyMap[modelName];
-
-      clauses.push(clause);
+      clauses = clauses.concat(Object.values(activeClauses));
     }
 
     return {

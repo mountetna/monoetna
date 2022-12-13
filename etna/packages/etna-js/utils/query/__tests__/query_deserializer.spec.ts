@@ -360,9 +360,140 @@ describe('QueryDeserializer', () => {
 
     it('correctly sets ::every in anyMap', () => {});
 
-    it('includes multiple subclauses in root model filter', () => {});
+    it('includes multiple subclauses for root model filter', () => {
+      const deserializer = new QueryDeserializer(
+        [
+          'monster',
+          ['::and', ['name', '::equals', 'Nemean Lion'], ['age', '::>', 3]],
+          '::all',
+          ['name']
+        ],
+        ['monster.name']
+      );
 
-    it('includes multiple subclauses in non-root model filter', () => {});
+      expect(deserializer.recordFilters()).toEqual([
+        {
+          modelName: 'monster',
+          anyMap: {},
+          clauses: [
+            {
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::equals',
+                  operand: 'Nemean Lion',
+                  attributeType: ''
+                }
+              ],
+              modelName: 'monster',
+              any: true
+            }
+          ]
+        },
+        {
+          modelName: 'monster',
+          anyMap: {},
+          clauses: [
+            {
+              subclauses: [
+                {
+                  attributeName: 'age',
+                  operator: '::>',
+                  operand: 3,
+                  attributeType: ''
+                }
+              ],
+              modelName: 'monster',
+              any: true
+            }
+          ]
+        }
+      ]);
+    });
+
+    it('includes multiple subclauses in non-root model filter', () => {
+      const deserializer = new QueryDeserializer(
+        [
+          'monster',
+          [
+            '::and',
+            [
+              'victim',
+              [
+                '::and',
+                ['name', '::equals', 'Susan'],
+                ['age', '::<', 99],
+                ['sidekick', ['name', '::equals', 'John'], '::every']
+              ],
+              '::any'
+            ],
+            ['age', '::>', 3]
+          ],
+          '::all',
+          ['name']
+        ],
+        ['monster.name']
+      );
+
+      expect(deserializer.recordFilters()).toEqual([
+        {
+          modelName: 'victim',
+          anyMap: {
+            victim: true
+          },
+          clauses: [
+            {
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::equals',
+                  operand: 'Susan',
+                  attributeType: ''
+                },
+                {
+                  attributeName: 'age',
+                  operator: '::<',
+                  operand: 99,
+                  attributeType: ''
+                }
+              ],
+              modelName: 'victim',
+              any: true
+            },
+            {
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::equals',
+                  operand: 'John',
+                  attributeType: ''
+                }
+              ],
+              modelName: 'sidekick',
+              any: false
+            }
+          ]
+        },
+        {
+          modelName: 'monster',
+          anyMap: {},
+          clauses: [
+            {
+              subclauses: [
+                {
+                  attributeName: 'age',
+                  operator: '::>',
+                  operand: 3,
+                  attributeType: ''
+                }
+              ],
+              modelName: 'monster',
+              any: true
+            }
+          ]
+        }
+      ]);
+    });
 
     it('comma-joins ::in operands', () => {
       const deserializer = new QueryDeserializer(
@@ -397,9 +528,61 @@ describe('QueryDeserializer', () => {
       ]);
     });
 
-    it('correctly constructs inverted operators', () => {});
+    it('correctly constructs inverted operators', () => {
+      const deserializer = new QueryDeserializer(
+        ['monster', ['::has', 'name'], '::all', ['name']],
+        ['monster.name']
+      );
 
-    it('correctly constructs terminal operators', () => {});
+      expect(deserializer.recordFilters()).toEqual([
+        {
+          modelName: 'monster',
+          anyMap: {},
+          clauses: [
+            {
+              subclauses: [
+                {
+                  attributeName: 'name',
+                  operator: '::has',
+                  operand: '',
+                  attributeType: ''
+                }
+              ],
+              modelName: 'monster',
+              any: true
+            }
+          ]
+        }
+      ]);
+    });
+
+    it('correctly constructs terminal operators', () => {
+      const deserializer = new QueryDeserializer(
+        ['monster', ['scary', '::true'], '::all', ['name']],
+        ['monster.name']
+      );
+
+      expect(deserializer.recordFilters()).toEqual([
+        {
+          modelName: 'monster',
+          anyMap: {},
+          clauses: [
+            {
+              subclauses: [
+                {
+                  attributeName: 'scary',
+                  operator: '::true',
+                  operand: '',
+                  attributeType: ''
+                }
+              ],
+              modelName: 'monster',
+              any: true
+            }
+          ]
+        }
+      ]);
+    });
   });
 
   describe('columns', () => {
