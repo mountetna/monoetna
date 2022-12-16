@@ -68,7 +68,8 @@ class Magma
     def is_collection_column?
       collection_column_types = [
         Magma::ChildAttribute,
-        Magma::ForeignKeyAttribute
+        Magma::ForeignKeyAttribute,
+        Magma::LinkAttribute
       ]
 
       collection_column_types.include?(@attribute_obj.class)

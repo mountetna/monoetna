@@ -284,6 +284,8 @@ class Magma
       when :id
         return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, *@query_args)
       when Magma::ChildAttribute, Magma::ForeignKeyAttribute
+        require 'pry'
+        binding.pry if ["reference_monster", "reference_monster_id", "monster_group"].include?(attribute.attribute_name)
         return Magma::RecordPredicate.new(@question, attribute.link_model, nil, *@query_args)
       when Magma::TableAttribute, Magma::CollectionAttribute
         return Magma::ModelPredicate.new(@question, attribute.link_model, *@query_args)

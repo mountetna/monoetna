@@ -1340,6 +1340,10 @@ describe RetrieveController do
       )
 
       expect(json_body[:models][:monster][:documents].keys).to eq(names.map(&:to_sym))
+      require 'pry'
+      binding.pry
+      expect(json_body[:models][:monster][:documents][:monster7][:victim]).to match_array(["victim13", "victim14"])
+      expect(json_body[:models][:monster][:documents][:monster7][:labor]).to eq("Nemean Lion")
     end
 
     it 'returns a count of total records for page 1' do
