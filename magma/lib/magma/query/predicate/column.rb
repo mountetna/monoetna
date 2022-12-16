@@ -6,6 +6,7 @@ class Magma
       super(question)
       @model = model
       @alias_name = alias_name
+      @attribute_obj = attribute
       @attribute_name = attribute.attribute_name.to_sym
       @column_name = attribute.column_name.to_sym
       process_args(query_args)
@@ -28,7 +29,14 @@ class Magma
     end
 
     def select
-      @arguments.empty? ? [ Sequel[alias_name][@column_name].as(column_name) ] : []
+      require 'pry'
+      binding.pry
+      @arguments.empty? ?
+        is_aggregated_attribute? ?
+          [ Sequel.function(aggregate_function, column_to_aggregate).distinct.as(aggregated_column_name) ] :
+          [ Sequel[alias_name][@column_name].as(column_name) ] :
+
+        []
     end
 
     def attribute_column_name
@@ -39,6 +47,49 @@ class Magma
 
     def column_name
       :"#{alias_name}_#{@column_name}"
+    end
+
+    private
+
+    def column_to_aggregate
+      is_json_column? ?
+        Sequel[alias_name][@column_name].cast_string(:text) :
+        Sequel[alias_name][@column_name]
+    end
+
+    def root_model_column?
+      @question.model == @model
+    end
+
+    def aggregate_function
+      is_json_column? ? :string_agg : :json_agg
+    end
+
+    def is_collection_column?
+      collection_column_types = [
+        Magma::ChildAttribute,
+        Magma::ForeignKeyAttribute
+      ]
+
+      collection_column_types.include?(@attribute_obj.class)
+    end
+
+    def is_json_column?
+      json_column_types = [
+        Magma::FileAttribute,
+        Magma::ImageAttribute,
+        Magma::FileCollectionAttribute
+      ]
+
+      json_column_types.include?(@attribute_obj.class)
+    end
+
+    def is_aggregated_attribute?
+      !root_model_column? || is_json_column? || is_collection_column?
+    end
+
+    def aggregated_column_name
+      "#{alias_name}_#{@attribute_name}_aggregated"
     end
   end
 end

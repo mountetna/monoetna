@@ -88,6 +88,15 @@ class Magma
           [ identifier, child_extract(rows, identity) ]
         end.compact
       end
+
+      # group_by do
+      #   identity unless is_
+      # end
+
+      select_columns do
+        []
+      end
+
       format do
         [
           default_format,
@@ -212,7 +221,8 @@ class Magma
       if @verb && @verb.gives?(:select_columns)
         @verb.do(:select_columns)
       else
-        [ column_name.as(identity) ]
+        []
+        # [ column_name.as(identity) ]
       end
     end
 
@@ -224,7 +234,7 @@ class Magma
         end
       end
 
-      Sequel[alias_name][attribute.column_name]
+      Sequel[alias_name][attribute.column_name.to_sym]
     end
 
     def constraint

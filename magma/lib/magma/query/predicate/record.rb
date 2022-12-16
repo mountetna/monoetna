@@ -27,8 +27,14 @@ class Magma
 
     verb '::identifier' do
       child do
+        require 'pry'
+        binding.pry
         attribute_child(@model.identity.attribute_name)
       end
+
+      # select_columns do
+      #   [ column_name ] unless is_aggregated_attribute?
+      # end
     end
 
     verb '::has', :attribute_name do
@@ -98,11 +104,19 @@ class Magma
         attribute_child(@arguments[0])
       end
       join :attribute_join
+
+      group_by do
+        "#{@alias_name}_#{@arguments[0]}".to_sym unless is_aggregated_attribute?
+      end
     end
 
     verb Array do
       child do
         Magma::TablePredicate.new(@question, @model, alias_name, @arguments[0], *@query_args)
+      end
+
+      group_by do
+        child_predicate.group_by
       end
     end
 
@@ -112,7 +126,62 @@ class Magma
       )
     end
 
+    # def select
+    #   # require 'pry'
+    #   # binding.pry
+    #   return [
+    #     Sequel.function(aggregate_function, Sequel[alias_name][aggregated_attribute_column_name]).distinct.as(aggregated_column_name)
+    #   ] if is_aggregated_attribute?
+
+    #   super
+    # end
+
     private
+
+    def aggregate_function
+      is_json_column? ? :string_agg : :json_agg
+    end
+
+    def is_collection_column?
+      attribute = valid_attribute(@arguments[0])
+
+      collection_column_types = [
+        Magma::ChildAttribute,
+        Magma::ForeignKeyAttribute,
+        Magma::CollectionAttribute,
+        Magma::TableAttribute,
+        Magma::LinkAttribute,
+        Magma::ParentAttribute
+      ]
+
+      collection_column_types.include?(attribute.class)
+    end
+
+    def is_json_column?
+      attribute = valid_attribute(@arguments[0])
+
+      json_column_types = [
+        Magma::FileAttribute,
+        Magma::ImageAttribute,
+        Magma::FileCollectionAttribute
+      ]
+
+      json_column_types.include?(attribute.class)
+    end
+
+    def is_aggregated_attribute?
+      return false unless @arguments[0].is_a?(String)
+
+      is_json_column? || is_collection_column?
+    end
+
+    def aggregated_attribute_column_name
+      valid_attribute(@arguments[0]).column_name.to_sym
+    end
+
+    def aggregated_column_name
+      "#{alias_name}_#{aggregated_attribute_column_name}_aggregated"
+    end
 
     def attribute_name(argument)
       @model.has_attribute?(argument) || argument == :id || argument == '::identifier'
@@ -123,7 +192,7 @@ class Magma
       #   so we provide a convenience method to generate new aliases
       10.times.map{ (97+rand(26)).chr }.join.to_sym
     end
-    
+
     def inner_join_child(attribute)
       Magma::Join.new(
         # left table

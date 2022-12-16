@@ -48,7 +48,7 @@ class Magma
   end
 
   class Question
-    attr_reader :user
+    attr_reader :user, :model
     def initialize(project_name, query_args, options = {})
       @project_name = project_name
       @model = Magma.instance.get_model(project_name, query_args.shift)
@@ -126,6 +126,8 @@ class Magma
     private
 
     def to_table(query)
+      require 'pry'
+      binding.pry
       Magma::QueryExecutor.new(query, @options[:timeout], Magma.instance.db).execute
     end
 
@@ -137,11 +139,19 @@ class Magma
         query = paged_query(query)
       end
 
+      require 'pry'
+      binding.pry
       query = query.select(
           *(predicate_collect(:select)).uniq
-      )
+      ).group_by(*root_model_group_by)
 
       query
+    end
+
+    def root_model_group_by
+      @predicates.select do |predicate|
+        predicate.model == @model if predicate.respond_to?(:model)
+      end.map(&:group_by).inject(&:+).flatten.uniq.compact || []
     end
 
     def order_by_attributes

@@ -69,7 +69,7 @@ class Magma
     end
 
     def select
-      [ Sequel[alias_name][@column_name].as(column_name) ]
+      [ Sequel.string_agg(Sequel[alias_name][@column_name].cast_string(:text), ',').distinct.as(column_name) ]
     end
   end
 end

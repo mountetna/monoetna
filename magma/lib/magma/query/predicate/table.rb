@@ -57,8 +57,16 @@ class Magma
     end
 
     def select
+      require 'pry'
+      binding.pry
       @column_predicates.map do |pred|
         pred.flatten.map(&:select).inject(&:+)
+      end.inject(&:+)
+    end
+
+    def group_by
+      @column_predicates.map do |pred|
+        pred.flatten.map(&:group_by).inject(&:+)
       end.inject(&:+)
     end
   end
