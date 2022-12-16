@@ -498,7 +498,7 @@ const ModelReport = ({
   }, [model_name, models]);
 
   useEffect(() => {
-    if (counts[model_name]?.count) {
+    if (counts[model_name]?.count >= 0) {
       setCanReparent(counts[model_name].count <= 0);
     } else {
       getAnswer([model_name, '::count'], (count) => {

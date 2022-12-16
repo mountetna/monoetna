@@ -134,6 +134,7 @@ class Metis
       puts "Found #{needs_archive.count} files to be archived."
       needs_archive.each do |data_block|
         begin
+          puts "Archiving data block with hash: #{data_block.md5_hash}."
           data_block.backup!
         rescue ArgumentError => e
           puts "Could not archive #{data_block.description}"
