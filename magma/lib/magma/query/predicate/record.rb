@@ -16,7 +16,7 @@ class Magma
   #          if the type is a Boolean you get a Boolean predicate
   #   2) ::has
   #   3) ::identifier
-    attr_reader :model
+    attr_reader :model, :query_args, :question
 
     def initialize question, model, alias_name, *query_args
       super(question)
@@ -32,9 +32,9 @@ class Magma
         attribute_child(@model.identity.attribute_name)
       end
 
-      # select_columns do
-      #   [ column_name ] unless is_aggregated_attribute?
-      # end
+      select_columns do
+        [ column_name ] unless is_aggregated_attribute?
+      end
     end
 
     verb '::has', :attribute_name do
@@ -108,6 +108,10 @@ class Magma
       group_by do
         "#{@alias_name}_#{@arguments[0]}".to_sym unless is_aggregated_attribute?
       end
+
+      select_columns do
+        [ column_name ] unless is_aggregated_attribute?
+      end
     end
 
     verb Array do
@@ -126,6 +130,10 @@ class Magma
       )
     end
 
+    def set_child_aggregation(attribute)
+      child_predicate.set_upstream_aggregation(true) if is_collection_column?(attribute) && child_predicate.is_a?(Magma::ColumnPredicate  )
+    end
+
     # def select
     #   # require 'pry'
     #   # binding.pry
@@ -142,8 +150,8 @@ class Magma
       is_json_column? ? :string_agg : :json_agg
     end
 
-    def is_collection_column?
-      attribute = valid_attribute(@arguments[0])
+    def is_collection_column?(attribute = nil)
+      attribute = valid_attribute(@arguments[0]) if attribute.nil?
 
       collection_column_types = [
         Magma::ChildAttribute,
@@ -237,6 +245,8 @@ class Magma
       attribute = valid_attribute(@arguments[0])
       case attribute
       when Magma::ForeignKeyAttribute
+        require 'pry'
+        binding.pry if ["reference_monster", "reference_monster_id", "monster_group"].include?(attribute.attribute_name)
         return Magma::Join.new(
           # left table
           table_name,
@@ -275,36 +285,59 @@ class Magma
       end
     end
 
+    def column_attributes
+      [
+        :id,
+        Magma::FileAttribute,
+        Magma::ImageAttribute,
+        Magma::FileCollectionAttribute,
+        Magma::MatchAttribute,
+        Magma::MatrixAttribute,
+        Magma::StringAttribute,
+        Magma::IntegerAttribute,
+        Magma::FloatAttribute,
+        Magma::DateTimeAttribute,
+        Magma::ShiftedDateTimeAttribute,
+        Magma::BooleanAttribute
+      ]
+    end
+
     def attribute_child(attribute_name)
       attribute = valid_attribute(attribute_name)
       if @question.restrict? && attribute.respond_to?(:restricted) && attribute.restricted
         raise Etna::Forbidden, "Cannot query for restricted attribute #{attribute_name}"
       end
       case attribute
-      when :id
-        return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+      # when :id
+      #   return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, *@query_args)
       when Magma::ChildAttribute, Magma::ForeignKeyAttribute
         require 'pry'
         binding.pry if ["reference_monster", "reference_monster_id", "monster_group"].include?(attribute.attribute_name)
-        return Magma::RecordPredicate.new(@question, attribute.link_model, nil, *@query_args)
+        next_record_predicate = Magma::RecordPredicate.new(@question, attribute.link_model, nil, *@query_args)
+
+        next_record_predicate.set_child_aggregation(attribute)
+
+        return next_record_predicate
       when Magma::TableAttribute, Magma::CollectionAttribute
         return Magma::ModelPredicate.new(@question, attribute.link_model, *@query_args)
-      when Magma::FileAttribute, Magma::ImageAttribute
-        return Magma::FilePredicate.new(@question, @model, alias_name, attribute, *@query_args)
-      when Magma::FileCollectionAttribute
-        return Magma::FileCollectionPredicate.new(@question, @model, alias_name, attribute, *@query_args)
-      when Magma::MatchAttribute
-        return Magma::MatchPredicate.new(@question, @model, alias_name, attribute, *@query_args)
-      when Magma::MatrixAttribute
-        return Magma::MatrixPredicate.new(@question, @model, alias_name, attribute, *@query_args)
-      when Magma::StringAttribute
-        return Magma::StringPredicate.new(@question, @model, alias_name, attribute, *@query_args)
-      when Magma::IntegerAttribute, Magma::FloatAttribute
-        return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, *@query_args)
-      when Magma::DateTimeAttribute, Magma::ShiftedDateTimeAttribute
-        return Magma::DateTimePredicate.new(@question, @model, alias_name, attribute, *@query_args)
-      when Magma::BooleanAttribute
-        return Magma::BooleanPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+      when *column_attributes
+        return Magma::ColumnPredicate.from_record_predicate_and_attribute(self, attribute)
+      # when Magma::FileAttribute, Magma::ImageAttribute
+      #   return Magma::FilePredicate.new(@question, @model, alias_name, attribute, *@query_args)
+      # when Magma::FileCollectionAttribute
+      #   return Magma::FileCollectionPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+      # when Magma::MatchAttribute
+      #   return Magma::MatchPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+      # when Magma::MatrixAttribute
+      #   return Magma::MatrixPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+      # when Magma::StringAttribute
+      #   return Magma::StringPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+      # when Magma::IntegerAttribute, Magma::FloatAttribute
+      #   return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+      # when Magma::DateTimeAttribute, Magma::ShiftedDateTimeAttribute
+      #   return Magma::DateTimePredicate.new(@question, @model, alias_name, attribute, *@query_args)
+      # when Magma::BooleanAttribute
+      #   return Magma::BooleanPredicate.new(@question, @model, alias_name, attribute, *@query_args)
       else
         invalid_argument! attribute.name
       end

@@ -6,14 +6,56 @@ class Magma
       super(question)
       @model = model
       @alias_name = alias_name
-      @attribute_obj = attribute
-      @attribute_name = attribute.attribute_name.to_sym
-      @column_name = attribute.column_name.to_sym
+      @upstream_aggregation = false
+      set_attribute(attribute)
       process_args(query_args)
     end
 
     def self.inherited(subclass)
       Magma::Predicate.inherited(subclass)
+    end
+
+    def self.from_record_predicate_and_attribute(record_predicate, attribute)
+      case attribute
+      when :id
+        predicate_class = Magma::NumberPredicate
+      when Magma::FileAttribute, Magma::ImageAttribute
+        predicate_class = Magma::FilePredicate
+      when Magma::FileCollectionAttribute
+        predicate_class = Magma::FileCollectionPredicate
+      when Magma::MatchAttribute
+        predicate_class = Magma::MatchPredicate
+      when Magma::MatrixAttribute
+        predicate_class = Magma::MatrixPredicate
+      when Magma::StringAttribute
+        predicate_class = Magma::StringPredicate
+      when Magma::IntegerAttribute, Magma::FloatAttribute
+        predicate_class = Magma::NumberPredicate
+      when Magma::DateTimeAttribute, Magma::ShiftedDateTimeAttribute
+        predicate_class = Magma::DateTimePredicate
+      when Magma::BooleanAttribute
+        predicate_class = Magma::BooleanPredicate
+      else
+        invalid_argument! attribute.name
+      end
+
+      return predicate_class.new(
+        record_predicate.question,
+        record_predicate.model,
+        record_predicate.alias_name,
+        attribute,
+        *record_predicate.query_args
+      )
+    end
+
+    def set_attribute(attribute)
+      @attribute_obj = attribute
+      @attribute_name = attribute.attribute_name.to_sym
+      @column_name = attribute.column_name.to_sym
+    end
+
+    def set_upstream_aggregation(upstream_aggregation)
+      @upstream_aggregation = upstream_aggregation
     end
 
     def extract table, identity
@@ -30,7 +72,7 @@ class Magma
 
     def select
       require 'pry'
-      binding.pry
+      binding.pry if @upstream_aggregation
       @arguments.empty? ?
         is_aggregated_attribute? ?
           [ Sequel.function(aggregate_function, column_to_aggregate).distinct.as(aggregated_column_name) ] :
@@ -76,6 +118,8 @@ class Magma
     end
 
     def is_json_column?
+      # Postgres cannot group_by JSON columns, so we apply a
+      #   string_agg on them, instead.
       json_column_types = [
         Magma::FileAttribute,
         Magma::ImageAttribute,
@@ -86,7 +130,7 @@ class Magma
     end
 
     def is_aggregated_attribute?
-      !root_model_column? || is_json_column? || is_collection_column?
+      !root_model_column? || is_json_column? || is_collection_column? || @upstream_aggregation
     end
 
     def aggregated_column_name
