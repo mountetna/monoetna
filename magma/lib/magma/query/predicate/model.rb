@@ -89,10 +89,6 @@ class Magma
         end.compact
       end
 
-      # group_by do
-      #   identity unless is_
-      # end
-
       select_columns do
         []
       end

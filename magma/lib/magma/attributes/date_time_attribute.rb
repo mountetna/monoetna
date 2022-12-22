@@ -1,5 +1,5 @@
 class Magma
-  class DateTimeAttribute < Attribute
+  class DateTimeAttribute < ColumnAttribute
     def database_type
       DateTime
     end
@@ -10,6 +10,10 @@ class Magma
 
     def revision_to_payload(record_name, new_value, loader)
       [ name, new_value ]
+    end
+
+    def predicate_class
+      Magma::DateTimePredicate
     end
   end
 end

@@ -1,7 +1,11 @@
 class Magma
-  class BooleanAttribute < Attribute
+  class BooleanAttribute < ColumnAttribute
     def database_type
       TrueClass
+    end
+
+    def predicate_class
+      Magma::BooleanPredicate
     end
   end
 end

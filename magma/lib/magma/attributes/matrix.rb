@@ -4,9 +4,13 @@ require 'json'
 class Magma
   class MatrixJsonError < StandardError
   end
-  class MatrixAttribute < Attribute
+  class MatrixAttribute < ColumnAttribute
     def database_type
       :json
+    end
+
+    def predicate_class
+      Magma::MatrixPredicate
     end
 
     def entry(value, loader)

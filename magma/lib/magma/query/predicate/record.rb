@@ -27,8 +27,6 @@ class Magma
 
     verb '::identifier' do
       child do
-        require 'pry'
-        binding.pry
         attribute_child(@model.identity.attribute_name)
       end
 
@@ -130,66 +128,7 @@ class Magma
       )
     end
 
-    def set_child_aggregation(attribute)
-      child_predicate.set_upstream_aggregation(true) if is_collection_column?(attribute) && child_predicate.is_a?(Magma::ColumnPredicate  )
-    end
-
-    # def select
-    #   # require 'pry'
-    #   # binding.pry
-    #   return [
-    #     Sequel.function(aggregate_function, Sequel[alias_name][aggregated_attribute_column_name]).distinct.as(aggregated_column_name)
-    #   ] if is_aggregated_attribute?
-
-    #   super
-    # end
-
     private
-
-    def aggregate_function
-      is_json_column? ? :string_agg : :json_agg
-    end
-
-    def is_collection_column?(attribute = nil)
-      attribute = valid_attribute(@arguments[0]) if attribute.nil?
-
-      collection_column_types = [
-        Magma::ChildAttribute,
-        Magma::ForeignKeyAttribute,
-        Magma::CollectionAttribute,
-        Magma::TableAttribute,
-        Magma::LinkAttribute,
-        Magma::ParentAttribute
-      ]
-
-      collection_column_types.include?(attribute.class)
-    end
-
-    def is_json_column?
-      attribute = valid_attribute(@arguments[0])
-
-      json_column_types = [
-        Magma::FileAttribute,
-        Magma::ImageAttribute,
-        Magma::FileCollectionAttribute
-      ]
-
-      json_column_types.include?(attribute.class)
-    end
-
-    def is_aggregated_attribute?
-      return false unless @arguments[0].is_a?(String)
-
-      is_json_column? || is_collection_column?
-    end
-
-    def aggregated_attribute_column_name
-      valid_attribute(@arguments[0]).column_name.to_sym
-    end
-
-    def aggregated_column_name
-      "#{alias_name}_#{aggregated_attribute_column_name}_aggregated"
-    end
 
     def attribute_name(argument)
       @model.has_attribute?(argument) || argument == :id || argument == '::identifier'
@@ -288,17 +227,7 @@ class Magma
     def column_attributes
       [
         :id,
-        Magma::FileAttribute,
-        Magma::ImageAttribute,
-        Magma::FileCollectionAttribute,
-        Magma::MatchAttribute,
-        Magma::MatrixAttribute,
-        Magma::StringAttribute,
-        Magma::IntegerAttribute,
-        Magma::FloatAttribute,
-        Magma::DateTimeAttribute,
-        Magma::ShiftedDateTimeAttribute,
-        Magma::BooleanAttribute
+        Magma::ColumnAttribute
       ]
     end
 
@@ -315,11 +244,16 @@ class Magma
         binding.pry if ["reference_monster", "reference_monster_id", "monster_group"].include?(attribute.attribute_name)
         next_record_predicate = Magma::RecordPredicate.new(@question, attribute.link_model, nil, *@query_args)
 
-        next_record_predicate.set_child_aggregation(attribute)
+        next_record_predicate.set_aggregation_flags(attribute)
 
         return next_record_predicate
       when Magma::TableAttribute, Magma::CollectionAttribute
-        return Magma::ModelPredicate.new(@question, attribute.link_model, *@query_args)
+        binding.pry if ["monster_group"].include?(attribute.attribute_name)
+        next_model_predicate = Magma::ModelPredicate.new(@question, attribute.link_model, *@query_args)
+
+        next_model_predicate.set_aggregation_flags(attribute)
+
+        return next_model_predicate
       when *column_attributes
         return Magma::ColumnPredicate.from_record_predicate_and_attribute(self, attribute)
       # when Magma::FileAttribute, Magma::ImageAttribute

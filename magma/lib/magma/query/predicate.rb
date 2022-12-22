@@ -36,6 +36,7 @@ class Magma
 
     def initialize(question)
       @question = question
+      @upstream_aggregation = false
       @subqueries = []
     end
 
@@ -171,7 +172,28 @@ EOT
       @subqueries.map(&:constraint).compact
     end
 
+    def set_aggregation_flags(attribute)
+      set_upstream_aggregation(true)
+      set_child_aggregation(attribute)
+    end
+
+    def is_aggregated_attribute?
+      return false unless @arguments[0].is_a?(String)
+
+      is_json? || is_link? || child_predicate.is_aggregated_attribute? || @upstream_aggregation
+    end
+
+    def set_upstream_aggregation(upstream_aggregation)
+      @upstream_aggregation = upstream_aggregation
+    end
+
     private
+
+    def set_child_aggregation(attribute)
+      begin
+        child_predicate.set_upstream_aggregation(true) if child_predicate.is_a?(Magma::ColumnPredicate)
+      end if is_link?(attribute)
+    end
 
     # This function takes the argument list and matches it to one of the
     # defined verbs for this predicate. If none exist, it raises an
@@ -379,6 +401,30 @@ EOT
     def terminal value
       raise QuestionError, "Trailing arguments after terminal value! #{@query_args}" unless @query_args.empty?
       Magma::TerminalPredicate.new(@question, value)
+    end
+
+    def aggregate_function
+      is_json? ? :string_agg : :json_agg
+    end
+
+    def is_link?(attribute = nil)
+      attribute = valid_attribute(@arguments[0]) if attribute.nil?
+
+      attribute.is_a?(Magma::Link)
+    end
+
+    def is_json?
+      attribute = valid_attribute(@arguments[0])
+
+      attribute.database_type == :json
+    end
+
+    def aggregated_attribute_column_name
+      valid_attribute(@arguments[0]).column_name.to_sym
+    end
+
+    def aggregated_column_name
+      "#{alias_name}_#{aggregated_attribute_column_name}_aggregated"
     end
   end
 end

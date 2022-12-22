@@ -2,9 +2,13 @@ require_relative './file_copier'
 require_relative './file_serializer'
 
 class Magma
-  class FileCollectionAttribute < Attribute
+  class FileCollectionAttribute < ColumnAttribute
     def database_type
       :json
+    end
+
+    def predicate_class
+      Magma::FileCollectionPredicate
     end
 
     def serializer

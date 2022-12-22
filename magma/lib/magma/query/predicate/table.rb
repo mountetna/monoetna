@@ -6,8 +6,11 @@ class Magma
       super(question)
       @model = model
       @alias_name = alias_name
+      require 'pry'
+      binding.pry
       raise ArgumentError, 'No columns were requested!' if columns.empty?
       @column_predicates = columns.map do |column_query|
+        binding.pry if column_query.first == 'monster_group'
         # now, we merely map this to a record predicate. Handy!
         RecordPredicate.new(@question, @model, @alias_name, *column_query)
       end

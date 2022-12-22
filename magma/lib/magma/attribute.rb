@@ -101,6 +101,10 @@ class Magma
       Magma::ValidationObject.build(validation&.symbolize_keys)
     end
 
+    def predicate_class
+      Magma::RecordPredicate
+    end
+
     def json_template
       {
         name: attribute_name,
@@ -242,6 +246,7 @@ class Magma
   end
 end
 
+require_relative 'attributes/column_attribute'
 require_relative 'attributes/link'
 require_relative 'attributes/child'
 require_relative 'attributes/collection'
