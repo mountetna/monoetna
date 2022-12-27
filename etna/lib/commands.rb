@@ -206,7 +206,7 @@ class EtnaApp
     end
   end
 
-  class Administrate
+  class Janus
     include Etna::CommandExecutor
 
     class Token
@@ -236,6 +236,52 @@ class EtnaApp
           )
           generate_token_workflow.generate!
         end
+      end
+    end
+  end
+
+  class Magma
+    include Etna::CommandExecutor
+
+    class Materialize < Etna::Command
+      include WithEtnaClients
+      include WithLogger
+
+      string_flags << "--project-name"
+
+      def execute(project_name:)
+        workflow = Etna::Clients::Magma::MaterializeDataWorkflow.new(
+            model_attributes_mask: model_attribute_pairs(project_name),
+            record_names: 'all',
+            model_filters: {},
+            metis_client: metis_client,
+            magma_client: magma_client,
+            logger: logger,
+            project_name: project_name,
+            model_name: 'project', filesystem: filesystem,
+            concurrency: 1)
+
+        workflow.materialize_all("Upload")
+        logger.info("Done")
+      end
+
+      def model_attribute_pairs(project_name)
+        models = magma_client.retrieve(Etna::Clients::Magma::RetrievalRequest.new(
+            project_name: project_name,
+            model_name: 'all',
+            attribute_names: 'all',
+            record_names: []
+        )).models
+
+        result = models.model_keys.map do |model_name|
+          [ model_name, models.model(model_name).template.attributes.attribute_keys ]
+        end.to_h
+
+        result
+      end
+
+      def filesystem
+        @filesystem ||= Etna::Filesystem.new
       end
     end
 
