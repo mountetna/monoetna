@@ -64,7 +64,7 @@ class Magma
         case attribute
         when Magma::ForeignKeyAttribute, Magma::LinkAttribute
           null_constraint(attribute.foreign_id)
-        when Magma::FileAttribute, Magma::ImageAttribute
+        when Magma::FileAttribute, Magma::ImageAttribute, Magma::FileCollectionAttribute
           or_constraint([
             json_constraint(attribute.column_name.to_sym, "filename", nil),
             # The string "null" appears if someone fetches a ::temp URL
@@ -123,7 +123,7 @@ class Magma
       #   so we provide a convenience method to generate new aliases
       10.times.map{ (97+rand(26)).chr }.join.to_sym
     end
-    
+
     def inner_join_child(attribute)
       Magma::Join.new(
         # left table
