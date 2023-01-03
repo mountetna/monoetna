@@ -15,7 +15,7 @@ Sequel.migration do
 
     def self.matching_model_attributes
       {}.tap do |table_attributes|
-        Magma.instance.db[:attributes].where(type: json_type_attributes).map do |attribute|
+        Magma.instance.db[:attributes].where(type: json_type_attributes).each do |attribute|
           project_name = attribute[:project_name].to_sym
           model_name = attribute[:model_name].pluralize.to_sym
 
