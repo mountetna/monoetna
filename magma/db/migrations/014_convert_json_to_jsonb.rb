@@ -16,10 +16,10 @@ Sequel.migration do
     def self.matching_model_attributes
       {}.tap do |table_attributes|
         Magma.instance.db[:attributes].where(type: json_type_attributes).each do |attribute|
-          project_name = attribute[:project_name].to_sym
-          model_name = attribute[:model_name].pluralize.to_sym
+          schema_name = attribute[:project_name].to_sym
+          table_name = attribute[:model_name].pluralize.to_sym
 
-          table_tuple = [project_name, model_name]
+          table_tuple = [schema_name, table_name]
 
           table_attributes[table_tuple] = [] unless table_attributes.keys.include?(table_tuple)
 
