@@ -274,7 +274,7 @@ describe UpdateController do
         hydra = create(:labor, name: 'The Lernean Hydra', year: '0003-01-01', project: @project)
 
         hydra_monster = create(:monster, name: 'Lernean Hydra', labor: hydra)
-        
+
         lion_monster = create(:monster, name: 'Nemean Lion', labor: lion)
 
         expect(hydra_monster.reference_monster).to eq(nil)
@@ -1339,11 +1339,11 @@ describe UpdateController do
 
       # the field is updated
       lion.refresh
-      expect(lion.stats.to_json).to eq({
-        location: "::blank",
-        filename: "::blank",
-        original_filename: "::blank"
-      }.to_json)
+      expect(lion.stats).to eq({
+        "location" => "::blank",
+        "filename" => "::blank",
+        "original_filename" => "::blank"
+      })
 
       expect(last_response.status).to eq(200)
 
@@ -1373,11 +1373,11 @@ describe UpdateController do
 
       # the field is updated
       lion.refresh
-      expect(lion.stats.to_json).to eq({
-        location: nil,
-        filename: nil,
-        original_filename: nil
-      }.to_json)
+      expect(lion.stats).to eq({
+        "location" => nil,
+        "filename" => nil,
+        "original_filename" => nil
+      })
 
       expect(last_response.status).to eq(200)
 
@@ -1406,11 +1406,11 @@ describe UpdateController do
 
       # the field is updated
       lion.refresh
-      expect(lion.stats.to_json).to eq({
-        location: "::blank",
-        filename: "::blank",
-        original_filename: "::blank"
-      }.to_json)
+      expect(lion.stats).to eq({
+        "location" => "::blank",
+        "filename" => "::blank",
+        "original_filename" => "::blank"
+      })
 
       expect(last_response.status).to eq(200)
 
@@ -1476,11 +1476,11 @@ describe UpdateController do
       expect(last_response.status).to eq(200)
 
       lion.refresh
-      expect(lion.stats.to_json).to eq({
-        location: "metis://labors/files/lion-stats.txt",
-        filename: "monster-Nemean Lion-stats.txt",
-        original_filename: "original-file.txt"
-      }.to_json)
+      expect(lion.stats).to eq({
+        "location" => "metis://labors/files/lion-stats.txt",
+        "filename" => "monster-Nemean Lion-stats.txt",
+        "original_filename" => "original-file.txt"
+      })
 
       # but we do get an download url for Metis
       uri = URI.parse(json_document(:monster, 'Nemean Lion')[:stats][:url])
@@ -1589,10 +1589,10 @@ describe UpdateController do
 
       # the field is updated
       lion.refresh
-      expect(lion.selfie.to_json).to eq({
-        location: "::blank",
-        filename: "::blank",
-        original_filename: "::blank"}.to_json)
+      expect(lion.selfie).to eq({
+        "location" => "::blank",
+        "filename" => "::blank",
+        "original_filename" => "::blank"})
 
       expect(last_response.status).to eq(200)
 
@@ -1622,11 +1622,11 @@ describe UpdateController do
 
       # the field is updated
       lion.refresh
-      expect(lion.selfie.to_json).to eq({
-        location: nil,
-        filename: nil,
-        original_filename: nil
-      }.to_json)
+      expect(lion.selfie).to eq({
+        "location" => nil,
+        "filename" => nil,
+        "original_filename" => nil
+      })
 
       expect(last_response.status).to eq(200)
 
@@ -1655,11 +1655,11 @@ describe UpdateController do
 
       # the field is updated
       lion.refresh
-      expect(lion.selfie.to_json).to eq({
-        location: '::blank',
-        filename: '::blank',
-        original_filename: '::blank'
-      }.to_json)
+      expect(lion.selfie).to eq({
+        "location" => '::blank',
+        "filename" => '::blank',
+        "original_filename" => '::blank'
+      })
 
       expect(last_response.status).to eq(200)
 
@@ -1721,10 +1721,10 @@ describe UpdateController do
       )
 
       lion.refresh
-      expect(lion.selfie.to_json).to eq({
-        location: 'metis://labors/files/lion.jpg',
-        filename: 'monster-Nemean Lion-selfie.jpg',
-        original_filename: 'closeup.jpg'}.to_json)
+      expect(lion.selfie).to eq({
+        "location" => 'metis://labors/files/lion.jpg',
+        "filename" => 'monster-Nemean Lion-selfie.jpg',
+        "original_filename" => 'closeup.jpg'})
 
       expect(last_response.status).to eq(200)
 
@@ -1845,11 +1845,11 @@ describe UpdateController do
       )
 
       lion.refresh
-      expect(lion.certificates.to_json).to eq([{
-        location: 'metis://labors/magma/monster-Nemean Lion-certificates-1.txt',
-        filename: 'monster-Nemean Lion-certificates-0.txt',
-        original_filename: nil
-      }].to_json)
+      expect(lion.certificates).to eq([{
+        "location" => 'metis://labors/magma/monster-Nemean Lion-certificates-1.txt',
+        "filename" => 'monster-Nemean Lion-certificates-0.txt',
+        "original_filename" => nil
+      }])
 
       expect(last_response.status).to eq(200)
 
@@ -1938,15 +1938,15 @@ describe UpdateController do
       expect(last_response.status).to eq(200)
 
       lion.refresh
-      expect(lion.certificates.to_json).to eq([{
-        location: "metis://labors/magma/monster-Nemean Lion-certificates-1.txt",
-        filename: 'monster-Nemean Lion-certificates-0.txt',
-        original_filename: 'certificate-1.txt'
+      expect(lion.certificates).to eq([{
+        "location" => "metis://labors/magma/monster-Nemean Lion-certificates-1.txt",
+        "filename" => 'monster-Nemean Lion-certificates-0.txt',
+        "original_filename" => 'certificate-1.txt'
       }, {
-        location: "metis://labors/magma/monster-Nemean Lion-certificates-0.txt",
-        filename: 'monster-Nemean Lion-certificates-1.txt',
-        original_filename: 'certificate-0.txt'
-      }].to_json)
+        "location" => "metis://labors/magma/monster-Nemean Lion-certificates-0.txt",
+        "filename" => 'monster-Nemean Lion-certificates-1.txt',
+        "original_filename" => 'certificate-0.txt'
+      }])
 
       expect(WebMock).to have_requested(:post, "https://metis.test/labors/files/copy").
         with(query: hash_including({
@@ -1988,19 +1988,19 @@ describe UpdateController do
 
       lion.refresh
 
-      expect(lion.certificates.to_json).to eq([{
-        location: 'metis://labors/magma/monster-Nemean Lion-certificates-0.txt',
-        filename: 'monster-Nemean Lion-certificates-0.txt',
-        original_filename: 'certificate-0.txt'
+      expect(lion.certificates).to eq([{
+        "location" => 'metis://labors/magma/monster-Nemean Lion-certificates-0.txt',
+        "filename" => 'monster-Nemean Lion-certificates-0.txt',
+        "original_filename" => 'certificate-0.txt'
       }, {
-        location: 'metis://labors/files/CharmSchool.pdf',
-        filename: 'monster-Nemean Lion-certificates-1.pdf',
-        original_filename: 'CharmSchool.pdf'
+        "location" => 'metis://labors/files/CharmSchool.pdf',
+        "filename" => 'monster-Nemean Lion-certificates-1.pdf',
+        "original_filename" => 'CharmSchool.pdf'
       }, {
-        location: 'metis://labors/magma/monster-Nemean Lion-certificates-1.txt',
-        filename: 'monster-Nemean Lion-certificates-2.txt',
-        original_filename: 'certificate-1.txt'
-      }].to_json)
+        "location" => 'metis://labors/magma/monster-Nemean Lion-certificates-1.txt',
+        "filename" => 'monster-Nemean Lion-certificates-2.txt',
+        "original_filename" => 'certificate-1.txt'
+      }])
 
       expect(WebMock).to have_requested(:post, "https://metis.test/labors/files/copy").
         with(query: hash_including({
@@ -2039,15 +2039,15 @@ describe UpdateController do
 
       # the field is updated
       lion.refresh
-      expect(lion.certificates.to_json).to eq([{
-        location: 'metis://labors/magma/monster-Nemean Lion-certificates-0.txt',
-        filename: 'monster-Nemean Lion-certificates-0.txt',
-        original_filename: nil
+      expect(lion.certificates).to eq([{
+        "location" => 'metis://labors/magma/monster-Nemean Lion-certificates-0.txt',
+        "filename" => 'monster-Nemean Lion-certificates-0.txt',
+        "original_filename" => nil
       }, {
-        location: 'metis://labors/magma/monster-Nemean Lion-certificates-1.txt',
-        filename: 'monster-Nemean Lion-certificates-1.txt',
-        original_filename: nil
-      }].to_json)
+        "location" => 'metis://labors/magma/monster-Nemean Lion-certificates-1.txt',
+        "filename" => 'monster-Nemean Lion-certificates-1.txt',
+        "original_filename" => nil
+      }])
 
       expect(last_response.status).to eq(200)
 
@@ -2108,19 +2108,19 @@ describe UpdateController do
       expect(last_response.status).to eq(200)
 
       lion.refresh
-      expect(lion.certificates.to_json).to eq([{
-        location: 'metis://labors/magma/monster-Nemean Lion-certificates-0.txt',
-        filename: 'monster-Nemean Lion-certificates-0.txt',
-        original_filename: 'certificate-0.txt'
+      expect(lion.certificates).to eq([{
+        "location" => 'metis://labors/magma/monster-Nemean Lion-certificates-0.txt',
+        "filename" => 'monster-Nemean Lion-certificates-0.txt',
+        "original_filename" => 'certificate-0.txt'
       }, {
-        location: 'metis://labors/magma/monster-Nemean Lion-certificates-1.txt',
-        filename: 'monster-Nemean Lion-certificates-1.txt',
-        original_filename: 'certificate-1.txt'
+        "location" => 'metis://labors/magma/monster-Nemean Lion-certificates-1.txt',
+        "filename" => 'monster-Nemean Lion-certificates-1.txt',
+        "original_filename" => 'certificate-1.txt'
       }, {
-        location: 'metis://labors/files/new-pirate-certificate.txt',
-        filename: 'monster-Nemean Lion-certificates-3.txt',
-        original_filename: 'new-pirate-certificate.txt'
-      }].to_json)
+        "location" => 'metis://labors/files/new-pirate-certificate.txt',
+        "filename" => 'monster-Nemean Lion-certificates-3.txt',
+        "original_filename" => 'new-pirate-certificate.txt'
+      }])
 
       expect(WebMock).to have_requested(:post, "https://metis.test/labors/files/copy").
         with(query: hash_including({
@@ -2532,7 +2532,7 @@ describe UpdateController do
       Magma.instance.configure(
         :test => @orig_config.dup.update(dateshift_salt: '')
       )
-      
+
       expect(@john_doe.birthday).to eq(nil)
 
       update(
@@ -2560,12 +2560,12 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(200)
         expect(
           json_body[:models][:wound][:documents][@john_arm.id.to_s.to_sym][:received_date]
         ).not_to eq(iso_date_str('2000-01-01'))
-        
+
         @john_arm.refresh
         expect(@john_arm[:received_date]).not_to eq(nil)
         expect(@john_arm[:received_date].iso8601).not_to eq(iso_date_str('2000-01-01'))
@@ -2726,7 +2726,7 @@ describe UpdateController do
             }
           }
         )
-  
+
         expect(last_response.status).to eq(422)
         expect(@john_arm[:received_date]).to eq(nil)
       end
@@ -2810,9 +2810,9 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(422)
-        
+
         @john_arm.refresh
         expect(@john_arm[:received_date]).to eq(nil)
       end
@@ -2851,12 +2851,12 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(200)
         expect(
           json_body[:models][:victim][:documents][@john_doe.name.to_sym][:birthday]
         ).not_to eq(iso_date_str('2000-01-01'))
-        
+
         @john_doe.refresh
         expect(@john_doe[:birthday]).not_to eq(nil)
         expect(@john_doe[:birthday].iso8601).not_to eq(iso_date_str('2000-01-01'))
@@ -2872,7 +2872,7 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(200)
         expect(
           json_body[:models][:victim][:documents][:Unicorn][:birthday]
@@ -2911,12 +2911,12 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(200)
         expect(
           json_body[:models][:victim][:documents][@john_doe.name.to_sym][:birthday]
         ).not_to eq(iso_date_str('2000-01-01'))
-        
+
         @john_doe.refresh
         expect(@john_doe[:birthday]).not_to eq(nil)
         expect(@john_doe[:birthday].iso8601).not_to eq(iso_date_str('2000-01-01'))
@@ -2935,7 +2935,7 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(200)
         expect(
           json_body[:models][:victim][:documents][:Unicorn][:birthday]
@@ -2961,13 +2961,13 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(200)
         expect(
           json_body[:models][:victim][:documents][:Unicorn][:birthday]
         ).not_to eq(iso_date_str('2000-01-01'))
 
-        set_date_shift_root("labor", false) 
+        set_date_shift_root("labor", false)
       end
 
       it 'shifts dates when update contains shifted and not-shifted data' do
@@ -2985,12 +2985,12 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(200)
         expect(
           json_body[:models][:victim][:documents][@john_doe.name.to_sym][:birthday]
         ).not_to eq(iso_date_str('2000-01-01'))
-        
+
         @john_doe.refresh
         expect(@john_doe[:birthday]).not_to eq(nil)
         expect(@john_doe[:birthday].iso8601).not_to eq(iso_date_str('2000-01-01'))
@@ -3014,7 +3014,7 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(200)
         expect(
           json_body[:models][:victim][:documents][@john_doe.name.to_sym][:birthday]
@@ -3041,12 +3041,12 @@ describe UpdateController do
             dry_run: true
           }
         )
-  
+
         expect(last_response.status).to eq(200)
         expect(
           json_body[:models][:victim][:documents][@john_doe.name.to_sym][:birthday]
         ).not_to eq(iso_date_str('2000-01-01'))
-        
+
         @john_doe.refresh
         expect(@john_doe[:birthday]).to eq(nil)
       end
@@ -3061,7 +3061,7 @@ describe UpdateController do
             }
           }
         )
-  
+
         expect(last_response.status).to eq(422)
         expect(@john_doe[:birthday]).to eq(nil)
       end
@@ -3075,7 +3075,7 @@ describe UpdateController do
             }
           }
         )
-  
+
         expect(last_response.status).to eq(422)
       end
 
@@ -3091,7 +3091,7 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(422)
 
         @john_doe.refresh
@@ -3114,7 +3114,7 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(422)
 
         @john_doe.refresh
@@ -3135,7 +3135,7 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(422)
 
         @john_doe.refresh
@@ -3153,7 +3153,7 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(422)
         expect(Labors::Victim.count).to eq(4)
       end
@@ -3171,7 +3171,7 @@ describe UpdateController do
           }},
           :privileged_editor
         )
-  
+
         expect(last_response.status).to eq(422)
         expect(Labors::Victim.count).to eq(4)
       end
@@ -3260,7 +3260,7 @@ EOT
     context 'using dry-run flag' do
       it 'censors date shift attribute updates, privileged user' do
         expect(@john_doe[:birthday]).to eq(nil)
-  
+
         update({
           victim: {
             @john_doe.name => {
@@ -3272,15 +3272,15 @@ EOT
             dry_run: true
           }
         )
-  
+
         expect(last_response.status).to eq(200)
-  
+
         output = <<EOT
 WARN:2000-01-01T00:00:00+00:00 8fzmq8 User copreus@twelve-labors.org calling update#action with params {:project_name=>"labors", :revisions=>{:victim=>{:"John Doe"=>{:birthday=>"*"}}}, :dry_run=>"true"}
 EOT
-  
+
         expect(File.read(@log_file)).to eq(output)
-  
+
         @john_doe.refresh
         expect(@john_doe[:birthday]).to eq(nil)
       end

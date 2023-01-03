@@ -6,7 +6,7 @@ class Magma
   end
   class MatrixAttribute < Attribute
     def database_type
-      :json
+      :jsonb
     end
 
     def entry(value, loader)

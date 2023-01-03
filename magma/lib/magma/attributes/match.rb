@@ -1,7 +1,7 @@
 class Magma
   class MatchAttribute < Attribute
     def database_type
-      :json
+      :jsonb
     end
 
     def entry(value, loader)

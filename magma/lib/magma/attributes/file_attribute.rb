@@ -4,7 +4,7 @@ require_relative './file_serializer'
 class Magma
   class FileAttribute < Attribute
     def database_type
-      :json
+      :jsonb
     end
 
     def serializer

@@ -70,7 +70,7 @@ EOT
 EOT
     end
 
-    it 'suggests a creation migration for json attributes' do
+    it 'suggests a creation migration for jsonb attributes' do
       module Labors
         class Olympian < Magma::Model
           match :prayers
@@ -82,7 +82,7 @@ EOT
       primary_key :id
       DateTime :created_at
       DateTime :updated_at
-      json :prayers
+      jsonb :prayers
     end
 EOT
     end
@@ -156,7 +156,7 @@ EOT
       remove_attribute(Labors::Prize, :weight)
     end
 
-    it 'suggests an update migration for json attributes' do
+    it 'suggests an update migration for jsonb attributes' do
       module Labors
         class Prize < Magma::Model
           match :dimensions
@@ -165,7 +165,7 @@ EOT
       migration = Labors::Prize.migration
       expect(migration.to_s).to eq <<EOT.chomp
     alter_table(Sequel[:labors][:prizes]) do
-      add_column :dimensions, :json
+      add_column :dimensions, :jsonb
     end
 EOT
       remove_attribute(Labors::Prize, :dimensions)
@@ -369,7 +369,7 @@ EOT
         migration = Labors::Prize.migration
         expect(migration.to_s).to eq <<EOT.chomp
     alter_table(Sequel[:labors][:prizes]) do
-      set_column_type :#{original_attribute.column_name}, :json, using: 'worth::json'
+      set_column_type :#{original_attribute.column_name}, :jsonb, using: 'worth::jsonb'
     end
 EOT
         Labors::Prize.attributes[:worth] = original_attribute
