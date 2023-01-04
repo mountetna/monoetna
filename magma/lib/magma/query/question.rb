@@ -1,5 +1,6 @@
 require_relative 'predicate'
 require_relative 'join'
+require_relative 'subselect'
 require_relative 'constraint'
 require_relative 'distinct'
 require_relative 'query_executor'
