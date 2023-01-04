@@ -85,6 +85,14 @@ EOT
       end
     end
 
+    def group_by
+      if @verb && @verb.gives?(:group_by)
+        [ @verb.do(:group_by) ].compact
+      else
+        []
+      end
+    end
+
     def subquery_config
       if @verb && @verb.gives?(:subquery_config)
         @verb.do(:subquery_config)
@@ -332,7 +340,7 @@ EOT
       )
     end
 
-    def is_numeric_constraint column_name      
+    def is_numeric_constraint column_name
       Magma::Constraint.new(
         alias_name,
         Sequel.qualify(alias_name, column_name) => Regexp.new(/^\d+(\.\d+)?$/)

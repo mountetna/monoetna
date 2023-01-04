@@ -132,5 +132,22 @@ class Magma
         raise "Cannot determine select_columns for #{@predicate}"
       end
     end
+
+    def group_by(arg=nil, &block)
+      @group_by = block_given? ? block : arg
+    end
+
+    def get_group_by
+      case @group_by
+      when Symbol
+        @predicate.send @group_by
+      when Proc
+        @predicate.instance_exec(&@group_by)
+      when Class
+        @predicate.send :terminal, @group_by
+      else
+        raise "Cannot determine group_by predicate for #{@predicate}"
+      end
+    end
   end
 end

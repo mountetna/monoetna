@@ -16,12 +16,13 @@ class Magma
   #          if the type is a Boolean you get a Boolean predicate
   #   2) ::has
   #   3) ::identifier
-    attr_reader :model
+    attr_reader :model, :should_aggregate
 
-    def initialize question, model, alias_name, *query_args
+    def initialize question, model, alias_name, should_aggregate, *query_args
       super(question)
       @model = model
       @alias_name = alias_name
+      @should_aggregate = should_aggregate
       process_args(query_args)
     end
 
@@ -98,11 +99,19 @@ class Magma
         attribute_child(@arguments[0])
       end
       join :attribute_join
+
+      group_by do
+        "#{@alias_name}_#{@arguments[0]}".to_sym unless @should_aggregate
+      end
     end
 
     verb Array do
       child do
         Magma::TablePredicate.new(@question, @model, alias_name, @arguments[0], *@query_args)
+      end
+
+      group_by do
+        child_predicate.group_by
       end
     end
 
@@ -213,27 +222,29 @@ class Magma
       end
       case attribute
       when :id
-        return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+        return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, @should_aggregate, *@query_args)
       when Magma::ChildAttribute, Magma::ForeignKeyAttribute
-        return Magma::RecordPredicate.new(@question, attribute.link_model, nil, *@query_args)
+        @should_aggregate = true
+        return Magma::RecordPredicate.new(@question, attribute.link_model, nil, true, *@query_args)
       when Magma::TableAttribute, Magma::CollectionAttribute
-        return Magma::ModelPredicate.new(@question, attribute.link_model, *@query_args)
+        @should_aggregate = true
+        return Magma::ModelPredicate.new(@question, attribute.link_model, true, *@query_args)
       when Magma::FileAttribute, Magma::ImageAttribute
-        return Magma::FilePredicate.new(@question, @model, alias_name, attribute, *@query_args)
+        return Magma::FilePredicate.new(@question, @model, alias_name, attribute, @should_aggregate, *@query_args)
       when Magma::FileCollectionAttribute
-        return Magma::FileCollectionPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+        return Magma::FileCollectionPredicate.new(@question, @model, alias_name, attribute, @should_aggregate, *@query_args)
       when Magma::MatchAttribute
-        return Magma::MatchPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+        return Magma::MatchPredicate.new(@question, @model, alias_name, attribute, @should_aggregate, *@query_args)
       when Magma::MatrixAttribute
-        return Magma::MatrixPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+        return Magma::MatrixPredicate.new(@question, @model, alias_name, attribute, @should_aggregate, *@query_args)
       when Magma::StringAttribute
-        return Magma::StringPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+        return Magma::StringPredicate.new(@question, @model, alias_name, attribute, @should_aggregate, *@query_args)
       when Magma::IntegerAttribute, Magma::FloatAttribute
-        return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+        return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, @should_aggregate, *@query_args)
       when Magma::DateTimeAttribute, Magma::ShiftedDateTimeAttribute
-        return Magma::DateTimePredicate.new(@question, @model, alias_name, attribute, *@query_args)
+        return Magma::DateTimePredicate.new(@question, @model, alias_name, attribute, @should_aggregate, *@query_args)
       when Magma::BooleanAttribute
-        return Magma::BooleanPredicate.new(@question, @model, alias_name, attribute, *@query_args)
+        return Magma::BooleanPredicate.new(@question, @model, alias_name, attribute, @should_aggregate, *@query_args)
       else
         invalid_argument! attribute.name
       end

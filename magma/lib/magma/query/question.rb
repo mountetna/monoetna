@@ -54,7 +54,7 @@ class Magma
       @model = Magma.instance.get_model(project_name, query_args.shift)
       @options = options
       @user = options[:user]
-      @start_predicate = StartPredicate.new(self, @model, *query_args)
+      @start_predicate = StartPredicate.new(self, @model, false, *query_args)
     end
 
     # allow us to re-use the same question for a different page
@@ -126,6 +126,7 @@ class Magma
     private
 
     def to_table(query)
+      require 'pry'
       Magma::QueryExecutor.new(query, @options[:timeout], Magma.instance.db).execute
     end
 
@@ -138,10 +139,22 @@ class Magma
       end
 
       query = query.select(
-          *(predicate_collect(:select)).uniq
-      )
+          *(predicate_collect(:select).concat(selects_for_order_by_columns)).uniq
+      ).group_by(*root_model_predicates)
 
       query
+    end
+
+    def selects_for_order_by_columns
+      @selects_for_order_by_columns ||= order_by_column_names.map.with_index do |column, index|
+        Sequel.as(column, order_by_aliases[index])
+      end
+    end
+
+    def root_model_predicates
+      @predicates.select do |predicate|
+        predicate.model == @model if predicate.respond_to?(:model)
+      end.map(&:group_by).inject(&:+).flatten.concat(order_by_aliases).uniq.compact || []
     end
 
     def order_by_attributes
@@ -169,7 +182,7 @@ class Magma
           Sequel.as(@model.table_name, @start_predicate.alias_name)
       )
 
-      query = query.order(*order_by_column_names)
+      query = query.order(*order_by_aliases)
 
       joins = predicate_collect(:join).uniq
       constraints = predicate_collect(:constraint).uniq

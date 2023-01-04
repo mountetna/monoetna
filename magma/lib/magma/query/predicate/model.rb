@@ -26,7 +26,7 @@ class Magma
     #      ::every - a Boolean that returns true if every item in the list is non-zero
     #      ::distinct - returns distinct values of items in the list. Only works with model -> attribute
 
-    attr_reader :model
+    attr_reader :model, :should_aggregate
 
     def each_ancestor
       current_model = @model
@@ -38,10 +38,11 @@ class Magma
       end
     end
 
-    def initialize(question, model, *query_args)
+    def initialize(question, model, should_aggregate, *query_args)
       super(question)
       @model = model
       @filters = []
+      @should_aggregate = should_aggregate
 
       subquery_args, filter_args = Magma::SubqueryUtils.partition_args(self, query_args)
 
@@ -197,7 +198,7 @@ class Magma
     end
 
     def record_child
-      RecordPredicate.new(@question, @model, alias_name, *@query_args)
+      RecordPredicate.new(@question, @model, alias_name, @should_aggregate, *@query_args)
     end
 
     def join
@@ -212,7 +213,7 @@ class Magma
       if @verb && @verb.gives?(:select_columns)
         @verb.do(:select_columns)
       else
-        [ column_name.as(identity) ]
+        @should_aggregate ? [] : [ column_name.as(identity) ]
       end
     end
 
