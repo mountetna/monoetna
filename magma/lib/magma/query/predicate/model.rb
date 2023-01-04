@@ -82,12 +82,17 @@ class Magma
     verb '::all' do
       child :record_child
       extract do |table,return_identity|
-        table.group_by do |row|
-          row[identity]
-        end.map do |identifier,rows|
-          next unless identifier
-          [ identifier, child_extract(rows, identity) ]
-        end.compact
+        # binding.pry
+        if @should_aggregate # there is only one row in the table now
+          table.first[identity].compact
+        else
+          table.group_by do |row|
+            row[identity]
+          end.map do |identifier,rows|
+            next unless identifier
+            [ identifier, child_extract(rows, identity) ]
+          end.compact
+        end
       end
       format do
         [
@@ -198,7 +203,7 @@ class Magma
     end
 
     def record_child
-      RecordPredicate.new(@question, @model, alias_name, @should_aggregate, *@query_args)
+      RecordPredicate.new(@question, @model, alias_name, @should_aggregate, true, *@query_args)
     end
 
     def join

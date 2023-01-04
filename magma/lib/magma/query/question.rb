@@ -82,6 +82,7 @@ class Magma
             *(predicate_collect(:select)).uniq
         )
         query = apply_bounds(query, bound[:lower], bound[:upper])
+        query = apply_group_by(query)
         table = to_table(query)
         page_answer = @start_predicate.extract(table, identity)
         yield page_answer
@@ -126,7 +127,6 @@ class Magma
     private
 
     def to_table(query)
-      require 'pry'
       Magma::QueryExecutor.new(query, @options[:timeout], Magma.instance.db).execute
     end
 
@@ -140,7 +140,15 @@ class Magma
 
       query = query.select(
           *(predicate_collect(:select).concat(selects_for_order_by_columns)).uniq
-      ).group_by(*root_model_predicates)
+      )
+
+      query = apply_group_by(query)
+
+      query
+    end
+
+    def apply_group_by(query)
+      query = query.group_by(*root_model_predicates)
 
       query
     end

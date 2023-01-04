@@ -3,7 +3,7 @@ require 'set'
 class Magma
   class MatrixPredicate < Magma::Predicate
     attr_reader :attribute
-    def initialize question, model, alias_name, attribute, *query_args
+    def initialize question, model, alias_name, attribute, should_aggregate, *query_args
       super(question)
       @model = model
       @alias_name = alias_name
@@ -11,6 +11,7 @@ class Magma
       @attribute_name = attribute.name.to_sym
       @column_name = attribute.column_name.to_sym
       @requested_identifiers = Set.new
+      @should_aggregate = should_aggregate
       process_args(query_args)
     end
 
@@ -38,7 +39,7 @@ class Magma
     end
 
     def select
-      []
+      [ Sequel[alias_name][@column_name].as(column_name) ]
     end
 
     def matrix_row(identifier, column_names)

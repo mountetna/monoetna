@@ -10,7 +10,7 @@ class Magma
       raise ArgumentError, 'No columns were requested!' if columns.empty?
       @column_predicates = columns.map do |column_query|
         # now, we merely map this to a record predicate. Handy!
-        RecordPredicate.new(@question, @model, @alias_name, false, *column_query)
+        RecordPredicate.new(@question, @model, @alias_name, false, true, *column_query)
       end
       process_args(query_args)
     end

@@ -18,17 +18,22 @@ class Magma
   #   3) ::identifier
     attr_reader :model, :should_aggregate
 
-    def initialize question, model, alias_name, should_aggregate, *query_args
+    def initialize question, model, alias_name, should_aggregate, should_group, *query_args
       super(question)
       @model = model
       @alias_name = alias_name
       @should_aggregate = should_aggregate
+      @should_group = should_group
       process_args(query_args)
     end
 
     verb '::identifier' do
       child do
         attribute_child(@model.identity.attribute_name)
+      end
+
+      group_by do
+        "#{@alias_name}_#{@model.identity.attribute_name}".to_sym if should_group_by?
       end
     end
 
@@ -101,7 +106,7 @@ class Magma
       join :attribute_join
 
       group_by do
-        "#{@alias_name}_#{@arguments[0]}".to_sym unless @should_aggregate
+        "#{@alias_name}_#{@arguments[0]}".to_sym if should_group_by?
       end
     end
 
@@ -122,6 +127,10 @@ class Magma
     end
 
     private
+
+    def should_group_by?
+      @should_group && !@should_aggregate
+    end
 
     def attribute_name(argument)
       @model.has_attribute?(argument) || argument == :id || argument == '::identifier'
@@ -224,8 +233,8 @@ class Magma
       when :id
         return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, @should_aggregate, *@query_args)
       when Magma::ChildAttribute, Magma::ForeignKeyAttribute
-        @should_aggregate = true
-        return Magma::RecordPredicate.new(@question, attribute.link_model, nil, true, *@query_args)
+        @should_group = false
+        return Magma::RecordPredicate.new(@question, attribute.link_model, nil, @should_aggregate, true, *@query_args)
       when Magma::TableAttribute, Magma::CollectionAttribute
         @should_aggregate = true
         return Magma::ModelPredicate.new(@question, attribute.link_model, true, *@query_args)
