@@ -2,7 +2,7 @@ class Magma
   # just like the ModelPredicate, this keeps track of its own predicate chain.
   # Confusing... Perhaps a better concept is in order?
   class TablePredicate < Magma::Predicate
-    attr_reader :column_predicates # for debugging
+
     def initialize question, model, alias_name, columns, *query_args
       super(question)
       @model = model

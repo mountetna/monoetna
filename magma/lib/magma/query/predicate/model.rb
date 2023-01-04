@@ -65,14 +65,22 @@ class Magma
     verb '::first' do
       child :record_child
       extract do |table,return_identity|
-        table.empty? ?
-          nil :
+        return nil if table.empty?
+
+        if @should_aggregate # there is only one row in the table
+          child_result = child_extract(table, identity)
+
+          child_result.is_a?(Magma::MatrixPredicate::MatrixValue) ?
+            child_result :
+            child_result.first
+        else
           child_extract(
             table.group_by do |row|
               row[identity]
             end.first&.last,
             identity
           )
+        end
       end
       format do
         child_format
@@ -82,7 +90,6 @@ class Magma
     verb '::all' do
       child :record_child
       extract do |table,return_identity|
-        # binding.pry
         if @should_aggregate # there is only one row in the table now
           table.first[identity].compact
         else
