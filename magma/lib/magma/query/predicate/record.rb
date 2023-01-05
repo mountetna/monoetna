@@ -169,8 +169,6 @@ class Magma
       attribute = valid_attribute(@arguments[0])
       case attribute
       when Magma::ForeignKeyAttribute
-        require 'pry'
-        binding.pry
         return Magma::Join.new(
           # left table
           table_name,

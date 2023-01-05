@@ -203,8 +203,7 @@ class Magma
       query = @model.from(
           Sequel.as(@model.table_name, @start_predicate.alias_name)
       ).order(@start_predicate.identity)
-      require 'pry'
-      binding.pry
+
       joins = @start_predicate.join.uniq
       constraints = @start_predicate.constraint.uniq
       subqueries = @start_predicate.subquery.uniq

@@ -32,7 +32,7 @@ class Magma
     def select
       @arguments.empty? ?
         @is_subselect ?
-        [ Magma::Subselect.new(*subselect_params) ] :
+        [ Magma::Subselect.new(**subselect_params).coalesce ] :
         [ Sequel[alias_name][attribute_column_name].as(column_name) ] :
       []
     end
@@ -52,12 +52,11 @@ class Magma
     def subselect_params
       {
         parent_alias: 'how do you figure this out?',
-        parent_id_column_name: parent_id_column,
         attribute_alias: column_name,
         child_alias: alias_name,
         child_identifier_column_name: @model.identity.column_name,
         child_fk_column_name: fk_attribute.column_name,
-        child_table_name: @model.table_name,
+        child_model: @model,
         child_column_name: attribute_column_name
       }
     end
@@ -66,10 +65,6 @@ class Magma
       @fk_attribute ||= @model.attributes.values.select do |attribute|
         attribute.is_a?(Magma::ParentAttribute)
       end.first
-    end
-
-    def parent_id_column
-      fk_attribute.link_model.attributes[fk_attribute.link_attribute_name.to_sym].column_name.to_sym
     end
   end
 end

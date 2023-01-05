@@ -7,37 +7,34 @@ class Magma
 
     def initialize(
       parent_alias:,
-      parent_id_column_name:,
       attribute_alias:,
+      child_model:,
       child_alias:,
       child_identifier_column_name:,
       child_fk_column_name:,
-      child_table_name:,
       child_column_name: nil,
       subselect: nil
     )
       raise SubselectError.new("Cannot set both child_column_name and subselect.") unless child_column_name.nil? || subselect.nil?
 
       @parent_alias = parent_alias.to_sym
-      @parent_id_column_name = parent_id_column_name.to_sym
       @attribute_alias = attribute_alias.to_sym
+      @child_model = child_model
       @child_alias = child_alias.to_sym
       @child_identifier_column_name = child_identifier_column_name.to_sym
       @child_fk_column_name = child_fk_column_name.to_sym
-      @child_table_name = child_table_name
       @child_column_name = child_column_name
       @subselect = subselect
     end
 
-    def apply query
+    def coalesce
       require 'pry'
       binding.pry
-      query.select_append(
-        coalesce(
-          inner_select,
-          default_value
-        ).as(attribute_alias)
-      )
+      Sequel.function(
+        :coalesce,
+        inner_select,
+        default_value
+      ).as(attribute_alias)
     end
 
     def hash
@@ -51,8 +48,8 @@ class Magma
     private
 
     def inner_select
-      subselect_query = child_table.from(
-        Sequel.as(@child_table_name, @child_alias)
+      subselect_query = @child_model.from(
+        Sequel.as(@child_model.table_name, @child_alias)
       )
 
       subselect_query.select(
@@ -60,9 +57,7 @@ class Magma
           :json_agg,
           identifier_tuple
         )
-      ).where(*subselect_constraint)
-
-      subselect_query
+      ).where(**subselect_constraint)
     end
 
     def identifier_tuple
@@ -87,7 +82,7 @@ class Magma
 
     def subselect_constraint
       {
-        Sequel.qualify(@child_alias, @child_fk_column_name) => Sequel.qualify(@parent_alias, @parent_id_column_name)
+        Sequel.qualify(@child_alias, @child_fk_column_name) => Sequel.qualify(@parent_alias, :id)
       }
     end
   end
