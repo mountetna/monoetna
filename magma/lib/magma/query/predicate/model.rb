@@ -38,11 +38,11 @@ class Magma
       end
     end
 
-    def initialize(question, model, as_subselect, *query_args)
+    def initialize(question, model, is_subselect, *query_args)
       super(question)
       @model = model
       @filters = []
-      @as_subselect = as_subselect
+      @is_subselect = is_subselect
 
       subquery_args, filter_args = Magma::SubqueryUtils.partition_args(self, query_args)
 
@@ -198,7 +198,7 @@ class Magma
     end
 
     def record_child
-      RecordPredicate.new(@question, @model, alias_name, @as_subselect, *@query_args)
+      RecordPredicate.new(@question, @model, alias_name, @is_subselect, *@query_args)
     end
 
     def join

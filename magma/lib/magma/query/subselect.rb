@@ -1,17 +1,32 @@
 class Magma
+  class SubselectError < Exception
+  end
+
   class Subselect
-    def initialize(parent_table, parent_table_alias, parent_table_id, child_table, child_table_alias, child_table_id)
-      @child_table = child_table
-      @child_table_alias = child_table_alias.to_sym
-      @child_table_id = child_table_id.to_sym
+    attr_reader :attribute_alias
 
-      @parent_table = parent_table
-      @parent_table_alias = parent_table_alias.to_sym
-      @parent_table_id = parent_table_id.to_sym
+    def initialize(
+      parent_alias:,
+      parent_id_column_name:,
+      attribute_alias:,
+      child_alias:,
+      child_identifier_column_name:,
+      child_fk_column_name:,
+      child_table_name:,
+      child_column_name: nil,
+      subselect: nil
+    )
+      raise SubselectError.new("Cannot set both child_column_name and subselect.") unless child_column_name.nil? || subselect.nil?
 
-      @constraints = [
-        { parent_table_column => child_table_column }
-      ]
+      @parent_alias = parent_alias.to_sym
+      @parent_id_column_name = parent_id_column_name.to_sym
+      @attribute_alias = attribute_alias.to_sym
+      @child_alias = child_alias.to_sym
+      @child_identifier_column_name = child_identifier_column_name.to_sym
+      @child_fk_column_name = child_fk_column_name.to_sym
+      @child_table_name = child_table_name
+      @child_column_name = child_column_name
+      @subselect = subselect
     end
 
     def apply query
@@ -19,30 +34,61 @@ class Magma
       binding.pry
       query.select_append(
         coalesce(
-          Sequel.function(:json_agg,
-            Sequel.function(:json_build_array,
-              @child_table_id,
-              '' # column_to_aggregate -- or another subselect?
-          )).distinct,
-          Sequel.cast('[]', :json)
-        ).as(child_table_column)
+          inner_select,
+          default_value
+        ).as(attribute_alias)
       )
     end
 
-    def child_table_column
-      Sequel.qualify(@child_table_alias, @child_table_id)
-    end
-
-    def parent_table_column
-      Sequel.qualify(@parent_table_alias, @parent_table_id)
-    end
-
     def hash
-      child_table_column.hash + parent_table_column.hash
+      attribute_alias.hash
     end
 
     def eql?(other)
-      child_table_column == other.child_table_column && parent_table_column == other.parent_table_column
+      attribute_alias == other.attribute_alias
+    end
+
+    private
+
+    def inner_select
+      subselect_query = child_table.from(
+        Sequel.as(@child_table_name, @child_alias)
+      )
+
+      subselect_query.select(
+        Sequel.function(
+          :json_agg,
+          identifier_tuple
+        )
+      ).where(*subselect_constraint)
+
+      subselect_query
+    end
+
+    def identifier_tuple
+      # Returns a tuple like [ ::identifier, <requested value> ]
+      Sequel.function(:json_build_array,
+        child_identifier_column,
+        @subselect || child_column
+      )
+    end
+
+    def child_identifier_column
+      Sequel.qualify(@child_alias, @child_identifier_column_name)
+    end
+
+    def child_column
+      Sequel.qualify(@child_alias, @child_column_name)
+    end
+
+    def default_value
+      Sequel.cast('[]', :json)
+    end
+
+    def subselect_constraint
+      {
+        Sequel.qualify(@child_alias, @child_fk_column_name) => Sequel.qualify(@parent_alias, @parent_id_column_name)
+      }
     end
   end
 end

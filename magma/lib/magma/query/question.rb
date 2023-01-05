@@ -55,7 +55,7 @@ class Magma
       @model = Magma.instance.get_model(project_name, query_args.shift)
       @options = options
       @user = options[:user]
-      @start_predicate = StartPredicate.new(self, @model, *query_args)
+      @start_predicate = StartPredicate.new(self, @model, false, *query_args)
     end
 
     # allow us to re-use the same question for a different page
@@ -127,6 +127,8 @@ class Magma
     private
 
     def to_table(query)
+      require 'pry'
+      binding.pry
       Magma::QueryExecutor.new(query, @options[:timeout], Magma.instance.db).execute
     end
 
@@ -138,6 +140,8 @@ class Magma
         query = paged_query(query)
       end
 
+      require 'pry'
+      binding.pry
       query = query.select(
           *(predicate_collect(:select)).uniq
       )
@@ -199,7 +203,8 @@ class Magma
       query = @model.from(
           Sequel.as(@model.table_name, @start_predicate.alias_name)
       ).order(@start_predicate.identity)
-
+      require 'pry'
+      binding.pry
       joins = @start_predicate.join.uniq
       constraints = @start_predicate.constraint.uniq
       subqueries = @start_predicate.subquery.uniq
