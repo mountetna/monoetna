@@ -2,10 +2,11 @@ class Magma
   class ColumnPredicate < Magma::Predicate
     # This Predicate returns an actual attribute value of some kind - a number, integer, etc.,
     # or else a test on that value (number > 2, etc.)
-    def initialize question, model, alias_name, attribute, is_subselect, *query_args
+    def initialize question, model, alias_name, attribute, parent_alias_name, is_subselect, *query_args
       super(question)
       @model = model
       @alias_name = alias_name
+      @parent_alias_name = parent_alias_name
       @attribute = attribute
       @attribute_name = attribute.attribute_name.to_sym
       @column_name = attribute.column_name.to_sym
@@ -31,8 +32,8 @@ class Magma
 
     def select
       @arguments.empty? ?
-        @is_subselect ?
-        [ Magma::Subselect.new(**subselect_params).coalesce ] :
+        # @is_subselect ?
+        # [ Magma::TerminalSubselect.new(**subselect_params).coalesce ] :
         [ Sequel[alias_name][attribute_column_name].as(column_name) ] :
       []
     end
@@ -50,21 +51,17 @@ class Magma
     private
 
     def subselect_params
+      require 'pry'
+      binding.pry
       {
-        parent_alias: 'how do you figure this out?',
+        incoming_alias: @parent_alias_name,
         attribute_alias: column_name,
-        child_alias: alias_name,
-        child_identifier_column_name: @model.identity.column_name,
-        child_fk_column_name: fk_attribute.column_name,
-        child_model: @model,
-        child_column_name: attribute_column_name
+        outgoing_alias: alias_name,
+        outgoing_identifier_column_name: @model.identity.column_name,
+        outgoing_model: @model,
+        outgoing_column_name: attribute_column_name,
+        restrict: @question.restrict?
       }
-    end
-
-    def fk_attribute
-      @fk_attribute ||= @model.attributes.values.select do |attribute|
-        attribute.is_a?(Magma::ParentAttribute)
-      end.first
     end
   end
 end

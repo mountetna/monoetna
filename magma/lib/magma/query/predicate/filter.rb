@@ -82,7 +82,7 @@ class Magma
 
           subquery
         else
-          RecordPredicate.new(@question, @model, @alias_name, false, *@query_args)
+          RecordPredicate.new(@question, @model, @alias_name, nil, false, *@query_args)
         end
       end
     end

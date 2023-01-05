@@ -6,30 +6,28 @@ class Magma
     attr_reader :attribute_alias
 
     def initialize(
-      parent_alias:,
+      incoming_alias:,
       attribute_alias:,
-      child_model:,
-      child_alias:,
-      child_identifier_column_name:,
-      child_fk_column_name:,
-      child_column_name: nil,
+      outgoing_model:,
+      outgoing_alias:,
+      outgoing_identifier_column_name:,
+      restrict:,
+      outgoing_column_name:,
       subselect: nil
     )
-      raise SubselectError.new("Cannot set both child_column_name and subselect.") unless child_column_name.nil? || subselect.nil?
-
-      @parent_alias = parent_alias.to_sym
+      raise SubselectError.new("Must provide one of outgoing_column_name or subselect.") if outgoing_column_name.nil? && subselect.nil?
+      require 'pry'
+      binding.pry if incoming_alias.nil?
+      @incoming_alias = incoming_alias.to_sym
       @attribute_alias = attribute_alias.to_sym
-      @child_model = child_model
-      @child_alias = child_alias.to_sym
-      @child_identifier_column_name = child_identifier_column_name.to_sym
-      @child_fk_column_name = child_fk_column_name.to_sym
-      @child_column_name = child_column_name
-      @subselect = subselect
+      @outgoing_model = outgoing_model
+      @outgoing_alias = outgoing_alias.to_sym
+      @outgoing_identifier_column_name = outgoing_identifier_column_name.to_sym
+      @restrict = restrict
+      @outgoing_column_name = outgoing_column_name
     end
 
     def coalesce
-      require 'pry'
-      binding.pry
       Sequel.function(
         :coalesce,
         inner_select,
@@ -48,42 +46,50 @@ class Magma
     private
 
     def inner_select
-      subselect_query = @child_model.from(
-        Sequel.as(@child_model.table_name, @child_alias)
+      subselect_query = @outgoing_model.from(
+        Sequel.as(@outgoing_model.table_name, @outgoing_alias)
       )
 
       subselect_query.select(
         Sequel.function(
           :json_agg,
-          identifier_tuple
+          subselect_data
         )
-      ).where(**subselect_constraint)
+      ).where(**subselect_constraints).where(restrict_constraints)
     end
 
-    def identifier_tuple
-      # Returns a tuple like [ ::identifier, <requested value> ]
-      Sequel.function(:json_build_array,
-        child_identifier_column,
-        @subselect || child_column
-      )
+    def subselect_data
+      raise SubselectError.new("Must be implemented in a subclass.")
     end
 
-    def child_identifier_column
-      Sequel.qualify(@child_alias, @child_identifier_column_name)
+    def outgoing_identifier_column
+      Sequel.qualify(@outgoing_alias, @outgoing_identifier_column_name)
     end
 
-    def child_column
-      Sequel.qualify(@child_alias, @child_column_name)
+    def outgoing_column
+      Sequel.qualify(@outgoing_alias, @outgoing_column_name)
     end
 
     def default_value
       Sequel.cast('[]', :json)
     end
 
-    def subselect_constraint
+    def subselect_constraints
       {
-        Sequel.qualify(@child_alias, @child_fk_column_name) => Sequel.qualify(@parent_alias, :id)
+        Sequel.qualify(@outgoing_alias, @outgoing_column_name) => Sequel.qualify(@incoming_alias, :id)
       }
+    end
+
+    def restrict_constraints
+      return {1 => 1} unless @restrict && model_restricted_attribute
+
+      Sequel.negate(
+        Sequel.qualify(@outgoing_alias, model_restricted_attribute.column_name) => true
+      )
+    end
+
+    def model_restricted_attribute
+      @outgoing_model.attributes[:restricted]
     end
   end
 end

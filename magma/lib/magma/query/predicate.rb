@@ -69,6 +69,14 @@ EOT
       end
     end
 
+    def select_columns
+      if @verb && @verb.gives?(:select_columns)
+        [ @verb.do(:select_columns) ].flatten.compact
+      else
+        []
+      end
+    end
+
     def constraint
       if @verb && @verb.gives?(:constraint)
         [ @verb.do(:constraint) ].compact

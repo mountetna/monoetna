@@ -38,10 +38,11 @@ class Magma
       end
     end
 
-    def initialize(question, model, is_subselect, *query_args)
+    def initialize(question, model, parent_alias, is_subselect, *query_args)
       super(question)
       @model = model
       @filters = []
+      @parent_alias = parent_alias
       @is_subselect = is_subselect
 
       subquery_args, filter_args = Magma::SubqueryUtils.partition_args(self, query_args)
@@ -77,6 +78,12 @@ class Magma
       format do
         child_format
       end
+
+      select_columns do
+        @is_subselect ?
+          [ ] : # LIMIT 1 on the subselect
+          []
+      end
     end
 
     verb '::all' do
@@ -95,6 +102,12 @@ class Magma
           child_format
         ]
       end
+
+      # select_columns do
+      #   @is_subselect ?
+      #   [ Magma::NestingSubselect.new(**subselect_params).coalesce ] :
+      #   []
+      # end
     end
 
     verb '::any' do
@@ -187,8 +200,9 @@ class Magma
     end
 
     def add_filters
-      if @question.restrict?
-      # the model can be restricted, and we should withhold restricted data
+      if @question.restrict? && !@is_subselect
+        # the model can be restricted, and we should withhold restricted data
+        # Subselects handle their own restrictions without filters
         each_ancestor do |restriction_model, ancestors|
           if restriction_model.has_attribute?(:restricted)
             create_filter(ancestors + [ 'restricted', '::untrue' ])
@@ -198,7 +212,7 @@ class Magma
     end
 
     def record_child
-      RecordPredicate.new(@question, @model, alias_name, @is_subselect, *@query_args)
+      RecordPredicate.new(@question, @model, alias_name, @parent_alias, @is_subselect, *@query_args)
     end
 
     def join
@@ -215,6 +229,25 @@ class Magma
       else
         [ column_name.as(identity) ]
       end
+    end
+
+    def subselect_params
+      {
+        incoming_alias: @parent_alias,
+        attribute_alias: identity,
+        outgoing_alias: alias_name,
+        outgoing_identifier_column_name: @model.identity.column_name,
+        outgoing_column_name: fk_attribute.column_name,
+        outgoing_model: @model,
+        subselect: child_predicate.flatten.map(&:select).flatten.first,
+        restrict: @question.restrict?
+      }
+    end
+
+    def fk_attribute
+      @fk_attribute ||= @model.attributes.values.select do |attribute|
+        attribute.is_a?(Magma::ParentAttribute)
+      end.first
     end
 
     def column_name(attribute = @model.identity)
