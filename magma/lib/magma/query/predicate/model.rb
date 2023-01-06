@@ -65,14 +65,22 @@ class Magma
     verb '::first' do
       child :record_child
       extract do |table,return_identity|
-        table.empty? ?
-          nil :
+        return nil if table.empty?
+
+        if @is_subselect # there is only one row in the table
+          child_result = child_extract(table, identity)
+
+          child_result.is_a?(Magma::MatrixPredicate::MatrixValue) ?
+            child_result :
+            child_result.first&.last # child_result.first returns [identifier, value] or nil if child_result is []
+        else
           child_extract(
             table.group_by do |row|
               row[identity]
             end.first&.last,
             identity
           )
+        end
       end
       format do
         child_format
@@ -311,13 +319,13 @@ class Magma
     def subselect_params(incoming_alias_name, incoming_attribute)
       {
         incoming_alias: incoming_alias_name,
-        subselect_column_alias: identity,
         outgoing_alias: alias_name,
         outgoing_identifier_column_name: @model.identity.column_name,
         outgoing_fk_column_name: outgoing_attribute(incoming_attribute).column_name,
         outgoing_model: @model,
         restrict: @question.restrict?,
-        requested_data: child_subselect(incoming_attribute)
+        requested_data: child_subselect(incoming_attribute),
+        filters: @filters
       }
     end
 

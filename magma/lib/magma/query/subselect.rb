@@ -7,22 +7,22 @@ class Magma
 
     def initialize(
       incoming_alias:,
-      subselect_column_alias:,
       outgoing_model:,
       outgoing_alias:,
       outgoing_identifier_column_name:,
       restrict:,
       outgoing_fk_column_name:,
-      requested_data:
+      requested_data:,
+      filters:
     )
       @incoming_alias = incoming_alias.to_sym
-      @subselect_column_alias = subselect_column_alias.to_sym
       @outgoing_model = outgoing_model
       @outgoing_alias = outgoing_alias.to_sym
       @outgoing_identifier_column_name = outgoing_identifier_column_name.to_sym
       @restrict = restrict
       @outgoing_fk_column_name = outgoing_fk_column_name
       @requested_data = requested_data # another subselect, or a column mame on the outgoing model
+      @filters = filters
     end
 
     def coalesce
@@ -41,6 +41,10 @@ class Magma
       subselect_column_alias == other.subselect_column_alias
     end
 
+    def subselect_column_alias
+      @requested_data.subselect_column_alias
+    end
+
     private
 
     def inner_select
@@ -48,12 +52,20 @@ class Magma
         Sequel.as(@outgoing_model.table_name, @outgoing_alias)
       )
 
-      subselect_query.select(
+      subselect_query = subselect_query.select(
         Sequel.function(
           :json_agg,
           subselect_data
         )
-      ).where(**subselect_constraints).where(restrict_constraints)
+      ).where(
+        **subselect_constraints
+      ).where(
+        restrict_constraints
+      )
+
+      subselect_query = apply_filter_constraints(subselect_query)
+
+      subselect_query
     end
 
     def subselect_data
@@ -98,6 +110,18 @@ class Magma
 
     def model_restricted_attribute
       @outgoing_model.attributes[:restricted]
+    end
+
+    def apply_filter_constraints(query)
+      return query if @filters.empty?
+
+      @filters.map do |filter|
+        filter.flatten.map(&:constraint).inject(:+)
+      end.inject(:+).each do |constraint|
+        query = constraint.apply(query)
+      end
+
+      query
     end
   end
 end

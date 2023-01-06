@@ -42,7 +42,7 @@ class Magma
     def generate_subselect(incoming_alias_name, incoming_attribute)
       return [] unless @is_subselect
 
-      [ Magma::SubselectColumn.new(attribute_column_name) ]
+      [ Magma::SubselectColumn.new(column_name, attribute_column_name) ]
     end
 
     protected
