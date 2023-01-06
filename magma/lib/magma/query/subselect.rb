@@ -3,28 +3,26 @@ class Magma
   end
 
   class Subselect
-    attr_reader :attribute_alias
+    attr_reader :subselect_column_alias
 
     def initialize(
       incoming_alias:,
-      attribute_alias:,
+      subselect_column_alias:,
       outgoing_model:,
       outgoing_alias:,
       outgoing_identifier_column_name:,
       restrict:,
-      outgoing_column_name:,
-      subselect: nil
+      outgoing_fk_column_name:,
+      requested_data:
     )
-      raise SubselectError.new("Must provide one of outgoing_column_name or subselect.") if outgoing_column_name.nil? && subselect.nil?
-      require 'pry'
-      binding.pry if incoming_alias.nil?
       @incoming_alias = incoming_alias.to_sym
-      @attribute_alias = attribute_alias.to_sym
+      @subselect_column_alias = subselect_column_alias.to_sym
       @outgoing_model = outgoing_model
       @outgoing_alias = outgoing_alias.to_sym
       @outgoing_identifier_column_name = outgoing_identifier_column_name.to_sym
       @restrict = restrict
-      @outgoing_column_name = outgoing_column_name
+      @outgoing_fk_column_name = outgoing_fk_column_name
+      @requested_data = requested_data # another subselect, or a column mame on the outgoing model
     end
 
     def coalesce
@@ -32,15 +30,15 @@ class Magma
         :coalesce,
         inner_select,
         default_value
-      ).as(attribute_alias)
+      ).as(subselect_column_alias)
     end
 
     def hash
-      attribute_alias.hash
+      subselect_column_alias.hash
     end
 
     def eql?(other)
-      attribute_alias == other.attribute_alias
+      subselect_column_alias == other.subselect_column_alias
     end
 
     private
@@ -59,15 +57,25 @@ class Magma
     end
 
     def subselect_data
-      raise SubselectError.new("Must be implemented in a subclass.")
+      identifier_tuple
+    end
+
+    def identifier_tuple
+      # Returns a tuple like [ ::identifier, <requested data> ]
+      Sequel.function(:json_build_array,
+        outgoing_identifier_column,
+        outgoing_data
+      )
     end
 
     def outgoing_identifier_column
       Sequel.qualify(@outgoing_alias, @outgoing_identifier_column_name)
     end
 
-    def outgoing_column
-      Sequel.qualify(@outgoing_alias, @outgoing_column_name)
+    def outgoing_data
+      @requested_data.is_a?(Magma::Subselect) ?
+        @requested_data :
+        Sequel.qualify(@outgoing_alias, @requested_data.outgoing_data_column_name)
     end
 
     def default_value
@@ -76,7 +84,7 @@ class Magma
 
     def subselect_constraints
       {
-        Sequel.qualify(@outgoing_alias, @outgoing_column_name) => Sequel.qualify(@incoming_alias, :id)
+        Sequel.qualify(@outgoing_alias, @outgoing_fk_column_name) => Sequel.qualify(@incoming_alias, :id)
       }
     end
 

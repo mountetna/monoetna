@@ -38,11 +38,10 @@ class Magma
       end
     end
 
-    def initialize(question, model, parent_alias, is_subselect, *query_args)
+    def initialize(question, model, is_subselect, *query_args)
       super(question)
       @model = model
       @filters = []
-      @parent_alias = parent_alias
       @is_subselect = is_subselect
 
       subquery_args, filter_args = Magma::SubqueryUtils.partition_args(self, query_args)
@@ -79,22 +78,26 @@ class Magma
         child_format
       end
 
-      select_columns do
-        @is_subselect ?
-          [ ] : # LIMIT 1 on the subselect
-          []
-      end
+      # select_columns do
+      #   @is_subselect ?
+      #     [ ] : # LIMIT 1 on the subselect
+      #     []
+      # end
     end
 
     verb '::all' do
       child :record_child
       extract do |table,return_identity|
-        table.group_by do |row|
-          row[identity]
-        end.map do |identifier,rows|
-          next unless identifier
-          [ identifier, child_extract(rows, identity) ]
-        end.compact
+        if @is_subselect # there is only one row in the table now
+          table.first[identity].compact
+        else
+          table.group_by do |row|
+            row[identity]
+          end.map do |identifier,rows|
+            next unless identifier
+            [ identifier, child_extract(rows, identity) ]
+          end.compact
+        end
       end
       format do
         [
@@ -212,7 +215,7 @@ class Magma
     end
 
     def record_child
-      RecordPredicate.new(@question, @model, alias_name, @parent_alias, @is_subselect, *@query_args)
+      RecordPredicate.new(@question, @model, alias_name, @is_subselect, *@query_args)
     end
 
     def join
@@ -227,27 +230,8 @@ class Magma
       if @verb && @verb.gives?(:select_columns)
         @verb.do(:select_columns)
       else
-        [ column_name.as(identity) ]
+        @is_subselect ? [] : [ column_name.as(identity) ]
       end
-    end
-
-    def subselect_params
-      {
-        incoming_alias: @parent_alias,
-        attribute_alias: identity,
-        outgoing_alias: alias_name,
-        outgoing_identifier_column_name: @model.identity.column_name,
-        outgoing_column_name: fk_attribute.column_name,
-        outgoing_model: @model,
-        subselect: child_predicate.flatten.map(&:select).flatten.first,
-        restrict: @question.restrict?
-      }
-    end
-
-    def fk_attribute
-      @fk_attribute ||= @model.attributes.values.select do |attribute|
-        attribute.is_a?(Magma::ParentAttribute)
-      end.first
     end
 
     def column_name(attribute = @model.identity)
@@ -309,7 +293,37 @@ class Magma
       alias_for_column(attr.column_name)
     end
 
+    def generate_subselect(incoming_alias_name, incoming_attribute)
+      return [ ] unless @is_subselect
+
+      [ Magma::Subselect.new(**subselect_params(
+        incoming_alias_name,
+        incoming_attribute
+      )).coalesce ]
+    end
+
     private
+
+    def child_subselect(incoming_attribute)
+      child_predicate.generate_subselect(alias_name, incoming_attribute).first
+    end
+
+    def subselect_params(incoming_alias_name, incoming_attribute)
+      {
+        incoming_alias: incoming_alias_name,
+        subselect_column_alias: identity,
+        outgoing_alias: alias_name,
+        outgoing_identifier_column_name: @model.identity.column_name,
+        outgoing_fk_column_name: outgoing_attribute(incoming_attribute).column_name,
+        outgoing_model: @model,
+        restrict: @question.restrict?,
+        requested_data: child_subselect(incoming_attribute)
+      }
+    end
+
+    def outgoing_attribute(incoming_attribute)
+      incoming_attribute.link_model.attributes[incoming_attribute.link_attribute_name.to_sym]
+    end
 
     def validate_distinct
       raise ArgumentError.new("Can only use ::distinct on string attributes.") unless record_child.child_predicate.is_a?(Magma::StringPredicate)

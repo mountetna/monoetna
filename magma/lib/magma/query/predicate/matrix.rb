@@ -3,13 +3,12 @@ require 'set'
 class Magma
   class MatrixPredicate < Magma::Predicate
     attr_reader :attribute
-    def initialize question, model, alias_name, attribute, parent_alias_name, is_subselect, *query_args
+    def initialize question, model, alias_name, attribute, is_subselect, *query_args
       super(question)
       @model = model
       @alias_name = alias_name
       @attribute = attribute
       @attribute_name = attribute.name.to_sym
-      @parent_alias_name = parent_alias_name
       @is_subselect = is_subselect
       @column_name = attribute.column_name.to_sym
       @requested_identifiers = Set.new

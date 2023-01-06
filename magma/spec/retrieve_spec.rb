@@ -1338,10 +1338,11 @@ describe RetrieveController do
         page: 3,
         page_size: 3
       )
-      require 'pry'
-      binding.pry
+      monster7_victims = victim_list.select do |victim|
+        victim.monster.name == 'monster7'
+      end
       expect(json_body[:models][:monster][:documents].keys).to eq(names.map(&:to_sym))
-      expect(json_body[:models][:monster][:documents][:monster7][:victim]).to match_array(["victim13", "victim14"])
+      expect(json_body[:models][:monster][:documents][:monster7][:victim]).to match_array(monster7_victims.map(&:name))
       expect(json_body[:models][:monster][:documents][:monster7][:labor]).to eq("Nemean Lion")
     end
 

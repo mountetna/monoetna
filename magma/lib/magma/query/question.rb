@@ -1,7 +1,7 @@
 require_relative 'predicate'
 require_relative 'join'
-require_relative 'nesting_subselect'
-require_relative 'terminal_subselect'
+require_relative 'subselect'
+require_relative 'subselect_column'
 require_relative 'constraint'
 require_relative 'distinct'
 require_relative 'query_executor'
@@ -56,7 +56,7 @@ class Magma
       @model = Magma.instance.get_model(project_name, query_args.shift)
       @options = options
       @user = options[:user]
-      @start_predicate = StartPredicate.new(self, @model, nil, false, *query_args)
+      @start_predicate = StartPredicate.new(self, @model, false, *query_args)
     end
 
     # allow us to re-use the same question for a different page
@@ -128,8 +128,6 @@ class Magma
     private
 
     def to_table(query)
-      require 'pry'
-      binding.pry
       Magma::QueryExecutor.new(query, @options[:timeout], Magma.instance.db).execute
     end
 
