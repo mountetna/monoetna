@@ -65,9 +65,9 @@ class Magma
     verb '::first' do
       child :record_child
       extract do |table,return_identity|
-        return nil if table.empty?
-
-        if @is_subselect # there is only one row in the table
+        if table.empty?
+          nil
+        elsif @is_subselect # there is only one row in the table
           child_result = child_extract(table, identity)
 
           child_result.is_a?(Magma::MatrixPredicate::MatrixValue) ?
@@ -97,6 +97,8 @@ class Magma
       child :record_child
       extract do |table,return_identity|
         if @is_subselect # there is only one row in the table now
+          require 'pry'
+          binding.pry
           table.first[identity].compact
         else
           table.group_by do |row|

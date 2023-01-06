@@ -59,7 +59,7 @@ class Magma
     def select
       @column_predicates.map do |pred|
         pred.flatten.map(&:select).inject(&:+).reject do |select_statement|
-          select_statement.is_a?(Magma::SubselectColumn)
+          select_statement.is_a?(Magma::SubselectColumn) || select_statement.is_a?(Magma::Subselect)
         end
       end.inject(&:+)
     end

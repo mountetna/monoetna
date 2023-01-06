@@ -3,8 +3,6 @@ class Magma
   end
 
   class Subselect
-    attr_reader :subselect_column_alias
-
     def initialize(
       incoming_alias:,
       outgoing_model:,
@@ -13,7 +11,8 @@ class Magma
       restrict:,
       outgoing_fk_column_name:,
       requested_data:,
-      filters:
+      filters:,
+      alias_column: true
     )
       @incoming_alias = incoming_alias.to_sym
       @outgoing_model = outgoing_model
@@ -23,14 +22,19 @@ class Magma
       @outgoing_fk_column_name = outgoing_fk_column_name
       @requested_data = requested_data # another subselect, or a column mame on the outgoing model
       @filters = filters
+      @alias_column = alias_column
     end
 
     def coalesce
-      Sequel.function(
+      main_data = Sequel.function(
         :coalesce,
         inner_select,
         default_value
-      ).as(subselect_column_alias)
+      )
+
+      main_data = main_data.as(subselect_column_alias) if @alias_column
+
+      main_data
     end
 
     def hash
@@ -86,7 +90,7 @@ class Magma
 
     def outgoing_data
       @requested_data.is_a?(Magma::Subselect) ?
-        @requested_data :
+        @requested_data.coalesce :
         Sequel.qualify(@outgoing_alias, @requested_data.outgoing_data_column_name)
     end
 

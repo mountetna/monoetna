@@ -88,7 +88,7 @@ class Magma
     end
 
     def select
-      [ Sequel[alias_name][@column_name].as(column_name) ]
+      @is_subselect ? [] : [ Sequel[alias_name][@column_name].as(column_name) ]
     end
   end
 end

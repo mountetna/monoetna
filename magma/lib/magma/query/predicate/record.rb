@@ -129,6 +129,7 @@ class Magma
       return [] unless @is_subselect
 
       incoming_attribute = valid_attribute(@arguments[0]) if incoming_attribute.nil?
+
       [ child_predicate.generate_subselect(incoming_alias_name, incoming_attribute) ].flatten
     end
 
@@ -199,18 +200,6 @@ class Magma
           @child_predicate.alias_name,
           :id
         )
-      when Magma::ChildAttribute
-        return Magma::Join.new(
-          #left table
-          table_name,
-          alias_name,
-          :id,
-
-          #right table
-          @child_predicate.table_name,
-          @child_predicate.alias_name,
-          attribute.foreign_id,
-        )
       end
     end
 
@@ -222,8 +211,10 @@ class Magma
       case attribute
       when :id
         return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, @is_subselect, *@query_args)
-      when Magma::ChildAttribute, Magma::ForeignKeyAttribute
+      when Magma::ForeignKeyAttribute
         return Magma::RecordPredicate.new(@question, attribute.link_model, nil, @is_subselect, *@query_args)
+      when Magma::ChildAttribute
+        return Magma::ChildModelRecordPredicate.new(@question, attribute.link_model, nil, @is_subselect, *@query_args)
       when Magma::TableAttribute, Magma::CollectionAttribute
         @is_subselect = true
         return Magma::ModelPredicate.new(@question, attribute.link_model, true, *@query_args)
