@@ -99,7 +99,9 @@ class Magma
         if @is_subselect # there is only one row in the table now
           require 'pry'
           binding.pry
-          table.first[identity].compact
+          child_predicate.extract(table, identity).compact
+
+          # table.first[identity].compact
         else
           table.group_by do |row|
             row[identity]

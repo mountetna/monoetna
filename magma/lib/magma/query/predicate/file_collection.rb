@@ -12,7 +12,28 @@ class Magma
       child String
 
       extract do |table, identity|
+        require 'pry'
+        binding.pry
+        # Problem is that ... table.first[column_name] can be nested
+        #   So we have to dig into the lowest level where actual
+        #   file_collection data is located, and then grab the
+        #   download URLs for those.
+        # And then make sure to keep the nesting...!
+#         [7] pry(#<Magma::FileCollectionPredicate>)> table
+# => [{:mmjdrnaehy_name=>"The Twelve Labors of Hercules",
+#   :jwitubrgwz_certificates=>
+#    [["Nemean Lion",
+#      [["Nemean Lion",
+#        [{"filename"=>"monster-Nemean Lion-certificates-0.txt", "original_filename"=>"sb_diploma_lion.txt"},
+#         {"filename"=>"monster-Nemean Lion-certificates-1.txt", "original_filename"=>"sm_diploma_lion.txt"}]]]],
+#     ["Lernean Hydra",
+#      [["Lernean Hydra",
+#        [{"filename"=>"monster-Lernean Hydra-certificates-0.txt", "original_filename"=>"ba_diploma_hydra.txt"},
+#         {"filename"=>"monster-Lernean Hydra-certificates-1.txt", "original_filename"=>"phd_diploma_hydra.txt"}]]]],
+#     ["Ceryneian Hind", [["Ceryneian Hind", nil]]]]}]
+
         table.first[column_name] ? table.first[column_name].map do |f|
+          binding.pry
           Magma.instance.storage.download_url(
             @model.project_name,
             f["filename"]
