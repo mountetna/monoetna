@@ -97,11 +97,7 @@ class Magma
       child :record_child
       extract do |table,return_identity|
         if @is_subselect # there is only one row in the table now
-          require 'pry'
-          binding.pry
           child_predicate.extract(table, identity).compact
-
-          # table.first[identity].compact
         else
           table.group_by do |row|
             row[identity]
