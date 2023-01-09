@@ -26,15 +26,7 @@ class Magma
     end
 
     def coalesce
-      main_data = Sequel.function(
-        :coalesce,
-        inner_select,
-        default_value
-      )
-
-      main_data = main_data.as(subselect_column_alias) if @alias_column
-
-      main_data
+      build_coalesce(inner_select)
     end
 
     def hash
@@ -51,12 +43,22 @@ class Magma
 
     private
 
-    def inner_select
-      subselect_query = @outgoing_model.from(
-        Sequel.as(@outgoing_model.table_name, @outgoing_alias)
+    def build_coalesce(select_statement)
+      main_data = Sequel.function(
+        :coalesce,
+        select_statement,
+        default_value
       )
 
-      subselect_query = subselect_query.select(
+      main_data = main_data.as(subselect_column_alias) if @alias_column
+
+      main_data
+    end
+
+    def inner_select
+      query = subselect_query
+
+      query = query.select(
         Sequel.function(
           :json_agg,
           subselect_data
@@ -67,9 +69,13 @@ class Magma
         restrict_constraints
       )
 
-      subselect_query = apply_filter_constraints(subselect_query)
+      apply_filter_constraints(query)
+    end
 
-      subselect_query
+    def subselect_query
+      @outgoing_model.from(
+        Sequel.as(@outgoing_model.table_name, @outgoing_alias)
+      )
     end
 
     def subselect_data

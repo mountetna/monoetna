@@ -2,6 +2,7 @@ require_relative 'predicate'
 require_relative 'join'
 require_relative 'subselect'
 require_relative 'subselect_column'
+require_relative 'subselect_first'
 require_relative 'constraint'
 require_relative 'distinct'
 require_relative 'query_executor'
@@ -128,6 +129,8 @@ class Magma
     private
 
     def to_table(query)
+      # require 'pry'
+      # binding.pry
       Magma::QueryExecutor.new(query, @options[:timeout], Magma.instance.db).execute
     end
 

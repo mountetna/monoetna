@@ -19,7 +19,13 @@ class Magma
       child Array
 
       extract do |table, identity|
-        MatrixValue.new(self, table.first[column_name], @arguments[1])
+        # if @is_subselect
+        #   require 'pry'
+        #   binding.pry
+        #   puts
+        # else
+          MatrixValue.new(self, table.first[column_name], @arguments[1])
+        # end
       end
       validate do |_, validation_list|
         (validation_list - @predicate.attribute.validation_object.options).empty? && !validation_list.empty?
@@ -31,18 +37,32 @@ class Magma
       child Array
 
       extract do |table, identity|
-        MatrixValue.new(self, table.first[column_name])
+        # if @is_subselect
+        #   puts
+        # else
+          MatrixValue.new(self, table.first[column_name])
+        # end
       end
       format { [ default_format, @attribute.validation_object.options ] }
     end
 
     def select
-      [ select_column_name.as(column_name) ]
+      @is_subselect ? [] : [ select_column_name.as(column_name) ]
     end
 
     def matrix_row(data, column_names)
       # ensure_requested_identifiers
       @attribute.matrix_row_json(data, column_names)
+    end
+
+    def attribute_column_name
+      @column_name
+    end
+
+    def generate_subselect(incoming_alias_name, incoming_attribute)
+      return [] unless @is_subselect
+
+      [ Magma::SubselectColumn.new(column_name, attribute_column_name) ]
     end
 
     protected

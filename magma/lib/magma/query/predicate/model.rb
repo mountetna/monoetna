@@ -86,11 +86,7 @@ class Magma
         child_format
       end
 
-      # select_columns do
-      #   @is_subselect ?
-      #     [ ] : # LIMIT 1 on the subselect
-      #     []
-      # end
+      select_columns :select_first_column
     end
 
     verb '::all' do
@@ -304,13 +300,26 @@ class Magma
     def generate_subselect(incoming_alias_name, incoming_attribute)
       return [ ] unless @is_subselect
 
-      [ Magma::Subselect.new(**subselect_params(
-        incoming_alias_name,
-        incoming_attribute
-      )).coalesce ]
+      if @verb && @verb.gives?(:select_columns)
+        @verb.do(:select_columns, incoming_alias_name, incoming_attribute)
+      else
+        [ Magma::Subselect.new(**subselect_params(
+          incoming_alias_name,
+          incoming_attribute
+        )).coalesce ]
+      end
     end
 
     private
+
+    def select_first_column(incoming_alias_name=nil, incoming_attribute=nil)
+      @is_subselect && incoming_alias_name && incoming_attribute ?
+        [ Magma::SubselectFirst.new(**subselect_params(
+          incoming_alias_name,
+          incoming_attribute
+        )).coalesce ] :
+        [ ]
+    end
 
     def child_subselect(incoming_attribute)
       child_predicate.generate_subselect(alias_name, incoming_attribute).first
