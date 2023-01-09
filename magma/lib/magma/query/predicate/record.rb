@@ -200,6 +200,18 @@ class Magma
           @child_predicate.alias_name,
           :id
         )
+      when Magma::ChildAttribute
+        return Magma::Join.new(
+          #left table
+          table_name,
+          alias_name,
+          :id,
+
+          #right table
+          @child_predicate.table_name,
+          @child_predicate.alias_name,
+          attribute.foreign_id,
+        ) unless @is_subselect
       end
     end
 
