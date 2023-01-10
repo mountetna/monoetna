@@ -68,7 +68,7 @@ class Magma
     def matrix_row_json(data, column_names)
       # may not have identifier of the matrix model, due to
       #   subselects, so we don't cache the data right now.
-      return column_names ? Array.new(column_names.length, nil).to_json : nil.to_json unless data
+      return column_names ? Array.new(column_names.length, nil).to_json : null_row_json unless data
 
       if column_names
         indexes = column_indexes(column_names)

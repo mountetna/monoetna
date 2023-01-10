@@ -41,6 +41,10 @@ class Magma
       @requested_data.subselect_column_alias
     end
 
+    def outgoing_data_column_name
+      @requested_data.outgoing_data_column_name
+    end
+
     private
 
     def build_coalesce(select_statement)

@@ -6,7 +6,7 @@ class Magma
       Magma::RecordPredicate.verbs
     end
 
-    def generate_subselect(incoming_alias_name, incoming_attribute = nil)
+    def generate_subselect(incoming_alias_name, incoming_attribute = nil, should_coalesce: false)
       return [] unless @is_subselect
 
       incoming_attribute = valid_attribute(@arguments[0]) if incoming_attribute.nil?

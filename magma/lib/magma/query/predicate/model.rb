@@ -297,35 +297,41 @@ class Magma
       alias_for_column(attr.column_name)
     end
 
-    def generate_subselect(incoming_alias_name, incoming_attribute)
+    def generate_subselect(incoming_alias_name, incoming_attribute, should_coalesce: true)
       return [ ] unless @is_subselect
 
       if @verb && @verb.gives?(:select_columns)
-        @verb.do(:select_columns, incoming_alias_name, incoming_attribute)
+        @verb.do(:select_columns, incoming_alias_name, incoming_attribute, should_coalesce: should_coalesce)
       else
-        [ Magma::Subselect.new(**subselect_params(
+        subselect = Magma::Subselect.new(**subselect_params(
           incoming_alias_name,
-          incoming_attribute
-        )).coalesce ]
+          incoming_attribute,
+          should_coalesce
+        ))
+        [ should_coalesce ? subselect.coalesce : subselect ]
       end
     end
 
     private
 
-    def select_first_column(incoming_alias_name=nil, incoming_attribute=nil)
-      @is_subselect && incoming_alias_name && incoming_attribute ?
-        [ Magma::SubselectFirst.new(**subselect_params(
+    def select_first_column(incoming_alias_name=nil, incoming_attribute=nil, should_coalesce: false)
+      if @is_subselect && incoming_alias_name && incoming_attribute
+        subselect = Magma::SubselectFirst.new(**subselect_params(
           incoming_alias_name,
-          incoming_attribute
-        )).coalesce ] :
+          incoming_attribute,
+          should_coalesce
+        ))
+        [ should_coalesce ? subselect.coalesce : subselect ]
+      else
         [ ]
+      end
     end
 
     def child_subselect(incoming_attribute)
-      child_predicate.generate_subselect(alias_name, incoming_attribute).first
+      child_predicate.generate_subselect(alias_name, incoming_attribute, should_coalesce: false).first
     end
 
-    def subselect_params(incoming_alias_name, incoming_attribute)
+    def subselect_params(incoming_alias_name, incoming_attribute, should_alias_column)
       {
         incoming_alias: incoming_alias_name,
         outgoing_alias: alias_name,
@@ -333,9 +339,14 @@ class Magma
         outgoing_fk_column_name: outgoing_attribute(incoming_attribute).column_name,
         outgoing_model: @model,
         restrict: @question.restrict?,
-        requested_data: child_subselect(incoming_attribute),
-        filters: @filters
+        requested_data: child_subselect(child_predicate_incoming_attribute(incoming_attribute)),
+        filters: @filters,
+        alias_column: should_alias_column
       }
+    end
+
+    def child_predicate_incoming_attribute(incoming_attribute)
+      child_predicate.attribute || incoming_attribute
     end
 
     def outgoing_attribute(incoming_attribute)
