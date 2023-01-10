@@ -5,6 +5,7 @@ class Magma
     def initialize question:, model:, alias_name:, query_args:, parent_filter: nil
       super(question)
 
+      @filters = []
       @model = model
       @alias_name = alias_name
       @parent_filter = parent_filter

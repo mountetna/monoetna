@@ -121,12 +121,12 @@ class Magma
       if @verb && @verb.gives?(:select_columns)
         @verb.do(:select_columns)
       else
-        [ ]
+        super
       end
     end
 
     def generate_subselect(incoming_alias_name, incoming_attribute = nil, should_coalesce: false)
-      return [] unless @is_subselect
+      return child_predicate.select unless @is_subselect
 
       incoming_attribute = valid_attribute(@arguments[0]) if incoming_attribute.nil?
 
