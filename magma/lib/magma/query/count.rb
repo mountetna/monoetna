@@ -1,10 +1,10 @@
 require_relative 'with_restrict_module'
-require_relative 'with_filter_constraints_module'
+require_relative 'with_filters_module'
 
 class Magma
   class Count
     include WithRestrictModule
-    include WithFilterConstraintsModule
+    include WithFiltersModule
 
     def initialize(model:, filters:, restrict:, table_alias_name:)
       @model = model
@@ -32,13 +32,20 @@ class Magma
         count_column
       ).where(
         restrict_constraints
-      ).distinct
+      )
 
-      apply_filter_constraints(query)
+      apply_filters(query)
     end
 
     def count_column
-      Sequel.function(:count, @model.identity.column_name)
+      Sequel.function(:count,
+        Sequel.function(:distinct,
+          Sequel.qualify(
+            @table_alias_name,
+            outgoing_column_name
+          )
+        )
+      )
     end
 
     def restrict_constraints
@@ -47,6 +54,13 @@ class Magma
 
     def count_column_alias
       :"#{@table_alias_name}_count"
+    end
+
+    def outgoing_column_name
+      :id
+      # @model.attributes.values.select do |attribute|
+      #   attribute.is_a?(Magma::ParentAttribute)
+      # end.first&.column_name || :id
     end
   end
 end

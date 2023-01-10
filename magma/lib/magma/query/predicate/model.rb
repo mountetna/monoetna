@@ -63,6 +63,7 @@ class Magma
     end
 
     verb '::first' do
+      # ::first should collapse and return data only, no identifier tuple
       child :record_child
       extract do |table,return_identity|
         if table.empty?
@@ -90,6 +91,7 @@ class Magma
     end
 
     verb '::all' do
+      # All should return [identifier, <data>] tuples
       child :record_child
       extract do |table,return_identity|
         if @is_subselect # there is only one row in the table now

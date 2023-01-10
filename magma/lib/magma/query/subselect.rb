@@ -66,7 +66,7 @@ class Magma
         restrict_constraints
       )
 
-      apply_filter_constraints(query)
+      apply_filters(query)
     end
 
     def subselect_data

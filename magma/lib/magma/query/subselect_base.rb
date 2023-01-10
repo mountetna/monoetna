@@ -1,5 +1,5 @@
 require_relative 'with_restrict_module'
-require_relative 'with_filter_constraints_module'
+require_relative 'with_filters_module'
 
 class Magma
   class SubselectError < Exception
@@ -7,7 +7,7 @@ class Magma
 
   class SubselectBase
     include WithRestrictModule
-    include WithFilterConstraintsModule
+    include WithFiltersModule
 
     def initialize(
       incoming_alias:,

@@ -30,6 +30,12 @@ class Magma
       child do
         attribute_child(@model.identity.attribute_name)
       end
+
+      join :attribute_join
+
+      select_columns do
+        generate_subselect(alias_name, should_coalesce: true)
+      end
     end
 
     verb '::has', :attribute_name do
