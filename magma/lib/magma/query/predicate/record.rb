@@ -236,7 +236,7 @@ class Magma
       when :id
         return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, @is_subselect, *@query_args)
       when Magma::ForeignKeyAttribute
-        return Magma::RecordPredicate.new(@question, attribute.link_model, nil, @is_subselect, *@query_args)
+        return Magma::RecordPredicate.new(@question, attribute.link_model, nil, false, *@query_args)
       when Magma::ChildAttribute
         return Magma::ChildModelRecordPredicate.new(@question, attribute.link_model, nil, @is_subselect, *@query_args)
       when Magma::TableAttribute, Magma::CollectionAttribute

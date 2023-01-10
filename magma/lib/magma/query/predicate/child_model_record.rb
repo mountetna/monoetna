@@ -7,7 +7,7 @@ class Magma
     end
 
     def generate_subselect(incoming_alias_name, incoming_attribute = nil, should_coalesce: false)
-      return [] unless @is_subselect
+      return child_predicate.select unless @is_subselect
 
       incoming_attribute = valid_attribute(@arguments[0]) if incoming_attribute.nil?
 
@@ -24,7 +24,7 @@ class Magma
     private
 
     def child_subselect(incoming_alias_name, incoming_attribute)
-      child_predicate.generate_subselect(incoming_alias_name, incoming_attribute).first
+      child_predicate.generate_subselect(incoming_alias_name, incoming_attribute, should_coalesce: false).first
     end
 
     def child_subselect_params(incoming_alias_name, incoming_attribute)
@@ -35,7 +35,8 @@ class Magma
         outgoing_fk_column_name: outgoing_attribute.column_name,
         outgoing_model: @model,
         restrict: @question.restrict?,
-        requested_data: child_subselect(incoming_alias_name, incoming_attribute),
+        requested_data: child_subselect(incoming_alias_name,
+          child_predicate_incoming_attribute(incoming_attribute)),
         filters: [],
         alias_column: false
       }
@@ -47,6 +48,10 @@ class Magma
       @model.attributes.values.select do |attribute|
         attribute.is_a?(Magma::ParentAttribute)
       end.first
+    end
+
+    def child_predicate_incoming_attribute(incoming_attribute)
+      child_predicate.attribute || incoming_attribute
     end
   end
 end

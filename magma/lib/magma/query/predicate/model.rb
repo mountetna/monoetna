@@ -297,6 +297,8 @@ class Magma
       if @verb && @verb.gives?(:select_columns)
         @verb.do(:select_columns, incoming_alias_name, incoming_attribute, should_coalesce: should_coalesce)
       else
+        # require 'pry'
+        # binding.pry
         subselect = Magma::Subselect.new(**subselect_params(
           incoming_alias_name,
           incoming_attribute,
