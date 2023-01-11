@@ -56,10 +56,7 @@ class Magma
       query = subselect_query
 
       query = query.select(
-        Sequel.function(
-          :json_agg,
-          subselect_data
-        )
+        inner_select_contents
       ).where(
         **subselect_constraints
       ).where(
@@ -67,6 +64,13 @@ class Magma
       )
 
       apply_filters(query)
+    end
+
+    def inner_select_contents
+      Sequel.function(
+        :json_agg,
+        subselect_data
+      )
     end
 
     def subselect_data

@@ -30,13 +30,13 @@ class Magma
     def child_subselect_params(incoming_alias_name, incoming_attribute)
       {
         incoming_alias: incoming_alias_name,
-        outgoing_alias: child_predicate.alias_name,
+        outgoing_alias: alias_name,
         outgoing_identifier_column_name: @model.identity.column_name,
         outgoing_fk_column_name: outgoing_attribute.column_name,
         outgoing_model: @model,
         restrict: @question.restrict?,
-        requested_data: child_subselect(incoming_alias_name,
-          child_predicate_incoming_attribute(incoming_attribute)),
+        requested_data: child_subselect(alias_name,
+          child_predicate_incoming_attribute),
         filters: [],
         alias_column: false
       }
@@ -50,8 +50,8 @@ class Magma
       end.first
     end
 
-    def child_predicate_incoming_attribute(incoming_attribute)
-      child_predicate.attribute || incoming_attribute
+    def child_predicate_incoming_attribute
+      valid_attribute(@arguments[0])
     end
   end
 end
