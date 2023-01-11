@@ -16,6 +16,7 @@ import Switch from '@material-ui/core/Switch';
 import ConfigScript from './config-script';
 import EtlPane, {EtlPaneHeader} from './etl-pane';
 import RedcapForm from './redcap-form';
+import MetisForm from './metis-form';
 import RevisionHistory from 'etna-js/components/revision-history';
 import {json_get} from 'etna-js/utils/fetch';
 import {formatTime} from './run-state';
@@ -37,7 +38,8 @@ const useStyles = makeStyles((theme) => ({
 const FORMS: {
   [key: string]: any;
 } = {
-  redcap: RedcapForm
+  redcap: RedcapForm,
+  metis: MetisForm
 };
 
 const ConfigurePane = ({

@@ -17,6 +17,7 @@ import CheckIcon from '@material-ui/icons/Check';
 import ErrorIcon from '@material-ui/icons/ErrorOutline';
 import ScheduleIcon from '@material-ui/icons/Schedule';
 import Grid from '@material-ui/core/Grid';
+import Chip from '@material-ui/core/Chip';
 
 import EtlButton from './etl-button';
 import RunPane from './run-pane';
@@ -98,7 +99,7 @@ const EtlConfig = ({
   job,
   onUpdate
 }: Etl & {job: Job | undefined; onUpdate: Function}) => {
-  const [mode, setMode] = useState<string | null>(null);
+  const [mode, setMode] = useState<string | null>(job?.name == 'metis' ? 'configure' : null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -130,7 +131,7 @@ const EtlConfig = ({
   return (
     <Card className={classes.etl} elevation={0} key={etl}>
       <CardContent>
-        <Typography className={classes.heading}>{name}</Typography>
+        <Typography component='div' className={classes.heading}><Chip label={job.name}/>{name}</Typography>
 
         <CardActions>
           <Grid direction='row' container>
