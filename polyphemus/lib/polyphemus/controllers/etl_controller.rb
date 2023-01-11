@@ -71,7 +71,13 @@ class EtlController < Polyphemus::Controller
     end
 
     if update[:config]
-      raise Etna::BadRequest, "Invalid configuration for etl \"#{etl_config.etl}\"" unless etl_config.validate_config(update[:config])
+      unless (errors = etl_config.validate_config(update[:config])).empty?
+        raise Etna::BadRequest, "Invalid configuration for etl \"#{etl_config.etl}\"\n#{
+          errors.map do |error|
+            JSONSchemer::Errors.pretty(error)
+          end.join("\n")
+        }"
+      end
 
       new_etl_config = Polyphemus::EtlConfig.create(etl_config.as_json.merge(update).merge(secrets: etl_config.secrets))
       etl_config.modified!(:updated_at)

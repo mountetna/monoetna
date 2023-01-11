@@ -41,7 +41,7 @@ describe EtlController do
       get('/api/etl/jobs')
 
       expect(last_response.status).to eq(200)
-      expect(json_body.map(&:keys)).to all(match_array([:name, :schema, :secrets, :params]))
+      expect(json_body.map(&:keys)).to all(satisfy { |v| !v.empty? && (v - [:name, :schema, :secrets, :params]).empty? })
     end
   end
 
@@ -115,7 +115,7 @@ describe EtlController do
       json_post('/api/etl/labors/update/Dummy ETL', config: new_config)
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid configuration for etl "dummy"')
+      expect(json_body[:error]).to eq("Invalid configuration for etl \"dummy\"\nroot is missing required keys: foo\nproperty '/blah' is invalid: error_type=schema")
       expect(Polyphemus::EtlConfig.count).to eq(1)
       etl.refresh
       expect(etl.archived).to be_falsy

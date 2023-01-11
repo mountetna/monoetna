@@ -81,7 +81,7 @@ describe Polyphemus::RedcapJob do
         run_interval: Polyphemus::EtlConfig::RUN_NEVER
       )
 
-      expect(etl_config.validate_config({
+      expect(etl_config.valid_config?({
         model_name: {
           scripts: [{
             each: ['record'],
@@ -94,7 +94,7 @@ describe Polyphemus::RedcapJob do
         }
       })).to eq(true)
 
-      expect(etl_config.validate_config({
+      expect(etl_config.valid_config?({
         model_name: {
           scripts: [{
             each: ['record'],
@@ -103,7 +103,7 @@ describe Polyphemus::RedcapJob do
         }
       })).to eq(true)
 
-      expect(etl_config.validate_config({
+      expect(etl_config.valid_config?({
         model_name: {
           scripts: [{
             each: ['record'],
@@ -115,7 +115,7 @@ describe Polyphemus::RedcapJob do
         }
       })).to eq(false)
 
-      expect(etl_config.validate_config({
+      expect(etl_config.valid_config?({
         model_name: {
           scripts: [{
             each: ['record'],

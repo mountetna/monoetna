@@ -552,6 +552,10 @@ def create_dummy_job
       }
     end
 
+    def self.should_run?
+      true
+    end
+
     def validate
     end
 
