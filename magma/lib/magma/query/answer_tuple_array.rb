@@ -13,15 +13,15 @@ class Magma
       @raw_data = raw_data
     end
 
-    def aggregated_values(tsv_column)
+    def aggregated_values(data_is_collection)
       return [] unless Magma::AnswerTupleArray.answer_tuple_array?(@raw_data)
 
-      aggregate_nested_values(tsv_column)
+      aggregate_nested_values(data_is_collection)
     end
 
     private
 
-    def aggregate_nested_values(tsv_column)
+    def aggregate_nested_values(data_is_collection)
       [].tap do |result|
         queue = @raw_data.dup
 
@@ -30,7 +30,7 @@ class Magma
           if Magma::AnswerTupleArray.answer_tuple_array?(next_data)
             queue += next_data
           elsif Magma::AnswerTuple.answer_tuple?(next_data)
-            if tsv_column.array? && !next_data.last.is_a?(Array)
+            if data_is_collection && !next_data.last.is_a?(Array)
               result = result.concat(next_data)
             else
               queue << next_data.last

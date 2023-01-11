@@ -45,7 +45,7 @@ class Magma
       raise TSVError.new("user_columns array must be #{model_attr_headers.length} elements long") unless model_attr_headers.length == user_columns.length
     end
 
-    def path_to_value(search_array, target_column, current_path: [], starting_index: nil, remove_starting_index: false)
+    def path_to_value(search_array, target_column, current_path: [], starting_index: nil)
       # Given search_array as a nested set of arrays,
       #   finds the index-path to get to a specific value, starting with
       #   the starting_index if provided.
@@ -69,7 +69,6 @@ class Magma
             current_path: current_path.concat([starting_index.nil? ? index : starting_index]),
           )
 
-          temp_path.shift if remove_starting_index
           return temp_path unless temp_path.empty?
         end
       end
@@ -118,7 +117,6 @@ class Magma
     end
 
     def to_tsv(records)
-      require 'pry'
       CSV.generate(col_sep: "\t") do |csv|
         records.map do |record|
           csv << [].tap do |row|
@@ -136,10 +134,6 @@ class Magma
                 row << record.last
                 next
               else
-                # record.last must be an aggregated array
-                #   the header data should match to record.last[index - 1]
-                # Then just grab and aggregate the "data" value from
-                #   the innermost arrays in this column.
                 column_index = index - 1
 
                 attribute_data = record.last[column_index]
@@ -149,11 +143,11 @@ class Magma
                   value = attribute_data
                 else
                   answer = Magma::AnswerTupleArray.new(attribute_data)
-                  value = answer.aggregated_values(tsv_column)
+                  value = answer.aggregated_values(tsv_column.array?)
                 end
               end
 
-              if @expand_matrices && tsv_column.matrix?
+              if expand_matrix_data(tsv_column.matrix?)
                 row = row.concat(value.nil? ?
                   Array.new(matrix_columns(tsv_column, index - 1).length) { nil } :
                   value)
@@ -173,47 +167,9 @@ class Magma
       @question.format.last.is_a?(String)
     end
 
-    # def dig_reduce(record, path)
-    #   # ["Lernean Hydra", [3, "Susan Doe", [["Shawn Doe", [[87, "Arm"], [88, "Leg"]]], ["Susan Doe", [[86, "Leg"], [85, "Arm"]]]]]]
-    #   # with path [1, 2, 1, 1]
-    #   # should return ["Arm", "Leg", "Leg", "Arm"]
-    #   # because the entry at [1, 2] is an array of branched values, not a path to
-    #   #   an inner value or an explicit answer.
-    #   return nil unless record && path
-
-    #   require 'pry'
-    #   binding.pry
-
-    #   queue = path.dup
-    #   value_under_test = record
-
-    #   while !queue.empty?
-    #     index = queue.shift
-
-    #     # Sometimes the record won't have data for this attribute
-    #     break if value_under_test.nil?
-
-    #     entry = value_under_test[index]
-
-    #     if entry.is_a?(Array) && entry.first.is_a?(Array)
-    #       # Nested data, need to reduce the interior entries to grab
-    #       #   only the requested attribute values.
-    #       inner_path = queue.dup
-    #       binding.pry
-    #       return entry.map do |e|
-    #                dig_reduce(e, inner_path)
-    #              end.flatten.compact
-    #     elsif entry.is_a?(Magma::MatrixPredicate::MatrixValue)
-    #       return JSON.parse(entry.to_json)
-    #     end
-
-    #     value_under_test = entry
-    #   end
-
-    #   binding.pry
-    #   # no reduction was required, so just use dig
-    #   record.dig(*path)
-    # end
+    def expand_matrix_data(is_matrix_column)
+      @expand_matrices && is_matrix_column
+    end
   end
 
   class TSVHeader < Magma::QuestionColumnBase
