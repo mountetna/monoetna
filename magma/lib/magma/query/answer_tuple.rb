@@ -4,7 +4,7 @@ class Magma
     def self.answer_tuple?(value)
       (value.is_a?(Sequel::Postgres::JSONArray) || value.is_a?(Array)) &&
       value.length == 2 &&
-      value.first.is_a?(String)
+      (value.first.is_a?(String) || value.first.is_a?(Integer)) # tables have integer indices
     end
 
     def initialize(data)
