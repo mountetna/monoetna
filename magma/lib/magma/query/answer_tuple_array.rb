@@ -7,9 +7,11 @@ class Magma
     def self.from_raw_answer_tuples(raw_answer_tuples)
       Magma::AnswerTupleArray.new(
         raw_answer_tuples.map do |raw_answer_tuple|
-          if raw_answer_tuple.is_a?(Magma::AnswerBase)
+          if (raw_answer_tuple.is_a?(Magma::AnswerBase) ||
+              Magma::AnswerCollectionBase.array_of_answers?(raw_answer_tuple))
             raw_answer_tuple
           else
+            identifier = raw_answer_tuple.first
             inner_data = raw_answer_tuple.last
 
             if (!inner_data.is_a?(Magma::AnswerBase))
@@ -23,7 +25,7 @@ class Magma
             end
 
             Magma::AnswerTuple.new(
-              raw_answer_tuple.first,
+              identifier,
               inner_data
             )
           end
