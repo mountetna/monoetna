@@ -14,7 +14,7 @@ class Magma
     end
 
     def extract table, identity
-      table.first[column_name]&.iso8601
+      Magma::Answer.new(table.first[column_name]&.iso8601)
     end
   end
 end

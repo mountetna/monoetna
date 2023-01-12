@@ -121,35 +121,31 @@ class Magma
         records.map do |record|
           csv << [].tap do |row|
             model_attr_headers.each.with_index do |tsv_column, index|
+              column_index = index - 1
+
               if index == 0
-                # The identifier of the question answer is always located
-                #   here. Simplifies the use of starting_index for the
-                #   answers, since that index will always be relative to
-                #   the data part of the answer tuple.
-                row << record.first
+                row << record.identifier
                 next
               elsif non_nested_single_model_query
                 # In this simple use case, we just grab the entire
                 #   answer portion
-                row << record.last
+                row << record.data
                 next
               else
-                column_index = index - 1
+                attribute_data = record.data[column_index]
 
-                attribute_data = record.last[column_index]
-                if attribute_data.is_a?(Magma::MatrixPredicate::MatrixValue)
-                  value = JSON.parse(attribute_data.to_json)
-                elsif !Magma::AnswerTupleArray.answer_tuple_array?(attribute_data)
-                  value = attribute_data
+                if attribute_data.data.is_a?(Magma::MatrixPredicate::MatrixValue)
+                  value = JSON.parse(attribute_data.data.to_json)
+                elsif attribute_data.is_a?(Magma::Answer)
+                  value = attribute_data.data
                 else
-                  answer = Magma::AnswerTupleArray.new(attribute_data)
-                  value = answer.aggregated_values(tsv_column.array?)
+                  value = attribute_data.aggregated_values(tsv_column.array?)
                 end
               end
 
               if expand_matrix_data(tsv_column.matrix?)
                 row = row.concat(value.nil? ?
-                  Array.new(matrix_columns(tsv_column, index - 1).length) { nil } :
+                  Array.new(matrix_columns(tsv_column, column_index).length) { nil } :
                   value)
               else
                 row << value

@@ -9,8 +9,11 @@ require_relative 'subselect_first'
 require_relative 'constraint'
 require_relative 'distinct'
 require_relative 'query_executor'
+require_relative 'answer'
+require_relative 'answer_array'
 require_relative 'answer_tuple'
 require_relative 'answer_tuple_array'
+require_relative 'nil_answer'
 
 # A query for a piece of data. Each question is a path through the data
 # hierarchy/schema/graph or whatever you want to call it. The basic idea is

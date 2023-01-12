@@ -145,6 +145,10 @@ class Magma
       valid_attribute(@arguments[0])
     end
 
+    def collection_attribute?
+      child_predicate.is_a?(Magma::FileCollectionPredicate)
+    end
+
     private
 
     def attribute_name(argument)

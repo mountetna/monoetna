@@ -19,8 +19,11 @@ class Magma
       child Array
 
       extract do |table, identity|
-        answer = AnswerTuple.new(table.first[column_name])
-        MatrixValue.new(self, answer.final_value, @arguments[1])
+        answer = AnswerTuple.new(
+          table.first[identity],
+          table.first[column_name]
+        )
+        Magma::Answer.new(MatrixValue.new(self, answer.data, @arguments[1]))
       end
       validate do |_, validation_list|
         (validation_list - @predicate.attribute.validation_object.options).empty? && !validation_list.empty?
@@ -32,8 +35,11 @@ class Magma
       child Array
 
       extract do |table, identity|
-        answer = AnswerTuple.new(table.first[column_name])
-        MatrixValue.new(self, answer.final_value)
+        answer = AnswerTuple.new(
+          table.first[identity],
+          table.first[column_name]
+        )
+        Magma::Answer.new(MatrixValue.new(self, answer.data))
       end
       format { [ default_format, @attribute.validation_object.options ] }
     end

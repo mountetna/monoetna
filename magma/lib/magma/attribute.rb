@@ -124,11 +124,11 @@ class Magma
     end
 
     def query_to_payload(value)
-      value
+      value.data
     end
 
     def query_to_tsv(value)
-      query_to_payload(value)
+      value
     end
 
     def revision_to_loader(record_name, new_value)

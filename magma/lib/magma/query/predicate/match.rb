@@ -4,7 +4,7 @@ class Magma
       child String
 
       extract do |table, identity|
-        table.first[column_name]['type']
+        Magma::Answer.new(table.first[column_name]['type'])
       end
     end
 
@@ -12,7 +12,7 @@ class Magma
       child String
 
       extract do |table, identity|
-        table.first[column_name]['value']
+        Magma::Answer.new(table.first[column_name]['value'])
       end
     end
 

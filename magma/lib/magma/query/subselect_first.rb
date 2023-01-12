@@ -3,7 +3,7 @@ require_relative 'subselect'
 class Magma
   class SubselectFirst < Magma::Subselect
     def coalesce
-      build_coalesce(limited_inner_select)
+      limited_inner_select.as(subselect_column_alias)
     end
 
     private
@@ -12,7 +12,7 @@ class Magma
       query = subselect_query
 
       query = query.select(
-        subselect_data
+        outgoing_data
       ).where(
         **subselect_constraints
       ).where(

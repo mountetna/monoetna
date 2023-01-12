@@ -107,16 +107,16 @@ EOT
       []
     end
 
-    def extract table, identity
+    def extract table, identity, is_all=false
       if @verb && @verb.gives?(:extract)
-        @verb.do(:extract, table, identity)
+        @verb.do(:extract, table, identity, is_all)
       else
-        child_extract(table,identity)
+        child_extract(table,identity,is_all)
       end
     end
 
-    def child_extract table, identity
-      @child_predicate.is_a?(Predicate) ? @child_predicate.extract(table, identity) : table
+    def child_extract table, identity, is_all=false
+      @child_predicate.is_a?(Predicate) ? @child_predicate.extract(table, identity, is_all) : table
     end
 
     def format

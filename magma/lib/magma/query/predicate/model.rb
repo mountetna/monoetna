@@ -67,13 +67,14 @@ class Magma
       child :record_child
       extract do |table,return_identity|
         if table.empty?
-          nil
+          Magma::NilAnswer.new
         elsif @is_subselect # there is only one row in the table
-          child_result = child_extract(table, identity)
+          child_extract(table, identity)
+          # child_result = child_extract(table, identity)
 
-          child_result.is_a?(Magma::MatrixPredicate::MatrixValue) ?
-            child_result :
-            child_result.last
+          # child_result.is_a?(Magma::MatrixPredicate::MatrixValue) ?
+          #   child_result :
+          #   child_result.last
         else
           child_extract(
             table.group_by do |row|
@@ -95,14 +96,42 @@ class Magma
       child :record_child
       extract do |table,return_identity|
         if @is_subselect # there is only one row in the table now
-          child_predicate.extract(table, identity).compact
+          root_table_identifier = table.first[return_identity]
+          child_answer = child_predicate.extract(table, identity, true)
+
+          if root_table_identifier.nil?
+            child_answer
+          # elsif (
+          #   !child_answer.data.is_a?(Magma::AnswerBase) &&
+          #   !child_predicate.collection_attribute? &&
+          #   (child_answer.data.is_a?(Sequel::Postgres::JSONArray) ||
+          #    child_answer.data.is_a?(Array))
+          # )
+          #   Magma::AnswerTupleArray.new(
+          #     [
+          #       Magma::AnswerTuple.new(
+          #         root_table_identifier,
+          #         Magma::AnswerTupleArray.from_raw_answer_tuples(
+          #           child_answer.data
+          #         )
+          #       )
+          #     ]
+          #   )
+          else
+            Magma::AnswerTuple.new(
+              root_table_identifier,
+              child_answer
+            )
+          end
         else
-          table.group_by do |row|
-            row[identity]
-          end.map do |identifier,rows|
-            next unless identifier
-            [ identifier, child_extract(rows, identity) ]
-          end.compact
+          as_answer_tuple_array(
+            table.group_by do |row|
+              row[identity]
+            end.map do |identifier,rows|
+              next unless identifier
+              [ identifier, child_extract(rows, identity, true) ]
+            end.compact
+          )
         end
       end
       format do
@@ -121,9 +150,11 @@ class Magma
       subquery_config Magma::SubqueryConfig.new(magma_class: Magma::SubqueryInner, condition: "> 0")
 
       extract do |table,return_identity|
-        table.any? do |row|
-          row[identity]
-        end
+        Magma::Answer.new(
+          table.any? do |row|
+            row[identity]
+          end
+        )
       end
       format { 'Boolean' }
     end
@@ -136,9 +167,11 @@ class Magma
       subquery_config Magma::SubqueryConfig.new(magma_class: Magma::SubqueryInner, condition: "= count(*)")
 
       extract do |table,return_identity|
-        table.length > 0 && table.all? do |row|
-          row[identity]
-        end
+        Magma::Answer.new(
+          table.length > 0 && table.all? do |row|
+            row[identity]
+          end
+        )
       end
       format { 'Boolean' }
     end
@@ -146,7 +179,7 @@ class Magma
     verb '::count' do
       child Numeric
       extract do |table,return_identity|
-        table.first[count_column_name]
+        Magma::Answer.new(table.first[count_column_name])
       end
       format { 'Numeric' }
 
@@ -167,7 +200,9 @@ class Magma
       end
 
       extract do |table|
-        table.map do |row| row.values end.flatten.uniq.compact
+        Magma::Answer.new(
+          table.map do |row| row.values end.flatten.uniq.compact
+        )
       end
       format { [ child_format ] }
     end
@@ -307,6 +342,10 @@ class Magma
     end
 
     private
+
+    def as_answer_tuple_array(raw_answer_tuples)
+      Magma::AnswerTupleArray.from_raw_answer_tuples(raw_answer_tuples)
+    end
 
     def count_column_name
       :"#{alias_name}_count"

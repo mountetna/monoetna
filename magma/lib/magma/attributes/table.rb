@@ -3,7 +3,7 @@ class Magma
     include Magma::Link
 
     def query_to_payload(link)
-      link ? link.map(&:last) : nil
+      link ? link.aggregated_values(false) : nil
     end
 
     def query_to_tsv(value)

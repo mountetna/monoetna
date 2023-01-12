@@ -1,7 +1,10 @@
 require 'json'
+require_relative 'with_aggregated_data_module'
 
 class Magma
   class FileCollectionPredicate < Magma::ColumnPredicate
+    include WithAggregatedDataModule
+
     def initialize question, model, alias_name, attribute, *query_args
       super
       @md5_set = Md5Set.new(@question.user, @model)
@@ -13,7 +16,7 @@ class Magma
 
       extract do |table, identity|
         if !table.first[column_name]
-          nil
+          Magma::NilAnswer.new
         elsif @is_subselect
           nested_reduce_and_apply(
             table.first[column_name],
@@ -21,9 +24,11 @@ class Magma
             &request_download_url
           )
         else
-          table.first[column_name].map do |f|
-            request_download_url.call(f)
-          end
+          as_answer_array(
+            table.first[column_name].map do |f|
+              request_download_url.call(f)
+            end
+          )
         end
       end
     end
@@ -33,7 +38,7 @@ class Magma
 
       extract do |table, identity|
         if !table.first[column_name]
-          nil
+          Magma::NilAnswer.new
         elsif @is_subselect
           nested_reduce_and_apply(
             table.first[column_name],
@@ -41,7 +46,9 @@ class Magma
             &extract_attribute("filename")
           )
         else
-          table.first[column_name].map { |f| f["filename"] }
+          as_answer_array(
+            table.first[column_name].map { |f| f["filename"] }
+          )
         end
       end
     end
@@ -51,7 +58,7 @@ class Magma
 
       extract do |table, identity|
         if !table.first[column_name]
-          nil
+          Magma::NilAnswer.new
         elsif @is_subselect
           nested_reduce_and_apply(
             table.first[column_name],
@@ -59,7 +66,9 @@ class Magma
             &extract_attribute("original_filename")
           )
         else
-          table.first[column_name].map { |f| f["original_filename"] }
+          as_answer_array(
+            table.first[column_name].map { |f| f["original_filename"] }
+          )
         end
       end
     end
@@ -69,7 +78,7 @@ class Magma
 
       extract do |table, identity|
         if !table.first[column_name]
-          nil
+          Magma::NilAnswer.new
         elsif @is_subselect
           nested_reduce_and_apply(
             table.first[column_name],
@@ -77,7 +86,9 @@ class Magma
             &append_attribute_to_set(@md5_set, "filename")
           )
         else
-          table.first[column_name].map { |f| @md5_set << f["filename"] }
+          as_answer_array(
+            table.first[column_name].map { |f| @md5_set << f["filename"] }
+          )
         end
       end
     end
@@ -87,7 +98,7 @@ class Magma
 
       extract do |table, identity|
         if !table.first[column_name]
-          nil
+          Magma::NilAnswer.new
         elsif @is_subselect
           nested_reduce_and_apply(
             table.first[column_name],
@@ -95,7 +106,9 @@ class Magma
             &append_attribute_to_set(@updated_at_set, "filename")
           )
         else
-          table.first[column_name].map { |f| @updated_at_set << f["filename"] }
+          as_answer_array(
+            table.first[column_name].map { |f| @updated_at_set << f["filename"] }
+          )
         end
       end
     end
@@ -105,7 +118,7 @@ class Magma
 
       extract do |table, identity|
         if !table.first[column_name]
-          nil
+          Magma::NilAnswer.new
         elsif @is_subselect
           nested_reduce_and_apply(
             table.first[column_name],
@@ -113,11 +126,13 @@ class Magma
             &append_attribute_to_set(@updated_at_set, "filename")
           )
         else
-          table.first[column_name].map do |f|
-            f.symbolize_keys.update({
-              url: request_download_url.call(f)
-            })
-          end
+          as_answer_array(
+            table.first[column_name].map do |f|
+              f.symbolize_keys.update({
+                url: request_download_url.call(f)
+              })
+            end
+          )
         end
       end
     end
@@ -157,29 +172,10 @@ class Magma
       }
     end
 
-    def nested_reduce_and_apply(nested_array_data, level, &file_transformation)
-      nested_array_data&.reduce([]) do |result, value|
-        if include_identifier?(value, level)
-          # is an tuple, [identifier, data]
-          identifier = value.first
-          data = nested_reduce_and_apply(value.last, level + 1, &file_transformation).flatten
-
-          result << [identifier, data]
-        elsif skip_identifier?(value, level)
-          # Skip the intervening identifiers
-          result << nested_reduce_and_apply(value.last, level + 1, &file_transformation)
-        else
-          result << file_transformation.call(value)
-        end
+    def as_answer_array(raw_answers)
+      raw_answers.map do |answer|
+        Magma::Answer.new(answer)
       end
-    end
-
-    def include_identifier?(value, level)
-      value.is_a?(Array) && 0 == level
-    end
-
-    def skip_identifier?(value, level)
-      value.is_a?(Array) && level > 0
     end
   end
 end

@@ -1,5 +1,9 @@
+require_relative 'with_aggregated_data_module'
+
 class Magma
   class ColumnPredicate < Magma::Predicate
+    include WithAggregatedDataModule
+
     # This Predicate returns an actual attribute value of some kind - a number, integer, etc.,
     # or else a test on that value (number > 2, etc.)
     def initialize question, model, alias_name, attribute, is_subselect, *query_args
@@ -17,11 +21,19 @@ class Magma
       Magma::Predicate.inherited(subclass)
     end
 
-    def extract table, identity
+    def extract table, identity, is_all
       if @verb && @verb.gives?(:extract)
         @verb.do(:extract, table, identity)
+      elsif !table.first[column_name]
+        Magma::NilAnswer.new
+      elsif @is_subselect && is_all
+        nested_reduce_and_apply(
+          table.first[column_name],
+          0,
+          &do_nothing
+        )
       else
-        table.first[column_name]
+        Magma::Answer.new(table.first[column_name])
       end
     end
 
@@ -55,6 +67,12 @@ class Magma
 
     def outgoing_attribute(incoming_attribute)
       incoming_attribute.link_model.attributes[incoming_attribute.link_attribute_name.to_sym]
+    end
+
+    def do_nothing
+      lambda { |d|
+        d
+      }
     end
   end
 end

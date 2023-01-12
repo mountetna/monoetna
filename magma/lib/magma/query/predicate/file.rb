@@ -14,10 +14,12 @@ class Magma
       child String
 
       extract do |table, identity|
-        table.first[column_name] ? Magma.instance.storage.download_url(
-          @model.project_name,
-          table.first[column_name]["filename"]
-        ) : nil
+        table.first[column_name] ?
+          Magma.instance.storage.download_url(
+            @model.project_name,
+            table.first[column_name]["filename"]
+          ) :
+          Magma::NilAnswer.new
       end
     end
 
@@ -35,7 +37,9 @@ class Magma
       child String
 
       extract do |table, identity|
-        table.first[column_name] ? @md5_set << table.first[column_name]["filename"] : nil
+        table.first[column_name] ?
+          @md5_set << table.first[column_name]["filename"] :
+          Magma::NilAnswer.new
       end
     end
 
@@ -43,7 +47,9 @@ class Magma
       child String
 
       extract do |table, identity|
-        table.first[column_name] ? @updated_at_set << table.first[column_name]["filename"] : nil
+        table.first[column_name] ?
+          @updated_at_set << table.first[column_name]["filename"] :
+          Magma::NilAnswer.new
       end
     end
 
@@ -51,7 +57,9 @@ class Magma
       child String
 
       extract do |table, identity|
-        table.first[column_name] ? table.first[column_name]["filename"] : nil
+        table.first[column_name] ?
+          Magma::Answer.new(table.first[column_name]["filename"]) :
+          Magma::NilAnswer.new
       end
     end
 
@@ -59,7 +67,9 @@ class Magma
       child String
 
       extract do |table, identity|
-        table.first[column_name] ? table.first[column_name]["original_filename"] : nil
+        table.first[column_name] ?
+          Magma::Answer.new(table.first[column_name]["original_filename"]) :
+          Magma::NilAnswer.new
       end
     end
 
@@ -67,7 +77,9 @@ class Magma
       child String
 
       extract do |table, identity|
-        table.first[column_name] ? table.first[column_name].symbolize_keys : nil
+        table.first[column_name] ?
+          Magma::Answer.new(table.first[column_name].symbolize_keys) :
+          Magma::NilAnswer.new
       end
     end
 

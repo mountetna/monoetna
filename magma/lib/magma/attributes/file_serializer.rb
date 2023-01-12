@@ -59,9 +59,10 @@ class Magma
       end
     end
 
-    def to_query_payload_format(file_hash)
-      return nil unless file_hash
+    def to_query_payload_format(answer)
+      return nil if answer.is_a?(Magma::NilAnswer) || answer.nil?
 
+      file_hash = answer.data
       path = file_hash[:filename]
       return nil unless path
 
