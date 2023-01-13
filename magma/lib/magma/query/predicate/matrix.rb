@@ -49,7 +49,6 @@ class Magma
     end
 
     def matrix_row(data, column_names)
-      # ensure_requested_identifiers
       @attribute.matrix_row_json(data, column_names)
     end
 
@@ -72,12 +71,6 @@ class Magma
     def select_column_name
       Sequel[alias_name][@column_name.to_sym]
     end
-
-    # def ensure_requested_identifiers
-    #   return if @requested_identifiers.empty?
-    #   @attribute.cache_rows(@requested_identifiers)
-    #   @requested_identifiers.clear
-    # end
 
     class MatrixValue
       def initialize(predicate, data, column_names=nil)
