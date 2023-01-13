@@ -166,17 +166,6 @@ class Magma
     def expand_matrix_data(is_matrix_column)
       @expand_matrices && is_matrix_column
     end
-
-    def extract_data(data)
-      case data
-      when Magma::SimpleAnswerBase
-        data.data
-      when Magma::AnswerAggregationBase
-        data.aggregated_values
-      else
-        data
-      end
-    end
   end
 
   class TSVHeader < Magma::QuestionColumnBase

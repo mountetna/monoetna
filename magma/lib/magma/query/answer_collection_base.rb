@@ -36,5 +36,9 @@ class Magma
         data_value
       end.to_json
     end
+
+    def to_h
+      JSON.parse(to_json).to_h
+    end
   end
 end

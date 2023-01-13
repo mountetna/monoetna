@@ -27,5 +27,16 @@ class Magma
     def array_to_tsv_row(array)
       array.join("\t") + "\n"
     end
+
+    def extract_data(data)
+      case data
+      when Magma::SimpleAnswerBase
+        data.data
+      when Magma::AnswerAggregationBase
+        data.aggregated_values
+      else
+        data
+      end
+    end
   end
 end
