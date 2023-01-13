@@ -63,18 +63,12 @@ class Magma
     end
 
     verb '::first' do
-      # ::first should collapse and return data only, no identifier tuple
       child :record_child
       extract do |table,return_identity|
         if table.empty?
           Magma::NilAnswer.new
         elsif @is_subselect # there is only one row in the table
           child_extract(table, identity)
-          # child_result = child_extract(table, identity)
-
-          # child_result.is_a?(Magma::MatrixPredicate::MatrixValue) ?
-          #   child_result :
-          #   child_result.last
         else
           child_extract(
             table.group_by do |row|
@@ -92,7 +86,6 @@ class Magma
     end
 
     verb '::all' do
-      # All should return [identifier, <data>] tuples
       child :record_child
       extract do |table,return_identity|
         if @is_subselect # there is only one row in the table now
@@ -101,22 +94,6 @@ class Magma
 
           if root_table_identifier.nil?
             child_answer
-          # elsif (
-          #   !child_answer.data.is_a?(Magma::AnswerBase) &&
-          #   !child_predicate.collection_attribute? &&
-          #   (child_answer.data.is_a?(Sequel::Postgres::JSONArray) ||
-          #    child_answer.data.is_a?(Array))
-          # )
-          #   Magma::AnswerTupleArray.new(
-          #     [
-          #       Magma::AnswerTuple.new(
-          #         root_table_identifier,
-          #         Magma::AnswerTupleArray.from_raw_answer_tuples(
-          #           child_answer.data
-          #         )
-          #       )
-          #     ]
-          #   )
           else
             Magma::AnswerTuple.new(
               root_table_identifier,
