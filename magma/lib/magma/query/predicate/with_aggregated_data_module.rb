@@ -27,8 +27,6 @@ class Magma
             result = result.concat(nested_reduce_and_apply(raw_data, level + 1, &transform))
           end
         else
-          # require 'pry'
-          # binding.pry
           result << Magma::Answer.new(transform.call(value))
         end
       end

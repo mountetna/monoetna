@@ -129,15 +129,15 @@ class Magma
               elsif non_nested_single_model_query
                 # In this simple use case, we just grab the entire
                 #   answer portion
-                row << record.data
+                row << extract_data(record.data)
                 next
               else
                 attribute_data = record.data[column_index]
 
                 if attribute_data.data.is_a?(Magma::MatrixPredicate::MatrixValue)
                   value = JSON.parse(attribute_data.data.to_json)
-                elsif attribute_data.is_a?(Magma::Answer)
-                  value = attribute_data.data
+                elsif attribute_data.is_a?(Magma::SimpleAnswerBase)
+                  value = extract_data(attribute_data.data)
                 else
                   value = attribute_data.aggregated_values(tsv_column.array?)
                 end
@@ -165,6 +165,17 @@ class Magma
 
     def expand_matrix_data(is_matrix_column)
       @expand_matrices && is_matrix_column
+    end
+
+    def extract_data(data)
+      case data
+      when Magma::SimpleAnswerBase
+        data.data
+      when Magma::AnswerAggregationBase
+        data.aggregated_values
+      else
+        data
+      end
     end
   end
 

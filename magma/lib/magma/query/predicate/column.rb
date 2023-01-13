@@ -24,7 +24,7 @@ class Magma
     def extract table, identity, is_all
       if @verb && @verb.gives?(:extract)
         @verb.do(:extract, table, identity)
-      elsif !table.first[column_name]
+      elsif table.first[column_name].nil?
         Magma::NilAnswer.new
       elsif @is_subselect && is_all
         nested_reduce_and_apply(

@@ -1,9 +1,8 @@
-require_relative 'answer_base'
+require_relative 'simple_answer_base'
 
 class Magma
-  class NilAnswer < Magma::AnswerBase
-
-    def data
+  class NilAnswer < Magma::SimpleAnswerBase
+    def to_s
       nil
     end
   end

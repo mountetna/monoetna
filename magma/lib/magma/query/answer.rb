@@ -1,14 +1,6 @@
-require_relative 'answer_base'
+require_relative 'simple_answer_base'
 
 class Magma
-  class Answer < Magma::AnswerBase
-
-    def initialize(data)
-      @raw_data = data
-    end
-
-    def data
-      @raw_data
-    end
+  class Answer < Magma::SimpleAnswerBase
   end
 end
