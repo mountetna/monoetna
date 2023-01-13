@@ -303,18 +303,18 @@ class Magma
       alias_for_column(attr.column_name)
     end
 
-    def generate_subselect(incoming_alias_name, incoming_attribute, should_coalesce: true)
+    def generate_subselect(incoming_alias_name, incoming_attribute)
       return child_predicate.select unless @is_subselect
 
       if @verb && @verb.gives?(:select_columns)
-        @verb.do(:select_columns, incoming_alias_name, incoming_attribute, should_coalesce: should_coalesce)
+        @verb.do(:select_columns, incoming_alias_name, incoming_attribute)
       else
-        subselect = Magma::Subselect.new(**subselect_params(
-          incoming_alias_name,
-          incoming_attribute,
-          should_coalesce
-        ))
-        [ should_coalesce ? subselect.coalesce : subselect ]
+        [
+          Magma::SubselectBuilder.new(**subselect_params(
+            incoming_alias_name,
+            incoming_attribute
+          ))
+        ]
       end
     end
 
@@ -328,26 +328,27 @@ class Magma
       :"#{alias_name}_count"
     end
 
-    def select_first_column(incoming_alias_name=nil, incoming_attribute=nil, should_coalesce: false)
+    def select_first_column(incoming_alias_name=nil, incoming_attribute=nil)
       if @is_subselect && incoming_alias_name && incoming_attribute
-        subselect = Magma::SubselectFirst.new(**subselect_params(
-          incoming_alias_name,
-          incoming_attribute,
-          should_coalesce
-        ))
-        [ should_coalesce ? subselect.coalesce : subselect ]
+        [
+          Magma::SubselectFirstBuilder.new(**subselect_params(
+            incoming_alias_name,
+            incoming_attribute
+          ))
+        ]
       else
         [ ]
       end
     end
 
-    def select_count_column(incoming_alias_name=nil, incoming_attribute=nil, should_coalesce: false)
+    def select_count_column(incoming_alias_name=nil, incoming_attribute=nil)
       if @is_subselect && incoming_alias_name && incoming_attribute
-        subselect = Magma::SubselectCount.new(**base_subselect_params(
-          incoming_alias_name,
-          incoming_attribute
-        ))
-        [ should_coalesce ? subselect.build : subselect ]
+        [
+          Magma::SubselectCountBuilder.new(**base_subselect_params(
+            incoming_alias_name,
+            incoming_attribute
+          ))
+        ]
       elsif @is_subselect
         []
       else
@@ -361,13 +362,12 @@ class Magma
     end
 
     def child_subselect(incoming_attribute)
-      child_predicate.generate_subselect(alias_name, incoming_attribute, should_coalesce: false).first
+      child_predicate.generate_subselect(alias_name, incoming_attribute).first
     end
 
-    def subselect_params(incoming_alias_name, incoming_attribute, should_alias_column)
+    def subselect_params(incoming_alias_name, incoming_attribute)
       base_subselect_params(incoming_alias_name, incoming_attribute).update({
-        requested_data: child_subselect(child_predicate_incoming_attribute(incoming_attribute)),
-        alias_column: should_alias_column
+        requested_data: child_subselect(child_predicate_incoming_attribute(incoming_attribute))
       })
     end
 

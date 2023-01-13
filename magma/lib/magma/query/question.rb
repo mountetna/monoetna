@@ -1,11 +1,11 @@
 require_relative 'predicate'
 require_relative 'join'
 require_relative 'count'
-require_relative 'subselect'
-require_relative 'subselect_child'
+require_relative 'subselect_builder'
+require_relative 'subselect_child_builder'
 require_relative 'subselect_column'
-require_relative 'subselect_count'
-require_relative 'subselect_first'
+require_relative 'subselect_count_builder'
+require_relative 'subselect_first_builder'
 require_relative 'constraint'
 require_relative 'distinct'
 require_relative 'query_executor'
@@ -89,7 +89,7 @@ class Magma
     def each_page_answer
       all_bounds.each do |bound|
         query = base_query.select(
-            *(predicate_collect(:select)).uniq
+            *built_predicate_select_statements
         )
         query = apply_bounds(query, bound[:lower], bound[:upper])
         table = to_table(query)
@@ -148,10 +148,18 @@ class Magma
       end
 
       query = query.select(
-          *(predicate_collect(:select)).uniq
+          *built_predicate_select_statements
       )
 
       query
+    end
+
+    def built_predicate_select_statements
+      (predicate_collect(:select)).uniq.map do |predicate|
+        predicate.is_a?(Magma::SubselectBase) ?
+          predicate.build_with_alias :
+          predicate
+      end
     end
 
     def order_by_attributes

@@ -1,7 +1,7 @@
-require_relative 'subselect'
+require_relative 'subselect_builder'
 
 class Magma
-  class SubselectChild < Magma::Subselect
+  class SubselectChildBuilder < Magma::SubselectBuilder
 
     private
 

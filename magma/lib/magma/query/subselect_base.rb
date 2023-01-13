@@ -35,6 +35,18 @@ class Magma
       subselect_column_alias == other.subselect_column_alias
     end
 
+    def build
+      raise Magma::SubselectError.new("Must be implemented in a subclass.")
+    end
+
+    def build_with_alias
+      build.as(subselect_column_alias)
+    end
+
+    def subselect_column_alias
+      nil
+    end
+
     private
 
     def subselect_query

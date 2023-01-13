@@ -1,7 +1,7 @@
 require_relative 'subselect_base'
 
 class Magma
-  class Subselect < Magma::SubselectBase
+  class SubselectBuilder < Magma::SubselectBase
     def initialize(
       incoming_alias:,
       outgoing_model:,
@@ -10,8 +10,7 @@ class Magma
       restrict:,
       outgoing_fk_column_name:,
       requested_data:,
-      filters:,
-      alias_column: true
+      filters:
     )
       super(
         incoming_alias: incoming_alias,
@@ -23,10 +22,9 @@ class Magma
         filters: filters,
       )
       @requested_data = requested_data # another subselect, or a column mame on the outgoing model
-      @alias_column = alias_column
     end
 
-    def coalesce
+    def build
       build_coalesce(inner_select)
     end
 
@@ -41,15 +39,11 @@ class Magma
     private
 
     def build_coalesce(select_statement)
-      main_data = Sequel.function(
+      Sequel.function(
         :coalesce,
         select_statement,
         default_value
       )
-
-      main_data = main_data.as(subselect_column_alias) if @alias_column
-
-      main_data
     end
 
     def inner_select
@@ -86,8 +80,8 @@ class Magma
     end
 
     def outgoing_data
-      @requested_data.is_a?(Magma::Subselect) ?
-        @requested_data.coalesce :
+      @requested_data.is_a?(Magma::SubselectBuilder) ?
+        @requested_data.build :
         Sequel.qualify(@outgoing_alias, @requested_data.outgoing_data_column_name)
     end
 

@@ -1,9 +1,9 @@
-require_relative 'subselect'
+require_relative 'subselect_builder'
 
 class Magma
-  class SubselectFirst < Magma::Subselect
-    def coalesce
-      limited_inner_select.as(subselect_column_alias)
+  class SubselectFirstBuilder < Magma::SubselectBuilder
+    def build
+      limited_inner_select
     end
 
     private

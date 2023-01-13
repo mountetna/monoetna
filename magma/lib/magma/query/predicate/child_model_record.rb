@@ -6,7 +6,7 @@ class Magma
       Magma::RecordPredicate.verbs
     end
 
-    def generate_subselect(incoming_alias_name, incoming_attribute = nil, should_coalesce: false)
+    def generate_subselect(incoming_alias_name, incoming_attribute = nil)
       return child_predicate.select unless @is_subselect
 
       incoming_attribute = valid_attribute(@arguments[0]) if incoming_attribute.nil?
@@ -15,16 +15,18 @@ class Magma
       #   a Magma::Subselect here, so the aliases match
       #   up, otherwise the terminal ColumnPredicate won't
       #   have right intermediate Subselect(s).
-      [ Magma::Subselect.new(**child_subselect_params(
-        incoming_alias_name,
-        incoming_attribute
-      )) ]
+      [
+        Magma::SubselectBuilder.new(**child_subselect_params(
+          incoming_alias_name,
+          incoming_attribute
+        ))
+      ]
     end
 
     private
 
     def child_subselect(incoming_alias_name, incoming_attribute)
-      child_predicate.generate_subselect(incoming_alias_name, incoming_attribute, should_coalesce: false).first
+      child_predicate.generate_subselect(incoming_alias_name, incoming_attribute).first
     end
 
     def child_subselect_params(incoming_alias_name, incoming_attribute)
@@ -37,8 +39,7 @@ class Magma
         restrict: @question.restrict?,
         requested_data: child_subselect(alias_name,
           child_predicate_incoming_attribute),
-        filters: [],
-        alias_column: false
+        filters: []
       }
     end
 

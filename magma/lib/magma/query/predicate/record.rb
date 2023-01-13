@@ -34,7 +34,7 @@ class Magma
       join :attribute_join
 
       select_columns do
-        generate_subselect(alias_name, should_coalesce: true)
+        generate_subselect(alias_name)
       end
     end
 
@@ -107,7 +107,7 @@ class Magma
       join :attribute_join
 
       select_columns do
-        generate_subselect(alias_name, should_coalesce: true)
+        generate_subselect(alias_name)
       end
     end
 
@@ -131,12 +131,12 @@ class Magma
       end
     end
 
-    def generate_subselect(incoming_alias_name, incoming_attribute = nil, should_coalesce: false)
+    def generate_subselect(incoming_alias_name, incoming_attribute = nil)
       return child_predicate.select unless @is_subselect
 
       incoming_attribute = valid_attribute(@arguments[0]) if incoming_attribute.nil?
 
-      [ child_predicate.generate_subselect(incoming_alias_name, incoming_attribute, should_coalesce: should_coalesce) ].flatten
+      [ child_predicate.generate_subselect(incoming_alias_name, incoming_attribute) ].flatten
     end
 
     def attribute
