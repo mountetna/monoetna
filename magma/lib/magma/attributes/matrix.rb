@@ -25,9 +25,6 @@ class Magma
     end
 
     def revision_to_loader(record_name, new_value)
-      cached_rows.delete(record_name.to_s)
-      cached_rows_json.delete(record_name.to_s)
-
       [ name, new_value ]
     end
 
@@ -47,24 +44,6 @@ class Magma
       value.to_json
     end
 
-    def reset_cache
-      @cached_rows_json = nil
-      @cached_rows = nil
-    end
-
-    def cache_rows(identifiers)
-      required_identifiers = identifiers - cached_rows.keys
-
-      return if required_identifiers.empty?
-
-      rows = @magma_model.
-        where(@magma_model.identity.column_name.to_sym => required_identifiers.to_a).
-        select_map([@magma_model.identity.column_name.to_sym, column_name.to_sym]).
-        to_h
-
-      cached_rows.update(rows)
-    end
-
     def matrix_row_json(data, column_names)
       # may not have identifier of the matrix model, due to
       #   subselects, so we don't cache the data right now.
@@ -81,18 +60,6 @@ class Magma
     end
 
     private
-
-    def cached_rows
-      @cached_rows ||= {}
-    end
-
-    def cached_rows_json
-      @cached_rows_json ||= {}
-    end
-
-    def cached_row_json(identifier)
-      cached_rows_json[ identifier ] ||= cached_rows[ identifier ] ?  cached_rows[ identifier ].to_json : null_row_json
-    end
 
     def null_row_json
       @null_row_json ||= validation_object.options.map{nil}.to_json

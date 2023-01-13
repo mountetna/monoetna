@@ -2158,7 +2158,6 @@ describe QueryController do
   context Magma::MatrixPredicate do
     before(:each) do
       @attribute = Labors::Labor.attributes[:contributions]
-      @attribute.reset_cache
     end
 
     it 'returns a table of values' do
@@ -2438,7 +2437,6 @@ describe QueryController do
 
   context Magma::TablePredicate do
     before(:each) do
-      Labors::Labor.attributes[:contributions].reset_cache
     end
 
     it 'can return an arrayed result' do
