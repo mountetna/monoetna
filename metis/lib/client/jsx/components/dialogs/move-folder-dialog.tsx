@@ -1,6 +1,7 @@
 import React, {useState, useCallback} from 'react';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import {pickBucket} from 'etna-js/components/metis_exploration';
 
 import ConfigRow from './config-row';
 
@@ -23,12 +24,10 @@ const MoveFolderDialog = ({
   return (
     <div className='move-folder-dialog'>
       <div className='title'>Move folder</div>
-      <ConfigRow label='Bucket name'>
-        <input
-          type='text'
-          placeholder='E.g. bucket_name'
-          value={bucketName}
-          onChange={(e) => setBucketName(e.target.value)}
+      <ConfigRow label='Bucket:'>
+        <pickBucket
+          setBucket={(e) => setBucketName(e)}
+          initialValue={currentBucketName}
         />
       </ConfigRow>
       <ConfigRow label='Parent folder (blank for root)'>
