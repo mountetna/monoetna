@@ -6,7 +6,7 @@ class Magma
     include WithFileCollectionPredicateMethods
 
     def self.verbs
-      Magma::FileCollectionPredicate.verbs
+      Magma::FileCollectionPredicate.verbs.merge(@verbs)
     end
 
     verb '::url' do

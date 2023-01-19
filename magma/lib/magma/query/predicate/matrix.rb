@@ -43,7 +43,7 @@ class Magma
       format { [ default_format, @attribute.validation_object.options ] }
     end
 
-    def select
+    def select(incoming_alias_name=nil, incoming_attribute=nil)
       [ select_column_name.as(column_name) ]
     end
 

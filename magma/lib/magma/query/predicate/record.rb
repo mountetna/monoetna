@@ -198,8 +198,6 @@ class Magma
     end
 
     def attribute_join
-      require 'pry'
-      binding.pry
       attribute = valid_attribute(@arguments[0])
       case attribute
       when Magma::ForeignKeyAttribute
@@ -225,12 +223,12 @@ class Magma
           @child_predicate.table_name,
           @child_predicate.alias_name,
           attribute.foreign_id,
-        ) unless child_is_subselect?
+        )
       end
     end
 
     def child_is_subselect?
-      child_predicate.is_a?(Magma::ModelSubselectPredicate)
+      child_predicate.is_a?(Magma::ModelSubselectPredicate)# || child_predicate.is_a?(Magma::ChildModelSubselectPredicate)
     end
 
     def attribute_child(attribute_name)

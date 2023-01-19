@@ -19,14 +19,7 @@ class Magma
         child_format
       end
 
-      select_columns do |incoming_alias_name, incoming_attribute|
-        [
-          Magma::SubselectFirstBuilder.new(**subselect_params(
-            incoming_alias_name,
-            incoming_attribute
-          ))
-        ]
-      end
+      select_columns :select_first_column
     end
 
     verb '::all' do
@@ -90,7 +83,35 @@ class Magma
       end
     end
 
+    def create_filter(args)
+      filter = FilterSubselectPredicate.new(
+        question: @question,
+        model: @model,
+        alias_name: alias_name,
+        query_args: args)
+
+      unless filter.reduced_type == TrueClass
+        raise ArgumentError,
+          "Filter #{filter} does not reduce to Boolean #{filter.argument} #{filter.reduced_type}!"
+      end
+
+      @filters.push(filter)
+    end
+
+    def join
+      []
+    end
+
     private
+
+    def select_first_column(incoming_alias_name, incoming_attribute)
+      [
+        Magma::SubselectFirstBuilder.new(**subselect_params(
+          incoming_alias_name,
+          incoming_attribute
+        ))
+      ]
+    end
 
     def child_subselect(incoming_attribute)
       child_predicate.select(alias_name, incoming_attribute).first

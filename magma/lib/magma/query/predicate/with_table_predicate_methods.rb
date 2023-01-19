@@ -51,8 +51,6 @@ class Magma
     end
 
     def select
-      require 'pry'
-      binding.pry
       @column_predicates.map do |pred|
         pred.select
       end.inject(&:+)

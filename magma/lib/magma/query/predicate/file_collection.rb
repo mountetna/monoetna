@@ -95,7 +95,7 @@ class Magma
       end
     end
 
-    def select
+    def select(incoming_alias_name=nil, incoming_attribute=nil)
       [ Sequel[alias_name][@column_name].as(column_name) ]
     end
 
