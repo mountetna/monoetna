@@ -1,9 +1,9 @@
-require_relative '../child_model'
+require_relative 'record_subselect'
 
 class Magma
-  class ChildModelSubselectPredicate < Magma::ChildModelPredicate
+  class ChildModelSubselectPredicate < Magma::RecordSubselectPredicate
     def self.verbs
-      Magma::ChildModelPredicate.verbs
+      Magma::RecordSubselectPredicate.verbs
     end
 
     def attribute_select(incoming_alias_name, incoming_attribute = nil)

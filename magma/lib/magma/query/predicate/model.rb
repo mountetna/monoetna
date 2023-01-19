@@ -306,7 +306,7 @@ class Magma
     end
 
     def count_column_name
-      count_builder.subselect_column_alias
+      count_builder.count_column_alias
     end
 
     def validate_distinct

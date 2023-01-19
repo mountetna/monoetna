@@ -104,9 +104,5 @@ class Magma
         end
       end
     end
-
-    def select
-      []
-    end
   end
 end

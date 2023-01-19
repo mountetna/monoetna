@@ -52,25 +52,14 @@ class Magma
       end
       format { 'Numeric' }
 
-      select_columns do |incoming_alias_name=nil, incoming_attribute=nil|
-        if incoming_alias_name && incoming_attribute
-          [
-            Magma::SubselectCountBuilder.new(**base_subselect_params(
-              incoming_alias_name,
-              incoming_attribute
-            ))
-          ]
-        else
-          []
-        end
-      end
+      select_columns :select_count_column
     end
 
     def record_child
       RecordSubselectPredicate.new(@question, @model, alias_name, *@query_args)
     end
 
-    def select(incoming_alias_name, incoming_attribute)
+    def select(incoming_alias_name=nil, incoming_attribute=nil)
       if @verb && @verb.gives?(:select_columns)
         @verb.do(:select_columns, incoming_alias_name, incoming_attribute)
       else
@@ -102,11 +91,26 @@ class Magma
       []
     end
 
+    def constraint
+      []
+    end
+
     private
 
     def select_first_column(incoming_alias_name, incoming_attribute)
       [
         Magma::SubselectFirstBuilder.new(**subselect_params(
+          incoming_alias_name,
+          incoming_attribute
+        ))
+      ]
+    end
+
+    def select_count_column(incoming_alias_name=nil, incoming_attribute=nil)
+      return [] unless incoming_alias_name && incoming_attribute
+
+      [
+        Magma::SubselectCountBuilder.new(**base_subselect_params(
           incoming_alias_name,
           incoming_attribute
         ))

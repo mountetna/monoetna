@@ -17,6 +17,10 @@ class Magma
       count_select.as(count_column_alias)
     end
 
+    def count_column_alias
+      :"#{@table_alias_name}_count"
+    end
+
     private
 
     def base_query
@@ -50,10 +54,6 @@ class Magma
 
     def restrict_constraints
       restrict_constraints_for_model_alias(@model, @table_alias_name)
-    end
-
-    def count_column_alias
-      :"#{@table_alias_name}_count"
     end
 
     def outgoing_column_name
