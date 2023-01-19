@@ -95,6 +95,9 @@ class Magma
       []
     end
 
+    def add_filters
+    end
+
     private
 
     def select_first_column(incoming_alias_name, incoming_attribute)
