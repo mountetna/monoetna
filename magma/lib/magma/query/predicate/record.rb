@@ -227,10 +227,6 @@ class Magma
       end
     end
 
-    def child_is_subselect?
-      child_predicate.is_a?(Magma::ModelSubselectPredicate)# || child_predicate.is_a?(Magma::ChildModelSubselectPredicate)
-    end
-
     def attribute_child(attribute_name)
       attribute = valid_attribute(attribute_name)
       if @question.restrict? && attribute.respond_to?(:restricted) && attribute.restricted
