@@ -1,15 +1,11 @@
 require_relative '../md5_set'
 require_relative '../updated_at_set'
+require_relative 'with_file_predicate_methods'
 
 class Magma
   class FilePredicate < Magma::ColumnPredicate
-    def initialize question, model, alias_name, attribute, *query_args
-      super
-      @md5_set = Md5Set.new(@question.user, @model)
-      @updated_at_set = UpdatedAtSet.new(@question.user, @model)
-    end
+    include WithFilePredicateMethods
 
-    attr_reader :requested_file_paths
     verb '::url' do
       child String
 
@@ -100,7 +96,7 @@ class Magma
     end
 
     def select
-      @is_subselect ? [] : [ Sequel[alias_name][@column_name].as(column_name) ]
+      [ Sequel[alias_name][@column_name].as(column_name) ]
     end
   end
 end

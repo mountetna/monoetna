@@ -37,8 +37,12 @@ class Magma
       end.to_json
     end
 
+    def to_a
+      JSON.parse(to_json)
+    end
+
     def to_h
-      JSON.parse(to_json).to_h
+      to_a.to_h
     end
   end
 end

@@ -64,7 +64,7 @@ class Magma
       @model = Magma.instance.get_model(project_name, query_args.shift)
       @options = options
       @user = options[:user]
-      @start_predicate = StartPredicate.new(self, @model, false, *query_args)
+      @start_predicate = StartPredicate.new(self, @model, *query_args)
     end
 
     # allow us to re-use the same question for a different page
@@ -136,6 +136,8 @@ class Magma
     private
 
     def to_table(query)
+      require 'pry'
+      binding.pry
       Magma::QueryExecutor.new(query, @options[:timeout], Magma.instance.db).execute
     end
 

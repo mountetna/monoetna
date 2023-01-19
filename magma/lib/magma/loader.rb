@@ -198,7 +198,7 @@ class Magma
             '::all', attribute.link_attribute_name, '::identifier'
         ], user: @user)
 
-        current_record_names = JSON.parse(question.answer.to_json)
+        current_record_names = question.answer.to_a
 
         current_record_names.reject { |child_record_name, parent_record_name|
           explicit_revision_exists?(

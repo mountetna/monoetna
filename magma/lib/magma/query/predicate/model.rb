@@ -38,11 +38,10 @@ class Magma
       end
     end
 
-    def initialize(question, model, is_subselect, *query_args)
+    def initialize(question, model, *query_args)
       super(question)
       @model = model
       @filters = []
-      @is_subselect = is_subselect
 
       subquery_args, filter_args = Magma::SubqueryUtils.partition_args(self, query_args)
 
@@ -67,8 +66,6 @@ class Magma
       extract do |table,return_identity|
         if table.empty?
           Magma::NilAnswer.new
-        elsif @is_subselect # there is only one row in the table
-          child_extract(table, identity)
         else
           child_extract(
             table.group_by do |row|
@@ -82,34 +79,22 @@ class Magma
         child_format
       end
 
-      select_columns :select_first_column
+      select_columns do
+        [ ]
+      end
     end
 
     verb '::all' do
       child :record_child
       extract do |table,return_identity|
-        if @is_subselect # there is only one row in the table now
-          root_table_identifier = table.first[return_identity]
-          child_answer = child_predicate.extract(table, identity, true)
-
-          if root_table_identifier.nil?
-            child_answer
-          else
-            Magma::AnswerTuple.new(
-              root_table_identifier,
-              child_answer
-            )
-          end
-        else
-          as_answer_tuple_array(
-            table.group_by do |row|
-              row[identity]
-            end.map do |identifier,rows|
-              next unless identifier
-              [ identifier, child_extract(rows, identity, true) ]
-            end.compact
-          )
-        end
+        as_answer_tuple_array(
+          table.group_by do |row|
+            row[identity]
+          end.map do |identifier,rows|
+            next unless identifier
+            [ identifier, child_extract(rows, identity, true) ]
+          end.compact
+        )
       end
       format do
         [
@@ -160,7 +145,9 @@ class Magma
       end
       format { 'Numeric' }
 
-      select_columns :select_count_column
+      select_columns do
+        [ count_builder.build ]
+      end
     end
 
     verb '::distinct' do
@@ -213,7 +200,7 @@ class Magma
     end
 
     def add_filters
-      if @question.restrict? && !@is_subselect
+      if @question.restrict?
         # the model can be restricted, and we should withhold restricted data
         # Subselects handle their own restrictions without filters
         each_ancestor do |restriction_model, ancestors|
@@ -225,7 +212,7 @@ class Magma
     end
 
     def record_child
-      RecordPredicate.new(@question, @model, alias_name, @is_subselect, *@query_args)
+      RecordPredicate.new(@question, @model, alias_name, *@query_args)
     end
 
     def join
@@ -240,7 +227,7 @@ class Magma
       if @verb && @verb.gives?(:select_columns)
         @verb.do(:select_columns)
       else
-        @is_subselect ? [] : [ column_name.as(identity) ]
+        [ column_name.as(identity) ]
       end
     end
 
@@ -303,92 +290,23 @@ class Magma
       alias_for_column(attr.column_name)
     end
 
-    def generate_subselect(incoming_alias_name, incoming_attribute)
-      return child_predicate.select unless @is_subselect
-
-      if @verb && @verb.gives?(:select_columns)
-        @verb.do(:select_columns, incoming_alias_name, incoming_attribute)
-      else
-        [
-          Magma::SubselectBuilder.new(**subselect_params(
-            incoming_alias_name,
-            incoming_attribute
-          ))
-        ]
-      end
-    end
-
     private
 
     def as_answer_tuple_array(raw_answer_tuples)
       Magma::AnswerTupleArray.from_raw_answer_tuples(raw_answer_tuples)
     end
 
-    def count_column_name
-      :"#{alias_name}_count"
-    end
-
-    def select_first_column(incoming_alias_name=nil, incoming_attribute=nil)
-      if @is_subselect && incoming_alias_name && incoming_attribute
-        [
-          Magma::SubselectFirstBuilder.new(**subselect_params(
-            incoming_alias_name,
-            incoming_attribute
-          ))
-        ]
-      else
-        [ ]
-      end
-    end
-
-    def select_count_column(incoming_alias_name=nil, incoming_attribute=nil)
-      if @is_subselect && incoming_alias_name && incoming_attribute
-        [
-          Magma::SubselectCountBuilder.new(**base_subselect_params(
-            incoming_alias_name,
-            incoming_attribute
-          ))
-        ]
-      elsif @is_subselect
-        []
-      else
-        [ Magma::Count.new(
-          model: @model,
-          filters: @filters,
-          table_alias_name: alias_name,
-          restrict: @question.restrict?
-        ).build ]
-      end
-    end
-
-    def child_subselect(incoming_attribute)
-      child_predicate.generate_subselect(alias_name, incoming_attribute).first
-    end
-
-    def subselect_params(incoming_alias_name, incoming_attribute)
-      base_subselect_params(incoming_alias_name, incoming_attribute).update({
-        requested_data: child_subselect(child_predicate_incoming_attribute(incoming_attribute))
-      })
-    end
-
-    def base_subselect_params(incoming_alias_name, incoming_attribute)
-      {
-        incoming_alias: incoming_alias_name,
-        outgoing_alias: alias_name,
-        outgoing_identifier_column_name: @model.identity.column_name,
-        outgoing_fk_column_name: outgoing_attribute(incoming_attribute).column_name,
-        outgoing_model: @model,
-        restrict: @question.restrict?,
+    def count_builder
+      Magma::Count.new(
+        model: @model,
         filters: @filters,
-      }
+        table_alias_name: alias_name,
+        restrict: @question.restrict?
+      )
     end
 
-    def child_predicate_incoming_attribute(incoming_attribute)
-      child_predicate.attribute || incoming_attribute
-    end
-
-    def outgoing_attribute(incoming_attribute)
-      incoming_attribute.link_model.attributes[incoming_attribute.link_attribute_name.to_sym]
+    def count_column_name
+      count_builder.subselect_column_alias
     end
 
     def validate_distinct

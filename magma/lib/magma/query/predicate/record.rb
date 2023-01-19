@@ -18,11 +18,10 @@ class Magma
   #   3) ::identifier
     attr_reader :model
 
-    def initialize question, model, alias_name, is_subselect, *query_args
+    def initialize question, model, alias_name, *query_args
       super(question)
       @model = model
       @alias_name = alias_name
-      @is_subselect = is_subselect
       process_args(query_args)
     end
 
@@ -33,9 +32,7 @@ class Magma
 
       join :attribute_join
 
-      select_columns do
-        generate_subselect(alias_name)
-      end
+      select_columns :attribute_select
     end
 
     verb '::has', :attribute_name do
@@ -106,9 +103,7 @@ class Magma
       end
       join :attribute_join
 
-      select_columns do
-        generate_subselect(alias_name)
-      end
+      select_columns :attribute_select
     end
 
     verb Array do
@@ -131,14 +126,6 @@ class Magma
       end
     end
 
-    def generate_subselect(incoming_alias_name, incoming_attribute = nil)
-      return child_predicate.select unless @is_subselect
-
-      incoming_attribute = valid_attribute(@arguments[0]) if incoming_attribute.nil?
-
-      [ child_predicate.generate_subselect(incoming_alias_name, incoming_attribute) ].flatten
-    end
-
     def attribute
       return nil if @arguments.empty?
 
@@ -150,6 +137,10 @@ class Magma
     end
 
     private
+
+    def attribute_select
+      [ child_predicate.select ].flatten
+    end
 
     def attribute_name(argument)
       @model.has_attribute?(argument) || argument == :id || argument == '::identifier'
@@ -227,7 +218,7 @@ class Magma
           @child_predicate.table_name,
           @child_predicate.alias_name,
           attribute.foreign_id,
-        ) unless @is_subselect
+        )
       end
     end
 
@@ -238,30 +229,29 @@ class Magma
       end
       case attribute
       when :id
-        return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, @is_subselect, *@query_args)
+        return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, *@query_args)
       when Magma::ForeignKeyAttribute
-        return Magma::RecordPredicate.new(@question, attribute.link_model, nil, false, *@query_args)
+        return Magma::RecordPredicate.new(@question, attribute.link_model, nil, *@query_args)
       when Magma::ChildAttribute
-        return Magma::ChildModelRecordPredicate.new(@question, attribute.link_model, nil, @is_subselect, *@query_args)
+        return Magma::ChildModelPredicate.new(@question, attribute.link_model, nil, *@query_args)
       when Magma::TableAttribute, Magma::CollectionAttribute
-        @is_subselect = true
-        return Magma::ModelPredicate.new(@question, attribute.link_model, true, *@query_args)
+        return Magma::ModelSubselectPredicate.new(@question, attribute.link_model, *@query_args)
       when Magma::FileAttribute, Magma::ImageAttribute
-        return Magma::FilePredicate.new(@question, @model, alias_name, attribute, @is_subselect, *@query_args)
+        return Magma::FilePredicate.new(@question, @model, alias_name, attribute, *@query_args)
       when Magma::FileCollectionAttribute
-        return Magma::FileCollectionPredicate.new(@question, @model, alias_name, attribute, @is_subselect, *@query_args)
+        return Magma::FileCollectionPredicate.new(@question, @model, alias_name, attribute, *@query_args)
       when Magma::MatchAttribute
-        return Magma::MatchPredicate.new(@question, @model, alias_name, attribute, @is_subselect, *@query_args)
+        return Magma::MatchPredicate.new(@question, @model, alias_name, attribute, *@query_args)
       when Magma::MatrixAttribute
-        return Magma::MatrixPredicate.new(@question, @model, alias_name, attribute, @is_subselect, *@query_args)
+        return Magma::MatrixPredicate.new(@question, @model, alias_name, attribute, *@query_args)
       when Magma::StringAttribute
-        return Magma::StringPredicate.new(@question, @model, alias_name, attribute, @is_subselect, *@query_args)
+        return Magma::StringPredicate.new(@question, @model, alias_name, attribute, *@query_args)
       when Magma::IntegerAttribute, Magma::FloatAttribute
-        return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, @is_subselect, *@query_args)
+        return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, *@query_args)
       when Magma::DateTimeAttribute, Magma::ShiftedDateTimeAttribute
-        return Magma::DateTimePredicate.new(@question, @model, alias_name, attribute, @is_subselect, *@query_args)
+        return Magma::DateTimePredicate.new(@question, @model, alias_name, attribute, *@query_args)
       when Magma::BooleanAttribute
-        return Magma::BooleanPredicate.new(@question, @model, alias_name, attribute, @is_subselect, *@query_args)
+        return Magma::BooleanPredicate.new(@question, @model, alias_name, attribute, *@query_args)
       else
         invalid_argument! attribute.name
       end

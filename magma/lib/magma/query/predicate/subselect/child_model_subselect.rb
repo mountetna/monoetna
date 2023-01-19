@@ -1,14 +1,12 @@
-require_relative 'record'
+require_relative '../child_model'
 
 class Magma
-  class ChildModelRecordPredicate < Magma::RecordPredicate
+  class ChildModelSubselectPredicate < Magma::ChildModelPredicate
     def self.verbs
-      Magma::RecordPredicate.verbs
+      Magma::ChildModelPredicate.verbs
     end
 
-    def generate_subselect(incoming_alias_name, incoming_attribute = nil)
-      return child_predicate.select unless @is_subselect
-
+    def attribute_select(incoming_alias_name, incoming_attribute = nil)
       incoming_attribute = valid_attribute(@arguments[0]) if incoming_attribute.nil?
 
       # If the attribute is a Magma::ChildAttribute, we want to return
