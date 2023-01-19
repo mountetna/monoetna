@@ -24,7 +24,7 @@ class Magma
     private
 
     def child_subselect(incoming_alias_name, incoming_attribute)
-      child_predicate.generate_subselect(incoming_alias_name, incoming_attribute).first
+      child_predicate.select(incoming_alias_name, incoming_attribute).first
     end
 
     def child_subselect_params(incoming_alias_name, incoming_attribute)

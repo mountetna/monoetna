@@ -4,9 +4,13 @@ class Magma
       Magma::RecordPredicate.verbs
     end
 
+    def collection_attribute?
+      child_predicate.is_a?(Magma::FileCollectionSubselectPredicate)
+    end
+
     private
 
-    def attribute_select
+    def attribute_select(incoming_alias_name, incoming_attribute=nil)
       incoming_attribute = valid_attribute(@arguments[0]) if incoming_attribute.nil?
       [ child_predicate.select(incoming_alias_name, incoming_attribute) ].flatten
     end

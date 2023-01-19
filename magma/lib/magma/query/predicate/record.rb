@@ -118,11 +118,11 @@ class Magma
       )
     end
 
-    def select
+    def select(incoming_alias_name=nil, incoming_attribute=nil)
       if @verb && @verb.gives?(:select_columns)
-        @verb.do(:select_columns)
+        @verb.do(:select_columns, incoming_alias_name, incoming_attribute)
       else
-        super
+        super()
       end
     end
 
@@ -138,8 +138,13 @@ class Magma
 
     private
 
-    def attribute_select
-      [ child_predicate.select ].flatten
+    def attribute_select(incoming_alias_name=nil, incoming_attribute=nil)
+      [
+        child_predicate.select(
+          alias_name,
+          valid_attribute(@arguments[0])
+        )
+      ].flatten
     end
 
     def attribute_name(argument)
@@ -193,6 +198,8 @@ class Magma
     end
 
     def attribute_join
+      require 'pry'
+      binding.pry
       attribute = valid_attribute(@arguments[0])
       case attribute
       when Magma::ForeignKeyAttribute
@@ -218,8 +225,12 @@ class Magma
           @child_predicate.table_name,
           @child_predicate.alias_name,
           attribute.foreign_id,
-        )
+        ) unless child_is_subselect?
       end
+    end
+
+    def child_is_subselect?
+      child_predicate.is_a?(Magma::ModelSubselectPredicate)
     end
 
     def attribute_child(attribute_name)

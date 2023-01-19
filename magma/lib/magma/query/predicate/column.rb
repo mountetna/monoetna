@@ -34,7 +34,7 @@ class Magma
       default_format
     end
 
-    def select
+    def select(incoming_alias_name=nil, incoming_attribute=nil)
       @arguments.empty? ?
         [ Sequel[alias_name][attribute_column_name].as(column_name) ] :
       []

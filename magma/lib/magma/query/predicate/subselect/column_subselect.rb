@@ -18,7 +18,7 @@ class Magma
       end
     end
 
-    def select
+    def select(incoming_alias_name=nil, incoming_attribute=nil)
       [ Magma::SubselectColumn.new(column_name, attribute_column_name) ]
     end
 

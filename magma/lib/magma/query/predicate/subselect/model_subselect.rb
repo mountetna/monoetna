@@ -77,7 +77,7 @@ class Magma
       RecordSubselectPredicate.new(@question, @model, alias_name, *@query_args)
     end
 
-    def generate_subselect(incoming_alias_name, incoming_attribute)
+    def select(incoming_alias_name, incoming_attribute)
       if @verb && @verb.gives?(:select_columns)
         @verb.do(:select_columns, incoming_alias_name, incoming_attribute)
       else
@@ -93,7 +93,7 @@ class Magma
     private
 
     def child_subselect(incoming_attribute)
-      child_predicate.generate_subselect(alias_name, incoming_attribute).first
+      child_predicate.select(alias_name, incoming_attribute).first
     end
 
     def subselect_params(incoming_alias_name, incoming_attribute)
