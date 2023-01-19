@@ -224,7 +224,7 @@ class Magma
         end
       end
 
-      Sequel[alias_name][attribute.column_name]
+      Sequel[alias_name][attribute.column_name.to_sym]
     end
 
     def constraint
