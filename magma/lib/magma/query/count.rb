@@ -58,9 +58,6 @@ class Magma
 
     def outgoing_column_name
       :id
-      # @model.attributes.values.select do |attribute|
-      #   attribute.is_a?(Magma::ParentAttribute)
-      # end.first&.column_name || :id
     end
   end
 end

@@ -14,7 +14,7 @@ class Magma
             inner_data = raw_answer_tuple.last
 
             if (!inner_data.is_a?(Magma::AnswerBase))
-              if inner_data.is_a?(Array) # May break on file_collection queries ...
+              if inner_data.is_a?(Array)
                 inner_data = Magma::AnswerTupleArray.from_raw_answer_tuples(
                   inner_data
                 )
