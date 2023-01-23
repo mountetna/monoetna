@@ -105,12 +105,13 @@ class Magma
     end
 
     def to_records(answer)
-      answer.map do |name, row|
+      answer.map do |answer_tuple|
+        data = answer_tuple.data
         Hash[
           @attribute_names.map.with_index do |attribute_name, i|
             attribute_name == :id ?
-              [ :id, row[i] ] :
-            [ attribute_name, @model.attributes[attribute_name].query_to_payload(row[i]) ]
+              [ :id, data[i].data ] :
+            [ attribute_name, @model.attributes[attribute_name].query_to_payload(data[i]) ]
           end
         ]
       end
@@ -188,7 +189,7 @@ class Magma
     class FilterPredicateBase
       def array_or_value(operator, value)
         return value.split(",") if "[]" == operator
-        
+
         value
       end
     end
@@ -206,7 +207,7 @@ class Magma
 
         att = attributes.find{|a| a.name == att_name.to_sym}
         raise ArgumentError, "#{att_name} is not an attribute" unless att.is_a?(Magma::Attribute)
-        
+
         raise ArgumentError, "Cannot filter on collection attributes" if [ Magma::CollectionAttribute, Magma::TableAttribute ].any? { |a| att.is_a?(a) }
 
         return [ "::lacks", att_name ] if nil_operator?(operator)

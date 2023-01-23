@@ -5,7 +5,6 @@ require_relative "../query/query_tsv_writer"
 class QueryController < Magma::Controller
   def action
     return failure(401, errors: ["You are unauthorized"]) unless @user && @user.can_view?(@project_name)
-
     begin
       case @params[:query]
       when "::predicates"

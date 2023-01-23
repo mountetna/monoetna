@@ -8,7 +8,7 @@ class Magma
       child Array
 
       extract do
-        @model.attributes.keys
+        Magma::Answer.new(@model.attributes.keys)
       end
 
       format { [ 'String' ] }

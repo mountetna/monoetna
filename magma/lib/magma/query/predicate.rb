@@ -69,6 +69,14 @@ EOT
       end
     end
 
+    def select_columns
+      if @verb && @verb.gives?(:select_columns)
+        [ @verb.do(:select_columns) ].flatten.compact
+      else
+        []
+      end
+    end
+
     def constraint
       if @verb && @verb.gives?(:constraint)
         [ @verb.do(:constraint) ].compact
@@ -99,16 +107,16 @@ EOT
       []
     end
 
-    def extract table, identity
+    def extract table, identity, is_all=false
       if @verb && @verb.gives?(:extract)
-        @verb.do(:extract, table, identity)
+        @verb.do(:extract, table, identity, is_all)
       else
-        child_extract(table,identity)
+        child_extract(table,identity,is_all)
       end
     end
 
-    def child_extract table, identity
-      @child_predicate.is_a?(Predicate) ? @child_predicate.extract(table, identity) : table
+    def child_extract table, identity, is_all=false
+      @child_predicate.is_a?(Predicate) ? @child_predicate.extract(table, identity, is_all) : table
     end
 
     def format
@@ -332,7 +340,7 @@ EOT
       )
     end
 
-    def is_numeric_constraint column_name      
+    def is_numeric_constraint column_name
       Magma::Constraint.new(
         alias_name,
         Sequel.qualify(alias_name, column_name) => Regexp.new(/^\d+(\.\d+)?$/)
@@ -378,6 +386,7 @@ end
 require_relative 'verb'
 require_relative 'predicate/column'
 require_relative 'predicate/model'
+require_relative 'predicate/child_model'
 require_relative 'predicate/start'
 require_relative 'predicate/record'
 require_relative 'predicate/filter'
@@ -396,6 +405,20 @@ require_relative 'predicate/subquery_config'
 require_relative 'predicate/subquery_filter'
 require_relative 'predicate/subquery_operator'
 require_relative 'predicate/subquery_utils'
+require_relative 'predicate/subselect/boolean_subselect'
+require_relative 'predicate/subselect/child_model_subselect'
+require_relative 'predicate/subselect/column_subselect'
+require_relative 'predicate/subselect/date_time_subselect'
+require_relative 'predicate/subselect/file_collection_subselect'
+require_relative 'predicate/subselect/file_subselect'
+require_relative 'predicate/subselect/filter_subselect'
+require_relative 'predicate/subselect/match_subselect'
+require_relative 'predicate/subselect/matrix_subselect'
+require_relative 'predicate/subselect/model_subselect'
+require_relative 'predicate/subselect/number_subselect'
+require_relative 'predicate/subselect/record_subselect'
+require_relative 'predicate/subselect/string_subselect'
+require_relative 'predicate/subselect/table_subselect'
 require_relative 'subquery_inner'
 require_relative 'subquery_outer'
 require_relative 'subquery_constraint'

@@ -11,7 +11,7 @@ class Magma
       child Hash
     end
 
-    def extract table, identity
+    def extract table, identity, is_all
       records = Hash[
         @model.where(
           @model.identity.column_name.to_sym => table.map do |row|

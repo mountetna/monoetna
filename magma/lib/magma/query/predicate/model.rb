@@ -64,29 +64,37 @@ class Magma
     verb '::first' do
       child :record_child
       extract do |table,return_identity|
-        table.empty? ?
-          nil :
+        if table.empty?
+          Magma::NilAnswer.new
+        else
           child_extract(
             table.group_by do |row|
               row[identity]
             end.first&.last,
             identity
           )
+        end
       end
       format do
         child_format
+      end
+
+      select_columns do
+        [ ]
       end
     end
 
     verb '::all' do
       child :record_child
       extract do |table,return_identity|
-        table.group_by do |row|
-          row[identity]
-        end.map do |identifier,rows|
-          next unless identifier
-          [ identifier, child_extract(rows, identity) ]
-        end.compact
+        as_answer_tuple_array(
+          table.group_by do |row|
+            row[identity]
+          end.map do |identifier,rows|
+            next unless identifier
+            [ identifier, child_extract(rows, identity, true) ]
+          end.compact
+        )
       end
       format do
         [
@@ -104,9 +112,11 @@ class Magma
       subquery_config Magma::SubqueryConfig.new(magma_class: Magma::SubqueryInner, condition: "> 0")
 
       extract do |table,return_identity|
-        table.any? do |row|
-          row[identity]
-        end
+        Magma::Answer.new(
+          table.any? do |row|
+            row[identity]
+          end
+        )
       end
       format { 'Boolean' }
     end
@@ -119,9 +129,11 @@ class Magma
       subquery_config Magma::SubqueryConfig.new(magma_class: Magma::SubqueryInner, condition: "= count(*)")
 
       extract do |table,return_identity|
-        table.length > 0 && table.all? do |row|
-          row[identity]
-        end
+        Magma::Answer.new(
+          table.length > 0 && table.all? do |row|
+            row[identity]
+          end
+        )
       end
       format { 'Boolean' }
     end
@@ -129,13 +141,13 @@ class Magma
     verb '::count' do
       child Numeric
       extract do |table,return_identity|
-        table.uniq do |row|
-          row[identity]
-        end.count do |row|
-          row[identity]
-        end
+        Magma::Answer.new(table.first[count_column_name])
       end
       format { 'Numeric' }
+
+      select_columns do
+        [ count_builder.build ]
+      end
     end
 
     verb '::distinct' do
@@ -152,7 +164,9 @@ class Magma
       end
 
       extract do |table|
-        table.map do |row| row.values end.flatten.uniq.compact
+        Magma::Answer.new(
+          table.map do |row| row.values end.flatten.uniq.compact
+        )
       end
       format { [ child_format ] }
     end
@@ -187,7 +201,8 @@ class Magma
 
     def add_filters
       if @question.restrict?
-      # the model can be restricted, and we should withhold restricted data
+        # the model can be restricted, and we should withhold restricted data
+        # Subselects handle their own restrictions without filters
         each_ancestor do |restriction_model, ancestors|
           if restriction_model.has_attribute?(:restricted)
             create_filter(ancestors + [ 'restricted', '::untrue' ])
@@ -276,6 +291,23 @@ class Magma
     end
 
     private
+
+    def as_answer_tuple_array(raw_answer_tuples)
+      Magma::AnswerTupleArray.from_raw_answer_tuples(raw_answer_tuples)
+    end
+
+    def count_builder
+      Magma::Count.new(
+        model: @model,
+        filters: @filters,
+        table_alias_name: alias_name,
+        restrict: @question.restrict?
+      )
+    end
+
+    def count_column_name
+      count_builder.count_column_alias
+    end
 
     def validate_distinct
       raise ArgumentError.new("Can only use ::distinct on string attributes.") unless record_child.child_predicate.is_a?(Magma::StringPredicate)

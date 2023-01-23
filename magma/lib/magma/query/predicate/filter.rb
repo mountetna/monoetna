@@ -5,6 +5,7 @@ class Magma
     def initialize question:, model:, alias_name:, query_args:, parent_filter: nil
       super(question)
 
+      @filters = []
       @model = model
       @alias_name = alias_name
       @parent_filter = parent_filter
@@ -18,7 +19,7 @@ class Magma
         FilterPredicate.new(
           question: @question,
           model: @model,
-          alias_name: @alias_name, 
+          alias_name: @alias_name,
           parent_filter: self,
           query_args: args)
       end
@@ -60,7 +61,7 @@ class Magma
 
     verb '::every' do
       subquery :join_subqueries
-      
+
       subquery_config Magma::SubqueryConfig.new(condition: "= count(*)")
     end
 
@@ -75,7 +76,7 @@ class Magma
           }
 
           params[:subquery_class] = @parent_filter.subquery_config.magma_class if @parent_filter
-          
+
           subquery = SubqueryFilter.new(**params)
 
           @subqueries << subquery

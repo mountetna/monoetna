@@ -64,8 +64,8 @@ describe Magma::Attribute do
     it "returns entry for editable string backed options" do
       attribute = Magma::StringAttribute.new(
         project_name: :project,
-        attribute_name: "name", 
-        model_name: :model, 
+        attribute_name: "name",
+        model_name: :model,
         description: "Old name"
       )
 
@@ -77,7 +77,7 @@ describe Magma::Attribute do
     it "returns entry for editable JSON backed options" do
       attribute = Magma::MatchAttribute.new(
         project_name: :project,
-        attribute_name: "name", 
+        attribute_name: "name",
         model_name: :model,
         validation: { type: "Array", value: [1, 2, 3] }
       )
@@ -93,8 +93,8 @@ describe Magma::Attribute do
     it "returns entry for editable string backed options" do
       attribute = Magma::StringAttribute.new(
         project_name: :project,
-        attribute_name: "name", 
-        model_name: :model, 
+        attribute_name: "name",
+        model_name: :model,
         description: "Old name"
       )
 
@@ -112,8 +112,8 @@ describe Magma::Attribute do
     it "returns entry for editable JSON backed options" do
       attribute = Magma::MatchAttribute.new(
         project_name: :project,
-        attribute_name: "name", 
-        model_name: :model, 
+        attribute_name: "name",
+        model_name: :model,
         validation: { type: "Array", value: [1, 2, 3] }
       )
 
@@ -130,12 +130,14 @@ describe Magma::Attribute do
   end
 
   describe "#query_to_payload" do
-    it "returns attribute value for a JSON payload" do
+    it "returns attribute data value for a JSON payload" do
       attribute = Magma::Attribute.new(
-        attribute_name: "name", 
+        attribute_name: "name",
         description: "Old name")
 
-      query = attribute.query_to_payload("New name")
+      query = attribute.query_to_payload(
+        Magma::Answer.new("New name")
+      )
 
       expect(query).to eq("New name")
     end
