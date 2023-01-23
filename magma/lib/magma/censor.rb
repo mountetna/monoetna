@@ -22,7 +22,9 @@ class Magma
         ],
         restrict: true,
         user: @user
-      ).answer.map(&:last)
+      ).answer.map do |answer|
+        answer.aggregated_values
+      end.flatten
 
       existing_identifiers = Magma::Question.new(
           @project_name,
@@ -34,7 +36,9 @@ class Magma
           ],
           restrict: false,
           user: @user
-      ).answer.map(&:last)
+      ).answer.map do |answer|
+        answer.aggregated_values
+      end.flatten
 
       restricted_identifiers = existing_identifiers - unrestricted_identifiers
 

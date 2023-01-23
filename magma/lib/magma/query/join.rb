@@ -1,8 +1,6 @@
 class Magma
   class Join
-    attr_reader :constraints
-
-    attr_reader :right_table_alias, :left_table_alias
+    attr_reader :constraints, :right_table_alias, :left_table_alias
 
     def initialize(lt, lt_alias, lt_id, rt, rt_alias, rt_id, inner_join: false)
       @right_table = rt

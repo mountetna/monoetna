@@ -25,9 +25,6 @@ class Magma
     end
 
     def revision_to_loader(record_name, new_value)
-      cached_rows.delete(record_name.to_s)
-      cached_rows_json.delete(record_name.to_s)
-
       [ name, new_value ]
     end
 
@@ -47,53 +44,22 @@ class Magma
       value.to_json
     end
 
-    def reset_cache
-      @cached_rows_json = nil
-      @cached_rows = nil
-    end
-
-    def cache_rows(identifiers)
-      required_identifiers = identifiers - cached_rows.keys
-
-      return if required_identifiers.empty?
-
-      rows = @magma_model.
-        where(@magma_model.identity.column_name.to_sym => required_identifiers.to_a).
-        select_map([@magma_model.identity.column_name.to_sym, column_name.to_sym]).
-        to_h
-
-      cached_rows.update(rows)
-    end
-
-    def matrix_row_json(identifier, column_names)
-      # since we want to retrieve rows in a single batch, we expect the row to
-      # have been cached already by #cache_rows
-      # raise MatrixJsonError.new("matrix data not cached for #{identifier}") unless cached_rows.has_key?(identifier)
-      return column_names ? Array.new(column_names.length, nil).to_json : nil.to_json unless cached_rows.has_key?(identifier)
+    def matrix_row_json(data, column_names)
+      # may not have identifier of the matrix model, due to
+      #   subselects, so we don't cache the data right now.
+      return column_names ? Array.new(column_names.length, nil).to_json : null_row_json unless data
 
       if column_names
         indexes = column_indexes(column_names)
-        cached_rows[identifier] ? cached_rows[identifier].values_at(
+        data ? data.values_at(
           *indexes
         ).to_json : indexes.map{nil}.to_json
       else
-        cached_row_json(identifier)
+        data.to_json
       end
     end
 
     private
-
-    def cached_rows
-      @cached_rows ||= {}
-    end
-
-    def cached_rows_json
-      @cached_rows_json ||= {}
-    end
-
-    def cached_row_json(identifier)
-      cached_rows_json[ identifier ] ||= cached_rows[ identifier ] ?  cached_rows[ identifier ].to_json : null_row_json
-    end
 
     def null_row_json
       @null_row_json ||= validation_object.options.map{nil}.to_json

@@ -1338,8 +1338,14 @@ describe RetrieveController do
         page: 3,
         page_size: 3
       )
+      middle_monster_name = names.first
+      monster_victims = victim_list.select do |victim|
+        victim.monster.name == middle_monster_name
+      end
 
       expect(json_body[:models][:monster][:documents].keys).to eq(names.map(&:to_sym))
+      expect(json_body[:models][:monster][:documents][middle_monster_name.to_sym][:victim]).to match_array(monster_victims.map(&:name))
+      expect(json_body[:models][:monster][:documents][middle_monster_name.to_sym][:labor]).to eq("Nemean Lion")
     end
 
     it 'returns a count of total records for page 1' do

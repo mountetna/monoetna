@@ -4,6 +4,8 @@ class UpdatedAtSet < MetisMetadata
   def [](file_path)
     super
 
-    @requested_files[file_path] ? @requested_files[file_path][:updated_at] : nil
+    @requested_files[file_path] ?
+      Magma::Answer.new(@requested_files[file_path][:updated_at]) :
+      Magma::NilAnswer.new
   end
 end
