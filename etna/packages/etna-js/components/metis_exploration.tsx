@@ -1,12 +1,22 @@
 import React, { useState, createContext, useContext, useCallback, useEffect, useMemo } from 'react';
 import {metisPath} from 'etna-js/api/metis_api.js'
 import Autocomplete from '@material-ui/lab/Autocomplete';
-import { Button, TextField } from '@material-ui/core';
+import { Button, makeStyles, TextField } from '@material-ui/core';
 import { json_get } from 'etna-js/utils/fetch';
+import Tooltip from '@material-ui/core/Tooltip';
+import DeleteIcon from '@material-ui/icons/Delete';
+import AddIcon from '@material-ui/icons/Add';
+import SubdirectoryArrowRightIcon from '@material-ui/icons/SubdirectoryArrowRight';
+
+const useStyles = makeStyles((theme) => ({
+  button: {
+    margin: '0.5rem'
+  }
+}));
 
 declare const CONFIG: {[key: string]: any};
 
-function nullToEmptyString(value: string | null) {
+function nullToEmptyString(value: string | null | undefined) {
   return value == null ? '' : value;
 }
 
@@ -14,13 +24,16 @@ function arrayToPath(pathElements: string[]) {
   return pathElements.join('/')
 }
 
-export function PickBucket({ project_name=CONFIG.project_name, setBucket, initialValue }: {
+function pathToArray(path: string) {
+  return path.split("/")
+}
+
+export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket}: {
   project_name?: string;
   setBucket: any;
-  initialValue?: string;
+  bucket: string;
 }){
   const [bucketList, setBucketList] = useState([] as string[]);
-  const [bucket, setBucketInternal] = useState(initialValue? initialValue : null);
   const [inputState, setInputState] = useState(nullToEmptyString(bucket));
 
   useEffect( () => {
@@ -28,16 +41,12 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, initia
       metis_return => {setBucketList(metis_return.buckets.map( (b: any) => b.bucket_name))}
     );
   }, [project_name] );
-  
-  // console.log({bucketList})
-  // console.log({bucket})
 
   return (
     <Autocomplete
       options={bucketList}
       value={nullToEmptyString(bucket)}
       onChange={ (event: any, e: string | null) => {
-        setBucketInternal(e)
         setBucket(e)
       }}
       disableClearable
@@ -60,13 +69,11 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, initia
   );
 }
 
-function SingleFileOrFolder({ project_name, bucket, path, setTarget, key, initialValue, allowFiles = true, allowFolders = true }: {
+function SingleFileOrFolder({ project_name, bucket, path, setTarget, allowFiles = true, allowFolders = true }: {
   project_name?: string;
   bucket: string;
   path: string;
   setTarget: any;
-  key: number;
-  initialValue?: string;
   allowFiles?: boolean; 
   allowFolders?: boolean;
 }){
@@ -75,9 +82,9 @@ function SingleFileOrFolder({ project_name, bucket, path, setTarget, key, initia
     let out = allow_folders ? fullList.folders.map(f => f.folder_name) : []
     return allow_files ? out.concat(fullList.files.map(f => f.file_name)) : out
   }
-  const [targetList, setTargetList] = useState(restrictTargetList(fullTargetList));
-  const [target, setTargetInternal] = useState(initialValue? initialValue : '');
-  const [inputState, setInputState] = useState(nullToEmptyString(target));
+  const [targetList, setTargetList] = useState([''].concat(restrictTargetList(fullTargetList)));
+  const [target, setTargetInternal] = useState('');
+  const [inputState, setInputState] = useState(target);
 
   useEffect( () => {
     if (bucket != null) {
@@ -85,19 +92,17 @@ function SingleFileOrFolder({ project_name, bucket, path, setTarget, key, initia
       json_get(metisPath(`${project_name}/list/${full_path}`)).then(
         metis_return => {
           setFullTargetList(metis_return)
-          setTargetList(restrictTargetList(metis_return))
+          setTargetList([''].concat(restrictTargetList(metis_return)))
         }
       );
     }
+    // console.log({path})
+    // console.log({targetList})
   }, [bucket, project_name, path] );
-  
-  console.log({fullTargetList})
-  console.log({targetList})
-  console.log({target})
 
   return project_name == null ? null : (
     <Autocomplete
-      key={`sub-picker-${bucket}-${project_name}-`+ key}
+      key={path+'-selection'}
       options={targetList}
       value={target}
       onChange={ (event: any, e: string | null) => {
@@ -123,57 +128,85 @@ function SingleFileOrFolder({ project_name, bucket, path, setTarget, key, initia
   );
 }
 
-export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setTarget, initialValue }: {
+export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setPath, path }: {
   project_name?: string;
   bucket: string;
-  setTarget: any;
-  initialValue?: string;
+  setPath: Function;
+  path: string;
 }){
-  const defaultPath = initialValue? [initialValue] : ['']
-  const [pathSet, setPathSet] = useState(defaultPath);
+  // const originalTarget = nullToEmptyString(initialValue);
+  // const originalPath = pathToArray(originalTarget);
+  const [pathArray, setPathArray] = useState(pathToArray(nullToEmptyString(path)));
 
-  // Clear if the project or bucket change
-  useEffect( () => {
-    setPathSet(defaultPath)
-  }, [bucket, project_name] );
+  useEffect(() => {
+    setPathArray(pathToArray(nullToEmptyString(path)));
+  }, [path])
+  const classes = useStyles();
 
-  // onChange for inner levels
+  // onChange for inners
   const updateTarget = useCallback(
     (newPath: string, currentPathSet: string[], depth: number) => {
       // Also trim at the level just picked in case not actually the deepest
       let nextPathSet = [...currentPathSet].slice(0,depth+1)
       nextPathSet[depth] = newPath
-      setPathSet([...nextPathSet])
-      setTarget(arrayToPath(nextPathSet))
-    }, [setTarget])
+      setPath(arrayToPath(nextPathSet))
+    }, [setPath])
+  
+  // clear for inners
+  const trimPath = useCallback(
+    (depth: number) => {
+    const nextPathSet = depth > 0 ? [...pathArray].slice(0,depth) : ['']
+    setPath(arrayToPath(nextPathSet))
+  }, [setPath])
 
   const targetSelectors = useMemo(() => {
-    return pathSet.map( (p, index) => <SingleFileOrFolder
-      project_name={project_name}
-      bucket={bucket}
-      initialValue={p}
-      key={index}
-      setTarget={(e: string) => updateTarget(e, pathSet, index)}
-      path={arrayToPath(pathSet.slice(0,index))}
-    />)
-  }, [pathSet, project_name, bucket, updateTarget])
-  let displaySet = [] as any[]
-  targetSelectors.forEach((e,i) => {
-    displaySet = displaySet.concat(i==0 ? [e] : ['/', e])
-  })
+    return pathArray.map( (p, index, fullSet) => {
+      const indent = index > 1 ? (index-1)*10 : 0;
+      const icon = index > 0 ? <SubdirectoryArrowRightIcon/> : null;
+      return (
+        <div 
+          style={{display: 'inline-flex', paddingLeft: indent}}
+          key={`sub-picker-${bucket}-${project_name}-`+ index}
+          >
+          {icon}
+          <SingleFileOrFolder
+            project_name={project_name}
+            bucket={bucket}
+            setTarget={(e: string) => updateTarget(e, pathArray, index)}
+            path={arrayToPath(fullSet.slice(0,index))}
+          />
+          <Tooltip title='Clear or Remove Level'>
+            <Button
+              startIcon={<DeleteIcon />}
+              onClick={ () => { trimPath(index)} }
+              size='small'
+              color='primary'
+              className={classes.button}
+            >
+            </Button>
+          </Tooltip>
+        </div>
+      )
+    })
+  }, [pathArray, project_name, bucket, updateTarget])
 
-  console.log({pathSet})
-  console.log({bucket})
-  console.log({project_name})
+  // console.log({pathSet: pathArray})
+  // console.log({bucket})
+  // console.log({project_name})
 
-  return bucket == null ? null : <div>
-    {displaySet.map( x => x)}
+  return bucket == null ? null : <div key={`file-or-folder-picker-${bucket}-${project_name}`}>
+    {targetSelectors}
     {/* Show button only if end is a folder with internal contents & at least one folder is fileAllow=false */}
-    <Button
-      onClick={() => { setPathSet(pathSet.concat([''])) }}
+    <Tooltip title='Add Level'>
+      <Button
+        startIcon={<AddIcon />}
+        onClick={() => { setPath(path+'/') }}
+        size='small'
+        color='primary'
+        className={classes.button}
       >
-      +
-    </Button>
+      </Button>
+    </Tooltip>
   </div>
 }
 

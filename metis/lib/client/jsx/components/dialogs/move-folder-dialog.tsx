@@ -21,20 +21,25 @@ const MoveFolderDialog = ({
     invoke({type: 'DISMISS_DIALOG'});
   }, [bucketName, newFolderPath, invoke, onSubmit]);
 
+  const changeBucket = useCallback((e) => {
+    setNewFolderPath('')
+    setBucketName(e)
+  }, [])
+
   return (
     <div className='move-folder-dialog'>
       <div className='title'>Move folder</div>
       <ConfigRow label='Bucket:'>
         <PickBucket
-          setBucket={(e) => setBucketName(e)}
-          initialValue={bucketName}
+          setBucket={(e) => changeBucket(e)}
+          bucket={bucketName}
         />
       </ConfigRow>
       <ConfigRow label='Parent folder (blank for root)'>
         <PickFileOrFolder
           bucket={bucketName}
-          setTarget={(e) => setNewFolderPath(e)}
-          initialValue={newFolderPath}
+          setPath={(e) => setNewFolderPath(e)}
+          path={newFolderPath}
         />
       </ConfigRow>
       <div className='submit'>
