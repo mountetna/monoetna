@@ -94,6 +94,18 @@ module Etna
                 if start_time == end_time
                   next
                 end
+
+                rate = upload_amount / (end_time - start_time)
+
+                if rate / last_rate > 1.3 || rate / last_rate < 0.7
+                  logger&.debug("Uploading #{Etna::Formatting.as_size(rate)} per second, #{Etna::Formatting.as_size(remaining)} remaining")
+
+                  if rate == 0
+                    last_rate = 0.0001
+                  else
+                    last_rate = rate
+                  end
+                end
               end
             end
           end

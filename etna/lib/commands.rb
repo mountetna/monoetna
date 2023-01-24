@@ -248,13 +248,14 @@ class EtnaApp
 
       string_flags << "--project-name"
       string_flags << "--log-file"
+      string_flags << "--log-level"
+      string_flags << "--concurrency"
 
-      def logger
-        @logger ||= @logger = Etna::Logger.new(@log_file, 0, 1048576)
-      end
 
-      def execute(project_name:, log_file:'/dev/stdout')
-        @log_file = log_file
+      def execute(project_name:, log_file:'/dev/stdout', log_level: ::Logger::INFO, concurrency: 1)
+        logger = Etna::Logger.new(log_file, 0, 1048576)
+
+        logger.level = log_level
 
         workflow = Etna::Clients::Magma::MaterializeDataWorkflow.new(
             model_attributes_mask: model_attribute_pairs(project_name),
@@ -265,7 +266,7 @@ class EtnaApp
             logger: logger,
             project_name: project_name,
             model_name: 'project', filesystem: filesystem,
-            concurrency: 1)
+            concurrency: concurrency.to_i)
 
         workflow.materialize_all(project_name)
         logger.info("Done")
