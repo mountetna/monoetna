@@ -1,7 +1,7 @@
 import React, {useState, useCallback} from 'react';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {PickBucket} from 'etna-js/components/metis_exploration';
+import {PickBucket, PickFileOrFolder} from 'etna-js/components/metis_exploration';
 
 import ConfigRow from './config-row';
 
@@ -27,15 +27,14 @@ const MoveFolderDialog = ({
       <ConfigRow label='Bucket:'>
         <PickBucket
           setBucket={(e) => setBucketName(e)}
-          initialValue={currentBucketName}
+          initialValue={bucketName}
         />
       </ConfigRow>
       <ConfigRow label='Parent folder (blank for root)'>
-        <input
-          type='text'
-          placeholder='E.g. root/child'
-          value={newFolderPath}
-          onChange={(e) => setNewFolderPath(e.target.value)}
+        <PickFileOrFolder
+          bucket={bucketName}
+          setTarget={(e) => setNewFolderPath(e)}
+          initialValue={newFolderPath}
         />
       </ConfigRow>
       <div className='submit'>
