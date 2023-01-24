@@ -751,6 +751,10 @@ describe MetisShell do
   end
 
   describe MetisShell::Nuke do
+    after(:each) do
+      FileUtils.rm('md5checksum.txt', force: true)
+    end
+
     it 'nukes a local directory except for missing files' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
 
@@ -790,22 +794,65 @@ describe MetisShell do
 
       FileUtils.rm_r('athena-copy')
     end
-  end
 
-  describe MetisShell::Validate do
-    it 'validates a local directory for missing files' do
+    it 'only looks within the specified project' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
 
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
       stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: bucket)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      folly_file = create_file('ate', 'folly.txt', WISDOM.reverse, bucket: bucket)
+      stubs.create_file('ate', 'files', 'folly.txt', WISDOM.reverse)
 
       stubs.send(:stub_file,'athena-copy/new/wisdom-copy.txt', WISDOM)
       stubs.send(:stub_file,'athena-copy/new/helmet-copy.txt', HELMET)
       stubs.send(:stub_file,'athena-copy/old/folly-copy.txt', WISDOM.reverse)
 
-      expect_output("metis://athena", "validate", "athena-copy") { /Found 2 of 3 files on Metis/ }
+      expect_output("metis://athena", "nuke", "--project-name", "athena", "athena-copy") { /Deleted 1 of 3 files, 0 of 2 folders./ }
+
+      FileUtils.rm_r('athena-copy')
+    end
+  end
+
+  describe MetisShell::Validate do
+    after(:each) do
+      FileUtils.rm('md5checksum.txt', force: true)
+    end
+
+    it 'validates a local directory for missing files' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      bucket2 = create( :bucket, project_name: 'ate', name: 'busted_armor', access: 'editor', owner: 'metis')
+
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+      stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: bucket)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      broken_helmet_file = create_file('ate', 'broken_helmet.jpg', HELMET.reverse, bucket: bucket2)
+      stubs.create_file('ate', 'broken_armor', 'helmet.jpg', HELMET)
+
+      stubs.send(:stub_file,'athena-copy/new/wisdom-copy.txt', WISDOM)
+      stubs.send(:stub_file,'athena-copy/new/helmet-copy.txt', HELMET)
+      stubs.send(:stub_file,'athena-copy/old/folly-copy.txt', WISDOM.reverse)
+      stubs.send(:stub_file,'athena-copy/old/broken-helmet-copy.txt', HELMET.reverse)
+
+      expect_output("metis://athena", "validate", "athena-copy") { /Found 3 of 4 files on Metis/ }
+
+      FileUtils.rm_r('athena-copy')
+    end
+
+    it 'only looks within the specified project' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      bucket2 = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+      stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
+      folly_file = create_file('ate', 'folly.txt', WISDOM.reverse, bucket: bucket)
+      stubs.create_file('ate', 'files', 'folly.txt', WISDOM.reverse)
+
+      stubs.send(:stub_file,'athena-copy/new/wisdom-copy.txt', WISDOM)
+      stubs.send(:stub_file,'athena-copy/new/helmet-copy.txt', HELMET)
+      stubs.send(:stub_file,'athena-copy/old/folly-copy.txt', WISDOM.reverse)
+
+      expect_output("metis://athena", "validate", "--project-name", "athena", "athena-copy") { /Found 1 of 3 files on Metis/ }
 
       FileUtils.rm_r('athena-copy')
     end

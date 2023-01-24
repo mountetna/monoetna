@@ -291,6 +291,29 @@ describe DataBlockController do
     it 'checks for the existence of data blocks by md5' do
       wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      folly_file = create_file('ate', 'folly.txt', WISDOM.reverse)
+      stubs.create_file('ate', 'files', 'folly.txt', WISDOM.reverse)
+
+      wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
+      folly_md5 = Digest::MD5.hexdigest(WISDOM.reverse)
+      helmet_md5 = Digest::MD5.hexdigest(HELMET)
+
+      token_header(:viewer)
+      json_post('/api/exists', md5s: [
+        wisdom_md5,
+        folly_md5,
+        helmet_md5
+      ])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body).to eq(found: [wisdom_md5, folly_md5], missing: [helmet_md5])
+    end
+
+    it 'finds data blocks only for a specified project' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+      folly_file = create_file('ate', 'folly.txt', WISDOM.reverse)
+      stubs.create_file('ate', 'files', 'folly.txt', WISDOM.reverse)
 
       wisdom_md5 = Digest::MD5.hexdigest(WISDOM)
       folly_md5 = Digest::MD5.hexdigest(WISDOM.reverse)
@@ -299,7 +322,7 @@ describe DataBlockController do
       json_post('/api/exists', md5s: [
         wisdom_md5,
         folly_md5
-      ])
+      ], project_name: 'athena')
 
       expect(last_response.status).to eq(200)
       expect(json_body).to eq(found: [wisdom_md5], missing: [folly_md5])
