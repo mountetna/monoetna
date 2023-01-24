@@ -54,12 +54,24 @@ module Etna
           metadata = metis_client.file_metadata(url)
           size = metadata[:size]
 
+          begin
+            if filesystem.exist?(dest) && filesystem.stat(dest).size == size
+              logger&.info "Already downloaded #{dest}"
+              return
+            end
+          rescue Etna::Filesystem::Error => e
+            unless e.message =~ /stat not supported/
+              raise e
+            end
+          end
+
           tmp_file = dest
           upload_timings = []
           upload_amount = 0
           last_rate = 0.00001
           remaining = size
 
+          logger&.info "Downloading #{dest} - #{Etna::Formatting.as_size(size)}"
           filesystem.with_writeable(tmp_file, "w", size_hint: size) do |io|
             if stub
               io.write("(stub) #{size} bytes")
@@ -82,20 +94,7 @@ module Etna
                 if start_time == end_time
                   next
                 end
-
-                rate = upload_amount / (end_time - start_time)
-
-                if rate / last_rate > 1.3 || rate / last_rate < 0.7
-                  logger&.info("Uploading #{Etna::Formatting.as_size(rate)} per second, #{Etna::Formatting.as_size(remaining)} remaining")
-
-                  if rate == 0
-                    last_rate = 0.0001
-                  else
-                    last_rate = rate
-                  end
-                end
               end
-
             end
           end
         end

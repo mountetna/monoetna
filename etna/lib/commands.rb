@@ -245,11 +245,17 @@ class EtnaApp
 
     class Materialize < Etna::Command
       include WithEtnaClients
-      include WithLogger
 
       string_flags << "--project-name"
+      string_flags << "--log-file"
 
-      def execute(project_name:)
+      def logger
+        @logger ||= @logger = Etna::Logger.new(@log_file, 0, 1048576)
+      end
+
+      def execute(project_name:, log_file:'/dev/stdout')
+        @log_file = log_file
+
         workflow = Etna::Clients::Magma::MaterializeDataWorkflow.new(
             model_attributes_mask: model_attribute_pairs(project_name),
             record_names: 'all',
@@ -261,7 +267,7 @@ class EtnaApp
             model_name: 'project', filesystem: filesystem,
             concurrency: 1)
 
-        workflow.materialize_all("Upload")
+        workflow.materialize_all(project_name)
         logger.info("Done")
       end
 
