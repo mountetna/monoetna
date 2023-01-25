@@ -116,19 +116,19 @@ describe Magma::QueryTSVWriter do
 
     expect(lines[2].split("\t")).to eq([
       "John Doe",
-      "",
+      "[]",
       "[5]",
     ])
 
     expect(lines[3].split("\t")).to eq([
       "Shawn Doe",
-      "",
+      "[]",
       "[1]",
     ])
 
     expect(lines[4].split("\t")).to eq([
       "Susan Doe",
-      "",
+      "[]",
       "[3]",
     ])
   end
