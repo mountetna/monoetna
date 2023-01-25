@@ -17,7 +17,7 @@ The `etna` gem includes several command-line utilities for managing projects and
 
 ### Installation
 
-To install the etna gem, you will need a Ruby installation -- currently we run `2.5.7`. We recommend that you use [rbenv](https://github.com/rbenv/rbenv) to manage this. Then you can simply run:
+To install the etna gem, you will need a Ruby installation -- currently we run `2.7`. We recommend that you use [rbenv](https://github.com/rbenv/rbenv) to manage this. Then you can simply run:
 
 ```bash
 $ gem install etna
