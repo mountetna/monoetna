@@ -32,6 +32,8 @@ class Magma
     end
 
     def eql?(other)
+      return false unless other.is_a?(Magma::SubselectBase)
+
       subselect_column_alias == other.subselect_column_alias
     end
 
