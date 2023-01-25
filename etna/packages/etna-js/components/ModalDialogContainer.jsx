@@ -17,7 +17,6 @@ export function ModalDialogContainer({children}) {
 
   let modal = null;
   if (component) {
-    console.log('opts', opts, closeOnClickBackdrop());
     modal = (
       <div
         className='etna-modal-window'
