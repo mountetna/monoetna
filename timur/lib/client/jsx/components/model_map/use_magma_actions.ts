@@ -18,6 +18,7 @@ const useMagmaActions = () => {
         })
         .catch((err: any) => {
           invoke(showMessages(err));
+          throw err;
         });
     },
     [invoke, addTemplatesAndDocuments, showMessages]
