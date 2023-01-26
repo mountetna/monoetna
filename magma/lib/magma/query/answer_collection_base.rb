@@ -4,7 +4,7 @@ class Magma
   class AnswerCollectionBase < Magma::AnswerAggregationBase
     def self.array_of_answers?(data)
       data.is_a?(Array) && data.all? do |datum|
-        datum.is_a?(Magma::AnswerBase)
+        datum.is_a?(Magma::AnswerBase) || datum.is_a?(MetisMetadata::Value)
       end
     end
 

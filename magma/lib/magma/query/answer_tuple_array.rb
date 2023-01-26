@@ -10,14 +10,12 @@ class Magma
               Magma::AnswerCollectionBase.array_of_answers?(raw_answer_tuple))
             raw_answer_tuple
           else
-            identifier = raw_answer_tuple.first
-            inner_data = raw_answer_tuple.last
-
+            identifier, inner_data = raw_answer_tuple
             if (!inner_data.is_a?(Magma::AnswerBase))
-              if inner_data.is_a?(Array)
-                inner_data = Magma::AnswerTupleArray.from_raw_answer_tuples(
-                  inner_data
-                )
+              if inner_data.is_a?(Array) && !Magma::AnswerCollectionBase.array_of_answers?(inner_data)
+                  inner_data = Magma::AnswerTupleArray.from_raw_answer_tuples(
+                    inner_data
+                  )
               else
                 inner_data = Magma::Answer.new(inner_data)
               end

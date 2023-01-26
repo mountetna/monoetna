@@ -1901,6 +1901,19 @@ describe QueryController do
         expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#stats'])
       end
 
+      it 'in a JSON query response with table predicate' do
+        query(
+          [ 'monster', '::all', [['stats', '::md5']] ]
+        )
+
+        expect(last_response.status).to eq(200)
+
+        expect(json_body[:answer].map(&:last).sort).to eq([
+          ['hashforhydra-stats.tsv'], ['hashforlion-stats.tsv'], ['hashforstables-stats.tsv']
+        ])
+        expect(json_body[:format]).to eq(['labors::monster#name', ['labors::monster#stats']])
+      end
+
       it 'in a TSV query response' do
         query_opts(
           [ 'monster', '::all', 'stats', '::md5' ],
