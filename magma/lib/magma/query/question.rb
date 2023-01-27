@@ -155,11 +155,11 @@ class Magma
     end
 
     def built_predicate_select_statements
-      (predicate_collect(:select)).uniq.map do |predicate|
+      (predicate_collect(:select)).map do |predicate|
         predicate.is_a?(Magma::SubselectBase) ?
           predicate.build_with_alias :
           predicate
-      end
+      end.uniq
     end
 
     def order_by_attributes
