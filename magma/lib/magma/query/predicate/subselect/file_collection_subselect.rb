@@ -1,9 +1,9 @@
-require_relative 'column_subselect'
-require_relative '../with_file_collection_predicate_methods'
+require_relative '../file_collection'
+require_relative 'with_subselect_override_methods'
 
 class Magma
-  class FileCollectionSubselectPredicate < Magma::ColumnSubselectPredicate
-    include WithFileCollectionPredicateMethods
+  class FileCollectionSubselectPredicate < Magma::FileCollectionPredicate
+    include WithSubselectOverrideMethods
 
     def self.verbs
       Magma::FileCollectionPredicate.verbs.merge(@verbs)

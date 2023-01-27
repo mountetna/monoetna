@@ -31,7 +31,8 @@ class Magma
     def extract_data(data)
       case data
       when Magma::SimpleAnswerBase
-        data.data
+        extracted_data = data.data
+        extracted_data.nil? ? nil : data.to_s
       when Magma::AnswerAggregationBase
         data.aggregated_values
       else

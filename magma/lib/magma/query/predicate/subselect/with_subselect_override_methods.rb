@@ -1,7 +1,5 @@
-require_relative '../column'
-
 class Magma
-  class ColumnSubselectPredicate < Magma::ColumnPredicate
+  module WithSubselectOverrideMethods
     def extract table, identity, is_all
       if @verb && @verb.gives?(:extract)
         @verb.do(:extract, table, identity)

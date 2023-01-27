@@ -1,8 +1,5 @@
-require_relative 'with_date_time_predicate_methods'
-
 class Magma
   class DateTimePredicate < Magma::ColumnPredicate
-    include WithDateTimePredicateMethods
 
     verb nil do
       child DateTime
@@ -15,6 +12,10 @@ class Magma
         op, date = @arguments
         comparison_constraint(@column_name, op, DateTime.parse(date))
       end
+    end
+
+    def extract table, identity, is_all
+      Magma::Answer.new(table.first[column_name]&.iso8601)
     end
   end
 end
