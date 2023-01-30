@@ -108,6 +108,7 @@ module Etna
             end
 
             dest_file = File.join(dest_dir, metadata_file_name(record_name: record[template.identifier], record_model_name: template.name, ext: "_#{attr_name}_#{idx}#{File.extname(filename)}"))
+            filesystem.mkdir_p(File.dirname(dest_file))
             sync_metis_data_workflow.copy_file(dest: dest_file, url: url, stub: stub_files)
             record_to_serialize[attr_name] << {file: dest_file, original_filename: filename}
           end

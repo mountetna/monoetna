@@ -19,7 +19,11 @@ class Magma
     end
 
     def to_s
-      data.to_s
+      Magma::AnswerCollectionBase.array_of_answers?(data) ?
+        data.map do |datum|
+          datum.to_s
+        end :
+        data.to_s
     end
   end
 end

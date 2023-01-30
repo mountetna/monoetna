@@ -1,9 +1,9 @@
-require_relative 'column_subselect'
-require_relative '../with_table_predicate_methods'
+require_relative 'with_subselect_override_methods'
+require_relative '../table'
 
 class Magma
-  class TableSubselectPredicate < Magma::ColumnSubselectPredicate
-    include WithTablePredicateMethods
+  class TableSubselectPredicate < Magma::TablePredicate
+    include WithSubselectOverrideMethods
 
     def self.verbs
       Magma::TablePredicate.verbs

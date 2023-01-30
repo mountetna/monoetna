@@ -1,9 +1,9 @@
-require_relative 'column_subselect'
-require_relative '../with_date_time_predicate_methods'
+require_relative '../date_time'
+require_relative 'with_subselect_override_methods'
 
 class Magma
-  class DateTimeSubselectPredicate < Magma::ColumnSubselectPredicate
-    include WithDateTimePredicateMethods
+  class DateTimeSubselectPredicate < Magma::DateTimePredicate
+    include WithSubselectOverrideMethods
 
     def self.verbs
       Magma::DateTimePredicate.verbs
