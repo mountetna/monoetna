@@ -172,6 +172,8 @@ module Etna
 
       def exist?(src)
         !run_ascli_cmd("ls", src).nil?
+      rescue Exception => e
+        false
       end
 
       def mv(src, dest)
