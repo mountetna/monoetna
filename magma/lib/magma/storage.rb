@@ -1,3 +1,5 @@
+require "addressable/uri"
+
 class Magma
   class Storage
     def self.setup
@@ -51,13 +53,17 @@ class Magma
             Magma.instance,
             method: method,
             host: host,
-            path: URI.encode(path),
+            path: encode_path(path),
             expiration: (Time.now + expiration).iso8601,
             nonce: Magma.instance.sign.uid,
             id: :magma,
             headers: headers
           ).url_params
         )
+      end
+
+      def encode_path(path)
+        path.split('/').map { |c| Addressable::URI.normalized_encode(c) }.join('/')
       end
     end
 
