@@ -69,11 +69,12 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
   );
 }
 
-function SingleFileOrFolder({ project_name, bucket, path, setTarget, allowFiles = true, allowFolders = true }: {
+function SingleFileOrFolder({ project_name, bucket, path, setTarget, onEmpty, allowFiles = true, allowFolders = true }: {
   project_name?: string;
   bucket: string;
   path: string;
-  setTarget: any;
+  setTarget: Function;
+  onEmpty: Function;
   allowFiles?: boolean; 
   allowFolders?: boolean;
 }){
@@ -82,7 +83,7 @@ function SingleFileOrFolder({ project_name, bucket, path, setTarget, allowFiles 
     let out = allow_folders ? fullList.folders.map(f => f.folder_name) : []
     return allow_files ? out.concat(fullList.files.map(f => f.file_name)) : out
   }
-  const [targetList, setTargetList] = useState([''].concat(restrictTargetList(fullTargetList)));
+  const [targetList, setTargetList] = useState(restrictTargetList(fullTargetList));
   const [target, setTargetInternal] = useState('');
   const [inputState, setInputState] = useState(target);
 
@@ -106,10 +107,14 @@ function SingleFileOrFolder({ project_name, bucket, path, setTarget, allowFiles 
       options={targetList}
       value={target}
       onChange={ (event: any, e: string | null) => {
-        setTargetInternal(nullToEmptyString(e))
-        setTarget(nullToEmptyString(e))
+        const nextTarget = nullToEmptyString(e)
+        setTargetInternal(nextTarget)
+        setTarget(nextTarget)
+        if (nextTarget == '') {
+          onEmpty()
+        }
       }}
-      disableClearable
+      disableClearable={false}
       disablePortal
       inputValue={inputState}
       onInputChange={(event: any, newInputState: string) => {
@@ -119,7 +124,7 @@ function SingleFileOrFolder({ project_name, bucket, path, setTarget, allowFiles 
       renderInput={(params) => (
         <TextField
           {...params}
-          error={ target==null || inputState != nullToEmptyString(target)}
+          error={ inputState != nullToEmptyString(target) }
           size='small'
           InputLabelProps={{shrink: true}}
         />
@@ -173,18 +178,9 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
             project_name={project_name}
             bucket={bucket}
             setTarget={(e: string) => updateTarget(e, pathArray, index)}
+            onEmpty={ () => { trimPath(index) } }
             path={arrayToPath(fullSet.slice(0,index))}
           />
-          <Tooltip title='Clear or Remove Level'>
-            <Button
-              startIcon={<DeleteIcon />}
-              onClick={ () => { trimPath(index)} }
-              size='small'
-              color='primary'
-              className={classes.button}
-            >
-            </Button>
-          </Tooltip>
         </div>
       )
     })
