@@ -8,7 +8,6 @@ import Button from '@material-ui/core/Button';
 import Tooltip from '@material-ui/core/Tooltip';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
-import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
 import {requestAnswer} from 'etna-js/actions/magma_actions';
 import {useModal} from 'etna-js/components/ModalDialogContainer';
@@ -61,9 +60,7 @@ const useStyles = makeStyles((theme) => ({
   },
   content: {
     height: 'calc(100% - 64px)',
-    overflowY: 'auto',
-    display: 'flex',
-    flexDirection: 'column'
+    overflowY: 'auto'
   },
   type: {
     color: 'gray'
@@ -71,16 +68,13 @@ const useStyles = makeStyles((theme) => ({
   value: {
     color: '#131',
     borderBottom: '1px solid rgba(34, 139, 34, 0.1)',
+    maxHeight: '90px',
     wordWrap: 'break-word',
     width: '0px',
     overflowY: 'auto'
   },
   button: {
     margin: '0.5rem'
-  },
-  sampleContainer: {
-    flexGrow: 1,
-    overflowY: 'auto'
   }
 }));
 
@@ -311,7 +305,7 @@ const AttributeReport = ({attribute, model_name, isAdminUser}) => {
               </Grid>
             ))}
           {sample && (
-            <Grid container className={classes.sampleContainer}>
+            <Grid container>
               <Grid item xs={3} className={classes.type}>
                 sample
               </Grid>
