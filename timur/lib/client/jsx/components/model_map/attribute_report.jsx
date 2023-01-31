@@ -81,24 +81,6 @@ const useStyles = makeStyles((theme) => ({
   sampleContainer: {
     flexGrow: 1,
     overflowY: 'auto'
-  },
-  sampleList: {
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  sampleListColumns: {
-    columnCount: 3,
-    columnWidth: '150px',
-    paddingBottom: '3px'
-  },
-  listItem: {
-    display: 'inline-block',
-    width: '100%',
-    paddingTop: '3px',
-    borderBottom: 'thin-rule(0.1)',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden'
   }
 }));
 
@@ -219,26 +201,6 @@ const ManageAttributeActions = ({
   );
 };
 
-const ListItem = ({text}) => {
-  const classes = useStyles();
-  console.log('text', text);
-  return <div className={classes.listItem}>{text}</div>;
-};
-
-const SampleList = ({sample}) => {
-  const classes = useStyles();
-  console.log('sample', sample);
-  return (
-    <div className={classes.sampleList}>
-      <div className={classes.sampleListColumns}>
-        {sample.map((item, index) => {
-          return <ListItem key={index} text={item} />;
-        })}
-      </div>
-    </div>
-  );
-};
-
 const AttributeReport = ({attribute, model_name, isAdminUser}) => {
   const dispatch = useDispatch();
   const [sample, setSample] = useState(null);
@@ -351,14 +313,10 @@ const AttributeReport = ({attribute, model_name, isAdminUser}) => {
           {sample && (
             <Grid container className={classes.sampleContainer}>
               <Grid item xs={3} className={classes.type}>
-                sample (distinct values)
+                sample
               </Grid>
               <Grid item xs={9} className={classes.value}>
-                {sample.length > 0 ? (
-                  <SampleList sample={sample} />
-                ) : (
-                  <i>No values</i>
-                )}
+                {sample.length > 0 ? JSON.stringify(sample) : <i>No values</i>}
               </Grid>
             </Grid>
           )}

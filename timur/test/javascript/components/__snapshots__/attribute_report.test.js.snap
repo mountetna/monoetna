@@ -8,16 +8,16 @@ exports[`AttributeReport renders 1`] = `
     className="MuiPaper-root MuiCard-root makeStyles-attribute_card-3 MuiPaper-elevation1 MuiPaper-rounded"
   >
     <div
-      className="MuiGrid-root makeStyles-heading-12 undefined MuiGrid-container"
+      className="MuiGrid-root makeStyles-heading-9 undefined MuiGrid-container"
     >
       <h6
-        className="MuiTypography-root makeStyles-name-13 MuiTypography-h6"
+        className="MuiTypography-root makeStyles-name-10 MuiTypography-h6"
       >
         Attribute
       </h6>
        
       <h6
-        className="MuiTypography-root makeStyles-title-14 MuiTypography-h6"
+        className="MuiTypography-root makeStyles-title-11 MuiTypography-h6"
       >
         name
       </h6>
@@ -109,16 +109,16 @@ exports[`AttributeReport renders with remove attribute buttons for admin user, r
       class="MuiPaper-root MuiCard-root makeStyles-attribute_card-3 MuiPaper-elevation1 MuiPaper-rounded"
     >
       <div
-        class="MuiGrid-root makeStyles-heading-12 undefined MuiGrid-container"
+        class="MuiGrid-root makeStyles-heading-9 undefined MuiGrid-container"
       >
         <h6
-          class="MuiTypography-root makeStyles-name-13 MuiTypography-h6"
+          class="MuiTypography-root makeStyles-name-10 MuiTypography-h6"
         >
           Attribute
         </h6>
          
         <h6
-          class="MuiTypography-root makeStyles-title-14 MuiTypography-h6"
+          class="MuiTypography-root makeStyles-title-11 MuiTypography-h6"
         >
           species
         </h6>
@@ -275,16 +275,16 @@ exports[`AttributeReport renders with remove link button for admin user, collect
       class="MuiPaper-root MuiCard-root makeStyles-attribute_card-3 MuiPaper-elevation1 MuiPaper-rounded"
     >
       <div
-        class="MuiGrid-root makeStyles-heading-12 undefined MuiGrid-container"
+        class="MuiGrid-root makeStyles-heading-9 undefined MuiGrid-container"
       >
         <h6
-          class="MuiTypography-root makeStyles-name-13 MuiTypography-h6"
+          class="MuiTypography-root makeStyles-name-10 MuiTypography-h6"
         >
           Attribute
         </h6>
          
         <h6
-          class="MuiTypography-root makeStyles-title-14 MuiTypography-h6"
+          class="MuiTypography-root makeStyles-title-11 MuiTypography-h6"
         >
           monster
         </h6>
@@ -383,16 +383,16 @@ exports[`AttributeReport renders with remove link button for admin user, link at
       class="MuiPaper-root MuiCard-root makeStyles-attribute_card-3 MuiPaper-elevation1 MuiPaper-rounded"
     >
       <div
-        class="MuiGrid-root makeStyles-heading-12 undefined MuiGrid-container"
+        class="MuiGrid-root makeStyles-heading-9 undefined MuiGrid-container"
       >
         <h6
-          class="MuiTypography-root makeStyles-name-13 MuiTypography-h6"
+          class="MuiTypography-root makeStyles-name-10 MuiTypography-h6"
         >
           Attribute
         </h6>
          
         <h6
-          class="MuiTypography-root makeStyles-title-14 MuiTypography-h6"
+          class="MuiTypography-root makeStyles-title-11 MuiTypography-h6"
         >
           habitat
         </h6>
@@ -491,16 +491,16 @@ exports[`AttributeReport renders without model action buttons for admin user, no
       class="MuiPaper-root MuiCard-root makeStyles-attribute_card-3 MuiPaper-elevation1 MuiPaper-rounded"
     >
       <div
-        class="MuiGrid-root makeStyles-heading-12 undefined MuiGrid-container"
+        class="MuiGrid-root makeStyles-heading-9 undefined MuiGrid-container"
       >
         <h6
-          class="MuiTypography-root makeStyles-name-13 MuiTypography-h6"
+          class="MuiTypography-root makeStyles-name-10 MuiTypography-h6"
         >
           Attribute
         </h6>
          
         <h6
-          class="MuiTypography-root makeStyles-title-14 MuiTypography-h6"
+          class="MuiTypography-root makeStyles-title-11 MuiTypography-h6"
         >
           name
         </h6>
@@ -571,16 +571,16 @@ exports[`AttributeReport renders without model action buttons for editor user 1`
       class="MuiPaper-root MuiCard-root makeStyles-attribute_card-3 MuiPaper-elevation1 MuiPaper-rounded"
     >
       <div
-        class="MuiGrid-root makeStyles-heading-12 undefined MuiGrid-container"
+        class="MuiGrid-root makeStyles-heading-9 undefined MuiGrid-container"
       >
         <h6
-          class="MuiTypography-root makeStyles-name-13 MuiTypography-h6"
+          class="MuiTypography-root makeStyles-name-10 MuiTypography-h6"
         >
           Attribute
         </h6>
          
         <h6
-          class="MuiTypography-root makeStyles-title-14 MuiTypography-h6"
+          class="MuiTypography-root makeStyles-title-11 MuiTypography-h6"
         >
           species
         </h6>
