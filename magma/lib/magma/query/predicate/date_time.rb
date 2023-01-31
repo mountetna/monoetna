@@ -1,5 +1,6 @@
 class Magma
   class DateTimePredicate < Magma::ColumnPredicate
+
     verb nil do
       child DateTime
     end
@@ -13,8 +14,8 @@ class Magma
       end
     end
 
-    def extract table, identity
-      table.first[column_name]&.iso8601
+    def extract table, identity, is_all
+      Magma::Answer.new(table.first[column_name]&.iso8601)
     end
   end
 end

@@ -1901,6 +1901,19 @@ describe QueryController do
         expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#stats'])
       end
 
+      it 'in a JSON query response with table predicate' do
+        query(
+          [ 'monster', '::all', [['stats', '::md5']] ]
+        )
+
+        expect(last_response.status).to eq(200)
+
+        expect(json_body[:answer].map(&:last).sort).to eq([
+          ['hashforhydra-stats.tsv'], ['hashforlion-stats.tsv'], ['hashforstables-stats.tsv']
+        ])
+        expect(json_body[:format]).to eq(['labors::monster#name', ['labors::monster#stats']])
+      end
+
       it 'in a TSV query response' do
         query_opts(
           [ 'monster', '::all', 'stats', '::md5' ],
@@ -2158,7 +2171,6 @@ describe QueryController do
   context Magma::MatrixPredicate do
     before(:each) do
       @attribute = Labors::Labor.attributes[:contributions]
-      @attribute.reset_cache
     end
 
     it 'returns a table of values' do
@@ -2438,7 +2450,6 @@ describe QueryController do
 
   context Magma::TablePredicate do
     before(:each) do
-      Labors::Labor.attributes[:contributions].reset_cache
     end
 
     it 'can return an arrayed result' do
@@ -3034,6 +3045,39 @@ describe QueryController do
       expect(table.length).to eq(3)
       expect(table.first).to eq(["Belt of Hippolyta", "10", "11"])
       expect(table.last).to eq(["Golden Apples of the Hesperides", "30", "31"])
+    end
+
+    it 'can rename matrix column slices with expand_matrices' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      # New labors, to avoid caching issues with MatrixAttribute
+      belt = create(:labor, name: 'Belt of Hippolyta', number: 9, contributions: matrix[0], project: @project)
+      cattle = create(:labor, name: 'Cattle of Geryon', number: 10, contributions: matrix[1], project: @project)
+      apples = create(:labor, name: 'Golden Apples of the Hesperides', number: 11, contributions: matrix[2], project: @project)
+
+      query_opts(
+        [
+          'labor',
+          '::all',
+          [
+            ["contributions", "::slice", ["Athens", "Sparta"]],
+            ["contributions", "::slice", ["Thebes"]]
+          ]
+        ],
+        user_columns: ['labor', 'as_contribution', 't_contribution'],
+        format: 'tsv',
+        expand_matrices: true
+      )
+
+      expect(last_response.status).to eq(200)
+      header, *table = CSV.parse(last_response.body, col_sep: "\t")
+      expect(header).to eq(["labor", "as_contribution.Athens", "as_contribution.Sparta", "t_contribution.Thebes"])
+      expect(table.length).to eq(3)
+      expect(table.first).to eq(["Belt of Hippolyta", "10", "11", "13"])
+      expect(table.last).to eq(["Golden Apples of the Hesperides", "30", "31", "33"])
     end
 
     it 'returns matrix data for children models' do

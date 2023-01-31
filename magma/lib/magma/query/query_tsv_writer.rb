@@ -68,6 +68,7 @@ class Magma
             target_column,
             current_path: current_path.concat([starting_index.nil? ? index : starting_index]),
           )
+
           return temp_path unless temp_path.empty?
         end
       end
@@ -120,39 +121,31 @@ class Magma
         records.map do |record|
           csv << [].tap do |row|
             model_attr_headers.each.with_index do |tsv_column, index|
+              column_index = index - 1
+
               if index == 0
-                # The identifier of the question answer is always located
-                #   here. Simplifies the use of starting_index for the
-                #   answers, since that index will always be relative to
-                #   the data part of the answer tuple.
-                row << record.first
+                row << record.identifier
                 next
               elsif non_nested_single_model_query
                 # In this simple use case, we just grab the entire
                 #   answer portion
-                row << record.last
+                row << extract_data(record.data)
                 next
               else
-                path = path_to_value(
-                  @question.format[1],
-                  tsv_column,
-                  starting_index: index - 1,
-                )
+                attribute_data = record.data[column_index]
+
+                if attribute_data.data.is_a?(Magma::MatrixPredicate::MatrixValue)
+                  value = JSON.parse(attribute_data.data.to_json)
+                elsif attribute_data.is_a?(Magma::SimpleAnswerBase)
+                  value = extract_data(attribute_data.data)
+                else
+                  value = attribute_data.aggregated_values(tsv_column.array?)
+                end
               end
 
-              raise Magma::TSVError.new("No path to data for #{tsv_column.header}.") if path.empty?
-
-              begin
-                value = dig_reduce(record.last, path)
-              rescue Magma::MatrixJsonError => e
-                Magma.instance.logger.error(record.first)
-                Magma.instance.logger.log_error(e)
-                value = nil
-              end
-
-              if @expand_matrices && tsv_column.matrix?
+              if expand_matrix_data(tsv_column.matrix?)
                 row = row.concat(value.nil? ?
-                  Array.new(matrix_columns(tsv_column, index - 1).length) { nil } :
+                  Array.new(matrix_columns(tsv_column, column_index).length) { nil } :
                   value)
               else
                 row << value
@@ -170,42 +163,8 @@ class Magma
       @question.format.last.is_a?(String)
     end
 
-    def dig_reduce(record, path)
-      # ["Lernean Hydra", [3, "Susan Doe", [["Shawn Doe", [[87, "Arm"], [88, "Leg"]]], ["Susan Doe", [[86, "Leg"], [85, "Arm"]]]]]]
-      # with path [1, 2, 1, 1]
-      # should return ["Arm", "Leg", "Leg", "Arm"]
-      # because the entry at [1, 2] is an array of branched values, not a path to
-      #   an inner value or an explicit answer.
-      return nil unless record && path
-
-      queue = path.dup
-      value_under_test = record
-
-      while !queue.empty?
-        index = queue.shift
-
-        # Sometimes the record won't have data for this attribute
-        break if value_under_test.nil?
-
-        entry = value_under_test[index]
-
-        if entry.is_a?(Array) && entry.first.is_a?(Array)
-          # Nested data, need to reduce the interior entries to grab
-          #   only the requested attribute values.
-          inner_path = queue.dup
-
-          return entry.map do |e|
-                   dig_reduce(e, inner_path)
-                 end.flatten.compact
-        elsif entry.is_a?(Magma::MatrixPredicate::MatrixValue)
-          return JSON.parse(entry.to_json)
-        end
-
-        value_under_test = entry
-      end
-
-      # no reduction was required, so just use dig
-      record.dig(*path)
+    def expand_matrix_data(is_matrix_column)
+      @expand_matrices && is_matrix_column
     end
   end
 
@@ -219,6 +178,10 @@ class Magma
 
     def matrix?
       is_matrix?(@header)
+    end
+
+    def array?
+      is_collection?(@header)
     end
   end
 end

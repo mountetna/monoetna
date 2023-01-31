@@ -144,7 +144,9 @@ const ManageModelActions = ({
           className={classes.addBtn}
           startIcon={<AddIcon />}
           onClick={() => {
-            openModal(<AddAttributeModal onSave={handleAddAttribute} />);
+            openModal(<AddAttributeModal onSave={handleAddAttribute} />, {
+              closeOnClickBackdrop: false
+            });
           }}
         >
           Attribute
@@ -155,7 +157,9 @@ const ManageModelActions = ({
           className={classes.addBtn}
           startIcon={<LinkIcon />}
           onClick={() => {
-            openModal(<AddLinkModal onSave={handleAddLink} />);
+            openModal(<AddLinkModal onSave={handleAddLink} />, {
+              closeOnClickBackdrop: false
+            });
           }}
         >
           Link
@@ -167,7 +171,10 @@ const ManageModelActions = ({
           startIcon={<LibraryAddIcon />}
           onClick={() => {
             openModal(
-              <AddModelModal modelName={modelName} onSave={handleAddModel} />
+              <AddModelModal modelName={modelName} onSave={handleAddModel} />,
+              {
+                closeOnClickBackdrop: false
+              }
             );
           }}
         >
@@ -184,7 +191,10 @@ const ManageModelActions = ({
                 <ReparentModelModal
                   modelName={modelName}
                   onSave={handleReparentModel}
-                />
+                />,
+                {
+                  closeOnClickBackdrop: false
+                }
               );
             }}
           >
@@ -202,7 +212,10 @@ const ManageModelActions = ({
                 <RemoveModelModal
                   modelName={modelName}
                   onSave={handleRemoveModel}
-                />
+                />,
+                {
+                  closeOnClickBackdrop: false
+                }
               );
             }}
           >
@@ -498,7 +511,7 @@ const ModelReport = ({
   }, [model_name, models]);
 
   useEffect(() => {
-    if (counts[model_name]?.count) {
+    if (counts[model_name]?.count >= 0) {
       setCanReparent(counts[model_name].count <= 0);
     } else {
       getAnswer([model_name, '::count'], (count) => {

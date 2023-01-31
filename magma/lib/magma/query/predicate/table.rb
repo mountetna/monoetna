@@ -23,9 +23,9 @@ class Magma
       []
     end
 
-    def extract table, identity
+    def extract table, identity, is_all=false
       @column_predicates.map do |pred|
-        pred.extract(table,identity)
+        pred.extract(table,identity, is_all)
       end
     end
 
@@ -58,7 +58,7 @@ class Magma
 
     def select
       @column_predicates.map do |pred|
-        pred.flatten.map(&:select).inject(&:+)
+        pred.select
       end.inject(&:+)
     end
   end
