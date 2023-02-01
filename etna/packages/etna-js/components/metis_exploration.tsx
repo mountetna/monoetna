@@ -115,6 +115,7 @@ function SingleFileOrFolder({ project_name, bucket, path, setTarget, onEmpty, al
     <Autocomplete
       key={path+'-selection'}
       options={targetList.concat('')}
+      autoHighlight
       value={target}
       onChange={ (event: any, e: string | null) => {
         const nextTarget = nullToEmptyString(e)
@@ -141,6 +142,7 @@ function SingleFileOrFolder({ project_name, bucket, path, setTarget, onEmpty, al
         <TextField
           {...params}
           error={ inputState != nullToEmptyString(target) }
+          autoFocus
           size='small'
           InputLabelProps={{shrink: true}}
         />
