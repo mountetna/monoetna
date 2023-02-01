@@ -29,19 +29,20 @@ const MoveFolderDialog = ({
   return (
     <div className='move-folder-dialog'>
       <div className='title'>Move folder</div>
-      <ConfigRow label='Bucket:'>
-        <PickBucket
-          setBucket={(e) => changeBucket(e)}
-          bucket={bucketName}
-        />
-      </ConfigRow>
-      <ConfigRow label='Parent folder (blank for root)'>
-        <PickFileOrFolder
-          bucket={bucketName}
-          setPath={(e) => setNewFolderPath(e)}
-          path={newFolderPath}
-        />
-      </ConfigRow>
+      <PickBucket
+        bucket={bucketName}
+        label="Bucket"
+        setBucket={(e) => changeBucket(e)}
+      />
+      <PickFileOrFolder
+        bucket={bucketName}
+        label="Destination Folder"
+        setPath={(e) => setNewFolderPath(e)}
+        basePath={''}
+        topLevelPlaceholer={'top-level of bucket'}
+        path={newFolderPath}
+        allowFiles={false}
+      />
       <div className='submit'>
         <span
           className={`button ${bucketName ? '' : 'disabled'}`}
