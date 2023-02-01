@@ -22,9 +22,10 @@ module Etna
       @ignore_ssl = ignore_ssl
       @max_retries = max_retries
       @backoff_time = backoff_time
-      @logger = logger.nil? ?
-        Etna::Logger.new(STDOUT, 0, 1048576) :
-        logger
+
+      default_logger = ::Etna::Logger.new('/dev/stdout', 0, 1048576)
+      default_logger.level = ::Logger::DEBUG
+      @logger = logger || default_logger
 
       if routes_available
         set_routes
@@ -183,27 +184,23 @@ module Etna
     end
 
     def refresh_token
-      @token = TokenRefresher.new(@host, @token).active_token
+      @token = TokenRefresher.new(@host, @token, @logger).active_token
     end
 
     class TokenRefresher
-      def initialize(host, token)
+      def initialize(host, token, logger)
         @token = token
         @host = host
+        @logger = logger
       end
 
       def active_token
         token_will_expire? ?
-          janus.refresh_token :
+          refresh_token :
           @token
       end
 
       private
-
-      def janus
-        # Don't memoize because we always will need the current @token value
-        JanusClient.new(@host.gsub(/(metis|magma|timur|polyphemus|janus|gnomon)/, "janus"), @token)
-      end
 
       def token_expired?
         # Has the token already expired?
@@ -215,6 +212,37 @@ module Etna
         epoch_seconds = JSON.parse(Base64.urlsafe_decode64(@token.split('.')[1]))["exp"]
         expiration = DateTime.strptime(epoch_seconds.to_s, "%s").to_time
         expiration <= DateTime.now.new_offset.to_time + offset
+      end
+
+      def refresh_token
+        @logger.debug("Requesting a refreshed task token.")
+        uri = refresh_uri
+        req = Net::HTTP::Post.new(uri.request_uri, request_headers)
+        retrier.retry_request(uri, req).body
+      end
+
+      def refresh_uri
+        URI("#{janus_host}#{refresh_endpoint}")
+      end
+
+      def janus_host
+        @host.gsub(/(metis|magma|timur|polyphemus|janus|gnomon)/, "janus")
+      end
+
+      def refresh_endpoint
+        "/api/tokens/generate"
+      end
+
+      def request_headers
+        {
+          'Content-Type' => 'application/json',
+          'Accept' => 'application/json, text/*',
+          'Authorization' => "Etna #{@token}"
+        }
+      end
+
+      def retrier
+        @retrier ||= Retrier.new(max_retries: 5, backoff_time: 10, logger: @logger)
       end
     end
 
