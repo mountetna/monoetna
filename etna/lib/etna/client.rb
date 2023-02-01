@@ -3,11 +3,37 @@ require 'singleton'
 require 'rack/utils'
 
 module Etna
+  module ClientUtils
+    def status_check!(response)
+      status = response.code.to_i
+      if status >= 400
+        msg = response.content_type == 'application/json' ?
+            json_error(response.body) :
+            response.body
+        raise Etna::Error.new(msg, status)
+      end
+    end
+
+    def json_error(body)
+      msg = JSON.parse(body, symbolize_names: true)
+      if (msg.has_key?(:errors) && msg[:errors].is_a?(Array))
+        return JSON.generate(msg[:errors])
+      elsif msg.has_key?(:error)
+        return JSON.generate(msg[:error])
+      end
+    end
+  end
   class Client
-    def initialize(host, token, routes_available: true, ignore_ssl: false)
+    include Etna::ClientUtils
+
+
+
+    def initialize(host, token, routes_available: true, ignore_ssl: false, max_retries: 10, backoff_time: 15)
       @host = host.sub(%r!/$!, '')
       @token = token
       @ignore_ssl = ignore_ssl
+      @max_retries = max_retries
+      @backoff_time = backoff_time
 
       if routes_available
         set_routes
@@ -55,7 +81,7 @@ module Etna
       uri = request_uri(endpoint)
       multipart = Net::HTTP::Post::Multipart.new uri.request_uri, content
       multipart.add_field('Authorization', "Etna #{@token}")
-      request(uri, multipart, &block)
+      retrier.retry_request(uri, multipart, &block)
     end
 
     def post(endpoint, params = {}, &block)
@@ -79,6 +105,10 @@ module Etna
     end
 
     private
+
+    def retrier
+      @retrier ||= Retrier.new(ignore_ssl: @ignore_ssl, max_retries: @max_retries, backoff_time: @backoff_time)
+    end
 
     def set_routes
       response = options('/')
@@ -120,7 +150,7 @@ module Etna
       uri = request_uri(endpoint)
       req = type.new(uri.request_uri, request_headers)
       req.body = params.to_json
-      request(uri, req, &block)
+      retrier.retry_request(uri, req, &block)
     end
 
     def query_request(type, endpoint, params = {}, &block)
@@ -132,7 +162,7 @@ module Etna
         uri.query = URI.encode_www_form(params)
       end
       req = type.new(uri.request_uri, request_headers)
-      request(uri, req, &block)
+      retrier.retry_request(uri, req, &block)
     end
 
     def request_uri(endpoint)
@@ -149,45 +179,125 @@ module Etna
       )
     end
 
-    def status_check!(response)
-      status = response.code.to_i
-      if status >= 400
-        msg = response.content_type == 'application/json' ?
-            json_error(response.body) :
-            response.body
-        raise Etna::Error.new(msg, status)
-      end
-    end
+    class Retrier
+      # Ideally the retry code would be centralized with metis_client ...
+      #   unsure what would be the best approach to do that, at this moment.
+      include Etna::ClientUtils
 
-    def json_error(body)
-      msg = JSON.parse(body, symbolize_names: true)
-      if (msg.has_key?(:errors) && msg[:errors].is_a?(Array))
-        return JSON.generate(msg[:errors])
-      elsif msg.has_key?(:error)
-        return JSON.generate(msg[:error])
+      def initialize(ignore_ssl: false, max_retries: 10, backoff_time: 15)
+        @max_retries = max_retries
+        @ignore_ssl = ignore_ssl
+        @backoff_time = backoff_time
       end
-    end
 
-    def request(uri, data)
-      if block_given?
-        verify_mode = @ignore_ssl ?
-          OpenSSL::SSL::VERIFY_NONE :
-          OpenSSL::SSL::VERIFY_PEER
-        Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
-          http.request(data) do |response|
+      def retry_request(uri, data, retries: 0, &block)
+        retries += 1
+
+        begin
+          logger.write("\rWaiting for server restart"+"."*retries+"\x1b[0K")
+
+          sleep @backoff_time
+        end if retries > 1
+
+        if retries < @max_retries
+          begin
+            if block_given?
+              request(uri, data, &block)
+            else
+              response = request(uri, data)
+            end
+          rescue OpenSSL::SSL::SSLError => e
+            if e.message =~ /write client hello/
+              logger.write("SSL error, retrying")
+              return retry_request(uri, data, retries: retries)
+            end
+            raise e
+          rescue *net_exceptions => e
+            logger.write("Received #{e.class.name}, retrying")
+            return retry_request(uri, data, retries: retries)
+          end
+
+          begin
+            retry_codes = ['503', '502', '504', '408']
+            if retry_codes.include?(response.code)
+              logger.write("Received response with code #{response.code}, retrying")
+              return retry_request(uri, data, retries: retries)
+            elsif response.code == '500' && response.body.start_with?("Puma caught")
+              logger.write("Received 500 Puma error #{response.body.split("\n").first}, retrying")
+              return retry_request(uri, data, retries: retries)
+            end
+
+            return response
+          end unless block_given?
+        end
+
+        raise ::Etna::Error, "Could not contact server, giving up" unless block_given?
+      end
+
+      private
+
+      def request(uri, data)
+        if block_given?
+          verify_mode = @ignore_ssl ?
+            OpenSSL::SSL::VERIFY_NONE :
+            OpenSSL::SSL::VERIFY_PEER
+          Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
+            http.request(data) do |response|
+              status_check!(response)
+              yield response
+            end
+          end
+        else
+          verify_mode = @ignore_ssl ?
+            OpenSSL::SSL::VERIFY_NONE :
+            OpenSSL::SSL::VERIFY_PEER
+          Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
+            response = http.request(data)
             status_check!(response)
-            yield response
+            return response
           end
         end
-      else
-        verify_mode = @ignore_ssl ?
-          OpenSSL::SSL::VERIFY_NONE :
-          OpenSSL::SSL::VERIFY_PEER
-        Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
-          response = http.request(data)
-          status_check!(response)
-          return response
-        end
+      end
+
+      def net_exceptions
+        retry_exceptions = [
+          Errno::ECONNREFUSED,
+          Errno::ECONNRESET,
+          Errno::ENETRESET,
+          Errno::EPIPE,
+          Errno::ECONNABORTED,
+          Errno::EHOSTDOWN,
+          Errno::EHOSTUNREACH,
+          Errno::EINVAL,
+          Errno::ETIMEDOUT,
+          Net::ReadTimeout,
+          Net::HTTPFatalError,
+          Net::HTTPBadResponse,
+          Net::HTTPHeaderSyntaxError,
+          Net::ProtocolError,
+          Net::HTTPRequestTimeOut,
+          Net::HTTPGatewayTimeOut,
+          Net::HTTPBadRequest,
+          Net::HTTPBadGateway,
+          Net::HTTPError,
+          Net::HTTPInternalServerError,
+          Net::HTTPRetriableError,
+          Net::HTTPServerError,
+          Net::HTTPServiceUnavailable,
+          Net::HTTPUnprocessableEntity,
+          Net::OpenTimeout,
+          IOError,
+          EOFError,
+          Timeout::Error
+        ]
+
+        begin
+          retry_exceptions << Net::HTTPRequestTimeout
+          retry_exceptions << Net::HTTPGatewayTimeout
+          retry_exceptions << Net::WriteTimeout
+        end if RUBY_VERSION > "2.5.8"
+
+        retry_exceptions
       end
     end
   end
