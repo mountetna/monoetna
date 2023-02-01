@@ -215,9 +215,10 @@ module Etna
       end
 
       def refresh_token
-        @logger.debug("Requesting a refreshed task token.")
+        @logger.debug("Requesting a refreshed token.")
         uri = refresh_uri
         req = Net::HTTP::Post.new(uri.request_uri, request_headers)
+        req.body = params.to_json
         retrier.retry_request(uri, req).body
       end
 
