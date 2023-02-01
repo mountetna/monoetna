@@ -152,7 +152,9 @@ module Etna
       uri = request_uri(endpoint)
       req = type.new(uri.request_uri, request_headers)
       req.body = params.to_json
-      retrier.retry_request(uri, req, &block)
+      response = retrier.retry_request(uri, req, &block)
+      status_check!(response)
+      response
     end
 
     def query_request(type, endpoint, params = {}, &block)
@@ -164,7 +166,9 @@ module Etna
         uri.query = URI.encode_www_form(params)
       end
       req = type.new(uri.request_uri, request_headers)
-      retrier.retry_request(uri, req, &block)
+      response = retrier.retry_request(uri, req, &block)
+      status_check!(response)
+      response
     end
 
     def request_uri(endpoint)
@@ -208,11 +212,16 @@ module Etna
       end
 
       def token_will_expire?(offset=3000)
+        return false if @token.nil?
+
         # Will the user's token expire in the given amount of time?
         payload = @token.split('.')[1]
         return false if payload.nil?
 
         epoch_seconds = JSON.parse(Base64.urlsafe_decode64(payload))["exp"]
+
+        return false if epoch_seconds.nil?
+
         expiration = DateTime.strptime(epoch_seconds.to_s, "%s").to_time
         expiration <= DateTime.now.new_offset.to_time + offset
       end

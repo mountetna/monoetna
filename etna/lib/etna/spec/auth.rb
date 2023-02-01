@@ -31,9 +31,17 @@ module Etna::Spec
     def below_admin_roles
       [:editor, :viewer, :guest]
     end
-    
+
     def below_editor_roles
       [:viewer, :guest]
+    end
+
+    def stub_janus_refresh
+      stub_request(:post, /\/api\/tokens\/generate/)
+      .to_return({
+        status: 200,
+        body: ""
+      })
     end
   end
 end
