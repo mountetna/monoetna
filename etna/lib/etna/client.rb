@@ -230,7 +230,7 @@ module Etna
         @logger = logger
       end
 
-      def retry_request(uri, data, retries: 0, &block)
+      def retry_request(uri, req, retries: 0, &block)
         retries += 1
 
         begin
@@ -242,36 +242,39 @@ module Etna
         if retries < @max_retries
           begin
             if block_given?
-              request(uri, data) do |block_response|
+              request(uri, req) do |block_response|
                 if net_exceptions.include?(block_response.class)
                   @logger.debug("Received #{block_response.class.name}, retrying")
-                  retry_request(uri, data, retries: retries, &block)
+                  retry_request(uri, req, retries: retries, &block)
+                elsif block_response.is_a?(OpenSSL::SSL::SSLError)
+                  @logger.debug("SSL error, retrying")
+                  retry_request(uri, req, retries: retries, &block)
                 else
                   yield block_response
                 end
               end
             else
-              response = request(uri, data)
+              response = request(uri, req)
             end
           rescue OpenSSL::SSL::SSLError => e
             if e.message =~ /write client hello/
               @logger.debug("SSL error, retrying")
-              return retry_request(uri, data, retries: retries)
+              return retry_request(uri, req, retries: retries)
             end
             raise e
           rescue *net_exceptions => e
             @logger.debug("Received #{e.class.name}, retrying")
-            return retry_request(uri, data, retries: retries)
+            return retry_request(uri, req, retries: retries)
           end
 
           begin
             retry_codes = ['503', '502', '504', '408']
             if retry_codes.include?(response.code)
               @logger.debug("Received response with code #{response.code}, retrying")
-              return retry_request(uri, data, retries: retries)
+              return retry_request(uri, req, retries: retries)
             elsif response.code == '500' && response.body.start_with?("Puma caught")
               @logger.debug("Received 500 Puma error #{response.body.split("\n").first}, retrying")
-              return retry_request(uri, data, retries: retries)
+              return retry_request(uri, req, retries: retries)
             end
 
             return response
