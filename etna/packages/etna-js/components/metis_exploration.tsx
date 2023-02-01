@@ -1,18 +1,9 @@
-import React, { useState, createContext, useContext, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {metisPath} from 'etna-js/api/metis_api.js'
 import Autocomplete from '@material-ui/lab/Autocomplete';
-import { Button, makeStyles, TextField } from '@material-ui/core';
+import { TextField } from '@material-ui/core';
 import { json_get } from 'etna-js/utils/fetch';
-import Tooltip from '@material-ui/core/Tooltip';
-import DeleteIcon from '@material-ui/icons/Delete';
-import AddIcon from '@material-ui/icons/Add';
 import SubdirectoryArrowRightIcon from '@material-ui/icons/SubdirectoryArrowRight';
-
-const useStyles = makeStyles((theme) => ({
-  button: {
-    margin: '0.5rem'
-  }
-}));
 
 declare const CONFIG: {[key: string]: any};
 
@@ -26,6 +17,13 @@ function arrayToPath(pathElements: string[]) {
 
 function pathToArray(path: string) {
   return path.split("/")
+}
+
+function simplifyFolderListReturn(fullList: any) {
+  return {
+    folders: fullList.folders.map( (f: any) => f.folder_name) as string[],
+    files: fullList.files.map( (f: any) => f.file_name) as string[]
+  }
 }
 
 export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket}: {
@@ -69,20 +67,19 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
   );
 }
 
-function SingleFileOrFolder({ project_name, bucket, path, setTarget, onEmpty, allowFiles = true, allowFolders = true }: {
+function SingleFileOrFolder({ project_name, bucket, path, setTarget, onEmpty, allowFiles = true}: {
   project_name?: string;
   bucket: string;
   path: string;
   setTarget: Function;
   onEmpty: Function;
-  allowFiles?: boolean; 
-  allowFolders?: boolean;
+  allowFiles?: boolean;
 }){
-  const [fullTargetList, setFullTargetList] = useState({folders: [] as any, files: [] as any})
-  function restrictTargetList(fullList = fullTargetList, allow_files = allowFiles, allow_folders = allowFolders) {
-    let out = allow_folders ? fullList.folders.map(f => f.folder_name) : []
-    return allow_files ? out.concat(fullList.files.map(f => f.file_name)) : out
+  const [fullTargetList, setFullTargetList] = useState({folders: [] as string[], files: [] as string[]})
+  function restrictTargetList(fullList = fullTargetList, allow_files = allowFiles) {
+    return allow_files ? fullList.folders.concat(fullList.files) : fullList.folders
   }
+  const [targetsWithContents, setTargetsWithContents] = useState([] as string[])
   const [targetList, setTargetList] = useState(restrictTargetList(fullTargetList));
   const [target, setTargetInternal] = useState('');
   const [inputState, setInputState] = useState(target);
@@ -92,27 +89,46 @@ function SingleFileOrFolder({ project_name, bucket, path, setTarget, onEmpty, al
       const full_path = path.length>0 ? `${bucket}/${path}` : bucket
       json_get(metisPath(`${project_name}/list/${full_path}`)).then(
         metis_return => {
-          setFullTargetList(metis_return)
-          setTargetList([''].concat(restrictTargetList(metis_return)))
+          const fullList = simplifyFolderListReturn(metis_return)
+          setFullTargetList(fullList)
+          setTargetList(restrictTargetList(fullList))
+          let withContents = [] as string[]
+          fullList.folders.forEach(
+            (folder) => {
+              json_get(metisPath(`${project_name}/list/${full_path}/${folder}`)).then(
+                folder_metis_return => {
+                  if (Object.values(folder_metis_return).flat().length > 0 ) {
+                    withContents.push(folder)
+                  }
+              })
+          })
+          setTargetsWithContents(withContents)
         }
       );
     }
-    // console.log({path})
-    // console.log({targetList})
+    // console.log(path)
+    // console.log(targetList)
+    // console.log(targetsWithContents)
   }, [bucket, project_name, path] );
 
   return project_name == null ? null : (
     <Autocomplete
       key={path+'-selection'}
-      options={targetList}
+      options={targetList.concat('')}
       value={target}
       onChange={ (event: any, e: string | null) => {
         const nextTarget = nullToEmptyString(e)
         setTargetInternal(nextTarget)
-        setTarget(nextTarget)
+        setTarget(nextTarget.concat(targetsWithContents.includes(nextTarget) ? '/' : ''))
         if (nextTarget == '') {
           onEmpty()
         }
+      }}
+      filterOptions={(options, state) => {
+        const query = inputState != target ? inputState : '';
+        return targetList.filter((o) => {
+          return query == null ? true : o.indexOf(query) > -1;
+        });
       }}
       disableClearable={false}
       disablePortal
@@ -133,25 +149,24 @@ function SingleFileOrFolder({ project_name, bucket, path, setTarget, onEmpty, al
   );
 }
 
-export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setPath, path }: {
+export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setPath, path, allowFiles}: {
   project_name?: string;
   bucket: string;
   setPath: Function;
   path: string;
+  allowFiles?: boolean
 }){
-  // const originalTarget = nullToEmptyString(initialValue);
-  // const originalPath = pathToArray(originalTarget);
   const [pathArray, setPathArray] = useState(pathToArray(nullToEmptyString(path)));
 
   useEffect(() => {
     setPathArray(pathToArray(nullToEmptyString(path)));
   }, [path])
-  const classes = useStyles();
 
   // onChange for inners
   const updateTarget = useCallback(
     (newPath: string, currentPathSet: string[], depth: number) => {
       // Also trim at the level just picked in case not actually the deepest
+      // console.log(newPath)
       let nextPathSet = [...currentPathSet].slice(0,depth+1)
       nextPathSet[depth] = newPath
       setPath(arrayToPath(nextPathSet))
@@ -160,18 +175,19 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   // clear for inners
   const trimPath = useCallback(
     (depth: number) => {
-    const nextPathSet = depth > 0 ? [...pathArray].slice(0,depth) : ['']
+    const nextPathSet = depth > 0 ? [...pathArray].slice(0,depth+1) : ['']
     setPath(arrayToPath(nextPathSet))
   }, [setPath])
 
   const targetSelectors = useMemo(() => {
     return pathArray.map( (p, index, fullSet) => {
+      const before = index > 1 ? pathArray[index-1] : '';
       const indent = index > 1 ? (index-1)*10 : 0;
       const icon = index > 0 ? <SubdirectoryArrowRightIcon/> : null;
       return (
         <div 
           style={{display: 'inline-flex', paddingLeft: indent}}
-          key={`sub-picker-${bucket}-${project_name}-`+ index}
+          key={`sub-picker-${bucket}-${project_name}-${before}`+ index}
           >
           {icon}
           <SingleFileOrFolder
@@ -180,29 +196,18 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
             setTarget={(e: string) => updateTarget(e, pathArray, index)}
             onEmpty={ () => { trimPath(index) } }
             path={arrayToPath(fullSet.slice(0,index))}
+            allowFiles={allowFiles}
           />
         </div>
       )
     })
   }, [pathArray, project_name, bucket, updateTarget])
 
-  // console.log({pathSet: pathArray})
-  // console.log({bucket})
-  // console.log({project_name})
+  // console.log(path)
+  // console.log(pathArray)
 
   return bucket == null ? null : <div key={`file-or-folder-picker-${bucket}-${project_name}`}>
     {targetSelectors}
-    {/* Show button only if end is a folder with internal contents & at least one folder is fileAllow=false */}
-    <Tooltip title='Add Level'>
-      <Button
-        startIcon={<AddIcon />}
-        onClick={() => { setPath(path+'/') }}
-        size='small'
-        color='primary'
-        className={classes.button}
-      >
-      </Button>
-    </Tooltip>
   </div>
 }
 
