@@ -121,8 +121,6 @@ module Etna
         # Do not actually consume the data, however.
         # TODO: implement HEAD requests in metis through apache.
         @etna_client.get(download_path) do |response|
-          require 'pry'
-          binding.pry if response['ETag'].nil?
           return {
               etag: response['ETag'].gsub(/"/, ''),
               size: response['Content-Length'].to_i,
