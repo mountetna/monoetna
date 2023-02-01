@@ -209,7 +209,10 @@ module Etna
 
       def token_will_expire?(offset=3000)
         # Will the user's token expire in the given amount of time?
-        epoch_seconds = JSON.parse(Base64.urlsafe_decode64(@token.split('.')[1]))["exp"]
+        payload = @token.split('.')[1]
+        return false if payload.nil?
+
+        epoch_seconds = JSON.parse(Base64.urlsafe_decode64(payload))["exp"]
         expiration = DateTime.strptime(epoch_seconds.to_s, "%s").to_time
         expiration <= DateTime.now.new_offset.to_time + offset
       end
@@ -339,7 +342,7 @@ module Etna
 
       def api_error_check!(response)
         status = response.code.to_i
-        if 422 == status
+        if 400 <= status && status < 500
           msg = response.content_type == 'application/json' ?
               json_error(response.body) :
               response.body

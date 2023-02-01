@@ -13,6 +13,9 @@ describe Etna::Client do
         post '/weave/:fabric', as: :weave do
           [ 200, {}, [ @params[:fabric] ] ]
         end
+        post '/api/tokens/generate', as: :generate do
+          [ 200, {}, [ ] ]
+        end
         delete '/unravel/:fabric', as: :unravel do
           success_json(fabric: @params[:fabric])
         end
