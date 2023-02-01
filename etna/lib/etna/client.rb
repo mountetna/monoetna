@@ -4,6 +4,16 @@ require 'rack/utils'
 
 module Etna
   module ClientUtils
+    def status_check!(response)
+      status = response.code.to_i
+      if status >= 400
+        msg = response.content_type == 'application/json' ?
+            json_error(response.body) :
+            response.body
+        raise Etna::Error.new(msg, status)
+      end
+    end
+
     def json_error(body)
       msg = JSON.parse(body, symbolize_names: true)
       if (msg.has_key?(:errors) && msg[:errors].is_a?(Array))
@@ -108,16 +118,6 @@ module Etna
       @routes = JSON.parse(response.body, symbolize_names: true)
     end
 
-    def status_check!(response)
-      status = response.code.to_i
-      if status >= 400
-        msg = response.content_type == 'application/json' ?
-            json_error(response.body) :
-            response.body
-        raise Etna::Error.new(msg, status)
-      end
-    end
-
     def define_route_helpers
       @routes.each do |route|
         next unless route[:name]
@@ -152,9 +152,7 @@ module Etna
       uri = request_uri(endpoint)
       req = type.new(uri.request_uri, request_headers)
       req.body = params.to_json
-      response = retrier.retry_request(uri, req, &block)
-      status_check!(response)
-      response
+      retrier.retry_request(uri, req, &block)
     end
 
     def query_request(type, endpoint, params = {}, &block)
@@ -166,9 +164,7 @@ module Etna
         uri.query = URI.encode_www_form(params)
       end
       req = type.new(uri.request_uri, request_headers)
-      response = retrier.retry_request(uri, req, &block)
-      status_check!(response)
-      response
+      retrier.retry_request(uri, req, &block)
     end
 
     def request_uri(endpoint)
@@ -290,6 +286,7 @@ module Etna
                   @logger.debug("SSL error, retrying")
                   retry_request(uri, req, retries: retries, &block)
                 else
+                  status_check!(block_response)
                   yield block_response
                 end
               end
@@ -317,6 +314,7 @@ module Etna
               return retry_request(uri, req, retries: retries)
             end
 
+            status_check!(response)
             return response
           end unless block_given?
         end
