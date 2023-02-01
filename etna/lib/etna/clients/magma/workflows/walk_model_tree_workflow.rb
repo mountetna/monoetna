@@ -94,7 +94,6 @@ module Etna
               collections = []
               links = []
               attributes = []
-
               model = response.models.model(model_name)
 
               template.attributes.attribute_keys.each do |attr_name|

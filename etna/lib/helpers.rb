@@ -43,17 +43,19 @@ module WithEtnaClients
     env_token
   end
 
-  def magma_client
+  def magma_client(logger: nil)
     @magma_client ||= Etna::Clients::Magma.new(
         token: token,
         ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
+        logger: logger,
         **EtnaApp.instance.config(:magma, environment) || {})
   end
 
-  def metis_client
+  def metis_client(logger: nil)
     @metis_client ||= Etna::Clients::Metis.new(
         token: token,
         ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
+        logger: logger,
         **EtnaApp.instance.config(:metis, environment) || {})
   end
 

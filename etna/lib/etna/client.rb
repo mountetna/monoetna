@@ -4,16 +4,6 @@ require 'rack/utils'
 
 module Etna
   module ClientUtils
-    def status_check!(response)
-      status = response.code.to_i
-      if status >= 400
-        msg = response.content_type == 'application/json' ?
-            json_error(response.body) :
-            response.body
-        raise Etna::Error.new(msg, status)
-      end
-    end
-
     def json_error(body)
       msg = JSON.parse(body, symbolize_names: true)
       if (msg.has_key?(:errors) && msg[:errors].is_a?(Array))
@@ -26,14 +16,15 @@ module Etna
   class Client
     include Etna::ClientUtils
 
-
-
-    def initialize(host, token, routes_available: true, ignore_ssl: false, max_retries: 10, backoff_time: 15)
+    def initialize(host, token, routes_available: true, ignore_ssl: false, max_retries: 10, backoff_time: 15, logger: nil)
       @host = host.sub(%r!/$!, '')
       @token = token
       @ignore_ssl = ignore_ssl
       @max_retries = max_retries
       @backoff_time = backoff_time
+      @logger = logger.nil? ?
+        Etna::Logger.new(STDOUT, 0, 1048576) :
+        logger
 
       if routes_available
         set_routes
@@ -107,13 +98,23 @@ module Etna
     private
 
     def retrier
-      @retrier ||= Retrier.new(ignore_ssl: @ignore_ssl, max_retries: @max_retries, backoff_time: @backoff_time)
+      @retrier ||= Retrier.new(ignore_ssl: @ignore_ssl, max_retries: @max_retries, backoff_time: @backoff_time, logger: @logger)
     end
 
     def set_routes
       response = options('/')
       status_check!(response)
       @routes = JSON.parse(response.body, symbolize_names: true)
+    end
+
+    def status_check!(response)
+      status = response.code.to_i
+      if status >= 400
+        msg = response.content_type == 'application/json' ?
+            json_error(response.body) :
+            response.body
+        raise Etna::Error.new(msg, status)
+      end
     end
 
     def define_route_helpers
@@ -170,6 +171,8 @@ module Etna
     end
 
     def request_headers
+      refresh_token
+
       {
           'Content-Type' => 'application/json',
           'Accept' => 'application/json, text/*',
@@ -179,22 +182,59 @@ module Etna
       )
     end
 
+    def refresh_token
+      @token = TokenRefresher.new(@host, @token).active_token
+    end
+
+    class TokenRefresher
+      def initialize(host, token)
+        @token = token
+        @host = host
+      end
+
+      def active_token
+        token_will_expire? ?
+          janus.refresh_token :
+          @token
+      end
+
+      private
+
+      def janus
+        # Don't memoize because we always will need the current @token value
+        JanusClient.new(@host.gsub(/(metis|magma|timur|polyphemus|janus|gnomon)/, "janus"), @token)
+      end
+
+      def token_expired?
+        # Has the token already expired?
+        token_will_expire?(0)
+      end
+
+      def token_will_expire?(offset=3000)
+        # Will the user's token expire in the given amount of time?
+        epoch_seconds = JSON.parse(Base64.urlsafe_decode64(@token.split('.')[1]))["exp"]
+        expiration = DateTime.strptime(epoch_seconds.to_s, "%s").to_time
+        expiration <= DateTime.now.new_offset.to_time + offset
+      end
+    end
+
     class Retrier
       # Ideally the retry code would be centralized with metis_client ...
       #   unsure what would be the best approach to do that, at this moment.
       include Etna::ClientUtils
 
-      def initialize(ignore_ssl: false, max_retries: 10, backoff_time: 15)
+      def initialize(ignore_ssl: false, max_retries: 10, backoff_time: 15, logger:)
         @max_retries = max_retries
         @ignore_ssl = ignore_ssl
         @backoff_time = backoff_time
+        @logger = logger
       end
 
       def retry_request(uri, data, retries: 0, &block)
         retries += 1
 
         begin
-          logger.write("\rWaiting for server restart"+"."*retries+"\x1b[0K")
+          @logger.debug("\rWaiting for #{uri.host} restart"+"."*retries+"\x1b[0K")
 
           sleep @backoff_time
         end if retries > 1
@@ -202,28 +242,35 @@ module Etna
         if retries < @max_retries
           begin
             if block_given?
-              request(uri, data, &block)
+              request(uri, data) do |block_response|
+                if net_exceptions.include?(block_response.class)
+                  @logger.debug("Received #{block_response.class.name}, retrying")
+                  retry_request(uri, data, retries: retries, &block)
+                else
+                  yield block_response
+                end
+              end
             else
               response = request(uri, data)
             end
           rescue OpenSSL::SSL::SSLError => e
             if e.message =~ /write client hello/
-              logger.write("SSL error, retrying")
+              @logger.debug("SSL error, retrying")
               return retry_request(uri, data, retries: retries)
             end
             raise e
           rescue *net_exceptions => e
-            logger.write("Received #{e.class.name}, retrying")
+            @logger.debug("Received #{e.class.name}, retrying")
             return retry_request(uri, data, retries: retries)
           end
 
           begin
             retry_codes = ['503', '502', '504', '408']
             if retry_codes.include?(response.code)
-              logger.write("Received response with code #{response.code}, retrying")
+              @logger.debug("Received response with code #{response.code}, retrying")
               return retry_request(uri, data, retries: retries)
             elsif response.code == '500' && response.body.start_with?("Puma caught")
-              logger.write("Received 500 Puma error #{response.body.split("\n").first}, retrying")
+              @logger.debug("Received 500 Puma error #{response.body.split("\n").first}, retrying")
               return retry_request(uri, data, retries: retries)
             end
 
@@ -243,7 +290,7 @@ module Etna
             OpenSSL::SSL::VERIFY_PEER
           Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
             http.request(data) do |response|
-              status_check!(response)
+              api_error_check!(response)
               yield response
             end
           end
@@ -253,9 +300,19 @@ module Etna
             OpenSSL::SSL::VERIFY_PEER
           Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
             response = http.request(data)
-            status_check!(response)
+            api_error_check!(response)
             return response
           end
+        end
+      end
+
+      def api_error_check!(response)
+        status = response.code.to_i
+        if 422 == status
+          msg = response.content_type == 'application/json' ?
+              json_error(response.body) :
+              response.body
+          raise Etna::Error.new(msg, status)
         end
       end
 
