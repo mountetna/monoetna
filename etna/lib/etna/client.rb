@@ -337,7 +337,7 @@ module Etna
         msg = response.content_type == 'application/json' ?
           json_error(response.body) :
           response.body
-        raise Etna::Error.new(msg, status)
+        raise Etna::Error.new(msg, response.code.to_i)
       end
 
       def json_error(body)
