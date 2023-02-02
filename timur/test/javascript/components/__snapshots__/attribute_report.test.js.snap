@@ -31,7 +31,38 @@ exports[`AttributeReport renders 1`] = `
             "width": "auto",
           }
         }
-      />
+      >
+        <button
+          aria-describedby={null}
+          className="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button-7 MuiButton-textSecondary MuiButton-textSizeSmall MuiButton-sizeSmall"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseOver={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={0}
+          title="Show data sample"
+          type="button"
+        >
+          <span
+            className="MuiButton-label"
+          >
+            Sample
+          </span>
+          <span
+            className="MuiTouchRipple-root"
+          />
+        </button>
+      </div>
     </div>
     <div
       className="MuiCardContent-root makeStyles-content-4"
@@ -476,7 +507,23 @@ exports[`AttributeReport renders without model action buttons for admin user, no
         <div
           class="MuiGrid-root MuiGrid-container"
           style="width: auto; flex: 1; align-items: end; justify-content: right;"
-        />
+        >
+          <button
+            class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button-7 MuiButton-textSecondary MuiButton-textSizeSmall MuiButton-sizeSmall"
+            tabindex="0"
+            title="Show data sample"
+            type="button"
+          >
+            <span
+              class="MuiButton-label"
+            >
+              Sample
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
+        </div>
       </div>
       <div
         class="MuiCardContent-root makeStyles-content-4"
