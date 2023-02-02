@@ -1544,8 +1544,7 @@ describe UpdateController do
 
       # May be overkill ... but making sure each of the anticipated
       #   exceptions from Metis bulk_copy results in a failed Magma update.
-      # bad_request_statuses = [400, 403, 404, 422, 500]
-      bad_request_statuses = [500]
+      bad_request_statuses = [400, 403, 404, 422, 500]
       req_counter = 1
       bad_request_statuses.each do |status|
         stub_request(:post, /https:\/\/metis.test\/labors\/files\/copy/).
