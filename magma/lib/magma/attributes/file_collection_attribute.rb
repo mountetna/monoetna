@@ -25,18 +25,18 @@ class Magma
       [name, payload_format ]
     end
 
-    def query_to_payload(data)
-      return nil unless data
+    def query_to_payload(answer)
+      return nil if answer.is_a?(Magma::NilAnswer) || answer.nil?
 
-      data.map do |datum|
+      answer.map do |datum|
         serializer.to_query_payload_format(datum)
       end
     end
 
-    def query_to_tsv(files)
-      return nil unless files
+    def query_to_tsv(answers)
+      return nil if answers.is_a?(Magma::NilAnswer) || answers.nil?
 
-      files.map do |file|
+      answers.map do |file|
         serializer.to_query_tsv_format(file)
       end
     end

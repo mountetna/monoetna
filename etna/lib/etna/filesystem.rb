@@ -14,45 +14,48 @@ module Etna
       ::File.open(dest, opts, &block)
     end
 
+    class Error < StandardError
+    end
+
     def ls(dir)
-      raise "ls not supported by #{self.class.name}" unless self.class == Filesystem
+      raise Etna::Filesystem::Error, "ls not supported by #{self.class.name}" unless self.class == Filesystem
       ::Dir.entries(dir).select { |p| !p.start_with?('.') }.map do |path|
         ::File.file?(::File.join(dir, path)) ? [:file, path] : [:dir, path]
       end
     end
 
     def with_readable(src, opts = 'r', &block)
-      raise "with_readable not supported by #{self.class.name}" unless self.class == Filesystem
+      raise Etna::Filesystem::Error, "with_readable not supported by #{self.class.name}" unless self.class == Filesystem
       ::File.open(src, opts, &block)
     end
 
     def mkdir_p(dir)
-      raise "mkdir_p not supported by #{self.class.name}" unless self.class == Filesystem
+      raise Etna::Filesystem::Error, "mkdir_p not supported by #{self.class.name}" unless self.class == Filesystem
       ::FileUtils.mkdir_p(dir)
     end
 
     def rm_rf(dir)
-      raise "rm_rf not supported by #{self.class.name}" unless self.class == Filesystem
+      raise Etna::Filesystem::Error, "rm_rf not supported by #{self.class.name}" unless self.class == Filesystem
       ::FileUtils.rm_rf(dir)
     end
 
     def tmpdir
-      raise "tmpdir not supported by #{self.class.name}" unless self.class == Filesystem
+      raise Etna::Filesystem::Error, "tmpdir not supported by #{self.class.name}" unless self.class == Filesystem
       ::Dir.mktmpdir
     end
 
     def exist?(src)
-      raise "exist? not supported by #{self.class.name}" unless self.class == Filesystem
+      raise Etna::Filesystem::Error, "exist? not supported by #{self.class.name}" unless self.class == Filesystem
       ::File.exist?(src)
     end
 
     def mv(src, dest)
-      raise "mv not supported by #{self.class.name}" unless self.class == Filesystem
+      raise Etna::Filesystem::Error, "mv not supported by #{self.class.name}" unless self.class == Filesystem
       ::FileUtils.mv(src, dest)
     end
 
     def stat(src)
-      raise "stat not supported by #{self.class.name}" unless self.class == Filesystem
+      raise Etna::Filesystem::Error, "stat not supported by #{self.class.name}" unless self.class == Filesystem
       ::File.stat(src)
     end
 

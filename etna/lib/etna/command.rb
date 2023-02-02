@@ -136,7 +136,7 @@ module Etna
             "<#{name}>..."
           when :keyrest
             "[flags...]"
-          when :key
+          when :key, :keyreq
             flag = "--#{name.to_s.gsub('_', '-')}"
             if self.class.boolean_flags.include?(flag)
               "[#{flag}]"

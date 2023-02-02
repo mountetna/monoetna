@@ -29,6 +29,12 @@ class Magma
     def attribute_name(model_attr)
       model_attr.split("#").last.split(".").first
     end
+
+    def is_collection?(model_attr)
+      Magma.instance.get_model(
+        @project_name, model_name(model_attr)
+      ).attributes[attribute_name(model_attr).to_sym].is_a?(Magma::FileCollectionAttribute)
+    end
   end
 
   class QuestionFormatPath < QuestionColumnBase
