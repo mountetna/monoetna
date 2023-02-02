@@ -235,8 +235,6 @@ module Etna
     class Retrier
       # Ideally the retry code would be centralized with metis_client ...
       #   unsure what would be the best approach to do that, at this moment.
-      include Etna::ClientUtils
-
       def initialize(ignore_ssl: false, max_retries: 10, backoff_time: 15, logger:)
         @max_retries = max_retries
         @ignore_ssl = ignore_ssl
