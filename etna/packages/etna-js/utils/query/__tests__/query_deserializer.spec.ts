@@ -99,6 +99,15 @@ describe('QueryDeserializer', () => {
     ]);
   });
 
+  it('identifies the raw columns for non-table predicates', () => {
+    const deserializer = new QueryDeserializer(
+      ['monster', '::all', 'species'],
+      ['monster.species']
+    );
+
+    expect(deserializer.rawColumns()).toEqual(['species']);
+  });
+
   describe('orRecordFilterIndices', () => {
     it('gives them correct indices when no ::and filters', () => {
       const deserializer = new QueryDeserializer(
