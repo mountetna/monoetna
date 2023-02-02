@@ -3,28 +3,7 @@ require 'singleton'
 require 'rack/utils'
 
 module Etna
-  module ClientUtils
-    def status_check!(response)
-      status = response.code.to_i
-      if status >= 400
-        msg = response.content_type == 'application/json' ?
-            json_error(response.body) :
-            response.body
-        raise Etna::Error.new(msg, status)
-      end
-    end
-
-    def json_error(body)
-      msg = JSON.parse(body, symbolize_names: true)
-      if (msg.has_key?(:errors) && msg[:errors].is_a?(Array))
-        return JSON.generate(msg[:errors])
-      elsif msg.has_key?(:error)
-        return JSON.generate(msg[:error])
-      end
-    end
-  end
   class Client
-    include Etna::ClientUtils
 
     def initialize(host, token, routes_available: true, ignore_ssl: false, max_retries: 10, backoff_time: 15, logger: nil)
       @host = host.sub(%r!/$!, '')
@@ -34,7 +13,7 @@ module Etna
       @backoff_time = backoff_time
 
       default_logger = ::Etna::Logger.new('/dev/stdout', 0, 1048576)
-      default_logger.level = ::Logger::DEBUG
+      default_logger.level = ::Logger::WARN
       @logger = logger || default_logger
 
       if routes_available
@@ -114,7 +93,6 @@ module Etna
 
     def set_routes
       response = options('/')
-      status_check!(response)
       @routes = JSON.parse(response.body, symbolize_names: true)
     end
 
@@ -272,7 +250,7 @@ module Etna
         begin
           @logger.debug("\rWaiting for #{uri.host} restart"+"."*retries+"\x1b[0K")
 
-          sleep @backoff_time
+          sleep @backoff_time * retries
         end if retries > 1
 
         if retries < @max_retries
@@ -349,11 +327,27 @@ module Etna
 
       def api_error_check!(response)
         status = response.code.to_i
-        if 400 <= status && status < 500
-          msg = response.content_type == 'application/json' ?
-              json_error(response.body) :
-              response.body
-          raise Etna::Error.new(msg, status)
+        raise_status_error(response) if 400 <= status && status < 500
+      end
+
+      def status_check!(response)
+        status = response.code.to_i
+        raise_status_error(response) if status >= 400
+      end
+
+      def raise_status_error(response)
+        msg = response.content_type == 'application/json' ?
+          json_error(response.body) :
+          response.body
+        raise Etna::Error.new(msg, status)
+      end
+
+      def json_error(body)
+        msg = JSON.parse(body, symbolize_names: true)
+        if (msg.has_key?(:errors) && msg[:errors].is_a?(Array))
+          return JSON.generate(msg[:errors])
+        elsif msg.has_key?(:error)
+          return JSON.generate(msg[:error])
         end
       end
 
