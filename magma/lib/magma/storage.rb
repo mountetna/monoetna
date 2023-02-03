@@ -1,5 +1,3 @@
-require "addressable/uri"
-
 class Magma
   class Storage
     def self.setup
@@ -63,7 +61,7 @@ class Magma
       end
 
       def encode_path(path)
-        path.split('/').map { |c| Addressable::URI.normalized_encode(c) }.join('/')
+        path.split('/').map { |c| Etna::Route.encode_path_component(c) }.join('/')
       end
     end
 

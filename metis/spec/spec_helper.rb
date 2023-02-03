@@ -6,7 +6,6 @@ require 'simplecov'
 require 'fileutils'
 SimpleCov.start
 require 'bundler'
-require 'addressable/uri'
 Bundler.require(:default, :test)
 
 ENV['METIS_ENV'] = 'test'
@@ -128,7 +127,7 @@ def json_body
 end
 
 def json_post(endpoint, hash)
-  post(endpoint.split('/').map { |c| Addressable::URI.normalized_encode(c) }.join('/'), hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
+  post(endpoint.split('/').map { |c| Etna::Route.encode_path_component(c) }.join('/'), hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
 end
 
 def stubs
