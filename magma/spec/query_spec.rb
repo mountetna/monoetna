@@ -1270,6 +1270,24 @@ describe QueryController do
     end
 
     context '::count in filter' do
+      it 'works with filters on table models up the tree' do
+        lion_monster = create(:monster, :lion, labor: @lion)
+        hydra_monster = create(:monster, :hydra, labor: @hydra)
+
+        john_doe = create(:victim, name: 'John Doe', monster: lion_monster, country: 'Italy')
+        jane_doe = create(:victim, name: 'Jane Doe', monster: lion_monster, country: 'Greece')
+
+        steve_doe = create(:victim, name: 'Steve Doe', monster: hydra_monster, country: 'France')
+
+        poison = create(:prize, labor: @hydra, name: 'poison', worth: 0)
+        skin = create(:prize, labor: @lion, name: 'skin', worth: 5)
+
+        query(['victim', ['monster', 'labor', 'prize', ['worth', '::<', 2], '::any'], '::count' ])
+
+        expect(json_body[:answer]).to eq(1)
+        expect(json_body[:format]).to eq('Numeric')
+      end
+
       it 'works with ::has' do
         lion_monster = create(:monster, :lion, labor: @lion)
         hydra_monster = create(:monster, :hydra, labor: @hydra)
