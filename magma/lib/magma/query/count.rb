@@ -1,16 +1,19 @@
 require_relative 'with_restrict_module'
 require_relative 'with_filters_module'
+require_relative 'with_subqueries_module'
 
 class Magma
   class Count
     include WithRestrictModule
     include WithFiltersModule
+    include WithSubqueriesModule
 
-    def initialize(model:, filters:, restrict:, table_alias_name:)
+    def initialize(model:, filters:, restrict:, table_alias_name:, subqueries:)
       @model = model
       @filters = filters
       @restict = restrict
       @table_alias_name = table_alias_name
+      @subqueries = subqueries
     end
 
     def build
@@ -38,7 +41,8 @@ class Magma
         restrict_constraints
       )
 
-      apply_filters(query)
+      query = apply_filters(query)
+      apply_subqueries(query)
     end
 
     def count_column
