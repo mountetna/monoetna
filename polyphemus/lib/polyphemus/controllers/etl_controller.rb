@@ -6,9 +6,10 @@ class EtlController < Polyphemus::Controller
   end
 
   def list
-    success_json(
-      Polyphemus::EtlConfig.exclude(archived: true).where(project_name: @params[:project_name]).all.map(&:as_json)
-    )
+    configs = Polyphemus::EtlConfig.exclude(archived: true)
+      .where(project_name: @params[:project_name])
+      .all
+    success_json(configs.map(&:as_json))
   end
 
   def revisions

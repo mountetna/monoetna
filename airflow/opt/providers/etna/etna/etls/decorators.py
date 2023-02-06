@@ -34,6 +34,17 @@ from etna.etls.cat import (
     CatEtlHelpers
 )
 
+def universal_linker():
+    """
+    Creates a universal linker etl. This consumes tails on metis, but it does
+    it for a set of projects interactively
+    """
+
+    # Linker steps:
+    # 1. Get ETL configs from Polyphemus for loader 'metis'.
+    # 2. Get Metis tail for the specified time period and the projects to run from ETL configs
+    # 3. Match items from ETL configs in the tail
+    # 4. Compose updating using matched items and send to Magma
 
 def metis_etl(
     project_name: str,
