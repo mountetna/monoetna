@@ -131,6 +131,7 @@ const QueryFilterSubclause = ({
       patchSubclause({
         ...subclause,
         attributeName,
+        attributeType: '',
         operator: '',
         operand: ''
       });
@@ -219,8 +220,9 @@ const QueryFilterSubclause = ({
                 onInputChange={(e, v, r) => {
                   // Only send event if user manually clears the value
                   //   or selects a non-empty-string option.
-                  if ('' !== v || 'reset' !== r)
-                    {handleOperandChangeWithDebounce(v || '');}
+                  if ('' !== v || 'reset' !== r) {
+                    handleOperandChangeWithDebounce(v || '');
+                  }
                 }}
                 inputValue={operandValue.toString()}
                 data-testid='operand-autocomplete'
