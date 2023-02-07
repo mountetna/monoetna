@@ -1235,6 +1235,13 @@ describe QueryController do
       expect(json_body[:format]).to eq(['labors::labor#name', 'Numeric'])
     end
 
+    it 'reports zero ::count' do
+      query(['labor', ['name', '::equals', 'Eating'], '::count' ])
+
+      expect(json_body[:answer]).to eq(0)
+      expect(json_body[:format]).to eq('Numeric')
+    end
+
     it 'supports ::count for collections' do
       monsters = create_list(:monster, 3, labor: @lion)
       monsters[1].update(

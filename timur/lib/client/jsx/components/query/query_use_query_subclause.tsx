@@ -39,7 +39,7 @@ const useQuerySubclause = ({
 
     if ('' === modelName || '' === subclause.attributeName) {
       setDistinctAttributeValues([]);
-    } else if ('string' !== subclause.attributeType) {
+    } else if (!['string', 'identifier'].includes(subclause.attributeType)) {
       setDistinctAttributeValues([]);
     } else {
       cancellable
