@@ -141,7 +141,11 @@ class Magma
     verb '::count' do
       child Numeric
       extract do |table,return_identity|
-        Magma::Answer.new(table.first[count_column_name])
+        if table.empty?
+          Magma::Answer.new(0)
+        else
+          Magma::Answer.new(table.first[count_column_name])
+        end
       end
       format { 'Numeric' }
 
