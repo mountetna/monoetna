@@ -300,6 +300,7 @@ class Magma
       Magma::Count.new(
         model: @model,
         filters: @filters,
+        subqueries: subquery,
         table_alias_name: alias_name,
         restrict: @question.restrict?
       )

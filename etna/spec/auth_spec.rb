@@ -158,7 +158,7 @@ describe Etna::Auth do
           email: 'janus@two-faces.org',
           name: 'Janus Bifrons',
           perm: 'g:constellations',
-          exp: (Time.now + 600).to_i
+          exp: (Time.now + 6000).to_i
         )
 
         auth_header(token)
@@ -308,7 +308,7 @@ describe Etna::Auth do
           last: 'Bifrons',
           task: true,
           perm: 'e:labors',
-          exp: (Time.now + 600).to_i
+          exp: (Time.now + 6000).to_i
         )
 
         auth_header(token)
@@ -329,7 +329,7 @@ describe Etna::Auth do
           last: 'Bifrons',
           task: true,
           perm: 'e:labors',
-          exp: (Time.now + 600).to_i
+          exp: (Time.now + 6000).to_i
         )
 
         auth_header(token)
@@ -347,7 +347,7 @@ describe Etna::Auth do
           last: 'Bifrons',
           task: true,
           perm: 'e:labors',
-          exp: (Time.now + 600).to_i
+          exp: (Time.now + 6000).to_i
         )
 
         Arachne::Server.get('/test2', auth: { ignore_janus: true }) { success(nil) }
@@ -406,7 +406,7 @@ describe Etna::Auth do
             last: 'Bifrons',
             task: true,
             perm: 'e:labors',
-            exp: (Time.now + 600).to_i
+            exp: (Time.now + 6000).to_i
           )
 
           auth_header(token)
@@ -422,7 +422,7 @@ describe Etna::Auth do
             last: 'Bifrons',
             task: true,
             perm: 'e:labors',
-            exp: (Time.now + 600).to_i
+            exp: (Time.now + 6000).to_i
           )
 
           auth_header(token)
@@ -438,7 +438,7 @@ describe Etna::Auth do
             last: 'Bifrons',
             task: true,
             perm: 'e:labors',
-            exp: (Time.now + 600).to_i
+            exp: (Time.now + 6000).to_i
           )
 
           auth_header(token)
@@ -455,7 +455,7 @@ describe Etna::Auth do
             first: 'Janus',
             last: 'Bifrons',
             perm: 'e:labors',
-            exp: (Time.now + 600).to_i
+            exp: (Time.now + 6000).to_i
           )
 
           auth_header(token)
@@ -470,7 +470,7 @@ describe Etna::Auth do
             first: 'Janus',
             last: 'Bifrons',
             perm: 'e:labors',
-            exp: (Time.now + 600).to_i
+            exp: (Time.now + 6000).to_i
           )
 
           auth_header(token)
@@ -485,7 +485,7 @@ describe Etna::Auth do
             first: 'Janus',
             last: 'Bifrons',
             perm: 'e:labors',
-            exp: (Time.now + 600).to_i
+            exp: (Time.now + 6000).to_i
           )
 
           auth_header(token)

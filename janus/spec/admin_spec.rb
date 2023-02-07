@@ -755,6 +755,7 @@ describe AdminController do
 
   context '#add_project' do
     it 'allows a superuser to add a new project' do
+      stub_janus_refresh
       stub_request(:post, /https:\/\/magma.test\/update_model/).
       to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
       stub_request(:post, /https:\/\/magma.test\/update$/).
@@ -843,6 +844,7 @@ describe AdminController do
     end
 
     it 'calls magma when provided a template_project_name' do
+      stub_janus_refresh
       stub_request(:post, /https:\/\/magma.test\/update_model/).
       to_return(status: 200, body: '{}', headers: {'Content-Type': 'application/json'})
       stub_request(:post, /https:\/\/magma.test\/update$/).

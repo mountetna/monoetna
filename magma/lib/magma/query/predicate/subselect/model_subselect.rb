@@ -113,11 +113,17 @@ class Magma
       return [] unless incoming_alias_name && incoming_attribute
 
       [
-        Magma::SubselectCountBuilder.new(**base_subselect_params(
+        Magma::SubselectCountBuilder.new(**count_subselect_params(
           incoming_alias_name,
           incoming_attribute
         ))
       ]
+    end
+
+    def count_subselect_params(incoming_alias_name, incoming_attribute)
+      base_subselect_params(incoming_alias_name, incoming_attribute).update({
+        subqueries: subquery
+      })
     end
 
     def child_subselect(incoming_attribute)
