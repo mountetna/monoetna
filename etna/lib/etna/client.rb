@@ -293,9 +293,9 @@ module Etna
             status_check!(response)
             return response
           end unless block_given?
+        else
+          raise ::Etna::Error, "Could not contact server, giving up"
         end
-
-        raise ::Etna::Error, "Could not contact server, giving up"
       end
 
       private
