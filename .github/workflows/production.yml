@@ -14,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.SYNC_ACCESS_TOKEN }}
       - name: docker login
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
@@ -35,4 +33,3 @@ jobs:
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           make -C etna release
           make -j 4 release
-          git push origin HEAD:production-build --force
