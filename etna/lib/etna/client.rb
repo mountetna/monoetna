@@ -295,7 +295,7 @@ module Etna
           end unless block_given?
         end
 
-        raise ::Etna::Error, "Could not contact server, giving up" unless block_given?
+        raise ::Etna::Error, "Could not contact server, giving up"
       end
 
       private
