@@ -18,7 +18,7 @@ done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 function usage() {
-  echo "$0 <Dockerfile> [<dep> [<dep2> ...]]" 1>&2
+  echo "$0 <Dockerfile>" 1>&2
 	cat $SOURCE | grep -E '^#-.*$$' | sed -e 's@^#- @  @' 1>&2
 }
 
@@ -54,8 +54,6 @@ if [[ -z "$Dockerfile" ]]; then
     exit 1
 fi
 
-shift
-
 buildDir="$(mktemp -d)"
 sourceDockerDir="$(readlink -m $(dirname $Dockerfile))"
 rsync -a $sourceDockerDir/ $buildDir/
@@ -70,7 +68,11 @@ builtFromSha="$($DIR/find-parent-pr-merge.sh)"
 # If we haven't pre-pulled the image, try pulling here.
 # this might fail, however, especially for new or local tags.
 if ! imageExists; then
-  docker pull "$tag" || true
+  if [[ -n "$IS_CI" ]]; then
+    docker pull "$tag" || true
+  else
+    docker pull "etnaagent/$baseTag:master" || true
+  fi
 fi
 
 # If we did manage to pull the image, pull out the existing built version info.
@@ -98,6 +100,7 @@ function runBuild() {
     --label=edu.ucsf.mountetna.version=$lastBuildVersion \
     --tag $baseTag \
     --cache-from etnaagent/$baseTag:staging \
+    --cache-from etnaagent/$baseTag:master \
     --cache-from $tag \
     --cache-from $baseTag \
     --build-arg APP_NAME=$baseTag \

@@ -31,6 +31,7 @@ default: &default
   :log_level: info
   :archimedes_run_image: etnaagent/archimedes
   :archimedes_interpreters:
+    :r: etnaagent/archimedes-r:production
     :node: etnaagent/archimedes-node:production
     :python: etnaagent/archimedes:production
   :archimedes_exec_volume: archimedes-exec
@@ -49,6 +50,7 @@ default: &default
     <<: *default
     :database: vulcan_development
   :advisory_lock_file: /app/storage.lock
+  :ignore_dependencies: false
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -69,5 +71,6 @@ default: &default
   :archimedes_exec_volume: archimedes-exec
   :advisory_lock_file: /app/spec/storage.lock
   :archimedes_interpreters:
+    :r: etnaagent/archimedes-r:production
     :node: etnaagent/archimedes-node:production
     :python: etnaagent/archimedes:production
