@@ -1,0 +1,10 @@
+{
+  "projects": ["example"],
+  "authors": ["Dan Bunis"],
+  "lastModified": "June 6, 2022",
+  "vignette": "# Data Manipulation & Plotting Workflow\n\nThis workflow allows users to edit a data frame using a spreadsheet-like interface, and then visualize it with a Vulcan plotting tool.",
+  "tags": ["demo", "testing"],
+  "displayName": "Test R",
+  "description": "Simple read in / write out test in R",
+  "icon": "TableChart"
+}

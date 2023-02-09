@@ -188,7 +188,7 @@ module Etna
           begin
             script_path = path
             break
-          end if path =~ /.*\/#{script_name}\.(py|js)$/
+          end if path =~ /.*\/#{script_name}\.(py|js|r)$/
         end
         if !script_path.nil?
           ::File.read(script_path)
