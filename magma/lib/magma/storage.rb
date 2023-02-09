@@ -51,13 +51,17 @@ class Magma
             Magma.instance,
             method: method,
             host: host,
-            path: URI.encode(path),
+            path: encode_path(path),
             expiration: (Time.now + expiration).iso8601,
             nonce: Magma.instance.sign.uid,
             id: :magma,
             headers: headers
           ).url_params
         )
+      end
+
+      def encode_path(path)
+        path.split('/').map { |c| Etna::Route.encode_path_component(c) }.join('/')
       end
     end
 

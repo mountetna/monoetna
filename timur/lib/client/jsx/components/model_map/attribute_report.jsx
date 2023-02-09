@@ -243,6 +243,13 @@ const AttributeReport = ({attribute, model_name, isAdminUser}) => {
     );
   }, [executeAction, model_name, removeLink, attribute]);
 
+  const showSampleButton = useMemo(() => {
+    if (!attribute?.attribute_type) return false;
+
+    const allowedTypes = ['string', 'identifier'];
+    return allowedTypes.includes(attribute.attribute_type);
+  }, [attribute]);
+
   if (!attribute) return null;
 
   return (
@@ -257,7 +264,7 @@ const AttributeReport = ({attribute, model_name, isAdminUser}) => {
               handleRemoveLink={handleRemoveLink}
             />
           )}
-          {attribute.attribute_type == 'string' && (
+          {showSampleButton && (
             <Tooltip title='Show data sample'>
               <Button
                 onClick={showSample}

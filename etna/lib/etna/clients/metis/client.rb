@@ -10,10 +10,10 @@ module Etna
   module Clients
     class Metis < Etna::Clients::BaseClient
 
-      def initialize(host:, token:, ignore_ssl: false)
+      def initialize(host:, token:, ignore_ssl: false, logger: nil)
         raise 'Metis client configuration is missing host.' unless host
         raise 'Metis client configuration is missing token.' unless token
-        @etna_client = ::Etna::Client.new(host, token, ignore_ssl: ignore_ssl)
+        @etna_client = ::Etna::Client.new(host, token, ignore_ssl: ignore_ssl, logger: logger)
 
         @token = token
       end

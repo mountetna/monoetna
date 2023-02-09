@@ -366,7 +366,13 @@ class MetisClient < Client
   end
 
   def encode_path(path)
-    path.split('/').map { |v| URI.encode_www_form_component(v) }.join('/')
+    path.split('/').map { |v| encode_path_component(v) }.join('/')
+  end
+
+  def encode_path_component(path_component)
+    form_encoded = URI.encode_www_form_component(path_component)
+    # Because of issues #1005, #1006, #1197
+    form_encoded.gsub('+', '%20')
   end
 
   def create_folder(project_name, folder_path)

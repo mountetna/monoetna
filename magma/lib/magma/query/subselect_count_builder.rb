@@ -1,7 +1,31 @@
 require_relative 'subselect_base'
+require_relative 'with_subqueries_module'
 
 class Magma
   class SubselectCountBuilder < Magma::SubselectBase
+    include WithSubqueriesModule
+
+    def initialize(
+      incoming_alias:,
+      outgoing_model:,
+      outgoing_alias:,
+      outgoing_identifier_column_name:,
+      restrict:,
+      outgoing_fk_column_name:,
+      subqueries:,
+      filters:
+    )
+      super(
+        incoming_alias: incoming_alias,
+        outgoing_model: outgoing_model,
+        outgoing_alias: outgoing_alias,
+        outgoing_identifier_column_name: outgoing_identifier_column_name,
+        restrict: restrict,
+        outgoing_fk_column_name: outgoing_fk_column_name,
+        filters: filters,
+      )
+      @subqueries = subqueries
+    end
 
     def build
       count_select
@@ -24,7 +48,8 @@ class Magma
         restrict_constraints
       )
 
-      apply_filters(query)
+    query = apply_filters(query)
+    apply_subqueries(query)
     end
 
     def count_column

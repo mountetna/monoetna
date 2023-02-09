@@ -1,5 +1,6 @@
 require 'digest'
 require 'date'
+require 'net/http'
 require "addressable/uri"
 require_relative "./censor"
 require_relative './instrumentation'
@@ -46,12 +47,18 @@ module Etna
       if params
         PARAM_TYPES.reduce(route) do |path,pat|
           path.gsub(pat) do
-            params[$1.to_sym].split('/').map { |c| block_given? ? yield(c) : Addressable::URI.normalized_encode(c) }.join('/')
+            params[$1.to_sym].split('/').map { |c| block_given? ? yield(c) : Etna::Route.encode_path_component(c) }.join('/')
           end
         end
       else
         route
       end
+    end
+
+    def self.encode_path_component(path_component)
+      form_encoded = URI.encode_www_form_component(path_component)
+      # Because of issues #1005, #1006, #1197
+      form_encoded.gsub('+', '%20')
     end
 
     def path(params=nil, &block)

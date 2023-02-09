@@ -81,7 +81,7 @@ export default class FilterOperator {
 
   hasPrepopulatedOperandOptions(): boolean {
     return (
-      'string' === this.subclause.attributeType &&
+      ['string', 'identifier'].includes(this.subclause.attributeType) &&
       '' !== this.subclause.attributeName
     );
   }
