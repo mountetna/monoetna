@@ -9,7 +9,7 @@ module Metis
           Metis::Loader::Model,
           Metis::Loader::File,
           Metis::Loader::FileCollection,
-          Metis::Loader::Table,
+          Metis::Loader::DataFrame,
         ].map(&:to_schema).reduce(&:merge),
 	type: "object",
         additionalProperties: {
@@ -30,7 +30,7 @@ module Metis
                   oneOf: [
                     { "$ref": "#/definitions/metis_file" },
                     { "$ref": "#/definitions/metis_file_collection" },
-                    { "$ref": "#/definitions/metis_table" }
+                    { "$ref": "#/definitions/metis_data_frame" }
                   ]
                 }
               }
@@ -74,13 +74,13 @@ module Metis
         }
       end
     end
-    class Table
+    class DataFrame
       def self.to_schema
         {
-          metis_table: {
+          metis_data_frame: {
             type: "object",
             properties: {
-              type: { const: "table" },
+              type: { const: "data_frame" },
               bucket_name: { type: "string" },
               folder_path: { type: "string" },
               file_match: { type: "string" },

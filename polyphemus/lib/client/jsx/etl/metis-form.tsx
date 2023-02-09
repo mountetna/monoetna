@@ -109,7 +109,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   }
 }));
 
-const SCRIPT_TYPES = [ 'file', 'file_collection', 'table' ];
+const SCRIPT_TYPES = [ 'file', 'file_collection', 'data_frame' ];
 
 type ScriptItem = {
   type: string;
@@ -169,7 +169,7 @@ const SCRIPT_ITEMS = {
       <AddDialog
         title='Map a column'
         content={
-          <>Map a column name in the table to another name (e.g., an attribute_name)</>
+          <>Map a column name in the data_frame to another name (e.g., an attribute_name)</>
         }
         buttonText='ADD MAPPING'
         update={ (column_name, mapped_column_name) => update(
