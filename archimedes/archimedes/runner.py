@@ -61,6 +61,8 @@ class RunRequest:
     def target_file(self):
         if self.interpreter == 'node':
             return "script.js"
+        if self.interpreter == 'r':
+            return "script.r"
         else:
             return "script.py"
 
@@ -200,6 +202,8 @@ class DockerIsolator(Isolator[Container]):
         if request.run_with("node"):
             exec_dir = exec_script_path.replace(request.target_file, "")
             return ["/bin/bash", "-c", f"cd {exec_dir}; cp /app/package.json package.json; npm install; node {exec_script_path}"]
+        elif request.run_with("r"):
+            return f"Rscript {exec_script_path}"
         else:
             return f"poetry run python {exec_script_path}"
 
@@ -363,7 +367,7 @@ def main():
     parser.add_argument('--input', dest='inputs', default=[], action='append', help="input files of the form name:/path/on/host")
     parser.add_argument('--output', dest='outputs', default=[], action='append', help="output files of the form name:/path/on/host")
     parser.add_argument('-e', '--env', dest='env', action='append', help="environment variables of the form ABC=abc")
-    parser.add_argument('--interpreter', default='python', choices=['python', 'node'])
+    parser.add_argument('--interpreter', default='python', choices=['python', 'node', 'r'])
 
     args = parser.parse_args()
 

@@ -34,6 +34,8 @@ class Vulcan
 
       # Ignore shebang variations for now
       return "node" if first_line == "#!/usr/bin/env node"
+      # Require a library call in first line as hint for R scripts.
+      return "r" if first_line.include? "library("
 
       "python"
     end
