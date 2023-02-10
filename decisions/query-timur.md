@@ -18,6 +18,7 @@ Note that the `/query` API is actually capable of supporting much more complicat
 
 - Create a UI page in Timur to allow construction of queries, using user-friendly inputs (i.e. dropdowns, pre-populated text fields, etc.).
 - Pre-populate all selection inputs when possible. I.e. only render the attributes for a selected model, only render viable operator options for a filter, and pre-populate existing values for a table `name` attribute. This helps remove user confusion and complexity around how to construct a query.
+- Currently the UI components exist in `timur/lib/client/jsx`, but re-using them in Vulcan might be useful.
 
 ### UX Complexity
 
@@ -41,6 +42,8 @@ Note that the `/query` API is actually capable of supporting much more complicat
 - Save a query state in the URL as URL query params, for simplicity and to not stand up a database. Users can bookmark queries to save them, or e-mail them to each other or to the DL team for collaboration.
 
 ## Consequences
+
+- In order to use the same UI components in Vulcan, the current components should be moved to `etna/packages/etna-js`. They could then be re-used in Vulcan to create a query-editing UI. Some progress on this can be seen in [this github branch](https://github.com/mountetna/monoetna/tree/cs/vulcan-edit-query-widget).
 
 ### Or Filters
 
