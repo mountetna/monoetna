@@ -40,11 +40,19 @@ We run two types of tasks in Airflow:
 
 For the containerized ETLs, we use a custom Docker Swarm operator for these, not the included Airflow operator. This is so that we can copy our application service configs for the app containers (i.e. networks, resource limitations, constraints, etc.), to make DAG task definitions simpler. We did wind up allowing overwrites for some of the service configurations, since DAG tasks are not exact clones of the application definitions.
 
-Each ETL has a version number associated with it. To re-start an entire ETL, you can bump the version number in the code editor, which causes a new DAG to be created.
+Also, the containerized ETLs are started with a service name like `DockerServiceOperator_<hash>`. In Portainer, you can then find these tasks when they are running and check things like resource usage or logs.
+
+### Restarting ETLs
+
+Each ETL has a version number associated with it. To re-start an entire ETL, you can bump the version number in the DAG decorator, using the Airflow code editor. This causes a new DAG to be created.
 
 - Note that for the containerized Polyphemus ETLs that use our Ruby ETL + Cursor framework (i.e. sync_GNE), restarting those requires going into a Polyphemus console (via Portainer, a `polyphemus_app` service) and running `$ ./bin/polyphemus etl <name_of_etl> reset`.
 
+### Project-scope
+
 ETLs are project-scoped, which means users should only be able to see the DAGs associated with their Janus token in the main Airflow dashboard. This is controlled via a custom Authentication backend (`etna_cookie_auth.py`). However, we have not implemented similar controls in `airflow_code_editor`, so any user can edit Python DAGs for any project.
+
+### DAG Backups
 
 Since the DAGs are being backed up nightly to Metis, we have not enabled the remote GitHub push for the code editor.
 
@@ -59,6 +67,8 @@ Airflow does not do a resource check for available resources before launching ta
 ## Consequences
 
 - Requiring that Airflow has the ability to launch Docker Swarm services means that the Airflow scheduler has to run on a Swarm manager node, so that it can create and run Swarm services. This impacts our Swarm configuration, such that `dsco1` is dedicated solely to Airflow. Airflow is fairly resource intensive (including all the non-Docker tasks that get started), so we are unable to isolate it onto a light-weight manager node per Swarm best-practices, and instead have decided to use `dsco1` as a very large manager node. I think if we used a Celery executor instead of the LocalExecutor, we could then isolate the Airflow scheduler service onto a lighter-weight manager node, and have Airflow Celery consumers exist on the beefier, worker nodes. This might also require our manager nodes to have more resources, since Airflow itself is resource intensive.
+
+- Since containerized ETLs run as Docker Swarm services (i.e. `DockerServiceOperator_<hash>`), they are ephemeral, and it can be very difficult to get log information for short-lived / crashing / buggy tasks through Portainer, since they appear in the list of services for a short period of time. It would be nice if those logs could persist somewhere, or if the log files were more easily findable.
 
 - ETLs should run in time-batches, per the basic Airflow design (with start_time and end_time windows). This means that some of our ETLs, which do not have good time information (i.e. Box and CAT ingestion ETLs), keep their own cursor information in an Airflow variable. For example, the Box ingest ETL uses file size plus name to create a unique hash. At some point we may run into size limitations of these variables. There also seem to be concurrency issues where parallel tasks (i.e. in CAT ingestion) try to update the same variable at the same time. Task retries overcome those collisions.
 
