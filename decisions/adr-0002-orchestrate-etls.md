@@ -22,7 +22,7 @@ We would also like to have an interface for data scientists and other users to t
 Currently, we use a bespoke ETL and cursor architecture written in Ruby and run via Polyphemus. Some of the challenges around this are:
 
 - Only engineers can write new ETLs, since they are written with Ruby.
-- It is not schedulable outside of Polyphemus (REDCap ingestion) or `systemctl` jobs. Scheduling changes require editing Chef configurations.
+- It is not schedulable outside of Polyphemus UI (i.e. REDCap ingestion) or `systemctl` jobs. Scheduling changes require editing Chef configurations.
 - Deploying new ETLs requires a code deployment. This can lead to long feedback loops.
 - Difficult to test and develop outside of a production environment, often requiring the author to manually create local test data.
 
@@ -70,18 +70,30 @@ Airflow does not do a resource check for available resources before launching ta
 
 ## Consequences
 
+### Docker Swarm Architecture
+
 - Requiring that Airflow has the ability to launch Docker Swarm services means that the Airflow scheduler has to run on a Swarm manager node, so that it can create and run Swarm services. Also, since we are using a LocalExecutor for non-Docker tasks, they will run on the same node as the Airflow schedule. To accomodate this local workload plus the need for the scheduler to be on a manager node, we have designated `dsco1` as a beefy manager node dedicated solely to Airflow. I think if we used a Celery executor instead of the LocalExecutor, we could then isolate the Airflow scheduler service onto a lighter-weight manager node, and have Airflow Celery consumers exist on the beefier, worker nodes. This might also require our manager nodes to have more resources though, since Airflow itself is resource intensive. We have observed that even slightly overloading the manager nodes often leads to frozen / hung docker daemons, and it's possible that Airflow might overwhelm our current manager nodes' resources.
 
-- Since containerized ETLs run as Docker Swarm services (i.e. `DockerServiceOperator_<hash>`), they are ephemeral, and it can be very difficult to get log information for short-lived / crashing / buggy tasks through Portainer, since they appear in the list of services for such a short period of time. It would be nice if those logs could persist somewhere, or if the log files were more easily findable even after a service stops running.
+### Non-time-based ETLs
 
 - ETLs should run in time-batches, per the basic Airflow design (with start_time and end_time windows). This means that some of our ETLs, which do not have good time information (i.e. Box and CAT ingestion ETLs), keep their own cursor information in an Airflow variable as an alternative to time batching. For example, the Box ingest ETL uses file size plus name to create a unique hash, which is stored in a variable and compared against a file list to determine which files have already been ingested. At some point we may run into size limitations of these variable blobs. There also seem to be concurrency issues where parallel tasks (i.e. in CAT ingestion) try to update the same variable at the same time, and one will get locked out. Task retries automatically overcome those collisions, but it would be nice to find a more robust solution.
 
+### Project-scope
+
 - Because ETLs are project-scoped, we need to configure a new Airflow connection for each target project, with a specific task token created for each connection. This is additional configuration overhead and may lead to missed ETL runs when the tokens expire.
 
+### Understanding Etna Helper Code
+
 - Many ETLs take advantage of shared Python code, which then requires ETL authors to be familiar with the structure and methods available in the helper classes. For example, there is a set of methods for single-cell file linking. However, DAG authors really need to be familiar with the methods, their arguments, and the defaults, in order to create single-cell tasks in Airflow. We do provide documentation for the `Etna` provider, but it still seems like a barrier for the data scientists to authoring their own ETLs. Perhaps some templates to copy from (i.e. in `coprojects_template`) would help adoption.
+
+### Logging and Monitoring
+
+- Since containerized ETLs run as Docker Swarm services (i.e. `DockerServiceOperator_<hash>`), they are ephemeral, and it can be very difficult to get log information for short-lived / crashing / buggy tasks through Portainer, since they appear in the list of services for such a short period of time. It would be nice if those logs could persist somewhere, or if the log files were more easily findable even after a service stops running.
 
 - We currently have limited notifications or error reporting from Airflow to Slack or e-mail, only some success messages for ingest ETLs. We decided to minimize this type of noise, so that folks would not tune out Airflow notifications. However, when ETLs are stuck (because a Swarm node hangs), we are never made aware. Better monitoring and notifications could help here. Right now this requires manual checking of the Airflow UI or someone complaining about missing ingest data, before we know that ETLs are failing.
 
 - Better logging and monitoring of ETLs would be helpful. It is hard to search through the existing task logs, especially if they run multiple times before they can complete. It's also unclear how to best monitor and log tasks that might run on C4 or from Vulcan.
+
+### Testing ETLs
 
 - Many ETL tasks are difficult to test without production data, so we still have the issue of long feedback loops and difficulty testing. We now tend to push Airflow images directly to production to test, especially if production data is required. There may be better ways to handle these challenges.
