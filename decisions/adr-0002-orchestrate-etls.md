@@ -42,6 +42,10 @@ For the containerized ETLs, we use a custom Docker Swarm operator for these, not
 
 Also, the containerized ETLs are started with a service name like `DockerServiceOperator_<hash>`. In Portainer or the Docker Swarm CLI, you can then find these service tasks when they are running and check things like resource usage or logs.
 
+### Airflow Code Editor
+
+We have a forked version of `airflow_code_editor` in `monoetna`, that we use in our Airflow deployment. The main difference is that our version will do a syntax check on the saved Python DAG files, to verify that they consist of valid Python.
+
 ### Restarting ETLs
 
 Each ETL has a version number associated with it. To re-start an entire ETL, you can bump the version number in the DAG decorator, using the Airflow code editor. This causes a new DAG to be created.
