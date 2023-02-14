@@ -81,7 +81,7 @@ module Etna
 
                 upload_timings << [chunk.length, Time.now.to_f]
                 upload_amount += chunk.length
-                remaining -= chunk.length
+                remaining -= chunk.length unless remaining.nil?
 
                 if upload_timings.length > 150
                   s, _ = upload_timings.shift
