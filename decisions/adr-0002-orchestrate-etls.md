@@ -76,7 +76,7 @@ Airflow does not do a resource check for available resources before launching ta
 
 ### Non-time-based ETLs
 
-- ETLs should run in time-batches, per the basic Airflow design (with start_time and end_time windows). This means that some of our ETLs, which do not have good time information (i.e. Box and CAT ingestion ETLs), keep their own cursor information in an Airflow variable as an alternative to time batching. For example, the Box ingest ETL uses file size plus name to create a unique hash, which is stored in a variable and compared against a file list to determine which files have already been ingested. At some point we may run into size limitations of these variable blobs. There also seem to be concurrency issues where parallel tasks (i.e. in CAT ingestion) try to update the same variable at the same time, and one will get locked out. Task retries automatically overcome those collisions, but it would be nice to find a more robust solution.
+- ETLs should run in time-batches, per the basic Airflow design (with `start_time` and `end_time` windows). This means that some of our ETLs, which do not have good time information (i.e. Box and CAT ingestion ETLs), keep their own cursor information in an Airflow variable as an alternative to time batching. For example, the Box ingest ETL uses file size plus name to create a unique hash, which is stored in a variable and compared against a file list to determine which files have already been ingested. At some point we may run into size limitations of these variable blobs. There also seem to be concurrency issues where parallel tasks (i.e. in CAT ingestion) try to update the same variable at the same time, and one will get locked out. Task retries automatically overcome those collisions, but it would be nice to find a more robust solution.
 
 ### Project-scope
 
@@ -84,7 +84,7 @@ Airflow does not do a resource check for available resources before launching ta
 
 ### Understanding Etna Helper Code
 
-- Many ETLs take advantage of shared Python code, which then requires ETL authors to be familiar with the structure and methods available in the helper classes. For example, there is a set of methods for single-cell file linking. However, DAG authors really need to be familiar with the methods, their arguments, and the defaults, in order to create single-cell tasks in Airflow. We do provide documentation for the `Etna` provider, but it still seems like a barrier for the data scientists to authoring their own ETLs. Perhaps some templates to copy from (i.e. in `coprojects_template`) would help adoption.
+- Many ETLs take advantage of shared Python code, which then requires ETL authors to be familiar with the structure and methods available in the helper classes. For example, there is a set of methods for single-cell file linking. However, DAG authors really need to be familiar with the methods, their arguments, and the defaults, in order to use these helper methods to create single-cell tasks in Airflow. We do provide documentation for the `Etna` provider, but it still seems like a barrier for the data scientists to authoring their own ETLs. Perhaps some templates to copy from (i.e. in `coprojects_template`) would help adoption. A Polyphemus UI to help configure ETLs, like the REDCap configuration UI (i.e. universal linker), may make linker configuration more accessible to non-engineering users.
 
 ### Logging and Monitoring
 
