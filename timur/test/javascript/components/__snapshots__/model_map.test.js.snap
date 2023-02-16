@@ -81,6 +81,7 @@ exports[`ModelMap renders 1`] = `
       onClick={[Function]}
       style={
         Object {
+          "--model-width": "285px",
           "left": 300,
           "top": 300,
         }
@@ -93,6 +94,7 @@ exports[`ModelMap renders 1`] = `
       onClick={[Function]}
       style={
         Object {
+          "--model-width": "285px",
           "left": 300,
           "top": 450,
         }
@@ -105,6 +107,7 @@ exports[`ModelMap renders 1`] = `
       onClick={[Function]}
       style={
         Object {
+          "--model-width": "285px",
           "left": 300,
           "top": 150,
         }
@@ -1046,19 +1049,19 @@ exports[`ModelMap renders with model action buttons for admin user (no reparent 
       </svg>
       <div
         class="model_node  "
-        style="top: 300px; left: 300px;"
+        style="top: 300px; left: 300px; --model-width: 285px;"
       >
         labor
       </div>
       <div
         class="model_node  "
-        style="top: 450px; left: 300px;"
+        style="top: 450px; left: 300px; --model-width: 285px;"
       >
         monster
       </div>
       <div
         class="model_node selected "
-        style="top: 150px; left: 300px;"
+        style="top: 150px; left: 300px; --model-width: 285px;"
       >
         project
       </div>
@@ -2129,19 +2132,19 @@ exports[`ModelMap renders without model action buttons for editor user 1`] = `
       </svg>
       <div
         class="model_node  "
-        style="top: 300px; left: 300px;"
+        style="top: 300px; left: 300px; --model-width: 285px;"
       >
         labor
       </div>
       <div
         class="model_node  "
-        style="top: 450px; left: 300px;"
+        style="top: 450px; left: 300px; --model-width: 285px;"
       >
         monster
       </div>
       <div
         class="model_node selected "
-        style="top: 150px; left: 300px;"
+        style="top: 150px; left: 300px; --model-width: 285px;"
       >
         project
       </div>
