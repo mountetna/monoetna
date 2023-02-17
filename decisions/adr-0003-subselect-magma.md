@@ -8,17 +8,17 @@ Accepted
 
 This ADR presents a more detailed explanation of [issue #937](https://github.com/mountetna/monoetna/issues/937), and presents our approach for addressing the performance issue raised there.
 
-Magma `/query` and `/retrieve` API endpoints currently use SQL `JOIN` statements to collect data across multiple tables, and then chooses the columns to `SELECT` from, based upon the user's request. However, we are running into performance issues with this query architecture, as more data becomes stored in Magma. The `JOIN` architecture generates a single, virtual table in SQL with all of the requested data (row contains some unique subset of the final query answer), and then uses Ruby code in the various `Predicate` classes to execute actions like `first`, `count`, and aggregation across the relevant rows.
+Magma `/query` and `/retrieve` API endpoints currently use SQL `JOIN` statements to collect data across multiple tables. However, we are running into performance issues with this query architecture, as more data becomes stored in Magma. The `JOIN` architecture generates a single, virtual table in SQL with all of the requested data (each row is unique and contains some subset of the final query answer), and then uses Ruby code in the various `Predicate` classes to execute actions like `first`, `count`, and aggregation across the relevant rows.
 
-For some reason, trying to stand up record instances for all these rows causes Ruby (`sequel` gem?) to sharply increase in memory consumption. In production, we can track the Magma container resource usage in Portainer, and we'll see the container killed due to an out-of-memory error (the `magma_app` service is capped at 8 GB of memory, currently). We also see a huge amount of network IO coming from the Postgres container.
+For some reason, trying to stand up record instances for all these rows causes Ruby (`sequel` gem?) to sharply increase in memory consumption. In production, we can track the Magma container resource usage in Portainer, and we can see the container killed due to an out-of-memory error (the `magma_app` service is capped at 8 GB of memory, currently). We also see a huge amount of network IO coming from the Postgres container.
 
 Not much information can be found online regarding `sequel` memory issues. There are some threads in the `sequel-talk` Google Group that indicate it might be issues with the `DateTime` properties on our record models, i.e. `created_at` and `updated_at`. Without clear guidance on how we can tweak `sequel` performance, we decided to re-architect Magma querying instead.
 
-This performance issue has become a blocker for implementing a Materialize workflow using `project` as the root model. A Materialize workflow would be able to automate the downloading of all data from a project by walking the model tree and serializing Magma records to JSON, but must be able to first request the `project` record. Unfortunately for some projects, this is no longer possible (see [Example IPI Problem Query](#example-ipi-problem-query)).
+This performance issue has become a blocker for implementing a Materialize workflow using `project` as the root model. A Materialize workflow would be able to automate the downloading of all data from a project by walking the model tree and serializing Magma records to JSON, but it must be able to first request the `project` record. Unfortunately for some projects, this is no longer possible (see [Example IPI Problem Query](#example-ipi-problem-query)).
 
 ### Queries with Performance Issues
 
-This performance limitation only impacts queries to the `/retrieve` and `/query` APIs where many one-to-many relationships exist, with many child records in each child model. Using the Magma test fixtures as examples, we would not see these performance issues when the requested predicates all exist on the `StartPredicate` model, because all of the data requested are from attributes on the main query model or a parent model and no `JOINS` are required. Here are some example queries with no performance issues. Equivalent `/retrieve` request payloads would also be okay:
+This performance limitation only impacts queries to the `/retrieve` and `/query` APIs where many one-to-many relationships exist, with many child records in each child model. Using the Magma test fixtures as examples, we would not see these performance issues when the requested predicates all exist on the `StartPredicate` model, because all of the data requested are from attributes on the main query model or a parent model. This means no / minimal `JOINS` are required. Here are some example queries with no performance issues. Equivalent `/retrieve` request payloads would also be okay:
 
 - [ "monster", "::all", "stats" ]
 - [ "victim", "::all", [ "birthday", "weapon", [ "monster", "name" ] ] ]
@@ -29,7 +29,7 @@ However, when we request data that traverses one-to-many relationships, then we 
 
 ### Example IPI Problem Query
 
-This section will specifically explore the issue with IPI, though the same experience applies to all other projects. The IPI `project` model has several collection-type child models (i.e. `document`, `sc_rna_seq_pool`, `cytof_pool`, etc.). As those models get more records input, the `JOIN` architecture causes a query or retrieve action against the `project` model to explode exponentially, when also requesting all attribute values (i.e. all `sc_rna_seq_pool` `tube_names`).
+This section will specifically explore the issue with IPI, though the same experience applies to all other projects. The IPI `project` model has several collection-type child models (i.e. `document`, `sc_rna_seq_pool`, `cytof_pool`, `rna_plate`, etc.). As these child models get more records added, the `JOIN` architecture causes a query or retrieve action against the `project` model to explode exponentially, if it requests all attribute values (i.e. all `sc_rna_seq_pool` `tube_names`).
 
 When running `EXPLAIN ANALYZE` in Postgres, we can see that a single query against the IPI project with all attributes results in about 1.1 million rows (as of January 2023), due to all the `JOIN` statements. This query attempts to fetch all of the child model identifiers -- effectively generating a giant table with all of the `document`, `sc_rna_seq_pool`, `rna_plate`, `cytof_pool`, etc., records cross-multiplied together into unique rows.
 
@@ -140,19 +140,19 @@ To try and get a result like:
 | ------------ | ----------------------------- |
 | monster1     | [ victim1, victim2, victim3 ] |
 
-However, in practice this approach was measurably less performant than the pure `JOIN` architecture. We believe this was because:
+However, in practice this approach was measurably less performant than the pure `JOIN` architecture. From looking at `EXPLAIN ANALYZE` output, we believe this was because:
 
 - All non-aggregated columns (i.e. the ones from the main query table / model) have to be included in the `GROUP BY` clause.
 - With a large result set, the `GROUP BY` and `ORDER BY` clauses caused all the data to be written to disk, and then grouped / ordered there instead of in memory.
 - The above operations were done in addition to the base `JOINS`, so we were just adding work on top of an inefficient query.
 
-### Example IPI Problem Query Performance
+### Example IPI Problem Query Performance Improvement
 
 While testing locally, the same IPI project query returned in 34ms when using subselects -- a significant improvement over the `JOIN` architecture (106s).
 
 ### Subselect Classes
 
-This ADR only affects Predicates that request data from a model different than the model of the `StartPredicate` (and typically are wrapped in a `TablePredicate`), so we introduce a new set of `Subselect` classes that are subclasses of the original `Predicate` classes. Both sets of predicates are needed to support different queries, depending on which models are accessed and their relationship to the main query model.
+This ADR only affects Predicates that request data from a model different than the model of the `StartPredicate` (and typically are wrapped in a `TablePredicate`), so we introduce a new set of `Subselect` classes that subclass the original `Predicate` classes. Both sets of predicates are needed to support different queries, depending on which models are accessed and their relationship to the main query model.
 
 ### Answer Classes
 
@@ -171,7 +171,7 @@ This change requires updates to how data is unpacked and returned from a `Magma:
 
 ### Visible Improvements
 
-- Loading the main Timur page for a project is noticeably faster. This page relies on a `/retrieve` request to get a project record and all attributes, and had significant loading time with the previous architecture. Now, the page loads very quickly.
+- Loading the main Timur page for a project is noticeably faster. This page relies on a `/retrieve` request to get a project record and all attributes, and had significant loading time with the previous architecture for the larger projects. Now, the page loads very quickly.
 - We can now implement a Materialize workflow using the `project` model as a root, to fetch all data for a given project. Some IPI consortium members are exploring this feature, built into the `etna` gem (version `0.1.47` and newer).
 
 ### Remaining Inefficiencies
@@ -184,6 +184,6 @@ Since formatting of Answers is now encapsulated in their own classes, we can ima
 
 ### Removal of Matrix Caching
 
-One feature removed from Magma is the caching of `MatrixPredicate` results. The `JOIN` implementation cached matrix data (an array of 58k values) based on the matrix attribute's model's identifier, in a key-value store in memory. This took advantage of the fact that with the `JOIN` architecture, the matrix attribute's model columns were all available to the main `SELECT` statement, and the `MatrixPredicate` Ruby code could always access the matrix model's identifier column.
+One feature removed from Magma is the caching of `MatrixPredicate` results. The `JOIN` implementation cached matrix data (an array of 58k values) in memory, using the matrix attribute's model's identifier as the key. This took advantage of the fact that with the `JOIN` architecture, the matrix attribute's model columns were all available to the main `SELECT` statement, and the `MatrixPredicate` Ruby code could always access the matrix model's unique identifier column.
 
-With subselects, the `MatrixPredicate` loses the ability to `SELECT` columns that are not explicitly specified by the query. This means that we are not guaranteed to have access to the matrix model's identifier value, and thus we cannot use that as a unique key in a key-value store. With our nested results, we also do not have any other unique way to identify the matrix results (any given model identifier could point to multiple matrix results, given the intervening one-to-many relationships that could exist between the `StartPredicate` model and the matrix model). Thus, we decided to remove the caching from the `MatrixPredicate` and `MatrixAttribute`, and just rely on the database results each time. It's possible that you could infer the matrix model's identifier when using `::all` through the returned `AnswerTuple`, but that would have to be explored.
+With subselects, the `MatrixPredicate` loses the ability to `SELECT` columns that are not explicitly specified by the query. This means that we are not guaranteed to have access to the matrix model's identifier value, and thus we cannot use that as a unique key in a key-value store. With our nested results, we also do not have any other unique way to identify the matrix results (any given model identifier could point to multiple matrix results, given the intervening one-to-many relationships that could exist between the `StartPredicate` model and the matrix model). Thus, we decided to remove the caching from the `MatrixPredicate` and `MatrixAttribute`, and just rely on the database results each time. It's possible that you could infer the matrix model's identifier when using `::all` through the returned `AnswerTuple`, but that would have to be explored. If possible with `::all`, it seems like `::first` would not provide the identifier and thus would not be able to cache.
