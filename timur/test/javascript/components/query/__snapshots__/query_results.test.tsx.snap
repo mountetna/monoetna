@@ -40,7 +40,25 @@ exports[`QueryResults expands and nests matrix columns 1`] = `
               <div
                 class="cm-line"
               >
-                user_columns: ["monster.name","prize.name","labor.contributions"]
+                user_columns: [
+                <span
+                  class="ͼe"
+                >
+                  "monster.name"
+                </span>
+                ,
+                <span
+                  class="ͼe"
+                >
+                  "prize.name"
+                </span>
+                ,
+                <span
+                  class="ͼe"
+                >
+                  "labor.contributions"
+                </span>
+                ]
               </div>
             </div>
           </div>
