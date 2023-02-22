@@ -65,7 +65,7 @@ class LayoutNode {
     let maxpos = grid[this.depth].length;
     let maxdepth = grid.length;
     this.center = {
-      x: (this.pos / (maxpos + 1)) * this.layout.width,
+      x: (this.pos/(maxpos + 1)) * this.layout.width,
       y: (this.depth / maxdepth) * this.layout.height
     };
     this.size = 40;
@@ -86,6 +86,8 @@ class TreeLayout {
     }
 
     let grid = [];
+
+    this.grid = grid;
 
     let {project} = this.nodes;
 
