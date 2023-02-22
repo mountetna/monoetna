@@ -9,10 +9,10 @@ module Etna
           :metis_client, :magma_client, :project_name,
           :model_name, :model_filters, :model_attributes_mask,
           :filesystem, :logger, :stub_files, :concurrency,
-          :record_names, keyword_init: true)
+          :page_size, :record_names, keyword_init: true)
 
         def initialize(**kwds)
-          super(**({filesystem: Etna::Filesystem.new, concurrency: 10, record_names: "all"}.update(kwds)))
+          super(**({filesystem: Etna::Filesystem.new, page_size: 20, concurrency: 10, record_names: "all"}.update(kwds)))
         end
 
         def magma_crud
@@ -34,7 +34,7 @@ module Etna
               record_names,
               model_attributes_mask: model_attributes_mask,
               model_filters: model_filters,
-              page_size: 20,
+              page_size: page_size,
           ) do |template, document|
             logger&.info("Materializing #{template.name}##{document[template.identifier]}")
             templates[template.name] = template
