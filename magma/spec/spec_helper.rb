@@ -72,12 +72,15 @@ $$;
 
   raise "Failed to load labors project, found errors in input csv: #{errors.join('\n')}" unless errors.empty?
   sync_workflow = workflow.plan_synchronization(changeset, "labors")
+  print "Adding models and attributes"
   sync_workflow.update_block = Proc.new do |action|
-    puts "Executing #{action.action_name} on #{Etna::Clients::Magma::ModelSynchronizationWorkflow.models_affected_by(action)}..."
+    #puts "Executing #{action.action_name} on #{Etna::Clients::Magma::ModelSynchronizationWorkflow.models_affected_by(action)}..."
+    print "."
     Object.class_eval { remove_const(:Labors) if Object.const_defined?(:Labors) }
     Magma.instance.magma_projects.clear
     Magma.instance.load_models(false)
   end
+  puts
   sync_workflow.execute_planned!
 
   Object.class_eval { remove_const(:Labors) if Object.const_defined?(:Labors) }
