@@ -188,7 +188,7 @@ describe Etna::Server do
 
     get('/silk/The+skill+at+weaving+was+itself+a+web')
     expect(last_response.status).to eq(200)
-    expect(last_response.body).to eq('http://example.org/silk/The+skill+at+weaving+was+itself+a+web')
+    expect(last_response.body).to eq('http://example.org/silk/The%2Bskill%2Bat%2Bweaving%2Bwas%2Bitself%2Ba%2Bweb')
   end
 
   it "applies an auth check" do

@@ -298,7 +298,7 @@ steps:
     in:
       a: make_umap/plot.json
     out: []
-  downloadRawData:
+  downloadScanpyData:
     run: ui-outputs/link.cwl
     in:
       a: Finalize_Output_Object/umap_workflow_anndata.h5ad
@@ -310,6 +310,18 @@ steps:
       a: Differential_Expression_between_clusters/cluster_diffexp.csv
     out: []
     label: 'Download cluster DiffExp as csv'
+
+  convert_to_Seurat:
+    run: scripts/convert_h5ad_to_Seurat.cwl
+    in:
+      scdata.h5ad: Finalize_Output_Object/umap_workflow_anndata.h5ad
+    out: [scdata.Rds]
+  downloadSeuratData:
+    run: ui-outputs/link.cwl
+    in:
+      a: convert_to_Seurat/scdata.Rds
+    out: []
+    label: 'Download data as Seurat in .Rds format'
 
   extract_metadata_for_dge:
     run: scripts/dge_grab_obs.cwl

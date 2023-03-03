@@ -18,6 +18,10 @@ svg#map {
   font-family: $body_font;
   font-size: 0.75em;
 
+  max-width: var(--model-width);
+  overflow: hidden;
+  text-overflow: ellipsis;
+
   border-radius: 3px;
   border: 2px solid #aaa;
   background: #f2f2f2;
@@ -32,6 +36,9 @@ svg#map {
   transform: translate(-50%, -50%);
   &:hover {
     background: #cec;
+    max-width: unset;
+    overflow: unset;
+    z-index: 1000;
   }
 }
 

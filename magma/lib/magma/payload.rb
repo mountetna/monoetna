@@ -201,7 +201,7 @@ class Magma
 
         @output_format.last.each do |output|
           next unless output.is_a?(Array) && output.first == att_format_key
-          
+
           return output.last.map do |col_name|
             "#{att_name}.#{col_name}"
           end

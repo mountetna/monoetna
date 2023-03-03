@@ -118,14 +118,14 @@ class Magma
       @subquery_config
     end
 
-    def select_columns(*args, &block)
-      @select_columns = block_given? ? block : args
+    def select_columns(arg=nil, &block)
+      @select_columns = block_given? ? block : arg
     end
 
-    def get_select_columns
+    def get_select_columns(*args)
       case @select_columns
       when Symbol
-        @predicate.send @select_columns
+        @predicate.send @select_columns, *args
       when Proc
         @predicate.instance_exec(&@select_columns)
       else

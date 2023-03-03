@@ -366,7 +366,13 @@ class MetisClient < Client
   end
 
   def encode_path(path)
-    path.split('/').map { |v| URI.encode_www_form_component(v) }.join('/')
+    path.split('/').map { |v| encode_path_component(v) }.join('/')
+  end
+
+  def encode_path_component(path_component)
+    form_encoded = URI.encode_www_form_component(path_component)
+    # Because of issues #1005, #1006, #1197
+    form_encoded.gsub('+', '%20')
   end
 
   def create_folder(project_name, folder_path)
@@ -452,8 +458,8 @@ class MetisClient < Client
     raise MetisClient::Error, "Could not copy file #{file_path} to #{proposed_file_path}\n#{error(response)}" unless response.code == "200"
   end
 
-  def exists(md5s)
-    response = json_post("/api/exists", md5s: md5s)
+  def exists(md5s, project_name=nil)
+    response = json_post("/api/exists", {md5s: md5s, project_name: project_name}.compact)
 
     return json_body(response)
   end
@@ -1330,6 +1336,10 @@ EOT
         opts.on("-f", "--file FILE", "Use FILE as the pattern to find and write checksum files") do |file|
           options[:file] = file
         end
+
+        opts.on("-p", "--project-name PROJECT_NAME", "Restrict search to specified project") do |n|
+          options[:project_name] = n
+        end
       end
     end
 
@@ -1358,7 +1368,7 @@ EOT
       remaining_size = 0
       unless files.empty?
         # check with metis
-        response = @shell.client.exists(file_md5s.values)
+        response = @shell.client.exists(file_md5s.values, options[:project_name])
 
         # remove all found files
         found = ::Set.new(response[:found])
@@ -1403,6 +1413,10 @@ EOT
         opts.on("-l", "--list", "List unarchived files") do |n|
           options[:list] = true
         end
+
+        opts.on("-p", "--project-name PROJECT_NAME", "Restrict search to specified project") do |n|
+          options[:project_name] = n
+        end
       end
     end
 
@@ -1425,7 +1439,7 @@ EOT
         puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}\n"
 
         # check with metis
-        response = @shell.client.exists(file_md5s.values)
+        response = @shell.client.exists(file_md5s.values, options[:project_name])
 
         # count found files
         found = ::Set.new(response[:found])

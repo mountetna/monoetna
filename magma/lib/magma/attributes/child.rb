@@ -15,7 +15,7 @@ class Magma
     end
 
     def query_to_payload(value)
-      value
+      value.data
     end
 
     def missing_column?

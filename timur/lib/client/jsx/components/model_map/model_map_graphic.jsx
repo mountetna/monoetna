@@ -55,6 +55,7 @@ const ModelMapGraphic = ({
             key={model_name}
             center={node.center}
             size={node.size}
+            numSiblings={ layout.grid[node.depth] ? layout.grid[node.depth].length : 0 }
             selected={
               selected_models ? selected_models.includes(model_name) : false
             }

@@ -29,6 +29,10 @@ class Magma
       child do
         attribute_child(@model.identity.attribute_name)
       end
+
+      join :attribute_join
+
+      select_columns :attribute_select
     end
 
     verb '::has', :attribute_name do
@@ -98,6 +102,8 @@ class Magma
         attribute_child(@arguments[0])
       end
       join :attribute_join
+
+      select_columns :attribute_select
     end
 
     verb Array do
@@ -112,7 +118,34 @@ class Magma
       )
     end
 
+    def select(incoming_alias_name=nil, incoming_attribute=nil)
+      if @verb && @verb.gives?(:select_columns)
+        @verb.do(:select_columns, incoming_alias_name, incoming_attribute)
+      else
+        super()
+      end
+    end
+
+    def attribute
+      return nil if @arguments.empty?
+
+      valid_attribute(@arguments[0])
+    end
+
+    def collection_attribute?
+      child_predicate.is_a?(Magma::FileCollectionPredicate)
+    end
+
     private
+
+    def attribute_select(incoming_alias_name=nil, incoming_attribute=nil)
+      [
+        child_predicate.select(
+          alias_name,
+          valid_attribute(@arguments[0])
+        )
+      ].flatten
+    end
 
     def attribute_name(argument)
       @model.has_attribute?(argument) || argument == :id || argument == '::identifier'
@@ -123,7 +156,7 @@ class Magma
       #   so we provide a convenience method to generate new aliases
       10.times.map{ (97+rand(26)).chr }.join.to_sym
     end
-    
+
     def inner_join_child(attribute)
       Magma::Join.new(
         # left table
@@ -179,19 +212,7 @@ class Magma
           @child_predicate.alias_name,
           :id
         )
-      when Magma::TableAttribute
-        return Magma::Join.new(
-          #left table
-          table_name,
-          alias_name,
-          :id,
-
-          #right table
-          @child_predicate.table_name,
-          @child_predicate.alias_name,
-          attribute.self_id,
-        )
-      when Magma::CollectionAttribute, Magma::ChildAttribute
+      when Magma::ChildAttribute
         return Magma::Join.new(
           #left table
           table_name,
@@ -214,10 +235,12 @@ class Magma
       case attribute
       when :id
         return Magma::NumberPredicate.new(@question, @model, alias_name, attribute, *@query_args)
-      when Magma::ChildAttribute, Magma::ForeignKeyAttribute
+      when Magma::ForeignKeyAttribute
         return Magma::RecordPredicate.new(@question, attribute.link_model, nil, *@query_args)
+      when Magma::ChildAttribute
+        return Magma::ChildModelPredicate.new(@question, attribute.link_model, nil, *@query_args)
       when Magma::TableAttribute, Magma::CollectionAttribute
-        return Magma::ModelPredicate.new(@question, attribute.link_model, *@query_args)
+        return Magma::ModelSubselectPredicate.new(@question, attribute.link_model, *@query_args)
       when Magma::FileAttribute, Magma::ImageAttribute
         return Magma::FilePredicate.new(@question, @model, alias_name, attribute, *@query_args)
       when Magma::FileCollectionAttribute
