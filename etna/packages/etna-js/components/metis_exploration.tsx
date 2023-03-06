@@ -79,7 +79,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
       <Grid item container alignItems='flex-end' style={{width: 'auto'}}>
         {'\uD83E\uDEA3'}
       </Grid>
-      <Grid item>
+      <Grid item style={{flex: '1 1 auto'}}>
         <Autocomplete
           options={bucketList}
           value={nullToEmptyString(bucket)}
@@ -220,6 +220,12 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   },
   [project_name, bucket, contentsSeen]);
 
+  // Reset and give time to re-buffer contents if bucket is changed
+  useEffect(() => {
+    setAwaitingContents(true)
+    setPathArray(pathToArray('', basePath))
+  }, [bucket])
+
   // Buffer current folder contents
   useEffect(() => {
     const newPath = stripSlash(arrayToPath(pathArray, basePath))
@@ -234,7 +240,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     } else {
       setAwaitingContents(false)
     }
-  }, [bucket, project_name, pathArray])
+  }, [pathArray])
 
   // Buffer potentially next folder contents
   useEffect( () => {
@@ -252,7 +258,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
         }
       )
     }
-  }, [bucket, project_name, pathArray, contentsSeen])
+  }, [pathArray, contentsSeen])
 
   // Update main readout (path) whenever anything updates pathArray
   useEffect(() => {
@@ -280,7 +286,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   // console.log({pathArray})
   // console.log({contentsSeen})
 
-  return Object.keys(contentsSeen).length==0 ? null : <Grid 
+  return !pathSeen(stripSlash(arrayToPath(pathArray, basePath))) ? null : <Grid 
     key={`file-or-folder-picker-${project_name}-${bucket}`}
     container
     direction='column'
