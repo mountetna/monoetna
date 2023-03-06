@@ -4,7 +4,6 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import { Grid, TextField } from '@material-ui/core';
 import { json_get } from 'etna-js/utils/fetch';
 import SubdirectoryArrowRightIcon from '@material-ui/icons/SubdirectoryArrowRight';
-import FolderSharpIcon from '@material-ui/icons/FolderSharp';
 import {useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
 
 declare const CONFIG: {[key: string]: any};
@@ -46,17 +45,6 @@ function simplifyFolderListReturn(fullList: any) {
     folders: fullList.folders.map( (f: any) => f.folder_name) as string[],
     files: fullList.files.map( (f: any) => f.file_name) as string[]
   }
-}
-
-async function getFolderContents(path: string, project_name: string, bucket: string) {
-  const full_path = `${bucket}/${path}`
-  let contents = {} as folderSummary
-  await json_get(metisPath(`${project_name}/list/${full_path}`)).then(
-    metis_return => {
-      contents = simplifyFolderListReturn(metis_return)
-    }
-  )
-  return contents
 }
 
 export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket, label="Bucket"}: {
@@ -229,8 +217,6 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   // Buffer current folder contents
   useEffect(() => {
     const newPath = stripSlash(arrayToPath(pathArray, basePath))
-    const newKey = contentKey(newPath)
-    // Obtain contents of current folder
     if (!pathSeen(newPath)) {
       fetchFolderContents(newPath, (x: any) => {
         const contents = simplifyFolderListReturn(x)
