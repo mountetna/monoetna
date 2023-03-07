@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {metisPath} from 'etna-js/api/metis_api.js'
 import Autocomplete from '@material-ui/lab/Autocomplete';
-import { Grid, TextField } from '@material-ui/core';
+import { Grid, IconButton, TextField } from '@material-ui/core';
 import { json_get } from 'etna-js/utils/fetch';
 import SubdirectoryArrowRightIcon from '@material-ui/icons/SubdirectoryArrowRight';
 import {useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
+import AddIcon from '@material-ui/icons/Add';
 
 declare const CONFIG: {[key: string]: any};
 
@@ -96,7 +97,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
   );
 }
 
-function SingleFileOrFolder({ optionSet, path, setTarget, onEmpty, basePath, topLevelPlaceholer, topLevelLabel, autoOpen, awaitingContents}: {
+function FileOrFolderInner({ optionSet, path, setTarget, onEmpty, basePath, topLevelPlaceholer, topLevelLabel, autoOpen, awaitingContents}: {
   optionSet: string[];
   path: string;
   setTarget: Function;
@@ -164,6 +165,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
 }) {
   const [pathArray, setPathArray] = useState(pathToArray(path, basePath));
   const labelUse = label!==undefined ? label : allowFiles ? "File or Folder" : "Folder"
+  const [showAddButton, setShowAddButton] = useState(-1)
   const [contentsSeen, setContentsSeen] = useState({} as {[k: string]: folderSummary})
   const [awaitingContents, setAwaitingContents] = useState(true)
 
@@ -260,6 +262,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
       nextPathSet.push('')
     }
     setAwaitingContents(true)
+    setShowAddButton(-1)
     setPathArray(nextPathSet)
   }
   
@@ -267,6 +270,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   const trimPath = (depth: number) => {
     const nextPathSet = depth > 0 ? [...pathArray].slice(0,depth) : ['']
     setPathArray(nextPathSet)
+    if (depth > 0) setShowAddButton(depth-1)
   }
 
   // console.log({pathArray})
@@ -290,8 +294,8 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
             {icon}
           </Grid>
           <Grid item style={{flex: '1 1 auto'}}>
-            <SingleFileOrFolder
-              optionSet={ ready ? contentUse(contentsSeen[contentKey(thisPath)]) : []}
+            <FileOrFolderInner
+              optionSet={ ready ? contentUse(contentsSeen[contentKey(thisPath)]) : [p]}
               awaitingContents={ ready }
               setTarget={(e: string) => updateTarget(e, pathArray, index)}
               onEmpty={ () => { trimPath(index) } }
@@ -302,6 +306,18 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
               topLevelLabel={labelUse}
             />
           </Grid>
+          {showAddButton==index ? <Grid item container alignItems='flex-end' style={{width: 'auto'}}>
+            <IconButton
+              aria-label="Re-add next level"
+              size="small"
+              onClick={() => {
+                setPathArray([...fullSet, ''])
+                setShowAddButton(-1)
+                }}>
+              <AddIcon/>
+            </IconButton>
+          </Grid> : null
+          }
         </Grid>
       )
     })}
