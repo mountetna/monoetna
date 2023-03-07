@@ -66,7 +66,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
   return (
     <Grid container direction='row'>
       <Grid item container alignItems='flex-end' style={{width: 'auto'}}>
-        {'\uD83E\uDEA3'}
+        <i className="fa fa-trash" aria-hidden="true" style={{padding:'3px', paddingBottom: '10px'}}/>
       </Grid>
       <Grid item style={{flex: '1 1 auto'}}>
         <Autocomplete
@@ -283,14 +283,14 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   >
     {pathArray.map( (p, index, fullSet) => {
       const before = index > 1 ? pathArray[index-1] : '';
-      const icon = index > 0 ? <SubdirectoryArrowRightIcon fontSize='small'/> : '\uD83D\uDCC1';
+      const icon = index > 0 ? <SubdirectoryArrowRightIcon fontSize='small'/> : <i className="fas fa-folder" aria-hidden="true" style={{padding:'2px'}}/>;
       const thisPath = arrayToPath(fullSet.slice(0,index), basePath)
       const ready = (index+1) == fullSet.length ? !awaitingContents : true
       return (
         <Grid item container
           key={`sub-picker-${project_name}-${bucket}-${before}`+ index}
           >
-          <Grid item container alignItems='flex-end' style={{width: 'auto'}}>
+          <Grid item container alignItems='flex-end' style={{width: 'auto', paddingBottom: '7px'}}>
             {icon}
           </Grid>
           <Grid item style={{flex: '1 1 auto'}}>
