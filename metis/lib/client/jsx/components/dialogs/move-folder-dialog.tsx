@@ -32,12 +32,12 @@ const MoveFolderDialog = ({
       <PickBucket
         bucket={bucketName}
         label="Bucket"
-        setBucket={(e) => changeBucket(e)}
+        setBucket={(e: any) => changeBucket(e)}
       />
       <PickFileOrFolder
         bucket={bucketName}
         label="Destination Folder"
-        setPath={(e) => setNewFolderPath(e)}
+        setPath={(e: any) => setNewFolderPath(e)}
         basePath={''}
         topLevelPlaceholer={'top-level of bucket'}
         path={newFolderPath}
