@@ -3,8 +3,6 @@ import React, {useState, useCallback} from 'react';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {PickBucket, PickFileOrFolder} from 'etna-js/components/metis_exploration';
 
-import ConfigRow from './config-row';
-
 const MoveFolderDialog = ({
   currentBucketName,
   onSubmit

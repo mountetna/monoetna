@@ -1,8 +1,7 @@
 import React, {useState, useCallback} from 'react';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-
-import ConfigRow from './config-row';
+import {PickBucket, PickFileOrFolder} from 'etna-js/components/metis_exploration';
 
 const MoveFileDialog = ({
   currentBucketName,
@@ -20,25 +19,28 @@ const MoveFileDialog = ({
     invoke({type: 'DISMISS_DIALOG'});
   }, [bucketName, newFilePath, invoke, onSubmit]);
 
+  const changeBucket = useCallback((e) => {
+    setNewFilePath('')
+    setBucketName(e)
+  }, [])
+
   return (
     <div className='move-file-dialog'>
       <div className='title'>Move file</div>
-      <ConfigRow label='Bucket name'>
-        <input
-          type='text'
-          placeholder='E.g. bucket_name'
-          value={bucketName}
-          onChange={(e) => setBucketName(e.target.value)}
-        />
-      </ConfigRow>
-      <ConfigRow label='Parent folder (blank for root)'>
-        <input
-          type='text'
-          placeholder='E.g. root/child'
-          value={newFilePath}
-          onChange={(e) => setNewFilePath(e.target.value)}
-        />
-      </ConfigRow>
+      <PickBucket
+        bucket={bucketName}
+        label="Bucket"
+        setBucket={(e: any) => changeBucket(e)}
+      />
+      <PickFileOrFolder
+        bucket={bucketName}
+        label="Destination Folder"
+        setPath={(e: any) => setNewFilePath(e)}
+        basePath={''}
+        topLevelPlaceholer={'top-level of bucket'}
+        path={newFilePath}
+        allowFiles={false}
+      />
       <div className='submit'>
         <span
           className={`button ${bucketName ? '' : 'disabled'}`}
