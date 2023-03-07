@@ -18,7 +18,7 @@ const FileCollectionValue = ({value, predicate}) =>
       {' '}
       {value.name} ({value.type}){' '}
     </span>
-  ) : 'md5' === predicate ? (
+  ) : [ 'size', 'md5' ].includes(predicate) ? (
     <span className=''> {value} </span>
   ) : value === TEMP || value.path === TEMP ? (
     <span className='list_item file-blank'>
