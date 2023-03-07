@@ -1,7 +1,7 @@
 import React, {useState, useCallback} from 'react';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {PickBucket, PickFileOrFolder} from 'etna-js/components/metis_exploration';
+import {PickBucket, PickFolder} from 'etna-js/components/metis_exploration';
 
 const CopyFolderDialog = ({
   currentBucketName,
@@ -32,14 +32,13 @@ const CopyFolderDialog = ({
         label="Bucket"
         setBucket={(e: any) => changeBucket(e)}
       />
-      <PickFileOrFolder
+      <PickFolder
         bucket={bucketName}
         label="Destination Folder"
         setPath={(e: any) => setParentFolderPath(e)}
         basePath={''}
         topLevelPlaceholer={'top-level of bucket'}
         path={parentFolderPath}
-        allowFiles={false}
       />
       <div className='submit'>
         <span

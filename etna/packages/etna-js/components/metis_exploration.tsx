@@ -153,7 +153,7 @@ function FileOrFolderInner({ optionSet, path, setTarget, onEmpty, basePath, topL
   />
 }
 
-export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setPath, path, allowFiles, label, basePath, topLevelPlaceholer=''}: {
+export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setPath, path, allowFiles=true, label, basePath, topLevelPlaceholer=''}: {
   project_name?: string;
   bucket: string;
   setPath: Function;
@@ -324,4 +324,24 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   </Grid>
 }
 
+export function PickFolder({ project_name=CONFIG.project_name, bucket, setPath, path, label, basePath, topLevelPlaceholer=''}: {
+  project_name?: string;
+  bucket: string;
+  setPath: Function;
+  path: string; // the overall "value" / output
+  label?: string;
+  basePath: string; // an immutable portion of path.  Can be '' to access the entire bucket and to be compatible with exploring across buckets in sync with a PickBucket companion.
+  topLevelPlaceholer?: string;
+}) {
+  return <PickFileOrFolder
+    project_name={project_name}
+    bucket={bucket}
+    setPath={setPath}
+    path={path}
+    label={label}
+    basePath={basePath}
+    topLevelPlaceholer={topLevelPlaceholer}
+    allowFiles={false}
+    />
+}
 
