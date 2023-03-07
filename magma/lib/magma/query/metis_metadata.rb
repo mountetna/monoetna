@@ -1,10 +1,11 @@
 require "set"
 
 class MetisMetadata
-  def initialize(user, model)
+  def initialize(user, model, key)
     @user = user
     @model = model
 
+    @key = key
     @requested_file_paths = Set.new
   end
 
@@ -52,5 +53,9 @@ class MetisMetadata
         [file[:file_name], file]
       end.to_h
     end
+
+    @requested_files[file_path] ?
+      Magma::Answer.new(@requested_files[file_path][@key]) :
+      Magma::NilAnswer.new
   end
 end
