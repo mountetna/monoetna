@@ -23,7 +23,7 @@ const QueryTableAttributeViewer = ({
 
   const {attribute, modelName, matrixHeadings, predicate} = tableColumn;
 
-  const isMd5Predicate = useMemo(() => [ 'size', 'md5' ].includes(predicate), [predicate]);
+  const isMd5Predicate = useMemo(() => predicate && [ 'size', 'md5' ].includes(predicate), [predicate]);
 
   const mockRecord = useMemo(() => {
     const {attribute} = tableColumn;
