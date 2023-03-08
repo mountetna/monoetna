@@ -7,8 +7,9 @@ class Magma
 
     def initialize question, model, alias_name, attribute, *query_args
       super
-      @md5_set = Md5Set.new(@question.user, @model)
-      @updated_at_set = UpdatedAtSet.new(@question.user, @model)
+      @md5_set = MetisMetadata.new(@question.user, @model, :file_hash)
+      @file_size_set = MetisMetadata.new(@question.user, @model, :size)
+      @updated_at_set = MetisMetadata.new(@question.user, @model, :updated_at)
     end
 
     verb '::url' do
@@ -40,6 +41,16 @@ class Magma
       extract do |table, identity|
         table.first[column_name] ?
           @md5_set << table.first[column_name]["filename"] :
+          Magma::NilAnswer.new
+      end
+    end
+
+    verb '::size' do
+      child String
+
+      extract do |table, identity|
+        table.first[column_name] ?
+          @file_size_set << table.first[column_name]["filename"] :
           Magma::NilAnswer.new
       end
     end

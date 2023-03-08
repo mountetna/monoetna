@@ -35,7 +35,7 @@ const FileValue = ({value, predicate}) =>
       {' '}
       {value.name} ({value.type}){' '}
     </span>
-  ) : 'md5' === predicate ? (
+  ) : [ 'size', 'md5' ].includes(predicate) ? (
     <span className=''> {value} </span>
   ) : value === STUB || value.path === STUB ? (
     <span className='file-blank'> Blank file </span>
