@@ -15,7 +15,7 @@ const MoveFolderDialog = ({
   onSubmit: (bucketName: string, folderPath: string) => void;
 }) => {
   const [bucketName, setBucketName] = useState(currentBucketName);
-  const [newFolderPath, setNewFolderPath] = useState(currentPath);
+  const [newFolderPath, setNewFolderPath] = useState('');
   const invoke = useActionInvoker();
 
   const submit = useCallback(() => {

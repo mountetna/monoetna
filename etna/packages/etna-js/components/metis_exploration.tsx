@@ -194,17 +194,14 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     setPathArray(pathToArray('', basePath))
   }, [bucket])
 
-  // Buffer current folder contents
   useEffect(() => {
+    // Update main readout (path) whenever anything updates pathArray
+    setPath(stripSlash(arrayToPath(pathArray, basePath)));
+    // Buffer current folder contents
     const newPath = stripSlash(arrayToPath(pathArray, basePath))
     if (!pathSeen(newPath)) {
       fetchFolderContents(newPath)
     }
-  }, [pathArray])
-
-  // Update main readout (path) whenever anything updates pathArray
-  useEffect(() => {
-    setPath(stripSlash(arrayToPath(pathArray, basePath)));
   }, [pathArray])
 
   // onChange for inners
@@ -213,7 +210,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     let nextPathSet = [...currentPathSet].slice(0,depth+1)
     nextPathSet[depth] = newPath
     const targetPath = arrayToPath(nextPathSet, basePath)
-    console.log("onChange/updateTarget called by dapth", depth)
+    // console.log("onChange/updateTarget called by dapth", depth)
     if (!pathSeen(targetPath)) {
       fetchFolderContents(targetPath, (f) => { if (contentUse(f).length > 0) nextPathSet.push('') })
     } else {
@@ -232,8 +229,9 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     if (depth > 0) setShowAddButton(depth-1)
   }
 
+  // console.log({path})
   // console.log({pathArray})
-  console.log({contentsSeen})
+  // console.log({contentsSeen})
 
   return <Grid 
     key={`file-or-folder-picker-${project_name}-${bucket}`}
