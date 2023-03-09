@@ -41,7 +41,7 @@ const MoveFileDialog = ({
         label="Destination Folder"
         setPath={(e: any) => setNewFilePath(e)}
         basePath={''}
-        topLevelPlaceholer={'top-level of bucket'}
+        topLevelPlaceholder={'top-level of bucket'}
         path={newFilePath}
       />
       <div className='submit'>

@@ -34,7 +34,9 @@ function arrayToPath(pathElements: string[], basePath: string) {
 }
 
 function pathToArray(path: string, basePath: string) {
-  return path.replace(addSlash(basePath), '').split("/")
+  const base_use = addSlash(basePath)
+  if (path.startsWith(base_use)) path = path.slice(base_use.length)
+  return path.split("/")
 }
 
 function samePath(path1: string, path2: string) {
@@ -170,16 +172,16 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
       folderContents.folders.concat(folderContents.files) :
       folderContents.folders
   }
-  const contentKey = useCallback( (folderPath) => {
+  const pathInMetis = useCallback( (folderPath) => {
     return `${project_name}/list/${bucket}/${folderPath}`
   }, [project_name, bucket])
 
   const pathSeen = useCallback( (folderPath) => {
-    const key = contentKey(folderPath)
+    const key = pathInMetis(folderPath)
     return key in contentsSeen && !["undefined","string"].includes(typeof(contentsSeen[key]))  // todo: use string for error cases when trying to fetch folder contents
-  }, [contentKey, contentsSeen])
+  }, [pathInMetis, contentsSeen])
   const fetchFolderContents = useCallback( (path: string, callback?: (folderSummary: folderSummary) => void) => {
-    const key = contentKey(path)
+    const key = pathInMetis(path)
     setContentsSeen({...contentsSeen, [key]: undefined})
     json_get(metisPath(key)).then((metis_return) => {
       const folderSummary = simplifyFolderListReturn(metis_return)
@@ -214,7 +216,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     if (!pathSeen(targetPath)) {
       fetchFolderContents(targetPath, (f) => { if (contentUse(f).length > 0) nextPathSet.push('') })
     } else {
-      if (contentUse(contentsSeen[contentKey(targetPath)] as folderSummary).length > 0) {
+      if (contentUse(contentsSeen[pathInMetis(targetPath)] as folderSummary).length > 0) {
         nextPathSet.push('')
       }
     }
@@ -252,7 +254,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
           </Grid>
           <Grid item style={{flex: '1 1 auto'}}>
             {ready && <FileOrFolderInner
-              optionSet={ contentUse(contentsSeen[contentKey(thisPath)] as folderSummary)}
+              optionSet={ contentUse(contentsSeen[pathInMetis(thisPath)] as folderSummary)}
               target={p}
               setTarget={(e: string) => updateTarget(e, pathArray, index)}
               onEmpty={ () => { trimPath(index) } }
