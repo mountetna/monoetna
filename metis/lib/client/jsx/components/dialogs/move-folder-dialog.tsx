@@ -5,13 +5,17 @@ import {PickBucket, PickFolder} from 'etna-js/components/metis_exploration';
 
 const MoveFolderDialog = ({
   currentBucketName,
+  currentPath,
+  folderName,
   onSubmit
 }: {
   currentBucketName: string;
+  currentPath: string;
+  folderName: string;
   onSubmit: (bucketName: string, folderPath: string) => void;
 }) => {
   const [bucketName, setBucketName] = useState(currentBucketName);
-  const [newFolderPath, setNewFolderPath] = useState('');
+  const [newFolderPath, setNewFolderPath] = useState(currentPath);
   const invoke = useActionInvoker();
 
   const submit = useCallback(() => {
@@ -26,7 +30,7 @@ const MoveFolderDialog = ({
 
   return (
     <div className='move-folder-dialog'>
-      <div className='title'>Move folder</div>
+      <div className='title'>Move folder: {folderName}</div>
       <PickBucket
         bucket={bucketName}
         label="Bucket"
@@ -37,7 +41,7 @@ const MoveFolderDialog = ({
         label="Destination Folder"
         setPath={(e: any) => setNewFolderPath(e)}
         basePath={''}
-        topLevelPlaceholer={'top-level of bucket'}
+        topLevelPlaceholder={'top-level of bucket'}
         path={newFolderPath}
       />
       <div className='submit'>

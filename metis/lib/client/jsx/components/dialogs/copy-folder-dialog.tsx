@@ -5,13 +5,17 @@ import {PickBucket, PickFolder} from 'etna-js/components/metis_exploration';
 
 const CopyFolderDialog = ({
   currentBucketName,
+  currentPath,
+  folderName,
   onSubmit
 }: {
   currentBucketName: string;
+  currentPath: string;
+  folderName: string;
   onSubmit: (bucketName: string, folderPath: string) => void;
 }) => {
   const [bucketName, setBucketName] = useState(currentBucketName);
-  const [parentFolderPath, setParentFolderPath] = useState('');
+  const [parentFolderPath, setParentFolderPath] = useState(currentPath);
   const invoke = useActionInvoker();
 
   const submit = useCallback(() => {
@@ -26,7 +30,7 @@ const CopyFolderDialog = ({
 
   return (
     <div className='copy-folder-dialog'>
-      <div className='title'>Copy folder</div>
+      <div className='title'>Copy folder: {folderName}</div>
       <PickBucket
         bucket={bucketName}
         label="Bucket"
@@ -37,7 +41,7 @@ const CopyFolderDialog = ({
         label="Destination Folder"
         setPath={(e: any) => setParentFolderPath(e)}
         basePath={''}
-        topLevelPlaceholer={'top-level of bucket'}
+        topLevelPlaceholder={'top-level of bucket'}
         path={parentFolderPath}
       />
       <div className='submit'>

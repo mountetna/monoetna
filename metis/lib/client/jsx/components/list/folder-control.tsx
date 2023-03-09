@@ -87,7 +87,9 @@ const FolderControl = ({
     let dialog = {
       type: 'move-folder',
       onSubmit: moveFolder,
-      currentBucketName: bucket_name
+      currentBucketName: bucket_name,
+      currentPath: folder.folder_path,
+      folderName: folder.folder_name
     };
     invoke({
       type: 'SHOW_DIALOG',
@@ -99,7 +101,9 @@ const FolderControl = ({
     let dialog = {
       type: 'copy-folder',
       onSubmit: copyFolder,
-      currentBucketName: bucket_name
+      currentBucketName: bucket_name,
+      currentPath: folder.folder_path,
+      folderName: folder.folder_name
     };
     invoke({
       type: 'SHOW_DIALOG',
