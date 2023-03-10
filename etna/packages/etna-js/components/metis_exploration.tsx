@@ -99,23 +99,22 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
   );
 }
 
-function FileOrFolderInner({ optionSet, path, target, setTarget, onEmpty, basePath, topLevelPlaceholder, topLevelLabel, autoOpen}: {
+function FileOrFolderInner({ optionSet, path, target, setTarget, onEmpty, placeholder, label, autoOpen}: {
   optionSet: string[];
   target: string;
   path: string;
   setTarget: Function;
   onEmpty: Function;
   autoOpen: boolean;
-  basePath: string;
-  topLevelPlaceholder?: string;
-  topLevelLabel: string;
+  placeholder?: string;
+  label?: string;
 }){
   const [inputState, setInputState] = useState(target);
 
   return <Autocomplete
     key={path+'-selection'}
     disablePortal
-    openOnFocus={autoOpen}
+    openOnFocus={true}
     autoHighlight
     options={optionSet.concat('')}
     inputValue={inputState}
@@ -137,14 +136,14 @@ function FileOrFolderInner({ optionSet, path, target, setTarget, onEmpty, basePa
         return query == null ? true : o.indexOf(query) > -1;
       });
     }}
-    style={{paddingTop: samePath(path, basePath) ? 8 : undefined}}
+    style={{paddingTop: label!==undefined ? 8 : undefined}}
     renderInput={(params) => (
       <TextField
         {...params}
         error={ inputState != nullToEmptyString(target) }
-        autoFocus
-        placeholder={samePath(path, basePath) ? topLevelPlaceholder : undefined}
-        label={samePath(path, basePath) ? topLevelLabel : undefined}
+        autoFocus={autoOpen}
+        placeholder={placeholder}
+        label={label}
         size='small'
         InputLabelProps={{shrink: true}}
       />
@@ -165,21 +164,36 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   const [pathArray, setPathArray] = useState(pathToArray(path, basePath));
   const labelUse = label!==undefined ? label : allowFiles ? "File or Folder" : "Folder"
   const [showAddButton, setShowAddButton] = useState(-1)
-  const [contentsSeen, setContentsSeen] = useState({} as {[k: string]: folderSummary | undefined})
+  const [contentsSeen, setContentsSeen] = useState({} as {[k: string]: folderSummary | undefined | string})
+  const [firstRender, setFirstRender] = useState(true) // tracked so we can leave newly rendered dropdowns closed when not the user's focus
+  const [fetchContents, setFetchContents] = useState([] as string[])
+  const [fetching, setFetching] = useState(false)
 
   const contentUse = (folderContents: folderSummary) => {
     return allowFiles ?
       folderContents.folders.concat(folderContents.files) :
       folderContents.folders
   }
-  const pathInMetis = useCallback( (folderPath) => {
+  const pathInMetis = useCallback( (folderPath: string) => {
     return `${project_name}/list/${bucket}/${folderPath}`
   }, [project_name, bucket])
 
-  const pathSeen = useCallback( (folderPath) => {
+  const pathSeen = useCallback( (folderPath: string) => {
     const key = pathInMetis(folderPath)
     return key in contentsSeen && !["undefined","string"].includes(typeof(contentsSeen[key]))  // todo: use string for error cases when trying to fetch folder contents
   }, [pathInMetis, contentsSeen])
+
+  const pathsNotSeen = useCallback( () => {
+    let contentsNeeded = [] as string[]
+    if (!pathSeen('')) contentsNeeded.push('')
+    for (let i=1; i <= pathArray.length; i++) {
+      const thisPath = stripSlash(arrayToPath(pathArray.slice(0,i), basePath))
+      if (!pathSeen(thisPath)) contentsNeeded.push(thisPath)
+    }
+    return contentsNeeded
+  }, [pathInMetis, contentsSeen, pathArray])
+  
+  // fetch contents from metis. Caveat: only works one-at-a-time because contentsSeen gets stale.
   const fetchFolderContents = useCallback( (path: string, callback?: (folderSummary: folderSummary) => void) => {
     const key = pathInMetis(path)
     setContentsSeen({...contentsSeen, [key]: undefined})
@@ -193,28 +207,42 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
 
   // Reset and give time to re-buffer contents if bucket is changed
   useEffect(() => {
-    setPathArray(pathToArray('', basePath))
+    if (Object.keys(contentsSeen).length>0) { // Skip at initialization
+      setFirstRender(true)
+      setPathArray(pathToArray('', basePath))
+    }
   }, [bucket])
 
   useEffect(() => {
     // Update main readout (path) whenever anything updates pathArray
     setPath(stripSlash(arrayToPath(pathArray, basePath)));
-    // Buffer current folder contents
-    const newPath = stripSlash(arrayToPath(pathArray, basePath))
-    if (!pathSeen(newPath)) {
-      fetchFolderContents(newPath)
-    }
+    // Determine any folder contents not cached
+    setFetchContents(pathsNotSeen)
   }, [pathArray])
+
+  // Get contents, one at a time.
+  useEffect( ()=>{
+    if (fetchContents.length>0) {
+      if (pathSeen(fetchContents[0])) {
+        setFetching(false)
+        setFetchContents(fetchContents.slice(1))
+      } else if (!fetching) {
+        setFetching(true)
+        fetchFolderContents(fetchContents[0])
+      }
+    }
+  }, [fetchContents, contentsSeen])
 
   // onChange for inners
   const updateTarget = (newPath: string, currentPathSet: string[], depth: number) => {
+    setFirstRender(false)
     // Also trim at the level just picked in case not actually the deepest
     let nextPathSet = [...currentPathSet].slice(0,depth+1)
     nextPathSet[depth] = newPath
     const targetPath = arrayToPath(nextPathSet, basePath)
-    // console.log("onChange/updateTarget called by dapth", depth)
+    // console.log("onChange/updateTarget called by depth", depth)
     if (!pathSeen(targetPath)) {
-      fetchFolderContents(targetPath, (f) => { if (contentUse(f).length > 0) nextPathSet.push('') })
+      fetchFolderContents(targetPath, (f) => { if (contentUse(f).length > 0) nextPathSet.push('') }) // todo: eliminate the double-fetch caused here & by fetchContents route once pathArray is updated
     } else {
       if (contentUse(contentsSeen[pathInMetis(targetPath)] as folderSummary).length > 0) {
         nextPathSet.push('')
@@ -234,16 +262,18 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   // console.log({path})
   // console.log({pathArray})
   // console.log({contentsSeen})
+  // console.log({firstRender})
+  // console.log({fetchContents})
 
   return <Grid 
     key={`file-or-folder-picker-${project_name}-${bucket}`}
     container
     direction='column'
   >
-    {pathArray.map( (p, index, fullSet) => {
+    {pathArray.map( (p, index, fullArray) => {
       // const before = index > 1 ? fullSet[index-1] : '';
       const icon = index > 0 ? <SubdirectoryArrowRightIcon fontSize='small'/> : <i className="fas fa-folder" aria-hidden="true" style={{padding:'2px'}}/>;
-      const thisPath = arrayToPath(fullSet.slice(0,index), basePath)
+      const thisPath = arrayToPath(fullArray.slice(0,index), basePath)
       const ready = pathSeen(thisPath)
       return (
         <Grid item container
@@ -259,10 +289,9 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
               setTarget={(e: string) => updateTarget(e, pathArray, index)}
               onEmpty={ () => { trimPath(index) } }
               path={thisPath}
-              autoOpen={index!=0}
-              basePath={basePath}
-              topLevelPlaceholder={topLevelPlaceholder}
-              topLevelLabel={labelUse}
+              autoOpen={!firstRender}
+              placeholder={(index==0) ? topLevelPlaceholder : undefined}
+              label={(index==0) ? labelUse : undefined}
             />}
           </Grid>
           {showAddButton==index ? <Grid item container alignItems='flex-end' style={{width: 'auto'}}>
@@ -270,7 +299,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
               aria-label="Re-add next level"
               size="small"
               onClick={() => {
-                setPathArray([...fullSet, ''])
+                setPathArray([...fullArray, ''])
                 setShowAddButton(-1)
                 }}>
               <AddIcon/>
