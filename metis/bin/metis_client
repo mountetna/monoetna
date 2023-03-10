@@ -1291,13 +1291,13 @@ EOT
 
     def run(local_directory)
       # collect all files and folders
-      folders, files = Dir[::File.join(local_directory, "**", "*")].partition { |f| ::File.directory?(f) }
+      folders, all_files = Dir[::File.join(local_directory, "**", "*")].partition { |f| ::File.directory?(f) }
 
-      puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
-
-      md5files = files.select do |file|
+      md5files, files = all_files.partition do |file|
         ::File.basename(file) == options[:file]
       end
+
+      puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
 
       md5files.each do |md5file|
         load_md5_cache(md5file)
@@ -1368,7 +1368,7 @@ EOT
     def run(local_directory)
       folders, files, file_md5s = make_md5_cache(local_directory)
 
-      files = files.select {|f| ::File.exists?(f) }
+      files = files.select {|f| ::File.exists?(f) && !is_checksum_file?(f) }
 
       deleted_files = deleted_folders = 0
       remaining_size = 0
@@ -1413,9 +1413,12 @@ EOT
   end
 
   class Validate < Command
+    include CacheMd5
+
     usage "validate <local_directory>"
 
     def parse(args)
+      options[:file] = "md5checksum.txt"
       parse_opts(args) do |opts|
         opts.on("-l", "--list", "List unarchived files") do |n|
           options[:list] = true
@@ -1435,9 +1438,7 @@ EOT
       # collect all files and folders
       folders, files, file_md5s = make_md5_cache(local_directory)
 
-      files = files.select {|f| ::File.exists?(f) }
-
-      puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
+      files = files.select {|f| ::File.exists?(f) && !is_checksum_file?(f) }
 
       archived_files_count = 0
       unarchived_files = []
