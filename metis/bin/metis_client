@@ -1291,13 +1291,13 @@ EOT
 
     def run(local_directory)
       # collect all files and folders
-      folders, files = Dir[::File.join(local_directory, "**", "*")].partition { |f| ::File.directory?(f) }
+      folders, all_files = Dir[::File.join(local_directory, "**", "*")].partition { |f| ::File.directory?(f) }
 
-      puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
-
-      md5files = files.select do |file|
+      md5files, files = all_files.partition do |file|
         ::File.basename(file) == options[:file]
       end
+
+      puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
 
       md5files.each do |md5file|
         load_md5_cache(md5file)
@@ -1316,10 +1316,10 @@ EOT
       puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}      "
 
       output =  md5_cache.map do |file_name, checksum|
-        "#{checksum}  #{file_name}"
+        "#{checksum}  #{Pathname.new(file_name).relative_path_from(Pathname.new(local_directory))}"
       end.join("\n")
 
-      File.open("md5checksum.txt", "w") do |f|
+      File.open(::File.join(local_directory, options[:file]), "w") do |f|
         f.puts output
       end
 
@@ -1327,22 +1327,7 @@ EOT
     end
   end
 
-  class Nuke < Command
-    usage "nuke <local_directory>"
-
-    def parse(args)
-      options[:file] = "md5checksum.txt"
-      parse_opts(args) do |opts|
-        opts.on("-f", "--file FILE", "Use FILE as the pattern to find and write checksum files") do |file|
-          options[:file] = file
-        end
-
-        opts.on("-p", "--project-name PROJECT_NAME", "Restrict search to specified project") do |n|
-          options[:project_name] = n
-        end
-      end
-    end
-
+  module CacheMd5
     def make_md5_cache(local_directory)
       cmd = MetisShell::Checksum.new(@shell)
       args = cmd.parse(["--file", options[:file], local_directory])
@@ -1360,9 +1345,30 @@ EOT
     def is_root_checksum_file?(file)
       file == options[:file]
     end
+  end
+
+  class Nuke < Command
+    include CacheMd5
+
+    usage "nuke <local_directory>"
+
+    def parse(args)
+      options[:file] = "md5checksum.txt"
+      parse_opts(args) do |opts|
+        opts.on("-f", "--file FILE", "Use FILE as the pattern to find and write checksum files") do |file|
+          options[:file] = file
+        end
+
+        opts.on("-p", "--project-name PROJECT_NAME", "Restrict search to specified project") do |n|
+          options[:project_name] = n
+        end
+      end
+    end
 
     def run(local_directory)
       folders, files, file_md5s = make_md5_cache(local_directory)
+
+      files = files.select {|f| ::File.exists?(f) && !is_checksum_file?(f) }
 
       deleted_files = deleted_folders = 0
       remaining_size = 0
@@ -1374,7 +1380,8 @@ EOT
         found = ::Set.new(response[:found])
 
         file_md5s.each do |file, md5|
-          if found.include?(md5) && !is_checksum_file?(file)
+          next if is_checksum_file?(file)
+          if found.include?(md5)
             ::File.delete(file)
             deleted_files += 1
           else
@@ -1406,12 +1413,19 @@ EOT
   end
 
   class Validate < Command
+    include CacheMd5
+
     usage "validate <local_directory>"
 
     def parse(args)
+      options[:file] = "md5checksum.txt"
       parse_opts(args) do |opts|
         opts.on("-l", "--list", "List unarchived files") do |n|
           options[:list] = true
+        end
+
+        opts.on("-f", "--file FILE", "Use FILE as the pattern to find and write checksum files") do |file|
+          options[:file] = file
         end
 
         opts.on("-p", "--project-name PROJECT_NAME", "Restrict search to specified project") do |n|
@@ -1422,22 +1436,15 @@ EOT
 
     def run(local_directory)
       # collect all files and folders
-      folders, files = Dir[::File.join(local_directory, "**", "*")].partition { |f| ::File.directory?(f) }
+      folders, files, file_md5s = make_md5_cache(local_directory)
 
-      puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
+      files = files.select {|f| ::File.exists?(f) && !is_checksum_file?(f) }
 
       archived_files_count = 0
       unarchived_files = []
       unarchived_size = 0
 
       unless files.empty?
-        # compute md5sums
-        file_md5s = files.map.with_index do |file,i|
-          print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}\r"
-          [ file, %x{ md5sum "#{file}" }.split(' ')[0] ]
-        end.to_h
-        puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}\n"
-
         # check with metis
         response = @shell.client.exists(file_md5s.values, options[:project_name])
 
@@ -1445,6 +1452,7 @@ EOT
         found = ::Set.new(response[:found])
 
         file_md5s.each do |file, md5|
+          next if is_checksum_file?(file)
           if found.include?(md5)
             archived_files_count += 1
           else
