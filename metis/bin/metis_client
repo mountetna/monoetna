@@ -1316,7 +1316,7 @@ EOT
       puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}      "
 
       output =  md5_cache.map do |file_name, checksum|
-        "#{checksum}  #{Pathname.new(file_name).relative_path_from(local_directory)}"
+        "#{checksum}  #{Pathname.new(file_name).relative_path_from(Pathname.new(local_directory))}"
       end.join("\n")
 
       File.open(::File.join(local_directory, options[:file]), "w") do |f|
