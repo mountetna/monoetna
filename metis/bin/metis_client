@@ -1319,7 +1319,7 @@ EOT
         "#{checksum}  #{file_name}"
       end.join("\n")
 
-      File.open("md5checksum.txt", "w") do |f|
+      File.open(options[:file], "w") do |f|
         f.puts output
       end
 
