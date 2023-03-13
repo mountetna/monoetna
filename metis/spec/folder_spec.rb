@@ -735,7 +735,7 @@ describe FolderController do
 
       expect(last_response.status).to eq(422)
       expect(json_body[:errors]).to eq(
-        ["Cannot copy over existing folder: \"metis://athena/files/helmet\""]
+        ["Cannot write over existing folder: \"metis://athena/files/helmet\""]
       )
 
       # the actual folder is untouched

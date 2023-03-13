@@ -97,13 +97,15 @@ const FileControl = ({
     let dialog = {
       type: 'move-file',
       onSubmit: moveFile,
-      currentBucketName: bucket_name
+      currentBucketName: bucket_name,
+      currentPath: file.file_path,
+      folderName: file.file_name
     };
     invoke({
       type: 'SHOW_DIALOG',
       dialog
     });
-  }, [moveFile, bucket_name, invoke]);
+  }, [moveFile, bucket_name, invoke, file]);
 
   const filePropertiesDialog = useCallback(() => {
     let dialog = {

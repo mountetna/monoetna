@@ -87,25 +87,29 @@ const FolderControl = ({
     let dialog = {
       type: 'move-folder',
       onSubmit: moveFolder,
-      currentBucketName: bucket_name
+      currentBucketName: bucket_name,
+      currentPath: folder.folder_path,
+      folderName: folder.folder_name
     };
     invoke({
       type: 'SHOW_DIALOG',
       dialog
     });
-  }, [moveFolder, bucket_name, invoke]);
+  }, [moveFolder, bucket_name, invoke, folder]);
 
   const copyFolderDialog = useCallback(() => {
     let dialog = {
       type: 'copy-folder',
       onSubmit: copyFolder,
-      currentBucketName: bucket_name
+      currentBucketName: bucket_name,
+      currentPath: folder.folder_path,
+      folderName: folder.folder_name
     };
     invoke({
       type: 'SHOW_DIALOG',
       dialog
     });
-  }, [copyFolder, bucket_name, invoke]);
+  }, [copyFolder, bucket_name, invoke, folder]);
 
   let items: UiControlItem[] = folder.read_only
     ? [

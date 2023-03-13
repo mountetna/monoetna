@@ -215,7 +215,7 @@ describe Metis::FolderCopyRevision do
       revision.validate
       expect(revision.errors.length).to eq(1)
       expect(revision.errors[0]).to eq(
-          "Cannot copy over existing folder: \"metis://athena/files/wisdom_jr\""
+          "Cannot write over existing folder: \"metis://athena/files/wisdom_jr\""
       )
   end
 
@@ -467,7 +467,7 @@ describe Metis::FolderCopyRevision do
       expect(revision.errors.length).to eq(2)
       expect(revision.errors).to eq([
           "Invalid bucket \"war\" in project \"athena\". Check the bucket name and your permissions.",
-          "Cannot copy over existing folder: \"metis://athena/files/wisdom\""
+          "Cannot write over existing folder: \"metis://athena/files/wisdom\""
       ])
   end
 
@@ -647,7 +647,7 @@ describe Metis::FolderCopyRevision do
           dest: 'metis://athena/files/wisdom',
           errors: [
               "Invalid bucket \"magma\" in project \"athena\". Check the bucket name and your permissions.",
-              "Cannot copy over existing folder: \"metis://athena/files/wisdom\""],
+              "Cannot write over existing folder: \"metis://athena/files/wisdom\""],
       })
   end
 end
