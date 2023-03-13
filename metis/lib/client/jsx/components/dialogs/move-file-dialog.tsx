@@ -15,7 +15,7 @@ const MoveFileDialog = ({
   onSubmit: (bucketName: string, filePath: string) => void;
 }) => {
   const [bucketName, setBucketName] = useState(currentBucketName);
-  const [newFilePath, setNewFilePath] = useState(currentPath);
+  const [newFilePath, setNewFilePath] = useState(currentPath.split("/").slice(0,-1).join("/"));
   const invoke = useActionInvoker();
 
   const submit = useCallback(() => {

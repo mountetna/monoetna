@@ -4,7 +4,6 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import { Grid, IconButton, TextField } from '@material-ui/core';
 import { json_get } from 'etna-js/utils/fetch';
 import SubdirectoryArrowRightIcon from '@material-ui/icons/SubdirectoryArrowRight';
-import {useAsyncCallback} from 'etna-js/utils/cancellable_helpers';
 import AddIcon from '@material-ui/icons/Add';
 
 declare const CONFIG: {[key: string]: any};
@@ -182,16 +181,6 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     const key = pathInMetis(folderPath)
     return key in contentsSeen && !["undefined","string"].includes(typeof(contentsSeen[key]))  // todo: use string for error cases when trying to fetch folder contents
   }, [pathInMetis, contentsSeen])
-
-  const pathsNotSeen = useCallback( () => {
-    let contentsNeeded = [] as string[]
-    if (!pathSeen('')) contentsNeeded.push('')
-    for (let i=1; i <= pathArray.length; i++) {
-      const thisPath = stripSlash(arrayToPath(pathArray.slice(0,i), basePath))
-      if (!pathSeen(thisPath)) contentsNeeded.push(thisPath)
-    }
-    return contentsNeeded
-  }, [pathInMetis, contentsSeen, pathArray])
   
   // fetch contents from metis. Caveat: only works one-at-a-time because contentsSeen gets stale.
   const fetchFolderContents = useCallback( (path: string, callback?: (folderSummary: folderSummary) => void) => {
@@ -199,7 +188,8 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     setContentsSeen({...contentsSeen, [key]: undefined})
     json_get(metisPath(key)).then((metis_return) => {
       const folderSummary = simplifyFolderListReturn(metis_return)
-      setContentsSeen({...contentsSeen, [key]: folderSummary})
+      const newContentsSeen = {...contentsSeen, [key]: folderSummary}
+      setContentsSeen(newContentsSeen)
       if (callback) callback(folderSummary)
     })
   },
@@ -216,9 +206,17 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   useEffect(() => {
     // Update main readout (path) whenever anything updates pathArray
     setPath(stripSlash(arrayToPath(pathArray, basePath)));
-    // Determine any folder contents not cached
-    setFetchContents(pathsNotSeen)
   }, [pathArray])
+
+  // Grab folder contents at very start
+  useEffect( () => {
+    let contentsNeeded = ['']
+    for (let i=1; i <= pathArray.length; i++) {
+      const thisPath = stripSlash(arrayToPath(pathArray.slice(0,i), basePath))
+      contentsNeeded.push(thisPath)
+    }
+    setFetchContents(contentsNeeded)
+  }, [])
 
   // Get contents, one at a time.
   useEffect( ()=>{
@@ -228,10 +226,14 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
         setFetchContents(fetchContents.slice(1))
       } else if (!fetching) {
         setFetching(true)
-        fetchFolderContents(fetchContents[0])
+        if (fetchContents[0]==path) {
+          fetchFolderContents(fetchContents[0], (f) => { if (contentUse(f).length > 0) setPathArray([...pathArray, '']) })
+        } else {
+          fetchFolderContents(fetchContents[0])
+        }
       }
     }
-  }, [fetchContents, contentsSeen])
+  }, [fetchContents, contentsSeen, pathArray])
 
   // onChange for inners
   const updateTarget = (newPath: string, currentPathSet: string[], depth: number) => {
@@ -240,16 +242,22 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     let nextPathSet = [...currentPathSet].slice(0,depth+1)
     nextPathSet[depth] = newPath
     const targetPath = arrayToPath(nextPathSet, basePath)
-    // console.log("onChange/updateTarget called by depth", depth)
     if (!pathSeen(targetPath)) {
-      fetchFolderContents(targetPath, (f) => { if (contentUse(f).length > 0) nextPathSet.push('') }) // todo: eliminate the double-fetch caused here & by fetchContents route once pathArray is updated
+      fetchFolderContents(targetPath, (f) => {
+        if (contentUse(f).length > 0) {
+          setPathArray([...nextPathSet, ''])
+        } else {
+          setPathArray(nextPathSet)
+        }
+      }) // todo: eliminate the double-fetch caused here & by fetchContents route once pathArray is updated
     } else {
       if (contentUse(contentsSeen[pathInMetis(targetPath)] as folderSummary).length > 0) {
-        nextPathSet.push('')
+        setPathArray([...nextPathSet, ''])
+      } else {
+        setPathArray(nextPathSet)
       }
     }
     setShowAddButton(-1)
-    setPathArray(nextPathSet)
   }
   
   // clear for inners
@@ -258,12 +266,6 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     setPathArray(nextPathSet)
     if (depth > 0) setShowAddButton(depth-1)
   }
-
-  // console.log({path})
-  // console.log({pathArray})
-  // console.log({contentsSeen})
-  // console.log({firstRender})
-  // console.log({fetchContents})
 
   return <Grid 
     key={`file-or-folder-picker-${project_name}-${bucket}`}
