@@ -116,7 +116,7 @@ class Metis
           mpath_w_objs.folder) && folder_check_type == 'dest')
 
           @errors.push(
-            "Cannot copy over existing folder: \"#{mpath_w_objs.mpath.path}\""
+            "Cannot write over existing folder: \"#{mpath_w_objs.mpath.path}\""
           )
           errors_found = true
       end
