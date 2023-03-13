@@ -1368,16 +1368,23 @@ EOT
       end
 
       # compute md5sums
-      files.each.with_index do |file,i|
-        file = clean_path(file)
+      begin
+        files.each.with_index do |file,i|
+          file = clean_path(file)
 
-        print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}      \r"
+          print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}      \r"
 
-        next if ::File.basename(file) == options[:file] || md5_cache[file]
+          next if ::File.basename(file) == options[:file] || md5_cache[file]
 
-        md5_cache[file] = %x{ md5sum #{Shellwords.escape(file)} }.split(' ')[0]
+          md5_cache[file] = %x{ md5sum #{Shellwords.escape(file)} }.split(' ')[0]
+        end
+        puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}      "
+      rescue Exception => e
+        puts
+        puts e.message
+        puts e.backtrace
+        puts "Aborting checksum computation, writing partial #{options[:file]}"
       end
-      puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}      "
 
       output =  md5_cache.map do |file_name, checksum|
         "#{checksum}  #{Pathname.new(file_name).relative_path_from(Pathname.new(local_directory))}"
