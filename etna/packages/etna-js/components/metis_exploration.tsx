@@ -200,6 +200,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     if (Object.keys(contentsSeen).length>0) { // Skip at initialization
       setFirstRender(true)
       setPathArray(pathToArray('', basePath))
+      setFetchContents([''])
     }
   }, [bucket])
 
@@ -226,7 +227,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
         setFetchContents(fetchContents.slice(1))
       } else if (!fetching) {
         setFetching(true)
-        if (fetchContents[0]==path) {
+        if (path !='' && fetchContents[0]==path) {
           fetchFolderContents(fetchContents[0], (f) => { if (contentUse(f).length > 0) setPathArray([...pathArray, '']) })
         } else {
           fetchFolderContents(fetchContents[0])
