@@ -864,6 +864,8 @@ EOT
     def run(*args)
       raise ShellError, 'No bucket is selected' if !@shell.bucket_name
 
+      raise ShellError, 'Invalid type specified' unless [ nil, 'file', 'folder' ].include?(options[:type])
+
       params = args.map do |arg|
         name, op, value = PARAM_REGEX.match(arg).captures.compact
 
