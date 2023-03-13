@@ -386,6 +386,13 @@ class MetisClient < Client
     return json_body(response)[:buckets]
   end
 
+  def find(project_name, bucket_name, params)
+    response = json_post("/#{project_name}/find/#{bucket_name}", params: params)
+    raise MetisClient::Error, "Find failed" unless response.code == "200"
+
+    return json_body(response)
+  end
+
   def list_folder(project_name,folder_path)
     response = get_request( "/#{project_name}/list/#{encode_path(folder_path || '')}" )
 
@@ -826,6 +833,59 @@ EOT
         return [ rows, cols, col_widths ]
       end
       return [ entries.size, 1, entries.map{0} ]
+    end
+  end
+
+  class Find < Command
+    usage "find [<attribute op value>+]"
+
+    def parse(args)
+      parse_opts(args) do |opts|
+        opts.on("-t", "--type <file|folder>", "Restricts find by type") do |type|
+          options[:type] = type
+        end
+      end
+    end
+
+    PARAMS={
+      created_at: [ '<', '>', '>=', '<=', '=' ],
+      updated_at: [ '<', '>', '>=', '<=', '=' ],
+      name: [ '=~', '=' ]
+    }
+
+    PARAM_REGEX=Regexp.new(
+      "(?:#{
+        PARAMS.map do |name, ops|
+          %Q{(#{name})(#{ops.join('|')})(\\S+)}
+        end.join('|')
+      })"
+    )
+
+    def run(*args)
+      raise ShellError, 'No bucket is selected' if !@shell.bucket_name
+
+      params = args.map do |arg|
+        name, op, value = PARAM_REGEX.match(arg).captures.compact
+
+        raise ShellError, "Poorly formed find parameter '#{arg}'" unless name
+
+        {
+          attribute: name,
+          predicate: op,
+          value: value,
+          type: options[:type]
+        }.compact
+      end
+
+      results = @shell.client.find(@shell.project_name, @shell.bucket_name, params)
+
+      found = (results[:files] + results[:folders]).sort_by {|f| f[:file_path] || f[:folder_path] }
+
+      if found.empty?
+        puts "No results."
+      else
+        puts found.map{|f| f[:file_path] || (f[:folder_path] + "/") }.join("\n")
+      end
     end
   end
 
@@ -1297,6 +1357,8 @@ EOT
         ::File.basename(file) == options[:file]
       end
 
+      files = files.select {|f| ::File.exists?(f) }
+
       puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
 
       md5files.each do |md5file|
@@ -1708,6 +1770,12 @@ EOT
     @client ||= MetisClient.new(@host, @token, logger)
   end
 
+  def bucket_name
+    return nil unless @cwd
+
+    @cwd.split('/').first
+  end
+
   def relative_path(file_path=nil)
     path = case file_path
     when '.', nil then @cwd
@@ -1896,7 +1964,6 @@ def start
 
   MetisConfig.instance.config(config)
   MetisShell.new(ARGV[0], *ARGV[1..-1]).run
-  puts
 end
 
 start unless test_env?
