@@ -105,7 +105,7 @@ const FileControl = ({
       type: 'SHOW_DIALOG',
       dialog
     });
-  }, [moveFile, bucket_name, invoke]);
+  }, [moveFile, bucket_name, invoke, file]);
 
   const filePropertiesDialog = useCallback(() => {
     let dialog = {

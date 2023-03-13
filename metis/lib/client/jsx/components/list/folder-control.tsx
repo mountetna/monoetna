@@ -95,7 +95,7 @@ const FolderControl = ({
       type: 'SHOW_DIALOG',
       dialog
     });
-  }, [moveFolder, bucket_name, invoke]);
+  }, [moveFolder, bucket_name, invoke, folder]);
 
   const copyFolderDialog = useCallback(() => {
     let dialog = {
@@ -109,7 +109,7 @@ const FolderControl = ({
       type: 'SHOW_DIALOG',
       dialog
     });
-  }, [copyFolder, bucket_name, invoke]);
+  }, [copyFolder, bucket_name, invoke, folder]);
 
   let items: UiControlItem[] = folder.read_only
     ? [

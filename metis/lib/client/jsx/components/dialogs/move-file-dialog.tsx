@@ -15,7 +15,7 @@ const MoveFileDialog = ({
   onSubmit: (bucketName: string, filePath: string) => void;
 }) => {
   const [bucketName, setBucketName] = useState(currentBucketName);
-  const [newFilePath, setNewFilePath] = useState(currentPath.split("/").slice(0,-1).join("/"));
+  const [newFilePath, setNewFilePath] = useState(currentPath.split('/').slice(0,-1).join('/'));
   const invoke = useActionInvoker();
 
   const submit = useCallback(() => {
@@ -24,9 +24,9 @@ const MoveFileDialog = ({
   }, [bucketName, newFilePath, invoke, onSubmit]);
 
   const changeBucket = useCallback((e) => {
-    setNewFilePath('')
-    setBucketName(e)
-  }, [])
+    setNewFilePath('');
+    setBucketName(e);
+  }, []);
 
   return (
     <div className='move-file-dialog'>

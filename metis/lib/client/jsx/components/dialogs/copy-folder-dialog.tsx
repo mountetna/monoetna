@@ -15,7 +15,7 @@ const CopyFolderDialog = ({
   onSubmit: (bucketName: string, folderPath: string) => void;
 }) => {
   const [bucketName, setBucketName] = useState(currentBucketName);
-  const [parentFolderPath, setParentFolderPath] = useState(currentPath.split("/").slice(0,-1).join("/"));
+  const [parentFolderPath, setParentFolderPath] = useState(currentPath.split('/').slice(0,-1).join('/'));
   const invoke = useActionInvoker();
 
   const submit = useCallback(() => {
@@ -24,9 +24,9 @@ const CopyFolderDialog = ({
   }, [bucketName, parentFolderPath, invoke, onSubmit]);
 
   const changeBucket = useCallback((e) => {
-    setParentFolderPath('')
-    setBucketName(e)
-  }, [])
+    setParentFolderPath('');
+    setBucketName(e);
+  }, []);
 
   return (
     <div className='copy-folder-dialog'>
