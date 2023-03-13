@@ -38,10 +38,6 @@ function pathToArray(path: string, basePath: string) {
   return path.split("/")
 }
 
-function samePath(path1: string, path2: string) {
-  return addSlash(path1) == addSlash(path2)
-}
-
 function simplifyFolderListReturn(fullList: any) {
   return {
     folders: fullList.folders.map( (f: any) => f.folder_name) as string[],
@@ -162,7 +158,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
 }) {
   const [pathArray, setPathArray] = useState(pathToArray(path, basePath));
   const labelUse = label!==undefined ? label : allowFiles ? "File or Folder" : "Folder"
-  const [showAddButton, setShowAddButton] = useState(-1)
+  const [showAddButton, setShowAddButton] = useState(-1) // holds index of pathArray level needing plus button shown next to it
   const [contentsSeen, setContentsSeen] = useState({} as {[k: string]: folderSummary | undefined | string})
   const [firstRender, setFirstRender] = useState(true) // tracked so we can leave newly rendered dropdowns closed when not the user's focus
   const [fetchContents, setFetchContents] = useState([] as string[])
@@ -195,21 +191,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   },
   [project_name, bucket, contentsSeen]);
 
-  // Reset and give time to re-buffer contents if bucket is changed
-  useEffect(() => {
-    if (Object.keys(contentsSeen).length>0) { // Skip at initialization
-      setFirstRender(true)
-      setPathArray(pathToArray('', basePath))
-      setFetchContents([''])
-    }
-  }, [bucket])
-
-  useEffect(() => {
-    // Update main readout (path) whenever anything updates pathArray
-    setPath(stripSlash(arrayToPath(pathArray, basePath)));
-  }, [pathArray])
-
-  // Grab folder contents at very start
+  // Determine folder contents to grab at very start
   useEffect( () => {
     let contentsNeeded = ['']
     for (let i=1; i <= pathArray.length; i++) {
@@ -219,7 +201,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     setFetchContents(contentsNeeded)
   }, [])
 
-  // Get contents, one at a time.
+  // Get contents of paths in fetchContents, one at a time.
   useEffect( ()=>{
     if (fetchContents.length>0) {
       if (pathSeen(fetchContents[0])) {
@@ -236,6 +218,20 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     }
   }, [fetchContents, contentsSeen, pathArray])
 
+  // Reset if bucket is changed and don't auto-open dropdowns
+  useEffect(() => {
+    if (Object.keys(contentsSeen).length>0) { // Skip at initialization
+      setFirstRender(true)
+      setPathArray(pathToArray('', basePath))
+      setFetchContents([''])
+    }
+  }, [bucket])
+
+  // Update main readout (path) whenever anything updates pathArray
+  useEffect(() => {
+    setPath(stripSlash(arrayToPath(pathArray, basePath)));
+  }, [pathArray])
+
   // onChange for inners
   const updateTarget = (newPath: string, currentPathSet: string[], depth: number) => {
     setFirstRender(false)
@@ -250,7 +246,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
         } else {
           setPathArray(nextPathSet)
         }
-      }) // todo: eliminate the double-fetch caused here & by fetchContents route once pathArray is updated
+      })
     } else {
       if (contentUse(contentsSeen[pathInMetis(targetPath)] as folderSummary).length > 0) {
         setPathArray([...nextPathSet, ''])
