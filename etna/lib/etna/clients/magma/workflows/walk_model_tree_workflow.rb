@@ -63,12 +63,21 @@ module Etna
             page_size: 100,
             &block)
           q = [ { model_name: model_name, from: nil, record_names: record_names } ]
-          seen = Set.new
+          seen = {}
 
           while (path = q.pop)
             model_name = path[:model_name]
-            next if seen.include?([path[:from], model_name])
-            seen.add([path[:from], model_name])
+            seen[model_name] ||= Set.new
+
+            new_record_names = path[:record_names]
+
+            if new_record_names.is_a?(Array)
+              new_record_names -= seen[model_name].to_a
+
+              next if new_record_names.empty?
+
+              seen[model_name].merge(new_record_names)
+            end
 
             template = template_for(model_name)
             query_attributes, walk_attributes = masked_attributes(
@@ -80,7 +89,7 @@ module Etna
             request = RetrievalRequest.new(
                 project_name: magma_crud.project_name,
                 model_name: model_name,
-                record_names: path[:record_names],
+                record_names: new_record_names,
                 filter: model_filters[model_name],
                 attribute_names: query_attributes,
                 page_size: page_size, page: 1
@@ -95,6 +104,8 @@ module Etna
               links = []
               attributes = []
               model = response.models.model(model_name)
+
+              seen[model_name].merge( model.documents.document_keys )
 
               template.attributes.attribute_keys.each do |attr_name|
                 attr = template.attributes.attribute(attr_name)

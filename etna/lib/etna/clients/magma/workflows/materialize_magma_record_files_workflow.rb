@@ -9,10 +9,10 @@ module Etna
           :metis_client, :magma_client, :project_name,
           :model_name, :model_filters, :model_attributes_mask,
           :filesystem, :logger, :stub_files, :concurrency,
-          :page_size, :record_names, keyword_init: true)
+          :page_size, :record_names, :list_only, keyword_init: true)
 
         def initialize(**kwds)
-          super(**({filesystem: Etna::Filesystem.new, page_size: 20, concurrency: 10, record_names: "all"}.update(kwds)))
+          super(**({filesystem: Etna::Filesystem.new, page_size: 20, concurrency: 10, record_names: "all", list_only: false}.update(kwds)))
         end
 
         def magma_crud
@@ -108,17 +108,27 @@ module Etna
             end
 
             dest_file = File.join(dest_dir, metadata_file_name(record_name: record[template.identifier], record_model_name: template.name, ext: "_#{attr_name}_#{idx}#{File.extname(filename)}"))
-            filesystem.mkdir_p(File.dirname(dest_file))
-            sync_metis_data_workflow.copy_file(dest: dest_file, url: url, stub: stub_files)
-            record_to_serialize[attr_name] << {file: dest_file, original_filename: filename}
+
+            if list_only
+              puts dest_file
+            else
+              filesystem.mkdir_p(File.dirname(dest_file))
+              sync_metis_data_workflow.copy_file(dest: dest_file, url: url, stub: stub_files)
+              record_to_serialize[attr_name] << {file: dest_file, original_filename: filename}
+            end
           end
 
           dest_file = File.join(dest_dir, metadata_file_name(record_name: record[template.identifier], record_model_name: template.name, ext: '.json'))
-          filesystem.mkdir_p(File.dirname(dest_file))
-          json = record_to_serialize.to_json
 
-          filesystem.with_writeable(dest_file, "w", size_hint: json.bytes.length) do |io|
-            io.write(json)
+          if list_only
+            puts dest_file
+          else
+            filesystem.mkdir_p(File.dirname(dest_file))
+            json = record_to_serialize.to_json
+
+            filesystem.with_writeable(dest_file, "w", size_hint: json.bytes.length) do |io|
+              io.write(json)
+            end
           end
         end
 
