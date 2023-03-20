@@ -1335,6 +1335,10 @@ EOT
       end
     end
 
+    def is_valid_checksum?(checksum)
+      checksum =~ /^[a-f0-9]{32}$/i
+    end
+
     def md5_cache
       @md5_cache ||= {}
     end
@@ -1345,7 +1349,7 @@ EOT
       File.readlines(md5file, encoding: "UTF-8").each do |line|
         checksum, file_name = line.chomp.split(/\s+/, 2)
         full_path = clean_path(::File.join( md5dir, file_name ))
-        next unless ::File.exists?(full_path)
+        next unless ::File.exists?(full_path) && is_valid_checksum?(checksum)
 
         md5_cache[full_path] = checksum
       end
@@ -1376,7 +1380,14 @@ EOT
 
           next if ::File.basename(file) == options[:file] || md5_cache[file]
 
-          md5_cache[file] = %x{ md5sum #{Shellwords.escape(file)} }.split(' ')[0]
+          checksum = %x{ md5sum #{Shellwords.escape(file)} }.split(' ')[0]
+
+          unless is_valid_checksum?(checksum)
+            puts "Could not compute md5sum for #{file}"
+            next
+          end
+
+          md5_cache[file] = checksum
         end
         puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}      "
       rescue Exception => e
