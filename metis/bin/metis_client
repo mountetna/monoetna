@@ -1549,6 +1549,8 @@ EOT
       if options[:list] && !unarchived_files.empty?
         puts "\nMissing files:"
         puts unarchived_files
+        puts "Archived files:"
+        puts archived_files
       end
     end
   end
