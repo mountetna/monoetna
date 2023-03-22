@@ -1523,6 +1523,7 @@ EOT
       files = files.select {|f| ::File.exists?(f) && !is_checksum_file?(f) }
 
       archived_files_count = 0
+      archived_files = []
       unarchived_files = []
       unarchived_size = 0
 
@@ -1536,6 +1537,7 @@ EOT
         file_md5s.each do |file, md5|
           next if is_checksum_file?(file)
           if found.include?(md5)
+            archived_files << file
             archived_files_count += 1
           else
             unarchived_files << file
