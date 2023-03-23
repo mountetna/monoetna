@@ -21,7 +21,7 @@ from datetime import datetime
 def __getattr__(name):
     from .dags.decorators import system_dag, dag, rollup_dag
     from .operators import run_on_docker
-    from .etls.decorators import metis_etl, box_etl, cat_etl
+    from .etls.decorators import metis_etl, box_etl, cat_etl, universal_linker
     from .etls.metis import (
         link,
         MetisEtlHelpers,
@@ -60,7 +60,7 @@ def __getattr__(name):
 if globals().get("notathing", False):
     from .dags.decorators import system_dag, dag, rollup_dag
     from .operators import run_on_docker
-    from .etls.decorators import metis_etl, box_etl, cat_etl
+    from .etls.decorators import universal_linker, metis_etl, box_etl, cat_etl
     from .etls.metis import (
         link,
         MetisEtlHelpers,

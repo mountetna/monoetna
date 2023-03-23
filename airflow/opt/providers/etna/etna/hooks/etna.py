@@ -10,7 +10,7 @@ from airflow.exceptions import AirflowException
 from airflow.hooks.base import BaseHook
 from airflow.models import Connection
 from airflow.operators.python import get_current_context
-from mountetna import Janus, Magma, Metis, TokenAuth, SigAuth
+from mountetna import Janus, Magma, Metis, Polyphemus, TokenAuth, SigAuth
 from requests.auth import AuthBase
 
 from etna.dags.project_name import get_project_name
@@ -139,6 +139,17 @@ class EtnaHook(BaseHook):
         yield Metis(
             auth,
             self.get_hostname("metis"),
+            session=self.get_session(),
+            retry=self.get_retry_policy())
+
+    @contextlib.contextmanager
+    def polyphemus(
+        self, project_name: Optional[str] = None, read_only=True
+    ) -> typing.ContextManager["Polyphemus"]:
+        auth = self.get_task_auth(project_name, read_only)
+        yield Polyphemus(
+            auth,
+            self.get_hostname("polyphemus"),
             session=self.get_session(),
             retry=self.get_retry_policy())
 

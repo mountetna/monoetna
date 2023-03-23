@@ -7,7 +7,7 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.operators.python import get_current_context
 
-from etna.dags.decorators import dag, system_epoch
+from etna.dags.decorators import dag, system_dag, system_epoch
 from etna.etls.etl_task_batching import (
     batch_end_context_key,
     get_batch_range,
@@ -33,82 +33,22 @@ from etna.etls.cat import (
     load_cat_files_batch,
     CatEtlHelpers
 )
+from etna.etls.universal_metis_linker import UniversalMetisLinker
 
-def universal_linker():
-    """
-    Creates a universal linker etl. This consumes tails on metis, but it does
-    it for a set of projects interactively
-    """
+def universal_linker(interval=timedelta(minutes=2)):
+    def instantiate_dag(fn):
+        @functools.wraps(fn)
+        def test_univ_linker():
+            @task
+            def run_linker():
+                linker = UniversalMetisLinker()
 
-    # Linker steps:
-    # 1. Get ETL configs from Polyphemus for loader 'metis'.
-    with hook.polyphemus() as polyph:
-        etls = polyph.etl_list(job_type: 'metis')
+                linker.run()
 
-    project_names = set(etl.project_name for etl in running_etls)
+            run_linker()
+        return system_dag(interval)(test_univ_linker)
 
-    # 2. Get Metis tail for the specified time period and the projects to run from ETL configs
-
-    project_revisions = {}
-
-    for etl in etls:
-        if not should_run(etl):
-            continue
-
-        project_revisions.setdefault( etl.project_name, {} )
-        try:
-            for model_name, model in etl.config.items():
-                for script in model['scripts']:
-                    tail = ensure_tail(tail_collection)
-
-                    if script['type'] == 'file':
-                        files = find_tail_files(
-                            tail,
-                            script['folder_path'],
-                            script['file_match']
-                        )
-                        for file in files:
-                            record_name = get_identifier( model_name, file )
-                            add_to_revision(
-                                project_revisions[ etl.project_name ],
-                                model_name,
-                                record_name,
-                                script['attribute_name'],
-                                file_reference_for(file)
-                            )
-                    elif script['type'] == 'file_collection':
-                        files = find_tail_files(
-                            tail,
-                            script['folder_path'],
-                            script['file_match']
-                        )
-
-                        # group all files by parent folders
-                        folders = group_by_parent_folder(files)
-                        for folder in folders:
-                            record_name = get_identifier( model_name, file )
-                            add_to_revision(
-                                project_revisions[ etl.project_name ],
-                                model_name,
-                                record_name,
-                                script['attribute_name'],
-                                [
-                                    file_reference_for(file)
-                                    for file in folder
-                                ]
-                            )
-                    elif script['type'] == 'data_frame'
-                        files = find_tail_files(
-        except:
-            pass
-
-    with hook.metis() as metis:
-        for project_name, bucket_name in project_buckets:
-            return pickled(load_metis_files_batch(metis, bucket_name))
-
-    # 3. Match items from ETL configs in the tail
-
-    # 4. Compose updating using matched items and send to Magma
+    return instantiate_dag
 
 def metis_etl(
     project_name: str,
