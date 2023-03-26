@@ -215,7 +215,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Cannot copy over existing folder: \"metis://athena/files/wisdom.txt\""
+            "Cannot write over existing folder: \"metis://athena/files/wisdom.txt\""
         )
     end
 

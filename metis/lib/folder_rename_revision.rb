@@ -33,7 +33,7 @@ class Metis
     def validate_non_recursive_rename
       return unless dest_path_inside_source
 
-      @errors << "Cannot copy folder into itself: \"#{@source.mpath.path}\""
+      @errors << "Cannot move folder into itself: \"#{@source.mpath.path}\""
     end
 
     def dest_path_inside_source
@@ -43,7 +43,6 @@ class Metis
       # Copying from some subfolder to root is okay
       return false if @dest.folder.nil?
       # Not okay where the source folder is a root folder and is the dest folder
-      return @dest.folder.folder_name == @source.mpath.file_name && @dest.folder.folder.nil? if @source.folder.nil?
 
       # Should return `true` if source is a folder, and it
       #   lies anywhere on the path of @dest.folder up to root,

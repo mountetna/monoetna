@@ -1,18 +1,21 @@
 import React, {useState, useCallback} from 'react';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-
-import ConfigRow from './config-row';
+import {PickBucket, PickFolder} from 'etna-js/components/metis_exploration';
 
 const MoveFileDialog = ({
   currentBucketName,
+  currentPath,
+  fileName,
   onSubmit
 }: {
   currentBucketName: string;
+  currentPath: string;
+  fileName: string;
   onSubmit: (bucketName: string, filePath: string) => void;
 }) => {
   const [bucketName, setBucketName] = useState(currentBucketName);
-  const [newFilePath, setNewFilePath] = useState('');
+  const [newFilePath, setNewFilePath] = useState(currentPath.split('/').slice(0,-1).join('/'));
   const invoke = useActionInvoker();
 
   const submit = useCallback(() => {
@@ -20,25 +23,27 @@ const MoveFileDialog = ({
     invoke({type: 'DISMISS_DIALOG'});
   }, [bucketName, newFilePath, invoke, onSubmit]);
 
+  const changeBucket = useCallback((e) => {
+    setNewFilePath('');
+    setBucketName(e);
+  }, []);
+
   return (
     <div className='move-file-dialog'>
-      <div className='title'>Move file</div>
-      <ConfigRow label='Bucket name'>
-        <input
-          type='text'
-          placeholder='E.g. bucket_name'
-          value={bucketName}
-          onChange={(e) => setBucketName(e.target.value)}
-        />
-      </ConfigRow>
-      <ConfigRow label='Parent folder (blank for root)'>
-        <input
-          type='text'
-          placeholder='E.g. root/child'
-          value={newFilePath}
-          onChange={(e) => setNewFilePath(e.target.value)}
-        />
-      </ConfigRow>
+      <div className='title'>Move file: {fileName}</div>
+      <PickBucket
+        bucket={bucketName}
+        label="Bucket"
+        setBucket={(e: any) => changeBucket(e)}
+      />
+      <PickFolder
+        bucket={bucketName}
+        label="Destination Folder"
+        setPath={(e: any) => setNewFilePath(e)}
+        basePath={''}
+        topLevelPlaceholder={'top-level of bucket'}
+        path={newFilePath}
+      />
       <div className='submit'>
         <span
           className={`button ${bucketName ? '' : 'disabled'}`}
