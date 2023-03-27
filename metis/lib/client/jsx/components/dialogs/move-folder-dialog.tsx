@@ -1,18 +1,21 @@
 import React, {useState, useCallback} from 'react';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-
-import ConfigRow from './config-row';
+import {PickBucket, PickFolder} from 'etna-js/components/metis_exploration';
 
 const MoveFolderDialog = ({
   currentBucketName,
+  currentPath,
+  folderName,
   onSubmit
 }: {
   currentBucketName: string;
+  currentPath: string;
+  folderName: string;
   onSubmit: (bucketName: string, folderPath: string) => void;
 }) => {
   const [bucketName, setBucketName] = useState(currentBucketName);
-  const [newFolderPath, setNewFolderPath] = useState('');
+  const [newFolderPath, setNewFolderPath] = useState(currentPath.split('/').slice(0,-1).join('/'));
   const invoke = useActionInvoker();
 
   const submit = useCallback(() => {
@@ -20,25 +23,27 @@ const MoveFolderDialog = ({
     invoke({type: 'DISMISS_DIALOG'});
   }, [bucketName, newFolderPath, invoke, onSubmit]);
 
+  const changeBucket = useCallback((e) => {
+    setNewFolderPath('');
+    setBucketName(e);
+  }, []);
+
   return (
     <div className='move-folder-dialog'>
-      <div className='title'>Move folder</div>
-      <ConfigRow label='Bucket name'>
-        <input
-          type='text'
-          placeholder='E.g. bucket_name'
-          value={bucketName}
-          onChange={(e) => setBucketName(e.target.value)}
-        />
-      </ConfigRow>
-      <ConfigRow label='Parent folder (blank for root)'>
-        <input
-          type='text'
-          placeholder='E.g. root/child'
-          value={newFolderPath}
-          onChange={(e) => setNewFolderPath(e.target.value)}
-        />
-      </ConfigRow>
+      <div className='title'>Move folder: {folderName}</div>
+      <PickBucket
+        bucket={bucketName}
+        label="Bucket"
+        setBucket={(e: any) => changeBucket(e)}
+      />
+      <PickFolder
+        bucket={bucketName}
+        label="Destination Folder"
+        setPath={(e: any) => setNewFolderPath(e)}
+        basePath={''}
+        topLevelPlaceholder={'top-level of bucket'}
+        path={newFolderPath}
+      />
       <div className='submit'>
         <span
           className={`button ${bucketName ? '' : 'disabled'}`}

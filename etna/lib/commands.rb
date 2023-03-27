@@ -250,10 +250,10 @@ class EtnaApp
       string_flags << "--log-file"
       string_flags << "--log-level"
       string_flags << "--concurrency"
-      string_flags << "--page_size"
+      string_flags << "--page-size"
+      boolean_flags << "--list-only"
 
-
-      def execute(project_name:, log_file:'/dev/stdout', log_level: ::Logger::INFO, concurrency: 1, page_size: 20)
+      def execute(project_name:, log_file:'/dev/stdout', log_level: ::Logger::INFO, concurrency: 1, page_size: 20, list_only: false)
         logger = Etna::Logger.new(log_file, 0, 1048576)
 
         logger.level = log_level
@@ -267,6 +267,7 @@ class EtnaApp
             logger: logger,
             project_name: project_name,
             model_name: 'project', filesystem: filesystem,
+            list_only: list_only,
             page_size: page_size.to_i,
             concurrency: concurrency.to_i)
 
