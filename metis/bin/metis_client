@@ -388,6 +388,7 @@ class MetisClient < Client
 
   def find(project_name, bucket_name, params)
     response = json_post("/#{project_name}/find/#{bucket_name}", params: params)
+
     raise MetisClient::Error, "Find failed" unless response.code == "200"
 
     return json_body(response)
@@ -862,12 +863,10 @@ EOT
     )
 
     def run(*args)
-      raise ShellError, 'No bucket is selected' if !@shell.bucket_name
-
       raise ShellError, 'Invalid type specified' unless [ nil, 'file', 'folder' ].include?(options[:type])
 
       params = args.map do |arg|
-        name, op, value = PARAM_REGEX.match(arg).captures.compact
+        name, op, value = PARAM_REGEX.match(arg)&.captures&.compact
 
         raise ShellError, "Poorly formed find parameter '#{arg}'" unless name
 
@@ -879,15 +878,37 @@ EOT
         }.compact
       end
 
-      results = @shell.client.find(@shell.project_name, @shell.bucket_name, params)
-
-      found = (results[:files] + results[:folders]).sort_by {|f| f[:file_path] || f[:folder_path] }
-
-      if found.empty?
-        puts "No results."
+      if !@shell.bucket_name
+        buckets = @shell.client.list_buckets(@shell.project_name)
+        found = false
+        buckets.each do |bucket|
+          results = find_in_bucket(bucket[:bucket_name], params)
+          unless results.empty?
+            found = true
+            puts "#{bucket[:bucket_name]}:"
+            puts results.join("\n")
+          end
+        end
+        unless found
+          puts "No results."
+        end
       else
-        puts found.map{|f| f[:file_path] || (f[:folder_path] + "/") }.join("\n")
+        results = find_in_bucket(@shell.bucket_name, params)
+        if results.empty?
+          puts "No results."
+        else
+          puts "#{@shell.bucket_name}:"
+          puts results.join("\n")
+        end
       end
+    end
+
+    def find_in_bucket(bucket_name, params)
+      results = @shell.client.find(@shell.project_name, bucket_name, params)
+
+      return (results[:files] + results[:folders]).map do |f|
+        f[:file_path] || (f[:folder_path] + "/")
+      end.sort
     end
   end
 
