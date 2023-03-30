@@ -1,6 +1,12 @@
 Package: app
 Imports:
     Seurat,
-    SeuratDisk
+    SeuratDisk,
+    magmaR,
+    BiocManager,
+    dittoViz,
+    dittoSeq
 Remotes:
-    mojaveazure/seurat-disk
+    mojaveazure/seurat-disk,
+    dtm2451/dittoViz,
+    bioc::dittoSeq

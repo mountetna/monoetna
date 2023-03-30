@@ -2,4 +2,5 @@ Package: dataflow
 Type: package
 Title: Handles Import and Export of Inputs for archimedes-r
 Version: 0.1.0
+Imports: jsonlite
 Encoding: UTF-8

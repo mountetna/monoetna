@@ -96,7 +96,7 @@ JSX:
 
 */
 
-const defaults: DataEnvelope<any> = {
+const defaults_plotly: DataEnvelope<any> = {
   x_by: null,
   y_by: null,
   plots: ['box', 'violin'],
@@ -112,6 +112,25 @@ const defaults: DataEnvelope<any> = {
   x_scale: 'linear',
   y_scale: 'linear',
   rows_use: {},
+  x_order: 'increasing',
+  y_order: 'increasing'
+};
+
+const defaults_dittoseq: DataEnvelope<any> = {
+  x_by: null,
+  y_by: null,
+  plots: ['violin', 'jitter'],
+  color_by: 'make',
+  scale_by: 'fraction',
+  size: 1,
+  plot_title: 'make',
+  legend_title: 'make',
+  xlab: 'make',
+  ylab: 'make',
+  color_order: 'increasing',
+  x_scale: 'linear',
+  y_scale: 'linear',
+  cells_use: {},
   x_order: 'increasing',
   y_order: 'increasing'
 };
@@ -133,7 +152,7 @@ const remove_hidden = (
   return values;
 };
 
-const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
+const input_sets_plotly: DataEnvelope<DataEnvelope<string[]>> = {
   scatter_plot: {
     'primary features': ['x_by', 'y_by', 'color_by', 'size'],
     titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
@@ -155,9 +174,37 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
   }
 };
 
+const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
+  dittoDimPlot: {
+    'primary features': ['reduction_use', 'color_by', 'size'],
+    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    'data focus': ['cells_use', 'color_order', 'order_when_continuous_color']
+    //'default_adjust': {'color_by': "make"}
+  },
+  dittoScatterPlot: {
+    'primary features': ['x_by', 'y_by', 'color_by', 'size'],
+    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    'data focus': ['cells_use', 'color_order', 'order_when_continuous_color']
+    //'default_adjust': {'color_by': "make"}
+  },
+  dittoBarPlot: {
+    'primary features': ['x_by', 'y_by', 'scale_by'],
+    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    'data focus': ['cells_use']
+  },
+  dittoPlot: {
+    'primary features': ['x_by', 'y_by', 'plots', 'color_by'],
+    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    'data focus': ['cells_use', 'x_order']
+    //'default_adjust': {'color_by': "make"}
+  }
+};
+
 function whichDefaults(
   plotType: string | null,
-  preset: DataEnvelope<any> | null | undefined
+  preset: DataEnvelope<any> | null | undefined,
+  defaults: DataEnvelope<any>,
+  input_sets: DataEnvelope<DataEnvelope<string[]>>
 ) {
   if (plotType == null) return {plot_type: plotType};
 
@@ -206,6 +253,23 @@ const input_constraints: DataEnvelope<DataEnvelope<'continuous' | 'discrete'>> =
       x_by: 'discrete',
       y_by: 'continuous',
       color_by: 'discrete'
+    },
+    dittoDimPlot: {},
+    dittoScatterPlot: {
+      x_by: 'continuous',
+      y_by: 'continuous',
+      split_by: 'discrete'
+    },
+    dittoBarPlot: {
+      x_by: 'discrete',
+      y_by: 'discrete',
+      split_by: 'discrete'
+    },
+    dittoPlot: {
+      x_by: 'discrete',
+      y_by: 'continuous',
+      color_by: 'discrete',
+      split_by: 'discrete'
     }
   };
 
@@ -273,6 +337,13 @@ function useExtraInputs(
         false,
         'secondary'
       ],
+      cells_use: [
+        'Focus on a subset of the incoming data',
+        full_data,
+        false,
+        'secondary',
+        continuous
+      ],
       x_order: ['Order of X-Axis Groupings', full_data, x_by, discrete],
       y_order: ['Order of Y-Axis Groupings', full_data, y_by, discrete]
     };
@@ -325,7 +396,27 @@ function InputWrapper({
   );
 }
 
-const comps: DataEnvelope<Function> = {
+const components_plotly: DataEnvelope<Function> = {
+  plot_title: stringPiece,
+  legend_title: stringPiece,
+  xlab: stringPiece,
+  ylab: stringPiece,
+  x_by: dropdownPiece,
+  y_by: dropdownPiece,
+  color_by: dropdownPiece,
+  plots: multiselectPiece,
+  color_order: ReorderPiece,
+  order_when_continuous_color: checkboxPiece,
+  size: sliderPiece,
+  scale_by: dropdownPiece,
+  x_scale: dropdownPiece,
+  y_scale: dropdownPiece,
+  rows_use: subsetDataFramePiece,
+  x_order: ReorderPiece,
+  y_order: ReorderPiece
+};
+
+const components_dittoseq: DataEnvelope<Function> = {
   plot_title: stringPiece,
   legend_title: stringPiece,
   xlab: stringPiece,
@@ -349,12 +440,14 @@ const ComponentUse = ({
   k,
   value,
   extra_inputs,
-  updateValue
+  updateValue,
+  comps
 }: {
   k: string;
   value: any;
   extra_inputs: any;
   updateValue: Function;
+  comps: DataEnvelope<Function>;
 }) => {
   const comp_use: Function = comps[k];
   return comp_use(k, updateValue, value, ...extra_inputs);
@@ -362,11 +455,14 @@ const ComponentUse = ({
 
 function VisualizationUI(
   {data, onChange, ...props}: WithInputParams<{}, DataEnvelope<any>, any>,
-  setPlotType: string | null = null
+  setPlotType: string | null = null,
+  defaults: DataEnvelope<any>,
+  input_sets: DataEnvelope<DataEnvelope<string[]>>,
+  components: DataEnvelope<Function>
 ) {
   const preset = useMemo(() => data && data['preset'], [data]);
   const hide = useMemo(() => preset && Object.keys(preset), [preset]);
-  const defaultValue = whichDefaults(setPlotType, preset);
+  const defaultValue = whichDefaults(setPlotType, preset, defaults, input_sets);
   const value = useSetsDefault(defaultValue, props.value, onChange);
   const [expandedDrawers, setExpandedDrawers] = useState(['primary features']);
   const plotType =
@@ -378,21 +474,26 @@ function VisualizationUI(
     return data['data_frame'];
   }, [data]);
 
-  const columns: string[] = useMemo(() => {
+  const df_columns: string[] = useMemo(() => {
     if (data_frame == null || 0 === Object.keys(data_frame).length) return [];
     return Object.keys(data_frame);
   }, [data_frame]);
 
-  const continuous_columns: string[] = useMemo(() => {
+  const continuous_columns: string[] = useMemo(() => { // NOTE: these data don't necessarily need to be contained within the given data_frame (to accomodate for visualizing genomics data)
     if (data == null) return [];
-    if (data['continuous_cols'] == null) return columns; // Should build a warning here instead?
+    if (data['continuous_cols'] == null) return df_columns; // Should build a warning here instead?
     return data['continuous_cols'];
   }, [data]);
   const discrete_columns: string[] = useMemo(() => {
     if (data == null) return [];
-    if (data['discrete_cols'] == null) return columns; // Should build a warning here instead?
+    if (data['discrete_cols'] == null) return df_columns; // Should build a warning here instead?
     return data['discrete_cols'];
   }, [data]);
+
+  const columns: string[] = useMemo(() => {
+    const addt_cont = continuous_columns.filter((value) => !df_columns.includes(value));
+    return df_columns.concat(addt_cont);
+  }, [df_columns, continuous_columns]);
 
   const x_by =
     value && Object.keys(value).includes('x_by')
@@ -427,7 +528,7 @@ function VisualizationUI(
   }, [value, hide]);
 
   const updatePlotType = (newType: string, key: string) => {
-    onChange(some(whichDefaults(newType, preset)));
+    onChange(some(whichDefaults(newType, preset, defaults, input_sets)));
   };
 
   const updateValue = (newValue: any, key: string, prevValues = {...value}) => {
@@ -481,6 +582,7 @@ function VisualizationUI(
                     value={val}
                     extra_inputs={extra_inputs[key]}
                     updateValue={updateValue}
+                    comps={components}
                   />
                 );
               })}
@@ -505,7 +607,7 @@ export function ScatterPlotly({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'scatter_plot');
+  return VisualizationUI({data, onChange, value}, 'scatter_plot', defaults_plotly, input_sets_plotly, components_plotly);
 }
 
 export function BarPlotly({
@@ -513,7 +615,7 @@ export function BarPlotly({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'bar_plot');
+  return VisualizationUI({data, onChange, value}, 'bar_plot', defaults_plotly, input_sets_plotly, components_plotly);
 }
 
 export function YPlotly({
@@ -521,7 +623,7 @@ export function YPlotly({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'y_plot');
+  return VisualizationUI({data, onChange, value}, 'y_plot', defaults_plotly, input_sets_plotly, components_plotly);
 }
 
 export function AnyPlotly({
@@ -529,5 +631,45 @@ export function AnyPlotly({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, null);
+  return VisualizationUI({data, onChange, value}, null, defaults_plotly, input_sets_plotly, components_plotly);
+}
+
+export function DittoDimPlot({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, 'dittoDimPlot', defaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+}
+
+export function DittoScatterPlot({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, 'dittoScatterPlot', defaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+}
+
+export function DittoBarPlot({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, 'dittoBarPlot', defaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+}
+
+export function DittoPlot({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, 'dittoPlot', defaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+}
+
+export function AnyDittoSeq({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, null, defaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
