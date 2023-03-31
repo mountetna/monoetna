@@ -21,7 +21,9 @@ import {
   dropdownPiece,
   multiselectPiece,
   checkboxPiece,
-  sliderPiece
+  sliderPiece,
+  reductionSetupPiece,
+  nestedDropdownFullPathPiece
 } from './user_input_pieces';
 import {subsetDataFramePiece} from './subsetDataFrame_piece';
 import {ReorderPiece} from './reorder_piece';
@@ -96,6 +98,9 @@ JSX:
 
 */
 
+type optionSet = string[]
+type nestedOptionSet = DataEnvelope<DataEnvelope<DataEnvelope<null>|null>|null>
+
 const defaults_plotly: DataEnvelope<any> = {
   x_by: null,
   y_by: null,
@@ -132,7 +137,8 @@ const defaults_dittoseq: DataEnvelope<any> = {
   y_scale: 'linear',
   cells_use: {},
   x_order: 'increasing',
-  y_order: 'increasing'
+  y_order: 'increasing',
+  reduction_setup: ['_recommended_', 1, 2]
 };
 
 const remove_hidden = (
@@ -176,7 +182,7 @@ const input_sets_plotly: DataEnvelope<DataEnvelope<string[]>> = {
 
 const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
   dittoDimPlot: {
-    'primary features': ['reduction_use', 'color_by', 'size'],
+    'primary features': ['color_by', 'size', 'reduction_setup'],
     titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
     'data focus': ['cells_use', 'color_order', 'order_when_continuous_color']
     //'default_adjust': {'color_by': "make"}
@@ -274,17 +280,18 @@ const input_constraints: DataEnvelope<DataEnvelope<'continuous' | 'discrete'>> =
   };
 
 function useExtraInputs(
-  options: string[],
+  options: string[] | nestedOptionSet,
   full_data: DataEnvelope<any>,
   plot_type: string | null,
-  continuous: string[],
-  discrete: string[],
+  continuous: string[] | nestedOptionSet,
+  discrete: string[] | nestedOptionSet,
   x_by: string | null,
   y_by: string | null,
   color_by: string | null,
   constraints: DataEnvelope<
     DataEnvelope<'continuous' | 'discrete'>
-  > = input_constraints
+  > = input_constraints,
+  reduction_opts: DataEnvelope<number[]> | null = null
 ) {
   function get_options(input_name: string) {
     if (plot_type == null) return options;
@@ -345,7 +352,11 @@ function useExtraInputs(
         continuous
       ],
       x_order: ['Order of X-Axis Groupings', full_data, x_by, discrete],
-      y_order: ['Order of Y-Axis Groupings', full_data, y_by, discrete]
+      y_order: ['Order of Y-Axis Groupings', full_data, y_by, discrete],
+      reduction_setup: [
+        ['Dimensionality Reduction (DR)', 'x-axis DR Compenent #', 'y-axis DR Component #'],
+        reduction_opts
+      ]
     };
   }, [
     options,
@@ -355,7 +366,8 @@ function useExtraInputs(
     discrete,
     x_by,
     y_by,
-    color_by
+    color_by,
+    reduction_opts
   ]);
 
   return extra_inputs;
@@ -421,9 +433,9 @@ const components_dittoseq: DataEnvelope<Function> = {
   legend_title: stringPiece,
   xlab: stringPiece,
   ylab: stringPiece,
-  x_by: dropdownPiece,
-  y_by: dropdownPiece,
-  color_by: dropdownPiece,
+  x_by: nestedDropdownFullPathPiece,
+  y_by: nestedDropdownFullPathPiece,
+  color_by: nestedDropdownFullPathPiece,
   plots: multiselectPiece,
   color_order: ReorderPiece,
   order_when_continuous_color: checkboxPiece,
@@ -431,9 +443,10 @@ const components_dittoseq: DataEnvelope<Function> = {
   scale_by: dropdownPiece,
   x_scale: dropdownPiece,
   y_scale: dropdownPiece,
-  rows_use: subsetDataFramePiece,
+  cells_use: subsetDataFramePiece,
   x_order: ReorderPiece,
-  y_order: ReorderPiece
+  y_order: ReorderPiece,
+  reduction_setup: reductionSetupPiece,
 };
 
 const ComponentUse = ({
@@ -479,21 +492,24 @@ function VisualizationUI(
     return Object.keys(data_frame);
   }, [data_frame]);
 
-  const continuous_columns: string[] = useMemo(() => { // NOTE: these data don't necessarily need to be contained within the given data_frame (to accomodate for visualizing genomics data)
+  const continuous_columns: string[] | nestedOptionSet = useMemo(() => { // NOTE: these data don't necessarily need to be contained within the given data_frame (to accomodate for visualizing genomics data)
     if (data == null) return [];
     if (data['continuous_cols'] == null) return df_columns; // Should build a warning here instead?
     return data['continuous_cols'];
   }, [data]);
-  const discrete_columns: string[] = useMemo(() => {
+  const discrete_columns: string[] | nestedOptionSet = useMemo(() => {
     if (data == null) return [];
     if (data['discrete_cols'] == null) return df_columns; // Should build a warning here instead?
     return data['discrete_cols'];
   }, [data]);
 
-  const columns: string[] = useMemo(() => {
-    const addt_cont = continuous_columns.filter((value) => !df_columns.includes(value));
-    return df_columns.concat(addt_cont);
-  }, [df_columns, continuous_columns]);
+  const columns: string[] | nestedOptionSet = (data != null && data['all_cols'] != null) ? data['all_cols'] : df_columns
+
+  const reduction_opts: DataEnvelope<string[]> | null = useMemo(() => {
+    if (data == null) return null;
+    if (data['reduction_opts'] == null) return null;
+    return data['reduction_opts'];
+  }, [data])
 
   const x_by =
     value && Object.keys(value).includes('x_by')
@@ -515,7 +531,8 @@ function VisualizationUI(
     discrete_columns,
     x_by,
     y_by,
-    color_by
+    color_by,
+    reduction_opts
   );
 
   const shownSetupValues = useMemo(() => {

@@ -21,7 +21,7 @@ import {
   InputValidator
 } from './input_types';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
-import {ScatterPlotly, BarPlotly, YPlotly, AnyPlotly} from './visualizations';
+import {ScatterPlotly, BarPlotly, YPlotly, AnyPlotly, DittoScatterPlot, DittoDimPlot, DittoPlot, DittoBarPlot, AnyDittoSeq} from './visualizations';
 import {
   NotEmptyValidator,
   StronglyNotEmptyValidator
@@ -59,6 +59,14 @@ configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyVali
 configureComponent(TYPE.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
 configureComponent(TYPE.DATA_TRANSFORMATION, DataTransformation, AllInnerKeysNotNullValidator);
 configureComponent(TYPE.SCATTER_PLOTLY, ScatterPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
+configureComponent(TYPE.BAR_PLOTLY, BarPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
+configureComponent(TYPE.Y_PLOTLY, YPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
+configureComponent(TYPE.ANY_VIZ, AnyPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
+configureComponent(TYPE.DITTOSEQ_DIM_PLOT, DittoDimPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyValidator));
+configureComponent(TYPE.DITTOSEQ_SCATTER_PLOT, DittoScatterPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyValidator));
+configureComponent(TYPE.DITTOSEQ_PLOT, DittoPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyValidator));
+configureComponent(TYPE.DITTOSEQ_BAR_PLOT, DittoBarPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyValidator));
+configureComponent(TYPE.ANY_DITTOSEQ, AnyDittoSeq, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyValidator));
 configureComponent(TYPE.BAR_PLOTLY, BarPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
 configureComponent(TYPE.Y_PLOTLY, YPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
 configureComponent(TYPE.ANY_VIZ, AnyPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
