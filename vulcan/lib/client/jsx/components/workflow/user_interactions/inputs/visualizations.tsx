@@ -122,10 +122,10 @@ const defaults_plotly: DataEnvelope<any> = {
 };
 
 const defaults_dittoseq: DataEnvelope<any> = {
-  x_by: null,
-  y_by: null,
+  x_by: [null],
+  y_by: [null],
   plots: ['violin', 'jitter'],
-  color_by: 'make',
+  color_by: [null],
   scale_by: 'fraction',
   size: 1,
   plot_title: 'make',
@@ -136,9 +136,7 @@ const defaults_dittoseq: DataEnvelope<any> = {
   x_scale: 'linear',
   y_scale: 'linear',
   cells_use: {},
-  x_order: 'increasing',
-  y_order: 'increasing',
-  reduction_setup: ['_recommended_', 1, 2]
+  reduction_setup: ['_Recommended_', '1', '2']
 };
 
 const remove_hidden = (
@@ -184,25 +182,20 @@ const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
   dittoDimPlot: {
     'primary features': ['color_by', 'size', 'reduction_setup'],
     titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'data focus': ['cells_use', 'color_order', 'order_when_continuous_color']
-    //'default_adjust': {'color_by': "make"}
+    'data focus': ['color_order']
   },
   dittoScatterPlot: {
     'primary features': ['x_by', 'y_by', 'color_by', 'size'],
     titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'data focus': ['cells_use', 'color_order', 'order_when_continuous_color']
-    //'default_adjust': {'color_by': "make"}
+    'data focus': ['color_order']
   },
   dittoBarPlot: {
-    'primary features': ['x_by', 'y_by', 'scale_by'],
-    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'data focus': ['cells_use']
+    'primary features': ['var', 'group_by', 'scale_by'],
+    titles: ['plot_title', 'legend_title', 'xlab', 'ylab']
   },
   dittoPlot: {
-    'primary features': ['x_by', 'y_by', 'plots', 'color_by'],
-    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'data focus': ['cells_use', 'x_order']
-    //'default_adjust': {'color_by': "make"}
+    'primary features': ['var', 'group_by', 'plots', 'color_by'],
+    titles: ['plot_title', 'legend_title', 'xlab', 'ylab']
   }
 };
 
@@ -260,20 +253,22 @@ const input_constraints: DataEnvelope<DataEnvelope<'continuous' | 'discrete'>> =
       y_by: 'continuous',
       color_by: 'discrete'
     },
-    dittoDimPlot: {},
+    dittoDimPlot: {
+      split_by: 'discrete'
+    },
     dittoScatterPlot: {
       x_by: 'continuous',
       y_by: 'continuous',
       split_by: 'discrete'
     },
     dittoBarPlot: {
-      x_by: 'discrete',
-      y_by: 'discrete',
+      group_by: 'discrete',
+      var: 'discrete',
       split_by: 'discrete'
     },
     dittoPlot: {
-      x_by: 'discrete',
-      y_by: 'continuous',
+      group_by: 'discrete',
+      var: 'continuous',
       color_by: 'discrete',
       split_by: 'discrete'
     }
@@ -288,10 +283,10 @@ function useExtraInputs(
   x_by: string | null,
   y_by: string | null,
   color_by: string | null,
+  reduction_opts: DataEnvelope<number[]> | null = null,
   constraints: DataEnvelope<
     DataEnvelope<'continuous' | 'discrete'>
-  > = input_constraints,
-  reduction_opts: DataEnvelope<number[]> | null = null
+  > = input_constraints
 ) {
   function get_options(input_name: string) {
     if (plot_type == null) return options;
@@ -303,6 +298,16 @@ function useExtraInputs(
   }
 
   const extra_inputs: DataEnvelope<any[]> = useMemo(() => {
+    function is_ditto() {
+      return plot_type!=null && plot_type.includes('ditto')
+    }
+    function add_make(add_to: string[] | nestedOptionSet, for_plot_types: string[]) {
+      if (plot_type==null || !for_plot_types.includes(plot_type)) return add_to
+      if (Array.isArray(add_to)) return ['make'].concat(add_to)
+      let output = {...add_to}
+      output['make']=null
+      return output
+    }
     return {
       // label, then for any extras
       plot_title: ['Plot Title'],
@@ -311,18 +316,21 @@ function useExtraInputs(
       ylab: ['Y-Axis Title'],
       x_by: ['X-Axis Data', get_options('x_by'), false],
       y_by: ['Y-Axis Data', get_options('y_by'), false],
-      color_by: ['Color Data', ['make'].concat(get_options('color_by')), false],
+      var: ['Primary Data', get_options('var'), false],
+      group_by: ['Groupings Data (often the x-axis)', get_options('group_by'), false],
+      color_by: ['Color Data', add_make(get_options('color_by'), ['scatter_plot', 'y_plot', 'dittoPlot']), false],
       plots: ['Data Representations', ['violin', 'box']],
       color_order: [
         'Point Render & (discrete) Color Assignment Order',
         full_data,
         color_by,
-        discrete
+        discrete,
+        is_ditto()
       ],
       order_when_continuous_color: [
         'Follow selected render ordering when color is continuous?'
       ],
-      size: ['Point Size', 0.1, 50],
+      size: !is_ditto ? ['Point Size', 0.1, 50, undefined] : ['Point Size', 0.1, 25, 0.1],
       scale_by: [
         'Scale Y by counts or fraction',
         ['counts', 'fraction'],
@@ -344,13 +352,13 @@ function useExtraInputs(
         false,
         'secondary'
       ],
-      cells_use: [
-        'Focus on a subset of the incoming data',
-        full_data,
-        false,
-        'secondary',
-        continuous
-      ],
+      // cells_use: [
+      //   'Focus on a subset of cells',
+      //   full_data,
+      //   false,
+      //   'secondary',
+      //   continuous
+      // ],
       x_order: ['Order of X-Axis Groupings', full_data, x_by, discrete],
       y_order: ['Order of Y-Axis Groupings', full_data, y_by, discrete],
       reduction_setup: [
@@ -435,6 +443,8 @@ const components_dittoseq: DataEnvelope<Function> = {
   ylab: stringPiece,
   x_by: nestedDropdownFullPathPiece,
   y_by: nestedDropdownFullPathPiece,
+  var: nestedDropdownFullPathPiece,
+  group_by: nestedDropdownFullPathPiece,
   color_by: nestedDropdownFullPathPiece,
   plots: multiselectPiece,
   color_order: ReorderPiece,
@@ -510,6 +520,7 @@ function VisualizationUI(
     if (data['reduction_opts'] == null) return null;
     return data['reduction_opts'];
   }, [data])
+  // console.log({reduction_opts});
 
   const x_by =
     value && Object.keys(value).includes('x_by')
@@ -609,7 +620,7 @@ function VisualizationUI(
       </Grid>
     );
 
-  // console.log(props.value);
+  console.log(props.value);
 
   return (
     <div key='VizUI'>

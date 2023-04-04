@@ -2,12 +2,10 @@ cwlVersion: v1.1
 class: Workflow
 
 inputs:
-  1_Cell_Filtering__min_nCounts:
-    type: int
-    default: 200
-    label: 'minimum UMIs'
-    doc: 'Minimum number of unique transcript reads per cell. Cells with fewer will be discarded. Recommended range: 200 (lower quality data, macrophage retention) to 1000 (very high quality data). Set to 0 to skip.'
-
+  1_Object_Selection__dataset_name:
+    type: string
+    default: ''
+    label: 'name of record to target'
 outputs:
   thumbnail:
     type: File
@@ -15,23 +13,11 @@ outputs:
     outputSource: make_plot/plot.png
 
 steps:
-  queryMagma:
-    run: scripts/retrieve_sc_seq_datasets.cwl
-    label: 'Fetch dataset options'
-    in:
-      first: 1_Cell_Filtering__min_nCounts
-    out: [dataset_options]
-  selectDataset:
-    run: ui-queries/select-autocomplete.cwl
-    label: 'Dataset selection'
-    in:
-      a: queryMagma/dataset_options
-    out: [selected_record]
   get_dataset_and_summarize:
     run: scripts/get_dataset_and_summarize.cwl
     label: 'Retrieve dataset & Determine plotting options'
     in:
-      dataset_name: selectDataset/selected_record
+      dataset_name: 1_Object_Selection__dataset_name
     out: [plotting_options, scdata, discrete_metadata_summary, all_opts, continuous_opts, discrete_opts, reduction_opts]
   plot_setup:
     run: ui-queries/any-dittoseq.cwl
@@ -45,7 +31,7 @@ steps:
       reduction_opts: get_dataset_and_summarize/reduction_opts
     out: [plot_setup]
   make_plot:
-    run: scripts/make_plot.cwl
+    run: scripts/make_dittoSeq_plot.cwl
     label: 'Create Plot'
     in:
       plot_setup: plot_setup/plot_setup

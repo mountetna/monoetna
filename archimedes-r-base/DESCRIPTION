@@ -3,6 +3,7 @@ Imports:
     Seurat,
     SeuratDisk,
     magmaR,
+    plotly,
     BiocManager,
     dittoViz,
     dittoSeq

@@ -35,9 +35,11 @@ export function ReorderPiece(
   value: string | string[] = 'unordered',
   label: string,
   full_data: DataEnvelope<any[]>,
-  data_target: string | null,
-  discrete_data: string[]
+  data_target: string | string[] | null,
+  discrete_data: string[],
+  can_randomize: boolean = false
 ) {
+  const data_targ = Array.isArray(data_target) ? data_target[data_target.length - 1] : data_target
   const handleOnDragEnd = (result: any) => {
     if (!result.destination) {
       return;
@@ -56,27 +58,31 @@ export function ReorderPiece(
   const onMethodSelect = (e: any, picked: string | null) => {
     const newValue =
       picked == 'custom'
-        ? arrayLevels(Object.values(full_data[data_target as string]))
+        ? arrayLevels(Object.values(full_data[data_targ as string]))
         : picked;
     changeFxn(newValue, key);
   };
 
   const chosen_case = Array.isArray(value) ? 'custom' : value;
   const order_options = useMemo(() => {
-    if (data_target != null && discrete_data.includes(data_target)) {
-      return ['increasing', 'decreasing', 'unordered', 'custom'];
+    let options = ['increasing', 'decreasing', 'unordered']
+    if (can_randomize) {
+      options.push('randomize')
     }
-    return ['increasing', 'decreasing', 'unordered'];
-  }, [data_target, discrete_data]);
+    if (data_targ != null && discrete_data.includes(data_targ)) {
+      options.push('custom');
+    }
+    return options;
+  }, [data_target, discrete_data, can_randomize]);
 
   // Reset to 'increasing' if data_target changes while 'custom', (also hit on page refresh!)
   useEffect(() => {
-    if (data_target != null && chosen_case == 'custom') {
-      // Needed if new data_target is discrete or if new data levels aren't captured
-      let needs_reset = !discrete_data.includes(data_target);
+    if (data_targ != null && chosen_case == 'custom') {
+      // Needed if new data_targ is discrete or if new data levels aren't captured
+      let needs_reset = !discrete_data.includes(data_targ);
       if (!needs_reset) {
         needs_reset =
-          arrayLevels(Object.values(full_data[data_target as string])).filter(
+          arrayLevels(Object.values(full_data[data_targ as string])).filter(
             (val) => !value.includes(val)
           ).length > 0;
       }

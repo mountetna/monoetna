@@ -16,7 +16,7 @@ export function val_wrap(v: any): DataEnvelope<typeof v> {
 export function key_wrap(k: string[]) {
   let de: DataEnvelope<string> = {};
   for (let ind = 0; ind < k.length; ind++) {
-    de[k[ind]]='0';
+    de[k[ind]]=null;
   }
   return de;
 }
@@ -107,6 +107,9 @@ export function nestedDropdownFullPathPiece(
     // options can contain multiple levels of 'categoies' which lead down to 'options'.
     // 'options' are still expected to be keys of an object
     // {categories: categories: options: null}
+    if (Array.isArray(options)) {
+      options = key_wrap([...options])
+    }
     const value_use = value==null ? [null] : value
     return <Grid 
       key={key}
@@ -117,7 +120,7 @@ export function nestedDropdownFullPathPiece(
       const path = [...fullValues].slice(0,index)
       let options_temp = {...options}
       path.forEach((value) => {
-        options_temp = options_temp['value']
+        options_temp = value == null ? options_temp : options_temp[value]
       })
       // keys of options_temp are now the options for this level, and values are null if leaves or {options: any} for a next level
       const options_level = Object.keys(options_temp)
@@ -160,7 +163,7 @@ export function multiselectPiece(
 
 export function sliderPiece(
   key: string, changeFxn: Function, value: number,
-  label: string, min: number = 0.1, max: number = 20) {
+  label: string, min: number = 0.1, max: number = 20, stepSize: number | undefined = undefined) {
 
     return(
         <div key={key} style={{paddingTop: 8}}>
@@ -171,6 +174,7 @@ export function sliderPiece(
             onChange={(event, newValue) => changeFxn(newValue as number, key)}
             min={min}
             max={max}
+            step={stepSize}
             valueLabelDisplay="auto"
           />
         </div>
@@ -222,6 +226,7 @@ export function reductionSetupPiece(
     newValue[dim] = newElement
     return newValue
   }
+  // console.log({reduction_opts})
   return(
     <Grid 
       key={key}

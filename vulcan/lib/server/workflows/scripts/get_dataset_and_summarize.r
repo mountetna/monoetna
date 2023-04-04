@@ -1,10 +1,7 @@
-suppressPackageStartupMessages({
-    library(Seurat)
-    library(magmaR)
-    library(dataflow)
-    library(environment)
-    library(dittoSeq)
-})
+library(Seurat)
+library(magmaR)
+library(dataflow)
+library(dittoSeq)
 
 # A Re-implementation of dittoSeq's getReductions because we will also need to know how many components each reductions has
 getReductionsDims <- function(object) {
@@ -26,11 +23,13 @@ getReductionsDims <- function(object) {
     #     return(names(object@dr))
     # }
     names <- name_getter(object)
-    lapply(names, USE.NAMES = TRUE, FUN = function(x) {
+    out <- lapply(names, FUN = function(x) {
         as.character(seq_len(ncol(
             embeds_getter(object, x)
         )))
     })
+    names(out) <- names
+    out
 } 
 summarize_plotting_options <- function(object, record) {
     # Outputs:
@@ -40,12 +39,12 @@ summarize_plotting_options <- function(object, record) {
 
     # Cell Metadata & Dimensionality Reduction Embeddings
     plotting_options = list(
-        'Cell_Metadata' = getMetas(object)
+        'Cell_Metadata' = getMetas(object),
         'Reductions' = getReductionsDims(object)
     )
     # Features
-    if (!is.na(record["modalities"])) {
-        modalities <- unlist(strsplit(record["modalities"], ","))
+    if (!is.na(record[["modalities"]])) {
+        modalities <- unlist(strsplit(record[["modalities"]], ","))
         plotting_options$Cell_Features <- list()
         if ("gex" %in% modalities) {
             plotting_options$Cell_Features$RNA <- getGenes(object, assay = "RNA")
@@ -59,10 +58,10 @@ summarize_plotting_options <- function(object, record) {
     clust_and_annot_vals <- record[c("metadata_clustering", "metadata_annots_fine", "metadata_annots_broad")]
     if (any(!is.na(clust_and_annot_vals))) {
         names(clust_and_annot_vals) <- c("clustering", "annotations_fine", "annotations_broad")
-        plotting_options["Recommended_Metadata"] <- as.list(clust_and_annot_vals[!is.na(clust_and_annot_vals)])
+        plotting_options[["Recommended_Metadata"]] <- as.list(clust_and_annot_vals[!is.na(clust_and_annot_vals)])
     }
-    if (!is.na(record["umap_name"])) {
-        plotting_options["Recommended_Reduction"] <- record["umap_name"]
+    if (!is.na(record[["umap_name"]])) {
+        plotting_options[["Recommended_Reduction"]] <- record[["umap_name"]]
     }
 
     plotting_options
@@ -101,9 +100,9 @@ summarize_discrete_metadata <- function(
 }
 
 name_wrap <- function(vector) {
-    new_vals <- rep(NULL, length.out = length(vector))
+    new_vals <- lapply(seq_along(vector), function(x) {return(NULL)})
     names(new_vals) <- vector
-    as.list(new_vals)
+    new_vals
 }
 toNestedOptionsSet <- function(named_list) {
     # Finds all leaves in the list that are not (NULL | named list) and converts them to a named list with value of null
@@ -118,39 +117,48 @@ toNestedOptionsSet <- function(named_list) {
                 }
         }
     }
+    named_list
 }
 
+magma_opts <- list(
+    followlocation = FALSE)
+if (grepl("development", magma_host())) {
+    magma_opts$ssl_verifyhost <- FALSE
+    magma_opts$ssl_verifypeer <- FALSE
+}
 magma = magmaRset(
-    token = environment::token(),
-    url = environment::magma_host()
+    token = token(),
+    url = magma_host(),
+    opts = magma_opts
 )
 
 dataset_record_raw <- retrieve(
     magma,
     project_name(),
     "sc_seq_dataset",
-    recordNames = input_str(dataset_name),
+    recordNames = input_str('dataset_name'),
     attributeNames = "all"
 )
 dataset_record <- as.vector(dataset_record_raw)
 names(dataset_record) <- colnames(dataset_record_raw)
 
 # Get the data
-dataset_url <- dataset_record["object"]
+dataset_url <- dataset_record[["object"]]
+dataset_path <- output_path("scdata")
 # Download directly to output location!
-dataset_file <- HttpClient$new(url = dataset_url)$get(disk = output_path("scdata")) # (Outputs the filepath)
-scdata = readRDS(dataset_file)
+x <- crul::HttpClient$new(url = dataset_url)$get(disk = dataset_path) # Outputs status
+scdata <- readRDS(dataset_path)
 
 plotting_options <- summarize_plotting_options(scdata, dataset_record)
 discrete_metadata_summary <- summarize_discrete_metadata(scdata)
 
 reduction_opts <- plotting_options[['Reductions']] # [[]] returns the internal value
-if (!is.null(plotting_options["Recommended_Reduction"])) {
-    reduction_opts$`_Recommended_` <- reduction_opts[[plotting_options["Recommended_Reduction"]]]
+if (!is.null(plotting_options[["Recommended_Reduction"]])) {
+    reduction_opts$`_Recommended_` <- reduction_opts[[plotting_options[["Recommended_Reduction"]]]]
 }
 continuous_opts <- plotting_options['Cell_Features'] # [] subsets the top-level list to the called elements, keeping the top-level
 continuous_opts$Cell_Metadata <- setdiff(plotting_options[['Cell_Metadata']], names(discrete_metadata_summary))
-discrete_opts <- list('Cell_Metadata' = names(discrete_metadata_summary))
+discrete_opts <- names(discrete_metadata_summary)
 all_opts <- plotting_options[c('Cell_Features', 'Cell_Metadata')]
 
 # Outputs
@@ -159,5 +167,5 @@ output_json(plotting_options, 'plotting_options')
 output_json(discrete_metadata_summary, 'discrete_metadata_summary')
 output_json(toNestedOptionsSet(all_opts), 'all_opts')
 output_json(toNestedOptionsSet(continuous_opts), 'continuous_opts') # Needs to be nestedOptionSet
-output_json(toNestedOptionsSet(discrete_opts), 'discrete_opts')
+output_json(discrete_opts, 'discrete_opts')
 output_json(reduction_opts, 'reduction_opts')

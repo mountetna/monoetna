@@ -48,7 +48,7 @@ input_bool <- function(name, inputs_env = Sys.getenv(), inputs_dir = NULL) {
   tolower(str) %in% c("yes", "y", "true", "t", "1")
 };
 
-input_json <- function(data, name, inputs_env = Sys.getenv(), inputs_dir = NULL) {
+input_json <- function(name, inputs_env = Sys.getenv(), inputs_dir = NULL) {
   str <- input_single_var(name, inputs_env, inputs_dir, character())
   jsonlite::fromJSON(str)
 }
