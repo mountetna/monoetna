@@ -23,7 +23,7 @@ import {
   checkboxPiece,
   sliderPiece,
   reductionSetupPiece,
-  nestedDropdownFullPathPiece
+  nestedDropdownPiece
 } from './user_input_pieces';
 import {subsetDataFramePiece} from './subsetDataFrame_piece';
 import {ReorderPiece} from './reorder_piece';
@@ -122,10 +122,12 @@ const defaults_plotly: DataEnvelope<any> = {
 };
 
 const defaults_dittoseq: DataEnvelope<any> = {
-  x_by: [null],
-  y_by: [null],
+  x_by: null,
+  y_by: null,
+  var: null,
+  group_by: null,
+  color_by: null,
   plots: ['violin', 'jitter'],
-  color_by: [null],
   scale_by: 'fraction',
   size: 1,
   plot_title: 'make',
@@ -136,7 +138,8 @@ const defaults_dittoseq: DataEnvelope<any> = {
   x_scale: 'linear',
   y_scale: 'linear',
   cells_use: {},
-  reduction_setup: ['_Recommended_', '1', '2']
+  reduction_setup: ['_Recommended_', '1', '2'],
+  do_hover: true
 };
 
 const remove_hidden = (
@@ -182,16 +185,19 @@ const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
   dittoDimPlot: {
     'primary features': ['color_by', 'size', 'reduction_setup'],
     titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'data focus': ['color_order']
+    'data focus': ['color_order'],
+    'output style': ['do_hover']
   },
   dittoScatterPlot: {
     'primary features': ['x_by', 'y_by', 'color_by', 'size'],
     titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'data focus': ['color_order']
+    'data focus': ['color_order'],
+    'output style': ['do_hover']
   },
   dittoBarPlot: {
     'primary features': ['var', 'group_by', 'scale_by'],
-    titles: ['plot_title', 'legend_title', 'xlab', 'ylab']
+    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    'output style': ['do_hover']
   },
   dittoPlot: {
     'primary features': ['var', 'group_by', 'plots', 'color_by'],
@@ -364,7 +370,8 @@ function useExtraInputs(
       reduction_setup: [
         ['Dimensionality Reduction (DR)', 'x-axis DR Compenent #', 'y-axis DR Component #'],
         reduction_opts
-      ]
+      ],
+      do_hover: ['Output as interactive (not flat) image?']
     };
   }, [
     options,
@@ -441,14 +448,13 @@ const components_dittoseq: DataEnvelope<Function> = {
   legend_title: stringPiece,
   xlab: stringPiece,
   ylab: stringPiece,
-  x_by: nestedDropdownFullPathPiece,
-  y_by: nestedDropdownFullPathPiece,
-  var: nestedDropdownFullPathPiece,
-  group_by: nestedDropdownFullPathPiece,
-  color_by: nestedDropdownFullPathPiece,
+  x_by: nestedDropdownPiece,
+  y_by: nestedDropdownPiece,
+  var: nestedDropdownPiece,
+  group_by: nestedDropdownPiece,
+  color_by: nestedDropdownPiece,
   plots: multiselectPiece,
   color_order: ReorderPiece,
-  order_when_continuous_color: checkboxPiece,
   size: sliderPiece,
   scale_by: dropdownPiece,
   x_scale: dropdownPiece,
@@ -457,6 +463,7 @@ const components_dittoseq: DataEnvelope<Function> = {
   x_order: ReorderPiece,
   y_order: ReorderPiece,
   reduction_setup: reductionSetupPiece,
+  do_hover: checkboxPiece,
 };
 
 const ComponentUse = ({
@@ -620,7 +627,7 @@ function VisualizationUI(
       </Grid>
     );
 
-  console.log(props.value);
+  // console.log(props.value);
 
   return (
     <div key='VizUI'>

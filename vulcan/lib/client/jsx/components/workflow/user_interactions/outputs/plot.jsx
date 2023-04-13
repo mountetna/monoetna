@@ -2,12 +2,46 @@ import React from 'react';
 import {autoColors} from 'etna-js/utils/colors';
 import PlotWithEffects from './plot_with_effects';
 
-const PlotOutput = ({data: plots}) => {
+export const PlotOutput = ({data}) => {
+  console.log("Plot Output Component hit!")
+  console.log({data})
+  const plotlys = {...data}
+  const pngs = Object.fromEntries(
+    Object.entries(data).filter(([key, val]) => {
+      return typeof(val)=="string"
+    })
+  )
+  Object.keys(pngs).forEach( (key) => {
+    delete plotlys[key]
+  })
+  console.log({plotlys})
+  console.log({pngs})
+  return <React.Fragment>
+    {(Object.keys(plotlys).length>0) ? PlotlyOutput({data: plotlys}) : null}
+    {(Object.keys(pngs).length>0) ? PngOutput({data: pngs}) : null}
+  </React.Fragment>
+}
+
+export const PngOutput = ({data}) => {
+  console.log("Png Output Component hit!")
+  return <React.Fragment>
+    {Object.values(data).map((url, ind) =>
+        <React.Fragment key={url}>
+          <img key={ind} src={url}/>
+        </React.Fragment>
+    )}
+  </React.Fragment>
+}
+
+export const PlotlyOutput = ({data: plots}) => {
+  console.log("Plotly Output Component hit!")
   return (
     <React.Fragment>
       {Object.keys(plots).map((k) => {
-        const plot = plots[k];
+        let plot = {...plots}[k];
         if (!plot) return null;
+        if (Array.isArray(plot)) plot = JSON.parse(plot[0])
+        console.log({plot})
         let {data, layout} = plot;
         if (!data || !layout) return null;
 
@@ -65,5 +99,3 @@ const PlotOutput = ({data: plots}) => {
     </React.Fragment>
   );
 };
-
-export default PlotOutput;

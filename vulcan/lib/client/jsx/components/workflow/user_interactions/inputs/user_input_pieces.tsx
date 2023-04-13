@@ -8,6 +8,7 @@ import BooleanInput from './boolean';
 import SelectAutocompleteInput from './select_autocomplete';
 import FloatInput from './float';
 import { Grid } from '@material-ui/core';
+import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v};
@@ -99,6 +100,22 @@ export function dropdownPiece(
         onChange={ (value) => changeFxn(withDefault(value,null), key) }
       />
     );
+  }
+
+export function nestedDropdownPiece(
+  key: string, changeFxn: Function, value: string | null = null,
+  label: string|undefined, options: DataEnvelope<DataEnvelope<DataEnvelope<null>|null>>, disabled: boolean = false) {
+    if (Array.isArray(options)) {
+      options = key_wrap([...options])
+    }
+    return <NestedSelectAutocompleteInput
+      key={key}
+      label={label}
+      value={some(value)}
+      data={val_wrap(options)}
+      disabled={disabled}
+      onChange={ (value) => changeFxn(withDefault(value,null), key) }
+    />
   }
 
 export function nestedDropdownFullPathPiece(
@@ -217,6 +234,8 @@ export function reductionSetupPiece(
   label: string[] = ['Dimensionality Reduction (DR)', 'x-axis DR Compenent', 'y-axis DR Component'],
   reduction_opts: DataEnvelope<string[]>) {
   
+  if (reduction_opts == null) return null
+
   const disable_dims = value[0]==null
   function changeReduction(newElement: string|null) {
     return [newElement, "1", "2"]

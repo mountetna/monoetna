@@ -39,23 +39,21 @@ rename_if_there <- function(current, proper) {
 }
 plot_setup <- rename_if_there("x.by", "x.var")
 plot_setup <- rename_if_there("y.by", "y.var")
-if (viz_fxn=="dittoDimPlot") {
-    plot_setup <- rename_if_there("color.by", "var")
-}
-plot_setup <- rename_if_there("color.by", "color.var")
+if (viz_fxn=="dittoDimPlot") plot_setup <- rename_if_there("color.by", "var")
+if (viz_fxn=="dittoScatterPlot") plot_setup <- rename_if_there("color.by", "color.var")
 plot_setup <- rename_if_there("plot.title", "main")
 
-# Convert from array/vector formats to singular value needed
-use_last <- function(elements) {
-    for (i in elements) {
-        if (i %in% names(plot_setup)) {
-            vals <- plot_setup[[i]]
-            plot_setup[[i]] <- vals[length(vals)]
-        }
-    }
-    plot_setup
-}
-plot_setup <- use_last(c("var", "y.var", "x.var", "color.by", "group.by"))
+# # Convert from array/vector formats to singular value needed
+# use_last <- function(elements) {
+#     for (i in elements) {
+#         if (i %in% names(plot_setup)) {
+#             vals <- plot_setup[[i]]
+#             plot_setup[[i]] <- vals[length(vals)]
+#         }
+#     }
+#     plot_setup
+# }
+# plot_setup <- use_last(c("var", "y.var", "x.var", "color.by", "group.by"))
 
 # Parse reduction_setup
 if ("reduction.setup" %in% names(plot_setup)) {
@@ -64,11 +62,11 @@ if ("reduction.setup" %in% names(plot_setup)) {
     plot_setup$dim.1 <- as.numeric(setup[2])
     plot_setup$dim.2 <- as.numeric(setup[3])
     plot_setup$reduction.setup <- NULL
-}
 
-# Replace recommendations
-if (plot_setup$reduction.use == "_Recommended_") {
-    plot_setup$reduction.use <- plotting_options$Recommended_Reduction
+    # Replace recommendation
+    if (plot_setup$reduction.use == "_Recommended_") {
+        plot_setup$reduction.use <- plotting_options$Recommended_Reduction
+    }
 }
 
 # # Parse subsetting
@@ -81,25 +79,54 @@ if (plot_setup$reduction.use == "_Recommended_") {
 # Add the dataset
 plot_setup$object <- scdata
 
-### Output png thumbnail
-ggsave(
-    filename = output_path('plot.png'),
-    plot = do.call(viz_fxn, plot_setup) + 
-        theme_void() + theme(legend.position = "none"),
-    units = "px",
-    width = 300,
-    height = 200
-)
-
-# Turn on hover
-# ToDo: Leave this up to the user and expose hover.data input!
-plot_setup$do.hover <- TRUE
-if (viz_fxn!="dittoBarPlot") {
-    plot_setup$hover.data <- "var"
+### Output the plot
+# If do.hover=TRUE, turn that off for making a thumbnail
+# Otherwise:
+#   can make the thumbnail from the plot directly
+#   split off legend so can ensure it won't override the main plot
+if (!is.null(plot_setup$do.hover) && plot_setup$do.hover) {
+    # Main plot with plotly
+    # ToDo: Leave this up to the user and expose hover.data input!
+    if (viz_fxn!="dittoBarPlot") {
+        plot_setup$hover.data <- "var"
+    }
+    fig <- do.call(viz_fxn, plot_setup)
+    fig_json <- plotly::plotly_json(fig, jsonedit = FALSE, pretty = TRUE)
+    output_json(fig_json, 'plot.out')
+    # Thumbnail
+    plot_setup$do.hover <- FALSE
+    ggsave(
+        filename = output_path('plot.png'),
+        plot = do.call(viz_fxn, plot_setup) + 
+            theme_void() + theme(legend.position = "none"),
+        units = "px",
+        width = 300,
+        height = 200
+    )
+} else {
+    fig <- do.call(viz_fxn, plot_setup)
+    ggsave(
+        filename = output_path('plot.png'),
+        plot = fig + 
+            theme_void() + theme(legend.position = "none"),
+        units = "px",
+        width = 300,
+        height = 200
+    )
+    ggsave(
+        filename = output_path('plot.out'),
+        plot = dittoSeq:::.remove_legend(fig),
+        device = "png",
+        units = "px",
+        width = 1200,
+        height = 800
+    )
+    ggsave(
+        filename = output_path('legend.png'),
+        plot = dittoSeq:::.grab_legend(fig),
+        device = "png",
+        units = "in",
+        width = 3,
+        height = 6
+    )
 }
-
-### Output plotly image
-# Make & output plot
-fig <- do.call(viz_fxn, plot_setup)
-fig_json <- plotly::plotly_json(fig, jsonedit = FALSE, pretty = TRUE)
-output_json(fig_json, 'plot.json')

@@ -37,12 +37,12 @@ steps:
       plot_setup: plot_setup/plot_setup
       scdata: get_dataset_and_summarize/scdata
       plotting_options: get_dataset_and_summarize/plotting_options
-    out: [plot.json, plot.png]
+    out: [plot.out, legend.png, plot.png]
   show_plot:
-    run: ui-outputs/plotly.cwl
+    run: ui-outputs/plot.cwl
     label: 'Display Plot'
     in:
-      a: make_plot/plot.json
+      a: make_plot/plot.out
     out: []
 
 
