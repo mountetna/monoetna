@@ -10,4 +10,4 @@ Imports:
 Remotes:
     mojaveazure/seurat-disk,
     dtm2451/dittoViz,
-    bioc::dittoSeq
+    dtm2451/dittoSeq

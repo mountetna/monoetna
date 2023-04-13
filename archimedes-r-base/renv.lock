@@ -836,14 +836,14 @@
     },
     "dittoSeq": {
       "Package": "dittoSeq",
-      "Version": "1.10.0",
-      "Source": "bioc_xgit",
-      "RemoteType": "bioc_xgit",
-      "RemoteMirror": "https://git.bioconductor.org/packages",
+      "Version": "1.11.0",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
       "RemoteRepo": "dittoSeq",
-      "RemoteRelease": "release",
-      "RemoteSha": "eaa7948eb42f776692de094d4fa058878323ba3d",
-      "RemoteBranch": "RELEASE_3_16",
+      "RemoteUsername": "dtm2451",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "aa7605fb2380d8c81db450d2124dfac967fc13a7",
       "Requirements": [
         "S4Vectors",
         "SingleCellExperiment",
@@ -861,7 +861,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "9d3ea3edaf8ac252406f9c6cbffd6c5e"
+      "Hash": "35f2777e2ac216510c0e45759ed29bfa"
     },
     "dittoViz": {
       "Package": "dittoViz",
