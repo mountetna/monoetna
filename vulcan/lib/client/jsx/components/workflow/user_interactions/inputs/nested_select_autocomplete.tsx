@@ -46,12 +46,14 @@ function LeafOptions({
   depth,
   handleSelect,
   maxOptions=100,
+  label=undefined
 }: {
   options_in: string[] | null;
   value: string | null;
   depth: number;
   handleSelect: (value: string | null, depth: number) => void;
   maxOptions?: number;
+  label?: string | undefined
 }) {
   if (!options_in) return null;
   if (value!=null && !options_in.includes(value)) {
@@ -69,6 +71,7 @@ function LeafOptions({
       value={some(value)}
       data={{a: options_in}}
       maxOptions={maxOptions}
+      label={label}
     />
   );
 }
@@ -109,9 +112,6 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
     [allOptions, path, onChange]
   );
 
-  // const lab = (label) ? 
-  //   <InputLabel shrink>{label}</InputLabel> : null;
-
   // console.log({value})
   // console.log({path})
   return (
@@ -130,6 +130,7 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
                   }
                   value={some(value)}
                   data={{a: options}}
+                  label={index==0 ? label : undefined}
                 />
               );
             })
@@ -140,6 +141,7 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
           options_in={getOptions(path, allOptions)}
           value={value}
           depth={path.length}
+          label={path.length == 0 ? label : undefined}
           handleSelect={handleSelect}
         />
       </div>
