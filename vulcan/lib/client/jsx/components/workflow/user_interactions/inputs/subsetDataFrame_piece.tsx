@@ -1,15 +1,16 @@
 import React, {useMemo} from 'react';
 import {DataEnvelope} from './input_types';
-import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import {
   checkboxPiece,
   dropdownPiece,
+  key_wrap,
   multiselectPiece,
-  rangePiece
+  nestedDropdownPiece,
+  rangePiece,
+  arrayLevels
 } from './user_input_pieces';
 import {Button, PropTypes} from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
-import {arrayLevels} from './user_input_pieces';
 
 /*
 This script defines a component that behaves like all other 'user_input_pieces'.
@@ -92,7 +93,7 @@ const singleMethod = (
   def: (string | number | null)[] = emptyMethod,
   index: number,
   data_summary: DataEnvelope<any>,
-  subset_options: string[],
+  subset_options: DataEnvelope<DataEnvelope<DataEnvelope<null>|null>> | string[],
   updateCurrent: Function,
   overallChangeFxn: Function,
   key: string,
@@ -114,7 +115,7 @@ const singleMethod = (
     // (Resets away any data targets)
     updateCurrent([newCol], null, index);
   };
-
+  
   const clearDef = () => {
     const full = {...values};
     // methods (Current at index, must remain/become [emptyMethod] or lose current)
@@ -138,13 +139,19 @@ const singleMethod = (
     overallChangeFxn({methods: next_methods, logic: next_logic}, key);
   };
 
-  const pick_column = dropdownPiece(
+  const pick_column = Array.isArray(subset_options) ? dropdownPiece(
     key + index,
     updateDefColumn,
     def[0] as string,
     'Condition ' + (index + 1) + ', Feature',
     subset_options,
     sorted
+  ) : nestedDropdownPiece(
+    key + index,
+    updateDefColumn,
+    def[0] as string,
+    'Condition ' + (index + 1) + ', Feature',
+    subset_options
   );
   const clear_comp = (
     <Button
@@ -200,19 +207,20 @@ export function subsetDataFramePiece(
   data_summary_ori: DataEnvelope<any>,
   sorted = false,
   color: PropTypes.Color = 'primary',
-  additional_numeric_options: string[] | null = null
+  additional_numeric_options: DataEnvelope<DataEnvelope<DataEnvelope<null>|null>|null> | null = null,
+  data_summary_options_label: string = 'data_frame columns'
 ) {
   const values = {...value};
   const data_summary = {...data_summary_ori};
-  // Determine unique 
+  // Put together all subsetting options
   const subset_options = useMemo(() => {
-    let subset_options_build: string[] = Object.keys(data_summary);
+    const subset_options_build: string[] = Object.keys(data_summary);
     if (additional_numeric_options!=null) {
-      subset_options_build.push(...additional_numeric_options)
+      return {
+        ...additional_numeric_options,
+        [data_summary_options_label]: key_wrap(subset_options_build)}
     }
-    return subset_options_build.filter( (value, index, array) => {
-      return array.indexOf(value) === index
-    })
+    return subset_options_build
   }, [data_summary, additional_numeric_options])
 
   const startOrClear = (doSubset: boolean, x: any) => {

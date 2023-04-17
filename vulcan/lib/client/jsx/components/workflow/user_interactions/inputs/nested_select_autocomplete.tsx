@@ -68,6 +68,7 @@ function LeafOptions({
       onChangeOverride={
         (event:any, e: string|null) => handleSelect(e, depth)
       }
+      minWidth={200}
       value={some(value)}
       data={{a: options_in}}
       maxOptions={maxOptions}
@@ -128,6 +129,7 @@ export default function NestedSelectAutocompleteInput({ label, data, onChange, .
                   onChangeOverride={
                     (event:any, e: string|null) => handleSelect(e, index)
                   }
+                  minWidth={200}
                   value={some(value)}
                   data={{a: options}}
                   label={index==0 ? label : undefined}

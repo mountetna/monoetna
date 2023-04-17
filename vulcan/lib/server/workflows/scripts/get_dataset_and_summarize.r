@@ -55,10 +55,16 @@ summarize_plotting_options <- function(object, record) {
     }
 
     ### Recommendations = bits marked in the record as putative
-    clust_and_annot_vals <- record[c("metadata_clustering", "metadata_annots_fine", "metadata_annots_broad")]
-    if (any(!is.na(clust_and_annot_vals))) {
-        names(clust_and_annot_vals) <- c("clustering", "annotations_fine", "annotations_broad")
-        plotting_options[["Recommended_Metadata"]] <- as.list(clust_and_annot_vals[!is.na(clust_and_annot_vals)])
+    meta_recs <- c()
+    for (rec in c("metadata_clustering", "metadata_annots_fine", "metadata_annots_broad")) {
+        if (!is.null(record[[rec]])) {
+            new <- record[[rec]]
+            names(new) <- paste0(gsub("^metadata_", "_Recommended_", rec), "_")
+            meta_recs <- c(meta_recs, new)
+        }
+    }
+    if (length(meta_recs) > 0) {
+        plotting_options[["Recommended_Metadata"]] <- as.list(meta_recs)
     }
     if (!is.na(record[["umap_name"]])) {
         plotting_options[["Recommended_Reduction"]] <- record[["umap_name"]]
@@ -86,14 +92,14 @@ summarize_discrete_metadata <- function(
             # 'key' as numbers to match with the pandas output format already being used
             names(this_out) <- seq_along(this_out)
 
-            output[[i]] <- as.list(this_out)
+            output[[i]] <- this_out
         }
     }
 
     if (!is.null(recommendations)) {
-        if (!is.null(recommendations$clustering)) output$`_Clustering_` <- outputs[[recommendations$clustering]]
-        if (!is.null(recommendations$annotations_fine)) output$`_Annotations_Fine_` <- outputs[[recommendations$annotations_fine]]
-        if (!is.null(recommendations$annotations_broad)) output$`_Annotations_Broad_` <- outputs[[recommendations$annotations_broad]]
+        if (!is.null(recommendations$`_Recommended_clustering_`)) output$`_Recommended_clustering_` <- output[[recommendations$`_Recommended_clustering_`]]
+        if (!is.null(recommendations$`_Recommended_annots_fine_`)) output$`_Recommended_annots_fine_` <- output[[recommendations$`_Recommended_annots_fine_`]]
+        if (!is.null(recommendations$`_Recommended_annots_broad_`)) output$`_Recommended_annots_broad_` <- output[[recommendations$`_Recommended_annots_broad_`]]
     }
 
     output
@@ -150,15 +156,19 @@ x <- crul::HttpClient$new(url = dataset_url)$get(disk = dataset_path) # Outputs 
 scdata <- readRDS(dataset_path)
 
 plotting_options <- summarize_plotting_options(scdata, dataset_record)
-discrete_metadata_summary <- summarize_discrete_metadata(scdata)
+
+discrete_metadata_summary <- summarize_discrete_metadata(scdata, plotting_options$Recommended_Metadata)
 
 reduction_opts <- plotting_options[['Reductions']] # [[]] returns the internal value
 if (!is.null(plotting_options[["Recommended_Reduction"]])) {
     reduction_opts$`_Recommended_` <- reduction_opts[[plotting_options[["Recommended_Reduction"]]]]
 }
+
 continuous_opts <- plotting_options['Cell_Features'] # [] subsets the top-level list to the called elements, keeping the top-level
 continuous_opts$Cell_Metadata <- setdiff(plotting_options[['Cell_Metadata']], names(discrete_metadata_summary))
+
 discrete_opts <- names(discrete_metadata_summary)
+
 all_opts <- plotting_options[c('Cell_Features', 'Cell_Metadata')]
 
 # Outputs

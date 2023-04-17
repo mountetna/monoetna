@@ -104,7 +104,7 @@ export function dropdownPiece(
 
 export function nestedDropdownPiece(
   key: string, changeFxn: Function, value: string | null = null,
-  label: string|undefined, options: DataEnvelope<DataEnvelope<DataEnvelope<null>|null>>, disabled: boolean = false) {
+  label: string|undefined, options: DataEnvelope<DataEnvelope<DataEnvelope<null>|null>> | string[], disabled: boolean = false) {
     if (Array.isArray(options)) {
       options = key_wrap([...options])
     }

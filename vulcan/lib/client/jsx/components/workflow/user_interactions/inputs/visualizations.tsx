@@ -185,23 +185,25 @@ const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
   dittoDimPlot: {
     'primary features': ['color_by', 'size', 'reduction_setup'],
     titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'data focus': ['color_order'],
+    'data focus': ['color_order', 'cells_use'],
     'output style': ['do_hover']
   },
   dittoScatterPlot: {
     'primary features': ['x_by', 'y_by', 'color_by', 'size'],
     titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'data focus': ['color_order'],
+    'data focus': ['color_order', 'cells_use'],
     'output style': ['do_hover']
   },
   dittoBarPlot: {
     'primary features': ['var', 'group_by', 'scale_by'],
     titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
-    'output style': ['do_hover']
+    'output style': ['do_hover'],
+    'data focus': ['cells_use']
   },
   dittoPlot: {
     'primary features': ['var', 'group_by', 'plots', 'color_by'],
-    titles: ['plot_title', 'legend_title', 'xlab', 'ylab']
+    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    'data focus': ['cells_use']
   }
 };
 
@@ -358,13 +360,14 @@ function useExtraInputs(
         false,
         'secondary'
       ],
-      // cells_use: [
-      //   'Focus on a subset of cells',
-      //   full_data,
-      //   false,
-      //   'secondary',
-      //   continuous
-      // ],
+      cells_use: [
+        'Focus on a subset of cells',
+        full_data,
+        false,
+        'secondary',
+        continuous,
+        'Discrete Cell_Metadata'
+      ],
       x_order: ['Order of X-Axis Groupings', full_data, x_by, discrete],
       y_order: ['Order of Y-Axis Groupings', full_data, y_by, discrete],
       reduction_setup: [

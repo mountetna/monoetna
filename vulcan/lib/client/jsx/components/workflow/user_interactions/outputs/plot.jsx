@@ -3,8 +3,7 @@ import {autoColors} from 'etna-js/utils/colors';
 import PlotWithEffects from './plot_with_effects';
 
 export const PlotOutput = ({data}) => {
-  console.log("Plot Output Component hit!")
-  console.log({data})
+  // console.log("Any plotter hit")
   const plotlys = {...data}
   const pngs = Object.fromEntries(
     Object.entries(data).filter(([key, val]) => {
@@ -14,8 +13,8 @@ export const PlotOutput = ({data}) => {
   Object.keys(pngs).forEach( (key) => {
     delete plotlys[key]
   })
-  console.log({plotlys})
-  console.log({pngs})
+  // console.log({plotlys})
+  // console.log({pngs})
   return <React.Fragment>
     {(Object.keys(plotlys).length>0) ? PlotlyOutput({data: plotlys}) : null}
     {(Object.keys(pngs).length>0) ? PngOutput({data: pngs}) : null}
@@ -23,7 +22,7 @@ export const PlotOutput = ({data}) => {
 }
 
 export const PngOutput = ({data}) => {
-  console.log("Png Output Component hit!")
+  // console.log("Png plotter hit")
   return <React.Fragment>
     {Object.values(data).map((url, ind) =>
         <React.Fragment key={url}>
@@ -34,16 +33,15 @@ export const PngOutput = ({data}) => {
 }
 
 export const PlotlyOutput = ({data: plots}) => {
-  console.log("Plotly Output Component hit!")
+  // console.log("Plotly plotter hit")
   return (
     <React.Fragment>
       {Object.keys(plots).map((k) => {
         let plot = {...plots}[k];
         if (!plot) return null;
         if (Array.isArray(plot)) plot = JSON.parse(plot[0])
-        console.log({plot})
         let {data, layout} = plot;
-        if (!data || !layout) return null;
+        if (!data || !layout) return null; // Todo: make this a user visible warning telling them to reach out to us!
 
         return (
           <PlotWithEffects

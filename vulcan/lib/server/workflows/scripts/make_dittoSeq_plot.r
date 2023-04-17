@@ -42,6 +42,15 @@ plot_setup <- rename_if_there("y.by", "y.var")
 if (viz_fxn=="dittoDimPlot") plot_setup <- rename_if_there("color.by", "var")
 if (viz_fxn=="dittoScatterPlot") plot_setup <- rename_if_there("color.by", "color.var")
 plot_setup <- rename_if_there("plot.title", "main")
+# BarPlot scaling (development choice diffs...)
+plot_setup <- rename_if_there("scale.by", "scale")
+if (!is.null(plot_setup$scale)) {
+    plot_setup$scale <- switch(
+        plot_setup$scale,
+        NULL,
+        'fraction' = 'percent',
+        'counts' = 'count')
+}
 
 # # Convert from array/vector formats to singular value needed
 # use_last <- function(elements) {
@@ -91,7 +100,7 @@ if (!is.null(plot_setup$do.hover) && plot_setup$do.hover) {
         plot_setup$hover.data <- "var"
     }
     fig <- do.call(viz_fxn, plot_setup)
-    fig_json <- plotly::plotly_json(fig, jsonedit = FALSE, pretty = TRUE)
+    fig_json <- plotly::plotly_json(fig, jsonedit = FALSE, pretty = FALSE)
     output_json(fig_json, 'plot.out')
     # Thumbnail
     plot_setup$do.hover <- FALSE
