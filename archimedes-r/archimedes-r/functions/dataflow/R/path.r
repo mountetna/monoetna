@@ -49,7 +49,7 @@ input_bool <- function(name, inputs_env = Sys.getenv(), inputs_dir = NULL) {
 };
 
 input_json <- function(name, inputs_env = Sys.getenv(), inputs_dir = NULL) {
-  jsonlite::fromJSON(input_path(name, inputs_env, inputs_dir))
+  jsonlite::fromJSON(input_path(name, inputs_env, inputs_dir), simplifyMatrix = FALSE)
 }
 
 output_path <- function(

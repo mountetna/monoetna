@@ -131,6 +131,7 @@ const defaults_dittoseq: DataEnvelope<any> = {
   scale_by: 'fraction',
   size: 1,
   plot_title: 'make',
+  plot_subtitle: 'make',
   legend_title: 'make',
   xlab: 'make',
   ylab: 'make',
@@ -184,25 +185,25 @@ const input_sets_plotly: DataEnvelope<DataEnvelope<string[]>> = {
 const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
   dittoDimPlot: {
     'primary features': ['color_by', 'size', 'reduction_setup'],
-    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
     'data focus': ['color_order', 'cells_use'],
     'output style': ['do_hover']
   },
   dittoScatterPlot: {
     'primary features': ['x_by', 'y_by', 'color_by', 'size'],
-    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
     'data focus': ['color_order', 'cells_use'],
     'output style': ['do_hover']
   },
   dittoBarPlot: {
     'primary features': ['var', 'group_by', 'scale_by'],
-    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
     'output style': ['do_hover'],
     'data focus': ['cells_use']
   },
   dittoPlot: {
     'primary features': ['var', 'group_by', 'plots', 'color_by'],
-    titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
+    titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
     'data focus': ['cells_use']
   }
 };
@@ -319,6 +320,7 @@ function useExtraInputs(
     return {
       // label, then for any extras
       plot_title: ['Plot Title'],
+      plot_subtitle: ['Plot Sub-Title'],
       legend_title: ['Legend Title'],
       xlab: ['X-Axis Title'],
       ylab: ['Y-Axis Title'],
@@ -448,6 +450,7 @@ const components_plotly: DataEnvelope<Function> = {
 
 const components_dittoseq: DataEnvelope<Function> = {
   plot_title: stringPiece,
+  plot_subtitle: stringPiece,
   legend_title: stringPiece,
   xlab: stringPiece,
   ylab: stringPiece,
