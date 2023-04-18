@@ -127,7 +127,7 @@ const defaults_dittoseq: DataEnvelope<any> = {
   var: null,
   group_by: null,
   color_by: null,
-  plots: ['violin', 'jitter'],
+  plots: ['jitter', 'vlnplot'],
   scale_by: 'fraction',
   size: 1,
   plot_title: 'make',
@@ -140,7 +140,24 @@ const defaults_dittoseq: DataEnvelope<any> = {
   y_scale: 'linear',
   cells_use: {},
   reduction_setup: ['_Recommended_', '1', '2'],
-  do_hover: true
+  do_hover: true,
+  vlnplot_lineweight: 1,
+  vlnplot_width: 1,
+  vlnplot_scaling: "area",
+  boxplot_width: 0.2,
+  boxplot_color: "black",
+  boxplot_fill: true,
+  boxplot_lineweight: 1,
+  jitter_size: 1,
+  jitter_width: 0.2,
+  jitter_color: "black",
+  ridgeplot_lineweight: 1,
+  do_label: false,
+  labels_highlight: true,
+  labels_repel: true,
+  do_contour: false,
+  do_ellipse: false,
+  legend_show: true
 };
 
 const remove_hidden = (
@@ -187,24 +204,33 @@ const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
     'primary features': ['color_by', 'size', 'reduction_setup'],
     titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
     'data focus': ['color_order', 'cells_use'],
-    'output style': ['do_hover']
+    'addition: labels': ['do_label', 'labels_highlight', 'labels_repel'],
+    'other additions': ['do_contour', 'do_ellipse'],
+    'output style': ['do_hover', 'legend_show']
   },
   dittoScatterPlot: {
     'primary features': ['x_by', 'y_by', 'color_by', 'size'],
     titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
     'data focus': ['color_order', 'cells_use'],
-    'output style': ['do_hover']
+    'addition: labels': ['do_label', 'labels_highlight', 'labels_repel'],
+    'other additions': ['do_contour', 'do_ellipse'],
+    'output style': ['do_hover', 'legend_show']
   },
   dittoBarPlot: {
     'primary features': ['var', 'group_by', 'scale_by'],
     titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
-    'output style': ['do_hover'],
+    'output style': ['do_hover', 'legend_show'],
     'data focus': ['cells_use']
   },
   dittoPlot: {
     'primary features': ['var', 'group_by', 'plots', 'color_by'],
     titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
-    'data focus': ['cells_use']
+    'vlnplot tweaks': ['vlnplot_lineweight', 'vlnplot_width', 'vlnplot_scaling'],
+    'boxplot tweaks': ['boxplot_width', 'boxplot_color', 'boxplot_fill', 'boxplot_lineweight'],
+    'jitter tweaks': ['jitter_size', 'jitter_width', 'jitter_color'],
+    'ridgeplot tweaks': ['ridgeplot_lineweight'],
+    'output style': ['legend_show'],
+    'data focus': ['cells_use'],
   }
 };
 
@@ -329,7 +355,7 @@ function useExtraInputs(
       var: ['Primary Data', get_options('var'), false],
       group_by: ['Groupings Data (often the x-axis)', get_options('group_by'), false],
       color_by: ['Color Data', add_make(get_options('color_by'), ['scatter_plot', 'y_plot', 'dittoPlot']), false],
-      plots: ['Data Representations', ['violin', 'box']],
+      plots: !is_ditto ? ['Data Representations', ['violin', 'box']] : ['Data Representations', ['vlnplot', 'boxplot', 'jitter', 'ridgeplot']],
       color_order: [
         'Point Render & (discrete) Color Assignment Order',
         full_data,
@@ -376,7 +402,24 @@ function useExtraInputs(
         ['Dimensionality Reduction (DR)', 'x-axis DR Compenent #', 'y-axis DR Component #'],
         reduction_opts
       ],
-      do_hover: ['Output as interactive (not flat) image?']
+      do_hover: ['Output as interactive (not flat) image?'],
+      vlnplot_lineweight: ['Lineweight', 0, 1.5, 0.05],
+      vlnplot_width: ['Width', 0.025, 1, 0.025],
+      vlnplot_scaling: ['Volume Scaling Method', ['area', 'width', 'count'], false],
+      boxplot_width: ['Width', 0.025, 0.5, 0.025],
+      boxplot_color: ['Line Color'],
+      boxplot_fill: ['Fill with "Color Data" colors?'],
+      boxplot_lineweight: ['Lineweight', 0, 1.5, 0.05],
+      jitter_size: ['Point Size', 0.05, 1, 0.05],
+      jitter_width: ['Width', 0.025, 0.5, 0.025],
+      jitter_color: ['Point Color'],
+      ridgeplot_lineweight: ['Lineweight', 0, 1.5, 0.05],
+      do_label: ['On/Off (discrete color data & flat output style only)'],
+      labels_highlight: ['Highlight labels with a box?'],
+      labels_repel: ['Allow movement to reduce overlaps?'],
+      do_contour: ['Add density-based contours?'],
+      do_ellipse: ['Surround groups in median-centered ellipses?'],
+      legend_show: ['Include the legend?']
     };
   }, [
     options,
@@ -470,6 +513,23 @@ const components_dittoseq: DataEnvelope<Function> = {
   y_order: ReorderPiece,
   reduction_setup: reductionSetupPiece,
   do_hover: checkboxPiece,
+  vlnplot_lineweight: sliderPiece,
+  vlnplot_width: sliderPiece,
+  vlnplot_scaling: dropdownPiece,
+  boxplot_width: sliderPiece,
+  boxplot_color: stringPiece,
+  boxplot_fill: checkboxPiece,
+  boxplot_lineweight: sliderPiece,
+  jitter_size: sliderPiece,
+  jitter_width: sliderPiece,
+  jitter_color: stringPiece,
+  ridgeplot_lineweight: sliderPiece,
+  do_label: checkboxPiece,
+  labels_highlight: checkboxPiece,
+  labels_repel: checkboxPiece,
+  do_contour: checkboxPiece,
+  do_ellipse: checkboxPiece,
+  legend_show: checkboxPiece
 };
 
 const ComponentUse = ({

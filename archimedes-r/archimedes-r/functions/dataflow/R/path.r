@@ -73,7 +73,7 @@ output_path <- function(
   path
 };
 
-output_var <- function(
+output_string <- function(
   data,
   name,
   outputs_env = Sys.getenv(),
@@ -82,6 +82,16 @@ output_var <- function(
   if (is.character(data)) {
     data <- paste0("\"",data,"\"")
   }
+
+  write(data, output_path(name, outputs_env, outputs_dir))
+}
+
+output_var <- function(
+  data,
+  name,
+  outputs_env = Sys.getenv(),
+  outputs_dir = NULL
+) {
 
   write(data, output_path(name, outputs_env, outputs_dir))
 }

@@ -238,7 +238,7 @@ if (!is.null(plot_setup$do.hover) && plot_setup$do.hover) {
     }
     fig <- do.call(viz_fxn, plot_setup)
     fig_json <- plotly::plotly_json(fig, jsonedit = FALSE, pretty = FALSE)
-    output_json(fig_json, 'plot.out')
+    output_var(fig_json, 'plot.out')
     # Thumbnail
     plot_setup$do.hover <- FALSE
     ggsave(
@@ -261,18 +261,19 @@ if (!is.null(plot_setup$do.hover) && plot_setup$do.hover) {
     )
     ggsave(
         filename = output_path('plot.out'),
-        plot = dittoSeq:::.remove_legend(fig),
+        # plot = dittoSeq:::.remove_legend(fig),
+        plot = fig,
         device = "png",
         units = "px",
         width = 1200,
-        height = 800
+        height = 1000
     )
-    ggsave(
-        filename = output_path('legend.png'),
-        plot = dittoSeq:::.grab_legend(fig),
-        device = "png",
-        units = "in",
-        width = 3,
-        height = 6
-    )
+    # ggsave(
+    #     filename = output_path('legend.png'),
+    #     plot = dittoSeq:::.grab_legend(fig),
+    #     device = "png",
+    #     units = "in",
+    #     width = 3,
+    #     height = 6
+    # )
 }

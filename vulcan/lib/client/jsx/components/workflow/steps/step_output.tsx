@@ -37,13 +37,18 @@ export default function StepOutput({step}: {step: WorkflowStep}) {
     data = stepInputDataRaw(step, state.status, state.data, state.session);
   }
 
+  let url;
+  if ([OUTPUT_COMPONENT.PLOT, OUTPUT_COMPONENT.PNG].includes(stepType)) {
+    url = stepInputDataUrls(step, state.status);
+  }
+
   let OutputComponent = OUTPUTS[stepType];
 
   return (
     <div className='step-output'>
       <StepName step={step} />
       <div className='outputs-pane'>
-        <OutputComponent data={data}/>
+        <OutputComponent data={data} url={url}/>
       </div>
     </div>
   );
