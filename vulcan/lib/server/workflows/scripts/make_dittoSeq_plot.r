@@ -254,8 +254,9 @@ if (!is.null(plot_setup$do.hover) && plot_setup$do.hover) {
     ggsave(
         filename = output_path('plot.png'),
         plot = fig + 
-            theme_void() + theme(legend.position = "none"),
+            theme_void() + theme(legend.position = "none") + ggtitle(NULL, NULL),
         units = "px",
+        dpi = 50,
         width = 300,
         height = 200
     )

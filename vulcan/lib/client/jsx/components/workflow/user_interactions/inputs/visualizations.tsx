@@ -366,13 +366,13 @@ function useExtraInputs(
       order_when_continuous_color: [
         'Follow selected render ordering when color is continuous?'
       ],
-      size: !is_ditto ? ['Point Size', 0.1, 50, undefined] : ['Point Size', 0.1, 25, 0.1],
+      size: !is_ditto() ? ['Point Size', 0.1, 50, undefined] : ['Point Size', 0.1, 25, 0.1],
       scale_by: [
         'Scale Y by counts or fraction',
         ['counts', 'fraction'],
         true,
         200,
-        x_by == y_by
+        !is_ditto() ? x_by == y_by : false
       ],
       x_scale: [
         'Adjust scaling of the X-Axis',
