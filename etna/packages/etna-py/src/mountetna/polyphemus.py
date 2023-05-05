@@ -14,6 +14,23 @@ from requests import HTTPError
 from .utils.iterables import batch_iterable
 from .metis import Upload, File
 
+@serialize
+@deserialize
+@dataclasses.dataclass
+class ListEtlConfigsResponse:
+    configs: List[Dict] = dataclasses.field(default_factory=list)
 
 class Polyphemus(EtnaClientBase):
-    pass
+    def list_all_etl_configs(
+        self, job_type: Optional[str] = None
+    ):
+        args = dict()
+
+        if job_type is not None:
+            args["job_type"] = job_type
+        response = self.session.post(
+            self.prepare_url("api", "etl", "configs"),
+            json=args
+        )
+
+        return from_json(ListEtlConfigsResponse, response.content)

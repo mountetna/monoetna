@@ -85,7 +85,6 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
               error={ bucket==null || bucket == '' || inputState != nullToEmptyString(bucket)}
               label={label}
               size='small'
-              InputLabelProps={{shrink: true}}
             />
           )}
         />
