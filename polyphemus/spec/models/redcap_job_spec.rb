@@ -75,6 +75,8 @@ describe Polyphemus::RedcapJob do
         project_name: PROJECT,
         name: 'test_etl',
         etl: 'redcap',
+        config_id: 1,
+        version_number: 1,
         config: {},
         secrets: {},
         params: {},

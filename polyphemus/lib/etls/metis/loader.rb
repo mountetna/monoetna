@@ -12,9 +12,16 @@ module Metis
           Metis::Loader::DataFrame,
         ].map(&:to_schema).reduce(&:merge),
 	type: "object",
-        additionalProperties: {
-          "$ref": "#/definitions/metis_model"
-        }
+        properties: {
+          bucket_name: { type: "string" },
+          models: {
+            type: "object",
+            additionalProperties: {
+              "$ref": "#/definitions/metis_model"
+            }
+          }
+        },
+        required: [ "bucket_name" ]
       }
     end
 
@@ -47,12 +54,11 @@ module Metis
             type: "object",
             properties: {
               type: { const: "file" },
-              bucket_name: { type: "string" },
               folder_path: { type: "string" },
               file_match: { type: "string" },
               attribute_name: { type: "string" }
             },
-            required: ["type", "bucket_name", "folder_path", "file_match", "attribute_name"]
+            required: ["type", "folder_path", "file_match", "attribute_name"]
           }
         }
       end
@@ -64,12 +70,11 @@ module Metis
             type: "object",
             properties: {
               type: { const: "file_collection" },
-              bucket_name: { type: "string" },
               folder_path: { type: "string" },
               file_match: { type: "string" },
               attribute_name: { type: "string" }
             },
-            required: ["type", "bucket_name", "folder_path", "file_match", "attribute_name"]
+            required: ["type", "folder_path", "file_match", "attribute_name"]
           }
         }
       end
@@ -81,7 +86,6 @@ module Metis
             type: "object",
             properties: {
               type: { const: "data_frame" },
-              bucket_name: { type: "string" },
               folder_path: { type: "string" },
               file_match: { type: "string" },
               format: { enum: [ "tsv", "csv" ] },
@@ -94,7 +98,7 @@ module Metis
                 items: { type: "string" }
               }
             },
-            required: ["type", "bucket_name", "folder_path", "file_match", "format" ]
+            required: ["type", "folder_path", "file_match", "format" ]
           }
         }
       end

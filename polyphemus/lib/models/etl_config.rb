@@ -7,7 +7,7 @@ class Polyphemus
 
     class << self
       def next_to_run
-        self.exclude(archived: true).where(
+        self.current.where(
           etl: Polyphemus::Job.list.select(&:should_run?).map(&:job_name)
         ).where {
           Sequel.|(
@@ -30,6 +30,10 @@ class Polyphemus
       enc.column :secrets, format: :json
     end
 
+    def self.current
+      return self.reverse(:config_id, :version_number).distinct(:config_id)
+    end
+
     def etl_job_class
       Polyphemus::Job.from_name(etl)
     end
@@ -40,6 +44,10 @@ class Polyphemus
 
     def validate_params(params)
       etl_job_class.validate_params(params)
+    end
+
+    def self.next_id
+      Polyphemus.instance.db.get { nextval("etl_configs_ids") }
     end
 
     def run!
@@ -119,7 +127,7 @@ class Polyphemus
     end
 
     def to_revision
-      as_json.slice(:config, :updated_at, :comment)
+      as_json.slice(:config, :version_number, :comment)
     end
 
     def valid_config?(config)

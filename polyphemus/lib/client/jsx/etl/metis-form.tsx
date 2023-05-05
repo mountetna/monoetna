@@ -23,6 +23,7 @@ import Pagination from '@material-ui/lab/Pagination';
 
 import {SchemaContext, SchemaProvider} from './schema-context';
 import AddDialog from 'etna-js/components/add-dialog';
+import {PickBucket} from 'etna-js/components/metis_exploration';
 
 import {makeStyles, Theme} from '@material-ui/core/styles';
 
@@ -56,6 +57,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     minHeight: '500px',
     overflow: 'hidden',
     overflowY: 'auto'
+  },
+  bucket_name: {
+    border: '1px solid #ccc'
   },
   model: {
     padding: '5px'
@@ -493,7 +497,10 @@ const MetisForm = ({
     if (job) setSchema(job.schema);
   }, [job]);
 
-  const modelNames = Object.keys(config).sort();
+  const configModels = config.models || {};
+
+  const modelNames = Object.keys(configModels).sort();
+  const bucket_name = config.bucket_name || '';
 
   const [tab, setTab] = useState(0);
 
@@ -502,19 +509,28 @@ const MetisForm = ({
 
   const handleUpdateModel = useCallback(
     (modelConfig: Model | undefined) => {
-      let c = {...config, [modelName]: modelConfig};
+      let c = {...config, models: { ...configModels, [modelName]: modelConfig} };
       if (modelConfig === undefined) delete c[modelName];
       update(c as Config);
     },
     [config, modelName, update]
   );
 
+  const setBucket = useCallback(
+    (bucket_name: string) => {
+      let c = {...config, bucket_name };
+      update(c as Config);
+    },
+    [config, update]
+  )
+
   const modelConfig = useMemo(() => {
-    return config[modelName];
+    return configModels[modelName];
   }, [config, modelName]);
 
   return (
     <Grid container className={classes.form} direction='column'>
+      <Grid item container className={classes.bucket_name}><PickBucket setBucket={setBucket} project_name={project_name} bucket={bucket_name}/></Grid>
       <Grid item container className={classes.tabs}>
         <Grid item className={classes.tab_scroll}>
           <Tabs
@@ -551,7 +567,7 @@ const MetisForm = ({
       <AddModel
         open={showAddModel}
         close={() => setShowAddModel(false)}
-        update={ model_name => update({...config, [model_name]: { scripts: [] } })}
+        update={ model_name => update({...config, models: { ...configModels, [model_name]: { scripts: [] } } })}
         excludeModels={Object.keys(config)}
       />
     </Grid>

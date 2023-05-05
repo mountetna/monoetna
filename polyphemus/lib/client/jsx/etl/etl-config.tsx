@@ -89,6 +89,7 @@ const EtlConfig = ({
   project_name,
   etl,
   name,
+  config_id,
   config,
   status,
   secrets,
@@ -118,7 +119,7 @@ const EtlConfig = ({
   const [_, postUpdate] = useAsyncWork(
     function postUpdate(update: any) {
       clearMessages();
-      return json_post(`/api/etl/${project_name}/update/${name}`, update)
+      return json_post(`/api/etl/${project_name}/update/${config_id}`, update)
         .then((etl) => {
           onUpdate(etl);
           setMessage('Saved!');
