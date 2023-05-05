@@ -1,8 +1,6 @@
 #! /usr/bin/env bash
 set -e
 
-echo 'find-updated-sources'
-
 prog=$0
 error() {
    echo "Whoops!  Looks like $0:$2 failed."
