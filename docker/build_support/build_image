@@ -32,12 +32,22 @@ if [[ "$1" == "-h" ]]; then
   exit 1
 fi
 
+OS=$(uname -s)
+
+# Set the appropriate readlink command based on the operating system
+# Note: use this only for the -m flag
+if [[ "$OS" == "Darwin" ]]; then
+  READLINK_M="greadlink -m"
+else
+  READLINK_M="readlink -m"
+fi
+
 #- Builds the given Dockerfile into an image,
 #-   first by constructing a build directory that links together the shortest
 #-   common parent directories of given dependencies, then running the given Dockerfile
 #-   in that context.  It also injects metadata related to the release sha at the time
 #-   the image is built.
-Dockerfile=$(readlink -m $1)
+Dockerfile=$($READLINK_M $1)
 
 baseTag=$(basename "$(dirname "$(realpath $Dockerfile)")")
 monoetnaSha=$(git rev-parse HEAD)
@@ -55,7 +65,7 @@ if [[ -z "$Dockerfile" ]]; then
 fi
 
 buildDir="$(mktemp -d)"
-sourceDockerDir="$(readlink -m $(dirname $Dockerfile))"
+sourceDockerDir="$($READLINK_M $(dirname $Dockerfile))"
 rsync -a $sourceDockerDir/ $buildDir/
 
 # Docker can 'leak' intermediate build images from different runs, unfortunately, even with --rm and --force-rm.

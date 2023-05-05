@@ -1,6 +1,8 @@
 #! /usr/bin/env bash
 set -e
 
+echo 'find-updated-sources'
+
 prog=$0
 error() {
    echo "Whoops!  Looks like $0:$2 failed."
@@ -26,7 +28,15 @@ YELLOW='\033[1;33m'
 CYAN='\033[1;36m'
 NC='\033[0m'
 
-dir=$(readlink -m $1)
+# Set the appropriate readlink command based on the operating system
+# Note: use this only for the -m flag
+if [ "$(uname -s)" = "Darwin" ]; then
+  READLINK_M="greadlink -m"
+else
+  READLINK_M="readlink -m"
+fi
+
+dir=$($READLINK_M $1)
 touchTarget=$2
 find=find
 if type -p gfind; then

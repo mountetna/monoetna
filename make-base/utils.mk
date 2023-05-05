@@ -23,9 +23,8 @@ endef
 define find_project_file
 $(addsuffix /$(2),$(call find_project_containing,$(1),$(2)))
 endef
-
 map = $(foreach a,$(2),$(call $(1),$(a)))
-readlink = $(shell readlink -m $(1))
+readlink = $(shell $(if $(findstring Darwin,$(shell uname -s)),greadlink,readlink) -m $(1))
 dirname = $(shell dirname $(1))
 
 define find_updated_sources
@@ -91,12 +90,20 @@ $(1)/image-release.marker: $(1)/image-test.marker
 
 endef
 
+
+# This must be defined outside any define blocks
+ifeq ($(shell uname -s),Darwin)
+    readlink_m = greadlink -m
+else
+    readlink_m = readlink -m
+endif
+
 define image_target_here
-$(call image_target1,$(shell dirname $$(readlink -m $(firstword $(MAKEFILE_LIST)))))
-$(call test_image_target1,$(shell dirname $$(readlink -m $(firstword $(MAKEFILE_LIST)))))
-$(call release_image_target1,$(shell dirname $$(readlink -m $(firstword $(MAKEFILE_LIST)))))
-release-build:: $(shell dirname $$(readlink -m $(firstword $(MAKEFILE_LIST))))/image.marker
-release-test:: $(shell dirname $$(readlink -m $(firstword $(MAKEFILE_LIST))))/image-test.marker
-release:: $(shell dirname $$(readlink -m $(firstword $(MAKEFILE_LIST))))/image-release.marker
+$(call image_target1,$(shell dirname $$( $(readlink_m) $(firstword $(MAKEFILE_LIST)))))
+$(call test_image_target1,$(shell dirname $$( $(readlink_m) $(firstword $(MAKEFILE_LIST)))))
+$(call release_image_target1,$(shell dirname $$( $(readlink_m) $(firstword $(MAKEFILE_LIST)))))
+release-build:: $(shell dirname $$( $(readlink_m) $(firstword $(MAKEFILE_LIST))))/image.marker
+release-test:: $(shell dirname $$( $(readlink_m)  $(firstword $(MAKEFILE_LIST))))/image-test.marker
+release:: $(shell dirname $$( $(readlink_m) $(firstword $(MAKEFILE_LIST))))/image-release.marker
 run-image-test::
 endef
