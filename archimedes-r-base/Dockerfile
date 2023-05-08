@@ -20,8 +20,8 @@ RUN apt-get update \
       libfribidi-dev \
       --no-install-recommends
 
-# Add jetpack package manager and enable command line controls
 WORKDIR /app
+# Add jetpack package manager, enable command line controls, and instll packages based on past package uses.
 COPY DESCRIPTION .
 COPY renv.lock .
 COPY .Rprofile .

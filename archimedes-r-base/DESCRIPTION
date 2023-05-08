@@ -6,7 +6,8 @@ Imports:
     plotly,
     BiocManager,
     dittoViz,
-    dittoSeq
+    dittoSeq,
+    testthat
 Remotes:
     mojaveazure/seurat-disk,
     dtm2451/dittoViz,
