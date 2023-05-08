@@ -17,10 +17,7 @@ class Gnomon(EtnaClientBase):
     ):
         response = self.session.post(
             self.prepare_url("gnomon", "rules"),
-            json=dict(
-                'project_names' : project_names
-            ),
-            verify=False
+            json=dict(project_names=project_names)
         )
 
         return from_json(RulesResponse, response.content)
