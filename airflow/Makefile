@@ -3,6 +3,8 @@ release::
 
 include ../make-base/stubs.mk
 include ../make-base/docker-compose.mk
+include ../make-base/utils.mk
+
 app_service_name:=airflow_ui
 
 baseTag:=$(shell basename "$$(pwd)")
@@ -15,5 +17,5 @@ run-image-test::
 black:
 	docker run -u 0:0 -v $(pwd)/opt/providers:/opt/airflow/providers --rm $(baseTag) bash -c '$$@' -- black /opt/airflow/providers/etna
 
-pdoc: $(shell readlink -m $(shell dirname $(firstword $(MAKEFILE_LIST))))/image-release.marker
+pdoc: $(call readlink_m $(shell dirname $(firstword $(MAKEFILE_LIST))))/image-release.marker
 	docker run -u 0:0 -v $(pwd)/opt/providers:/opt/airflow/providers --rm $(baseTag) bash -c '$$@' -- pdoc -o /opt/airflow/providers/etna/docs etna
