@@ -101,65 +101,6 @@ JSX:
 type optionSet = string[]
 type nestedOptionSet = DataEnvelope<DataEnvelope<DataEnvelope<null>|null>|null>
 
-const defaults_plotly: DataEnvelope<any> = {
-  x_by: null,
-  y_by: null,
-  plots: ['box', 'violin'],
-  color_by: 'make',
-  scale_by: 'fraction',
-  size: 5,
-  plot_title: 'make',
-  legend_title: 'make',
-  xlab: 'make',
-  ylab: 'make',
-  color_order: 'increasing',
-  order_when_continuous_color: false,
-  x_scale: 'linear',
-  y_scale: 'linear',
-  rows_use: {},
-  x_order: 'increasing',
-  y_order: 'increasing'
-};
-
-const defaults_dittoseq: DataEnvelope<any> = {
-  x_by: null,
-  y_by: null,
-  var: null,
-  group_by: null,
-  color_by: null,
-  plots: ['jitter', 'vlnplot'],
-  scale_by: 'fraction',
-  size: 1,
-  plot_title: 'make',
-  plot_subtitle: 'make',
-  legend_title: 'make',
-  xlab: 'make',
-  ylab: 'make',
-  color_order: 'increasing',
-  x_scale: 'linear',
-  y_scale: 'linear',
-  cells_use: {},
-  reduction_setup: ['_Recommended_', '1', '2'],
-  do_hover: true,
-  vlnplot_lineweight: 1,
-  vlnplot_width: 1,
-  vlnplot_scaling: "area",
-  boxplot_width: 0.2,
-  boxplot_color: "black",
-  boxplot_fill: true,
-  boxplot_lineweight: 1,
-  jitter_size: 1,
-  jitter_width: 0.2,
-  jitter_color: "black",
-  ridgeplot_lineweight: 1,
-  do_label: false,
-  labels_highlight: true,
-  labels_repel: true,
-  do_contour: false,
-  do_ellipse: false,
-  legend_show: true
-};
-
 const remove_hidden = (
   vals: DataEnvelope<any>,
   hide: string[] | null | undefined
@@ -199,6 +140,35 @@ const input_sets_plotly: DataEnvelope<DataEnvelope<string[]>> = {
   }
 };
 
+const defaults_plotly: DataEnvelope<any> = {
+  x_by: null,
+  y_by: null,
+  plots: ['box', 'violin'],
+  color_by: 'make',
+  scale_by: 'fraction',
+  size: 5,
+  plot_title: 'make',
+  legend_title: 'make',
+  xlab: 'make',
+  ylab: 'make',
+  color_order: 'increasing',
+  order_when_continuous_color: false,
+  x_scale: 'linear',
+  y_scale: 'linear',
+  rows_use: {},
+  x_order: 'increasing',
+  y_order: 'increasing'
+};
+
+const redefaults_plotly: DataEnvelope<DataEnvelope<DataEnvelope<any>>> = {
+  scatter_plot: {
+    'color_by': "make"
+  },
+  y_plot: {
+    'color_by': "make"
+  }
+}
+
 const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
   dittoDimPlot: {
     'primary features': ['color_by', 'size', 'reduction_setup'],
@@ -234,10 +204,59 @@ const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
   }
 };
 
+const defaults_dittoseq: DataEnvelope<any> = {
+  x_by: null,
+  y_by: null,
+  var: null,
+  group_by: null,
+  color_by: null,
+  plots: ['jitter', 'vlnplot'],
+  scale_by: 'fraction',
+  size: 1,
+  plot_title: 'make',
+  plot_subtitle: 'make',
+  legend_title: 'make',
+  xlab: 'make',
+  ylab: 'make',
+  color_order: 'unordered',
+  x_scale: 'linear',
+  y_scale: 'linear',
+  cells_use: {},
+  reduction_setup: ['_Recommended_', '1', '2'],
+  do_hover: true,
+  vlnplot_lineweight: 1,
+  vlnplot_width: 1,
+  vlnplot_scaling: "area",
+  boxplot_width: 0.2,
+  boxplot_color: "black",
+  boxplot_fill: true,
+  boxplot_lineweight: 1,
+  jitter_size: 1,
+  jitter_width: 0.2,
+  jitter_color: "black",
+  ridgeplot_lineweight: 1,
+  do_label: false,
+  labels_highlight: true,
+  labels_repel: true,
+  do_contour: false,
+  do_ellipse: false,
+  legend_show: true
+};
+
+const redefaults_dittoseq: DataEnvelope<DataEnvelope<DataEnvelope<any>>> = {
+  dittoScatterPlot: {
+    'color_by': "make"
+  },
+  dittoPlot: {
+    'color_by': "make"
+  }
+}
+
 function whichDefaults(
   plotType: string | null,
   preset: DataEnvelope<any> | null | undefined,
   defaults: DataEnvelope<any>,
+  redefaults: DataEnvelope<DataEnvelope<DataEnvelope<any>>>,
   input_sets: DataEnvelope<DataEnvelope<string[]>>
 ) {
   if (plotType == null) return {plot_type: plotType};
@@ -252,17 +271,16 @@ function whichDefaults(
     if (!inputs.includes(def_keys[ind])) delete initial_vals[def_keys[ind]];
   }
 
-  // // Replace any values if different default given for this plot type
-  // Broken during a redesign, but should be restorable easily!
-  // if (input_sets[plotType]['default_adjust'] != null) {
-  //   const new_def_keys = Object.keys(input_sets[plotType]['default_adjust'])
-  //   const new_def_vals = Object.values(input_sets[plotType]['default_adjust'])
-  //   for (let ind = 0; ind < new_def_keys.length; ind++) {
-  //     initial_vals[new_def_keys[ind]]=new_def_vals[ind];
-  //   }
-  // }
+  // Replace default values with 'redefault' values.
+  if (Object.keys(redefaults).includes(plotType)) {
+    const new_def_keys = Object.keys(redefaults[plotType])
+    const new_def_vals = Object.values(redefaults[plotType])
+    for (let ind = 0; ind < new_def_keys.length; ind++) {
+      initial_vals[new_def_keys[ind]]=new_def_vals[ind];
+    }
+  }
 
-  // Add preset values / replace any default values.
+  // Use preset values.
   if (preset != null) {
     const pre_keys = Object.keys(preset);
     for (let ind = 0; ind < pre_keys.length; ind++) {
@@ -354,7 +372,7 @@ function useExtraInputs(
       y_by: ['Y-Axis Data', get_options('y_by'), false],
       var: ['Primary Data', get_options('var'), false],
       group_by: ['Groupings Data (often the x-axis)', get_options('group_by'), false],
-      color_by: ['Color Data', add_make(get_options('color_by'), ['scatter_plot', 'y_plot', 'dittoPlot']), false],
+      color_by: ['Color Data', add_make(get_options('color_by'), ['scatter_plot', 'y_plot', 'dittoPlot', 'dittoScatterPlot']), false],
       plots: !is_ditto ? ['Data Representations', ['violin', 'box']] : ['Data Representations', ['vlnplot', 'boxplot', 'jitter', 'ridgeplot']],
       color_order: [
         'Point Render & (discrete) Color Assignment Order',
@@ -553,12 +571,13 @@ function VisualizationUI(
   {data, onChange, ...props}: WithInputParams<{}, DataEnvelope<any>, any>,
   setPlotType: string | null = null,
   defaults: DataEnvelope<any>,
+  redefaults: DataEnvelope<DataEnvelope<DataEnvelope<any>>>,
   input_sets: DataEnvelope<DataEnvelope<string[]>>,
   components: DataEnvelope<Function>
 ) {
   const preset = useMemo(() => data && data['preset'], [data]);
   const hide = useMemo(() => preset && Object.keys(preset), [preset]);
-  const defaultValue = whichDefaults(setPlotType, preset, defaults, input_sets);
+  const defaultValue = whichDefaults(setPlotType, preset, defaults, redefaults, input_sets);
   const value = useSetsDefault(defaultValue, props.value, onChange);
   const [expandedDrawers, setExpandedDrawers] = useState(['primary features']);
   const plotType =
@@ -629,7 +648,7 @@ function VisualizationUI(
   }, [value, hide]);
 
   const updatePlotType = (newType: string, key: string) => {
-    onChange(some(whichDefaults(newType, preset, defaults, input_sets)));
+    onChange(some(whichDefaults(newType, preset, defaults, redefaults, input_sets)));
   };
 
   const updateValue = (newValue: any, key: string, prevValues = {...value}) => {
@@ -693,7 +712,7 @@ function VisualizationUI(
       </Grid>
     );
 
-  // console.log(props.value);
+  console.log(props.value);
 
   return (
     <div key='VizUI'>
@@ -708,7 +727,7 @@ export function ScatterPlotly({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'scatter_plot', defaults_plotly, input_sets_plotly, components_plotly);
+  return VisualizationUI({data, onChange, value}, 'scatter_plot', defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
 }
 
 export function BarPlotly({
@@ -716,7 +735,7 @@ export function BarPlotly({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'bar_plot', defaults_plotly, input_sets_plotly, components_plotly);
+  return VisualizationUI({data, onChange, value}, 'bar_plot', defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
 }
 
 export function YPlotly({
@@ -724,7 +743,7 @@ export function YPlotly({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'y_plot', defaults_plotly, input_sets_plotly, components_plotly);
+  return VisualizationUI({data, onChange, value}, 'y_plot', defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
 }
 
 export function AnyPlotly({
@@ -732,7 +751,7 @@ export function AnyPlotly({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, null, defaults_plotly, input_sets_plotly, components_plotly);
+  return VisualizationUI({data, onChange, value}, null, defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
 }
 
 export function DittoDimPlot({
@@ -740,7 +759,7 @@ export function DittoDimPlot({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'dittoDimPlot', defaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+  return VisualizationUI({data, onChange, value}, 'dittoDimPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
 
 export function DittoScatterPlot({
@@ -748,7 +767,7 @@ export function DittoScatterPlot({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'dittoScatterPlot', defaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+  return VisualizationUI({data, onChange, value}, 'dittoScatterPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
 
 export function DittoBarPlot({
@@ -756,7 +775,7 @@ export function DittoBarPlot({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'dittoBarPlot', defaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+  return VisualizationUI({data, onChange, value}, 'dittoBarPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
 
 export function DittoPlot({
@@ -764,7 +783,7 @@ export function DittoPlot({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'dittoPlot', defaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+  return VisualizationUI({data, onChange, value}, 'dittoPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
 
 export function AnyDittoSeq({
@@ -772,5 +791,5 @@ export function AnyDittoSeq({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, null, defaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+  return VisualizationUI({data, onChange, value}, null, defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
