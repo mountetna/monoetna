@@ -1266,31 +1266,62 @@ describe UpdateController do
     it 'ignores gnomon if the project is not configured to use gnomon' do
     end
 
-    it 'accepts a record if the identifier is defined in gnomon' do
-      grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
-      identifier = create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
+    context 'identifier mode' do
+      it 'accepts a record if the identifier is defined in gnomon' do
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
+        identifier = create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
 
-      update(
-        monster: {
-          'Nemean Lion' => { species: 'Lion' }
-        }
-      )
+        update(
+          monster: {
+            'Nemean Lion' => { species: 'Lion' }
+          }
+        )
 
-      expect(last_response.status).to eq(200)
-      expect(Labors::Monster.first.species).to eq('Lion')
+        expect(last_response.status).to eq(200)
+        expect(Labors::Monster.first.species).to eq('Lion')
+      end
+
+      it 'rejects a record if the identifier is not defined in gnomon' do
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
+
+        update(
+          monster: {
+            'Nemean Lion' => { species: 'Lion' }
+          }
+        )
+
+        expect(last_response.status).to eq(422)
+        expect(json_body[:errors]).to eq(["The name 'Nemean Lion' has not been assigned in Gnomon."])
+      end
     end
 
-    it 'rejects a record if the identifier is not defined in gnomon' do
-      grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
+    context 'pattern mode' do
+      # this requires a real config to be written here
+      it 'accepts a record if the identifier matches the pattern in the gnomon grammar' do
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
 
-      update(
-        monster: {
-          'Nemean Lion' => { species: 'Lion' }
-        }
-      )
+        update(
+          monster: {
+            'Nemean Lion' => { species: 'Lion' }
+          }
+        )
 
-      expect(last_response.status).to eq(422)
-      expect(json_body[:errors]).to eq(["The name 'Nemean Lion' has not been assigned in Gnomon."])
+        expect(last_response.status).to eq(200)
+        expect(Labors::Monster.first.species).to eq('Lion')
+      end
+
+      it 'rejects a record if the identifier does not match the pattern in the gnomon grammar' do
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
+
+        update(
+          monster: {
+            'Nemean Loon' => { species: 'Lion' }
+          }
+        )
+
+        expect(last_response.status).to eq(422)
+        expect(json_body[:errors]).to eq(["The name 'Nemean Loon' is invalid for the model 'monster'."])
+      end
     end
 
     it 'creates and attaches parents if the identifiers are defined in gnomon' do
