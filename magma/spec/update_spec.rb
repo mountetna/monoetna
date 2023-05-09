@@ -1292,6 +1292,9 @@ describe UpdateController do
       expect(last_response.status).to eq(422)
       expect(json_body[:errors]).to eq(["The name 'Nemean Lion' has not been assigned in Gnomon."])
     end
+
+    it 'creates and attaches parents if the identifiers are defined in gnomon' do
+    end
   end
 
   it 'updates a match' do
