@@ -3,7 +3,13 @@ export NODE_ENV=development
 export MONOETNA_SHA=$(shell git rev-parse HEAD)
 export DOCKER_DEFAULT_PLATFORM=linux/amd64
 
-# The following set of targets can be used as an alternative to calling into the original make system, this is specifically designed for Mac
+# The following set of targets can be used as an alternative to calling into the original make system,
+# this is specifically designed for Mac
+
+### Images targets ###
+
+# Build all docker images for local development, note the order is extremely important here, as many images
+# depend on the previous images.
 
 .PHONY: build
 build-dev-dep-images:
@@ -24,9 +30,12 @@ build-dev-dep-images:
 	docker build -t archimedes-node-base docker/archimedes-node-base
 
 
-# Note: the project level docker-compose files use relative paths so it is important to execute commands from within the project directory
+### Project level targets ###
 
-# Etna
+# Note: the project level docker-compose files use relative paths so it is important to execute commands from within
+# the project directory
+
+## Etna ##
 
 etna-up:
 	cd etna && docker-compose up -d
@@ -36,7 +45,7 @@ etna-install-libs:
 	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bash -c 'cd packages/etna-js && npm install'
 	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bash -c 'npm install --unsafe-perm'
 
-# Magma
+## Magma ##
 
 magma-up:
 	cd magma && docker-compose up -d
@@ -46,7 +55,7 @@ magma-migrate:
 	# Seems to fail after run once
 	cd magma && docker-compose run --rm -e UPDATE_STATE=1 magma_app
 
-# Janus
+## Janus ##
 
 janus-up:
 	cd janus && docker-compose up -d
@@ -57,7 +66,7 @@ janus-migrate:
 janus-seed:
 	./bin/seed_janus
 
-# Timur
+## Timur ##
 
 timur-up:
 	cd timur && docker-compose up -d
@@ -65,7 +74,7 @@ timur-up:
 timur-migrate:
 	cd timur &&	docker-compose run --rm -e UPDATE_STATE=1 -e FULL_BUILD=1 timur_app
 
-# Gnomon
+## Gnomon ##
 
 gnomon-up:
 	cd gnomon && docker-compose up -d
@@ -73,7 +82,7 @@ gnomon-up:
 gnomon-migrate:
 	cd gnomon && docker-compose run --rm -e UPDATE_STATE=1 gnomon_app
 
-# Metis
+## Metis ##
 
 metis-up:
 	cd metis && docker-compose up -d
@@ -81,8 +90,7 @@ metis-up:
 metis-migrate:
 	cd metis && docker-compose run --rm -e UPDATE_STATE=1 metis_app
 
-
-# Clean functionality
+### Clean targets ###
 
 remove-all-containers:
 	docker-compose down
