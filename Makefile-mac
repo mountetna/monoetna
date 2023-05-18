@@ -1,0 +1,91 @@
+export COMPOSE_PROJECT_NAME=monoetna
+export NODE_ENV=development
+export MONOETNA_SHA=$(shell git rev-parse HEAD)
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+
+# The following set of targets can be used as an alternative to calling into the original make system, this is specifically designed for Mac
+
+.PHONY: build
+build-dev-dep-images:
+	docker build -t development-certs development-certs/
+	docker build -t known_hosts known_hosts/
+	docker build -t bash_mocker bash_mocker/
+	docker build -t developement-psql docker/development-psql/ # Docker dir
+	docker build -t etna-base-dev docker/etna-base-dev/ # Docker dir
+	docker build -t etna etna/
+	docker build -t etna-base docker/etna-base # Docker dir
+	docker build -t etna-apache docker/etna-apache # Docker dir
+	docker build -t deployer-base docker/deployer_base # Docker dir
+	docker build -t airflow-code-editor airflow-code-editor/
+	docker build -t etna-py etna/packages/etna-py/
+	docker build -t airflow airflow/
+	docker build -t archimedes-base docker/archimedes-base # Docker dir
+	docker build -t archimedes-r-base archimedes-r-base/ # takes a really long time!
+	docker build -t archimedes-node-base docker/archimedes-node-base
+
+
+# Note: the project level docker-compose files use relative paths so it is important to execute commands from within the project directory
+
+# Etna
+
+etna-up:
+	cd etna && docker-compose up -d
+
+etna-install-libs:
+	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bundle install
+	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bash -c 'cd packages/etna-js && npm install'
+	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bash -c 'npm install --unsafe-perm'
+
+# Magma
+
+magma-up:
+	cd magma && docker-compose up -d
+	# Note magma_webpack is expected to fail
+
+magma-migrate:
+	# Seems to fail after run once
+	cd magma && docker-compose run --rm -e UPDATE_STATE=1 magma_app
+
+# Janus
+
+janus-up:
+	cd janus && docker-compose up -d
+
+janus-migrate:
+	cd janus && docker-compose run --rm -e UPDATE_STATE=1 janus_app
+
+janus-seed:
+	./bin/seed_janus
+
+# Timur
+
+timur-up:
+	cd timur && docker-compose up -d
+
+timur-migrate:
+	cd timur &&	docker-compose run --rm -e UPDATE_STATE=1 -e FULL_BUILD=1 timur_app
+
+# Gnomon
+
+gnomon-up:
+	cd gnomon && docker-compose up -d
+
+gnomon-migrate:
+	cd gnomon && docker-compose run --rm -e UPDATE_STATE=1 gnomon_app
+
+# Metis
+
+metis-up:
+	cd metis && docker-compose up -d
+
+metis-migrate:
+	cd metis && docker-compose run --rm -e UPDATE_STATE=1 metis_app
+
+
+# Clean functionality
+
+remove-all-containers:
+	docker-compose down
+
+stop-all-containers:
+	docker-compose stop
