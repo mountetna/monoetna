@@ -72,7 +72,7 @@ timur-up:
 	cd timur && docker-compose up -d
 
 timur-migrate:
-	cd timur &&	docker-compose run --rm -e UPDATE_STATE=1 -e FULL_BUILD=1 timur_app
+	cd timur && docker-compose run --rm -e UPDATE_STATE=1 -e FULL_BUILD=1 timur_app
 
 ## Gnomon ##
 
