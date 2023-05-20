@@ -13,21 +13,36 @@ export DOCKER_DEFAULT_PLATFORM=linux/amd64
 
 .PHONY: build
 build-dev-dep-images:
-	docker build -t development-certs development-certs/
-	docker build -t known_hosts known_hosts/
-	docker build -t bash_mocker bash_mocker/
-	docker build -t developement-psql docker/development-psql/ # Docker dir
-	docker build -t etna-base-dev docker/etna-base-dev/ # Docker dir
-	docker build -t etna etna/
-	docker build -t etna-base docker/etna-base # Docker dir
-	docker build -t etna-apache docker/etna-apache # Docker dir
-	docker build -t deployer-base docker/deployer_base # Docker dir
-	docker build -t airflow-code-editor airflow-code-editor/
-	docker build -t etna-py etna/packages/etna-py/
-	docker build -t airflow airflow/
-	docker build -t archimedes-base docker/archimedes-base # Docker dir
-	docker build -t archimedes-r-base archimedes-r-base/ # takes a really long time!
-	docker build -t archimedes-node-base docker/archimedes-node-base
+	# Stand alone
+	echo "Building stand alone docker images..."
+	cd known_hosts && docker build . -t known_hosts
+	cd bash_mocker &&  docker build . -t bash_mocker
+	cd development-certs && docker build . -t development-certs
+	cd docker/development-psql && docker build . -t development-psql
+	# cd docker/deployer_base && docker build . -t deployer-base
+
+	# Apache
+	echo "Building apache images..."
+	cd docker/etna-apache && docker build . -t etna-apache
+	cd edge-apache && docker build . -t edge-apache
+
+	# Etna base images
+	echo "Building etna images..."
+	cd docker/etna-base-dev && docker build . -t etna-base-dev
+	cd etna && docker build . -t etna
+	cd docker/etna-base && docker build . -t etna-base
+
+	# Airflow
+	echo "Building airflow images..."
+	cd airflow-code-editor && docker build . -t airflow-code-editor
+	cd etna/packages/etna-py && docker build . -t etna-py
+	cd airflow && docker build . -t airflow
+
+	# Archimedes
+	echo "Building archimedes images..."
+	cd docker/archimedes-base && docker build . -t archimedes-base
+	cd archimedes-r-base && docker build . -t archimedes-r-base # takes a really long time!
+	cd docker/archimedes-node-base && docker . build -t archimedes-node-base
 
 
 ### Project level targets ###
@@ -38,6 +53,7 @@ build-dev-dep-images:
 ## Etna ##
 
 etna-up:
+	cd edge-apache &&  docker-compose up -d
 	cd etna && docker-compose up -d
 
 etna-install-libs:
@@ -48,6 +64,7 @@ etna-install-libs:
 ## Magma ##
 
 magma-up:
+	cd edge-apache && docker-compose up -d
 	cd magma && docker-compose up -d
 	# Note magma_webpack is expected to fail
 
@@ -58,6 +75,7 @@ magma-migrate:
 ## Janus ##
 
 janus-up:
+	cd edge-apache && docker-compose up -d
 	cd janus && docker-compose up -d
 
 janus-migrate:
@@ -69,6 +87,7 @@ janus-seed:
 ## Timur ##
 
 timur-up:
+	cd edge-apache && docker-compose up -d
 	cd timur && docker-compose up -d
 
 timur-migrate:
@@ -78,6 +97,7 @@ timur-migrate:
 
 gnomon-up:
 	cd gnomon && docker-compose up -d
+	cd edge-apache &&  docker-compose up -d
 
 gnomon-migrate:
 	cd gnomon && docker-compose run --rm -e UPDATE_STATE=1 gnomon_app
@@ -85,6 +105,7 @@ gnomon-migrate:
 ## Metis ##
 
 metis-up:
+	cd edge-apache &&  docker-compose up -d
 	cd metis && docker-compose up -d
 
 metis-migrate:
