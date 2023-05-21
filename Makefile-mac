@@ -11,7 +11,6 @@ export DOCKER_DEFAULT_PLATFORM=linux/amd64
 # Build all docker images for local development, note the order is extremely important here, as many images
 # depend on the previous images.
 
-.PHONY: build
 build-dev-dep-images:
 	# Stand alone
 	echo "Building stand alone docker images..."
@@ -53,8 +52,11 @@ build-dev-dep-images:
 ## Etna ##
 
 etna-up:
-	cd edge-apache &&  docker-compose up -d
+	cd edge-apache && docker-compose up -d
 	cd etna && docker-compose up -d
+
+etna-down:
+	cd etna && docker-compose down
 
 etna-install-libs:
 	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bundle install
@@ -68,8 +70,11 @@ magma-up:
 	cd magma && docker-compose up -d
 	# Note magma_webpack is expected to fail
 
+magma-down:
+	cd magma && docker-compose down
+
 magma-migrate:
-	# Seems to fail after run once
+	# Will fail if magma containers are not running
 	cd magma && docker-compose run --rm -e UPDATE_STATE=1 magma_app
 
 ## Janus ##
@@ -78,17 +83,30 @@ janus-up:
 	cd edge-apache && docker-compose up -d
 	cd janus && docker-compose up -d
 
+janus-down:
+	cd janus && docker-compose down
+
 janus-migrate:
 	cd janus && docker-compose run --rm -e UPDATE_STATE=1 janus_app
 
+# janus-up must be run for this to work, WHY?!
 janus-seed:
-	./bin/seed_janus
+	cd janus && docker-compose run --rm janus_app ./bin/janus add_project 'test-project' 'TestProject'
+	cd janus && docker-compose run --rm janus_app ./bin/janus add_project 'administration' 'Admin'
+	cd janus && docker-compose run --rm janus_app ./bin/janus add_project ipi 'ImmunoProfilerProject'
+	cd janus && docker-compose run --rm janus_app ./bin/janus add_user developer@ucsf.edu DeveloperPerson password
+	cd janus && docker-compose run --rm janus_app ./bin/janus permit developer@ucsf.edu test-project administrator
+	cd janus && docker-compose run --rm janus_app ./bin/janus permit developer@ucsf.edu administration administrator
+	cd janus && docker-compose run --rm janus_app ./bin/janus permit developer@ucsf.edu ipi administrator
 
 ## Timur ##
 
 timur-up:
 	cd edge-apache && docker-compose up -d
 	cd timur && docker-compose up -d
+
+timur-down:
+	cd timur && docker-compose down
 
 timur-migrate:
 	cd timur && docker-compose run --rm -e UPDATE_STATE=1 -e FULL_BUILD=1 timur_app
@@ -98,6 +116,9 @@ timur-migrate:
 gnomon-up:
 	cd gnomon && docker-compose up -d
 	cd edge-apache &&  docker-compose up -d
+
+gnomon-down:
+	cd gnomon && docker-compose down
 
 gnomon-migrate:
 	cd gnomon && docker-compose run --rm -e UPDATE_STATE=1 gnomon_app
