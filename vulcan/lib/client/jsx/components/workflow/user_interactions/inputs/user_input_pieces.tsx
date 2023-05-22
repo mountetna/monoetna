@@ -120,12 +120,6 @@ export function dropdownPiece(
     );
   }
 
-export function dropdownRelabeledPiece(
-  key: string, changeFxn: Function, value: string | null = null,
-  label: string|undefined, options: {k: string}, sorted: boolean = true, minWidth: number = 200, disabled: boolean = false) {
-    
-  }
-
 export function nestedDropdownPiece(
   key: string, changeFxn: Function, value: string | null = null,
   label: string|undefined, options: DataEnvelope<DataEnvelope<DataEnvelope<null>|null>> | string[], disabled: boolean = false) {
