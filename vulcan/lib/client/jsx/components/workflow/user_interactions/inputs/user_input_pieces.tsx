@@ -88,8 +88,9 @@ export function checkboxPiece(
 
 export function dropdownPiece(
   key: string, changeFxn: Function, value: string | null = null,
-  label: string|undefined, options: string[], sorted: boolean = true, minWidth: number = 200, disabled: boolean = false) {
-    return(
+  label: string|undefined, options: string[] | {k: string}, sorted: boolean = true, minWidth: number = 200, disabled: boolean = false) {
+    // options = string[] where options values are both the intended values and user-facing labels
+    if (Array.isArray(options)) return(
       <SelectAutocompleteInput
         key={key}
         label={label}
@@ -100,6 +101,29 @@ export function dropdownPiece(
         onChange={ (value) => changeFxn(withDefault(value,null), key) }
       />
     );
+    // options = Object with keys = label values to show the user; values = true option values that the output / saved state should hold.
+    const labels = Object.keys(options)
+    const toValue = (label) => label == null? null : options[label]
+    const toLabel = (value) => {
+      return (value == null) ? null : Object.keys(options).find(key => options[key] === value)
+    };
+    return(
+      <SelectAutocompleteInput
+        key={key}
+        label={label}
+        value={some(toLabel(value))}
+        data={val_wrap(labels)}
+        minWidth={minWidth}
+        disabled={disabled}
+        onChange={ (label) => changeFxn(toValue(withDefault(label,null)), key) }
+      />
+    );
+  }
+
+export function dropdownRelabeledPiece(
+  key: string, changeFxn: Function, value: string | null = null,
+  label: string|undefined, options: {k: string}, sorted: boolean = true, minWidth: number = 200, disabled: boolean = false) {
+    
   }
 
 export function nestedDropdownPiece(

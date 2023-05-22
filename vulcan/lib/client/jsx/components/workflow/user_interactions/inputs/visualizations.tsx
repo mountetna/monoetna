@@ -140,6 +140,12 @@ const input_sets_plotly: DataEnvelope<DataEnvelope<string[]>> = {
   }
 };
 
+const plot_relabels_plotly: DataEnvelope<string> = {
+  "scatter_plot: Scatter Plot": "scatter_plot",
+  "bar_plot: Compositional Stacked Bar Plot": "bar_plot",
+  "y_plot: Violin and/or Box Plot": "y_plot"
+}
+
 const defaults_plotly: DataEnvelope<any> = {
   x_by: null,
   y_by: null,
@@ -203,6 +209,13 @@ const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
     'data focus': ['cells_use'],
   }
 };
+
+const plot_relabels_dittoseq: DataEnvelope<string> = {
+  "dittoDimPlot: UMAP, PCA, etc.": "dittoDimPlot",
+  "dittoScatterPlot: e.g. gene x gene": "dittoScatterPlot",
+  "dittoBarPlot: compositional stacked bar plot": "dittoBarPlot",
+  "dittoPlot: violin, box, or ridge plot": "dittoPlot"
+}
 
 const defaults_dittoseq: DataEnvelope<any> = {
   x_by: null,
@@ -573,7 +586,8 @@ function VisualizationUI(
   defaults: DataEnvelope<any>,
   redefaults: DataEnvelope<DataEnvelope<DataEnvelope<any>>>,
   input_sets: DataEnvelope<DataEnvelope<string[]>>,
-  components: DataEnvelope<Function>
+  components: DataEnvelope<Function>,
+  plot_relabels?: DataEnvelope<string> | undefined
 ) {
   const preset = useMemo(() => data && data['preset'], [data]);
   const hide = useMemo(() => preset && Object.keys(preset), [preset]);
@@ -673,7 +687,7 @@ function VisualizationUI(
           updatePlotType,
           plotType,
           'Plot Type',
-          Object.keys(input_sets),
+          plot_relabels == undefined ? Object.keys(input_sets) : plot_relabels,
           false
         )}
       </div>
@@ -712,7 +726,7 @@ function VisualizationUI(
       </Grid>
     );
 
-  console.log(props.value);
+  // console.log(props.value);
 
   return (
     <div key='VizUI'>
@@ -751,7 +765,7 @@ export function AnyPlotly({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, null, defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
+  return VisualizationUI({data, onChange, value}, null, defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly, plot_relabels_plotly);
 }
 
 export function DittoDimPlot({
@@ -791,5 +805,5 @@ export function AnyDittoSeq({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, null, defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+  return VisualizationUI({data, onChange, value}, null, defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq, plot_relabels_dittoseq);
 }
