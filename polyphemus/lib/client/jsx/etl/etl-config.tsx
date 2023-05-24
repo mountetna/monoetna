@@ -132,7 +132,7 @@ const EtlConfig = ({
   return (
     <Card className={classes.etl} elevation={0} key={etl}>
       <CardContent>
-        <Typography component='div' className={classes.heading}><Chip label={job.name}/>{name}</Typography>
+        <Typography component='div' className={classes.heading}><Chip label={job?.name}/>{name}</Typography>
 
         <CardActions>
           <Grid direction='row' container>

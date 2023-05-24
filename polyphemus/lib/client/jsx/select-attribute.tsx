@@ -3,7 +3,12 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import {MagmaContext} from 'etna-js/contexts/magma-context';
 
-const SelectAttribute = ({value, update, modelName, filter}) => {
+const SelectAttribute = ({value, update, modelName, filter}:{
+  value: string;
+  update: Function;
+  modelName: string;
+  filter: Function;
+}) => {
   const {models} = useContext(MagmaContext);
 
   const attribute_names = Object.values(

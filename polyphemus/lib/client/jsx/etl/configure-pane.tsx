@@ -50,7 +50,7 @@ const ConfigurePane = ({
   job,
   update
 }: {
-  config_id: int;
+  config_id: number;
   project_name: string;
   selected: string | null;
   config: any;

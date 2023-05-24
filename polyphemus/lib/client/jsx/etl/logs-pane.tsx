@@ -29,7 +29,7 @@ const LogsPane = ({
   project_name
 }: {
   selected: string | null;
-  config_id: int;
+  config_id: number;
   name: string;
   project_name: string;
 }) => {

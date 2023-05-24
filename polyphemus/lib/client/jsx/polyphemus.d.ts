@@ -12,6 +12,7 @@ export type Job = {
 export type Etl = {
   project_name: string;
   name: string;
+  config_id: number;
   etl: string;
   config: any;
   ran_at: string;
@@ -20,7 +21,6 @@ export type Etl = {
   output: string;
   secrets: any;
   params: any;
-  archived: boolean;
   status: string;
 };
 

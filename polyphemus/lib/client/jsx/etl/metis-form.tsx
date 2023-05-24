@@ -115,16 +115,18 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 const SCRIPT_TYPES = [ 'file', 'file_collection', 'data_frame' ];
 
+type Script = any;
+
 type ScriptItem = {
   type: string;
   projectName: string;
   modelName: string;
-  value: string;
+  value: any;
   update: Function;
 };
 
 const SCRIPT_ITEMS = {
-  bucket_name: ({value,update,projectName}) => <TextField
+  bucket_name: ({value,update,projectName}:ScriptItem ) => <TextField
     placeholder={`Metis bucket_name for ${projectName}`}
     fullWidth
     value={value}
@@ -132,15 +134,7 @@ const SCRIPT_ITEMS = {
       (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
     }
   />,
-  folder_path: ({value,update}) => <TextField
-    placeholder='Metis folder path'
-    fullWidth
-    value={value}
-    onChange={
-      (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
-    }
-  />,
-  file_match: ({value,update}) => <TextField
+  file_match: ({value,update}:ScriptItem) => <TextField
     placeholder='Regular expression matching file'
     fullWidth
     value={value}
@@ -152,9 +146,9 @@ const SCRIPT_ITEMS = {
     value={value}
     update={update}
     modelName={modelName}
-    filter={ a => a.attribute_type == type }
+    filter={ (a:any) => a.attribute_type == type }
   />,
-  folder_path: ({value,update}) => <TextField
+  folder_path: ({value,update}:ScriptItem) => <TextField
     placeholder='Metis folder path'
     fullWidth
     value={value}
@@ -162,12 +156,12 @@ const SCRIPT_ITEMS = {
       (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
     }
   />,
-  format: ({value,update}) => <Select displayEmpty value={value} onChange={e => update(e.target.value)}>
+  format: ({value,update}:ScriptItem) => <Select displayEmpty value={value} onChange={e => update(e.target.value)}>
       <MenuItem value=''><em>Table format</em></MenuItem>
       <MenuItem value='tsv'>tsv</MenuItem>
       <MenuItem value='csv'>csv</MenuItem>
   </Select>,
-  column_map: ({value,update}) => {
+  column_map: ({value,update}:ScriptItem) => {
     const classes = useStyles();
     return <Grid>
       <AddDialog
@@ -176,7 +170,7 @@ const SCRIPT_ITEMS = {
           <>Map a column name in the data_frame to another name (e.g., an attribute_name)</>
         }
         buttonText='ADD MAPPING'
-        update={ (column_name, mapped_column_name) => update(
+        update={ (column_name:string, mapped_column_name:string) => update(
           { ...value, [column_name]: mapped_column_name }
         )}
         mask={ v => v }
@@ -191,7 +185,8 @@ const SCRIPT_ITEMS = {
               className={classes.strikeout}
               onClick={
                 () => {
-                  let { [column_name]:_, ...newValue } = value;
+                  let newValue = { ...value };
+                  delete newValue[column_name];
                   update(newValue);
                 }
               }>
@@ -203,7 +198,7 @@ const SCRIPT_ITEMS = {
       </Grid>
     </Grid>
   },
-  extracted_columns: ({value,update}) => <TextField
+  extracted_columns: ({value,update}:ScriptItem) => <TextField
     placeholder='Comma-separated list'
     fullWidth
     value={Array.isArray(value) ? value.join(', ') : value}
@@ -218,7 +213,13 @@ const SCRIPT_ITEMS = {
   />
 };
 
-const defaultFor = schema_type => {
+type SchemaType = {
+  type?: string;
+  enum?: string[]
+  const?: string;
+}
+
+const defaultFor = (schema_type:SchemaType) => {
   if (schema_type.type == "string") return '';
   if (schema_type.type == "array") return [];
   if (schema_type.type == "object") return {};
@@ -261,8 +262,8 @@ const MetisScript = ({
 
       if (!type_def) return {};
 
-      const d = type_def.required.reduce(
-        (ds, req) => {
+      const script = type_def.required.reduce(
+        (ds:any, req:string) => {
           if (req == 'type') return ds;
           ds[req] = defaultFor(type_def.properties[req]);
           return ds;
@@ -270,7 +271,7 @@ const MetisScript = ({
         {}
       )
 
-      return d;
+      return script;
     }, [schema]
   );
 
@@ -290,7 +291,7 @@ const MetisScript = ({
           type
         </Grid>
         <Grid item xs={6}>
-          <Select displayEmpty value={type || ''} onChange={e => handleUpdate({ type: e.target.value, ...defaultScript(e.target.value)})}>
+          <Select displayEmpty value={type || ''} onChange={e => handleUpdate({ type: e.target.value, ...defaultScript(e.target.value as string)})}>
             <MenuItem value='' disabled>
               <em>Select type</em>
             </MenuItem>
@@ -322,7 +323,7 @@ const MetisScript = ({
           all_fields.filter( a => a != 'type' ).map(
             (field_name, i) => {
               const value = script[field_name] || '';
-              const InputComponent = SCRIPT_ITEMS[field_name] || SCRIPT_ITEMS.default;
+              const InputComponent = (SCRIPT_ITEMS[field_name as keyof typeof SCRIPT_ITEMS] || SCRIPT_ITEMS.default) as any;
               return <Grid alignItems='center' key={i} item container>
                 <Grid item xs={2}>{field_name}</Grid>
                 <Grid item xs={8}>
@@ -331,7 +332,7 @@ const MetisScript = ({
                     modelName={modelName}
                     type={type}
                     value={value}
-                    update={ v => handleUpdate({ ...script, [field_name]: v }) }
+                    update={ (v:any) => handleUpdate({ ...script, [field_name]: v }) }
                   />
                 </Grid>
               </Grid>
@@ -473,7 +474,8 @@ const MetisModel = ({
 };
 
 export type Config = {
-  [modelName: string]: Model;
+  bucket_name: string,
+  models: { [modelName: string]: Model };
 };
 
 const MetisForm = ({

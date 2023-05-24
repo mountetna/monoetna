@@ -28,11 +28,11 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
   const {models, setModels} = useContext(MagmaContext);
 
   const addEtl = (etl: Etl) => {
-    let index = etls.findIndex((e) => e.name == etl.name);
+    let index = etls.findIndex((e) => e.config_id == etl.config_id);
     let new_etls =
       index == -1
         ? etls.concat(etl)
-        : etl.archived
+        : etl.run_interval == -2
         ? etls.filter((e, i) => i != index)
         : etls.map((e, i) => (i == index ? etl : e));
 
