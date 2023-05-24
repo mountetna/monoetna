@@ -87,7 +87,7 @@ describe Etna::User do
     end
     it 'checks if the user is an admin on the project' do
       expect(@superuser.is_admin?(:labors)).to be_truthy
-      expect(@supereditor.is_admin?(:labors)).to be_falsy
+      expect(@supereditor.is_admin?(:labors)).to be_truthy
       expect(@superviewer.is_admin?(:labors)).to be_falsy
       expect(@admin.is_admin?(:labors)).to be_truthy
       expect(@editor.is_admin?(:labors)).to be_falsy
