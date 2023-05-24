@@ -1,4 +1,4 @@
-import dataclasses
+from dataclasses import dataclass, field
 import typing
 from io import StringIO
 from functools import partial
@@ -16,9 +16,23 @@ from .metis import Upload, File
 
 @serialize
 @deserialize
-@dataclasses.dataclass
+@dataclass
 class ListEtlConfigsResponse:
-    configs: List[Dict] = dataclasses.field(default_factory=list)
+    configs: List[Dict] = field(default_factory=list)
+
+@serialize
+@deserialize
+@dataclass
+class EtlConfigResponse:
+    project_name: str = "",
+    name: str = "",
+    etl: str = "",
+    config_id: int = 0,
+    version_number: int = 0,
+    config: Dict = field(default_factory=dict)
+    secrets: Dict = field(default_factory=dict)
+    params: Dict = field(default_factory=dict)
+    run_interval: int = 0
 
 class Polyphemus(EtnaClientBase):
     def list_all_etl_configs(
@@ -34,3 +48,30 @@ class Polyphemus(EtnaClientBase):
         )
 
         return from_json(ListEtlConfigsResponse, response.content)
+
+    def etl_update(
+        self,
+        project_name: str,
+        config_id: str,
+        **update
+    ):
+        response = self.session.post(
+            self.prepare_url("api", "etl", project_name, "update", str(config_id)),
+            json=update
+        )
+
+        return from_json(EtlConfigResponse, response.content)
+
+    def etl_add_output(
+        self,
+        project_name: str,
+        config_id: str,
+        append=False,
+        output: str =""
+    ):
+        response = self.session.post(
+            self.prepare_url("api", "etl", project_name, "output", str(config_id)),
+            json=dict(append=append, output=output)
+        )
+
+        return from_json(EtlConfigResponse, response.content)
