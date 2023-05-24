@@ -73,6 +73,32 @@ describe EtlController do
     end
   end
 
+  context '#add_output' do
+    it 'sets output for an etl_config' do
+      create_dummy_etl(run_interval: Polyphemus::EtlConfig::RUN_NEVER, output: 'All is well')
+      output = 'A serious error occurred.'
+
+      auth_header(:editor)
+      post('/api/etl/labors/output/1', output: output)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:output]).to eq(output)
+      expect(Polyphemus::EtlConfig.first.output).to eq(output)
+    end
+
+    it 'appends output for an etl_config' do
+      create_dummy_etl(run_interval: Polyphemus::EtlConfig::RUN_NEVER, output: 'All is well')
+      output = 'A serious error occurred.'
+
+      auth_header(:editor)
+      post('/api/etl/labors/output/1', output: output, append: true)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:output]).to eq('All is well' + output)
+      expect(Polyphemus::EtlConfig.first.output).to eq('All is well'+output)
+    end
+  end
+
   context '#jobs' do
     it 'returns a list of etl jobs for a project' do
       auth_header(:editor)

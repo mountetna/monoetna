@@ -46,6 +46,26 @@ class EtlController < Polyphemus::Controller
     success_json(output: etl_config.output)
   end
 
+  def add_output
+    etl_config = Polyphemus::EtlConfig.current.where(
+      project_name: @params[:project_name],
+      config_id: @params[:config_id]
+    ).first
+
+    if !etl_config
+      raise Etna::NotFound, "No such etl #{@params[:config_id]} configured for project #{@params[:project_name]}"
+    end
+
+    output = [
+      (@params[:append] ? etl_config.output : nil),
+      @params[:output]
+    ].compact.join
+
+    etl_config.update(output: output)
+
+    success_json(etl_config.as_json.merge(output: output))
+  end
+
   def update
     etl_config = Polyphemus::EtlConfig.current.where(
       project_name: @params[:project_name],
