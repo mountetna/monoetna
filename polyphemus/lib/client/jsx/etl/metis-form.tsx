@@ -129,7 +129,7 @@ const SCRIPT_ITEMS = {
     fullWidth
     value={value}
     onChange={
-      (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value.split(/,\s*/))
+      (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
     }
   />,
   folder_path: ({value,update}) => <TextField
@@ -137,7 +137,7 @@ const SCRIPT_ITEMS = {
     fullWidth
     value={value}
     onChange={
-      (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value.split(/,\s*/))
+      (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
     }
   />,
   file_match: ({value,update}) => <TextField
@@ -145,7 +145,7 @@ const SCRIPT_ITEMS = {
     fullWidth
     value={value}
     onChange={
-      (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value.split(/,\s*/))
+      (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
     }
   />,
   attribute_name: ({type,value,update,modelName}:ScriptItem) => <SelectAttribute
@@ -159,7 +159,7 @@ const SCRIPT_ITEMS = {
     fullWidth
     value={value}
     onChange={
-      (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value.split(/,\s*/))
+      (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
     }
   />,
   format: ({value,update}) => <Select displayEmpty value={value} onChange={e => update(e.target.value)}>
@@ -269,8 +269,6 @@ const MetisScript = ({
         },
         {}
       )
-
-      console.log({d, type_def});
 
       return d;
     }, [schema]
@@ -500,6 +498,7 @@ const MetisForm = ({
   const configModels = config.models || {};
 
   const modelNames = Object.keys(configModels).sort();
+
   const bucket_name = config.bucket_name || '';
 
   const [tab, setTab] = useState(0);
@@ -510,7 +509,8 @@ const MetisForm = ({
   const handleUpdateModel = useCallback(
     (modelConfig: Model | undefined) => {
       let c = {...config, models: { ...configModels, [modelName]: modelConfig} };
-      if (modelConfig === undefined) delete c[modelName];
+      if (modelConfig === undefined) delete c.models[modelName];
+
       update(c as Config);
     },
     [config, modelName, update]

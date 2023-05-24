@@ -206,7 +206,7 @@ const EtlConfig = ({
           </Grid>
         )}
         <ConfigurePane
-          name={name}
+          config_id={config_id}
           project_name={project_name}
           selected={mode}
           config={config}
@@ -222,7 +222,7 @@ const EtlConfig = ({
           param_opts={job ? job.params : null}
         />
         <RemovePane selected={mode} update={postUpdate} />
-        <LogsPane selected={mode} name={name} project_name={project_name} />
+        <LogsPane selected={mode} config_id={config_id} name={name} project_name={project_name} />
         <SecretsPane
           selected={mode}
           update={postUpdate}

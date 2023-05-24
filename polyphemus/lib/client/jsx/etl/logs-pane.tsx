@@ -24,10 +24,12 @@ const useStyles = makeStyles((theme) => ({
 
 const LogsPane = ({
   selected,
+  config_id,
   name,
   project_name
 }: {
   selected: string | null;
+  config_id: int;
   name: string;
   project_name: string;
 }) => {
@@ -35,7 +37,7 @@ const LogsPane = ({
   const [output, setOutput] = useState('');
 
   useEffect(() => {
-    json_get(`/api/etl/${project_name}/output/${name}`).then(({output}) =>
+    json_get(`/api/etl/${project_name}/output/${config_id}`).then(({output}) =>
       setOutput(output)
     );
   }, []);
@@ -66,7 +68,7 @@ const LogsPane = ({
       {output && (
         <a
           href={URL.createObjectURL(new Blob([output], {type: 'text/plain'}))}
-          download={`log-${project_name}-${name}.txt`}
+          download={`log-${project_name}-${config_id}-${name}.txt`}
         >
           Download log
         </a>

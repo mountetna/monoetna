@@ -43,14 +43,14 @@ const FORMS: {
 };
 
 const ConfigurePane = ({
-  name,
+  config_id,
   project_name,
   selected,
   config,
   job,
   update
 }: {
-  name: string;
+  config_id: int;
   project_name: string;
   selected: string | null;
   config: any;
@@ -146,7 +146,7 @@ const ConfigurePane = ({
           {showRevisions != null && (
             <RevisionHistory
               getRevisions={() =>
-                json_get(`/api/etl/${project_name}/revisions/${name}`)
+                json_get(`/api/etl/${project_name}/revisions/${config_id}`)
               }
               open={showRevisions}
               revisionDoc={(revision) =>
