@@ -2,6 +2,7 @@ class Polyphemus
   class EtlConfig < Sequel::Model
     RUN_ONCE=0
     RUN_NEVER=-1
+    RUN_ARCHIVED=-2
     STATUS_COMPLETED='completed'
     STATUS_ERROR='error'
 
@@ -31,7 +32,7 @@ class Polyphemus
     end
 
     def self.current
-      return self.reverse(:config_id, :version_number).distinct(:config_id)
+      return self.reverse(:config_id, :version_number).distinct(:config_id).exclude(run_interval: Polyphemus::EtlConfig::RUN_ARCHIVED)
     end
 
     def etl_job_class
