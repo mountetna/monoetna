@@ -6,7 +6,9 @@ class Polyphemus
       {
         name: "metis",
         schema: Metis::Loader.to_schema,
-        params: { }
+        params: {
+          commit: 'boolean'
+        }
       }
     end
 
