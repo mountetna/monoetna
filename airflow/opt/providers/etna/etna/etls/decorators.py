@@ -33,22 +33,6 @@ from etna.etls.cat import (
     load_cat_files_batch,
     CatEtlHelpers
 )
-from etna.etls.universal_metis_linker import UniversalMetisLinker
-
-def universal_linker(interval=timedelta(minutes=2)):
-    def instantiate_dag(fn):
-        @functools.wraps(fn)
-        def test_univ_linker():
-            @task
-            def run_linker():
-                linker = UniversalMetisLinker()
-
-                linker.run()
-
-            run_linker()
-        return system_dag(interval)(test_univ_linker)
-
-    return instantiate_dag
 
 def metis_etl(
     project_name: str,
