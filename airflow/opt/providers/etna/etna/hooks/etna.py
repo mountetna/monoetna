@@ -67,7 +67,7 @@ class EtnaHook(BaseHook):
         """
         return {}
 
-    def __init__(self, etna_conn_id: str, use_token_auth: False) -> None:
+    def __init__(self, etna_conn_id: str, use_token_auth: bool = False) -> None:
         super().__init__()
         self.etna_conn_id = etna_conn_id
         self.use_token_auth = use_token_auth
