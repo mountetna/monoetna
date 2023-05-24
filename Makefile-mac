@@ -49,13 +49,26 @@ build-dev-dep-images:
 # Note: the project level docker-compose files use relative paths so it is important to execute commands from within
 # the project directory
 
+## All ##
+
+all-up:
+	cd edge-apache && docker-compose up -d
+	cd magma && docker-compose up -d
+	cd janus && docker-compose up -d
+	cd timur && docker-compose up -d
+	cd gnomon && docker-compose up -d
+	cd metis && docker-compose up -d
+
 ## Etna ##
 
 etna-up:
 	cd edge-apache && docker-compose up -d
 	cd etna && docker-compose up -d
 
-etna-down:
+etna-stop:
+	cd etna && docker-compose stop
+
+etna-remove:
 	cd etna && docker-compose down
 
 etna-install-libs:
@@ -70,7 +83,10 @@ magma-up:
 	cd magma && docker-compose up -d
 	# Note magma_webpack is expected to fail
 
-magma-down:
+magma-stop:
+	cd magma && docker-compose stop
+
+magma-remove:
 	cd magma && docker-compose down
 
 magma-migrate:
@@ -83,7 +99,10 @@ janus-up:
 	cd edge-apache && docker-compose up -d
 	cd janus && docker-compose up -d
 
-janus-down:
+janus-stop:
+	cd janus && docker-compose stop
+
+janus-remove:
 	cd janus && docker-compose down
 
 janus-migrate:
@@ -105,7 +124,10 @@ timur-up:
 	cd edge-apache && docker-compose up -d
 	cd timur && docker-compose up -d
 
-timur-down:
+timur-stop:
+	cd timur && docker-compose stop
+
+timur-remove:
 	cd timur && docker-compose down
 
 timur-migrate:
@@ -117,7 +139,10 @@ gnomon-up:
 	cd gnomon && docker-compose up -d
 	cd edge-apache &&  docker-compose up -d
 
-gnomon-down:
+gnomon-stop:
+	cd gnomon && docker-compose stop
+
+gnomon-remove:
 	cd gnomon && docker-compose down
 
 gnomon-migrate:
@@ -129,13 +154,30 @@ metis-up:
 	cd edge-apache &&  docker-compose up -d
 	cd metis && docker-compose up -d
 
+metis-stop:
+	cd metis && docker-compose stop
+
+metis-remove:
+	cd metis && docker-compose down
+
 metis-migrate:
 	cd metis && docker-compose run --rm -e UPDATE_STATE=1 metis_app
 
+## Etna Edge ##
+
+edge-up:
+	cd edge-apache && docker-compose up -d
+
+edge-remove:
+	cd edge-apache && docker-compose stop
+
+edge-down:
+	cd edge-apache && docker-compose down
+
 ### Clean targets ###
 
-remove-all-containers:
+remove-all:
 	docker-compose down
 
-stop-all-containers:
+stop-all:
 	docker-compose stop
