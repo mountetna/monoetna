@@ -7,7 +7,7 @@ plot_setup <- input_json("plot_setup")
 viz_fxn <- plot_setup$plot_type
 plot_setup$plot_type <- NULL
 
-# Parse reordering (Before input re-naming because of color.by -> var or color.var!)
+# Parse reordering (Before input re-naming because of color.by -> either var or color.var!)
 if ("color_order" %in% names(plot_setup)) {
 
     if (length(plot_setup$order)>1) {
@@ -50,18 +50,6 @@ if (!is.null(plot_setup$scale)) {
         'counts' = 'count')
 }
 
-# # Convert from array/vector formats to singular value needed
-# use_last <- function(elements) {
-#     for (i in elements) {
-#         if (i %in% names(plot_setup)) {
-#             vals <- plot_setup[[i]]
-#             plot_setup[[i]] <- vals[length(vals)]
-#         }
-#     }
-#     plot_setup
-# }
-# plot_setup <- use_last(c("var", "y.var", "x.var", "color.by", "group.by"))
-
 # Parse reduction_setup
 if ("reduction.setup" %in% names(plot_setup)) {
     setup <- plot_setup$reduction.setup
@@ -76,8 +64,36 @@ if ("reduction.setup" %in% names(plot_setup)) {
     }
 }
 
+# Replace "_Recommended_" metadata
+## Alternatively, could have the UI serve these replacements, but I think that becomes visually finicky
+replace_meta_rec <- function(value, recommendations = plotting_options$Recommended_Metadata) {
+    if (value %in% names(recommendations)) {
+        value <- recommendations[[value]]
+    }
+    value
+}
+special_treatment <- "cells.use"
+for (i in seq_along(plot_setup)) {
+    if (names(plot_setup)[i] %in% special_treatment) next
+
+    if (length(plot_setup[[i]])>1) {
+        for (j in seq_along(plot_setup[[i]])) {
+            plot_setup[[i]][j] <- replace_meta_rec(plot_setup[[i]][j])
+        }
+    } else {
+    plot_setup[i] <- replace_meta_rec(plot_setup[[i]])
+    }
+}
+
 # Parse subsetting
 if ( !is.null(plot_setup$cells.use) && length(plot_setup$cells.use)>0 ) {
+    # Special-case recommendation replacement
+    for (i in seq_along(plot_setup$cells.use$methods)) {
+        method <- plot_setup$cells.use$methods[[i]]
+        method[1] <- replace_meta_rec(method[1])
+        plot_setup$cells.use$methods[[i]] <- method
+    }
+    # Parse
     plot_setup$cells.use <- subset__scObj(scdata, plot_setup$cells.use)
 } else {
     plot_setup$cells.use <- NULL
