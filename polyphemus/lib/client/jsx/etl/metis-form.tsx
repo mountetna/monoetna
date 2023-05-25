@@ -123,6 +123,7 @@ type ScriptItem = {
   modelName: string;
   value: any;
   update: Function;
+  classes: any;
 };
 
 const SCRIPT_ITEMS = {
@@ -161,8 +162,7 @@ const SCRIPT_ITEMS = {
       <MenuItem value='tsv'>tsv</MenuItem>
       <MenuItem value='csv'>csv</MenuItem>
   </Select>,
-  column_map: ({value,update}:ScriptItem) => {
-    const classes = useStyles();
+  column_map: ({value,update,classes}:ScriptItem) => {
     return <Grid>
       <AddDialog
         title='Map a column'
@@ -220,9 +220,9 @@ type SchemaType = {
 }
 
 const defaultFor = (schema_type:SchemaType) => {
-  if (schema_type.type == "string") return '';
-  if (schema_type.type == "array") return [];
-  if (schema_type.type == "object") return {};
+  if (schema_type.type == 'string') return '';
+  if (schema_type.type == 'array') return [];
+  if (schema_type.type == 'object') return {};
   if (schema_type.enum) return schema_type.enum[0];
   if (schema_type.const) return schema_type.const;
 
@@ -333,6 +333,7 @@ const MetisScript = ({
                     type={type}
                     value={value}
                     update={ (v:any) => handleUpdate({ ...script, [field_name]: v }) }
+                    classes={classes}
                   />
                 </Grid>
               </Grid>

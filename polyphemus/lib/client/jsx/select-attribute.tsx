@@ -31,7 +31,7 @@ const SelectAttribute = ({value, update, modelName, filter}:{
         {att_name}
       </MenuItem>
     ))}
-  </Select>
-}
+  </Select>;
+};
 
 export default SelectAttribute;
