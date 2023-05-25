@@ -11,7 +11,7 @@ export DOCKER_DEFAULT_PLATFORM=linux/amd64
 # Build all docker images for local development, note the order is extremely important here, as many images
 # depend on the previous images.
 
-build-dev-dep-images:
+build-dev-etna-images:
 	# Stand alone
 	echo "Building stand alone docker images..."
 	cd known_hosts && docker build . -t known_hosts
@@ -31,18 +31,19 @@ build-dev-dep-images:
 	cd etna && docker build . -t etna
 	cd docker/etna-base && docker build . -t etna-base
 
+build-dev-airflow-images:
 	# Airflow
-	echo "Building airflow images..."
-	cd airflow-code-editor && docker build . -t airflow-code-editor
-	cd etna/packages/etna-py && docker build . -t etna-py
-	cd airflow && docker build . -t airflow
+	 echo "Building airflow images..."
+	 cd airflow-code-editor && docker build . -t airflow-code-editor
+	 cd etna/packages/etna-py && docker build . -t etna-py
+	 cd airflow && docker build . -t airflow
 
+build-dev-archimedes-images:
 	# Archimedes
-	echo "Building archimedes images..."
-	cd docker/archimedes-base && docker build . -t archimedes-base
-	cd archimedes-r-base && docker build . -t archimedes-r-base # takes a really long time!
-	cd docker/archimedes-node-base && docker . build -t archimedes-node-base
-
+	 echo "Building archimedes images..."
+	 cd docker/archimedes-base && docker build . -t archimedes-base
+	 cd archimedes-r-base && docker build . -t archimedes-r-base # takes a really long time!
+	 cd docker/archimedes-node-base && docker . build -t archimedes-node-base
 
 ### Project level targets ###
 
@@ -51,7 +52,8 @@ build-dev-dep-images:
 
 ## All ##
 
-all-up:
+# Spins up all web-apps
+web-up:
 	cd edge-apache && docker-compose up -d
 	cd magma && docker-compose up -d
 	cd janus && docker-compose up -d
@@ -71,8 +73,10 @@ etna-stop:
 etna-remove:
 	cd etna && docker-compose down
 
-etna-install-libs:
+etna-libs-ruby:
 	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bundle install
+
+etna-libs-js:
 	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bash -c 'cd packages/etna-js && npm install'
 	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bash -c 'npm install --unsafe-perm'
 
