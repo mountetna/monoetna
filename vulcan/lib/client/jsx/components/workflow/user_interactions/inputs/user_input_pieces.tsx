@@ -74,7 +74,7 @@ export function floatPiece(
 
 export function checkboxPiece(
   key: string, changeFxn: Function, value: boolean = false,
-  label: string) {
+  label: string, disabled: boolean = false) {
     return(
       <BooleanInput
         key={key}
@@ -82,6 +82,7 @@ export function checkboxPiece(
         value={maybeOfNullable(value)}
         data={val_wrap(value)}
         onChange={ value => changeFxn(withDefault(value,false), key)}
+        disabled={disabled}
       />
     );
   }

@@ -7,10 +7,10 @@ plot_setup <- input_json("plot_setup")
 viz_fxn <- plot_setup$plot_type
 plot_setup$plot_type <- NULL
 
-# Parse reordering (Before input re-naming because of color.by -> either var or color.var!)
+# Parse reorderings (Before input re-naming because of color.by -> either var or color.var!)
 if ("color_order" %in% names(plot_setup)) {
 
-    if (length(plot_setup$order)>1) {
+    if (length(plot_setup$color_order)>1 || !plot_setup$color_order %in% c("increasing", "decreasing", "unordered", "randomize")) {
         # color_by is required to be discrete data to get here, which means it is a metadata
         # The method to set color orders for ggplot is via factor levels order
         scdata[[plot_setup$color_by]] <- factor(
@@ -23,6 +23,21 @@ if ("color_order" %in% names(plot_setup)) {
     }
 
     plot_setup$color_order <- NULL
+}
+# (var_order & group_order extra to dittoSeq features and require modifying the sc object itself!)
+if ("var_order" %in% names(plot_setup)) {
+    scdata@meta.data[,plot_setup$var] <- factor(
+        scdata@meta.data[,plot_setup$var],
+        levels = plot_setup$var_order
+    )
+    plot_setup$var_order <- NULL
+}
+if ("group_order" %in% names(plot_setup)) {
+    scdata@meta.data[,plot_setup$group_by] <- factor(
+        scdata@meta.data[,plot_setup$group_by],
+        levels = plot_setup$group_order
+    )
+    plot_setup$group_order <- NULL
 }
 
 ## Correct input names
@@ -48,6 +63,11 @@ if (!is.null(plot_setup$scale)) {
         NULL,
         'fraction' = 'percent',
         'counts' = 'count')
+}
+
+## Additional inputs always used
+if (viz_fxn=="dittoBarPlot") {
+    plot_setup$retain.factor.levels <- TRUE
 }
 
 # Parse reduction_setup

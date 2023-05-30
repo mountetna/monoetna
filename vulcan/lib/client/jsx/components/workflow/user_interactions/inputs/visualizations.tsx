@@ -26,7 +26,7 @@ import {
   nestedDropdownPiece
 } from './user_input_pieces';
 import {subsetDataFramePiece} from './subsetDataFrame_piece';
-import {ReorderPiece} from './reorder_piece';
+import {ReorderCustomOnlyPiece, ReorderPiece} from './reorder_piece';
 
 /*
 Docmentation last updated: Apr 15, 2022
@@ -162,8 +162,7 @@ const defaults_plotly: DataEnvelope<any> = {
   x_scale: 'linear',
   y_scale: 'linear',
   rows_use: {},
-  x_order: 'increasing',
-  y_order: 'increasing'
+  x_order: 'increasing'
 };
 
 const redefaults_plotly: DataEnvelope<DataEnvelope<DataEnvelope<any>>> = {
@@ -196,7 +195,7 @@ const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
     'primary features': ['var', 'group_by', 'scale_by'],
     titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
     'output style': ['do_hover', 'legend_show'],
-    'data focus': ['cells_use']
+    'data focus': ['group_order', 'var_order', 'cells_use']
   },
   dittoPlot: {
     'primary features': ['var', 'group_by', 'plots', 'color_by'],
@@ -206,7 +205,7 @@ const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
     'jitter tweaks': ['jitter_size', 'jitter_width', 'jitter_color'],
     'ridgeplot tweaks': ['ridgeplot_lineweight'],
     'output style': ['legend_show'],
-    'data focus': ['cells_use'],
+    'data focus': ['group_order', 'cells_use'],
   }
 };
 
@@ -232,6 +231,8 @@ const defaults_dittoseq: DataEnvelope<any> = {
   xlab: 'make',
   ylab: 'make',
   color_order: 'unordered',
+  group_order: "make",
+  var_order: "make",
   x_scale: 'linear',
   y_scale: 'linear',
   cells_use: {},
@@ -349,6 +350,8 @@ function useExtraInputs(
   x_by: string | null,
   y_by: string | null,
   color_by: string | null,
+  group_by: string | null,
+  var_: string | null,
   reduction_opts: DataEnvelope<number[]> | null = null,
   constraints: DataEnvelope<
     DataEnvelope<'continuous' | 'discrete'>
@@ -429,6 +432,8 @@ function useExtraInputs(
       ],
       x_order: ['Order of X-Axis Groupings', full_data, x_by, discrete],
       y_order: ['Order of Y-Axis Groupings', full_data, y_by, discrete],
+      group_order: ['Reorder X-Axis Groupings?', full_data, group_by, discrete],
+      var_order: ['Reorder Y-Axis / Y-Value Groupings?', full_data, var_, discrete],
       reduction_setup: [
         ['Dimensionality Reduction (DR)', 'x-axis DR Compenent #', 'y-axis DR Component #'],
         reduction_opts
@@ -461,6 +466,8 @@ function useExtraInputs(
     x_by,
     y_by,
     color_by,
+    group_by,
+    var_,
     reduction_opts
   ]);
 
@@ -540,8 +547,8 @@ const components_dittoseq: DataEnvelope<Function> = {
   x_scale: dropdownPiece,
   y_scale: dropdownPiece,
   cells_use: subsetDataFramePiece,
-  x_order: ReorderPiece,
-  y_order: ReorderPiece,
+  group_order: ReorderCustomOnlyPiece,
+  var_order: ReorderCustomOnlyPiece,
   reduction_setup: reductionSetupPiece,
   do_hover: checkboxPiece,
   vlnplot_lineweight: sliderPiece,
@@ -640,6 +647,15 @@ function VisualizationUI(
     value && Object.keys(value).includes('color_by')
       ? (value.color_by as string | null)
       : null;
+  const group_by =
+    value && Object.keys(value).includes('group_by')
+      ? (value.group_by as string | null)
+      : null;
+  const var_ =
+    value && Object.keys(value).includes('var')
+      ? (value.var as string | null)
+      : null;
+
   const extra_inputs = useExtraInputs(
     columns,
     data_frame,
@@ -649,6 +665,8 @@ function VisualizationUI(
     x_by,
     y_by,
     color_by,
+    group_by,
+    var_,
     reduction_opts
   );
 

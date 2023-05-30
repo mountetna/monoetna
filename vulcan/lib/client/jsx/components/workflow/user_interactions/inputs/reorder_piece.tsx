@@ -4,7 +4,7 @@ import {Paper} from '@material-ui/core';
 import {some} from '../../../../selectors/maybe';
 import SelectAutocompleteInput from './select_autocomplete';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
-import {arrayLevels} from './user_input_pieces';
+import {arrayLevels, checkboxPiece} from './user_input_pieces';
 
 const LevelComponent = (props: any) => {
   return (
@@ -125,3 +125,93 @@ export function ReorderPiece(
     </div>
   );
 }
+
+export function ReorderCustomOnlyPiece(
+  key: string,
+  changeFxn: Function,
+  value: string | string[] = 'make',
+  label: string,
+  full_data: DataEnvelope<any[]>,
+  data_target: string | string[] | null,
+  discrete_data: string[]
+) {
+
+  const data_targ = useMemo( () => {
+    if (data_target == null) return null
+    return Array.isArray(data_target) ? data_target[data_target.length - 1] : data_target
+  }, [data_target])
+  const levels = useMemo( () => {
+    if (data_targ == null || !discrete_data.includes(data_targ)) return null
+    return arrayLevels(Object.values(full_data[data_targ as string]))
+  }, [full_data, data_targ, discrete_data])
+  const canReorder = useMemo( () => {
+    return data_targ != null && discrete_data.includes(data_targ)
+  }, [data_targ, discrete_data])
+
+  const startOrClear = (doReorder: boolean, x?: any) => {
+    const new_full = doReorder ? levels : "make"
+    changeFxn(new_full, key);
+  };
+
+  // Reset to 'off'-mode if data_target changes, (also hit on page refresh, so ultimate check should be levels validity!)
+  useEffect(() => {
+    if (data_targ != null && value != "make") {
+      // Needed if new data_targ is discrete or if new data levels aren't captured
+      let needs_reset = !discrete_data.includes(data_targ);
+      if (!needs_reset) {
+        needs_reset =
+          arrayLevels(Object.values(full_data[data_targ as string])).filter(
+            (val) => !value.includes(val)
+          ).length > 0;
+      }
+      if (needs_reset) startOrClear(false);
+    }
+  }, [full_data, data_target, discrete_data]);
+
+  const handleOnDragEnd = (result: any) => {
+    if (!result.destination) {
+      return;
+    }
+
+    if (result.destination.index === result.source.index) {
+      return;
+    }
+
+    const newValues = Array.from(value);
+    const [removed] = newValues.splice(result.source.index, 1);
+    newValues.splice(result.destination.index, 0, removed);
+
+    changeFxn(newValues, key);
+  };
+  
+  const reorder_custom = !Array.isArray(value) ? null : (
+    <DragDropContext onDragEnd={handleOnDragEnd}>
+      <Droppable droppableId='columns'>
+        {(provided: any) => (
+          <Paper ref={provided.innerRef} {...provided.droppableProps}>
+            {(value as string[]).map((level: string, index: number) => {
+              return (
+                <LevelComponent key={index} level={level} levelIndex={index} />
+              );
+            })}
+            {provided.placeholder}
+          </Paper>
+        )}
+      </Droppable>
+    </DragDropContext>
+  );
+
+  return (
+    <div key={key} style={{paddingTop: 8}}>
+      {checkboxPiece(
+        key,
+        startOrClear,
+        value != "make",
+        label,
+        !canReorder
+      )}
+      {reorder_custom}
+    </div>
+  );
+}
+
