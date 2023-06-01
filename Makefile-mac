@@ -45,21 +45,27 @@ build-dev-archimedes-images:
 	 cd archimedes-r-base && docker build . -t archimedes-r-base # takes a really long time!
 	 cd docker/archimedes-node-base && docker . build -t archimedes-node-base
 
-### Project level targets ###
+### All Web App level targets ###
 
-# Note: the project level docker-compose files use relative paths so it is important to execute commands from within
-# the project directory
-
-## All ##
-
-# Spins up all web-apps
 web-up:
 	cd edge-apache && docker-compose up -d
 	cd magma && docker-compose up -d
 	cd janus && docker-compose up -d
 	cd timur && docker-compose up -d
 	cd gnomon && docker-compose up -d
+	cd polyphemus && docker-compose up -d
 	cd metis && docker-compose up -d
+
+remove-all:
+	docker-compose down
+
+stop-all:
+	docker-compose stop
+
+### Project level targets ###
+
+# Note: the project level docker-compose files use relative paths so it is important to execute commands from within
+# the project directory
 
 ## Etna ##
 
@@ -73,10 +79,10 @@ etna-stop:
 etna-remove:
 	cd etna && docker-compose down
 
-etna-libs-ruby:
+etna-bundle:
 	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bundle install
 
-etna-libs-js:
+etna-npm-install:
 	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bash -c 'cd packages/etna-js && npm install'
 	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bash -c 'npm install --unsafe-perm'
 
@@ -140,8 +146,8 @@ timur-migrate:
 ## Gnomon ##
 
 gnomon-up:
+	cd edge-apache && docker-compose up -d
 	cd gnomon && docker-compose up -d
-	cd edge-apache &&  docker-compose up -d
 
 gnomon-stop:
 	cd gnomon && docker-compose stop
@@ -151,6 +157,21 @@ gnomon-remove:
 
 gnomon-migrate:
 	cd gnomon && docker-compose run --rm -e UPDATE_STATE=1 gnomon_app
+
+## Polyphemus ##
+
+poly-up:
+	cd edge-apache && docker-compose up -d
+	cd polyphemus && docker-compose up -d
+
+poly-stop:
+	cd polyphemus && docker-compose stop
+
+poly-remove:
+	cd polyphemus && docker-compose down
+
+poly-migrate:
+	cd polyphemus && docker-compose run --rm -e UPDATE_STATE=1 polyphemus_app
 
 ## Metis ##
 
@@ -178,10 +199,13 @@ edge-remove:
 edge-down:
 	cd edge-apache && docker-compose down
 
-### Clean targets ###
+## Airflow ##
 
-remove-all:
-	docker-compose down
+airflow-up:
+	cd airflow && docker-compose up -d
 
-stop-all:
-	docker-compose stop
+airflow-migrate:
+	cd airflow && docker-compose run --rm -e UPDATE_STATE=1 airflow_init
+
+airflow-stop:
+	cd airflow && docker-compose stop
