@@ -6,7 +6,7 @@ inputs:
     type: string
     default: ''
     label: 'name of record to target'
-    doc: 'Provide the identifier ('name' attribute) of the sc_seq_dataset record you wish to explore here. Note that we definitely plan to improve this particular selection method in the future!'
+    doc: 'Provide the identifier ("name" attribute) of the sc_seq_dataset record you wish to explore here. Note that we definitely plan to improve this particular selection method in the future!'
 outputs:
   thumbnail:
     type: File
