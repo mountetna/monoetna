@@ -6,6 +6,7 @@ inputs:
     type: string
     default: ''
     label: 'name of record to target'
+    doc: 'Provide the identifier ('name' attribute) of the sc_seq_dataset record you wish to explore here. Note that we definitely plan to improve this particular selection method in the future!'
 outputs:
   thumbnail:
     type: File
@@ -22,7 +23,7 @@ steps:
   plot_setup:
     run: ui-queries/any-dittoseq.cwl
     label: 'Set plot options'
-    doc: "Options here determine both what type of plot to make, and how to set that plot up. For addtional details, see the 'Visualization with Vulcan' section of the Vulcan's documentation, acccessible via the 'Help' button at the top of this page. This particular instance of the Plot Configuration Interface constitutes a version with preset values for plot-type (scatter_plot), X-Axis Data (UMAP_1), Y-Axis Data (UMAP_2), and Color Data (chosen above)."
+    doc: "Options here determine both what type of plot to make, and how to set that plot up. For addtional details, see the 'Visualization with Vulcan' section of the Vulcan's documentation."
     in:
       data_frame: get_dataset_and_summarize/discrete_metadata_summary
       continuous_cols: get_dataset_and_summarize/continuous_opts
