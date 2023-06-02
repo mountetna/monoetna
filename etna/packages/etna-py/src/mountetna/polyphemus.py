@@ -1,11 +1,12 @@
 from dataclasses import dataclass, field
 import typing
+from datetime import datetime, timedelta
 from io import StringIO
 from functools import partial
 from inspect import isgenerator
 from typing import Dict, Optional, List
 from serde import serialize, deserialize
-from serde.json import from_json, to_json
+from serde.json import from_json
 
 import pandas as pd
 
@@ -17,22 +18,46 @@ from .metis import Upload, File
 @serialize
 @deserialize
 @dataclass
-class ListEtlConfigsResponse:
-    configs: List[Dict] = field(default_factory=list)
+class EtlConfigResponse:
+    ran_at: Optional[str] = None
+    status: str = ""
+    created_at: str = ""
+    comment: str = ""
+    project_name: str = ""
+    name: str = ""
+    etl: str = ""
+    config_id: int = 0
+    version_number: int = 0
+    config: Dict = field(default_factory=dict)
+    secrets: Dict = field(default_factory=dict)
+    params: Dict = field(default_factory=dict)
+    run_interval: int = -1
+
+    def should_run(self, start, end):
+        # run_never and run_archive
+        if self.run_interval < 0:
+            return False
+
+        # run_once always run
+        if self.run_interval == 0:
+            return True
+
+        # new intervals always run
+        if not self.ran_at:
+            return True
+
+        ran_at = datetime.fromisoformat(self.ran_at)
+
+        if ran_at + timedelta(0, self.run_interval) < start:
+            return True
+
+        return False
 
 @serialize
 @deserialize
 @dataclass
-class EtlConfigResponse:
-    project_name: str = "",
-    name: str = "",
-    etl: str = "",
-    config_id: int = 0,
-    version_number: int = 0,
-    config: Dict = field(default_factory=dict)
-    secrets: Dict = field(default_factory=dict)
-    params: Dict = field(default_factory=dict)
-    run_interval: int = 0
+class ListEtlConfigsResponse:
+    configs: List[EtlConfigResponse] = field(default_factory=list)
 
 class Polyphemus(EtnaClientBase):
     def list_all_etl_configs(

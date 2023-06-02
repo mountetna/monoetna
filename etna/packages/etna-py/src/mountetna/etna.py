@@ -5,5 +5,12 @@ from .polyphemus import Polyphemus
 from .gnomon import Gnomon
 from .auth import TokenAuth, SigAuth
 from .etna_base import EtnaSession
+from . import janus
+from . import metis
+from . import magma
+from . import polyphemus
+from . import gnomon
+from . import auth
+from . import etna_base
 
 from . import utils

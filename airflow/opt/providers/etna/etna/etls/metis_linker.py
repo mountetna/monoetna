@@ -6,8 +6,10 @@ from airflow.operators.python import get_current_context
 from etna.etls.etl_task_batching import get_batch_range
 
 from mountetna import UpdateRequest
-from dataclasses import dataclass, field
+from mountetna.polyphemus import EtlConfigResponse
+from dataclasses import dataclass, field, asdict
 from typing import Dict, Any
+from serde import serialize, deserialize
 import re
 import itertools
 import pandas
@@ -17,24 +19,15 @@ import numpy
 class MetisLoaderError(Exception):
     pass
 
+@serialize
+@deserialize
 @dataclass
-class MetisLoaderConfig:
-    id: int = 1
-    project_name: str = ""
-    name: str = ""
-    etl: str = ""
-    params: Dict[ str, Any ] = field(default_factory=dict)
-    secrets: str = ""
-    created_at: str = ""
-    ran_at: str = ""
-    comment: str = ""
-    status: str = ""
-    output: str = ""
-    run_interval: int = 1
-    config_id: int = 1
-    version_number: int = 1
-    config: Dict[ str, Any ] = field(default_factory=dict)
+class MetisLoaderConfig(EtlConfigResponse):
     rules: Dict[ str, str ] = field(default_factory=dict)
+
+    @property
+    def bucket_key(self):
+        return (self.project_name, self.config['bucket_name'])
 
     def script_files(self, script, tail):
         try:
@@ -136,20 +129,20 @@ class MetisLoaderConfig:
 def MetisLinker():
     hook = EtnaHook('etna_administration', use_token_auth=True)
     
-    def bucket_key(config):
-        return (config['project_name'], config['config']['bucket_name'])
-    
     @task
     def read_configs():
         # read configs from polyphemus
+        context = get_current_context()
+        start, end = get_batch_range(context)
+
         with hook.polyphemus() as polyph:
             configs_list = polyph.list_all_etl_configs(job_type='metis')
-            return [ config for config in configs_list.configs if config.get('run_interval', -1) != -1 ]
+            return [ MetisLoaderConfig(**asdict(config)) for config in configs_list.configs if config.should_run(start,end) ]
     
     @task
     def get_rules(configs):
         with hook.gnomon() as gnomon:
-            project_names = [ config['project_name'] for config in configs ]
+            project_names = [ config.project_name for config in configs ]
             rules_list = gnomon.rules(project_names=project_names)
             return rules_list.rules
 
@@ -161,9 +154,9 @@ def MetisLinker():
         print(f"Collecting tails in range {str(dict(start=start, end=end))}")
 
         buckets = [
-            bucket_key(config)
+            config.bucket_key
             for config in configs
-            for model, model_config in config["config"]["models"].items()
+            for model, model_config in config.config["models"].items()
             for script in model_config["scripts"]
         ]
                 
@@ -189,17 +182,19 @@ def MetisLinker():
         for config in configs:
             try:
                 # find associated tails
-                tail = tails[ bucket_key(config) ]
+                tail = tails[ config.bucket_key ]
                 
                 if 'error' in tail:
                     raise Exception(tail['error'])
 
-                if config['project_name'] not in rules:
-                    raise MetisLoaderError(f"No rules found for {config['project_name']}")
+                if config.project_name not in rules:
+                    raise MetisLoaderError(f"No rules found for {config.project_name}")
 
-                updates[ config['config_id'] ] = MetisLoaderConfig(**config, rules=rules[ config['project_name'] ]).update_for(tail['files'])
+                config.rules = rules[ config.project_name ]
+
+                updates[ config.config_id ] = config.update_for(tail['files'])
             except Exception as error:
-                updates[ config['config_id'] ] = { 'error': repr(error) }
+                updates[ config.config_id ] = { 'error': repr(error) }
 
         return updates
 
@@ -232,48 +227,50 @@ Committed to Magma: {i['commit']}
         start, end = get_batch_range(context)
         for config in configs:
             try:
-                if 'error' in updates[ config['config_id'] ]:
-                    raise Exception(updates[ config['config_id'] ]['error'])
+                if 'error' in updates[ config.config_id ]:
+                    raise Exception(updates[ config.config_id ]['error'])
 
-                commit = config['params'].get('commit', False)
+                commit = config.params.get('commit', False)
                 with hook.magma() as magma:
-                    response = magma.update(updates[ config['config_id'] ])
+                    response = magma.update(updates[ config.config_id ])
 
                 with hook.polyphemus() as polyphemus:
                     state = {}
-                    if config['run_interval'] == 0:
+                    if config.run_interval == 0:
                         state['run_interval'] = -1
                         state['params'] = {}
 
                     polyphemus.etl_update(
-                        project_name=config['project_name'],
-                        config_id=config['config_id'],
+                        project_name=config.project_name,
+                        config_id=config.config_id,
                         status='completed',
+                        ran_at=datetime.now().isoformat(),
                         **state
                     )
                     polyphemus.etl_add_output(
-                        project_name=config['project_name'],
-                        config_id=config['config_id'],
+                        project_name=config.project_name,
+                        config_id=config.config_id,
                         append=True,
                         output=upload_report(
-                            project_name=config['project_name'],
+                            project_name=config.project_name,
                             response=response,
                             commit=commit,
                             start=start,
+                            ran_at=datetime.now().isoformat(),
                             end=end
                         )
                     )
             except Exception as error:
                 with hook.polyphemus() as polyphemus:
                     polyphemus.etl_update(
-                        project_name=config['project_name'],
-                        config_id=config['config_id'],
+                        project_name=config.project_name,
+                        config_id=config.config_id,
                         status='error',
                         run_interval=-1
                     )
                     polyphemus.etl_add_output(
-                        project_name=config['project_name'],
-                        config_id=config['config_id'],
+                        project_name=config.project_name,
+                        config_id=config.config_id,
                         append=True,
                         output=error_report(start=start,end=end,error=repr(error))
                     )
