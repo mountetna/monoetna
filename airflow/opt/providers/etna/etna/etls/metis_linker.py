@@ -137,7 +137,16 @@ def MetisLinker():
 
         with hook.polyphemus() as polyph:
             configs_list = polyph.list_all_etl_configs(job_type='metis')
-            return [ MetisLoaderConfig(**asdict(config)) for config in configs_list.configs if config.should_run(start,end) ]
+            configs_list = [ MetisLoaderConfig(**asdict(config)) for config in configs_list.configs if config.should_run(start,end) ]
+
+            for config in configs_list:
+                polyphemus.etl_update(
+                    project_name=config.project_name,
+                    config_id=config.config_id,
+                    status='running',
+                    ran_at=datetime.now().isoformat()
+                )
+            return configs_list
     
     @task
     def get_rules(configs):
@@ -244,7 +253,6 @@ Committed to Magma: {i['commit']}
                         project_name=config.project_name,
                         config_id=config.config_id,
                         status='completed',
-                        ran_at=datetime.now().isoformat(),
                         **state
                     )
                     polyphemus.etl_add_output(
@@ -256,7 +264,6 @@ Committed to Magma: {i['commit']}
                             response=response,
                             commit=commit,
                             start=start,
-                            ran_at=datetime.now().isoformat(),
                             end=end
                         )
                     )
