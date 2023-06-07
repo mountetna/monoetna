@@ -2,25 +2,7 @@ import React from 'react';
 import {autoColors} from 'etna-js/utils/colors';
 import PlotWithEffects from './plot_with_effects';
 
-export const PlotOutput = ({data, url}) => {
-  // console.log("Any plotter hit")
-  const plotlys = {...data}
-  const pngs = Object.fromEntries(
-    Object.entries(data).filter(([key, val]) => {
-      return typeof(val)=="string"
-    }).map( ([key, val]) => [key, url[key]])
-  )
-  Object.keys(pngs).forEach( (key) => {
-    delete plotlys[key]
-  })
-  return <React.Fragment>
-    {(Object.keys(plotlys).length>0) ? PlotlyOutput({data: plotlys}) : null}
-    {(Object.keys(pngs).length>0) ? PngOutput({url: pngs}) : null}
-  </React.Fragment>
-}
-
 export const PngOutput = ({url}) => {
-  // console.log("Png plotter hit")
   return <React.Fragment>
     {Object.values(url).map((url, ind) =>
         <React.Fragment key={url}>
@@ -31,7 +13,6 @@ export const PngOutput = ({url}) => {
 }
 
 export const PlotlyOutput = ({data: plots}) => {
-  // console.log("Plotly plotter hit")
   return (
     <React.Fragment>
       {Object.keys(plots).map((k) => {
@@ -94,3 +75,19 @@ export const PlotlyOutput = ({data: plots}) => {
     </React.Fragment>
   );
 };
+
+export const PlotOutput = ({data, url}) => {
+  const plotlys = {...data}
+  const pngs = Object.fromEntries(
+    Object.entries(data).filter(([key, val]) => {
+      return typeof(val)=='string'
+    }).map( ([key, val]) => [key, url[key]])
+  )
+  Object.keys(pngs).forEach( (key) => {
+    delete plotlys[key]
+  })
+  return <React.Fragment>
+    {(Object.keys(plotlys).length>0) ? PlotlyOutput({data: plotlys}) : null}
+    {(Object.keys(pngs).length>0) ? PngOutput({url: pngs}) : null}
+  </React.Fragment>
+}

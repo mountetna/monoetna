@@ -11,6 +11,7 @@ import {
 } from './user_input_pieces';
 import {Button, PropTypes} from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
+import { nestedOptionSet } from './visualizations';
 
 /*
 This script defines a component that behaves like all other 'user_input_pieces'.
@@ -93,7 +94,7 @@ const singleMethod = (
   def: (string | number | null)[] = emptyMethod,
   index: number,
   data_summary: DataEnvelope<any>,
-  subset_options: DataEnvelope<DataEnvelope<DataEnvelope<null>|null>> | string[],
+  subset_options: DataEnvelope<DataEnvelope<DataEnvelope<null>|null>|null> | string[],
   updateCurrent: Function,
   overallChangeFxn: Function,
   key: string,
@@ -207,21 +208,18 @@ export function subsetDataFramePiece(
   data_summary_ori: DataEnvelope<any>,
   sorted = false,
   color: PropTypes.Color = 'primary',
-  additional_numeric_options: DataEnvelope<DataEnvelope<DataEnvelope<null>|null>|null> | null = null,
+  additional_numeric_options: nestedOptionSet | null = null,
   data_summary_options_label: string = 'data_frame columns'
 ) {
   const values = {...value};
   const data_summary = {...data_summary_ori};
   // Put together all subsetting options
-  const subset_options = useMemo(() => {
-    const subset_options_build: string[] = Object.keys(data_summary);
-    if (additional_numeric_options!=null) {
-      return {
-        ...additional_numeric_options,
-        [data_summary_options_label]: key_wrap(subset_options_build)}
-    }
-    return subset_options_build
-  }, [data_summary, additional_numeric_options])
+  let subset_options: string[] | nestedOptionSet = Object.keys(data_summary);
+  if (additional_numeric_options!=null) {
+    subset_options = {
+      ...additional_numeric_options,
+      [data_summary_options_label]: key_wrap([...subset_options])}
+  }
 
   const startOrClear = (doSubset: boolean, x: any) => {
     const new_full = doSubset

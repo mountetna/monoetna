@@ -149,13 +149,13 @@ export function ReorderCustomOnlyPiece(
   }, [data_targ, discrete_data])
 
   const startOrClear = (doReorder: boolean, x?: any) => {
-    const new_full = doReorder ? levels : "make"
+    const new_full = doReorder ? levels : 'make'
     changeFxn(new_full, key);
   };
 
   // Reset to 'off'-mode if data_target changes, (also hit on page refresh, so ultimate check should be levels validity!)
   useEffect(() => {
-    if (data_targ != null && value != "make") {
+    if (data_targ != null && value != 'make') {
       // Needed if new data_targ is discrete or if new data levels aren't captured
       let needs_reset = !discrete_data.includes(data_targ);
       if (!needs_reset) {
@@ -206,7 +206,7 @@ export function ReorderCustomOnlyPiece(
       {checkboxPiece(
         key,
         startOrClear,
-        value != "make",
+        value != 'make',
         label,
         !canReorder
       )}

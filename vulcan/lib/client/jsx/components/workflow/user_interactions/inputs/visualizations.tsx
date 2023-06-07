@@ -1,6 +1,3 @@
-// Input component that takes nested object
-//   and shows the keys one level at a time.
-// Returns the last "Leaf" that the user selects.
 import React, {Dispatch, PropsWithChildren, useMemo, useState} from 'react';
 import * as _ from 'lodash';
 
@@ -99,7 +96,7 @@ JSX:
 */
 
 type optionSet = string[]
-type nestedOptionSet = DataEnvelope<DataEnvelope<DataEnvelope<null>|null>|null>
+export type nestedOptionSet = DataEnvelope<DataEnvelope<DataEnvelope<null>|null>|null>
 
 const remove_hidden = (
   vals: DataEnvelope<any>,
@@ -124,7 +121,7 @@ const input_sets_plotly: DataEnvelope<DataEnvelope<string[]>> = {
     titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
     coordinates: ['x_scale', 'y_scale'],
     'data focus': ['rows_use', 'color_order', 'order_when_continuous_color']
-    //'default_adjust': {'color_by': "make"}
+    //'default_adjust': {'color_by': 'make'}
   },
   bar_plot: {
     'primary features': ['x_by', 'y_by', 'scale_by'],
@@ -136,14 +133,14 @@ const input_sets_plotly: DataEnvelope<DataEnvelope<string[]>> = {
     titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
     coordinates: ['y_scale'],
     'data focus': ['rows_use', 'x_order']
-    //'default_adjust': {'color_by': "make"}
+    //'default_adjust': {'color_by': 'make'}
   }
 };
 
 const plot_relabels_plotly: DataEnvelope<string> = {
-  "scatter_plot: Scatter Plot": "scatter_plot",
-  "bar_plot: Compositional Stacked Bar Plot": "bar_plot",
-  "y_plot: Violin and/or Box Plot": "y_plot"
+  'scatter_plot: Scatter Plot': 'scatter_plot',
+  'bar_plot: Compositional Stacked Bar Plot': 'bar_plot',
+  'y_plot: Violin and/or Box Plot': 'y_plot'
 }
 
 const defaults_plotly: DataEnvelope<any> = {
@@ -165,12 +162,12 @@ const defaults_plotly: DataEnvelope<any> = {
   x_order: 'increasing'
 };
 
-const redefaults_plotly: DataEnvelope<DataEnvelope<DataEnvelope<any>>> = {
+const redefaults_plotly: DataEnvelope<DataEnvelope<any>> = {
   scatter_plot: {
-    'color_by': "make"
+    'color_by': 'make'
   },
   y_plot: {
-    'color_by': "make"
+    'color_by': 'make'
   }
 }
 
@@ -210,10 +207,10 @@ const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
 };
 
 const plot_relabels_dittoseq: DataEnvelope<string> = {
-  "dittoDimPlot: UMAP, PCA, etc.": "dittoDimPlot",
-  "dittoScatterPlot: e.g. gene x gene": "dittoScatterPlot",
-  "dittoBarPlot: compositional stacked bar plot": "dittoBarPlot",
-  "dittoPlot: violin, box, or ridge plot": "dittoPlot"
+  'dittoDimPlot: UMAP, PCA, etc.': 'dittoDimPlot',
+  'dittoScatterPlot: e.g. gene x gene': 'dittoScatterPlot',
+  'dittoBarPlot: compositional stacked bar plot': 'dittoBarPlot',
+  'dittoPlot: violin, box, or ridge plot': 'dittoPlot'
 }
 
 const defaults_dittoseq: DataEnvelope<any> = {
@@ -231,8 +228,8 @@ const defaults_dittoseq: DataEnvelope<any> = {
   xlab: 'make',
   ylab: 'make',
   color_order: 'unordered',
-  group_order: "make",
-  var_order: "make",
+  group_order: 'make',
+  var_order: 'make',
   x_scale: 'linear',
   y_scale: 'linear',
   cells_use: {},
@@ -240,14 +237,14 @@ const defaults_dittoseq: DataEnvelope<any> = {
   do_hover: true,
   vlnplot_lineweight: 1,
   vlnplot_width: 1,
-  vlnplot_scaling: "area",
+  vlnplot_scaling: 'area',
   boxplot_width: 0.2,
-  boxplot_color: "black",
+  boxplot_color: 'black',
   boxplot_fill: true,
   boxplot_lineweight: 1,
   jitter_size: 1,
   jitter_width: 0.2,
-  jitter_color: "black",
+  jitter_color: 'black',
   ridgeplot_lineweight: 1,
   do_label: false,
   labels_highlight: true,
@@ -257,12 +254,12 @@ const defaults_dittoseq: DataEnvelope<any> = {
   legend_show: true
 };
 
-const redefaults_dittoseq: DataEnvelope<DataEnvelope<DataEnvelope<any>>> = {
+const redefaults_dittoseq: DataEnvelope<DataEnvelope<any>> = {
   dittoScatterPlot: {
-    'color_by': "make"
+    'color_by': 'make'
   },
   dittoPlot: {
-    'color_by': "make"
+    'color_by': 'make'
   }
 }
 
@@ -270,7 +267,7 @@ function whichDefaults(
   plotType: string | null,
   preset: DataEnvelope<any> | null | undefined,
   defaults: DataEnvelope<any>,
-  redefaults: DataEnvelope<DataEnvelope<DataEnvelope<any>>>,
+  redefaults: DataEnvelope<DataEnvelope<any>>,
   input_sets: DataEnvelope<DataEnvelope<string[]>>
 ) {
   if (plotType == null) return {plot_type: plotType};
@@ -628,7 +625,7 @@ function VisualizationUI(
 
   const columns: string[] | nestedOptionSet = (data != null && data['all_cols'] != null) ? data['all_cols'] : df_columns
 
-  const reduction_opts: DataEnvelope<string[]> | null = useMemo(() => {
+  const reduction_opts: DataEnvelope<number[]> | null = useMemo(() => {
     if (data == null) return null;
     if (data['reduction_opts'] == null) return null;
     return data['reduction_opts'];
