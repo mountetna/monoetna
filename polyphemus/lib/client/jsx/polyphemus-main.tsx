@@ -62,9 +62,37 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
 
   const classes = useStyles();
 
+  useEffect( () => {
+    const updateEtls = () => {
+      json_get(`/api/etl/${project_name}/configs`).then(
+        new_etls => {
+          const newEtls = etls.map(
+            etl => {
+              const new_etl = new_etls.find( (e:Etl) => e.config_id == etl.config_id );
+              if (new_etl) {
+                const { ran_at, run_interval, status } = new_etl;
+
+                etl = { ...etl, ran_at, run_interval, status };
+              }
+
+              return etl
+            }
+          );
+
+          setEtls(newEtls);
+        }
+      );
+    };
+
+    const interval = setInterval(updateEtls, 30000);
+
+    return () => clearInterval(interval);
+  }, [etls]);
+
   useEffect(() => {
-    json_get(`/api/etl/${project_name}/configs`).then(setEtls);
     json_get('/api/etl/jobs').then(setJobs);
+    json_get(`/api/etl/${project_name}/configs`).then(setEtls);
+
     getDocuments(
       {
         project_name,
@@ -84,42 +112,42 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
   });
 
 
-  const [order, setOrder] = React.useState('asc');
-  const [orderBy, setOrderBy] = React.useState('Job Type');
-  const [selected, setSelected] = React.useState<number|null>(null);
+  const [order, setOrder] = useState< 'desc' | 'asc' | undefined>('asc');
+  const [orderBy, setOrderBy] = useState('Job Type');
+  const [selected, setSelected] = useState<number|null>(null);
 
   const selectedEtl = etls.find( e => e.config_id === selected );
 
   const headCells = [
     {
       id: 'Job Type',
-      align: 'left',
+      align: 'left' as const,
       key: 'etl'
     },
     {
       id: 'Name',
-      align: 'left',
+      align: 'left' as const,
       key: 'name'
     },
     {
       id: 'Last Status',
-      align: 'right',
+      align: 'right' as const,
       key: 'status'
     },
     {
       id: 'Last Ran',
-      align: 'right',
+      align: 'right' as const,
       key: 'ran_at'
     },
     {
       id: 'Next Run',
-      align: 'right',
-      compare: (a,b) => runTime(a.ran_at,a.run_interval).localeCompare(runTime(b.ran_at,b.run_interval))
+      align: 'right' as const,
+      compare: (a:Etl,b:Etl) => runTime(a.ran_at,a.run_interval).localeCompare(runTime(b.ran_at,b.run_interval))
     },
     {
       id: 'Run State',
-      align: 'right',
-      compare: (a,b) => a.run_interval - b.run_interval
+      align: 'right' as const,
+      compare: (a:Etl,b:Etl) => a.run_interval - b.run_interval
     }
   ];
 
@@ -158,15 +186,15 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
               : <Typography>data loaders</Typography>
             }
             {
-              selected ? <Typography>{ selectedEtl.name }</Typography> : null
+              selected ? <Typography>{ selectedEtl?.name }</Typography> : null
             }
           </Breadcrumbs>
           {
-            selected
+            selected && selectedEtl
             ? <EtlConfig
                 {...selectedEtl}
                 onUpdate={addEtl}
-                job={jobs.find((j) => j.name == selectedEtl.etl)}
+                job={jobs.find((j) => j.name == selectedEtl?.etl)}
               />
             : <>
               <TableContainer className={classes.etl_list}>
@@ -194,7 +222,6 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
                         <EtlConfigRow
                           key={etl.name}
                           {...etl}
-                          onUpdate={addEtl}
                           onClick={ () => setSelected(etl.config_id) }
                           job={jobs.find((j) => j.name == etl.etl)}
                         />

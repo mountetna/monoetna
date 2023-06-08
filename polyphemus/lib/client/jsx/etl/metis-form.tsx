@@ -112,6 +112,9 @@ const useStyles = makeStyles((theme: Theme) => ({
       cursor: 'pointer',
       background: '#eee'
     }
+  },
+  folder_path: {
+    width: '300px'
   }
 }));
 
@@ -144,13 +147,14 @@ const SCRIPT_ITEMS = {
     modelName={modelName}
     filter={ (a:any) => a.attribute_type == type }
   />,
-  folder_path: ({value,update,projectName,bucketName}:ScriptItem) => <PickFolder
+  folder_path: ({value,update,projectName,bucketName,classes}:ScriptItem) => <PickFolder
     basePath=''
-    label={null}
+    label={undefined}
     path={value}
     setPath={update}
     project_name={projectName}
     bucket={bucketName}
+    className={classes.folder_path}
   />,
   format: ({value,update}:ScriptItem) => <Select displayEmpty value={value} onChange={e => update(e.target.value)}>
       <MenuItem value=''><em>Table format</em></MenuItem>

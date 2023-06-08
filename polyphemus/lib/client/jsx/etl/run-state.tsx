@@ -14,7 +14,7 @@ export const formatTime = (time:Date|string) => Intl.DateTimeFormat('en-US', {
 export const runDesc = (run:number) => {
   if (run == RUN_ARCHIVE) return 'archived';
   if (run == RUN_NEVER) return 'never';
-  if (run == ONCE) return 'once';
+  if (run == RUN_ONCE) return 'once';
   return `every ${run}s`;
 }
 

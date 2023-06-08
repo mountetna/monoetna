@@ -115,7 +115,7 @@ export const EtlConfigRow = ({
   const classes: any = useStyles();
 
   return (
-    <TableRow className={classes.etlrow} onClick={ onClick }>
+    <TableRow className={classes.etlrow} onClick={ onClick as React.MouseEventHandler<HTMLTableRowElement>}>
       <TableCell>{job?.name}</TableCell>
       <TableCell>{name}</TableCell>
       <TableCell align="right">{status || 'none'}</TableCell>
