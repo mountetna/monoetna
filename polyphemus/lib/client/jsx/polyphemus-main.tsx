@@ -139,7 +139,7 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
         ? (orderCell.compare
           ? orderCell.compare(a, b)
           : (a[ orderCell.key ] || '').localeCompare(b[ orderCell.key ] || ''))
-        : 0);
+        : 0) || a.name.localeCompare(b.name);
       return dir * comp;
     }, [ orderBy, order ]
   );
