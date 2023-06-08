@@ -43,7 +43,7 @@ const EtlCreate = ({
   };
 
   const createJob = () =>
-    json_post(`/api/etl/${project_name}/create/${job_name}`, {job_type})
+    json_post(`/api/etl/${project_name}/create`, {name: job_name, job_type})
       .then((etl) => {
         onCreate(etl);
         close();

@@ -25,11 +25,13 @@ class Polyphemus
     post "/:project_name/ingest/enqueue/:ingest_host/*folder_path", action: "ingest#enqueue", auth: { user: { is_admin?: :project_name } }, match_ext: true
 
     get '/api/etl/:project_name/configs', action: 'etl#list', auth: { user: { can_edit?: :project_name } }
+    post '/api/etl/configs', action: 'etl#list_all', auth: { user: { is_supereditor?: :true } }
     get '/api/etl/jobs', action: 'etl#jobs'
-    post '/api/etl/:project_name/update/:name', action: 'etl#update', auth: { user: { can_edit?: :project_name } }, log_redact_keys: [ :secrets ]
-    post '/api/etl/:project_name/create/:name', action: 'etl#create', auth: { user: { can_edit?: :project_name } }
-    get '/api/etl/:project_name/revisions/:name', action: 'etl#revisions', auth: { user: { can_edit?: :project_name } }
-    get '/api/etl/:project_name/output/:name', action: 'etl#output', auth: { user: { can_edit?: :project_name } }
+    post '/api/etl/:project_name/update/:config_id', action: 'etl#update', auth: { user: { can_edit?: :project_name } }, log_redact_keys: [ :secrets ]
+    post '/api/etl/:project_name/output/:config_id', action: 'etl#add_output', auth: { user: { can_edit?: :project_name } }, log_redact_keys: [ :secrets ]
+    post '/api/etl/:project_name/create', action: 'etl#create', auth: { user: { can_edit?: :project_name } }
+    get '/api/etl/:project_name/revisions/:config_id', action: 'etl#revisions', auth: { user: { can_edit?: :project_name } }
+    get '/api/etl/:project_name/output/:config_id', action: 'etl#output', auth: { user: { can_edit?: :project_name } }
 
     get '/' do erb_view(:client) end
 
