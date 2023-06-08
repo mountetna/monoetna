@@ -3,6 +3,8 @@ import React, {useState, useCallback} from 'react';
 import 'regenerator-runtime/runtime';
 import {json_post} from 'etna-js/utils/fetch';
 
+import TableRow from '@material-ui/core/TableRow';
+import TableCell from '@material-ui/core/TableCell';
 import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -25,7 +27,7 @@ import ConfigurePane from './configure-pane';
 import RemovePane from './remove-pane';
 import LogsPane from './logs-pane';
 import SecretsPane from './secrets-pane';
-import {formatTime, runTime} from './run-state';
+import {formatTime, runTime, runDesc} from './run-state';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 
 import {Etl, Job} from '../polyphemus';
@@ -58,7 +60,15 @@ const useStyles = makeStyles((theme) => ({
   },
   etl: {
     border: '1px solid #ccc',
-    marginBottom: '15px'
+    marginBottom: '15px',
+    height: 'calc(100vh - 160px)'
+  },
+  etlrow: {
+    marginBottom: '15px',
+    cursor: 'pointer',
+    '&:hover': {
+      background: '#eee'
+    }
   },
   savebar: {
     justifyContent: 'space-between'
@@ -85,7 +95,38 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const EtlConfig = ({
+export const EtlConfigRow = ({
+  project_name,
+  name,
+  config,
+  status,
+  secrets,
+  params,
+  output,
+  run_interval,
+  ran_at,
+  job,
+  onClick
+}: Etl & {job: Job | undefined; onClick: Function}) => {
+  const [mode, setMode] = useState<string | null>(null);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const classes: any = useStyles();
+
+  return (
+    <TableRow className={classes.etlrow} onClick={ onClick }>
+      <TableCell>{job?.name}</TableCell>
+      <TableCell>{name}</TableCell>
+      <TableCell align="right">{status || 'none'}</TableCell>
+      <TableCell align="right">{ran_at ? formatTime(ran_at) : 'never'}</TableCell>
+      <TableCell align="right">{runTime(ran_at, run_interval)}</TableCell>
+      <TableCell align="right">{runDesc(run_interval)}</TableCell>
+    </TableRow>
+  );
+};
+
+export const EtlConfig = ({
   project_name,
   etl,
   name,
@@ -100,7 +141,7 @@ const EtlConfig = ({
   job,
   onUpdate
 }: Etl & {job: Job | undefined; onUpdate: Function}) => {
-  const [mode, setMode] = useState<string | null>(job?.name == 'metis' ? 'configure' : null);
+  const [mode, setMode] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -132,11 +173,19 @@ const EtlConfig = ({
   return (
     <Card className={classes.etl} elevation={0} key={etl}>
       <CardContent>
-        <Typography component='div' className={classes.heading}><Chip label={job?.name}/>{name}</Typography>
-
         <CardActions>
           <Grid direction='row' container>
             <Grid direction='column' container item xs={9}>
+              <Grid direction='row' className={classes.statusline} container>
+                <Grid container className={classes.title} item>
+                  <Typography>Job Type</Typography>
+                </Grid>
+                <Grid item className={classes.values}>
+                  <Typography>
+                    {job?.name}
+                  </Typography>
+                </Grid>
+              </Grid>
               <Grid direction='row' className={classes.statusline} container>
                 <Grid container className={classes.title} item>
                   <Typography>Last Ran</Typography>
@@ -233,5 +282,3 @@ const EtlConfig = ({
     </Card>
   );
 };
-
-export default EtlConfig;

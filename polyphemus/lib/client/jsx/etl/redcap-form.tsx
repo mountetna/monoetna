@@ -50,7 +50,7 @@ import AddModel from './add-model';
 
 const useStyles = makeStyles((theme: Theme) => ({
   form: {
-    height: '500px',
+    height: 'calc(100vh - 375px)',
     flexWrap: 'nowrap'
   },
   entity: {
@@ -82,13 +82,14 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   tabs: {
     flex: '1 1 auto',
+    maxHeight: '50px',
     border: '1px solid #ccc',
     borderBottom: 'none'
   },
   tab_scroll: {
     flexGrow: 0,
-    maxWidth: 'calc(100% - 50px)',
-    flexBasis: 'calc(100% - 50px)'
+    maxWidth: 'calc(100% - 120px)',
+    flexBasis: 'calc(100% - 120px)'
   },
   tab_buttons: {
     flex: '1 1 auto',
@@ -102,7 +103,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     overflowY: 'auto'
   },
   model: {
-    padding: '5px'
+    padding: '5px',
+    paddingRight: '15px'
   },
   model_row: {
     minHeight: '47px',
@@ -1244,9 +1246,9 @@ const RedcapForm = ({
         </Grid>
         <Grid item container className={classes.tab_buttons} justify='flex-end'>
           <Tooltip title='Add model'>
-            <IconButton onClick={() => setShowAddModel(true)}>
-              <AddIcon />
-            </IconButton>
+            <Button onClick={() => setShowAddModel(true)} startIcon={<AddIcon/>}>
+              Add Model
+            </Button>
           </Tooltip>
         </Grid>
       </Grid>

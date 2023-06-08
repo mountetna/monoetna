@@ -23,7 +23,7 @@ import Pagination from '@material-ui/lab/Pagination';
 
 import {SchemaContext, SchemaProvider} from './schema-context';
 import AddDialog from 'etna-js/components/add-dialog';
-import {PickBucket} from 'etna-js/components/metis_exploration';
+import {PickBucket,PickFolder} from 'etna-js/components/metis_exploration';
 
 import {makeStyles, Theme} from '@material-ui/core/styles';
 
@@ -34,18 +34,19 @@ import SelectAttribute from '../select-attribute';
 
 const useStyles = makeStyles((theme: Theme) => ({
   form: {
-    height: '500px',
+    height: 'calc(100vh - 375px)',
     flexWrap: 'nowrap'
   },
   tabs: {
     flex: '1 1 auto',
+    maxHeight: '50px',
     border: '1px solid #ccc',
     borderBottom: 'none'
   },
   tab_scroll: {
     flexGrow: 0,
-    maxWidth: 'calc(100% - 50px)',
-    flexBasis: 'calc(100% - 50px)'
+    maxWidth: 'calc(100% - 120px)',
+    flexBasis: 'calc(100% - 120px)'
   },
   tab_buttons: {
     flex: '1 1 auto',
@@ -54,15 +55,16 @@ const useStyles = makeStyles((theme: Theme) => ({
   tab_pane: {
     flex: '1 1 auto',
     border: '1px solid #ccc',
-    minHeight: '500px',
     overflow: 'hidden',
     overflowY: 'auto'
   },
   bucket_name: {
-    border: '1px solid #ccc'
+    padding: '10px',
+    width: '500px'
   },
   model: {
-    padding: '5px'
+    padding: '5px',
+    paddingRight: '15px'
   },
   model_row: {
     minHeight: '47px',
@@ -113,13 +115,14 @@ const useStyles = makeStyles((theme: Theme) => ({
   }
 }));
 
-const SCRIPT_TYPES = [ 'file', 'file_collection', 'data_frame' ];
+const SCRIPT_TYPES = [ 'file', 'file_collection' ];
 
 type Script = any;
 
 type ScriptItem = {
   type: string;
   projectName: string;
+  bucketName: string;
   modelName: string;
   value: any;
   update: Function;
@@ -127,14 +130,6 @@ type ScriptItem = {
 };
 
 const SCRIPT_ITEMS = {
-  bucket_name: ({value,update,projectName}:ScriptItem ) => <TextField
-    placeholder={`Metis bucket_name for ${projectName}`}
-    fullWidth
-    value={value}
-    onChange={
-      (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
-    }
-  />,
   file_match: ({value,update}:ScriptItem) => <TextField
     placeholder='Regular expression matching file'
     fullWidth
@@ -149,13 +144,13 @@ const SCRIPT_ITEMS = {
     modelName={modelName}
     filter={ (a:any) => a.attribute_type == type }
   />,
-  folder_path: ({value,update}:ScriptItem) => <TextField
-    placeholder='Metis folder path'
-    fullWidth
-    value={value}
-    onChange={
-      (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
-    }
+  folder_path: ({value,update,projectName,bucketName}:ScriptItem) => <PickFolder
+    basePath=''
+    label={null}
+    path={value}
+    setPath={update}
+    project_name={projectName}
+    bucket={bucketName}
   />,
   format: ({value,update}:ScriptItem) => <Select displayEmpty value={value} onChange={e => update(e.target.value)}>
       <MenuItem value=''><em>Table format</em></MenuItem>
@@ -235,7 +230,8 @@ const MetisScript = ({
   update,
   copy,
   modelName,
-  projectName
+  projectName,
+  bucketName
 }: {
   script: Script;
   num: number;
@@ -243,6 +239,7 @@ const MetisScript = ({
   copy: () => void;
   modelName: string;
   projectName: string;
+  bucketName: string;
 }) => {
   const classes = useStyles();
   const {type} = script;
@@ -329,6 +326,7 @@ const MetisScript = ({
                 <Grid item xs={8}>
                   <InputComponent
                     projectName={projectName}
+                    bucketName={bucketName}
                     modelName={modelName}
                     type={type}
                     value={value}
@@ -384,11 +382,13 @@ const MetisModel = ({
   config,
   modelName,
   projectName,
+  bucketName,
   update
 }: {
   config: Model;
   modelName: string;
   projectName: string;
+  bucketName: string;
   update: (modelConfig: Model | undefined) => void;
 }) => {
   const classes = useStyles();
@@ -463,6 +463,7 @@ const MetisModel = ({
             num={i + (page - 1) * pageSize + 1}
             modelName={modelName}
             projectName={projectName}
+            bucketName={bucketName}
             update={(newScript: Script | undefined) =>
               handleUpdateScript(i, newScript)
             }
@@ -550,9 +551,9 @@ const MetisForm = ({
         </Grid>
         <Grid item container className={classes.tab_buttons} justify='flex-end'>
           <Tooltip title='Add model'>
-            <IconButton onClick={() => setShowAddModel(true)}>
-              <AddIcon />
-            </IconButton>
+            <Button onClick={() => setShowAddModel(true)} startIcon={<AddIcon/>}>
+              Add Model
+            </Button>
           </Tooltip>
         </Grid>
       </Grid>
@@ -562,6 +563,7 @@ const MetisForm = ({
             key={modelName}
             modelName={modelName}
             projectName={project_name}
+            bucketName={bucket_name}
             config={modelConfig}
             update={handleUpdateModel}
           />

@@ -15,7 +15,8 @@ import ErrorBoundary from 'etna-js/components/error_boundary';
 const useStyles = makeStyles((theme) => ({
   editor: {
     border: '1px solid #ccc',
-    height: '200px',
+    height: 'calc(100vh - 375px)',
+    marginBottom: '5px',
     resize: 'vertical',
     overflow: 'hidden',
     overflowY: 'auto'
