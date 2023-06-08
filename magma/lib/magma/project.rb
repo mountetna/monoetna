@@ -63,6 +63,13 @@ class Magma
       (graph_models.map(&:migration) + detached_model_migrations).reject(&:empty?)
     end
 
+    def flags
+      flag_records = Magma.instance.db[:flags].where(project_name:  @project_name.to_s).all
+      flag_records.each_with_object({}) do |record, hash|
+        hash[record[:flag_name]] = record[:value]
+        end
+    end
+
     def load_model(model_data)
       model_class = Class.new(Magma::Model) do
         set_schema(

@@ -4,8 +4,9 @@ Sequel.migration do
       primary_key :id
       String :project_name, null: false
       String :flag_name, null: false
-      column :possible_values, "text[]", null: false
-      String :value, null: true
+      String :value, null: false
+      DateTime :created_at
+      DateTime :updated_at
     end
   end
 end
