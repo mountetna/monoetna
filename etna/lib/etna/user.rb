@@ -65,7 +65,7 @@ module Etna
     end
 
     def is_admin? project
-      is_superuser? || has_any_role?(project, :admin)
+      is_supereditor? || has_any_role?(project, :admin)
     end
 
     def active? project=nil

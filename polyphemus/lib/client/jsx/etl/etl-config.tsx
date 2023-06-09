@@ -3,6 +3,8 @@ import React, {useState, useCallback} from 'react';
 import 'regenerator-runtime/runtime';
 import {json_post} from 'etna-js/utils/fetch';
 
+import TableRow from '@material-ui/core/TableRow';
+import TableCell from '@material-ui/core/TableCell';
 import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -17,6 +19,7 @@ import CheckIcon from '@material-ui/icons/Check';
 import ErrorIcon from '@material-ui/icons/ErrorOutline';
 import ScheduleIcon from '@material-ui/icons/Schedule';
 import Grid from '@material-ui/core/Grid';
+import Chip from '@material-ui/core/Chip';
 
 import EtlButton from './etl-button';
 import RunPane from './run-pane';
@@ -24,7 +27,7 @@ import ConfigurePane from './configure-pane';
 import RemovePane from './remove-pane';
 import LogsPane from './logs-pane';
 import SecretsPane from './secrets-pane';
-import {formatTime, runTime} from './run-state';
+import {formatTime, runTime, runDesc} from './run-state';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
 
 import {Etl, Job} from '../polyphemus';
@@ -57,7 +60,15 @@ const useStyles = makeStyles((theme) => ({
   },
   etl: {
     border: '1px solid #ccc',
-    marginBottom: '15px'
+    marginBottom: '15px',
+    height: 'calc(100vh - 160px)'
+  },
+  etlrow: {
+    marginBottom: '15px',
+    cursor: 'pointer',
+    '&:hover': {
+      background: '#eee'
+    }
   },
   savebar: {
     justifyContent: 'space-between'
@@ -84,10 +95,42 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const EtlConfig = ({
+export const EtlConfigRow = ({
+  project_name,
+  name,
+  config,
+  status,
+  secrets,
+  params,
+  output,
+  run_interval,
+  ran_at,
+  job,
+  onClick
+}: Etl & {job: Job | undefined; onClick: Function}) => {
+  const [mode, setMode] = useState<string | null>(null);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const classes: any = useStyles();
+
+  return (
+    <TableRow className={classes.etlrow} onClick={ onClick as React.MouseEventHandler<HTMLTableRowElement>}>
+      <TableCell>{job?.name}</TableCell>
+      <TableCell>{name}</TableCell>
+      <TableCell align="right">{status || 'none'}</TableCell>
+      <TableCell align="right">{ran_at ? formatTime(ran_at) : 'never'}</TableCell>
+      <TableCell align="right">{runTime(ran_at, run_interval)}</TableCell>
+      <TableCell align="right">{runDesc(run_interval)}</TableCell>
+    </TableRow>
+  );
+};
+
+export const EtlConfig = ({
   project_name,
   etl,
   name,
+  config_id,
   config,
   status,
   secrets,
@@ -117,7 +160,7 @@ const EtlConfig = ({
   const [_, postUpdate] = useAsyncWork(
     function postUpdate(update: any) {
       clearMessages();
-      return json_post(`/api/etl/${project_name}/update/${name}`, update)
+      return json_post(`/api/etl/${project_name}/update/${config_id}`, update)
         .then((etl) => {
           onUpdate(etl);
           setMessage('Saved!');
@@ -130,11 +173,19 @@ const EtlConfig = ({
   return (
     <Card className={classes.etl} elevation={0} key={etl}>
       <CardContent>
-        <Typography className={classes.heading}>{name}</Typography>
-
         <CardActions>
           <Grid direction='row' container>
             <Grid direction='column' container item xs={9}>
+              <Grid direction='row' className={classes.statusline} container>
+                <Grid container className={classes.title} item>
+                  <Typography>Job Type</Typography>
+                </Grid>
+                <Grid item className={classes.values}>
+                  <Typography>
+                    {job?.name}
+                  </Typography>
+                </Grid>
+              </Grid>
               <Grid direction='row' className={classes.statusline} container>
                 <Grid container className={classes.title} item>
                   <Typography>Last Ran</Typography>
@@ -204,7 +255,7 @@ const EtlConfig = ({
           </Grid>
         )}
         <ConfigurePane
-          name={name}
+          config_id={config_id}
           project_name={project_name}
           selected={mode}
           config={config}
@@ -220,7 +271,7 @@ const EtlConfig = ({
           param_opts={job ? job.params : null}
         />
         <RemovePane selected={mode} update={postUpdate} />
-        <LogsPane selected={mode} name={name} project_name={project_name} />
+        <LogsPane selected={mode} config_id={config_id} name={name} project_name={project_name} />
         <SecretsPane
           selected={mode}
           update={postUpdate}
@@ -231,5 +282,3 @@ const EtlConfig = ({
     </Card>
   );
 };
-
-export default EtlConfig;

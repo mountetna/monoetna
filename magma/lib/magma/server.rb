@@ -25,6 +25,7 @@ class Magma
 
     post '/update_model', action: 'update_model#action', auth: { user: { is_admin?: :project_name } }
 
+    post '/gnomon/rules', action: 'gnomon#rules', auth: { user: { is_supereditor?: true } }
     get '/gnomon/:project_name', action: 'gnomon#get', auth: { user: { can_view?: :project_name } }
     get '/gnomon/:project_name/revisions', action: 'gnomon#revisions', auth: { user: { can_view?: :project_name } }
     post '/gnomon/:project_name', action: 'gnomon#set', auth: { user: { is_admin?: :project_name } }

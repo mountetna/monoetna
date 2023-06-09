@@ -45,11 +45,12 @@ function simplifyFolderListReturn(fullList: any) {
   }
 }
 
-export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket, label="Bucket"}: {
+export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket, label="Bucket", className}: {
   project_name?: string;
   setBucket: any;
   bucket: string;
   label?: string;
+  className?: string;
 }){
   const [bucketList, setBucketList] = useState([] as string[]);
   const [inputState, setInputState] = useState(nullToEmptyString(bucket));
@@ -61,7 +62,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
   }, [project_name] );
 
   return (
-    <Grid container direction='row'>
+    <Grid container direction='row' className={className}>
       <Grid item container alignItems='flex-end' style={{width: 'auto'}}>
         <i className="fa fa-trash" aria-hidden="true" style={{padding:'3px 5px 10px 3px'}}/>
       </Grid>
@@ -85,7 +86,6 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
               error={ bucket==null || bucket == '' || inputState != nullToEmptyString(bucket)}
               label={label}
               size='small'
-              InputLabelProps={{shrink: true}}
             />
           )}
         />
@@ -146,7 +146,7 @@ function FileOrFolderInner({ optionSet, path, target, setTarget, onEmpty, placeh
   />
 }
 
-export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setPath, path, allowFiles=true, label, basePath, topLevelPlaceholder=''}: {
+export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setPath, path, allowFiles=true, label, basePath, topLevelPlaceholder='', className}: {
   project_name?: string;
   bucket: string;
   setPath: Function;
@@ -154,7 +154,8 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   label?: string;
   basePath: string; // an immutable portion of path.  Can be '' to access the entire bucket and to be compatible with exploring across buckets in sync with a PickBucket companion.
   topLevelPlaceholder?: string;
-  allowFiles?: boolean
+  allowFiles?: boolean;
+  className?: string;
 }) {
   const [pathArray, setPathArray] = useState(pathToArray(path, basePath));
   const labelUse = label!==undefined ? label : allowFiles ? "File or Folder" : "Folder"
@@ -190,6 +191,14 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     })
   },
   [project_name, bucket, contentsSeen]);
+
+  useEffect(() => {
+    const arrays_path = arrayToPath(pathArray, basePath);
+
+    if (arrays_path != path && stripSlash(arrays_path) != path) {
+      setPathArray(pathToArray(path, basePath));
+    }
+  }, [path]);
 
   // Determine folder contents to grab at very start
   useEffect( () => {
@@ -268,6 +277,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     key={`file-or-folder-picker-${project_name}-${bucket}`}
     container
     direction='column'
+    className={className}
   >
     {pathArray.map( (p, index, fullArray) => {
       // const before = index > 1 ? fullSet[index-1] : '';
@@ -311,7 +321,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   </Grid>
 }
 
-export function PickFolder({ project_name=CONFIG.project_name, bucket, setPath, path, label, basePath, topLevelPlaceholder=''}: {
+export function PickFolder({ project_name=CONFIG.project_name, bucket, setPath, path, label, basePath, topLevelPlaceholder='', className}: {
   project_name?: string;
   bucket: string;
   setPath: Function;
@@ -319,6 +329,7 @@ export function PickFolder({ project_name=CONFIG.project_name, bucket, setPath, 
   label?: string;
   basePath: string; // an immutable portion of path.  Can be '' to access the entire bucket and to be compatible with exploring across buckets in sync with a PickBucket companion.
   topLevelPlaceholder?: string;
+  className?: string;
 }) {
   return <PickFileOrFolder
     project_name={project_name}
@@ -329,6 +340,7 @@ export function PickFolder({ project_name=CONFIG.project_name, bucket, setPath, 
     basePath={basePath}
     topLevelPlaceholder={topLevelPlaceholder}
     allowFiles={false}
+    className={className}
     />
 }
 

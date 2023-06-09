@@ -2,30 +2,36 @@ require_relative '../etls/redcap/redcap_etl_script_runner'
 
 class Polyphemus
   class RedcapJob < Polyphemus::Job
-    def self.as_json
-      {
-        name: "redcap",
-        schema: Redcap::Loader.to_schema,
-        params: {
-          mode: [ {
-            value: 'default',
-            default: true,
-            description: 'update existing and append new records'
-          }, {
-            value: 'strict',
-            description: 'discard all existing records and append new records'
-          }, {
-            value: 'existing',
-            description: 'only update existing records'
-          } ],
-          model_names: {
-            type: 'options',
-            value: 'model_names'
+    class << self
+      def as_json
+        {
+          name: "redcap",
+          schema: Redcap::Loader.to_schema,
+          params: {
+            mode: [ {
+              value: 'default',
+              default: true,
+              description: 'update existing and append new records'
+            }, {
+              value: 'strict',
+              description: 'discard all existing records and append new records'
+            }, {
+              value: 'existing',
+              description: 'only update existing records'
+            } ],
+            model_names: {
+              type: 'options',
+              value: 'model_names'
+            },
+            commit: 'boolean'
           },
-          commit: 'boolean'
-        },
-        secrets: [ :redcap_tokens ]
-      }
+          secrets: [ :redcap_tokens ]
+        }
+      end
+
+      def should_run?
+        true
+      end
     end
 
     def validate
