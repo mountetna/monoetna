@@ -169,6 +169,7 @@ Array [
                                         checked={true}
                                         className="PrivateSwitchBase-input-8"
                                         data-indeterminate={false}
+                                        disabled={false}
                                         onChange={[Function]}
                                         type="checkbox"
                                       />
@@ -244,6 +245,7 @@ Array [
                                         checked={false}
                                         className="PrivateSwitchBase-input-8"
                                         data-indeterminate={false}
+                                        disabled={false}
                                         onChange={[Function]}
                                         type="checkbox"
                                       />

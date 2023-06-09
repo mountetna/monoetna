@@ -4,7 +4,7 @@ set -e
 set -x
 
 base='archimedes-r-base'
-prefix='etnaagent/'
+prefix='' # 'etnaagent/' if should pull from remote
 # This should only ever be run on the :latest or :master image.
 # By the time anything is pushed to :production, this should already have been done!
 tag=':latest'

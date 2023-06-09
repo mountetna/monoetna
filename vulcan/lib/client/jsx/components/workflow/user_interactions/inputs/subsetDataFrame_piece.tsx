@@ -1,29 +1,37 @@
 import React, {useMemo} from 'react';
 import {DataEnvelope} from './input_types';
-import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import {
   checkboxPiece,
   dropdownPiece,
+  key_wrap,
   multiselectPiece,
-  rangePiece
+  nestedDropdownPiece,
+  rangePiece,
+  arrayLevels
 } from './user_input_pieces';
 import {Button, PropTypes} from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
-import {arrayLevels} from './user_input_pieces';
+import { nestedOptionSet } from './visualizations';
 
 /*
 This script defines a component that behaves like all other 'user_input_pieces'.
 See 'user_input_pieces.tsx' for additional documentation.
 It's a piece that recieves, as additional inputs:
- - 'data_frame' = a hash that corresponds to the json file of python pandas.DataFrame. Keys are column names, values are arrays of data where all elements have the same type.
+ - 'data_summary' = a hash that corresponds to the json file of python pandas.DataFrame, OR a summary of unique values for all discrete or boolean data from a data_frame or similar data structure. Keys are column names, values are arrays of data where all elements have the same type.
+ - 'additional_numeric_options' = a string array naming any numeric data columns that can be subset on but are not included in the 'data_summary'.
  - 'sorted' = whether column name dropdowns should be alphanumerically sorted versus left in the same order as they are in the 'data_frame'.
+Conceptually, it's easiest to think about this piece as if data_summary represents a data_frame and this component is being used to define any number of filters that each target a subsets of values a single column of that data_frame.
+For practical purposes (specifically: 20k+ genes in genomic datasets (-> data_frame columns), or 100k+ cells (-> data_frame rows)),
+the component was abstracted so that 'data_summary' could:
+ - exclude numeric 'columns'
+ - recieve only the unique values of discrete 'columns', rather than requiring ALL data points.
 */
 
 const emptyMethod = [null];
 
 function targetSelectionComponent(
   def: (string | number | null)[],
-  data_frame: DataEnvelope<any>,
+  data_summary: DataEnvelope<any>,
   updateFxn: Function,
   key: string,
   index: number
@@ -33,7 +41,17 @@ function targetSelectionComponent(
   let inner_def = [...def];
   inner_def.shift();
 
-  const target_data = Object.values(data_frame[def[0] as string]);
+  if ( ! Object.keys(data_summary).includes(def[0] as string)) {
+    // Case = subsetting on data from 'additional_numeric_options'
+    return rangePiece(
+      key + index + index,
+      updateFxn,
+      inner_def.length > 0 ? inner_def : undefined,
+      'Values to keep'
+    );
+  }
+
+  const target_data = Object.values(data_summary[def[0] as string]);
 
   if (typeof target_data[0] == 'number') {
     return rangePiece(
@@ -75,7 +93,8 @@ function targetSelectionComponent(
 const singleMethod = (
   def: (string | number | null)[] = emptyMethod,
   index: number,
-  data_frame: DataEnvelope<any>,
+  data_summary: DataEnvelope<any>,
+  subset_options: DataEnvelope<DataEnvelope<DataEnvelope<null>|null>|null> | string[],
   updateCurrent: Function,
   overallChangeFxn: Function,
   key: string,
@@ -97,9 +116,7 @@ const singleMethod = (
     // (Resets away any data targets)
     updateCurrent([newCol], null, index);
   };
-
-  const columns: string[] = Object.keys(data_frame);
-
+  
   const clearDef = () => {
     const full = {...values};
     // methods (Current at index, must remain/become [emptyMethod] or lose current)
@@ -123,13 +140,19 @@ const singleMethod = (
     overallChangeFxn({methods: next_methods, logic: next_logic}, key);
   };
 
-  const pick_column = dropdownPiece(
+  const pick_column = Array.isArray(subset_options) ? dropdownPiece(
     key + index,
     updateDefColumn,
     def[0] as string,
     'Condition ' + (index + 1) + ', Feature',
-    columns,
+    subset_options,
     sorted
+  ) : nestedDropdownPiece(
+    key + index,
+    updateDefColumn,
+    def[0] as string,
+    'Condition ' + (index + 1) + ', Feature',
+    subset_options
   );
   const clear_comp = (
     <Button
@@ -154,7 +177,7 @@ const singleMethod = (
         );
   const def_comp = targetSelectionComponent(
     def,
-    data_frame,
+    data_summary,
     updateDefTargets,
     key,
     index
@@ -182,12 +205,21 @@ export function subsetDataFramePiece(
   changeFxn: Function,
   value: DataEnvelope<(string | number | null)[][]> = {},
   label: string,
-  data_frame_ori: DataEnvelope<any>,
+  data_summary_ori: DataEnvelope<any>,
   sorted = false,
-  color: PropTypes.Color = 'primary'
+  color: PropTypes.Color = 'primary',
+  additional_numeric_options: nestedOptionSet | null = null,
+  data_summary_options_label: string = 'data_frame columns'
 ) {
   const values = {...value};
-  const data_frame = {...data_frame_ori};
+  const data_summary = {...data_summary_ori};
+  // Put together all subsetting options
+  let subset_options: string[] | nestedOptionSet = Object.keys(data_summary);
+  if (additional_numeric_options!=null) {
+    subset_options = {
+      ...additional_numeric_options,
+      [data_summary_options_label]: key_wrap([...subset_options])}
+  }
 
   const startOrClear = (doSubset: boolean, x: any) => {
     const new_full = doSubset
@@ -233,7 +265,8 @@ export function subsetDataFramePiece(
           return singleMethod(
             def,
             index,
-            data_frame,
+            data_summary,
+            subset_options,
             updateCurrent,
             changeFxn,
             key,

@@ -7,15 +7,18 @@ import StringInput from './string';
 import BooleanInput from './boolean';
 import SelectAutocompleteInput from './select_autocomplete';
 import FloatInput from './float';
+import { Grid } from '@material-ui/core';
+import NestedSelectAutocompleteInput from './nested_select_autocomplete';
+import { nestedOptionSet } from './visualizations'
 
 export function val_wrap(v: any): DataEnvelope<typeof v> {
   return {'a': v};
 }
 
 export function key_wrap(k: string[]) {
-  let de: DataEnvelope<string> = {};
+  let de: DataEnvelope<null> = {};
   for (let ind = 0; ind < k.length; ind++) {
-    de[k[ind]]='0';
+    de[k[ind]]=null;
   }
   return de;
 }
@@ -72,7 +75,7 @@ export function floatPiece(
 
 export function checkboxPiece(
   key: string, changeFxn: Function, value: boolean = false,
-  label: string) {
+  label: string, disabled: boolean = false) {
     return(
       <BooleanInput
         key={key}
@@ -80,14 +83,16 @@ export function checkboxPiece(
         value={maybeOfNullable(value)}
         data={val_wrap(value)}
         onChange={ value => changeFxn(withDefault(value,false), key)}
+        disabled={disabled}
       />
     );
   }
 
 export function dropdownPiece(
   key: string, changeFxn: Function, value: string | null = null,
-  label: string|undefined, options: string[], sorted: boolean = true, minWidth: number = 200, disabled: boolean = false) {
-    return(
+  label: string | undefined, options: string[] | DataEnvelope<string>, sorted: boolean = true, minWidth: number = 200, disabled: boolean = false) {
+    // options = string[] where options values are both the intended values and user-facing labels
+    if (Array.isArray(options)) return(
       <SelectAutocompleteInput
         key={key}
         label={label}
@@ -98,6 +103,81 @@ export function dropdownPiece(
         onChange={ (value) => changeFxn(withDefault(value,null), key) }
       />
     );
+    // options = Object with keys = label values to show the user; values = true option values that the output / saved state should hold.
+    const labels = Object.keys(options)
+    const toValue = (label: string | null | undefined) => label == null? null : options[label]
+    const toLabel = (value: string | null) => {
+      return (value == null) ? null : (Object.keys(options).find(key => options[key] === value)) as string
+    };
+    return(
+      <SelectAutocompleteInput
+        key={key}
+        label={label}
+        value={some(toLabel(value))}
+        data={val_wrap(labels)}
+        minWidth={minWidth}
+        disabled={disabled}
+        onChange={ (label) => changeFxn(toValue(withDefault(label,null)), key) }
+      />
+    );
+  }
+
+export function nestedDropdownPiece(
+  key: string, changeFxn: Function, value: string | null = null,
+  label: string|undefined, options: nestedOptionSet | string[], sorted: boolean = false) {
+    // sorted not implemented, but kept for compatibility with inputs that might be designed for either this or dropdownPiece and given a boolean for the sorted input there.
+    if (Array.isArray(options)) {
+      options = key_wrap([...options])
+    }
+    return <NestedSelectAutocompleteInput
+      key={key}
+      label={label}
+      value={some(value)}
+      data={val_wrap(options)}
+      onChange={ (value) => changeFxn(withDefault(value,null), key) }
+    />
+  }
+
+export function nestedDropdownFullPathPiece(
+  key: string, changeFxn: Function, value: (string | null)[] | null = null,
+  label: string|undefined, options: nestedOptionSet, sorted: boolean = true, disabled: boolean = false) {
+    // options can contain multiple levels of 'categoies' which lead down to 'options'.
+    // 'options' are still expected to be keys of an object
+    // {categories: categories: options: null}
+    if (Array.isArray(options)) {
+      options = key_wrap([...options])
+    }
+    const value_use = value==null ? [null] : value
+    return <Grid 
+      key={key}
+      container
+      direction='column'
+    >
+    {value_use.map( (v, index, fullValues) => {
+      const path = [...fullValues].slice(0,index)
+      let options_temp = {...options}
+      path.forEach((value) => {
+        options_temp = value == null ? options_temp : (options_temp[value]) as DataEnvelope<DataEnvelope<null> | null>
+      })
+      // keys of options_temp are now the options for this level, and values are null if leaves or {options: any} for a next level
+      const options_level = Object.keys(options_temp)
+      return <SelectAutocompleteInput
+        key={key+index}
+        label={index==0 ? label : undefined}
+        value={some(v)}
+        data={val_wrap(options_level)}
+        disabled={disabled}
+        onChange={ (value) => {
+          // Trim to the level where the new selection was made
+          const val = withDefault(value,null)
+          path.push(val)
+          // Add new level if selection was not a leaf
+          if (val != null && options_temp[val]!=null) {path.push(null)}
+          changeFxn(path, key) }
+        }
+      />
+    })}
+    </Grid>
   }
 
 export function multiselectPiece(
@@ -120,7 +200,7 @@ export function multiselectPiece(
 
 export function sliderPiece(
   key: string, changeFxn: Function, value: number,
-  label: string, min: number = 0.1, max: number = 20) {
+  label: string, min: number = 0.1, max: number = 20, stepSize: number | undefined = undefined) {
 
     return(
         <div key={key} style={{paddingTop: 8}}>
@@ -131,6 +211,7 @@ export function sliderPiece(
             onChange={(event, newValue) => changeFxn(newValue as number, key)}
             min={min}
             max={max}
+            step={stepSize}
             valueLabelDisplay="auto"
           />
         </div>
@@ -167,3 +248,46 @@ export function rangePiece(
       </div>
     );
   }
+
+export function reductionSetupPiece(
+  key: string, changeFxn: Function, value: (string|null)[] = [null, '1', '2'],
+  label: string[] = ['Dimensionality Reduction (DR)', 'x-axis DR Compenent', 'y-axis DR Component'],
+  reduction_opts: DataEnvelope<string[]>) {
+  
+  if (reduction_opts == null) return null
+
+  const disable_dims = value[0]==null
+  function changeReduction(newElement: string|null) {
+    return [newElement, '1', '2']
+  }
+  function changeDim(newElement: string|null, dim: 1|2) {
+    let newValue = [...value]
+    newValue[dim] = newElement
+    return newValue
+  }
+  // console.log({reduction_opts})
+  return(
+    <Grid 
+      key={key}
+      container
+      direction='column'
+    >
+      <Grid item>
+        {dropdownPiece(
+          key+'-reduction', (newElement: string | null) => changeFxn(changeReduction(newElement), key), value[0],
+          label[0], Object.keys(reduction_opts), false, 200, false)}
+      </Grid>
+      <Grid item>
+        {dropdownPiece(
+          key+'-dimx', (newElement: string | null) => changeFxn(changeDim(newElement, 1), key), value[1],
+          label[1], value[0]==null ? ['1', '2'] : reduction_opts[value[0]], false, 200, disable_dims)}
+      </Grid>
+      <Grid item>
+        {dropdownPiece(
+          key+'-dimy', (newElement: string | null) => changeFxn(changeDim(newElement, 2), key), value[2],
+          label[2], value[0]==null ? ['1', '2'] : reduction_opts[value[0]], false, 200, disable_dims)}
+      </Grid>
+    </Grid>
+  )
+
+}
