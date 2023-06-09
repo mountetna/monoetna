@@ -45,7 +45,7 @@ end
 
 def byte_format(bytes)
   if bytes > 1024*1024*1024*1024
-    bytes = "#{(bytes / 1024/1024/1024).round(2)}T"
+    bytes = "#{(bytes / 1024/1024/1024/1024).round(2)}T"
   elsif bytes > 1024*1024*1024
     bytes = "#{(bytes / 1024/1024/1024).round(2)}G"
   elsif bytes > 1024*1024
@@ -384,6 +384,14 @@ class MetisClient < Client
     response = get_request( "/#{project_name}/list" )
     raise MetisClient::Error, "Could not list buckets for #{project_name}\n#{error(response)} #{response.code}" unless response.code == "200"
     return json_body(response)[:buckets]
+  end
+
+  def find(project_name, bucket_name, params)
+    response = json_post("/#{project_name}/find/#{bucket_name}", params: params)
+
+    raise MetisClient::Error, "Find failed" unless response.code == "200"
+
+    return json_body(response)
   end
 
   def list_folder(project_name,folder_path)
@@ -826,6 +834,81 @@ EOT
         return [ rows, cols, col_widths ]
       end
       return [ entries.size, 1, entries.map{0} ]
+    end
+  end
+
+  class Find < Command
+    usage "find [<attribute op value>+]"
+
+    def parse(args)
+      parse_opts(args) do |opts|
+        opts.on("-t", "--type <file|folder>", "Restricts find by type") do |type|
+          options[:type] = type
+        end
+      end
+    end
+
+    PARAMS={
+      created_at: [ '<', '>', '>=', '<=', '=' ],
+      updated_at: [ '<', '>', '>=', '<=', '=' ],
+      name: [ '=~', '=' ]
+    }
+
+    PARAM_REGEX=Regexp.new(
+      "(?:#{
+        PARAMS.map do |name, ops|
+          %Q{(#{name})(#{ops.join('|')})(\\S+)}
+        end.join('|')
+      })"
+    )
+
+    def run(*args)
+      raise ShellError, 'Invalid type specified' unless [ nil, 'file', 'folder' ].include?(options[:type])
+
+      params = args.map do |arg|
+        name, op, value = PARAM_REGEX.match(arg)&.captures&.compact
+
+        raise ShellError, "Poorly formed find parameter '#{arg}'" unless name
+
+        {
+          attribute: name,
+          predicate: op,
+          value: value,
+          type: options[:type]
+        }.compact
+      end
+
+      if !@shell.bucket_name
+        buckets = @shell.client.list_buckets(@shell.project_name)
+        found = false
+        buckets.each do |bucket|
+          results = find_in_bucket(bucket[:bucket_name], params)
+          unless results.empty?
+            found = true
+            puts "#{bucket[:bucket_name]}:"
+            puts results.join("\n")
+          end
+        end
+        unless found
+          puts "No results."
+        end
+      else
+        results = find_in_bucket(@shell.bucket_name, params)
+        if results.empty?
+          puts "No results."
+        else
+          puts "#{@shell.bucket_name}:"
+          puts results.join("\n")
+        end
+      end
+    end
+
+    def find_in_bucket(bucket_name, params)
+      results = @shell.client.find(@shell.project_name, bucket_name, params)
+
+      return (results[:files] + results[:folders]).map do |f|
+        f[:file_path] || (f[:folder_path] + "/")
+      end.sort
     end
   end
 
@@ -1273,6 +1356,10 @@ EOT
       end
     end
 
+    def is_valid_checksum?(checksum)
+      checksum =~ /^[a-f0-9]{32}$/i
+    end
+
     def md5_cache
       @md5_cache ||= {}
     end
@@ -1283,7 +1370,7 @@ EOT
       File.readlines(md5file, encoding: "UTF-8").each do |line|
         checksum, file_name = line.chomp.split(/\s+/, 2)
         full_path = clean_path(::File.join( md5dir, file_name ))
-        next unless ::File.exists?(full_path)
+        next unless ::File.exists?(full_path) && is_valid_checksum?(checksum)
 
         md5_cache[full_path] = checksum
       end
@@ -1297,6 +1384,8 @@ EOT
         ::File.basename(file) == options[:file]
       end
 
+      files = files.select {|f| ::File.exists?(f) }
+
       puts "Found #{files.count} files in #{folders.count} folders, total size #{byte_format(files.map{|f| ::File.size(f)}.sum)}."
 
       md5files.each do |md5file|
@@ -1304,16 +1393,30 @@ EOT
       end
 
       # compute md5sums
-      files.each.with_index do |file,i|
-        file = clean_path(file)
+      begin
+        files.each.with_index do |file,i|
+          file = clean_path(file)
 
-        print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}      \r"
+          print "Computing md5s - #{progress_bar(i.to_f / files.length)} - #{i} of #{files.length}      \r"
 
-        next if ::File.basename(file) == options[:file] || md5_cache[file]
+          next if ::File.basename(file) == options[:file] || md5_cache[file]
 
-        md5_cache[file] = %x{ md5sum #{Shellwords.escape(file)} }.split(' ')[0]
+          checksum = %x{ md5sum #{Shellwords.escape(file)} }.split(' ')[0]
+
+          unless is_valid_checksum?(checksum)
+            puts "Could not compute md5sum for #{file}"
+            next
+          end
+
+          md5_cache[file] = checksum
+        end
+        puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}      "
+      rescue Exception => e
+        puts
+        puts e.message
+        puts e.backtrace
+        puts "Aborting checksum computation, writing partial #{options[:file]}"
       end
-      puts "Computing md5s - #{progress_bar(1)} - #{files.length} of #{files.length}      "
 
       output =  md5_cache.map do |file_name, checksum|
         "#{checksum}  #{Pathname.new(file_name).relative_path_from(Pathname.new(local_directory))}"
@@ -1441,6 +1544,7 @@ EOT
       files = files.select {|f| ::File.exists?(f) && !is_checksum_file?(f) }
 
       archived_files_count = 0
+      archived_files = []
       unarchived_files = []
       unarchived_size = 0
 
@@ -1454,6 +1558,7 @@ EOT
         file_md5s.each do |file, md5|
           next if is_checksum_file?(file)
           if found.include?(md5)
+            archived_files << file
             archived_files_count += 1
           else
             unarchived_files << file
@@ -1467,6 +1572,8 @@ EOT
       if options[:list] && !unarchived_files.empty?
         puts "\nMissing files:"
         puts unarchived_files
+        puts "Archived files:"
+        puts archived_files
       end
     end
   end
@@ -1708,6 +1815,12 @@ EOT
     @client ||= MetisClient.new(@host, @token, logger)
   end
 
+  def bucket_name
+    return nil unless @cwd
+
+    @cwd.split('/').first
+  end
+
   def relative_path(file_path=nil)
     path = case file_path
     when '.', nil then @cwd
@@ -1896,7 +2009,6 @@ def start
 
   MetisConfig.instance.config(config)
   MetisShell.new(ARGV[0], *ARGV[1..-1]).run
-  puts
 end
 
 start unless test_env?

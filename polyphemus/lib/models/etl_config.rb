@@ -2,28 +2,37 @@ class Polyphemus
   class EtlConfig < Sequel::Model
     RUN_ONCE=0
     RUN_NEVER=-1
+    RUN_ARCHIVED=-2
     STATUS_COMPLETED='completed'
     STATUS_ERROR='error'
 
-    def self.next_to_run
-      self.exclude(archived: true).where {
-        Sequel.|(
-          {run_interval: Polyphemus::EtlConfig::RUN_ONCE},
-          Sequel.&(
-            (run_interval > 0),
-            Sequel.|(
-              {ran_at: nil},
-              ((ran_at + Sequel.lit("? * interval '1 second'", :run_interval)) < DateTime.now)
+    class << self
+      def next_to_run
+        self.current.where(
+          etl: Polyphemus::Job.list.select(&:should_run?).map(&:job_name)
+        ).where {
+          Sequel.|(
+            {run_interval: Polyphemus::EtlConfig::RUN_ONCE},
+            Sequel.&(
+              (run_interval > 0),
+              Sequel.|(
+                {ran_at: nil},
+                ((ran_at + Sequel.lit("? * interval '1 second'", :run_interval)) < DateTime.now)
+              )
             )
           )
-        )
-      }.first
+        }.first
+      end
     end
 
     plugin :timestamps, update_on_create: true, allow_manual_update: true
     plugin :column_encryption do |enc|
       enc.key 0, Polyphemus.instance.config(:etl_secrets_key)
       enc.column :secrets, format: :json
+    end
+
+    def self.current
+      return self.reverse(:config_id, :version_number).distinct(:config_id).exclude(run_interval: Polyphemus::EtlConfig::RUN_ARCHIVED)
     end
 
     def etl_job_class
@@ -36,6 +45,10 @@ class Polyphemus
 
     def validate_params(params)
       etl_job_class.validate_params(params)
+    end
+
+    def self.next_id
+      Polyphemus.instance.db.get { nextval("etl_configs_ids") }
     end
 
     def run!
@@ -59,7 +72,7 @@ class Polyphemus
         token: task_token
       )
 
-      raise 'Current config is invalid against current schema' unless validate_config(config)
+      raise 'Current config is invalid against current schema' unless valid_config?(config)
 
       job.validate
 
@@ -115,14 +128,21 @@ class Polyphemus
     end
 
     def to_revision
-      as_json.slice(:config, :updated_at, :comment)
+      as_json.slice(:config, :version_number, :comment)
+    end
+
+    def valid_config?(config)
+      schema = JSONSchemer.schema(
+        JSON.parse(etl_job_class.as_json[:schema].to_json)
+      )
+      schema.valid?(JSON.parse(config.to_json))
     end
 
     def validate_config(config)
       schema = JSONSchemer.schema(
         JSON.parse(etl_job_class.as_json[:schema].to_json)
       )
-      schema.valid?(JSON.parse(config.to_json))
+      schema.validate(JSON.parse(config.to_json)).to_a
     end
   end
 end

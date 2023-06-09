@@ -24,14 +24,9 @@ import CardActionArea from '@material-ui/core/CardActionArea';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-
 import ProjectHeader from 'etna-js/components/project-header';
 import RevisionHistory from 'etna-js/components/revision-history';
+import AddDialog from 'etna-js/components/add-dialog';
 
 import RuleScript from './rule-script';
 
@@ -174,65 +169,6 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const AddDialog = ({update, title, content, buttonText, placeholders, mask=(e => e), mask2=(e => e)}) => {
-  const [ open, setOpen ] = useState(false);
-  const [ v1, setV1 ] = useState('');
-  const [ v2, setV2 ] = useState('');
-
-  const classes = useStyles();
-
-  const handleClose = () => {
-    setOpen(false);
-    setV1('');
-    setV2('');
-  };
-
-  const handleAdd = useCallback( () => {
-    update(v1,v2);
-    handleClose();
-  }, [v1, v2]);
-
-  return <React.Fragment>
-    <Button 
-    variant='text'
-    startIcon={<AddIcon/>}
-    color='secondary'
-    className={classes.noprint}
-    onClick={() => setOpen(true)}>{buttonText}</Button>
-    <Dialog open={open} onClose={handleClose} aria-labelledby='form-dialog-title'>
-      <DialogTitle id='form-dialog-title'>{title}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          {content}
-        </DialogContentText>
-        <TextField
-          autoFocus
-          margin='dense'
-          placeholder={ placeholders[0] }
-          fullWidth
-          value={ v1 }
-          onChange={ e => setV1(mask(e.target.value)) }
-        />
-        { placeholders[1] && <TextField
-          margin='dense'
-          placeholder={ placeholders[1] }
-          fullWidth
-          value={ v2 }
-          onChange={ e => setV2(mask2(e.target.value)) }
-        /> }
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color='primary'>
-          Cancel
-        </Button>
-        <Button onClick={ handleAdd } color='primary' disabled={ !v1 || (placeholders[1] && !v2) }>
-          Add
-        </Button>
-      </DialogActions>
-    </Dialog>
-  </React.Fragment>;
-};
-
 const Synonym = ({set, pos, dispatch}) => {
   const classes = useStyles();
 
@@ -246,10 +182,11 @@ const Synonym = ({set, pos, dispatch}) => {
       }
       <Grid item xs={1}>
         <AddDialog
+          buttonClass={classes.noprint}
           title='Add a synonym'
           content={`Add a new synonym for ${set.join(', ')}`}
           buttonText='ADD SYNONYM'
-        update={ token_name => dispatch({ type: 'ADD_SYN_TO_SET', pos, token_name }) }
+          update={ token_name => dispatch({ type: 'ADD_SYN_TO_SET', pos, token_name }) }
           mask={ upcase }
           placeholders={ [ 'TOKEN_NAME' ] }
         />
@@ -295,6 +232,7 @@ const Token = ({token, dispatch}) => {
         )
       }
       <AddDialog
+        buttonClass={classes.noprint}
         title='Add a Value'
         content={
           <>
@@ -331,6 +269,7 @@ const RuleEditorPane = ({type, update, mask, mask2, desc, placeholders, children
     </CardContent>
     <CardActions>
       <AddDialog
+        buttonClass={classes.noprint}
         title={`Add a ${capitalize(type)}`}
         content={desc}
         buttonText={ `ADD ${type.toUpperCase()}` }

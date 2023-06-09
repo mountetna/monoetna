@@ -16,6 +16,7 @@ import Switch from '@material-ui/core/Switch';
 import ConfigScript from './config-script';
 import EtlPane, {EtlPaneHeader} from './etl-pane';
 import RedcapForm from './redcap-form';
+import MetisForm from './metis-form';
 import RevisionHistory from 'etna-js/components/revision-history';
 import {json_get} from 'etna-js/utils/fetch';
 import {formatTime} from './run-state';
@@ -37,18 +38,19 @@ const useStyles = makeStyles((theme) => ({
 const FORMS: {
   [key: string]: any;
 } = {
-  redcap: RedcapForm
+  redcap: RedcapForm,
+  metis: MetisForm
 };
 
 const ConfigurePane = ({
-  name,
+  config_id,
   project_name,
   selected,
   config,
   job,
   update
 }: {
-  name: string;
+  config_id: number;
   project_name: string;
   selected: string | null;
   config: any;
@@ -144,7 +146,7 @@ const ConfigurePane = ({
           {showRevisions != null && (
             <RevisionHistory
               getRevisions={() =>
-                json_get(`/api/etl/${project_name}/revisions/${name}`)
+                json_get(`/api/etl/${project_name}/revisions/${config_id}`)
               }
               open={showRevisions}
               revisionDoc={(revision) =>

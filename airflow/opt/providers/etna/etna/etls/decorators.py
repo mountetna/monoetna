@@ -7,7 +7,7 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.operators.python import get_current_context
 
-from etna.dags.decorators import dag, system_epoch
+from etna.dags.decorators import dag, system_dag, system_epoch
 from etna.etls.etl_task_batching import (
     batch_end_context_key,
     get_batch_range,
@@ -33,7 +33,6 @@ from etna.etls.cat import (
     load_cat_files_batch,
     CatEtlHelpers
 )
-
 
 def metis_etl(
     project_name: str,

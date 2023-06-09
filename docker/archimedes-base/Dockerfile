@@ -39,7 +39,7 @@ RUN apt-get update \
     rm -rf /var/lib/apt/lists/*
 
 RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py > /opt/install-poetry.py
+RUN curl -sSL https://install.python-poetry.org > /opt/install-poetry.py
 RUN python /opt/install-poetry.py --version $POETRY_VERSION
 
 # bash improvements for easier working inside the container

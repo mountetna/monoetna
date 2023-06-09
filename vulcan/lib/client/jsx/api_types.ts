@@ -24,6 +24,11 @@ export const TYPE = {
   SCATTER_PLOTLY: 'scatter-plotly',
   BAR_PLOTLY: 'bar-plotly',
   Y_PLOTLY: 'y-plotly',
+  DITTOSEQ_DIM_PLOT: 'dittoseq-dim-plot',
+  DITTOSEQ_SCATTER_PLOT: 'dittoseq-scatter-plot',
+  DITTOSEQ_BAR_PLOT: 'dittoseq-bar-plot',
+  DITTOSEQ_PLOT: 'dittoseq-plot',
+  ANY_DITTOSEQ: 'any-dittoseq',
   DIFF_EXP_SC: 'diff-exp-sc',
   DATA_TRANSFORMATION: 'data-transformation',
   ANY_VIZ: 'any-viz'
@@ -38,7 +43,9 @@ export const RUN = {
 // UI Output widgets
 export const OUTPUT_COMPONENT = {
   LINK: 'link',
+  PLOT: 'plot',
   PLOTLY: 'plotly',
+  PNG: 'png',
   CONSIGNMENT: 'consignment',
   RAW: 'raw'
 };

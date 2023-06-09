@@ -509,6 +509,33 @@ describe GnomonController do
       end
     end
   end
+
+  context 'rules API' do
+    it 'lists all of the rules for each requested project' do
+      grammar = create_grammar(version_number: 1, config: {})
+      grammar2 = create_grammar(version_number: 2, config: VALID_CONFIG)
+      grammar3 = create_grammar(project_name: 'toils', version_number: 1, config: VALID_CONFIG)
+
+      auth_header(:superuser)
+      post('/gnomon/rules', project_names: [ 'labors', 'toils' ])
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:rules]).to eq(
+       labors: {
+         labor: "^(The Nemean Lion|The Lernean Hydra)$",
+         project: "^(The Twelve Labors of Hercules)$",
+         victim: "^(LABORS)(-)(LION|HYDRA)(-)(V|H)(\\d+)(-)(S|C)(\\d+)$",
+         village: "^(LABORS)(-)(LION|HYDRA)(-)(V|H)(\\d+)$"
+       },
+       toils: {
+         labor: "^(The Nemean Lion|The Lernean Hydra)$",
+         project: "^(The Twelve Labors of Hercules)$",
+         victim: "^(LABORS)(-)(LION|HYDRA)(-)(V|H)(\\d+)(-)(S|C)(\\d+)$",
+         village: "^(LABORS)(-)(LION|HYDRA)(-)(V|H)(\\d+)$"
+       }
+      )
+    end
+  end
 end
 
 describe Magma::Gnomon::Identifier do
