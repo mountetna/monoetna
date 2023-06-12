@@ -256,10 +256,14 @@ const defaults_dittoseq: DataEnvelope<any> = {
 
 const redefaults_dittoseq: DataEnvelope<DataEnvelope<any>> = {
   dittoScatterPlot: {
-    'color_by': 'make'
+    'color_by': 'make',
+    'do_hover': false
   },
   dittoPlot: {
     'color_by': 'make'
+  },
+  dittoDimPlot: {
+    'do_hover': false
   }
 }
 
@@ -435,7 +439,7 @@ function useExtraInputs(
         ['Dimensionality Reduction (DR)', 'x-axis DR Compenent #', 'y-axis DR Component #'],
         reduction_opts
       ],
-      do_hover: ['Output as interactive (not flat) image?'],
+      do_hover: ['Output as interactive image?'],
       vlnplot_lineweight: ['Lineweight', 0, 1.5, 0.05],
       vlnplot_width: ['Width', 0.025, 1, 0.025],
       vlnplot_scaling: ['Volume Scaling Method', ['area', 'width', 'count'], false],
@@ -741,7 +745,7 @@ function VisualizationUI(
       </Grid>
     );
 
-  // console.log(props.value);
+  console.log(props.value);
 
   return (
     <div key='VizUI'>

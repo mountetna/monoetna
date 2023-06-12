@@ -1,11 +1,41 @@
 dataflow::load_packages("dataflow", "dataSupport", "Seurat", "dittoSeq")
 
+### This script...
+
 scdata <- readRDS(input_path("scdata"))
 plotting_options <- input_json("plotting_options")
 plot_setup <- input_json("plot_setup")
 
 viz_fxn <- plot_setup$plot_type
 plot_setup$plot_type <- NULL
+
+# Remove anything left as 'make' (so get filled with dittoSeq defaults!)
+for (var in names(plot_setup)) {
+    if (identical(plot_setup[[var]],"make")) {
+        plot_setup[[var]] <- NULL
+    }
+}
+
+# Replace "_Recommended_" metadata
+## Alternatively, could have the UI serve these replacements, but I think that becomes visually finicky
+replace_meta_rec <- function(value, meta_recommendations = plotting_options$Recommended_Metadata) {
+    if (value %in% names(meta_recommendations)) {
+        value <- meta_recommendations[[value]]
+    }
+    value
+}
+special_treatment <- c("cells_use")
+for (i in seq_along(plot_setup)) {
+    if (names(plot_setup)[i] %in% special_treatment) next
+
+    if (length(plot_setup[[i]])>1) {
+        for (j in seq_along(plot_setup[[i]])) {
+            plot_setup[[i]][j] <- replace_meta_rec(plot_setup[[i]][j])
+        }
+    } else {
+    plot_setup[i] <- replace_meta_rec(plot_setup[[i]])
+    }
+}
 
 # Parse reorderings (Before input re-naming because of color.by -> either var or color.var!)
 if ("color_order" %in% names(plot_setup)) {
@@ -70,6 +100,13 @@ if (viz_fxn=="dittoBarPlot") {
     plot_setup$retain.factor.levels <- TRUE
 }
 
+# # Todo: ## Determine assays for gene data
+# get_assay <- function(scdata, input, input_name, plot_setup = plot_setup) {
+#     if (input_name %in% names(plot_setup) && !isMeta(plot_setup[[input_name]])) {
+#
+#     }
+# }
+
 # Parse reduction_setup
 if ("reduction.setup" %in% names(plot_setup)) {
     setup <- plot_setup$reduction.setup
@@ -81,27 +118,6 @@ if ("reduction.setup" %in% names(plot_setup)) {
     # Replace recommendation
     if (plot_setup$reduction.use == "_Recommended_") {
         plot_setup$reduction.use <- plotting_options$Recommended_Reduction
-    }
-}
-
-# Replace "_Recommended_" metadata
-## Alternatively, could have the UI serve these replacements, but I think that becomes visually finicky
-replace_meta_rec <- function(value, recommendations = plotting_options$Recommended_Metadata) {
-    if (value %in% names(recommendations)) {
-        value <- recommendations[[value]]
-    }
-    value
-}
-special_treatment <- "cells.use"
-for (i in seq_along(plot_setup)) {
-    if (names(plot_setup)[i] %in% special_treatment) next
-
-    if (length(plot_setup[[i]])>1) {
-        for (j in seq_along(plot_setup[[i]])) {
-            plot_setup[[i]][j] <- replace_meta_rec(plot_setup[[i]][j])
-        }
-    } else {
-    plot_setup[i] <- replace_meta_rec(plot_setup[[i]])
     }
 }
 
@@ -117,13 +133,6 @@ if ( !is.null(plot_setup$cells.use) && length(plot_setup$cells.use)>0 ) {
     plot_setup$cells.use <- subset__scObj(scdata, plot_setup$cells.use)
 } else {
     plot_setup$cells.use <- NULL
-}
-
-# Remove anything left as 'make' (so get filled with dittoSeq defaults!)
-for (var in names(plot_setup)) {
-    if (identical(plot_setup[[var]],"make")) {
-        plot_setup[[var]] <- NULL
-    }
 }
 
 # Add the dataset
