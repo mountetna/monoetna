@@ -135,8 +135,8 @@ def MetisLinker():
         context = get_current_context()
         start, end = get_batch_range(context)
 
-        with hook.polyphemus() as polyph:
-            configs_list = polyph.list_all_etl_configs(job_type='metis')
+        with hook.polyphemus() as polyphemus:
+            configs_list = polyphemus.list_all_etl_configs(job_type='metis')
             configs_list = [ MetisLoaderConfig(**asdict(config)) for config in configs_list.configs if config.should_run(start,end) ]
 
             for config in configs_list:
