@@ -169,7 +169,7 @@ continuous_opts$Cell_Metadata <- setdiff(plotting_options[['Cell_Metadata']], na
 
 discrete_opts <- names(discrete_metadata_summary)
 
-all_opts <- plotting_options[c('Cell_Features', 'Cell_Metadata')]
+all_opts <- plotting_options[c('Cell_Features', 'Cell_Metadata', 'Recommended_Metadata')]
 
 # Outputs
 # dataset downloaded to final location already

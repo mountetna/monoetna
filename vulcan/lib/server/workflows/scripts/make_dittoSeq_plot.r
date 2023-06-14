@@ -9,14 +9,14 @@ plot_setup <- input_json("plot_setup")
 viz_fxn <- plot_setup$plot_type
 plot_setup$plot_type <- NULL
 
-# Remove anything left as 'make' (so get filled with dittoSeq defaults!)
+### Remove anything left as 'make' (so get filled with dittoSeq defaults!)
 for (var in names(plot_setup)) {
     if (identical(plot_setup[[var]],"make")) {
         plot_setup[[var]] <- NULL
     }
 }
 
-# Replace "_Recommended_" metadata
+### Replace "_Recommended_" metadata
 ## Alternatively, could have the UI serve these replacements, but I think that becomes visually finicky
 replace_meta_rec <- function(value, meta_recommendations = plotting_options$Recommended_Metadata) {
     if (value %in% names(meta_recommendations)) {
@@ -37,7 +37,7 @@ for (i in seq_along(plot_setup)) {
     }
 }
 
-# Parse reorderings (Before input re-naming because of color.by -> either var or color.var!)
+### Parse reorderings (Before input re-naming because of color.by -> either var or color.var!)
 if ("color_order" %in% names(plot_setup)) {
 
     if (length(plot_setup$color_order)>1 || !plot_setup$color_order %in% c("increasing", "decreasing", "unordered", "randomize")) {
@@ -54,7 +54,7 @@ if ("color_order" %in% names(plot_setup)) {
 
     plot_setup$color_order <- NULL
 }
-# (var_order & group_order extra to dittoSeq features and require modifying the sc object itself!)
+# (var_order & group_order are extra to dittoSeq features so require modifying the sc object itself!)
 if ("var_order" %in% names(plot_setup)) {
     scdata@meta.data[,plot_setup$var] <- factor(
         scdata@meta.data[,plot_setup$var],
@@ -70,7 +70,8 @@ if ("group_order" %in% names(plot_setup)) {
     plot_setup$group_order <- NULL
 }
 
-## Correct input names
+### Correct input names
+# from '.'s to '_'s
 names(plot_setup) <- gsub("_", ".", names(plot_setup))
 rename_if_there <- function(current, proper) {
     if (current %in% names(plot_setup)) {
@@ -79,6 +80,7 @@ rename_if_there <- function(current, proper) {
     }
     plot_setup
 }
+# Other specifically different variable names
 plot_setup <- rename_if_there("x.by", "x.var")
 plot_setup <- rename_if_there("y.by", "y.var")
 if (viz_fxn=="dittoDimPlot") plot_setup <- rename_if_there("color.by", "var")
