@@ -124,16 +124,6 @@ describe GnomonController do
     expect(Magma::Gnomon::Grammar.count).to eq(0)
   end
 
-  def create_identifier(id, params={})
-    identifier = create(
-      :identifier, {
-        project_name: 'labors',
-        author: "Hera|hera@twelve-labors.org",
-        identifier: id,
-      }.merge(params)
-    )
-  end
-
   it 'decomposes an identifier' do
     Timecop.freeze
     grammar = create_grammar(config: VALID_CONFIG)

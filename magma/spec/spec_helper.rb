@@ -481,3 +481,13 @@ end
 def iso_date_str(value)
   DateTime.parse(value).iso8601
 end
+
+def create_identifier(id, params={})
+  identifier = create(
+    :identifier, {
+    project_name: 'labors',
+    author: "Hera|hera@twelve-labors.org",
+    identifier: id,
+  }.merge(params)
+  )
+end

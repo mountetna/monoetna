@@ -1263,35 +1263,83 @@ describe UpdateController do
   end
 
   context 'using gnomon' do
+
     it 'ignores gnomon if the project is not configured to use gnomon' do
+
+      Magma.instance.db[:flags].insert(
+        project_name: "labors",
+        flag_name: Magma::Flags::GnomonMode::NAME,
+        value: Magma::Flags::GnomonMode::NONE,
+        created_at: Time.now,
+        updated_at: Time.now,
+        )
+
+      lion = create(:monster, name: 'Nemean Lion', species: 'tiger')
+      update(
+        monster: {
+          'Nemean Lion': {
+            species: 'lion'
+          }
+        }
+      )
+      lion.refresh
+      expect(last_response.status).to eq(200)
+      expect(lion.species).to eq('lion')
+
     end
 
     context 'identifier mode' do
       it 'accepts a record if the identifier is defined in gnomon' do
+
+        Magma.instance.db[:flags].insert(
+          project_name: "labors",
+          flag_name: Magma::Flags::GnomonMode::NAME,
+          value: Magma::Flags::GnomonMode::IDENTIFIER,
+          created_at: Time.now,
+          updated_at: Time.now,
+          )
+
+        lion = create(:monster, name: 'Nemean Lion', species: 'tiger')
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
-        identifier = create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
+        create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
 
         update(
           monster: {
-            'Nemean Lion' => { species: 'Lion' }
+            'Nemean Lion': {
+              species: 'lion'
+            }
           }
         )
-
+        lion.refresh
         expect(last_response.status).to eq(200)
-        expect(Labors::Monster.first.species).to eq('Lion')
+        expect(lion.species).to eq('lion')
       end
 
       it 'rejects a record if the identifier is not defined in gnomon' do
+
+        Magma.instance.db[:flags].insert(
+          project_name: "labors",
+          flag_name: Magma::Flags::GnomonMode::NAME,
+          value: Magma::Flags::GnomonMode::IDENTIFIER,
+          created_at: Time.now,
+          updated_at: Time.now,
+          )
+
+        lion = create(:monster, name: 'Nemean Lion', species: 'tiger')
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
 
         update(
           monster: {
-            'Nemean Lion' => { species: 'Lion' }
+            'Nemean Lion': {
+              species: 'lion'
+            }
           }
         )
 
+        lion.refresh
         expect(last_response.status).to eq(422)
-        expect(json_body[:errors]).to eq(["The name 'Nemean Lion' has not been assigned in Gnomon."])
+        expect(lion.species).to eq('tiger')
+        expect(json_body[:errors]).to eq(["The identifier 'Nemean Lion' has not been assigned in Gnomon."])
       end
     end
 
