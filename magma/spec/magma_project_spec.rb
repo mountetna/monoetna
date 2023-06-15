@@ -134,9 +134,9 @@ describe Magma::Project do
         updated_at: Time.now,
         )
 
-      project = Magma::Project.new(project_name: :movies)
-      expect(project.flags['is_pg']).to eq('true')
-      expect(project.flags['is_in_theaters']).to eq('false')
+      flags = Magma::Project.flags("movies")
+      expect(flags['is_pg']).to eq('true')
+      expect(flags['is_in_theaters']).to eq('false')
 
     end
   end
