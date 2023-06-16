@@ -18,7 +18,7 @@ class Magma
         return if gnomon_mode.nil? or gnomon_mode == Magma::Flags::GnomonMode::NONE
         if gnomon_mode == Magma::Flags::GnomonMode::IDENTIFIER
           yield(
-            "The identifier '#{value}' has not been assigned in gnomon."
+            "The identifier '#{value}' has not been assigned in Gnomon."
           ) unless Magma.instance.db[:identifiers].where(identifier: value).any?
         end
       end

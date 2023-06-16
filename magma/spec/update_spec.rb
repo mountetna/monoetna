@@ -1265,7 +1265,6 @@ describe UpdateController do
   context 'using gnomon' do
 
     it 'ignores gnomon if the project is not configured to use gnomon' do
-
       Magma.instance.db[:flags].insert(
         project_name: "labors",
         flag_name: Magma::Flags::GnomonMode::NAME,
@@ -1274,7 +1273,6 @@ describe UpdateController do
         updated_at: Time.now,
         )
 
-      lion = create(:monster, name: 'Nemean Lion', species: 'tiger')
       update(
         monster: {
           'Nemean Lion': {
@@ -1282,14 +1280,13 @@ describe UpdateController do
           }
         }
       )
-      lion.refresh
       expect(last_response.status).to eq(200)
-      expect(lion.species).to eq('lion')
-
+      expect(Labors::Monster.first.name).to eq('Nemean Lion')
+      expect(Labors::Monster.first.species).to eq('lion')
     end
 
     context 'identifier mode' do
-      it 'accepts a record if the identifier is defined in gnomon' do
+      it 'creates a record if the identifier is defined in gnomon' do
 
         Magma.instance.db[:flags].insert(
           project_name: "labors",
@@ -1299,7 +1296,6 @@ describe UpdateController do
           updated_at: Time.now,
           )
 
-        lion = create(:monster, name: 'Nemean Lion', species: 'tiger')
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
         create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
 
@@ -1310,9 +1306,42 @@ describe UpdateController do
             }
           }
         )
-        lion.refresh
         expect(last_response.status).to eq(200)
-        expect(lion.species).to eq('lion')
+        expect(Labors::Monster.first.name).to eq('Nemean Lion')
+        expect(Labors::Monster.first.species).to eq('lion')
+      end
+
+      it 'updates a record if the identifier is defined in gnomon' do
+
+        Magma.instance.db[:flags].insert(
+          project_name: "labors",
+          flag_name: Magma::Flags::GnomonMode::NAME,
+          value: Magma::Flags::GnomonMode::IDENTIFIER,
+          created_at: Time.now,
+          updated_at: Time.now,
+          )
+
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
+        create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
+
+        update(
+          monster: {
+            'Nemean Lion': {
+              species: 'lion'
+            }
+          }
+        )
+        # This will not run the validation code, since the record exists
+        update(
+          monster: {
+            'Nemean Lion': {
+              species: 'tiger'
+            }
+          }
+        )
+
+        expect(last_response.status).to eq(200)
+        expect(Labors::Monster.first.species).to eq('tiger')
       end
 
       it 'rejects a record if the identifier is not defined in gnomon' do
@@ -1325,9 +1354,6 @@ describe UpdateController do
           updated_at: Time.now,
           )
 
-        lion = create(:monster, name: 'Nemean Lion', species: 'tiger')
-        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
-
         update(
           monster: {
             'Nemean Lion': {
@@ -1336,9 +1362,7 @@ describe UpdateController do
           }
         )
 
-        lion.refresh
         expect(last_response.status).to eq(422)
-        expect(lion.species).to eq('tiger')
         expect(json_body[:errors]).to eq(["The identifier 'Nemean Lion' has not been assigned in Gnomon."])
       end
     end
