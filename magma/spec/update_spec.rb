@@ -1267,8 +1267,8 @@ describe UpdateController do
     it 'ignores gnomon if the project is not configured to use gnomon' do
       Magma.instance.db[:flags].insert(
         project_name: "labors",
-        flag_name: Magma::Flags::GnomonMode::NAME,
-        value: Magma::Flags::GnomonMode::NONE,
+        flag_name: Magma::Flags::GNOMON_MODE[:name],
+        value: Magma::Flags::GNOMON_MODE[:none],
         created_at: Time.now,
         updated_at: Time.now,
         )
@@ -1290,8 +1290,8 @@ describe UpdateController do
 
         Magma.instance.db[:flags].insert(
           project_name: "labors",
-          flag_name: Magma::Flags::GnomonMode::NAME,
-          value: Magma::Flags::GnomonMode::IDENTIFIER,
+          flag_name: Magma::Flags::GNOMON_MODE[:name],
+          value: Magma::Flags::GNOMON_MODE[:identifier],
           created_at: Time.now,
           updated_at: Time.now,
           )
@@ -1315,8 +1315,8 @@ describe UpdateController do
 
         Magma.instance.db[:flags].insert(
           project_name: "labors",
-          flag_name: Magma::Flags::GnomonMode::NAME,
-          value: Magma::Flags::GnomonMode::IDENTIFIER,
+          flag_name: Magma::Flags::GNOMON_MODE[:name],
+          value: Magma::Flags::GNOMON_MODE[:identifier],
           created_at: Time.now,
           updated_at: Time.now,
           )
@@ -1348,8 +1348,8 @@ describe UpdateController do
 
         Magma.instance.db[:flags].insert(
           project_name: "labors",
-          flag_name: Magma::Flags::GnomonMode::NAME,
-          value: Magma::Flags::GnomonMode::IDENTIFIER,
+          flag_name: Magma::Flags::GNOMON_MODE[:name],
+          value: Magma::Flags::GNOMON_MODE[:identifier],
           created_at: Time.now,
           updated_at: Time.now,
           )

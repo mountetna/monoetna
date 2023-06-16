@@ -14,9 +14,9 @@ class Magma
 
     class Validation < Magma::Validation::Attribute::BaseAttributeValidation
       def validate(value, &block)
-        gnomon_mode = @flags[Magma::Flags::GnomonMode::NAME]
-        return if gnomon_mode.nil? or gnomon_mode == Magma::Flags::GnomonMode::NONE
-        if gnomon_mode == Magma::Flags::GnomonMode::IDENTIFIER
+        gnomon_mode = @flags[Magma::Flags::GNOMON_MODE[:name]]
+        return if gnomon_mode.nil? or gnomon_mode == Magma::Flags::GNOMON_MODE[:none]
+        if gnomon_mode == Magma::Flags::GNOMON_MODE[:identifier]
           yield(
             "The identifier '#{value}' has not been assigned in Gnomon."
           ) unless Magma.instance.db[:identifiers].where(identifier: value).any?
