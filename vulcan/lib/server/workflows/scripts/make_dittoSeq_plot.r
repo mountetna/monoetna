@@ -102,7 +102,7 @@ if (viz_fxn=="dittoBarPlot") {
     plot_setup$retain.factor.levels <- TRUE
 }
 
-### Determine assays for gene data
+### Add assay inputs for gene data
 getAssay <- function(targ, object) {
     # Return: String, the assay name containing this gene
     for (assay_check in Seurat::Assays(object)) {
@@ -129,7 +129,7 @@ plot_setup <- addAssayInputIfGene("color.var", "assay.hover")
 plot_setup <- addAssayInputIfGene("var", "assay")
 if (viz_fxn=="dittoDimPlot") plot_setup <- addAssayInputIfGene("var", "hover.assay")
 
-# Parse reduction_setup
+### Parse reduction_setup
 if ("reduction.setup" %in% names(plot_setup)) {
     setup <- plot_setup$reduction.setup
     plot_setup$reduction.use <- setup[1]
@@ -143,7 +143,7 @@ if ("reduction.setup" %in% names(plot_setup)) {
     }
 }
 
-# Parse subsetting
+### Parse subsetting
 if ( !is.null(plot_setup$cells.use) && length(plot_setup$cells.use)>0 ) {
     # Special-case recommendation replacement
     for (i in seq_along(plot_setup$cells.use$methods)) {
@@ -157,7 +157,7 @@ if ( !is.null(plot_setup$cells.use) && length(plot_setup$cells.use)>0 ) {
     plot_setup$cells.use <- NULL
 }
 
-# Add the dataset
+### Add the dataset
 plot_setup$object <- scdata
 
 ### Output the plot
