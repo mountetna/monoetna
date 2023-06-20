@@ -482,6 +482,7 @@ def iso_date_str(value)
   DateTime.parse(value).iso8601
 end
 
+# Gnomon helpers
 def create_identifier(id, params={})
   identifier = create(
     :identifier, {
@@ -491,3 +492,66 @@ def create_identifier(id, params={})
   }.merge(params)
   )
 end
+
+
+VALID_GRAMMAR_CONFIG={
+  tokens: {
+    PROJECT: {
+      label: "project",
+      values: {
+        "The Twelve Labors of Hercules": "The Twelve Labors of Hercules"
+      }
+    },
+    PROJ: {
+      label: "project",
+      values: {
+        "LABORS": "The Twelve Labors of Hercules"
+      }
+    },
+    LABOR: {
+      label: "labor",
+      values: {
+        "The Nemean Lion": "The Nemean Lion",
+        "The Lernean Hydra": "The Lernean Hydra"
+      }
+    },
+    LAB: {
+      label: "labor",
+      values: {
+        "LION": "The Nemean Lion",
+        "HYDRA": "The Lernean Hydra"
+      }
+    },
+    VILL: {
+      label: "Village type",
+      values: {
+        "V": "Village",
+        "H": "Hamlet"
+      }
+    },
+    VICT: {
+      label: "Victim type",
+      values: {
+        "S": "Soldier",
+        "C": "Civilian"
+      }
+    },
+    SEP: {
+      label: "Separator",
+      values: {
+        "-": "# Separator"
+      }
+    }
+
+  },
+  synonyms: [
+    [ "PROJ", "PROJECT" ],
+    [ "LAB", "LABOR" ]
+  ],
+  rules: {
+    project: "PROJECT",
+    labor: "LABOR",
+    village: "PROJ SEP LAB SEP VILL .n",
+    victim: ".village SEP VICT .n"
+  }
+}
