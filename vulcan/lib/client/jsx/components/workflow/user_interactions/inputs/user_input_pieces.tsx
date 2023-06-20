@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {DataEnvelope} from './input_types';
 import { maybeOfNullable, some, withDefault, Maybe } from '../../../../selectors/maybe';
 import MultiselectStringInput from './multiselect_string';
@@ -7,7 +7,7 @@ import StringInput from './string';
 import BooleanInput from './boolean';
 import SelectAutocompleteInput from './select_autocomplete';
 import FloatInput from './float';
-import { Grid } from '@material-ui/core';
+import { Grid, TextField } from '@material-ui/core';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 import { nestedOptionSet } from './visualizations'
 
@@ -180,9 +180,46 @@ export function nestedDropdownFullPathPiece(
     </Grid>
   }
 
+export function MultiselectAfterDataChoicePiece(
+  key: string, changeFxn: Function, value: string[] | null = null,
+  label: string,
+  full_data: DataEnvelope<any[]>,
+  data_target: string | null, // The name of a column/key of full_data which the user has chosen as the target of this ui piece, or null if not chosen yet.
+  data_target_label: string, // The label of the ui-piece where the user selects data_target 
+  discrete_data: string[] | nestedOptionSet
+) {
+
+  const canReorder = data_target != null && discrete_data.includes(data_target) && full_data != null
+  const levels = canReorder ? arrayLevels(Object.values(full_data[data_target as string])) : null
+  return(
+    levels != null ? multiselectPiece(key, changeFxn, value, label, levels) :
+      <div key={key} style={{paddingTop: 8}}>
+        <TextField
+          key={'multiselect-'+key}
+          label={label}
+          InputLabelProps={{ shrink: true }}
+          size="small"
+          disabled
+          fullWidth
+          placeholder={'Awaiting '+data_target_label+' choice'}
+        />
+      </div>
+  )
+}
+
 export function multiselectPiece(
   key: string, changeFxn: Function, value: string[] | null = null,
   label: string, options: string[]) {
+    useEffect(() => {
+      if (options != null && value != null && value.length != 0) {
+        // Needed if given options change and chosen ones aren't captured
+        let needs_reset = 
+            value.filter(
+              (val) => !options.includes(val)
+            ).length > 0;
+        if (needs_reset) changeFxn(withDefault([], null), key);
+      }
+    }, [options]);
     
     return(
       <div key={key} style={{paddingTop: 8}}>

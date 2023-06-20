@@ -38,7 +38,13 @@ steps:
       plot_setup: plot_setup/plot_setup
       scdata: get_dataset_and_summarize/scdata
       plotting_options: get_dataset_and_summarize/plotting_options
-    out: [plot.out, legend.png, plot.png]
+    out: [plot.out, legend.png, plot.png, plot.Rds]
+  download_plot:
+    run: ui-outputs/link.cwl
+    in:
+      a: make_plot/plot.Rds
+    out: []
+    label: 'Download plot object'
   show_plot:
     run: ui-outputs/plot.cwl
     label: 'Display Plot'

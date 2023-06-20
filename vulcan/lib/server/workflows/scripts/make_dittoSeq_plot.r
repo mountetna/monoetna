@@ -121,7 +121,7 @@ if ( !is.null(plot_setup$cells.use) && length(plot_setup$cells.use)>0 ) {
 
 # Remove anything left as 'make' (so get filled with dittoSeq defaults!)
 for (var in names(plot_setup)) {
-    if (identical(plot_setup[[var]],"make")) {
+    if (identical(plot_setup[[var]],"make") || (var=="vars.use" && identical(plot_setup[[var]],list())) ) {
         plot_setup[[var]] <- NULL
     }
 }
@@ -141,6 +141,7 @@ if (!is.null(plot_setup$do.hover) && plot_setup$do.hover) {
         plot_setup$hover.data <- "var"
     }
     fig <- do.call(viz_fxn, plot_setup)
+    saveRDS(fig, file = output_path('plot.Rds'))
     fig_json <- plotly::plotly_json(fig, jsonedit = FALSE, pretty = FALSE)
     output_var(fig_json, 'plot.out')
     # Thumbnail
@@ -155,6 +156,7 @@ if (!is.null(plot_setup$do.hover) && plot_setup$do.hover) {
     )
 } else {
     fig <- do.call(viz_fxn, plot_setup)
+    saveRDS(fig, file = output_path('plot.Rds'))
     ggsave(
         filename = output_path('plot.png'),
         plot = fig + 
@@ -173,12 +175,4 @@ if (!is.null(plot_setup$do.hover) && plot_setup$do.hover) {
         width = 1200,
         height = 1000
     )
-    # ggsave(
-    #     filename = output_path('legend.png'),
-    #     plot = dittoSeq:::.grab_legend(fig),
-    #     device = "png",
-    #     units = "in",
-    #     width = 3,
-    #     height = 6
-    # )
 }

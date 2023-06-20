@@ -20,7 +20,9 @@ import {
   checkboxPiece,
   sliderPiece,
   reductionSetupPiece,
-  nestedDropdownPiece
+  nestedDropdownPiece,
+  arrayLevels,
+  MultiselectAfterDataChoicePiece
 } from './user_input_pieces';
 import {subsetDataFramePiece} from './subsetDataFrame_piece';
 import {ReorderCustomOnlyPiece, ReorderPiece} from './reorder_piece';
@@ -203,6 +205,16 @@ const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
     'ridgeplot tweaks': ['ridgeplot_lineweight'],
     'output style': ['legend_show'],
     'data focus': ['group_order', 'cells_use'],
+  },
+  dittoFreqPlot: {
+    'primary features': ['var', 'vars_use', 'group_by', 'sample_by', 'scale_by', 'plots', 'color_by'],
+    titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
+    'vlnplot tweaks': ['vlnplot_lineweight', 'vlnplot_width', 'vlnplot_scaling'],
+    'boxplot tweaks': ['boxplot_width', 'boxplot_color', 'boxplot_fill', 'boxplot_lineweight'],
+    'jitter tweaks': ['jitter_size', 'jitter_width', 'jitter_color'],
+    'ridgeplot tweaks': ['ridgeplot_lineweight'],
+    'output style': ['legend_show'],
+    'data focus': ['group_order', 'cells_use'],
   }
 };
 
@@ -210,7 +222,8 @@ const plot_relabels_dittoseq: DataEnvelope<string> = {
   'dittoDimPlot: UMAP, PCA, etc.': 'dittoDimPlot',
   'dittoScatterPlot: e.g. gene x gene': 'dittoScatterPlot',
   'dittoBarPlot: compositional stacked bar plot': 'dittoBarPlot',
-  'dittoPlot: violin, box, or ridge plot': 'dittoPlot'
+  'dittoPlot: violin, box, or ridge plot': 'dittoPlot',
+  'dittoFreqPlot: compositional frequency violin, box, or ridge plot': 'dittoFreqPlot'
 }
 
 const defaults_dittoseq: DataEnvelope<any> = {
@@ -219,6 +232,7 @@ const defaults_dittoseq: DataEnvelope<any> = {
   var: null,
   group_by: null,
   color_by: null,
+  sample_by: null,
   plots: ['jitter', 'vlnplot'],
   scale_by: 'fraction',
   size: 1,
@@ -230,6 +244,7 @@ const defaults_dittoseq: DataEnvelope<any> = {
   color_order: 'unordered',
   group_order: 'make',
   var_order: 'make',
+  vars_use: [],
   x_scale: 'linear',
   y_scale: 'linear',
   cells_use: {},
@@ -260,6 +275,10 @@ const redefaults_dittoseq: DataEnvelope<DataEnvelope<any>> = {
   },
   dittoPlot: {
     'color_by': 'make'
+  },
+  dittoFreqPlot: {
+    'color_by': 'make',
+    'plots': ['jitter', 'boxplot']
   }
 }
 
@@ -335,6 +354,13 @@ const input_constraints: DataEnvelope<DataEnvelope<'continuous' | 'discrete'>> =
       var: 'continuous',
       color_by: 'discrete',
       split_by: 'discrete'
+    },
+    dittoFreqPlot: {
+      group_by: 'discrete',
+      var: 'discrete',
+      color_by: 'discrete',
+      split_by: 'discrete',
+      sample_by: 'discrete'
     }
   };
 
@@ -343,17 +369,15 @@ function useExtraInputs(
   full_data: DataEnvelope<any>,
   plot_type: string | null,
   continuous: string[] | nestedOptionSet,
-  discrete: string[] | nestedOptionSet,
+  discrete: string[],
   x_by: string | null,
   y_by: string | null,
   color_by: string | null,
   group_by: string | null,
   var_: string | null,
   reduction_opts: DataEnvelope<number[]> | null = null,
-  constraints: DataEnvelope<
-    DataEnvelope<'continuous' | 'discrete'>
-  > = input_constraints
-) {
+  constraints: DataEnvelope<DataEnvelope<'continuous' | 'discrete'>> = input_constraints) {
+  
   function get_options(input_name: string) {
     if (plot_type == null) return options;
     if (Object.keys(constraints[plot_type]).includes(input_name)) {
@@ -362,18 +386,18 @@ function useExtraInputs(
     }
     return options;
   }
-
+  function is_ditto() {
+    return plot_type!=null && plot_type.includes('ditto')
+  }
+  function add_make(add_to: string[] | nestedOptionSet, for_plot_types: string[]) {
+    if (plot_type==null || !for_plot_types.includes(plot_type)) return add_to
+    if (Array.isArray(add_to)) return ['make'].concat(add_to)
+    let output = {...add_to}
+    output['make']=null
+    return output
+  }
+  
   const extra_inputs: DataEnvelope<any[]> = useMemo(() => {
-    function is_ditto() {
-      return plot_type!=null && plot_type.includes('ditto')
-    }
-    function add_make(add_to: string[] | nestedOptionSet, for_plot_types: string[]) {
-      if (plot_type==null || !for_plot_types.includes(plot_type)) return add_to
-      if (Array.isArray(add_to)) return ['make'].concat(add_to)
-      let output = {...add_to}
-      output['make']=null
-      return output
-    }
     return {
       // label, then for any extras
       plot_title: ['Plot Title'],
@@ -386,7 +410,9 @@ function useExtraInputs(
       var: ['Primary Data', get_options('var'), false],
       group_by: ['Groupings Data (often the x-axis)', get_options('group_by'), false],
       color_by: ['Color Data', add_make(get_options('color_by'), ['scatter_plot', 'y_plot', 'dittoPlot', 'dittoScatterPlot']), false],
+      sample_by: ['Sample Data (likely target: sc_seq record ids, if available!)', add_make(get_options('sample_by'), ['dittoFreqPlot']), false],
       plots: !is_ditto ? ['Data Representations', ['violin', 'box']] : ['Data Representations', ['vlnplot', 'boxplot', 'jitter', 'ridgeplot']],
+      vars_use: ['Primary Data values (often clusters or cell types) to display', full_data, var_, 'Primary Data', discrete],
       color_order: [
         'Point Render & (discrete) Color Assignment Order',
         full_data,
@@ -537,7 +563,9 @@ const components_dittoseq: DataEnvelope<Function> = {
   var: nestedDropdownPiece,
   group_by: nestedDropdownPiece,
   color_by: nestedDropdownPiece,
+  sample_by: nestedDropdownPiece,
   plots: multiselectPiece,
+  vars_use: MultiselectAfterDataChoicePiece,
   color_order: ReorderPiece,
   size: sliderPiece,
   scale_by: dropdownPiece,
@@ -741,7 +769,7 @@ function VisualizationUI(
       </Grid>
     );
 
-  // console.log(props.value);
+  console.log(props.value);
 
   return (
     <div key='VizUI'>
@@ -813,6 +841,14 @@ export function DittoPlot({
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
   return VisualizationUI({data, onChange, value}, 'dittoPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+}
+
+export function DittoFreqPlot({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, 'dittoFreqPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
 }
 
 export function AnyDittoSeq({
