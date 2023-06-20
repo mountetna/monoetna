@@ -1368,18 +1368,58 @@ describe UpdateController do
     end
 
     context 'pattern mode' do
-      # this requires a real config to be written here
-      it 'accepts a record if the identifier matches the pattern in the gnomon grammar' do
-        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
+
+      it 'creates a record if the identifier matches the pattern in the gnomon grammar' do
+
+        Magma.instance.db[:flags].insert(
+          project_name: "labors",
+          flag_name: Magma::Flags::GNOMON_MODE[:name],
+          value: Magma::Flags::GNOMON_MODE[:pattern],
+          created_at: Time.now,
+          updated_at: Time.now,
+          )
+
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
+        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
 
         update(
           monster: {
-            'Nemean Lion' => { species: 'Lion' }
+            identifier.identifier => { species: 'lion' }
           }
         )
 
         expect(last_response.status).to eq(200)
-        expect(Labors::Monster.first.species).to eq('Lion')
+        expect(Labors::Monster.first.name).to eq(identifier.identifier)
+        expect(Labors::Monster.first.species).to eq('lion')
+      end
+
+      it 'updates a record if the identifier matches the pattern in the gnomon grammar' do
+
+        Magma.instance.db[:flags].insert(
+          project_name: "labors",
+          flag_name: Magma::Flags::GNOMON_MODE[:name],
+          value: Magma::Flags::GNOMON_MODE[:pattern],
+          created_at: Time.now,
+          updated_at: Time.now,
+          )
+
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
+        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
+
+        update(
+          monster: {
+            identifier.identifier => { species: 'lion' }
+          }
+        )
+
+        update(
+          monster: {
+            identifier.identifier => { species: 'tiger' }
+          }
+        )
+
+        expect(last_response.status).to eq(200)
+        expect(Labors::Monster.first.species).to eq('tiger')
       end
 
       it 'rejects a record if the identifier does not match the pattern in the gnomon grammar' do
