@@ -1369,6 +1369,38 @@ describe UpdateController do
 
 
       it 'creates and attaches parents if the identifiers are defined in gnomon' do
+
+        Magma.instance.db[:flags].insert(
+          project_name: "labors",
+          flag_name: Magma::Flags::GNOMON_MODE[:name],
+          value: Magma::Flags::GNOMON_MODE[:identifier],
+          created_at: Time.now,
+          updated_at: Time.now,
+          )
+
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
+        project_identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
+        labor_identifier = create_identifier("The Nemean Lion", rule: 'labor', grammar: grammar)
+        monster_identifier = create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
+        victim_identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
+
+        update(
+          victim: {
+            victim_identifier.identifier => { weapon: 'sword' }
+          }
+        )
+
+        expect(last_response.status).to eq(200)
+
+        expect(Labors::Victim.first.weapon).to eq('sword')
+        expect(Labors::Victim.first.name).to eq(victim_identifier.name)
+        expect(Labors::Victim.first.monster_id).to eq(Labors::Monster.id)
+        expect(Labors::Monster.first.name).to eq(monster_identifier.name)
+        expect(Labors::Monster.first.labor_id).to eq(Labors::Labor.id)
+        expect(Labors::Labor.first.name).to eq(labor_identifier.name)
+        expect(Labors::Labor.first.project_id).to eq(Labors::Project.id)
+        expect(Labors::Project.first.name).to eq(project_identifier.name)
+
       end
 
     context 'pattern mode' do
