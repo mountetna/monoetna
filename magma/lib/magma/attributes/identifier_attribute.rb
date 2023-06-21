@@ -28,12 +28,19 @@ class Magma
 
           # Pattern mode - We must make sure the identifier conforms to a grammar
         elsif flag_value == gnomon_mode[:pattern]
-          identifier = Magma.instance.db[:identifiers].where(project_name: @model.project_name.to_s, identifier: value).first
-          grammar =  Magma.instance.db[:grammars].where(id: identifier[:grammar_id]).first
-          gnomon_validation = Magma::Gnomon::Validation.new( Magma::Gnomon::Grammar::Parser.new(grammar[:config]) )
+          begin
+            identifier = Magma.instance.db[:identifiers].where(project_name: @model.project_name.to_s, identifier: value).first
+            raise "The identifier '#{value}' has not been assigned in Gnomon." unless identifier
 
-          return if gnomon_validation.valid?
-          yield "The identifier '#{value}' does not conform to a grammar in Gnomon."
+            grammar =  Magma.instance.db[:grammars].where(id: identifier[:grammar_id]).first
+            raise "Grammar not found, identifier is: '#{value}'" unless grammar
+
+            gnomon_validation = Magma::Gnomon::Validation.new( Magma::Gnomon::Grammar::Parser.new(grammar[:config]) )
+            return if gnomon_validation.valid?
+            raise "The identifier '#{value}' does not conform to a grammar in Gnomon."
+          rescue => e
+            yield "#{e.message}"
+          end
         end
       end
     end

@@ -1367,6 +1367,10 @@ describe UpdateController do
       end
     end
 
+
+      it 'creates and attaches parents if the identifiers are defined in gnomon' do
+      end
+
     context 'pattern mode' do
 
       it 'creates a record if the identifier matches the pattern in the gnomon grammar' do
@@ -1423,20 +1427,28 @@ describe UpdateController do
       end
 
       it 'rejects a record if the identifier does not match the pattern in the gnomon grammar' do
-        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
+
+        Magma.instance.db[:flags].insert(
+          project_name: "labors",
+          flag_name: Magma::Flags::GNOMON_MODE[:name],
+          value: Magma::Flags::GNOMON_MODE[:pattern],
+          created_at: Time.now,
+          updated_at: Time.now,
+          )
+
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
+        # TODO: why does this pass? This is an invalid identifier
+        identifier = create_identifier("LABORS-LION-H2*C1", rule: 'victim', grammar: grammar)
 
         update(
           monster: {
-            'Nemean Loon' => { species: 'Lion' }
+            identifier.identifier => { species: 'lion' }
           }
         )
 
         expect(last_response.status).to eq(422)
-        expect(json_body[:errors]).to eq(["The name 'Nemean Loon' is invalid for the model 'monster'."])
+        expect(json_body[:errors]).to eq(["The identifier '#{identifier.identifier}' does not conform to a grammar in Gnomon."])
       end
-    end
-
-    it 'creates and attaches parents if the identifiers are defined in gnomon' do
     end
   end
 
