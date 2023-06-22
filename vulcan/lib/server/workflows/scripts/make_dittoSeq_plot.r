@@ -157,6 +157,11 @@ if ( !is.null(plot_setup$cells.use) && length(plot_setup$cells.use)>0 ) {
     plot_setup$cells.use <- NULL
 }
 
+### Turn off do_hover if too many points, using 100k as limit
+if (viz_fxn %in% c('dittoDimPlot', 'dittoScatterPlot', 'dittoPlot') && ncol(scdata) > 25000)  {
+    plot_setup$do.hover <- FALSE
+}
+
 ### Add the dataset
 plot_setup$object <- scdata
 
@@ -165,7 +170,7 @@ plot_setup$object <- scdata
 # Otherwise:
 #   can make the thumbnail from the plot directly
 #   ToDo: maybe split off legend so can ensure it won't override the main plot. Requires dev on the vulcan ui side to show these.
-if (!is.null(plot_setup$do.hover) && plot_setup$do.hover) {
+if (identical(plot_setup$do.hover, TRUE)) {
     # Main plot with plotly
     # ToDo: Leave this up to the user and expose hover.data input!
     if (viz_fxn!="dittoBarPlot") {
