@@ -439,7 +439,7 @@ function useExtraInputs(
         ['Dimensionality Reduction (DR)', 'x-axis DR Compenent #', 'y-axis DR Component #'],
         reduction_opts
       ],
-      do_hover: ['Output as interactive image?'],
+      do_hover: ['Output as interactive image? (ignored if too many points)'],
       vlnplot_lineweight: ['Lineweight', 0, 1.5, 0.05],
       vlnplot_width: ['Width', 0.025, 1, 0.025],
       vlnplot_scaling: ['Volume Scaling Method', ['area', 'width', 'count'], false],
