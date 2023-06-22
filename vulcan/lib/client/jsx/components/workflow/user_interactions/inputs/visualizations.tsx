@@ -408,7 +408,7 @@ function useExtraInputs(
       var: ['Primary Data', get_options('var'), false],
       group_by: ['Groupings Data (often the x-axis)', get_options('group_by'), false],
       color_by: [
-        is_ditto() ? 'Color Data (\'make\' = same as Grouping Data)' : 'Color Data',
+        is_ditto() ? 'Color Data (\'make\' = same as Groupings Data)' : 'Color Data',
         add_make(get_options('color_by'), ['scatter_plot', 'y_plot', 'dittoPlot', 'dittoFreqPlot', 'dittoScatterPlot']),
         false],
       sample_by: ['Sample Data (try \'_sc_seq_ids_\' if there; \'make\' = ignore)', add_make(get_options('sample_by'), ['dittoFreqPlot']), false],
