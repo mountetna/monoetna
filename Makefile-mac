@@ -18,7 +18,7 @@ build-dev-etna-images:
 	cd bash_mocker &&  docker build . -t bash_mocker
 	cd development-certs && docker build . -t development-certs
 	cd docker/development-psql && docker build . -t development-psql
-	# cd docker/deployer_base && docker build . -t deployer-base
+	# Is this needed? cd docker/deployer_base && docker build . -t deployer-base
 
 	# Apache
 	echo "Building apache images..."
@@ -45,8 +45,14 @@ build-dev-archimedes-images:
 	 cd archimedes-r-base && docker build . -t archimedes-r-base # takes a really long time!
 	 cd docker/archimedes-node-base && docker . build -t archimedes-node-base
 
-### All Web App level targets ###
+### Project level targets ###
 
+# Note: the project level docker-compose files use relative paths so it is important to execute commands from within
+# the project directory
+
+## All ##
+
+# Spins up all web-apps
 web-up:
 	cd edge-apache && docker-compose up -d
 	cd magma && docker-compose up -d
@@ -55,17 +61,6 @@ web-up:
 	cd gnomon && docker-compose up -d
 	cd polyphemus && docker-compose up -d
 	cd metis && docker-compose up -d
-
-remove-all:
-	docker-compose down
-
-stop-all:
-	docker-compose stop
-
-### Project level targets ###
-
-# Note: the project level docker-compose files use relative paths so it is important to execute commands from within
-# the project directory
 
 ## Etna ##
 
@@ -79,10 +74,10 @@ etna-stop:
 etna-remove:
 	cd etna && docker-compose down
 
-etna-bundle:
+etna-libs-ruby:
 	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bundle install
 
-etna-npm-install:
+etna-libs-js:
 	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bash -c 'cd packages/etna-js && npm install'
 	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bash -c 'npm install --unsafe-perm'
 
@@ -102,6 +97,14 @@ magma-remove:
 magma-migrate:
 	# Will fail if magma containers are not running
 	cd magma && docker-compose run --rm -e UPDATE_STATE=1 magma_app
+
+magma-seed-ipi:
+	# WIP
+#	echo "Make sure the etna gem is installed..."
+#	echo "Seeding magma with some ipi tables..."
+#	etna magma project create ipi "UCSF Immunoprofiler" --environment development
+#	etna magma models copy_template ipi --file ipi_template.csv --environment production
+#	etna magma models apply_template ipi --file ipi_template.csv --environment development
 
 ## Janus ##
 
@@ -127,6 +130,10 @@ janus-seed:
 	cd janus && docker-compose run --rm janus_app ./bin/janus permit developer@ucsf.edu test-project administrator
 	cd janus && docker-compose run --rm janus_app ./bin/janus permit developer@ucsf.edu administration administrator
 	cd janus && docker-compose run --rm janus_app ./bin/janus permit developer@ucsf.edu ipi administrator
+	cd janus && docker-compose run --rm janus_app ./bin/janus add_user etna-agent@ucsf.edu EtnaAgent password
+	cd janus && docker-compose run --rm janus_app ./bin/janus permit etna-agent@ucsf.edu test-project administrator
+	cd janus && docker-compose run --rm janus_app ./bin/janus permit etna-agent@ucsf.edu administration administrator
+	cd janus && docker-compose run --rm janus_app ./bin/janus permit etna-agent@ucsf.edu  ipi administrator
 
 ## Timur ##
 
@@ -146,8 +153,8 @@ timur-migrate:
 ## Gnomon ##
 
 gnomon-up:
-	cd edge-apache && docker-compose up -d
 	cd gnomon && docker-compose up -d
+	cd edge-apache &&  docker-compose up -d
 
 gnomon-stop:
 	cd gnomon && docker-compose stop
@@ -161,7 +168,6 @@ gnomon-migrate:
 ## Polyphemus ##
 
 poly-up:
-	cd edge-apache && docker-compose up -d
 	cd polyphemus && docker-compose up -d
 
 poly-stop:
@@ -209,3 +215,11 @@ airflow-migrate:
 
 airflow-stop:
 	cd airflow && docker-compose stop
+
+### Clean targets ###
+
+remove-all:
+	docker-compose down
+
+stop-all:
+	docker-compose stop
