@@ -13,16 +13,14 @@ import {
 } from '@material-ui/core';
 import {pick} from 'lodash';
 import {
-  key_wrap,
   stringPiece,
   dropdownPiece,
-  multiselectPiece,
+  MultiselectPiece,
   checkboxPiece,
   sliderPiece,
   reductionSetupPiece,
   nestedDropdownPiece,
-  arrayLevels,
-  MultiselectAfterDataChoicePiece
+  MultiselectAfterDataChoicePiece_forDitto
 } from './user_input_pieces';
 import {subsetDataFramePiece} from './subsetDataFrame_piece';
 import {ReorderCustomOnlyPiece, ReorderPiece} from './reorder_piece';
@@ -223,7 +221,7 @@ const plot_relabels_dittoseq: DataEnvelope<string> = {
   'dittoScatterPlot: e.g. gene x gene': 'dittoScatterPlot',
   'dittoBarPlot: compositional stacked bar plot': 'dittoBarPlot',
   'dittoPlot: violin, box, or ridge plot': 'dittoPlot',
-  'dittoFreqPlot: compositional frequency violin, box, or ridge plot': 'dittoFreqPlot'
+  'dittoFreqPlot: compositional violin, box, or ridge plot': 'dittoFreqPlot'
 }
 
 const defaults_dittoseq: DataEnvelope<any> = {
@@ -232,7 +230,7 @@ const defaults_dittoseq: DataEnvelope<any> = {
   var: null,
   group_by: null,
   color_by: null,
-  sample_by: null,
+  sample_by: 'make',
   plots: ['jitter', 'vlnplot'],
   scale_by: 'fraction',
   size: 1,
@@ -244,7 +242,7 @@ const defaults_dittoseq: DataEnvelope<any> = {
   color_order: 'unordered',
   group_order: 'make',
   var_order: 'make',
-  vars_use: [],
+  vars_use: 'make',
   x_scale: 'linear',
   y_scale: 'linear',
   cells_use: {},
@@ -409,10 +407,13 @@ function useExtraInputs(
       y_by: ['Y-Axis Data', get_options('y_by'), false],
       var: ['Primary Data', get_options('var'), false],
       group_by: ['Groupings Data (often the x-axis)', get_options('group_by'), false],
-      color_by: ['Color Data', add_make(get_options('color_by'), ['scatter_plot', 'y_plot', 'dittoPlot', 'dittoScatterPlot']), false],
-      sample_by: ['Sample Data (likely target: sc_seq record ids, if available!)', add_make(get_options('sample_by'), ['dittoFreqPlot']), false],
+      color_by: [
+        is_ditto() ? 'Color Data ("make" = same as Grouping Data)' : 'Color Data',
+        add_make(get_options('color_by'), ['scatter_plot', 'y_plot', 'dittoPlot', 'dittoFreqPlot', 'dittoScatterPlot']),
+        false],
+      sample_by: ['Sample Data (try _sc_seq_ids_ if there; "make" = ignore)', add_make(get_options('sample_by'), ['dittoFreqPlot']), false],
       plots: !is_ditto ? ['Data Representations', ['violin', 'box']] : ['Data Representations', ['vlnplot', 'boxplot', 'jitter', 'ridgeplot']],
-      vars_use: ['Primary Data values (often clusters or cell types) to display', full_data, var_, 'Primary Data', discrete],
+      vars_use: ['Primary Data values to display (blank = all)', full_data, var_, 'Primary Data', discrete],
       color_order: [
         'Point Render & (discrete) Color Assignment Order',
         full_data,
@@ -540,7 +541,7 @@ const components_plotly: DataEnvelope<Function> = {
   x_by: dropdownPiece,
   y_by: dropdownPiece,
   color_by: dropdownPiece,
-  plots: multiselectPiece,
+  plots: MultiselectPiece,
   color_order: ReorderPiece,
   order_when_continuous_color: checkboxPiece,
   size: sliderPiece,
@@ -564,8 +565,8 @@ const components_dittoseq: DataEnvelope<Function> = {
   group_by: nestedDropdownPiece,
   color_by: nestedDropdownPiece,
   sample_by: nestedDropdownPiece,
-  plots: multiselectPiece,
-  vars_use: MultiselectAfterDataChoicePiece,
+  plots: MultiselectPiece,
+  vars_use: MultiselectAfterDataChoicePiece_forDitto,
   color_order: ReorderPiece,
   size: sliderPiece,
   scale_by: dropdownPiece,

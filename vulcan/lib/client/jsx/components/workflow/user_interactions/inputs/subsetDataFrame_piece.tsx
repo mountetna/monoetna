@@ -4,7 +4,7 @@ import {
   checkboxPiece,
   dropdownPiece,
   key_wrap,
-  multiselectPiece,
+  MultiselectPiece,
   nestedDropdownPiece,
   rangePiece,
   arrayLevels
@@ -64,7 +64,7 @@ function targetSelectionComponent(
   if (typeof target_data[0] == 'string') {
     // Need to build the unique options set first.
     const options = arrayLevels(target_data) as string[];
-    return multiselectPiece(
+    return MultiselectPiece(
       key + index + index,
       updateFxn,
       inner_def as string[],
