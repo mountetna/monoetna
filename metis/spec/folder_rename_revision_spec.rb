@@ -199,7 +199,7 @@ describe Metis::FolderRenameRevision do
         )
     end
 
-    it 'adds error message if trying to copy over an existing folder' do
+    it 'adds error message if trying to move over an existing folder' do
         wisdom_folder = create_folder('athena', 'wisdom_jr')
         stubs.create_folder('athena', 'files', 'wisdom_jr')
 
@@ -215,13 +215,13 @@ describe Metis::FolderRenameRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Cannot copy over existing folder: \"metis://athena/files/wisdom_jr\""
+            "Cannot write over existing folder: \"metis://athena/files/wisdom_jr\""
         )
     end
 
     context 'recursive renaming' do
         context 'is okay' do
-            it 'copying from subfolder to root' do
+            it 'moving from subfolder to root' do
                 wisdom2_folder = create_folder('athena', 'wisdom2', folder: @wisdom_folder)
                 stubs.create_folder('athena', 'files/wisdom', 'wisdom2')
 
@@ -239,7 +239,7 @@ describe Metis::FolderRenameRevision do
                 expect(revision.errors.length).to eq(0)
             end
 
-            it 'copying from subfolder to similarly-named subfolder' do
+            it 'moving from subfolder to similarly-named subfolder' do
                 wisdom_dup_folder = create_folder('athena', 'wisdom', folder: @wisdom_folder)
                 stubs.create_folder('athena', 'files/wisdom', 'wisdom')
                 wisdom2_folder = create_folder('athena', 'wisdom2', folder: wisdom_dup_folder)
@@ -260,7 +260,7 @@ describe Metis::FolderRenameRevision do
                 expect(revision.errors.length).to eq(0)
             end
 
-            it 'copying from root to root' do
+            it 'moving from root to root' do
                 revision = Metis::FolderRenameRevision.new({
                     source: 'metis://athena/files/wisdom',
                     dest: 'metis://athena/files/wisdom2',
@@ -276,7 +276,7 @@ describe Metis::FolderRenameRevision do
         end
 
         context 'adds error' do
-            it 'if trying to copy into itself at root level' do
+            it 'if trying to move into itself at root level' do
                 revision = Metis::FolderRenameRevision.new({
                     source: 'metis://athena/files/wisdom',
                     dest: 'metis://athena/files/wisdom/wisdom',
@@ -290,11 +290,11 @@ describe Metis::FolderRenameRevision do
                 revision.validate
                 expect(revision.errors.length).to eq(1)
                 expect(revision.errors[0]).to eq(
-                    "Cannot copy folder into itself: \"metis://athena/files/wisdom\""
+                    "Cannot move folder into itself: \"metis://athena/files/wisdom\""
                 )
             end
 
-            it 'if trying to copy anywhere into its children path' do
+            it 'if trying to move anywhere into its children path' do
                 wisdom_dup_folder = create_folder('athena', 'wisdom', folder: @wisdom_folder)
                 stubs.create_folder('athena', 'files/wisdom', 'wisdom')
                 wisdom2_folder = create_folder('athena', 'wisdom2', folder: wisdom_dup_folder)
@@ -307,17 +307,41 @@ describe Metis::FolderRenameRevision do
                 })
 
                 revision.source.bucket = default_bucket('athena')
+                revision.source.folder = @wisdom_folder
                 revision.dest.bucket = default_bucket('athena')
-                revision.dest.folder = @wisdom_folder
+                revision.dest.folder = wisdom2_folder
                 expect(revision.errors).to eq(nil)
                 revision.validate
                 expect(revision.errors.length).to eq(1)
                 expect(revision.errors[0]).to eq(
-                    "Cannot copy folder into itself: \"metis://athena/files/wisdom/wisdom\""
+                    "Cannot move folder into itself: \"metis://athena/files/wisdom/wisdom\""
                 )
             end
 
-            it 'if trying to copy into itself not at root level' do
+            it 'if trying to move anywhere into its children path' do
+                wisdom_dup_folder = create_folder('athena', 'wisdom', folder: @wisdom_folder)
+                stubs.create_folder('athena', 'files/wisdom', 'wisdom')
+                wisdom2_folder = create_folder('athena', 'wisdom2', folder: wisdom_dup_folder)
+                stubs.create_folder('athena', 'files/wisdom/wisdom', 'wisdom2')
+
+                revision = Metis::FolderRenameRevision.new({
+                    source: 'metis://athena/files/wisdom',
+                    dest: 'metis://athena/files/wisdom/wisdom/wisdom2/cyclic-wisdom',
+                    user: @user
+                })
+
+                revision.source.bucket = default_bucket('athena')
+                revision.dest.bucket = default_bucket('athena')
+                revision.dest.folder = wisdom2_folder
+                expect(revision.errors).to eq(nil)
+                revision.validate
+                expect(revision.errors.length).to eq(1)
+                expect(revision.errors[0]).to eq(
+                    "Cannot move folder into itself: \"metis://athena/files/wisdom\""
+                )
+            end
+
+            it 'if trying to move into itself not at root level' do
                 wisdom2_folder = create_folder('athena', 'wisdom2', folder: @wisdom_folder)
                 stubs.create_folder('athena', 'files/wisdom', 'wisdom2')
 
@@ -335,7 +359,7 @@ describe Metis::FolderRenameRevision do
                 revision.validate
                 expect(revision.errors.length).to eq(1)
                 expect(revision.errors[0]).to eq(
-                    "Cannot copy folder into itself: \"metis://athena/files/wisdom/wisdom2\""
+                    "Cannot move folder into itself: \"metis://athena/files/wisdom/wisdom2\""
                 )
             end
         end
@@ -407,7 +431,7 @@ describe Metis::FolderRenameRevision do
         expect(revision.errors.length).to eq(2)
         expect(revision.errors).to eq([
             "Invalid bucket \"war\" in project \"athena\". Check the bucket name and your permissions.",
-            "Cannot copy over existing folder: \"metis://athena/files/wisdom\""
+            "Cannot write over existing folder: \"metis://athena/files/wisdom\""
         ])
     end
 
@@ -587,7 +611,7 @@ describe Metis::FolderRenameRevision do
             dest: 'metis://athena/files/wisdom',
             errors: [
                 "Invalid bucket \"magma\" in project \"athena\". Check the bucket name and your permissions.",
-                "Cannot copy over existing folder: \"metis://athena/files/wisdom\""],
+                "Cannot write over existing folder: \"metis://athena/files/wisdom\""],
         })
     end
 end

@@ -37,24 +37,29 @@ exports[`RedcapForm renders blank for new config 1`] = `
         class="MuiGrid-root makeStyles-tab_buttons MuiGrid-container MuiGrid-item MuiGrid-justify-content-xs-flex-end"
       >
         <button
-          class="MuiButtonBase-root MuiIconButton-root"
+          class="MuiButtonBase-root MuiButton-root MuiButton-text"
           tabindex="0"
           title="Add model"
           type="button"
         >
           <span
-            class="MuiIconButton-label"
+            class="MuiButton-label"
           >
-            <svg
-              aria-hidden="true"
-              class="MuiSvgIcon-root"
-              focusable="false"
-              viewBox="0 0 24 24"
+            <span
+              class="MuiButton-startIcon MuiButton-iconSizeMedium"
             >
-              <path
-                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-              />
-            </svg>
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                />
+              </svg>
+            </span>
+            Add Model
           </span>
           <span
             class="MuiTouchRipple-root"
@@ -123,24 +128,29 @@ exports[`RedcapForm renders renders with existing config 1`] = `
         class="MuiGrid-root makeStyles-tab_buttons MuiGrid-container MuiGrid-item MuiGrid-justify-content-xs-flex-end"
       >
         <button
-          class="MuiButtonBase-root MuiIconButton-root"
+          class="MuiButtonBase-root MuiButton-root MuiButton-text"
           tabindex="0"
           title="Add model"
           type="button"
         >
           <span
-            class="MuiIconButton-label"
+            class="MuiButton-label"
           >
-            <svg
-              aria-hidden="true"
-              class="MuiSvgIcon-root"
-              focusable="false"
-              viewBox="0 0 24 24"
+            <span
+              class="MuiButton-startIcon MuiButton-iconSizeMedium"
             >
-              <path
-                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-              />
-            </svg>
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                />
+              </svg>
+            </span>
+            Add Model
           </span>
           <span
             class="MuiTouchRipple-root"

@@ -19,6 +19,10 @@ class Polyphemus
         as_json[:secrets]
       end
 
+      def should_run?
+        false
+      end
+
       def validate_secrets(secrets)
         unless (secrets.keys - secret_keys).empty?
           return "Secrets for #{job_name} jobs must be one of: #{secret_keys.join(', ')}"
@@ -95,6 +99,7 @@ class Polyphemus
 
   class JobType < String
     REDCAP = JobType.new("redcap")
+    METIS = JobType.new("metis")
   end
 
   class JobError < StandardError
@@ -102,3 +107,4 @@ class Polyphemus
 end
 
 require_relative './redcap_job'
+require_relative './metis_job'

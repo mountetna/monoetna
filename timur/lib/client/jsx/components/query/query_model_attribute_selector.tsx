@@ -94,7 +94,7 @@ const FilePredicateSelector = React.memo(
         label='Predicate'
         name={value || 'url'}
         onSelect={onSelect}
-        choiceSet={['url', 'md5']}
+        choiceSet={['url', 'md5', 'size']}
       />
     );
   }

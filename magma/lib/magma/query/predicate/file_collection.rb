@@ -4,8 +4,9 @@ class Magma
   class FileCollectionPredicate < Magma::ColumnPredicate
     def initialize question, model, alias_name, attribute, *query_args
       super
-      @md5_set = Md5Set.new(@question.user, @model)
-      @updated_at_set = UpdatedAtSet.new(@question.user, @model)
+      @md5_set = MetisMetadata.new(@question.user, @model, :file_hash)
+      @file_size_set = MetisMetadata.new(@question.user, @model, :size)
+      @updated_at_set = MetisMetadata.new(@question.user, @model, :updated_at)
     end
 
     verb '::url' do
@@ -61,6 +62,20 @@ class Magma
         else
           as_answer_array(
             table.first[column_name].map { |f| @md5_set << f["filename"] }
+          )
+        end
+      end
+    end
+
+    verb '::size' do
+      child String
+
+      extract do |table, identity|
+        if !table.first[column_name]
+          Magma::NilAnswer.new
+        else
+          as_answer_array(
+            table.first[column_name].map { |f| @file_size_set << f["filename"] }
           )
         end
       end

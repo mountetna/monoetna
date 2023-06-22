@@ -10,7 +10,7 @@ from airflow.exceptions import AirflowException
 from airflow.hooks.base import BaseHook
 from airflow.models import Connection
 from airflow.operators.python import get_current_context
-from mountetna import Janus, Magma, Metis, TokenAuth, SigAuth
+from mountetna import Janus, Magma, Metis, Polyphemus, TokenAuth, SigAuth, Gnomon
 from requests.auth import AuthBase
 
 from etna.dags.project_name import get_project_name
@@ -67,9 +67,10 @@ class EtnaHook(BaseHook):
         """
         return {}
 
-    def __init__(self, etna_conn_id: str) -> None:
+    def __init__(self, etna_conn_id: str, use_token_auth: bool = False) -> None:
         super().__init__()
         self.etna_conn_id = etna_conn_id
+        self.use_token_auth = use_token_auth
 
     @classmethod
     def for_project(cls, project_name: Optional[str] = None):
@@ -108,6 +109,9 @@ class EtnaHook(BaseHook):
             dag: DAG = get_current_context()["dag"]
             project_name = get_project_name(dag)
         token_auth = self.get_token_auth()
+
+        if self.use_token_auth:
+            return token_auth
         # Unfortunately, 'read only' here becomes a viewer token, which does not have
         # read permission to many buckets.  Unfortunately, read_only does not mean 'can read',
         # it means 'cannot write, but also likely cannot read.'
@@ -139,6 +143,28 @@ class EtnaHook(BaseHook):
         yield Metis(
             auth,
             self.get_hostname("metis"),
+            session=self.get_session(),
+            retry=self.get_retry_policy())
+
+    @contextlib.contextmanager
+    def polyphemus(
+        self, project_name: Optional[str] = None, read_only=True
+    ) -> typing.ContextManager["Polyphemus"]:
+        auth = self.get_task_auth(project_name, read_only)
+        yield Polyphemus(
+            auth,
+            self.get_hostname("polyphemus"),
+            session=self.get_session(),
+            retry=self.get_retry_policy())
+
+    @contextlib.contextmanager
+    def gnomon(
+        self, project_name: Optional[str] = None, read_only=True
+    ) -> typing.ContextManager["Gnomon"]:
+        auth = self.get_task_auth(project_name, read_only)
+        yield Gnomon(
+            auth,
+            self.get_hostname("magma"),
             session=self.get_session(),
             retry=self.get_retry_policy())
 

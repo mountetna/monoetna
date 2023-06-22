@@ -100,6 +100,11 @@ RSpec.configure do |config|
     # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
     #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
     Polyphemus.instance.db.transaction(:rollback => :always, :auto_savepoint => true) { example.run }
+
+    Polyphemus.instance.db.run("ALTER SEQUENCE etl_configs_ids RESTART")
+  end
+
+  config.after(:each) do 
   end
 end
 
@@ -520,7 +525,7 @@ def stub_watch_folders(folder_data = nil)
 end
 
 def create_dummy_etl(opts)
-  create(:etl_config, {project_name: "labors", name: "Dummy ETL", config: { foo: 2 }, params: {}, secrets: {}, etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_NEVER}.merge(opts))
+  create(:etl_config, {project_name: "labors", name: "Dummy ETL", config_id: 1, version_number: 1, config: { foo: 2 }, params: {}, secrets: {}, etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_NEVER}.merge(opts))
 end
 
 def remove_dummy_job
@@ -550,6 +555,10 @@ def create_dummy_job
         },
         secrets: [ :rumor, :password ]
       }
+    end
+
+    def self.should_run?
+      true
     end
 
     def validate

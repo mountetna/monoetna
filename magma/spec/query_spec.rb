@@ -1961,6 +1961,32 @@ describe QueryController do
       end
     end
 
+    it 'returns the file size' do
+      route_payload = JSON.generate({
+        files: Labors::Monster.all.map do |monster|
+          {
+            file_name: monster.stats["filename"],
+            project_name: "labors",
+            bucket_name: "magma",
+            size: 12345
+          }
+        end,
+        folders: []
+      })
+
+      stub_request(:post, %r!https://metis.test/labors/find/magma!).
+        to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
+
+      query(
+        [ 'monster', '::all', 'stats', '::size' ]
+      )
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:answer].map(&:last).sort).to all(eq(12345))
+      expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#stats'])
+    end
+
     it 'returns the updated_at' do
       route_payload = JSON.generate({
         files: Labors::Monster.all.map do |monster|

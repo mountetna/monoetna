@@ -16,7 +16,7 @@ const RemovePane = ({update,selected}:{update:Function,selected:string|null}) =>
   return <EtlPane mode='remove' selected={selected}>
     <EtlPaneHeader title='Disable this loader?'>
       <Grid item container className={ classes.confirm }>
-        <Button onClick={ () => update({ archived: true }) }>Remove</Button>
+        <Button onClick={ () => update({ run_interval: -2 }) }>Remove</Button>
       </Grid>
     </EtlPaneHeader>
   </EtlPane>;

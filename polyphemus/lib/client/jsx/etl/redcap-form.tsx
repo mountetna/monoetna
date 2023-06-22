@@ -39,16 +39,18 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import {ModalProps} from '@material-ui/core/Modal';
 
 import {MagmaContext} from 'etna-js/contexts/magma-context';
-import {RedcapContext, RedcapProvider} from './redcap-context';
+import {SchemaContext, SchemaProvider} from './schema-context';
 import {Debouncer} from 'etna-js/utils/debouncer';
 
 import {makeStyles, Theme} from '@material-ui/core/styles';
 
 import {Job} from '../polyphemus';
+import {diff} from '../utils/list';
+import AddModel from './add-model';
 
 const useStyles = makeStyles((theme: Theme) => ({
   form: {
-    height: '500px',
+    height: 'calc(100vh - 375px)',
     flexWrap: 'nowrap'
   },
   entity: {
@@ -80,13 +82,14 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   tabs: {
     flex: '1 1 auto',
+    maxHeight: '50px',
     border: '1px solid #ccc',
     borderBottom: 'none'
   },
   tab_scroll: {
     flexGrow: 0,
-    maxWidth: 'calc(100% - 50px)',
-    flexBasis: 'calc(100% - 50px)'
+    maxWidth: 'calc(100% - 120px)',
+    flexBasis: 'calc(100% - 120px)'
   },
   tab_buttons: {
     flex: '1 1 auto',
@@ -100,7 +103,8 @@ const useStyles = makeStyles((theme: Theme) => ({
     overflowY: 'auto'
   },
   model: {
-    padding: '5px'
+    padding: '5px',
+    paddingRight: '15px'
   },
   model_row: {
     minHeight: '47px',
@@ -173,11 +177,6 @@ const useStyles = makeStyles((theme: Theme) => ({
     textTransform: 'capitalize'
   }
 }));
-
-const diff = (list1: string[], list2: string[]) => {
-  const l2 = new Set(list2);
-  return list1.filter((x) => !l2.has(x));
-};
 
 const SmallCheckbox = (props: any) => (
   <Checkbox
@@ -390,7 +389,7 @@ const RedcapAttribute = ({
   update: (newValue: any) => void;
 }) => {
   const classes = useStyles();
-  const {schema} = useContext(RedcapContext);
+  const {schema} = useContext(SchemaContext);
   const attribute_props = schema?.definitions?.attribute_value?.properties;
 
   const [showAddProp, setShowAddProp] = useState(false);
@@ -555,7 +554,7 @@ const AddEntity = ({
 
   each = each || [];
 
-  const {schema} = useContext(RedcapContext);
+  const {schema} = useContext(SchemaContext);
   const entity_names = diff(
     Object.keys(schema?.definitions?.each_entity?.properties || {}),
     each.map(entityName)
@@ -841,7 +840,7 @@ const ScriptFilters = ({
   onChange: (filters: Filter[]) => void;
   handleAddFilter: () => void;
 }) => {
-  const {schema} = useContext(RedcapContext);
+  const {schema} = useContext(SchemaContext);
   const filter_value = useMemo(
     () => schema?.definitions?.filter_value,
     [schema]
@@ -1186,59 +1185,6 @@ const RedcapModel = ({
   );
 };
 
-const AddModel = ({
-  open,
-  close,
-  update,
-  config
-}: {
-  open: boolean;
-  close: () => void;
-  update: (config: Config) => void;
-  config: Config;
-}) => {
-  const [newModel, setNewModel] = useState('');
-
-  const {models} = useContext(MagmaContext);
-
-  const model_names = diff(Object.keys(models), Object.keys(config)).sort();
-
-  return (
-    <Dialog open={open} onClose={close}>
-      <DialogTitle>Add Model</DialogTitle>
-      <DialogContent>
-        <Select
-          displayEmpty
-          value={newModel}
-          onChange={(e) => setNewModel(e.target.value as string)}
-        >
-          <MenuItem value=''>
-            <em>None</em>
-          </MenuItem>
-          {model_names.map((att_name) => (
-            <MenuItem key={att_name} value={att_name}>
-              {att_name}
-            </MenuItem>
-          ))}
-        </Select>
-      </DialogContent>
-      <DialogActions>
-        <Button
-          disabled={!newModel}
-          onClick={() => {
-            update({...config, [newModel]: {each: ['record'], scripts: []}});
-
-            close();
-          }}
-          color='secondary'
-        >
-          Add
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
-
 export type Config = {
   [modelName: string]: Model;
 };
@@ -1256,7 +1202,7 @@ const RedcapForm = ({
 }) => {
   const classes = useStyles();
 
-  const {setSchema} = useContext(RedcapContext);
+  const {setSchema} = useContext(SchemaContext);
 
   useEffect(() => {
     if (job) setSchema(job.schema);
@@ -1300,9 +1246,9 @@ const RedcapForm = ({
         </Grid>
         <Grid item container className={classes.tab_buttons} justify='flex-end'>
           <Tooltip title='Add model'>
-            <IconButton onClick={() => setShowAddModel(true)}>
-              <AddIcon />
-            </IconButton>
+            <Button onClick={() => setShowAddModel(true)} startIcon={<AddIcon/>}>
+              Add Model
+            </Button>
           </Tooltip>
         </Grid>
       </Grid>
@@ -1319,17 +1265,19 @@ const RedcapForm = ({
       <AddModel
         open={showAddModel}
         close={() => setShowAddModel(false)}
-        update={update}
-        config={config}
+        update={ model_name => update({
+          ...config, [model_name]: { each: ['record'], scripts: [] }
+        })}
+        excludeModels={ Object.keys(config)}
       />
     </Grid>
   );
 };
 
-const RedcapFormProvider = (props: any) => (
-  <RedcapProvider>
+const RedcapFormWithProvider = (props: any) => (
+  <SchemaProvider>
     <RedcapForm {...props} />
-  </RedcapProvider>
+  </SchemaProvider>
 );
 
-export default RedcapFormProvider;
+export default RedcapFormWithProvider;

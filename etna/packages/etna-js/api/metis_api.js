@@ -1,5 +1,7 @@
 import {checkStatus, headers} from '../utils/fetch';
 
+export const metisPath = (endpoint) => `${CONFIG.metis_host}/${endpoint}`;
+
 const metisGet = (url, exchange) => {
   return exchange
     .fetch(url, {

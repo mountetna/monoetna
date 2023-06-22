@@ -322,7 +322,7 @@ describe FileController do
 
       expect(last_response.status).to eq(422)
       expect(json_body[:errors]).to eq(
-        ["Cannot copy over existing folder: \"metis://athena/files/learn-wisdom.txt\""])
+        ["Cannot write over existing folder: \"metis://athena/files/learn-wisdom.txt\""])
 
       # the file we tried to rename is untouched
       @wisdom_file.refresh
@@ -558,7 +558,7 @@ describe FileController do
       expect(last_response.status).to eq(422)
       expect(json_body[:errors].length).to eq(1)
       expect(json_body[:errors][0]).to eq(
-        "Cannot copy over existing folder: \"metis://athena/files/learn-wisdom.txt\""
+        "Cannot write over existing folder: \"metis://athena/files/learn-wisdom.txt\""
       )
 
       # the file we tried to copy is untouched
@@ -1057,7 +1057,7 @@ describe FileController do
       expect(json_body[:errors].length).to eq(1)
       expect(json_body[:errors][0]).to eq(
         {"dest": "metis://athena/files/learn-wisdom.txt",
-        "errors": ["Cannot copy over existing folder: \"metis://athena/files/learn-wisdom.txt\""],
+        "errors": ["Cannot write over existing folder: \"metis://athena/files/learn-wisdom.txt\""],
         "source": "metis://athena/files/wisdom.txt"}
       )
 
