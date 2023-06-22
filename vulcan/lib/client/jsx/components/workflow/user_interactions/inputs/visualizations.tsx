@@ -1,6 +1,3 @@
-// Input component that takes nested object
-//   and shows the keys one level at a time.
-// Returns the last "Leaf" that the user selects.
 import React, {Dispatch, PropsWithChildren, useMemo, useState} from 'react';
 import * as _ from 'lodash';
 
@@ -21,10 +18,12 @@ import {
   dropdownPiece,
   multiselectPiece,
   checkboxPiece,
-  sliderPiece
+  sliderPiece,
+  reductionSetupPiece,
+  nestedDropdownPiece
 } from './user_input_pieces';
 import {subsetDataFramePiece} from './subsetDataFrame_piece';
-import {ReorderPiece} from './reorder_piece';
+import {ReorderCustomOnlyPiece, ReorderPiece} from './reorder_piece';
 
 /*
 Docmentation last updated: Apr 15, 2022
@@ -96,25 +95,8 @@ JSX:
 
 */
 
-const defaults: DataEnvelope<any> = {
-  x_by: null,
-  y_by: null,
-  plots: ['box', 'violin'],
-  color_by: 'make',
-  scale_by: 'fraction',
-  size: 5,
-  plot_title: 'make',
-  legend_title: 'make',
-  xlab: 'make',
-  ylab: 'make',
-  color_order: 'increasing',
-  order_when_continuous_color: false,
-  x_scale: 'linear',
-  y_scale: 'linear',
-  rows_use: {},
-  x_order: 'increasing',
-  y_order: 'increasing'
-};
+type optionSet = string[]
+export type nestedOptionSet = DataEnvelope<DataEnvelope<DataEnvelope<null>|null>|null>
 
 const remove_hidden = (
   vals: DataEnvelope<any>,
@@ -133,13 +115,13 @@ const remove_hidden = (
   return values;
 };
 
-const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
+const input_sets_plotly: DataEnvelope<DataEnvelope<string[]>> = {
   scatter_plot: {
     'primary features': ['x_by', 'y_by', 'color_by', 'size'],
     titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
     coordinates: ['x_scale', 'y_scale'],
     'data focus': ['rows_use', 'color_order', 'order_when_continuous_color']
-    //'default_adjust': {'color_by': "make"}
+    //'default_adjust': {'color_by': 'make'}
   },
   bar_plot: {
     'primary features': ['x_by', 'y_by', 'scale_by'],
@@ -151,13 +133,142 @@ const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
     titles: ['plot_title', 'legend_title', 'xlab', 'ylab'],
     coordinates: ['y_scale'],
     'data focus': ['rows_use', 'x_order']
-    //'default_adjust': {'color_by': "make"}
+    //'default_adjust': {'color_by': 'make'}
   }
 };
 
+const plot_relabels_plotly: DataEnvelope<string> = {
+  'scatter_plot: Scatter Plot': 'scatter_plot',
+  'bar_plot: Compositional Stacked Bar Plot': 'bar_plot',
+  'y_plot: Violin and/or Box Plot': 'y_plot'
+}
+
+const defaults_plotly: DataEnvelope<any> = {
+  x_by: null,
+  y_by: null,
+  plots: ['box', 'violin'],
+  color_by: 'make',
+  scale_by: 'fraction',
+  size: 5,
+  plot_title: 'make',
+  legend_title: 'make',
+  xlab: 'make',
+  ylab: 'make',
+  color_order: 'increasing',
+  order_when_continuous_color: false,
+  x_scale: 'linear',
+  y_scale: 'linear',
+  rows_use: {},
+  x_order: 'increasing'
+};
+
+const redefaults_plotly: DataEnvelope<DataEnvelope<any>> = {
+  scatter_plot: {
+    'color_by': 'make'
+  },
+  y_plot: {
+    'color_by': 'make'
+  }
+}
+
+const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
+  dittoDimPlot: {
+    'primary features': ['color_by', 'size', 'reduction_setup'],
+    titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
+    'data focus': ['color_order', 'cells_use'],
+    'addition: labels': ['do_label', 'labels_highlight', 'labels_repel'],
+    'other additions': ['do_contour', 'do_ellipse'],
+    'output style': ['do_hover', 'legend_show']
+  },
+  dittoScatterPlot: {
+    'primary features': ['x_by', 'y_by', 'color_by', 'size'],
+    titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
+    'data focus': ['color_order', 'cells_use'],
+    'addition: labels': ['do_label', 'labels_highlight', 'labels_repel'],
+    'other additions': ['do_contour', 'do_ellipse'],
+    'output style': ['do_hover', 'legend_show']
+  },
+  dittoBarPlot: {
+    'primary features': ['var', 'group_by', 'scale_by'],
+    titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
+    'output style': ['do_hover', 'legend_show'],
+    'data focus': ['group_order', 'var_order', 'cells_use']
+  },
+  dittoPlot: {
+    'primary features': ['var', 'group_by', 'plots', 'color_by'],
+    titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
+    'vlnplot tweaks': ['vlnplot_lineweight', 'vlnplot_width', 'vlnplot_scaling'],
+    'boxplot tweaks': ['boxplot_width', 'boxplot_color', 'boxplot_fill', 'boxplot_lineweight'],
+    'jitter tweaks': ['jitter_size', 'jitter_width', 'jitter_color'],
+    'ridgeplot tweaks': ['ridgeplot_lineweight'],
+    'output style': ['legend_show'],
+    'data focus': ['group_order', 'cells_use'],
+  }
+};
+
+const plot_relabels_dittoseq: DataEnvelope<string> = {
+  'dittoDimPlot: UMAP, PCA, etc.': 'dittoDimPlot',
+  'dittoScatterPlot: e.g. gene x gene': 'dittoScatterPlot',
+  'dittoBarPlot: compositional stacked bar plot': 'dittoBarPlot',
+  'dittoPlot: violin, box, or ridge plot': 'dittoPlot'
+}
+
+const defaults_dittoseq: DataEnvelope<any> = {
+  x_by: null,
+  y_by: null,
+  var: null,
+  group_by: null,
+  color_by: null,
+  plots: ['jitter', 'vlnplot'],
+  scale_by: 'fraction',
+  size: 1,
+  plot_title: 'make',
+  plot_subtitle: 'make',
+  legend_title: 'make',
+  xlab: 'make',
+  ylab: 'make',
+  color_order: 'unordered',
+  group_order: 'make',
+  var_order: 'make',
+  x_scale: 'linear',
+  y_scale: 'linear',
+  cells_use: {},
+  reduction_setup: ['_Recommended_', '1', '2'],
+  do_hover: true,
+  vlnplot_lineweight: 1,
+  vlnplot_width: 1,
+  vlnplot_scaling: 'area',
+  boxplot_width: 0.2,
+  boxplot_color: 'black',
+  boxplot_fill: true,
+  boxplot_lineweight: 1,
+  jitter_size: 1,
+  jitter_width: 0.2,
+  jitter_color: 'black',
+  ridgeplot_lineweight: 1,
+  do_label: false,
+  labels_highlight: true,
+  labels_repel: true,
+  do_contour: false,
+  do_ellipse: false,
+  legend_show: true
+};
+
+const redefaults_dittoseq: DataEnvelope<DataEnvelope<any>> = {
+  dittoScatterPlot: {
+    'color_by': 'make'
+  },
+  dittoPlot: {
+    'color_by': 'make'
+  }
+}
+
 function whichDefaults(
   plotType: string | null,
-  preset: DataEnvelope<any> | null | undefined
+  preset: DataEnvelope<any> | null | undefined,
+  defaults: DataEnvelope<any>,
+  redefaults: DataEnvelope<DataEnvelope<any>>,
+  input_sets: DataEnvelope<DataEnvelope<string[]>>
 ) {
   if (plotType == null) return {plot_type: plotType};
 
@@ -171,17 +282,16 @@ function whichDefaults(
     if (!inputs.includes(def_keys[ind])) delete initial_vals[def_keys[ind]];
   }
 
-  // // Replace any values if different default given for this plot type
-  // Broken during a redesign, but should be restorable easily!
-  // if (input_sets[plotType]['default_adjust'] != null) {
-  //   const new_def_keys = Object.keys(input_sets[plotType]['default_adjust'])
-  //   const new_def_vals = Object.values(input_sets[plotType]['default_adjust'])
-  //   for (let ind = 0; ind < new_def_keys.length; ind++) {
-  //     initial_vals[new_def_keys[ind]]=new_def_vals[ind];
-  //   }
-  // }
+  // Replace default values with 'redefault' values.
+  if (Object.keys(redefaults).includes(plotType)) {
+    const new_def_keys = Object.keys(redefaults[plotType])
+    const new_def_vals = Object.values(redefaults[plotType])
+    for (let ind = 0; ind < new_def_keys.length; ind++) {
+      initial_vals[new_def_keys[ind]]=new_def_vals[ind];
+    }
+  }
 
-  // Add preset values / replace any default values.
+  // Use preset values.
   if (preset != null) {
     const pre_keys = Object.keys(preset);
     for (let ind = 0; ind < pre_keys.length; ind++) {
@@ -206,18 +316,40 @@ const input_constraints: DataEnvelope<DataEnvelope<'continuous' | 'discrete'>> =
       x_by: 'discrete',
       y_by: 'continuous',
       color_by: 'discrete'
+    },
+    dittoDimPlot: {
+      split_by: 'discrete'
+    },
+    dittoScatterPlot: {
+      x_by: 'continuous',
+      y_by: 'continuous',
+      split_by: 'discrete'
+    },
+    dittoBarPlot: {
+      group_by: 'discrete',
+      var: 'discrete',
+      split_by: 'discrete'
+    },
+    dittoPlot: {
+      group_by: 'discrete',
+      var: 'continuous',
+      color_by: 'discrete',
+      split_by: 'discrete'
     }
   };
 
 function useExtraInputs(
-  options: string[],
+  options: string[] | nestedOptionSet,
   full_data: DataEnvelope<any>,
   plot_type: string | null,
-  continuous: string[],
-  discrete: string[],
+  continuous: string[] | nestedOptionSet,
+  discrete: string[] | nestedOptionSet,
   x_by: string | null,
   y_by: string | null,
   color_by: string | null,
+  group_by: string | null,
+  var_: string | null,
+  reduction_opts: DataEnvelope<number[]> | null = null,
   constraints: DataEnvelope<
     DataEnvelope<'continuous' | 'discrete'>
   > = input_constraints
@@ -232,32 +364,46 @@ function useExtraInputs(
   }
 
   const extra_inputs: DataEnvelope<any[]> = useMemo(() => {
+    function is_ditto() {
+      return plot_type!=null && plot_type.includes('ditto')
+    }
+    function add_make(add_to: string[] | nestedOptionSet, for_plot_types: string[]) {
+      if (plot_type==null || !for_plot_types.includes(plot_type)) return add_to
+      if (Array.isArray(add_to)) return ['make'].concat(add_to)
+      let output = {...add_to}
+      output['make']=null
+      return output
+    }
     return {
       // label, then for any extras
       plot_title: ['Plot Title'],
+      plot_subtitle: ['Plot Sub-Title'],
       legend_title: ['Legend Title'],
       xlab: ['X-Axis Title'],
       ylab: ['Y-Axis Title'],
       x_by: ['X-Axis Data', get_options('x_by'), false],
       y_by: ['Y-Axis Data', get_options('y_by'), false],
-      color_by: ['Color Data', ['make'].concat(get_options('color_by')), false],
-      plots: ['Data Representations', ['violin', 'box']],
+      var: ['Primary Data', get_options('var'), false],
+      group_by: ['Groupings Data (often the x-axis)', get_options('group_by'), false],
+      color_by: ['Color Data', add_make(get_options('color_by'), ['scatter_plot', 'y_plot', 'dittoPlot', 'dittoScatterPlot']), false],
+      plots: !is_ditto ? ['Data Representations', ['violin', 'box']] : ['Data Representations', ['vlnplot', 'boxplot', 'jitter', 'ridgeplot']],
       color_order: [
         'Point Render & (discrete) Color Assignment Order',
         full_data,
         color_by,
-        discrete
+        discrete,
+        is_ditto()
       ],
       order_when_continuous_color: [
         'Follow selected render ordering when color is continuous?'
       ],
-      size: ['Point Size', 0.1, 50],
+      size: !is_ditto() ? ['Point Size', 0.1, 50, undefined] : ['Point Size', 0.1, 25, 0.1],
       scale_by: [
         'Scale Y by counts or fraction',
         ['counts', 'fraction'],
         true,
         200,
-        x_by == y_by
+        !is_ditto() ? x_by == y_by : false
       ],
       x_scale: [
         'Adjust scaling of the X-Axis',
@@ -273,8 +419,40 @@ function useExtraInputs(
         false,
         'secondary'
       ],
+      cells_use: [
+        'Focus on a subset of cells',
+        full_data,
+        false,
+        'secondary',
+        continuous,
+        'Discrete Cell_Metadata'
+      ],
       x_order: ['Order of X-Axis Groupings', full_data, x_by, discrete],
-      y_order: ['Order of Y-Axis Groupings', full_data, y_by, discrete]
+      y_order: ['Order of Y-Axis Groupings', full_data, y_by, discrete],
+      group_order: ['Reorder X-Axis Groupings?', full_data, group_by, discrete],
+      var_order: ['Reorder Y-Axis / Y-Value Groupings?', full_data, var_, discrete],
+      reduction_setup: [
+        ['Dimensionality Reduction (DR)', 'x-axis DR Compenent #', 'y-axis DR Component #'],
+        reduction_opts
+      ],
+      do_hover: ['Output as interactive (not flat) image?'],
+      vlnplot_lineweight: ['Lineweight', 0, 1.5, 0.05],
+      vlnplot_width: ['Width', 0.025, 1, 0.025],
+      vlnplot_scaling: ['Volume Scaling Method', ['area', 'width', 'count'], false],
+      boxplot_width: ['Width', 0.025, 0.5, 0.025],
+      boxplot_color: ['Line Color'],
+      boxplot_fill: ['Fill with "Color Data" colors?'],
+      boxplot_lineweight: ['Lineweight', 0, 1.5, 0.05],
+      jitter_size: ['Point Size', 0.05, 1, 0.05],
+      jitter_width: ['Width', 0.025, 0.5, 0.025],
+      jitter_color: ['Point Color'],
+      ridgeplot_lineweight: ['Lineweight', 0, 1.5, 0.05],
+      do_label: ['On/Off (discrete color data & flat output style only)'],
+      labels_highlight: ['Highlight labels with a box?'],
+      labels_repel: ['Allow movement to reduce overlaps?'],
+      do_contour: ['Add density-based contours?'],
+      do_ellipse: ['Surround groups in median-centered ellipses?'],
+      legend_show: ['Include the legend?']
     };
   }, [
     options,
@@ -284,7 +462,10 @@ function useExtraInputs(
     discrete,
     x_by,
     y_by,
-    color_by
+    color_by,
+    group_by,
+    var_,
+    reduction_opts
   ]);
 
   return extra_inputs;
@@ -325,7 +506,7 @@ function InputWrapper({
   );
 }
 
-const comps: DataEnvelope<Function> = {
+const components_plotly: DataEnvelope<Function> = {
   plot_title: stringPiece,
   legend_title: stringPiece,
   xlab: stringPiece,
@@ -345,16 +526,59 @@ const comps: DataEnvelope<Function> = {
   y_order: ReorderPiece
 };
 
+const components_dittoseq: DataEnvelope<Function> = {
+  plot_title: stringPiece,
+  plot_subtitle: stringPiece,
+  legend_title: stringPiece,
+  xlab: stringPiece,
+  ylab: stringPiece,
+  x_by: nestedDropdownPiece,
+  y_by: nestedDropdownPiece,
+  var: nestedDropdownPiece,
+  group_by: nestedDropdownPiece,
+  color_by: nestedDropdownPiece,
+  plots: multiselectPiece,
+  color_order: ReorderPiece,
+  size: sliderPiece,
+  scale_by: dropdownPiece,
+  x_scale: dropdownPiece,
+  y_scale: dropdownPiece,
+  cells_use: subsetDataFramePiece,
+  group_order: ReorderCustomOnlyPiece,
+  var_order: ReorderCustomOnlyPiece,
+  reduction_setup: reductionSetupPiece,
+  do_hover: checkboxPiece,
+  vlnplot_lineweight: sliderPiece,
+  vlnplot_width: sliderPiece,
+  vlnplot_scaling: dropdownPiece,
+  boxplot_width: sliderPiece,
+  boxplot_color: stringPiece,
+  boxplot_fill: checkboxPiece,
+  boxplot_lineweight: sliderPiece,
+  jitter_size: sliderPiece,
+  jitter_width: sliderPiece,
+  jitter_color: stringPiece,
+  ridgeplot_lineweight: sliderPiece,
+  do_label: checkboxPiece,
+  labels_highlight: checkboxPiece,
+  labels_repel: checkboxPiece,
+  do_contour: checkboxPiece,
+  do_ellipse: checkboxPiece,
+  legend_show: checkboxPiece
+};
+
 const ComponentUse = ({
   k,
   value,
   extra_inputs,
-  updateValue
+  updateValue,
+  comps
 }: {
   k: string;
   value: any;
   extra_inputs: any;
   updateValue: Function;
+  comps: DataEnvelope<Function>;
 }) => {
   const comp_use: Function = comps[k];
   return comp_use(k, updateValue, value, ...extra_inputs);
@@ -362,11 +586,16 @@ const ComponentUse = ({
 
 function VisualizationUI(
   {data, onChange, ...props}: WithInputParams<{}, DataEnvelope<any>, any>,
-  setPlotType: string | null = null
+  setPlotType: string | null = null,
+  defaults: DataEnvelope<any>,
+  redefaults: DataEnvelope<DataEnvelope<DataEnvelope<any>>>,
+  input_sets: DataEnvelope<DataEnvelope<string[]>>,
+  components: DataEnvelope<Function>,
+  plot_relabels?: DataEnvelope<string> | undefined
 ) {
   const preset = useMemo(() => data && data['preset'], [data]);
   const hide = useMemo(() => preset && Object.keys(preset), [preset]);
-  const defaultValue = whichDefaults(setPlotType, preset);
+  const defaultValue = whichDefaults(setPlotType, preset, defaults, redefaults, input_sets);
   const value = useSetsDefault(defaultValue, props.value, onChange);
   const [expandedDrawers, setExpandedDrawers] = useState(['primary features']);
   const plotType =
@@ -378,21 +607,30 @@ function VisualizationUI(
     return data['data_frame'];
   }, [data]);
 
-  const columns: string[] = useMemo(() => {
+  const df_columns: string[] = useMemo(() => {
     if (data_frame == null || 0 === Object.keys(data_frame).length) return [];
     return Object.keys(data_frame);
   }, [data_frame]);
 
-  const continuous_columns: string[] = useMemo(() => {
+  const continuous_columns: string[] | nestedOptionSet = useMemo(() => { // NOTE: these data don't necessarily need to be contained within the given data_frame (to accomodate for visualizing genomics data)
     if (data == null) return [];
-    if (data['continuous_cols'] == null) return columns; // Should build a warning here instead?
+    if (data['continuous_cols'] == null) return df_columns; // Should build a warning here instead?
     return data['continuous_cols'];
   }, [data]);
-  const discrete_columns: string[] = useMemo(() => {
+  const discrete_columns: string[] | nestedOptionSet = useMemo(() => {
     if (data == null) return [];
-    if (data['discrete_cols'] == null) return columns; // Should build a warning here instead?
+    if (data['discrete_cols'] == null) return df_columns; // Should build a warning here instead?
     return data['discrete_cols'];
   }, [data]);
+
+  const columns: string[] | nestedOptionSet = (data != null && data['all_cols'] != null) ? data['all_cols'] : df_columns
+
+  const reduction_opts: DataEnvelope<number[]> | null = useMemo(() => {
+    if (data == null) return null;
+    if (data['reduction_opts'] == null) return null;
+    return data['reduction_opts'];
+  }, [data])
+  // console.log({reduction_opts});
 
   const x_by =
     value && Object.keys(value).includes('x_by')
@@ -406,6 +644,15 @@ function VisualizationUI(
     value && Object.keys(value).includes('color_by')
       ? (value.color_by as string | null)
       : null;
+  const group_by =
+    value && Object.keys(value).includes('group_by')
+      ? (value.group_by as string | null)
+      : null;
+  const var_ =
+    value && Object.keys(value).includes('var')
+      ? (value.var as string | null)
+      : null;
+
   const extra_inputs = useExtraInputs(
     columns,
     data_frame,
@@ -414,7 +661,10 @@ function VisualizationUI(
     discrete_columns,
     x_by,
     y_by,
-    color_by
+    color_by,
+    group_by,
+    var_,
+    reduction_opts
   );
 
   const shownSetupValues = useMemo(() => {
@@ -427,7 +677,7 @@ function VisualizationUI(
   }, [value, hide]);
 
   const updatePlotType = (newType: string, key: string) => {
-    onChange(some(whichDefaults(newType, preset)));
+    onChange(some(whichDefaults(newType, preset, defaults, redefaults, input_sets)));
   };
 
   const updateValue = (newValue: any, key: string, prevValues = {...value}) => {
@@ -452,7 +702,7 @@ function VisualizationUI(
           updatePlotType,
           plotType,
           'Plot Type',
-          Object.keys(input_sets),
+          plot_relabels == undefined ? Object.keys(input_sets) : plot_relabels,
           false
         )}
       </div>
@@ -481,6 +731,7 @@ function VisualizationUI(
                     value={val}
                     extra_inputs={extra_inputs[key]}
                     updateValue={updateValue}
+                    comps={components}
                   />
                 );
               })}
@@ -505,7 +756,7 @@ export function ScatterPlotly({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'scatter_plot');
+  return VisualizationUI({data, onChange, value}, 'scatter_plot', defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
 }
 
 export function BarPlotly({
@@ -513,7 +764,7 @@ export function BarPlotly({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'bar_plot');
+  return VisualizationUI({data, onChange, value}, 'bar_plot', defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
 }
 
 export function YPlotly({
@@ -521,7 +772,7 @@ export function YPlotly({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, 'y_plot');
+  return VisualizationUI({data, onChange, value}, 'y_plot', defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly);
 }
 
 export function AnyPlotly({
@@ -529,5 +780,45 @@ export function AnyPlotly({
   onChange,
   value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, null);
+  return VisualizationUI({data, onChange, value}, null, defaults_plotly, redefaults_plotly, input_sets_plotly, components_plotly, plot_relabels_plotly);
+}
+
+export function DittoDimPlot({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, 'dittoDimPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+}
+
+export function DittoScatterPlot({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, 'dittoScatterPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+}
+
+export function DittoBarPlot({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, 'dittoBarPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+}
+
+export function DittoPlot({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, 'dittoPlot', defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq);
+}
+
+export function AnyDittoSeq({
+  data,
+  onChange,
+  value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, null, defaults_dittoseq, redefaults_dittoseq, input_sets_dittoseq, components_dittoseq, plot_relabels_dittoseq);
 }

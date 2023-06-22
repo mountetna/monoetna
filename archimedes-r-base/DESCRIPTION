@@ -1,6 +1,14 @@
 Package: app
 Imports:
     Seurat,
-    SeuratDisk
+    SeuratDisk,
+    magmaR,
+    plotly,
+    BiocManager,
+    dittoViz,
+    dittoSeq,
+    testthat
 Remotes:
-    mojaveazure/seurat-disk
+    mojaveazure/seurat-disk,
+    dtm2451/dittoViz,
+    dtm2451/dittoSeq

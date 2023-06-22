@@ -109,6 +109,20 @@ class GnomonController < Magma::Controller
     success_json(rule: rule_tokenization)
   end
 
+  def rules
+    grammars = Magma::Gnomon::Grammar.where(project_name: @params[:project_names])
+      .reverse(:project_name, :version_number).distinct(:project_name).all
+
+    success_json(rules: grammars.to_h do |grammar|
+      [
+        grammar.project_name,
+        grammar.parser.rules.to_h do |rule_name, rule|
+          [ rule_name, rule.regex.source ]
+        end
+      ]
+    end)
+  end
+
   def generate
     grammar = require_grammar
     rule = require_rule(grammar)

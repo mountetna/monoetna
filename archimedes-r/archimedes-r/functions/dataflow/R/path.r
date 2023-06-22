@@ -48,6 +48,10 @@ input_bool <- function(name, inputs_env = Sys.getenv(), inputs_dir = NULL) {
   tolower(str) %in% c("yes", "y", "true", "t", "1")
 };
 
+input_json <- function(name, inputs_env = Sys.getenv(), inputs_dir = NULL) {
+  jsonlite::fromJSON(input_path(name, inputs_env, inputs_dir), simplifyMatrix = FALSE)
+}
+
 output_path <- function(
   name,
   outputs_env = Sys.getenv(),
@@ -69,7 +73,7 @@ output_path <- function(
   path
 };
 
-output_var <- function(
+output_string <- function(
   data,
   name,
   outputs_env = Sys.getenv(),
@@ -80,4 +84,24 @@ output_var <- function(
   }
 
   write(data, output_path(name, outputs_env, outputs_dir))
+}
+
+output_var <- function(
+  data,
+  name,
+  outputs_env = Sys.getenv(),
+  outputs_dir = NULL
+) {
+
+  write(data, output_path(name, outputs_env, outputs_dir))
+}
+
+output_json <- function(data, name, outputs_env = Sys.getenv(), outputs_dir = NULL) {
+  json_str <- jsonlite::toJSON(
+    data,
+    null = "null",
+    na = "string",
+    factor = "string"
+  )
+  write(json_str, output_path(name, outputs_env, outputs_dir))
 }

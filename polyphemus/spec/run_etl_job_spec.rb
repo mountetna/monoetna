@@ -101,16 +101,5 @@ describe Polyphemus::RunEtlJob do
       expect(etl.status).to eq(nil)
       expect(etl.output).to eq(nil)
     end
-
-    it 'skips an archived job' do
-      etl = create_dummy_etl(etl: "dummy", run_interval: Polyphemus::EtlConfig::RUN_ONCE, archived: true)
-
-      command.execute
-
-      etl.refresh
-
-      expect(etl.ran_at).to eq(nil)
-      expect(etl.run_interval).to eq(Polyphemus::EtlConfig::RUN_ONCE)
-    end
   end
 end

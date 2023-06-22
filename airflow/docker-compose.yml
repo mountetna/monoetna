@@ -65,6 +65,14 @@ services:
     networks:
       - default
       - edge_net
+    extra_hosts:
+      - 'metis.development.local:172.16.238.10'
+      - 'magma.development.local:172.16.238.10'
+      - 'janus.development.local:172.16.238.10'
+      - 'timur.development.local:172.16.238.10'
+      - 'rtemis.development.local:172.16.238.10'
+      - 'archimedes.development.local:172.16.238.10'
+      - 'polyphemus.development.local:172.16.238.10'
 
   airflow_scheduler:
     image: airflow
@@ -78,6 +86,17 @@ services:
       - /tmp:/tmp
     environment:
       <<: *airflow-env
+    networks:
+      - default
+      - edge_net
+    extra_hosts:
+      - 'metis.development.local:172.16.238.10'
+      - 'magma.development.local:172.16.238.10'
+      - 'janus.development.local:172.16.238.10'
+      - 'timur.development.local:172.16.238.10'
+      - 'rtemis.development.local:172.16.238.10'
+      - 'archimedes.development.local:172.16.238.10'
+      - 'polyphemus.development.local:172.16.238.10'
 
   airflow_triggerer:
     image: airflow
