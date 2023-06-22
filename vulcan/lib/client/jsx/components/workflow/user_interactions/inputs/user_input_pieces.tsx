@@ -186,7 +186,7 @@ export function MultiselectAfterDataChoicePiece_forDitto(
   full_data: DataEnvelope<any[]>,
   data_target: string | null, // The name of a column/key of full_data which the user has chosen as the target of this ui piece, or null if not chosen yet.
   data_target_label: string, // The label of the ui-piece where the user selects data_target 
-  discrete_data: string[] | nestedOptionSet
+  discrete_data: string[]
 ) {
   // 'for ditto' part = when no data is chosen use value of 'make' upstream yet still [] within the widget
   function changeFxnMake(val: typeof value, key: string) {
@@ -223,7 +223,7 @@ export function MultiselectPiece(
             value.filter(
               (val) => !options.includes(val)
             ).length > 0;
-        if (needs_reset) changeFxn(withDefault([], null), key);
+        if (needs_reset) changeFxn([], key);
       }
     }, [options]);
     

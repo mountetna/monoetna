@@ -646,7 +646,7 @@ function VisualizationUI(
     if (data['continuous_cols'] == null) return df_columns; // Should build a warning here instead?
     return data['continuous_cols'];
   }, [data]);
-  const discrete_columns: string[] | nestedOptionSet = useMemo(() => {
+  const discrete_columns: string[] = useMemo(() => {
     if (data == null) return [];
     if (data['discrete_cols'] == null) return df_columns; // Should build a warning here instead?
     return data['discrete_cols'];
