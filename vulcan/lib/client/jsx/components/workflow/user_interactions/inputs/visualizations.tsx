@@ -408,10 +408,10 @@ function useExtraInputs(
       var: ['Primary Data', get_options('var'), false],
       group_by: ['Groupings Data (often the x-axis)', get_options('group_by'), false],
       color_by: [
-        is_ditto() ? 'Color Data ("make" = same as Grouping Data)' : 'Color Data',
+        is_ditto() ? 'Color Data (\'make\' = same as Grouping Data)' : 'Color Data',
         add_make(get_options('color_by'), ['scatter_plot', 'y_plot', 'dittoPlot', 'dittoFreqPlot', 'dittoScatterPlot']),
         false],
-      sample_by: ['Sample Data (try _sc_seq_ids_ if there; "make" = ignore)', add_make(get_options('sample_by'), ['dittoFreqPlot']), false],
+      sample_by: ['Sample Data (try \'_sc_seq_ids_\' if there; \'make\' = ignore)', add_make(get_options('sample_by'), ['dittoFreqPlot']), false],
       plots: !is_ditto ? ['Data Representations', ['violin', 'box']] : ['Data Representations', ['vlnplot', 'boxplot', 'jitter', 'ridgeplot']],
       vars_use: ['Primary Data values to display (blank = all)', full_data, var_, 'Primary Data', discrete],
       color_order: [
