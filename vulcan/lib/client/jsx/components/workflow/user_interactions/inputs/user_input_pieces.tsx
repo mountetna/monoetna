@@ -180,39 +180,6 @@ export function nestedDropdownFullPathPiece(
     </Grid>
   }
 
-export function MultiselectAfterDataChoicePiece_forDitto(
-  key: string, changeFxn: Function, value: string[] | 'make' | null = null,
-  label: string,
-  full_data: DataEnvelope<any[]>,
-  data_target: string | null, // The name of a column/key of full_data which the user has chosen as the target of this ui piece, or null if not chosen yet.
-  data_target_label: string, // The label of the ui-piece where the user selects data_target 
-  discrete_data: string[]
-) {
-  // 'for ditto' part = when no data is chosen use value of 'make' upstream yet still [] within the widget
-  function changeFxnMake(val: typeof value, key: string) {
-    val = Array.isArray(val) && val.length<1 ? 'make' : val
-    changeFxn(val, key)
-  }
-  const value_use = value=='make' ? [] : value
-
-  const canReorder = data_target != null && discrete_data.includes(data_target) && full_data != null
-  const levels = canReorder ? arrayLevels(Object.values(full_data[data_target as string])) : null
-  return(
-    levels != null ? MultiselectPiece(key, changeFxnMake, value_use, label, levels) :
-      <div key={key} style={{paddingTop: 8}}>
-        <TextField
-          key={'multiselect-'+key}
-          label={label}
-          InputLabelProps={{ shrink: true }}
-          size="small"
-          disabled
-          fullWidth
-          placeholder={'Awaiting '+data_target_label+' choice'}
-        />
-      </div>
-  )
-}
-
 export function MultiselectPiece(
   key: string, changeFxn: Function, value: string[] | null = null,
   label: string, options: string[]) {
@@ -239,6 +206,39 @@ export function MultiselectPiece(
         />
       </div>
     );
+  }
+
+  export function MultiselectAfterDataChoicePiece_forDitto(
+    key: string, changeFxn: Function, value: string[] | 'make' | null = null,
+    label: string,
+    full_data: DataEnvelope<any[]>,
+    data_target: string | null, // The name of a column/key of full_data which the user has chosen as the target of this ui piece, or null if not chosen yet.
+    data_target_label: string, // The label of the ui-piece where the user selects data_target 
+    discrete_data: string[]
+  ) {
+    // 'for ditto' part = when no data is chosen use value of 'make' upstream yet still [] within the widget
+    function changeFxnMake(val: typeof value, key: string) {
+      val = Array.isArray(val) && val.length<1 ? 'make' : val
+      changeFxn(val, key)
+    }
+    const value_use = value=='make' ? [] : value
+  
+    const canReorder = data_target != null && discrete_data.includes(data_target) && full_data != null
+    const levels = canReorder ? arrayLevels(Object.values(full_data[data_target as string])) : null
+    return(
+      levels != null ? MultiselectPiece(key, changeFxnMake, value_use, label, levels) :
+        <div key={key} style={{paddingTop: 8}}>
+          <TextField
+            key={'multiselect-'+key}
+            label={label}
+            InputLabelProps={{ shrink: true }}
+            size="small"
+            disabled
+            fullWidth
+            placeholder={'Awaiting '+data_target_label+' choice'}
+          />
+        </div>
+    )
   }
 
 export function sliderPiece(
