@@ -1365,8 +1365,6 @@ describe UpdateController do
         expect(last_response.status).to eq(422)
         expect(json_body[:errors]).to eq(["The identifier 'Nemean Lion' has not been assigned in Gnomon."])
       end
-    end
-
 
       it 'creates and attaches parents if the identifiers are defined in gnomon' do
 
@@ -1393,15 +1391,16 @@ describe UpdateController do
         expect(last_response.status).to eq(200)
 
         expect(Labors::Victim.first.weapon).to eq('sword')
-        expect(Labors::Victim.first.name).to eq(victim_identifier.name)
+        expect(Labors::Victim.first.name).to eq(victim_identifier.identifier)
         expect(Labors::Victim.first.monster_id).to eq(Labors::Monster.id)
-        expect(Labors::Monster.first.name).to eq(monster_identifier.name)
+        expect(Labors::Monster.first.name).to eq(monster_identifier.identifier)
         expect(Labors::Monster.first.labor_id).to eq(Labors::Labor.id)
-        expect(Labors::Labor.first.name).to eq(labor_identifier.name)
+        expect(Labors::Labor.first.name).to eq(labor_identifier.identifier)
         expect(Labors::Labor.first.project_id).to eq(Labors::Project.id)
-        expect(Labors::Project.first.name).to eq(project_identifier.name)
+        expect(Labors::Project.first.name).to eq(project_identifier.identifier)
 
       end
+    end
 
     context 'pattern mode' do
 
