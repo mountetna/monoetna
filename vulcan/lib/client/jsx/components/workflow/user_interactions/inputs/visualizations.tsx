@@ -173,7 +173,7 @@ const redefaults_plotly: DataEnvelope<DataEnvelope<any>> = {
 
 const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
   dittoDimPlot: {
-    'primary features': ['color_by', 'size', 'reduction_setup'],
+    'primary features': ['color_by', 'size', 'opacity', 'reduction_setup'],
     titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
     'data focus': ['color_order', 'cells_use'],
     'addition: labels': ['do_label', 'labels_highlight', 'labels_repel'],
@@ -181,7 +181,7 @@ const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
     'output style': ['do_hover', 'legend_show']
   },
   dittoScatterPlot: {
-    'primary features': ['x_by', 'y_by', 'color_by', 'size'],
+    'primary features': ['x_by', 'y_by', 'color_by', 'size', 'opacity'],
     titles: ['plot_title', 'plot_subtitle', 'legend_title', 'xlab', 'ylab'],
     'data focus': ['color_order', 'cells_use'],
     'addition: labels': ['do_label', 'labels_highlight', 'labels_repel'],
@@ -222,6 +222,7 @@ const defaults_dittoseq: DataEnvelope<any> = {
   plots: ['jitter', 'vlnplot'],
   scale_by: 'fraction',
   size: 1,
+  opacity: 1,
   plot_title: 'make',
   plot_subtitle: 'make',
   legend_title: 'make',
@@ -402,6 +403,7 @@ function useExtraInputs(
         'Follow selected render ordering when color is continuous?'
       ],
       size: !is_ditto() ? ['Point Size', 0.1, 50, undefined] : ['Point Size', 0.1, 25, 0.1],
+      opacity: ['Point Opacity', 0.05, 1, 0.05],
       scale_by: [
         'Scale Y by counts or fraction',
         ['counts', 'fraction'],
@@ -544,6 +546,7 @@ const components_dittoseq: DataEnvelope<Function> = {
   plots: multiselectPiece,
   color_order: ReorderPiece,
   size: sliderPiece,
+  opacity: sliderPiece,
   scale_by: dropdownPiece,
   x_scale: dropdownPiece,
   y_scale: dropdownPiece,
