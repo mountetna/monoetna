@@ -155,8 +155,7 @@ describe UpdateController do
     context 'from the "child" record' do
       it 'updates a parent attribute for parent-child' do
         hydra = create(:labor, name: 'The Lernean Hydra', year: '0003-01-01', project: @project)
-
-        monster = create(:monster, name: 'Lernean Hydra', labor: hydra)
+        monster = create(:monster, name: 'Lernean Hydra')
         update(
           monster: {
             'Lernean Hydra': {
@@ -1392,11 +1391,11 @@ describe UpdateController do
 
         expect(Labors::Victim.first.weapon).to eq('sword')
         expect(Labors::Victim.first.name).to eq(victim_identifier.identifier)
-        expect(Labors::Victim.first.monster_id).to eq(Labors::Monster.id)
+        expect(Labors::Victim.first.monster_id).to eq(Labors::Monster.first.id)
         expect(Labors::Monster.first.name).to eq(monster_identifier.identifier)
-        expect(Labors::Monster.first.labor_id).to eq(Labors::Labor.id)
+        expect(Labors::Monster.first.labor_id).to eq(Labors::Labor.first.id)
         expect(Labors::Labor.first.name).to eq(labor_identifier.identifier)
-        expect(Labors::Labor.first.project_id).to eq(Labors::Project.id)
+        expect(Labors::Labor.first.project_id).to eq(Labors::Project.first.id)
         expect(Labors::Project.first.name).to eq(project_identifier.identifier)
 
       end
