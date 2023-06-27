@@ -49,6 +49,7 @@ class Magma
       @identifiers = {}
       @now = Time.now.iso8601
       @dry_run = dry_run
+      @flags = Magma::Project.flags(project_name)
     end
 
     def push_record(model, record_name, revision)
@@ -133,7 +134,41 @@ class Magma
         parent_attribute,
         child_record_name)
     end
+    def push_parent_identifiers
+      # If a project is configured with the 'identifier' flag, anytime a record with an identifier is created or updated,
+      # we can implicitly infer what their parents must be via the Gnomon.decompose API.
+      # This method handles a very specific update:
+      # - The update does NOT explicitly update a record's foreign key.
+      # - The parent records do not exist in the db
+      # - It doesn't matter what type of attributes we are updating
+      # - Identifiers and parent identifiers exist in gnomon
+      @records.each do |model, record_set|
+        record_set.each do |record_name, record|
 
+          gnomon_mode = Magma::Flags::GNOMON_MODE
+          flag_value = @flags[gnomon_mode[:name]]
+
+          next unless flag_value == gnomon_mode[:identifier] and not record.includes_parent_record?
+
+          grammar = Magma::Gnomon::Grammar.for_project(@project_name)
+          grammar_decomposed = grammar.decompose(record_name)
+
+          next if parents.nil?
+
+          # create parents
+          identifier_links = tokens_to_links(grammar_decomposed[:rules])
+          identifier_links.each do |identifier|
+            push_record(identifier[:model], identifier[:record_name].to_s, identifier[:revision])
+          end
+
+        # fill in foreign key of the original record
+          # TODO: record.foreign_key = identifier_links.first[:id]
+        end
+      end
+    end
+    def tokens_to_links(grammar_rules)
+      # TODO
+    end
     def push_implicit_link_revisions(revisions)
       # When updating link or parent attributes from the top-down,
       #   we may not know what the previous relationships were.
@@ -197,7 +232,6 @@ class Magma
           [attribute.link_attribute_name, '::identifier', '::in', parent_record_names],
             '::all', attribute.link_attribute_name, '::identifier'
         ], user: @user)
-
         current_record_names = question.answer.to_a
 
         current_record_names.reject { |child_record_name, parent_record_name|
