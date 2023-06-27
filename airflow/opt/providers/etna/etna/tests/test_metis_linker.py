@@ -34,6 +34,8 @@ class TestMetisLinker:
         tail = prep_tail('labors', 'pics', [
             {"type":"file","id":50,"parent_id":None,"node_name":"ignore.deceased.png","updated_at":"2023-08-03 22:39:17 +0000","file_hash":"0cc175b9c0f1b6a831c399e269772661","archive_id":None},
             {"type":"file","id":51,"parent_id":40,"node_name":"LABORS-LION-H2-C1.deceased.png","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"8277e0910d750195b448797616e091ad","archive_id":None},
+            {"type":"file","id":52,"parent_id":40,"node_name":"NO-ID.deceased.png","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"8277e0910d750195b448797616e091ad","archive_id":None},
+            {"type":"file","id":53,"parent_id":40,"node_name":"nonmatch_deceased.png","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"8277e0910d750195b448797616e091ad","archive_id":None},
             {"type":"parent","id":40,"parent_id":None,"node_name":"victims","updated_at":"2023-08-03 22:39:17 +0000","file_hash":None,"archive_id":None},
             {"type":"parent","id":41,"parent_id":40,"node_name":"archived","updated_at":"2024-02-19 22:39:17 +0000","file_hash":None,"archive_id":None},
         ])
@@ -49,7 +51,7 @@ class TestMetisLinker:
                             {
                                 "type": "file",
                                 "folder_path": "victims",
-                                "file_match": ".*deceased.png",
+                                "file_match": "*.deceased.png",
                                 "attribute_name": "photo_deceased"
                             }
                         ]
@@ -97,7 +99,7 @@ class TestMetisLinker:
                             {
                                 "type": "file_collection",
                                 "folder_path": "family",
-                                "file_match": ".*.family_photo.*.png",
+                                "file_match": "family_photo.*.png",
                                 "attribute_name": "family_photos"
                             }
                         ]
@@ -148,7 +150,7 @@ class TestMetisLinker:
                             {
                                 "type": "data_frame",
                                 "folder_path": "villages",
-                                "file_match": ".*.tsv",
+                                "file_match": "*.tsv",
                                 "format": "tsv"
                             }
                         ]
