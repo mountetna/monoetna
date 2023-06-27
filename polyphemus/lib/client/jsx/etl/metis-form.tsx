@@ -31,6 +31,7 @@ import {Job} from '../polyphemus';
 import AddModel from './add-model';
 import {diff} from '../utils/list';
 import SelectAttribute from '../select-attribute';
+import TestFileMatch from './test-file-match';
 
 const useStyles = makeStyles((theme: Theme) => ({
   form: {
@@ -117,27 +118,7 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 const SCRIPT_TYPES = [ 'file', 'file_collection' ];
 
-type Script = any;
-
-type ScriptItem = {
-  type: string;
-  projectName: string;
-  bucketName: string;
-  modelName: string;
-  value: any;
-  script: Script;
-  update: Function;
-  classes: any;
-};
-
-const FileMatch = ({value,update,projectName,bucketName}:ScriptItem) =>  {
-
-  const testMatch = () => {
-    json_post(`/${projectName}/tail/${bucketName}`); 
-  }
-  const touchFiles = () => {
-    json_post(`/${projectName}/tail/${bucketName}`); 
-  }
+const FileMatch = ({value,update,projectName,bucketName,script}:ScriptItem) =>  {
   return <Grid item container flexDirection='row'>
     <Grid item xs={3}>
       <TextField
@@ -149,10 +130,7 @@ const FileMatch = ({value,update,projectName,bucketName}:ScriptItem) =>  {
         }
       />
     </Grid>
-    <Grid item xs={2}>
-      <Button onClick={ testMatch }>Test</Button>
-      <Button onClick={ touchFiles }>Touch</Button>
-    </Grid>
+    <TestFileMatch projectName={projectName} bucketName={bucketName} script={script}/>
   </Grid>;
 }
 
