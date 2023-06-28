@@ -45,11 +45,49 @@ class FileController < Metis::Controller
     success_json(files: [ file.to_hash(request: @request) ])
   end
 
+  def touch_files
+    require_param(:file_paths)
+    bucket = require_bucket
+
+    files = @params[:file_paths].uniq.map do |file_path|
+      [ file_path, Metis::File.from_path(bucket, file_path) ]
+    end
+
+    files, missing_files = files.partition do |file_path, file|
+      file&.has_data?
+    end.map(&:to_h)
+
+    return failure(404, errors: missing_files.map do |file_path, file|
+      "File not found #{file_path}"
+    end) unless missing_files.empty?
+
+    files, read_only_files = files.partition do |file_path, file|
+      !file.read_only?
+    end.map(&:to_h)
+
+    return failure(403, errors: read_only_files.map do |file_path, file|
+      "File is read-only #{file_path}"
+    end) unless read_only_files.empty?
+
+    Metis::File.where(
+      id: files.values.map(&:id)
+    ).update(
+      updated_at: Time.now,
+      author: Metis::File.author(@user)
+    )
+
+    files = Metis::File.where(
+      id: files.values.map(&:id)
+    ).all
+
+    success_json(files: files.map(&:to_hash))
+  end
+
   def touch
     bucket = require_bucket
     file = Metis::File.from_path(bucket, @params[:file_path])
 
-    raise Etna::Error.new('File not found', 404) unless file&.has_data?
+    raise Etna::NotFound, 'File not found' unless file&.has_data?
 
     raise Etna::Forbidden, 'File is read only' if file.read_only?
 

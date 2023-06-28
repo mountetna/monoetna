@@ -1755,4 +1755,64 @@ describe FileController do
 
     end
   end
+
+  context '#touch_files' do
+    before(:each) do
+      @creation_time = DateTime.now - 100
+      Timecop.freeze(@creation_time)
+      @blueprints_folder = create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
+
+      @helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @blueprints_folder)
+      stubs.create_file('athena', 'files', 'blueprints/helmet.jpg', HELMET)
+
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, folder: @blueprints_folder)
+      stubs.create_file('athena', 'files', 'blueprints/wisdom.txt', WISDOM)
+    end
+
+    after(:each) do
+      Timecop.return
+    end
+
+    def touch_files *paths
+      json_post(
+        "/athena/file/touch/files",
+        file_paths: paths
+      )
+    end
+
+    it 'updates a file timestamp' do
+      @update_time = DateTime.now
+      Timecop.freeze(@update_time)
+
+      token_header(:editor)
+      touch_files('blueprints/helmet.jpg', 'blueprints/wisdom.txt')
+
+      @helmet_file.refresh
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(200)
+      expect(@helmet_file.updated_at.iso8601).to eq(@update_time.iso8601)
+      expect(@helmet_file.author).to eq('metis@olympus.org|Metis')
+      expect(@wisdom_file.updated_at.iso8601).to eq(@update_time.iso8601)
+      expect(@wisdom_file.author).to eq('metis@olympus.org|Metis')
+    end
+
+    it 'throws exception if file is read only' do
+      @helmet_file.read_only = true
+      @helmet_file.save
+      @helmet_file.refresh
+
+      @update_time = DateTime.now
+      Timecop.freeze(@update_time)
+
+      token_header(:editor)
+      touch_files('blueprints/helmet.jpg', 'blueprints/wisdom.txt')
+
+      @helmet_file.refresh
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(403)
+      expect(@helmet_file.updated_at.iso8601).to eq(@creation_time.iso8601)
+      expect(@wisdom_file.updated_at.iso8601).to eq(@creation_time.iso8601)
+    end
+  end
 end
