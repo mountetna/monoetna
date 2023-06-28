@@ -27,7 +27,7 @@ import {PickBucket,PickFolder} from 'etna-js/components/metis_exploration';
 
 import {makeStyles, Theme} from '@material-ui/core/styles';
 
-import {Job} from '../polyphemus';
+import {Script, ScriptItem, Job} from '../polyphemus';
 import AddModel from './add-model';
 import {diff} from '../utils/list';
 import SelectAttribute from '../select-attribute';
@@ -113,13 +113,16 @@ const useStyles = makeStyles((theme: Theme) => ({
       cursor: 'pointer',
       background: '#eee'
     }
+  },
+  test: {
+    padding: '0px 10px'
   }
 }));
 
 const SCRIPT_TYPES = [ 'file', 'file_collection' ];
 
-const FileMatch = ({value,update,projectName,bucketName,script}:ScriptItem) =>  {
-  return <Grid item container flexDirection='row'>
+const FileMatch = ({value,update,projectName,bucketName,script,classes}:ScriptItem) =>  {
+  return <Grid item container>
     <Grid item xs={3}>
       <TextField
         placeholder='Regular expression matching file'
@@ -130,7 +133,7 @@ const FileMatch = ({value,update,projectName,bucketName,script}:ScriptItem) =>  
         }
       />
     </Grid>
-    <TestFileMatch projectName={projectName} bucketName={bucketName} script={script}/>
+    <TestFileMatch className={classes.test} projectName={projectName} bucketName={bucketName} script={script}/>
   </Grid>;
 }
 

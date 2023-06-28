@@ -1,5 +1,7 @@
-import {json_post} from 'etna-js/utils/fetch';
+import {json_post,json_error} from 'etna-js/utils/fetch';
 import { metisPath } from 'etna-js/api/metis_api';
+import { MetisFile, Script } from '../polyphemus';
+import Typography from '@material-ui/core/Typography';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -30,24 +32,25 @@ const useStyles = makeStyles((theme: Theme) => ({
   }
 }));
 
-type File = {
-  file_name: string;
-  file_path: string;
-  bucket_name: string;
-  project_name: string;
-  read_only: boolean;
-  download_url: string;
-};
-
-const TestFileMatch = ({projectName,bucketName,script}:{
+const TestFileMatch = ({projectName,bucketName,script,className}:{
   projectName: string;
   bucketName: string;
   script: Script;
+  className: string;
 }) => {
-  const [ files, setFiles ] = useState<File[]>([]);
+  const [ files, setFiles ] = useState<MetisFile[]>([]);
   const [ showFiles, setShowFiles ] = useState<boolean>(false);
+  const [ confirmTouch, setConfirmTouch ] = useState<boolean>(false);
+  const [ error, setError ] = useState<string|null>(null);
+
+  const hideFiles = () => {
+    setShowFiles(false);
+    setError(null);
+  }
 
   const classes = useStyles();
+
+  const touchPath = script.folder_path + '/**/' + script.file_match;
 
   const testMatch = () => {
     // with the find api we can list files matching the given glob
@@ -56,18 +59,36 @@ const TestFileMatch = ({projectName,bucketName,script}:{
         attribute: 'name',
         predicate: 'glob',
         type: 'file',
-        value: script.folder_path + '/**/' + script.file_match }]
-    }).then(({files}) => setFiles(files)); 
+        value: touchPath
+      }]
+    }).then(
+      ({files}) => setFiles(files)
+    ).catch(
+      json_error( error => setError(error))
+    );
     setShowFiles(true);
   }
-  const touchFiles = () => {
-    json_post(metisPath(`/${projectName}/tail/${bucketName}`)); 
-  }
-  return <Grid item xs={2}>
-    <Button onClick={ testMatch }>Test</Button>
-    <Dialog fullWidth maxWidth='lg' open={ showFiles } onClose={ () => setShowFiles(false) }>
+
+  const touchFiles = useCallback(() => {
+    json_post(
+      metisPath(`/${projectName}/file/touch/${bucketName}`),
+      { file_paths: files.map(f => f.file_path) }
+    ).then(
+      ({files}) => setFiles(files)
+    ).catch(
+      json_error( error => setError(error))
+    );
+    setConfirmTouch(false);
+  }, [ files ]);
+
+  return <Grid className={className} item xs={2}>
+    <Button onClick={ testMatch }>Match</Button>
+    <Dialog fullWidth maxWidth='lg' open={ showFiles } onClose={ hideFiles }>
       <DialogTitle>Matching Files</DialogTitle>
       <DialogContent>
+        {
+          error && <DialogContentText><Typography color="error">{error}</Typography></DialogContentText>
+        }
         <TableContainer className={classes.container}>
 	  <Table stickyHeader>
 	    <TableHead>
@@ -90,12 +111,31 @@ const TestFileMatch = ({projectName,bucketName,script}:{
 	</TableContainer>
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => setShowFiles(false)}>
-          Cancel
-        </Button>
-        <Button onClick={touchFiles}>
+        <Button onClick={() => setConfirmTouch(true)} color="primary">
           Touch
         </Button>
+        <Button onClick={hideFiles} color="secondary">
+          Cancel
+        </Button>
+      </DialogActions>
+    </Dialog>
+    <Dialog
+      open={confirmTouch}
+      onClose={() => setConfirmTouch(false)}
+    >
+      <DialogTitle>Touch files</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+	  Set the updated_at timestamp for files matching <em>{touchPath}</em>?
+	</DialogContentText>
+      </DialogContent>
+      <DialogActions>
+	<Button onClick={touchFiles} color="primary">
+	  Update
+	</Button>
+	<Button disabled={files.length==0} onClick={() => setConfirmTouch(false)} color="secondary" autoFocus>
+	  Cancel
+	</Button>
       </DialogActions>
     </Dialog>
   </Grid>

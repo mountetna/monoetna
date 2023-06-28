@@ -68,6 +68,14 @@ export const json_get = json_fetch('GET');
 export const json_delete = json_fetch('DELETE');
 export const json_post = json_fetch('POST');
 
+export const json_error = handler => e => e.then(response => handler(error_string(response)));
+
+const error_string = (response,md=false) => !response ? "Request error" : response.error
+  ? response.error
+  : response.errors
+  ? response.errors.map(e => (md ? '* ' : '') + `${e.message ? e.message : e}`)
+  : response;
+
 export const handleFetchError = (e) => {
   console.error(e);
   return Promise.resolve(e).then((response) => {
@@ -75,13 +83,7 @@ export const handleFetchError = (e) => {
       return Promise.reject([`Something is amiss. ${e}`]);
     }
 
-    let errStr = response.error
-      ? response.error
-      : response.errors
-      ? response.errors.map(
-          (error) => `* ${error.message ? error.message : error}`
-        )
-      : response;
+    let errStr = error_string(response,true);
     errStr = [`### Our request was refused.\n\n${errStr}`];
     return Promise.reject(errStr);
   });
