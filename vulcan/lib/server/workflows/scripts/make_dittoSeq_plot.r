@@ -206,8 +206,9 @@ if (identical(plot_setup$do.hover, TRUE)) {
         plot = fig,
         device = "png",
         units = "px",
-        width = 1200,
-        height = 1000
+        dpi = 150,
+        width = 1500,
+        height = 1200
     )
     # ggsave(
     #     filename = output_path('legend.png'),
