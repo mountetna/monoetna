@@ -36,6 +36,7 @@ class Metis
     # For ETLs, we need to know when a folder's path changes, so we'll use a touch
     #   endpoint to propagate updated_at down the tree.
     get '/:project_name/folder/touch/:bucket_name/*folder_path', action: 'folder#touch', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/file/touch/:bucket_name', action: 'file#touch_files', auth: { user: { can_edit?: :project_name } }
     get '/:project_name/file/touch/:bucket_name/*file_path', action: 'file#touch', auth: { user: { can_edit?: :project_name } }
 
     post '/:project_name/find/:bucket_name', action: 'bucket#find', auth: { user: { can_view?: :project_name } }
