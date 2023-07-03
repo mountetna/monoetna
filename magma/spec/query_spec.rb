@@ -2913,6 +2913,34 @@ describe QueryController do
       Timecop.return
     end
 
+    it 'retrieves a TSV with file attributes as urls' do
+      Timecop.freeze(DateTime.new(500))
+      labor_list = create_list(:labor, 3, project: @project)
+      lion = create(:monster, :lion, stats: '{"filename": "lion.txt", "original_filename": ""}', labor: labor_list[0])
+      hydra = create(:monster, :hydra, stats: '{"filename": "hydra.txt", "original_filename": ""}', labor: labor_list[1])
+      hind = create(:monster, :hind, stats: '{"filename": "hind.txt", "original_filename": ""}', labor: labor_list[2])
+
+      query_opts(
+        [
+          'monster',
+          '::all',
+          [
+            [ 'stats', '::url' ]
+          ]
+        ],
+        format: 'tsv'
+      )
+
+      expect(last_response.status).to eq(200)
+      header, *table = CSV.parse(last_response.body, col_sep: "\t")
+
+      uris = table.map{|l| URI.parse(l.last)}
+      expect(uris.map(&:host)).to all(eq(Magma.instance.config(:storage)[:host]))
+      expect(uris.map(&:path)).to all(match(%r!/labors/download/magma/\w+.txt!))
+
+      Timecop.return
+    end
+
     it 'retrieves a TSV with file collection attributes as urls' do
       Timecop.freeze(DateTime.new(500))
       lion_certs = [{
