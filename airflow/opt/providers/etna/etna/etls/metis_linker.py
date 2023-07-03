@@ -14,10 +14,15 @@ import re
 import itertools
 import pandas
 import numpy
+import secrets
 
 
 class MetisLoaderError(Exception):
     pass
+
+STAR_MAGIC = secrets.token_hex(12)
+BRACE1_MAGIC = secrets.token_hex(12)
+BRACE2_MAGIC = secrets.token_hex(12)
 
 @serialize
 @deserialize
@@ -31,16 +36,29 @@ class MetisLoaderConfig(EtlConfigResponse):
 
     def script_files(self, script, tail):
         try:
-            file_match = re.compile(script['file_match'])
+            # simulate glob
+            match = script['folder_path'] + '/**/' + script['file_match']
+            match = re.sub(r'\*', STAR_MAGIC, match)
+            match = re.sub(r'\{', BRACE1_MAGIC, match)
+            match = re.sub(r'\}', BRACE2_MAGIC, match)
+            match = re.escape(match)
+            # **/ matches anything including nothing
+            match = re.sub(STAR_MAGIC*2+'/', '(?:.*/|)', match)
+            # * matches any non-zero non-slash
+            match = re.sub(STAR_MAGIC, '[^/]+', match)
+            # {a,b,c,d} matches a group
+            match = re.sub(f"{BRACE1_MAGIC}((?:[^,]+,)+,[^,]+){BRACE2_MAGIC}", lambda m : f"({m[1].replace(',','|')})", match)
+            match = re.compile(match)
         except:
             raise MetisLoaderError(f"file_match is not a valid regular expression: {script['file_match']}.")
 
-        return [
+        files = [
             file
             for file in tail[0]
-            if file.file_path.startswith(script['folder_path'])
-            and re.match(script['file_match'], file.file_path)
+            if match.match(file.file_path)
         ]
+        return files
+        
 
 
     def data_frame_update(self, model_name, script, tail, update, metis, model):
@@ -135,8 +153,8 @@ def MetisLinker():
         context = get_current_context()
         start, end = get_batch_range(context)
 
-        with hook.polyphemus() as polyph:
-            configs_list = polyph.list_all_etl_configs(job_type='metis')
+        with hook.polyphemus() as polyphemus:
+            configs_list = polyphemus.list_all_etl_configs(job_type='metis')
             configs_list = [ MetisLoaderConfig(**asdict(config)) for config in configs_list.configs if config.should_run(start,end) ]
 
             for config in configs_list:

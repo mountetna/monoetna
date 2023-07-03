@@ -35,3 +35,28 @@ type MagmaModel = any;
 type MagmaModels = {
   [model_name: string]: MagmaModel;
 };
+
+export type MetisFile = {
+  id: number;
+  file_name: string;
+  file_path: string;
+  bucket_name: string;
+  project_name: string;
+  read_only: boolean;
+  updated_at: string;
+  download_url: string;
+};
+
+
+export type Script = any;
+
+export type ScriptItem = {
+  type: string;
+  projectName: string;
+  bucketName: string;
+  modelName: string;
+  value: any;
+  script: Script;
+  update: Function;
+  classes: any;
+};
