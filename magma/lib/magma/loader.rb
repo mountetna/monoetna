@@ -189,7 +189,7 @@ class Magma
       sorted = []
       sort(other_models, sorted, root_model[:model])
 
-      # If we successfully infer a hierarchy and sort, the counts should be the same
+      # If we successfully infer a model hierarchy, the counts should be the same
       hierarchy_count == sorted.count ? sorted.prepend(root_model) : []
     end
 
@@ -209,18 +209,14 @@ class Magma
           next unless flag_value == gnomon_mode[:identifier] and not record.includes_parent_record?
 
           # Attempt to find parent models
-          binding.pry
           parent_models = find_parent_models(record_name)
 
           next if parent_models.empty?
 
           # Update foreign keys
           parent_models.each do |parent|
-            #push_record()
-            # parent[0], parent[1], # attribute.link_attribute_name?
-            #  attribute_name.link=> nil,
-            #  created_at: @now,
-            #  updated_at: @now)
+            # TODO: push_records() starting from parents
+            # TODO: update foreign key of original record
           end
 
         end
