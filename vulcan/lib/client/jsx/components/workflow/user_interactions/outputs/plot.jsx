@@ -6,7 +6,7 @@ export const PngOutput = ({url}) => {
   return <React.Fragment>
     {Object.values(url).map((url, ind) =>
         <React.Fragment key={url}>
-          <img key={ind} src={url}/>
+          <img key={ind} src={url} width="800"/>
         </React.Fragment>
     )}
   </React.Fragment>
