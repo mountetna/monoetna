@@ -555,3 +555,79 @@ VALID_GRAMMAR_CONFIG={
     victim: ".village SEP VICT .n"
   }
 }
+
+HIERARCHY_GRAMMAR_CONFIG={
+  tokens: {
+    PROJECT: {
+      label: "project",
+      values: {
+        "The Twelve Labors of Hercules": "The Twelve Labors of Hercules"
+      }
+    },
+    PROJ: {
+      label: "project",
+      values: {
+        "LABORS": "The Twelve Labors of Hercules"
+      }
+    },
+    LABOR: {
+      label: "labor",
+      values: {
+        "The Nemean Lion": "The Nemean Lion",
+        "The Lernean Hydra": "The Lernean Hydra"
+      }
+    },
+    LAB: {
+      label: "labor",
+      values: {
+        "LION": "The Nemean Lion",
+        "HYDRA": "The Lernean Hydra"
+      }
+    },
+    VILL: {
+      label: "Village type",
+      values: {
+        "V": "Village",
+        "H": "Hamlet"
+      }
+    },
+    MONSTER: {
+      label: "monster",
+      values: {
+        "Neamon Lion": "Neamon Lion"
+      }
+    },
+    MONST: {
+      label: "monster",
+      values: {
+        "NEAMON": "Neamon Lion"
+      }
+    },
+    VICT: {
+      label: "Victim type",
+      values: {
+        "S": "Soldier",
+        "C": "Civilian"
+      }
+    },
+    SEP: {
+      label: "Separator",
+      values: {
+        "-": "# Separator"
+      }
+    }
+
+  },
+  synonyms: [
+    [ "PROJ", "PROJECT" ],
+    [ "LAB", "LABOR" ],
+    [ "MONST", "MONSTER" ]
+  ],
+  rules: {
+    project: "PROJECT",
+    labor: "LABOR",
+    monster: "MONSTER",
+    village: "PROJ SEP LAB SEP MONST SEP VILL .n",
+    victim: ".village SEP VICT .n"
+  }
+}

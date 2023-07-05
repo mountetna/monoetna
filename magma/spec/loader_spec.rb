@@ -151,4 +151,49 @@ describe Magma::Loader do
 
     set_date_shift_root('monster', false)
   end
+
+  it 'can find parent models when hierarchical grammar exists' do
+    grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+    project_identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
+    labor_identifier = create_identifier("The Nemean Lion", rule: 'labor', grammar: grammar)
+    monster_identifier = create_identifier("Neamon Lion", rule: 'monster', grammar: grammar)
+    victim_identifier = create_identifier("LABORS-LION-NEAMON-H2-C1", rule: 'victim', grammar: grammar)
+
+    loader = Magma::Loader.new(@user, 'labors')
+    parent_models = loader.find_parent_models(victim_identifier.identifier)
+
+    expect(parent_models.length).to eq(4)
+
+    expect(parent_models[0][:model]).to eq(:project)
+    expect(parent_models[0][:identifier]).to eq(project_identifier.identifier)
+    expect(parent_models[0][:parent_model]).to eq(nil)
+
+    expect(parent_models[1][:model]).to eq(:labor)
+    expect(parent_models[1][:identifier]).to eq(labor_identifier.identifier)
+    expect(parent_models[1][:parent_model]).to eq(:project)
+
+    binding.pry
+    expect(parent_models[2][:model]).to eq(:monster)
+    expect(parent_models[2][:identifier]).to eq(monster_identifier.identifier)
+    expect(parent_models[2][:parent_model]).to eq(:labor)
+
+    expect(parent_models[3][:model]).to eq(:victim)
+    expect(parent_models[3][:identifier]).to eq(victim_identifier.identifier)
+    expect(parent_models[3][:parent_model]).to eq(:monster)
+
+  end
+
+  it 'cannot find parent models when the grammar is non hierarchical' do
+    # The grammar does not describe a MONSTER token
+    grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
+
+    create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
+    victim_identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
+
+    loader = Magma::Loader.new(@user, 'labors')
+    parent_models = loader.find_parent_models(victim_identifier.identifier)
+    expect(parent_models.empty?).to eq(true)
+  end
+
+
 end
