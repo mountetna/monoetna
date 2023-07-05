@@ -164,12 +164,16 @@ class Magma
         end
       end
 
-      # Next we determine if the hierarchy chain is valid for the models that we've found
+      # Next we determine if the hierarchy chain is valid for the models that we've found.
       partitioned = available_models.partition { |h| h[:parent_model].nil? }
       root_model, other_models = partitioned[0][0], partitioned[1].flatten
       hierarchy_count = other_models.count
 
-      # Recursively sort the model hierarchy
+      # We do this by recursively searching for children top-down.
+      # We start with the projects model, and then search for any models that have the key
+      # :parent_model = :projects. Lets say we find some model X, then the following iteration,
+      # this repeats, and we search for any models where :parent_model = :X. Each model that is found
+      # is appended to the sorted_array.
       def sort(arr, sorted_array, model_name)
         # Look for the child model
         child_model = arr.find { |hash| hash[:parent_model] == model_name }
@@ -205,6 +209,7 @@ class Magma
           next unless flag_value == gnomon_mode[:identifier] and not record.includes_parent_record?
 
           # Attempt to find parent models
+          binding.pry
           parent_models = find_parent_models(record_name)
 
           next if parent_models.empty?
