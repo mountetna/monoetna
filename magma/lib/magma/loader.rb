@@ -143,7 +143,7 @@ class Magma
       # If a identifier does not exist in the hierarchy chain, an empty list is returned.
       #
       # This method succeeds at finding parent identifiers if three conditions are met:
-      # 1. A proper grammar is created with gnomon and that grammar corresponds to a model hierarchy in the rules.
+      # 1. A proper grammar is created with gnomon and the grammar rules correspond to a model hierarchy.
       # 2. All identifiers in the hierarchy have been created in the identifier table.
       # 3. All models have been created in the db.
       #
