@@ -143,17 +143,17 @@ class Magma
       # If a identifier does not exist in the hierarchy chain, an empty list is returned.
       #
       # This method succeeds at finding parent identifiers if three conditions are met:
-      # 1. A proper grammar is created with gnomon and that grammar expresses a hierarchy in the rules.
-      # 2. All identifiers in the hierarchy have been created
-      # 3. The hierarchy of models have been created in the db
+      # 1. A proper grammar is created with gnomon and that grammar corresponds to a model hierarchy in the rules.
+      # 2. All identifiers in the hierarchy have been created in the identifier table.
+      # 3. All models have been created in the db.
       #
-      # This method uses the GNOMON.decompose API to find parent models
       grammar = Magma::Gnomon::Grammar.for_project(@project_name)
       grammar_decomposed = grammar.decompose(identifier)
-      return {} if grammar_decomposed.nil?
+      return [] if grammar_decomposed.nil?
 
-      # First we gather all available parent models and identifiers associated with the identifier
-      # If someone has created a well formatted grammar, with proper identifiers, there MAY be a hierarchy chain we can infer
+      # First we gather all available parent models and identifiers associated with the identifier.
+      # If someone has created a well formatted grammar, with proper identifiers,
+      # there MAY be a model hierarchy chain we can infer
       available_models = []
       grammar_decomposed[:rules].each do |token, token_hash|
         begin
@@ -169,7 +169,7 @@ class Magma
       root_model, other_models = partitioned[0][0], partitioned[1].flatten
       hierarchy_count = other_models.count
 
-      # Recursively sort this array
+      # Recursively sort the model hierarchy
       def sort(arr, sorted_array, model_name)
         # Look for the child model
         child_model = arr.find { |hash| hash[:parent_model] == model_name }
