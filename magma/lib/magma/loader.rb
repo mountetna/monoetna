@@ -237,7 +237,6 @@ class Magma
                             updated_at: @now)
             end
           end
-
         end
       end
     end
