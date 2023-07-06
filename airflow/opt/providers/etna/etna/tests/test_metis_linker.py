@@ -51,7 +51,7 @@ class TestMetisLinker:
                             {
                                 "type": "file",
                                 "folder_path": "victims",
-                                "file_match": "*.deceased.png",
+                                "file_match": "*.deceased*.png",
                                 "attribute_name": "photo_deceased"
                             }
                         ]
