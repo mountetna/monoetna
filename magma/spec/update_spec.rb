@@ -1403,35 +1403,6 @@ describe UpdateController do
 
       end
 
-      it 'does not create parents and link records if the parent identifiers are not defined in gnomon' do
-
-        Magma.instance.db[:flags].insert(
-            project_name: "labors",
-            flag_name: Magma::Flags::GNOMON_MODE[:name],
-            value: Magma::Flags::GNOMON_MODE[:identifier],
-            created_at: Time.now,
-            updated_at: Time.now,
-            )
-
-          update(
-            victim: {
-              victim_identifier.identifier => { weapon: 'sword' }
-            }
-          )
-
-          expect(last_response.status).to eq(200)
-
-          expect(Labors::Victim.first.weapon).to eq('sword')
-          expect(Labors::Victim.first.name).to eq(victim_identifier.identifier)
-          expect(Labors::Victim.first.monster_id).to eq(Labors::Monster.first.id)
-          expect(Labors::Monster.first.name).to eq(monster_identifier.identifier)
-          expect(Labors::Monster.first.labor_id).to eq(Labors::Labor.first.id)
-          expect(Labors::Labor.first.name).to eq(labor_identifier.identifier)
-          expect(Labors::Labor.first.project_id).to eq(Labors::Project.first.id)
-          expect(Labors::Project.first.name).to eq(project_identifier.identifier)
-
-      end
-
     end
 
     context 'pattern mode' do

@@ -158,7 +158,12 @@ class Magma
       grammar_decomposed[:rules].each do |token, token_hash|
         begin
           model = Magma.instance.get_model(@project_name, token)
-          available_models << {"model": token.to_sym, "identifier": token_hash[:name], "parent_model": model.parent_model_name}
+          available_models << {
+            model: token.to_sym,
+            identifier_name: model.identity.name,
+            identifier: token_hash[:name],
+            parent_model: model.parent_model_name
+          }
         rescue NameError => e
           next if e
         end
@@ -181,7 +186,7 @@ class Magma
         if child_model and !arr.empty?
           output_array << child_model
           arr.delete(child_model)
-          sort(arr, output_array, child_model[:model])
+          search(arr, output_array, child_model[:model])
         else
           return
         end
@@ -202,7 +207,11 @@ class Magma
       # This method handles a very specific update:
       # - The incoming update does NOT explicitly reference a parent/child's foreign key.
       # - It doesn't matter what type of attributes we are updating
-      @records.each do |model, record_set|
+
+      # We cannot update a hash during iteration, so loop over a copied object
+      records = @records.dup
+
+      records.each do |model, record_set|
         record_set.each do |record_name, record|
           gnomon_mode = Magma::Flags::GNOMON_MODE
           flag_value = @flags[gnomon_mode[:name]]
@@ -214,10 +223,19 @@ class Magma
 
           next if parent_models.empty?
 
-          # Update foreign keys
-          parent_models.each do |parent|
-            # TODO: push_records() starting from parents
-            # TODO: update foreign key of original record
+          # Start at the child
+          parent_models.reverse.each_cons(2).each_with_index do |(child, parent), index|
+            # Update the original record
+            if index == 0
+              @records[model][record_name] << {parent[:model] => parent[:identifier]}
+            else
+                child_model = Magma.instance.get_model(@project_name, child[:model])
+                push_record(child_model,
+                            child[:identifier].to_s,
+                            parent[:model] => parent[:identifier],
+                            created_at: @now,
+                            updated_at: @now)
+            end
           end
 
         end
