@@ -242,7 +242,7 @@ Models: {', '.join(i['response'].models.keys())}
 Committed to Magma: {i['commit']}
 '''
         for model_name, model in i['response'].models.items():
-            summary += f"{model_name} records updated: {len(model.documents)}\n"
+            summary += f"{model_name} records updated: {', '.join(model.documents.keys())}\n"
 
         summary += "==============================="
 
