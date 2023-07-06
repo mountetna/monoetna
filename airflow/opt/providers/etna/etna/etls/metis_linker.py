@@ -44,8 +44,8 @@ class MetisLoaderConfig(EtlConfigResponse):
             match = re.escape(match)
             # **/ matches anything including nothing
             match = re.sub(STAR_MAGIC*2+'/', '(?:.*/|)', match)
-            # * matches any non-zero non-slash
-            match = re.sub(STAR_MAGIC, '[^/]+', match)
+            # * matches any non-slash including nothing
+            match = re.sub(STAR_MAGIC, '[^/]*', match)
             # {a,b,c,d} matches a group
             match = re.sub(f"{BRACE1_MAGIC}((?:[^,]+,)+,[^,]+){BRACE2_MAGIC}", lambda m : f"({m[1].replace(',','|')})", match)
             match = re.compile(match)
