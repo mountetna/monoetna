@@ -146,11 +146,13 @@ function FileOrFolderInner({ optionSet, path, target, setTarget, onEmpty, placeh
   />
 }
 
-export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setPath, path, allowFiles=true, label, basePath, topLevelPlaceholder='', className}: {
+export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setPath, path, type, useTargetType, allowFiles=true, label, basePath, topLevelPlaceholder='', className}: {
   project_name?: string;
   bucket: string;
   setPath: Function;
   path: string; // the overall "value" / output
+  type?: 'folder' | 'file' | null;
+  useTargetType?: (type: 'folder' | 'file' | null)=>void; // null = not yet determined OR not getting tracked
   label?: string;
   basePath: string; // an immutable portion of path.  Can be '' to access the entire bucket and to be compatible with exploring across buckets in sync with a PickBucket companion.
   topLevelPlaceholder?: string;
@@ -158,9 +160,10 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   className?: string;
 }) {
   const [pathArray, setPathArray] = useState(pathToArray(path, basePath));
+  // const [targetType, setTargetType] = useState(null as 'folder' | 'file' | null) // null = not yet determined
   const labelUse = label!==undefined ? label : allowFiles ? "File or Folder" : "Folder"
   const [showAddButton, setShowAddButton] = useState(-1) // holds index of pathArray level needing plus button shown next to it
-  const [contentsSeen, setContentsSeen] = useState({} as {[k: string]: folderSummary | undefined | string})
+  const [contentsSeen, setContentsSeen] = useState({} as {[k: string]: folderSummary | undefined})
   const [firstRender, setFirstRender] = useState(true) // tracked so we can leave newly rendered dropdowns closed when not the user's focus
   const [fetchContents, setFetchContents] = useState([] as string[])
   const [fetching, setFetching] = useState(false)
@@ -182,6 +185,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   // fetch contents from metis. Caveat: only works one-at-a-time because contentsSeen gets stale.
   const fetchFolderContents = useCallback( (path: string, callback?: (folderSummary: folderSummary) => void) => {
     const key = pathInMetis(path)
+    console.log("fetching contents of ", key)
     setContentsSeen({...contentsSeen, [key]: undefined})
     json_get(metisPath(key)).then((metis_return) => {
       const folderSummary = simplifyFolderListReturn(metis_return)
@@ -200,15 +204,17 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     }
   }, [path]);
 
-  // Determine folder contents to grab at very start
+  // Determine folder contents to grab at very start, or once first valid bucket given 
   useEffect( () => {
-    let contentsNeeded = ['']
-    for (let i=1; i <= pathArray.length; i++) {
-      const thisPath = stripSlash(arrayToPath(pathArray.slice(0,i), basePath))
-      contentsNeeded.push(thisPath)
+    if (bucket != '' && Object.keys(contentsSeen).length==0 && !fetching) {
+      let contentsNeeded = ['']
+      for (let i=1; i <= pathArray.length; i++) {
+        const thisPath = stripSlash(arrayToPath(pathArray.slice(0,i), basePath))
+        contentsNeeded.push(thisPath)
+      }
+      setFetchContents(contentsNeeded)
     }
-    setFetchContents(contentsNeeded)
-  }, [])
+  }, [bucket])
 
   // Get contents of paths in fetchContents, one at a time.
   useEffect( ()=>{
@@ -240,6 +246,26 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   useEffect(() => {
     setPath(stripSlash(arrayToPath(pathArray, basePath)));
   }, [pathArray])
+
+  // Update secondary readout (type) whenever pathArray or contentSeen are updated
+  useEffect( () => {
+    if (useTargetType != undefined && !fetching) {
+      const targetContainerMetisPath = pathInMetis(
+        stripSlash(arrayToPath(pathArray.slice(0,-1), basePath))
+      )
+      const targetContainerContent = contentsSeen[targetContainerMetisPath]
+      const target = pathArray[pathArray.length-1]
+      let newType = null;
+      if (target != '' && targetContainerContent != undefined) {
+        newType =
+          (['folders', 'files'] as ('files'|'folders')[])
+            .filter( contentType => targetContainerContent[contentType].includes(target) )[0]
+          .slice(0, -1) as 'file' | 'folder'
+      }
+      // setTargetType(type)
+      if (newType != type) useTargetType(newType)
+    }
+  }, [pathArray, contentsSeen, fetching, useTargetType])
 
   // onChange for inners
   const updateTarget = (newPath: string, currentPathSet: string[], depth: number) => {
@@ -284,6 +310,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
       const icon = index > 0 ? <SubdirectoryArrowRightIcon fontSize='small'/> : <i className="fas fa-folder" aria-hidden="true" style={{padding:'2px'}}/>;
       const thisPath = arrayToPath(fullArray.slice(0,index), basePath)
       const ready = pathSeen(thisPath)
+      const thisLabel = (index==0) ? labelUse : undefined
       return (
         <Grid item container
           key={`sub-picker-${project_name}-${bucket}-`+ index}
@@ -292,7 +319,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
             {icon}
           </Grid>
           <Grid item style={{flex: '1 1 auto'}}>
-            {ready && <FileOrFolderInner
+            {ready ? <FileOrFolderInner
               optionSet={ contentUse(contentsSeen[pathInMetis(thisPath)] as folderSummary)}
               target={p}
               setTarget={(e: string) => updateTarget(e, pathArray, index)}
@@ -300,8 +327,18 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
               path={thisPath}
               autoOpen={!firstRender}
               placeholder={(index==0) ? topLevelPlaceholder : undefined}
-              label={(index==0) ? labelUse : undefined}
-            />}
+              label={thisLabel}
+            /> : <div style={{paddingTop: 8}}>
+              <TextField
+                label={thisLabel}
+                InputLabelProps={{ shrink: true }}
+                size="small"
+                disabled
+                fullWidth
+                placeholder={'Awaiting folder contents or bucket selection'}
+              />
+            </div>
+            }
           </Grid>
           {showAddButton==index ? <Grid item container alignItems='flex-end' style={{width: 'auto'}}>
             <IconButton
