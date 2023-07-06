@@ -172,22 +172,23 @@ class Magma
       # We do this by recursively searching for children top-down.
       # We start with the projects model, and then search for any models that have the key
       # :parent_model = :projects. Lets say we find some model X, then the following iteration,
-      # this repeats, and we search for any models where :parent_model = :X. Each model that is found
-      # is appended to the sorted_array.
-      def sort(arr, sorted_array, model_name)
+      # this repeats, and we search for any models where :parent_model = :X. This continues all the way
+      # down the tree. Each model that is found is appended to the output_array. Searching this way
+      # guarantees our output_array is sorted.
+      def search(arr, output_array, model_name)
         # Look for the child model
         child_model = arr.find { |hash| hash[:parent_model] == model_name }
         if child_model and !arr.empty?
-          sorted_array << child_model
+          output_array << child_model
           arr.delete(child_model)
-          sort(arr, sorted_array, child_model[:model])
+          sort(arr, output_array, child_model[:model])
         else
           return
         end
       end
 
       sorted = []
-      sort(other_models, sorted, root_model[:model])
+      search(other_models, sorted, root_model[:model])
 
       # If we successfully infer a model hierarchy, the counts should be the same
       hierarchy_count == sorted.count ? sorted.prepend(root_model) : []
