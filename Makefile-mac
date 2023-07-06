@@ -43,7 +43,12 @@ build-dev-archimedes-images:
 	 echo "Building archimedes images..."
 	 cd docker/archimedes-base && docker build . -t archimedes-base
 	 cd archimedes-r-base && docker build . -t archimedes-r-base # takes a really long time!
-	 cd docker/archimedes-node-base && docker . build -t archimedes-node-base
+	 cd docker/archimedes-node-base && docker build . -t archimedes-node-base
+
+build-dev-deployer-images:
+	# Deployer
+	echo "Building deployer images..."
+	cd docker/deployer-base && docker build . -t deployer-base
 
 ### Project level targets ###
 
