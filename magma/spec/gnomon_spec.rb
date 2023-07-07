@@ -442,8 +442,8 @@ describe GnomonController do
   context 'rules API' do
     it 'lists all of the rules for each requested project' do
       grammar = create_grammar(version_number: 1, config: {})
-      grammar2 = create_grammar(version_number: 2, config: VALID_CONFIG)
-      grammar3 = create_grammar(project_name: 'toils', version_number: 1, config: VALID_CONFIG)
+      grammar2 = create_grammar(version_number: 2, config: VALID_GRAMMAR_CONFIG)
+      grammar3 = create_grammar(project_name: 'toils', version_number: 1, config: VALID_GRAMMAR_CONFIG)
 
       auth_header(:superuser)
       post('/gnomon/rules', project_names: [ 'labors', 'toils' ])
