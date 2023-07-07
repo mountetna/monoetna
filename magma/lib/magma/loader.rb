@@ -138,7 +138,7 @@ class Magma
     def find_parent_models(identifier)
       # This method attempts to find all parent models and (their identifiers) for a given identifier.
       #
-      # It returns an ORDERED list of hashes, where each hash contains the model, the identifier, and the
+      # It returns an ORDERED list of hashes, where each hash contains the model, identifier_name, identifier and the
       # parent_model. The order corresponds to the model hierarchy - and the project model is the first item in the list.
       # If a identifier does not exist in the hierarchy chain, an empty list is returned.
       #
@@ -146,8 +146,8 @@ class Magma
       # 1. A proper grammar is created with gnomon and the grammar rules correspond to a model hierarchy.
       # 2. All identifiers in the hierarchy have been created in the identifier table.
       # 3. All models have been created in the db.
-      #
       grammar = Magma::Gnomon::Grammar.for_project(@project_name)
+      return [] if grammar.nil?
       grammar_decomposed = grammar.decompose(identifier)
       return [] if grammar_decomposed.nil?
 
@@ -170,6 +170,7 @@ class Magma
       end
 
       # Next we determine if the hierarchy chain is valid for the models that we've found.
+      return [] if available_models.empty?
       partitioned = available_models.partition { |h| h[:parent_model].nil? }
       root_model, other_models = partitioned[0][0], partitioned[1].flatten
       hierarchy_count = other_models.count
