@@ -15,8 +15,11 @@ const _MetisPathValid = (
   const empty_value = {bucket: '', path: '', type: null}
   const checkme = allow_empty_path ? ['bucket'] : ['bucket', 'path']
 
-  if (!input.value || !input.value.bucket) return ['Not ready']
+  const value = withDefault(input.value, undefined)
 
+  if (!value) return ['Value not ready']
+
+  // Missing bucket or path?
   const emptyKeys = withDefault(mapSome(input.value, value =>
     [...checkme].filter(o => !inputValueNonEmpty(maybeOfNullable(value[o]), true))), checkme);
   emptyKeys.sort();
@@ -29,7 +32,7 @@ const _MetisPathValid = (
     ];
   }
 
-  const value = withDefault(input.value, empty_value)
+  // // Path ends in '/'?
   // if ( (value.path as string).endsWith("/") ) {
   //   return [
   //     `Path ends in \'/\'`
@@ -37,7 +40,6 @@ const _MetisPathValid = (
   // }
 
   if (type) {
-    const value = withDefault({...input.value}, empty_value)
     return type == value.type ? [] : [`Selected metis path is a ${value.type}, but a ${type} is needed.`]
   }
 

@@ -247,46 +247,69 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     setPath(stripSlash(arrayToPath(pathArray, basePath)));
   }, [pathArray])
 
-  // Update secondary readout (type) whenever pathArray or contentSeen are updated
-  useEffect( () => {
-    if (useTargetType != undefined && !fetching) {
-      const targetContainerMetisPath = pathInMetis(
-        stripSlash(arrayToPath(pathArray.slice(0,-1), basePath))
-      )
-      const targetContainerContent = contentsSeen[targetContainerMetisPath]
-      const target = pathArray[pathArray.length-1]
-      let newType = null;
-      if (target != '' && targetContainerContent != undefined) {
-        newType =
-          (['folders', 'files'] as ('files'|'folders')[])
-            .filter( contentType => targetContainerContent[contentType].includes(target) )[0]
-          .slice(0, -1) as 'file' | 'folder'
-      }
-      // setTargetType(type)
-      if (newType != type) useTargetType(newType)
-    }
-  }, [pathArray, contentsSeen, fetching, useTargetType])
+  // // Update secondary readout (type) whenever pathArray or contentSeen are updated
+  // useEffect( () => {
+  //   if (useTargetType != undefined && !fetching) {
+  //     const targetContainerMetisPath = pathInMetis(
+  //       stripSlash(arrayToPath(pathArray.slice(0,-1), basePath))
+  //     )
+  //     const targetContainerContent = contentsSeen[targetContainerMetisPath]
+  //     const target = pathArray[pathArray.length-1]
+  //     let newType = null;
+  //     if (target != '' && targetContainerContent != undefined) {
+  //       newType =
+  //         (['folders', 'files'] as ('files'|'folders')[])
+  //           .filter( contentType => targetContainerContent[contentType].includes(target) )[0]
+  //         .slice(0, -1) as 'file' | 'folder'
+  //     }
+  //     // setTargetType(newType)
+  //     if (newType != type) useTargetType(newType)
+  //   }
+  // }, [pathArray, contentsSeen, fetching, useTargetType])
 
   // onChange for inners
   const updateTarget = (newPath: string, currentPathSet: string[], depth: number) => {
     setFirstRender(false)
+    
     // Also trim at the level just picked in case not actually the deepest
     let nextPathSet = [...currentPathSet].slice(0,depth+1)
     nextPathSet[depth] = newPath
+    
+    // Determine type of target
+    const targetContainerMetisPath = pathInMetis(
+      stripSlash(arrayToPath(nextPathSet.slice(0,-1), basePath))
+    )
+    const targetContainerContent = contentsSeen[targetContainerMetisPath] as folderSummary // If here, the user picked a content, so this should exist!
+    const target = newPath
+    // let newType = null;
+    // if (target != '' && targetContainerContent != undefined) {
+    const newType =
+      (['folders', 'files'] as ('files'|'folders')[])
+        .filter( contentType => targetContainerContent[contentType].includes(target) )[0]
+      .slice(0, -1) as 'file' | 'folder'
+    // }
+    if (useTargetType) useTargetType(newType)
+    
+    // Set new path value and ready to fetch contents if it's a folder
     const targetPath = arrayToPath(nextPathSet, basePath)
-    if (!pathSeen(targetPath)) {
-      fetchFolderContents(targetPath, (f) => {
-        if (contentUse(f).length > 0) {
+    if (newType=='file') {
+      setPathArray(nextPathSet)
+    } else {
+      // Need to add next level if folder target has useable contents
+      if (!pathSeen(targetPath)) {
+        fetchFolderContents(targetPath, (f) => {
+          if (contentUse(f).length > 0) {
+            setPathArray([...nextPathSet, ''])
+          } else {
+            setPathArray(nextPathSet)
+          }
+        })
+      } else {
+        if (contentUse(contentsSeen[pathInMetis(targetPath)] as folderSummary).length > 0) {
           setPathArray([...nextPathSet, ''])
         } else {
           setPathArray(nextPathSet)
         }
-      })
-    } else {
-      if (contentUse(contentsSeen[pathInMetis(targetPath)] as folderSummary).length > 0) {
-        setPathArray([...nextPathSet, ''])
-      } else {
-        setPathArray(nextPathSet)
       }
     }
     setShowAddButton(-1)
@@ -295,6 +318,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   // clear for inners
   const trimPath = (depth: number) => {
     const nextPathSet = depth > 0 ? [...pathArray].slice(0,depth) : ['']
+    if (useTargetType) useTargetType('folder')
     setPathArray(nextPathSet)
     if (depth > 0) setShowAddButton(depth-1)
   }
