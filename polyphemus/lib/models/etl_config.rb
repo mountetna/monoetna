@@ -128,7 +128,7 @@ class Polyphemus
     end
 
     def to_revision
-      as_json.slice(:config, :version_number, :comment)
+      as_json.slice(:config, :updated_at, :version_number, :comment)
     end
 
     def valid_config?(config)
