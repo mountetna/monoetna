@@ -18,7 +18,6 @@ build-dev-etna-images:
 	cd bash_mocker &&  docker build . -t bash_mocker
 	cd development-certs && docker build . -t development-certs
 	cd docker/development-psql && docker build . -t development-psql
-	# Is this needed? cd docker/deployer_base && docker build . -t deployer-base
 
 	# Apache
 	echo "Building apache images..."
