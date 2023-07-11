@@ -171,6 +171,7 @@ declare module 'etna-js/components/revision-history' {
     update: (revision: any) => void;
     open: boolean;
     onClose: () => void;
+    dateField?: string;
   }): any {};
 }
 
