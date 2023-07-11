@@ -45,6 +45,12 @@ function simplifyFolderListReturn(fullList: any) {
   }
 }
 
+const contentUse = (folderContents: folderSummary, allowFiles: boolean) => {
+  return allowFiles ?
+    folderContents.folders.concat(folderContents.files) :
+    folderContents.folders
+}
+
 export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket, label="Bucket", className}: {
   project_name?: string;
   setBucket: any;
@@ -86,6 +92,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
               error={ bucket==null || bucket == '' || inputState != nullToEmptyString(bucket)}
               label={label}
               size='small'
+              InputLabelProps={{shrink: true}}
             />
           )}
         />
@@ -160,7 +167,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   className?: string;
 }) {
   const [pathArray, setPathArray] = useState(pathToArray(path, basePath));
-  // const [targetType, setTargetType] = useState(null as 'folder' | 'file' | null) // null = not yet determined
+  const [targetType, setTargetType] = useState(null as 'folder' | 'file' | null) // null = not yet determined
   const labelUse = label!==undefined ? label : allowFiles ? "File or Folder" : "Folder"
   const [showAddButton, setShowAddButton] = useState(-1) // holds index of pathArray level needing plus button shown next to it
   const [contentsSeen, setContentsSeen] = useState({} as {[k: string]: folderSummary | undefined})
@@ -168,24 +175,59 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   const [fetchContents, setFetchContents] = useState([] as string[])
   const [fetching, setFetching] = useState(false)
 
-  const contentUse = (folderContents: folderSummary) => {
-    return allowFiles ?
-      folderContents.folders.concat(folderContents.files) :
-      folderContents.folders
-  }
   const pathInMetis = useCallback( (folderPath: string) => {
     return `${project_name}/list/${bucket}/${folderPath}`
   }, [project_name, bucket])
-
   const pathSeen = useCallback( (folderPath: string) => {
     const key = pathInMetis(folderPath)
     return key in contentsSeen && !["undefined","string"].includes(typeof(contentsSeen[key]))  // todo: use string for error cases when trying to fetch folder contents
   }, [pathInMetis, contentsSeen])
   
+  function useType(type: 'file' | 'folder' | null) {
+    if (useTargetType) useTargetType(type)
+    if (type != targetType) setTargetType(type)
+    return type
+  }
+  const useDetermineType = useCallback( (target: string, containerPath: string, doUse: boolean = true)=> {
+    const containerMetisPath = pathInMetis(containerPath);
+    const targetContainerContent = contentsSeen[containerMetisPath];
+    let newType = null as 'file' | 'folder' | null;
+
+    // console.log({contentsSeen})
+    // console.log("Looking for ", target, " in ", containerMetisPath)
+    // console.log({targetContainerContent})
+
+    if (targetContainerContent == undefined) {
+      if (!fetchContents.includes(containerPath)) {
+        setFetchContents([...fetchContents, containerPath])
+      }
+      // newType = null;
+    } else {
+      const whichContents: ('folders'|'files')[] = (['folders', 'files'] as ('folders'|'files')[])
+        .filter( contentType => targetContainerContent[contentType].includes(target) )
+      newType = whichContents.length>0 ? whichContents[0].slice(0, -1) as 'file' | 'folder' : null
+    }
+    return doUse ? useType(newType) : newType
+  }, [contentsSeen, fetchContents, pathInMetis])
+
+  // Ensure type is determined even if containing folder contents weren't known at time of path update
+  useEffect( () => {
+    if (targetType == null && fetchContents.length == 0) {
+      const containerPathArray = pathArray.slice(0,-1)
+      const target = pathArray[pathArray.length-1]
+      if (target && target != '') {
+        useDetermineType(target, stripSlash(arrayToPath(containerPathArray, basePath)))
+      }
+      if (target && target == '') {
+        useType('folder')
+      }
+    }
+  }, [targetType, fetchContents])
+  
   // fetch contents from metis. Caveat: only works one-at-a-time because contentsSeen gets stale.
   const fetchFolderContents = useCallback( (path: string, callback?: (folderSummary: folderSummary) => void) => {
     const key = pathInMetis(path)
-    console.log("fetching contents of ", key)
+    // console.log("fetching contents of ", key)
     setContentsSeen({...contentsSeen, [key]: undefined})
     json_get(metisPath(key)).then((metis_return) => {
       const folderSummary = simplifyFolderListReturn(metis_return)
@@ -196,19 +238,11 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   },
   [project_name, bucket, contentsSeen]);
 
-  useEffect(() => {
-    const arrays_path = arrayToPath(pathArray, basePath);
-
-    if (arrays_path != path && stripSlash(arrays_path) != path) {
-      setPathArray(pathToArray(path, basePath));
-    }
-  }, [path]);
-
   // Determine folder contents to grab at very start, or once first valid bucket given 
   useEffect( () => {
     if (bucket != '' && Object.keys(contentsSeen).length==0 && !fetching) {
       let contentsNeeded = ['']
-      for (let i=1; i <= pathArray.length; i++) {
+      for (let i=1; i <= pathArray.length-1; i++) {
         const thisPath = stripSlash(arrayToPath(pathArray.slice(0,i), basePath))
         contentsNeeded.push(thisPath)
       }
@@ -225,7 +259,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
       } else if (!fetching) {
         setFetching(true)
         if (path !='' && fetchContents[0]==path) {
-          fetchFolderContents(fetchContents[0], (f) => { if (contentUse(f).length > 0) setPathArray([...pathArray, '']) })
+          fetchFolderContents(fetchContents[0], (f) => { if (contentUse(f, allowFiles).length > 0) setPathArray([...pathArray, '']) })
         } else {
           fetchFolderContents(fetchContents[0])
         }
@@ -247,78 +281,59 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     setPath(stripSlash(arrayToPath(pathArray, basePath)));
   }, [pathArray])
 
-  // // Update secondary readout (type) whenever pathArray or contentSeen are updated
-  // useEffect( () => {
-  //   if (useTargetType != undefined && !fetching) {
-  //     const targetContainerMetisPath = pathInMetis(
-  //       stripSlash(arrayToPath(pathArray.slice(0,-1), basePath))
-  //     )
-  //     const targetContainerContent = contentsSeen[targetContainerMetisPath]
-  //     const target = pathArray[pathArray.length-1]
-  //     let newType = null;
-  //     if (target != '' && targetContainerContent != undefined) {
-  //       newType =
-  //         (['folders', 'files'] as ('files'|'folders')[])
-  //           .filter( contentType => targetContainerContent[contentType].includes(target) )[0]
-  //         .slice(0, -1) as 'file' | 'folder'
-  //     }
-  //     // setTargetType(newType)
-  //     if (newType != type) useTargetType(newType)
-  //   }
-  // }, [pathArray, contentsSeen, fetching, useTargetType])
+  // Detect when path has been updated externally
+  useEffect(() => {
+    const arrays_path = arrayToPath(pathArray, basePath);
+    if (arrays_path != path && stripSlash(arrays_path) != path) {
+      setPathArray(pathToArray(path, basePath));
+    }
+  }, [path]);
 
   // onChange for inners
   const updateTarget = (newPath: string, currentPathSet: string[], depth: number) => {
     setFirstRender(false)
+    setShowAddButton(-1)
     
     // Also trim at the level just picked in case not actually the deepest
     let nextPathSet = [...currentPathSet].slice(0,depth+1)
     nextPathSet[depth] = newPath
     
-    // Determine type of target
-    const targetContainerMetisPath = pathInMetis(
-      stripSlash(arrayToPath(nextPathSet.slice(0,-1), basePath))
-    )
-    const targetContainerContent = contentsSeen[targetContainerMetisPath] as folderSummary // If here, the user picked a content, so this should exist!
-    const target = newPath
-    // let newType = null;
-    // if (target != '' && targetContainerContent != undefined) {
-    const newType =
-      (['folders', 'files'] as ('files'|'folders')[])
-        .filter( contentType => targetContainerContent[contentType].includes(target) )[0]
-      .slice(0, -1) as 'file' | 'folder'
-    // }
-    if (useTargetType) useTargetType(newType)
+    // Determine type of newPath target.  Can assume non-null answer because newPath has been chosen from known contents
+    // Don't actually set here as calling useTargetType now likely triggers an infinite useEffect loop!
+    const newType = (useDetermineType(
+      newPath,
+      stripSlash(arrayToPath(nextPathSet.slice(0,-1), basePath)),
+      false
+    ) as 'file' | 'folder')
     
-    // Set new path value and ready to fetch contents if it's a folder
+    // Set new path value
     const targetPath = arrayToPath(nextPathSet, basePath)
     if (newType=='file') {
       setPathArray(nextPathSet)
     } else {
-      // Need to add next level if folder target has useable contents
+      // Also fetch folder contents (priority = here > fetchContents items) and add level if has usable contents
       if (!pathSeen(targetPath)) {
         fetchFolderContents(targetPath, (f) => {
-          if (contentUse(f).length > 0) {
-            setPathArray([...nextPathSet, ''])
-          } else {
-            setPathArray(nextPathSet)
+          if (contentUse(f, allowFiles).length > 0) {
+            nextPathSet = [...nextPathSet, '']
           }
+          setPathArray(nextPathSet)
         })
       } else {
-        if (contentUse(contentsSeen[pathInMetis(targetPath)] as folderSummary).length > 0) {
-          setPathArray([...nextPathSet, ''])
-        } else {
-          setPathArray(nextPathSet)
+        if (contentUse(contentsSeen[pathInMetis(targetPath)] as folderSummary, allowFiles).length > 0) {
+          nextPathSet = [...nextPathSet, '']
         }
+        setPathArray(nextPathSet)
       }
     }
-    setShowAddButton(-1)
+
+    useType(newType)
   }
   
-  // clear for inners
+  // clear for inners (a.k.a. select previous folder)
   const trimPath = (depth: number) => {
     const nextPathSet = depth > 0 ? [...pathArray].slice(0,depth) : ['']
-    if (useTargetType) useTargetType('folder')
+    useType('folder')
     setPathArray(nextPathSet)
     if (depth > 0) setShowAddButton(depth-1)
   }
@@ -344,7 +359,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
           </Grid>
           <Grid item style={{flex: '1 1 auto'}}>
             {ready ? <FileOrFolderInner
-              optionSet={ contentUse(contentsSeen[pathInMetis(thisPath)] as folderSummary)}
+              optionSet={ contentUse(contentsSeen[pathInMetis(thisPath)] as folderSummary, allowFiles)}
               target={p}
               setTarget={(e: string) => updateTarget(e, pathArray, index)}
               onEmpty={ () => { trimPath(index) } }

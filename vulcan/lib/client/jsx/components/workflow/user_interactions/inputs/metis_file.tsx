@@ -13,12 +13,12 @@ declare const CONFIG: {[key: string]: any};
 type metisPathType = { bucket: string, path: string, type: 'file' | 'folder' | null }
 
 export default function FileInput({onChange, label, data, ...props}: WithInputParams<{label?: string}, metisPathType, metisPathType>) {
-  console.log({props})
+  // console.log({props})
   const value = useSetsDefault({bucket: '', path: '', type: null}, props.value, onChange);
-  console.log({value})
+  // console.log({value})
 
   function updateKeyToVal(key: string, val: string | null, fullValues = {...value}) {
-    console.log('setting ', key, ' to ', val)
+    // console.log('setting ', key, ' to ', val)
     const newValue = fullValues
     newValue[key] = val
     onChange(some(newValue))

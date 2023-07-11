@@ -7,13 +7,13 @@ declare const CONFIG: {[key: string]: any};
 const _MetisPathValid = (
   input: ValidationInputSpecification<DataEnvelope<any>, DataEnvelope<any>>,
   type: 'file' | 'folder' | undefined,
-  allow_empty_path: boolean = false
+  allow_toplevel_path: boolean = false
 ): string[] => {
   // input.value should be nested hash, like
   // {bucket: '<bucket-name>', path: 'path/to/something', type: 'file' | 'folder' | null}
 
   const empty_value = {bucket: '', path: '', type: null}
-  const checkme = allow_empty_path ? ['bucket'] : ['bucket', 'path']
+  const checkme = allow_toplevel_path ? ['bucket'] : ['bucket', 'path']
 
   const value = withDefault(input.value, undefined)
 
