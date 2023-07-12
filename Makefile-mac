@@ -18,7 +18,6 @@ build-dev-etna-images:
 	cd bash_mocker &&  docker build . -t bash_mocker
 	cd development-certs && docker build . -t development-certs
 	cd docker/development-psql && docker build . -t development-psql
-	# Is this needed? cd docker/deployer_base && docker build . -t deployer-base
 
 	# Apache
 	echo "Building apache images..."
@@ -44,11 +43,6 @@ build-dev-archimedes-images:
 	 cd docker/archimedes-base && docker build . -t archimedes-base
 	 cd archimedes-r-base && docker build . -t archimedes-r-base # takes a really long time!
 	 cd docker/archimedes-node-base && docker build . -t archimedes-node-base
-
-build-dev-deployer-images:
-	# Deployer
-	echo "Building deployer images..."
-	cd docker/deployer-base && docker build . -t deployer-base
 
 ### Project level targets ###
 
