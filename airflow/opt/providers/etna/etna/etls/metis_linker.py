@@ -44,8 +44,8 @@ class MetisLoaderConfig(EtlConfigResponse):
             match = re.escape(match)
             # **/ matches anything including nothing
             match = re.sub(STAR_MAGIC*2+'/', '(?:.*/|)', match)
-            # * matches any non-zero non-slash
-            match = re.sub(STAR_MAGIC, '[^/]+', match)
+            # * matches any non-slash including nothing
+            match = re.sub(STAR_MAGIC, '[^/]*', match)
             # {a,b,c,d} matches a group
             match = re.sub(f"{BRACE1_MAGIC}((?:[^,]+,)+,[^,]+){BRACE2_MAGIC}", lambda m : f"({m[1].replace(',','|')})", match)
             match = re.compile(match)
@@ -242,7 +242,7 @@ Models: {', '.join(i['response'].models.keys())}
 Committed to Magma: {i['commit']}
 '''
         for model_name, model in i['response'].models.items():
-            summary += f"{model_name} records updated: {len(model.documents)}\n"
+            summary += f"{model_name} records updated: {', '.join(model.documents.keys())}\n"
 
         summary += "==============================="
 
