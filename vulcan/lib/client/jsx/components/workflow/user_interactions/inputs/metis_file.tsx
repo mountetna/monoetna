@@ -16,7 +16,7 @@ function _MetisLocationInput({onChange, label, allowFiles, data, ...props}: With
   function updateKeyToVal(key: 'bucket' | 'path' | 'type', val: string | null, fullValues = {...value}) {
     // console.log('setting ', key, ' to ', val)
     const newValue = fullValues
-    newValue[key] = val
+    newValue[key] = val as any
     onChange(some(newValue))
   }
 
