@@ -1363,9 +1363,11 @@ describe UpdateController do
         expect(json_body[:errors]).to eq(["The identifier 'Nemean Lion' has not been assigned in Gnomon."])
       end
 
-      it 'creates parents and links records when the parent identifiers are defined in gnomon' do
+      context 'auto creation of parents' do
 
-        Magma.instance.db[:flags].insert(
+        it 'is successful when a hierarchical grammar exists and identifiers are present' do
+
+          Magma.instance.db[:flags].insert(
             project_name: "labors",
             flag_name: Magma::Flags::GNOMON_MODE[:name],
             value: Magma::Flags::GNOMON_MODE[:identifier],
@@ -1373,35 +1375,68 @@ describe UpdateController do
             updated_at: Time.now,
             )
 
-        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+          grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
 
-        project_identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
-        labor_identifier = create_identifier("The Nemean Lion", rule: 'labor', grammar: grammar)
-        monster_identifier = create_identifier("Neamon Lion", rule: 'monster', grammar: grammar)
-        victim_identifier = create_identifier("LABORS-LION-NEAMON-H2-C1", rule: 'victim', grammar: grammar)
+          project_identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
+          labor_identifier = create_identifier("The Nemean Lion", rule: 'labor', grammar: grammar)
+          monster_identifier = create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
+          victim_identifier = create_identifier("LABORS-LION-NEMEAN-H2-C1", rule: 'victim', grammar: grammar)
 
-        expect(Labors::Labor.count).to be(0)
-        expect(Labors::Victim.count).to be(0)
-        expect(Labors::Monster.count).to be(0)
+          expect(Labors::Labor.count).to be(0)
+          expect(Labors::Victim.count).to be(0)
+          expect(Labors::Monster.count).to be(0)
 
-        update(
-          victim: {
-            victim_identifier.identifier => { weapon: 'sword' }
-          }
-        )
+          update(
+            victim: {
+              victim_identifier.identifier => { weapon: 'sword' }
+            }
+          )
 
-        expect(last_response.status).to eq(200)
+          expect(last_response.status).to eq(200)
 
-        expect(Labors::Victim.first.weapon).to eq('sword')
-        expect(Labors::Victim.first.name).to eq(victim_identifier.identifier)
-        expect(Labors::Victim.first.monster_id).to eq(Labors::Monster.first.id)
-        expect(Labors::Monster.first.name).to eq(monster_identifier.identifier)
-        expect(Labors::Monster.first.labor_id).to eq(Labors::Labor.first.id)
-        expect(Labors::Labor.first.name).to eq(labor_identifier.identifier)
-        expect(Labors::Labor.first.project_id).to eq(Labors::Project.first.id)
-        expect(Labors::Project.first.name).to eq(project_identifier.identifier)
+          expect(Labors::Victim.first.weapon).to eq('sword')
+          expect(Labors::Victim.first.name).to eq(victim_identifier.identifier)
+          expect(Labors::Victim.first.monster_id).to eq(Labors::Monster.first.id)
+          expect(Labors::Monster.first.name).to eq(monster_identifier.identifier)
+          expect(Labors::Monster.first.labor_id).to eq(Labors::Labor.first.id)
+          expect(Labors::Labor.first.name).to eq(labor_identifier.identifier)
+          expect(Labors::Labor.first.project_id).to eq(Labors::Project.first.id)
+          expect(Labors::Project.first.name).to eq(project_identifier.identifier)
 
+        end
+
+        it 'rejects all updates when a hierarchical grammar exists but identifiers do not' do
+
+          Magma.instance.db[:flags].insert(
+            project_name: "labors",
+            flag_name: Magma::Flags::GNOMON_MODE[:name],
+            value: Magma::Flags::GNOMON_MODE[:identifier],
+            created_at: Time.now,
+            updated_at: Time.now,
+            )
+
+          victim_identifier = "LABORS-LION-NEMEAN-H2-C1"
+          grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+
+          update(
+            victim: {
+              victim_identifier => { weapon: 'sword' }
+            }
+          )
+
+          # No records should be created, even though we were able to find a model hierarchy
+          expect(Labors::Labor.count).to be(0)
+          expect(Labors::Victim.count).to be(0)
+          expect(Labors::Monster.count).to be(0)
+
+          expect(last_response.status).to eq(422)
+          expect(json_body[:errors]).to include("The identifier 'LABORS-LION-NEMEAN-H2-C1' has not been assigned in Gnomon.")
+          expect(json_body[:errors]).to include("The identifier 'Nemean Lion' has not been assigned in Gnomon.")
+          expect(json_body[:errors]).to include("The identifier 'The Nemean Lion' has not been assigned in Gnomon.")
+          expect(json_body[:errors]).to include("The identifier 'The Twelve Labors of Hercules' has not been assigned in Gnomon.")
+        end
       end
+
 
     end
 

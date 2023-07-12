@@ -594,13 +594,13 @@ HIERARCHY_GRAMMAR_CONFIG={
     MONSTER: {
       label: "monster",
       values: {
-        "Neamon Lion": "Neamon Lion"
+        "Nemean Lion": "Nemean Lion"
       }
     },
     MONST: {
       label: "monster",
       values: {
-        "NEAMON": "Neamon Lion"
+        "NEMEAN": "Nemean Lion"
       }
     },
     VICT: {

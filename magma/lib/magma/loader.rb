@@ -50,6 +50,7 @@ class Magma
       @now = Time.now.iso8601
       @dry_run = dry_run
       @flags = Magma::Project.flags(project_name)
+      @grammar = Magma::Gnomon::Grammar.for_project(project_name)
     end
 
     def push_record(model, record_name, revision)
@@ -138,69 +139,54 @@ class Magma
     def find_parent_models(identifier)
       # This method attempts to find all parent models and (their identifiers) for a given identifier.
       #
-      # It returns an ORDERED list of hashes, where each hash contains the model, identifier_name, identifier and the
-      # parent_model. The order corresponds to the model hierarchy - and the project model is the first item in the list.
-      # If a identifier does not exist in the hierarchy chain, an empty list is returned.
+      # It returns a hash of hashes, where each hash is indexed by model name, and each sub hash, contains the model,
+      # identifier_name, identifier and the parent_model. If a identifier does not exist in the hierarchy chain, an
+      # empty list is returned.
       #
-      # This method succeeds at finding parent identifiers if three conditions are met:
+      # This method succeeds at finding parent identifiers if :
       # 1. A proper grammar is created with gnomon and the grammar rules correspond to a model hierarchy.
-      # 2. All identifiers in the hierarchy have been created in the identifier table.
-      # 3. All models have been created in the db.
-      grammar = Magma::Gnomon::Grammar.for_project(@project_name)
-      return [] if grammar.nil?
-      grammar_decomposed = grammar.decompose(identifier)
-      return [] if grammar_decomposed.nil?
+      # 2. All models have been created in the db.
+      #
+      # The identifiers DO NOT need to exist in the identifier table.
+
+      return {} if @grammar.nil?
+      grammar_decomposed = @grammar.decompose(identifier)
+      return {} if grammar_decomposed.nil?
 
       # First we gather all available parent models and identifiers associated with the identifier.
       # If someone has created a well formatted grammar, with proper identifiers,
       # there MAY be a model hierarchy chain we can infer
-      available_models = []
-      grammar_decomposed[:rules].each do |token, token_hash|
-        begin
-          model = Magma.instance.get_model(@project_name, token)
-          available_models << {
-            model: token.to_sym,
+
+      project = Magma.instance.get_project(@project_name)
+      available_models = project.models.keys & grammar_decomposed[:rules].keys.map(&:to_sym)
+
+      chain = {}
+      available_models.each do |model_name|
+        model = project.models[model_name]
+        chain[model_name] = {
+            model: model,
             identifier_name: model.identity.name,
-            identifier: token_hash[:name],
-            parent_model: model.parent_model_name
+            identifier: grammar_decomposed[:rules][model_name.to_s][:name],
+            parent_model_name: model.parent_model_name
           }
-        rescue NameError => e
-          next if e
+      end
+
+      # Then we check to make sure a valid hierarchy chain exists
+      # We check that each parent_model is in the list of models available
+      arr = chain.to_a
+      valid = arr.all? do |el|
+        model_name = el[0]
+        model_name == :project || arr.any? do |other|
+          candidate_model_name = other[0]
+          el[1][:parent_model_name] == candidate_model_name
         end
       end
 
-      # Next we determine if the hierarchy chain is valid for the models that we've found.
-      return [] if available_models.empty?
-      partitioned = available_models.partition { |h| h[:parent_model].nil? }
-      root_model, other_models = partitioned[0][0], partitioned[1].flatten
-      hierarchy_count = other_models.count
+      valid ? chain : {}
 
-      # We do this by recursively searching for children top-down.
-      # We start with the projects model, and then search for any models that have the key
-      # :parent_model = :projects. Lets say we find some model X, then the following iteration,
-      # this repeats, and we search for any models where :parent_model = :X. This continues all the way
-      # down the tree. Each model that is found is appended to the output_array. Searching this way
-      # guarantees our output_array is sorted.
-      def search(arr, output_array, model_name)
-        # Look for the child model
-        child_model = arr.find { |hash| hash[:parent_model] == model_name }
-        if child_model and !arr.empty?
-          output_array << child_model
-          arr.delete(child_model)
-          search(arr, output_array, child_model[:model])
-        else
-          return
-        end
-      end
-
-      sorted = []
-      search(other_models, sorted, root_model[:model])
-
-      # If we successfully infer a model hierarchy, the counts should be the same
-      hierarchy_count == sorted.count ? sorted.prepend(root_model) : []
     end
 
-    def push_parent_identifiers
+    def autolink_parent_identifiers
       # If a project is configured with the 'identifier' flag, anytime a record with an identifier is created or updated,
       # we can implicitly infer what their parents must be via find_parent_models(). We then update the record and its revision
       # to include its foreign key, and do this up the model hierarchy.
@@ -209,34 +195,27 @@ class Magma
       # - The incoming update does NOT explicitly reference a parent/child's foreign key.
       # - It doesn't matter what type of attributes we are updating
 
-      # We cannot update a hash during iteration, so loop over a copied object
-      records = @records.dup
+      # It is also important to note that this method is OPTIMISTIC. That is, even though we've inferred a model
+      # hierarchy through a grammar, the identifiers may not exist in the db, and we will only know once we call validate().
+      # Ideally we would validate() before we do this work, however the control flow of this classes makes it hard to do so.
+      # TODO: eventually refactor to address the above comment.
+      #
+      gnomon_mode = Magma::Flags::GNOMON_MODE
+      flag_value = @flags[gnomon_mode[:name]]
 
-      records.each do |model, record_set|
+      @records.each do |model, record_set|
         record_set.each do |record_name, record|
-          gnomon_mode = Magma::Flags::GNOMON_MODE
-          flag_value = @flags[gnomon_mode[:name]]
 
           next unless flag_value == gnomon_mode[:identifier] and not record.includes_parent_record?
 
           # Attempt to find parent models
           parent_models = find_parent_models(record_name)
-
           next if parent_models.empty?
 
-          # Start at the child
-          parent_models.reverse.each_cons(2).each_with_index do |(child, parent), index|
-            # Update the original record
-            if index == 0
-              @records[model][record_name] << {parent[:model] => parent[:identifier]}
-            else
-                child_model = Magma.instance.get_model(@project_name, child[:model])
-                push_record(child_model,
-                            child[:identifier].to_s,
-                            parent[:model] => parent[:identifier],
-                            created_at: @now,
-                            updated_at: @now)
-            end
+          parent_models.each do |model_name, hash|
+            next if hash[:parent_model_name].nil?
+            parent_identifier = parent_models[hash[:parent_model_name]][:identifier]
+            push_record(hash[:model], hash[:identifier].to_s, hash[:parent_model_name] => parent_identifier)
           end
         end
       end
