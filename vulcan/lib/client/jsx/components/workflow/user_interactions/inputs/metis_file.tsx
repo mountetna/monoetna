@@ -17,7 +17,7 @@ export default function FileInput({onChange, label, data, ...props}: WithInputPa
   const value = useSetsDefault({bucket: '', path: '', type: null}, props.value, onChange);
   // console.log({value})
 
-  function updateKeyToVal(key: string, val: string | null, fullValues = {...value}) {
+  function updateKeyToVal(key: 'bucket' | 'path' | 'type', val: string | null, fullValues = {...value}) {
     // console.log('setting ', key, ' to ', val)
     const newValue = fullValues
     newValue[key] = val
@@ -54,7 +54,6 @@ export default function FileInput({onChange, label, data, ...props}: WithInputPa
           }}
           path={value.path}
           useTargetType={updateType}
-          target
           allowFiles={true}
           label={label?  label+', '+'File/Folder' : undefined}
           basePath={''}
