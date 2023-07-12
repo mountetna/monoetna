@@ -3,16 +3,12 @@ import {WithInputParams} from './input_types';
 import {some, withDefault} from '../../../../selectors/maybe';
 import { PickFileOrFolder, PickBucket } from 'etna-js/components/metis_exploration';
 import {useSetsDefault} from './useSetsDefault';
-import {selectDefaultBoolean} from './monoids';
 import { Grid } from '@material-ui/core';
-import { Checkbox, FormControlLabel, FormControlLabelProps } from '@material-ui/core';
-import { metisPath } from 'etna-js/api/metis_api.js'
-import { json_get } from 'etna-js/utils/fetch';
 
 declare const CONFIG: {[key: string]: any};
 type metisPathType = { bucket: string, path: string, type: 'file' | 'folder' | null }
 
-export default function FileInput({onChange, label, data, ...props}: WithInputParams<{label?: string}, metisPathType, metisPathType>) {
+function _MetisLocationInput({onChange, label, allowFiles, data, ...props}: WithInputParams<{label?: string, allowFiles: boolean}, metisPathType, metisPathType>) {
   // console.log({props})
   const value = useSetsDefault({bucket: '', path: '', type: null}, props.value, onChange);
   // console.log({value})
@@ -54,7 +50,7 @@ export default function FileInput({onChange, label, data, ...props}: WithInputPa
           }}
           path={value.path}
           useTargetType={updateType}
-          allowFiles={true}
+          allowFiles={allowFiles}
           label={label?  label+', '+'File/Folder' : undefined}
           basePath={''}
           topLevelPlaceholder='Path to target file'
@@ -63,4 +59,11 @@ export default function FileInput({onChange, label, data, ...props}: WithInputPa
     </Grid>
     
   );
+}
+
+export function MetisFileInput({onChange, label, data, ...props}: WithInputParams<{label?: string}, metisPathType, metisPathType>) {
+  return _MetisLocationInput({onChange, label, allowFiles: true, data, ...props})
+}
+export function MetisFolderInput({onChange, label, data, ...props}: WithInputParams<{label?: string}, metisPathType, metisPathType>) {
+  return _MetisLocationInput({onChange, label, allowFiles: false, data, ...props})
 }

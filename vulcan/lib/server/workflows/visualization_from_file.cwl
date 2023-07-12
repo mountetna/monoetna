@@ -14,8 +14,20 @@ outputs:
 
 steps:
   get_file:
-    run: ui-queries/metisfile.cwl
+    run: ui-queries/metis-file.cwl
     label: "TSV or CSV file"
+    in:
+      string: 1_Data_Source_metis_file__file_target
+    out: [file]
+  get_file2:
+    run: ui-queries/metis-folder.cwl
+    label: "TSV or CSV folder"
+    in:
+      string: 1_Data_Source_metis_file__file_target
+    out: [file]
+  get_file3:
+    run: ui-queries/metis-file-or-folder.cwl
+    label: "TSV or CSV path"
     in:
       string: 1_Data_Source_metis_file__file_target
     out: [file]
