@@ -173,13 +173,8 @@ class Magma
 
       # Then we check to make sure a valid hierarchy chain exists
       # We check that each parent_model is in the list of models available
-      arr = chain.to_a
-      valid = arr.all? do |el|
-        model_name = el[0]
-        model_name == :project || arr.any? do |other|
-          candidate_model_name = other[0]
-          el[1][:parent_model_name] == candidate_model_name
-        end
+      valid = chain.all? do |model_name, model|
+        model_name == :project || chain.has_key?(model[:parent_model_name])
       end
 
       valid ? chain : {}
@@ -191,34 +186,40 @@ class Magma
       # we can implicitly infer what their parents must be via find_parent_models(). We then update the record and its revision
       # to include its foreign key, and do this up the model hierarchy.
       #
-      # This method handles a very specific update:
-      # - The incoming update does NOT explicitly reference a parent/child's foreign key.
-      # - It doesn't matter what type of attributes we are updating
-
+      # Note that find_parent_models() is called on each record. If there are two or more records, each with an identifier that
+      # is able to decompose into a model hierarchy - we add each hierarchy to a set. We are ultimately left with a set
+      # with the deepest hierarchy.
+      #
       # It is also important to note that this method is OPTIMISTIC. That is, even though we've inferred a model
-      # hierarchy through a grammar, the identifiers may not exist in the db, and we will only know once we call validate().
+      # hierarchy from a grammar, the identifiers may not exist in the db, and we will only know once we call validate().
       # Ideally we would validate() before we do this work, however the control flow of this classes makes it hard to do so.
       # TODO: eventually refactor to address the above comment.
       #
       gnomon_mode = Magma::Flags::GNOMON_MODE
       flag_value = @flags[gnomon_mode[:name]]
+      updates = Set.new([])
 
       @records.each do |model, record_set|
         record_set.each do |record_name, record|
 
-          next unless flag_value == gnomon_mode[:identifier] and not record.includes_parent_record?
+          next unless flag_value == gnomon_mode[:identifier]
 
           # Attempt to find parent models
           parent_models = find_parent_models(record_name)
           next if parent_models.empty?
 
-          parent_models.each do |model_name, hash|
-            next if hash[:parent_model_name].nil?
-            parent_identifier = parent_models[hash[:parent_model_name]][:identifier]
-            push_record(hash[:model], hash[:identifier].to_s, hash[:parent_model_name] => parent_identifier)
+          parent_models.each do |model_name, model_info|
+            next if model_info[:parent_model_name].nil?
+            parent_identifier = parent_models[model_info[:parent_model_name]][:identifier]
+            updates.add([model_info[:model], model_info[:identifier].to_s, model_info[:parent_model_name], parent_identifier])
           end
         end
       end
+
+      updates.each do |el|
+        push_record(el[0], el[1], el[2] => el[3])
+      end
+
     end
 
     def push_implicit_link_revisions(revisions)

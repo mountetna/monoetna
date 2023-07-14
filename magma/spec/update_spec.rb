@@ -1365,7 +1365,7 @@ describe UpdateController do
 
       context 'auto creation of parents' do
 
-        it 'is successful when a hierarchical grammar exists and identifiers are present' do
+        it 'is successful on a record update, when a hierarchical grammar exists and identifiers are present' do
 
           Magma.instance.db[:flags].insert(
             project_name: "labors",
@@ -1379,7 +1379,7 @@ describe UpdateController do
 
           project_identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
           labor_identifier = create_identifier("The Nemean Lion", rule: 'labor', grammar: grammar)
-          monster_identifier = create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
+          monster_identifier = create_identifier("LABORS-LION-NEMEAN", rule: 'monster', grammar: grammar)
           victim_identifier = create_identifier("LABORS-LION-NEMEAN-H2-C1", rule: 'victim', grammar: grammar)
 
           expect(Labors::Labor.count).to be(0)
@@ -1424,19 +1424,60 @@ describe UpdateController do
             }
           )
 
-          # No records should be created, even though we were able to find a model hierarchy
+          # No records should be created, even though we were able to infer a model hierarchy
           expect(Labors::Labor.count).to be(0)
           expect(Labors::Victim.count).to be(0)
           expect(Labors::Monster.count).to be(0)
 
           expect(last_response.status).to eq(422)
           expect(json_body[:errors]).to include("The identifier 'LABORS-LION-NEMEAN-H2-C1' has not been assigned in Gnomon.")
-          expect(json_body[:errors]).to include("The identifier 'Nemean Lion' has not been assigned in Gnomon.")
+          expect(json_body[:errors]).to include("The identifier 'LABORS-LION-NEMEAN' has not been assigned in Gnomon.")
           expect(json_body[:errors]).to include("The identifier 'The Nemean Lion' has not been assigned in Gnomon.")
           expect(json_body[:errors]).to include("The identifier 'The Twelve Labors of Hercules' has not been assigned in Gnomon.")
         end
-      end
 
+        it 'is successful in an explicit parent-child update, where two hierarchical identifiers exists' do
+
+          Magma.instance.db[:flags].insert(
+            project_name: "labors",
+            flag_name: Magma::Flags::GNOMON_MODE[:name],
+            value: Magma::Flags::GNOMON_MODE[:identifier],
+            created_at: Time.now,
+            updated_at: Time.now,
+            )
+
+          grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+
+          project_identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
+          labor_identifier = create_identifier("The Nemean Lion", rule: 'labor', grammar: grammar)
+          monster_identifier = create_identifier("LABORS-LION-NEMEAN", rule: 'monster', grammar: grammar)
+          victim_identifier = create_identifier("LABORS-LION-NEMEAN-H2-C1", rule: 'victim', grammar: grammar)
+
+          expect(Labors::Labor.count).to be(0)
+          expect(Labors::Victim.count).to be(0)
+          expect(Labors::Monster.count).to be(0)
+
+          update(
+            monster: {
+              'LABORS-LION-NEMEAN': {
+                victim: ['LABORS-LION-NEMEAN-H2-C1']
+              }
+            }
+          )
+
+        expect(last_response.status).to eq(200)
+
+        expect(Labors::Victim.first.name).to eq(victim_identifier.identifier)
+        expect(Labors::Victim.first.monster_id).to eq(Labors::Monster.first.id)
+        expect(Labors::Monster.first.name).to eq(monster_identifier.identifier)
+        expect(Labors::Monster.first.labor_id).to eq(Labors::Labor.first.id)
+        expect(Labors::Labor.first.name).to eq(labor_identifier.identifier)
+        expect(Labors::Labor.first.project_id).to eq(Labors::Project.first.id)
+        expect(Labors::Project.first.name).to eq(project_identifier.identifier)
+
+        end
+
+      end
 
     end
 

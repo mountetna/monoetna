@@ -157,7 +157,7 @@ describe Magma::Loader do
 
     project_identifier = "The Twelve Labors of Hercules"
     labor_identifier = "The Nemean Lion"
-    monster_identifier = "Nemon Lion"
+    monster_identifier = "LABORS-LION-NEMEAN"
     victim_identifier = "LABORS-LION-NEMEAN-H2-C1"
 
     loader = Magma::Loader.new(@user, 'labors')
@@ -167,22 +167,22 @@ describe Magma::Loader do
 
     expect(parent_models[:project][:model]).to eq(Labors::Project)
     expect(parent_models[:project][:identifier_name]).to eq(:name)
-    expect(parent_models[:project][:identifier]).to eq(project_identifier.identifier)
+    expect(parent_models[:project][:identifier]).to eq(project_identifier)
     expect(parent_models[:project][:parent_model_name]).to eq(nil)
 
     expect(parent_models[:labor][:model]).to eq(Labors::Labor)
     expect(parent_models[:labor][:identifier_name]).to eq(:name)
-    expect(parent_models[:labor][:identifier]).to eq(labor_identifier.identifier)
+    expect(parent_models[:labor][:identifier]).to eq(labor_identifier)
     expect(parent_models[:labor][:parent_model_name]).to eq(:project)
 
     expect(parent_models[:monster][:model]).to eq(Labors::Monster)
     expect(parent_models[:monster][:identifier_name]).to eq(:name)
-    expect(parent_models[:monster][:identifier]).to eq(monster_identifier.identifier)
+    expect(parent_models[:monster][:identifier]).to eq(monster_identifier)
     expect(parent_models[:monster][:parent_model_name]).to eq(:labor)
 
     expect(parent_models[:victim][:model]).to eq(Labors::Victim)
     expect(parent_models[:monster][:identifier_name]).to eq(:name)
-    expect(parent_models[:victim][:identifier]).to eq(victim_identifier.identifier)
+    expect(parent_models[:victim][:identifier]).to eq(victim_identifier)
     expect(parent_models[:victim][:parent_model_name]).to eq(:monster)
 
   end
@@ -190,10 +190,10 @@ describe Magma::Loader do
   it 'cannot find parent models when the grammar is non hierarchical' do
     # The grammar does not describe a MONSTER token
     grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
-    victim_identifier = "LABORS-LION-H2-C1"
+    victim_identifier = "LABORS-LION-NEMEAN-H2-C1"
 
     loader = Magma::Loader.new(@user, 'labors')
-    parent_models = loader.find_parent_models(victim_identifier.identifier)
+    parent_models = loader.find_parent_models(victim_identifier)
     expect(parent_models.empty?).to eq(true)
   end
 

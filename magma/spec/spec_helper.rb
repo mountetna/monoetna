@@ -626,7 +626,7 @@ HIERARCHY_GRAMMAR_CONFIG={
   rules: {
     project: "PROJECT",
     labor: "LABOR",
-    monster: "MONSTER",
+    monster: "PROJ SEP LAB SEP MONST",
     village: "PROJ SEP LAB SEP MONST SEP VILL .n",
     victim: ".village SEP VICT .n"
   }
