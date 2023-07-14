@@ -368,6 +368,30 @@ FactoryBot.define do
   factory :identifier, class: Magma::Gnomon::Identifier do
     to_create(&:save)
   end
+
+  factory :flag, class: Magma::Flag do
+    to_create(&:save)
+
+    trait :gnomon_none do
+      project_name {"labors"}
+      flag_name { Magma::Flags::GNOMON_MODE[:name]}
+      value {Magma::Flags::GNOMON_MODE[:none]}
+    end
+
+    trait :gnomon_identifier do
+      project_name {"labors"}
+      flag_name { Magma::Flags::GNOMON_MODE[:name]}
+      value {Magma::Flags::GNOMON_MODE[:identifier]}
+    end
+
+    trait :gnomon_pattern do
+      project_name {"labors"}
+      flag_name { Magma::Flags::GNOMON_MODE[:name]}
+      value {Magma::Flags::GNOMON_MODE[:pattern]}
+    end
+
+  end
+
 end
 
 def fixture(name)

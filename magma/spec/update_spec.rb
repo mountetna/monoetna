@@ -1261,13 +1261,8 @@ describe UpdateController do
   context 'using gnomon' do
 
     it 'ignores gnomon if the project is not configured to use gnomon' do
-      Magma.instance.db[:flags].insert(
-        project_name: "labors",
-        flag_name: Magma::Flags::GNOMON_MODE[:name],
-        value: Magma::Flags::GNOMON_MODE[:none],
-        created_at: Time.now,
-        updated_at: Time.now,
-        )
+
+      create(:flag, :gnomon_none)
 
       update(
         monster: {
@@ -1276,6 +1271,7 @@ describe UpdateController do
           }
         }
       )
+
       expect(last_response.status).to eq(200)
       expect(Labors::Monster.first.name).to eq('Nemean Lion')
       expect(Labors::Monster.first.species).to eq('lion')
@@ -1285,14 +1281,7 @@ describe UpdateController do
 
       it 'creates a record if the identifier is defined in gnomon' do
 
-        Magma.instance.db[:flags].insert(
-          project_name: "labors",
-          flag_name: Magma::Flags::GNOMON_MODE[:name],
-          value: Magma::Flags::GNOMON_MODE[:identifier],
-          created_at: Time.now,
-          updated_at: Time.now,
-          )
-
+        create(:flag, :gnomon_identifier)
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
         create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
 
@@ -1310,14 +1299,7 @@ describe UpdateController do
 
       it 'updates a record if the identifier is defined in gnomon' do
 
-        Magma.instance.db[:flags].insert(
-          project_name: "labors",
-          flag_name: Magma::Flags::GNOMON_MODE[:name],
-          value: Magma::Flags::GNOMON_MODE[:identifier],
-          created_at: Time.now,
-          updated_at: Time.now,
-          )
-
+        create(:flag, :gnomon_identifier)
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
         create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
 
@@ -1343,14 +1325,7 @@ describe UpdateController do
 
       it 'rejects a record if the identifier is not defined in gnomon' do
 
-        Magma.instance.db[:flags].insert(
-          project_name: "labors",
-          flag_name: Magma::Flags::GNOMON_MODE[:name],
-          value: Magma::Flags::GNOMON_MODE[:identifier],
-          created_at: Time.now,
-          updated_at: Time.now,
-          )
-
+        create(:flag, :gnomon_identifier)
         update(
           monster: {
             'Nemean Lion': {
@@ -1366,15 +1341,7 @@ describe UpdateController do
       context 'auto creation of parents' do
 
         it 'is successful on a record update, when a hierarchical grammar exists and identifiers are present' do
-
-          Magma.instance.db[:flags].insert(
-            project_name: "labors",
-            flag_name: Magma::Flags::GNOMON_MODE[:name],
-            value: Magma::Flags::GNOMON_MODE[:identifier],
-            created_at: Time.now,
-            updated_at: Time.now,
-            )
-
+          create(:flag, :gnomon_identifier)
           grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
 
           project_identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
@@ -1406,17 +1373,9 @@ describe UpdateController do
         end
 
         it 'rejects all updates when a hierarchical grammar exists but identifiers do not' do
-
-          Magma.instance.db[:flags].insert(
-            project_name: "labors",
-            flag_name: Magma::Flags::GNOMON_MODE[:name],
-            value: Magma::Flags::GNOMON_MODE[:identifier],
-            created_at: Time.now,
-            updated_at: Time.now,
-            )
-
-          victim_identifier = "LABORS-LION-NEMEAN-H2-C1"
+          create(:flag, :gnomon_identifier)
           grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+          victim_identifier = "LABORS-LION-NEMEAN-H2-C1"
 
           update(
             victim: {
@@ -1437,15 +1396,7 @@ describe UpdateController do
         end
 
         it 'is successful in an explicit parent-child update, where two hierarchical identifiers exists' do
-
-          Magma.instance.db[:flags].insert(
-            project_name: "labors",
-            flag_name: Magma::Flags::GNOMON_MODE[:name],
-            value: Magma::Flags::GNOMON_MODE[:identifier],
-            created_at: Time.now,
-            updated_at: Time.now,
-            )
-
+          create(:flag, :gnomon_identifier)
           grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
 
           project_identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
@@ -1484,15 +1435,7 @@ describe UpdateController do
     context 'pattern mode' do
 
       it 'creates a record if the identifier matches the pattern in the gnomon grammar' do
-
-        Magma.instance.db[:flags].insert(
-          project_name: "labors",
-          flag_name: Magma::Flags::GNOMON_MODE[:name],
-          value: Magma::Flags::GNOMON_MODE[:pattern],
-          created_at: Time.now,
-          updated_at: Time.now,
-          )
-
+        create(:flag, :gnomon_pattern)
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
         identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
 
@@ -1508,15 +1451,7 @@ describe UpdateController do
       end
 
       it 'updates a record if the identifier matches the pattern in the gnomon grammar' do
-
-        Magma.instance.db[:flags].insert(
-          project_name: "labors",
-          flag_name: Magma::Flags::GNOMON_MODE[:name],
-          value: Magma::Flags::GNOMON_MODE[:pattern],
-          created_at: Time.now,
-          updated_at: Time.now,
-          )
-
+        create(:flag, :gnomon_pattern)
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
         identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
 
@@ -1538,14 +1473,7 @@ describe UpdateController do
 
       it 'rejects a record if the identifier does not match the pattern in the gnomon grammar' do
 
-        Magma.instance.db[:flags].insert(
-          project_name: "labors",
-          flag_name: Magma::Flags::GNOMON_MODE[:name],
-          value: Magma::Flags::GNOMON_MODE[:pattern],
-          created_at: Time.now,
-          updated_at: Time.now,
-          )
-
+        create(:flag, :gnomon_pattern)
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
         # TODO: why does this pass? This is an invalid identifier
         identifier = create_identifier("LABORS-LION-H2*C1", rule: 'victim', grammar: grammar)

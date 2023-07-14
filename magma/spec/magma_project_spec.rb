@@ -110,31 +110,11 @@ describe Magma::Project do
     end
 
     it "loads project flags from the database" do
-
-      Magma.instance.db[:models].insert(
-        project_name: "movies",
-        model_name: "hero",
-        created_at: Time.now,
-        updated_at: Time.now
-      )
-
-      Magma.instance.db[:flags].insert(
-        project_name: "movies",
-        flag_name: "is_pg",
-        value: "true",
-        created_at: Time.now,
-        updated_at: Time.now,
-      )
-
-      Magma.instance.db[:flags].insert(
-        project_name: "movies",
-        flag_name: "is_in_theaters",
-        value: "false",
-        created_at: Time.now,
-        updated_at: Time.now,
-        )
+      create(:flag, project_name: "movies", flag_name: "is_pg", value: "true")
+      create(:flag, project_name: "movies", flag_name: "is_in_theaters", value: "false")
 
       flags = Magma::Project.flags("movies")
+
       expect(flags['is_pg']).to eq('true')
       expect(flags['is_in_theaters']).to eq('false')
 
