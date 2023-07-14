@@ -188,7 +188,7 @@ class Magma
       #
       # Note that find_parent_models() is called on each record. If there are two or more records, each with an identifier that
       # is able to decompose into a model hierarchy - we add each hierarchy to a set. We are ultimately left with a set
-      # with the deepest hierarchy.
+      # that contains the deepest hierarchy.
       #
       # It is also important to note that this method is OPTIMISTIC. That is, even though we've inferred a model
       # hierarchy from a grammar, the identifiers may not exist in the db, and we will only know once we call validate().
