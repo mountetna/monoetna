@@ -1275,6 +1275,7 @@ describe UpdateController do
       expect(last_response.status).to eq(200)
       expect(Labors::Monster.first.name).to eq('Nemean Lion')
       expect(Labors::Monster.first.species).to eq('lion')
+
     end
 
     context 'identifier mode' do
@@ -1295,6 +1296,7 @@ describe UpdateController do
         expect(last_response.status).to eq(200)
         expect(Labors::Monster.first.name).to eq('Nemean Lion')
         expect(Labors::Monster.first.species).to eq('lion')
+
       end
 
       it 'updates a record if the identifier is defined in gnomon' do
@@ -1341,6 +1343,7 @@ describe UpdateController do
       context 'auto creation of parents' do
 
         it 'is successful on a record update, when a hierarchical grammar exists and identifiers are present' do
+
           create(:flag, :gnomon_identifier)
           grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
 
@@ -1373,6 +1376,7 @@ describe UpdateController do
         end
 
         it 'rejects all updates when a hierarchical grammar exists but identifiers do not' do
+
           create(:flag, :gnomon_identifier)
           grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
           victim_identifier = "LABORS-LION-NEMEAN-H2-C1"
@@ -1393,9 +1397,11 @@ describe UpdateController do
           expect(json_body[:errors]).to include("The identifier 'LABORS-LION-NEMEAN' has not been assigned in Gnomon.")
           expect(json_body[:errors]).to include("The identifier 'The Nemean Lion' has not been assigned in Gnomon.")
           expect(json_body[:errors]).to include("The identifier 'The Twelve Labors of Hercules' has not been assigned in Gnomon.")
+
         end
 
         it 'is successful in an explicit parent-child update, where two hierarchical identifiers exists' do
+
           create(:flag, :gnomon_identifier)
           grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
 
@@ -1435,6 +1441,7 @@ describe UpdateController do
     context 'pattern mode' do
 
       it 'creates a record if the identifier matches the pattern in the gnomon grammar' do
+
         create(:flag, :gnomon_pattern)
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
         identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
@@ -1448,9 +1455,11 @@ describe UpdateController do
         expect(last_response.status).to eq(200)
         expect(Labors::Monster.first.name).to eq(identifier.identifier)
         expect(Labors::Monster.first.species).to eq('lion')
+
       end
 
       it 'updates a record if the identifier matches the pattern in the gnomon grammar' do
+
         create(:flag, :gnomon_pattern)
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
         identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
