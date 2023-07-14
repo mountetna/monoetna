@@ -1480,12 +1480,12 @@ describe UpdateController do
         expect(Labors::Monster.first.species).to eq('tiger')
       end
 
-      it 'rejects a record if the identifier does not match the pattern in the gnomon grammar' do
+      it 'rejects a record if the identifier is out of date' do
 
         create(:flag, :gnomon_pattern)
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
-        # TODO: why does this pass? This is an invalid identifier
-        identifier = create_identifier("LABORS-LION-H2*C1", rule: 'victim', grammar: grammar)
+        grammar_2 = create(:grammar, { project_name: 'labors', version_number: 2, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
 
         update(
           monster: {
@@ -1494,8 +1494,44 @@ describe UpdateController do
         )
 
         expect(last_response.status).to eq(422)
-        expect(json_body[:errors]).to eq(["The identifier '#{identifier.identifier}' does not conform to a grammar in Gnomon."])
+        expect(json_body[:errors]).to eq(["The identifier '#{identifier.identifier}' is out of date."])
+
       end
+
+      it 'rejects a record if the identifier is out of date' do
+
+        create(:flag, :gnomon_pattern)
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
+        grammar_2 = create(:grammar, { project_name: 'labors', version_number: 2, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
+
+        update(
+          monster: {
+            identifier.identifier => { species: 'lion' }
+          }
+        )
+
+        expect(last_response.status).to eq(422)
+        expect(json_body[:errors]).to eq(["The identifier '#{identifier.identifier}' is out of date."])
+
+      end
+
+      it 'rejects a record if the identifier does not conform to a grammar' do
+
+        create(:flag, :gnomon_pattern)
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
+        identifier = create_identifier("LABORS-LOON-H2-C1", rule: 'victim', grammar: grammar)
+
+        update(
+          monster: {
+            identifier.identifier => { species: 'lion' }
+          }
+        )
+        expect(last_response.status).to eq(422)
+        expect(json_body[:errors]).to eq(["The identifier '#{identifier.identifier}' does not conform to a grammar in Gnomon."])
+
+      end
+
     end
   end
 
