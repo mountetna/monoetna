@@ -15,6 +15,9 @@ class Magma
     class Validation < Magma::Validation::Attribute::BaseAttributeValidation
       def validate(value, &block)
 
+        # Identifier attributes have regexp validations, so we call super() to run those validations first
+        super if @attribute.validation
+
         gnomon_mode = Magma::Flags::GNOMON_MODE
         flag_value = @flags[gnomon_mode[:name]]
 

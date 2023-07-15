@@ -2549,8 +2549,8 @@ describe UpdateController do
           }
         }
       )
-
       expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(["On name, 'nemean lion' is improperly formatted."])
     end
 
     it 'allows you to rename an invalid record' do
