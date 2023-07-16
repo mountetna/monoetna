@@ -193,7 +193,7 @@ class Magma
       # It is also important to note that this method is OPTIMISTIC. That is, even though we've inferred a model
       # hierarchy from a grammar, the identifiers may not exist in the db, and we will only know once we call validate().
       # Ideally we would validate() before we do this work, however the control flow of this classes makes it hard to do so.
-      # TODO: eventually refactor to address the above comment.
+      # TODO: maybe refactor to address the above comment?
       #
       gnomon_mode = Magma::Flags::GNOMON_MODE
       flag_value = @flags[gnomon_mode[:name]]
