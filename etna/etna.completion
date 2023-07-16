@@ -656,13 +656,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -2299,13 +2300,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -3942,13 +3944,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -5585,13 +5588,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -7228,13 +7232,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -8871,13 +8876,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -10514,13 +10520,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -12157,13 +12164,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -13800,13 +13808,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -15443,13 +15452,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -17086,13 +17096,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -18729,13 +18740,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -20372,13 +20384,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -22015,13 +22028,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -23658,13 +23672,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -25301,13 +25316,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -26944,13 +26960,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -28587,13 +28604,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -30230,13 +30248,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -31873,13 +31892,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -33516,13 +33536,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -35159,13 +35180,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -36802,13 +36824,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -38445,13 +38468,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -40088,13 +40112,14 @@ done
 return
 elif [[ "$1" == "materialize" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names --project-name --log-file --log-level --concurrency "
-arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency "
+all_flag_completion_names="$all_flag_completion_names --list-only --project-name --log-file --log-level --concurrency --page-size "
+arg_flag_completion_names="$arg_flag_completion_names --project-name --log-file --log-level --concurrency --page-size "
 multi_flags="$multi_flags  "
 declare _completions_for_project_name="__project_name__"
 declare _completions_for_log_file="__log_file__"
 declare _completions_for_log_level="__log_level__"
 declare _completions_for_concurrency="__concurrency__"
+declare _completions_for_page_size="__page_size__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""

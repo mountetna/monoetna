@@ -57,7 +57,7 @@ summarize_plotting_options <- function(object, record) {
     ### Recommendations = bits marked in the record as putative
     meta_recs <- c()
     for (rec in c("metadata_clustering", "metadata_annots_fine", "metadata_annots_broad")) {
-        if (!is.null(record[[rec]])) {
+        if (!is.null(record[[rec]]) && !is.na(record[[rec]])) {
             new <- record[[rec]]
             names(new) <- paste0(gsub("^metadata_", "_Recommended_", rec), "_")
             meta_recs <- c(meta_recs, new)
@@ -170,6 +170,7 @@ continuous_opts$Cell_Metadata <- setdiff(plotting_options[['Cell_Metadata']], na
 discrete_opts <- names(discrete_metadata_summary)
 
 all_opts <- plotting_options[c('Cell_Features', 'Cell_Metadata')]
+all_opts$Recommended_Metadata <- names(plotting_options$Recommended_Metadata)
 
 # Outputs
 # dataset downloaded to final location already

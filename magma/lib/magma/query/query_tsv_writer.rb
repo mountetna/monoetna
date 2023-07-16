@@ -126,7 +126,7 @@ class Magma
               if index == 0
                 row << record.identifier
                 next
-              elsif non_nested_single_model_query
+              elsif non_nested_single_model_query?
                 # In this simple use case, we just grab the entire
                 #   answer portion
                 row << extract_data(record.data)
@@ -156,7 +156,7 @@ class Magma
       end
     end
 
-    def non_nested_single_model_query
+    def non_nested_single_model_query?
       # Simple edge case when query is something like
       #   [model, ::all, attribute]
       @question.format.length == 2 &&
