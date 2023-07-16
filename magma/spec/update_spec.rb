@@ -1375,7 +1375,7 @@ describe UpdateController do
 
         end
 
-        it 'rejects all updates when a hierarchical grammar exists but identifiers do not' do
+        it 'rejects all updates when a hierarchical grammar exists but identifiers do not exist' do
 
           create(:flag, :gnomon_identifier)
           grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
@@ -1400,7 +1400,7 @@ describe UpdateController do
 
         end
 
-        it 'is successful in an explicit parent-child update, where two hierarchical identifiers exists' do
+        it 'is successful in an explicit parent-child update, where two hierarchical identifiers exist' do
 
           create(:flag, :gnomon_identifier)
           grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
