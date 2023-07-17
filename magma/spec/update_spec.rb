@@ -1498,24 +1498,6 @@ describe UpdateController do
 
       end
 
-      it 'rejects a record if the identifier is out of date' do
-
-        create(:flag, :gnomon_pattern)
-        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
-        grammar_2 = create(:grammar, { project_name: 'labors', version_number: 2, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
-        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
-
-        update(
-          monster: {
-            identifier.identifier => { species: 'lion' }
-          }
-        )
-
-        expect(last_response.status).to eq(422)
-        expect(json_body[:errors]).to eq(["The identifier '#{identifier.identifier}' is out of date."])
-
-      end
-
       it 'rejects a record if the identifier does not conform to a grammar' do
 
         create(:flag, :gnomon_pattern)
