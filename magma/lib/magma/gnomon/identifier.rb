@@ -13,6 +13,11 @@ class Magma
         }
       end
 
+      def is_up_to_date?
+        most_recent_grammar = Magma::Gnomon::Grammar.for_project(project_name)
+        most_recent_grammar.id == grammar_id
+      end
+
       private
 
       def record_created_at(user)

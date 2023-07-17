@@ -44,6 +44,7 @@ class Magma
           @model = model
           @validator = validator
           @attribute = attribute
+          @flags = Magma::Project.flags(model.project_name)
         end
 
         def validate(value)
