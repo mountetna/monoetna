@@ -211,13 +211,13 @@ class Magma
           parent_models.each do |model_name, model_info|
             next if model_info[:parent_model_name].nil?
             parent_identifier = parent_models[model_info[:parent_model_name]][:identifier]
-            updates.add([model_info[:model], model_info[:identifier].to_s, model_info[:parent_model_name], parent_identifier])
+            updates.add([model_info[:model], model_info[:identifier].to_s, {model_info[:parent_model_name] => parent_identifier}])
           end
         end
       end
 
       updates.each do |el|
-        push_record(el[0], el[1], el[2] => el[3])
+        push_record(*el)
       end
 
     end

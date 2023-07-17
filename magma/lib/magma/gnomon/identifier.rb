@@ -15,8 +15,7 @@ class Magma
 
       def is_up_to_date?
         most_recent_grammar = Magma::Gnomon::Grammar.for_project(project_name).to_hash
-        identifier_grammar = Magma.instance.db[:grammars].where(project_name: project_name, id: grammar_id).first
-        most_recent_grammar[:version_number] == identifier_grammar[:version_number]
+        most_recent_grammar[:id] == grammar_id
       end
 
       private
