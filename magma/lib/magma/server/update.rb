@@ -19,15 +19,13 @@ class UpdateController < Magma::Controller
   def load_revisions
     @revisions.each do |model_name, model_revisions|
       model = Magma.instance.get_model(@project_name, model_name)
-
       model_revisions.each do |record_name, revision|
         @loader.push_record(model, record_name.to_s, revision)
         @loader.push_links(model, record_name, revision)
       end
     end
-
     @loader.push_implicit_link_revisions(@revisions)
-
+    @loader.autolink_parent_identifiers
     return @loader.dispatch_record_set
   rescue Magma::LoadFailed => m
     log(m.complaints)

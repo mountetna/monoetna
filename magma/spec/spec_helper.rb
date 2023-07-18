@@ -72,12 +72,14 @@ $$;
 
   raise "Failed to load labors project, found errors in input csv: #{errors.join('\n')}" unless errors.empty?
   sync_workflow = workflow.plan_synchronization(changeset, "labors")
+  print "Adding models and attributes"
   sync_workflow.update_block = Proc.new do |action|
-    puts "Executing #{action.action_name} on #{Etna::Clients::Magma::ModelSynchronizationWorkflow.models_affected_by(action)}..."
+    print "."
     Object.class_eval { remove_const(:Labors) if Object.const_defined?(:Labors) }
     Magma.instance.magma_projects.clear
     Magma.instance.load_models(false)
   end
+  puts
   sync_workflow.execute_planned!
 
   Object.class_eval { remove_const(:Labors) if Object.const_defined?(:Labors) }
@@ -366,6 +368,30 @@ FactoryBot.define do
   factory :identifier, class: Magma::Gnomon::Identifier do
     to_create(&:save)
   end
+
+  factory :flag, class: Magma::Flag do
+    to_create(&:save)
+
+    trait :gnomon_none do
+      project_name {"labors"}
+      flag_name { Magma::Flags::GNOMON_MODE[:name]}
+      value {Magma::Flags::GNOMON_MODE[:none]}
+    end
+
+    trait :gnomon_identifier do
+      project_name {"labors"}
+      flag_name { Magma::Flags::GNOMON_MODE[:name]}
+      value {Magma::Flags::GNOMON_MODE[:identifier]}
+    end
+
+    trait :gnomon_pattern do
+      project_name {"labors"}
+      flag_name { Magma::Flags::GNOMON_MODE[:name]}
+      value {Magma::Flags::GNOMON_MODE[:pattern]}
+    end
+
+  end
+
 end
 
 def fixture(name)
@@ -479,3 +505,153 @@ end
 def iso_date_str(value)
   DateTime.parse(value).iso8601
 end
+
+# Gnomon helpers
+def create_identifier(id, params={})
+  identifier = create(
+    :identifier, {
+    project_name: 'labors',
+    author: "Hera|hera@twelve-labors.org",
+    identifier: id,
+  }.merge(params)
+  )
+end
+
+
+VALID_GRAMMAR_CONFIG={
+  tokens: {
+    PROJECT: {
+      label: "project",
+      values: {
+        "The Twelve Labors of Hercules": "The Twelve Labors of Hercules"
+      }
+    },
+    PROJ: {
+      label: "project",
+      values: {
+        "LABORS": "The Twelve Labors of Hercules"
+      }
+    },
+    LABOR: {
+      label: "labor",
+      values: {
+        "The Nemean Lion": "The Nemean Lion",
+        "The Lernean Hydra": "The Lernean Hydra"
+      }
+    },
+    LAB: {
+      label: "labor",
+      values: {
+        "LION": "The Nemean Lion",
+        "HYDRA": "The Lernean Hydra"
+      }
+    },
+    VILL: {
+      label: "Village type",
+      values: {
+        "V": "Village",
+        "H": "Hamlet"
+      }
+    },
+    VICT: {
+      label: "Victim type",
+      values: {
+        "S": "Soldier",
+        "C": "Civilian"
+      }
+    },
+    SEP: {
+      label: "Separator",
+      values: {
+        "-": "# Separator"
+      }
+    }
+
+  },
+  synonyms: [
+    [ "PROJ", "PROJECT" ],
+    [ "LAB", "LABOR" ]
+  ],
+  rules: {
+    project: "PROJECT",
+    labor: "LABOR",
+    village: "PROJ SEP LAB SEP VILL .n",
+    victim: ".village SEP VICT .n"
+  }
+}
+
+HIERARCHY_GRAMMAR_CONFIG={
+  tokens: {
+    PROJECT: {
+      label: "project",
+      values: {
+        "The Twelve Labors of Hercules": "The Twelve Labors of Hercules"
+      }
+    },
+    PROJ: {
+      label: "project",
+      values: {
+        "LABORS": "The Twelve Labors of Hercules"
+      }
+    },
+    LABOR: {
+      label: "labor",
+      values: {
+        "The Nemean Lion": "The Nemean Lion",
+        "The Lernean Hydra": "The Lernean Hydra"
+      }
+    },
+    LAB: {
+      label: "labor",
+      values: {
+        "LION": "The Nemean Lion",
+        "HYDRA": "The Lernean Hydra"
+      }
+    },
+    VILL: {
+      label: "Village type",
+      values: {
+        "V": "Village",
+        "H": "Hamlet"
+      }
+    },
+    MONSTER: {
+      label: "monster",
+      values: {
+        "Nemean Lion": "Nemean Lion"
+      }
+    },
+    MONST: {
+      label: "monster",
+      values: {
+        "NEMEAN": "Nemean Lion"
+      }
+    },
+    VICT: {
+      label: "Victim type",
+      values: {
+        "S": "Soldier",
+        "C": "Civilian"
+      }
+    },
+    SEP: {
+      label: "Separator",
+      values: {
+        "-": "# Separator"
+      }
+    }
+
+  },
+  synonyms: [
+    [ "PROJ", "PROJECT" ],
+    [ "LAB", "LABOR" ],
+    [ "MONST", "MONSTER" ]
+  ],
+  rules: {
+    project: "PROJECT",
+    labor: "LABOR",
+    monster: "PROJ SEP LAB SEP MONST",
+    village: "PROJ SEP LAB SEP MONST SEP VILL .n",
+    victim: ".village SEP VICT .n"
+  }
+}
