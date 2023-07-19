@@ -17,10 +17,10 @@ class Magma
 
       extract do |table, identity|
         table.first[column_name] ?
-          Magma.instance.storage.download_url(
+          Magma::Answer.new(Magma.instance.storage.download_url(
             @model.project_name,
             table.first[column_name]["filename"]
-          ) :
+          )) :
           Magma::NilAnswer.new
       end
     end
