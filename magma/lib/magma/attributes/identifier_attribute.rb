@@ -24,20 +24,19 @@ class Magma
           super if @attribute.validation
           return
         end
-
         begin
         # Identifier mode - we just care about the existence of the identifier in the identifier table
           if flag_value == gnomon_mode[:identifier]
             identifier = Magma::Gnomon::Identifier.where(project_name: @model.project_name.to_s, identifier: value).first
             raise "The identifier '#{value}' has not been assigned in Gnomon." unless identifier
+
           # Pattern mode - We must make sure the identifier conforms to a grammar
           elsif flag_value == gnomon_mode[:pattern]
             grammar = Magma::Gnomon::Grammar.for_project(@model.project_name.to_s)
             raise "Grammar not found, identifier is: '#{value}'" unless grammar
 
-            identifier_model = grammar.model_name(value)
-            rule = grammar.parser.rules[identifier_model]
-            raise "No such #{rule} for #{@model.project_name.to_s}" unless rule
+            rule = grammar.parser.rules[@model.model_name.to_s]
+            raise "No such rule for #{@model.project_name.to_s}" unless rule
             raise "The identifier '#{value}' does not conform to a grammar in Gnomon." unless rule.valid?(value)
           end
         rescue Exception => e

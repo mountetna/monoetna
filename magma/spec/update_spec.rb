@@ -1447,14 +1447,14 @@ describe UpdateController do
         identifier = "LABORS-LION-H2-C1"
 
         update(
-          monster: {
-            identifier => { species: 'lion' }
+          victim: {
+            identifier => { weapon: 'sword' }
           }
         )
 
         expect(last_response.status).to eq(200)
-        expect(Labors::Monster.first.name).to eq(identifier)
-        expect(Labors::Monster.first.species).to eq('lion')
+        expect(Labors::Victim.first.name).to eq(identifier)
+        expect(Labors::Victim.first.weapon).to eq('sword')
 
       end
 
@@ -1465,19 +1465,20 @@ describe UpdateController do
         identifier = "LABORS-LION-H2-C1"
 
         update(
-          monster: {
-            identifier => { species: 'lion' }
+          victim: {
+            identifier => { weapon: 'axe' }
           }
         )
 
         update(
-          monster: {
-            identifier => { species: 'tiger' }
+          victim: {
+            identifier => { weapon: 'sword' }
           }
         )
 
+
         expect(last_response.status).to eq(200)
-        expect(Labors::Monster.first.species).to eq('tiger')
+        expect(Labors::Victim.first.weapon).to eq('sword')
       end
 
       it 'rejects a record if the identifier does not conform to a grammar' do
@@ -1487,8 +1488,8 @@ describe UpdateController do
         identifier = "LABORS-LOON-H2-C1"
 
         update(
-          monster: {
-            identifier => { species: 'lion' }
+          victim: {
+            identifier => { weapon: 'sword' }
           }
         )
         expect(last_response.status).to eq(422)
@@ -1500,7 +1501,7 @@ describe UpdateController do
 
         it 'is successful when a hierarchical grammar exists' do
 
-          create(:flag, :gnomon_identifier)
+          create(:flag, :gnomon_pattern)
           grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
 
           project_identifier = "The Twelve Labors of Hercules"
