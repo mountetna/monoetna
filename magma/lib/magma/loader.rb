@@ -202,7 +202,7 @@ class Magma
       @records.each do |model, record_set|
         record_set.each do |record_name, record|
 
-          next unless flag_value == gnomon_mode[:identifier]
+          return unless flag_value == gnomon_mode[:identifier] || flag_value == gnomon_mode[:pattern]
 
           # Attempt to find parent models
           parent_models = find_parent_models(record_name)
