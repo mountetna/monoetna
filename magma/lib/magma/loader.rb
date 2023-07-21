@@ -204,6 +204,9 @@ class Magma
 
           return unless flag_value == gnomon_mode[:identifier] || flag_value == gnomon_mode[:pattern]
 
+          # Do not auto attach disconnected records
+          next if record.explicitly_disconnected_from_parent?
+
           # Attempt to find parent models
           parent_models = find_parent_models(record_name)
           next if parent_models.empty?

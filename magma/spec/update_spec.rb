@@ -1532,6 +1532,34 @@ describe UpdateController do
         end
       end
     end
+
+    context 'pattern and identifier mode' do
+
+      it 'allows disconnecting a record' do
+
+        create(:flag, :gnomon_pattern)
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+        victim_identifier = "LABORS-LION-NEMEAN-H2-C1"
+
+        # Auto link
+        update(
+          victim: {
+            victim_identifier => { weapon: 'sword' }
+          }
+        )
+
+        # Detach the child
+        update(
+          victim: {
+            victim_identifier => { monster: nil }
+          }
+        )
+
+        expect(last_response.status).to eq(200)
+        expect(Labors::Victim.first.monster_id).to eq(nil)
+
+      end
+    end
   end
 
   it 'updates a match' do
