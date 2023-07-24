@@ -2,6 +2,9 @@ cwlVersion: v1.1
 class: Workflow
 
 inputs:
+  1_Data_Source_magma_query__useDataFromQuery:
+    type: boolean
+    label: "Use query as data origin?"
   1_Data_Source_magma_query__queryTerms:
     type: string
     label: "query input"
@@ -23,13 +26,20 @@ outputs:
     outputSource: make_plot/plot.png
 
 steps:
+  get_file:
+    run: ui-queries/metis-file.cwl
+    label: "TSV or CSV file"
+    in: []
+    out: [fileInfo]
   get_data:
-    run: scripts/VIZ_query_df.cwl
+    run: scripts/VIZ_query_or_file_df.cwl
     label: 'Fetch Data'
     in:
+      useQuery: 1_Data_Source_magma_query__useDataFromQuery
       queryTerms: 1_Data_Source_magma_query__queryTerms
       user_columns: 1_Data_Source_magma_query__user_columns
       expand_matrices: 1_Data_Source_magma_query__expand_matrices
+      fileInfo: get_file/fileInfo
     out: [data_frame]
   review_data:
     run: ui-queries/data-transformation.cwl
