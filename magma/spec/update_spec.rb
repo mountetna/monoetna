@@ -1342,7 +1342,7 @@ describe UpdateController do
 
       context 'auto creation of parents' do
 
-        it 'is successful on a record update, when a hierarchical grammar exists and identifiers are present' do
+        it 'is successful when a hierarchical grammar exists and identifiers are present' do
 
           create(:flag, :gnomon_identifier)
           grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
@@ -1444,17 +1444,17 @@ describe UpdateController do
 
         create(:flag, :gnomon_pattern)
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
-        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
+        identifier = "LABORS-LION-H2-C1"
 
         update(
-          monster: {
-            identifier.identifier => { species: 'lion' }
+          victim: {
+            identifier => { weapon: 'sword' }
           }
         )
 
         expect(last_response.status).to eq(200)
-        expect(Labors::Monster.first.name).to eq(identifier.identifier)
-        expect(Labors::Monster.first.species).to eq('lion')
+        expect(Labors::Victim.first.name).to eq(identifier)
+        expect(Labors::Victim.first.weapon).to eq('sword')
 
       end
 
@@ -1462,58 +1462,103 @@ describe UpdateController do
 
         create(:flag, :gnomon_pattern)
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
-        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
+        identifier = "LABORS-LION-H2-C1"
 
         update(
-          monster: {
-            identifier.identifier => { species: 'lion' }
+          victim: {
+            identifier => { weapon: 'axe' }
           }
         )
 
         update(
-          monster: {
-            identifier.identifier => { species: 'tiger' }
+          victim: {
+            identifier => { weapon: 'sword' }
           }
         )
+
 
         expect(last_response.status).to eq(200)
-        expect(Labors::Monster.first.species).to eq('tiger')
-      end
-
-      it 'rejects a record if the identifier is out of date' do
-
-        create(:flag, :gnomon_pattern)
-        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
-        grammar_2 = create(:grammar, { project_name: 'labors', version_number: 2, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
-        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: grammar)
-
-        update(
-          monster: {
-            identifier.identifier => { species: 'lion' }
-          }
-        )
-
-        expect(last_response.status).to eq(422)
-        expect(json_body[:errors]).to eq(["The identifier '#{identifier.identifier}' is out of date."])
-
+        expect(Labors::Victim.first.weapon).to eq('sword')
       end
 
       it 'rejects a record if the identifier does not conform to a grammar' do
 
         create(:flag, :gnomon_pattern)
         grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
-        identifier = create_identifier("LABORS-LOON-H2-C1", rule: 'victim', grammar: grammar)
+        identifier = "LABORS-LOON-H2-C1"
 
         update(
-          monster: {
-            identifier.identifier => { species: 'lion' }
+          victim: {
+            identifier => { weapon: 'sword' }
           }
         )
         expect(last_response.status).to eq(422)
-        expect(json_body[:errors]).to eq(["The identifier '#{identifier.identifier}' does not conform to a grammar in Gnomon."])
+        expect(json_body[:errors]).to eq(["The identifier '#{identifier}' does not conform to a grammar in Gnomon."])
 
       end
 
+      context 'auto creation of parents' do
+
+        it 'is successful when a hierarchical grammar exists' do
+
+          create(:flag, :gnomon_pattern)
+          grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+
+          project_identifier = "The Twelve Labors of Hercules"
+          labor_identifier = "The Nemean Lion"
+          monster_identifier = "LABORS-LION-NEMEAN"
+          victim_identifier = "LABORS-LION-NEMEAN-H2-C1"
+
+          expect(Labors::Labor.count).to be(0)
+          expect(Labors::Victim.count).to be(0)
+          expect(Labors::Monster.count).to be(0)
+
+          update(
+            victim: {
+              victim_identifier => { weapon: 'sword' }
+            }
+          )
+
+          expect(last_response.status).to eq(200)
+
+          expect(Labors::Victim.first.weapon).to eq('sword')
+          expect(Labors::Victim.first.name).to eq(victim_identifier)
+          expect(Labors::Victim.first.monster_id).to eq(Labors::Monster.first.id)
+          expect(Labors::Monster.first.name).to eq(monster_identifier)
+          expect(Labors::Monster.first.labor_id).to eq(Labors::Labor.first.id)
+          expect(Labors::Labor.first.name).to eq(labor_identifier)
+          expect(Labors::Labor.first.project_id).to eq(Labors::Project.first.id)
+          expect(Labors::Project.first.name).to eq(project_identifier)
+        end
+      end
+    end
+
+    context 'pattern and identifier mode' do
+
+      it 'allows disconnecting a record' do
+
+        create(:flag, :gnomon_pattern)
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+        victim_identifier = "LABORS-LION-NEMEAN-H2-C1"
+
+        # Auto link
+        update(
+          victim: {
+            victim_identifier => { weapon: 'sword' }
+          }
+        )
+
+        # Detach the child
+        update(
+          victim: {
+            victim_identifier => { monster: nil }
+          }
+        )
+
+        expect(last_response.status).to eq(200)
+        expect(Labors::Victim.first.monster_id).to eq(nil)
+
+      end
     end
   end
 
