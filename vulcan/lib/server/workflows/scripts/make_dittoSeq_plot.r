@@ -97,6 +97,15 @@ if (!is.null(plot_setup$scale)) {
         'counts' = 'count')
 }
 
+## Inputs that don't map exactly
+# 'split_adjust_free_y' actually translates to giving 'split.adjust = list(scale = "free_y")'
+if ("split.adjust.free.y" %in% names(plot_setup)) {
+    if (plot_setup$split.adjust.free.y) {
+        plot_setup$split.adjust <- list(scale = "free_y")
+    }
+    plot_setup$split.adjust.free.y <- NULL
+}
+
 ## Additional inputs always used
 if (viz_fxn=="dittoBarPlot") {
     plot_setup$retain.factor.levels <- TRUE

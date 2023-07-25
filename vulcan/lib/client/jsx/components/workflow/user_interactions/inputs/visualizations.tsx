@@ -211,7 +211,7 @@ const input_sets_dittoseq: DataEnvelope<DataEnvelope<string[]>> = {
     'boxplot tweaks': ['boxplot_width', 'boxplot_color', 'boxplot_fill', 'boxplot_lineweight'],
     'jitter tweaks': ['jitter_size', 'jitter_width', 'jitter_color'],
     'ridgeplot tweaks': ['ridgeplot_lineweight'],
-    'output style': ['legend_show'],
+    'output style': ['legend_show', 'split_adjust_free_y'],
     'data focus': ['group_order', 'cells_use'],
   }
 };
@@ -265,7 +265,8 @@ const defaults_dittoseq: DataEnvelope<any> = {
   labels_repel: true,
   do_contour: false,
   do_ellipse: false,
-  legend_show: true
+  legend_show: true,
+  split_adjust_free_y: true
 };
 
 const redefaults_dittoseq: DataEnvelope<DataEnvelope<any>> = {
@@ -485,7 +486,8 @@ function useExtraInputs(
       labels_repel: ['Allow movement to reduce overlaps?'],
       do_contour: ['Add density-based contours?'],
       do_ellipse: ['Surround groups in median-centered ellipses?'],
-      legend_show: ['Include the legend?']
+      legend_show: ['Include the legend?'],
+      split_adjust_free_y: ['Allow y-axis to vary between facets?']
     };
   }, [
     options,
@@ -600,7 +602,8 @@ const components_dittoseq: DataEnvelope<Function> = {
   labels_repel: checkboxPiece,
   do_contour: checkboxPiece,
   do_ellipse: checkboxPiece,
-  legend_show: checkboxPiece
+  legend_show: checkboxPiece,
+  split_adjust_free_y: checkboxPiece
 };
 
 const ComponentUse = ({
@@ -777,7 +780,7 @@ function VisualizationUI(
       </Grid>
     );
 
-  console.log(props.value);
+  // console.log(props.value);
 
   return (
     <div key='VizUI'>
