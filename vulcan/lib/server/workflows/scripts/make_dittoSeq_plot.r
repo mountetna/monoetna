@@ -1,5 +1,7 @@
 dataflow::load_packages("dataflow", "dataSupport", "Seurat", "dittoSeq")
 
+### This script...
+
 scdata <- readRDS(input_path("scdata"))
 plotting_options <- input_json("plotting_options")
 plot_setup <- input_json("plot_setup")
@@ -7,7 +9,35 @@ plot_setup <- input_json("plot_setup")
 viz_fxn <- plot_setup$plot_type
 plot_setup$plot_type <- NULL
 
-# Parse reorderings (Before input re-naming because of color.by -> either var or color.var!)
+### Remove anything left as 'make' (so get filled with dittoSeq defaults!)
+for (var in names(plot_setup)) {
+    if (identical(plot_setup[[var]],"make") || (var=="vars.use" && identical(plot_setup[[var]],list())) ) {
+        plot_setup[[var]] <- NULL
+    }
+}
+
+### Replace "_Recommended_" metadata
+## Alternatively, could have the UI serve these replacements, but I think that becomes visually finicky
+replace_meta_rec <- function(value, meta_recommendations = plotting_options$Recommended_Metadata) {
+    if (value %in% names(meta_recommendations)) {
+        value <- meta_recommendations[[value]]
+    }
+    value
+}
+special_treatment <- c("cells_use")
+for (i in seq_along(plot_setup)) {
+    if (names(plot_setup)[i] %in% special_treatment) next
+
+    if (length(plot_setup[[i]])>1) {
+        for (j in seq_along(plot_setup[[i]])) {
+            plot_setup[[i]][j] <- replace_meta_rec(plot_setup[[i]][j])
+        }
+    } else {
+    plot_setup[i] <- replace_meta_rec(plot_setup[[i]])
+    }
+}
+
+### Parse reorderings (Before input re-naming because of color.by -> either var or color.var!)
 if ("color_order" %in% names(plot_setup)) {
 
     if (length(plot_setup$color_order)>1 || !plot_setup$color_order %in% c("increasing", "decreasing", "unordered", "randomize")) {
@@ -24,7 +54,7 @@ if ("color_order" %in% names(plot_setup)) {
 
     plot_setup$color_order <- NULL
 }
-# (var_order & group_order extra to dittoSeq features and require modifying the sc object itself!)
+# (var_order & group_order are extra to dittoSeq features so require modifying the sc object itself!)
 if ("var_order" %in% names(plot_setup)) {
     scdata@meta.data[,plot_setup$var] <- factor(
         scdata@meta.data[,plot_setup$var],
@@ -40,7 +70,8 @@ if ("group_order" %in% names(plot_setup)) {
     plot_setup$group_order <- NULL
 }
 
-## Correct input names
+### Correct input names
+# from '.'s to '_'s
 names(plot_setup) <- gsub("_", ".", names(plot_setup))
 rename_if_there <- function(current, proper) {
     if (current %in% names(plot_setup)) {
@@ -49,6 +80,7 @@ rename_if_there <- function(current, proper) {
     }
     plot_setup
 }
+# Other specifically different variable names
 plot_setup <- rename_if_there("x.by", "x.var")
 plot_setup <- rename_if_there("y.by", "y.var")
 if (viz_fxn=="dittoDimPlot") plot_setup <- rename_if_there("color.by", "var")
@@ -70,7 +102,34 @@ if (viz_fxn=="dittoBarPlot") {
     plot_setup$retain.factor.levels <- TRUE
 }
 
-# Parse reduction_setup
+### Add assay inputs for gene data
+getAssay <- function(targ, object) {
+    # Return: String, the assay name containing this gene
+    for (assay_check in Seurat::Assays(object)) {
+        if (isGene(targ, object, assay = assay_check)) {
+            return(assay_check)
+        }
+    }
+    stop(paste0("No assay found for ", targ))
+}
+addAssayInputIfGene <- function(gene_input_name, assay_input_name, setup = plot_setup, object = scdata) {
+    # Return plot_setup with needed assay added to plot_setup[[assay_input_name]], when required
+    if (gene_input_name %in% names(setup)) {
+        gene_targ <- setup[[gene_input_name]]
+        if (is(object, "Seurat") && !isMeta(gene_targ, object)) {
+            setup[[assay_input_name]] <- getAssay(gene_targ, object)
+        }
+    }
+    return(setup)
+}
+plot_setup <- addAssayInputIfGene("x.var", "assay.x")
+plot_setup <- addAssayInputIfGene("y.var", "assay.y")
+plot_setup <- addAssayInputIfGene("color.var", "assay.color")
+plot_setup <- addAssayInputIfGene("color.var", "assay.hover")
+plot_setup <- addAssayInputIfGene("var", "assay")
+if (viz_fxn=="dittoDimPlot") plot_setup <- addAssayInputIfGene("var", "hover.assay")
+
+### Parse reduction_setup
 if ("reduction.setup" %in% names(plot_setup)) {
     setup <- plot_setup$reduction.setup
     plot_setup$reduction.use <- setup[1]
@@ -84,28 +143,7 @@ if ("reduction.setup" %in% names(plot_setup)) {
     }
 }
 
-# Replace "_Recommended_" metadata
-## Alternatively, could have the UI serve these replacements, but I think that becomes visually finicky
-replace_meta_rec <- function(value, recommendations = plotting_options$Recommended_Metadata) {
-    if (value %in% names(recommendations)) {
-        value <- recommendations[[value]]
-    }
-    value
-}
-special_treatment <- "cells.use"
-for (i in seq_along(plot_setup)) {
-    if (names(plot_setup)[i] %in% special_treatment) next
-
-    if (length(plot_setup[[i]])>1) {
-        for (j in seq_along(plot_setup[[i]])) {
-            plot_setup[[i]][j] <- replace_meta_rec(plot_setup[[i]][j])
-        }
-    } else {
-    plot_setup[i] <- replace_meta_rec(plot_setup[[i]])
-    }
-}
-
-# Parse subsetting
+### Parse subsetting
 if ( !is.null(plot_setup$cells.use) && length(plot_setup$cells.use)>0 ) {
     # Special-case recommendation replacement
     for (i in seq_along(plot_setup$cells.use$methods)) {
@@ -119,14 +157,12 @@ if ( !is.null(plot_setup$cells.use) && length(plot_setup$cells.use)>0 ) {
     plot_setup$cells.use <- NULL
 }
 
-# Remove anything left as 'make' (so get filled with dittoSeq defaults!)
-for (var in names(plot_setup)) {
-    if (identical(plot_setup[[var]],"make") || (var=="vars.use" && identical(plot_setup[[var]],list())) ) {
-        plot_setup[[var]] <- NULL
-    }
+### Turn off do_hover if too many points, using 100k as limit
+if (viz_fxn %in% c('dittoDimPlot', 'dittoScatterPlot', 'dittoPlot') && ncol(scdata) > 25000)  {
+    plot_setup$do.hover <- FALSE
 }
 
-# Add the dataset
+### Add the dataset
 plot_setup$object <- scdata
 
 ### Output the plot
@@ -134,7 +170,7 @@ plot_setup$object <- scdata
 # Otherwise:
 #   can make the thumbnail from the plot directly
 #   ToDo: maybe split off legend so can ensure it won't override the main plot. Requires dev on the vulcan ui side to show these.
-if (!is.null(plot_setup$do.hover) && plot_setup$do.hover) {
+if (identical(plot_setup$do.hover, TRUE)) {
     # Main plot with plotly
     # ToDo: Leave this up to the user and expose hover.data input!
     if (viz_fxn!="dittoBarPlot") {
@@ -172,7 +208,8 @@ if (!is.null(plot_setup$do.hover) && plot_setup$do.hover) {
         plot = fig,
         device = "png",
         units = "px",
-        width = 1200,
-        height = 1000
+        dpi = 150,
+        width = 1500,
+        height = 1200
     )
 }

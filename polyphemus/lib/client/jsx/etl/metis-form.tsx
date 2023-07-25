@@ -27,10 +27,11 @@ import {PickBucket,PickFolder} from 'etna-js/components/metis_exploration';
 
 import {makeStyles, Theme} from '@material-ui/core/styles';
 
-import {Job} from '../polyphemus';
+import {Script, ScriptItem, Job} from '../polyphemus';
 import AddModel from './add-model';
 import {diff} from '../utils/list';
 import SelectAttribute from '../select-attribute';
+import TestFileMatch from './test-file-match';
 
 const useStyles = makeStyles((theme: Theme) => ({
   form: {
@@ -113,103 +114,112 @@ const useStyles = makeStyles((theme: Theme) => ({
       background: '#eee'
     }
   },
-  folder_path: {
-    width: '300px'
+  test: {
+    padding: '0px 10px'
   }
 }));
 
 const SCRIPT_TYPES = [ 'file', 'file_collection' ];
 
-type Script = any;
+const FileMatch = ({value,update,projectName,bucketName,script,classes}:ScriptItem) =>  {
+  return <Grid item container>
+    <Grid item xs={3}>
+      <TextField
+        placeholder='Regular expression matching file'
+        fullWidth
+        value={value}
+        onChange={
+          (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
+        }
+      />
+    </Grid>
+    <TestFileMatch className={classes.test} projectName={projectName} bucketName={bucketName} script={script}/>
+  </Grid>;
+}
 
-type ScriptItem = {
-  type: string;
-  projectName: string;
-  bucketName: string;
-  modelName: string;
-  value: any;
-  update: Function;
-  classes: any;
-};
-
-const SCRIPT_ITEMS = {
-  file_match: ({value,update}:ScriptItem) => <TextField
-    placeholder='Regular expression matching file'
-    fullWidth
-    value={value}
-    onChange={
-      (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
-    }
-  />,
-  attribute_name: ({type,value,update,modelName}:ScriptItem) => <SelectAttribute
-    value={value}
-    update={update}
-    modelName={modelName}
-    filter={ (a:any) => a.attribute_type == type }
-  />,
-  folder_path: ({value,update,projectName,bucketName,classes}:ScriptItem) => <PickFolder
+const FolderPath = ({value,update,projectName,bucketName}:ScriptItem) => <Grid item xs={3}>
+  <PickFolder
     basePath=''
     label={undefined}
     path={value}
     setPath={update}
     project_name={projectName}
     bucket={bucketName}
-    className={classes.folder_path}
-  />,
-  format: ({value,update}:ScriptItem) => <Select displayEmpty value={value} onChange={e => update(e.target.value)}>
-      <MenuItem value=''><em>Table format</em></MenuItem>
-      <MenuItem value='tsv'>tsv</MenuItem>
-      <MenuItem value='csv'>csv</MenuItem>
-  </Select>,
-  column_map: ({value,update,classes}:ScriptItem) => {
-    return <Grid>
-      <AddDialog
-        title='Map a column'
-        content={
-          <>Map a column name in the data_frame to another name (e.g., an attribute_name)</>
-        }
-        buttonText='ADD MAPPING'
-        update={ (column_name:string, mapped_column_name:string) => update(
-          { ...value, [column_name]: mapped_column_name }
-        )}
-        mask={ v => v }
-        mask2={ v => v }
-        placeholders={[ 'Column Name', 'Mapped Column Name' ]}
-      />
-      <Grid item container>
-        {
-          Object.keys(value).map(
-            column_name => <Grid
-              key={column_name} item container
-              className={classes.strikeout}
-              onClick={
-                () => {
-                  let newValue = { ...value };
-                  delete newValue[column_name];
-                  update(newValue);
-                }
-              }>
-              <Grid item xs={2}>{column_name}</Grid>
-              <Grid item xs={8}>{value[column_name]}</Grid>
-            </Grid>
-          )
-        }
-      </Grid>
-    </Grid>
-  },
-  extracted_columns: ({value,update}:ScriptItem) => <TextField
-    placeholder='Comma-separated list'
-    fullWidth
-    value={Array.isArray(value) ? value.join(', ') : value}
-    onChange={
-      (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value.split(/,\s*/))
-    }
-  />,
-  default: ({value, update}:ScriptItem) => <TextField
-    fullWidth
-    value={value}
-    onChange={ e => update(e.target.value as string) }
   />
+</Grid>;
+
+const AttributeName = ({type,value,update,modelName}:ScriptItem) => <SelectAttribute
+  value={value}
+  update={update}
+  modelName={modelName}
+  filter={ (a:any) => a.attribute_type == type }
+/>;
+
+
+const TableFormat = ({value,update}:ScriptItem) => <Select displayEmpty value={value} onChange={e => update(e.target.value)}>
+  <MenuItem value=''><em>Table format</em></MenuItem>
+  <MenuItem value='tsv'>tsv</MenuItem>
+  <MenuItem value='csv'>csv</MenuItem>
+</Select>;
+
+const ColumnMap = ({value,update,classes}:ScriptItem) => <Grid>
+  <AddDialog
+    title='Map a column'
+    content={
+      <>Map a column name in the data_frame to another name (e.g., an attribute_name)</>
+    }
+    buttonText='ADD MAPPING'
+    update={ (column_name:string, mapped_column_name:string) => update(
+      { ...value, [column_name]: mapped_column_name }
+    )}
+    mask={ v => v }
+    mask2={ v => v }
+    placeholders={[ 'Column Name', 'Mapped Column Name' ]}
+  />
+  <Grid item container>
+    {
+      Object.keys(value).map(
+        column_name => <Grid
+          key={column_name} item container
+          className={classes.strikeout}
+          onClick={
+            () => {
+              let newValue = { ...value };
+              delete newValue[column_name];
+              update(newValue);
+            }
+          }>
+          <Grid item xs={2}>{column_name}</Grid>
+          <Grid item xs={8}>{value[column_name]}</Grid>
+        </Grid>
+      )
+    }
+  </Grid>
+</Grid>;
+
+const ExtractedColumns = ({value,update}:ScriptItem) => <TextField
+  placeholder='Comma-separated list'
+  fullWidth
+  value={Array.isArray(value) ? value.join(', ') : value}
+  onChange={
+    (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value.split(/,\s*/))
+  }
+/>;
+
+const DefaultItem = ({value, update}:ScriptItem) => <TextField
+  fullWidth
+  value={value}
+  onChange={ e => update(e.target.value as string) }
+/>;
+
+const SCRIPT_ITEMS = {
+  file_match: FileMatch,
+  attribute_name: AttributeName,
+  folder_path: FolderPath,
+  format: TableFormat,
+  column_map: ColumnMap,
+  extracted_columns: ExtractedColumns,
+  default: DefaultItem
 };
 
 type SchemaType = {
@@ -334,6 +344,7 @@ const MetisScript = ({
                     modelName={modelName}
                     type={type}
                     value={value}
+                    script={script}
                     update={ (v:any) => handleUpdate({ ...script, [field_name]: v }) }
                     classes={classes}
                   />

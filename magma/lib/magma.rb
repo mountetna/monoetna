@@ -74,6 +74,7 @@ class Magma
     require_relative 'magma/attribute'
     require_relative 'magma/model'
     require_relative 'magma/gnomon'
+    require_relative 'magma/flag'
   end
 
   class Magma::ValidationError < StandardError

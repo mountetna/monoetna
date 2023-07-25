@@ -1,0 +1,231 @@
+export COMPOSE_PROJECT_NAME=monoetna
+export NODE_ENV=development
+export MONOETNA_SHA=$(shell git rev-parse HEAD)
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+
+# The following set of targets can be used as an alternative to calling into the original make system,
+# this is specifically designed for Mac
+
+### Images targets ###
+
+# Build all docker images for local development, note the order is extremely important here, as many images
+# depend on the previous images.
+
+build-dev-etna-images:
+	# Stand alone
+	echo "Building stand alone docker images..."
+	cd known_hosts && docker build . -t known_hosts
+	cd bash_mocker &&  docker build . -t bash_mocker
+	cd development-certs && docker build . -t development-certs
+	cd docker/development-psql && docker build . -t development-psql
+
+	# Apache
+	echo "Building apache images..."
+	cd docker/etna-apache && docker build . -t etna-apache
+	cd edge-apache && docker build . -t edge-apache
+
+	# Etna base images
+	echo "Building etna images..."
+	cd docker/etna-base-dev && docker build . -t etna-base-dev
+	cd etna && docker build . -t etna
+	cd docker/etna-base && docker build . -t etna-base
+
+build-dev-airflow-images:
+	# Airflow
+	 echo "Building airflow images..."
+	 cd airflow-code-editor && docker build . -t airflow-code-editor
+	 cd etna/packages/etna-py && docker build . -t etna-py
+	 cd airflow && docker build . -t airflow
+
+build-dev-archimedes-images:
+	# Archimedes
+	 echo "Building archimedes images..."
+	 cd docker/archimedes-base && docker build . -t archimedes-base
+	 cd archimedes-r-base && docker build . -t archimedes-r-base # takes a really long time!
+	 cd docker/archimedes-node-base && docker build . -t archimedes-node-base
+
+### Project level targets ###
+
+# Note: the project level docker-compose files use relative paths so it is important to execute commands from within
+# the project directory
+
+## All ##
+
+# Spins up all web-apps
+web-up:
+	cd edge-apache && docker-compose up -d
+	cd magma && docker-compose up -d
+	cd janus && docker-compose up -d
+	cd timur && docker-compose up -d
+	cd gnomon && docker-compose up -d
+	cd polyphemus && docker-compose up -d
+	cd metis && docker-compose up -d
+
+## Etna ##
+
+etna-up:
+	cd edge-apache && docker-compose up -d
+	cd etna && docker-compose up -d
+
+etna-stop:
+	cd etna && docker-compose stop
+
+etna-remove:
+	cd etna && docker-compose down
+
+etna-libs-ruby:
+	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bundle install
+
+etna-libs-js:
+	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bash -c 'cd packages/etna-js && npm install'
+	cd etna && docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 etna_app bash -c 'npm install --unsafe-perm'
+
+## Magma ##
+
+magma-up:
+	cd edge-apache && docker-compose up -d
+	cd magma && docker-compose up -d
+	# Note magma_webpack is expected to fail
+
+magma-stop:
+	cd magma && docker-compose stop
+
+magma-remove:
+	cd magma && docker-compose down
+
+magma-migrate:
+	# Will fail if magma containers are not running
+	cd magma && docker-compose run --rm -e UPDATE_STATE=1 magma_app
+
+magma-create-projects:
+	# Note set your dev TOKEN here
+	etna magma project create test_project "Test Project" --environment development
+	etna magma project create example "Example Project" --environment development
+	etna magma project create ipi "Immunoprofiler Project" --environment development
+
+magma-copy-example-models:
+	# Note set your prod TOKEN here
+	etna magma models copy_template example --file example_template.csv --environment production
+
+magma-create-example-models:
+	# Note set your dev TOKEN here
+	etna magma models apply_template example --file example_template.csv --environment development
+
+## Janus ##
+
+janus-up:
+	cd edge-apache && docker-compose up -d
+	cd janus && docker-compose up -d
+
+janus-stop:
+	cd janus && docker-compose stop
+
+janus-remove:
+	cd janus && docker-compose down
+
+janus-migrate:
+	cd janus && docker-compose run --rm -e UPDATE_STATE=1 janus_app
+
+# janus-up must be run for this to work, WHY?!
+janus-seed:
+	cd janus && docker-compose run --rm janus_app ./bin/janus add_project 'test_project' 'TestProject'
+	cd janus && docker-compose run --rm janus_app ./bin/janus add_project 'example' 'Example project'
+	cd janus && docker-compose run --rm janus_app ./bin/janus add_project 'administration' 'Admin'
+	cd janus && docker-compose run --rm janus_app ./bin/janus add_project ipi 'ImmunoProfilerProject'
+	cd janus && docker-compose run --rm janus_app ./bin/janus add_user developer@ucsf.edu DeveloperPerson password
+	cd janus && docker-compose run --rm janus_app ./bin/janus permit developer@ucsf.edu test-project administrator
+	cd janus && docker-compose run --rm janus_app ./bin/janus permit developer@ucsf.edu administration administrator
+	cd janus && docker-compose run --rm janus_app ./bin/janus permit developer@ucsf.edu ipi administrator
+	cd janus && docker-compose run --rm janus_app ./bin/janus add_user etna-agent@ucsf.edu EtnaAgent password
+	cd janus && docker-compose run --rm janus_app ./bin/janus permit etna-agent@ucsf.edu test-project administrator
+	cd janus && docker-compose run --rm janus_app ./bin/janus permit etna-agent@ucsf.edu administration administrator
+	cd janus && docker-compose run --rm janus_app ./bin/janus permit etna-agent@ucsf.edu  ipi administrator
+
+## Timur ##
+
+timur-up:
+	cd edge-apache && docker-compose up -d
+	cd timur && docker-compose up -d
+
+timur-stop:
+	cd timur && docker-compose stop
+
+timur-remove:
+	cd timur && docker-compose down
+
+timur-migrate:
+	cd timur && docker-compose run --rm -e UPDATE_STATE=1 -e FULL_BUILD=1 timur_app
+
+## Gnomon ##
+
+gnomon-up:
+	cd gnomon && docker-compose up -d
+	cd edge-apache &&  docker-compose up -d
+
+gnomon-stop:
+	cd gnomon && docker-compose stop
+
+gnomon-remove:
+	cd gnomon && docker-compose down
+
+gnomon-migrate:
+	cd gnomon && docker-compose run --rm -e UPDATE_STATE=1 gnomon_app
+
+## Polyphemus ##
+
+poly-up:
+	cd polyphemus && docker-compose up -d
+
+poly-stop:
+	cd polyphemus && docker-compose stop
+
+poly-remove:
+	cd polyphemus && docker-compose down
+
+poly-migrate:
+	cd polyphemus && docker-compose run --rm -e UPDATE_STATE=1 polyphemus_app
+
+## Metis ##
+
+metis-up:
+	cd edge-apache &&  docker-compose up -d
+	cd metis && docker-compose up -d
+
+metis-stop:
+	cd metis && docker-compose stop
+
+metis-remove:
+	cd metis && docker-compose down
+
+metis-migrate:
+	cd metis && docker-compose run --rm -e UPDATE_STATE=1 metis_app
+
+## Etna Edge ##
+
+edge-up:
+	cd edge-apache && docker-compose up -d
+
+edge-remove:
+	cd edge-apache && docker-compose stop
+
+edge-down:
+	cd edge-apache && docker-compose down
+
+## Airflow ##
+
+airflow-up:
+	cd airflow && docker-compose up -d
+
+airflow-migrate:
+	cd airflow && docker-compose run --rm -e UPDATE_STATE=1 airflow_init
+
+airflow-stop:
+	cd airflow && docker-compose stop
+
+### Clean targets ###
+
+remove-all:
+	docker-compose down
+
+stop-all:
+	docker-compose stop

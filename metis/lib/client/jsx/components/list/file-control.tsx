@@ -122,7 +122,7 @@ const FileControl = ({
     {label: 'Download file', callback: downloadFile, role: 'viewer'},
     {label: 'Copy download link', callback: copyLink, role: 'viewer'},
     {label: 'Copy metis path', callback: copyMetisPath, role: 'viewer'},
-    {label: 'FIle properties', callback: filePropertiesDialog, role: 'viewer'}
+    {label: 'File properties', callback: filePropertiesDialog, role: 'viewer'}
   ].concat(
     file.read_only
       ? [

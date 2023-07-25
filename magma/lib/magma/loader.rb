@@ -49,6 +49,8 @@ class Magma
       @identifiers = {}
       @now = Time.now.iso8601
       @dry_run = dry_run
+      @flags = Magma::Project.flags(project_name)
+      @grammar = Magma::Gnomon::Grammar.for_project(project_name)
     end
 
     def push_record(model, record_name, revision)
@@ -134,6 +136,95 @@ class Magma
         child_record_name)
     end
 
+    def find_parent_models(identifier)
+      # This method attempts to find all parent models and (their identifiers) for a given identifier.
+      #
+      # It returns a hash of hashes, where each hash is indexed by model name, and each sub hash, contains the model,
+      # identifier_name, identifier and the parent_model. If a identifier does not exist in the hierarchy chain, an
+      # empty list is returned.
+      #
+      # This method succeeds at finding parent identifiers if :
+      # 1. A proper grammar is created with gnomon and the grammar rules correspond to a model hierarchy.
+      # 2. All models have been created in the db.
+      #
+      # The identifiers DO NOT need to exist in the identifier table.
+
+      return {} if @grammar.nil?
+      grammar_decomposed = @grammar.decompose(identifier)
+      return {} if grammar_decomposed.nil?
+
+      # First we gather all available parent models and identifiers associated with the identifier.
+      # If someone has created a well formatted grammar, with proper identifiers,
+      # there MAY be a model hierarchy chain we can infer
+
+      project = Magma.instance.get_project(@project_name)
+      available_models = project.models.keys & grammar_decomposed[:rules].keys.map(&:to_sym)
+
+      chain = {}
+      available_models.each do |model_name|
+        model = project.models[model_name]
+        chain[model_name] = {
+            model: model,
+            identifier_name: model.identity.name,
+            identifier: grammar_decomposed[:rules][model_name.to_s][:name],
+            parent_model_name: model.parent_model_name
+          }
+      end
+
+      # Then we check to make sure a valid hierarchy chain exists
+      # We check that each parent_model is in the list of models available
+      valid = chain.all? do |model_name, model|
+        model_name == :project || chain.has_key?(model[:parent_model_name])
+      end
+
+      valid ? chain : {}
+
+    end
+
+    def autolink_parent_identifiers
+      # If a project is configured with the 'identifier' flag, anytime a record with an identifier is created or updated,
+      # we can implicitly infer what their parents must be via find_parent_models(). We then update the record and its revision
+      # to include its foreign key, and do this up the model hierarchy.
+      #
+      # Note that find_parent_models() is called on each record. If there are two or more records, each with an identifier that
+      # is able to decompose into a model hierarchy - we add each hierarchy to a set. We are ultimately left with a set
+      # that contains the deepest hierarchy.
+      #
+      # It is also important to note that this method is OPTIMISTIC. That is, even though we've inferred a model
+      # hierarchy from a grammar, the identifiers may not exist in the db, and we will only know once we call validate().
+      # Ideally we would validate() before we do this work, however the control flow of this classes makes it hard to do so.
+      # TODO: maybe refactor to address the above comment?
+      #
+      gnomon_mode = Magma::Flags::GNOMON_MODE
+      flag_value = @flags[gnomon_mode[:name]]
+      updates = Set.new([])
+
+      @records.each do |model, record_set|
+        record_set.each do |record_name, record|
+
+          return unless flag_value == gnomon_mode[:identifier] || flag_value == gnomon_mode[:pattern]
+
+          # Do not auto attach disconnected records
+          next if record.explicitly_disconnected_from_parent?
+
+          # Attempt to find parent models
+          parent_models = find_parent_models(record_name)
+          next if parent_models.empty?
+
+          parent_models.each do |model_name, model_info|
+            next if model_info[:parent_model_name].nil?
+            parent_identifier = parent_models[model_info[:parent_model_name]][:identifier]
+            updates.add([model_info[:model], model_info[:identifier].to_s, {model_info[:parent_model_name] => parent_identifier}])
+          end
+        end
+      end
+
+      updates.each do |el|
+        push_record(*el)
+      end
+
+    end
+
     def push_implicit_link_revisions(revisions)
       # When updating link or parent attributes from the top-down,
       #   we may not know what the previous relationships were.
@@ -175,7 +266,6 @@ class Magma
             end
           end
         end
-
         implicit_revisions(revisions, model, revised_model_records) do |child_model, record_name, attribute_name|
           push_record(
             child_model, record_name.to_s,
@@ -197,7 +287,6 @@ class Magma
           [attribute.link_attribute_name, '::identifier', '::in', parent_record_names],
             '::all', attribute.link_attribute_name, '::identifier'
         ], user: @user)
-
         current_record_names = question.answer.to_a
 
         current_record_names.reject { |child_record_name, parent_record_name|

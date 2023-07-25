@@ -19,6 +19,8 @@ declare module 'etna-js/utils/fetch' {
   export function json_post(path: string, params?: any): Promise<any>;
 
   export function json_delete(path: string): Promise<any>;
+
+  export function json_error(handler: (error: string) => void): (e:Promise<any>) => Promise<any>;
 }
 
 declare module 'etna-js/hooks/useActionInvoker' {
@@ -169,6 +171,7 @@ declare module 'etna-js/components/revision-history' {
     update: (revision: any) => void;
     open: boolean;
     onClose: () => void;
+    dateField?: string;
   }): any {};
 }
 

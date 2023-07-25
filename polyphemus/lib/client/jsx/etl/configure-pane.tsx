@@ -149,6 +149,7 @@ const ConfigurePane = ({
                 json_get(`/api/etl/${project_name}/revisions/${config_id}`)
               }
               open={showRevisions}
+              dateField='created_at'
               revisionDoc={(revision) =>
                 JSON.stringify(revision.config, null, 2)
               }

@@ -4,15 +4,23 @@ mono-repository version of etna projects
 
 ## Setup for Mac
 
-You'll need `homebrew` and to install a few extra items. Most tools are developed for linux, and thus
-there are some minor discrepancies that need to be addressed for mac.
+### Getting started 
 
-First off, you'll nee to install `homebrew install coreutils` to get the base set of gnu tools.
-Secondly, you may need `homebrew install findutils` as well. Try running `type -p gfind || echo need findutils!` to determine
-if you need to install findutils as well.
+1. Build all the images! Run: `make -f Makefile-mac build-dev-etna-images` and `make -f Makefile-Mac build-airflow-images`
+2. Spin up the webapps: Run: `make -f Makefile-mac web-up` and `make -f Makefile-mac airflow-up`
+3. Migrate # TODO
+4. Create some example projects in janus `make -f Makefile-mac janus-seed`
+5. Create the example projects in magma `make -f Makefile magma-create-project`
 
-Mostly, the goal is to have standard linux executables.  Macosx unfortunately comes with some out of date BSD variants
-of common gnu utils that will cause the command line tools to behave weirdly.
+If you would like to download the `example` project models in production and use them locally:
+
+1. Copy your PROD janus token `make -f Makefile-mac magma-copy-example-models`
+2. Copy your dev janus token `make -f Makefile-mac magma-create-example-models`
+
+#### Vulcan
+
+The above instructions do not build Vulcan. To build vulcan you must build archimedes images: `make -f Makefile-mac build-dev-archimedes-images`.
+This takes a really long time
 
 ## Directory Structure
 
@@ -40,6 +48,8 @@ The idea here is that branch build times should be slightly faster since they it
 If you make changes to these applications, you'll want to test and verify locally.  See *Build System* below.
 
 ## Build System
+
+### Linux
 
 The monoetna repo comprises multiple modular applications and libraries that may have one or even more than one different
 final locations.  The build system helps support a consistent interface for generating and deploying our system in this

@@ -241,7 +241,7 @@ describe EtlController do
       expect(json_body.map{|r| r[:config]}).to eq([
         { foo: 1 }, { foo: 'baz' }, { foo: 'bar' }, {}
       ])
-      expect(json_body.map(&:keys)).to all(match_array([ :config, :version_number, :comment ]))
+      expect(json_body.map(&:keys)).to all(match_array([ :config, :version_number, :comment, :created_at ]))
     end
   end
 end

@@ -169,22 +169,16 @@ const RunPane = ({
   selected: string | null;
   config: any;
 }) => {
-  const [runState, setRunState] = useState(getRunState(RUN_ONCE));
-  const [runIntervalTime, setRunIntervalTime] = useState(
-    getRunIntervalTime(RUN_ONCE)
-  );
+  const [runState, setRunState] = useState(getRunState(run_interval));
+  const [runIntervalTime, setRunIntervalTime] = useState(getRunIntervalTime(run_interval));
   const [newParams, setParams] = useState<any>({});
-  const [lastSavedParams, setLastSavedParams] = useState<any>({});
 
-  useEffect(() => {
-    setParams(params);
-  }, [params]);
+  useEffect(() => setParams(params), [params]);
 
-  const runValue = () =>
-    runState == RUN_INTERVAL ? runIntervalTime : runState;
+  const runValue = () => runState == RUN_INTERVAL ? runIntervalTime : runState;
   const reset = () => {
-    setRunState(getRunState(RUN_ONCE));
-    setRunIntervalTime(getRunIntervalTime(RUN_ONCE));
+    setRunState(getRunState(run_interval));
+    setRunIntervalTime(getRunIntervalTime(run_interval));
     setParams(params);
   };
 
@@ -214,21 +208,19 @@ const RunPane = ({
     return {run_interval: runValue(), params: newParams};
   }, [runValue, newParams]);
 
-  const formUnchanged = useMemo(() => {
-    return _.isEqual(savePayload(), lastSavedParams);
-  }, [savePayload, lastSavedParams]);
+  const formChanged = useMemo(() => {
+    return !_.isEqual(savePayload(), { params, run_interval });
+  }, [savePayload, params]);
 
   return (
     <EtlPane mode='run' selected={selected}>
       <EtlPaneHeader title='Run'>
-        <Grid className={classes.runbar} spacing={1} container>
+        { formValid && formChanged && <Grid className={classes.runbar} spacing={1} container>
           <Grid item>
             <Button
               onClick={() => {
-                setLastSavedParams(savePayload());
                 update(savePayload());
               }}
-              disabled={!formValid || formUnchanged}
             >
               Save
             </Button>
@@ -238,7 +230,7 @@ const RunPane = ({
               Reset
             </Button>
           </Grid>
-        </Grid>
+        </Grid> }
       </EtlPaneHeader>
       <Grid spacing={1} container alignItems='center'>
         <Grid className={classes.title} item>

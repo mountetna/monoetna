@@ -155,8 +155,7 @@ describe UpdateController do
     context 'from the "child" record' do
       it 'updates a parent attribute for parent-child' do
         hydra = create(:labor, name: 'The Lernean Hydra', year: '0003-01-01', project: @project)
-
-        monster = create(:monster, name: 'Lernean Hydra', labor: hydra)
+        monster = create(:monster, name: 'Lernean Hydra')
         update(
           monster: {
             'Lernean Hydra': {
@@ -164,10 +163,8 @@ describe UpdateController do
             }
           }
         )
-
         expect(last_response.status).to eq(200)
         expect(json_document(:monster,'Lernean Hydra')).to include(labor: 'The Lernean Hydra')
-
         monster.refresh
         hydra.refresh
         expect(monster.labor).to eq(hydra)
@@ -302,7 +299,6 @@ describe UpdateController do
     context 'from the "parent" or "link model" record' do
       it 'creates new child records for parent-collection' do
         expect(Labors::Labor.count).to be(0)
-
         update(
           'project' => {
             'The Twelve Labors of Hercules' => {
@@ -1258,6 +1254,310 @@ describe UpdateController do
         # the updated record is returned
         expect(last_response.status).to eq(200)
         expect(json_document(:labor, 'The Golden Apples of the Hesperides')[:prize]).to match_array(apple_labor.prize.map(&:id))
+      end
+    end
+  end
+
+  context 'using gnomon' do
+
+    it 'ignores gnomon if the project is not configured to use gnomon' do
+
+      create(:flag, :gnomon_none)
+
+      update(
+        monster: {
+          'Nemean Lion': {
+            species: 'lion'
+          }
+        }
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(Labors::Monster.first.name).to eq('Nemean Lion')
+      expect(Labors::Monster.first.species).to eq('lion')
+
+    end
+
+    context 'identifier mode' do
+
+      it 'creates a record if the identifier is defined in gnomon' do
+
+        create(:flag, :gnomon_identifier)
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
+        create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
+
+        update(
+          monster: {
+            'Nemean Lion': {
+              species: 'lion'
+            }
+          }
+        )
+        expect(last_response.status).to eq(200)
+        expect(Labors::Monster.first.name).to eq('Nemean Lion')
+        expect(Labors::Monster.first.species).to eq('lion')
+
+      end
+
+      it 'updates a record if the identifier is defined in gnomon' do
+
+        create(:flag, :gnomon_identifier)
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' })
+        create_identifier("Nemean Lion", rule: 'monster', grammar: grammar)
+
+        update(
+          monster: {
+            'Nemean Lion': {
+              species: 'lion'
+            }
+          }
+        )
+        # This will not run the validation code, since the record exists
+        update(
+          monster: {
+            'Nemean Lion': {
+              species: 'tiger'
+            }
+          }
+        )
+
+        expect(last_response.status).to eq(200)
+        expect(Labors::Monster.first.species).to eq('tiger')
+      end
+
+      it 'rejects a record if the identifier is not defined in gnomon' do
+
+        create(:flag, :gnomon_identifier)
+        update(
+          monster: {
+            'Nemean Lion': {
+              species: 'lion'
+            }
+          }
+        )
+
+        expect(last_response.status).to eq(422)
+        expect(json_body[:errors]).to eq(["The identifier 'Nemean Lion' has not been assigned in Gnomon."])
+      end
+
+      context 'auto creation of parents' do
+
+        it 'is successful when a hierarchical grammar exists and identifiers are present' do
+
+          create(:flag, :gnomon_identifier)
+          grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+
+          project_identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
+          labor_identifier = create_identifier("The Nemean Lion", rule: 'labor', grammar: grammar)
+          monster_identifier = create_identifier("LABORS-LION-NEMEAN", rule: 'monster', grammar: grammar)
+          victim_identifier = create_identifier("LABORS-LION-NEMEAN-H2-C1", rule: 'victim', grammar: grammar)
+
+          expect(Labors::Labor.count).to be(0)
+          expect(Labors::Victim.count).to be(0)
+          expect(Labors::Monster.count).to be(0)
+
+          update(
+            victim: {
+              victim_identifier.identifier => { weapon: 'sword' }
+            }
+          )
+
+          expect(last_response.status).to eq(200)
+
+          expect(Labors::Victim.first.weapon).to eq('sword')
+          expect(Labors::Victim.first.name).to eq(victim_identifier.identifier)
+          expect(Labors::Victim.first.monster_id).to eq(Labors::Monster.first.id)
+          expect(Labors::Monster.first.name).to eq(monster_identifier.identifier)
+          expect(Labors::Monster.first.labor_id).to eq(Labors::Labor.first.id)
+          expect(Labors::Labor.first.name).to eq(labor_identifier.identifier)
+          expect(Labors::Labor.first.project_id).to eq(Labors::Project.first.id)
+          expect(Labors::Project.first.name).to eq(project_identifier.identifier)
+
+        end
+
+        it 'rejects all updates when a hierarchical grammar exists but identifiers do not exist' do
+
+          create(:flag, :gnomon_identifier)
+          grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+          victim_identifier = "LABORS-LION-NEMEAN-H2-C1"
+
+          update(
+            victim: {
+              victim_identifier => { weapon: 'sword' }
+            }
+          )
+
+          # No records should be created, even though we were able to infer a model hierarchy
+          expect(Labors::Labor.count).to be(0)
+          expect(Labors::Victim.count).to be(0)
+          expect(Labors::Monster.count).to be(0)
+
+          expect(last_response.status).to eq(422)
+          expect(json_body[:errors]).to include("The identifier 'LABORS-LION-NEMEAN-H2-C1' has not been assigned in Gnomon.")
+          expect(json_body[:errors]).to include("The identifier 'LABORS-LION-NEMEAN' has not been assigned in Gnomon.")
+          expect(json_body[:errors]).to include("The identifier 'The Nemean Lion' has not been assigned in Gnomon.")
+          expect(json_body[:errors]).to include("The identifier 'The Twelve Labors of Hercules' has not been assigned in Gnomon.")
+
+        end
+
+        it 'is successful in an explicit parent-child update, where two hierarchical identifiers exist' do
+
+          create(:flag, :gnomon_identifier)
+          grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+
+          project_identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
+          labor_identifier = create_identifier("The Nemean Lion", rule: 'labor', grammar: grammar)
+          monster_identifier = create_identifier("LABORS-LION-NEMEAN", rule: 'monster', grammar: grammar)
+          victim_identifier = create_identifier("LABORS-LION-NEMEAN-H2-C1", rule: 'victim', grammar: grammar)
+
+          expect(Labors::Labor.count).to be(0)
+          expect(Labors::Victim.count).to be(0)
+          expect(Labors::Monster.count).to be(0)
+
+          update(
+            monster: {
+              'LABORS-LION-NEMEAN': {
+                victim: ['LABORS-LION-NEMEAN-H2-C1']
+              }
+            }
+          )
+
+        expect(last_response.status).to eq(200)
+
+        expect(Labors::Victim.first.name).to eq(victim_identifier.identifier)
+        expect(Labors::Victim.first.monster_id).to eq(Labors::Monster.first.id)
+        expect(Labors::Monster.first.name).to eq(monster_identifier.identifier)
+        expect(Labors::Monster.first.labor_id).to eq(Labors::Labor.first.id)
+        expect(Labors::Labor.first.name).to eq(labor_identifier.identifier)
+        expect(Labors::Labor.first.project_id).to eq(Labors::Project.first.id)
+        expect(Labors::Project.first.name).to eq(project_identifier.identifier)
+
+        end
+
+      end
+
+    end
+
+    context 'pattern mode' do
+
+      it 'creates a record if the identifier matches the pattern in the gnomon grammar' do
+
+        create(:flag, :gnomon_pattern)
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
+        identifier = "LABORS-LION-H2-C1"
+
+        update(
+          victim: {
+            identifier => { weapon: 'sword' }
+          }
+        )
+
+        expect(last_response.status).to eq(200)
+        expect(Labors::Victim.first.name).to eq(identifier)
+        expect(Labors::Victim.first.weapon).to eq('sword')
+
+      end
+
+      it 'updates a record if the identifier matches the pattern in the gnomon grammar' do
+
+        create(:flag, :gnomon_pattern)
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
+        identifier = "LABORS-LION-H2-C1"
+
+        update(
+          victim: {
+            identifier => { weapon: 'axe' }
+          }
+        )
+
+        update(
+          victim: {
+            identifier => { weapon: 'sword' }
+          }
+        )
+
+
+        expect(last_response.status).to eq(200)
+        expect(Labors::Victim.first.weapon).to eq('sword')
+      end
+
+      it 'rejects a record if the identifier does not conform to a grammar' do
+
+        create(:flag, :gnomon_pattern)
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: VALID_GRAMMAR_CONFIG, comment: 'update' })
+        identifier = "LABORS-LOON-H2-C1"
+
+        update(
+          victim: {
+            identifier => { weapon: 'sword' }
+          }
+        )
+        expect(last_response.status).to eq(422)
+        expect(json_body[:errors]).to eq(["The identifier '#{identifier}' does not conform to a grammar in Gnomon."])
+
+      end
+
+      context 'auto creation of parents' do
+
+        it 'is successful when a hierarchical grammar exists' do
+
+          create(:flag, :gnomon_pattern)
+          grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+
+          project_identifier = "The Twelve Labors of Hercules"
+          labor_identifier = "The Nemean Lion"
+          monster_identifier = "LABORS-LION-NEMEAN"
+          victim_identifier = "LABORS-LION-NEMEAN-H2-C1"
+
+          expect(Labors::Labor.count).to be(0)
+          expect(Labors::Victim.count).to be(0)
+          expect(Labors::Monster.count).to be(0)
+
+          update(
+            victim: {
+              victim_identifier => { weapon: 'sword' }
+            }
+          )
+
+          expect(last_response.status).to eq(200)
+
+          expect(Labors::Victim.first.weapon).to eq('sword')
+          expect(Labors::Victim.first.name).to eq(victim_identifier)
+          expect(Labors::Victim.first.monster_id).to eq(Labors::Monster.first.id)
+          expect(Labors::Monster.first.name).to eq(monster_identifier)
+          expect(Labors::Monster.first.labor_id).to eq(Labors::Labor.first.id)
+          expect(Labors::Labor.first.name).to eq(labor_identifier)
+          expect(Labors::Labor.first.project_id).to eq(Labors::Project.first.id)
+          expect(Labors::Project.first.name).to eq(project_identifier)
+        end
+      end
+    end
+
+    context 'pattern and identifier mode' do
+
+      it 'allows disconnecting a record' do
+
+        create(:flag, :gnomon_pattern)
+        grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+        victim_identifier = "LABORS-LION-NEMEAN-H2-C1"
+
+        # Auto link
+        update(
+          victim: {
+            victim_identifier => { weapon: 'sword' }
+          }
+        )
+
+        # Detach the child
+        update(
+          victim: {
+            victim_identifier => { monster: nil }
+          }
+        )
+
+        expect(last_response.status).to eq(200)
+        expect(Labors::Victim.first.monster_id).to eq(nil)
+
       end
     end
   end
@@ -2276,8 +2576,8 @@ describe UpdateController do
           }
         }
       )
-
       expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(["On name, 'nemean lion' is improperly formatted."])
     end
 
     it 'allows you to rename an invalid record' do
