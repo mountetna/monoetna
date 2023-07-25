@@ -20,7 +20,7 @@ import {
   sliderPiece,
   reductionSetupPiece,
   nestedDropdownPiece,
-  MultiselectAfterDataChoicePiece_forDitto
+  MultiselectAfterDataChoicePiece
 } from './user_input_pieces';
 import {subsetDataFramePiece} from './subsetDataFrame_piece';
 import {ReorderCustomOnlyPiece, ReorderPiece} from './reorder_piece';
@@ -243,7 +243,7 @@ const defaults_dittoseq: DataEnvelope<any> = {
   color_order: 'unordered',
   group_order: 'make',
   var_order: 'make',
-  vars_use: 'make',
+  vars_use: [],
   x_scale: 'linear',
   y_scale: 'linear',
   cells_use: {},
@@ -574,7 +574,7 @@ const components_dittoseq: DataEnvelope<Function> = {
   color_by: nestedDropdownPiece,
   sample_by: nestedDropdownPiece,
   plots: MultiselectPiece,
-  vars_use: MultiselectAfterDataChoicePiece_forDitto,
+  vars_use: MultiselectAfterDataChoicePiece,
   color_order: ReorderPiece,
   size: sliderPiece,
   opacity: sliderPiece,

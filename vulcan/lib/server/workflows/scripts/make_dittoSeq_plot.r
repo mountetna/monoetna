@@ -11,7 +11,7 @@ plot_setup$plot_type <- NULL
 
 ### Remove anything left as 'make' (so get filled with dittoSeq defaults!)
 for (var in names(plot_setup)) {
-    if (identical(plot_setup[[var]],"make") || (var=="vars.use" && identical(plot_setup[[var]],list())) ) {
+    if (identical(plot_setup[[var]],"make") || (var=="vars_use" && identical(plot_setup[[var]],list())) ) {
         plot_setup[[var]] <- NULL
     }
 }
