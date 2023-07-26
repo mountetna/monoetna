@@ -23,7 +23,7 @@ steps:
   plot_setup:
     run: ui-queries/any-dittoseq.cwl
     label: 'Set plot options'
-    doc: "Options here determine both what type of plot to make, and how to set that plot up. For addtional details on individual inputs, see the 'Inputs of the Plot Configuration Interface' section of Vulcan's 'Help'-page documentation OR dittoSeq's own documentation. Any inputs without an exact label match within that Vulcan 'Help'-page table will map directly to some dittoSeq input for the function with the same name as your chosen plot type. You can find dittoSeq's documentation from either within R itself, if you have it run `?<visualization-nam>`, or from the RDRR.io page that pops up when you google the package."
+    doc: "Options here determine both what type of plot to make, and how to set that plot up. For addtional details on individual inputs, see the 'Inputs of the Plot Configuration Interface' section of Vulcan's 'Help'-page documentation OR dittoSeq's own documentation. Any inputs without an exact label match within that Vulcan 'Help'-page table will map directly to some dittoSeq input for the function with the same name as your chosen plot type. You can find dittoSeq's documentation from either within R itself, run `?dittoSeq::<visualization-name>`, or from the RDRR.io page that pops up when you google the package."
     in:
       data_frame: get_dataset_and_summarize/discrete_metadata_summary
       continuous_cols: get_dataset_and_summarize/continuous_opts
