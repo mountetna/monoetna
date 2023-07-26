@@ -186,7 +186,6 @@ if (identical(plot_setup$do.hover, TRUE)) {
         plot_setup$hover.data <- "var"
     }
     fig <- do.call(viz_fxn, plot_setup)
-    saveRDS(fig, file = output_path('plot.Rds'))
     fig_json <- plotly::plotly_json(fig, jsonedit = FALSE, pretty = FALSE)
     output_var(fig_json, 'plot.out')
     # Thumbnail
@@ -201,7 +200,6 @@ if (identical(plot_setup$do.hover, TRUE)) {
     )
 } else {
     fig <- do.call(viz_fxn, plot_setup)
-    saveRDS(fig, file = output_path('plot.Rds'))
     ggsave(
         filename = output_path('plot.png'),
         plot = fig + 
@@ -221,4 +219,9 @@ if (identical(plot_setup$do.hover, TRUE)) {
         width = 1500,
         height = 1200
     )
+    # Remove the Seurat 'object' from the plot's internals to keep it smaller
+    fig$plot_env$object <- NULL
 }
+
+# Output the plot as file for editing
+saveRDS(fig, file = output_path('plot.Rds'))
