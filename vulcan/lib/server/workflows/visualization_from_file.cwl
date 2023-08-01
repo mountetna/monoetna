@@ -3,8 +3,12 @@ class: Workflow
 
 inputs:
   1_Data_Source_metis_file__file_target:
-    type: string
+    type: MetisFile
     label: "TSV or CSV file"
+    default:
+      bucket: ''
+      path: ''
+      type: null
     doc: "The set of terms for constructing a magma query towards the data of interest.  Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'query'-chunk presented in a green box there!"
 outputs:
   thumbnail:
@@ -13,29 +17,11 @@ outputs:
     outputSource: make_plot/plot.png
 
 steps:
-  get_file:
-    run: ui-queries/metis-file.cwl
-    label: "TSV or CSV file"
-    in:
-      string: 1_Data_Source_metis_file__file_target
-    out: [file]
-  get_file2:
-    run: ui-queries/metis-folder.cwl
-    label: "TSV or CSV folder"
-    in:
-      string: 1_Data_Source_metis_file__file_target
-    out: [file]
-  get_file3:
-    run: ui-queries/metis-file-or-folder.cwl
-    label: "TSV or CSV path"
-    in:
-      string: 1_Data_Source_metis_file__file_target
-    out: [file]
   get_data:
     run: scripts/VIZ_file_df.cwl
     label: 'Fetch Data'
     in:
-      data_table_file: get_file/file
+      data_table_file: 1_Data_Source_metis_file__file_target
     out: [data_frame]
   review_data:
     run: ui-queries/data-transformation.cwl

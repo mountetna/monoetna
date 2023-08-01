@@ -30,6 +30,8 @@ function _MetisLocationInput({onChange, label, allowFiles, data, ...props}: With
     } 
   }, [value.bucket])
 
+  console.log({value})
+
   return (
     !value || value.bucket == undefined ? null :
     <Grid container direction='column'>
