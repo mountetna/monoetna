@@ -11,7 +11,7 @@ plot_setup$plot_type <- NULL
 
 ### Remove anything left as 'make' (so get filled with dittoSeq defaults!)
 for (var in names(plot_setup)) {
-    if (identical(plot_setup[[var]],"make")) {
+    if (identical(plot_setup[[var]],"make") || (var=="vars_use" && identical(plot_setup[[var]],list())) ) {
         plot_setup[[var]] <- NULL
     }
 }
@@ -95,6 +95,15 @@ if (!is.null(plot_setup$scale)) {
         NULL,
         'fraction' = 'percent',
         'counts' = 'count')
+}
+
+## Inputs that don't map exactly
+# 'split_adjust_free_y' actually translates to giving 'split.adjust = list(scale = "free_y")'
+if ("split.adjust.free.y" %in% names(plot_setup)) {
+    if (plot_setup$split.adjust.free.y) {
+        plot_setup$split.adjust <- list(scale = "free_y")
+    }
+    plot_setup$split.adjust.free.y <- NULL
 }
 
 ## Additional inputs always used
@@ -210,12 +219,9 @@ if (identical(plot_setup$do.hover, TRUE)) {
         width = 1500,
         height = 1200
     )
-    # ggsave(
-    #     filename = output_path('legend.png'),
-    #     plot = dittoSeq:::.grab_legend(fig),
-    #     device = "png",
-    #     units = "in",
-    #     width = 3,
-    #     height = 6
-    # )
+    # Remove the Seurat 'object' from the plot's internals to keep it smaller
+    fig$plot_env$object <- NULL
 }
+
+# Output the plot as file for editing
+saveRDS(fig, file = output_path('plot.Rds'))

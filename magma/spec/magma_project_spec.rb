@@ -108,6 +108,17 @@ describe Magma::Project do
 
       expect(project.models[:status]).to eq(Movies::Status)
     end
+
+    it "loads project flags from the database" do
+      create(:flag, project_name: "movies", flag_name: "is_pg", value: "true")
+      create(:flag, project_name: "movies", flag_name: "is_in_theaters", value: "false")
+
+      flags = Magma::Project.flags("movies")
+
+      expect(flags['is_pg']).to eq('true')
+      expect(flags['is_in_theaters']).to eq('false')
+
+    end
   end
 
   describe '.ordered_models' do

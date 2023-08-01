@@ -1,67 +1,6 @@
 
 require 'json'
 
-VALID_CONFIG={
-  tokens: {
-    PROJECT: {
-      label: "project",
-      values: {
-        "The Twelve Labors of Hercules": "The Twelve Labors of Hercules"
-      }
-    },
-    PROJ: {
-      label: "project",
-      values: {
-        "LABORS": "The Twelve Labors of Hercules"
-      }
-    },
-    LABOR: {
-      label: "labor",
-      values: {
-        "The Nemean Lion": "The Nemean Lion",
-        "The Lernean Hydra": "The Lernean Hydra"
-      }
-    },
-    LAB: {
-      label: "labor",
-      values: {
-        "LION": "The Nemean Lion",
-        "HYDRA": "The Lernean Hydra"
-      }
-    },
-    VILL: {
-      label: "Village type",
-      values: {
-        "V": "Village",
-        "H": "Hamlet"
-      }
-    },
-    VICT: {
-      label: "Victim type",
-      values: {
-        "S": "Soldier",
-        "C": "Civilian"
-      }
-    },
-    SEP: {
-      label: "Separator",
-      values: {
-        "-": "# Separator"
-      }
-    }
-
-  },
-  synonyms: [
-    [ "PROJ", "PROJECT" ],
-    [ "LAB", "LABOR" ]
-  ],
-  rules: {
-    project: "PROJECT",
-    labor: "LABOR",
-    village: "PROJ SEP LAB SEP VILL .n",
-    victim: ".village SEP VICT .n"
-  }
-}
 
 def create_grammar(params={})
   grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: {}, comment: 'update' }.merge(params))
@@ -83,7 +22,7 @@ describe GnomonController do
 
   it 'gets the most recent grammar' do
     grammar = create_grammar(version_number: 1, config: {})
-    grammar2 = create_grammar(version_number: 2, config: VALID_CONFIG)
+    grammar2 = create_grammar(version_number: 2, config: VALID_GRAMMAR_CONFIG)
     auth_header(:viewer)
     get('/gnomon/labors')
 
@@ -94,7 +33,7 @@ describe GnomonController do
   it 'sets a new grammar' do
     grammar = create_grammar
 
-    config = VALID_CONFIG
+    config = VALID_GRAMMAR_CONFIG
     auth_header(:admin)
     json_post('/gnomon/labors', config: config, comment: 'eh')
 
@@ -124,19 +63,9 @@ describe GnomonController do
     expect(Magma::Gnomon::Grammar.count).to eq(0)
   end
 
-  def create_identifier(id, params={})
-    identifier = create(
-      :identifier, {
-        project_name: 'labors',
-        author: "Hera|hera@twelve-labors.org",
-        identifier: id,
-      }.merge(params)
-    )
-  end
-
   it 'decomposes an identifier' do
     Timecop.freeze
-    grammar = create_grammar(config: VALID_CONFIG)
+    grammar = create_grammar(config: VALID_GRAMMAR_CONFIG)
     identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
     identifier2 = create_identifier("The Nemean Lion", rule: 'labor', grammar: grammar)
     record = create(:project, name: "The Twelve Labors of Hercules")
@@ -184,7 +113,7 @@ describe GnomonController do
   end
 
   it 'does not decompose an invalid identifier' do
-    grammar = create_grammar(config: VALID_CONFIG)
+    grammar = create_grammar(config: VALID_GRAMMAR_CONFIG)
     auth_header(:viewer)
     get('/gnomon/labors/decompose/LABORS-LOON-H2-C1')
 
@@ -203,7 +132,7 @@ describe GnomonController do
 
     context 'with valid grammar' do
       before(:each) do
-        @grammar = create_grammar(config: VALID_CONFIG)
+        @grammar = create_grammar(config: VALID_GRAMMAR_CONFIG)
       end
 
       context 'generates the next identifier when' do
@@ -289,7 +218,7 @@ describe GnomonController do
 
     context 'with grammar' do
       before(:each) do
-        @grammar = create_grammar(config: VALID_CONFIG)
+        @grammar = create_grammar(config: VALID_GRAMMAR_CONFIG)
       end
 
       it 'returns a tokenization of the rule' do
@@ -321,7 +250,7 @@ describe GnomonController do
 
     context 'with grammar' do
       before(:each) do
-        @grammar = create_grammar(config: VALID_CONFIG)
+        @grammar = create_grammar(config: VALID_GRAMMAR_CONFIG)
       end
 
       it 'returns all identifiers with no regex param' do
@@ -451,7 +380,7 @@ describe GnomonController do
 
     context 'with grammar' do
       before(:each) do
-        @grammar = create_grammar(config: VALID_CONFIG)
+        @grammar = create_grammar(config: VALID_GRAMMAR_CONFIG)
       end
 
       it 'creates the identifier' do
@@ -513,8 +442,8 @@ describe GnomonController do
   context 'rules API' do
     it 'lists all of the rules for each requested project' do
       grammar = create_grammar(version_number: 1, config: {})
-      grammar2 = create_grammar(version_number: 2, config: VALID_CONFIG)
-      grammar3 = create_grammar(project_name: 'toils', version_number: 1, config: VALID_CONFIG)
+      grammar2 = create_grammar(version_number: 2, config: VALID_GRAMMAR_CONFIG)
+      grammar3 = create_grammar(project_name: 'toils', version_number: 1, config: VALID_GRAMMAR_CONFIG)
 
       auth_header(:superuser)
       post('/gnomon/rules', project_names: [ 'labors', 'toils' ])
@@ -541,7 +470,7 @@ end
 describe Magma::Gnomon::Identifier do
   context 'backfills' do
     it 'only good identifiers' do
-      grammar = create_grammar(config: VALID_CONFIG)
+      grammar = create_grammar(config: VALID_GRAMMAR_CONFIG)
 
       victim1 = create(:victim, name: 'Outis Koutsonadis')
       victim2 = create(:victim, name: 'Susan Doe')
@@ -562,7 +491,7 @@ describe Magma::Gnomon::Identifier do
     end
 
     it 'dry-runs' do
-      grammar = create_grammar(config: VALID_CONFIG)
+      grammar = create_grammar(config: VALID_GRAMMAR_CONFIG)
 
       victim1 = create(:victim, name: 'Outis Koutsonadis')
       victim2 = create(:victim, name: 'Susan Doe')
