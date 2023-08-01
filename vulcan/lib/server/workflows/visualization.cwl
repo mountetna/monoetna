@@ -27,7 +27,6 @@ steps:
     run: scripts/VIZ_query_df.cwl
     label: 'Fetch Data'
     in:
-      useQuery: 1_Data_Source_magma_query__useDataFromQuery
       queryTerms: 1_Data_Source_magma_query__queryTerms
       user_columns: 1_Data_Source_magma_query__user_columns
       expand_matrices: 1_Data_Source_magma_query__expand_matrices
