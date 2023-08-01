@@ -9,7 +9,7 @@ inputs:
       bucket: ''
       path: ''
       type: null
-    doc: "The set of terms for constructing a magma query towards the data of interest.  Suggestion: Use the Query page of Timur to build the proper dataframe, and then simply copy over the 'query'-chunk presented in a green box there!"
+    doc: "Point this input to a csv or tsv file containing the data you would like to visualize. Pick the bucket containing the data you wish to use, and then you will be able to navigate within that bucket to your target file."
 outputs:
   thumbnail:
     type: File
