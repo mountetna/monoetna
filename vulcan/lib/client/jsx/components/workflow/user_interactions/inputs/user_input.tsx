@@ -32,7 +32,7 @@ import {
 import MultipleInput from './multiple_input';
 import SingleDropdownMulticheckbox from './single_dropdown_multicheckbox';
 import {stepOfSource} from '../../../../selectors/workflow_selectors';
-import AllOutputValuesNotEmptyValidator from './validators/all_output_values_not_empty_validator';
+import AllOutputValuesNotEmptyValidator, { AllOutputValuesNotEmptyAllowingEmptyArrayValidator } from './validators/all_output_values_not_empty_validator';
 import DiffExpSC from './scDGE';
 import DataTransformation from './data_transformation';
 import AllInnerKeysNotNullValidator from './validators/all_inner_keys_not_null_validator';
@@ -62,12 +62,12 @@ configureComponent(TYPE.SCATTER_PLOTLY, ScatterPlotly, PlusSubsetValidator('rows
 configureComponent(TYPE.BAR_PLOTLY, BarPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
 configureComponent(TYPE.Y_PLOTLY, YPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
 configureComponent(TYPE.ANY_VIZ, AnyPlotly, PlusSubsetValidator('rows_use',AllOutputValuesNotEmptyValidator));
-configureComponent(TYPE.DITTOSEQ_DIM_PLOT, DittoDimPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyValidator));
-configureComponent(TYPE.DITTOSEQ_SCATTER_PLOT, DittoScatterPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyValidator));
-configureComponent(TYPE.DITTOSEQ_PLOT, DittoPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyValidator));
-configureComponent(TYPE.DITTOSEQ_BAR_PLOT, DittoBarPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyValidator));
-configureComponent(TYPE.ANY_DITTOSEQ, AnyDittoSeq, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyValidator));
-configureComponent(TYPE.DIFF_EXP_SC, DiffExpSC, PlusSubsetValidator('subset',AllOutputValuesNotEmptyValidator));
+configureComponent(TYPE.DITTOSEQ_DIM_PLOT, DittoDimPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator));
+configureComponent(TYPE.DITTOSEQ_SCATTER_PLOT, DittoScatterPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator));
+configureComponent(TYPE.DITTOSEQ_PLOT, DittoPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator));
+configureComponent(TYPE.DITTOSEQ_BAR_PLOT, DittoBarPlot, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator));
+configureComponent(TYPE.ANY_DITTOSEQ, AnyDittoSeq, PlusSubsetValidator('cells_use',AllOutputValuesNotEmptyAllowingEmptyArrayValidator));
+configureComponent(TYPE.DIFF_EXP_SC, DiffExpSC, PlusSubsetValidator('subset',AllOutputValuesNotEmptyAllowingEmptyArrayValidator));
 
 configureComponent(TYPE.SINGLE_DROPDOWN_MULTICHECKBOX, SingleDropdownMulticheckbox, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_MULTISELECT_STRING_ALL, MultipleInput(MultiselectStringInput), AllInnerValuesNotEmptyValidator);
