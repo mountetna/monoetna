@@ -183,7 +183,7 @@ def MetisLinker():
         buckets = [
             config.bucket_key
             for config in configs
-            for model, model_config in config.config["models"].items()
+            for model, model_config in config.config.get("models",{}).items()
             for script in model_config["scripts"]
         ]
                 
