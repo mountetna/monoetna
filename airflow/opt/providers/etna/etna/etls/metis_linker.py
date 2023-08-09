@@ -140,8 +140,8 @@ class MetisLoaderConfig(EtlConfigResponse):
     schedule_interval=timedelta(minutes=60),
     start_date=datetime(2023, 4, 12),
     default_args={
-        'depends_on_past': True,
-        'wait_for_downstream': True
+        'depends_on_past': False,
+        'wait_for_downstream': False
     }
 )
 def MetisLinker():
