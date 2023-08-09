@@ -80,7 +80,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
             setBucket(e)
           }}
           disableClearable
-          disablePortal
+          // disablePortal
           inputValue={inputState}
           onInputChange={(event: any, newInputState: string) => {
             setInputState(newInputState);
@@ -115,7 +115,7 @@ function FileOrFolderInner({ optionSet, path, target, setTarget, onEmpty, placeh
 
   return <Autocomplete
     key={path+'-selection'}
-    disablePortal
+    // disablePortal
     openOnFocus={true}
     autoHighlight
     options={optionSet.concat('')}
