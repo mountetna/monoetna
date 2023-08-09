@@ -22,10 +22,15 @@ RUN apt-get update \
 
 WORKDIR /app
 # Add jetpack package manager, enable command line controls, and instll packages based on past package uses.
+RUN R -e 'install.packages("remotes")'
+RUN R -e 'remotes::install_version("renv", version = "0.17.3", repos = "http://cran.us.r-project.org", upgrade = FALSE)'
+RUN R -e 'remotes::install_version("cli", version = "3.6.1", repos = "http://cran.us.r-project.org", upgrade = FALSE)'
+RUN R -e 'remotes::install_version("R6", version = "2.5.1", repos = "http://cran.us.r-project.org", upgrade = FALSE)'
+RUN R -e 'remotes::install_version("rprojroot", version = "2.0.3", repos = "http://cran.us.r-project.org", upgrade = FALSE)'
+RUN R -e 'remotes::install_version("desc", version = "1.4.2", repos = "http://cran.us.r-project.org", upgrade = FALSE)'
+RUN R -e 'remotes::install_version("docopt", version = "0.7.1", repos = "http://cran.us.r-project.org", upgrade = FALSE)'
+RUN R -e 'remotes::install_version("jetpack", version = "0.5.5", repos = "http://cran.us.r-project.org", upgrade = FALSE)'
 COPY DESCRIPTION .
 COPY renv.lock .
 COPY .Rprofile .
-RUN R -e 'install.packages("remotes")'
-RUN R -e 'remotes::install_version("renv", version = "0.17.3", repos = "http://cran.us.r-project.org", upgrade = FALSE)'
-RUN R -e 'remotes::install_version("jetpack", version = "0.5.5", repos = "http://cran.us.r-project.org", upgrade = FALSE)'
 RUN R -e 'jetpack::cli(); jetpack::install()'
