@@ -22,8 +22,10 @@ RUN apt-get update \
 
 WORKDIR /app
 # Add jetpack package manager, enable command line controls, and instll packages based on past package uses.
-RUN R -e 'install.packages(c("renv", "jetpack")); jetpack::cli()'
 COPY DESCRIPTION .
 COPY renv.lock .
 COPY .Rprofile .
-RUN jetpack install
+RUN R -e 'install.packages("remotes")'
+RUN R -e 'remotes::install_version("renv", version = "0.17.3", repos = "http://cran.us.r-project.org", upgrade = FALSE)'
+RUN R -e 'remotes::install_version("jetpack", version = "0.5.5", repos = "http://cran.us.r-project.org", upgrade = FALSE)'
+RUN R -e 'jetpack::cli(); jetpack::install()'
