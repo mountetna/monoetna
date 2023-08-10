@@ -13,17 +13,38 @@ It is unclear where the gems are installed... (TODO: look into this)
 3. Spin up the webapps: Run: `make -f Makefile-mac web-up` and `make -f Makefile-mac airflow-up`
 4. Run migrations for the webapps `make -f Makefile-mac migrate-all`
 
+
+### Hardcoded values you must change
+
+On line 23 of `etna/docker-compose.yml we have:
+
+`/home/home/etna.yml:/root/etna.yml`
+
+You must change the first part of the path mapping to:
+
+`/my-home-directory/etna.yml:/root/etna.yml`
+
+The etna gem assumes that the etna.yml file exists in your home directory.
+
 ### Example project
 
-# TODO:
+First you must install the etna gem locally, and then create a etna.yml file.
 
-4. Create some example projects in janus `make -f Makefile-mac janus-seed`
-5. Create the example projects in magma `make -f Makefile magma-create-project`
+#### Creation
+
+1. Create some example projects in janus `make -f Makefile-mac janus-seed` # Is this needed?
+2. Create the example projects in magma `make -f Makefile magma-create-project`
+
+#### Seeding some models
 
 If you would like to download the `example` project models in production and use them locally:
 
 1. Copy your PROD janus token `make -f Makefile-mac magma-copy-example-models`
 2. Copy your dev janus token `make -f Makefile-mac magma-create-example-models`
+
+#### Seeding some data
+
+TODO
 
 #### Vulcan
 
