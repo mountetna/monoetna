@@ -61,6 +61,8 @@ web-up:
 	cd polyphemus && docker-compose up -d
 	cd metis && docker-compose up -d
 
+migrate-all: magma-migrate janus-migrate timur-migrate gnomon-migrate poly-migrate metis-migrate airflow-migrate
+
 ## Etna ##
 
 etna-up:
@@ -129,7 +131,7 @@ janus-migrate:
 # janus-up must be run for this to work, WHY?!
 janus-seed:
 	cd janus && docker-compose run --rm janus_app ./bin/janus add_project 'test_project' 'TestProject'
-	cd janus && docker-compose run --rm janus_app ./bin/janus add_project 'example' 'Example project'
+	cd janus && docker-compose run --rm janus_app ./bin/janus add_project 'example' 'ExampleProject'
 	cd janus && docker-compose run --rm janus_app ./bin/janus add_project 'administration' 'Admin'
 	cd janus && docker-compose run --rm janus_app ./bin/janus add_project ipi 'ImmunoProfilerProject'
 	cd janus && docker-compose run --rm janus_app ./bin/janus add_user developer@ucsf.edu DeveloperPerson password
