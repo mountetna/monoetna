@@ -7,8 +7,16 @@ mono-repository version of etna projects
 ### Getting started 
 
 1. Build all the images! Run: `make -f Makefile-mac build-dev-etna-images` and `make -f Makefile-Mac build-airflow-images`
-2. Spin up the webapps: Run: `make -f Makefile-mac web-up` and `make -f Makefile-mac airflow-up`
-3. Migrate # TODO
+2. Spin up the etna container and install ruby/js dependencies  `make -f Makefile-mac etna-libs-ruby` and `make -f Makefile-mac etna-libs-js`.
+This installs JS dependencies locally at `etna/node_modules/` and then this directory is subsequently mounted into containers.
+It is unclear where the gems are installed... (TODO: look into this)
+3. Spin up the webapps: Run: `make -f Makefile-mac web-up` and `make -f Makefile-mac airflow-up`
+4. Run migrations for the webapps `make -f Makefile-mac migrate-all`
+
+### Example project
+
+# TODO:
+
 4. Create some example projects in janus `make -f Makefile-mac janus-seed`
 5. Create the example projects in magma `make -f Makefile magma-create-project`
 
