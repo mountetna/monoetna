@@ -208,10 +208,10 @@ metis-migrate:
 edge-up:
 	cd edge-apache && docker-compose up -d
 
-edge-remove:
+edge-stop:
 	cd edge-apache && docker-compose stop
 
-edge-down:
+edge-remove:
 	cd edge-apache && docker-compose down
 
 ## Airflow ##
@@ -219,21 +219,24 @@ edge-down:
 airflow-up:
 	cd airflow && docker-compose up -d
 
-airflow-migrate:
-	cd airflow && docker-compose run --rm -e UPDATE_STATE=1 airflow_init
-
 airflow-stop:
 	cd airflow && docker-compose stop
+
+airflow-remove:
+	cd airflow && docker-compose down
+
+airflow-migrate:
+	cd airflow && docker-compose run --rm -e UPDATE_STATE=1 airflow_init
 
 ## Vulcan ##
 
 vulcan-up:
 	cd vulcan && docker-compose up -d
 
-vulcan-remove:
+vulcan-stop:
 	cd vulcan && docker-compose stop
 
-vulcan-down:
+vulcan-remove:
 	cd vulcan && docker-compose down
 
 vulcan-migrate:
