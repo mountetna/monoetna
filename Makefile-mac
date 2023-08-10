@@ -60,8 +60,9 @@ web-up:
 	cd gnomon && docker-compose up -d
 	cd polyphemus && docker-compose up -d
 	cd metis && docker-compose up -d
+	cd vulcan && docker-compose up -d
 
-migrate-all: magma-migrate janus-migrate timur-migrate gnomon-migrate poly-migrate metis-migrate airflow-migrate
+migrate-all: magma-migrate janus-migrate timur-migrate gnomon-migrate poly-migrate metis-migrate airflow-migrate vulcan-migrate
 
 ## Etna ##
 
@@ -101,9 +102,9 @@ magma-migrate:
 
 magma-create-projects:
 	# Note set your dev TOKEN here
-	etna magma project create test_project "Test Project" --environment development
-	etna magma project create example "Example Project" --environment development
-	etna magma project create ipi "Immunoprofiler Project" --environment development
+	etna magma project create test_project "TestProject" --environment development
+	etna magma project create example "Example-project" --environment development
+	etna magma project create ipi "ImmunoProfilerProject" --environment development
 
 magma-copy-example-models:
 	# Note set your prod TOKEN here
@@ -223,6 +224,20 @@ airflow-migrate:
 
 airflow-stop:
 	cd airflow && docker-compose stop
+
+## Vulcan ##
+
+vulcan-up:
+	cd vulcan && docker-compose up -d
+
+vulcan-remove:
+	cd vulcan && docker-compose stop
+
+vulcan-down:
+	cd vulcan && docker-compose down
+
+vulcan-migrate:
+	cd vulcan && docker-compose run --rm -e UPDATE_STATE=1 vulcan_app
 
 ### Clean targets ###
 
