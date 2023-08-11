@@ -231,6 +231,7 @@ airflow-migrate:
 ## Vulcan ##
 
 vulcan-up:
+	cd edge-apache &&  docker-compose up -d
 	cd vulcan && docker-compose up -d
 
 vulcan-stop:
