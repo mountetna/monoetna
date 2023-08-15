@@ -1,10 +1,10 @@
 .etna-nav {
-  height: 60px;
-  position: relative;
-  display: flex;
-  align-items: center;
+  margin-bottom: 20px;
   border-bottom: 1px solid lightgray;
-  justify-content: space-between;
+  /* TODO keep shadow? */
+  box-shadow: none !important;
+  /* TODO switch bg-color to use MUI theme? */
+  background-color: white !important; 
 }
 
 @media print {
@@ -14,24 +14,29 @@
 }
 
 .etna-logo {
-  margin-left: 5px;
+  margin-right: 15px;
 }
 
 .etna-timur-logo {
   background: url('~etna-js/images/timur.svg');
 }
+
 .etna-metis-logo {
   background: url('~etna-js/images/metis.svg');
 }
+
 .etna-janus-logo {
   background: url('~etna-js/images/janus.svg');
 }
+
 .etna-vulcan-logo {
   background: url('~etna-js/images/vulcan.svg');
 }
+
 .etna-polyphemus {
   background: url('~etna-js/images/polyphemus.svg');
 }
+
 .etna-gnomon-logo {
   background: url('~etna-js/images/gnomon.svg');
 }
@@ -48,9 +53,9 @@
   padding: 5px;
   cursor: default;
 
-  border: 1px solid rgba(184,134,11,0.1);
+  border: 1px solid rgba(184, 134, 11, 0.1);
   border-radius: 2px;
-  background: rgba(184,134,11,0.01);
+  background: rgba(184, 134, 11, 0.01);
 }
 
 .etna-login .icon-grp {
@@ -59,87 +64,42 @@
   color: darkgoldenrod;
 }
 
-.etna-control {
-  color: gray;
-  font-size: 0.5em;
-  height: 100%;
+/* Apps Menu */
+
+.apps-menu-container {
+  font-family: "Open Sans", sans-serif;
+  margin-left: 15px;
+}
+
+.apps-menu-container .button-text {
+  margin-left: 0.25em;
+  font-size: 18px;
+}
+
+.apps-menu {
+  width: 185px;
+}
+
+.apps-menu-item {
+  padding: 15px;
+}
+
+.apps-menu-item:nth-child(2n+1) {
+  padding-right: 0px;
+}
+
+.apps-menu-item .etna-link {
   display: flex;
+  justify-content: center;
   align-items: center;
-  padding: 0px 10px;
-  cursor: pointer;
-  position: relative;
-}
-
-@keyframes appear {
-  from { height: 0px; }
-  to { height: 100%; }
-}
-
-.etna-control-links {
-  display: flex;
   flex-direction: column;
-  justify-content: end;
-
-  overflow: hidden;
-
-  position: absolute;
-  top: 60px;
-  right: 0px;
-  z-index: 1001;
-
-  animation-name: appear;
-  animation-duration: 0.1s;
-
-  background: white;
-  border: 1px solid #ccc;
-  box-shadow: 0px 2px 2px #ccc;
+  text-align: center;
 }
 
-.etna-link {
+.apps-menu-item .etna-link>img {
   width: 30px;
   height: 30px;
   border-radius: 50%;
   border: 1px solid gray;
-  margin: 5px;
-  background: white;
-  opacity: 0.2;
-}
-
-.etna-link:hover {
-  border: 1px solid darkblue;
-  width: 32px;
-  height: 32px;
-  margin: 4px;
-  cursor: not-allowed;
-}
-
-a .etna-link {
-  opacity: 1;
-}
-
-a .etna-link:hover {
-  cursor: default;
-}
-
-.etna-control-hide {
-  border: 1px solid #ccc;
-  padding: 5px 2px;
-  border-radius: 2px;
-  background: #eee;
-}
-
-.etna-control-show {
-  border: 1px solid transparent;
-  padding: 5px 2px;
-  border-radius: 2px;
-}
-
-.etna-control-show:hover {
-  background: #eee;
-  color: #bbb;
-}
-
-.etna-control-hide:hover {
-  background: #eee;
-  color: #bbb;
+  margin-bottom: 4px;
 }

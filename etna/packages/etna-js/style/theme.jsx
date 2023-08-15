@@ -1,4 +1,4 @@
-import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import Color from 'color';
 
 export const createEtnaTheme = (p,s) => {
@@ -99,5 +99,5 @@ export const createEtnaTheme = (p,s) => {
       }
     }
   };
-  return createMuiTheme(theme);
+  return createTheme(theme);
 }

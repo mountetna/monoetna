@@ -1,6 +1,15 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 require('./Nav.css');
 import { isSuperuser, isSuperEditor, isSuperViewer } from '../utils/janus';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import IconButton from '@material-ui/core/IconButton';
+import AppsIcon from '@material-ui/icons/Apps';
+import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Grow from '@material-ui/core/Grow';
+import Paper from '@material-ui/core/Paper';
+import Popper from '@material-ui/core/Popper';
+import Grid from '@material-ui/core/Grid';
 
 import Icon from './icon';
 
@@ -13,10 +22,19 @@ const ICONS = {
   viewer: 'user'
 };
 
-const Login = ({user}) => {
+const APPS = [
+  { name: "timur", description: "Model and Query" },
+  { name: "metis", description: "Store" },
+  { name: "janus", description: "Auth" },
+  { name: "polyphemus", description: "Schedule and Link" },
+  { name: "vulcan", description: "Analyze" },
+  { name: "gnomon", description: "Name and Identify" },
+]
+
+const Login = ({ user }) => {
   if (!user) return null;
 
-  let {name, permissions} = user;
+  let { name, permissions } = user;
 
   let role = (permissions[CONFIG.project_name] || {}).role;
 
@@ -26,58 +44,91 @@ const Login = ({user}) => {
 
   return (
     <div className='etna-login' title={role}>
-      <Icon className='etna-user' icon={ ICONS[role] }/>
+      <Icon className='etna-user' icon={ICONS[role]} />
       {name}
     </div>
   );
 };
 
-const Logo = ({LogoImage}) =>
+const Logo = ({ LogoImage, app }) =>
   <div className='etna-logo'>
-    <a href='/'>
-      <LogoImage/>
+    <a href='/' title={titelize(app)}>
+      <LogoImage />
     </a>
   </div>;
 
-const Link = ({app}) => {
-  let image = <img title={app} className='etna-link' src={ `/images/${app}.svg` }/>;
-
-  let host_key = `${app}_host`;
+const Link = ({ app }) => {
+  const name = app.name
+  const host_key = `${name}_host`;
 
   if (!CONFIG[host_key]) return image;
 
-  let link = new URL(...[CONFIG.project_name, CONFIG[host_key]].filter(_=>_));
+  const link = new URL(...[CONFIG.project_name, CONFIG[host_key]].filter(_ => _));
 
-  return <a href={link}>{image}</a>;
+  return <a href={link} className='etna-link' title={titelize(name)}>
+    <img src={`/images/${name}.svg`} />
+    <div className="description">{app.description}</div>
+  </a>;
 }
 
-const Control = ({currentApp}) => {
-  let [ shown, setShown ] = useState(false);
-  let apps = [ 'timur', 'metis', 'janus', 'polyphemus', 'vulcan', 'gnomon' ].filter(a => a != currentApp);
+const AppsMenu = ({ currentApp, anchorRef }) => {
+  const [open, setOpen] = useState(false);
 
-  if (!shown) return <div className='etna-control'>
-    <div className='etna-control-show' onClick={ () => setShown(true) } >
-      <Icon icon='bars'/>
-    </div>
-  </div>;
+  const handleToggle = () => {
+    setOpen((prevOpen) => !prevOpen);
+  };
 
-  return <div className='etna-control'>
-    <div className='etna-control-links'>
-      { apps.map( app => <Link key={app} app={app}/>) }
+  const handleClose = (event) => {
+    setOpen(false);
+  };
+
+  // TODO get all apps
+  const filteredApps = APPS.filter(a => a.name != currentApp);
+
+  return (
+    <div className='apps-menu-container'>
+      <IconButton
+        onClick={handleToggle}
+        aria-label="Show Apps"
+        aria-haspopup="true"
+        aria-controls={open ? 'menu-list-grow' : undefined}
+      >
+        <AppsIcon /><span className='button-text'>Apps</span>
+      </IconButton>
+      <Popper
+        open={open}
+        anchorEl={anchorRef.current}
+        placement='bottom-end'
+        role={undefined}
+        transition
+        disablePortal
+      >
+        {({ TransitionProps }) => (
+          <Grow
+            {...TransitionProps}
+            style={{ transformOrigin: 'center top' }}
+          >
+            <Paper className='apps-menu'>
+              <ClickAwayListener onClickAway={handleClose}>
+                <Grid container id="menu-list-grow">
+                  {
+                    filteredApps.map(app => {
+                      return (
+                        <Grid item xs={6} key={app.name} className='apps-menu-item'>
+                          <Link app={app} />
+                        </Grid>
+                      )
+                    })
+                  }
+                </Grid>
+              </ClickAwayListener>
+            </Paper>
+          </Grow>
+        )}
+      </Popper>
     </div>
-    <div className='etna-control-hide' onClick={ () => setShown(false) } >
-      <Icon icon='bars'/>
-    </div>
-  </div>;
+  );
 }
-
-const Nav = ({logo, app, children, user}) => 
-  <nav className='etna-nav'>
-    <Logo LogoImage={logo}/>
-    {findValidChildren(children)}
-    <Login user={user}/>
-    <Control currentApp={app}/>
-  </nav>
 
 function findValidChildren(children) {
   if (children) {
@@ -86,14 +137,37 @@ function findValidChildren(children) {
     //  one child is passed in, it is an Object, not an Array,
     //  and has no `filter` method.
     if (Array.isArray(children)) {
-      if (children.filter(_=>_).length) {
+      if (children.filter(_ => _).length) {
         return children;
       }
     } else {
       return children;
     }
   }
-  return <div style={{flex: 1}}/>;
+  return <div style={{ flex: 1 }} />;
 }
+
+function titelize(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1)
+}
+
+// TODO
+// make responsive?
+const Nav = ({ logo, app, children, user }) => {
+  const anchorRef = useRef(null);
+
+  return (
+    <AppBar position="sticky" ref={anchorRef} className="etna-nav">
+      <Toolbar>
+        <Logo LogoImage={logo} app={app} />
+        {findValidChildren(children)}
+        <Login user={user}/>
+        <AppsMenu currentApp={app} anchorRef={anchorRef} />
+      </Toolbar>
+    </AppBar>
+  );
+}
+
+
 
 export default Nav;
