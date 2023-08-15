@@ -108,13 +108,13 @@ const AppsMenu = ({ currentApp }) => {
         {({ TransitionProps }) => (
           <Grow
             {...TransitionProps}
-            style={{ transformOrigin: 'center top' }}
+            style={{ transformOrigin: 'right top' }}
           >
             <Paper className='apps-menu'>
               <ClickAwayListener onClickAway={handleClose}>
                 <Grid container id="menu-list-grow">
                   {
-                    filteredApps.map(app => {
+                    APPS.map(app => {
                       return (
                         <Grid item xs={6} key={app.name} className='apps-menu-item'>
                           <Link app={app} />

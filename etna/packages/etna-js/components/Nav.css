@@ -1,10 +1,9 @@
 .etna-nav {
   margin-bottom: 20px;
   border-bottom: 1px solid lightgray;
-  /* TODO keep shadow? */
   box-shadow: none !important;
   /* TODO switch bg-color to use MUI theme? */
-  background-color: white !important; 
+  background-color: white !important;
 }
 
 @media print {
