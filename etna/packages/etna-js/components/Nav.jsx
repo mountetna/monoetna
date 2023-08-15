@@ -23,12 +23,12 @@ const ICONS = {
 };
 
 const APPS = [
-  { name: "timur", description: "Model and Query" },
+  { name: "timur", description: "Model" },
   { name: "metis", description: "Store" },
   { name: "janus", description: "Auth" },
-  { name: "polyphemus", description: "Schedule and Link" },
+  { name: "polyphemus", description: "Link" },
   { name: "vulcan", description: "Analyze" },
-  { name: "gnomon", description: "Name and Identify" },
+  { name: "gnomon", description: "Name" },
 ]
 
 const Login = ({ user }) => {
@@ -71,8 +71,9 @@ const Link = ({ app }) => {
   </a>;
 }
 
-const AppsMenu = ({ currentApp, anchorRef }) => {
+const AppsMenu = ({ currentApp }) => {
   const [open, setOpen] = useState(false);
+  const anchorRef = useRef(null);
 
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
@@ -88,12 +89,13 @@ const AppsMenu = ({ currentApp, anchorRef }) => {
   return (
     <div className='apps-menu-container'>
       <IconButton
+        ref={anchorRef}
         onClick={handleToggle}
         aria-label="Show Apps"
         aria-haspopup="true"
         aria-controls={open ? 'menu-list-grow' : undefined}
       >
-        <AppsIcon /><span className='button-text'>Apps</span>
+        <AppsIcon />
       </IconButton>
       <Popper
         open={open}
@@ -154,15 +156,13 @@ function titelize(word) {
 // TODO
 // make responsive?
 const Nav = ({ logo, app, children, user }) => {
-  const anchorRef = useRef(null);
-
   return (
-    <AppBar position="sticky" ref={anchorRef} className="etna-nav">
+    <AppBar position="sticky" className="etna-nav">
       <Toolbar>
         <Logo LogoImage={logo} app={app} />
         {findValidChildren(children)}
         <Login user={user}/>
-        <AppsMenu currentApp={app} anchorRef={anchorRef} />
+        <AppsMenu currentApp={app} />
       </Toolbar>
     </AppBar>
   );
