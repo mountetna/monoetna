@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 require('./Nav.css');
 import { isSuperuser, isSuperEditor, isSuperViewer } from '../utils/janus';
 import AppBar from '@material-ui/core/AppBar';
@@ -6,11 +6,9 @@ import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
 import AppsIcon from '@material-ui/icons/Apps';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
-import Grow from '@material-ui/core/Grow';
 import Paper from '@material-ui/core/Paper';
 import Popper from '@material-ui/core/Popper';
 import Grid from '@material-ui/core/Grid';
-
 import Icon from './icon';
 
 const ICONS = {
@@ -83,9 +81,6 @@ const AppsMenu = ({ currentApp }) => {
     setOpen(false);
   };
 
-  // TODO get all apps
-  const filteredApps = APPS.filter(a => a.name != currentApp);
-
   return (
     <div className='apps-menu-container'>
       <IconButton
@@ -93,7 +88,9 @@ const AppsMenu = ({ currentApp }) => {
         onClick={handleToggle}
         aria-label="Show Apps"
         aria-haspopup="true"
-        aria-controls={open ? 'menu-list-grow' : undefined}
+        aria-controls={open ? 'apps-menu-list' : undefined}
+        disableRipple
+        disableFocusRipple
       >
         <AppsIcon />
       </IconButton>
@@ -102,31 +99,23 @@ const AppsMenu = ({ currentApp }) => {
         anchorEl={anchorRef.current}
         placement='bottom-end'
         role={undefined}
-        transition
         disablePortal
       >
-        {({ TransitionProps }) => (
-          <Grow
-            {...TransitionProps}
-            style={{ transformOrigin: 'right top' }}
-          >
-            <Paper className='apps-menu'>
-              <ClickAwayListener onClickAway={handleClose}>
-                <Grid container id="menu-list-grow">
-                  {
-                    APPS.map(app => {
-                      return (
-                        <Grid item xs={6} key={app.name} className='apps-menu-item'>
-                          <Link app={app} />
-                        </Grid>
-                      )
-                    })
-                  }
-                </Grid>
-              </ClickAwayListener>
-            </Paper>
-          </Grow>
-        )}
+        <ClickAwayListener onClickAway={handleClose}>
+          <Paper className='apps-menu' variant='outlined'>
+            <Grid container id="apps-menu-list">
+              {
+                APPS.map(app => {
+                  return (
+                    <Grid item xs={6} key={app.name} className='apps-menu-item'>
+                      <Link app={app} />
+                    </Grid>
+                  )
+                })
+              }
+            </Grid>
+          </Paper>
+        </ClickAwayListener>
       </Popper>
     </div>
   );
@@ -158,10 +147,10 @@ function titelize(word) {
 const Nav = ({ logo, app, children, user }) => {
   return (
     <AppBar position="sticky" className="etna-nav">
-      <Toolbar>
+      <Toolbar disableGutters className="etna-nav-toolbar">
         <Logo LogoImage={logo} app={app} />
         {findValidChildren(children)}
-        <Login user={user}/>
+        <Login user={user} />
         <AppsMenu currentApp={app} />
       </Toolbar>
     </AppBar>

@@ -4,6 +4,17 @@
   box-shadow: none !important;
   /* TODO switch bg-color to use MUI theme? */
   background-color: white !important;
+  /* do not change height. other components rely on this value */
+  height: 61px !important;
+  min-height: 61px !important;
+  max-height: 61px !important;
+}
+
+.etna-nav-toolbar {
+  /* do not change height. other components rely on this value */
+  height: 61px !important;
+  min-height: 61px !important;
+  max-height: 61px !important;
 }
 
 @media print {
@@ -13,7 +24,7 @@
 }
 
 .etna-logo {
-  margin-right: 15px;
+  margin: 0 15px;
 }
 
 .etna-timur-logo {
