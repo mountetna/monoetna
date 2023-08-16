@@ -6,6 +6,7 @@ import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
 import AppsIcon from '@material-ui/icons/Apps';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Grow from '@material-ui/core/Grow';
 import Paper from '@material-ui/core/Paper';
 import Popper from '@material-ui/core/Popper';
 import Grid from '@material-ui/core/Grid';
@@ -59,9 +60,7 @@ const Link = ({ app }) => {
   const name = app.name
   const host_key = `${name}_host`;
 
-  if (!CONFIG[host_key]) return image;
-
-  const link = new URL(...[CONFIG.project_name, CONFIG[host_key]].filter(_ => _));
+  const link = CONFIG[host_key] ? new URL(...[CONFIG.project_name, CONFIG[host_key]].filter(_ => _)) : undefined;
 
   return <a href={link} className='etna-link' title={titelize(name)}>
     <img src={`/images/${name}.svg`} />
@@ -99,23 +98,31 @@ const AppsMenu = ({ currentApp }) => {
         anchorEl={anchorRef.current}
         placement='bottom-end'
         role={undefined}
+        transition
         disablePortal
       >
-        <ClickAwayListener onClickAway={handleClose}>
-          <Paper className='apps-menu' variant='outlined'>
-            <Grid container id="apps-menu-list">
-              {
-                APPS.map(app => {
-                  return (
-                    <Grid item xs={6} key={app.name} className='apps-menu-item'>
-                      <Link app={app} />
-                    </Grid>
-                  )
-                })
-              }
-            </Grid>
-          </Paper>
-        </ClickAwayListener>
+        {({ TransitionProps }) => (
+          <Grow
+            {...TransitionProps}
+            style={{ transformOrigin: 'right top' }}
+          >
+            <Paper className='apps-menu' variant='outlined'>
+              <ClickAwayListener onClickAway={handleClose}>
+                <Grid container id="apps-menu-list">
+                  {
+                    APPS.map(app => {
+                      return (
+                        <Grid item xs={6} key={app.name} className='apps-menu-item'>
+                          <Link app={app} />
+                        </Grid>
+                      )
+                    })
+                  }
+                </Grid>
+              </ClickAwayListener>
+            </Paper>
+          </Grow>
+        )}
       </Popper>
     </div>
   );
