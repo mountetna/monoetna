@@ -6,7 +6,7 @@ mono-repository version of etna projects
 
 ### Getting started 
 
-1. Build all the images! Run: `make -f Makefile-mac build-dev-etna-images` and `make -f Makefile-Mac build-airflow-images`. To build vulcan you must build archimedes images: `make -f Makefile-mac build-dev-archimedes-images`.
+1. Build all the images! Run: `make -f Makefile-mac build-dev-etna-images` and `make -f Makefile-Mac build-dev-airflow-images`. To build vulcan you must build archimedes images: `make -f Makefile-mac build-dev-archimedes-images`.
 This takes a really long time (30-60+ mins)
 2. Spin up the etna container and install ruby/js dependencies  `make -f Makefile-mac etna-libs-ruby` and `make -f Makefile-mac etna-libs-js`.
 This installs JS dependencies locally at `etna/node_modules/` and then this directory is subsequently mounted into containers.
@@ -34,14 +34,14 @@ First you must install the etna gem locally, and then create a etna.yml file.
 #### Creation
 
 1. Create some example projects in janus `make -f Makefile-mac janus-seed` # Is this needed?
-2. Create the example projects in magma `make -f Makefile magma-create-project`
+2. Create the example projects in magma `make -f Makefile-mac magma-create-projects`
 
 #### Seeding some models
 
 If you would like to download the `example` project models in production and use them locally:
 
 1. Copy your PROD janus token `make -f Makefile-mac magma-copy-example-models`
-2. Copy your dev janus token `make -f Makefile-mac magma-create-example-models`
+2. Copy your DEV janus token `make -f Makefile-mac magma-create-example-models`
 
 #### Seeding some data
 
