@@ -1,7 +1,6 @@
 .etna-nav {
-  margin-bottom: 20px;
-  border-bottom: 1px solid lightgray;
-  box-shadow: none !important;
+  border: none !important;
+  border-bottom: 1px solid lightgray !important;
   /* TODO switch bg-color to use MUI theme? */
   background-color: white !important;
   /* do not change height. other components rely on this value */
@@ -24,7 +23,7 @@
 }
 
 .etna-logo {
-  margin: 0 15px;
+  margin-left: 5px;
 }
 
 .etna-timur-logo {

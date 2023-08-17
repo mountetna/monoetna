@@ -153,7 +153,7 @@ function titelize(word) {
 // make responsive?
 const Nav = ({ logo, app, children, user }) => {
   return (
-    <AppBar position="sticky" className="etna-nav">
+    <AppBar position="relative" className="etna-nav" variant="outlined">
       <Toolbar disableGutters className="etna-nav-toolbar">
         <Logo LogoImage={logo} app={app} />
         {findValidChildren(children)}
