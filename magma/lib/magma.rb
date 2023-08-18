@@ -57,7 +57,7 @@ class Magma
     return unless config(:hold_file)
 
     ::File.open(config(:hold_file),"w") do |f|
-      f.puts (Time.now + config(:hold_interval) || 10).utc.to_datetime.iso8601
+      f.puts (Time.now + (config(:hold_interval) || 10)).utc.to_datetime.iso8601
     end
   end
 
