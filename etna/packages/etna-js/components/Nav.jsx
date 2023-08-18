@@ -22,9 +22,9 @@ const ICONS = {
 };
 
 const APPS = [
-  { name: "timur", description: "Model" },
-  { name: "metis", description: "Store" },
-  { name: "janus", description: "Auth" },
+  { name: "timur", description: "Browse" },
+  { name: "metis", description: "File" },
+  { name: "janus", description: "Permissions" },
   { name: "polyphemus", description: "Link" },
   { name: "vulcan", description: "Analyze" },
   { name: "gnomon", description: "Name" },
