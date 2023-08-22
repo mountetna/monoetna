@@ -135,8 +135,7 @@ class Magma
     end
 
     def restart_server
-      return if Magma.instance.test?
-      Process.kill("USR2", Magma.instance.server_pid)
+      Magma.instance.restart_server
     end
 
     def validate_project
