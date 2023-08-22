@@ -45,6 +45,28 @@ class Magma
     @db.pool.connection_validation_timeout = -1
   end
 
+  def restart_server
+    return if test?
+
+    write_hold_file
+
+    Process.kill("USR2", server_pid)
+  end
+
+  def write_hold_file
+    return unless config(:hold_file)
+
+    ::File.open(config(:hold_file),"w") do |f|
+      f.puts (Time.now + (config(:hold_interval) || 10)).utc.to_datetime.iso8601
+    end
+  end
+
+  def remove_hold_file
+    return unless config(:hold_file)
+
+    ::File.unlink(config(:hold_file))
+  end
+
   def load_models(validate = true)
     setup_db
     setup_sequel
@@ -53,6 +75,8 @@ class Magma
     load_db_projects
 
     validate_models if validate
+
+    remove_hold_file
   end
 
   def load_db_projects
