@@ -65,4 +65,9 @@ jobs:
           IMAGES_POSTFIX: :master
           RUN_E2E: 1
         run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           make -C vulcan release
