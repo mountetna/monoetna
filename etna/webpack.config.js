@@ -43,6 +43,7 @@ module.exports = (env) => ({
     path: '/app',
     publicPath: '/js/'
   },
+  devtool: "source-map",
   module: {
     rules: [
       {

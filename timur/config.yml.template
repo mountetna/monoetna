@@ -22,6 +22,8 @@ default: &default
     :host: https://polyphemus.development.local
   :gnomon:
     :host: https://gnomon.development.local
+  :timur:
+    :host: https://timur.development.local
   :auth_redirect: https://janus.development.local
   :token_algo: RS256
   :token_name: JANUS_DEV_TOKEN

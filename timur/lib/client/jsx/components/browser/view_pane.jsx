@@ -21,10 +21,10 @@ const ViewPane = ({ pane, ...item_props}) => {
     <div className='items'>
       {
         items.map(item => {
-          let {name} = item;
+          let {attribute_name} = item;
 
           return <ViewItem
-            key={name}
+            key={attribute_name}
             item={item}
             {...item_props}
           />;

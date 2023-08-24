@@ -16,6 +16,8 @@
     :host: https://polyphemus.development.local
   :gnomon:
     :host: https://gnomon.development.local
+  :janus:
+    :host: https://janus.development.local
   :auth_redirect: https://janus.development.local
   :pass_algo: sha256
   :pass_salt:
