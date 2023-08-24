@@ -148,7 +148,7 @@ describe Vulcan::Orchestration do
     end
   end
 
-  describe 'e2e' do
+  describe 'e2e', e2e: true do
     it 'works' do
       expect(orchestration.run_until_done!(storage).length).to eql(0)
       expect(primary_outputs.is_built?(storage)).to eql(false)
@@ -301,7 +301,7 @@ describe Vulcan::Orchestration do
       end
     end
 
-    describe 'node' do
+    describe 'node workflow' do
       let(:figure) {
         create_figure(
           workflow_name: "test_node_workflow.cwl",
