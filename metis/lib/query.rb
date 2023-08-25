@@ -43,6 +43,7 @@ class Metis
       query_params.length > 0 ? Metis::QueryBuilder.new(
         base_query,
         query_params,
+        @bucket,
         @limit,
         @offset,
       ) : nil

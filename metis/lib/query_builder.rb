@@ -3,9 +3,9 @@ require_relative './globber'
 
 class Metis
   class QueryBuilder
-
-    def initialize(base_query, params, limit = nil, offset = 0)
+    def initialize(base_query, params, bucket, limit = nil, offset = 0)
       @base_query = base_query
+      @bucket = bucket
       @params = params
       @limit = limit
       @offset = offset
@@ -34,9 +34,9 @@ class Metis
           when '='
             result = result.where([[Sequel[model_name_attribute], param[:value]]])
           when 'glob'
-            globber = Metis::Globber.new(param[:value], is_file_query)
+            globber = Metis::Globber.new(@bucket, param[:value], is_file_query)
 
-            id_param = is_file_query ? :folder_id : :id
+            id_param = is_file_query ? :folder_id : :folder_id
 
             result = result.where(
               [[Sequel[id_param], globber.folder_path_ids]]).where(

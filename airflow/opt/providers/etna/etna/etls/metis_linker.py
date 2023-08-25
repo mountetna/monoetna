@@ -42,12 +42,18 @@ class MetisLoaderConfig(EtlConfigResponse):
             match = re.sub(r'\{', BRACE1_MAGIC, match)
             match = re.sub(r'\}', BRACE2_MAGIC, match)
             match = re.escape(match)
+
             # **/ matches anything including nothing
-            match = re.sub(STAR_MAGIC*2+'/', '(?:.*/|)', match)
+            match = re.sub(STAR_MAGIC*2+'/', '(?:([^/]*(/|$))*)', match)
+      
+            # /** matches any number of directories
+            match = re.sub(f'/{STAR_MAGIC*2}$', '(?:(/[^/]*)*)', match)
+
             # * matches any non-slash including nothing
             match = re.sub(STAR_MAGIC, '[^/]*', match)
+
             # {a,b,c,d} matches a group
-            match = re.sub(f"{BRACE1_MAGIC}((?:[^,]+,)+,[^,]+){BRACE2_MAGIC}", lambda m : f"({m[1].replace(',','|')})", match)
+            match = re.sub(f"{BRACE1_MAGIC}((?:[^,]+,)+[^,]+){BRACE2_MAGIC}", lambda m : f"({m[1].replace(',','|')})", match)
             match = re.compile(match)
         except:
             raise MetisLoaderError(f"file_match is not a valid regular expression: {script['file_match']}.")
@@ -140,8 +146,8 @@ class MetisLoaderConfig(EtlConfigResponse):
     schedule_interval=timedelta(minutes=60),
     start_date=datetime(2023, 4, 12),
     default_args={
-        'depends_on_past': True,
-        'wait_for_downstream': True
+        'depends_on_past': False,
+        'wait_for_downstream': False
     }
 )
 def MetisLinker():
@@ -183,7 +189,7 @@ def MetisLinker():
         buckets = [
             config.bucket_key
             for config in configs
-            for model, model_config in config.config["models"].items()
+            for model, model_config in config.config.get("models",{}).items()
             for script in model_config["scripts"]
         ]
                 

@@ -98,6 +98,13 @@ RSpec.configure do |config|
     #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
     Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
   end
+
+  if ENV['RUN_E2E']=='1'
+    config.filter_run e2e: true
+  else
+    config.filter_run_excluding e2e: true
+  end
+
 end
 
 def create_figure(params)
