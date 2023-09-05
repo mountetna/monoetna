@@ -23,7 +23,7 @@ run-image-test::
 		docker-compose up -d $(app_db_name) || true; \
 		docker run --rm $(EXTRA_DOCKER_ARGS) -e $(app_name_capitalized)_ENV=test \
 				-e APP_NAME=$(app_name) -e RELEASE_TEST=1 -e CI_SECRET=$${CI_SECRET} \
-				-e IS_CI=$${IS_CI} -e WAIT_FOR_DB=1 -e UPDATE_STATE=1 \
+				-e IS_CI=$${IS_CI} -e RUN_E2E=$${RUN_E2E} -e WAIT_FOR_DB=1 -e UPDATE_STATE=1 \
 				--network monoetna_default $(fullTag) \
 				/entrypoints/development.sh rspec; \
 	fi

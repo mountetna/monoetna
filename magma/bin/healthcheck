@@ -1,0 +1,16 @@
+#!/bin/bash
+
+HOLD_FILE=$(grep hold_file config.yml | awk '{ print $2 }')
+
+if [ -f "$HOLD_FILE" ];
+then
+    hold_time=$(cat $HOLD_FILE)
+    curr_time=$(date -u --iso-8601=sec)
+
+    if [[ $curr_time < $hold_time ]];
+    then
+    	exit 0
+    fi
+fi
+
+curl -f -X OPTIONS http://localhost:3000 || exit 1

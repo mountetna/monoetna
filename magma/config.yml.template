@@ -19,6 +19,8 @@
     :download_expiration: 1440
     :upload_expiration: 720
   :server_pidfile: tmp/pids/puma.pid
+# :hold_file: tmp/puma.hold
+# :hold_interval: 10
   :token_algo: RS256
   :token_name: JANUS_DEV_TOKEN
   :rsa_public: |
