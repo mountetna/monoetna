@@ -410,7 +410,7 @@ export function PickFolder({ project_name=CONFIG.project_name, bucket, setPath, 
   basePath: string; // an immutable portion of path.  Can be '' to access the entire bucket and to be compatible with exploring across buckets in sync with a PickBucket companion.
   topLevelPlaceholder?: string;
   className?: string;
-  disablePortal: boolean;
+  disablePortal?: boolean;
 }) {
   return <PickFileOrFolder
     project_name={project_name}
