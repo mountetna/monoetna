@@ -8,10 +8,12 @@ import { Grid } from '@material-ui/core';
 declare const CONFIG: {[key: string]: any};
 type metisPathType = { bucket: string, path: string, type: 'file' | 'folder' | null }
 
-function _MetisLocationInput({onChange, label, allowFiles, data, ...props}: WithInputParams<{label?: string, allowFiles: boolean}, metisPathType, metisPathType>) {
-  // console.log({props})
+function _MetisLocationInput({onChange, label, allowFiles, data, ...props}: WithInputParams<{
+    label?: string,
+    allowFiles: boolean
+    }, metisPathType, metisPathType
+  >) {
   const value = useSetsDefault({bucket: '', path: '', type: null}, props.value, onChange);
-  // console.log({value})
 
   function updateKeyToVal(key: 'bucket' | 'path' | 'type', val: string | null, fullValues = {...value}) {
     // console.log('setting ', key, ' to ', val)
@@ -42,6 +44,7 @@ function _MetisLocationInput({onChange, label, allowFiles, data, ...props}: With
           }}
           bucket={value.bucket}
           label={label? label+', '+'Bucket' : undefined}
+          disablePortal={false}
         />
       </Grid>
       <Grid>
@@ -56,6 +59,7 @@ function _MetisLocationInput({onChange, label, allowFiles, data, ...props}: With
           label={label?  label+', '+'File/Folder' : undefined}
           basePath={''}
           topLevelPlaceholder='Path to target file'
+          disablePortal={false}
         />
       </Grid>
     </Grid>

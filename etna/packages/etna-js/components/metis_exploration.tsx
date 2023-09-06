@@ -51,12 +51,13 @@ const contentUse = (folderContents: folderSummary, allowFiles: boolean) => {
     folderContents.folders
 }
 
-export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket, label="Bucket", className}: {
+export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket, label="Bucket", className, disablePortal=true}: {
   project_name?: string;
   setBucket: any;
   bucket: string;
   label?: string;
   className?: string;
+  disablePortal?: boolean;
 }){
   const [bucketList, setBucketList] = useState([] as string[]);
   const [inputState, setInputState] = useState(nullToEmptyString(bucket));
@@ -80,7 +81,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
             setBucket(e)
           }}
           disableClearable
-          // disablePortal
+          disablePortal={disablePortal}
           inputValue={inputState}
           onInputChange={(event: any, newInputState: string) => {
             setInputState(newInputState);
@@ -101,7 +102,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
   );
 }
 
-function FileOrFolderInner({ optionSet, path, target, setTarget, onEmpty, placeholder, label, autoOpen}: {
+function FileOrFolderInner({ optionSet, path, target, setTarget, onEmpty, placeholder, label, autoOpen, disablePortal=true}: {
   optionSet: string[];
   target: string;
   path: string;
@@ -110,12 +111,13 @@ function FileOrFolderInner({ optionSet, path, target, setTarget, onEmpty, placeh
   autoOpen: boolean;
   placeholder?: string;
   label?: string;
+  disablePortal?: boolean;
 }){
   const [inputState, setInputState] = useState(target);
 
   return <Autocomplete
     key={path+'-selection'}
-    // disablePortal
+    disablePortal={disablePortal}
     openOnFocus={true}
     autoHighlight
     options={optionSet.concat('')}
@@ -153,7 +155,7 @@ function FileOrFolderInner({ optionSet, path, target, setTarget, onEmpty, placeh
   />
 }
 
-export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setPath, path, type, useTargetType, allowFiles=true, label, basePath, topLevelPlaceholder='', className}: {
+export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setPath, path, type, useTargetType, allowFiles=true, label, basePath, topLevelPlaceholder='', className, disablePortal=true}: {
   project_name?: string;
   bucket: string;
   setPath: Function;
@@ -165,6 +167,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   topLevelPlaceholder?: string;
   allowFiles?: boolean;
   className?: string;
+  disablePortal?: boolean;
 }) {
   const [pathArray, setPathArray] = useState(pathToArray(path, basePath));
   const [targetType, setTargetType] = useState(null as 'folder' | 'file' | null) // null = not yet determined
@@ -367,6 +370,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
               autoOpen={!firstRender}
               placeholder={(index==0) ? topLevelPlaceholder : undefined}
               label={thisLabel}
+              disablePortal={disablePortal}
             /> : <div style={{paddingTop: 8}}>
               <TextField
                 label={thisLabel}
@@ -397,7 +401,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
   </Grid>
 }
 
-export function PickFolder({ project_name=CONFIG.project_name, bucket, setPath, path, label, basePath, topLevelPlaceholder='', className}: {
+export function PickFolder({ project_name=CONFIG.project_name, bucket, setPath, path, label, basePath, topLevelPlaceholder='', className, disablePortal=true}: {
   project_name?: string;
   bucket: string;
   setPath: Function;
@@ -406,6 +410,7 @@ export function PickFolder({ project_name=CONFIG.project_name, bucket, setPath, 
   basePath: string; // an immutable portion of path.  Can be '' to access the entire bucket and to be compatible with exploring across buckets in sync with a PickBucket companion.
   topLevelPlaceholder?: string;
   className?: string;
+  disablePortal: boolean;
 }) {
   return <PickFileOrFolder
     project_name={project_name}
@@ -417,6 +422,7 @@ export function PickFolder({ project_name=CONFIG.project_name, bucket, setPath, 
     topLevelPlaceholder={topLevelPlaceholder}
     allowFiles={false}
     className={className}
+    disablePortal={disablePortal}
     />
 }
 
