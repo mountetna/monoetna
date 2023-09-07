@@ -75,7 +75,15 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
       </Grid>
       <Grid item style={{flex: '1 1 auto'}}>
         <Autocomplete
-          options={bucketList}
+          // Add '' to avoid error message
+          options={bucketList.concat('')}
+          // But don't show '' as option
+          filterOptions={(options, state) => {
+            const query = inputState != bucket ? inputState : '';
+            return bucketList.filter((o) => {
+              return query == null ? true : o.indexOf(query) > -1;
+            });
+          }}
           value={nullToEmptyString(bucket)}
           onChange={ (event: any, e: string | null) => {
             setBucket(e)
@@ -86,7 +94,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
           onInputChange={(event: any, newInputState: string) => {
             setInputState(newInputState);
           }}
-          style={{paddingTop: 8}}
+          style={{paddingTop: label!==undefined ? 8 : undefined}}
           renderInput={(params) => (
             <TextField
               {...params}
@@ -371,16 +379,23 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
               placeholder={(index==0) ? topLevelPlaceholder : undefined}
               label={thisLabel}
               disablePortal={disablePortal}
-            /> : <div style={{paddingTop: 8}}>
-              <TextField
-                label={thisLabel}
-                InputLabelProps={{ shrink: true }}
-                size="small"
-                disabled
-                fullWidth
-                placeholder={'Awaiting folder contents or bucket selection'}
-              />
-            </div>
+            /> : <Autocomplete
+              disabled
+              options={['']}
+              value=''
+              disableClearable
+              disablePortal={disablePortal}
+              style={{paddingTop: thisLabel!==undefined ? 8 : undefined}}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder={'Awaiting contents or bucket choice'}
+                  label={thisLabel}
+                  size='small'
+                  InputLabelProps={{shrink: true}}
+                />
+              )}
+            />
             }
           </Grid>
           {showAddButton==index ? <Grid item container alignItems='flex-end' style={{width: 'auto'}}>
