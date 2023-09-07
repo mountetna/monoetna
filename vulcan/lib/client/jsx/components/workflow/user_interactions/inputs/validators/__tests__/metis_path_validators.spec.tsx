@@ -103,22 +103,3 @@ describe('MetisFolderValidator', () => {
     expect(MetisFolderValidator(input).length > 0).toEqual(true);
   });
 });
-
-/*
-  MetisPathValidator
-  - fail if bucket ''
-  - allow path ''
-  - allow folder
-  - allow file
-  MetisFileValidator
-  - fail if bucket ''
-  - fail if path ''
-  - fail if folder
-  - allow file
-  MetisFolderValidator
-  - fail if bucket ''
-  - allow path ''
-  - allow folder
-  - fail if file
-  */
-
