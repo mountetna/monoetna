@@ -165,7 +165,7 @@ export function WithBufferedInputs({
     }
   }
 
-  const commit_rest_buttons = hasInputs ? (
+  const commit_reset_buttons = hasInputs ? (
     <div className='reset-or-commit-inputs'>
       <Button onClick={cancelInputs} disabled={!!state.pollingState}>
         Reset
@@ -209,7 +209,7 @@ export function WithBufferedInputs({
     isPassableUIStep(stepName, stateRef.current.workflow) || hasInputs ? (
       <Grid container style={{width: 'auto'}} justifyContent='flex-end'>
         {autopass_switch}
-        {commit_rest_buttons}
+        {commit_reset_buttons}
       </Grid>
     ) : null;
 
