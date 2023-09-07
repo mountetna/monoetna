@@ -18,8 +18,11 @@ function _MetisLocationInput({onChange, label, allowFiles, data, ...props}: With
   function updateKeyToVal(key: 'bucket' | 'path' | 'type', val: string | null, fullValues = {...value}) {
     // console.log('setting ', key, ' to ', val)
     const newValue = fullValues
-    newValue[key] = val as any
-    onChange(some(newValue))
+    if (newValue[key] != val) {
+      // only push when different than current
+      newValue[key] = val as any
+      onChange(some(newValue))
+    }
   }
 
   function updateType(t: 'file' | 'folder' | null) {
@@ -31,8 +34,6 @@ function _MetisLocationInput({onChange, label, allowFiles, data, ...props}: With
       updateType(null)
     } 
   }, [value.bucket])
-
-  console.log({value})
 
   return (
     !value || value.bucket == undefined ? null :

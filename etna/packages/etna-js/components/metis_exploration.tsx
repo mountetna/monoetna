@@ -155,12 +155,11 @@ function FileOrFolderInner({ optionSet, path, target, setTarget, onEmpty, placeh
   />
 }
 
-export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setPath, path, type, useTargetType, allowFiles=true, label, basePath, topLevelPlaceholder='', className, disablePortal=true}: {
+export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, setPath, path, useTargetType, allowFiles=true, label, basePath, topLevelPlaceholder='', className, disablePortal=true}: {
   project_name?: string;
   bucket: string;
   setPath: Function;
   path: string; // the overall "value" / output
-  type?: 'folder' | 'file' | null;
   useTargetType?: (type: 'folder' | 'file' | null)=>void; // null = not yet determined OR not getting tracked
   label?: string;
   basePath: string; // an immutable portion of path.  Can be '' to access the entire bucket and to be compatible with exploring across buckets in sync with a PickBucket companion.
@@ -186,12 +185,12 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     return key in contentsSeen && !["undefined","string"].includes(typeof(contentsSeen[key]))  // todo: use string for error cases when trying to fetch folder contents
   }, [pathInMetis, contentsSeen])
   
-  function useType(type: 'file' | 'folder' | null) {
-    if (useTargetType) useTargetType(type)
+  function useType(type: 'file' | 'folder' | null, doTransmit: boolean = true) {
+    if (doTransmit && useTargetType) useTargetType(type)
     if (type != targetType) setTargetType(type)
     return type
   }
-  const useDetermineType = useCallback( (target: string, containerPath: string, doUse: boolean = true)=> {
+  const useDetermineType = useCallback( (target: string, containerPath: string, doUse: boolean = true, doTransmit: boolean = true)=> {
     const containerMetisPath = pathInMetis(containerPath);
     const targetContainerContent = contentsSeen[containerMetisPath];
     let newType = null as 'file' | 'folder' | null;
@@ -210,7 +209,7 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
         .filter( contentType => targetContainerContent[contentType].includes(target) )
       newType = whichContents.length>0 ? whichContents[0].slice(0, -1) as 'file' | 'folder' : null
     }
-    return doUse ? useType(newType) : newType
+    return doUse ? useType(newType, doTransmit) : newType
   }, [contentsSeen, fetchContents, pathInMetis])
 
   // Ensure type is determined even if containing folder contents weren't known at time of path update
@@ -218,11 +217,12 @@ export function PickFileOrFolder({ project_name=CONFIG.project_name, bucket, set
     if (targetType == null && fetchContents.length == 0) {
       const containerPathArray = pathArray.slice(0,-1)
       const target = pathArray[pathArray.length-1]
+      // without passing upwards to not trigger extraneous updates in parent component updates at page refresh
       if (target && target != '') {
-        useDetermineType(target, stripSlash(arrayToPath(containerPathArray, basePath)))
+        useDetermineType(target, stripSlash(arrayToPath(containerPathArray, basePath)), true, false)
       }
       if (target && target == '') {
-        useType('folder')
+        useType('folder', false)
       }
     }
   }, [targetType, fetchContents])
