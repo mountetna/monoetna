@@ -21,14 +21,18 @@ describe Metis::QueryBuilder do
   it 'initializes correctly for files' do
     builder = Metis::QueryBuilder.new(
       Metis::File.where(project_name: 'athena', bucket: @bucket),
-      [])
+      [],
+      @bucket
+    )
     builder.build
   end
 
   it 'initializes correctly for folders' do
     builder = Metis::QueryBuilder.new(
       Metis::Folder.where(project_name: 'athena', bucket: @bucket),
-      [])
+      [],
+      @bucket
+    )
     builder.build
   end
 
@@ -39,8 +43,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: '=~',
         value: '%dom%'
-      }])
-    expect(builder.build.count).to eq(1)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to eq(["wisdom.txt"])
 
 
     builder = Metis::QueryBuilder.new(
@@ -49,7 +55,9 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: '=~',
         value: '%xyz%'
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
   end
 
@@ -60,8 +68,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: '=~',
         value: '/.*dom.*/'
-      }])
-    expect(builder.build.count).to eq(1)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to eq(["wisdom.txt"])
 
 
     builder = Metis::QueryBuilder.new(
@@ -70,7 +80,9 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: '=~',
         value: '/.*xyz.*/'
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
 
     builder = Metis::QueryBuilder.new(
@@ -79,8 +91,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: '=~',
         value: '/.*dOm.*/ix'
-      }])
-    expect(builder.build.count).to eq(1)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to eq(["wisdom.txt"])
   end
 
   it 'supports querying by string equality' do
@@ -90,7 +104,9 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: '=',
         value: 'dom'
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
 
     builder = Metis::QueryBuilder.new(
@@ -99,8 +115,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: '=',
         value: 'wisdom.txt'
-      }])
-    expect(builder.build.count).to eq(1)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to eq(["wisdom.txt"])
   end
 
   it 'supports querying by time value and range' do
@@ -110,8 +128,10 @@ describe Metis::QueryBuilder do
         attribute: 'updated_at',
         predicate: '>',
         value: (DateTime.now - 1).iso8601
-      }])
-    expect(builder.build.count).to eq(1)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to eq(["wisdom.txt"])
 
 
     builder = Metis::QueryBuilder.new(
@@ -120,7 +140,9 @@ describe Metis::QueryBuilder do
         attribute: 'updated_at',
         predicate: '<',
         value: (DateTime.now - 1).iso8601
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
 
     builder = Metis::QueryBuilder.new(
@@ -133,7 +155,9 @@ describe Metis::QueryBuilder do
         attribute: 'updated_at',
         predicate: '>',
         value: (DateTime.now + 1).iso8601
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
 
     builder = Metis::QueryBuilder.new(
@@ -146,8 +170,10 @@ describe Metis::QueryBuilder do
         attribute: 'updated_at',
         predicate: '>',
         value: (DateTime.now - 1).iso8601
-      }])
-    expect(builder.build.count).to eq(1)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to eq(["wisdom.txt"])
   end
 
   it 'can query both string and time attributes' do
@@ -165,7 +191,9 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: '=~',
         value: '%foo%'
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
 
     builder = Metis::QueryBuilder.new(
@@ -182,8 +210,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: '=~',
         value: 'wisd%'
-      }])
-    expect(builder.build.count).to eq(1)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to eq(["wisdom.txt"])
 
     builder = Metis::QueryBuilder.new(
       Metis::Folder.where(project_name: 'athena', bucket: @bucket),
@@ -199,7 +229,9 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: '=~',
         value: '%foo%'
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
 
     builder = Metis::QueryBuilder.new(
@@ -216,8 +248,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: '=~',
         value: 'wisd%'
-      }])
-    expect(builder.build.count).to eq(1)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:folder_name)).to eq(["wisdom"])
   end
 
   it 'can query by globs for folders' do
@@ -236,8 +270,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'child/*'
-      }])
-    expect(builder.build.count).to eq(2)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:folder_name)).to eq(["grandchild"])
 
     builder = Metis::QueryBuilder.new(
       Metis::Folder.where(project_name: 'athena', bucket: @bucket),
@@ -245,8 +281,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'child/gr*'
-      }])
-    expect(builder.build.count).to eq(1)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:folder_name)).to eq(["grandchild"])
 
     builder = Metis::QueryBuilder.new(
       Metis::Folder.where(project_name: 'athena', bucket: @bucket),
@@ -254,7 +292,9 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'greatgrandchild/*'
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
 
     builder = Metis::QueryBuilder.new(
@@ -263,8 +303,21 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'wisdom/*'
-      }])
-    expect(builder.build.count).to eq(3)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:folder_name)).to eq(["child"])
+
+    builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'wisdom/**/*'
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:folder_name)).to match_array(["child", "grandchild", "greatgrandchild"])
 
     builder = Metis::QueryBuilder.new(
       Metis::Folder.where(project_name: 'athena', bucket: @bucket),
@@ -272,8 +325,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: '*chil*/*'
-      }])
-    expect(builder.build.count).to eq(3)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:folder_name)).to match_array(["grandchild", "greatgrandchild"])
 
     builder = Metis::QueryBuilder.new(
       Metis::Folder.where(project_name: 'athena', bucket: @bucket),
@@ -281,8 +336,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'wisdom/**/*child*'
-      }])
-    expect(builder.build.count).to eq(3)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:folder_name)).to match_array(["child", "grandchild", "greatgrandchild"])
   end
 
   it 'can find data in folders with the same name via globbing' do
@@ -310,8 +367,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'grandchild'
-      }])
-    expect(builder.build.count).to eq(2)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:folder_name)).to eq(["grandchild","grandchild"])
 
     builder = Metis::QueryBuilder.new(
       Metis::Folder.where(project_name: 'athena', bucket: @bucket),
@@ -319,7 +378,9 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'grandchild/*'
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
 
     builder = Metis::QueryBuilder.new(
@@ -328,8 +389,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'chil*/*'
-      }])
-    expect(builder.build.count).to eq(2) # child/ + child/grandchild/
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:folder_name)).to eq(["grandchild"])
 
     builder = Metis::QueryBuilder.new(
       Metis::Folder.where(project_name: 'athena', bucket: @bucket),
@@ -337,8 +400,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: '{sibling,child}/*'
-      }])
-    expect(builder.build.count).to eq(2)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:folder_name)).to match_array(["grandchild","grandchild"])
 
     builder = Metis::QueryBuilder.new(
       Metis::File.where(project_name: 'athena', bucket: @bucket),
@@ -346,8 +411,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'grandchild/*'
-      }])
-    expect(builder.build.count).to eq(2)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to match_array(["helmet.jpg", "shiny_helmet.jpg"])
 
     builder = Metis::QueryBuilder.new(
       Metis::File.where(project_name: 'athena', bucket: @bucket),
@@ -355,8 +422,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'grand*/*'
-      }])
-    expect(builder.build.count).to eq(2)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to match_array(["helmet.jpg", "shiny_helmet.jpg"])
 
     builder = Metis::QueryBuilder.new(
       Metis::File.where(project_name: 'athena', bucket: @bucket),
@@ -364,8 +433,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'grandchild/*.jpg'
-      }])
-    expect(builder.build.count).to eq(2)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to match_array(["helmet.jpg","shiny_helmet.jpg"])
 
     builder = Metis::QueryBuilder.new(
       Metis::File.where(project_name: 'athena', bucket: @bucket),
@@ -373,7 +444,9 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'grandchild/*.txt'
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
 
     builder = Metis::QueryBuilder.new(
@@ -382,8 +455,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: '{sibling,child}/**/*.jpg'
-      }])
-    expect(builder.build.count).to eq(2)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to match_array(["helmet.jpg","shiny_helmet.jpg"])
   end
 
   it 'can query by globs for files' do
@@ -402,8 +477,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'wisdom/*.txt'
-      }])
-    expect(builder.build.count).to eq(1)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to eq(["wisdom.txt"])
     expect(builder.build.first[:file_name]).to eq(@wisdom_file.file_name)
 
     builder = Metis::QueryBuilder.new(
@@ -412,8 +489,10 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'wisdom/**/*.txt'
-      }])
-    expect(builder.build.count).to eq(2)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to match_array(["wisdom.txt","young_wisdom.txt"])
     expect(builder.build.first[:file_name]).to eq(@wisdom_file.file_name)
     expect(builder.build.last[:file_name]).to eq(young_wisdom_file.file_name)
 
@@ -423,7 +502,9 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'wisdom/*/*.txt'
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
 
     builder = Metis::QueryBuilder.new(
@@ -432,7 +513,9 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: 'glob',
         value: 'child/*.jpg'
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
   end
 
@@ -452,8 +535,10 @@ describe Metis::QueryBuilder do
         attribute: 'folder_id',
         predicate: 'in',
         value: [@wisdom_folder.id]
-      }])
-    expect(builder.build.count).to eq(1)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:file_name)).to eq(["wisdom.txt"])
     expect(builder.build.first[:file_name]).to eq(@wisdom_file.file_name)
 
     builder = Metis::QueryBuilder.new(
@@ -462,7 +547,9 @@ describe Metis::QueryBuilder do
         attribute: 'folder_id',
         predicate: 'in',
         value: [-1]
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
   end
 
@@ -482,7 +569,9 @@ describe Metis::QueryBuilder do
         attribute: 'folder_id',
         predicate: 'in',
         value: @wisdom_folder.id
-      }])
+      }],
+      @bucket
+    )
     expect {
       builder.build.count
     }.to raise_error(Metis::QueryError)
@@ -493,7 +582,9 @@ describe Metis::QueryBuilder do
         attribute: 'folder_id',
         predicate: 'in',
         value: [@wisdom_folder.id.to_s]
-      }])
+      }],
+      @bucket
+    )
     expect {
       builder.build.count
     }.to raise_error(Metis::QueryError)
@@ -515,8 +606,10 @@ describe Metis::QueryBuilder do
         attribute: 'folder_id',
         predicate: 'in',
         value: [grandchild_folder.id]
-      }])
-    expect(builder.build.count).to eq(1)
+      }],
+      @bucket
+    )
+    expect(builder.build.select_map(:folder_name)).to eq(["greatgrandchild"])
 
     builder = Metis::QueryBuilder.new(
       Metis::Folder.where(project_name: 'athena', bucket: @bucket),
@@ -524,7 +617,9 @@ describe Metis::QueryBuilder do
         attribute: 'folder_id',
         predicate: 'in',
         value: [greatgrandchild_folder.id]
-      }])
+      }],
+      @bucket
+    )
     expect(builder.build.count).to eq(0)
   end
 
@@ -544,7 +639,9 @@ describe Metis::QueryBuilder do
         attribute: 'folder_id',
         predicate: 'in',
         value: grandchild_folder.id
-      }])
+      }],
+      @bucket
+    )
     expect {
       builder.build.count
     }.to raise_error(Metis::QueryError)
@@ -555,7 +652,9 @@ describe Metis::QueryBuilder do
         attribute: 'folder_id',
         predicate: 'in',
         value: [greatgrandchild_folder.id.to_s]
-      }])
+      }],
+      @bucket
+    )
     expect {
       builder.build.count
     }.to raise_error(Metis::QueryError)

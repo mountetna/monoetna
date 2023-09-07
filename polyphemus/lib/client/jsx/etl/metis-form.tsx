@@ -125,7 +125,7 @@ const FileMatch = ({value,update,projectName,bucketName,script,classes}:ScriptIt
   return <Grid item container>
     <Grid item xs={3}>
       <TextField
-        placeholder='Regular expression matching file'
+        placeholder='Glob matching file, e.g. *.fastq.gz'
         fullWidth
         value={value}
         onChange={

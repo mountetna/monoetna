@@ -88,5 +88,9 @@ class Metis
     def reserved?
       name == owner
     end
+
+    def folder_tree
+      @folder_tree ||= Metis::FolderTree.new(self)
+    end
   end
 end

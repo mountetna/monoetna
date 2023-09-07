@@ -99,7 +99,7 @@ class TestMetisLinker:
                             {
                                 "type": "file_collection",
                                 "folder_path": "family",
-                                "file_match": "family_photo.*.png",
+                                "file_match": "{LABORS-LION-H2-C1,LABORS-LION-H2-C2}/family_photo.*.png",
                                 "attribute_name": "family_photos"
                             }
                         ]
