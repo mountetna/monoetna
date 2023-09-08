@@ -7,11 +7,11 @@ describe('MetisPathValidator', () => {
 
   beforeEach(() => {
     input = {
-      value: {
+      value: [{
         bucket: '',
         path: '',
         type: null
-      },
+      }],
       data: {}
     };
   });
@@ -41,11 +41,11 @@ describe('MetisFileValidator', () => {
 
   beforeEach(() => {
     input = {
-      value: {
+      value: [{
         bucket: '',
         path: '',
         type: 'file'
-      },
+      }],
       data: {}
     };
   });
@@ -75,11 +75,11 @@ describe('MetisFolderValidator', () => {
 
   beforeEach(() => {
     input = {
-      value: {
+      value: [{
         bucket: '',
         path: '',
         type: 'folder'
-      },
+      }],
       data: {}
     };
   });
