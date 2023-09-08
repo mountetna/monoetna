@@ -8,7 +8,6 @@ fileInfo = input_json('data_table_file')
 file = File(
     file_path=fileInfo['path'], project_name=project_name, bucket_name=fileInfo['bucket'], download_url = None
 )
-file_reader = pandas.read_csv if fileInfo['path'].endswith('csv') else pandas.read_table
 with metis.open_file(file) as open_file:
-    df = file_reader(open_file)
+    df = pandas.read_table(open_file)
 df.to_json(output_path("data_frame"))
