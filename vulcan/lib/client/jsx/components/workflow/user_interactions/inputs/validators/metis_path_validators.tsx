@@ -32,13 +32,6 @@ const _MetisPathValid = (
     ];
   }
 
-  // // Path ends in '/'?
-  // if ( (value.path as string).endsWith("/") ) {
-  //   return [
-  //     `Path ends in \'/\'`
-  //   ];
-  // }
-
   if (type) {
     return type == value.type ? [] : [`Selected metis path is a ${value.type}, but a ${type} is needed.`]
   }
