@@ -37,6 +37,7 @@ import DiffExpSC from './scDGE';
 import DataTransformation from './data_transformation';
 import AllInnerKeysNotNullValidator from './validators/all_inner_keys_not_null_validator';
 import PlusSubsetValidator from './validators/PlusSubsetValidator';
+import SelectAutocompleteMultiPickInput from './select_autocomplete_multiple_answer';
 
 const components: {[k: string]: [InputBackendComponent<any, any, any>, InputValidator<any, any>]} = {};
 function configureComponent<Value, DataElement>(
@@ -53,6 +54,7 @@ configureComponent(TYPE.FLOAT, FloatInput, NotEmptyValidator);
 configureComponent(TYPE.INTEGER, IntegerInput, NotEmptyValidator);
 configureComponent(TYPE.BOOL, BooleanInput, NotEmptyValidator);
 configureComponent(TYPE.SELECT_AUTOCOMPLETE, SelectAutocompleteInput, StronglyNotEmptyValidator);
+configureComponent(TYPE.SELECT_AUTOCOMPLETE_MULTI_PICK, SelectAutocompleteMultiPickInput, StronglyNotEmptyValidator);
 configureComponent(TYPE.CHECKBOXES, CheckboxesInput, NotEmptyValidator);
 configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, StronglyNotEmptyValidator);
 configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
