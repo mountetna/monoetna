@@ -52,7 +52,7 @@ export default function SelectAutocompleteMultiPickInput({
     disableClearable?: boolean;
     disabled?: boolean;
     maxOptions?: number;
-    onChangeOverride?: (event: any, e: string | null) => void;
+    onChangeOverride?: (event: any, e: string[]) => void;
   },
   string[],
   StringOptions
@@ -129,7 +129,7 @@ export default function SelectAutocompleteMultiPickInput({
   ]);
 
   const onChangeAction = useCallback(
-    (event: any, e: string | null) => {
+    (event: any, e: string[]) => {
       onChangeOverride
         ? onChangeOverride(event, e)
         : onChange(maybeOfNullable(e));
