@@ -15,6 +15,7 @@ export const TYPE = {
   ARRAY: 'array',
   FILE: 'File',
   METIS_FILE: 'MetisFile',
+  METIS_CSV_OR_TSV: 'MetisCSVorTSV',
   METIS_FOLDER: 'MetisFolder',
   METIS_FILE_OR_FOLDER: 'MetisPath',
   MULTISELECT_STRING: 'multiselect-string',
