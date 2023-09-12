@@ -96,7 +96,7 @@ describe Magma do
       expect(::File.exists?(Magma.instance.config(:hold_file))).to be_falsy
     end
 
-    it 'passes the healthcheck if hold file exists' do
+    it 'passes the healthcheck if hold file exists and is not expired' do
       Magma.instance.write_hold_file
 
       status = system("bin/healthcheck")
