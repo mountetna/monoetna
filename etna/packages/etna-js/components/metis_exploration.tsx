@@ -57,7 +57,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
   bucket: string;
   label?: string;
   className?: string;
-  disablePortal?: boolean;
+  disablePortal: boolean;
 }){
   const [bucketList, setBucketList] = useState([] as string[]);
   const [inputState, setInputState] = useState(nullToEmptyString(bucket));
