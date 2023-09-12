@@ -19,6 +19,7 @@ export const TYPE = {
   SELECT_AUTOCOMPLETE_MULTI_PICK: 'select-autocomplete-multi-pick',
   CHECKBOXES: 'checkboxes',
   NESTED_SELECT_AUTOCOMPLETE: 'nested-select-autocomplete',
+  NESTED_SELECT_AUTOCOMPLETE_MULTI_PICK: 'nested-select-autocomplete-multi-pick',
   MULTIPLE_MULTISELECT_STRING_ALL: 'multiple-multiselect-string-all',
   MULTIPLE_STRING: 'multiple-string',
   SINGLE_DROPDOWN_MULTICHECKBOX: 'single-dropdown-multicheckbox',

@@ -49,9 +49,9 @@ export default function SelectAutocompleteMultiPickInput({
   {
     label?: string;
     minWidth?: number;
-    disableClearable?: boolean;
-    disabled?: boolean;
-    maxOptions?: number;
+    disableClearable: boolean;
+    disabled: boolean;
+    maxOptions: number;
     onChangeOverride?: (event: any, e: string[]) => void;
   },
   string[],

@@ -38,6 +38,7 @@ import DataTransformation from './data_transformation';
 import AllInnerKeysNotNullValidator from './validators/all_inner_keys_not_null_validator';
 import PlusSubsetValidator from './validators/PlusSubsetValidator';
 import SelectAutocompleteMultiPickInput from './select_autocomplete_multi_choice';
+import NestedSelectAutocompleteMultiPickInput from './nested_select_autocomplete_multi_choice';
 
 const components: {[k: string]: [InputBackendComponent<any, any, any>, InputValidator<any, any>]} = {};
 function configureComponent<Value, DataElement>(
@@ -57,6 +58,7 @@ configureComponent(TYPE.SELECT_AUTOCOMPLETE, SelectAutocompleteInput, StronglyNo
 configureComponent(TYPE.SELECT_AUTOCOMPLETE_MULTI_PICK, SelectAutocompleteMultiPickInput, StronglyNotEmptyValidator);
 configureComponent(TYPE.CHECKBOXES, CheckboxesInput, NotEmptyValidator);
 configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, StronglyNotEmptyValidator);
+configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE_MULTI_PICK, NestedSelectAutocompleteMultiPickInput, StronglyNotEmptyValidator);
 configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
 configureComponent(TYPE.DATA_TRANSFORMATION, DataTransformation, AllInnerKeysNotNullValidator);
