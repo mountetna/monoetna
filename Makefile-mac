@@ -43,6 +43,9 @@ build-dev-archimedes-images:
 	 cd docker/archimedes-base && docker build . -t archimedes-base
 	 cd archimedes-r-base && docker build . -t archimedes-r-base # takes a really long time!
 	 cd docker/archimedes-node-base && docker build . -t archimedes-node-base
+	 cd archimedes && docker build . -t archimedes
+	 cd archimedes-r && docker build . -t archimedes-r
+	 cd archimedes-node && docker build . -t archimedes-node
 
 ### Project level targets ###
 
