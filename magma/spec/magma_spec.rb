@@ -78,4 +78,22 @@ describe Magma do
       Labors::Monster.attributes.delete(:size)
     end
   end
+
+  context 'hold file' do
+    it 'writes the hold file' do
+      Magma.instance.write_hold_file
+
+      expect(::File.exists?(Magma.instance.config(:hold_file))).to be_truthy
+
+      ::File.unlink(Magma.instance.config(:hold_file))
+    end
+
+    it 'removes the hold file' do
+      Magma.instance.write_hold_file
+
+      Magma.instance.remove_hold_file
+
+      expect(::File.exists?(Magma.instance.config(:hold_file))).to be_falsy
+    end
+  end
 end

@@ -64,7 +64,7 @@ class Magma
   def remove_hold_file
     return unless config(:hold_file)
 
-    ::File.unlink(config(:hold_file))
+    ::File.unlink(config(:hold_file)) if ::File.exists?(config(:hold_file))
   end
 
   def load_models(validate = true)
