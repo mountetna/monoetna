@@ -3,7 +3,7 @@ class: Workflow
 
 inputs:
   1_Data_Source_metis_file__file_target:
-    type: MetisFile
+    type: MetisCSVorTSV
     label: "TSV or CSV file"
     default:
       bucket: ''

@@ -240,7 +240,7 @@ module Etna
       end
 
       PRIMITIVE_TYPE = EnumLoader.new("null", "boolean", "int", "long", "float", "double", "string")
-      NOMINAL_TYPE = EnumLoader.new("File", "MetisFile", "MetisFolder", "MetisPath")
+      NOMINAL_TYPE = EnumLoader.new("File", "MetisFile", "MetisFolder", "MetisPath", "MetisCSVorTSV")
     end
 
     class OptionalLoader < Loader
