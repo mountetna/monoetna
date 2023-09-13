@@ -71,19 +71,22 @@ describe('MetisFileValidator', () => {
 
   it('reports error with regex if regex given and not matched', () => {
     input.value = some({bucket: 'data', path: 'some_file.txt', type: 'file'});
-    expect(MetisFileValidator(/\.[ct]sv$/)(input).length > 0).toEqual(true);
-    expect(MetisFileValidator(/\.[ct]sv$/)(input)[0]).toMatch(/match the regex/);
+    expect(MetisFileValidator('\\.[ct]sv$')(input).length > 0).toEqual(true);
+    expect(MetisFileValidator('\\.[ct]sv$')(input)[0]).toMatch(/path must/);
+    expect(MetisFileValidator('\\.[ct]sv$')(input)[0]).toMatch(/\\\.\[ct\]sv\$/);
   });
 
-  it('reports error with descriptor if regex given and not matched', () => {
+  it('reports error with descriptor and regex if regex given and not matched', () => {
     input.value = some({bucket: 'data', path: 'some_file.txt', type: 'file'});
-    expect(MetisFileValidator(/\.[ct]sv$/, 'csv or tsv file')(input).length > 0).toEqual(true);
-    expect(MetisFileValidator(/\.[ct]sv$/, 'csv or tsv file')(input)[0]).toMatch(/csv or tsv file/);
+    expect(MetisFileValidator('\\.[ct]sv$', 'csv or tsv file')(input).length > 0).toEqual(true);
+    expect(MetisFileValidator('\\.[ct]sv$', 'csv or tsv file')(input)[0]).toMatch(/path should/);
+    expect(MetisFileValidator('\\.[ct]sv$', 'csv or tsv file')(input)[0]).toMatch(/csv or tsv file/);
+    expect(MetisFileValidator('\\.[ct]sv$')(input)[0]).toMatch(/\\\.\[ct\]sv\$/);
   });
 
   it('allows target of csv when given path_regex targeting csv or tsv', () => {
     input.value = some({bucket: 'data', path: 'some_file.csv', type: 'file'});
-    expect(MetisFileValidator(/\.[ct]sv$/, 'csv or tsv file')(input)).toEqual([]);
+    expect(MetisFileValidator('\\.[ct]sv$', 'csv or tsv file')(input)).toEqual([]);
   });
 });
 

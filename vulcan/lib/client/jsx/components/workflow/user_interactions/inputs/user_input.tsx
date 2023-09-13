@@ -55,7 +55,7 @@ configureComponent(TYPE.FLOAT, FloatInput, NotEmptyValidator);
 configureComponent(TYPE.INTEGER, IntegerInput, NotEmptyValidator);
 configureComponent(TYPE.BOOL, BooleanInput, NotEmptyValidator);
 configureComponent(TYPE.METIS_FILE, MetisFileInput, MetisFileValidator());
-configureComponent(TYPE.METIS_CSV_OR_TSV, MetisFileInput, MetisFileValidator(/\.[ct]sv$/, 'csv or tsv file'));
+configureComponent(TYPE.METIS_CSV_OR_TSV, MetisFileInput, MetisFileValidator('\\.[ct]sv$', 'csv or tsv file'));
 configureComponent(TYPE.METIS_FOLDER, MetisFolderInput, MetisFolderValidator());
 configureComponent(TYPE.METIS_FILE_OR_FOLDER, MetisFileInput, MetisPathValidator());
 configureComponent(TYPE.SELECT_AUTOCOMPLETE, SelectAutocompleteInput, StronglyNotEmptyValidator);

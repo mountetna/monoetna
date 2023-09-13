@@ -8,7 +8,7 @@ const _MetisPathValid = (
   input: ValidationInputSpecification<DataEnvelope<any>, DataEnvelope<any>>,
   type: 'file' | 'folder' | undefined,
   allow_toplevel_path: boolean = false,
-  path_regex?: RegExp,
+  path_regex_string?: string,
   path_regex_descriptor?: string
 ): string[] => {
   // input.value should be nested hash, like
@@ -38,11 +38,14 @@ const _MetisPathValid = (
     return [`Selected metis path is a ${value.type}, but a ${type} is needed.`]
   }
 
-  if (path_regex) {
+  if (path_regex_string) {
+    const path_regex = new RegExp(path_regex_string)
     if (!path_regex.test(value.path)) {
-      const description = path_regex_descriptor!=null ? `should target a ${path_regex_descriptor}` : `must match the regex ${path_regex.toString()}`
+      const description = path_regex_descriptor!=null ?
+        `should target a ${path_regex_descriptor} (by matching the regex ${path_regex})` :
+        `must match the regex ${path_regex}`
       return [
-        `Selected metis path ${description}` 
+        `Selected metis path ${description}`
       ];
     }
   }
@@ -51,22 +54,22 @@ const _MetisPathValid = (
 };
 
 // Is a file
-export function MetisFileValidator(path_regex?: RegExp, path_regex_descriptor?: string): InputValidator<DataEnvelope<any>, DataEnvelope<any>> {
+export function MetisFileValidator(path_regex_string?: string, path_regex_descriptor?: string): InputValidator<DataEnvelope<any>, DataEnvelope<any>> {
   return (input) => {
-    return _MetisPathValid(input, 'file', false, path_regex, path_regex_descriptor);
+    return _MetisPathValid(input, 'file', false, path_regex_string, path_regex_descriptor);
   };
 }
 
 // Is a folder
-export function MetisFolderValidator(path_regex?: RegExp, path_regex_descriptor?: string): InputValidator<DataEnvelope<any>, DataEnvelope<any>> {
+export function MetisFolderValidator(path_regex_string?: string, path_regex_descriptor?: string): InputValidator<DataEnvelope<any>, DataEnvelope<any>> {
   return (input) => {
-    return _MetisPathValid(input, 'folder', true, path_regex, path_regex_descriptor);
+    return _MetisPathValid(input, 'folder', true, path_regex_string, path_regex_descriptor);
   };
 }
 
 // Simply non-empty bucket choice
-export function MetisPathValidator(path_regex?: RegExp, path_regex_descriptor?: string): InputValidator<DataEnvelope<any>, DataEnvelope<any>> {
+export function MetisPathValidator(path_regex_string?: string, path_regex_descriptor?: string): InputValidator<DataEnvelope<any>, DataEnvelope<any>> {
   return (input) => {
-    return _MetisPathValid(input, undefined, true, path_regex, path_regex_descriptor);
+    return _MetisPathValid(input, undefined, true, path_regex_string, path_regex_descriptor);
   };
 }
