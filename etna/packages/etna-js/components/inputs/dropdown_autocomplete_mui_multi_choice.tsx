@@ -29,16 +29,16 @@ export function determineHelperText(
   }
 }
 
-function filterOptions(query: string, opts: string[]) {
+function filterOptions(query: string, opts: string[], values: string[]) {
   return opts.filter((o) => {
-    return query == null ? true : o.indexOf(query) > -1;
+    return query == null ? !values.includes(o) : !values.includes(o) && o.indexOf(query) > -1;
   });
 }
 
-const getOptionsAsync = (query: string, opts: string[]) => {
+const getOptionsAsync = (query: string, opts: string[], values: string[]) => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(filterOptions(query, opts));
+      resolve(filterOptions(query, opts, values));
     }, 3000);
   });
 };
@@ -90,7 +90,7 @@ export default function DropdownAutocompleteMultiPickInput({
     options_in: string[],
     callback: Function
   ) {
-    const options = yield getOptionsAsync(text, [...options_in]);
+    const options = yield getOptionsAsync(text, [...options_in], value);
     callback(options);
   },
   []);
@@ -108,7 +108,7 @@ export default function DropdownAutocompleteMultiPickInput({
       });
     } else {
       // console.log('calculating options - fast')
-      setOptions(filterOptions(query, optionSet));
+      setOptions(filterOptions(query, optionSet, value));
     }
   }, [inputState, getOptionsDelayed, optionSet, value]);
 
