@@ -91,14 +91,11 @@ module Metis
               format: { enum: [ "tsv", "csv" ] },
               column_map: {
                 type: "object",
+                minProperties: 2,
                 additionalProperties: { type: "string" }
-              },
-              extracted_columns: {
-                type: "array",
-                items: { type: "string" }
               }
             },
-            required: ["type", "folder_path", "file_match", "format" ]
+            required: ["type", "folder_path", "file_match", "format", "column_map"]
           }
         }
       end

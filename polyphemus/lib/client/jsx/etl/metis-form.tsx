@@ -24,7 +24,7 @@ import {PickBucket} from 'etna-js/components/metis_exploration';
 
 import {Script, Job} from '../polyphemus';
 import AddModel from './add-model';
-import { AttributeName, ColumnMap, DefaultItem, ExtractedColumns, FileMatch, FolderPath, TableFormat, useMetisFormStyles } from './metis-form-components';
+import { AttributeName, ColumnMap, DefaultItem, FileMatch, FolderPath, TableFormat, useMetisFormStyles } from './metis-form-components';
 
 const SCRIPT_TYPES = [ 'file', 'file_collection', 'data_frame' ];
 
@@ -34,7 +34,7 @@ const SCRIPT_ITEMS = {
   folder_path: FolderPath,
   format: TableFormat,
   column_map: ColumnMap,
-  extracted_columns: ExtractedColumns,
+  // extracted_columns: ExtractedColumns,
   default: DefaultItem
 };
 
