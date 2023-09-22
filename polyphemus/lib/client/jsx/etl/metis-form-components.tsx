@@ -157,7 +157,7 @@ export const ColumnMap = ({value, update, modelName, classes}:ScriptItem) => {
     update({[idAttribute]: idAttribute, ...value})
   }
   const attributesChosen = Object.keys(value).filter((val)=>val!=idAttribute)
-  const attributesToIgnore = [idAttribute, 'project']
+  const attributesToIgnore = [idAttribute]
 
   function onAttributeSelection(userChoice: string[]) {
     const nextValues = {...value}
