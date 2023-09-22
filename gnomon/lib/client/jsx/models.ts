@@ -1,27 +1,33 @@
 // TODO: make this a module instead?
-export interface Separator {
-    text: string
-}
-
-export interface TokenBase {
+export interface TokenValue {
     name: string
-    index?: number
+    label: string
 }
 
-export interface RuleToken extends TokenBase {
-    values: string[]
+export interface Token {
+    name: string
+    label: string
+    values: TokenValue[]
 }
 
-export interface SelectableToken extends TokenBase {
-    value?: string
+export interface Synonym {
+    [index: number]: string
+}
+
+export interface Counter {}
+
+export interface RuleRef {
+    value: string
 }
 
 export interface Rule {
-    elements: (RuleToken | Separator)[]
+    name: string
+    elements: (Rule | Token | Counter)[]
 }
 
 export interface CreateName {
-    elements: (SelectableToken | Separator)[]
+    // string=token_value number=index
+    elements: (string | number)[]
     rule_name: string
     selected: boolean
 }

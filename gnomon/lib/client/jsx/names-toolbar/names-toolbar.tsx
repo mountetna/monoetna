@@ -6,9 +6,9 @@ import FindReplaceOutlinedIcon from "@material-ui/icons/FindReplaceOutlined";
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import SaveOutlinedIcon from "@material-ui/icons/SaveOutlined";
 
-import { CreateName, SelectableToken, Rule } from "../models";
-import AddNamesButton from "./add-names";
-import AddFromSelectionButton from "./add-from-selection";
+import { CreateName, Rule } from "../models";
+import AddNamesButton from "./add-names-button";
+import AddFromSelectionButton from "./add-from-selection-button";
 
 
 
@@ -16,8 +16,8 @@ const NamesToolbar = ({ rules, names, handleAddNameForRule, handleAddFromSelecti
     {
         names: CreateName[],
         rules: Rule[],
-        handleAddNameForRule: (rule: string) => any,
-        handleAddFromSelection: (names: CreateName[], token: SelectableToken, start: number, finish: number) => any
+        handleAddNameForRule: (rule_name: string) => any,
+        handleAddFromSelection: (names: CreateName[], token_value: string, start: number, finish: number) => any
     }) => {
 
     const [small, setSmall] = useState<Boolean>(false);
@@ -26,7 +26,7 @@ const NamesToolbar = ({ rules, names, handleAddNameForRule, handleAddFromSelecti
         <Grid container>
             <Grid item xs={12}>
                 <AddNamesButton
-                    rules={Object.keys(rules || {})}
+                    rule_names={rules.map((rule) => rule.name)}
                     clickAddHandler={handleAddNameForRule}
                 />
                 <AddFromSelectionButton

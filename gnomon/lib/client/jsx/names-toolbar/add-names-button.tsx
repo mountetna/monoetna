@@ -11,13 +11,13 @@ import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 
 
 const useStyles = makeStyles((theme) => ({
-    addNameContainer: {
+    addNamesContainer: {
         display: "inline-block",
     },
 }));
 
 
-const AddNamesButton = ({ rules, clickAddHandler }: { rules: string[], clickAddHandler: (rule: string) => any }) => {
+const AddNamesButton = ({ rule_names, clickAddHandler }: { rule_names: string[], clickAddHandler: (rule_name: string) => any }) => {
     const classes = useStyles()
     const [open, setOpen] = useState<boolean>(false);
     const anchorEl = useRef(null)
@@ -28,13 +28,13 @@ const AddNamesButton = ({ rules, clickAddHandler }: { rules: string[], clickAddH
     const handleClose = () => {
         setOpen(false);
     };
-    const handleClickRule = (rule: string) => {
-        clickAddHandler(rule);
+    const handleClickRule = (rule_name: string) => {
+        clickAddHandler(rule_name);
         handleClose();
     };
 
     return (
-        <div className={classes.addNameContainer}>
+        <div className={classes.addNamesContainer}>
             <Button
                 startIcon={<AddCircleOutlineIcon />}
                 onClick={handleToggle}
@@ -66,7 +66,7 @@ const AddNamesButton = ({ rules, clickAddHandler }: { rules: string[], clickAddH
                             <ClickAwayListener onClickAway={handleClose}>
                                 <MenuList autoFocusItem={open} id="add-names-rules-menu">
                                     {
-                                        rules.map((rule) =>
+                                        rule_names.map((rule) =>
                                             <MenuItem
                                                 onClick={() => handleClickRule(rule)}
                                                 key={rule}

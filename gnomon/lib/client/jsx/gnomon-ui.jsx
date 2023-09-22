@@ -4,7 +4,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import GnomonNav from './gnomon-nav';
 import GnomonMain from './gnomon-main';
 import ProjectDetail from './project-detail';
-import NamesCreate from './names-create';
+import NamesCreate from './names-create/names-create';
 import NamesBrowse from './names-browse';
 import DecomposeIdentifier from './decompose-identifier';
 import ComposeIdentifier from './compose-identifier';
