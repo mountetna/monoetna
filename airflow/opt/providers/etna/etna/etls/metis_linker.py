@@ -87,7 +87,7 @@ class MetisLoaderConfig(EtlConfigResponse):
                     separator = ","
                 if script['format']=="tsv":
                     separator = "\\t"
-                if script['format']=="auto":
+                if script['format']=="auto-detect":
                     if re.search("csv$", file.file_path) is not None:
                         separator = ","
                     elif re.search("tsv$", file.file_path) is not None:

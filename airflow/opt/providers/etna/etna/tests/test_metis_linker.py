@@ -176,7 +176,7 @@ class TestMetisLinker:
                                 "type": "data_frame",
                                 "folder_path": "villages",
                                 "file_match": "*.csv",
-                                "format": "auto",
+                                "format": "auto-detect",
                                 "column_map": {
                                     "name": "name",
                                     "species": "SPECIES"
@@ -199,7 +199,7 @@ class TestMetisLinker:
                                 "type": "data_frame",
                                 "folder_path": "villages",
                                 "file_match": "*.tsv",
-                                "format": "auto",
+                                "format": "auto-detect",
                                 "column_map": {
                                     "name": "name",
                                     "species": "species"

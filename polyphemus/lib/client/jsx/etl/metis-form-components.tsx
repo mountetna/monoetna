@@ -142,7 +142,7 @@ export const AttributeName = ({type,value,update,modelName}:ScriptItem) => <Sele
 
 export const TableFormat = ({value,update}:ScriptItem) => <Select displayEmpty value={value} onChange={e => update(e.target.value)}>
   <MenuItem value=''><em>{'Table format'}</em></MenuItem>
-  <MenuItem value='auto'>auto</MenuItem>
+  <MenuItem value='auto-detect'>auto-detect</MenuItem>
   <MenuItem value='tsv'>tsv</MenuItem>
   <MenuItem value='csv'>csv</MenuItem>
 </Select>;
@@ -204,8 +204,8 @@ export const ColumnMap = ({value, update, modelName, classes}:ScriptItem) => {
     </Grid>
     <Grid item container>
       <Grid key='titles' item container direction='row' style={{paddingTop:6, paddingBottom:4}}>
-        <Grid item xs={4}>Attribute</Grid>
-        <Grid item xs={8}>Column Name</Grid>
+        <Grid item xs={4}><em>Attribute</em></Grid>
+        <Grid item xs={8}><em>Column name in data_frame files</em></Grid>
       </Grid>
       {
         Object.keys(value).map(
