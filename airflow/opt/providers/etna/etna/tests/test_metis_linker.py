@@ -12,6 +12,7 @@ from airflow.decorators import task
 from airflow.models.xcom_arg import XComArg
 from airflow.models import Variable, Connection
 from airflow.utils.state import State
+from copy import deepcopy
 
 
 from providers.etna.etna.etls.metis_linker import MetisLoaderConfig, MetisLinker, MetisLoaderError
@@ -285,6 +286,21 @@ class TestMetisLinker:
 
         with raises(MetisLoaderError, match=r"Check the 'format' configuration"):
             MetisLoaderConfig(**config4, rules=rules).update_for(tail, metis, models)
+
+        # Now adjusting the model template to where the identifier would be missing from the column_map
+        models_id = deepcopy(models)
+        models_id['victim']['models']['victim']['template']['identifier'] = 'id'
+        with raises(MetisLoaderError, match=r"Identifier attribute is missing"):
+            MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, models_id)
+
+        # Now adjusting the model template to where column_map targets non-existent attributes
+        models_missing = deepcopy(models)
+        models_missing['victim']['models']['victim']['template']['attributes']={
+            # missing expected 'species'
+            'name': { 'attribute_type': 'identifier' }
+        }
+        with raises(MetisLoaderError, match=r"attribute\(s\) that don't exist: species"):
+            MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, models_missing)
 
     def test_universal_linker_dag(self):
         pass
