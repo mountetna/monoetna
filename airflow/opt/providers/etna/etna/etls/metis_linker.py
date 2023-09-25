@@ -71,8 +71,8 @@ class MetisLoaderConfig(EtlConfigResponse):
         column_map = script['column_map']
         attributes = list(column_map.keys())
         columns = list(column_map.values())
-        id = model.identifier
-        model_attributes = list(model.attributes.keys())
+        id = model['identifier']
+        model_attributes = list(model['attributes'].keys())
         if not id in attributes:
             raise MetisLoaderError(f"Identifier attribute is missing from the 'column_map' of {model_name} data_frame loader.")
         if not set(attributes).issubset(model_attributes):
@@ -163,7 +163,7 @@ class MetisLoaderConfig(EtlConfigResponse):
                 elif script['type'] == 'file_collection':
                     self.file_collection_update( model_name, script, tail, update )
                 elif script['type'] == 'data_frame':
-                    self.data_frame_update( model_name, script, tail, update, metis, model=models[model_name].models[model_name].template)
+                    self.data_frame_update( model_name, script, tail, update, metis, model=models[model_name]['models'][model_name]['template'])
                 else:
                     raise MetisLoaderError(f"Invalid type for script {script['type']} for model {model_name}")
 

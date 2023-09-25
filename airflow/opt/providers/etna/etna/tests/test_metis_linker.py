@@ -14,7 +14,7 @@ from airflow.models import Variable, Connection
 from airflow.utils.state import State
 
 
-from providers.etna.etna.etls.metis_linker import MetisLoaderConfig, MetisLinker
+from providers.etna.etna.etls.metis_linker import MetisLoaderConfig, MetisLinker, MetisLoaderError
 from providers.etna.etna.etls.box import BoxEtlHelpers
 from etna import system_dag
 from mountetna import TailResultContainer, TailNode
@@ -131,16 +131,17 @@ class TestMetisLinker:
             }
         }
 
-    def xtest_matches_tails_to_data_frame_scripts(self):
+    def test_matches_tails_to_data_frame_scripts(self):
         # we have a tail
         tail = prep_tail('labors', 'pics', [
             {"type":"file","id":51,"parent_id":41,"node_name":"village-1.tsv","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"8277e0910d750195b448797616e091ad","archive_id":None},
-            {"type":"file","id":52,"parent_id":41,"node_name":"village-2.tsv","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"9277e0910d750195b448797616e091ad","archive_id":None},
+            {"type":"file","id":52,"parent_id":41,"node_name":"village-2.csv","updated_at":"2023-11-11 22:39:17 +0000","file_hash":"9277e0910d750195b448797616e091ad","archive_id":None},
             {"type":"parent","id":41,"parent_id":None,"node_name":"villages","updated_at":"2023-08-03 22:39:17 +0000","file_hash":None,"archive_id":None}
         ])
 
-        # we have a config
-        config = {
+        # we have configs:
+        # tsv version, file columns do match the map
+        config1 = {
             "project_name": "labors",
             "config": {
                 "bucket_name": "pics",
@@ -151,21 +152,113 @@ class TestMetisLinker:
                                 "type": "data_frame",
                                 "folder_path": "villages",
                                 "file_match": "*.tsv",
-                                "format": "tsv"
+                                "format": "tsv",
+                                "column_map": {
+                                    "name": "name",
+                                    "species": "SPECIES"
+                                }
                             }
                         ]
                     }
                 }
             }
         }
+        # csv format, file columns do match the map, script also set to test auto detection that its a csv file.
+        config2 = {
+            "project_name": "labors",
+            "config": {
+                "bucket_name": "pics",
+                "models": {
+                    "victim": {
+                        "scripts": [
+                            {
+                                "type": "data_frame",
+                                "folder_path": "villages",
+                                "file_match": "*.csv",
+                                "format": "auto",
+                                "column_map": {
+                                    "name": "name",
+                                    "species": "SPECIES"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        # tsv format, but column_map will not matching the file columns (Error check)
+        config3 = {
+            "project_name": "labors",
+            "config": {
+                "bucket_name": "pics",
+                "models": {
+                    "victim": {
+                        "scripts": [
+                            {
+                                "type": "data_frame",
+                                "folder_path": "villages",
+                                "file_match": "*.tsv",
+                                "format": "auto",
+                                "column_map": {
+                                    "name": "name",
+                                    "species": "species"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        # csv format, but tsv file, otherwise valid
+        config4 = {
+            "project_name": "labors",
+            "config": {
+                "bucket_name": "pics",
+                "models": {
+                    "victim": {
+                        "scripts": [
+                            {
+                                "type": "data_frame",
+                                "folder_path": "villages",
+                                "file_match": "*.tsv",
+                                "format": "csv",
+                                "column_map": {
+                                    "name": "name",
+                                    "species": "SPECIES"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        # we have this rule for the target model' identifiers
         rules={
             'victim': r'^LABORS-LION-H\d+-C\d+$'
+        }
+        # we have this template for the target model
+        models={
+            'victim': {
+                'models': {
+                    'victim': {
+                        'template': {
+                            'identifier': 'name',
+                            'attributes': {
+                                'name': { 'attribute_type': 'identifier' },
+                                'species': { 'attribute_type': 'string' }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         metis = mock.Mock()
 
+        # And we have these files
         files = {
-            'village-1.tsv': 'name\n'
+            'village-1.tsv': 'name\tSPECIES\nLABORS-LION-H2-C1\tlion\n',
+            'village-2.csv': 'name,SPECIES\nLABORS-LION-H2-C1,lion\n'
         }
 
         def dummy_file(file):
@@ -174,24 +267,24 @@ class TestMetisLinker:
         metis.open_file = mock.Mock(side_effect=dummy_file)
 
         # given these we get an update
-        update = MetisLoaderConfig(**config, rules=rules).update_for(tail, metis)
+        update1 = MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, models)
+        update2 = MetisLoaderConfig(**config2, rules=rules).update_for(tail, metis, models)
 
-        assert asdict(update)['revisions'] == {
+        assert asdict(update1)['revisions'] == {
             'victim': {
                 'LABORS-LION-H2-C1': {
-                    'family_photos': [
-                        {
-                            'original_filename': 'family_photo.1.png',
-                            'path': 'metis://labors/pics/family/LABORS-LION-H2-C1/family_photo.1.png'
-                        },
-                        {
-                            'original_filename': 'family_photo.2.png',
-                            'path': 'metis://labors/pics/family/LABORS-LION-H2-C1/family_photo.2.png'
-                        }
-                    ]
+                    'species': 'lion'
                 }
             }
         }
+        assert asdict(update1)['revisions'] == asdict(update2)['revisions']
+
+        # Note that path3 also makes use of auto file format detection, but is expected to fail later, after the data_frame is read in and found to be missing a mapped column.
+        with raises(MetisLoaderError, match=r"missing column.*species"):
+            MetisLoaderConfig(**config3, rules=rules).update_for(tail, metis, models)
+
+        with raises(MetisLoaderError, match=r"Check the 'format' configuration"):
+            MetisLoaderConfig(**config4, rules=rules).update_for(tail, metis, models)
 
     def test_universal_linker_dag(self):
         pass
