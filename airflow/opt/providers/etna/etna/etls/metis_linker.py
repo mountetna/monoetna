@@ -83,11 +83,24 @@ class MetisLoaderConfig(EtlConfigResponse):
         for file in files:
             data = None
             with metis.open_file(file) as file_reader:
-                # Maybe Future Feature: expose blanker value in config ui
-                # Note: read_table works for csv & tsv so script['format'] is not actually used!
-                data = pandas.read_table(file_reader).replace({numpy.nan: None})
+                if script['format']=="csv":
+                    separator = ","
+                if script['format']=="tsv":
+                    separator = "\\t"
+                if script['format']=="auto":
+                    if re.search("csv$", file.file_path) is not None:
+                        separator = ","
+                    elif re.search("tsv$", file.file_path) is not None:
+                        separator = "\\t"
+                    else:
+                        # Attempt to use pandas' automated detection
+                        separator = None
+                # Maybe Future Feature: expose additional blanker value in config ui
+                data = pandas.read_table(file_reader, sep=separator).replace({numpy.nan: None})
+            if len(data.columns) < 2:
+                raise MetisLoaderError(f"{file.file_name} seems to have fewer than 2 columns. Check the 'format' configuration for this data_frame loader.")
             if not set(columns).issubset(data.columns):
-                missing = ', '.join([col for col in data.columns if col not in data.columns])
+                missing = ', '.join([col for col in columns if col not in data.columns])
                 raise MetisLoaderError(f"{file.file_name} is missing column(s) targetted by {model_name} data_frame loader 'column_map': {missing}.")
             # Trim to mapped columns and convert to attribute names
             data = data.rename(columns={v: k for k,v in column_map.items()})[attributes]

@@ -88,7 +88,7 @@ module Metis
               type: { const: "data_frame" },
               folder_path: { type: "string" },
               file_match: { type: "string" },
-              format: { enum: [ "tsv", "csv" ] },
+              format: { enum: [ "tsv", "csv", "auto" ] },
               column_map: {
                 type: "object",
                 minProperties: 2,

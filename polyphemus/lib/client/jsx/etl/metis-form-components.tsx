@@ -13,7 +13,6 @@ import SelectAttribute from '../select-attribute';
 import TestFileMatch from './test-file-match';
 import SelectAttributes from '../select-attributes';
 import {MagmaContext} from 'etna-js/contexts/magma-context';
-import useEffect from 'react';
 
 export const useMetisFormStyles = makeStyles((theme: Theme) => ({
   form: {
@@ -142,7 +141,8 @@ export const AttributeName = ({type,value,update,modelName}:ScriptItem) => <Sele
 />;
 
 export const TableFormat = ({value,update}:ScriptItem) => <Select displayEmpty value={value} onChange={e => update(e.target.value)}>
-  <MenuItem value=''><em>Table format</em></MenuItem>
+  <MenuItem value=''><em>{"Table format"}</em></MenuItem>
+  <MenuItem value='auto'>auto</MenuItem>
   <MenuItem value='tsv'>tsv</MenuItem>
   <MenuItem value='csv'>csv</MenuItem>
 </Select>;
