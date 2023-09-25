@@ -141,7 +141,7 @@ export const AttributeName = ({type,value,update,modelName}:ScriptItem) => <Sele
 />;
 
 export const TableFormat = ({value,update}:ScriptItem) => <Select displayEmpty value={value} onChange={e => update(e.target.value)}>
-  <MenuItem value=''><em>{"Table format"}</em></MenuItem>
+  <MenuItem value=''><em>{'Table format'}</em></MenuItem>
   <MenuItem value='auto'>auto</MenuItem>
   <MenuItem value='tsv'>tsv</MenuItem>
   <MenuItem value='csv'>csv</MenuItem>

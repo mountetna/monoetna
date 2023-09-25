@@ -153,7 +153,7 @@ class MetisLoaderConfig(EtlConfigResponse):
                 }
             )
 
-    def update_for(self, tail, metis, models):
+    def update_for(self, tail, metis=None, models=None):
         update = UpdateRequest(project_name=self.project_name, dry_run=(not self.params.get('commit', False)))
 
         for model_name, model_config in self.config.get("models",{}).items():
