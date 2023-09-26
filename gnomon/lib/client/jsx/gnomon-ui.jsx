@@ -3,12 +3,12 @@ import { ThemeProvider } from '@material-ui/core/styles';
 
 import GnomonNav from './gnomon-nav';
 import GnomonMain from './gnomon-main';
-import ProjectDetail from './project-detail';
-import NamesCreate from './names-create/names-create';
-import NamesBrowse from './names-browse';
-import DecomposeIdentifier from './decompose-identifier';
-import ComposeIdentifier from './compose-identifier';
-import RuleEditor from './rule-editor';
+import ProjectDetail from './components/project-detail';
+import NamesCreate from './components/names-create/names-create';
+import NamesBrowse from './components/names-browse';
+import DecomposeIdentifier from './components/decompose-identifier';
+import ComposeIdentifier from './components/compose-identifier';
+import RuleEditor from './components/rule-editor';
 import RootView from 'etna-js/components/RootView';
 
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';

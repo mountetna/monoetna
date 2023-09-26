@@ -7,7 +7,7 @@ import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Paper from "@material-ui/core/Paper";
 import LibraryAddOutlinedIcon from "@material-ui/icons/LibraryAddOutlined";
 
-import { CreateName, Rule, SelectableToken } from "../models";
+import { CreateName, Rule } from "../../models";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -21,7 +21,7 @@ const AddFromSelectionButton = ({ selection, rules, clickAddHandler }:
     {
         selection: CreateName[],
         rules: Rule[],
-        clickAddHandler: (names: CreateName[], token: SelectableToken, start: number, finish: number) => any
+        clickAddHandler: (names: CreateName[], tokenValue: string, start: number, finish: number) => any
     }) => {
 
     const classes = useStyles()

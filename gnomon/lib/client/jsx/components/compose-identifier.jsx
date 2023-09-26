@@ -25,9 +25,9 @@ import { Typography, Tooltip }from '@material-ui/core';
 
 import {isAdmin} from 'etna-js/utils/janus';
 
-require('../img/distort.svg');
-require('../img/distort2.svg');
-require('../img/distort3.svg');
+require('../../img/distort.svg');
+require('../../img/distort2.svg');
+require('../../img/distort3.svg');
 
 const useStyles = makeStyles((theme) => ({
   header: {
