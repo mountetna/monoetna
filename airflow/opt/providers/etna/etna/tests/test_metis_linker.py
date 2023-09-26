@@ -18,7 +18,7 @@ from copy import deepcopy
 from providers.etna.etna.etls.metis_linker import MetisLoaderConfig, MetisLinker, MetisLoaderError
 from providers.etna.etna.etls.box import BoxEtlHelpers
 from etna import system_dag
-from mountetna import TailResultContainer, TailNode
+from mountetna import TailResultContainer, TailNode, Template, Attribute
 from serde.json import from_json, to_json
 
 def prep_tail(project_name, bucket_name, lines):
@@ -239,19 +239,13 @@ class TestMetisLinker:
         }
         # we have this template for the target model
         models={
-            'victim': {
-                'models': {
-                    'victim': {
-                        'template': {
-                            'identifier': 'name',
-                            'attributes': {
-                                'name': { 'attribute_type': 'identifier' },
-                                'species': { 'attribute_type': 'string' }
-                            }
-                        }
-                    }
+            'victim': Template(
+                identifier='name',
+                attributes={
+                    'name': Attribute({ 'attribute_type': 'identifier' }),
+                    'species': Attribute({ 'attribute_type': 'string' })
                 }
-            }
+            )
         }
 
         metis = mock.Mock()
@@ -288,16 +282,26 @@ class TestMetisLinker:
             MetisLoaderConfig(**config4, rules=rules).update_for(tail, metis, models)
 
         # Now adjusting the model template to where the identifier would be missing from the column_map
-        models_id = deepcopy(models)
-        models_id['victim']['models']['victim']['template']['identifier'] = 'id'
+        models_id={
+            'victim': Template(
+                identifier='id',
+                attributes={
+                    'name': Attribute({ 'attribute_type': 'identifier' }),
+                    'species': Attribute({ 'attribute_type': 'string' })
+                }
+            )
+        }
         with raises(MetisLoaderError, match=r"Identifier attribute is missing"):
             MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, models_id)
 
         # Now adjusting the model template to where column_map targets non-existent attributes
-        models_missing = deepcopy(models)
-        models_missing['victim']['models']['victim']['template']['attributes']={
-            # missing expected 'species'
-            'name': { 'attribute_type': 'identifier' }
+        models_missing={
+            'victim': Template(
+                identifier='name',
+                attributes={
+                    'name': Attribute({ 'attribute_type': 'identifier' })
+                }
+            )
         }
         with raises(MetisLoaderError, match=r"attribute\(s\) that don't exist: species"):
             MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, models_missing)
