@@ -96,7 +96,7 @@ class MetisLoaderConfig(EtlConfigResponse):
                         # Attempt to use pandas' automated detection
                         separator = None
                 # Maybe Future Feature: expose additional blanker value in config ui
-                data = pandas.read_table(file_reader, sep=separator).replace({numpy.nan: None})
+                data = pandas.read_table(file_reader, sep=separator, engine = 'python').replace({numpy.nan: None})
             if len(data.columns) < 2:
                 raise MetisLoaderError(f"{file.file_name} seems to have fewer than 2 columns. Check the 'format' configuration for this data_frame loader.")
             if not set(columns).issubset(data.columns):
