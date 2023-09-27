@@ -17,13 +17,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const AddFromSelectionButton = ({ selection, rules, clickAddHandler }:
-    {
-        selection: CreateName[],
-        rules: Rule[],
-        clickAddHandler: (names: CreateName[], tokenValue: string, start: number, finish: number) => any
-    }) => {
-
+const AddFromSelectionButton = () => {
     const classes = useStyles()
     const [open, setOpen] = useState<boolean>(false);
     const anchorEl = useRef(null)
@@ -35,7 +29,6 @@ const AddFromSelectionButton = ({ selection, rules, clickAddHandler }:
         setOpen(false);
     };
     const handleClickRule = (rule: string) => {
-        clickAddHandler(selection);
         handleClose();
     };
 

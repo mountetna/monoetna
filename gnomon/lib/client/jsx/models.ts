@@ -10,24 +10,16 @@ export interface Token {
     values: TokenValue[]
 }
 
-export interface TokenRef {
-    tokenName: string
-}
-
 export type Synonym = Array<string>
-
-export interface RuleRef {
-    ruleName: string
-}
 
 export interface Rule {
     name: string
-    tokens: TokenRef[]
+    tokenNames: string[]
     hasCounter: boolean
-    parents: RuleRef[]
+    parentRuleNames: string[]
 }
 
-export const ELEMENT_PLACEHOLDER = "$$"
+export const TOKEN_VALUE_PLACEHOLDER = "$$"
 
 export interface CreateName {
     localId: string
@@ -35,7 +27,6 @@ export interface CreateName {
     tokenValues: string[]
     counterValue?: number
     ruleName: string
-    parents: string[]  // CreateName.localId[]
 }
 
 export interface CreateNameGroup {
@@ -43,6 +34,7 @@ export interface CreateNameGroup {
     // CreateName.localId[]
     // Cached here to prevent needing to search.
     // (Value will never change.)
-    createNames: string[]
+    createNameIds: string[]
+    primaryCreateNameId: string
     selected: boolean
 }

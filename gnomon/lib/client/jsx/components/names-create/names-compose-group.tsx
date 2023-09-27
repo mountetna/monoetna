@@ -1,12 +1,15 @@
 import React, { useState, useRef, ReactNode } from "react";
 import Grid from "@material-ui/core/Grid";
+import { useSelector, useDispatch } from 'react-redux'
 
-import { CreateName, Rule } from "../../models";
-import NameComposer from "./name-composer";
+import { CreateName, CreateNameGroup } from "../../models";
+import CreateNameGroupComposer from "./name-composer";
+import { selectCreateNameGroupByIds, selectCreateNames } from "../../selectors/names";
+
 
 
 // move to separate module bc global toolbar uses it
-const createReadyStatuses = (names: CreateName[]): ReactNode => {
+const createReadyStatuses = (createNameGroups: CreateNameGroup[], createNames: Record<string, CreateName>): ReactNode => {
     const counts = { ready: 1, notReady: 1 }
     return (
         <div className="names-status">
@@ -17,26 +20,29 @@ const createReadyStatuses = (names: CreateName[]): ReactNode => {
 }
 
 
-const NameComposeGroup = ({ names, rule }: { names: CreateName[], rule: Rule }) => {
+const CreateNameGroupCompose = ({ createNameGroupIds, ruleName }: { createNameGroupIds: string[], ruleName: string }) => {
+    const createNameGroups: CreateNameGroup[] = useSelector(selectCreateNameGroupByIds(createNameGroupIds))
+    const createNames: Record<string, CreateName> = useSelector(selectCreateNames)
+
     return (
-        <div className="name-compose-group">
+        <div className="create-name-groups-by-rule">
             <Grid container>
                 <Grid item xs={3}>
-                    <div className="name-compose-group-tools">tools</div>
+                    <div className="create-name-groups-tools">tools</div>
                 </Grid>
                 <Grid item xs={3}>
-                    <div className="name-compose-group-name">{rule.name}</div>
+                    <div className="create-name-groups-name">{ruleName}</div>
                 </Grid>
                 <Grid item xs={3}>
-                    {createReadyStatuses(names)}
+                    {createReadyStatuses(createNameGroups, createNames)}
                 </Grid>
             </Grid>
-            <ul className="name-compose-list">
+            <ul className="create-name-groups-composers">
                 {
-                    names.map((name) => {
+                    createNameGroups.map((createNameGroup) => {
                         return (
-                            <li key={name.localId}>
-                                <NameComposer name={name} rule={rule} />
+                            <li key={createNameGroup.localId}>
+                                <CreateNameGroupComposer createNameGroup={createNameGroup} />
                             </li>
                         )
                     })
@@ -46,4 +52,4 @@ const NameComposeGroup = ({ names, rule }: { names: CreateName[], rule: Rule }) 
     )
 }
 
-export default NameComposeGroup;
+export default CreateNameGroupCompose;

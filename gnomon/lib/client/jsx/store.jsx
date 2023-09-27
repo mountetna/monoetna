@@ -4,9 +4,15 @@ import * as ReduxLogger from 'redux-logger';
 import user from 'etna-js/reducers/user-reducer';
 import janus from 'etna-js/reducers/janus-reducer';
 import { rulesReducer } from './reducers/rules';
+import { namesReducer } from './reducers/names';
 
 const createStore = () => {
-  let reducers = { user, janus, rules: rulesReducer };
+  let reducers = {
+    user,
+    janus,
+    rules: rulesReducer,
+    names: namesReducer
+  };
 
   let middleWares = [thunk];
 

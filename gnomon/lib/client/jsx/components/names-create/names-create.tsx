@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import Grid from "@material-ui/core/Grid";
-import { v4 as uuidv4 } from 'uuid';
 import { useSelector, useDispatch } from 'react-redux'
 
 import ProjectHeader from "etna-js/components/project-header";
 
 import NamesToolbar from "../names-toolbar/names-toolbar";
 import { CreateName } from "../../models";
-import NameComposeGroup from "./names-compose-group";
-import { selectRules } from "../../selectors/rules";
+import CreateNameGroupCompose from "./names-compose-group";
 import { fetchRulesFromMagma } from "../../actions/rules";
+import { selectCreateNameGroupIdsByPrimaryRule } from "../../selectors/names";
 
 
 interface RuleNameGroupDictionary {
@@ -36,20 +35,7 @@ const groupNamesByRule = (names: CreateName[]): RuleNameGroupDictionary => {
 const NamesCreate = ({ project_name }: { project_name: string }) => {
     // TODO: loading state
     const dispatch = useDispatch();
-    const rules = useSelector(selectRules);
-    const [names, setNames] = useState<CreateName[]>([]);
-
-    const addNameForRule = (ruleName: string) => {
-        console.log(`adding ${ruleName}`)
-        const newName = {
-            type: "CreateName",
-            localId: uuidv4(),
-            elements: [],
-            ruleName: ruleName,
-            selected: false,
-        } as CreateName
-        setNames((names) => names.concat(newName))
-    }
+    const createNameGroupsIdsByPrimaryRule: Record<string, string[]> = useSelector(selectCreateNameGroupIdsByPrimaryRule)
 
     const iterateOnSelection = (names: CreateName[], tokenValue: string, start: number, finish: number) => {
         console.log(`adding from ${start} to ${finish} on token "${tokenValue}" with names ${names}`)
@@ -59,37 +45,27 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
         dispatch(fetchRulesFromMagma(project_name))
     }, []);
 
-    const renderComponent = () => {
-        return (
-            <>
-                <ProjectHeader project_name={project_name} />
-                {/* TODO?: render toolbar buttons directly so you don't have to pass props through */}
-                <NamesToolbar
-                    names={names}
-                    rules={rules}
-                    handleAddNameForRule={addNameForRule}
-                    handleAddFromSelection={iterateOnSelection}
-                />
-                <Grid className="name-compose-groups" container>
-                    {/* TODO: move grouping to selector in redux so we can memoize */}
-                    {
-                        Object.entries(groupNamesByRule(names)).map(([ruleName, nameGroup]) => {
-                            const rule = rules.find((rule) => rule.name == ruleName);
-                            return (
-                                <Grid item key={rule.name} xs={4}>
-                                    <NameComposeGroup names={nameGroup} rule={rule} />
-                                </Grid>
-                            )
-                        })
-                    }
-                </Grid>
-            </>
-        )
-    }
 
     return (
         <>
-            {rules.length ? renderComponent() : "Loading..."}
+            <ProjectHeader project_name={project_name} />
+            {/* TODO?: render toolbar buttons directly so you don't have to pass props through */}
+            <NamesToolbar />
+            <Grid className="create-name-group-composers" container>
+                {/* TODO: move grouping to selector in redux so we can memoize */}
+                {
+                    Object.entries(createNameGroupsIdsByPrimaryRule).map(([ruleName, createNameGroupIds]) => {
+                        return (
+                            <Grid item key={ruleName} xs={4}>
+                                <CreateNameGroupCompose
+                                    createNameGroupIds={createNameGroupIds}
+                                    ruleName={ruleName}
+                                />
+                            </Grid>
+                        )
+                    })
+                }
+            </Grid>
         </>
     )
 };

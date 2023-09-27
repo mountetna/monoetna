@@ -5,18 +5,19 @@ and eventually used for creation/editing. */
 
 import { Rule, Synonym, Token } from '../models';
 import { ACTION_TYPE, ADD_RULES } from '../actions/rules';
+import { listToIdObject } from './utils';
 
 
 
-interface RulesState {
-    rules: Rule[]
-    tokens: Token[]
+export interface RulesState {
+    rules: Record<string, Rule>
+    tokens: Record<string, Token>
     synonyms: Synonym[]
 }
 
 const initialState: RulesState = {
-    rules: [],
-    tokens: [],
+    rules: {},
+    tokens: {},
     synonyms: [],
 }
 
@@ -25,8 +26,14 @@ export function rulesReducer(state: RulesState = initialState, action: ACTION_TY
     switch (action.type) {
         case ADD_RULES:
             return {
-                rules: [...state.rules, ...action.rules],
-                tokens: [...state.tokens, ...action.tokens],
+                rules: {
+                    ...state.rules,
+                    ...listToIdObject(action.rules, "name")
+                },
+                tokens: {
+                    ...state.tokens,
+                    ...listToIdObject(action.tokens, "name")
+                },
                 synonyms: [...state.synonyms, ...action.synonyms],
             }
         default: {

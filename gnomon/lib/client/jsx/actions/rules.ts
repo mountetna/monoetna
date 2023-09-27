@@ -1,12 +1,9 @@
 import { json_get } from "etna-js/utils/fetch";
 import { magmaPath } from "etna-js/api/magma_api";
 
-import { Rule, Synonym, Token, TokenRef, TokenValue, RuleRef } from '../models';
+import { Rule, Synonym, Token, TokenValue } from '../models';
+import { makeActionObject } from './utils';
 
-
-function makeActionObject<T extends string, P>(type: T, payload: P): { type: T } & P {
-    return { type, ...payload };
-}
 
 
 export const ADD_RULES = "ADD_RULES"
@@ -42,8 +39,8 @@ const parseMagmaRulesResponse = (res: MagmaRulesResponse): ParsedRules => {
     const rules: Rule[] = [];
     Object.entries(res.rules).forEach(([name, element_str]) => {
         let hasCounter = false;
-        const tokenRefs: TokenRef[] = []
-        const parents: RuleRef[] = []
+        const tokenNames: string[] = []
+        const parentRuleNames: string[] = []
 
         try {
             element_str.split(" ").forEach((el: string) => {
@@ -52,7 +49,7 @@ const parseMagmaRulesResponse = (res: MagmaRulesResponse): ParsedRules => {
                     if (el[1] == "n") { hasCounter = true; return }
 
                     // it's a rule reference
-                    parents.push({ ruleName: el.slice(1) }); return
+                    parentRuleNames.push(el.slice(1)); return
                 }
 
                 // it's a token
@@ -65,10 +62,10 @@ const parseMagmaRulesResponse = (res: MagmaRulesResponse): ParsedRules => {
                 if (!token) {
                     throw new Error(`Token ${el} does not exist for Rule ${name}. Cannot parse Rule.`)
                 }
-                tokenRefs.push({ tokenName: token.name })
+                tokenNames.push(token.name)
             });
 
-            rules.push({ name, tokens: tokenRefs, hasCounter, parents });
+            rules.push({ name, tokenNames, hasCounter, parentRuleNames });
         } catch (e) {
             console.error(e);
         }

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
 import MenuList from "@material-ui/core/MenuList";
@@ -9,6 +10,9 @@ import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Paper from "@material-ui/core/Paper";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 
+import { selectRules } from "../../selectors/rules";
+import { createNamesWithGroupForRule, addNamesWithGroup } from "../../actions/names";
+
 
 const useStyles = makeStyles((theme) => ({
     addNamesContainer: {
@@ -17,10 +21,12 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const AddNamesButton = ({ ruleNames, clickAddHandler }: { ruleNames: string[], clickAddHandler: (rule_name: string) => any }) => {
+const AddNamesButton = () => {
     const classes = useStyles()
     const [open, setOpen] = useState<boolean>(false);
     const anchorEl = useRef(null)
+    const rules = useSelector(selectRules);
+    const dispatch = useDispatch()
 
     const handleToggle = () => {
         setOpen(prev => !prev);
@@ -28,8 +34,10 @@ const AddNamesButton = ({ ruleNames, clickAddHandler }: { ruleNames: string[], c
     const handleClose = () => {
         setOpen(false);
     };
-    const handleClickRule = (rule_name: string) => {
-        clickAddHandler(rule_name);
+    const handleClickRule = (ruleName: string) => {
+        const { createNames, createNameGroup } = createNamesWithGroupForRule(ruleName, rules);
+        dispatch(addNamesWithGroup(createNames, createNameGroup))
+
         handleClose();
     };
 
@@ -66,13 +74,13 @@ const AddNamesButton = ({ ruleNames, clickAddHandler }: { ruleNames: string[], c
                             <ClickAwayListener onClickAway={handleClose}>
                                 <MenuList autoFocusItem={open} id="add-names-rules-menu">
                                     {
-                                        ruleNames.map((rule) =>
+                                        Object.keys(rules).map((ruleName) =>
                                             <MenuItem
-                                                onClick={() => handleClickRule(rule)}
-                                                key={rule}
+                                                onClick={() => handleClickRule(ruleName)}
+                                                key={ruleName}
                                                 disableRipple
                                             >
-                                                {rule}
+                                                {ruleName}
                                             </MenuItem>
                                         )
                                     }
