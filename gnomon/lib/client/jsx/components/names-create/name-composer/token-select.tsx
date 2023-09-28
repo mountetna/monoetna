@@ -1,32 +1,38 @@
 import React, { useState, useRef } from "react";
-import { useSelector, useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
-import Button from "@material-ui/core/Button";
+import ButtonBase from "@material-ui/core/ButtonBase";
 import MenuList from "@material-ui/core/MenuList";
 import MenuItem from "@material-ui/core/MenuItem";
 import Popper from "@material-ui/core/Popper";
 import Grow from "@material-ui/core/Grow";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Paper from "@material-ui/core/Paper";
-import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 
-import { selectRules } from "../../selectors/rules";
-import { createNamesWithGroupForRule } from "../../actions/names";
+import { Token, TokenValue } from "../../../models";
+
 
 
 const useStyles = makeStyles((theme) => ({
-    addNamesContainer: {
+    selectTokenValueContainer: {
         display: "inline-block",
+    },
+    currentTokenValue: {
+        fontWeight: "bold"
+    },
+    unset: {
+        color: "red"
     },
 }));
 
 
-const AddNamesButton = () => {
+// TODO: change to actual select
+const TokenSelect = ({ token, value, handleSetTokenValue }:
+    { token: Token, value?: TokenValue, handleSetTokenValue: (value: TokenValue) => void }) => {
+
     const classes = useStyles()
     const [open, setOpen] = useState<boolean>(false);
     const anchorEl = useRef(null)
-    const rules = useSelector(selectRules);
-    const dispatch = useDispatch()
 
     const handleToggle = () => {
         setOpen(prev => !prev);
@@ -34,31 +40,36 @@ const AddNamesButton = () => {
     const handleClose = () => {
         setOpen(false);
     };
-    const handleClickRule = (ruleName: string) => {
-        dispatch(createNamesWithGroupForRule(ruleName, rules))
-        handleClose();
+    const handleClickTokenValue = (tokenValue: TokenValue) => {
+        if (tokenValue != value) {
+            handleSetTokenValue(tokenValue)
+        }
+        handleClose()
     };
 
     return (
-        <div className={classes.addNamesContainer}>
-            <Button
-                startIcon={<AddCircleOutlineIcon />}
+        <div className={classes.selectTokenValueContainer}>
+            <ButtonBase
                 onClick={handleToggle}
                 ref={anchorEl}
                 color="primary"
-                aria-label="Add Names"
+                aria-label={`Select Token Value for "${token.label}"`}
                 aria-haspopup="true"
-                aria-controls={open ? "add-names-rules-menu" : undefined}
+                aria-controls={open ? "select-token-value-container" : undefined}
                 disableRipple
-                disableFocusRipple
-                disableElevation
+                disableTouchRipple
             >
-                Add Names
-            </Button>
+                <span
+                    className={classes.currentTokenValue + " " + (!value ? `${classes.unset}` : "")}
+                >
+                    <KeyboardArrowDownIcon />
+                    {value ? value.name : token.name}
+                </span>
+            </ButtonBase>
             <Popper
                 open={open}
                 anchorEl={anchorEl.current}
-                placement='bottom'
+                placement="bottom"
                 role={undefined}
                 transition
                 disablePortal
@@ -70,15 +81,18 @@ const AddNamesButton = () => {
                     >
                         <Paper variant="outlined">
                             <ClickAwayListener onClickAway={handleClose}>
-                                <MenuList autoFocusItem={open} id="add-names-rules-menu">
+                                <MenuList autoFocusItem={open} id="select-token-value-container">
+                                    <div key={token.label}>
+                                        Choose a {token.label}
+                                    </div>
                                     {
-                                        Object.keys(rules).map((ruleName) =>
+                                        token.values.map((val) =>
                                             <MenuItem
-                                                onClick={() => handleClickRule(ruleName)}
-                                                key={ruleName}
+                                                onClick={() => handleClickTokenValue(val)}
+                                                key={val.name}
                                                 disableRipple
                                             >
-                                                {ruleName}
+                                                {val.name} - {val.label}
                                             </MenuItem>
                                         )
                                     }
@@ -90,6 +104,7 @@ const AddNamesButton = () => {
             </Popper>
         </div>
     )
-};
+}
 
-export default AddNamesButton;
+
+export default TokenSelect

@@ -44,3 +44,20 @@ export const selectCreateNameById = (localId: string) => (state: State): CreateN
 export const selectCreateNamesByIds = (localIds: string[]) => (state: State): CreateName[] => {
     return localIds.map(localId => state.names.createNames[localId])
 }
+
+export const selectCounterValuesByRuleName = createSelector(
+    [(state: State) => state.names],
+    (names: NamesState): Record<string, Record<string, number>> => {
+        const counterValuesByRuleName = defaultDict<string, Record<string, number>>(
+            () => defaultDict<string, number>(() => 0)
+        )
+
+        Object.values(names.createNames).forEach((createName) => {
+            if (createName.counterValue != undefined) {
+                ++counterValuesByRuleName[createName.ruleName][createName.counterValue]
+            }
+        })
+
+        return counterValuesByRuleName
+    }
+)

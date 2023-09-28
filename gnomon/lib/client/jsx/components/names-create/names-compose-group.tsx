@@ -3,7 +3,7 @@ import Grid from "@material-ui/core/Grid";
 import { useSelector, useDispatch } from 'react-redux'
 
 import { CreateName, CreateNameGroup } from "../../models";
-import CreateNameGroupComposer from "./name-composer";
+import CreateNameGroupComposer from "./name-composer/name-composer";
 import { selectCreateNameGroupByIds, selectCreateNames } from "../../selectors/names";
 
 

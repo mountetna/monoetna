@@ -1,7 +1,13 @@
 import { CreateName, CreateNameGroup } from '../models';
-import { ACTION_TYPE, ADD_NAMES_WITH_GROUP, SET_TOKEN_VALUE_FOR_CREATE_NAME } from '../actions/names';
+import {
+    ACTION_TYPE,
+    ADD_NAMES_WITH_GROUP,
+    SET_TOKEN_VALUE_FOR_CREATE_NAME,
+    SET_COUNTER_VALUE_FOR_CREATE_NAME,
+    SET_CREATE_NAME_GROUP_SELECTED,
+    DELETE_GROUP_WITH_NAMES,
+} from '../actions/names';
 import { listToIdObject } from './utils';
-
 
 
 export interface NamesState {
@@ -11,7 +17,7 @@ export interface NamesState {
 
 const initialState: NamesState = {
     createNames: {},
-    createNameGroups: {}
+    createNameGroups: {},
 }
 
 
@@ -22,17 +28,29 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                 ...state,
                 createNames: {
                     ...state.createNames,
-                    ...listToIdObject(action.createNames, "localId")
+                    ...listToIdObject(action.createNames, "localId"),
                 },
                 createNameGroups: {
                     ...state.createNameGroups,
-                    [action.createNameGroup.localId]: action.createNameGroup
+                    [action.createNameGroup.localId]: action.createNameGroup,
                 }
             }
-        case SET_TOKEN_VALUE_FOR_CREATE_NAME:
-            const createName = state.createNames[action.createNameLocalId]
-            const tokenValues = [...createName.tokenValues]
+        case DELETE_GROUP_WITH_NAMES:
+            const newGroups = { ...state.createNameGroups }
+            delete newGroups[action.createNameGroupId]
 
+            const newNames = { ...state.createNames }
+            state.createNameGroups[action.createNameGroupId].createNameIds.forEach((cnId) => {
+                delete newNames[cnId]
+            })
+
+            return {
+                ...state,
+                createNames: newNames,
+                createNameGroups: newGroups,
+            }
+        case SET_TOKEN_VALUE_FOR_CREATE_NAME:
+            const tokenValues = [...state.createNames[action.createNameLocalId].tokenValues]
             tokenValues[action.tokenIdx] = action.tokenValue
 
             return {
@@ -40,8 +58,30 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                 createNames: {
                     ...state.createNames,
                     [action.createNameLocalId]: {
-                        ...createName,
-                        tokenValues
+                        ...state.createNames[action.createNameLocalId],
+                        tokenValues,
+                    }
+                }
+            }
+        case SET_COUNTER_VALUE_FOR_CREATE_NAME:
+            return {
+                ...state,
+                createNames: {
+                    ...state.createNames,
+                    [action.createNameLocalId]: {
+                        ...state.createNames[action.createNameLocalId],
+                        counterValue: action.counterValue,
+                    }
+                },
+            }
+        case SET_CREATE_NAME_GROUP_SELECTED:
+            return {
+                ...state,
+                createNameGroups: {
+                    ...state.createNameGroups,
+                    [action.createNameGroupId]: {
+                        ...state.createNameGroups[action.createNameGroupId],
+                        selected: action.selected,
                     }
                 }
             }
