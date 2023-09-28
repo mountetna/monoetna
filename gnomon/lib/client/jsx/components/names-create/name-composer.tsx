@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
-import { useSelector } from 'react-redux'
-import Button from "@material-ui/core/Button";
+import { useSelector, useDispatch } from 'react-redux'
+import { makeStyles } from '@material-ui/core/styles';
+import ButtonBase from "@material-ui/core/ButtonBase";
 import MenuList from "@material-ui/core/MenuList";
 import MenuItem from "@material-ui/core/MenuItem";
 import Popper from "@material-ui/core/Popper";
@@ -9,17 +10,31 @@ import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Paper from "@material-ui/core/Paper";
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 
-import { CreateName, CreateNameGroup, Rule, Token, TokenValue } from "../../models";
+import { CreateName, CreateNameGroup, Rule, TOKEN_VALUE_PLACEHOLDER, Token, TokenValue } from "../../models";
 import { selectRules, selectTokens } from "../../selectors/rules";
 import { selectCreateNameById, selectCreateNamesByIds } from "../../selectors/names";
+import { setCreateNameTokenValue } from "../../actions/names";
 
 
+const useStyles = makeStyles((theme) => ({
+    selectTokenValueContainer: {
+        display: "inline-block",
+    },
+    currentTokenValue: {
+        fontWeight: "bold"
+    },
+    currentTokenValueUnset: {
+        color: "red"
+    }
+}));
 
 
-const TokenMenu = ({ token, initialValue }: { token: Token, initialValue?: TokenValue }) => {
+const TokenMenu = ({ token, value, handleSetTokenValue }:
+    { token: Token, value?: TokenValue, handleSetTokenValue: (value: TokenValue) => void }) => {
+
+    const classes = useStyles()
     const [open, setOpen] = useState<boolean>(false);
     const anchorEl = useRef(null)
-    const [value, setValue] = useState<TokenValue | undefined>(initialValue)
 
     const handleToggle = () => {
         setOpen(prev => !prev);
@@ -27,28 +42,32 @@ const TokenMenu = ({ token, initialValue }: { token: Token, initialValue?: Token
     const handleClose = () => {
         setOpen(false);
     };
-    const handleClickTokenValue = (value: TokenValue) => {
-        console.log(`setting value ${value} for token ${token}`)
-        setValue(value)
-        handleClose();
+    const handleClickTokenValue = (tokenValue: TokenValue) => {
+        if (tokenValue != value) {
+            handleSetTokenValue(tokenValue)
+        }
+        handleClose()
     };
 
     return (
-        <div className="select-token-value-container">
-            <Button
-                startIcon={<KeyboardArrowDownIcon />}
+        <div className={classes.selectTokenValueContainer}>
+            <ButtonBase
                 onClick={handleToggle}
                 ref={anchorEl}
                 color="primary"
                 aria-label={`Select Token Value for "${token.label}"`}
                 aria-haspopup="true"
-                // aria-controls={open ? "add-names-rules-menu" : undefined}
+                aria-controls={open ? "select-token-value-container" : undefined}
                 disableRipple
-                disableFocusRipple
-                disableElevation
+                disableTouchRipple
             >
-                {value ? value.name : token.name}
-            </Button>
+                <span
+                    className={classes.currentTokenValue + " " + (!value ? `${classes.currentTokenValueUnset}` : "")}
+                >
+                    <KeyboardArrowDownIcon />
+                    {value ? value.name : token.name}
+                </span>
+            </ButtonBase>
             <Popper
                 open={open}
                 anchorEl={anchorEl.current}
@@ -64,15 +83,17 @@ const TokenMenu = ({ token, initialValue }: { token: Token, initialValue?: Token
                     >
                         <Paper variant="outlined">
                             <ClickAwayListener onClickAway={handleClose}>
-                                <MenuList autoFocusItem={open} id="add-names-rules-menu">
-                                    <MenuItem key={token.label}>
+                                <MenuList autoFocusItem={open} id="select-token-value-container">
+                                    <div
+                                        key={token.label}
+                                    >
                                         Choose a {token.label}
-                                    </MenuItem>
+                                    </div>
                                     {
                                         token.values.map((val) =>
                                             <MenuItem
                                                 onClick={() => handleClickTokenValue(val)}
-                                                key={val}
+                                                key={val.name}
                                                 disableRipple
                                             >
                                                 {val.name} - {val.label}
@@ -93,14 +114,25 @@ const TokenMenu = ({ token, initialValue }: { token: Token, initialValue?: Token
 
 const CreateNameElementsEditor = ({ createName, rule }: { createName: CreateName, rule: Rule }) => {
     const tokens: Record<string, Token> = useSelector(selectTokens)
+    const dispatch = useDispatch()
+
+    const setTokenValue = (tokenValue: TokenValue, tokenIdx: number) => {
+        dispatch(setCreateNameTokenValue(createName.localId, tokenValue, tokenIdx))
+    }
 
     return (
         <span className="create-name-elements-editor">
             {
                 rule.tokenNames.map((tokenName, idx) => {
+                    const currentValue = createName.tokenValues[idx]
+
                     return (
                         <React.Fragment key={idx}>
-                            <TokenMenu token={tokens[tokenName]}></TokenMenu>
+                            <TokenMenu
+                                token={tokens[tokenName]}
+                                value={currentValue != TOKEN_VALUE_PLACEHOLDER ? currentValue : undefined}
+                                handleSetTokenValue={(tokenValue: TokenValue) => setTokenValue(tokenValue, idx)}
+                            ></TokenMenu>
                         </React.Fragment>
                     )
                 })

@@ -4,9 +4,12 @@ export interface TokenValue {
     label: string
 }
 
+export const TOKEN_VALUE_PLACEHOLDER = { name: "$$", label: "PLACEHOLDER" } as TokenValue
+
 export interface Token {
     name: string
     label: string
+    // TODO make this TokenValue.name[]
     values: TokenValue[]
 }
 
@@ -19,12 +22,10 @@ export interface Rule {
     parentRuleNames: string[]
 }
 
-export const TOKEN_VALUE_PLACEHOLDER = "$$"
-
 export interface CreateName {
     localId: string
-    // string=tokenValue number=counterValue
-    tokenValues: string[]
+    // TODO make this TokenValue.name[]
+    tokenValues: TokenValue[]
     counterValue?: number
     ruleName: string
 }

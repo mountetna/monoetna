@@ -1,11 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { CreateName, CreateNameGroup, Rule, TOKEN_VALUE_PLACEHOLDER } from "../models"
+import { CreateName, CreateNameGroup, Rule, TOKEN_VALUE_PLACEHOLDER, TokenValue } from "../models"
 import { makeActionObject } from "./utils"
 
 
 
 export const ADD_NAMES_WITH_GROUP = "ADD_NAMES_WITH_GROUP"
+export const SET_TOKEN_VALUE_FOR_CREATE_NAME = "SET_TOKEN_VALUE_FOR_CREATE_NAME"
 
 
 interface AddNamePayload {
@@ -30,6 +31,8 @@ export function createNamesWithGroupForRule(primaryRuleName: string, allRules: R
         const rule = allRules[ruleName];
         const createName = {
             localId: uuidv4(),
+            // TODO initialize with actual token value if
+            // token only has one option
             tokenValues: rule.tokenNames.map(_ => TOKEN_VALUE_PLACEHOLDER),
             ruleName,
 
@@ -66,5 +69,11 @@ export function addNamesWithGroup(createNames: CreateName[], createNameGroup: Cr
 }
 
 
+export function setCreateNameTokenValue(createNameLocalId: string, tokenValue: TokenValue, tokenIdx: number) {
+    return makeActionObject(SET_TOKEN_VALUE_FOR_CREATE_NAME, { createNameLocalId, tokenValue, tokenIdx })
+}
+
+
 export type ACTION_TYPE =
     | ReturnType<typeof addNamesWithGroup>
+    | ReturnType<typeof setCreateNameTokenValue>
