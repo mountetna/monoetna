@@ -10,7 +10,7 @@ import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined"
 import { CreateName, CreateNameGroup, Rule, TOKEN_VALUE_PLACEHOLDER, Token, TokenValue } from "../../../models";
 import { selectRules, selectTokens } from "../../../selectors/rules";
 import { selectCreateNameById, selectCreateNames, selectCreateNamesByIds } from "../../../selectors/names";
-import { setCreateNameTokenValue, setCreateNameCounterValue, setCreateNameGroupSelected, duplicateCreateNameGroup, deleteGroupWithNames } from "../../../actions/names";
+import { setCreateNameTokenValue, setCreateNameCounterValue, setCreateNameGroupsSelected, duplicateCreateNameGroup, deleteGroupsWithNames } from "../../../actions/names";
 import TokenSelect from "./token-select";
 import RuleCounterField from "./rule-counter-input";
 
@@ -90,7 +90,7 @@ const CreateNameGroupComposer = ({ createNameGroup }: { createNameGroup: CreateN
     }
 
     const handleClickSelect = (event: React.ChangeEvent) => {
-        dispatch(setCreateNameGroupSelected(createNameGroup.localId, event.target.checked))
+        dispatch(setCreateNameGroupsSelected([createNameGroup.localId], event.target.checked))
     }
 
     const handleClickCopy = () => {
@@ -98,16 +98,16 @@ const CreateNameGroupComposer = ({ createNameGroup }: { createNameGroup: CreateN
     }
 
     const handleClickDelete = () => {
-        dispatch(deleteGroupWithNames(createNameGroup.localId))
+        dispatch(deleteGroupsWithNames([createNameGroup.localId]))
     }
 
     return (
         <div className="create-name-group-composer">
             <span className="create-name-group-composer-tools">
                 <Checkbox
-                    value={createNameGroup.selected}
+                    checked={createNameGroup.selected}
                     onChange={handleClickSelect}
-                    inputProps={{ 'aria-label': 'Select the Name Group' }}
+                    inputProps={{ 'aria-label': 'Select Name' }}
                 />
                 <ButtonBase
                     onClick={handleClickCopy}

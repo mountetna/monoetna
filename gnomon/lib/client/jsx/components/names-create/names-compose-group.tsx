@@ -1,10 +1,19 @@
 import React, { useState, useRef, ReactNode } from "react";
 import Grid from "@material-ui/core/Grid";
 import { useSelector, useDispatch } from 'react-redux'
+import ButtonBase from "@material-ui/core/ButtonBase";
+import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import Checkbox from "@material-ui/core/Checkbox";
+import * as _ from "lodash"
+import UnfoldLessOutlinedIcon from '@material-ui/icons/UnfoldLessOutlined';
+import UnfoldMoreOutlinedIcon from '@material-ui/icons/UnfoldMoreOutlined';
+import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 
-import { CreateName, CreateNameGroup } from "../../models";
+import { CreateName, CreateNameGroup, Rule } from "../../models";
 import CreateNameGroupComposer from "./name-composer/name-composer";
 import { selectCreateNameGroupByIds, selectCreateNames } from "../../selectors/names";
+import { setCreateNameGroupsSelected, deleteGroupsWithNames, createNamesWithGroupForRule } from "../../actions/names";
+import { selectRules } from "../../selectors/rules";
 
 
 
@@ -13,22 +22,68 @@ const createReadyStatuses = (createNameGroups: CreateNameGroup[], createNames: R
     const counts = { ready: 1, notReady: 1 }
     return (
         <div className="names-status">
-            <div>{counts.ready}</div>
-            <div>{counts.notReady}</div>
+            <div>{counts.ready} ready</div>
+            {counts.notReady && <div>{counts.notReady} not ready</div>}
         </div>
     )
 }
 
 
 const CreateNameGroupCompose = ({ createNameGroupIds, ruleName }: { createNameGroupIds: string[], ruleName: string }) => {
+    const dispatch = useDispatch()
     const createNameGroups: CreateNameGroup[] = useSelector(selectCreateNameGroupByIds(createNameGroupIds))
     const createNames: Record<string, CreateName> = useSelector(selectCreateNames)
+    const allRules: Record<string, Rule> = useSelector(selectRules)
+
+    const [collapsed, setCollapsed] = useState<Boolean>(false);
+
+    const handleClickAdd = () => {
+        dispatch(createNamesWithGroupForRule(ruleName, allRules))
+    }
+
+    const handleClickSelect = (event: React.ChangeEvent) => {
+        dispatch(setCreateNameGroupsSelected(createNameGroupIds, event.target.checked))
+    }
+
+    const handleClickDelete = () => {
+        dispatch(deleteGroupsWithNames(createNameGroupIds))
+    }
 
     return (
         <div className="create-name-groups-by-rule">
             <Grid container>
                 <Grid item xs={3}>
-                    <div className="create-name-groups-tools">tools</div>
+                    <div className="create-name-groups-tools">
+                        <Checkbox
+                            checked={_.every(createNameGroups, (cng) => cng.selected)}
+                            onChange={handleClickSelect}
+                            inputProps={{ 'aria-label': 'Select the Name Group' }}
+                        />
+                        <ButtonBase
+                            onClick={() => setCollapsed(prev => !prev)}
+                            aria-label={"Toggle Expand/Collapse"}
+                            disableRipple
+                            disableTouchRipple
+                        >
+                            {collapsed ? <UnfoldMoreOutlinedIcon /> : <UnfoldLessOutlinedIcon />}
+                        </ButtonBase>
+                        <ButtonBase
+                            onClick={handleClickAdd}
+                            aria-label="Add Name"
+                            disableRipple
+                            disableTouchRipple
+                        >
+                            <AddCircleOutlineIcon />
+                        </ButtonBase>
+                        <ButtonBase
+                            onClick={handleClickDelete}
+                            aria-label="Delete Name"
+                            disableRipple
+                            disableTouchRipple
+                        >
+                            <DeleteOutlineOutlinedIcon />
+                        </ButtonBase>
+                    </div>
                 </Grid>
                 <Grid item xs={3}>
                     <div className="create-name-groups-name">{ruleName}</div>

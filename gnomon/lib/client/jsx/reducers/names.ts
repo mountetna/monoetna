@@ -4,8 +4,8 @@ import {
     ADD_NAMES_WITH_GROUP,
     SET_TOKEN_VALUE_FOR_CREATE_NAME,
     SET_COUNTER_VALUE_FOR_CREATE_NAME,
-    SET_CREATE_NAME_GROUP_SELECTED,
-    DELETE_GROUP_WITH_NAMES,
+    SET_CREATE_NAME_GROUPS_SELECTED,
+    DELETE_GROUPS_WITH_NAMES,
 } from '../actions/names';
 import { listToIdObject } from './utils';
 
@@ -35,20 +35,8 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                     [action.createNameGroup.localId]: action.createNameGroup,
                 }
             }
-        case DELETE_GROUP_WITH_NAMES:
-            const newGroups = { ...state.createNameGroups }
-            delete newGroups[action.createNameGroupId]
-
-            const newNames = { ...state.createNames }
-            state.createNameGroups[action.createNameGroupId].createNameIds.forEach((cnId) => {
-                delete newNames[cnId]
-            })
-
-            return {
-                ...state,
-                createNames: newNames,
-                createNameGroups: newGroups,
-            }
+        case DELETE_GROUPS_WITH_NAMES:
+            return deleteGroupsWithNames(action.createNameGroupIds, state)
         case SET_TOKEN_VALUE_FOR_CREATE_NAME:
             const tokenValues = [...state.createNames[action.createNameLocalId].tokenValues]
             tokenValues[action.tokenIdx] = action.tokenValue
@@ -74,19 +62,43 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                     }
                 },
             }
-        case SET_CREATE_NAME_GROUP_SELECTED:
-            return {
-                ...state,
-                createNameGroups: {
-                    ...state.createNameGroups,
-                    [action.createNameGroupId]: {
-                        ...state.createNameGroups[action.createNameGroupId],
-                        selected: action.selected,
-                    }
-                }
-            }
+        case SET_CREATE_NAME_GROUPS_SELECTED:
+            return setGroupsSelected(action.createNameGroupIds, action.selected, state)
         default: {
             return state;
         }
+    }
+}
+
+
+function deleteGroupsWithNames(createNameGroupIds: string[], state: NamesState): NamesState {
+    const newGroups = { ...state.createNameGroups }
+    const newNames = { ...state.createNames }
+
+    createNameGroupIds.forEach((cngId) => {
+        delete newGroups[cngId]
+
+        state.createNameGroups[cngId].createNameIds.forEach((cnId) => {
+            delete newNames[cnId]
+        })
+    })
+
+    return {
+        ...state,
+        createNames: newNames,
+        createNameGroups: newGroups,
+    }
+}
+
+function setGroupsSelected(createNameGroupIds: string[], selected: boolean, state: NamesState) {
+    const updatedGroups = { ...state.createNameGroups }
+
+    createNameGroupIds.forEach((cngId) => {
+        updatedGroups[cngId].selected = selected
+    })
+
+    return {
+        ...state,
+        createNameGroups: updatedGroups
     }
 }

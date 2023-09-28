@@ -8,8 +8,8 @@ import { makeActionObject } from "./utils"
 export const ADD_NAMES_WITH_GROUP = "ADD_NAMES_WITH_GROUP"
 export const SET_TOKEN_VALUE_FOR_CREATE_NAME = "SET_TOKEN_VALUE_FOR_CREATE_NAME"
 export const SET_COUNTER_VALUE_FOR_CREATE_NAME = "SET_COUNTER_VALUE_FOR_CREATE_NAME"
-export const SET_CREATE_NAME_GROUP_SELECTED = "SET_CREATE_NAME_GROUP_SELECTED"
-export const DELETE_GROUP_WITH_NAMES = "DELETE_GROUP_WITH_NAMES"
+export const SET_CREATE_NAME_GROUPS_SELECTED = "SET_CREATE_NAME_GROUPS_SELECTED"
+export const DELETE_GROUPS_WITH_NAMES = "DELETE_GROUPS_WITH_NAMES"
 
 
 interface AddNamePayload {
@@ -79,8 +79,8 @@ export function setCreateNameCounterValue(createNameLocalId: string, counterValu
     return makeActionObject(SET_COUNTER_VALUE_FOR_CREATE_NAME, { createNameLocalId, counterValue })
 }
 
-export function setCreateNameGroupSelected(createNameGroupId: string, selected: boolean) {
-    return makeActionObject(SET_CREATE_NAME_GROUP_SELECTED, { createNameGroupId, selected })
+export function setCreateNameGroupsSelected(createNameGroupIds: string[], selected: boolean) {
+    return makeActionObject(SET_CREATE_NAME_GROUPS_SELECTED, { createNameGroupIds, selected })
 }
 
 export function duplicateCreateNameGroup(createNameGroup: CreateNameGroup, createNamesById: Record<string, CreateName>):
@@ -114,8 +114,8 @@ export function duplicateCreateNameGroup(createNameGroup: CreateNameGroup, creat
     return makeActionObject(ADD_NAMES_WITH_GROUP, { createNames: newCreateNames, createNameGroup: newCreateNameGroup })
 }
 
-export function deleteGroupWithNames(createNameGroupId: string) {
-    return makeActionObject(DELETE_GROUP_WITH_NAMES, { createNameGroupId })
+export function deleteGroupsWithNames(createNameGroupIds: string[]) {
+    return makeActionObject(DELETE_GROUPS_WITH_NAMES, { createNameGroupIds })
 }
 
 
@@ -123,5 +123,5 @@ export type ACTION_TYPE =
     | ReturnType<typeof addNamesWithGroup>
     | ReturnType<typeof setCreateNameTokenValue>
     | ReturnType<typeof setCreateNameCounterValue>
-    | ReturnType<typeof setCreateNameGroupSelected>
-    | ReturnType<typeof deleteGroupWithNames>
+    | ReturnType<typeof setCreateNameGroupsSelected>
+    | ReturnType<typeof deleteGroupsWithNames>
