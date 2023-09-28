@@ -226,6 +226,87 @@ class QueryResponse:
     answer: List[typing.Any] = dataclasses.field(default_factory=list)
     format: List[typing.Any] = dataclasses.field(default_factory=list)
 
+class Pager:
+    def __init__(self, magma):
+        self.magma = magma
+
+    def paged_update(self, update: UpdateRequest, page_size:int):
+        project = self.magma.retrieve(update.project_name, hide_templates=False)
+
+        if page_size < 2:
+            page_size = 2
+
+        flat_records = []
+        for model_name, records in update.revisions.items():
+            if project.is_table(model_name):
+                continue
+
+            for record_name, record in records.items():
+                flat = {
+                    'model_name': model_name,
+                    'record_name': record_name,
+                    'record': record
+                }
+
+                extras = []
+                for attribute_name, value in record.items():
+                    att = project.models[model_name].template.attributes[attribute_name]
+
+                    if att.attribute_type == 'table':
+                        for table_entry_name in value:
+                            table_record = update.revisions[ att.link_model_name ][table_entry_name]
+                            extras.append(
+                                {
+                                  'model_name': att.link_model_name,
+                                  'record_name': table_entry_name,
+                                  'record': table_record
+                                }
+                            )
+
+                flat['extras'] = extras
+
+                flat_records.append(flat)
+        shuffle(flat_records)
+
+        page_count = 0
+        page = {}
+        results = RetrievalResponse()
+        for flat_record in flat_records:
+            page_count += 1 + len(flat_record['extras'])
+
+            self.add_to_page( page, flat_record )
+
+            for extra in flat_record['extras']:
+                self.add_to_page(page, extra)
+
+            if page_count > page_size:
+                results.extend(
+                    self.magma.update(UpdateRequest(project_name=update.project_name, revisions=page))
+                )
+
+                page = {}
+                page_count = 0
+
+        results.extend(
+            self.magma.update(UpdateRequest(project_name=update.project_name, revisions=page))
+        )
+
+        return results
+
+    def update_page(self, results, project_name, page):
+        for model_name, model in page_results.models.items():
+            for record_name, record in model.documents.items():
+                self.add_to_page(results, {
+                    'model_name': model_name,
+                    'record_name': record_name,
+                    'record':record
+                })
+
+    def add_to_page(self, page, entry):
+        page.setdefault( entry['model_name'], {} )
+        page[ entry['model_name'] ][ entry['record_name'] ] = entry['record']
+
+
 class Magma(EtnaClientBase):
     def retrieve(
         self,
@@ -298,82 +379,9 @@ class Magma(EtnaClientBase):
 
     batch_size = 300
 
-    def _paged_update(self, update: UpdateRequest, page_size:int):
-        project = self.retrieve(update.project_name, hide_templates=False)
-
-        if page_size < 2:
-            page_size = 2
-
-        flat_records = []
-        for model_name, records in update.revisions.items():
-            if project.is_table(model_name):
-                continue
-
-            for record_name, record in records.items():
-                flat = {
-                    'model_name': model_name,
-                    'record_name': record_name,
-                    'record': record
-                }
-
-                extras = []
-                for attribute_name, value in record.items():
-                    att = project.models[model_name].template.attributes[attribute_name]
-
-                    if att.attribute_type == 'table':
-                        for table_entry_name in value:
-                            table_record = update.revisions[ att.link_model_name ][table_entry_name]
-                            extras.append(
-                                {
-                                  'model_name': att.link_model_name,
-                                  'record_name': table_entry_name,
-                                  'record': table_record
-                                }
-                            )
-
-                flat['extras'] = extras
-
-                flat_records.append(flat)
-        shuffle(flat_records)
-
-        page_count = 0
-        page = {}
-        results = {}
-        for flat_record in flat_records:
-            page_count += 1 + len(flat_record['extras'])
-
-            self._add_to_page( page, flat_record )
-
-            for extra in flat_record['extras']:
-                self._add_to_page(page, extra)
-
-            if page_count > page_size:
-                self._update_page(results, update.project_name, page)
-
-                page = {}
-                page_count = 0
-
-        self._update_page(results, update.project_name, page)
-
-        return results
-
-    def _update_page(self, results, project_name, page):
-        page_results = self.update(UpdateRequest(project_name="ipi", revisions=page))
-        for model_name, model in page_results.models.items():
-            for record_name, record in model.documents.items():
-                self._add_to_page(results, {
-                    'model_name': model_name,
-                    'record_name': record_name,
-                    'record':record
-                })
-
-    def _add_to_page(self, page, entry):
-        page.setdefault( entry['model_name'], {} )
-        page[ entry['model_name'] ][ entry['record_name'] ] = entry['record']
-
     def update(self, update: UpdateRequest, page_size=None):
         if page_size:
-            return self._paged_update(update, page_size)
+            return Pager(self).paged_update(update, page_size)
 
         response = self.session.post(
             self.prepare_url("update"),

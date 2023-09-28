@@ -58,6 +58,12 @@ class EtnaSession(Session):
 
         self.hooks['response'].extend([EtnaSession.assert_status])
 
+    def post(self, url, data=None, json=None, **kwargs):
+        return super().post(url, data, json, verify=False, **kwargs)
+
+    def get(self, url, params=None, **kwargs):
+        return super().get(url, params=params, verify=False, **kwargs)
+
 class EtnaClientBase:
     auth: AuthBase
     session: requests.Session
