@@ -2,40 +2,65 @@
 export interface TokenValue {
     name: string
     label: string
+    tokenName: string
 }
 
-export const TOKEN_VALUE_PLACEHOLDER = { name: "$$", label: "PLACEHOLDER" } as TokenValue
+export const TOKEN_VALUE_PLACEHOLDER: TokenValue = {
+    name: "$$",
+    label: "PLACEHOLDER",
+    tokenName: "PLACEHOLDER",
+}
 
 export interface Token {
     name: string
     label: string
-    // TODO make this TokenValue.name[]
-    values: TokenValue[]
 }
-
-export type Synonym = Array<string>
 
 export interface Rule {
     name: string
-    tokenNames: string[]
     hasCounter: boolean
-    parentRuleNames: string[]
+}
+
+export interface RuleToken {
+    // this is only necessary if tokens
+    // can appear on rules multiple times
+    localId: string
+    ruleName: string
+    tokenName: string
+    ord: number
+}
+
+export interface RuleParent {
+    ruleName: string
+    parentRuleName: string
+    ord: number
+}
+
+export interface Synonym {
+    value: string
+    tokenName: string
 }
 
 export interface CreateName {
     localId: string
-    // TODO make this TokenValue.name[]
-    tokenValues: TokenValue[]
     counterValue?: number
     ruleName: string
 }
 
+export interface CreateNameTokenValue {
+    value: string
+    tokenValueName: string
+    createNameLocalId: string
+    ruleTokenLocalId: string  // is this necessary?
+}
+
 export interface CreateNameGroup {
     localId: string
-    // CreateName.localId[]
-    // Cached here to prevent needing to search.
-    // (Value will never change.)
-    createNameIds: string[]
     primaryCreateNameId: string
     selected: boolean
+}
+
+export interface CreateNameGroupItem {
+    createNameLocalId: string
+    createNameGroupLocalId: string
 }

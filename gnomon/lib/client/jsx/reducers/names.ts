@@ -1,4 +1,4 @@
-import { CreateName, CreateNameGroup } from '../models';
+import { CreateName, CreateNameGroup, CreateNameGroupItem, CreateNameTokenValue } from '../models';
 import {
     ACTION_TYPE,
     ADD_NAMES_WITH_GROUP,
@@ -6,18 +6,37 @@ import {
     SET_COUNTER_VALUE_FOR_CREATE_NAME,
     SET_CREATE_NAME_GROUPS_SELECTED,
     DELETE_GROUPS_WITH_NAMES,
+    DELETE_SELECTED_GROUPS_WITH_NAMES,
 } from '../actions/names';
 import { listToIdObject } from './utils';
 
 
+// all these child states have duplicate values
+// but they're all refs
+interface CreateNameTokenValues {
+    "byCreateNameLocalId": Record<string, CreateNameTokenValue[]>
+    "byTokenValueName": Record<string, CreateNameTokenValue[]>
+}
+
+
+interface CreateNameGroupNamesState {
+    "byCreateNameLocalId": Record<string, CreateNameGroupItem>
+    "byCreateNameGroupLocalId": Record<string, CreateNameGroupItem>
+}
+
+
 export interface NamesState {
     createNames: Record<string, CreateName>
+    createNameTokenValues: CreateNameTokenValues
     createNameGroups: Record<string, CreateNameGroup>
+    createNameGroupItems: CreateNameGroupNamesState
 }
 
 const initialState: NamesState = {
     createNames: {},
+    createNameTokenValues: { byCreateNameLocalId: {}, byTokenValueName: {} },
     createNameGroups: {},
+    createNameGroupItems: { byCreateNameLocalId: {}, byCreateNameGroupLocalId: {} }
 }
 
 
@@ -33,22 +52,33 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                 createNameGroups: {
                     ...state.createNameGroups,
                     [action.createNameGroup.localId]: action.createNameGroup,
+                },
+                createNameGroupItems: {
+                    ...state.createNameGroupItems,
+                    byCreateNameLocalId: {
+                        ...state.createNameGroupItems.byCreateNameLocalId,
+                        ...listToIdObject(action.createNameGroupItems, "createNameLocalId"),
+                    },
+                    byCreateNameGroupLocalId: {
+                        ...state.createNameGroupItems.byCreateNameGroupLocalId,
+                        ...listToIdObject(action.createNameGroupItems, "createNameLocalId"),
+                    },
                 }
             }
         case DELETE_GROUPS_WITH_NAMES:
             return deleteGroupsWithNames(action.createNameGroupIds, state)
+        case DELETE_SELECTED_GROUPS_WITH_NAMES:
+            return deleteSelectedGroupsWithNames(state)
         case SET_TOKEN_VALUE_FOR_CREATE_NAME:
+            // TODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODOTODO
             const tokenValues = [...state.createNames[action.createNameLocalId].tokenValues]
             tokenValues[action.tokenIdx] = action.tokenValue
 
             return {
                 ...state,
-                createNames: {
-                    ...state.createNames,
-                    [action.createNameLocalId]: {
-                        ...state.createNames[action.createNameLocalId],
-                        tokenValues,
-                    }
+                createNameTokenValues: {
+                    ...state.createNameTokenValues,
+                    
                 }
             }
         case SET_COUNTER_VALUE_FOR_CREATE_NAME:
@@ -81,6 +111,27 @@ function deleteGroupsWithNames(createNameGroupIds: string[], state: NamesState):
         state.createNameGroups[cngId].createNameIds.forEach((cnId) => {
             delete newNames[cnId]
         })
+    })
+
+    return {
+        ...state,
+        createNames: newNames,
+        createNameGroups: newGroups,
+    }
+}
+
+function deleteSelectedGroupsWithNames(state: NamesState): NamesState {
+    const newGroups = { ...state.createNameGroups }
+    const newNames = { ...state.createNames }
+
+    Object.values(state.createNameGroups).forEach((group) => {
+        if (group.selected) {
+            delete newGroups[group.localId]
+
+            group.createNameIds.forEach((cnId) => {
+                delete newNames[cnId]
+            })
+        }
     })
 
     return {

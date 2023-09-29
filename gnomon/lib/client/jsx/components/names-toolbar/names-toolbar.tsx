@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Grid from "@material-ui/core/Grid";
+import { useDispatch } from 'react-redux'
 import Button from "@material-ui/core/Button";
 import FindReplaceOutlinedIcon from "@material-ui/icons/FindReplaceOutlined";
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
@@ -8,11 +9,17 @@ import FilterListIcon from '@material-ui/icons/FilterList';
 
 import AddNamesButton from "./add-names-button";
 import AddFromSelectionButton from "./add-from-selection-button";
+import { deleteSelectedGroupsWithNames } from "../../actions/names";
 
 
 
 const NamesToolbar = () => {
+    const dispatch = useDispatch()
     const [small, setSmall] = useState<Boolean>(false);
+
+    const handleClickDeleteSelection = () => {
+        dispatch(deleteSelectedGroupsWithNames())
+    }
 
     return (
         <Grid container>
@@ -33,6 +40,7 @@ const NamesToolbar = () => {
             </Grid>
             <Grid item xs={2}>
                 <Button
+                    onClick={handleClickDeleteSelection}
                     startIcon={<DeleteOutlineOutlinedIcon />}
                     color="primary"
                     disableElevation

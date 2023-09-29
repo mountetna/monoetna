@@ -10,6 +10,7 @@ export const SET_TOKEN_VALUE_FOR_CREATE_NAME = "SET_TOKEN_VALUE_FOR_CREATE_NAME"
 export const SET_COUNTER_VALUE_FOR_CREATE_NAME = "SET_COUNTER_VALUE_FOR_CREATE_NAME"
 export const SET_CREATE_NAME_GROUPS_SELECTED = "SET_CREATE_NAME_GROUPS_SELECTED"
 export const DELETE_GROUPS_WITH_NAMES = "DELETE_GROUPS_WITH_NAMES"
+export const DELETE_SELECTED_GROUPS_WITH_NAMES = "DELETE_SELECTED_GROUPS_WITH_NAMES"
 
 
 interface AddNamePayload {
@@ -118,6 +119,10 @@ export function deleteGroupsWithNames(createNameGroupIds: string[]) {
     return makeActionObject(DELETE_GROUPS_WITH_NAMES, { createNameGroupIds })
 }
 
+export function deleteSelectedGroupsWithNames() {
+    return makeActionObject(DELETE_SELECTED_GROUPS_WITH_NAMES, {})
+}
+
 
 export type ACTION_TYPE =
     | ReturnType<typeof addNamesWithGroup>
@@ -125,3 +130,4 @@ export type ACTION_TYPE =
     | ReturnType<typeof setCreateNameCounterValue>
     | ReturnType<typeof setCreateNameGroupsSelected>
     | ReturnType<typeof deleteGroupsWithNames>
+    | ReturnType<typeof deleteSelectedGroupsWithNames>

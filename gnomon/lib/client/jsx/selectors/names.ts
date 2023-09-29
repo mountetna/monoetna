@@ -61,3 +61,10 @@ export const selectCounterValuesByRuleName = createSelector(
         return counterValuesByRuleName
     }
 )
+
+export const selectSelectedCreateNameGroupIds: ((state: State) => string[]) = createSelector(
+    [(state: State) => state.names],
+    (names: NamesState): string[] => {
+        return _.filter(names.createNameGroups, { selected: true })
+    }
+)
