@@ -230,32 +230,29 @@ class Pager:
     def __init__(self, magma):
         self.magma = magma
 
-    def paged_update(self, update: UpdateRequest, page_size:int):
+    def flat_records(self, update: UpdateRequest):
         project = self.magma.retrieve(update.project_name, hide_templates=False)
 
-        if page_size < 2:
-            page_size = 2
-
-        flat_records = []
+        # flatten records for pagination
+        flat_records = {} 
         for model_name, records in update.revisions.items():
-            if project.is_table(model_name):
-                continue
-
             for record_name, record in records.items():
                 flat = {
                     'model_name': model_name,
                     'record_name': record_name,
                     'record': record
                 }
+                flat_name = f'{model_name}.{record_name}'
 
-                extras = []
+                # if the update sets a table attribute, attach table records to their parent so they are submitted together
+                flat_tables = []
                 for attribute_name, value in record.items():
                     att = project.models[model_name].template.attributes[attribute_name]
 
                     if att.attribute_type == 'table':
                         for table_entry_name in value:
                             table_record = update.revisions[ att.link_model_name ][table_entry_name]
-                            extras.append(
+                            flat_tables.append(
                                 {
                                   'model_name': att.link_model_name,
                                   'record_name': table_entry_name,
@@ -263,21 +260,36 @@ class Pager:
                                 }
                             )
 
-                flat['extras'] = extras
+                            # exclude the attached table record from the flattened list of records
+                            flat_records[ f'{ att.link_model_name }.{table_entry_name}' ] = None
 
-                flat_records.append(flat)
-        shuffle(flat_records)
+                flat['tables'] = flat_tables
+
+                if flat_name not in flat_records:
+                    flat_records[ f'{model_name}.{record_name}' ] = flat
+
+        # unlist records that are in tables
+        flat_record_list = [ flat_record for flat_name, flat_record in flat_records.items() if flat_record ]
+        shuffle(flat_record_list)
+
+        return flat_record_list
+
+
+    def paged_update(self, update: UpdateRequest, page_size:int):
+        if page_size < 2:
+            page_size = 2
 
         page_count = 0
         page = {}
         results = RetrievalResponse()
-        for flat_record in flat_records:
-            page_count += 1 + len(flat_record['extras'])
+
+        for flat_record in self.flat_records(update):
+            page_count += 1 + len(flat_record['tables'])
 
             self.add_to_page( page, flat_record )
 
-            for extra in flat_record['extras']:
-                self.add_to_page(page, extra)
+            for table_record in flat_record['tables']:
+                self.add_to_page(page, table_record)
 
             if page_count > page_size:
                 results.extend(
@@ -292,15 +304,6 @@ class Pager:
         )
 
         return results
-
-    def update_page(self, results, project_name, page):
-        for model_name, model in page_results.models.items():
-            for record_name, record in model.documents.items():
-                self.add_to_page(results, {
-                    'model_name': model_name,
-                    'record_name': record_name,
-                    'record':record
-                })
 
     def add_to_page(self, page, entry):
         page.setdefault( entry['model_name'], {} )
