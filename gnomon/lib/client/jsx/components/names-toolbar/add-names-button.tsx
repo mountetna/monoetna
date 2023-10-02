@@ -10,8 +10,9 @@ import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Paper from "@material-ui/core/Paper";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 
-import { selectRules } from "../../selectors/rules";
+import { selectRules, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId } from "../../selectors/rules";
 import { createNamesWithGroupForRule } from "../../actions/names";
+import { Rule, RuleParent } from "../../models";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -25,7 +26,9 @@ const AddNamesButton = () => {
     const classes = useStyles()
     const [open, setOpen] = useState<boolean>(false);
     const anchorEl = useRef(null)
-    const rules = useSelector(selectRules);
+    const rules: Record<string, Rule> = useSelector(selectRules)
+    const ruleParentLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
+    const ruleParentsByLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
     const dispatch = useDispatch()
 
     const handleToggle = () => {
@@ -35,7 +38,7 @@ const AddNamesButton = () => {
         setOpen(false);
     };
     const handleClickRule = (ruleName: string) => {
-        dispatch(createNamesWithGroupForRule(ruleName, rules))
+        dispatch(createNamesWithGroupForRule(ruleName, ruleParentLocalIdsByRuleName, ruleParentsByLocalId))
         handleClose();
     };
 

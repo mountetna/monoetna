@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { useSelector, useDispatch } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles';
 import ButtonBase from "@material-ui/core/ButtonBase";
 import MenuList from "@material-ui/core/MenuList";
@@ -10,6 +11,7 @@ import Paper from "@material-ui/core/Paper";
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 
 import { Token, TokenValue } from "../../../models";
+import { selectTokenValueNamesWithTokenName, selectTokenValuesByName } from "../../../selectors/rules";
 
 
 
@@ -33,6 +35,10 @@ const TokenSelect = ({ token, value, handleSetTokenValue }:
     const classes = useStyles()
     const [open, setOpen] = useState<boolean>(false);
     const anchorEl = useRef(null)
+
+    const tokenValuesByName: Record<string, TokenValue> = useSelector(selectTokenValuesByName)
+    const tokenValues: TokenValue[] = useSelector(selectTokenValueNamesWithTokenName(token.name))
+        .map(tvName => tokenValuesByName[tvName])
 
     const handleToggle = () => {
         setOpen(prev => !prev);
@@ -86,7 +92,7 @@ const TokenSelect = ({ token, value, handleSetTokenValue }:
                                         Choose a {token.label}
                                     </div>
                                     {
-                                        token.values.map((val) =>
+                                        tokenValues.map((val) =>
                                             <MenuItem
                                                 onClick={() => handleClickTokenValue(val)}
                                                 key={val.name}

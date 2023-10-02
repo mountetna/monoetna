@@ -5,7 +5,7 @@ import ButtonBase from "@material-ui/core/ButtonBase";
 import InputBase from "@material-ui/core/InputBase";
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
-import { selectCounterValuesByRuleName } from "../../../selectors/names";
+import { selectCounterValuesWithRuleName } from "../../../selectors/names";
 
 
 
@@ -32,7 +32,7 @@ const RuleCounterField = ({ ruleName, value, handleSetCounterValue }:
     { ruleName: string, value?: number, handleSetCounterValue: (value?: number) => void }) => {
 
     const classes = useStyles(value ? String(value).length : 1)()
-    const counterValuesByRuleName: Record<string, Record<string, number>> = useSelector(selectCounterValuesByRuleName)
+    const counterValuesByRuleName: Record<string, Record<string, number>> = useSelector(selectCounterValuesWithRuleName)
     const ruleNameCounterValueCounts = counterValuesByRuleName[ruleName]
     const hasValue = value != undefined
     const counterValueCollision = (

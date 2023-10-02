@@ -93,7 +93,12 @@ const parseMagmaRulesResponse = (res: MagmaRulesResponse): ParsedRules => {
 
                     // it's a rule reference
                     // TODO: create RuleParents after all rules to validate parent exists
-                    ruleParents.push({ ruleName: name, parentRuleName: el.slice(1), ord: ruleParents.length })
+                    ruleParents.push({
+                        localId: uuidv4(),
+                        ruleName: name,
+                        parentRuleName: el.slice(1),
+                        ord: ruleParents.length
+                    })
                     return
                 }
 

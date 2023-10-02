@@ -12,10 +12,10 @@ export function listToIdObject<T>(list: T[], idPropName: string): Record<string,
     return idObject;
 }
 
-export function listToIdListObject<T>(list: T[], idPropName: string): Record<string, T[]> {
-    const idObject = defaultDict<string, T[]>(_ => []);
+export function listToIdGroupObject(list: object[], groupPropName: string, idPropName: string): Record<string, string[]> {
+    const idObject = defaultDict<string, string[]>(_ => []);
 
-    list.forEach(item => idObject[item[idPropName]].push(item))
+    list.forEach(item => idObject[item[groupPropName]].push(item[idPropName]))
 
     return { ...idObject } // remove default value getter
 }

@@ -9,11 +9,11 @@ import UnfoldLessOutlinedIcon from '@material-ui/icons/UnfoldLessOutlined';
 import UnfoldMoreOutlinedIcon from '@material-ui/icons/UnfoldMoreOutlined';
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 
-import { CreateName, CreateNameGroup, Rule } from "../../models";
+import { CreateName, CreateNameGroup, RuleParent } from "../../models";
 import CreateNameGroupComposer from "./name-composer/name-composer";
-import { selectCreateNameGroupByIds, selectCreateNames } from "../../selectors/names";
+import { selectCreateNameGroupsWithLocalIds, selectCreateNamesByLocalId } from "../../selectors/names";
 import { setCreateNameGroupsSelected, deleteGroupsWithNames, createNamesWithGroupForRule } from "../../actions/names";
-import { selectRules } from "../../selectors/rules";
+import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId } from "../../selectors/rules";
 
 
 
@@ -31,14 +31,15 @@ const createReadyStatuses = (createNameGroups: CreateNameGroup[], createNames: R
 
 const CreateNameGroupCompose = ({ createNameGroupIds, ruleName }: { createNameGroupIds: string[], ruleName: string }) => {
     const dispatch = useDispatch()
-    const createNameGroups: CreateNameGroup[] = useSelector(selectCreateNameGroupByIds(createNameGroupIds))
-    const createNames: Record<string, CreateName> = useSelector(selectCreateNames)
-    const allRules: Record<string, Rule> = useSelector(selectRules)
+    const createNameGroups: CreateNameGroup[] = useSelector(selectCreateNameGroupsWithLocalIds(createNameGroupIds))
+    const createNames: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
+    const ruleParentLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
+    const ruleParentsByLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
 
     const [collapsed, setCollapsed] = useState<Boolean>(false);
 
     const handleClickAdd = () => {
-        dispatch(createNamesWithGroupForRule(ruleName, allRules))
+        dispatch(createNamesWithGroupForRule(ruleName, ruleParentLocalIdsByRuleName, ruleParentsByLocalId))
     }
 
     const handleClickSelect = (event: React.ChangeEvent) => {

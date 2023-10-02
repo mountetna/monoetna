@@ -5,12 +5,6 @@ export interface TokenValue {
     tokenName: string
 }
 
-export const TOKEN_VALUE_PLACEHOLDER: TokenValue = {
-    name: "$$",
-    label: "PLACEHOLDER",
-    tokenName: "PLACEHOLDER",
-}
-
 export interface Token {
     name: string
     label: string
@@ -31,6 +25,7 @@ export interface RuleToken {
 }
 
 export interface RuleParent {
+    localId: string
     ruleName: string
     parentRuleName: string
     ord: number
@@ -45,10 +40,11 @@ export interface CreateName {
     localId: string
     counterValue?: number
     ruleName: string
+    createNameGroupLocalId: string
 }
 
 export interface CreateNameTokenValue {
-    value: string
+    localId: string
     tokenValueName: string
     createNameLocalId: string
     ruleTokenLocalId: string  // is this necessary?
@@ -58,9 +54,4 @@ export interface CreateNameGroup {
     localId: string
     primaryCreateNameId: string
     selected: boolean
-}
-
-export interface CreateNameGroupItem {
-    createNameLocalId: string
-    createNameGroupLocalId: string
 }

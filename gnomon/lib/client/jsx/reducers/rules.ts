@@ -5,32 +5,32 @@ and eventually used for creation/editing. */
 
 import { Rule, RuleParent, RuleToken, Synonym, Token, TokenValue } from '../models';
 import { ACTION_TYPE, ADD_RULES_FROM_MAGMA } from '../actions/rules';
-import { listToIdObject, listToIdListObject } from './utils';
+import { listToIdObject, listToIdGroupObject } from './utils';
 
 
-// all these child states have duplicate values
-// but they're all refs
 interface RuleParentsState {
-    "byRuleName": Record<string, RuleParent[]>
-    "byParentRuleName": Record<string, RuleParent[]>
+    "byLocalId": Record<string, RuleParent>
+    "byRuleName": Record<string, string[]>
+    "byParentRuleName": Record<string, string[]>
 }
 
 
 interface RuleTokensState {
-    "byRuleName": Record<string, RuleToken[]>
-    "byTokenName": Record<string, RuleToken[]>
+    "byLocalId": Record<string, RuleToken>
+    "byRuleName": Record<string, string[]>
+    "byTokenName": Record<string, string[]>
 }
 
 
 interface TokenValuesState {
     "byName": Record<string, TokenValue>
-    "byTokenName": Record<string, TokenValue[]>
+    "byTokenName": Record<string, string[]>  // { TokenValue.tokenName: TokenValue.name }
 }
 
 
 interface SynonymsState {
     "byValue": Record<string, Synonym>
-    "byTokenName": Record<string, Synonym[]>
+    "byTokenName": Record<string, string[]>  // { Synonym.tokenName: Synonym.value }
 }
 
 
@@ -45,9 +45,9 @@ export interface RulesState {
 
 const initialState: RulesState = {
     rules: {},
-    ruleParents: { byRuleName: {}, byParentRuleName: {} },
+    ruleParents: { byLocalId: {}, byRuleName: {}, byParentRuleName: {} },
     tokens: {},
-    ruleTokens: { byTokenName: {}, byRuleName: {} },
+    ruleTokens: { byLocalId: {}, byTokenName: {}, byRuleName: {} },
     tokenValues: { byName: {}, byTokenName: {} },
     synonyms: { byValue: {}, byTokenName: {} },
 }
@@ -63,13 +63,17 @@ export function rulesReducer(state: RulesState = initialState, action: ACTION_TY
                     ...listToIdObject(action.rules, "name")
                 },
                 ruleParents: {
+                    byLocalId: {
+                        ...state.ruleParents.byLocalId,
+                        ...listToIdObject(action.ruleParents, "localId"),
+                    },
                     byRuleName: {
                         ...state.ruleParents.byRuleName,
-                        ...listToIdListObject(action.ruleParents, "ruleName"),
+                        ...listToIdGroupObject(action.ruleParents, "ruleName", "localId"),
                     },
                     byParentRuleName: {
                         ...state.ruleParents.byParentRuleName,
-                        ...listToIdListObject(action.ruleParents, "parentRuleName"),
+                        ...listToIdGroupObject(action.ruleParents, "parentRuleName", "localId"),
                     },
                 },
                 tokens: {
@@ -77,13 +81,17 @@ export function rulesReducer(state: RulesState = initialState, action: ACTION_TY
                     ...listToIdObject(action.tokens, "name")
                 },
                 ruleTokens: {
+                    byLocalId: {
+                        ...state.ruleTokens.byLocalId,
+                        ...listToIdObject(action.ruleTokens, "localId")
+                    },
                     byTokenName: {
                         ...state.ruleTokens.byTokenName,
-                        ...listToIdListObject(action.ruleTokens, "tokenName"),
+                        ...listToIdGroupObject(action.ruleTokens, "tokenName", "localId"),
                     },
                     byRuleName: {
                         ...state.ruleTokens.byRuleName,
-                        ...listToIdListObject(action.ruleTokens, "ruleName"),
+                        ...listToIdGroupObject(action.ruleTokens, "ruleName", "localId"),
                     },
                 },
                 tokenValues: {
@@ -93,7 +101,7 @@ export function rulesReducer(state: RulesState = initialState, action: ACTION_TY
                     },
                     byTokenName: {
                         ...state.tokenValues.byTokenName,
-                        ...listToIdListObject(action.tokenValues, "tokenName"),
+                        ...listToIdGroupObject(action.tokenValues, "tokenName", "name"),
                     },
                 },
                 synonyms: {
@@ -103,7 +111,7 @@ export function rulesReducer(state: RulesState = initialState, action: ACTION_TY
                     },
                     byTokenName: {
                         ...state.synonyms.byTokenName,
-                        ...listToIdListObject(action.synonyms, "tokenName")
+                        ...listToIdGroupObject(action.synonyms, "tokenName", "value")
                     },
                 },
             }

@@ -8,34 +8,14 @@ import NamesToolbar from "../names-toolbar/names-toolbar";
 import { CreateName } from "../../models";
 import CreateNameGroupCompose from "./names-compose-group";
 import { fetchRulesFromMagma } from "../../actions/rules";
-import { selectCreateNameGroupIdsByPrimaryRule } from "../../selectors/names";
+import { selectCreateNameGroupIdsWithPrimaryRule } from "../../selectors/names";
 
-
-interface RuleNameGroupDictionary {
-    [index: string]: CreateName[]
-}
-
-
-// TODO: move this to selector in redux
-const groupNamesByRule = (names: CreateName[]): RuleNameGroupDictionary => {
-    const ruleNameGroups = {} as RuleNameGroupDictionary;
-
-    names.forEach(name => {
-        if (!(name.ruleName in ruleNameGroups)) {
-            ruleNameGroups[name.ruleName] = []
-        }
-
-        ruleNameGroups[name.ruleName].push(name);
-    })
-
-    return ruleNameGroups;
-}
 
 
 const NamesCreate = ({ project_name }: { project_name: string }) => {
     // TODO: loading state
     const dispatch = useDispatch();
-    const createNameGroupsIdsByPrimaryRule: Record<string, string[]> = useSelector(selectCreateNameGroupIdsByPrimaryRule)
+    const createNameGroupsIdsByPrimaryRule: Record<string, string[]> = useSelector(selectCreateNameGroupIdsWithPrimaryRule)
 
     const iterateOnSelection = (names: CreateName[], tokenValue: string, start: number, finish: number) => {
         console.log(`adding from ${start} to ${finish} on token "${tokenValue}" with names ${names}`)
