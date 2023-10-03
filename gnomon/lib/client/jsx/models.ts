@@ -16,8 +16,6 @@ export interface Rule {
 }
 
 export interface RuleToken {
-    // this is only necessary if tokens
-    // can appear on rules multiple times
     localId: string
     ruleName: string
     tokenName: string
@@ -47,7 +45,7 @@ export interface CreateNameTokenValue {
     localId: string
     tokenValueName: string
     createNameLocalId: string
-    ruleTokenLocalId: string  // is this necessary?
+    ruleTokenLocalId: string
 }
 
 export interface CreateNameGroup {

@@ -1,18 +1,16 @@
-import { v4 as uuidv4 } from 'uuid';
-
 import { CreateName, CreateNameGroup, CreateNameTokenValue, TokenValue } from '../models';
 import {
     ACTION_TYPE,
-    ADD_NAMES_WITH_GROUP,
+    ADD_CREATE_NAMES_WITH_GROUP,
     ADD_OR_REPLACE_CREATE_NAME_TOKEN_VALUE,
     DELETE_CREATE_NAME_TOKEN_VALUE,
     SET_COUNTER_VALUE_FOR_CREATE_NAME,
     SET_CREATE_NAME_GROUPS_SELECTED,
     DELETE_GROUPS_WITH_NAMES,
     DELETE_SELECTED_GROUPS_WITH_NAMES,
-    DUPLICATE_CREATE_NAME_GROUP,
 } from '../actions/names';
-import { listToIdObject, listToIdGroupObject } from './utils';
+import { listToIdObject, listToIdGroupObject } from '../utils/object';
+
 
 
 interface CreateNamesState {
@@ -43,10 +41,8 @@ const initialState: NamesState = {
 
 export function namesReducer(state: NamesState = initialState, action: ACTION_TYPE): NamesState {
     switch (action.type) {
-        case ADD_NAMES_WITH_GROUP:
-            return addNamesWithGroup(action.createNames, action.createNameGroup, state)
-        case DUPLICATE_CREATE_NAME_GROUP:
-            return duplicateCreateNameGroup(action.createNameGroupId, state)
+        case ADD_CREATE_NAMES_WITH_GROUP:
+            return addNamesWithGroupAndTokensValues(action.createNames, action.createNameGroup, action.createNameTokenValues, state)
         case DELETE_GROUPS_WITH_NAMES:
             return deleteGroupsWithNames(action.createNameGroupIds, state)
         case DELETE_SELECTED_GROUPS_WITH_NAMES:
@@ -81,7 +77,13 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
 }
 
 
-function addNamesWithGroup(createNames: CreateName[], createNameGroup: CreateNameGroup, state: NamesState): NamesState {
+function addNamesWithGroupAndTokensValues(
+    createNames: CreateName[],
+    createNameGroup: CreateNameGroup,
+    createNameTokenValues: CreateNameTokenValue[],
+    state: NamesState
+): NamesState {
+
     return {
         ...state,
         createNames: {
@@ -98,6 +100,7 @@ function addNamesWithGroup(createNames: CreateName[], createNameGroup: CreateNam
             ...state.createNameGroups,
             [createNameGroup.localId]: createNameGroup,
         },
+        createNameTokenValues: addCreateNameTokenValues(createNameTokenValues, state).createNameTokenValues,
     }
 }
 
@@ -213,53 +216,5 @@ function deleteCreateNameTokenValues(createNameTokenValueLocalIds: string[], sta
             byCreateNameLocalId: newByCreateNameLocalId,
             byTokenValueName: newByTokenValueName,
         }
-    }
-}
-
-function duplicateCreateNameGroup(createNameGroupLocalId: string, state: NamesState): NamesState {
-    const oldCng = state.createNameGroups[createNameGroupLocalId]
-
-    const newCng: CreateNameGroup = {
-        localId: uuidv4(),
-        primaryCreateNameId: "TODO",
-        selected: false
-    }
-    const newCntvs: CreateNameTokenValue[] = []
-
-    const newCns: CreateName[] = state.createNames.byCreateNameGroupLocalId[createNameGroupLocalId].map(oldCnLocalId => {
-        const oldCn = state.createNames.byLocalId[oldCnLocalId]
-
-        const newCn: CreateName = {
-            ...oldCn,
-            localId: uuidv4(),
-            createNameGroupLocalId: newCng.localId,
-        }
-
-        if (oldCng.primaryCreateNameId == oldCn.localId) {
-            newCng.primaryCreateNameId = newCn.localId
-        }
-
-        const _newCnTvs: CreateNameTokenValue[] = (state.createNameTokenValues.byCreateNameLocalId[oldCn.localId] || []).map(oldCntvLocalId => {
-            const oldCntv = state.createNameTokenValues.byLocalId[oldCntvLocalId]
-
-            return {
-                ...oldCntv,
-                localId: uuidv4(),
-                createNameLocalId: newCn.localId,
-            }
-        })
-        newCntvs.push(..._newCnTvs)
-
-        return newCn
-    })
-
-    const newCntvsState: CreateNameTokenValuesState = addCreateNameTokenValues(newCntvs, state).createNameTokenValues
-    const { createNames: newCnsState, createNameGroups: newCngsState } = addNamesWithGroup(newCns, newCng, state)
-
-    return {
-        ...state,
-        createNames: newCnsState,
-        createNameTokenValues: newCntvsState,
-        createNameGroups: newCngsState,
     }
 }

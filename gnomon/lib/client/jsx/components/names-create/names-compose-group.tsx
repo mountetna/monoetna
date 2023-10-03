@@ -9,11 +9,11 @@ import UnfoldLessOutlinedIcon from '@material-ui/icons/UnfoldLessOutlined';
 import UnfoldMoreOutlinedIcon from '@material-ui/icons/UnfoldMoreOutlined';
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 
-import { CreateName, CreateNameGroup, RuleParent } from "../../models";
+import { CreateName, CreateNameGroup, RuleParent, RuleToken } from "../../models";
 import CreateNameGroupComposer from "./name-composer/name-composer";
 import { selectCreateNameGroupsWithLocalIds, selectCreateNamesByLocalId } from "../../selectors/names";
 import { setCreateNameGroupsSelected, deleteGroupsWithNames, createNamesWithGroupForRule } from "../../actions/names";
-import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId } from "../../selectors/rules";
+import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValuesNamesByTokenName } from "../../selectors/rules";
 
 
 
@@ -35,11 +35,21 @@ const CreateNameGroupCompose = ({ createNameGroupIds, ruleName }: { createNameGr
     const createNames: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
     const ruleParentLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
     const ruleParentsByLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
+    const ruleTokenLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleTokenLocalIdsByRuleName)
+    const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
+    const tokenValueNamesByTokenName: Record<string, string[]> = useSelector(selectTokenValuesNamesByTokenName)
 
     const [collapsed, setCollapsed] = useState<Boolean>(false);
 
     const handleClickAdd = () => {
-        dispatch(createNamesWithGroupForRule(ruleName, ruleParentLocalIdsByRuleName, ruleParentsByLocalId))
+        dispatch(createNamesWithGroupForRule(
+            ruleName,
+            ruleParentLocalIdsByRuleName,
+            ruleParentsByLocalId,
+            ruleTokenLocalIdsByRuleName,
+            ruleTokensByLocalId,
+            tokenValueNamesByTokenName
+        ))
     }
 
     const handleClickSelect = (event: React.ChangeEvent) => {

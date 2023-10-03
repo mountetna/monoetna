@@ -1,10 +1,9 @@
-import { v4 as uuidv4 } from 'uuid';
-
 import { json_get } from "etna-js/utils/fetch";
 import { magmaPath } from "etna-js/api/magma_api";
 
 import { Rule, RuleParent, RuleToken, Synonym, Token, TokenValue } from '../models';
 import { makeActionObject } from './utils';
+import { createLocalId } from "../utils/models";
 
 
 
@@ -94,7 +93,7 @@ const parseMagmaRulesResponse = (res: MagmaRulesResponse): ParsedRules => {
                     // it's a rule reference
                     // TODO: create RuleParents after all rules to validate parent exists
                     ruleParents.push({
-                        localId: uuidv4(),
+                        localId: createLocalId(),
                         ruleName: name,
                         parentRuleName: el.slice(1),
                         ord: ruleParents.length
@@ -116,7 +115,7 @@ const parseMagmaRulesResponse = (res: MagmaRulesResponse): ParsedRules => {
                     throw new Error(`Token ${el} does not exist for Rule ${name}. Cannot parse Rule.`)
                 }
                 ruleTokens.push({
-                    localId: uuidv4(),
+                    localId: createLocalId(),
                     ruleName: name,
                     tokenName: token.name,
                     ord: ruleTokens.length

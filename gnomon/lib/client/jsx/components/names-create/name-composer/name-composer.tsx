@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken, Token, TokenValue } from "../../../models";
 import { selectRules, selectTokenValuesByName, selectTokens, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId } from "../../../selectors/rules";
-import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId } from "../../../selectors/names";
+import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameLocalIdsByGroupId } from "../../../selectors/names";
 import { addOrReplaceCreateNameTokenValue, setCreateNameCounterValue, setCreateNameGroupsSelected, duplicateCreateNameGroup, deleteGroupsWithNames } from "../../../actions/names";
 import TokenSelect from "./token-select";
 import RuleCounterField from "./rule-counter-input";
@@ -98,6 +98,9 @@ const CreateNameGroupComposer = ({ createNameGroup }: { createNameGroup: CreateN
     const createNameLocalIds: string[] = useSelector(selectCreateNameLocalIdsWithGroupId(createNameGroup.localId))
     const createNamesByLocalId: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
     const primaryCreateName: CreateName = useSelector(selectCreateNameWithLocalId(createNameGroup.primaryCreateNameId))
+    const createNameLocalIdsByCreateNameGroupLocalId: Record<string, string[]> = useSelector(selectCreateNameLocalIdsByGroupId)
+    const createNameTokenValueLocalIdsByCreateNameLocalId: Record<string, string[]> = useSelector(selectCreateNameTokenValueLocalIdsByCreateNameLocalId)
+    const createNameTokenValuesByLocalId: Record<string, CreateNameTokenValue> = useSelector(selectCreateNameTokenValuesByLocalId)
     const allRules: Record<string, Rule> = useSelector(selectRules)
     const ruleParentLocalIdsbyRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
     const ruleParentsbyLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
@@ -126,7 +129,13 @@ const CreateNameGroupComposer = ({ createNameGroup }: { createNameGroup: CreateN
     }
 
     const handleClickCopy = () => {
-        dispatch(duplicateCreateNameGroup(createNameGroup.localId))
+        dispatch(duplicateCreateNameGroup(
+            createNameGroup,
+            createNameLocalIdsByCreateNameGroupLocalId,
+            createNamesByLocalId,
+            createNameTokenValueLocalIdsByCreateNameLocalId,
+            createNameTokenValuesByLocalId,
+        ))
     }
 
     const handleClickDelete = () => {

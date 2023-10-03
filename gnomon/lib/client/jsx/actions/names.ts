@@ -1,11 +1,10 @@
-import { v4 as uuidv4 } from 'uuid';
-
-import { CreateName, CreateNameGroup, CreateNameTokenValue, RuleParent } from "../models"
+import { CreateName, CreateNameGroup, CreateNameTokenValue, RuleParent, RuleToken } from "../models"
 import { makeActionObject } from "./utils"
+import { createLocalId } from "../utils/models"
 
 
 
-export const ADD_NAMES_WITH_GROUP = "ADD_NAMES_WITH_GROUP"
+export const ADD_CREATE_NAMES_WITH_GROUP = "ADD_CREAT_NAMES_WITH_GROUP"
 export const DUPLICATE_CREATE_NAME_GROUP = "DUPLICATE_CREATE_NAME_GROUP"
 export const ADD_OR_REPLACE_CREATE_NAME_TOKEN_VALUE = "ADD_OR_REPLACE_CREATE_NAME_TOKEN_VALUE"
 export const DELETE_CREATE_NAME_TOKEN_VALUE = "DELETE_CREATE_NAME_TOKEN_VALUE"
@@ -25,16 +24,21 @@ export function createNamesWithGroupForRule(
     primaryRuleName: string,
     ruleParentLocalIdsByRuleName: Record<string, string[]>,
     ruleParentsByLocalId: Record<string, RuleParent>,
+    ruleTokenLocalIdsByRuleName: Record<string, string[]>,
+    ruleTokensByLocalId: Record<string, RuleToken>,
+    tokenValueNamesByTokenName: Record<string, string[]>,
 ): AddNamePayload {
 
     const createNames: CreateName[] = []
     const ruleNamesToScan: string[] = [primaryRuleName]
 
     const createNameGroup: CreateNameGroup = {
-        localId: uuidv4(),
+        localId: createLocalId(),
         primaryCreateNameId: "TODO",
         selected: false
     }
+
+    const createNameTokenValues: CreateNameTokenValue[] = []
 
     // make all CreateNames
     while (ruleNamesToScan.length) {
@@ -45,7 +49,7 @@ export function createNamesWithGroupForRule(
             break
         }
         const createName: CreateName = {
-            localId: uuidv4(),
+            localId: createLocalId(),
             ruleName,
             createNameGroupLocalId: createNameGroup.localId
         }
@@ -55,6 +59,21 @@ export function createNamesWithGroupForRule(
             createNameGroup.primaryCreateNameId = createName.localId
         }
 
+        // make CreateNameTokenValue if only one value for a given token
+        const ruleTokens = ruleTokenLocalIdsByRuleName[ruleName].map(rtLocalId => ruleTokensByLocalId[rtLocalId])
+        ruleTokens.forEach(ruleToken => {
+            const tokenValueNames = tokenValueNamesByTokenName[ruleToken.tokenName]
+
+            if (tokenValueNames.length == 1) {
+                createNameTokenValues.push({
+                    localId: createLocalId(),
+                    tokenValueName: tokenValueNames[0],
+                    createNameLocalId: createName.localId,
+                    ruleTokenLocalId: ruleToken.localId,
+                })
+            }
+        })
+
         if (ruleParentLocalIdsByRuleName[ruleName]) {
             const parentRuleNames = ruleParentLocalIdsByRuleName[ruleName].map(rpLocalId => {
                 return ruleParentsByLocalId[rpLocalId].parentRuleName
@@ -63,15 +82,56 @@ export function createNamesWithGroupForRule(
         }
     }
 
-    return addNamesWithGroup(createNames, createNameGroup)
+    return addNamesWithGroup(createNames, createNameGroup, createNameTokenValues)
 }
 
-export function addNamesWithGroup(createNames: CreateName[], createNameGroup: CreateNameGroup) {
-    return makeActionObject(ADD_NAMES_WITH_GROUP, { createNames, createNameGroup })
+// must add CreateNameTokenValues per RuleToken if only one TokenValue per Token
+export function addNamesWithGroup(createNames: CreateName[], createNameGroup: CreateNameGroup, createNameTokenValues: CreateNameTokenValue[]) {
+    return makeActionObject(ADD_CREATE_NAMES_WITH_GROUP, { createNames, createNameGroup, createNameTokenValues })
 }
 
-export function duplicateCreateNameGroup(createNameGroupId: string) {
-    return makeActionObject(DUPLICATE_CREATE_NAME_GROUP, { createNameGroupId })
+export function duplicateCreateNameGroup(
+    createNameGroup: CreateNameGroup,
+    createNameLocalIdsByCreateNameGroupLocalId: Record<string, string[]>,
+    createNamesByLocalId: Record<string, CreateName>,
+    createNameTokenValueLocalIdsByCreateNameLocalId: Record<string, string[]>,
+    createNameTokenValuesByLocalId: Record<string, CreateNameTokenValue>,
+) {
+    const newCng: CreateNameGroup = {
+        localId: createLocalId(),
+        primaryCreateNameId: "TODO",
+        selected: false
+    }
+    const newCntvs: CreateNameTokenValue[] = []
+
+    const newCns: CreateName[] = createNameLocalIdsByCreateNameGroupLocalId[createNameGroup.localId].map(oldCnLocalId => {
+        const oldCn = createNamesByLocalId[oldCnLocalId]
+
+        const newCn: CreateName = {
+            ...oldCn,
+            localId: createLocalId(),
+            createNameGroupLocalId: newCng.localId,
+        }
+
+        if (createNameGroup.primaryCreateNameId == oldCn.localId) {
+            newCng.primaryCreateNameId = newCn.localId
+        }
+
+        const _newCnTvs: CreateNameTokenValue[] = (createNameTokenValueLocalIdsByCreateNameLocalId[oldCn.localId] || []).map(oldCntvLocalId => {
+            const oldCntv = createNameTokenValuesByLocalId[oldCntvLocalId]
+
+            return {
+                ...oldCntv,
+                localId: createLocalId(),
+                createNameLocalId: newCn.localId,
+            }
+        })
+        newCntvs.push(..._newCnTvs)
+
+        return newCn
+    })
+
+    return addNamesWithGroup(newCns, newCng, newCntvs)
 }
 
 export function addOrReplaceCreateNameTokenValue(newCreateNameTokenValue: CreateNameTokenValue, oldCreateNameTokenValue?: CreateNameTokenValue) {

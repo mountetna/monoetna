@@ -23,8 +23,12 @@ export const selectTokenWithName = (name: string) => (state: State): Token => st
 
 export const selectTokenValuesByName = (state: State): Record<string, TokenValue> => state.rules.tokenValues.byName
 
+export const selectTokenValuesNamesByTokenName = (state: State): Record<string, string[]> => state.rules.tokenValues.byTokenName
+
 export const selectTokenValueNamesWithTokenName = (tokenName: string) => (state: State): string[] => state.rules.tokenValues.byTokenName[tokenName]
 
 export const selectRuleTokensByLocalId = (state: State): Record<string, RuleToken> => state.rules.ruleTokens.byLocalId
+
+export const selectRuleTokenLocalIdsByRuleName = (state: State): Record<string, string[]> => state.rules.ruleTokens.byRuleName
 
 export const selectRuleTokenLocalIdsWithRuleName = (ruleName: string) => (state: State): string[] => state.rules.ruleTokens.byRuleName[ruleName]

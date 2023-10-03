@@ -5,7 +5,7 @@ and eventually used for creation/editing. */
 
 import { Rule, RuleParent, RuleToken, Synonym, Token, TokenValue } from '../models';
 import { ACTION_TYPE, ADD_RULES_FROM_MAGMA } from '../actions/rules';
-import { listToIdObject, listToIdGroupObject } from './utils';
+import { listToIdObject, listToIdGroupObject } from '../utils/object';
 
 
 interface RuleParentsState {

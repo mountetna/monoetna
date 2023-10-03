@@ -10,9 +10,9 @@ import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Paper from "@material-ui/core/Paper";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 
-import { selectRules, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId } from "../../selectors/rules";
+import { selectRules, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValuesNamesByTokenName } from "../../selectors/rules";
 import { createNamesWithGroupForRule } from "../../actions/names";
-import { Rule, RuleParent } from "../../models";
+import { Rule, RuleParent, RuleToken } from "../../models";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -29,6 +29,9 @@ const AddNamesButton = () => {
     const rules: Record<string, Rule> = useSelector(selectRules)
     const ruleParentLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
     const ruleParentsByLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
+    const ruleTokenLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleTokenLocalIdsByRuleName)
+    const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
+    const tokenValueNamesByTokenName: Record<string, string[]> = useSelector(selectTokenValuesNamesByTokenName)
     const dispatch = useDispatch()
 
     const handleToggle = () => {
@@ -38,7 +41,14 @@ const AddNamesButton = () => {
         setOpen(false);
     };
     const handleClickRule = (ruleName: string) => {
-        dispatch(createNamesWithGroupForRule(ruleName, ruleParentLocalIdsByRuleName, ruleParentsByLocalId))
+        dispatch(createNamesWithGroupForRule(
+            ruleName,
+            ruleParentLocalIdsByRuleName,
+            ruleParentsByLocalId,
+            ruleTokenLocalIdsByRuleName,
+            ruleTokensByLocalId,
+            tokenValueNamesByTokenName
+        ))
         handleClose();
     };
 

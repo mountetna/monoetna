@@ -45,6 +45,8 @@ export const selectCreateNamesWithLocalIds = (localIds: string[]) => (state: Sta
     return localIds.map(localId => state.names.createNames.byLocalId[localId])
 }
 
+export const selectCreateNameLocalIdsByGroupId = (state: State): Record<string, string[]> => state.names.createNames.byCreateNameGroupLocalId
+
 export const selectCreateNameLocalIdsWithGroupId = (groupId: string) => (state: State): string[] => state.names.createNames.byCreateNameGroupLocalId[groupId]
 
 export const selectCounterValuesWithRuleName = createSelector(
@@ -72,6 +74,10 @@ export const selectSelectedCreateNameGroupIds: ((state: State) => string[]) = cr
 )
 
 export const selectCreateNameTokenValuesByLocalId = (state: State): Record<string, CreateNameTokenValue> => state.names.createNameTokenValues.byLocalId
+
+export const selectCreateNameTokenValueLocalIdsByCreateNameLocalId = (state: State): Record<string, string[]> => {
+    return state.names.createNameTokenValues.byCreateNameLocalId
+}
 
 export const selectCreateNameTokenValueLocalIdsWithCreateNameLocalId = (createNameLocalId: string) => (state: State): string[] => {
     return state.names.createNameTokenValues.byCreateNameLocalId[createNameLocalId]
