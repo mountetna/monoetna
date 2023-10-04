@@ -9,7 +9,7 @@ interface State {
 }
 
 
-export const selectRules = (state: State): Record<string, Rule> => state.rules.rules
+export const selectRulesByName = (state: State): Record<string, Rule> => state.rules.rules
 
 export const selectRuleWithName = (name: string) => (state: State): Rule => state.rules.rules[name]
 
@@ -21,11 +21,11 @@ export const selectTokens = (state: State): Record<string, Token> => state.rules
 
 export const selectTokenWithName = (name: string) => (state: State): Token => state.rules.tokens[name]
 
-export const selectTokenValuesByName = (state: State): Record<string, TokenValue> => state.rules.tokenValues.byName
+export const selectTokenValuesByLocalId = (state: State): Record<string, TokenValue> => state.rules.tokenValues.byLocalId
 
-export const selectTokenValuesNamesByTokenName = (state: State): Record<string, string[]> => state.rules.tokenValues.byTokenName
+export const selectTokenValueLocalIdsByTokenName = (state: State): Record<string, string[]> => state.rules.tokenValues.byTokenName
 
-export const selectTokenValueNamesWithTokenName = (tokenName: string) => (state: State): string[] => state.rules.tokenValues.byTokenName[tokenName]
+export const selectTokenValueLocalIdsWithTokenName = (tokenName: string) => (state: State): string[] => state.rules.tokenValues.byTokenName[tokenName]
 
 export const selectRuleTokensByLocalId = (state: State): Record<string, RuleToken> => state.rules.ruleTokens.byLocalId
 

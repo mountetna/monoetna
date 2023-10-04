@@ -11,7 +11,7 @@ interface State {
 }
 
 
-export const selectCreateNameGroups = (state: State): Record<string, CreateNameGroup> => state.names.createNameGroups
+export const selectCreateNameGroupsByLocalId = (state: State): Record<string, CreateNameGroup> => state.names.createNameGroups
 
 export const selectCreateNameGroupWithLocalId = (localId: string) => (state: State): CreateNameGroup => {
     return state.names.createNameGroups[localId]
@@ -23,7 +23,7 @@ export const selectCreateNameGroupsWithLocalIds = (localIds: string[]) => (state
 
 export const selectCreateNameGroupIdsWithPrimaryRule = createSelector(
     [(state: State) => state.names],
-    (names: NamesState) => {
+    (names: NamesState): Record<string, string[]> => {
         const result = defaultDict<string, string[]>(_ => [])
 
         Object.values(names.createNameGroups).forEach(createNameGroup => {
@@ -57,8 +57,8 @@ export const selectCounterValuesWithRuleName = createSelector(
         )
 
         Object.values(names.createNames.byLocalId).forEach((createName) => {
-            if (createName.counterValue != undefined) {
-                ++counterValuesByRuleName[createName.ruleName][createName.counterValue]
+            if (createName.ruleCounterValue != undefined) {
+                ++counterValuesByRuleName[createName.ruleName][createName.ruleCounterValue]
             }
         })
 
@@ -69,7 +69,7 @@ export const selectCounterValuesWithRuleName = createSelector(
 export const selectSelectedCreateNameGroupIds: ((state: State) => string[]) = createSelector(
     [(state: State) => state.names],
     (names: NamesState): string[] => {
-        return _.filter(names.createNameGroups, { selected: true })
+        return _.filter(names.createNameGroups, { selected: true }).map(cng => cng.localId)
     }
 )
 

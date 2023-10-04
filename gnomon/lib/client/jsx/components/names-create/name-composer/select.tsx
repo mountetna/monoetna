@@ -10,16 +10,16 @@ import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Paper from "@material-ui/core/Paper";
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 
-import { Token, TokenValue } from "../../../models";
-import { selectTokenValueNamesWithTokenName, selectTokenValuesByName } from "../../../selectors/rules";
+import { Rule, Token, TokenValue } from "../../../models";
+import { selectTokenValueLocalIdsWithTokenName, selectTokenValuesByLocalId } from "../../../selectors/rules";
 
 
 
 const useStyles = makeStyles((theme) => ({
-    selectTokenValueContainer: {
+    selectValueContainer: {
         display: "inline-block",
     },
-    currentTokenValue: {
+    currentSelectValue: {
         fontWeight: "bold"
     },
     unset: {
@@ -28,48 +28,58 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
+interface SelectValue {
+    name: string
+    label?: string
+}
+
+
 // TODO: change to actual select
-const TokenSelect = ({ token, value, handleSetTokenValue }:
-    { token: Token, value?: TokenValue, handleSetTokenValue: (value: TokenValue) => void }) => {
+const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, onSetValue }:
+    {
+        values: T[],
+        value?: T,
+        label: string,
+        placeholder: string,
+        onSetValue: (value: T) => void,
+    }) => {
 
     const classes = useStyles()
     const [open, setOpen] = useState<boolean>(false);
     const anchorEl = useRef(null)
 
-    const tokenValuesByName: Record<string, TokenValue> = useSelector(selectTokenValuesByName)
-    const tokenValues: TokenValue[] = useSelector(selectTokenValueNamesWithTokenName(token.name))
-        .map(tvName => tokenValuesByName[tvName])
-
     const handleToggle = () => {
         setOpen(prev => !prev);
     };
+
     const handleClose = () => {
         setOpen(false);
     };
-    const handleClickTokenValue = (tokenValue: TokenValue) => {
-        if (tokenValue != value) {
-            handleSetTokenValue(tokenValue)
+
+    const handleClickMenuItem = (menuItemValue: T) => {
+        if (menuItemValue != value) {
+            onSetValue(menuItemValue)
         }
         handleClose()
     };
 
     return (
-        <div className={classes.selectTokenValueContainer}>
+        <div className={classes.selectValueContainer}>
             <ButtonBase
                 onClick={handleToggle}
                 ref={anchorEl}
                 color="primary"
-                aria-label={`Select Token Value for "${token.label}"`}
+                aria-label={`Select Value for "${label}"`}
                 aria-haspopup="true"
-                aria-controls={open ? "select-token-value-container" : undefined}
+                aria-controls={open ? "select-value-container" : undefined}
                 disableRipple
                 disableTouchRipple
             >
                 <span
-                    className={classes.currentTokenValue + " " + (!value ? `${classes.unset}` : "")}
+                    className={classes.currentSelectValue + " " + (!value ? `${classes.unset}` : "")}
                 >
                     <KeyboardArrowDownIcon />
-                    {value ? value.name : token.name}
+                    {value ? value.name : placeholder}
                 </span>
             </ButtonBase>
             <Popper
@@ -78,7 +88,6 @@ const TokenSelect = ({ token, value, handleSetTokenValue }:
                 placement="bottom"
                 role={undefined}
                 transition
-                disablePortal
             >
                 {({ TransitionProps }) => (
                     <Grow
@@ -87,18 +96,18 @@ const TokenSelect = ({ token, value, handleSetTokenValue }:
                     >
                         <Paper variant="outlined">
                             <ClickAwayListener onClickAway={handleClose}>
-                                <MenuList autoFocusItem={open} id="select-token-value-container">
-                                    <div key={token.label}>
-                                        Choose a {token.label}
+                                <MenuList autoFocusItem={open} id="select-value-container">
+                                    <div key={label}>
+                                        Choose a {label}
                                     </div>
                                     {
-                                        tokenValues.map((val) =>
+                                        values.map((val: T) =>
                                             <MenuItem
-                                                onClick={() => handleClickTokenValue(val)}
+                                                onClick={() => handleClickMenuItem(val)}
                                                 key={val.name}
                                                 disableRipple
                                             >
-                                                {val.name} - {val.label}
+                                                {val.name}{val.label ? ` - ${val.label}` : ""}
                                             </MenuItem>
                                         )
                                     }
@@ -113,4 +122,36 @@ const TokenSelect = ({ token, value, handleSetTokenValue }:
 }
 
 
-export default TokenSelect
+export const RuleSelect = ({ values, value, label, placeholder, onSetRule }:
+    { values: Rule[],value?: Rule, label: string, placeholder: string, onSetRule: (value: Rule) => void }) => {
+
+    return (
+        <SelectBase
+            values={values}
+            value={value}
+            label={label}
+            placeholder={placeholder}
+            onSetValue={onSetRule}
+        />
+    )
+}
+
+
+export const TokenSelect = ({ token, value, onSetTokenValue }:
+    { token: Token, value?: TokenValue, onSetTokenValue: (value: TokenValue) => void }) => {
+
+    const tokenValuesByLocalId: Record<string, TokenValue> = useSelector(selectTokenValuesByLocalId)
+    const tokenValues: TokenValue[] = useSelector(selectTokenValueLocalIdsWithTokenName(token.name))
+        .map(tvLocalId => tokenValuesByLocalId[tvLocalId])
+
+    return (
+        <SelectBase
+            values={tokenValues}
+            value={value}
+            label={token.label}
+            placeholder={token.name}
+            onSetValue={onSetTokenValue}
+        />
+    )
+}
+

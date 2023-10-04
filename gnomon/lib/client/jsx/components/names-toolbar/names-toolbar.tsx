@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Grid from "@material-ui/core/Grid";
-import { useDispatch } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import Button from "@material-ui/core/Button";
 import FindReplaceOutlinedIcon from "@material-ui/icons/FindReplaceOutlined";
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
@@ -10,12 +10,15 @@ import FilterListIcon from '@material-ui/icons/FilterList';
 import AddNamesButton from "./add-names-button";
 import AddFromSelectionButton from "./add-from-selection-button";
 import { deleteSelectedGroupsWithNames } from "../../actions/names";
+import { selectSelectedCreateNameGroupIds } from "../../selectors/names";
 
 
 
 const NamesToolbar = () => {
     const dispatch = useDispatch()
-    const [small, setSmall] = useState<Boolean>(false);
+    const [small, setSmall] = useState<boolean>(false);
+
+    const selectedCreateNameGroupLocalIds: string[] = useSelector(selectSelectedCreateNameGroupIds)
 
     const handleClickDeleteSelection = () => {
         dispatch(deleteSelectedGroupsWithNames())
@@ -34,6 +37,7 @@ const NamesToolbar = () => {
                     startIcon={<FindReplaceOutlinedIcon />}
                     color="primary"
                     disableElevation
+                    disabled={selectedCreateNameGroupLocalIds.length == 0}
                 >
                     Replace in Selection
                 </Button>
@@ -44,6 +48,7 @@ const NamesToolbar = () => {
                     startIcon={<DeleteOutlineOutlinedIcon />}
                     color="primary"
                     disableElevation
+                    disabled={selectedCreateNameGroupLocalIds.length == 0}
                 >
                     Delete Selection
                 </Button>

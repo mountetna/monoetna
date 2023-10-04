@@ -10,7 +10,7 @@ import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Paper from "@material-ui/core/Paper";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 
-import { selectRules, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValuesNamesByTokenName } from "../../selectors/rules";
+import { selectRulesByName, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
 import { createNamesWithGroupForRule } from "../../actions/names";
 import { Rule, RuleParent, RuleToken } from "../../models";
 
@@ -26,13 +26,14 @@ const AddNamesButton = () => {
     const classes = useStyles()
     const [open, setOpen] = useState<boolean>(false);
     const anchorEl = useRef(null)
-    const rules: Record<string, Rule> = useSelector(selectRules)
+    const dispatch = useDispatch()
+    
+    const rules: Record<string, Rule> = useSelector(selectRulesByName)
     const ruleParentLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
     const ruleParentsByLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
     const ruleTokenLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleTokenLocalIdsByRuleName)
     const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
-    const tokenValueNamesByTokenName: Record<string, string[]> = useSelector(selectTokenValuesNamesByTokenName)
-    const dispatch = useDispatch()
+    const tokenValueLocalIdsByTokenName: Record<string, string[]> = useSelector(selectTokenValueLocalIdsByTokenName)
 
     const handleToggle = () => {
         setOpen(prev => !prev);
@@ -47,7 +48,7 @@ const AddNamesButton = () => {
             ruleParentsByLocalId,
             ruleTokenLocalIdsByRuleName,
             ruleTokensByLocalId,
-            tokenValueNamesByTokenName
+            tokenValueLocalIdsByTokenName
         ))
         handleClose();
     };
@@ -74,7 +75,6 @@ const AddNamesButton = () => {
                 placement='bottom'
                 role={undefined}
                 transition
-                disablePortal
             >
                 {({ TransitionProps }) => (
                     <Grow

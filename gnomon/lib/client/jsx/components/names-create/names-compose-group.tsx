@@ -13,7 +13,7 @@ import { CreateName, CreateNameGroup, RuleParent, RuleToken } from "../../models
 import CreateNameGroupComposer from "./name-composer/name-composer";
 import { selectCreateNameGroupsWithLocalIds, selectCreateNamesByLocalId } from "../../selectors/names";
 import { setCreateNameGroupsSelected, deleteGroupsWithNames, createNamesWithGroupForRule } from "../../actions/names";
-import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValuesNamesByTokenName } from "../../selectors/rules";
+import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
 
 
 
@@ -37,9 +37,9 @@ const CreateNameGroupCompose = ({ createNameGroupIds, ruleName }: { createNameGr
     const ruleParentsByLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
     const ruleTokenLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleTokenLocalIdsByRuleName)
     const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
-    const tokenValueNamesByTokenName: Record<string, string[]> = useSelector(selectTokenValuesNamesByTokenName)
+    const tokenValueLocalIdsByTokenName: Record<string, string[]> = useSelector(selectTokenValueLocalIdsByTokenName)
 
-    const [collapsed, setCollapsed] = useState<Boolean>(false);
+    const [collapsed, setCollapsed] = useState<boolean>(false);
 
     const handleClickAdd = () => {
         dispatch(createNamesWithGroupForRule(
@@ -48,7 +48,7 @@ const CreateNameGroupCompose = ({ createNameGroupIds, ruleName }: { createNameGr
             ruleParentsByLocalId,
             ruleTokenLocalIdsByRuleName,
             ruleTokensByLocalId,
-            tokenValueNamesByTokenName
+            tokenValueLocalIdsByTokenName,
         ))
     }
 

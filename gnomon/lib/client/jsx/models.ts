@@ -1,5 +1,6 @@
 // TODO: make this a module instead?
 export interface TokenValue {
+    localId: string
     name: string
     label: string
     tokenName: string
@@ -36,14 +37,14 @@ export interface Synonym {
 
 export interface CreateName {
     localId: string
-    counterValue?: number
+    ruleCounterValue?: number
     ruleName: string
     createNameGroupLocalId: string
 }
 
 export interface CreateNameTokenValue {
     localId: string
-    tokenValueName: string
+    tokenValueLocalId: string
     createNameLocalId: string
     ruleTokenLocalId: string
 }

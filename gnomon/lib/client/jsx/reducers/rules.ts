@@ -23,8 +23,8 @@ interface RuleTokensState {
 
 
 interface TokenValuesState {
-    "byName": Record<string, TokenValue>
-    "byTokenName": Record<string, string[]>  // { TokenValue.tokenName: TokenValue.name }
+    "byLocalId": Record<string, TokenValue>
+    "byTokenName": Record<string, string[]>  // { TokenValue.tokenName: TokenValue.localId }
 }
 
 
@@ -48,7 +48,7 @@ const initialState: RulesState = {
     ruleParents: { byLocalId: {}, byRuleName: {}, byParentRuleName: {} },
     tokens: {},
     ruleTokens: { byLocalId: {}, byTokenName: {}, byRuleName: {} },
-    tokenValues: { byName: {}, byTokenName: {} },
+    tokenValues: { byLocalId: {}, byTokenName: {} },
     synonyms: { byValue: {}, byTokenName: {} },
 }
 
@@ -95,8 +95,8 @@ export function rulesReducer(state: RulesState = initialState, action: ACTION_TY
                     },
                 },
                 tokenValues: {
-                    byName: {
-                        ...state.tokenValues.byName,
+                    byLocalId: {
+                        ...state.tokenValues.byLocalId,
                         ...listToIdObject(action.tokenValues, "name"),
                     },
                     byTokenName: {

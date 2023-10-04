@@ -1,4 +1,4 @@
-export function defaultDict<K extends string, V>(createValue: (property: string) => any): Record<K, V> {
+export function defaultDict<K extends string, V>(createValue: (property: string) => V): Record<K, V> {
     return new Proxy(Object.create(null), {
         get(storage: object, property: string) {
             if (!(property in storage))

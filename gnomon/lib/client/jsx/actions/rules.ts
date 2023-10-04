@@ -59,7 +59,12 @@ const parseMagmaRulesResponse = (res: MagmaRulesResponse): ParsedRules => {
     const tokens = Object.values(res.tokens).map((res_token) => {
 
         Object.entries(res_token.values).forEach(([name, label]) => {
-            tokenValues.push({ name, label, tokenName: res_token.name });
+            tokenValues.push({
+                localId: createLocalId(),
+                name,
+                label,
+                tokenName: res_token.name
+            });
         })
 
         return { name: res_token.name, label: res_token.label } as Token;

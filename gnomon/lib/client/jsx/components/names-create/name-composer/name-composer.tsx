@@ -6,14 +6,14 @@ import ButtonBase from "@material-ui/core/ButtonBase";
 import Checkbox from "@material-ui/core/Checkbox";
 import FileCopyOutlinedIcon from '@material-ui/icons/FileCopyOutlined';
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
-import { v4 as uuidv4 } from 'uuid';
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken, Token, TokenValue } from "../../../models";
-import { selectRules, selectTokenValuesByName, selectTokens, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId } from "../../../selectors/rules";
+import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId } from "../../../selectors/rules";
 import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameLocalIdsByGroupId } from "../../../selectors/names";
-import { addOrReplaceCreateNameTokenValue, setCreateNameCounterValue, setCreateNameGroupsSelected, duplicateCreateNameGroup, deleteGroupsWithNames } from "../../../actions/names";
-import TokenSelect from "./token-select";
+import { addOrReplaceCreateNameTokenValue, setCreateNameRuleCounterValue, setCreateNameGroupsSelected, duplicateCreateNameGroup, deleteGroupsWithNames } from "../../../actions/names";
+import { TokenSelect } from "./select";
 import RuleCounterField from "./rule-counter-input";
+import { createLocalId } from "../../../utils/models";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -37,15 +37,15 @@ const CreateNameElementsEditor = ({ createName, rule }: { createName: CreateName
     const createNameTokenValues: CreateNameTokenValue[] = (useSelector(selectCreateNameTokenValueLocalIdsWithCreateNameLocalId(createName.localId)) || [])
         .map(cntvLocalId => createNameTokenValuesByLocalId[cntvLocalId])
 
-    const tokenValues: Record<string, TokenValue> = useSelector(selectTokenValuesByName)
+    const tokenValuesByLocalId: Record<string, TokenValue> = useSelector(selectTokenValuesByLocalId)
 
-    // move this to TokenSelect?
+    // move this to <TokenSelect>?
     const setTokenValue = (value: TokenValue, ruleToken: RuleToken) => {
         const createNameTokenValue: CreateNameTokenValue = {
-            localId: uuidv4(),
-            tokenValueName: value.name,
+            localId: createLocalId(),
+            tokenValueLocalId: value.name,
             createNameLocalId: createName.localId,
-            ruleTokenLocalId: ruleToken.localId
+            ruleTokenLocalId: ruleToken.localId,
         }
         const oldCreateNameTokenValue = createNameTokenValues.find(
             cntv => cntv.ruleTokenLocalId == ruleToken.localId
@@ -54,7 +54,7 @@ const CreateNameElementsEditor = ({ createName, rule }: { createName: CreateName
     }
 
     const setRuleCounterValue = (value?: number) => {
-        dispatch(setCreateNameCounterValue(createName.localId, value))
+        dispatch(setCreateNameRuleCounterValue(createName.localId, value))
     }
 
     return (
@@ -62,19 +62,19 @@ const CreateNameElementsEditor = ({ createName, rule }: { createName: CreateName
         <FormGroup row className={classes.createNameElementsEditor}>
             {
                 // copying array bc sort modifies in place
-                [...ruleTokens].sort(rt => rt.ord).map((ruleToken, idx) => {
+                [...ruleTokens].sort(rt => rt.ord).map(ruleToken => {
                     const createNameTokenValue = createNameTokenValues.find(
                         cntv => cntv.ruleTokenLocalId == ruleToken.localId
                     )
                     const currentValue = createNameTokenValue ?
-                        tokenValues[createNameTokenValue.tokenValueName] : undefined
+                        tokenValuesByLocalId[createNameTokenValue.tokenValueLocalId] : undefined
 
                     return (
-                        <React.Fragment key={idx}>
+                        <React.Fragment key={ruleToken.localId}>
                             <TokenSelect
                                 token={tokens[ruleToken.tokenName]}
                                 value={currentValue}
-                                handleSetTokenValue={(value: TokenValue) => setTokenValue(value, ruleToken)}
+                                onSetTokenValue={(value: TokenValue) => setTokenValue(value, ruleToken)}
                             ></TokenSelect>
                         </React.Fragment>
                     )
@@ -84,7 +84,7 @@ const CreateNameElementsEditor = ({ createName, rule }: { createName: CreateName
                 rule.hasCounter &&
                 <RuleCounterField
                     ruleName={rule.name}
-                    value={createName.counterValue}
+                    value={createName.ruleCounterValue}
                     handleSetCounterValue={setRuleCounterValue}
                 />
             }
@@ -95,15 +95,17 @@ const CreateNameElementsEditor = ({ createName, rule }: { createName: CreateName
 
 const CreateNameGroupComposer = ({ createNameGroup }: { createNameGroup: CreateNameGroup }) => {
     const dispatch = useDispatch()
+    
     const createNameLocalIds: string[] = useSelector(selectCreateNameLocalIdsWithGroupId(createNameGroup.localId))
     const createNamesByLocalId: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
     const primaryCreateName: CreateName = useSelector(selectCreateNameWithLocalId(createNameGroup.primaryCreateNameId))
     const createNameLocalIdsByCreateNameGroupLocalId: Record<string, string[]> = useSelector(selectCreateNameLocalIdsByGroupId)
     const createNameTokenValueLocalIdsByCreateNameLocalId: Record<string, string[]> = useSelector(selectCreateNameTokenValueLocalIdsByCreateNameLocalId)
     const createNameTokenValuesByLocalId: Record<string, CreateNameTokenValue> = useSelector(selectCreateNameTokenValuesByLocalId)
-    const allRules: Record<string, Rule> = useSelector(selectRules)
+    const allRules: Record<string, Rule> = useSelector(selectRulesByName)
     const ruleParentLocalIdsbyRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
     const ruleParentsbyLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
+
     const orderedRuleNames: string[] = []
 
     const ruleNamesToScan: string[] = [primaryCreateName.ruleName]
