@@ -3,6 +3,8 @@ import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
+import Switch from '@material-ui/core/Switch';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 import {PickFolder} from 'etna-js/components/metis_exploration';
 
@@ -147,17 +149,44 @@ export const TableFormat = ({value,update}:ScriptItem) => <Select displayEmpty v
   <MenuItem value='csv'>csv</MenuItem>
 </Select>;
 
+export const BlankTables = ({value, update, modelName, classes}:ScriptItem) => {
+  const {models} = useContext(MagmaContext);
+  const parentAttribute: string = models ? models[modelName]?.template?.parent : '__error__'
+  const isTable: boolean = models[parentAttribute]?.template?.attributes[modelName].attribute_type=='table'
+
+  if (value==undefined) {
+    update(true)
+  }
+
+  return <Grid item container direction='column'>
+    <FormControlLabel
+      label="Blank Previous Values (Table models only)"
+      control={<Switch
+        checked={isTable && value}
+        disabled={!isTable}
+        onChange={()=>update(!value)}
+        color="primary"
+      />}
+    />
+  </Grid>
+}
+
 export const ColumnMap = ({value, update, modelName, classes}:ScriptItem) => {
 
   const {models} = useContext(MagmaContext);
   const idAttribute: string = models ? models[modelName]?.template?.identifier : '__error__'
+  const parentAttribute: string = models ? models[modelName]?.template?.parent : '__error__'
+  // Determine if table.
+  const isTable: boolean = models[parentAttribute]?.template?.attributes[modelName].attribute_type=='table'
+  const autoAttribute: string = isTable ? parentAttribute : idAttribute
+
   if (value==undefined) {
-    update({[idAttribute]: idAttribute})
-  } else if (!Object.keys(value).includes(idAttribute)) {
-    update({[idAttribute]: idAttribute, ...value})
+    update({[autoAttribute]: autoAttribute})
+  } else if (!Object.keys(value).includes(autoAttribute)) {
+    update({[autoAttribute]: autoAttribute, ...value})
   }
-  const attributesChosen = Object.keys(value).filter((val)=>val!=idAttribute)
-  const attributesToIgnore = [idAttribute]
+  const attributesChosen = Object.keys(value).filter((val)=>val!=autoAttribute)
+  const attributesToFilter = [autoAttribute]
 
   function onAttributeSelection(userChoice: string[]) {
     const nextValues = {...value}
@@ -191,17 +220,19 @@ export const ColumnMap = ({value, update, modelName, classes}:ScriptItem) => {
   }
 
   return <Grid item container direction='column'>
+    {/* Attributes Selection */}
     <Grid item>
       <SelectAttributes
         modelName={modelName}
         value={attributesChosen}
         update={onAttributeSelection}
         reportError={attributesChosen.length<1}
-        placeholder='At least one non-identifier attribute is required'
-        // don't show identifier & disallow file and file_collection type attributes
-        filter = {(a) => !['file', 'file_collection'].includes(a.attribute_type) && !attributesToIgnore.includes(a.name)}
+        placeholder='At least one additional attribute is required'
+        // don't show identifier/parent & disallow file and file_collection type attributes
+        filter = {(a) => !['file', 'file_collection'].includes(a.attribute_type) && !attributesToFilter.includes(a.name)}
       />
     </Grid>
+    {/* Column Name Editor Table */}
     <Grid item container>
       <Grid key='titles' item container direction='row' style={{paddingTop:6, paddingBottom:4}}>
         <Grid item xs={4}><em>Attribute</em></Grid>
@@ -210,14 +241,16 @@ export const ColumnMap = ({value, update, modelName, classes}:ScriptItem) => {
       {
         Object.keys(value).map(
           (attribute_name) => {
-            const attribute_label = attribute_name==idAttribute ? attribute_name + ' (Identifier)' : attribute_name
+            let attribute_label = attribute_name
+            if (attribute_name==idAttribute) attribute_label += ' (Identifier)'
+            if (attribute_name==parentAttribute) attribute_label += ' (Parent)'
             return <Grid
               key={attribute_name} item container
               direction='row'
               >
               <Grid item xs={4}
-                className={attribute_name==idAttribute ? undefined : classes.strikeout}
-                onClick={attribute_name==idAttribute ? undefined : () => {
+                className={attribute_name==autoAttribute ? undefined : classes.strikeout}
+                onClick={attribute_name==autoAttribute ? undefined : () => {
                   let newValues = { ...value };
                   delete newValues[attribute_name];
                   update(newValues);
