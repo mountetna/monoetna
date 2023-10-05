@@ -15,5 +15,5 @@ if re.search("csv$", file.file_path) is not None:
     separator = ","
 
 with metis.open_file(file) as open_file:
-    df = pandas.read_table(open_file, sep = separator)
+    df = pandas.read_table(open_file, sep=separator, engine="python")
 df.to_json(output_path("data_frame"))
