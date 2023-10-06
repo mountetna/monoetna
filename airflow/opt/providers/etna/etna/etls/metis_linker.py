@@ -68,17 +68,24 @@ class MetisLoaderConfig(EtlConfigResponse):
 
 
     def data_frame_update(self, model_name, script, tail, update, metis, model):
+        isTable=model['isTable']
+        template=model['template']
+        model_attributes = list(template.attributes.keys())
+        id = 'temp' if isTable else template.identifier
+
         column_map = script['column_map']
         attributes = list(column_map.keys())
         columns = list(column_map.values())
-        id = model.identifier
-        model_attributes = list(model.attributes.keys())
-        if not id in attributes:
+
+        if not isTable and not id in attributes:
             raise MetisLoaderError(f"Identifier attribute is missing from the 'column_map' of {model_name} data_frame loader.")
+        if isTable and not template.parent in attributes:
+            raise MetisLoaderError(f"Parent attribute is missing from the 'column_map' of {model_name} data_frame loader.")
         if not set(attributes).issubset(model_attributes):
             missing = ', '.join([attr for attr in attributes if attr not in model_attributes])
             raise MetisLoaderError(f"'column_map' of {model_name} data_frame loader targets attribute(s) that don't exist: {missing}.")
 
+        # Parse Files
         files = self.script_files(script, tail)
         for file in files:
             data = None
@@ -104,11 +111,23 @@ class MetisLoaderConfig(EtlConfigResponse):
                 raise MetisLoaderError(f"{file.file_name} is missing column(s) targetted by {model_name} data_frame loader 'column_map': {missing}.")
             # Trim to mapped columns and convert to attribute names
             data = data.rename(columns={v: k for k,v in column_map.items()})[attributes]
-            data = data[attributes].set_index(id, drop=True)
-            for name, attributes in data.T.to_dict().items():
-                if not self.get_identifier(model_name, name):
-                    continue
-                update.update_record(model_name, name, {k: v for k,v in attributes.items() if v is not None})
+            # Determine Updates
+            if isTable:
+                data['__temp__']=['temp-id-' + temp for temp in data.index]
+                data = data.set_index('__temp__', drop=True)
+                if script['blank_tables']:
+                    for parent_name in set(list(data[template.parent])):
+                        if not self.get_identifier(template.parent, name):
+                            continue
+                        update.update_record(template.parent, parent_name, {model_name: ['::'+id for id in data[data[template.parent]==parent_name].index]})
+                for name, attributes in data.T.to_dict().items():
+                    update.update_record(model_name, name, {k: v for k,v in attributes.items() if v is not None})
+            else:
+                data = data.set_index(id, drop=True)
+                for name, attributes in data.T.to_dict().items():
+                    if not self.get_identifier(model_name, name):
+                        continue
+                    update.update_record(model_name, name, {k: v for k,v in attributes.items() if v is not None})
 
     def file_collection_update(self, model_name, script, tail, update):
         files = self.script_files(script, tail)
@@ -209,9 +228,18 @@ def MetisLinker():
 
     @task
     def get_models(configs):
-        def get_template(project, model, magma):
-            # ToDo: ensure error is no template returned.
-            return magma.retrieve(project_name=project, model_name=model, record_names=[], attribute_names="all", hide_templates=False).models[model].template
+        def get_template(project, model, magma, check_table=True):
+            raw_return=magma.retrieve(project_name=project, model_name=model, record_names=[], attribute_names="all", hide_templates=False)
+            raw_template=raw_return.models[model].template
+            output = {
+                'template': raw_template,
+                'isTable': False
+                }
+            # Add isTable
+            if check_table:
+                # Shove as 'IsTable' attribute (not snake case so should never conflict!)
+                output['isTable'] = raw_template.parent!='project' and get_template(project, raw_template.parent, magma, False)['template'].attributes[model].attribute_type=='table'
+            return output
         # Minimize template grabs because some templates are LARGE
         project_names = set([ config.project_name for config in configs ])
         project_models = {p: [] for p in project_names}
