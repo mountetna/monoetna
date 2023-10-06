@@ -149,7 +149,7 @@ export const TableFormat = ({value,update}:ScriptItem) => <Select displayEmpty v
   <MenuItem value='csv'>csv</MenuItem>
 </Select>;
 
-export const BlankTables = ({value, update, modelName, classes}:ScriptItem) => {
+export const BlankTable = ({value, update, modelName, classes}:ScriptItem) => {
   const {models} = useContext(MagmaContext);
   const parentAttribute: string = models ? models[modelName]?.template?.parent : '__error__'
   const isTable: boolean = parentAttribute!='project' && models[parentAttribute]?.template?.attributes[modelName].attribute_type=='table'

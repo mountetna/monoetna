@@ -113,11 +113,11 @@ class MetisLoaderConfig(EtlConfigResponse):
             data = data.rename(columns={v: k for k,v in column_map.items()})[attributes]
             # Determine Updates
             if isTable:
-                data['__temp__']=['temp-id-' + temp for temp in data.index]
+                data['__temp__']=['temp-id-' + str(temp) for temp in data.index]
                 data = data.set_index('__temp__', drop=True)
-                if script['blank_tables']:
+                if script['blank_table']:
                     for parent_name in set(list(data[template.parent])):
-                        if not self.get_identifier(template.parent, name):
+                        if not self.get_identifier(template.parent, parent_name):
                             continue
                         update.update_record(template.parent, parent_name, {model_name: ['::'+id for id in data[data[template.parent]==parent_name].index]})
                 for name, attributes in data.T.to_dict().items():

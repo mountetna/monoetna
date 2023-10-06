@@ -142,6 +142,7 @@ class TestMetisLinker:
 
         # we have configs:
         # tsv version, file columns do match the map
+        # For table version, DO blank past values
         config1 = {
             "project_name": "labors",
             "config": {
@@ -154,6 +155,7 @@ class TestMetisLinker:
                                 "folder_path": "villages",
                                 "file_match": "*.tsv",
                                 "format": "tsv",
+                                "blank_table": True,
                                 "column_map": {
                                     "name": "name",
                                     "species": "SPECIES"
@@ -165,6 +167,7 @@ class TestMetisLinker:
             }
         }
         # csv format, file columns do match the map, script also set to test auto detection that its a csv file.
+        # For table version, DON'T blank past values
         config2 = {
             "project_name": "labors",
             "config": {
@@ -177,6 +180,7 @@ class TestMetisLinker:
                                 "folder_path": "villages",
                                 "file_match": "*.csv",
                                 "format": "auto-detect",
+                                "blank_table": False,
                                 "column_map": {
                                     "name": "name",
                                     "species": "SPECIES"
@@ -200,6 +204,7 @@ class TestMetisLinker:
                                 "folder_path": "villages",
                                 "file_match": "*.tsv",
                                 "format": "auto-detect",
+                                "blank_table": True,
                                 "column_map": {
                                     "name": "name",
                                     "species": "species"
@@ -223,6 +228,7 @@ class TestMetisLinker:
                                 "folder_path": "villages",
                                 "file_match": "*.tsv",
                                 "format": "csv",
+                                "blank_table": True,
                                 "column_map": {
                                     "name": "name",
                                     "species": "SPECIES"
@@ -235,17 +241,35 @@ class TestMetisLinker:
         }
         # we have this rule for the target model' identifiers
         rules={
+            'name': r'^LABORS-LION-H\d+-C\d+$',
             'victim': r'^LABORS-LION-H\d+-C\d+$'
         }
-        # we have this template for the target model
-        models={
-            'victim': Template(
-                identifier='name',
-                attributes={
-                    'name': Attribute({ 'attribute_type': 'identifier' }),
-                    'species': Attribute({ 'attribute_type': 'string' })
-                }
-            )
+        # we have these potential template summaries for the target model
+        model_std={
+            'victim': {
+                'template': Template(
+                    identifier='name',
+                    parent='stub',
+                    attributes={
+                        'name': Attribute({ 'attribute_type': 'identifier' }),
+                        'species': Attribute({ 'attribute_type': 'string' })
+                    }
+                ),
+                'isTable': False
+            }
+        }
+        model_table={
+            'victim': {
+                'template': Template(
+                    identifier='id',
+                    parent='name',
+                    attributes={
+                        'name': Attribute({ 'attribute_type': 'parent' }),
+                        'species': Attribute({ 'attribute_type': 'string' })
+                    }
+                ),
+                'isTable': True
+            }
         }
 
         metis = mock.Mock()
@@ -261,9 +285,11 @@ class TestMetisLinker:
 
         metis.open_file = mock.Mock(side_effect=dummy_file)
 
-        # given these we get an update
-        update1 = MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, models)
-        update2 = MetisLoaderConfig(**config2, rules=rules).update_for(tail, metis, models)
+        # given the 'good' configs, we get an update
+        update1 = MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, model_std)
+        update2 = MetisLoaderConfig(**config2, rules=rules).update_for(tail, metis, model_std)
+        update3 = MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, model_table)
+        update4 = MetisLoaderConfig(**config2, rules=rules).update_for(tail, metis, model_table)
 
         assert asdict(update1)['revisions'] == {
             'victim': {
@@ -273,38 +299,73 @@ class TestMetisLinker:
             }
         }
         assert asdict(update1)['revisions'] == asdict(update2)['revisions']
+        assert asdict(update3)['revisions'] == {
+            'name': {
+                'LABORS-LION-H2-C1': {'victim': ['::temp-id-0']}
+            },
+            'victim': {
+                'temp-id-0': {
+                    'name': 'LABORS-LION-H2-C1',
+                    'species': 'lion'
+                }
+            }
+        }
+        assert asdict(update4)['revisions'] == {
+            'victim': {
+                'temp-id-0': {
+                    'name': 'LABORS-LION-H2-C1',
+                    'species': 'lion'
+                }
+            }
+        }
 
         # Note that path3 also makes use of auto file format detection, but is expected to fail later, after the data_frame is read in and found to be missing a mapped column.
         with raises(MetisLoaderError, match=r"missing column.*species"):
-            MetisLoaderConfig(**config3, rules=rules).update_for(tail, metis, models)
+            MetisLoaderConfig(**config3, rules=rules).update_for(tail, metis, model_std)
+        with raises(MetisLoaderError, match=r"missing column.*species"):
+            MetisLoaderConfig(**config3, rules=rules).update_for(tail, metis, model_table)
 
         with raises(MetisLoaderError, match=r"Check the 'format' configuration"):
-            MetisLoaderConfig(**config4, rules=rules).update_for(tail, metis, models)
+            MetisLoaderConfig(**config4, rules=rules).update_for(tail, metis, model_std)
+        with raises(MetisLoaderError, match=r"Check the 'format' configuration"):
+            MetisLoaderConfig(**config4, rules=rules).update_for(tail, metis, model_table)
 
         # Now adjusting the model template to where the identifier would be missing from the column_map
-        models_id={
-            'victim': Template(
-                identifier='id',
-                attributes={
-                    'name': Attribute({ 'attribute_type': 'identifier' }),
-                    'species': Attribute({ 'attribute_type': 'string' })
+        def models_id(isTable):
+            return {
+                'victim': {
+                    'template': Template(
+                        identifier='id',
+                        attributes={
+                            'name': Attribute({ 'attribute_type': 'identifier' }),
+                            'species': Attribute({ 'attribute_type': 'string' })
+                        }
+                    ),
+                    'isTable': isTable
                 }
-            )
-        }
+            }
         with raises(MetisLoaderError, match=r"Identifier attribute is missing"):
-            MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, models_id)
+            MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, models_id(False))
+        with raises(MetisLoaderError, match=r"Parent attribute is missing"):
+            MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, models_id(True))
 
         # Now adjusting the model template to where column_map targets non-existent attributes
-        models_missing={
-            'victim': Template(
-                identifier='name',
-                attributes={
-                    'name': Attribute({ 'attribute_type': 'identifier' })
+        def models_missing(isTable):
+            return {
+                'victim': {
+                    'template': Template(
+                        identifier='name',
+                        attributes={
+                            'name': Attribute({ 'attribute_type': 'identifier' })
+                        }
+                    ),
+                    'isTable': False
                 }
-            )
-        }
+            }
         with raises(MetisLoaderError, match=r"attribute\(s\) that don't exist: species"):
-            MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, models_missing)
+            MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, models_missing(False))
+        with raises(MetisLoaderError, match=r"attribute\(s\) that don't exist: species"):
+            MetisLoaderConfig(**config1, rules=rules).update_for(tail, metis, models_missing(True))
 
     def test_universal_linker_dag(self):
         pass

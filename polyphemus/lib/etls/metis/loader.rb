@@ -89,7 +89,7 @@ module Metis
               folder_path: { type: "string" },
               file_match: { type: "string" },
               format: { enum: [ "tsv", "csv", "auto-detect" ] },
-              blank_tables: { type: "boolean" },
+              blank_table: { type: "boolean" },
               column_map: {
                 type: "object",
                 minProperties: 2,
