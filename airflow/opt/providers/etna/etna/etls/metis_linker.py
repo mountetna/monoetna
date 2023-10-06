@@ -189,7 +189,7 @@ def MetisLinker():
         buckets = dict()
         for config in configs:
             ran_at = datetime.fromisoformat(config.ran_at or '2010-01-01')
-            if config.bucket_key not in buckets or buckets[ config.bucket_key ] < ran_at:
+            if config.bucket_key not in buckets or buckets[ config.bucket_key ] > ran_at:
                 buckets[ config.bucket_key ] = ran_at
                 
         with hook.metis() as metis:
