@@ -17,6 +17,42 @@ export const selectRuleParentLocalIdsByRuleName = (state: State): Record<string,
 
 export const selectRuleParentsByLocalId = (state: State): Record<string, RuleParent> => state.rules.ruleParents.byLocalId
 
+// move this to state?
+export const selectRulesNamesHierarchicalListByPrimaryRuleName: (state: State) => Record<string, string[]> = createSelector(
+    [(state: State) => state.rules],
+    (rules: RulesState): Record<string, string[]> => {
+        const orderedRuleNamesByPrimaryRuleName: Record<string, string[]> = {}
+
+        Object.values(rules.rules).forEach(primaryRule => {
+
+            const orderedRuleNames: string[] = []
+            const ruleNamesToScan: string[] = [primaryRule.name]
+
+            while (ruleNamesToScan.length) {
+                const ruleName = ruleNamesToScan.pop()
+                if (!ruleName) {
+                    break
+                }
+                const rule = rules.rules[ruleName]
+    
+                orderedRuleNames.unshift(rule.name)
+    
+                if (rules.ruleParents.byRuleName[ruleName]) {
+                    const parentRuleNames = rules.ruleParents.byRuleName[ruleName].map(rpLocalId => {
+
+                        return rules.ruleParents.byLocalId[rpLocalId].parentRuleName
+                    })
+                    ruleNamesToScan.push(...parentRuleNames)
+                }
+            }
+
+            orderedRuleNamesByPrimaryRuleName[primaryRule.name] = orderedRuleNames
+        })
+
+        return orderedRuleNamesByPrimaryRuleName
+    }
+)
+
 export const selectTokens = (state: State): Record<string, Token> => state.rules.tokens
 
 export const selectTokenWithName = (name: string) => (state: State): Token => state.rules.tokens[name]

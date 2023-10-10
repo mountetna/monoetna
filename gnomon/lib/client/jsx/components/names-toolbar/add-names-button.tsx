@@ -48,7 +48,7 @@ const AddNamesButton = () => {
             ruleParentsByLocalId,
             ruleTokenLocalIdsByRuleName,
             ruleTokensByLocalId,
-            tokenValueLocalIdsByTokenName
+            tokenValueLocalIdsByTokenName,
         ))
         handleClose();
     };

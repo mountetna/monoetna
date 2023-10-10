@@ -15,11 +15,7 @@ import { selectCreateNameGroupIdsWithPrimaryRule } from "../../selectors/names";
 const NamesCreate = ({ project_name }: { project_name: string }) => {
     // TODO: loading state
     const dispatch = useDispatch();
-    const createNameGroupsIdsByPrimaryRule: Record<string, string[]> = useSelector(selectCreateNameGroupIdsWithPrimaryRule)
-
-    const iterateOnSelection = (names: CreateName[], tokenValue: string, start: number, finish: number) => {
-        console.log(`adding from ${start} to ${finish} on token "${tokenValue}" with names ${names}`)
-    }
+    const createNameGroupsIdsByPrimaryRule: Record<string, string[]> = useSelector(state => selectCreateNameGroupIdsWithPrimaryRule(state, false))
 
     useEffect(() => {
         dispatch(fetchRulesFromMagma(project_name))

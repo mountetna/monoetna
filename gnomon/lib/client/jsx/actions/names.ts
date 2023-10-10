@@ -6,7 +6,6 @@ import { defaultDict } from "../utils/object"
 
 
 export const ADD_CREATE_NAMES_WITH_GROUPS_WITH_TOKEN_VALUES = "ADD_CREATE_NAMES_WITH_GROUPS_WITH_TOKEN_VALUES"
-export const DUPLICATE_CREATE_NAME_GROUP = "DUPLICATE_CREATE_NAME_GROUP"
 export const ADD_OR_REPLACE_CREATE_NAME_TOKEN_VALUE = "ADD_OR_REPLACE_CREATE_NAME_TOKEN_VALUE"
 export const DELETE_CREATE_NAME_TOKEN_VALUE = "DELETE_CREATE_NAME_TOKEN_VALUE"
 export const SET_COUNTER_VALUE_FOR_CREATE_NAME = "SET_COUNTER_VALUE_FOR_CREATE_NAME"
@@ -27,6 +26,7 @@ export function createNamesWithGroupForRule(
     ruleTokenLocalIdsByRuleName: Record<string, string[]>,
     ruleTokensByLocalId: Record<string, RuleToken>,
     tokenValueLocalIdsByTokenName: Record<string, string[]>,
+    localOnly: boolean = false,
 ): ReturnType<typeof addNamesWithGroupsWithTokenValues> {
 
     const createNames: CreateName[] = []
@@ -34,8 +34,9 @@ export function createNamesWithGroupForRule(
 
     const createNameGroup: CreateNameGroup = {
         localId: createLocalId(),
-        primaryCreateNameId: "TODO",
-        selected: false
+        primaryCreateNameLocalId: "TODO",
+        selected: false,
+        localOnly
     }
 
     const createNameTokenValues: CreateNameTokenValue[] = []
@@ -56,7 +57,7 @@ export function createNamesWithGroupForRule(
 
         createNames.push(createName)
         if (ruleName == primaryRuleName) {
-            createNameGroup.primaryCreateNameId = createName.localId
+            createNameGroup.primaryCreateNameLocalId = createName.localId
         }
 
         // make CreateNameTokenValue if only one value for a given token
@@ -104,8 +105,9 @@ function _duplicateCreateNameGroup(
 
     const newCng: CreateNameGroup = {
         localId: createLocalId(),
-        primaryCreateNameId: "TODO",
-        selected: false
+        primaryCreateNameLocalId: "TODO",
+        selected: false,
+        localOnly: createNameGroup.localOnly,
     }
     const newCntvs: CreateNameTokenValue[] = []
 
@@ -122,8 +124,8 @@ function _duplicateCreateNameGroup(
             newCn.ruleCounterValue = ruleCounterValuesByRuleName[newCn.ruleName]
         }
 
-        if (createNameGroup.primaryCreateNameId == oldCn.localId) {
-            newCng.primaryCreateNameId = newCn.localId
+        if (createNameGroup.primaryCreateNameLocalId == oldCn.localId) {
+            newCng.primaryCreateNameLocalId = newCn.localId
         }
 
         const _newCnTvs: CreateNameTokenValue[] = (createNameTokenValueLocalIdsByCreateNameLocalId[oldCn.localId] || []).map(oldCntvLocalId => {
@@ -144,29 +146,44 @@ function _duplicateCreateNameGroup(
 }
 
 // maybe just pass entire state?
-export function duplicateCreateNameGroup(
-    createNameGroup: CreateNameGroup,
+export function duplicateCreateNameGroups(
+    createNameGroups: CreateNameGroup[],
     createNameLocalIdsByCreateNameGroupLocalId: Record<string, string[]>,
     createNamesByLocalId: Record<string, CreateName>,
     createNameTokenValueLocalIdsByCreateNameLocalId: Record<string, string[]>,
     createNameTokenValuesByLocalId: Record<string, CreateNameTokenValue>,
+    quantity: number = 1,
     overrideRuleCounterValuesByRuleName: Record<string, number> = {},
 ): ReturnType<typeof addNamesWithGroupsWithTokenValues> {
 
-    const {
-        createNames: newCreateNames,
-        createNameGroup: newCreateNameGroup,
-        createNameTokenValues: newCreateNameTokenValues
-    } = _duplicateCreateNameGroup(
-        createNameGroup,
-        createNameLocalIdsByCreateNameGroupLocalId,
-        createNamesByLocalId,
-        createNameTokenValueLocalIdsByCreateNameLocalId,
-        createNameTokenValuesByLocalId,
-        overrideRuleCounterValuesByRuleName
-    )
+    const newCreateNames: CreateName[] = []
+    const newCreateNameGroups: CreateNameGroup[] = []
+    const newCreateNameTokenValues: CreateNameTokenValue[] = []
 
-    return addNamesWithGroupsWithTokenValues(newCreateNames, [newCreateNameGroup], newCreateNameTokenValues)
+    createNameGroups.forEach(cng => {
+
+        for (let index = 1; index <= quantity; index++) {
+
+            const {
+                createNames: _newCreateNames,
+                createNameGroup: _newCreateNameGroup,
+                createNameTokenValues: _newCreateNameTokenValues
+            } = _duplicateCreateNameGroup(
+                cng,
+                createNameLocalIdsByCreateNameGroupLocalId,
+                createNamesByLocalId,
+                createNameTokenValueLocalIdsByCreateNameLocalId,
+                createNameTokenValuesByLocalId,
+                overrideRuleCounterValuesByRuleName
+            )
+
+            newCreateNames.push(..._newCreateNames)
+            newCreateNameGroups.push(_newCreateNameGroup)
+            newCreateNameTokenValues.push(..._newCreateNameTokenValues)
+        }
+    })
+
+    return addNamesWithGroupsWithTokenValues(newCreateNames, newCreateNameGroups, newCreateNameTokenValues)
 }
 
 export function iterateOnCreateNameGroupsByRule(
@@ -183,7 +200,7 @@ export function iterateOnCreateNameGroupsByRule(
     const createNameGroupsByPrimaryRuleName = defaultDict<string, CreateNameGroup[]>(_ => [])
 
     createNameGroups.forEach(cng => {
-        const primaryRuleName = createNamesByLocalId[cng.primaryCreateNameId].ruleName
+        const primaryRuleName = createNamesByLocalId[cng.primaryCreateNameLocalId].ruleName
 
         createNameGroupsByPrimaryRuleName[primaryRuleName].push(cng)
     })
@@ -250,7 +267,7 @@ export function deleteSelectedGroupsWithNames() {
 
 export type ACTION_TYPE =
     | ReturnType<typeof addNamesWithGroupsWithTokenValues>
-    | ReturnType<typeof duplicateCreateNameGroup>
+    | ReturnType<typeof duplicateCreateNameGroups>
     | ReturnType<typeof addOrReplaceCreateNameTokenValue>
     | ReturnType<typeof deleteCreateNameTokenValue>
     | ReturnType<typeof setCreateNameRuleCounterValue>

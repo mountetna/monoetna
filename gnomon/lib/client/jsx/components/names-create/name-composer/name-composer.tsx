@@ -7,10 +7,10 @@ import Checkbox from "@material-ui/core/Checkbox";
 import FileCopyOutlinedIcon from '@material-ui/icons/FileCopyOutlined';
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 
-import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken, Token, TokenValue } from "../../../models";
-import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId } from "../../../selectors/rules";
+import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken, Token, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from "../../../models";
+import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRulesNamesHierarchicalListByPrimaryRuleName } from "../../../selectors/rules";
 import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameLocalIdsByGroupId } from "../../../selectors/names";
-import { addOrReplaceCreateNameTokenValue, setCreateNameRuleCounterValue, setCreateNameGroupsSelected, duplicateCreateNameGroup, deleteGroupsWithNames } from "../../../actions/names";
+import { addOrReplaceCreateNameTokenValue, setCreateNameRuleCounterValue, setCreateNameGroupsSelected, duplicateCreateNameGroups, deleteGroupsWithNames } from "../../../actions/names";
 import { TokenSelect } from "./select";
 import RuleCounterField from "./rule-counter-input";
 import { createLocalId } from "../../../utils/models";
@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const CreateNameElementsEditor = ({ createName, rule }: { createName: CreateName, rule: Rule }) => {
+const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue }: { createName: CreateName, rule: Rule, includeUnsetAsValue: boolean }) => {
     const classes = useStyles()
     const dispatch = useDispatch()
 
@@ -43,10 +43,15 @@ const CreateNameElementsEditor = ({ createName, rule }: { createName: CreateName
     const setTokenValue = (value: TokenValue, ruleToken: RuleToken) => {
         const createNameTokenValue: CreateNameTokenValue = {
             localId: createLocalId(),
-            tokenValueLocalId: value.name,
+            tokenValueLocalId: value.localId,
             createNameLocalId: createName.localId,
             ruleTokenLocalId: ruleToken.localId,
         }
+
+        if (value == UNSET_TOKEN_VALUE) {
+            createNameTokenValue.tokenValueLocalId = UNSET_VALUE
+        }
+
         const oldCreateNameTokenValue = createNameTokenValues.find(
             cntv => cntv.ruleTokenLocalId == ruleToken.localId
         )
@@ -75,6 +80,7 @@ const CreateNameElementsEditor = ({ createName, rule }: { createName: CreateName
                                 token={tokens[ruleToken.tokenName]}
                                 value={currentValue}
                                 onSetTokenValue={(value: TokenValue) => setTokenValue(value, ruleToken)}
+                                includeUnsetAsValue={includeUnsetAsValue}
                             ></TokenSelect>
                         </React.Fragment>
                     )
@@ -93,46 +99,29 @@ const CreateNameElementsEditor = ({ createName, rule }: { createName: CreateName
 }
 
 
-const CreateNameGroupComposer = ({ createNameGroup }: { createNameGroup: CreateNameGroup }) => {
+const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includeUnsetAsValue = false }: {
+    createNameGroup: CreateNameGroup,
+    includeTools?: boolean
+    includeUnsetAsValue?: boolean
+}) => {
     const dispatch = useDispatch()
-    
+
     const createNameLocalIds: string[] = useSelector(selectCreateNameLocalIdsWithGroupId(createNameGroup.localId))
     const createNamesByLocalId: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
-    const primaryCreateName: CreateName = useSelector(selectCreateNameWithLocalId(createNameGroup.primaryCreateNameId))
+    const primaryCreateName: CreateName = useSelector(selectCreateNameWithLocalId(createNameGroup.primaryCreateNameLocalId))
     const createNameLocalIdsByCreateNameGroupLocalId: Record<string, string[]> = useSelector(selectCreateNameLocalIdsByGroupId)
     const createNameTokenValueLocalIdsByCreateNameLocalId: Record<string, string[]> = useSelector(selectCreateNameTokenValueLocalIdsByCreateNameLocalId)
     const createNameTokenValuesByLocalId: Record<string, CreateNameTokenValue> = useSelector(selectCreateNameTokenValuesByLocalId)
     const allRules: Record<string, Rule> = useSelector(selectRulesByName)
-    const ruleParentLocalIdsbyRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
-    const ruleParentsbyLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
-
-    const orderedRuleNames: string[] = []
-
-    const ruleNamesToScan: string[] = [primaryCreateName.ruleName]
-    while (ruleNamesToScan.length) {
-        const ruleName = ruleNamesToScan.pop()
-        if (!ruleName) {
-            break
-        }
-        const rule = allRules[ruleName]
-
-        orderedRuleNames.unshift(rule.name)
-
-        if (ruleParentLocalIdsbyRuleName[ruleName]) {
-            const parentRuleNames = ruleParentLocalIdsbyRuleName[ruleName].map(rpLocalId => {
-                return ruleParentsbyLocalId[rpLocalId].parentRuleName
-            })
-            ruleNamesToScan.push(...parentRuleNames)
-        }
-    }
+    const orderedRuleNames: string[] = useSelector(selectRulesNamesHierarchicalListByPrimaryRuleName)[primaryCreateName.ruleName]
 
     const handleClickSelect = (event: React.ChangeEvent) => {
         dispatch(setCreateNameGroupsSelected([createNameGroup.localId], event.target.checked))
     }
 
     const handleClickCopy = () => {
-        dispatch(duplicateCreateNameGroup(
-            createNameGroup,
+        dispatch(duplicateCreateNameGroups(
+            [createNameGroup],
             createNameLocalIdsByCreateNameGroupLocalId,
             createNamesByLocalId,
             createNameTokenValueLocalIdsByCreateNameLocalId,
@@ -146,29 +135,32 @@ const CreateNameGroupComposer = ({ createNameGroup }: { createNameGroup: CreateN
 
     return (
         <div className="create-name-group-composer">
-            <span className="create-name-group-composer-tools">
-                <Checkbox
-                    checked={createNameGroup.selected}
-                    onChange={handleClickSelect}
-                    inputProps={{ 'aria-label': 'Select Name' }}
-                />
-                <ButtonBase
-                    onClick={handleClickCopy}
-                    aria-label={`Copy Name with Values"`}
-                    disableRipple
-                    disableTouchRipple
-                >
-                    <FileCopyOutlinedIcon />
-                </ButtonBase>
-                <ButtonBase
-                    onClick={handleClickDelete}
-                    aria-label={`Delete Name"`}
-                    disableRipple
-                    disableTouchRipple
-                >
-                    <DeleteOutlineOutlinedIcon />
-                </ButtonBase>
-            </span>
+            {
+                includeTools &&
+                <span className="create-name-group-composer-tools">
+                    <Checkbox
+                        checked={createNameGroup.selected}
+                        onChange={handleClickSelect}
+                        inputProps={{ 'aria-label': 'Select Name' }}
+                    />
+                    <ButtonBase
+                        onClick={handleClickCopy}
+                        aria-label={`Copy Name with Values"`}
+                        disableRipple
+                        disableTouchRipple
+                    >
+                        <FileCopyOutlinedIcon />
+                    </ButtonBase>
+                    <ButtonBase
+                        onClick={handleClickDelete}
+                        aria-label={`Delete Name"`}
+                        disableRipple
+                        disableTouchRipple
+                    >
+                        <DeleteOutlineOutlinedIcon />
+                    </ButtonBase>
+                </span>
+            }
             {
                 orderedRuleNames.map((ruleName) => {
                     const createNameLocalId = createNameLocalIds.find((cnLocalId) => {
@@ -185,6 +177,7 @@ const CreateNameGroupComposer = ({ createNameGroup }: { createNameGroup: CreateN
                             <CreateNameElementsEditor
                                 createName={createNamesByLocalId[createNameLocalId]}
                                 rule={rule}
+                                includeUnsetAsValue={includeUnsetAsValue}
                             />
                         </React.Fragment>
                     )

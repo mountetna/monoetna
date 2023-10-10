@@ -60,13 +60,29 @@ const CreateNameGroupCompose = ({ createNameGroupIds, ruleName }: { createNameGr
         dispatch(deleteGroupsWithNames(createNameGroupIds))
     }
 
+    const renderComposers = (): React.ReactNode => {
+        return (
+            <ul className="create-name-groups-composers">
+                {
+                    createNameGroups.map((createNameGroup) => {
+                        return (
+                            <li key={createNameGroup.localId}>
+                                <CreateNameGroupComposer createNameGroup={createNameGroup} includeTools />
+                            </li>
+                        )
+                    })
+                }
+            </ul>
+        )
+    }
+
     return (
         <div className="create-name-groups-by-rule">
             <Grid container>
                 <Grid item xs={3}>
                     <div className="create-name-groups-tools">
                         <Checkbox
-                            checked={_.every(createNameGroups, (cng) => cng.selected)}
+                            checked={_.every(createNameGroups, { selected: true })}
                             onChange={handleClickSelect}
                             inputProps={{ 'aria-label': 'Select the Name Group' }}
                         />
@@ -103,17 +119,7 @@ const CreateNameGroupCompose = ({ createNameGroupIds, ruleName }: { createNameGr
                     {createReadyStatuses(createNameGroups, createNames)}
                 </Grid>
             </Grid>
-            <ul className="create-name-groups-composers">
-                {
-                    createNameGroups.map((createNameGroup) => {
-                        return (
-                            <li key={createNameGroup.localId}>
-                                <CreateNameGroupComposer createNameGroup={createNameGroup} />
-                            </li>
-                        )
-                    })
-                }
-            </ul>
+            {collapsed ? <div className="composers-placeholder">...</div> : renderComposers()}
         </div>
     )
 }

@@ -13,17 +13,17 @@ import { listToIdObject, listToIdGroupObject } from '../utils/object';
 import { selectSelectedCreateNameGroupIds } from '../selectors/names';
 
 
-
+// TODO: change string[] to Set<string>?
 interface CreateNamesState {
-    "byLocalId": Record<string, CreateName>
-    "byCreateNameGroupLocalId": Record<string, string[]>
+    byLocalId: Record<string, CreateName>
+    byCreateNameGroupLocalId: Record<string, string[]>
 }
 
 
 interface CreateNameTokenValuesState {
-    "byLocalId": Record<string, CreateNameTokenValue>
-    "byCreateNameLocalId": Record<string, string[]>
-    "byTokenValueLocalId": Record<string, string[]>
+    byLocalId: Record<string, CreateNameTokenValue>
+    byCreateNameLocalId: Record<string, string[]>
+    byTokenValueLocalId: Record<string, string[]>
 }
 
 

@@ -21,13 +21,19 @@ export const selectCreateNameGroupsWithLocalIds = (localIds: string[]) => (state
     return localIds.map(localId => state.names.createNameGroups[localId])
 }
 
-export const selectCreateNameGroupIdsWithPrimaryRule = createSelector(
-    [(state: State) => state.names],
-    (names: NamesState): Record<string, string[]> => {
+export const selectCreateNameGroupIdsWithPrimaryRule: (state: State, localOnlyValue?: boolean) => Record<string, string[]> = createSelector(
+    [
+        (state: State) => state.names,
+        (state, localOnlyValue) => localOnlyValue,
+    ],
+    (names: NamesState, localOnlyValue: boolean): Record<string, string[]> => {
         const result = defaultDict<string, string[]>(_ => [])
 
         Object.values(names.createNameGroups).forEach(createNameGroup => {
-            const createName: CreateName = names.createNames.byLocalId[createNameGroup.primaryCreateNameId]
+            if (localOnlyValue != undefined && createNameGroup.localOnly != localOnlyValue) {
+                return
+            }
+            const createName: CreateName = names.createNames.byLocalId[createNameGroup.primaryCreateNameLocalId]
             result[createName.ruleName].push(createNameGroup.localId)
         })
 
@@ -49,7 +55,7 @@ export const selectCreateNameLocalIdsByGroupId = (state: State): Record<string, 
 
 export const selectCreateNameLocalIdsWithGroupId = (groupId: string) => (state: State): string[] => state.names.createNames.byCreateNameGroupLocalId[groupId]
 
-export const selectCounterValuesWithRuleName = createSelector(
+export const selectRuleCounterValuesbyRuleName: (state: State) => Record<string, Record<string, number>> = createSelector(
     [(state: State) => state.names],
     (names: NamesState): Record<string, Record<string, number>> => {
         const counterValuesByRuleName = defaultDict<string, Record<string, number>>(
@@ -66,7 +72,7 @@ export const selectCounterValuesWithRuleName = createSelector(
     }
 )
 
-export const selectSelectedCreateNameGroupIds: ((state: State) => string[]) = createSelector(
+export const selectSelectedCreateNameGroupIds: (state: State) => string[] = createSelector(
     [(state: State) => state.names],
     (names: NamesState): string[] => {
         return _.filter(names.createNameGroups, { selected: true }).map(cng => cng.localId)

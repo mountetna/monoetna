@@ -5,22 +5,22 @@ import ButtonBase from "@material-ui/core/ButtonBase";
 import InputBase from "@material-ui/core/InputBase";
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
-import { selectCounterValuesWithRuleName } from "../../../selectors/names";
+import { selectRuleCounterValuesbyRuleName } from "../../../selectors/names";
 
 
 
-const useStyles = (inputWidthEm: number) => makeStyles((theme) => ({
+const useStyles = makeStyles((theme) => ({
     ruleCounterField: {
         display: "inline-flex",
         flexDirection: "column",
         alignItems: "center",
     },
-    ruleCounterInput: {
+    ruleCounterInput: (inputWidthEm: number) => ({
         fontWeight: "bold",
         width: `${inputWidthEm}em`,
         minWidth: "1.5em",
         maxWidth: "4em",
-    },
+    }),
     unsetOrError: {
         color: "red"
     },
@@ -31,13 +31,11 @@ const useStyles = (inputWidthEm: number) => makeStyles((theme) => ({
 const RuleCounterField = ({ ruleName, value, handleSetCounterValue }:
     { ruleName: string, value?: number, handleSetCounterValue: (value?: number) => void }) => {
 
-    const classes = useStyles(value ? String(value).length : 1)()
-    const counterValuesByRuleName: Record<string, Record<string, number>> = useSelector(selectCounterValuesWithRuleName)
+    const classes = useStyles(value ? String(value).length : 1)
+    const counterValuesByRuleName: Record<string, Record<string, number>> = useSelector(selectRuleCounterValuesbyRuleName)
     const ruleNameCounterValueCounts = counterValuesByRuleName[ruleName]
     const hasValue = value != undefined
-    const counterValueCollision = (
-        hasValue && value in ruleNameCounterValueCounts && ruleNameCounterValueCounts[value] > 1
-    )
+    const counterValueCollision = false
 
 
     // TODO: proper collision detection based on token values

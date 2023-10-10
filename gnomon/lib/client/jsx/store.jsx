@@ -11,7 +11,7 @@ const createStore = () => {
     user,
     janus,
     rules: rulesReducer,
-    names: namesReducer
+    names: namesReducer,
   };
 
   let middleWares = [thunk];

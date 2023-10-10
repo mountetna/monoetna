@@ -20,28 +20,34 @@ import * as _ from "lodash"
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule } from "../../models";
 import { RuleSelect } from "../names-create/name-composer/select";
 import { inputEventValueToNumber } from "../../utils/input";
-import { selectCreateNameGroupsByLocalId, selectCreateNameLocalIdsByGroupId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNameWithLocalId, selectCreateNamesByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names"
-import { selectIterableRules } from "../../selectors/global";
-import { iterateOnCreateNameGroupsByRule } from "../../actions/names";
+import { selectCreateNameGroupsByLocalId, selectCreateNameLocalIdsByGroupId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNamesByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names"
+import { selectCommonRulesFromSelection } from "../../selectors/global";
+import { duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule } from "../../actions/names";
 
 
 
-const CopyCreateNameGroupRadio = ({ radioValue, label }: { radioValue: string, label: string }) => {
-    const [quantity, setQuantity] = useState<number | undefined>(undefined)
+const CopyCreateNameGroupRadio = ({ radioValue, label, quantityValue, onChangeQuantity }: {
+    radioValue: string,
+    label: string,
+    quantityValue?: number,
+    onChangeQuantity: (value?: number) => void
+}) => {
 
     const handleChangeQuantity = (event: React.ChangeEvent) => {
         const eventValue = event.target.value
-        const quantityValue = eventValue == "" ? undefined : Number(eventValue)
-        setQuantity(quantityValue)
+        const quantity = eventValue == "" ? undefined : Number(eventValue)
+        onChangeQuantity(quantity)
     }
 
     return (
         <FormGroup className={"dsadsa"}>
-            <Radio value={radioValue} />
             <FormControl>
+                <Radio value={radioValue} />
                 <FormLabel>{label}</FormLabel>
+            </FormControl>
+            <FormControl>
                 <InputBase
-                    value={quantity != undefined ? String(quantity) : ""}
+                    value={quantityValue != undefined ? String(quantityValue) : ""}
                     onChange={handleChangeQuantity}
                     type="number"
                     inputProps={{ min: 1 }}
@@ -81,8 +87,10 @@ const IterateRuleRadio = ({ radioValue, label, rules, ruleValue, onChangeRule, b
 
     return (
         <FormGroup>
-            <Radio value={radioValue} />
-            <FormLabel>{label}</FormLabel>
+            <FormControl>
+                <Radio value={radioValue} />
+                <FormLabel>{label}</FormLabel>
+            </FormControl>
             <FormControl>
                 <RuleSelect
                     values={rules}
@@ -128,13 +136,13 @@ const addFromSelectionButtonUseStyles = makeStyles((theme) => ({
 }));
 
 
-// TODO: split duplicate and iterate into separate buttons
-const AddFromSelectionButton = () => {
+const CopyAndReplaceButton = () => {
     const classes = addFromSelectionButtonUseStyles()
     const [open, setOpen] = useState<boolean>(false);
     const [rule, setRule] = useState<Rule>()
     const [radioValue, setRadioValue] = useState<string>("copy")
     const [boundaries, setBoundaries] = useState<IterationBoundaries>({ min: undefined, max: undefined })
+    const [quantity, setQuantity] = useState<number | undefined>(undefined)
     const dispatch = useDispatch()
     const anchorEl = useRef(null)
 
@@ -148,7 +156,7 @@ const AddFromSelectionButton = () => {
     const createNameTokenValuesByLocalId: Record<string, CreateNameTokenValue> = useSelector(selectCreateNameTokenValuesByLocalId)
     const createNamesByLocalId: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
 
-    const iterableRules: Rule[] = useSelector(selectIterableRules)
+    const iterableRules: Rule[] = useSelector(selectCommonRulesFromSelection).filter(rule => rule.hasCounter)
 
     const handleToggle = () => {
         setOpen(prev => !prev);
@@ -165,10 +173,17 @@ const AddFromSelectionButton = () => {
     const handleClickAdd = () => {
         switch (radioValue) {
             case "copy":
-                console.log(radioValue)
-                return
+                dispatch(duplicateCreateNameGroups(
+                    selectedCreateNameGroups,
+                    createNameLocalIdsByCreateNameGroupLocalId,
+                    createNamesByLocalId,
+                    createNameTokenValueLocalIdsByCreateNameLocalId,
+                    createNameTokenValuesByLocalId,
+                    quantity,
+                    {},
+                ))
+                break
             case "iterate":
-                console.log(radioValue)
                 dispatch(iterateOnCreateNameGroupsByRule(
                     selectedCreateNameGroups,
                     rule.name,
@@ -180,11 +195,12 @@ const AddFromSelectionButton = () => {
                     createNameTokenValuesByLocalId,
                 ))
                 handleClose()
-                return
+                break
             default:
                 console.error(`Unsupported radio value: ${radioValue}`)
-                return
         }
+
+        handleClose()
     }
 
     return (
@@ -194,15 +210,15 @@ const AddFromSelectionButton = () => {
                 onClick={handleToggle}
                 ref={anchorEl}
                 color="primary"
-                aria-label="Add from Selection"
+                aria-label="Copy and Replace"
                 aria-haspopup="true"
-                aria-controls={open ? "add-from-selection-dialogue" : undefined}
+                aria-controls={open ? "copy-and-replace-dialogue" : undefined}
                 disableRipple
                 disableFocusRipple
                 disableElevation
                 disabled={selectedCreateNameGroupLocalIds.length == 0}
             >
-                Add from Selection
+                Copy and Replace
             </Button>
             <Popper
                 open={open}
@@ -218,9 +234,9 @@ const AddFromSelectionButton = () => {
                     >
                         <Paper variant="outlined">
                             <ClickAwayListener onClickAway={handleClose}>
-                                <FormControl component="fieldset">
+                                <FormControl component="fieldset" id="copy-and-replace-dialogue">
                                     <RadioGroup
-                                        aria-label="Add from Selection Options"
+                                        aria-label="Copy and Replace Options"
                                         name="addFromSelectionOptions"
                                         value={radioValue}
                                         onChange={handleChangeRadioValue}
@@ -228,6 +244,8 @@ const AddFromSelectionButton = () => {
                                         <CopyCreateNameGroupRadio
                                             radioValue="copy"
                                             label="How many?"
+                                            quantityValue={quantity}
+                                            onChangeQuantity={setQuantity}
                                         />
                                         <IterateRuleRadio
                                             radioValue="iterate"
@@ -269,4 +287,4 @@ const AddFromSelectionButton = () => {
     )
 };
 
-export default AddFromSelectionButton;
+export default CopyAndReplaceButton;

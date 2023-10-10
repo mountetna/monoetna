@@ -3,34 +3,36 @@ from Magma for Name creation.
 This should be split into reducers per key,
 and eventually used for creation/editing. */
 
-import { Rule, RuleParent, RuleToken, Synonym, Token, TokenValue } from '../models';
+import { Rule, RuleParent, RuleToken, Synonym, Token, TokenValue, UNSET_TOKEN_VALUE } from '../models';
 import { ACTION_TYPE, ADD_RULES_FROM_MAGMA } from '../actions/rules';
 import { listToIdObject, listToIdGroupObject } from '../utils/object';
 
 
+
+// TODO: change string[] to Set<string>?
 interface RuleParentsState {
-    "byLocalId": Record<string, RuleParent>
-    "byRuleName": Record<string, string[]>
-    "byParentRuleName": Record<string, string[]>
+    byLocalId: Record<string, RuleParent>
+    byRuleName: Record<string, string[]>
+    byParentRuleName: Record<string, string[]>
 }
 
 
 interface RuleTokensState {
-    "byLocalId": Record<string, RuleToken>
-    "byRuleName": Record<string, string[]>
-    "byTokenName": Record<string, string[]>
+    byLocalId: Record<string, RuleToken>
+    byRuleName: Record<string, string[]>
+    byTokenName: Record<string, string[]>
 }
 
 
 interface TokenValuesState {
-    "byLocalId": Record<string, TokenValue>
-    "byTokenName": Record<string, string[]>  // { TokenValue.tokenName: TokenValue.localId }
+    byLocalId: Record<string, TokenValue>
+    byTokenName: Record<string, string[]>  // { TokenValue.tokenName: TokenValue.localId }
 }
 
 
 interface SynonymsState {
-    "byValue": Record<string, Synonym>
-    "byTokenName": Record<string, string[]>  // { Synonym.tokenName: Synonym.value }
+    byValue: Record<string, Synonym>
+    byTokenName: Record<string, string[]>  // { Synonym.tokenName: Synonym.value }
 }
 
 
@@ -48,7 +50,7 @@ const initialState: RulesState = {
     ruleParents: { byLocalId: {}, byRuleName: {}, byParentRuleName: {} },
     tokens: {},
     ruleTokens: { byLocalId: {}, byTokenName: {}, byRuleName: {} },
-    tokenValues: { byLocalId: {}, byTokenName: {} },
+    tokenValues: { byLocalId: { UNSET: UNSET_TOKEN_VALUE }, byTokenName: { UNSET: [UNSET_TOKEN_VALUE.localId] } },
     synonyms: { byValue: {}, byTokenName: {} },
 }
 
@@ -97,11 +99,11 @@ export function rulesReducer(state: RulesState = initialState, action: ACTION_TY
                 tokenValues: {
                     byLocalId: {
                         ...state.tokenValues.byLocalId,
-                        ...listToIdObject(action.tokenValues, "name"),
+                        ...listToIdObject(action.tokenValues, "localId"),
                     },
                     byTokenName: {
                         ...state.tokenValues.byTokenName,
-                        ...listToIdGroupObject(action.tokenValues, "tokenName", "name"),
+                        ...listToIdGroupObject(action.tokenValues, "tokenName", "localId"),
                     },
                 },
                 synonyms: {

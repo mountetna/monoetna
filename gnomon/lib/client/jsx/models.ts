@@ -6,6 +6,15 @@ export interface TokenValue {
     tokenName: string
 }
 
+export const UNSET_VALUE = "UNSET"
+
+export const UNSET_TOKEN_VALUE = {
+    localId: UNSET_VALUE,
+    name: UNSET_VALUE,
+    label: UNSET_VALUE,
+    tokenName: UNSET_VALUE,
+}
+
 export interface Token {
     name: string
     label: string
@@ -51,6 +60,7 @@ export interface CreateNameTokenValue {
 
 export interface CreateNameGroup {
     localId: string
-    primaryCreateNameId: string
+    primaryCreateNameLocalId: string
     selected: boolean
+    localOnly: boolean
 }

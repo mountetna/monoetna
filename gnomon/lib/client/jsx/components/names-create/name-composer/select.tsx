@@ -10,7 +10,7 @@ import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Paper from "@material-ui/core/Paper";
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 
-import { Rule, Token, TokenValue } from "../../../models";
+import { Rule, Token, TokenValue, UNSET_TOKEN_VALUE } from "../../../models";
 import { selectTokenValueLocalIdsWithTokenName, selectTokenValuesByLocalId } from "../../../selectors/rules";
 
 
@@ -48,6 +48,21 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
     const [open, setOpen] = useState<boolean>(false);
     const anchorEl = useRef(null)
 
+    const canChooseValue = () => {
+        if (value == undefined) {
+            return true
+        }
+        if (values.length == 0) {
+            return false
+        }
+        if (values.length == 1) {
+            return value == undefined || value != values[0]
+        }
+        if (values.length > 1) {
+            return true
+        }
+    }
+
     const handleToggle = () => {
         setOpen(prev => !prev);
     };
@@ -74,11 +89,12 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
                 aria-controls={open ? "select-value-container" : undefined}
                 disableRipple
                 disableTouchRipple
+                disabled={!canChooseValue()}
             >
                 <span
                     className={classes.currentSelectValue + " " + (!value ? `${classes.unset}` : "")}
                 >
-                    <KeyboardArrowDownIcon />
+                    {canChooseValue() && <KeyboardArrowDownIcon />}
                     {value ? value.name : placeholder}
                 </span>
             </ButtonBase>
@@ -101,7 +117,7 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
                                         Choose a {label}
                                     </div>
                                     {
-                                        values.map((val: T) =>
+                                        values.map(val =>
                                             <MenuItem
                                                 onClick={() => handleClickMenuItem(val)}
                                                 key={val.name}
@@ -123,7 +139,15 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
 
 
 export const RuleSelect = ({ values, value, label, placeholder, onSetRule }:
-    { values: Rule[],value?: Rule, label: string, placeholder: string, onSetRule: (value: Rule) => void }) => {
+    {
+        values: Rule[],
+        value?: Rule,
+        label: string,
+        placeholder: string,
+        onSetRule: (value: Rule) => void,
+        includeUnsetAsValue?: boolean
+    }
+) => {
 
     return (
         <SelectBase
@@ -137,12 +161,16 @@ export const RuleSelect = ({ values, value, label, placeholder, onSetRule }:
 }
 
 
-export const TokenSelect = ({ token, value, onSetTokenValue }:
-    { token: Token, value?: TokenValue, onSetTokenValue: (value: TokenValue) => void }) => {
+export const TokenSelect = ({ token, value, onSetTokenValue, includeUnsetAsValue = false }:
+    { token: Token, value?: TokenValue, onSetTokenValue: (value: TokenValue) => void, includeUnsetAsValue?: boolean }) => {
 
     const tokenValuesByLocalId: Record<string, TokenValue> = useSelector(selectTokenValuesByLocalId)
     const tokenValues: TokenValue[] = useSelector(selectTokenValueLocalIdsWithTokenName(token.name))
         .map(tvLocalId => tokenValuesByLocalId[tvLocalId])
+
+    if (includeUnsetAsValue === true) {
+        tokenValues.unshift(UNSET_TOKEN_VALUE)
+    }
 
     return (
         <SelectBase
