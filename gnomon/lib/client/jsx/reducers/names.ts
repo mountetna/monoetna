@@ -94,9 +94,9 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
         case CLEAR_CREATE_NAME_GROUPS_SELECTION:
             return deselectAllGroups(state)
         case SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA:
-            return setGroupsSelectionFromSearchCriteria(action.searchCriteria, state)
+            return setGroupsSelectionFromSearchCriteria(state)
         case SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA:
-            return setGroupsFilterFromSearchCriteria(action.searchCriteria, state)
+            return setGroupsFilterFromSearchCriteria(state)
         case CLEAR_CREATE_NAME_GROUPS_FILTER:
             return disableGroupFilter(state)
         case ADD_CREATE_NAME_GROUPS_TO_SEARCH_CRITERIA:
@@ -140,6 +140,29 @@ function addNamesWithGroupsAndTokensValues(
     }
 }
 
+const createSearchCriteriaFromSearchGroups = (state: NamesState): Record<string, SearchCriteria> => {
+    const searchCriteriaByGroupId: Record<string, SearchCriteria> = {}
+
+    state.createNameGroups.searchLocalIds.forEach(cngLocalId => {
+
+        const createNameLocalIds: string[] = state.createNames.byCreateNameGroupLocalId[cngLocalId]
+        const searchCriteria: SearchCriteria = { byRuleName: {} }
+
+        createNameLocalIds.forEach(cnLocalId => {
+            const cn = state.createNames.byLocalId[cnLocalId]
+            const cntvLocalIds = (state.createNameTokenValues.byCreateNameLocalId[cnLocalId] || [])
+
+            searchCriteria.byRuleName[cn.ruleName] = {
+                createNameTokenValueLocalIds: cntvLocalIds,
+                ruleCounterValue: cn.ruleCounterValue,
+            }
+        })
+
+        searchCriteriaByGroupId[cngLocalId] = searchCriteria
+    })
+
+    return searchCriteriaByGroupId
+}
 
 function deleteGroupsWithNames(createNameGroupIds: string[], state: NamesState): NamesState {
     const newGroupsById = { ...state.createNameGroups.byLocalId }
@@ -285,16 +308,26 @@ function getMatchedGroupIdsFromSearchCriteria(searchCriteria: SearchCriteria, st
     return matchingGroupIds
 }
 
-function setGroupsSelectionFromSearchCriteria(searchCriteria: SearchCriteria, state: NamesState): NamesState {
-    const deselectedState = deselectAllGroups(state)
+function setGroupsSelectionFromSearchCriteria(state: NamesState): NamesState {
+    const searchCriteriaByGroupId = createSearchCriteriaFromSearchGroups(state)
+    state = deselectAllGroups(state)
 
-    return addGroupsToSelection(getMatchedGroupIdsFromSearchCriteria(searchCriteria, state), deselectedState)
+    Object.values(searchCriteriaByGroupId).forEach(searchCriteria => {
+        state = addGroupsToSelection(getMatchedGroupIdsFromSearchCriteria(searchCriteria, state), state)
+    })
+
+    return state
 }
 
-function setGroupsFilterFromSearchCriteria(searchCriteria: SearchCriteria, state: NamesState): NamesState {
-    const unfilteredState = disableGroupFilter(state)
+function setGroupsFilterFromSearchCriteria(state: NamesState): NamesState {
+    const searchCriteriaByGroupId = createSearchCriteriaFromSearchGroups(state)
+    state = disableGroupFilter(state)
 
-    return addGroupsToFilter(getMatchedGroupIdsFromSearchCriteria(searchCriteria, state), unfilteredState)
+    Object.values(searchCriteriaByGroupId).forEach(searchCriteria => {
+        state = addGroupsToFilter(getMatchedGroupIdsFromSearchCriteria(searchCriteria, state), state)
+    })
+
+    return state
 }
 
 function addGroupsToSearch(createNameGroupIds: string[], state: NamesState): NamesState {

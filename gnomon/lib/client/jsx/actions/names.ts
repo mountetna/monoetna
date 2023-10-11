@@ -278,12 +278,12 @@ export interface SearchCriteria {
 }
 
 
-export function setCreateNameGroupsSelectionFromSearchCriteria(searchCriteria: SearchCriteria) {
-    return makeActionObject(SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA, { searchCriteria })
+export function setCreateNameGroupsSelectionFromSearchCriteria() {
+    return makeActionObject(SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA, {})
 }
 
-export function setCreateNameGroupsFilterFromSearchCriteria(searchCriteria: SearchCriteria) {
-    return makeActionObject(SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA, { searchCriteria })
+export function setCreateNameGroupsFilterFromSearchCriteria() {
+    return makeActionObject(SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA, {})
 }
 
 export function clearCreateNameGroupsFilter() {

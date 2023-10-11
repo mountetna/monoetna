@@ -14,37 +14,12 @@ import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined"
 import * as _ from "lodash"
 
 import { selectCreateNameGroupsByLocalId, selectCreateNameLocalIdsByGroupId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNamesByLocalId } from "../../selectors/names";
-import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken } from "../../models";
+import { CreateName, CreateNameGroup, Rule, RuleParent, RuleToken } from "../../models";
 import { RuleSelect } from "../names-create/name-composer/select";
 import { selectVisibleRules } from "../../selectors/global";
-import { SearchCriteria, addCreateNameGroupsToSearchCriteria, clearCreateNameGroupsFilter, clearCreateNameGroupsSelection, createNamesWithGroupForRule, deleteGroupsWithNames, setCreateNameGroupsFilterFromSearchCriteria, setCreateNameGroupsSelectionFromSearchCriteria } from "../../actions/names";
+import { addCreateNameGroupsToSearchCriteria, clearCreateNameGroupsFilter, clearCreateNameGroupsSelection, createNamesWithGroupForRule, deleteGroupsWithNames, setCreateNameGroupsFilterFromSearchCriteria, setCreateNameGroupsSelectionFromSearchCriteria } from "../../actions/names";
 import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
 import CreateNameGroupComposer from "../names-create/name-composer/name-composer";
-
-
-
-const createSearchCriteria = (
-    createNameGroupLocalId: string,
-    createNameLocalIdsByGroupdId: Record<string, string[]>,
-    createNameTokenValueLocalIdsByCreateNameLocalId: Record<string, string[]>,
-    createNamesByLocalId: Record<string, CreateName>,
-): SearchCriteria => {
-
-    const createNameLocalIds: string[] = createNameLocalIdsByGroupdId[createNameGroupLocalId]
-    const searchCriteria: SearchCriteria = { byRuleName: {} }
-
-    createNameLocalIds.forEach(cnLocalId => {
-        const cn = createNamesByLocalId[cnLocalId]
-        const cntvLocalIds = (createNameTokenValueLocalIdsByCreateNameLocalId[cnLocalId] || [])
-
-        searchCriteria.byRuleName[cn.ruleName] = {
-            createNameTokenValueLocalIds: cntvLocalIds,
-            ruleCounterValue: cn.ruleCounterValue,
-        }
-    })
-
-    return searchCriteria
-}
 
 
 
@@ -131,15 +106,8 @@ const FindAndFilterButton = () => {
     }
 
     const handleClickFindAndSelect = () => {
-        const searchCriteria = createSearchCriteria(
-            ruleAndCreateNameGroup.createNameGroup.localId,
-            createNameLocalIdsByGroupdId,
-            createNameTokenValueLocalIdsByCreateNameLocalId,
-            createNamesByLocalId,
-        )
-
         batch(() => {
-            dispatch(setCreateNameGroupsSelectionFromSearchCriteria(searchCriteria))
+            dispatch(setCreateNameGroupsSelectionFromSearchCriteria())
             handleClose()
         })
     }
@@ -152,15 +120,8 @@ const FindAndFilterButton = () => {
     }
 
     const handleClickFilter = () => {
-        const searchCriteria = createSearchCriteria(
-            ruleAndCreateNameGroup.createNameGroup.localId,
-            createNameLocalIdsByGroupdId,
-            createNameTokenValueLocalIdsByCreateNameLocalId,
-            createNamesByLocalId,
-        )
-
         batch(() => {
-            dispatch(setCreateNameGroupsFilterFromSearchCriteria(searchCriteria))
+            dispatch(setCreateNameGroupsFilterFromSearchCriteria())
             handleClose()
         })
     }
