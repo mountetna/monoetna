@@ -9,8 +9,8 @@ import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined"
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken, Token, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from "../../../models";
 import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRulesNamesHierarchicalListByPrimaryRuleName } from "../../../selectors/rules";
-import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameLocalIdsByGroupId } from "../../../selectors/names";
-import { addOrReplaceCreateNameTokenValue, setCreateNameRuleCounterValue, setCreateNameGroupsSelected, duplicateCreateNameGroups, deleteGroupsWithNames } from "../../../actions/names";
+import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameLocalIdsByGroupId, selectSelectedCreateNameGroupIds } from "../../../selectors/names";
+import { addOrReplaceCreateNameTokenValue, setCreateNameRuleCounterValue, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from "../../../actions/names";
 import { TokenSelect } from "./select";
 import RuleCounterField from "./rule-counter-input";
 import { createLocalId } from "../../../utils/models";
@@ -114,9 +114,14 @@ const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includ
     const createNameTokenValuesByLocalId: Record<string, CreateNameTokenValue> = useSelector(selectCreateNameTokenValuesByLocalId)
     const allRules: Record<string, Rule> = useSelector(selectRulesByName)
     const orderedRuleNames: string[] = useSelector(selectRulesNamesHierarchicalListByPrimaryRuleName)[primaryCreateName.ruleName]
+    const selectedCreateNameGroupsIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
 
     const handleClickSelect = (event: React.ChangeEvent) => {
-        dispatch(setCreateNameGroupsSelected([createNameGroup.localId], event.target.checked))
+        if (event.target.checked) {
+            dispatch(addCreateNameGroupsToSelection([createNameGroup.localId]))
+            return
+        }
+        dispatch(removeCreateNameGroupsFromSelection([createNameGroup.localId]))
     }
 
     const handleClickCopy = () => {
@@ -139,7 +144,7 @@ const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includ
                 includeTools &&
                 <span className="create-name-group-composer-tools">
                     <Checkbox
-                        checked={createNameGroup.selected}
+                        checked={selectedCreateNameGroupsIds.has(createNameGroup.localId)}
                         onChange={handleClickSelect}
                         inputProps={{ 'aria-label': 'Select Name' }}
                     />

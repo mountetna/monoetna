@@ -37,6 +37,7 @@ export const selectRulesNamesHierarchicalListByPrimaryRuleName: (state: State) =
     
                 orderedRuleNames.unshift(rule.name)
     
+                // check for rule parents
                 if (rules.ruleParents.byRuleName[ruleName]) {
                     const parentRuleNames = rules.ruleParents.byRuleName[ruleName].map(rpLocalId => {
 

@@ -8,14 +8,14 @@ import NamesToolbar from "../names-toolbar/names-toolbar";
 import { CreateName } from "../../models";
 import CreateNameGroupCompose from "./names-compose-group";
 import { fetchRulesFromMagma } from "../../actions/rules";
-import { selectCreateNameGroupIdsWithPrimaryRule } from "../../selectors/names";
+import { selectCreateNameGroupIdsByPrimaryRule } from "../../selectors/names";
 
 
 
 const NamesCreate = ({ project_name }: { project_name: string }) => {
     // TODO: loading state
     const dispatch = useDispatch();
-    const createNameGroupsIdsByPrimaryRule: Record<string, string[]> = useSelector(state => selectCreateNameGroupIdsWithPrimaryRule(state, false))
+    const createNameGroupsIdsByPrimaryRule: Record<string, string[]> = useSelector(state => selectCreateNameGroupIdsByPrimaryRule(state, true, true))
 
     useEffect(() => {
         dispatch(fetchRulesFromMagma(project_name))

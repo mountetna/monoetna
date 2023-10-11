@@ -129,6 +129,11 @@ const IterateRuleRadio = ({ radioValue, label, rules, ruleValue, onChangeRule, b
 }
 
 
+const ReplaceValuesRadio = () => {
+
+}
+
+
 const addFromSelectionButtonUseStyles = makeStyles((theme) => ({
     addFromSelectionContainer: {
         display: "inline-block",
@@ -149,7 +154,7 @@ const CopyAndReplaceButton = () => {
     const selectedCreateNameGroupLocalIds: string[] = useSelector(selectSelectedCreateNameGroupIds)
     const createNameGroupsByLocalId: Record<string, CreateNameGroup> = useSelector(selectCreateNameGroupsByLocalId)
 
-    const selectedCreateNameGroups: CreateNameGroup[] = selectedCreateNameGroupLocalIds.map(cngLocalId => createNameGroupsByLocalId[cngLocalId])
+    const selectedCreateNameGroups: CreateNameGroup[] = [...selectedCreateNameGroupLocalIds].map(cngLocalId => createNameGroupsByLocalId[cngLocalId])
 
     const createNameLocalIdsByCreateNameGroupLocalId: Record<string, string[]> = useSelector(selectCreateNameLocalIdsByGroupId)
     const createNameTokenValueLocalIdsByCreateNameLocalId: Record<string, string[]> = useSelector(selectCreateNameTokenValueLocalIdsByCreateNameLocalId)

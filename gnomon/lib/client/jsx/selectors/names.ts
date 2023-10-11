@@ -11,26 +11,35 @@ interface State {
 }
 
 
-export const selectCreateNameGroupsByLocalId = (state: State): Record<string, CreateNameGroup> => state.names.createNameGroups
+export const selectCreateNameGroupsByLocalId = (state: State): Record<string, CreateNameGroup> => state.names.createNameGroups.byLocalId
 
 export const selectCreateNameGroupWithLocalId = (localId: string) => (state: State): CreateNameGroup => {
-    return state.names.createNameGroups[localId]
+    return state.names.createNameGroups.byLocalId[localId]
 }
 
 export const selectCreateNameGroupsWithLocalIds = (localIds: string[]) => (state: State): CreateNameGroup[] => {
-    return localIds.map(localId => state.names.createNameGroups[localId])
+    return localIds.map(localId => state.names.createNameGroups.byLocalId[localId])
 }
 
-export const selectCreateNameGroupIdsWithPrimaryRule: (state: State, localOnlyValue?: boolean) => Record<string, string[]> = createSelector(
+export const selectCreateNameGroupIdsByPrimaryRule: (state: State, omitSearchIds: boolean, respectFilter: boolean) => Record<string, string[]> = createSelector(
     [
         (state: State) => state.names,
-        (state, localOnlyValue) => localOnlyValue,
+        (state, omitSearchIds) => omitSearchIds,
+        (state, omitSearchIds, respectFilter) => respectFilter,
     ],
-    (names: NamesState, localOnlyValue: boolean): Record<string, string[]> => {
+    (names: NamesState, omitSearchIds: boolean, respectFilter: boolean): Record<string, string[]> => {
+
         const result = defaultDict<string, string[]>(_ => [])
 
-        Object.values(names.createNameGroups).forEach(createNameGroup => {
-            if (localOnlyValue != undefined && createNameGroup.localOnly != localOnlyValue) {
+        Object.values(names.createNameGroups.byLocalId).forEach(createNameGroup => {
+            if (omitSearchIds && names.createNameGroups.searchLocalIds.has(createNameGroup.localId)) {
+                return
+            }
+            // only ignore non-filter IDs if there are any in filter
+            if (
+                respectFilter
+                && names.createNameGroups.filterEnabled === true
+                && !names.createNameGroups.filterLocalIds.has(createNameGroup.localId)) {
                 return
             }
             const createName: CreateName = names.createNames.byLocalId[createNameGroup.primaryCreateNameLocalId]
@@ -72,12 +81,9 @@ export const selectRuleCounterValuesbyRuleName: (state: State) => Record<string,
     }
 )
 
-export const selectSelectedCreateNameGroupIds: (state: State) => string[] = createSelector(
-    [(state: State) => state.names],
-    (names: NamesState): string[] => {
-        return _.filter(names.createNameGroups, { selected: true }).map(cng => cng.localId)
-    }
-)
+export const selectSelectedCreateNameGroupIds = (state: State): Set<string> => state.names.createNameGroups.selectionLocalIds
+
+export const selectSearchCreateNameGroupIds = (state: State): Set<string> => state.names.createNameGroups.searchLocalIds
 
 export const selectCreateNameTokenValuesByLocalId = (state: State): Record<string, CreateNameTokenValue> => state.names.createNameTokenValues.byLocalId
 

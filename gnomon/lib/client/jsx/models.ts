@@ -61,6 +61,4 @@ export interface CreateNameTokenValue {
 export interface CreateNameGroup {
     localId: string
     primaryCreateNameLocalId: string
-    selected: boolean
-    localOnly: boolean
 }

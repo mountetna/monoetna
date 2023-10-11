@@ -11,8 +11,8 @@ import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 
 import { CreateName, CreateNameGroup, RuleParent, RuleToken } from "../../models";
 import CreateNameGroupComposer from "./name-composer/name-composer";
-import { selectCreateNameGroupsWithLocalIds, selectCreateNamesByLocalId } from "../../selectors/names";
-import { setCreateNameGroupsSelected, deleteGroupsWithNames, createNamesWithGroupForRule } from "../../actions/names";
+import { selectCreateNameGroupsWithLocalIds, selectCreateNamesByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names";
+import { setCreateNameGroupsSelected, deleteGroupsWithNames, createNamesWithGroupForRule, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from "../../actions/names";
 import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
 
 
@@ -38,6 +38,7 @@ const CreateNameGroupCompose = ({ createNameGroupIds, ruleName }: { createNameGr
     const ruleTokenLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleTokenLocalIdsByRuleName)
     const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
     const tokenValueLocalIdsByTokenName: Record<string, string[]> = useSelector(selectTokenValueLocalIdsByTokenName)
+    const selectionCreateNameGroupLocalIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
 
     const [collapsed, setCollapsed] = useState<boolean>(false);
 
@@ -53,7 +54,11 @@ const CreateNameGroupCompose = ({ createNameGroupIds, ruleName }: { createNameGr
     }
 
     const handleClickSelect = (event: React.ChangeEvent) => {
-        dispatch(setCreateNameGroupsSelected(createNameGroupIds, event.target.checked))
+        if (event.target.checked) {
+            dispatch(addCreateNameGroupsToSelection(createNameGroupIds))
+            return
+        }
+        dispatch(removeCreateNameGroupsFromSelection(createNameGroupIds))
     }
 
     const handleClickDelete = () => {
@@ -82,7 +87,7 @@ const CreateNameGroupCompose = ({ createNameGroupIds, ruleName }: { createNameGr
                 <Grid item xs={3}>
                     <div className="create-name-groups-tools">
                         <Checkbox
-                            checked={_.every(createNameGroups, { selected: true })}
+                            checked={_.every(createNameGroups, (cng: CreateNameGroup) => selectionCreateNameGroupLocalIds.has(cng.localId))}
                             onChange={handleClickSelect}
                             inputProps={{ 'aria-label': 'Select the Name Group' }}
                         />

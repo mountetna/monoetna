@@ -2,7 +2,7 @@ import { createSelector } from 'reselect'
 
 import { RulesState } from '../reducers/rules'
 import { NamesState } from '../reducers/names'
-import { selectCreateNameGroupIdsWithPrimaryRule, selectSelectedCreateNameGroupIds } from './names'
+import { selectCreateNameGroupIdsByPrimaryRule, selectSelectedCreateNameGroupIds } from './names'
 import { CreateName, Rule } from '../models'
 import { defaultDict } from '../utils/object'
 import { selectRulesNamesHierarchicalListByPrimaryRuleName } from './rules'
@@ -19,7 +19,7 @@ interface State {
 export const selectCommonRulesFromSelection: (state: State) => Rule[] = createSelector(
     [(state: State) => state],
     (state: State): Rule[] => {
-        const selectedCreateNameGroupLocalIds = selectSelectedCreateNameGroupIds(state)
+        const selectedCreateNameGroupLocalIds = [...state.names.createNameGroups.selectionLocalIds]
 
         // get CreateNames from selected CreateNameGroups
         const selectedCreateNames: CreateName[] = selectedCreateNameGroupLocalIds
@@ -53,7 +53,7 @@ export const selectCommonRulesFromSelection: (state: State) => Rule[] = createSe
 export const selectVisibleRules: (state: State) => Rule[] = createSelector(
     [(state: State) => state],
     (state: State): Rule[] => {
-        const visiblePrimaryRuleNames = Object.keys(selectCreateNameGroupIdsWithPrimaryRule(state))
+        const visiblePrimaryRuleNames = Object.keys(selectCreateNameGroupIdsByPrimaryRule(state, true, true))
         const rulesNamesHierarchicalListByPrimaryRuleName = selectRulesNamesHierarchicalListByPrimaryRuleName(state)
 
         const visibleRules = new Set<Rule>()

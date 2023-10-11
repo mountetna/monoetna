@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector, useDispatch, batch } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
@@ -13,13 +13,38 @@ import Grid from '@material-ui/core/Grid';
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import * as _ from "lodash"
 
-import { selectCreateNameGroupsByLocalId } from "../../selectors/names";
-import { CreateNameGroup, Rule, RuleParent, RuleToken } from "../../models";
+import { selectCreateNameGroupsByLocalId, selectCreateNameLocalIdsByGroupId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNamesByLocalId } from "../../selectors/names";
+import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken } from "../../models";
 import { RuleSelect } from "../names-create/name-composer/select";
 import { selectVisibleRules } from "../../selectors/global";
-import { createNamesWithGroupForRule, deleteGroupsWithNames } from "../../actions/names";
+import { SearchCriteria, addCreateNameGroupsToSearchCriteria, clearCreateNameGroupsFilter, clearCreateNameGroupsSelection, createNamesWithGroupForRule, deleteGroupsWithNames, setCreateNameGroupsFilterFromSearchCriteria, setCreateNameGroupsSelectionFromSearchCriteria } from "../../actions/names";
 import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
 import CreateNameGroupComposer from "../names-create/name-composer/name-composer";
+
+
+
+const createSearchCriteria = (
+    createNameGroupLocalId: string,
+    createNameLocalIdsByGroupdId: Record<string, string[]>,
+    createNameTokenValueLocalIdsByCreateNameLocalId: Record<string, string[]>,
+    createNamesByLocalId: Record<string, CreateName>,
+): SearchCriteria => {
+
+    const createNameLocalIds: string[] = createNameLocalIdsByGroupdId[createNameGroupLocalId]
+    const searchCriteria: SearchCriteria = { byRuleName: {} }
+
+    createNameLocalIds.forEach(cnLocalId => {
+        const cn = createNamesByLocalId[cnLocalId]
+        const cntvLocalIds = (createNameTokenValueLocalIdsByCreateNameLocalId[cnLocalId] || [])
+
+        searchCriteria.byRuleName[cn.ruleName] = {
+            createNameTokenValueLocalIds: cntvLocalIds,
+            ruleCounterValue: cn.ruleCounterValue,
+        }
+    })
+
+    return searchCriteria
+}
 
 
 
@@ -57,6 +82,9 @@ const FindAndFilterButton = () => {
     const ruleTokenLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleTokenLocalIdsByRuleName)
     const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
     const tokenValueLocalIdsByTokenName: Record<string, string[]> = useSelector(selectTokenValueLocalIdsByTokenName)
+    const createNameLocalIdsByGroupdId: Record<string, string[]> = useSelector(selectCreateNameLocalIdsByGroupId)
+    const createNameTokenValueLocalIdsByCreateNameLocalId: Record<string, string[]> = useSelector(selectCreateNameTokenValueLocalIdsByCreateNameLocalId)
+    const createNamesByLocalId: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
 
     const handleToggle = () => {
         setOpen(prev => !prev);
@@ -67,11 +95,10 @@ const FindAndFilterButton = () => {
     };
 
     const handleSetRule = (rule?: Rule) => {
-        if (ruleAndCreateNameGroup) {
-            dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId]))
-        }
-
         if (!rule) {
+            if (ruleAndCreateNameGroup) {
+                dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId]))
+            }
             setRuleAndCreateNameGroup()
             return
         }
@@ -83,9 +110,18 @@ const FindAndFilterButton = () => {
             ruleTokenLocalIdsByRuleName,
             ruleTokensByLocalId,
             tokenValueLocalIdsByTokenName,
-            true
         )
-        dispatch(actionPayload)
+
+        if (ruleAndCreateNameGroup) {
+            batch(() => {
+                dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId]))
+                dispatch(actionPayload)
+                dispatch(addCreateNameGroupsToSearchCriteria([actionPayload.createNameGroups[0].localId]))
+            })
+        } else {
+            dispatch(actionPayload)
+            dispatch(addCreateNameGroupsToSearchCriteria([actionPayload.createNameGroups[0].localId]))
+        }
 
         const newState: RuleAndCreateNameGroupState = {
             rule,
@@ -94,20 +130,46 @@ const FindAndFilterButton = () => {
         setRuleAndCreateNameGroup(newState)
     }
 
-    const handleSetSelection = () => {
+    const handleClickFindAndSelect = () => {
+        const searchCriteria = createSearchCriteria(
+            ruleAndCreateNameGroup.createNameGroup.localId,
+            createNameLocalIdsByGroupdId,
+            createNameTokenValueLocalIdsByCreateNameLocalId,
+            createNamesByLocalId,
+        )
 
+        batch(() => {
+            dispatch(setCreateNameGroupsSelectionFromSearchCriteria(searchCriteria))
+            handleClose()
+        })
     }
 
-    const handleClearSelection = () => {
-        handleSetRule()
+    const handleClickClearSelection = () => {
+        batch(() => {
+            dispatch(clearCreateNameGroupsSelection())
+            handleSetRule()
+        })
     }
 
-    const handleSetFilter = () => {
+    const handleClickFilter = () => {
+        const searchCriteria = createSearchCriteria(
+            ruleAndCreateNameGroup.createNameGroup.localId,
+            createNameLocalIdsByGroupdId,
+            createNameTokenValueLocalIdsByCreateNameLocalId,
+            createNamesByLocalId,
+        )
 
+        batch(() => {
+            dispatch(setCreateNameGroupsFilterFromSearchCriteria(searchCriteria))
+            handleClose()
+        })
     }
 
-    const handleClearFilter = () => {
-        handleSetRule()
+    const handleClickClearFilter = () => {
+        batch(() => {
+            dispatch(clearCreateNameGroupsFilter())
+            handleSetRule()
+        })
     }
 
     return (
@@ -153,9 +215,10 @@ const FindAndFilterButton = () => {
                                         ruleAndCreateNameGroup?.createNameGroup &&
                                         <CreateNameGroupComposer
                                             createNameGroup={ruleAndCreateNameGroup.createNameGroup}
-                                            includeUnsetAsValue={true}
+                                        // includeUnsetAsValue={true}
                                         />
                                     }
+                                    {/* TODO: does this need to be a grid? */}
                                     <Grid container>
                                         <Grid item xs={6}>
                                             <ButtonGroup
@@ -165,12 +228,13 @@ const FindAndFilterButton = () => {
                                                 disableElevation
                                             >
                                                 <Button
-                                                    onClick={handleSetSelection}
+                                                    onClick={handleClickFindAndSelect}
+                                                    disabled={!ruleAndCreateNameGroup}
                                                 >
                                                     Find + Select
                                                 </Button>
                                                 <Button
-                                                    onClick={handleClearSelection}
+                                                    onClick={handleClickClearSelection}
                                                     color="secondary"
                                                     size="small"
                                                     disableElevation
@@ -187,12 +251,13 @@ const FindAndFilterButton = () => {
                                                 disableElevation
                                             >
                                                 <Button
-                                                    onClick={handleSetFilter}
+                                                    onClick={handleClickFilter}
+                                                    disabled={!ruleAndCreateNameGroup}
                                                 >
                                                     Filter
                                                 </Button>
                                                 <Button
-                                                    onClick={handleClearFilter}
+                                                    onClick={handleClickClearFilter}
                                                     color="secondary"
                                                     size="small"
                                                     disableElevation
