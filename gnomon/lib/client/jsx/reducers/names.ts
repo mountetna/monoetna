@@ -18,7 +18,7 @@ import {
     CLEAR_CREATE_NAME_GROUPS_FILTER,
 } from '../actions/names';
 import { listToIdObject, listToIdGroupObject, defaultDict } from '../utils/object';
-import { removeFromSet } from '../utils/set'
+import { difference, intersection } from '../utils/set'
 
 
 
@@ -221,9 +221,7 @@ function removeGroupsFromSelection(createNameGroupIds: string[], state: NamesSta
         ...state,
         createNameGroups: {
             ...state.createNameGroups,
-            selectionLocalIds: removeFromSet(
-                new Set([...state.createNameGroups.selectionLocalIds]), createNameGroupIds
-            ),
+            selectionLocalIds: difference(state.createNameGroups.selectionLocalIds, new Set(createNameGroupIds)),
         }
     }
 }
@@ -240,7 +238,11 @@ function deselectAllGroups(state: NamesState): NamesState {
 
 // TODO add tests
 // TODO add procedure breakdown
-function getMatchedGroupIdsFromSearchCriteria(searchCriteria: SearchCriteria, state: NamesState): string[] {
+function getMatchedGroupIdsFromSearchCriteria(
+    searchCriteria: SearchCriteria,
+    state: NamesState,
+    respectFilter: boolean = true
+): string[] {
 
     const searchCriteriaCreateNameTokenValues = Object.values(searchCriteria.byRuleName)
         .map(searchCriteriaByRule => {
@@ -260,7 +262,15 @@ function getMatchedGroupIdsFromSearchCriteria(searchCriteria: SearchCriteria, st
             const createName = state.createNames.byLocalId[cntvToCheck.createNameLocalId]
             const ruleSearchCriteria = searchCriteria.byRuleName[createName.ruleName]
 
-            if (!ruleSearchCriteria) {
+            if (
+                !ruleSearchCriteria
+                || (
+                    respectFilter
+                    && state.createNameGroups.filterEnabled
+                    && !state.createNameGroups.filterLocalIds.has(createName.createNameGroupLocalId)
+                )
+                || state.createNameGroups.searchLocalIds.has(createName.createNameGroupLocalId)
+            ) {
                 return
             }
 
@@ -300,7 +310,7 @@ function getMatchedGroupIdsFromSearchCriteria(searchCriteria: SearchCriteria, st
     const matchingGroupIds: string[] = []
 
     Object.entries(groupIdsToMatchingValuesCount).forEach(([groupId, matchCount]) => {
-        if (matchCount == targetMatchCount && !state.createNameGroups.searchLocalIds.has(groupId)) {
+        if (matchCount == targetMatchCount) {
             matchingGroupIds.push(groupId)
         }
     })
@@ -345,19 +355,22 @@ function removeGroupsFromSearch(createNameGroupIds: string[], state: NamesState)
         ...state,
         createNameGroups: {
             ...state.createNameGroups,
-            searchLocalIds: removeFromSet(
-                new Set([...state.createNameGroups.searchLocalIds]), createNameGroupIds
-            ),
+            searchLocalIds: difference(state.createNameGroups.searchLocalIds, new Set(createNameGroupIds)),
         }
     }
 }
 
 function addGroupsToFilter(createNameGroupIds: string[], state: NamesState): NamesState {
+    // also need to remove groups from selection if not in filter
+    const newFilterIds = new Set([...state.createNameGroups.filterLocalIds, ...createNameGroupIds])
+    const newSelectionIds = intersection(state.createNameGroups.selectionLocalIds, newFilterIds)
+    const newSelectionState = addGroupsToSelection([...newSelectionIds], deselectAllGroups(state))
+
     return {
-        ...state,
+        ...newSelectionState,
         createNameGroups: {
-            ...state.createNameGroups,
-            filterLocalIds: new Set([...state.createNameGroups.filterLocalIds, ...createNameGroupIds]),
+            ...newSelectionState.createNameGroups,
+            filterLocalIds: newFilterIds,
             filterEnabled: true,
         }
     }
@@ -368,9 +381,7 @@ function removeGroupsFromFilter(createNameGroupIds: string[], state: NamesState)
         ...state,
         createNameGroups: {
             ...state.createNameGroups,
-            filterLocalIds: removeFromSet(
-                new Set([...state.createNameGroups.filterLocalIds]), createNameGroupIds
-            ),
+            filterLocalIds: difference(state.createNameGroups.filterLocalIds, new Set(createNameGroupIds)),
         }
     }
 }

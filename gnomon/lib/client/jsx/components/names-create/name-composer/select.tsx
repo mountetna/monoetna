@@ -145,7 +145,6 @@ export const RuleSelect = ({ values, value, label, placeholder, onSetRule }:
         label: string,
         placeholder: string,
         onSetRule: (value: Rule) => void,
-        includeUnsetAsValue?: boolean
     }
 ) => {
 

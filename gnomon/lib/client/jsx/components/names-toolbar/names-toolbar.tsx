@@ -19,7 +19,7 @@ const NamesToolbar = () => {
     const dispatch = useDispatch()
     const [small, setSmall] = useState<boolean>(false);
 
-    const selectedCreateNameGroupLocalIds: string[] = useSelector(selectSelectedCreateNameGroupIds)
+    const selectedCreateNameGroupLocalIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
 
     const handleClickDelete = () => {
         dispatch(deleteSelectedGroupsWithNames())
@@ -42,7 +42,7 @@ const NamesToolbar = () => {
                     startIcon={<DeleteOutlineOutlinedIcon />}
                     color="primary"
                     disableElevation
-                    disabled={selectedCreateNameGroupLocalIds.length == 0}
+                    disabled={selectedCreateNameGroupLocalIds.size == 0}
                 >
                     Delete
                 </Button>

@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { useSelector, useDispatch } from 'react-redux'
+import React, { useState, useRef, useEffect } from "react";
+import { useSelector, useDispatch, batch } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
 import Popper from "@material-ui/core/Popper";
@@ -17,12 +17,14 @@ import InputBase from '@material-ui/core/InputBase';
 import Grid from '@material-ui/core/Grid';
 import * as _ from "lodash"
 
-import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule } from "../../models";
+import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken } from "../../models";
 import { RuleSelect } from "../names-create/name-composer/select";
+import CreateNameGroupComposer from "../names-create/name-composer/name-composer";
 import { inputEventValueToNumber } from "../../utils/input";
 import { selectCreateNameGroupsByLocalId, selectCreateNameLocalIdsByGroupId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNamesByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names"
-import { selectCommonRulesFromSelection } from "../../selectors/global";
-import { duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule } from "../../actions/names";
+import { selectCommonRulesFromSelection, selectReplaceRuleFromSelection } from "../../selectors/global";
+import { createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule } from "../../actions/names";
+import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
 
 
 
@@ -129,8 +131,25 @@ const IterateRuleRadio = ({ radioValue, label, rules, ruleValue, onChangeRule, b
 }
 
 
-const ReplaceValuesRadio = () => {
-
+const ReplaceValuesForRuleRadio = ({ radioValue, label, createNameGroup }: {
+    radioValue: string,
+    label: string,
+    createNameGroup?: CreateNameGroup,
+}) => {
+    return (
+        <FormGroup>
+            <FormControl>
+                <Radio value={radioValue} />
+                <FormLabel>{label}</FormLabel>
+            </FormControl>
+            {
+                createNameGroup ?
+                <CreateNameGroupComposer
+                    createNameGroup={createNameGroup}
+                /> : "Select a Name first"
+            }
+        </FormGroup>
+    )
 }
 
 
@@ -143,15 +162,18 @@ const addFromSelectionButtonUseStyles = makeStyles((theme) => ({
 
 const CopyAndReplaceButton = () => {
     const classes = addFromSelectionButtonUseStyles()
+
     const [open, setOpen] = useState<boolean>(false);
     const [rule, setRule] = useState<Rule>()
     const [radioValue, setRadioValue] = useState<string>("copy")
     const [boundaries, setBoundaries] = useState<IterationBoundaries>({ min: undefined, max: undefined })
     const [quantity, setQuantity] = useState<number | undefined>(undefined)
+    const [replaceCreateNameGroup, setReplaceCreateNameGroup] = useState<CreateNameGroup | undefined>()
+
     const dispatch = useDispatch()
     const anchorEl = useRef(null)
 
-    const selectedCreateNameGroupLocalIds: string[] = useSelector(selectSelectedCreateNameGroupIds)
+    const selectedCreateNameGroupLocalIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
     const createNameGroupsByLocalId: Record<string, CreateNameGroup> = useSelector(selectCreateNameGroupsByLocalId)
 
     const selectedCreateNameGroups: CreateNameGroup[] = [...selectedCreateNameGroupLocalIds].map(cngLocalId => createNameGroupsByLocalId[cngLocalId])
@@ -162,6 +184,54 @@ const CopyAndReplaceButton = () => {
     const createNamesByLocalId: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
 
     const iterableRules: Rule[] = useSelector(selectCommonRulesFromSelection).filter(rule => rule.hasCounter)
+
+    const replaceRule: Rule | undefined = useSelector(selectReplaceRuleFromSelection)
+
+    const ruleParentLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
+    const ruleParentsByLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
+    const ruleTokenLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleTokenLocalIdsByRuleName)
+    const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
+    const tokenValueLocalIdsByTokenName: Record<string, string[]> = useSelector(selectTokenValueLocalIdsByTokenName)
+
+    // manage CreateNameGroup for Replace <ReplaceValuesForRuleRadio />
+    useEffect(() => {
+        if (!replaceRule) {
+            if (replaceCreateNameGroup) {
+                batch(() => {
+                    dispatch(deleteGroupsWithNames([replaceCreateNameGroup.localId]))
+                    setReplaceCreateNameGroup()
+                })
+                return
+            }
+            setReplaceCreateNameGroup()
+            return
+        }
+
+        const actionPayload = createNamesWithGroupForRule(
+            replaceRule.name,
+            ruleParentLocalIdsByRuleName,
+            ruleParentsByLocalId,
+            ruleTokenLocalIdsByRuleName,
+            ruleTokensByLocalId,
+            tokenValueLocalIdsByTokenName,
+        )
+        const newCng = actionPayload.createNameGroups[0]
+
+        if (replaceCreateNameGroup) {
+            batch(() => {
+                dispatch(deleteGroupsWithNames([replaceCreateNameGroup.localId]))
+                dispatch(actionPayload)
+                // dispatch(addCreateNameGroupsToReplaceCriteria([newCng.localId]))
+                setReplaceCreateNameGroup(newCng)
+            })
+        } else {
+            batch(() => {
+                dispatch(actionPayload)
+                // dispatch(addCreateNameGroupsToReplaceCriteria([newCng.localId]))
+                setReplaceCreateNameGroup(newCng)
+            })
+        }
+    }, [replaceRule?.name])
 
     const handleToggle = () => {
         setOpen(prev => !prev);
@@ -199,13 +269,10 @@ const CopyAndReplaceButton = () => {
                     createNameTokenValueLocalIdsByCreateNameLocalId,
                     createNameTokenValuesByLocalId,
                 ))
-                handleClose()
                 break
             default:
                 console.error(`Unsupported radio value: ${radioValue}`)
         }
-
-        handleClose()
     }
 
     return (
@@ -221,7 +288,7 @@ const CopyAndReplaceButton = () => {
                 disableRipple
                 disableFocusRipple
                 disableElevation
-                disabled={selectedCreateNameGroupLocalIds.length == 0}
+                disabled={selectedCreateNameGroupLocalIds.size == 0}
             >
                 Copy and Replace
             </Button>
@@ -260,6 +327,11 @@ const CopyAndReplaceButton = () => {
                                             onChangeRule={setRule}
                                             boundaries={boundaries}
                                             onChangeBoundaries={setBoundaries}
+                                        />
+                                        <ReplaceValuesForRuleRadio
+                                            radioValue="replace"
+                                            label="Replace Values"
+                                            createNameGroup={replaceCreateNameGroup}
                                         />
                                     </RadioGroup>
                                     <Grid container>

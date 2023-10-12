@@ -5,7 +5,6 @@ import { useSelector, useDispatch } from 'react-redux'
 import ProjectHeader from "etna-js/components/project-header";
 
 import NamesToolbar from "../names-toolbar/names-toolbar";
-import { CreateName } from "../../models";
 import CreateNameGroupCompose from "./names-compose-group";
 import { fetchRulesFromMagma } from "../../actions/rules";
 import { selectCreateNameGroupIdsByPrimaryRule } from "../../selectors/names";
@@ -25,10 +24,8 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
     return (
         <>
             <ProjectHeader project_name={project_name} />
-            {/* TODO?: render toolbar buttons directly so you don't have to pass props through */}
             <NamesToolbar />
             <Grid className="create-name-group-composers" container>
-                {/* TODO: move grouping to selector in redux so we can memoize */}
                 {
                     Object.entries(createNameGroupsIdsByPrimaryRule).map(([ruleName, createNameGroupIds]) => {
                         return (
