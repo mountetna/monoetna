@@ -36,7 +36,7 @@ jobs:
       - name: docker login
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-        run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
+        run: echo ${DOCKER_TOKEN} | docker login --password-stdin -u etnaagent
       - name: Run ${{ matrix.test-app }} test suite
         id: app_first_test_run
         env:
@@ -54,7 +54,7 @@ jobs:
       - name: docker login
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-        run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
+        run: echo ${DOCKER_TOKEN} | docker login --password-stdin -u etnaagent
       - name: Run vulcan e2e test suite
         id: app_first_test_run
         env:
