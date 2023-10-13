@@ -54,7 +54,7 @@ export const selectCommonRulesFromSelection: (state: State) => Rule[] = createSe
 export const selectVisibleRules: (state: State) => Rule[] = createSelector(
     [(state: State) => state],
     (state: State): Rule[] => {
-        const visiblePrimaryRuleNames = Object.keys(selectCreateNameGroupIdsByPrimaryRule(state, true, true))
+        const visiblePrimaryRuleNames = Object.keys(selectCreateNameGroupIdsByPrimaryRule(state))
         const rulesNamesHierarchicalListByPrimaryRuleName = selectRulesNamesHierarchicalListByPrimaryRuleName(state)
 
         const visibleRules = new Set<Rule>()

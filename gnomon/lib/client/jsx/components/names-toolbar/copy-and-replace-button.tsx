@@ -23,7 +23,7 @@ import CreateNameGroupComposer from "../names-create/name-composer/name-composer
 import { inputEventValueToNumber } from "../../utils/input";
 import { selectCreateNameGroupsByLocalId, selectCreateNameLocalIdsByGroupId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNamesByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names"
 import { selectCommonRulesFromSelection, selectReplaceRuleFromSelection } from "../../selectors/global";
-import { createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule } from "../../actions/names";
+import { addCreateNameGroupsToReplaceCriteria, createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule, replaceValuesFromReplaceCriteria } from "../../actions/names";
 import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
 
 
@@ -144,9 +144,9 @@ const ReplaceValuesForRuleRadio = ({ radioValue, label, createNameGroup }: {
             </FormControl>
             {
                 createNameGroup ?
-                <CreateNameGroupComposer
-                    createNameGroup={createNameGroup}
-                /> : "Select a Name first"
+                    <CreateNameGroupComposer
+                        createNameGroup={createNameGroup}
+                    /> : "Select a Name first"
             }
         </FormGroup>
     )
@@ -193,7 +193,7 @@ const CopyAndReplaceButton = () => {
     const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
     const tokenValueLocalIdsByTokenName: Record<string, string[]> = useSelector(selectTokenValueLocalIdsByTokenName)
 
-    // manage CreateNameGroup for Replace <ReplaceValuesForRuleRadio />
+    // manage CreateNameGroup for <ReplaceValuesForRuleRadio />
     useEffect(() => {
         if (!replaceRule) {
             if (replaceCreateNameGroup) {
@@ -221,13 +221,13 @@ const CopyAndReplaceButton = () => {
             batch(() => {
                 dispatch(deleteGroupsWithNames([replaceCreateNameGroup.localId]))
                 dispatch(actionPayload)
-                // dispatch(addCreateNameGroupsToReplaceCriteria([newCng.localId]))
+                dispatch(addCreateNameGroupsToReplaceCriteria([newCng.localId]))
                 setReplaceCreateNameGroup(newCng)
             })
         } else {
             batch(() => {
                 dispatch(actionPayload)
-                // dispatch(addCreateNameGroupsToReplaceCriteria([newCng.localId]))
+                dispatch(addCreateNameGroupsToReplaceCriteria([newCng.localId]))
                 setReplaceCreateNameGroup(newCng)
             })
         }
@@ -269,6 +269,9 @@ const CopyAndReplaceButton = () => {
                     createNameTokenValueLocalIdsByCreateNameLocalId,
                     createNameTokenValuesByLocalId,
                 ))
+                break
+            case "replace":
+                dispatch(replaceValuesFromReplaceCriteria())
                 break
             default:
                 console.error(`Unsupported radio value: ${radioValue}`)
@@ -350,7 +353,7 @@ const CopyAndReplaceButton = () => {
                                                 color="primary"
                                                 disableElevation
                                             >
-                                                Add
+                                                {_.capitalize(radioValue)}
                                             </Button>
                                         </Grid>
                                     </Grid>

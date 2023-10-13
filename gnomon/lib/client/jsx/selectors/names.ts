@@ -21,18 +21,24 @@ export const selectCreateNameGroupsWithLocalIds = (localIds: string[]) => (state
     return localIds.map(localId => state.names.createNameGroups.byLocalId[localId])
 }
 
-export const selectCreateNameGroupIdsByPrimaryRule: (state: State, omitSearchIds: boolean, respectFilter: boolean) => Record<string, string[]> = createSelector(
+export const selectCreateNameGroupIdsByPrimaryRule: (state: State, omitSearchAndReplaceIds?: boolean, respectFilter?: boolean) => Record<string, string[]> = createSelector(
     [
         (state: State) => state.names,
-        (state, omitSearchIds) => omitSearchIds,
-        (state, omitSearchIds, respectFilter) => respectFilter,
+        (state, omitSearchAndReplaceIds=true) => omitSearchAndReplaceIds,
+        (state, omitSearchAndReplaceIds, respectFilter=true) => respectFilter,
     ],
-    (names: NamesState, omitSearchIds: boolean, respectFilter: boolean): Record<string, string[]> => {
+    (names: NamesState, omitSearchAndReplaceIds: boolean, respectFilter: boolean): Record<string, string[]> => {
 
         const result = defaultDict<string, string[]>(_ => [])
 
         Object.values(names.createNameGroups.byLocalId).forEach(createNameGroup => {
-            if (omitSearchIds && names.createNameGroups.searchLocalIds.has(createNameGroup.localId)) {
+            if (
+                omitSearchAndReplaceIds
+                && (
+                    names.createNameGroups.searchLocalIds.has(createNameGroup.localId)
+                    || names.createNameGroups.replaceLocalIds.has(createNameGroup.localId)
+                )
+            ) {
                 return
             }
             // only ignore non-filter IDs if there are any in filter

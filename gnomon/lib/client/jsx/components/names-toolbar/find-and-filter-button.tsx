@@ -13,7 +13,7 @@ import Grid from '@material-ui/core/Grid';
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import * as _ from "lodash"
 
-import { selectCreateNameGroupsByLocalId } from "../../selectors/names";
+import { selectCreateNameGroupIdsByPrimaryRule } from "../../selectors/names";
 import { CreateNameGroup, Rule, RuleParent, RuleToken } from "../../models";
 import { RuleSelect } from "../names-create/name-composer/select";
 import { selectVisibleRules } from "../../selectors/global";
@@ -45,7 +45,7 @@ const FindAndFilterButton = () => {
     const dispatch = useDispatch()
     const anchorEl = useRef(null)
 
-    const createNameGroupsByLocalId: Record<string, CreateNameGroup> = useSelector(selectCreateNameGroupsByLocalId)
+    const createNameGroupIdsByPrimaryRule: Record<string, string[]> = useSelector(selectCreateNameGroupIdsByPrimaryRule)
     const visibleRules: Rule[] = useSelector(selectVisibleRules)
     const ruleParentLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
     const ruleParentsByLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
@@ -132,7 +132,7 @@ const FindAndFilterButton = () => {
                 disableRipple
                 disableFocusRipple
                 disableElevation
-                disabled={Object.keys(createNameGroupsByLocalId).length == 0}
+                disabled={Object.keys(createNameGroupIdsByPrimaryRule).length == 0}
             >
                 Find and Filter
             </Button>

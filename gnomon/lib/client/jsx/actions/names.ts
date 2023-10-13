@@ -12,13 +12,16 @@ export const SET_COUNTER_VALUE_FOR_CREATE_NAME = "SET_COUNTER_VALUE_FOR_CREATE_N
 export const ADD_CREATE_NAME_GROUPS_TO_SELECTION = "ADD_CREATE_NAME_GROUPS_TO_SELECTION"
 export const REMOVE_CREATE_NAME_GROUPS_FROM_SELECTION = "REMOVE_CREATE_NAME_GROUPS_FROM_SELECTION"
 export const CLEAR_CREATE_NAME_GROUPS_SELECTION = "CLEAR_CREATE_NAME_GROUPS_SELECTION"
-export const SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA = "SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA"
-export const SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA = "SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA"
 export const CLEAR_CREATE_NAME_GROUPS_FILTER = "CLEAR_CREATE_NAME_GROUPS_FILTER"
 export const DELETE_GROUPS_WITH_NAMES = "DELETE_GROUPS_WITH_NAMES"
 export const DELETE_SELECTED_GROUPS_WITH_NAMES = "DELETE_SELECTED_GROUPS_WITH_NAMES"
 export const ADD_CREATE_NAME_GROUPS_TO_SEARCH_CRITERIA = "ADD_CREATE_NAME_GROUPS_TO_SEARCH_CRITERIA"
 export const REMOVE_CREATE_NAME_GROUPS_FROM_SEARCH_CRITERIA = "REMOVE_CREATE_NAME_GROUPS_FROM_SEARCH_CRITERIA"
+export const SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA = "SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA"
+export const SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA = "SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA"
+export const ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA = "ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA"
+export const REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA = "REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA"
+export const REPLACE_VALUES_FROM_REPLACE_CRITERIA = "REPLACE_VALUES_FROM_REPLACE_CRITERIA"
 
 
 // must add CreateNameTokenValues per RuleToken if only one TokenValue per Token
@@ -266,18 +269,6 @@ export function clearCreateNameGroupsSelection() {
     return makeActionObject(CLEAR_CREATE_NAME_GROUPS_SELECTION, {})
 }
 
-
-export interface RuleSearchCriteria {
-    createNameTokenValueLocalIds: string[]
-    ruleCounterValue?: number
-}
-
-
-export interface SearchCriteria {
-    byRuleName: Record<string, RuleSearchCriteria>
-}
-
-
 export function setCreateNameGroupsSelectionFromSearchCriteria() {
     return makeActionObject(SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA, {})
 }
@@ -306,6 +297,18 @@ export function removeCreateNameGroupsFromSearchCriteria(createNameGroupLocalIds
     return makeActionObject(REMOVE_CREATE_NAME_GROUPS_FROM_SEARCH_CRITERIA, { createNameGroupLocalIds })
 }
 
+export function addCreateNameGroupsToReplaceCriteria(createNameGroupLocalIds: string[]) {
+    return makeActionObject(ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA, { createNameGroupLocalIds })
+}
+
+export function removeCreateNameGroupsFromReplaceCriteria(createNameGroupLocalIds: string[]) {
+    return makeActionObject(REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA, { createNameGroupLocalIds })
+}
+
+export function replaceValuesFromReplaceCriteria() {
+    return makeActionObject(REPLACE_VALUES_FROM_REPLACE_CRITERIA, {})
+}
+
 
 export type ACTION_TYPE =
     | ReturnType<typeof addNamesWithGroupsWithTokenValues>
@@ -323,3 +326,6 @@ export type ACTION_TYPE =
     | ReturnType<typeof deleteSelectedGroupsWithNames>
     | ReturnType<typeof addCreateNameGroupsToSearchCriteria>
     | ReturnType<typeof removeCreateNameGroupsFromSearchCriteria>
+    | ReturnType<typeof addCreateNameGroupsToReplaceCriteria>
+    | ReturnType<typeof removeCreateNameGroupsFromReplaceCriteria>
+    | ReturnType<typeof replaceValuesFromReplaceCriteria>

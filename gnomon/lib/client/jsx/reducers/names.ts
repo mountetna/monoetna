@@ -10,12 +10,14 @@ import {
     SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA,
     SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA,
     CLEAR_CREATE_NAME_GROUPS_SELECTION,
-    SearchCriteria,
     ADD_CREATE_NAME_GROUPS_TO_SEARCH_CRITERIA,
     REMOVE_CREATE_NAME_GROUPS_FROM_SEARCH_CRITERIA,
     ADD_CREATE_NAME_GROUPS_TO_SELECTION,
     REMOVE_CREATE_NAME_GROUPS_FROM_SELECTION,
     CLEAR_CREATE_NAME_GROUPS_FILTER,
+    ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA,
+    REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA,
+    REPLACE_VALUES_FROM_REPLACE_CRITERIA,
 } from '../actions/names';
 import { listToIdObject, listToIdGroupObject, defaultDict } from '../utils/object';
 import { difference, intersection } from '../utils/set'
@@ -39,6 +41,7 @@ interface CreateNameTokenValuesState {
 interface CreateNameGroupsState {
     byLocalId: Record<string, CreateNameGroup>
     searchLocalIds: Set<string>
+    replaceLocalIds: Set<string>
     selectionLocalIds: Set<string>
     filterLocalIds: Set<string>
     filterEnabled: boolean
@@ -54,7 +57,14 @@ export interface NamesState {
 const initialState: NamesState = {
     createNames: { byLocalId: {}, byCreateNameGroupLocalId: {} },
     createNameTokenValues: { byLocalId: {}, byCreateNameLocalId: {}, byTokenValueLocalId: {} },
-    createNameGroups: { byLocalId: {}, searchLocalIds: new Set(), selectionLocalIds: new Set(), filterLocalIds: new Set(), filterEnabled: false },
+    createNameGroups: {
+        byLocalId: {},
+        searchLocalIds: new Set(),
+        replaceLocalIds: new Set(),
+        selectionLocalIds: new Set(),
+        filterLocalIds: new Set(),
+        filterEnabled: false
+    },
 }
 
 
@@ -93,16 +103,22 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
             return removeGroupsFromSelection(action.createNameGroupIds, state)
         case CLEAR_CREATE_NAME_GROUPS_SELECTION:
             return deselectAllGroups(state)
-        case SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA:
-            return setGroupsSelectionFromSearchCriteria(state)
-        case SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA:
-            return setGroupsFilterFromSearchCriteria(state)
         case CLEAR_CREATE_NAME_GROUPS_FILTER:
             return disableGroupFilter(state)
         case ADD_CREATE_NAME_GROUPS_TO_SEARCH_CRITERIA:
             return addGroupsToSearch(action.createNameGroupLocalIds, state)
         case REMOVE_CREATE_NAME_GROUPS_FROM_SEARCH_CRITERIA:
             return removeGroupsFromSearch(action.createNameGroupLocalIds, state)
+        case SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA:
+            return setGroupsSelectionFromSearchCriteria(state)
+        case SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA:
+            return setGroupsFilterFromSearchCriteria(state)
+        case ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA:
+            return addGroupsToReplace(action.createNameGroupLocalIds, state)
+        case REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA:
+            return removeGroupsFromReplace(action.createNameGroupLocalIds, state)
+        case REPLACE_VALUES_FROM_REPLACE_CRITERIA:
+            return replaceValuesFromReplaceCriteria(state)
         default: {
             return state;
         }
@@ -140,13 +156,25 @@ function addNamesWithGroupsAndTokensValues(
     }
 }
 
-const createSearchCriteriaFromSearchGroups = (state: NamesState): Record<string, SearchCriteria> => {
-    const searchCriteriaByGroupId: Record<string, SearchCriteria> = {}
 
-    state.createNameGroups.searchLocalIds.forEach(cngLocalId => {
+export interface RuleSearchReplaceCriteria {
+    createNameTokenValueLocalIds: string[]
+    ruleCounterValue?: number
+}
+
+
+export interface SearchReplaceCriteria {
+    byRuleName: Record<string, RuleSearchReplaceCriteria>
+}
+
+
+function createSearchReplaceCriteriaFromGroups(state: NamesState, createNameGroupIds: Iterable<string>): SearchReplaceCriteria[] {
+    const criteriaList: SearchReplaceCriteria[] = []
+
+    for (const cngLocalId of createNameGroupIds) {
 
         const createNameLocalIds: string[] = state.createNames.byCreateNameGroupLocalId[cngLocalId]
-        const searchCriteria: SearchCriteria = { byRuleName: {} }
+        const searchCriteria: SearchReplaceCriteria = { byRuleName: {} }
 
         createNameLocalIds.forEach(cnLocalId => {
             const cn = state.createNames.byLocalId[cnLocalId]
@@ -158,10 +186,18 @@ const createSearchCriteriaFromSearchGroups = (state: NamesState): Record<string,
             }
         })
 
-        searchCriteriaByGroupId[cngLocalId] = searchCriteria
-    })
+        criteriaList.push(searchCriteria)
+    }
 
-    return searchCriteriaByGroupId
+    return criteriaList
+}
+
+function createSearchReplaceCriteriaFromSearchGroups(state: NamesState): SearchReplaceCriteria[] {
+    return createSearchReplaceCriteriaFromGroups(state, state.createNameGroups.searchLocalIds)
+}
+
+function createSearchReplaceCriteriaFromReplaceGroups(state: NamesState): SearchReplaceCriteria[] {
+    return createSearchReplaceCriteriaFromGroups(state, state.createNameGroups.replaceLocalIds)
 }
 
 function deleteGroupsWithNames(createNameGroupIds: string[], state: NamesState): NamesState {
@@ -197,6 +233,7 @@ function deleteGroupsWithNames(createNameGroupIds: string[], state: NamesState):
             byLocalId: newGroupsById,
             searchLocalIds: removeGroupsFromSearch(createNameGroupIds, state).createNameGroups.searchLocalIds,
             filterLocalIds: removeGroupsFromFilter(createNameGroupIds, state).createNameGroups.filterLocalIds,
+            replaceLocalIds: removeGroupsFromReplace(createNameGroupIds, state).createNameGroups.replaceLocalIds,
             selectionLocalIds: removeGroupsFromSelection(createNameGroupIds, state).createNameGroups.selectionLocalIds,
         },
     }
@@ -239,7 +276,7 @@ function deselectAllGroups(state: NamesState): NamesState {
 // TODO add tests
 // TODO add procedure breakdown
 function getMatchedGroupIdsFromSearchCriteria(
-    searchCriteria: SearchCriteria,
+    searchCriteria: SearchReplaceCriteria,
     state: NamesState,
     respectFilter: boolean = true
 ): string[] {
@@ -319,10 +356,10 @@ function getMatchedGroupIdsFromSearchCriteria(
 }
 
 function setGroupsSelectionFromSearchCriteria(state: NamesState): NamesState {
-    const searchCriteriaByGroupId = createSearchCriteriaFromSearchGroups(state)
+    const searchCriteriaList = createSearchReplaceCriteriaFromSearchGroups(state)
     state = deselectAllGroups(state)
 
-    Object.values(searchCriteriaByGroupId).forEach(searchCriteria => {
+    searchCriteriaList.forEach(searchCriteria => {
         state = addGroupsToSelection(getMatchedGroupIdsFromSearchCriteria(searchCriteria, state), state)
     })
 
@@ -330,10 +367,10 @@ function setGroupsSelectionFromSearchCriteria(state: NamesState): NamesState {
 }
 
 function setGroupsFilterFromSearchCriteria(state: NamesState): NamesState {
-    const searchCriteriaByGroupId = createSearchCriteriaFromSearchGroups(state)
+    const searchCriteriaList = createSearchReplaceCriteriaFromSearchGroups(state)
     state = disableGroupFilter(state)
 
-    Object.values(searchCriteriaByGroupId).forEach(searchCriteria => {
+    searchCriteriaList.forEach(searchCriteria => {
         state = addGroupsToFilter(getMatchedGroupIdsFromSearchCriteria(searchCriteria, state), state)
     })
 
@@ -358,6 +395,32 @@ function removeGroupsFromSearch(createNameGroupIds: string[], state: NamesState)
             searchLocalIds: difference(state.createNameGroups.searchLocalIds, new Set(createNameGroupIds)),
         }
     }
+}
+
+function addGroupsToReplace(createNameGroupIds: string[], state: NamesState): NamesState {
+    return {
+        ...state,
+        createNameGroups: {
+            ...state.createNameGroups,
+            replaceLocalIds: new Set([...state.createNameGroups.replaceLocalIds, ...createNameGroupIds]),
+        }
+    }
+}
+
+function removeGroupsFromReplace(createNameGroupIds: string[], state: NamesState): NamesState {
+    return {
+        ...state,
+        createNameGroups: {
+            ...state.createNameGroups,
+            replaceLocalIds: difference(state.createNameGroups.replaceLocalIds, new Set(createNameGroupIds)),
+        }
+    }
+}
+
+function replaceValuesFromReplaceCriteria(state: NamesState): NamesState {
+    const replaceCriteriaList = createSearchReplaceCriteriaFromReplaceGroups(state)
+
+    return state
 }
 
 function addGroupsToFilter(createNameGroupIds: string[], state: NamesState): NamesState {
