@@ -304,7 +304,7 @@ class TestMetisLinker:
                 'LABORS-LION-H2-C1': {'victim': ['::temp-id-0']}
             },
             'victim': {
-                'temp-id-0': {
+                '::temp-id-0': {
                     'name': 'LABORS-LION-H2-C1',
                     'species': 'lion'
                 }
@@ -312,7 +312,7 @@ class TestMetisLinker:
         }
         assert asdict(update4)['revisions'] == {
             'victim': {
-                'temp-id-0': {
+                '::temp-id-0': {
                     'name': 'LABORS-LION-H2-C1',
                     'species': 'lion'
                 }
