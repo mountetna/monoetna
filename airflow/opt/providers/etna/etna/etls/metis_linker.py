@@ -186,22 +186,21 @@ def MetisLinker():
         start, end = get_batch_range(context)
         print(f"Collecting tails in range {str(dict(start=start, end=end))}")
 
-        buckets = [
-            config.bucket_key
-            for config in configs
-            for model, model_config in config.config.get("models",{}).items()
-            for script in model_config["scripts"]
-        ]
+        buckets = dict()
+        for config in configs:
+            ran_at = datetime.fromisoformat(config.ran_at or '2010-01-01')
+            if config.bucket_key not in buckets or buckets[ config.bucket_key ] > ran_at:
+                buckets[ config.bucket_key ] = ran_at
                 
         with hook.metis() as metis:
             tails = dict()
-            for project_name, bucket_name in buckets:
+            for (project_name, bucket_name), ran_at in buckets.items():
                 try:
                     files = metis.tail(
                         project_name=project_name,
                         bucket_name=bucket_name,
                         type='files',
-                        batch_start=start,
+                        batch_start=ran_at,
                         batch_end=end
                     )
                     tails[ (project_name, bucket_name) ] = { 'files': files }
