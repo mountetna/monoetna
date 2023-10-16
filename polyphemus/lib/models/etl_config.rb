@@ -32,7 +32,7 @@ class Polyphemus
     end
 
     def self.current
-      return self.reverse(:config_id, :version_number).distinct(:config_id).exclude(run_interval: Polyphemus::EtlConfig::RUN_ARCHIVED)
+      return self.reverse(:config_id, :version_number).distinct(:config_id).from_self.exclude(run_interval: Polyphemus::EtlConfig::RUN_ARCHIVED)
     end
 
     def etl_job_class
