@@ -6,12 +6,10 @@ import React, {
   useMemo
 } from 'react';
 import Grid from '@material-ui/core/Grid';
-import Card from '@material-ui/core/Card';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Tooltip from '@material-ui/core/Tooltip';
-import TextField from '@material-ui/core/TextField';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import IconButton from '@material-ui/core/IconButton';
@@ -22,195 +20,13 @@ import CopyIcon from '@material-ui/icons/FileCopy';
 import Pagination from '@material-ui/lab/Pagination';
 
 import {SchemaContext, SchemaProvider} from './schema-context';
-import AddDialog from 'etna-js/components/add-dialog';
-import {PickBucket,PickFolder} from 'etna-js/components/metis_exploration';
+import {PickBucket} from 'etna-js/components/metis_exploration';
 
-import {makeStyles, Theme} from '@material-ui/core/styles';
-
-import {Script, ScriptItem, Job} from '../polyphemus';
+import {Script, Job} from '../polyphemus';
 import AddModel from './add-model';
-import {diff} from '../utils/list';
-import SelectAttribute from '../select-attribute';
-import TestFileMatch from './test-file-match';
+import { AttributeName, ColumnMap, DefaultItem, FileMatch, FolderPath, TableFormat, useMetisFormStyles, BlankTable } from './metis-form-components';
 
-const useStyles = makeStyles((theme: Theme) => ({
-  form: {
-    height: 'calc(100vh - 375px)',
-    flexWrap: 'nowrap'
-  },
-  tabs: {
-    flex: '1 1 auto',
-    maxHeight: '50px',
-    border: '1px solid #ccc',
-    borderBottom: 'none'
-  },
-  tab_scroll: {
-    flexGrow: 0,
-    maxWidth: 'calc(100% - 120px)',
-    flexBasis: 'calc(100% - 120px)'
-  },
-  tab_buttons: {
-    flex: '1 1 auto',
-    width: 'auto'
-  },
-  tab_pane: {
-    flex: '1 1 auto',
-    border: '1px solid #ccc',
-    overflow: 'hidden',
-    overflowY: 'auto'
-  },
-  bucket_name: {
-    padding: '10px',
-    width: '500px'
-  },
-  model: {
-    padding: '5px',
-    paddingRight: '15px'
-  },
-  model_row: {
-    minHeight: '47px',
-    '&:not(:last-of-type)': {
-      borderBottom: '1px solid #eee',
-      marginBottom: '5px'
-    }
-  },
-  model_row_name: {
-    marginTop: '7px'
-  },
-  page_size: {
-    color: '#666',
-    padding: '0px 15px'
-  },
-  script: {
-    background: '#eee',
-    marginTop: '15px',
-    border: '1px solid #ccc',
-    borderRadius: '2px',
-    position: 'relative'
-  },
-  script_header: {
-    borderBottom: '1px solid #ccc',
-    background: '#ccc'
-  },
-  number: {
-    color: '#888',
-    position: 'absolute',
-    transform: 'translate(-100%, 0)',
-    left: '-10px',
-    top: '10px'
-  },
-  attribute_name: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    padding: '0px 5px'
-  },
-  script_items: {
-    padding: '5px'
-  },
-  strikeout: {
-    '&:hover': {
-      textDecoration: 'line-through',
-      cursor: 'pointer',
-      background: '#eee'
-    }
-  },
-  test: {
-    padding: '0px 10px'
-  }
-}));
-
-const SCRIPT_TYPES = [ 'file', 'file_collection' ];
-
-const FileMatch = ({value,update,projectName,bucketName,script,classes}:ScriptItem) =>  {
-  return <Grid item container>
-    <Grid item xs={3}>
-      <TextField
-        placeholder='Glob matching file, e.g. *.fastq.gz'
-        fullWidth
-        value={value}
-        onChange={
-          (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
-        }
-      />
-    </Grid>
-    <TestFileMatch className={classes.test} projectName={projectName} bucketName={bucketName} script={script}/>
-  </Grid>;
-}
-
-const FolderPath = ({value,update,projectName,bucketName}:ScriptItem) => <Grid item xs={3}>
-  <PickFolder
-    basePath=''
-    label={undefined}
-    path={value}
-    setPath={update}
-    project_name={projectName}
-    bucket={bucketName}
-  />
-</Grid>;
-
-const AttributeName = ({type,value,update,modelName}:ScriptItem) => <SelectAttribute
-  value={value}
-  update={update}
-  modelName={modelName}
-  filter={ (a:any) => a.attribute_type == type }
-/>;
-
-
-const TableFormat = ({value,update}:ScriptItem) => <Select displayEmpty value={value} onChange={e => update(e.target.value)}>
-  <MenuItem value=''><em>Table format</em></MenuItem>
-  <MenuItem value='tsv'>tsv</MenuItem>
-  <MenuItem value='csv'>csv</MenuItem>
-</Select>;
-
-const ColumnMap = ({value,update,classes}:ScriptItem) => <Grid>
-  <AddDialog
-    title='Map a column'
-    content={
-      <>Map a column name in the data_frame to another name (e.g., an attribute_name)</>
-    }
-    buttonText='ADD MAPPING'
-    update={ (column_name:string, mapped_column_name:string) => update(
-      { ...value, [column_name]: mapped_column_name }
-    )}
-    mask={ v => v }
-    mask2={ v => v }
-    placeholders={[ 'Column Name', 'Mapped Column Name' ]}
-  />
-  <Grid item container>
-    {
-      Object.keys(value).map(
-        column_name => <Grid
-          key={column_name} item container
-          className={classes.strikeout}
-          onClick={
-            () => {
-              let newValue = { ...value };
-              delete newValue[column_name];
-              update(newValue);
-            }
-          }>
-          <Grid item xs={2}>{column_name}</Grid>
-          <Grid item xs={8}>{value[column_name]}</Grid>
-        </Grid>
-      )
-    }
-  </Grid>
-</Grid>;
-
-const ExtractedColumns = ({value,update}:ScriptItem) => <TextField
-  placeholder='Comma-separated list'
-  fullWidth
-  value={Array.isArray(value) ? value.join(', ') : value}
-  onChange={
-    (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value.split(/,\s*/))
-  }
-/>;
-
-const DefaultItem = ({value, update}:ScriptItem) => <TextField
-  fullWidth
-  value={value}
-  onChange={ e => update(e.target.value as string) }
-/>;
+const SCRIPT_TYPES = [ 'file', 'file_collection', 'data_frame' ];
 
 const SCRIPT_ITEMS = {
   file_match: FileMatch,
@@ -218,7 +34,8 @@ const SCRIPT_ITEMS = {
   folder_path: FolderPath,
   format: TableFormat,
   column_map: ColumnMap,
-  extracted_columns: ExtractedColumns,
+  blank_table: BlankTable,
+  // extracted_columns: ExtractedColumns,
   default: DefaultItem
 };
 
@@ -255,7 +72,7 @@ const MetisScript = ({
   projectName: string;
   bucketName: string;
 }) => {
-  const classes = useStyles();
+  const classes = useMetisFormStyles();
   const {type} = script;
 
   const handleUpdate = useCallback(
@@ -368,7 +185,7 @@ const ModelRow = ({
   children: React.ReactNode;
   title?: string;
 }) => {
-  const classes = useStyles();
+  const classes = useMetisFormStyles();
   return (
     <Grid className={classes.model_row} spacing={1} item container>
       <Tooltip arrow title={title || ''}>
@@ -406,7 +223,7 @@ const MetisModel = ({
   bucketName: string;
   update: (modelConfig: Model | undefined) => void;
 }) => {
-  const classes = useStyles();
+  const classes = useMetisFormStyles();
   const {scripts} = config;
   const [pageSize, setPageSize] = useState(5);
 
@@ -506,7 +323,7 @@ const MetisForm = ({
   job: Job | undefined;
   update: (config: Config) => void;
 }) => {
-  const classes = useStyles();
+  const classes = useMetisFormStyles();
 
   const {setSchema} = useContext(SchemaContext);
 

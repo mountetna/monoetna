@@ -43,6 +43,8 @@
   :host: https://magma.test
   :log_file: /dev/stdout
   :log_level: error
+  :hold_file: tmp/test.hold
+  :hold_interval: 10
   :hmac_keys:
     :magma: haggis
   :storage:

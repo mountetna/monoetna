@@ -184,7 +184,7 @@ class DockerIsolator(Isolator[Container]):
             "environment": environment,
             "volumes_from": volumes_from,
             "mounts": mounts,
-
+            "network_mode": 'host',
         }
 
         return self.docker_cli.containers.run(
