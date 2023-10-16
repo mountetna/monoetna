@@ -264,7 +264,7 @@ Committed to Magma: {i['commit']}
 
                 commit = config.params.get('commit', False)
                 with hook.magma() as magma:
-                    response = magma.update(updates[ config.config_id ])
+                    response = magma.update(updates[ config.config_id ], page_size=1000)
 
                 with hook.polyphemus() as polyphemus:
                     state = {}
