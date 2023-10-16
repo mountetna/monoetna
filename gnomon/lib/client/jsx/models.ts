@@ -1,4 +1,3 @@
-// TODO: make this a module instead?
 export interface TokenValue {
     localId: string
     name: string

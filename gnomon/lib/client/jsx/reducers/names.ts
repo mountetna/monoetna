@@ -4,7 +4,7 @@ import {
     ADD_CREATE_NAMES_WITH_GROUPS_WITH_TOKEN_VALUES,
     ADD_OR_REPLACE_CREATE_NAME_TOKEN_VALUE,
     DELETE_CREATE_NAME_TOKEN_VALUE,
-    SET_COUNTER_VALUE_FOR_CREATE_NAME,
+    SET_COUNTER_VALUE_FOR_CREATE_NAMES,
     DELETE_GROUPS_WITH_NAMES,
     DELETE_SELECTED_GROUPS_WITH_NAMES,
     SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA,
@@ -17,10 +17,10 @@ import {
     CLEAR_CREATE_NAME_GROUPS_FILTER,
     ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA,
     REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA,
-    REPLACE_VALUES_FROM_REPLACE_CRITERIA,
 } from '../actions/names';
 import { listToIdObject, listToIdGroupObject, defaultDict } from '../utils/object';
 import { difference, intersection } from '../utils/set'
+import { SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups } from '../utils/names'
 
 
 
@@ -35,6 +35,7 @@ interface CreateNameTokenValuesState {
     byLocalId: Record<string, CreateNameTokenValue>
     byCreateNameLocalId: Record<string, string[]>
     byTokenValueLocalId: Record<string, string[]>
+    byRuleTokenLocalId: Record<string, string[]>
 }
 
 
@@ -56,7 +57,7 @@ export interface NamesState {
 
 const initialState: NamesState = {
     createNames: { byLocalId: {}, byCreateNameGroupLocalId: {} },
-    createNameTokenValues: { byLocalId: {}, byCreateNameLocalId: {}, byTokenValueLocalId: {} },
+    createNameTokenValues: { byLocalId: {}, byCreateNameLocalId: {}, byTokenValueLocalId: {}, byRuleTokenLocalId: {} },
     createNameGroups: {
         byLocalId: {},
         searchLocalIds: new Set(),
@@ -77,26 +78,12 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
         case DELETE_SELECTED_GROUPS_WITH_NAMES:
             return deleteSelectedGroupsWithNames(state)
         case ADD_OR_REPLACE_CREATE_NAME_TOKEN_VALUE:
-            if (action.oldCreateNameTokenValue) {
-                state = deleteCreateNameTokenValues([action.oldCreateNameTokenValue.localId], state)
-            }
-            return addCreateNameTokenValues([action.newCreateNameTokenValue], state)
+            state = deleteCreateNameTokenValues(action.oldCreateNameTokenValueLocalIds, state)
+            return addCreateNameTokenValues(action.newCreateNameTokenValues, state)
         case DELETE_CREATE_NAME_TOKEN_VALUE:
             return deleteCreateNameTokenValues([action.createNameTokenValue.localId], state)
-        case SET_COUNTER_VALUE_FOR_CREATE_NAME:
-            return {
-                ...state,
-                createNames: {
-                    ...state.createNames,
-                    byLocalId: {
-                        ...state.createNames.byLocalId,
-                        [action.createNameLocalId]: {
-                            ...state.createNames.byLocalId[action.createNameLocalId],
-                            ruleCounterValue: action.ruleCounterValue,
-                        }
-                    }
-                },
-            }
+        case SET_COUNTER_VALUE_FOR_CREATE_NAMES:
+            return setRuleCounterValueForCreateNames(action.ruleCounterValuesByCreateNameLocalId, state)
         case ADD_CREATE_NAME_GROUPS_TO_SELECTION:
             return addGroupsToSelection(action.createNameGroupIds, state)
         case REMOVE_CREATE_NAME_GROUPS_FROM_SELECTION:
@@ -117,8 +104,6 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
             return addGroupsToReplace(action.createNameGroupLocalIds, state)
         case REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA:
             return removeGroupsFromReplace(action.createNameGroupLocalIds, state)
-        case REPLACE_VALUES_FROM_REPLACE_CRITERIA:
-            return replaceValuesFromReplaceCriteria(state)
         default: {
             return state;
         }
@@ -154,50 +139,6 @@ function addNamesWithGroupsAndTokensValues(
         },
         createNameTokenValues: addCreateNameTokenValues(createNameTokenValues, state).createNameTokenValues,
     }
-}
-
-
-export interface RuleSearchReplaceCriteria {
-    createNameTokenValueLocalIds: string[]
-    ruleCounterValue?: number
-}
-
-
-export interface SearchReplaceCriteria {
-    byRuleName: Record<string, RuleSearchReplaceCriteria>
-}
-
-
-function createSearchReplaceCriteriaFromGroups(state: NamesState, createNameGroupIds: Iterable<string>): SearchReplaceCriteria[] {
-    const criteriaList: SearchReplaceCriteria[] = []
-
-    for (const cngLocalId of createNameGroupIds) {
-
-        const createNameLocalIds: string[] = state.createNames.byCreateNameGroupLocalId[cngLocalId]
-        const searchCriteria: SearchReplaceCriteria = { byRuleName: {} }
-
-        createNameLocalIds.forEach(cnLocalId => {
-            const cn = state.createNames.byLocalId[cnLocalId]
-            const cntvLocalIds = (state.createNameTokenValues.byCreateNameLocalId[cnLocalId] || [])
-
-            searchCriteria.byRuleName[cn.ruleName] = {
-                createNameTokenValueLocalIds: cntvLocalIds,
-                ruleCounterValue: cn.ruleCounterValue,
-            }
-        })
-
-        criteriaList.push(searchCriteria)
-    }
-
-    return criteriaList
-}
-
-function createSearchReplaceCriteriaFromSearchGroups(state: NamesState): SearchReplaceCriteria[] {
-    return createSearchReplaceCriteriaFromGroups(state, state.createNameGroups.searchLocalIds)
-}
-
-function createSearchReplaceCriteriaFromReplaceGroups(state: NamesState): SearchReplaceCriteria[] {
-    return createSearchReplaceCriteriaFromGroups(state, state.createNameGroups.replaceLocalIds)
 }
 
 function deleteGroupsWithNames(createNameGroupIds: string[], state: NamesState): NamesState {
@@ -356,7 +297,7 @@ function getMatchedGroupIdsFromSearchCriteria(
 }
 
 function setGroupsSelectionFromSearchCriteria(state: NamesState): NamesState {
-    const searchCriteriaList = createSearchReplaceCriteriaFromSearchGroups(state)
+    const searchCriteriaList = createSearchReplaceCriteriaFromGroups(state, state.createNameGroups.searchLocalIds)
     state = deselectAllGroups(state)
 
     searchCriteriaList.forEach(searchCriteria => {
@@ -367,7 +308,7 @@ function setGroupsSelectionFromSearchCriteria(state: NamesState): NamesState {
 }
 
 function setGroupsFilterFromSearchCriteria(state: NamesState): NamesState {
-    const searchCriteriaList = createSearchReplaceCriteriaFromSearchGroups(state)
+    const searchCriteriaList = createSearchReplaceCriteriaFromGroups(state, state.createNameGroups.searchLocalIds)
     state = disableGroupFilter(state)
 
     searchCriteriaList.forEach(searchCriteria => {
@@ -417,12 +358,6 @@ function removeGroupsFromReplace(createNameGroupIds: string[], state: NamesState
     }
 }
 
-function replaceValuesFromReplaceCriteria(state: NamesState): NamesState {
-    const replaceCriteriaList = createSearchReplaceCriteriaFromReplaceGroups(state)
-
-    return state
-}
-
 function addGroupsToFilter(createNameGroupIds: string[], state: NamesState): NamesState {
     // also need to remove groups from selection if not in filter
     const newFilterIds = new Set([...state.createNameGroups.filterLocalIds, ...createNameGroupIds])
@@ -463,6 +398,7 @@ function disableGroupFilter(state: NamesState): NamesState {
 function addCreateNameTokenValues(createNameTokenValues: CreateNameTokenValue[], state: NamesState): NamesState {
     const newByCreateNameLocalId = { ...state.createNameTokenValues.byCreateNameLocalId }
     const newByTokenValueLocalId = { ...state.createNameTokenValues.byTokenValueLocalId }
+    const newByRuleTokenLocalId = { ...state.createNameTokenValues.byRuleTokenLocalId }
     const newByLocalId = { ...state.createNameTokenValues.byLocalId }
 
     createNameTokenValues.forEach(cntv => {
@@ -475,6 +411,10 @@ function addCreateNameTokenValues(createNameTokenValues: CreateNameTokenValue[],
             ...newByTokenValueLocalId[cntv.tokenValueLocalId] || [],
             cntv.localId
         ]
+        newByRuleTokenLocalId[cntv.ruleTokenLocalId] = [
+            ...newByRuleTokenLocalId[cntv.ruleTokenLocalId] || [],
+            cntv.localId
+        ]
     })
 
     return {
@@ -483,6 +423,7 @@ function addCreateNameTokenValues(createNameTokenValues: CreateNameTokenValue[],
             byLocalId: newByLocalId,
             byCreateNameLocalId: newByCreateNameLocalId,
             byTokenValueLocalId: newByTokenValueLocalId,
+            byRuleTokenLocalId: newByRuleTokenLocalId,
         }
     }
 }
@@ -490,6 +431,7 @@ function addCreateNameTokenValues(createNameTokenValues: CreateNameTokenValue[],
 function deleteCreateNameTokenValues(createNameTokenValueLocalIds: string[], state: NamesState): NamesState {
     const newByCreateNameLocalId = { ...state.createNameTokenValues.byCreateNameLocalId }
     const newByTokenValueLocalId = { ...state.createNameTokenValues.byTokenValueLocalId }
+    const newByRuleTokenLocalId = { ...state.createNameTokenValues.byRuleTokenLocalId }
     const newByLocalId = { ...state.createNameTokenValues.byLocalId }
 
     createNameTokenValueLocalIds.forEach(cntvLocalId => {
@@ -513,6 +455,14 @@ function deleteCreateNameTokenValues(createNameTokenValueLocalIds: string[], sta
                 delete newByTokenValueLocalId[cntv.tokenValueLocalId]
             }
         }
+        if (cntv.ruleTokenLocalId in newByRuleTokenLocalId) {
+            newByRuleTokenLocalId[cntv.ruleTokenLocalId] = newByRuleTokenLocalId[cntv.ruleTokenLocalId]
+                .filter(cntvLocalId => cntvLocalId != cntv.localId)
+
+            if (newByRuleTokenLocalId[cntv.ruleTokenLocalId].length == 0) {
+                delete newByRuleTokenLocalId[cntv.ruleTokenLocalId]
+            }
+        }
     })
 
     return {
@@ -521,6 +471,27 @@ function deleteCreateNameTokenValues(createNameTokenValueLocalIds: string[], sta
             byLocalId: newByLocalId,
             byCreateNameLocalId: newByCreateNameLocalId,
             byTokenValueLocalId: newByTokenValueLocalId,
+            byRuleTokenLocalId: newByRuleTokenLocalId,
         }
+    }
+}
+
+function setRuleCounterValueForCreateNames(ruleCounterValuesByCreateNameLocalId: Record<string, number | undefined>, state: NamesState): NamesState {
+    const newCreateNamesByLocalId = { ...state.createNames.byLocalId }
+
+    for (const [cnLocalId, ruleCounterValue] of Object.entries(ruleCounterValuesByCreateNameLocalId)) {
+
+        newCreateNamesByLocalId[cnLocalId] = {
+            ...newCreateNamesByLocalId[cnLocalId],
+            ruleCounterValue
+        }
+    }
+
+    return {
+        ...state,
+        createNames: {
+            ...state.createNames,
+            byLocalId: newCreateNamesByLocalId,
+        },
     }
 }

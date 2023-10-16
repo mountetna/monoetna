@@ -2,13 +2,15 @@ import { CreateName, CreateNameGroup, CreateNameTokenValue, RuleParent, RuleToke
 import { makeActionObject } from "./utils"
 import { createLocalId } from "../utils/models"
 import { defaultDict } from "../utils/object"
+import { NamesState } from "../reducers/names"
+import { createSearchReplaceCriteriaFromGroups } from "../utils/names"
 
 
 
 export const ADD_CREATE_NAMES_WITH_GROUPS_WITH_TOKEN_VALUES = "ADD_CREATE_NAMES_WITH_GROUPS_WITH_TOKEN_VALUES"
 export const ADD_OR_REPLACE_CREATE_NAME_TOKEN_VALUE = "ADD_OR_REPLACE_CREATE_NAME_TOKEN_VALUE"
 export const DELETE_CREATE_NAME_TOKEN_VALUE = "DELETE_CREATE_NAME_TOKEN_VALUE"
-export const SET_COUNTER_VALUE_FOR_CREATE_NAME = "SET_COUNTER_VALUE_FOR_CREATE_NAME"
+export const SET_COUNTER_VALUE_FOR_CREATE_NAMES = "SET_COUNTER_VALUE_FOR_CREATE_NAMES"
 export const ADD_CREATE_NAME_GROUPS_TO_SELECTION = "ADD_CREATE_NAME_GROUPS_TO_SELECTION"
 export const REMOVE_CREATE_NAME_GROUPS_FROM_SELECTION = "REMOVE_CREATE_NAME_GROUPS_FROM_SELECTION"
 export const CLEAR_CREATE_NAME_GROUPS_SELECTION = "CLEAR_CREATE_NAME_GROUPS_SELECTION"
@@ -21,7 +23,6 @@ export const SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA = "SET_CREATE
 export const SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA = "SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA"
 export const ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA = "ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA"
 export const REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA = "REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA"
-export const REPLACE_VALUES_FROM_REPLACE_CRITERIA = "REPLACE_VALUES_FROM_REPLACE_CRITERIA"
 
 
 // must add CreateNameTokenValues per RuleToken if only one TokenValue per Token
@@ -245,16 +246,16 @@ export function iterateOnCreateNameGroupsByRule(
     return addNamesWithGroupsWithTokenValues(newCreateNames, newCreateNameGroups, newCreateNameTokenValues)
 }
 
-export function addOrReplaceCreateNameTokenValue(newCreateNameTokenValue: CreateNameTokenValue, oldCreateNameTokenValue?: CreateNameTokenValue) {
-    return makeActionObject(ADD_OR_REPLACE_CREATE_NAME_TOKEN_VALUE, { newCreateNameTokenValue, oldCreateNameTokenValue })
+export function addOrReplaceCreateNameTokenValues(newCreateNameTokenValues: CreateNameTokenValue[], oldCreateNameTokenValueLocalIds: string[]) {
+    return makeActionObject(ADD_OR_REPLACE_CREATE_NAME_TOKEN_VALUE, { newCreateNameTokenValues, oldCreateNameTokenValueLocalIds })
 }
 
 export function deleteCreateNameTokenValue(createNameTokenValue: CreateNameTokenValue) {
     return makeActionObject(DELETE_CREATE_NAME_TOKEN_VALUE, { createNameTokenValue })
 }
 
-export function setCreateNameRuleCounterValue(createNameLocalId: string, ruleCounterValue: number | undefined) {
-    return makeActionObject(SET_COUNTER_VALUE_FOR_CREATE_NAME, { createNameLocalId, ruleCounterValue })
+export function setCreateNameRuleCounterValues(ruleCounterValuesByCreateNameLocalId: Record<string, number | undefined>) {
+    return makeActionObject(SET_COUNTER_VALUE_FOR_CREATE_NAMES, { ruleCounterValuesByCreateNameLocalId })
 }
 
 export function addCreateNameGroupsToSelection(createNameGroupIds: string[]) {
@@ -305,17 +306,72 @@ export function removeCreateNameGroupsFromReplaceCriteria(createNameGroupLocalId
     return makeActionObject(REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA, { createNameGroupLocalIds })
 }
 
-export function replaceValuesFromReplaceCriteria() {
-    return makeActionObject(REPLACE_VALUES_FROM_REPLACE_CRITERIA, {})
+export function addOrReplaceCreateNameTokenValuesFromReplaceCriteria(state: NamesState) {
+    // TODO: support multiple CreateNameGroups for criteria?
+    const replaceCriteria = createSearchReplaceCriteriaFromGroups(
+        state, state.createNameGroups.replaceLocalIds
+    )[0].byRuleName
+
+    const newCntvs: CreateNameTokenValue[] = []
+    const oldCntvLocalIds: string[] = []
+    const newCounterValuesByCnLocalId: Record<string, number | undefined> = {}
+
+    // create or replace TokenValues
+    for (const selectionGroupId of state.createNameGroups.selectionLocalIds) {
+        const selectionCnLocalIds = state.createNames.byCreateNameGroupLocalId[selectionGroupId]
+
+        for (const selectionCnLocalId of selectionCnLocalIds) {
+            const selectionCn = state.createNames.byLocalId[selectionCnLocalId]
+
+            const selectionCntvs = (state.createNameTokenValues.byCreateNameLocalId[selectionCnLocalId] || [])
+                .map(cntvLocalId => state.createNameTokenValues.byLocalId[cntvLocalId])
+            const replaceCntvs = (replaceCriteria[selectionCn.ruleName]?.createNameTokenValueLocalIds || [])
+                .map(cntvLocalId => state.createNameTokenValues.byLocalId[cntvLocalId])
+
+            for (const replaceCntv of replaceCntvs) {
+
+                const oldCntv: CreateNameTokenValue | undefined = selectionCntvs.find(cntv => {
+                    return cntv.ruleTokenLocalId == replaceCntv.ruleTokenLocalId
+                })
+
+                if (oldCntv?.tokenValueLocalId == replaceCntv.tokenValueLocalId) {
+                    continue
+                }
+
+                newCntvs.push({
+                    localId: createLocalId(),
+                    tokenValueLocalId: replaceCntv.tokenValueLocalId,
+                    createNameLocalId: selectionCn.localId,
+                    ruleTokenLocalId: replaceCntv.ruleTokenLocalId,
+                })
+
+                if (oldCntv) {
+                    oldCntvLocalIds.push(oldCntv.localId)
+                }
+            }
+
+            // update counterValue
+            const newCounterValue = replaceCriteria[selectionCn.ruleName]?.ruleCounterValue
+
+            if (newCounterValue != undefined && selectionCn.ruleCounterValue != newCounterValue) {
+                newCounterValuesByCnLocalId[selectionCn.localId] = newCounterValue
+            }
+        }
+    }
+
+    return [
+        addOrReplaceCreateNameTokenValues(newCntvs, oldCntvLocalIds),
+        setCreateNameRuleCounterValues(newCounterValuesByCnLocalId),
+    ]
 }
 
 
 export type ACTION_TYPE =
     | ReturnType<typeof addNamesWithGroupsWithTokenValues>
     | ReturnType<typeof duplicateCreateNameGroups>
-    | ReturnType<typeof addOrReplaceCreateNameTokenValue>
+    | ReturnType<typeof addOrReplaceCreateNameTokenValues>
     | ReturnType<typeof deleteCreateNameTokenValue>
-    | ReturnType<typeof setCreateNameRuleCounterValue>
+    | ReturnType<typeof setCreateNameRuleCounterValues>
     | ReturnType<typeof addCreateNameGroupsToSelection>
     | ReturnType<typeof removeCreateNameGroupsFromSelection>
     | ReturnType<typeof clearCreateNameGroupsSelection>
@@ -328,4 +384,3 @@ export type ACTION_TYPE =
     | ReturnType<typeof removeCreateNameGroupsFromSearchCriteria>
     | ReturnType<typeof addCreateNameGroupsToReplaceCriteria>
     | ReturnType<typeof removeCreateNameGroupsFromReplaceCriteria>
-    | ReturnType<typeof replaceValuesFromReplaceCriteria>

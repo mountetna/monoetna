@@ -10,7 +10,7 @@ import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined"
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken, Token, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from "../../../models";
 import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRulesNamesHierarchicalListByPrimaryRuleName } from "../../../selectors/rules";
 import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameLocalIdsByGroupId, selectSelectedCreateNameGroupIds } from "../../../selectors/names";
-import { addOrReplaceCreateNameTokenValue, setCreateNameRuleCounterValue, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from "../../../actions/names";
+import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from "../../../actions/names";
 import { TokenSelect } from "./select";
 import RuleCounterField from "./rule-counter-input";
 import { createLocalId } from "../../../utils/models";
@@ -39,7 +39,6 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue }: { c
 
     const tokenValuesByLocalId: Record<string, TokenValue> = useSelector(selectTokenValuesByLocalId)
 
-    // move this to <TokenSelect>?
     const setTokenValue = (value: TokenValue, ruleToken: RuleToken) => {
         const createNameTokenValue: CreateNameTokenValue = {
             localId: createLocalId(),
@@ -55,11 +54,11 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue }: { c
         const oldCreateNameTokenValue = createNameTokenValues.find(
             cntv => cntv.ruleTokenLocalId == ruleToken.localId
         )
-        dispatch(addOrReplaceCreateNameTokenValue(createNameTokenValue, oldCreateNameTokenValue))
+        dispatch(addOrReplaceCreateNameTokenValues([createNameTokenValue], oldCreateNameTokenValue ? [oldCreateNameTokenValue.localId] : []))
     }
 
     const setRuleCounterValue = (value?: number) => {
-        dispatch(setCreateNameRuleCounterValue(createName.localId, value))
+        dispatch(setCreateNameRuleCounterValues({ [createName.localId]: value }))
     }
 
     return (

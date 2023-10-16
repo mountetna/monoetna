@@ -11,6 +11,8 @@ interface State {
 }
 
 
+export const selectNamesState = (state: State): NamesState => state.names
+
 export const selectCreateNameGroupsByLocalId = (state: State): Record<string, CreateNameGroup> => state.names.createNameGroups.byLocalId
 
 export const selectCreateNameGroupWithLocalId = (localId: string) => (state: State): CreateNameGroup => {

@@ -21,10 +21,11 @@ import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, Ru
 import { RuleSelect } from "../names-create/name-composer/select";
 import CreateNameGroupComposer from "../names-create/name-composer/name-composer";
 import { inputEventValueToNumber } from "../../utils/input";
-import { selectCreateNameGroupsByLocalId, selectCreateNameLocalIdsByGroupId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNamesByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names"
+import { selectCreateNameGroupsByLocalId, selectCreateNameLocalIdsByGroupId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNamesByLocalId, selectNamesState, selectSelectedCreateNameGroupIds } from "../../selectors/names"
 import { selectCommonRulesFromSelection, selectReplaceRuleFromSelection } from "../../selectors/global";
-import { addCreateNameGroupsToReplaceCriteria, createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule, replaceValuesFromReplaceCriteria } from "../../actions/names";
+import { addCreateNameGroupsToReplaceCriteria, createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule, addOrReplaceCreateNameTokenValuesFromReplaceCriteria } from "../../actions/names";
 import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
+import { NamesState } from "../../reducers/names";
 
 
 
@@ -44,7 +45,7 @@ const CopyCreateNameGroupRadio = ({ radioValue, label, quantityValue, onChangeQu
     return (
         <FormGroup className={"dsadsa"}>
             <FormControl>
-                <Radio value={radioValue} />
+                <Radio value={radioValue} disableRipple />
                 <FormLabel>{label}</FormLabel>
             </FormControl>
             <FormControl>
@@ -90,7 +91,7 @@ const IterateRuleRadio = ({ radioValue, label, rules, ruleValue, onChangeRule, b
     return (
         <FormGroup>
             <FormControl>
-                <Radio value={radioValue} />
+                <Radio value={radioValue} disableRipple />
                 <FormLabel>{label}</FormLabel>
             </FormControl>
             <FormControl>
@@ -139,7 +140,7 @@ const ReplaceValuesForRuleRadio = ({ radioValue, label, createNameGroup }: {
     return (
         <FormGroup>
             <FormControl>
-                <Radio value={radioValue} />
+                <Radio value={radioValue} disableRipple />
                 <FormLabel>{label}</FormLabel>
             </FormControl>
             {
@@ -192,6 +193,7 @@ const CopyAndReplaceButton = () => {
     const ruleTokenLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleTokenLocalIdsByRuleName)
     const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
     const tokenValueLocalIdsByTokenName: Record<string, string[]> = useSelector(selectTokenValueLocalIdsByTokenName)
+    const namesState: NamesState = useSelector(selectNamesState)
 
     // manage CreateNameGroup for <ReplaceValuesForRuleRadio />
     useEffect(() => {
@@ -271,7 +273,13 @@ const CopyAndReplaceButton = () => {
                 ))
                 break
             case "replace":
-                dispatch(replaceValuesFromReplaceCriteria())
+                const actionPayloads = addOrReplaceCreateNameTokenValuesFromReplaceCriteria(namesState)
+
+                batch(() => {
+                    for (const actionPayload of actionPayloads) {
+                        dispatch(actionPayload)
+                    }
+                })
                 break
             default:
                 console.error(`Unsupported radio value: ${radioValue}`)
