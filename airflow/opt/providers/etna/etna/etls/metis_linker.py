@@ -71,7 +71,7 @@ class MetisLoaderConfig(EtlConfigResponse):
         isTable=model['isTable']
         template=model['template']
         model_attributes = list(template.attributes.keys())
-        id = 'temp' if isTable else template.identifier
+        id = template.identifier
 
         column_map = script['column_map']
         attributes = list(column_map.keys())
@@ -113,13 +113,13 @@ class MetisLoaderConfig(EtlConfigResponse):
             data = data.rename(columns={v: k for k,v in column_map.items()})[attributes]
             # Determine Updates
             if isTable:
-                data['__temp__']=['temp-id-' + str(temp) for temp in data.index]
+                data['__temp__']=['::temp-id-' + str(temp) for temp in data.index]
                 data = data.set_index('__temp__', drop=True)
                 if script['blank_table']:
                     for parent_name in set(list(data[template.parent])):
                         if not self.get_identifier(template.parent, parent_name):
                             continue
-                        update.update_record(template.parent, parent_name, {model_name: ['::'+id for id in data[data[template.parent]==parent_name].index]})
+                        update.update_record(template.parent, parent_name, {model_name: list(data[data[template.parent]==parent_name].index)})
                 for name, attributes in data.T.to_dict().items():
                     update.update_record(model_name, name, {k: v for k,v in attributes.items() if v is not None})
             else:
@@ -247,9 +247,8 @@ def MetisLinker():
             project_models[config.project_name].extend(list(config.config.get("models",{}).keys()))
         with hook.magma() as magma:
             return {
-                project: {model: get_template(project, model, magma)}
+                project: {model: get_template(project, model, magma) for model in list(set(project_models[project]))}
                 for project in project_names
-                for model in list(set(project_models[project]))
             }
 
     @task
