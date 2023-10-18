@@ -2,13 +2,10 @@ import { createSelector } from 'reselect'
 import * as _ from "lodash"
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue } from "../models";
-import { NamesState } from "../reducers/names"
+import { CompleteCreateNamesByParentAndValues, NamesState } from "../reducers/names"
 import { defaultDict } from "../utils/object"
+import { State } from '../store';
 
-
-interface State {
-    names: NamesState
-}
 
 
 export const selectNamesState = (state: State): NamesState => state.names
@@ -26,8 +23,8 @@ export const selectCreateNameGroupsWithLocalIds = (localIds: string[]) => (state
 export const selectCreateNameGroupIdsByPrimaryRule: (state: State, omitSearchAndReplaceIds?: boolean, respectFilter?: boolean) => Record<string, string[]> = createSelector(
     [
         (state: State) => state.names,
-        (state, omitSearchAndReplaceIds=true) => omitSearchAndReplaceIds,
-        (state, omitSearchAndReplaceIds, respectFilter=true) => respectFilter,
+        (state, omitSearchAndReplaceIds = true) => omitSearchAndReplaceIds,
+        (state, omitSearchAndReplaceIds, respectFilter = true) => respectFilter,
     ],
     (names: NamesState, omitSearchAndReplaceIds: boolean, respectFilter: boolean): Record<string, string[]> => {
 
@@ -72,23 +69,6 @@ export const selectCreateNameLocalIdsByGroupId = (state: State): Record<string, 
 
 export const selectCreateNameLocalIdsWithGroupId = (groupId: string) => (state: State): string[] => state.names.createNames.byCreateNameGroupLocalId[groupId]
 
-export const selectRuleCounterValuesbyRuleName: (state: State) => Record<string, Record<string, number>> = createSelector(
-    [(state: State) => state.names],
-    (names: NamesState): Record<string, Record<string, number>> => {
-        const counterValuesByRuleName = defaultDict<string, Record<string, number>>(
-            () => defaultDict<string, number>(() => 0)
-        )
-
-        Object.values(names.createNames.byLocalId).forEach((createName) => {
-            if (createName.ruleCounterValue != undefined) {
-                ++counterValuesByRuleName[createName.ruleName][createName.ruleCounterValue]
-            }
-        })
-
-        return counterValuesByRuleName
-    }
-)
-
 export const selectSelectedCreateNameGroupIds = (state: State): Set<string> => state.names.createNameGroups.selectionLocalIds
 
 export const selectSearchCreateNameGroupIds = (state: State): Set<string> => state.names.createNameGroups.searchLocalIds
@@ -101,4 +81,71 @@ export const selectCreateNameTokenValueLocalIdsByCreateNameLocalId = (state: Sta
 
 export const selectCreateNameTokenValueLocalIdsWithCreateNameLocalId = (createNameLocalId: string) => (state: State): string[] => {
     return state.names.createNameTokenValues.byCreateNameLocalId[createNameLocalId]
+}
+
+export const selectCompleteCreateNamesByParentAndValues = (state: State): CompleteCreateNamesByParentAndValues => {
+    return state.names.completeCreateNames.byParentLocalIdbyRenderedTokensByCounterValue
+}
+
+export const selectRenderedCompleteCreateNameWithLocalId: (state: State, completeCreateNameLocalId: string) => string = createSelector(
+    [
+        (state: State) => state.names,
+        (state, completeCreateNameLocalId) => completeCreateNameLocalId,
+    ],
+    (names: NamesState, completeCreateNameLocalId: string): string => {
+
+        let renderedValues: string[] = []
+        const localIdsToProcess: string[] = [completeCreateNameLocalId]
+
+        while (localIdsToProcess.length) {
+            const completeCnLocalId = localIdsToProcess.pop()
+            if (!completeCnLocalId) {
+                break
+            }
+
+            const completeCn = names.completeCreateNames.byLocalId[completeCnLocalId]
+
+            renderedValues.unshift(completeCn.value + completeCn.counterValue || "")
+
+            // grab parents to process
+            // maybe recursive call to allow caching?
+            if (completeCn.localId in names.completeCreateNameParents.byChildLocalId) {
+
+                const parentCompleteCnLocalIds = [...names.completeCreateNameParents.byChildLocalId[completeCn.localId]]
+                    .map(parentLocalId => {
+                        return names.completeCreateNameParents.byLocalId[parentLocalId].parentCompleteCreateNameLocalId
+                    })
+
+                // TODO: properly handle multiple parents
+                // (will be ok with one for now)
+                localIdsToProcess.unshift(...parentCompleteCnLocalIds)
+            }
+        }
+
+        return renderedValues.reduce((prev, curr) => prev + curr, "")
+    }
+)
+
+export const selectRenderedCompleteCreateNamesByLocalId: (state: State) => Record<string, string> = createSelector(
+    [
+        (state: State) => state.names,
+    ],
+    (names: NamesState): Record<string, string> => {
+
+        const renderedNamesByLocalId: Record<string, string> = {}
+
+        // TODO:
+        // go through all CCNs
+        // use selectRenderedCompleteCreateNameWithLocalId as cache
+
+        return renderedNamesByLocalId
+    }
+)
+
+export const selectCompleteCreateNameParentsByChildLocalId = (state: State): Record<string, string> => {
+    return state.names.completeCreateNameParents.byChildLocalId
+}
+
+export const selectCompleteCreateNamesByCreateNameLocalId = (state: State): Record<string, string> => {
+    return state.names.completeCreateNames.byCreateNameLocalId
 }

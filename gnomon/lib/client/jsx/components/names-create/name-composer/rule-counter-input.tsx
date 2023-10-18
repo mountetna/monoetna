@@ -1,11 +1,17 @@
 import React from "react";
 import { makeStyles } from '@material-ui/core/styles';
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import ButtonBase from "@material-ui/core/ButtonBase";
 import InputBase from "@material-ui/core/InputBase";
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
-import { selectRuleCounterValuesbyRuleName } from "../../../selectors/names";
+import * as _ from "lodash"
+
+import { CompleteCreateNamesByParentAndValues } from "../../../reducers/names";
+import { selectCompleteCreateNamesByParentAndValues, selectRenderedCompleteCreateNameWithLocalId } from "../../../selectors/names";
+import { fetchNextCounterValueFromMagma } from "../../../utils/names";
+import { selectRuleParentLocalIdsByRuleName } from "../../../selectors/rules";
+import { UNSET_VALUE } from "../../../models";
 
 
 
@@ -28,22 +34,72 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const RuleCounterField = ({ ruleName, value, handleSetCounterValue }:
-    { ruleName: string, value?: number, handleSetCounterValue: (value?: number) => void }) => {
+const RuleCounterField = ({
+    value,
+    renderedTokensPrefix,
+    completeCreateNameParentLocalId,
+    projectName,
+    ruleName,
+    handleSetCounterValue
+}: {
+    value: number | undefined,
+    renderedTokensPrefix: string | undefined,
+    completeCreateNameParentLocalId: string | undefined,
+    projectName: string,
+    ruleName: string,
+    handleSetCounterValue: (value?: number) => void,
+}) => {
 
     const classes = useStyles(value ? String(value).length : 1)
-    const counterValuesByRuleName: Record<string, Record<string, number>> = useSelector(selectRuleCounterValuesbyRuleName)
-    const ruleNameCounterValueCounts = counterValuesByRuleName[ruleName]
+    const completeCreateNamesByParentAndValues: CompleteCreateNamesByParentAndValues = useSelector(selectCompleteCreateNamesByParentAndValues)
+    const needsParentCompletedCreateName: boolean = useSelector(selectRuleParentLocalIdsByRuleName)[ruleName] != undefined
+
+    let fullRenderedTokensPrefix: string | undefined = undefined
+    if (
+        renderedTokensPrefix != undefined
+        && completeCreateNameParentLocalId != undefined
+    ) {
+        fullRenderedTokensPrefix = useSelector(
+            state => selectRenderedCompleteCreateNameWithLocalId(state, completeCreateNameParentLocalId)
+        )
+        fullRenderedTokensPrefix += renderedTokensPrefix
+
+    } else if (!needsParentCompletedCreateName) {
+        fullRenderedTokensPrefix = renderedTokensPrefix
+    }
+
     const hasValue = value != undefined
-    const counterValueCollision = false
+    let counterValueCollision = false  // TODO
 
-
-    // TODO: proper collision detection based on token values
-    // ie: VAL1—not just RULE1
     const handleClickAutoIncrement = () => {
-        const ruleNameCounterValues = Object.keys(ruleNameCounterValueCounts).map((key) => Number(key))
-        const maxValue = ruleNameCounterValues.length ? Math.max(...ruleNameCounterValues) : -1
-        handleSetCounterValue(maxValue + 1)
+        if (!(
+            renderedTokensPrefix != undefined
+            && (
+                completeCreateNameParentLocalId != undefined
+                || !needsParentCompletedCreateName
+            )
+            && fullRenderedTokensPrefix != undefined
+        )) { return }
+
+        const ccnpLocalId: string = completeCreateNameParentLocalId != undefined ? completeCreateNameParentLocalId : UNSET_VALUE
+
+        const localMaxValue = ccnpLocalId in completeCreateNamesByParentAndValues
+            ? Math.max(
+                ...Object.keys(completeCreateNamesByParentAndValues[ccnpLocalId])
+                    .map(el => {
+                        const asNum = Number.parseInt(el)
+                        return Number.isNaN(asNum) ? -1 : asNum
+                    })
+            )
+            : -1
+
+        fetchNextCounterValueFromMagma(projectName, ruleName, fullRenderedTokensPrefix)
+            .then(remoteMaxValue => {
+                handleSetCounterValue(Math.max(localMaxValue, remoteMaxValue) + 1)
+            })
+            .catch(err => {
+                console.error(`Error auto-incrementing counterValue: ${err}`)
+            })
     }
 
     const handleChangeInput = (event: React.ChangeEvent) => {

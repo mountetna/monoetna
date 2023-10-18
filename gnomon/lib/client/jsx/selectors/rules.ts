@@ -2,11 +2,8 @@ import { createSelector } from 'reselect'
 
 import { Rule, RuleParent, RuleToken, Token, TokenValue } from "../models";
 import { RulesState } from '../reducers/rules';
+import { State } from '../store';
 
-
-interface State {
-    rules: RulesState
-}
 
 
 export const selectRulesByName = (state: State): Record<string, Rule> => state.rules.rules

@@ -1,19 +1,22 @@
 import React from "react";
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles';
 import FormGroup from '@material-ui/core/FormGroup';
 import ButtonBase from "@material-ui/core/ButtonBase";
 import Checkbox from "@material-ui/core/Checkbox";
 import FileCopyOutlinedIcon from '@material-ui/icons/FileCopyOutlined';
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import * as _ from "lodash"
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken, Token, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from "../../../models";
 import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRulesNamesHierarchicalListByPrimaryRuleName } from "../../../selectors/rules";
-import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameLocalIdsByGroupId, selectSelectedCreateNameGroupIds } from "../../../selectors/names";
+import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameLocalIdsByGroupId, selectSelectedCreateNameGroupIds, selectCompleteCreateNameParentsByChildLocalId, selectCompleteCreateNamesByCreateNameLocalId } from "../../../selectors/names";
 import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from "../../../actions/names";
+import { selectPathParts } from "../../../selectors/location"
 import { TokenSelect } from "./select";
 import RuleCounterField from "./rule-counter-input";
 import { createLocalId } from "../../../utils/models";
+import { useDispatch } from "../../../utils/redux";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -23,21 +26,43 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue }: { createName: CreateName, rule: Rule, includeUnsetAsValue: boolean }) => {
+const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, completedCreateNameParentLocalId }: {
+    createName: CreateName,
+    rule: Rule,
+    includeUnsetAsValue: boolean,
+    completedCreateNameParentLocalId: string | undefined,
+}) => {
     const classes = useStyles()
     const dispatch = useDispatch()
 
+    const projectName: string = useSelector(selectPathParts)[0]
     const tokens: Record<string, Token> = useSelector(selectTokens)
 
     const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
-    const ruleTokens: RuleToken[] = useSelector(selectRuleTokenLocalIdsWithRuleName(rule.name))
+    let sortedRuleTokens: RuleToken[] = useSelector(selectRuleTokenLocalIdsWithRuleName(rule.name))
         .map(rtLocalId => ruleTokensByLocalId[rtLocalId])
+
+    // copying array bc sort modifies in place
+    sortedRuleTokens = [...sortedRuleTokens].sort(rt => rt.ord)
 
     const createNameTokenValuesByLocalId: Record<string, CreateNameTokenValue> = useSelector(selectCreateNameTokenValuesByLocalId)
     const createNameTokenValues: CreateNameTokenValue[] = (useSelector(selectCreateNameTokenValueLocalIdsWithCreateNameLocalId(createName.localId)) || [])
         .map(cntvLocalId => createNameTokenValuesByLocalId[cntvLocalId])
 
     const tokenValuesByLocalId: Record<string, TokenValue> = useSelector(selectTokenValuesByLocalId)
+
+    const sortedTokenValues: (TokenValue | undefined)[] = sortedRuleTokens.map(ruleToken => {
+        const createNameTokenValue = createNameTokenValues.find(
+            cntv => cntv.ruleTokenLocalId == ruleToken.localId
+        )
+        return createNameTokenValue ?
+            tokenValuesByLocalId[createNameTokenValue.tokenValueLocalId] : undefined
+    })
+
+    const renderedTokens: string | undefined = _.every(sortedTokenValues, tv => tv != undefined)
+        ? sortedTokenValues.map(tv => tv.name).reduce((prev, curr) => prev + curr, "")
+        : undefined
+
 
     const setTokenValue = (value: TokenValue, ruleToken: RuleToken) => {
         const createNameTokenValue: CreateNameTokenValue = {
@@ -65,31 +90,26 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue }: { c
         // <span className="create-name-elements-editor">
         <FormGroup row className={classes.createNameElementsEditor}>
             {
-                // copying array bc sort modifies in place
-                [...ruleTokens].sort(rt => rt.ord).map(ruleToken => {
-                    const createNameTokenValue = createNameTokenValues.find(
-                        cntv => cntv.ruleTokenLocalId == ruleToken.localId
-                    )
-                    const currentValue = createNameTokenValue ?
-                        tokenValuesByLocalId[createNameTokenValue.tokenValueLocalId] : undefined
+                sortedRuleTokens.map((ruleToken, idx) =>
 
-                    return (
-                        <React.Fragment key={ruleToken.localId}>
-                            <TokenSelect
-                                token={tokens[ruleToken.tokenName]}
-                                value={currentValue}
-                                onSetTokenValue={(value: TokenValue) => setTokenValue(value, ruleToken)}
-                                includeUnsetAsValue={includeUnsetAsValue}
-                            ></TokenSelect>
-                        </React.Fragment>
-                    )
-                })
+                    <React.Fragment key={ruleToken.localId}>
+                        <TokenSelect
+                            token={tokens[ruleToken.tokenName]}
+                            value={sortedTokenValues[idx]}
+                            onSetTokenValue={value => setTokenValue(value, ruleToken)}
+                            includeUnsetAsValue={includeUnsetAsValue}
+                        ></TokenSelect>
+                    </React.Fragment>
+                )
             }
             {
                 rule.hasCounter &&
                 <RuleCounterField
-                    ruleName={rule.name}
                     value={createName.ruleCounterValue}
+                    renderedTokensPrefix={renderedTokens}
+                    completeCreateNameParentLocalId={completedCreateNameParentLocalId}
+                    projectName={projectName}
+                    ruleName={rule.name}
                     handleSetCounterValue={setRuleCounterValue}
                 />
             }
@@ -114,6 +134,8 @@ const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includ
     const allRules: Record<string, Rule> = useSelector(selectRulesByName)
     const orderedRuleNames: string[] = useSelector(selectRulesNamesHierarchicalListByPrimaryRuleName)[primaryCreateName.ruleName]
     const selectedCreateNameGroupsIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
+    const completeCreateNameLocalIdsByCreateNameLocalId: Record<string, string> = useSelector(selectCompleteCreateNamesByCreateNameLocalId)
+    const completeCreateNameParentsByChildLocalId: Record<string, string> = useSelector(selectCompleteCreateNameParentsByChildLocalId)
 
     const handleClickSelect = (event: React.ChangeEvent) => {
         if (event.target.checked) {
@@ -176,11 +198,17 @@ const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includ
                     }
                     const rule = allRules[ruleName]
 
+                    const completeCreateName: string | undefined = completeCreateNameLocalIdsByCreateNameLocalId[createNameLocalId]
+                    const completedCreateNameParentLocalId = completeCreateName
+                        ? completeCreateNameParentsByChildLocalId[completeCreateName]
+                        : undefined
+
                     return (
                         <React.Fragment key={rule.name}>
                             <CreateNameElementsEditor
                                 createName={createNamesByLocalId[createNameLocalId]}
                                 rule={rule}
+                                completedCreateNameParentLocalId={completedCreateNameParentLocalId}
                                 includeUnsetAsValue={includeUnsetAsValue}
                             />
                         </React.Fragment>

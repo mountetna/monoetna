@@ -47,11 +47,25 @@ export interface RulesState {
 
 const initialState: RulesState = {
     rules: {},
-    ruleParents: { byLocalId: {}, byRuleName: {}, byParentRuleName: {} },
+    ruleParents: {
+        byLocalId: {},
+        byRuleName: {},
+        byParentRuleName: {}
+    },
     tokens: {},
-    ruleTokens: { byLocalId: {}, byTokenName: {}, byRuleName: {} },
-    tokenValues: { byLocalId: { UNSET: UNSET_TOKEN_VALUE }, byTokenName: { UNSET: [UNSET_TOKEN_VALUE.localId] } },
-    synonyms: { byValue: {}, byTokenName: {} },
+    ruleTokens: {
+        byLocalId: {},
+        byTokenName: {},
+        byRuleName: {}
+    },
+    tokenValues: {
+        byLocalId: { UNSET: UNSET_TOKEN_VALUE },
+        byTokenName: { UNSET: [UNSET_TOKEN_VALUE.localId] }
+    },
+    synonyms: {
+        byValue: {},
+        byTokenName: {}
+    },
 }
 
 

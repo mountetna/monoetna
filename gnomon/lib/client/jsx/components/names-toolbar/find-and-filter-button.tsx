@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { useSelector, useDispatch, batch } from 'react-redux'
+import { useSelector, batch } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
@@ -20,6 +20,7 @@ import { selectVisibleRules } from "../../selectors/global";
 import { addCreateNameGroupsToSearchCriteria, clearCreateNameGroupsFilter, clearCreateNameGroupsSelection, createNamesWithGroupForRule, deleteGroupsWithNames, setCreateNameGroupsFilterFromSearchCriteria, setCreateNameGroupsSelectionFromSearchCriteria } from "../../actions/names";
 import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
 import CreateNameGroupComposer from "../names-create/name-composer/name-composer";
+import { useDispatch } from "../../utils/redux";
 
 
 

@@ -1,8 +1,8 @@
-import { CreateName, CreateNameGroup, CreateNameTokenValue, TokenValue } from '../models';
+import { CompleteCreateName, CompleteCreateNameParent, CreateName, CreateNameGroup, CreateNameTokenValue, UNSET_VALUE } from '../models';
 import {
     ACTION_TYPE,
     ADD_CREATE_NAMES_WITH_GROUPS_WITH_TOKEN_VALUES,
-    ADD_OR_REPLACE_CREATE_NAME_TOKEN_VALUE,
+    ADD_AND_REMOVE_CREATE_NAME_TOKEN_VALUES,
     DELETE_CREATE_NAME_TOKEN_VALUE,
     SET_COUNTER_VALUE_FOR_CREATE_NAMES,
     DELETE_GROUPS_WITH_NAMES,
@@ -31,6 +31,53 @@ interface CreateNamesState {
 }
 
 
+/*
+    Example byRenderedTokensByParentLocalIdByCounterValue
+    - parent will be UNSET_VALUE if no parent
+    - counterValue will be UNSET_VALUE if no counterValue on Rule
+    { 
+        [UNSET_VALUE]: {
+            PROJECT: {
+                [UNSET_VALUE]: localId-0,
+            }
+        },
+        ccnp-localId-5: {
+            HS: {
+                1: localId-1,
+                2: localId-2,
+            },
+        },
+        ccnp-localId-6: {
+            DNA: {
+                0: localId-4,
+            }
+        },
+    }
+*/
+export type CompleteCreateNamesByParentAndValues = Record<
+    string | typeof UNSET_VALUE, Record<
+        string, Record<
+            number | typeof UNSET_VALUE, string
+        >
+    >
+>
+
+
+interface CompleteCreateNames {
+    byLocalId: Record<string, CompleteCreateName>
+    byLocalIdToCreateNameLocalIds: Record<string, Set<string>>
+    byCreateNameLocalId: Record<string, string>
+    byParentLocalIdbyRenderedTokensByCounterValue: CompleteCreateNamesByParentAndValues
+}
+
+
+interface CompleteCreateNameParents {
+    byLocalId: Record<string, CompleteCreateNameParent>
+    byParentLocalId: Record<string, Set<string>>
+    byChildLocalId: Record<string, string>
+}
+
+
 interface CreateNameTokenValuesState {
     byLocalId: Record<string, CreateNameTokenValue>
     byCreateNameLocalId: Record<string, string[]>
@@ -51,20 +98,41 @@ interface CreateNameGroupsState {
 
 export interface NamesState {
     createNames: CreateNamesState
+    completeCreateNames: CompleteCreateNames
+    completeCreateNameParents: CompleteCreateNameParents
     createNameTokenValues: CreateNameTokenValuesState
     createNameGroups: CreateNameGroupsState
 }
 
 const initialState: NamesState = {
-    createNames: { byLocalId: {}, byCreateNameGroupLocalId: {} },
-    createNameTokenValues: { byLocalId: {}, byCreateNameLocalId: {}, byTokenValueLocalId: {}, byRuleTokenLocalId: {} },
+    createNames: {
+        byLocalId: {},
+        byCreateNameGroupLocalId: {},
+    },
+    completeCreateNames: {
+        byLocalId: {},
+        byLocalIdToCreateNameLocalIds: {},
+        byCreateNameLocalId: {},
+        byParentLocalIdbyRenderedTokensByCounterValue: {},
+    },
+    completeCreateNameParents: {
+        byLocalId: {},
+        byParentLocalId: {},
+        byChildLocalId: {},
+    },
+    createNameTokenValues: {
+        byLocalId: {},
+        byCreateNameLocalId: {},
+        byTokenValueLocalId: {},
+        byRuleTokenLocalId: {},
+    },
     createNameGroups: {
         byLocalId: {},
         searchLocalIds: new Set(),
         replaceLocalIds: new Set(),
         selectionLocalIds: new Set(),
         filterLocalIds: new Set(),
-        filterEnabled: false
+        filterEnabled: false,
     },
 }
 
@@ -77,9 +145,11 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
             return deleteGroupsWithNames(action.createNameGroupIds, state)
         case DELETE_SELECTED_GROUPS_WITH_NAMES:
             return deleteSelectedGroupsWithNames(state)
-        case ADD_OR_REPLACE_CREATE_NAME_TOKEN_VALUE:
-            state = deleteCreateNameTokenValues(action.oldCreateNameTokenValueLocalIds, state)
-            return addCreateNameTokenValues(action.newCreateNameTokenValues, state)
+        case ADD_AND_REMOVE_CREATE_NAME_TOKEN_VALUES:
+            return addCreateNameTokenValues(
+                action.newCreateNameTokenValues,
+                deleteCreateNameTokenValues(action.oldCreateNameTokenValueLocalIds, state),
+            )
         case DELETE_CREATE_NAME_TOKEN_VALUE:
             return deleteCreateNameTokenValues([action.createNameTokenValue.localId], state)
         case SET_COUNTER_VALUE_FOR_CREATE_NAMES:

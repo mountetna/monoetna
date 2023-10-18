@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles';
 import ButtonBase from "@material-ui/core/ButtonBase";
 import MenuList from "@material-ui/core/MenuList";

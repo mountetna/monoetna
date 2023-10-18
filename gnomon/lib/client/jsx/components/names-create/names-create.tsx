@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import Grid from "@material-ui/core/Grid";
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 
 import ProjectHeader from "etna-js/components/project-header";
 
@@ -8,6 +8,7 @@ import NamesToolbar from "../names-toolbar/names-toolbar";
 import CreateNameGroupCompose from "./names-compose-group";
 import { fetchRulesFromMagma } from "../../actions/rules";
 import { selectCreateNameGroupIdsByPrimaryRule } from "../../selectors/names";
+import { useDispatch } from "../../utils/redux";
 
 
 

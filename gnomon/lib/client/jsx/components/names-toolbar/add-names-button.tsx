@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
 import MenuList from "@material-ui/core/MenuList";
@@ -13,6 +13,8 @@ import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import { selectRulesByName, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
 import { createNamesWithGroupForRule } from "../../actions/names";
 import { Rule, RuleParent, RuleToken } from "../../models";
+import { useDispatch } from "../../utils/redux";
+
 
 
 const useStyles = makeStyles((theme) => ({

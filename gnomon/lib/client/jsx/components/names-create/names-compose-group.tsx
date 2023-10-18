@@ -1,6 +1,6 @@
 import React, { useState, useRef, ReactNode } from "react";
 import Grid from "@material-ui/core/Grid";
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import ButtonBase from "@material-ui/core/ButtonBase";
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import Checkbox from "@material-ui/core/Checkbox";
@@ -14,6 +14,7 @@ import CreateNameGroupComposer from "./name-composer/name-composer";
 import { selectCreateNameGroupsWithLocalIds, selectCreateNamesByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names";
 import { setCreateNameGroupsSelected, deleteGroupsWithNames, createNamesWithGroupForRule, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from "../../actions/names";
 import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
+import { useDispatch } from "../../utils/redux";
 
 
 

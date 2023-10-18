@@ -1,3 +1,6 @@
+import { json_post } from 'etna-js/utils/fetch';
+import { magmaPath } from 'etna-js/api/magma_api';
+
 import { NamesState } from "../reducers/names"
 
 
@@ -35,4 +38,13 @@ export function createSearchReplaceCriteriaFromGroups(state: NamesState, createN
     }
 
     return criteriaList
+}
+
+export function fetchNextCounterValueFromMagma(projectName: string, ruleName: string, tokenPrefix: string): Promise<number> {
+
+    return json_post(magmaPath(`gnomon/${projectName}/increment/${ruleName}/${tokenPrefix}`))
+        .then(value => value)
+        // remove this once json_post is fixed
+        .catch(err => Promise.resolve(err))
+        .then(err => Promise.reject(err))
 }

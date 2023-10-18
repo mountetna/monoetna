@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Grid from "@material-ui/core/Grid";
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import Button from "@material-ui/core/Button";
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import SaveOutlinedIcon from "@material-ui/icons/SaveOutlined";
@@ -12,6 +12,7 @@ import { selectCreateNameGroupsByLocalId, selectSelectedCreateNameGroupIds } fro
 import { CreateNameGroup } from "../../models";
 import FindAndFilterButton from "./find-and-filter-button";
 import ReplaceInSelectionButton from "./copy-and-replace-button"
+import { useDispatch } from "../../utils/redux";
 
 
 

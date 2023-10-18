@@ -61,3 +61,15 @@ export interface CreateNameGroup {
     localId: string
     primaryCreateNameLocalId: string
 }
+
+export interface CompleteCreateName {
+    localId: string
+    value: string  // concated TokenValue.names
+    counterValue?: number
+}
+
+export interface CompleteCreateNameParent {
+    localId: string
+    completeCreateNameLocalId: string
+    parentCompleteCreateNameLocalId: string
+}

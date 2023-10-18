@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useSelector, useDispatch, batch } from 'react-redux'
+import { useSelector, batch } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
 import Popper from "@material-ui/core/Popper";
@@ -23,16 +23,17 @@ import CreateNameGroupComposer from "../names-create/name-composer/name-composer
 import { inputEventValueToNumber } from "../../utils/input";
 import { selectCreateNameGroupsByLocalId, selectCreateNameLocalIdsByGroupId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNamesByLocalId, selectNamesState, selectSelectedCreateNameGroupIds } from "../../selectors/names"
 import { selectCommonRulesFromSelection, selectReplaceRuleFromSelection } from "../../selectors/global";
-import { addCreateNameGroupsToReplaceCriteria, createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule, addOrReplaceCreateNameTokenValuesFromReplaceCriteria } from "../../actions/names";
+import { addCreateNameGroupsToReplaceCriteria, createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule, addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria } from "../../actions/names";
 import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
 import { NamesState } from "../../reducers/names";
+import { useDispatch } from "../../utils/redux";
 
 
 
 const CopyCreateNameGroupRadio = ({ radioValue, label, quantityValue, onChangeQuantity }: {
     radioValue: string,
     label: string,
-    quantityValue?: number,
+    quantityValue: number | undefined,
     onChangeQuantity: (value?: number) => void
 }) => {
 
@@ -65,8 +66,8 @@ const CopyCreateNameGroupRadio = ({ radioValue, label, quantityValue, onChangeQu
 
 
 interface IterationBoundaries {
-    start?: number
-    end?: number
+    start: number | undefined
+    end: number | undefined
 }
 
 
@@ -80,11 +81,11 @@ const IterateRuleRadio = ({ radioValue, label, rules, ruleValue, onChangeRule, b
     onChangeBoundaries: (boundaries: IterationBoundaries) => void,
 }) => {
 
-    const handleChangeBoundaries = (start?: number, end?: number) => {
+    const handleChangeBoundaries = (start: number | undefined, end: number | undefined) => {
         onChangeBoundaries({ start, end })
     }
 
-    const getBoundaryValue = (boundary?: number): string => {
+    const getBoundaryValue = (boundary: number | undefined): string => {
         return boundary != undefined ? String(boundary) : ""
     }
 
@@ -273,13 +274,7 @@ const CopyAndReplaceButton = () => {
                 ))
                 break
             case "replace":
-                const actionPayloads = addOrReplaceCreateNameTokenValuesFromReplaceCriteria(namesState)
-
-                batch(() => {
-                    for (const actionPayload of actionPayloads) {
-                        dispatch(actionPayload)
-                    }
-                })
+                dispatch(addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria(namesState))
                 break
             default:
                 console.error(`Unsupported radio value: ${radioValue}`)

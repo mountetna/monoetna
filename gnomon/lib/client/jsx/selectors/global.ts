@@ -7,12 +7,8 @@ import { selectCreateNameGroupIdsByPrimaryRule } from './names'
 import { CreateName, Rule } from '../models'
 import { defaultDict } from '../utils/object'
 import { selectRulesNamesHierarchicalListByPrimaryRuleName } from './rules'
+import { State } from '../store'
 
-
-interface State {
-    rules: RulesState
-    names: NamesState
-}
 
 
 // returns Rules from all selected CreateNames
