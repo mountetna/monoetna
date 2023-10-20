@@ -1,15 +1,15 @@
 import { createSelector } from 'reselect'
 import * as _ from "lodash"
 
-import { RulesState } from '../reducers/rules'
-import { NamesState } from '../reducers/names'
 import { selectCreateNameGroupIdsByPrimaryRule } from './names'
-import { CreateName, Rule } from '../models'
+import { CreateName, Rule, RuleToken, TokenValue } from '../models'
 import { defaultDict } from '../utils/object'
-import { selectRulesNamesHierarchicalListByPrimaryRuleName } from './rules'
+import { selectRuleNamesHierarchicalListByPrimaryRuleName, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValuesByLocalId } from './rules'
 import { State } from '../store'
 
 
+
+export const selectGlobalState = (state: State): State => state
 
 // returns Rules from all selected CreateNames
 // that are seen in all those CreateNames
@@ -51,7 +51,7 @@ export const selectVisibleRules: (state: State) => Rule[] = createSelector(
     [(state: State) => state],
     (state: State): Rule[] => {
         const visiblePrimaryRuleNames = Object.keys(selectCreateNameGroupIdsByPrimaryRule(state))
-        const rulesNamesHierarchicalListByPrimaryRuleName = selectRulesNamesHierarchicalListByPrimaryRuleName(state)
+        const rulesNamesHierarchicalListByPrimaryRuleName = selectRuleNamesHierarchicalListByPrimaryRuleName(state)
 
         const visibleRules = new Set<Rule>()
 
@@ -70,7 +70,7 @@ export const selectReplaceRuleFromSelection: (state: State) => Rule | undefined 
     [(state: State) => state],
     (state: State): Rule | undefined => {
         const commonRulesFromSelection = selectCommonRulesFromSelection(state)
-        const rulesNamesHierarchicalListByPrimaryRuleName: Record<string, string[]> = selectRulesNamesHierarchicalListByPrimaryRuleName(state)
+        const rulesNamesHierarchicalListByPrimaryRuleName: Record<string, string[]> = selectRuleNamesHierarchicalListByPrimaryRuleName(state)
         const replaceRuleNamesToHierarchy: Record<string, string[]> = {}
 
         // only the selection's common rules are candidates
@@ -85,5 +85,34 @@ export const selectReplaceRuleFromSelection: (state: State) => Rule | undefined 
         }
 
         return undefined
+    }
+)
+
+
+export interface RulesStateSliceForCompleteCreateNames {
+    ruleNamesHierarchicalListByPrimaryRuleName: Record<string, string[]>,
+    ruleTokenLocalIdsByRuleName: Record<string, string[]>,
+    ruleTokensByLocalId: Record<string, RuleToken>,
+    tokenValuesByLocalId: Record<string, TokenValue>,
+    counterRequiredByRuleName: Record<string, boolean>,
+}
+
+
+export const selectRulesStateSliceForCompleteCreateNames: (state: State) => RulesStateSliceForCompleteCreateNames = createSelector(
+    [(state: State) => state],
+    (state: State): RulesStateSliceForCompleteCreateNames => {
+        const counterRequiredByRuleName = {}
+
+        for (const [ruleName, rule] of Object.entries(state.rules.rules)) {
+            counterRequiredByRuleName[ruleName] = rule.hasCounter
+        }
+
+        return {
+            ruleNamesHierarchicalListByPrimaryRuleName: selectRuleNamesHierarchicalListByPrimaryRuleName(state),
+            ruleTokenLocalIdsByRuleName: selectRuleTokenLocalIdsByRuleName(state),
+            ruleTokensByLocalId: selectRuleTokensByLocalId(state),
+            tokenValuesByLocalId: selectTokenValuesByLocalId(state),
+            counterRequiredByRuleName,
+        }
     }
 )

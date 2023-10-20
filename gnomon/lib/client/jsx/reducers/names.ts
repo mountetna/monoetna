@@ -1,4 +1,4 @@
-import { CompleteCreateName, CompleteCreateNameParent, CreateName, CreateNameGroup, CreateNameTokenValue, UNSET_VALUE } from '../models';
+import { CompleteCreateName, CompleteCreateNameParent, CreateName, CreateNameCompleteCreateName, CreateNameGroup, CreateNameTokenValue, UNSET_VALUE } from '../models';
 import {
     ACTION_TYPE,
     ADD_CREATE_NAMES_WITH_GROUPS_WITH_TOKEN_VALUES,
@@ -24,38 +24,52 @@ import { SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups } from '..
 
 
 
-// TODO: change string[] to Set<string>?
 interface CreateNamesState {
     byLocalId: Record<string, CreateName>
     byCreateNameGroupLocalId: Record<string, string[]>
 }
 
 
+export type CompleteCreateNamesByRenderedValues = Record<
+    string, Record<
+        number | typeof UNSET_VALUE, string
+    >
+>
+
+
+interface CompleteCreateNames {
+    byLocalId: Record<string, CompleteCreateName>
+    byRenderedTokensByChildCounterValue: CompleteCreateNamesByRenderedValues
+}
+
+
+interface CreateNameCompleteCreateNames {
+    byLocalId: Record<string, CreateNameCompleteCreateName>
+    byCreateNameLocalId: Record<string, string>
+    byCompleteCreateNameLocalId: Record<string, string[]>
+}
+
+
 /*
-    Example byRenderedTokensByParentLocalIdByCounterValue
-    - parent will be UNSET_VALUE if no parent
+    Example byParentLocalIdByRenderedTokensByCounterValue
     - counterValue will be UNSET_VALUE if no counterValue on Rule
     { 
-        [UNSET_VALUE]: {
-            PROJECT: {
-                [UNSET_VALUE]: localId-0,
-            }
-        },
-        ccnp-localId-5: {
+        ccn-local-id-0: {
             HS: {
-                1: localId-1,
-                2: localId-2,
+                1: ccnp-localId-2,
+                2: ccnp-localId-3,
             },
         },
-        ccnp-localId-6: {
+        ccn-localId-1: {
             DNA: {
-                0: localId-4,
+                0: ccnp-localId-4,
+                1: ccnp-localId-5,
             }
         },
     }
 */
-export type CompleteCreateNamesByParentAndValues = Record<
-    string | typeof UNSET_VALUE, Record<
+export type CompleteCreateNameParentsByRenderedValues = Record<
+    string, Record<
         string, Record<
             number | typeof UNSET_VALUE, string
         >
@@ -63,18 +77,11 @@ export type CompleteCreateNamesByParentAndValues = Record<
 >
 
 
-interface CompleteCreateNames {
-    byLocalId: Record<string, CompleteCreateName>
-    byLocalIdToCreateNameLocalIds: Record<string, Set<string>>
-    byCreateNameLocalId: Record<string, string>
-    byParentLocalIdbyRenderedTokensByCounterValue: CompleteCreateNamesByParentAndValues
-}
-
-
 interface CompleteCreateNameParents {
     byLocalId: Record<string, CompleteCreateNameParent>
-    byParentLocalId: Record<string, Set<string>>
-    byChildLocalId: Record<string, string>
+    byParentLocalId: Record<string, string[]>
+    byChildLocalId: Record<string, string[]>
+    byParentLocalIdByChildRenderedTokensByChildCounterValue: CompleteCreateNameParentsByRenderedValues
 }
 
 
@@ -99,6 +106,7 @@ interface CreateNameGroupsState {
 export interface NamesState {
     createNames: CreateNamesState
     completeCreateNames: CompleteCreateNames
+    createNameCompleteCreateNames: CreateNameCompleteCreateNames
     completeCreateNameParents: CompleteCreateNameParents
     createNameTokenValues: CreateNameTokenValuesState
     createNameGroups: CreateNameGroupsState
@@ -112,8 +120,13 @@ const initialState: NamesState = {
     completeCreateNames: {
         byLocalId: {},
         byLocalIdToCreateNameLocalIds: {},
+        byRenderedValue: {},
+        // byParentLocalIdbyRenderedTokensByCounterValue: {},
+    },
+    createNameCompleteCreateNames: {
+        byLocalId: {},
         byCreateNameLocalId: {},
-        byParentLocalIdbyRenderedTokensByCounterValue: {},
+        byCompleteCreateNameLocalId: {},
     },
     completeCreateNameParents: {
         byLocalId: {},

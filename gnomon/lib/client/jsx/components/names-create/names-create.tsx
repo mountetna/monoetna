@@ -28,11 +28,11 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
             <NamesToolbar />
             <Grid className="create-name-group-composers" container>
                 {
-                    Object.entries(createNameGroupsIdsByPrimaryRule).map(([ruleName, createNameGroupIds]) => {
+                    Object.entries(createNameGroupsIdsByPrimaryRule).map(([ruleName, createNameGroupLocalIds]) => {
                         return (
                             <Grid item key={ruleName} xs={4}>
                                 <CreateNameGroupCompose
-                                    createNameGroupIds={createNameGroupIds}
+                                    createNameGroupLocalIds={createNameGroupLocalIds}
                                     ruleName={ruleName}
                                 />
                             </Grid>

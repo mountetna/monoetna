@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { useSelector } from 'react-redux';
+import { useSelector, batch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
 import MenuList from "@material-ui/core/MenuList";
@@ -14,6 +14,8 @@ import { selectRulesByName, selectRuleParentLocalIdsByRuleName, selectRuleParent
 import { createNamesWithGroupForRule } from "../../actions/names";
 import { Rule, RuleParent, RuleToken } from "../../models";
 import { useDispatch } from "../../utils/redux";
+import { State } from "../../store";
+import { selectGlobalState } from "../../selectors/global";
 
 
 
@@ -31,11 +33,7 @@ const AddNamesButton = () => {
     const dispatch = useDispatch()
     
     const rules: Record<string, Rule> = useSelector(selectRulesByName)
-    const ruleParentLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
-    const ruleParentsByLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
-    const ruleTokenLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleTokenLocalIdsByRuleName)
-    const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
-    const tokenValueLocalIdsByTokenName: Record<string, string[]> = useSelector(selectTokenValueLocalIdsByTokenName)
+    const globalState: State = useSelector(selectGlobalState)
 
     const handleToggle = () => {
         setOpen(prev => !prev);
@@ -44,15 +42,10 @@ const AddNamesButton = () => {
         setOpen(false);
     };
     const handleClickRule = (ruleName: string) => {
-        dispatch(createNamesWithGroupForRule(
-            ruleName,
-            ruleParentLocalIdsByRuleName,
-            ruleParentsByLocalId,
-            ruleTokenLocalIdsByRuleName,
-            ruleTokensByLocalId,
-            tokenValueLocalIdsByTokenName,
-        ))
-        handleClose();
+        batch(() => {
+            dispatch(createNamesWithGroupForRule(ruleName, globalState))
+            handleClose();
+        })
     };
 
     return (

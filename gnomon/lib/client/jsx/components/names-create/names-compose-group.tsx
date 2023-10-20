@@ -9,12 +9,13 @@ import UnfoldLessOutlinedIcon from '@material-ui/icons/UnfoldLessOutlined';
 import UnfoldMoreOutlinedIcon from '@material-ui/icons/UnfoldMoreOutlined';
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 
-import { CreateName, CreateNameGroup, RuleParent, RuleToken } from "../../models";
+import { CreateName, CreateNameGroup } from "../../models";
 import CreateNameGroupComposer from "./name-composer/name-composer";
 import { selectCreateNameGroupsWithLocalIds, selectCreateNamesByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names";
-import { setCreateNameGroupsSelected, deleteGroupsWithNames, createNamesWithGroupForRule, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from "../../actions/names";
-import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
+import { deleteGroupsWithNames, createNamesWithGroupForRule, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection, addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds, removeCompleteCreateNamesAndParentsForCreateNameGroupLocalIds } from "../../actions/names";
 import { useDispatch } from "../../utils/redux";
+import { State } from "../../store";
+import { selectGlobalState } from "../../selectors/global";
 
 
 
@@ -30,40 +31,31 @@ const createReadyStatuses = (createNameGroups: CreateNameGroup[], createNames: R
 }
 
 
-const CreateNameGroupCompose = ({ createNameGroupIds, ruleName }: { createNameGroupIds: string[], ruleName: string }) => {
-    const dispatch = useDispatch()
-    const createNameGroups: CreateNameGroup[] = useSelector(selectCreateNameGroupsWithLocalIds(createNameGroupIds))
-    const createNames: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
-    const ruleParentLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
-    const ruleParentsByLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
-    const ruleTokenLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleTokenLocalIdsByRuleName)
-    const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
-    const tokenValueLocalIdsByTokenName: Record<string, string[]> = useSelector(selectTokenValueLocalIdsByTokenName)
-    const selectionCreateNameGroupLocalIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
-
+const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createNameGroupLocalIds: string[], ruleName: string }) => {
     const [collapsed, setCollapsed] = useState<boolean>(false);
 
+    const dispatch = useDispatch()
+
+    const createNameGroups: CreateNameGroup[] = useSelector(selectCreateNameGroupsWithLocalIds(createNameGroupLocalIds))
+    const createNames: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
+    const globalState: State = useSelector(selectGlobalState)
+    const selectionCreateNameGroupLocalIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
+
+
     const handleClickAdd = () => {
-        dispatch(createNamesWithGroupForRule(
-            ruleName,
-            ruleParentLocalIdsByRuleName,
-            ruleParentsByLocalId,
-            ruleTokenLocalIdsByRuleName,
-            ruleTokensByLocalId,
-            tokenValueLocalIdsByTokenName,
-        ))
+        dispatch(createNamesWithGroupForRule(ruleName, globalState))
     }
 
     const handleClickSelect = (event: React.ChangeEvent) => {
         if (event.target.checked) {
-            dispatch(addCreateNameGroupsToSelection(createNameGroupIds))
+            dispatch(addCreateNameGroupsToSelection(createNameGroupLocalIds))
             return
         }
-        dispatch(removeCreateNameGroupsFromSelection(createNameGroupIds))
+        dispatch(removeCreateNameGroupsFromSelection(createNameGroupLocalIds))
     }
 
     const handleClickDelete = () => {
-        dispatch(deleteGroupsWithNames(createNameGroupIds))
+        dispatch(deleteGroupsWithNames(createNameGroupLocalIds))
     }
 
     const renderComposers = (): React.ReactNode => {

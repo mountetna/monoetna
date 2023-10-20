@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect'
 import * as _ from "lodash"
 
-import { CreateName, CreateNameGroup, CreateNameTokenValue } from "../models";
-import { CompleteCreateNamesByParentAndValues, NamesState } from "../reducers/names"
+import { CreateName, CreateNameCompleteCreateName, CreateNameGroup, CreateNameTokenValue } from "../models";
+import { CompleteCreateNameParentsByRenderedValues, NamesState } from "../reducers/names"
 import { defaultDict } from "../utils/object"
 import { State } from '../store';
 
@@ -55,6 +55,8 @@ export const selectCreateNameGroupIdsByPrimaryRule: (state: State, omitSearchAnd
     }
 )
 
+export const selectFilterStatus = (state: State): boolean => state.names.createNameGroups.filterEnabled
+
 export const selectCreateNamesByLocalId = (state: State): Record<string, CreateName> => state.names.createNames.byLocalId
 
 export const selectCreateNameWithLocalId = (localId: string) => (state: State): CreateName => {
@@ -83,7 +85,7 @@ export const selectCreateNameTokenValueLocalIdsWithCreateNameLocalId = (createNa
     return state.names.createNameTokenValues.byCreateNameLocalId[createNameLocalId]
 }
 
-export const selectCompleteCreateNamesByParentAndValues = (state: State): CompleteCreateNamesByParentAndValues => {
+export const selectCompleteCreateNamesByParentAndValues = (state: State): CompleteCreateNameParentsByRenderedValues => {
     return state.names.completeCreateNames.byParentLocalIdbyRenderedTokensByCounterValue
 }
 
@@ -142,10 +144,10 @@ export const selectRenderedCompleteCreateNamesByLocalId: (state: State) => Recor
     }
 )
 
-export const selectCompleteCreateNameParentsByChildLocalId = (state: State): Record<string, string> => {
-    return state.names.completeCreateNameParents.byChildLocalId
+export const selectCreateNameCompleteCreateNameLocalIdsByCreateNameLocalId = (state: State): Record<string, string> => {
+    return state.names.createNameCompleteCreateNames.byCreateNameLocalId
 }
 
-export const selectCompleteCreateNamesByCreateNameLocalId = (state: State): Record<string, string> => {
-    return state.names.completeCreateNames.byCreateNameLocalId
+export const selectCreateNameCompleteCreateNamesByLocalId = (state: State): Record<string, CreateNameCompleteCreateName> => {
+    return state.names.createNameCompleteCreateNames.byLocalId
 }

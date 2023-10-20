@@ -1,7 +1,10 @@
+import * as _ from "lodash"
+
 import { json_post } from 'etna-js/utils/fetch';
 import { magmaPath } from 'etna-js/api/magma_api';
 
 import { NamesState } from "../reducers/names"
+import { CreateName, CreateNameTokenValue, RuleToken, TokenValue } from '../models';
 
 
 
@@ -45,6 +48,41 @@ export function fetchNextCounterValueFromMagma(projectName: string, ruleName: st
     return json_post(magmaPath(`gnomon/${projectName}/increment/${ruleName}/${tokenPrefix}`))
         .then(value => value)
         // remove this once json_post is fixed
-        .catch(err => Promise.resolve(err))
-        .then(err => Promise.reject(err))
+        .catch(err => Promise.resolve(err).then(err => Promise.reject(err)))
+}
+
+export function renderTokens(
+    createNameTokenValues: CreateNameTokenValue[],
+    ruleTokensByLocalId: Record<string, RuleToken>,
+    tokenValuesByLocalId: Record<string, TokenValue>,
+): string {
+
+    const renderedTokens = [...createNameTokenValues]
+        .sort((a, b) => {
+            const ordA = ruleTokensByLocalId[a.ruleTokenLocalId].ord
+            const ordB = ruleTokensByLocalId[b.ruleTokenLocalId].ord
+
+            return ordA - ordB
+        })
+        .map(cntv => tokenValuesByLocalId[cntv.tokenValueLocalId].tokenName)
+        .reduce((prev, curr) => prev + curr, "")
+
+    return renderedTokens
+}
+
+export function renderCounter(createName: CreateName): string {
+    return createName.ruleCounterValue != undefined ? String(createName.ruleCounterValue) : ""
+}
+
+export function renderCreateName(
+    createName: CreateName,
+    createNameTokenValues: CreateNameTokenValue[],
+    ruleTokensByLocalId: Record<string, RuleToken>,
+    tokenValuesByLocalId: Record<string, TokenValue>,
+): string {
+
+    const renderedTokens = renderTokens(createNameTokenValues, ruleTokensByLocalId, tokenValuesByLocalId)
+    const renderedCounter = createName.ruleCounterValue != undefined ? createName.ruleCounterValue : ""
+
+    return renderedTokens + renderedCounter
 }

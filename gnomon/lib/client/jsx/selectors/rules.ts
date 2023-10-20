@@ -14,8 +14,7 @@ export const selectRuleParentLocalIdsByRuleName = (state: State): Record<string,
 
 export const selectRuleParentsByLocalId = (state: State): Record<string, RuleParent> => state.rules.ruleParents.byLocalId
 
-// move this to state?
-export const selectRulesNamesHierarchicalListByPrimaryRuleName: (state: State) => Record<string, string[]> = createSelector(
+export const selectRuleNamesHierarchicalListByPrimaryRuleName: (state: State) => Record<string, string[]> = createSelector(
     [(state: State) => state.rules],
     (rules: RulesState): Record<string, string[]> => {
         const orderedRuleNamesByPrimaryRuleName: Record<string, string[]> = {}

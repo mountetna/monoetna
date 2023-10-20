@@ -9,14 +9,16 @@ import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined"
 import * as _ from "lodash"
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken, Token, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from "../../../models";
-import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRulesNamesHierarchicalListByPrimaryRuleName } from "../../../selectors/rules";
-import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameLocalIdsByGroupId, selectSelectedCreateNameGroupIds, selectCompleteCreateNameParentsByChildLocalId, selectCompleteCreateNamesByCreateNameLocalId } from "../../../selectors/names";
-import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from "../../../actions/names";
+import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRuleNamesHierarchicalListByPrimaryRuleName } from "../../../selectors/rules";
+import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameLocalIdsByGroupId, selectSelectedCreateNameGroupIds, selectCompleteCreateNameParentsByChildLocalId, selectCompleteCreateNamesByCreateNameLocalId, selectCreateNameCompleteCreateNameLocalIdsByCreateNameLocalId } from "../../../selectors/names";
+import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection, addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds } from "../../../actions/names";
 import { selectPathParts } from "../../../selectors/location"
 import { TokenSelect } from "./select";
 import RuleCounterField from "./rule-counter-input";
 import { createLocalId } from "../../../utils/models";
 import { useDispatch } from "../../../utils/redux";
+import { State } from "../../../store";
+import { selectGlobalState } from "../../../selectors/global";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -35,6 +37,7 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, compl
     const classes = useStyles()
     const dispatch = useDispatch()
 
+    const globalState: State = useSelector(selectGlobalState)
     const projectName: string = useSelector(selectPathParts)[0]
     const tokens: Record<string, Token> = useSelector(selectTokens)
 
@@ -128,14 +131,13 @@ const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includ
     const createNameLocalIds: string[] = useSelector(selectCreateNameLocalIdsWithGroupId(createNameGroup.localId))
     const createNamesByLocalId: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
     const primaryCreateName: CreateName = useSelector(selectCreateNameWithLocalId(createNameGroup.primaryCreateNameLocalId))
-    const createNameLocalIdsByCreateNameGroupLocalId: Record<string, string[]> = useSelector(selectCreateNameLocalIdsByGroupId)
-    const createNameTokenValueLocalIdsByCreateNameLocalId: Record<string, string[]> = useSelector(selectCreateNameTokenValueLocalIdsByCreateNameLocalId)
-    const createNameTokenValuesByLocalId: Record<string, CreateNameTokenValue> = useSelector(selectCreateNameTokenValuesByLocalId)
     const allRules: Record<string, Rule> = useSelector(selectRulesByName)
-    const orderedRuleNames: string[] = useSelector(selectRulesNamesHierarchicalListByPrimaryRuleName)[primaryCreateName.ruleName]
+    const orderedRuleNames: string[] = useSelector(selectRuleNamesHierarchicalListByPrimaryRuleName)[primaryCreateName.ruleName]
     const selectedCreateNameGroupsIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
-    const completeCreateNameLocalIdsByCreateNameLocalId: Record<string, string> = useSelector(selectCompleteCreateNamesByCreateNameLocalId)
-    const completeCreateNameParentsByChildLocalId: Record<string, string> = useSelector(selectCompleteCreateNameParentsByChildLocalId)
+    // const createNameCompleteCreateNameLocalIdsByCreateNameLocalId: Record<string, string> = useSelector(selectCreateNameCompleteCreateNameLocalIdsByCreateNameLocalId)
+
+    // const completeCreateNameParentsByChildLocalId: Record<string, string> = useSelector(selectCompleteCreateNameParentsByChildLocalId)
+    const globalState: State = useSelector(selectGlobalState)
 
     const handleClickSelect = (event: React.ChangeEvent) => {
         if (event.target.checked) {
@@ -146,13 +148,7 @@ const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includ
     }
 
     const handleClickCopy = () => {
-        dispatch(duplicateCreateNameGroups(
-            [createNameGroup],
-            createNameLocalIdsByCreateNameGroupLocalId,
-            createNamesByLocalId,
-            createNameTokenValueLocalIdsByCreateNameLocalId,
-            createNameTokenValuesByLocalId,
-        ))
+        dispatch(duplicateCreateNameGroups([createNameGroup], globalState))
     }
 
     const handleClickDelete = () => {
@@ -198,17 +194,17 @@ const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includ
                     }
                     const rule = allRules[ruleName]
 
-                    const completeCreateName: string | undefined = completeCreateNameLocalIdsByCreateNameLocalId[createNameLocalId]
-                    const completedCreateNameParentLocalId = completeCreateName
-                        ? completeCreateNameParentsByChildLocalId[completeCreateName]
-                        : undefined
+                    // const completeCreateNameLocalId: string | undefined = createNameCompleteCreateNameLocalIdsByCreateNameLocalId[createNameLocalId]
+                    // const completedCreateNameParentLocalId = completeCreateNameLocalId
+                    //     ? completeCreateNameParentsByChildLocalId[completeCreateNameLocalId]
+                    //     : undefined
 
                     return (
                         <React.Fragment key={rule.name}>
                             <CreateNameElementsEditor
                                 createName={createNamesByLocalId[createNameLocalId]}
                                 rule={rule}
-                                completedCreateNameParentLocalId={completedCreateNameParentLocalId}
+                                // completedCreateNameParentLocalId={completedCreateNameParentLocalId}
                                 includeUnsetAsValue={includeUnsetAsValue}
                             />
                         </React.Fragment>

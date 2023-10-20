@@ -73,3 +73,9 @@ export interface CompleteCreateNameParent {
     completeCreateNameLocalId: string
     parentCompleteCreateNameLocalId: string
 }
+
+export interface CreateNameCompleteCreateName {
+    localId: string
+    createNameLocalId: string
+    completeCreateNameLocalId: string
+}

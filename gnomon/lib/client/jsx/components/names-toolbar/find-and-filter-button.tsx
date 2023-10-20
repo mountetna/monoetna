@@ -13,14 +13,14 @@ import Grid from '@material-ui/core/Grid';
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import * as _ from "lodash"
 
-import { selectCreateNameGroupIdsByPrimaryRule } from "../../selectors/names";
+import { selectCreateNameGroupIdsByPrimaryRule, selectFilterStatus } from "../../selectors/names";
 import { CreateNameGroup, Rule, RuleParent, RuleToken } from "../../models";
 import { RuleSelect } from "../names-create/name-composer/select";
-import { selectVisibleRules } from "../../selectors/global";
+import { selectGlobalState, selectVisibleRules } from "../../selectors/global";
 import { addCreateNameGroupsToSearchCriteria, clearCreateNameGroupsFilter, clearCreateNameGroupsSelection, createNamesWithGroupForRule, deleteGroupsWithNames, setCreateNameGroupsFilterFromSearchCriteria, setCreateNameGroupsSelectionFromSearchCriteria } from "../../actions/names";
-import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
 import CreateNameGroupComposer from "../names-create/name-composer/name-composer";
 import { useDispatch } from "../../utils/redux";
+import { State } from "../../store";
 
 
 
@@ -47,12 +47,9 @@ const FindAndFilterButton = () => {
     const anchorEl = useRef(null)
 
     const createNameGroupIdsByPrimaryRule: Record<string, string[]> = useSelector(selectCreateNameGroupIdsByPrimaryRule)
+    const filterEnabled: boolean = useSelector(selectFilterStatus)
     const visibleRules: Rule[] = useSelector(selectVisibleRules)
-    const ruleParentLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
-    const ruleParentsByLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
-    const ruleTokenLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleTokenLocalIdsByRuleName)
-    const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
-    const tokenValueLocalIdsByTokenName: Record<string, string[]> = useSelector(selectTokenValueLocalIdsByTokenName)
+    const globalState: State = useSelector(selectGlobalState)
 
     const handleToggle = () => {
         setOpen(prev => !prev);
@@ -75,14 +72,7 @@ const FindAndFilterButton = () => {
             return
         }
 
-        const actionPayload = createNamesWithGroupForRule(
-            rule.name,
-            ruleParentLocalIdsByRuleName,
-            ruleParentsByLocalId,
-            ruleTokenLocalIdsByRuleName,
-            ruleTokensByLocalId,
-            tokenValueLocalIdsByTokenName,
-        )
+        const actionPayload = createNamesWithGroupForRule(rule.name, globalState)
         const newState: RuleAndCreateNameGroupState = {
             rule,
             createNameGroup: actionPayload.createNameGroups[0]
@@ -133,7 +123,7 @@ const FindAndFilterButton = () => {
                 disableRipple
                 disableFocusRipple
                 disableElevation
-                disabled={Object.keys(createNameGroupIdsByPrimaryRule).length == 0}
+                disabled={Object.keys(createNameGroupIdsByPrimaryRule).length == 0 && !filterEnabled}
             >
                 Find and Filter
             </Button>

@@ -17,16 +17,16 @@ import InputBase from '@material-ui/core/InputBase';
 import Grid from '@material-ui/core/Grid';
 import * as _ from "lodash"
 
-import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken } from "../../models";
+import { CreateNameGroup, Rule } from "../../models";
 import { RuleSelect } from "../names-create/name-composer/select";
 import CreateNameGroupComposer from "../names-create/name-composer/name-composer";
 import { inputEventValueToNumber } from "../../utils/input";
-import { selectCreateNameGroupsByLocalId, selectCreateNameLocalIdsByGroupId, selectCreateNameTokenValueLocalIdsByCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectCreateNamesByLocalId, selectNamesState, selectSelectedCreateNameGroupIds } from "../../selectors/names"
-import { selectCommonRulesFromSelection, selectReplaceRuleFromSelection } from "../../selectors/global";
+import { selectCreateNameGroupsByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names"
+import { selectCommonRulesFromSelection, selectGlobalState, selectReplaceRuleFromSelection } from "../../selectors/global";
 import { addCreateNameGroupsToReplaceCriteria, createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule, addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria } from "../../actions/names";
-import { selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsByRuleName, selectRuleTokensByLocalId, selectTokenValueLocalIdsByTokenName } from "../../selectors/rules";
 import { NamesState } from "../../reducers/names";
 import { useDispatch } from "../../utils/redux";
+import { State } from "../../store";
 
 
 
@@ -175,26 +175,15 @@ const CopyAndReplaceButton = () => {
     const dispatch = useDispatch()
     const anchorEl = useRef(null)
 
+    const globalState: State = useSelector(selectGlobalState)
     const selectedCreateNameGroupLocalIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
     const createNameGroupsByLocalId: Record<string, CreateNameGroup> = useSelector(selectCreateNameGroupsByLocalId)
 
     const selectedCreateNameGroups: CreateNameGroup[] = [...selectedCreateNameGroupLocalIds].map(cngLocalId => createNameGroupsByLocalId[cngLocalId])
 
-    const createNameLocalIdsByCreateNameGroupLocalId: Record<string, string[]> = useSelector(selectCreateNameLocalIdsByGroupId)
-    const createNameTokenValueLocalIdsByCreateNameLocalId: Record<string, string[]> = useSelector(selectCreateNameTokenValueLocalIdsByCreateNameLocalId)
-    const createNameTokenValuesByLocalId: Record<string, CreateNameTokenValue> = useSelector(selectCreateNameTokenValuesByLocalId)
-    const createNamesByLocalId: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
-
     const iterableRules: Rule[] = useSelector(selectCommonRulesFromSelection).filter(rule => rule.hasCounter)
-
+    
     const replaceRule: Rule | undefined = useSelector(selectReplaceRuleFromSelection)
-
-    const ruleParentLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleParentLocalIdsByRuleName)
-    const ruleParentsByLocalId: Record<string, RuleParent> = useSelector(selectRuleParentsByLocalId)
-    const ruleTokenLocalIdsByRuleName: Record<string, string[]> = useSelector(selectRuleTokenLocalIdsByRuleName)
-    const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
-    const tokenValueLocalIdsByTokenName: Record<string, string[]> = useSelector(selectTokenValueLocalIdsByTokenName)
-    const namesState: NamesState = useSelector(selectNamesState)
 
     // manage CreateNameGroup for <ReplaceValuesForRuleRadio />
     useEffect(() => {
@@ -210,14 +199,7 @@ const CopyAndReplaceButton = () => {
             return
         }
 
-        const actionPayload = createNamesWithGroupForRule(
-            replaceRule.name,
-            ruleParentLocalIdsByRuleName,
-            ruleParentsByLocalId,
-            ruleTokenLocalIdsByRuleName,
-            ruleTokensByLocalId,
-            tokenValueLocalIdsByTokenName,
-        )
+        const actionPayload = createNamesWithGroupForRule(replaceRule.name, globalState)
         const newCng = actionPayload.createNameGroups[0]
 
         if (replaceCreateNameGroup) {
@@ -253,10 +235,7 @@ const CopyAndReplaceButton = () => {
             case "copy":
                 dispatch(duplicateCreateNameGroups(
                     selectedCreateNameGroups,
-                    createNameLocalIdsByCreateNameGroupLocalId,
-                    createNamesByLocalId,
-                    createNameTokenValueLocalIdsByCreateNameLocalId,
-                    createNameTokenValuesByLocalId,
+                    globalState,
                     quantity,
                     {},
                 ))
@@ -267,14 +246,11 @@ const CopyAndReplaceButton = () => {
                     rule.name,
                     boundaries.start,
                     boundaries.end,
-                    createNameLocalIdsByCreateNameGroupLocalId,
-                    createNamesByLocalId,
-                    createNameTokenValueLocalIdsByCreateNameLocalId,
-                    createNameTokenValuesByLocalId,
+                    globalState,
                 ))
                 break
             case "replace":
-                dispatch(addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria(namesState))
+                dispatch(addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria(globalState))
                 break
             default:
                 console.error(`Unsupported radio value: ${radioValue}`)
