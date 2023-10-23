@@ -64,9 +64,5 @@ describe FlagsController do
       expect(last_response.status).to eq(403)
     end
   end
-
-
-
-
 end
 
