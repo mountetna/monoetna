@@ -15,7 +15,7 @@ from airflow.utils.state import State
 from copy import deepcopy
 
 
-from providers.etna.etna.etls.metis_linker import MetisLoaderConfig, MetisLinker, MetisLoaderError
+from providers.etna.etna.etls.metis_linker import MetisLoaderConfig, MetisLinkerDefine, MetisLoaderError
 from providers.etna.etna.etls.box import BoxEtlHelpers
 from etna import system_dag
 from mountetna import TailResultContainer, TailNode, Template, Attribute
