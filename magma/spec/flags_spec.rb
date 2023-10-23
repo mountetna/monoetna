@@ -10,7 +10,7 @@ describe FlagsController do
   def create_flags
     test_flags.each do |k,v|
       create(:flag, project_name: "labors", flag_name: k, value: v)
-  end
+    end
   end
 
   context 'get API' do
