@@ -3,6 +3,7 @@ class Magma
     def initialize(request, action=nil)
       super
       @project_name = @params[:project_name]
+      @flags = Magma::Project.flags(@project_name)
     end
 
     def handle_error(e)
