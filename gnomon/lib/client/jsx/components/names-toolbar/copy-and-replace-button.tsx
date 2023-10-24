@@ -236,6 +236,7 @@ const CopyAndReplaceButton = () => {
                 dispatch(duplicateCreateNameGroups(
                     selectedCreateNameGroups,
                     globalState,
+                    true,
                     quantity,
                     {},
                 ))

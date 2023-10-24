@@ -935,24 +935,25 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
     rulesStateSlice: RulesStateSliceForCompleteCreateNames,
     state: NamesState,
 ): NamesState {
-    const completeCreateNamesToAdd: CompleteCreateName[] = []
-    const createNameCompleteCreateNamesToAdd: CreateNameCompleteCreateName[] = []
-    const createNameCompleteCreateNamesToRemove: CreateNameCompleteCreateName[] = []
-    const completeCreateNameParentsToAdd: CompleteCreateNameParent[] = []
+    let newState = { ...state }
 
     // for each CreateNameGroup
     for (const cngLocalId of createNameGroupsLocalIds) {
+        const completeCreateNamesToAdd: CompleteCreateName[] = []
+        const createNameCompleteCreateNamesToAdd: CreateNameCompleteCreateName[] = []
+        const createNameCompleteCreateNamesToRemove: CreateNameCompleteCreateName[] = []
+        const completeCreateNameParentsToAdd: CompleteCreateNameParent[] = []
 
-        if (shouldIgnoreCompletionStatus(cngLocalId, state)) {
+        if (shouldIgnoreCompletionStatus(cngLocalId, newState)) {
             continue
         }
 
-        const createNameGroup = state.createNameGroups.byLocalId[cngLocalId]
-        const primaryRuleName = state.createNames.byLocalId[createNameGroup.primaryCreateNameLocalId].ruleName
+        const createNameGroup = newState.createNameGroups.byLocalId[cngLocalId]
+        const primaryRuleName = newState.createNames.byLocalId[createNameGroup.primaryCreateNameLocalId].ruleName
         const ruleNamesHierarchicalList = rulesStateSlice.ruleNamesHierarchicalListByPrimaryRuleName[primaryRuleName]
 
-        const createNames = state.createNames.byCreateNameGroupLocalId[cngLocalId]
-            .map(cnLocalId => state.createNames.byLocalId[cnLocalId])
+        const createNames = newState.createNames.byCreateNameGroupLocalId[cngLocalId]
+            .map(cnLocalId => newState.createNames.byLocalId[cnLocalId])
 
         const sortedCreateNames: CreateName[] = _.sortBy(createNames, [(cn: CreateName) => {
             return ruleNamesHierarchicalList.indexOf(cn.ruleName)
@@ -964,8 +965,8 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
 
         // for each CreateName
         for (const [idx, createName] of sortedCreateNames.entries()) {
-            const createNameTokenValues = (state.createNameTokenValues.byCreateNameLocalId[createName.localId] || [])
-                .map(cntvLocalId => state.createNameTokenValues.byLocalId[cntvLocalId])
+            const createNameTokenValues = (newState.createNameTokenValues.byCreateNameLocalId[createName.localId] || [])
+                .map(cntvLocalId => newState.createNameTokenValues.byLocalId[cntvLocalId])
 
             const actualTokenCount = createNameTokenValues.length
             const targetTokenCount = rulesStateSlice.ruleTokenLocalIdsByRuleName[createName.ruleName].length
@@ -1005,7 +1006,7 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
                 if (parentCompleteCreateName != undefined || idx == 0) {
                     const parentCompleteCreateNameLocalId = parentCompleteCreateName != undefined ? parentCompleteCreateName.localId : UNSET_VALUE
 
-                    const renderedTokenValuesDict = state.completeCreateNameParents
+                    const renderedTokenValuesDict = newState.completeCreateNameParents
                         .byParentLocalIdByChildRenderedTokensByChildCounterValue[parentCompleteCreateNameLocalId]
 
                     if (renderedTokenValuesDict != undefined) {
@@ -1020,7 +1021,7 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
                 let completeCreateNameParent: CompleteCreateNameParent | undefined = undefined
 
                 if (completeCreateNameParentLocalId) {
-                    completeCreateNameParent = state.completeCreateNameParents.byLocalId[completeCreateNameParentLocalId]
+                    completeCreateNameParent = newState.completeCreateNameParents.byLocalId[completeCreateNameParentLocalId]
                 }
 
 
@@ -1041,8 +1042,8 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
                     completeCreateNamesToAdd.push(completeCreateName)
 
                     // remove existing association and its parents if exist
-                    const existingAssociationLocalId = state.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
-                    const existingAssociation = state.createNameCompleteCreateNames.byLocalId[existingAssociationLocalId]
+                    const existingAssociationLocalId = newState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
+                    const existingAssociation = newState.createNameCompleteCreateNames.byLocalId[existingAssociationLocalId]
 
                     if (existingAssociation) {
                         createNameCompleteCreateNamesToRemove.push(existingAssociation)
@@ -1056,9 +1057,9 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
                     }
                     createNameCompleteCreateNamesToAdd.push(completeCreateNameAssociation)
                 } else {
-                    completeCreateName = state.completeCreateNames.byLocalId[completeCreateNameParent.completeCreateNameLocalId]
-                    const existingAssociationLocalId = state.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
-                    const existingAssociation = state.createNameCompleteCreateNames.byLocalId[existingAssociationLocalId]
+                    completeCreateName = newState.completeCreateNames.byLocalId[completeCreateNameParent.completeCreateNameLocalId]
+                    const existingAssociationLocalId = newState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
+                    const existingAssociation = newState.createNameCompleteCreateNames.byLocalId[existingAssociationLocalId]
 
                     if (existingAssociation?.completeCreateNameLocalId != completeCreateName.localId) {
                         // create association
@@ -1092,24 +1093,26 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
                 // is not complete (at this level)
                 // remove all records if exist
 
-                const completeCreateNameAssociationLocalId = state.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
+                const completeCreateNameAssociationLocalId = newState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
 
                 if (completeCreateNameAssociationLocalId != undefined) {
-                    const completeCreateNameAssociation = state.createNameCompleteCreateNames.byLocalId[completeCreateNameAssociationLocalId]
+                    const completeCreateNameAssociation = newState.createNameCompleteCreateNames.byLocalId[completeCreateNameAssociationLocalId]
                     createNameCompleteCreateNamesToRemove.push(completeCreateNameAssociation)
                 }
 
                 completeCreateNames.push(undefined)
             }
         }
+
+        newState = addCompleteCreateNames(
+            completeCreateNamesToAdd,
+            createNameCompleteCreateNamesToAdd,
+            completeCreateNameParentsToAdd,
+            removeCompleteCreateNames(createNameCompleteCreateNamesToRemove, newState),
+        )
     }
 
-    return addCompleteCreateNames(
-        completeCreateNamesToAdd,
-        createNameCompleteCreateNamesToAdd,
-        completeCreateNameParentsToAdd,
-        removeCompleteCreateNames(createNameCompleteCreateNamesToRemove, state),
-    )
+    return newState
 }
 
 // TODO: handle multiparent rules
@@ -1117,28 +1120,31 @@ function removeCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
     createNameGroupsLocalIds: string[],
     state: NamesState,
 ): NamesState {
-    const createNameCompleteCreateNamesToRemove: CreateNameCompleteCreateName[] = []
+    let newState = { ...state }
 
     // for each CreateNameGroup
     for (const cngLocalId of createNameGroupsLocalIds) {
+        const createNameCompleteCreateNamesToRemove: CreateNameCompleteCreateName[] = []
 
-        if (shouldIgnoreCompletionStatus(cngLocalId, state)) {
+        if (shouldIgnoreCompletionStatus(cngLocalId, newState)) {
             continue
         }
 
-        const createNames = state.createNames.byCreateNameGroupLocalId[cngLocalId]
-            .map(cnLocalId => state.createNames.byLocalId[cnLocalId])
+        const createNames = newState.createNames.byCreateNameGroupLocalId[cngLocalId]
+            .map(cnLocalId => newState.createNames.byLocalId[cnLocalId])
 
         for (const createName of createNames) {
 
-            const completeCreateNameAssociationLocalId = state.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
-            const completeCreateNameAssociation = state.createNameCompleteCreateNames.byLocalId[completeCreateNameAssociationLocalId]
+            const completeCreateNameAssociationLocalId = newState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
+            const completeCreateNameAssociation = newState.createNameCompleteCreateNames.byLocalId[completeCreateNameAssociationLocalId]
 
             if (completeCreateNameAssociation) {
                 createNameCompleteCreateNamesToRemove.push(completeCreateNameAssociation)
             }
         }
+
+        newState = removeCompleteCreateNames(createNameCompleteCreateNamesToRemove, newState)
     }
 
-    return removeCompleteCreateNames(createNameCompleteCreateNamesToRemove, state)
+    return newState
 }
