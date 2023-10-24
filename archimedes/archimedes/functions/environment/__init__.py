@@ -1,1 +1,1 @@
-from .env import token, magma_host, project_name
+from .env import token, magma_host, metis_host, project_name

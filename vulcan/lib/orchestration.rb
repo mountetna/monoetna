@@ -113,6 +113,8 @@ class Vulcan
         "-e",
         "MAGMA_HOST=#{Vulcan.instance.config(:magma)&.dig(:host)}",
         "-e",
+        "METIS_HOST=#{Vulcan.instance.config(:metis)&.dig(:host)}",
+        "-e",
         "TOKEN=#{token}",
         "-e",
         "PROJECT_NAME=#{session.project_name}",

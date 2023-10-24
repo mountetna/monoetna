@@ -37,6 +37,8 @@ import DiffExpSC from './scDGE';
 import DataTransformation from './data_transformation';
 import AllInnerKeysNotNullValidator from './validators/all_inner_keys_not_null_validator';
 import PlusSubsetValidator from './validators/PlusSubsetValidator';
+import { MetisFileInput, MetisFolderInput } from './metis_items';
+import { MetisFileValidator, MetisFolderValidator, MetisPathValidator } from './validators/metis_path_validators';
 
 const components: {[k: string]: [InputBackendComponent<any, any, any>, InputValidator<any, any>]} = {};
 function configureComponent<Value, DataElement>(
@@ -52,6 +54,10 @@ configureComponent(TYPE.STRING, StringInput, NotEmptyValidator);
 configureComponent(TYPE.FLOAT, FloatInput, NotEmptyValidator);
 configureComponent(TYPE.INTEGER, IntegerInput, NotEmptyValidator);
 configureComponent(TYPE.BOOL, BooleanInput, NotEmptyValidator);
+configureComponent(TYPE.METIS_FILE, MetisFileInput, MetisFileValidator());
+configureComponent(TYPE.METIS_CSV_OR_TSV, MetisFileInput, MetisFileValidator('\\.[ct]sv$', 'csv or tsv file'));
+configureComponent(TYPE.METIS_FOLDER, MetisFolderInput, MetisFolderValidator());
+configureComponent(TYPE.METIS_FILE_OR_FOLDER, MetisFileInput, MetisPathValidator());
 configureComponent(TYPE.SELECT_AUTOCOMPLETE, SelectAutocompleteInput, StronglyNotEmptyValidator);
 configureComponent(TYPE.CHECKBOXES, CheckboxesInput, NotEmptyValidator);
 configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, StronglyNotEmptyValidator);
