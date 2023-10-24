@@ -65,6 +65,8 @@ web-up:
 	cd metis && docker-compose up -d
 	cd vulcan && docker-compose up -d
 
+web-restart: stop-all web-up
+
 migrate-all: magma-migrate janus-migrate timur-migrate gnomon-migrate poly-migrate metis-migrate airflow-migrate vulcan-migrate
 
 ## Etna ##
