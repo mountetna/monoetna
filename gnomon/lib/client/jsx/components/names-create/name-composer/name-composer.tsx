@@ -82,11 +82,22 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, compl
         const oldCreateNameTokenValue = createNameTokenValues.find(
             cntv => cntv.ruleTokenLocalId == ruleToken.localId
         )
-        dispatch(addOrReplaceCreateNameTokenValues([createNameTokenValue], oldCreateNameTokenValue ? [oldCreateNameTokenValue.localId] : []))
+        dispatch(
+            addOrReplaceCreateNameTokenValues(
+                [createNameTokenValue],
+                oldCreateNameTokenValue ? [oldCreateNameTokenValue.localId] : [],
+                globalState,
+            )
+        )
     }
 
     const setRuleCounterValue = (value?: number) => {
-        dispatch(setCreateNameRuleCounterValues({ [createName.localId]: value }))
+        dispatch(
+            setCreateNameRuleCounterValues(
+                { [createName.localId]: value },
+                globalState,
+            )
+        )
     }
 
     return (
@@ -128,6 +139,7 @@ const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includ
 }) => {
     const dispatch = useDispatch()
 
+    const globalState: State = useSelector(selectGlobalState)
     const createNameLocalIds: string[] = useSelector(selectCreateNameLocalIdsWithGroupId(createNameGroup.localId))
     const createNamesByLocalId: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
     const primaryCreateName: CreateName = useSelector(selectCreateNameWithLocalId(createNameGroup.primaryCreateNameLocalId))
@@ -137,7 +149,6 @@ const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includ
     // const createNameCompleteCreateNameLocalIdsByCreateNameLocalId: Record<string, string> = useSelector(selectCreateNameCompleteCreateNameLocalIdsByCreateNameLocalId)
 
     // const completeCreateNameParentsByChildLocalId: Record<string, string> = useSelector(selectCompleteCreateNameParentsByChildLocalId)
-    const globalState: State = useSelector(selectGlobalState)
 
     const handleClickSelect = (event: React.ChangeEvent) => {
         if (event.target.checked) {
@@ -152,7 +163,7 @@ const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includ
     }
 
     const handleClickDelete = () => {
-        dispatch(deleteGroupsWithNames([createNameGroup.localId]))
+        dispatch(deleteGroupsWithNames([createNameGroup.localId], globalState))
     }
 
     return (

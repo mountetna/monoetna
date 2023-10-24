@@ -4,15 +4,15 @@ import { useSelector } from 'react-redux'
 import Button from "@material-ui/core/Button";
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import SaveOutlinedIcon from "@material-ui/icons/SaveOutlined";
-import FilterListIcon from '@material-ui/icons/FilterList';
 
 import AddNamesButton from "./add-names-button";
 import { deleteSelectedGroupsWithNames } from "../../actions/names";
-import { selectCreateNameGroupsByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names";
-import { CreateNameGroup } from "../../models";
+import { selectSelectedCreateNameGroupIds } from "../../selectors/names";
 import FindAndFilterButton from "./find-and-filter-button";
 import ReplaceInSelectionButton from "./copy-and-replace-button"
 import { useDispatch } from "../../utils/redux";
+import { State } from "../../store";
+import { selectGlobalState } from "../../selectors/global";
 
 
 
@@ -20,10 +20,11 @@ const NamesToolbar = () => {
     const dispatch = useDispatch()
     const [small, setSmall] = useState<boolean>(false);
 
+    const globalState: State = useSelector(selectGlobalState)
     const selectedCreateNameGroupLocalIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
 
     const handleClickDelete = () => {
-        dispatch(deleteSelectedGroupsWithNames())
+        dispatch(deleteSelectedGroupsWithNames(globalState))
     }
 
     return (

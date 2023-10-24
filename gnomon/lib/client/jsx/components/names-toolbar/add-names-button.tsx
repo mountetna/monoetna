@@ -43,7 +43,7 @@ const AddNamesButton = () => {
     };
     const handleClickRule = (ruleName: string) => {
         batch(() => {
-            dispatch(createNamesWithGroupForRule(ruleName, globalState))
+            dispatch(createNamesWithGroupForRule(ruleName, globalState, true))
             handleClose();
         })
     };

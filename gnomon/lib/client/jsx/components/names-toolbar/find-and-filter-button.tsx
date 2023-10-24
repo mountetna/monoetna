@@ -63,7 +63,7 @@ const FindAndFilterButton = () => {
         if (!rule) {
             if (ruleAndCreateNameGroup) {
                 batch(() => {
-                    dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId]))
+                    dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId], globalState))
                     setRuleAndCreateNameGroup()
                 })
                 return
@@ -72,7 +72,7 @@ const FindAndFilterButton = () => {
             return
         }
 
-        const actionPayload = createNamesWithGroupForRule(rule.name, globalState)
+        const actionPayload = createNamesWithGroupForRule(rule.name, globalState, false)
         const newState: RuleAndCreateNameGroupState = {
             rule,
             createNameGroup: actionPayload.createNameGroups[0]
@@ -80,7 +80,7 @@ const FindAndFilterButton = () => {
 
         if (ruleAndCreateNameGroup) {
             batch(() => {
-                dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId]))
+                dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId], globalState))
                 dispatch(actionPayload)
                 dispatch(addCreateNameGroupsToSearchCriteria([newState.createNameGroup.localId]))
                 setRuleAndCreateNameGroup(newState)

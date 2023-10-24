@@ -1,13 +1,13 @@
 import * as _ from "lodash"
 
-import { CompleteCreateName, CompleteCreateNameParent, CreateName, CreateNameCompleteCreateName, CreateNameGroup, CreateNameTokenValue, RuleParent, RuleToken, TokenValue, UNSET_VALUE } from "../models"
+import { CreateName, CreateNameGroup, CreateNameTokenValue } from "../models"
 import { makeActionObject } from "./utils"
 import { createLocalId } from "../utils/models"
 import { defaultDict } from "../utils/object"
 import { NamesState } from "../reducers/names"
-import { createSearchReplaceCriteriaFromGroups, renderCounter, renderTokens } from "../utils/names"
+import { createSearchReplaceCriteriaFromGroups } from "../utils/names"
 import { State } from "../store"
-import { RulesStateSliceForCompleteCreateNames } from "../selectors/global"
+import { RulesStateSliceForCompleteCreateNames, selectRulesStateSliceForCompleteCreateNames } from "../selectors/global"
 
 
 
@@ -27,17 +27,28 @@ export const SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA = "SET_CREATE
 export const SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA = "SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA"
 export const ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA = "ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA"
 export const REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA = "REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA"
-export const ADD_OR_REPLACE_COMPLETE_CREATE_NAMES = "ADD_OR_REPLACE_COMPLETE_CREATE_NAMES"
-export const REMOVE_COMPLETE_CREATE_NAMES = "REMOVE_COMPLETE_CREATE_NAMES"
 
 
-export function addNamesWithGroupsWithTokenValues(createNames: CreateName[], createNameGroups: CreateNameGroup[], createNameTokenValues: CreateNameTokenValue[]) {
-    return makeActionObject(ADD_CREATE_NAMES_WITH_GROUPS_WITH_TOKEN_VALUES, { createNames, createNameGroups, createNameTokenValues })
+export function addNamesWithGroupsWithTokenValues(
+    createNames: CreateName[],
+    createNameGroups: CreateNameGroup[],
+    createNameTokenValues: CreateNameTokenValue[],
+    updateCompletionStatus: boolean,
+    rulesStateSliceForCompleteCreateNames: RulesStateSliceForCompleteCreateNames,
+) {
+    return makeActionObject(ADD_CREATE_NAMES_WITH_GROUPS_WITH_TOKEN_VALUES, {
+        createNames,
+        createNameGroups,
+        createNameTokenValues,
+        updateCompletionStatus,
+        rulesStateSliceForCompleteCreateNames,
+    })
 }
 
 export function createNamesWithGroupForRule(
     primaryRuleName: string,
     state: State,
+    updateCompletionStatus: boolean,
 ) {
 
     const rulesState = state.rules
@@ -95,7 +106,13 @@ export function createNamesWithGroupForRule(
         }
     }
 
-    return addNamesWithGroupsWithTokenValues(createNames, [createNameGroup], createNameTokenValues)
+    return addNamesWithGroupsWithTokenValues(
+        createNames,
+        [createNameGroup],
+        createNameTokenValues,
+        updateCompletionStatus,
+        selectRulesStateSliceForCompleteCreateNames(state)
+    )
 }
 
 
@@ -156,6 +173,7 @@ function _duplicateCreateNameGroup(
 export function duplicateCreateNameGroups(
     createNameGroups: CreateNameGroup[],
     state: State,
+    updateCompletionStatus: boolean = true,
     quantity: number = 1,
     overrideRuleCounterValuesByRuleName: Record<string, number> = {},
 ) {
@@ -184,7 +202,13 @@ export function duplicateCreateNameGroups(
         }
     })
 
-    return addNamesWithGroupsWithTokenValues(newCreateNames, newCreateNameGroups, newCreateNameTokenValues)
+    return addNamesWithGroupsWithTokenValues(
+        newCreateNames,
+        newCreateNameGroups,
+        newCreateNameTokenValues,
+        updateCompletionStatus,
+        selectRulesStateSliceForCompleteCreateNames(state),
+    )
 }
 
 export function iterateOnCreateNameGroupsByRule(
@@ -193,6 +217,7 @@ export function iterateOnCreateNameGroupsByRule(
     startIdx: number,
     endIdx: number,
     state: State,
+    updateCompletionStatus: boolean = true,
 ) {
 
     const createNameGroupsByPrimaryRuleName = defaultDict<string, CreateNameGroup[]>(_ => [])
@@ -232,19 +257,51 @@ export function iterateOnCreateNameGroupsByRule(
         }
     })
 
-    return addNamesWithGroupsWithTokenValues(newCreateNames, newCreateNameGroups, newCreateNameTokenValues)
+    return addNamesWithGroupsWithTokenValues(
+        newCreateNames,
+        newCreateNameGroups,
+        newCreateNameTokenValues,
+        updateCompletionStatus,
+        selectRulesStateSliceForCompleteCreateNames(state),
+    )
 }
 
-export function addOrReplaceCreateNameTokenValues(newCreateNameTokenValues: CreateNameTokenValue[], oldCreateNameTokenValueLocalIds: string[]) {
-    return makeActionObject(ADD_AND_REMOVE_CREATE_NAME_TOKEN_VALUES, { newCreateNameTokenValues, oldCreateNameTokenValueLocalIds })
+export function addOrReplaceCreateNameTokenValues(
+    newCreateNameTokenValues: CreateNameTokenValue[],
+    oldCreateNameTokenValueLocalIds: string[],
+    state: State,
+    updateCompletionStatus: boolean = true,
+) {
+    return makeActionObject(ADD_AND_REMOVE_CREATE_NAME_TOKEN_VALUES, {
+        newCreateNameTokenValues,
+        oldCreateNameTokenValueLocalIds,
+        updateCompletionStatus,
+        rulesStateSliceForCompleteCreateNames: selectRulesStateSliceForCompleteCreateNames(state),
+    })
 }
 
-export function deleteCreateNameTokenValue(createNameTokenValue: CreateNameTokenValue) {
-    return makeActionObject(DELETE_CREATE_NAME_TOKEN_VALUE, { createNameTokenValue })
+export function deleteCreateNameTokenValue(
+    createNameTokenValue: CreateNameTokenValue,
+    state: State,
+    updateCompletionStatus: boolean = true,
+) {
+    return makeActionObject(DELETE_CREATE_NAME_TOKEN_VALUE, {
+        createNameTokenValue,
+        updateCompletionStatus,
+        rulesStateSliceForCompleteCreateNames: selectRulesStateSliceForCompleteCreateNames(state),
+    })
 }
 
-export function setCreateNameRuleCounterValues(ruleCounterValuesByCreateNameLocalId: Record<string, number | undefined>) {
-    return makeActionObject(SET_COUNTER_VALUE_FOR_CREATE_NAMES, { ruleCounterValuesByCreateNameLocalId })
+export function setCreateNameRuleCounterValues(
+    ruleCounterValuesByCreateNameLocalId: Record<string, number | undefined>,
+    state: State,
+    updateCompletionStatus: boolean = true,
+) {
+    return makeActionObject(SET_COUNTER_VALUE_FOR_CREATE_NAMES, {
+        ruleCounterValuesByCreateNameLocalId,
+        updateCompletionStatus,
+        rulesStateSliceForCompleteCreateNames: selectRulesStateSliceForCompleteCreateNames(state),
+    })
 }
 
 export function addCreateNameGroupsToSelection(createNameGroupIds: string[]) {
@@ -271,12 +328,26 @@ export function clearCreateNameGroupsFilter() {
     return makeActionObject(CLEAR_CREATE_NAME_GROUPS_FILTER, {})
 }
 
-export function deleteGroupsWithNames(createNameGroupIds: string[]) {
-    return makeActionObject(DELETE_GROUPS_WITH_NAMES, { createNameGroupIds })
+export function deleteGroupsWithNames(
+    createNameGroupIds: string[],
+    state: State,
+    updateCompletionStatus: boolean = true,
+) {
+    return makeActionObject(DELETE_GROUPS_WITH_NAMES, {
+        createNameGroupIds,
+        updateCompletionStatus,
+        rulesStateSliceForCompleteCreateNames: selectRulesStateSliceForCompleteCreateNames(state),
+    })
 }
 
-export function deleteSelectedGroupsWithNames() {
-    return makeActionObject(DELETE_SELECTED_GROUPS_WITH_NAMES, {})
+export function deleteSelectedGroupsWithNames(
+    state: State,
+    updateCompletionStatus: boolean = true,
+) {
+    return makeActionObject(DELETE_SELECTED_GROUPS_WITH_NAMES, {
+        updateCompletionStatus,
+        rulesStateSliceForCompleteCreateNames: selectRulesStateSliceForCompleteCreateNames(state),
+    })
 }
 
 export function addCreateNameGroupsToSearchCriteria(createNameGroupLocalIds: string[]) {
@@ -295,7 +366,10 @@ export function removeCreateNameGroupsFromReplaceCriteria(createNameGroupLocalId
     return makeActionObject(REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA, { createNameGroupLocalIds })
 }
 
-export function addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria(state: State) {
+export function addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria(
+    state: State,
+    updateCompletionStatus: boolean = true,
+) {
     const namesState = state.names
 
     // TODO: support multiple CreateNameGroups for criteria?
@@ -306,7 +380,6 @@ export function addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplace
     const newCntvs: CreateNameTokenValue[] = []
     const oldCntvLocalIds: string[] = []
     const newCounterValuesByCnLocalId: Record<string, number | undefined> = {}
-    const modifiedCreateNameGroupIds: Set<string> = new Set()
 
     for (const selectionGroupId of namesState.createNameGroups.selectionLocalIds) {
         const selectionCnLocalIds = namesState.createNames.byCreateNameGroupLocalId[selectionGroupId]
@@ -340,8 +413,6 @@ export function addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplace
                 if (selectionCntv) {
                     oldCntvLocalIds.push(selectionCntv.localId)
                 }
-
-                modifiedCreateNameGroupIds.add(selectionGroupId)
             }
 
             // update counterValue
@@ -349,232 +420,14 @@ export function addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplace
 
             if (newCounterValue != undefined && selectionCn.ruleCounterValue != newCounterValue) {
                 newCounterValuesByCnLocalId[selectionCn.localId] = newCounterValue
-
-                modifiedCreateNameGroupIds.add(selectionGroupId)
             }
         }
     }
 
     return [
-        addOrReplaceCreateNameTokenValues(newCntvs, oldCntvLocalIds),
-        setCreateNameRuleCounterValues(newCounterValuesByCnLocalId),
+        addOrReplaceCreateNameTokenValues(newCntvs, oldCntvLocalIds, state, updateCompletionStatus),
+        setCreateNameRuleCounterValues(newCounterValuesByCnLocalId, state, updateCompletionStatus),
     ]
-}
-
-// TODO: handle multiparent rules
-export function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
-    createNameGroupsLocalIds: string[],
-    rulesState: RulesStateSliceForCompleteCreateNames,
-    namesState: NamesState,
-) {
-    const completeCreateNamesToAdd: CompleteCreateName[] = []
-    const completeCreateNamesToRemove: CompleteCreateName[] = []
-    const createNameCompleteCreateNamesToAdd: CreateNameCompleteCreateName[] = []
-    const createNameCompleteCreateNamesToRemove: CreateNameCompleteCreateName[] = []
-    const completeCreateNameParentsToAdd: CompleteCreateNameParent[] = []
-    const completeCreateNameParentsToRemove: CompleteCreateNameParent[] = []
-
-    // for each CreateNameGroup
-    for (const cngLocalId of createNameGroupsLocalIds) {
-
-        const createNameGroup = namesState.createNameGroups.byLocalId[cngLocalId]
-        const primaryRuleName = namesState.createNames.byLocalId[createNameGroup.primaryCreateNameLocalId].ruleName
-        const ruleNamesHierarchicalList = rulesState.ruleNamesHierarchicalListByPrimaryRuleName[primaryRuleName]
-
-        const createNames = namesState.createNames.byCreateNameGroupLocalId[cngLocalId]
-            .map(cnLocalId => namesState.createNames.byLocalId[cnLocalId])
-
-        const sortedCreateNames: CreateName[] = _.sortBy(createNames, [(cn: CreateName) => {
-            return ruleNamesHierarchicalList.indexOf(cn.ruleName)
-        }])
-
-        // keep track of hierarchy completeness
-        const completeCreateNames: (CompleteCreateName | undefined)[] = []
-        let completeHierarchy = true
-
-        // for each CreateName
-        for (const [idx, createName] of sortedCreateNames.entries()) {
-            const createNameTokenValues = (namesState.createNameTokenValues.byCreateNameLocalId[createName.localId] || [])
-                .map(cntvLocalId => namesState.createNameTokenValues.byLocalId[cntvLocalId])
-
-            const actualTokenCount = createNameTokenValues.length
-            const targetTokenCount = rulesState.ruleTokenLocalIdsByRuleName[createName.ruleName].length
-            const counterRequired = rulesState.counterRequiredByRuleName[createName.ruleName]
-            const hasCounterValue = createName.ruleCounterValue != undefined
-
-            let parentCompleteCreateName: CompleteCreateName | undefined = undefined
-
-            if (idx > 0) {
-                parentCompleteCreateName = completeCreateNames[idx - 1]
-
-                if (parentCompleteCreateName == undefined) {
-                    completeHierarchy = false
-                }
-            }
-
-            // detect completeness
-            if (
-                targetTokenCount === actualTokenCount
-                && (
-                    !counterRequired
-                    || hasCounterValue
-                )
-                && completeHierarchy
-            ) {
-                // is complete
-
-                let completeCreateNameParentLocalId: string | undefined = undefined
-                const hierarchyRenderedTokenValue = renderTokens(
-                    createNameTokenValues,
-                    rulesState.ruleTokensByLocalId,
-                    rulesState.tokenValuesByLocalId,
-                )
-                const hierarchyRenderedCounterValue = createName.ruleCounterValue != undefined ? renderCounter(createName) : UNSET_VALUE
-
-                // find completeCreateNameParentLocalId
-                if (parentCompleteCreateName != undefined) {
-                    const renderedTokenValuesDict = namesState.completeCreateNameParents
-                        .byParentLocalIdByChildRenderedTokensByChildCounterValue[parentCompleteCreateName.localId]
-
-                    if (renderedTokenValuesDict != undefined) {
-                        const renderedCounterValuesDict = renderedTokenValuesDict[hierarchyRenderedTokenValue]
-
-                        if (renderedCounterValuesDict != undefined) {
-                            completeCreateNameParentLocalId = renderedCounterValuesDict[hierarchyRenderedCounterValue]
-                        }
-                    }
-                }
-
-                let completeCreateNameParent: CompleteCreateNameParent | undefined = undefined
-
-                if (completeCreateNameParentLocalId) {
-                    completeCreateNameParent = namesState.completeCreateNameParents.byLocalId[completeCreateNameParentLocalId]
-                }
-
-
-                // create CompleteCreateName and CreateName association if doesn't exist
-                let completeCreateName: CompleteCreateName | undefined = undefined
-
-                if (completeCreateNameParent == undefined) {
-                    completeCreateName = {
-                        localId: createLocalId(),
-                        value: renderTokens(
-                            createNameTokenValues,
-                            rulesState.ruleTokensByLocalId,
-                            rulesState.tokenValuesByLocalId,
-                        ),
-                        counterValue: createName.ruleCounterValue,
-                    }
-
-                    completeCreateNamesToAdd.push(completeCreateName)
-
-                    const completeCreateNameAssociation: CreateNameCompleteCreateName = {
-                        localId: createLocalId(),
-                        createNameLocalId: createName.localId,
-                        completeCreateNameLocalId: completeCreateName.localId,
-                    }
-
-                    createNameCompleteCreateNamesToAdd.push(completeCreateNameAssociation)
-                } else {
-                    completeCreateName = namesState.completeCreateNames.byLocalId[completeCreateNameParent.completeCreateNameLocalId]
-                }
-
-
-                // create CompleteCreateNameParent if doesn't exist
-                if (
-                    completeCreateNameParent == undefined
-                    && parentCompleteCreateName != undefined
-                ) {
-                    const parent: CompleteCreateNameParent = {
-                        localId: createLocalId(),
-                        completeCreateNameLocalId: completeCreateName.localId,
-                        parentCompleteCreateNameLocalId: parentCompleteCreateName.localId,
-                    }
-
-                    completeCreateNameParentsToAdd.push(parent)
-                }
-
-                completeCreateNames.push(completeCreateName)
-
-            } else {
-                // is not complete
-                // remove all records if exist
-
-                const completeCreateNameAssociationLocalId = namesState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
-
-                if (completeCreateNameAssociationLocalId != undefined) {
-                    const completeCreateNameAssociation = namesState.createNameCompleteCreateNames.byLocalId[completeCreateNameAssociationLocalId]
-                    const completeCreateName = namesState.completeCreateNames.byLocalId[completeCreateNameAssociation.completeCreateNameLocalId]
-                    const completeCreateNameParents = [
-                        ...namesState.completeCreateNameParents.byParentLocalId[completeCreateName.localId],
-                        ...namesState.completeCreateNameParents.byChildLocalId[completeCreateName.localId],
-                    ]
-                        .map(ccnpLocalId => namesState.completeCreateNameParents.byLocalId[ccnpLocalId])
-
-                    createNameCompleteCreateNamesToRemove.push(completeCreateNameAssociation)
-                    completeCreateNamesToRemove.push(completeCreateName)
-                    completeCreateNameParentsToRemove.push(...completeCreateNameParents)
-                }
-
-                completeCreateNames.push(undefined)
-            }
-        }
-    }
-
-    return makeActionObject(
-        ADD_OR_REPLACE_COMPLETE_CREATE_NAMES,
-        {
-            completeCreateNamesToAdd,
-            completeCreateNameParentsToAdd,
-            completeCreateNameLocalIdsToRemove: completeCreateNamesToRemove.map(x => x.localId),
-            completeCreateNameParentLocalIdsToRemove: completeCreateNameParentsToRemove.map(x => x.localId),
-        }
-    )
-}
-
-export function removeCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
-    createNameGroupsLocalIds: string[],
-    namesState: NamesState,
-) {
-    const completeCreateNamesToRemove: CompleteCreateName[] = []
-    const createNameCompleteCreateNamesToRemove: CreateNameCompleteCreateName[] = []
-    const completeCreateNameParentsToRemove: CompleteCreateNameParent[] = []
-
-    // for each CreateNameGroup
-    for (const cngLocalId of createNameGroupsLocalIds) {
-
-        const createNames = namesState.createNames.byCreateNameGroupLocalId[cngLocalId]
-            .map(cnLocalId => namesState.createNames.byLocalId[cnLocalId])
-
-        for (const createName of createNames) {
-
-            const completeCreateNameAssociationLocalId = namesState.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
-
-            if (completeCreateNameAssociationLocalId != undefined) {
-                const completeCreateNameAssociation = namesState.createNameCompleteCreateNames.byLocalId[completeCreateNameAssociationLocalId]
-                const completeCreateName = namesState.completeCreateNames.byLocalId[completeCreateNameAssociation.completeCreateNameLocalId]
-                const completeCreateNameParents = [
-                    ...namesState.completeCreateNameParents.byParentLocalId[completeCreateName.localId],
-                    ...namesState.completeCreateNameParents.byChildLocalId[completeCreateName.localId],
-                ]
-                    .map(ccnpLocalId => namesState.completeCreateNameParents.byLocalId[ccnpLocalId])
-
-                createNameCompleteCreateNamesToRemove.push(completeCreateNameAssociation)
-                completeCreateNamesToRemove.push(completeCreateName)
-                completeCreateNameParentsToRemove.push(...completeCreateNameParents)
-            }
-        }
-    }
-
-
-    return makeActionObject(
-        REMOVE_COMPLETE_CREATE_NAMES,
-        {
-            completeCreateNameLocalIdsToRemove: completeCreateNamesToRemove.map(x => x.localId),
-            createNameCompleteCreateNameLocalIdsToRemove: completeCreateNamesToRemove.map(x => x.localId),
-            completeCreateNameParentLocalIdsToRemove: completeCreateNameParentsToRemove.map(x => x.localId),
-        }
-    )
 }
 
 export type ACTION_TYPE =
@@ -595,5 +448,3 @@ export type ACTION_TYPE =
     | ReturnType<typeof removeCreateNameGroupsFromSearchCriteria>
     | ReturnType<typeof addCreateNameGroupsToReplaceCriteria>
     | ReturnType<typeof removeCreateNameGroupsFromReplaceCriteria>
-    | ReturnType<typeof addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds>
-    | ReturnType<typeof removeCompleteCreateNamesAndParentsForCreateNameGroupLocalIds>

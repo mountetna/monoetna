@@ -182,7 +182,7 @@ const CopyAndReplaceButton = () => {
     const selectedCreateNameGroups: CreateNameGroup[] = [...selectedCreateNameGroupLocalIds].map(cngLocalId => createNameGroupsByLocalId[cngLocalId])
 
     const iterableRules: Rule[] = useSelector(selectCommonRulesFromSelection).filter(rule => rule.hasCounter)
-    
+
     const replaceRule: Rule | undefined = useSelector(selectReplaceRuleFromSelection)
 
     // manage CreateNameGroup for <ReplaceValuesForRuleRadio />
@@ -190,7 +190,7 @@ const CopyAndReplaceButton = () => {
         if (!replaceRule) {
             if (replaceCreateNameGroup) {
                 batch(() => {
-                    dispatch(deleteGroupsWithNames([replaceCreateNameGroup.localId]))
+                    dispatch(deleteGroupsWithNames([replaceCreateNameGroup.localId], globalState))
                     setReplaceCreateNameGroup()
                 })
                 return
@@ -199,12 +199,12 @@ const CopyAndReplaceButton = () => {
             return
         }
 
-        const actionPayload = createNamesWithGroupForRule(replaceRule.name, globalState)
+        const actionPayload = createNamesWithGroupForRule(replaceRule.name, globalState, false)
         const newCng = actionPayload.createNameGroups[0]
 
         if (replaceCreateNameGroup) {
             batch(() => {
-                dispatch(deleteGroupsWithNames([replaceCreateNameGroup.localId]))
+                dispatch(deleteGroupsWithNames([replaceCreateNameGroup.localId], globalState))
                 dispatch(actionPayload)
                 dispatch(addCreateNameGroupsToReplaceCriteria([newCng.localId]))
                 setReplaceCreateNameGroup(newCng)

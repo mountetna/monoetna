@@ -64,7 +64,7 @@ export function renderTokens(
 
             return ordA - ordB
         })
-        .map(cntv => tokenValuesByLocalId[cntv.tokenValueLocalId].tokenName)
+        .map(cntv => tokenValuesByLocalId[cntv.tokenValueLocalId].name)
         .reduce((prev, curr) => prev + curr, "")
 
     return renderedTokens

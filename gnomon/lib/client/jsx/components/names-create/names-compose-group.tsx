@@ -12,7 +12,7 @@ import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import { CreateName, CreateNameGroup } from "../../models";
 import CreateNameGroupComposer from "./name-composer/name-composer";
 import { selectCreateNameGroupsWithLocalIds, selectCreateNamesByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names";
-import { deleteGroupsWithNames, createNamesWithGroupForRule, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection, addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds, removeCompleteCreateNamesAndParentsForCreateNameGroupLocalIds } from "../../actions/names";
+import { deleteGroupsWithNames, createNamesWithGroupForRule, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from "../../actions/names";
 import { useDispatch } from "../../utils/redux";
 import { State } from "../../store";
 import { selectGlobalState } from "../../selectors/global";
@@ -43,7 +43,7 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
 
 
     const handleClickAdd = () => {
-        dispatch(createNamesWithGroupForRule(ruleName, globalState))
+        dispatch(createNamesWithGroupForRule(ruleName, globalState, true))
     }
 
     const handleClickSelect = (event: React.ChangeEvent) => {
@@ -55,7 +55,7 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
     }
 
     const handleClickDelete = () => {
-        dispatch(deleteGroupsWithNames(createNameGroupLocalIds))
+        dispatch(deleteGroupsWithNames(createNameGroupLocalIds, globalState))
     }
 
     const renderComposers = (): React.ReactNode => {
