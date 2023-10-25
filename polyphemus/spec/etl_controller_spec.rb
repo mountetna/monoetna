@@ -58,6 +58,19 @@ describe EtlController do
         :project_name, :etl, :name, :ran_at, :run_interval, :status, :config_id, :version_number, :created_at, :config, :comment, :secrets, :params
       ]))
     end
+
+    it 'ignores archived configs' do
+      create_dummy_etl(run_interval: Polyphemus::EtlConfig::RUN_NEVER, secrets: { 'password' => 'shibboleth' })
+      create_dummy_etl(config: { 'foo': 'bar'}, version_number: 2, comment: 'some tweaks')
+      create_dummy_etl(run_interval: Polyphemus::EtlConfig::RUN_ARCHIVED, version_number: 3, comment: 'some tweaks')
+      create_dummy_etl(config_id: 2, project_name: 'athena', run_interval: Polyphemus::EtlConfig::RUN_NEVER)
+      auth_header(:superuser)
+      post('/api/etl/configs')
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:configs].length).to eq(1)
+      expect(json_body[:configs].first[:project_name]).to eq('athena')
+    end
   end
 
   context '#output' do
