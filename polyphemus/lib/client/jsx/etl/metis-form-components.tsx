@@ -1,10 +1,10 @@
 import React, { useContext } from 'react';
 import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import Switch from '@material-ui/core/Switch';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 import {PickFolder} from 'etna-js/components/metis_exploration';
 
@@ -158,17 +158,41 @@ export const BlankTable = ({value, update, modelName, classes}:ScriptItem) => {
     update(true)
   }
 
-  return <Grid item container direction='column'>
-    <FormControlLabel
-      label="Blank Previous Values (Table models only)"
-      control={<Switch
-        checked={isTable && value}
+  const the_switch = <Grid item>
+      <Switch
+        checked={isTable && value} onChange={()=>update(!value)}
         disabled={!isTable}
-        onChange={()=>update(!value)}
         color="primary"
-      />}
-    />
-  </Grid>
+        />
+    </Grid>
+
+  return <Typography component="div">
+      {
+        isTable ?
+          <Grid item container direction='row'
+            component="label"
+            alignItems="center"
+            spacing={1}>
+            <Grid item>
+              Append to Previous Values
+            </Grid>
+            <Grid item>
+              {the_switch}
+            </Grid>
+            <Grid item>
+              Clear Previous Values
+            </Grid>
+          </Grid> :
+          <Grid item container direction='row' alignItems="center">
+            <Grid item>
+              {the_switch}
+            </Grid>
+            <Grid item>
+              Table Models Only
+            </Grid>
+          </Grid>
+      }
+  </Typography>
 }
 
 export const ColumnMap = ({value, update, modelName, classes}:ScriptItem) => {
