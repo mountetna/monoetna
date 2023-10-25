@@ -1569,13 +1569,15 @@ EOT
 
       puts "Found #{archived_files_count} of #{files.length} files on Metis."
       puts "Total unarchived size: #{byte_format(unarchived_size)}"
-      if options[:list] && !unarchived_files.empty?
-        puts "\nMissing files:"
-        puts unarchived_files
-        puts "Archived files:"
-        puts archived_files
-      elsif !unarchived_files.empty?
-        puts "Run with --list option added to see missing files."
+      if !unarchived_files.empty?
+        if options[:list]
+          puts "Archived files:"
+          puts archived_files
+          puts "\nMissing files:"
+          puts unarchived_files
+        else
+          puts "Run with --list option added to see missing files."
+        end
       end
     end
   end
