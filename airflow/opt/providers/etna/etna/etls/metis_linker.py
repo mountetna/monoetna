@@ -102,8 +102,13 @@ class MetisLoaderConfig(EtlConfigResponse):
                     else:
                         # Attempt to use pandas' automated detection
                         separator = None
-                # Maybe Future Feature: expose additional blanker value in config ui
-                data = pandas.read_table(file_reader, sep=separator, engine = 'python').replace({numpy.nan: None})
+                # Load dataframe
+                data = pandas.read_table(file_reader, sep=separator, engine = 'python', na_filter=False)
+                # Blank data equaling hole_value or empty string (None's ignored from the update-build later on)
+                replacements = {'': None}
+                if 'hole_value' in script:
+                    replacements[script['hole_value']] = None
+                data=data.replace(replacements)
             if len(data.columns) < 2:
                 raise MetisLoaderError(f"{file.file_name} seems to have fewer than 2 columns. Check the 'format' configuration for this data_frame loader.")
             if not set(columns).issubset(data.columns):

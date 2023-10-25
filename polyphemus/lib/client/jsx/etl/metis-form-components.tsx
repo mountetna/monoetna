@@ -195,6 +195,22 @@ export const BlankTable = ({value, update, modelName, classes}:ScriptItem) => {
   </Typography>
 }
 
+export const HoleValue = ({value, update, modelName, classes}:ScriptItem) => {
+  return <Grid item container>
+    <Grid item xs={3}>
+      <TextField
+        label='Value to ignore when seen, e.g. NA'
+        InputLabelProps={{shrink: true}}
+        fullWidth
+        value={value}
+        onChange={
+          (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
+        }
+      />
+    </Grid>
+  </Grid>;
+}
+
 export const ColumnMap = ({value, update, modelName, classes}:ScriptItem) => {
 
   const {models} = useContext(MagmaContext);

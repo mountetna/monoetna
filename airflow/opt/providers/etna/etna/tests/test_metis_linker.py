@@ -166,8 +166,34 @@ class TestMetisLinker:
                 }
             }
         }
+        # Same as above, just additionally set to ignore data that are "__"
+        config1hole = {
+            "project_name": "labors",
+            "config": {
+                "bucket_name": "pics",
+                "models": {
+                    "victim": {
+                        "scripts": [
+                            {
+                                "type": "data_frame",
+                                "folder_path": "villages",
+                                "file_match": "*.tsv",
+                                "format": "tsv",
+                                "blank_table": True,
+                                "column_map": {
+                                    "name": "name",
+                                    "species": "SPECIES"
+                                },
+                                "hole_value": "__"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
         # csv format, file columns do match the map, script also set to test auto detection that its a csv file.
         # For table version, DON'T blank past values
+        # Config lacks a 'hole_value' definition.
         config2 = {
             "project_name": "labors",
             "config": {
@@ -276,8 +302,8 @@ class TestMetisLinker:
 
         # And we have these files
         files = {
-            'village-1.tsv': 'name\tSPECIES\nLABORS-LION-H2-C1\tlion\n',
-            'village-2.csv': 'name,SPECIES\nLABORS-LION-H2-C1,lion\n'
+            'village-1.tsv': 'name\tSPECIES\nLABORS-LION-H2-C1\t__\n',
+            'village-2.csv': 'name,SPECIES\nLABORS-LION-H2-C1,__\n'
         }
 
         def dummy_file(file):
@@ -294,7 +320,7 @@ class TestMetisLinker:
         assert asdict(update1)['revisions'] == {
             'victim': {
                 'LABORS-LION-H2-C1': {
-                    'species': 'lion'
+                    'species': '__'
                 }
             }
         }
@@ -306,7 +332,7 @@ class TestMetisLinker:
             'victim': {
                 '::temp-id-0': {
                     'name': 'LABORS-LION-H2-C1',
-                    'species': 'lion'
+                    'species': '__'
                 }
             }
         }
@@ -314,8 +340,16 @@ class TestMetisLinker:
             'victim': {
                 '::temp-id-0': {
                     'name': 'LABORS-LION-H2-C1',
-                    'species': 'lion'
+                    'species': '__'
                 }
+            }
+        }
+
+        # given a 'good' config, with hole_value matching a value in the file, we get a shortened update
+        update5 = MetisLoaderConfig(**config1hole, rules=rules).update_for(tail, metis, model_std)
+        assert asdict(update5)['revisions'] == {
+            'victim': {
+                'LABORS-LION-H2-C1': {}
             }
         }
 
