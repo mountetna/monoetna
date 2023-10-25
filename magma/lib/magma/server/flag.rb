@@ -1,18 +1,26 @@
 require_relative 'controller'
 
 class FlagsController < Magma::Controller
+
+  def initialize(request, action = nil)
+    super
+    @flags = Magma::Project.flags(@project_name)
+  end
+
   def get
     success_json({flags: @flags})
   end
 
   def set
     require_param(:flags)
-    Magma::Flag.update_or_create(project_name, @params[:flags])
-    success_json({success: 200})
-  end
+    @params[:flags].each do |flag|
+      flag.each do |flag_name, flag_value|
+        update_key =  {project_name: @project_name, flag_name: flag_name.to_s}
+        Magma::Flag.update_or_create(update_key, {value: flag_value})
+      end
+    end
 
-  def project_name
-    @params[:project_name]
+    success_json({success: 200})
   end
 
 end

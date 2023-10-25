@@ -30,39 +30,63 @@ describe FlagsController do
   end
 
   context 'set API' do
-    it 'correctly updates a flag' do
-      create_flags
-      auth_header(:admin)
-      json_post('/flags/labors', flags: [{contains_extra_labor: "false"}])
-      get('/flags/labors')
-      expect(json_body[:flags][:contains_extra_labor]).to eq("false")
-      expect(json_body[:flags][:mythology]).to eq("greek")
+
+    context 'creates and updates' do
+
+      it 'correctly updates a flag' do
+        create_flags
+        auth_header(:admin)
+        json_post('/flags/labors', flags: [{contains_extra_labor: "false"}])
+        get('/flags/labors')
+        expect(json_body[:flags][:contains_extra_labor]).to eq("false")
+        expect(json_body[:flags][:mythology]).to eq("greek")
+      end
+
+      it 'correctly creates flags' do
+        create_flags
+        auth_header(:admin)
+        json_post('/flags/labors', flags: [{is_deprecated: "false"}, {is_rainy: "true"}])
+        get('/flags/labors')
+        expect(json_body[:flags][:is_deprecated]).to eq("false")
+        expect(json_body[:flags][:is_rainy]).to eq("true")
+        expect(json_body[:flags][:contains_extra_labor]).to eq("true")
+        expect(json_body[:flags][:mythology]).to eq("greek")
+      end
+
+      it 'correctly creates a flag if none exist' do
+        auth_header(:admin)
+        json_post('/flags/labors', flags: [{deprecated: "false"}])
+        get('/flags/labors')
+        expect(json_body[:flags][:deprecated]).to eq("false")
+      end
+
+      it 'complains if you are not authorized to update flags' do
+        create_flags
+        auth_header(:viewer)
+        json_post('/flags/labors', flags: [{deprecated: "false"}])
+        expect(last_response.status).to eq(403)
+      end
     end
 
-    it 'correctly creates flags' do
-      create_flags
-      auth_header(:admin)
-      json_post('/flags/labors', flags: [{is_deprecated: "false"}, {is_rainy: "true"}])
-      get('/flags/labors')
-      expect(json_body[:flags][:is_deprecated]).to eq("false")
-      expect(json_body[:flags][:is_rainy]).to eq("true")
-      expect(json_body[:flags][:contains_extra_labor]).to eq("true")
-      expect(json_body[:flags][:mythology]).to eq("greek")
+    context 'deletes' do
+
+      it 'correctly deletes a flag' do
+        create_flags
+        auth_header(:admin)
+        json_post('/flags/labors', flags: [{mythology: nil}])
+        get('/flags/labors')
+        expect(json_body.dig(:flags,:mythology)).to be nil
+        expect(json_body[:flags][:contains_extra_labor]).to eq("true")
+      end
+
+      it 'gracefully handles when flag does not exist' do
+        auth_header(:admin)
+        json_post('/flags/labors', flags: [{mythology: nil}])
+        get('/flags/labors')
+        expect(json_body[:flags]).to be_empty
+        expect(last_response.status).to eq(200)
+      end
     end
 
-    it 'correctly creates a flag if none exist' do
-      auth_header(:admin)
-      json_post('/flags/labors', flags: [{deprecated: "false"}])
-      get('/flags/labors')
-      expect(json_body[:flags][:deprecated]).to eq("false")
-    end
-
-    it 'complains if you are not authorized to update flags' do
-      create_flags
-      auth_header(:viewer)
-      json_post('/flags/labors', flags: [{deprecated: "false"}])
-      expect(last_response.status).to eq(403)
-    end
   end
 end
-
