@@ -8,7 +8,7 @@ import FormControl from '@material-ui/core/FormControl';
 import * as _ from "lodash"
 
 import { CompleteCreateNameParentsByRenderedValues } from "../../../reducers/names";
-import { selectCompleteCreateNamesByParentAndValues, selectRenderedCompleteCreateNameWithLocalId } from "../../../selectors/names";
+import { selectCompleteCreateNameParentLocalIdsByRenderedValues, selectRenderedCompleteCreateNamesByLocalId } from "../../../selectors/names";
 import { fetchNextCounterValueFromMagma } from "../../../utils/names";
 import { selectRuleParentLocalIdsByRuleName } from "../../../selectors/rules";
 import { UNSET_VALUE } from "../../../models";
@@ -37,34 +37,32 @@ const useStyles = makeStyles((theme) => ({
 const RuleCounterField = ({
     value,
     renderedTokensPrefix,
-    completeCreateNameParentLocalId,
+    parentCompleteCreateNameLocalId,
     projectName,
     ruleName,
     handleSetCounterValue
 }: {
     value: number | undefined,
     renderedTokensPrefix: string | undefined,
-    completeCreateNameParentLocalId: string | undefined,
+    // TODO: handle multiple parents
+    parentCompleteCreateNameLocalId: string | undefined,
     projectName: string,
     ruleName: string,
     handleSetCounterValue: (value?: number) => void,
 }) => {
 
     const classes = useStyles(value ? String(value).length : 1)
-    const completeCreateNamesByParentAndValues: CompleteCreateNameParentsByRenderedValues = useSelector(selectCompleteCreateNamesByParentAndValues)
-    const needsParentCompletedCreateName: boolean = useSelector(selectRuleParentLocalIdsByRuleName)[ruleName] != undefined
+    const completeCreateNameParentLocalIdsByRenderedValues: CompleteCreateNameParentsByRenderedValues = useSelector(selectCompleteCreateNameParentLocalIdsByRenderedValues)
+    const needsParentCompleteCreateName: boolean = useSelector(selectRuleParentLocalIdsByRuleName)[ruleName] != undefined
+    let fullRenderedTokensPrefix: string | undefined = useSelector(selectRenderedCompleteCreateNamesByLocalId)[parentCompleteCreateNameLocalId]
 
-    let fullRenderedTokensPrefix: string | undefined = undefined
     if (
         renderedTokensPrefix != undefined
-        && completeCreateNameParentLocalId != undefined
+        && parentCompleteCreateNameLocalId != undefined
     ) {
-        fullRenderedTokensPrefix = useSelector(
-            state => selectRenderedCompleteCreateNameWithLocalId(state, completeCreateNameParentLocalId)
-        )
         fullRenderedTokensPrefix += renderedTokensPrefix
 
-    } else if (!needsParentCompletedCreateName) {
+    } else if (!needsParentCompleteCreateName) {
         fullRenderedTokensPrefix = renderedTokensPrefix
     }
 
@@ -75,27 +73,33 @@ const RuleCounterField = ({
         if (!(
             renderedTokensPrefix != undefined
             && (
-                completeCreateNameParentLocalId != undefined
-                || !needsParentCompletedCreateName
+                parentCompleteCreateNameLocalId != undefined
+                || !needsParentCompleteCreateName
             )
             && fullRenderedTokensPrefix != undefined
         )) { return }
 
-        const ccnpLocalId: string = completeCreateNameParentLocalId != undefined ? completeCreateNameParentLocalId : UNSET_VALUE
+        const ccnpLocalId: string = parentCompleteCreateNameLocalId != undefined ? parentCompleteCreateNameLocalId : UNSET_VALUE
+        const hierarchyValues: number[] = []
 
-        const localMaxValue = ccnpLocalId in completeCreateNamesByParentAndValues
-            ? Math.max(
-                ...Object.keys(completeCreateNamesByParentAndValues[ccnpLocalId])
+        if (
+            ccnpLocalId in completeCreateNameParentLocalIdsByRenderedValues
+            && renderedTokensPrefix in completeCreateNameParentLocalIdsByRenderedValues[ccnpLocalId]
+        ) {
+            hierarchyValues.push(
+                ...Object.keys(completeCreateNameParentLocalIdsByRenderedValues[ccnpLocalId][renderedTokensPrefix])
                     .map(el => {
                         const asNum = Number.parseInt(el)
                         return Number.isNaN(asNum) ? -1 : asNum
                     })
             )
-            : -1
+        }
+
+        const localMaxValue = hierarchyValues.length > 0 ? Math.max(...hierarchyValues) : -1
 
         fetchNextCounterValueFromMagma(projectName, ruleName, fullRenderedTokensPrefix)
-            .then(remoteMaxValue => {
-                handleSetCounterValue(Math.max(localMaxValue, remoteMaxValue) + 1)
+            .then(remoteNextValue => {
+                handleSetCounterValue(Math.max(localMaxValue + 1, remoteNextValue))
             })
             .catch(err => {
                 console.error(`Error auto-incrementing counterValue: ${err}`)

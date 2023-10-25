@@ -46,9 +46,12 @@ export function createSearchReplaceCriteriaFromGroups(state: NamesState, createN
 export function fetchNextCounterValueFromMagma(projectName: string, ruleName: string, tokenPrefix: string): Promise<number> {
 
     return json_post(magmaPath(`gnomon/${projectName}/increment/${ruleName}/${tokenPrefix}`))
-        .then(value => value)
-        // remove this once json_post is fixed
-        .catch(err => Promise.resolve(err).then(err => Promise.reject(err)))
+        .then(value => {
+            if (Number.isInteger(Number(value))) {
+                return Number.parseInt(value)
+            }
+            return Promise.reject(`value "${value}" is not an integer`)
+        })
 }
 
 export function renderTokens(

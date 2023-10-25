@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect'
 
-import { Rule, RuleParent, RuleToken, Token, TokenValue } from "../models";
+import { CompleteCreateName, Rule, RuleParent, RuleToken, Token, TokenValue } from "../models";
 import { RulesState } from '../reducers/rules';
 import { State } from '../store';
 
@@ -30,9 +30,9 @@ export const selectRuleNamesHierarchicalListByPrimaryRuleName: (state: State) =>
                     break
                 }
                 const rule = rules.rules[ruleName]
-    
+
                 orderedRuleNames.unshift(rule.name)
-    
+
                 // check for rule parents
                 if (rules.ruleParents.byRuleName[ruleName]) {
                     const parentRuleNames = rules.ruleParents.byRuleName[ruleName].map(rpLocalId => {

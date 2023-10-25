@@ -26,7 +26,7 @@ export interface State {
 
 
 const createStore = () => {
-  let reducers = {
+  const reducers = {
     user,
     janus,
     location,
@@ -34,16 +34,30 @@ const createStore = () => {
     names: namesReducer,
   };
 
-  let middleWares = [thunk];
+  const middleWares = [thunk];
+
+  let composeEnhancers = Redux.compose
 
   if (process.env.NODE_ENV != 'production') {
-    middleWares.unshift(ReduxLogger.createLogger({ collapsed: true }));
+    // middleWares.unshift(ReduxLogger.createLogger({ collapsed: true }));
+
+    if (typeof window === 'object' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) {
+      composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
+        // options: https://github.com/zalmoxisus/redux-devtools-extension/blob/master/docs/API/Arguments.md
+        // trace: true,
+      })
+    }
   }
+
+  const enhancer = composeEnhancers(
+    Redux.applyMiddleware(...middleWares),
+    // other store enhancers if any
+  );
 
   return Redux.createStore(
     Redux.combineReducers(reducers),
     {},
-    Redux.applyMiddleware(...middleWares)
+    enhancer,
   );
 };
 

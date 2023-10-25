@@ -1,10 +1,11 @@
 import { createSelector } from 'reselect'
 import * as _ from "lodash"
 
-import { CreateName, CreateNameCompleteCreateName, CreateNameGroup, CreateNameTokenValue } from "../models";
+import { CompleteCreateName, CompleteCreateNameParent, CreateName, CreateNameCompleteCreateName, CreateNameGroup, CreateNameTokenValue, UNSET_VALUE } from "../models";
 import { CompleteCreateNameParentsByRenderedValues, NamesState } from "../reducers/names"
 import { defaultDict } from "../utils/object"
 import { State } from '../store';
+import { selectRuleNamesHierarchicalListByPrimaryRuleName } from './rules';
 
 
 
@@ -85,64 +86,115 @@ export const selectCreateNameTokenValueLocalIdsWithCreateNameLocalId = (createNa
     return state.names.createNameTokenValues.byCreateNameLocalId[createNameLocalId]
 }
 
-export const selectCompleteCreateNamesByParentAndValues = (state: State): CompleteCreateNameParentsByRenderedValues => {
-    return state.names.completeCreateNames.byParentLocalIdbyRenderedTokensByCounterValue
+export const selectCompleteCreateNameParentLocalIdsByRenderedValues = (state: State): CompleteCreateNameParentsByRenderedValues => {
+    return state.names.completeCreateNameParents.byParentLocalIdByChildRenderedTokensByChildCounterValue
 }
-
-export const selectRenderedCompleteCreateNameWithLocalId: (state: State, completeCreateNameLocalId: string) => string = createSelector(
-    [
-        (state: State) => state.names,
-        (state, completeCreateNameLocalId) => completeCreateNameLocalId,
-    ],
-    (names: NamesState, completeCreateNameLocalId: string): string => {
-
-        let renderedValues: string[] = []
-        const localIdsToProcess: string[] = [completeCreateNameLocalId]
-
-        while (localIdsToProcess.length) {
-            const completeCnLocalId = localIdsToProcess.pop()
-            if (!completeCnLocalId) {
-                break
-            }
-
-            const completeCn = names.completeCreateNames.byLocalId[completeCnLocalId]
-
-            renderedValues.unshift(completeCn.value + completeCn.counterValue || "")
-
-            // grab parents to process
-            // maybe recursive call to allow caching?
-            if (completeCn.localId in names.completeCreateNameParents.byChildLocalId) {
-
-                const parentCompleteCnLocalIds = [...names.completeCreateNameParents.byChildLocalId[completeCn.localId]]
-                    .map(parentLocalId => {
-                        return names.completeCreateNameParents.byLocalId[parentLocalId].parentCompleteCreateNameLocalId
-                    })
-
-                // TODO: properly handle multiple parents
-                // (will be ok with one for now)
-                localIdsToProcess.unshift(...parentCompleteCnLocalIds)
-            }
-        }
-
-        return renderedValues.reduce((prev, curr) => prev + curr, "")
-    }
-)
 
 export const selectRenderedCompleteCreateNamesByLocalId: (state: State) => Record<string, string> = createSelector(
     [
-        (state: State) => state.names,
+        (state: State) => state,
     ],
-    (names: NamesState): Record<string, string> => {
+    (state: State): Record<string, string> => {
 
         const renderedNamesByLocalId: Record<string, string> = {}
+        const namesState = state.names
 
-        // TODO:
-        // go through all CCNs
-        // use selectRenderedCompleteCreateNameWithLocalId as cache
+        for (const ccn of Object.values(namesState.completeCreateNames.byLocalId)) {
+
+            let renderedValues: string[] = []
+            const localIdsToProcess: string[] = [ccn.localId]
+
+            while (localIdsToProcess.length) {
+                const completeCnLocalId = localIdsToProcess.pop()
+                if (!completeCnLocalId) {
+                    break
+                }
+
+                const completeCn = namesState.completeCreateNames.byLocalId[completeCnLocalId]
+
+                renderedValues.unshift(
+                    completeCn.value
+                    + (completeCn.counterValue != undefined ? String(completeCn.counterValue) : "")
+                )
+
+                // grab parents to process
+                if (completeCn.localId in namesState.completeCreateNameParents.byChildLocalId) {
+
+                    for (const ccnpLocalId of [...namesState.completeCreateNameParents.byChildLocalId[completeCn.localId]]) {
+                        const parentCcnLocalId = namesState.completeCreateNameParents.byLocalId[ccnpLocalId].parentCompleteCreateNameLocalId
+
+                        if (parentCcnLocalId == UNSET_VALUE) {
+                            continue
+                            // grab precomputed value if exists
+                        } else if (parentCcnLocalId in renderedNamesByLocalId) {
+                            renderedValues.unshift(renderedNamesByLocalId[parentCcnLocalId])
+                            // queue to compute
+                        } else {
+                            localIdsToProcess.unshift(parentCcnLocalId)
+                        }
+                    }
+                }
+            }
+
+            const renderedValue = renderedValues.reduce((prev, curr) => prev + curr, "")
+            renderedNamesByLocalId[ccn.localId] = renderedValue
+        }
 
         return renderedNamesByLocalId
     }
 )
+
+export const selectRenderedCompleteCreateNamesByCreateNameGroupLocalId: (state: State) => Record<string, string> = createSelector(
+    [
+        (state: State) => state
+    ],
+    (state: State): Record<string, string> => {
+
+        const renderedNamesByGroupLocalId: Record<string, string> = {}
+        const renderedCompleteCreateNamesByLocalId = selectRenderedCompleteCreateNamesByLocalId(state)
+
+        for (const createNameGroup of Object.values(state.names.createNameGroups.byLocalId)) {
+
+            const targetCompleteCreateNameLocalId: string | undefined = state.names.createNameCompleteCreateNames
+                .byCreateNameLocalId[createNameGroup.primaryCreateNameLocalId]
+
+            if (targetCompleteCreateNameLocalId != undefined) {
+                renderedNamesByGroupLocalId[createNameGroup.localId] = renderedCompleteCreateNamesByLocalId[targetCompleteCreateNameLocalId]
+            }
+        }
+
+        return renderedNamesByGroupLocalId
+    }
+)
+
+// TODO: handle multiple parents
+export const selectSortedCompleteCreateNamesWithCreateNameGroupLocalId = (createNameGroupLocalId: string) => (
+    state: State
+): (CompleteCreateName | undefined)[] => {
+
+    const ruleNamesHierarchicalListByPrimaryRuleName = selectRuleNamesHierarchicalListByPrimaryRuleName(state)
+    const createNameGroup = state.names.createNameGroups.byLocalId[createNameGroupLocalId]
+    const createNames = state.names.createNames.byCreateNameGroupLocalId[createNameGroupLocalId]
+        .map(createNameLocalId => state.names.createNames.byLocalId[createNameLocalId])
+    const primaryCreateName = state.names.createNames.byLocalId[createNameGroup.primaryCreateNameLocalId]
+
+    return ruleNamesHierarchicalListByPrimaryRuleName[primaryCreateName.ruleName].map(ruleName => {
+
+        const createName = createNames.find(cn => cn.ruleName == ruleName)
+        if (createName == undefined) {
+            throw new Error(`can't find CreateName.ruleName equal to ${ruleName}`)
+        }
+
+        const completeCreateNameAssociationLocalId = state.names.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
+        const completeCreateNameAssociation: CreateNameCompleteCreateName | undefined = state.names.createNameCompleteCreateNames
+            .byLocalId[completeCreateNameAssociationLocalId]
+
+        if (completeCreateNameAssociation == undefined) {
+            return undefined
+        }
+        return state.names.completeCreateNames.byLocalId[completeCreateNameAssociation.completeCreateNameLocalId]
+    })
+}
 
 export const selectCreateNameCompleteCreateNameLocalIdsByCreateNameLocalId = (state: State): Record<string, string> => {
     return state.names.createNameCompleteCreateNames.byCreateNameLocalId
@@ -150,4 +202,12 @@ export const selectCreateNameCompleteCreateNameLocalIdsByCreateNameLocalId = (st
 
 export const selectCreateNameCompleteCreateNamesByLocalId = (state: State): Record<string, CreateNameCompleteCreateName> => {
     return state.names.createNameCompleteCreateNames.byLocalId
+}
+
+export const selectCompleteCreateNameParentLocalIdsByChildLocalId = (state: State): Record<string, string[]> => {
+    return state.names.completeCreateNameParents.byChildLocalId
+}
+
+export const selectCompleteCreateNameParentsByLocalId = (state: State): Record<string, CompleteCreateNameParent> => {
+    return state.names.completeCreateNameParents.byLocalId
 }
