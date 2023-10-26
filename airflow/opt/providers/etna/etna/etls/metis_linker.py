@@ -198,7 +198,7 @@ def MetisLinker(interval_minutes=5):
             'wait_for_downstream': False
         }
     )
-    def MetisLinkerDefine():
+    def MetisLinker():
         hook = EtnaHook('etna_administration', use_token_auth=True)
         
         @task
@@ -385,4 +385,4 @@ Committed to Magma: {i['commit']}
         models = get_models(configs)
         updates = process_tails(configs, tails, rules, models)
         post_updates(configs, updates)
-    return MetisLinkerDefine()
+    return MetisLinker()
