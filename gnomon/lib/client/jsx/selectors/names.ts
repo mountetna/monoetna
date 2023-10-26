@@ -74,7 +74,13 @@ export const selectCreateNameLocalIdsWithGroupId = (groupId: string) => (state: 
 
 export const selectSelectedCreateNameGroupIds = (state: State): Set<string> => state.names.createNameGroups.selectionLocalIds
 
+export const selectFilterCreateNameGroupIds = (state: State): Set<string> => state.names.createNameGroups.filterLocalIds
+
+export const selectFilterEnabledStatus = (state: State): boolean => state.names.createNameGroups.filterEnabled
+
 export const selectSearchCreateNameGroupIds = (state: State): Set<string> => state.names.createNameGroups.searchLocalIds
+
+export const selectReplaceCreateNameGroupIds = (state: State): Set<string> => state.names.createNameGroups.replaceLocalIds
 
 export const selectCreateNameTokenValuesByLocalId = (state: State): Record<string, CreateNameTokenValue> => state.names.createNameTokenValues.byLocalId
 
@@ -117,7 +123,7 @@ export const selectRenderedCompleteCreateNamesByLocalId: (state: State) => Recor
                     + (completeCn.counterValue != undefined ? String(completeCn.counterValue) : "")
                 )
 
-                // grab parents to process
+                // process parent complete names
                 if (completeCn.localId in namesState.completeCreateNameParents.byChildLocalId) {
 
                     for (const ccnpLocalId of [...namesState.completeCreateNameParents.byChildLocalId[completeCn.localId]]) {
@@ -125,11 +131,11 @@ export const selectRenderedCompleteCreateNamesByLocalId: (state: State) => Recor
 
                         if (parentCcnLocalId == UNSET_VALUE) {
                             continue
-                            // grab precomputed value if exists
                         } else if (parentCcnLocalId in renderedNamesByLocalId) {
+                            // use precomputed value if exists
                             renderedValues.unshift(renderedNamesByLocalId[parentCcnLocalId])
-                            // queue to compute
                         } else {
+                            // queue to compute
                             localIdsToProcess.unshift(parentCcnLocalId)
                         }
                     }
@@ -182,7 +188,7 @@ export const selectSortedCompleteCreateNamesWithCreateNameGroupLocalId = (create
 
         const createName = createNames.find(cn => cn.ruleName == ruleName)
         if (createName == undefined) {
-            throw new Error(`can't find CreateName.ruleName equal to ${ruleName}`)
+            throw new Error(`can't find CreateName where ruleName == ${ruleName}`)
         }
 
         const completeCreateNameAssociationLocalId = state.names.createNameCompleteCreateNames.byCreateNameLocalId[createName.localId]
@@ -196,8 +202,54 @@ export const selectSortedCompleteCreateNamesWithCreateNameGroupLocalId = (create
     })
 }
 
+
+export interface CompleteCreateNameRequestPayload {
+    localId: string
+    renderedName: string
+    ruleName: string
+    // names that must exist for primary CreateNames to be created
+    // (i.e., parents of primary CreateNames)
+    implicit: boolean
+}
+
+
+export const selectCompleteCreateNamesCreationPayloads: (state: State) => CompleteCreateNameRequestPayload[] = createSelector(
+    [
+        (state: State) => state
+    ],
+    (state: State): CompleteCreateNameRequestPayload[] => {
+
+        const renderedCompleteCreateNamesByLocalId = selectRenderedCompleteCreateNamesByLocalId(state)
+        const primaryCreateNameLocalIds = new Set<string>(
+            Object.values(state.names.createNameGroups.byLocalId).map(cng => cng.primaryCreateNameLocalId)
+        )
+
+        return Object.entries(renderedCompleteCreateNamesByLocalId).map(([ccnLocalId, rendered]) => {
+
+            const createName = state.names.createNames.byLocalId[
+                state.names.createNameCompleteCreateNames.byLocalId[
+                    state.names.createNameCompleteCreateNames.byCompleteCreateNameLocalId[ccnLocalId][0]
+                ].createNameLocalId
+            ]
+
+            return {
+                localId: ccnLocalId,
+                renderedName: rendered,
+                ruleName: createName.ruleName,
+                // if it's not a primary CreateName, it's implicit
+                implicit: !primaryCreateNameLocalIds.has(createName.localId)
+            }
+        })
+
+    }
+)
+
 export const selectCreateNameCompleteCreateNameLocalIdsByCreateNameLocalId = (state: State): Record<string, string> => {
     return state.names.createNameCompleteCreateNames.byCreateNameLocalId
+}
+
+export const selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId = (state: State): Record<string, string[]> => {
+    return state.names.createNameCompleteCreateNames.byCompleteCreateNameLocalId
 }
 
 export const selectCreateNameCompleteCreateNamesByLocalId = (state: State): Record<string, CreateNameCompleteCreateName> => {

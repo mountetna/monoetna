@@ -1,4 +1,4 @@
-import React, { useState, useRef, ReactNode } from "react";
+import React, { useState } from "react";
 import Grid from "@material-ui/core/Grid";
 import { useSelector } from 'react-redux'
 import ButtonBase from "@material-ui/core/ButtonBase";
@@ -9,25 +9,46 @@ import UnfoldLessOutlinedIcon from '@material-ui/icons/UnfoldLessOutlined';
 import UnfoldMoreOutlinedIcon from '@material-ui/icons/UnfoldMoreOutlined';
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 
-import { CreateName, CreateNameGroup } from "../../models";
+import { CreateNameGroup } from "../../models";
 import CreateNameGroupComposer from "./name-composer/name-composer";
-import { selectCreateNameGroupsWithLocalIds, selectCreateNamesByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names";
+import { selectCreateNameGroupsWithLocalIds, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names";
 import { deleteGroupsWithNames, createNamesWithGroupForRule, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from "../../actions/names";
 import { useDispatch } from "../../utils/redux";
 import { State } from "../../store";
 import { selectGlobalState } from "../../selectors/global";
+import Counts, { Count } from "./counts";
 
 
 
-// move to separate module bc global toolbar uses it
-const createReadyStatuses = (createNameGroups: CreateNameGroup[], createNames: Record<string, CreateName>): ReactNode => {
-    const counts = { ready: 1, notReady: 1 }
-    return (
-        <div className="names-status">
-            <div>{counts.ready} ready</div>
-            {counts.notReady && <div>{counts.notReady} not ready</div>}
-        </div>
-    )
+function createReadyCounts(
+    createNameGroups: CreateNameGroup[],
+    renderedCompleteCreateNamesByCreateNameGroupLocalId: Record<string, string>,
+): Count[] {
+
+    let total = 0
+    let notReady = 0
+
+    for (const cng of createNameGroups) {
+        total += 1
+        if (!(cng.localId in renderedCompleteCreateNamesByCreateNameGroupLocalId)) {
+            notReady += 1
+        }
+    }
+
+    const counts: Count[] = []
+    counts.push({
+        name: "total",
+        description: `name${total > 1 ? "s" : ""}`,
+        value: total,
+        hideAtZero: false,
+    })
+    counts.push({
+        name: "notReady",
+        description: "not ready",
+        value: notReady,
+        hideAtZero: true,
+    })
+    return counts
 }
 
 
@@ -37,10 +58,11 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
     const dispatch = useDispatch()
 
     const createNameGroups: CreateNameGroup[] = useSelector(selectCreateNameGroupsWithLocalIds(createNameGroupLocalIds))
-    const createNames: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
     const globalState: State = useSelector(selectGlobalState)
-    const selectionCreateNameGroupLocalIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
+    const selectedCreateNameGroupLocalIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
+    const renderedCompleteCreateNamesByCreateNameGroupLocalId: Record<string, string> = useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)
 
+    const readyCounts = createReadyCounts(createNameGroups, renderedCompleteCreateNamesByCreateNameGroupLocalId)
 
     const handleClickAdd = () => {
         dispatch(createNamesWithGroupForRule(ruleName, globalState, true))
@@ -80,7 +102,7 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
                 <Grid item xs={3}>
                     <div className="create-name-groups-tools">
                         <Checkbox
-                            checked={_.every(createNameGroups, (cng: CreateNameGroup) => selectionCreateNameGroupLocalIds.has(cng.localId))}
+                            checked={_.every(createNameGroups, (cng: CreateNameGroup) => selectedCreateNameGroupLocalIds.has(cng.localId))}
                             onChange={handleClickSelect}
                             inputProps={{ 'aria-label': 'Select the Name Group' }}
                         />
@@ -114,7 +136,9 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
                     <div className="create-name-groups-name">{ruleName}</div>
                 </Grid>
                 <Grid item xs={3}>
-                    {createReadyStatuses(createNameGroups, createNames)}
+                    <Counts
+                        counts={readyCounts}
+                    />
                 </Grid>
             </Grid>
             {collapsed ? <div className="composers-placeholder">...</div> : renderComposers()}

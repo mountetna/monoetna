@@ -123,7 +123,7 @@ const RuleCounterField = ({
                     disableRipple
                     disableTouchRipple
                     className={classes.autoIncrementButton}
-                    disabled={hasValue && !counterValueCollision}
+                    // disabled={hasValue && !counterValueCollision}
                 >
                     +1
                 </ButtonBase>

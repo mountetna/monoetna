@@ -13,6 +13,7 @@ import ReplaceInSelectionButton from "./copy-and-replace-button"
 import { useDispatch } from "../../utils/redux";
 import { State } from "../../store";
 import { selectGlobalState } from "../../selectors/global";
+import NamesCreateButton from "./names-create-button";
 
 
 
@@ -50,14 +51,7 @@ const NamesToolbar = () => {
                 </Button>
             </Grid>
             <Grid item xs={2}>
-                <Button
-                    startIcon={<SaveOutlinedIcon />}
-                    color="secondary"
-                    disableElevation
-                    disabled={true}
-                >
-                    Create All
-                </Button>
+                <NamesCreateButton />
             </Grid>
         </Grid>
     )
