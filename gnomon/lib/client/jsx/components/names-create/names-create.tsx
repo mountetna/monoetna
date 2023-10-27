@@ -29,7 +29,7 @@ function createCountsList(
             value: total,
         },
         {
-            name: "notReady",
+            name: "not-ready",
             description: "not ready",
             value: notReady,
             hideAtZero: true,
@@ -43,7 +43,7 @@ function createCountsList(
             hideAtZero: true,
         },
         {
-            name: "filter",
+            name: "filtered",
             description: "hidden by filter",
             value: filtered,
             hideAtZero: true,
@@ -51,23 +51,25 @@ function createCountsList(
     ]
 
     return (
-        <div className="counts-list">
+        <div className={classes.countsList}>
             <React.Fragment
                 key="ready"
             >
                 <Counts
                     counts={readyCounts}
                     className={classes.readyCounts}
+                    separator="•"
                 />
             </React.Fragment>
             {
                 _.some(selectedAndFilteredCounts, (count) => count.value > 0)
                     ? (<React.Fragment
-                        key="selection-and-filter"
+                        key="selected-and-filtered"
                     >
                         <Counts
                             counts={selectedAndFilteredCounts}
                             className={classes.selectedAndFilteredCounts}
+                            separator="•"
                         />
                     </React.Fragment>)
                     : undefined
@@ -78,12 +80,40 @@ function createCountsList(
 
 
 const useStyles = makeStyles((theme) => ({
+    countsList: {
+        textAlign: "center"
+    },
     readyCounts: {
-        "& count-total": {
+        display: "inline-block",
+        '& .count, & .separator': {
             display: "inline-block",
-        }
+        },
+        "& .separator": {
+            margin: "0 0.5em"
+        },
+        "& .count-not-ready": {
+            color: "red",
+        },
     },
     selectedAndFilteredCounts: {
+        display: "inline-block",
+        marginLeft: "4em",
+        '& .count, & .separator': {
+            display: "inline-block",
+        },
+        "& .separator": {
+            margin: "0 0.5em"
+        },
+        "& .count-filtered": {
+            color: "purple",
+        },
+    },
+    composerList: {
+        padding: "0 5em",
+        margin: "2em 0"
+    },
+    composer: {
+        textAlign: "center",
     },
 }));
 
@@ -123,11 +153,11 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
                     )
                     : undefined
             }
-            <Grid className="create-name-group-composers" container>
+            <Grid className={classes.composerList} container>
                 {
                     Object.entries(createNameGroupsIdsByPrimaryRule).map(([ruleName, createNameGroupLocalIds]) => {
                         return (
-                            <Grid item key={ruleName} xs={12} md={6} lg={4} xl={3}>
+                            <Grid item key={ruleName} xs={12} md={6} lg={6} xl={3} className={classes.composer}>
                                 <CreateNameGroupCompose
                                     createNameGroupLocalIds={createNameGroupLocalIds}
                                     ruleName={ruleName}

@@ -17,23 +17,29 @@ const useStyles = makeStyles((theme) => ({
     },
     count: {
         fontStyle: "italic",
+        fontWeight: "bold",
     },
+    separator: {
+        fontWeight: "bold",
+    }
 }));
 
 
-const Counts = ({ counts, className, separator }: { counts: Count[], className?: string, separator?: string }) => {
+const Counts = ({ counts, className, separator }: {
+    counts: Count[],
+    className?: string,
+    separator?: string,
+}) => {
     const classes = useStyles()
+
+    counts = counts.filter(count => !(count.hideAtZero && count.value == 0))
 
     return (
         <div className={`${classes.container} ${className ? className : ""}`}>
             {counts.map((count, idx) =>
                 <React.Fragment key={count.name}>
-                    <div className={`${classes.count} count-${count.name}`}>
-                        {
-                            count.hideAtZero && count.value == 0
-                                ? undefined
-                                : `${count.value} ${count.description}`
-                        }
+                    <div className={`${classes.count} count count-${count.name}`}>
+                        {`${count.value} ${count.description}`}
                     </div>
                     {separator != undefined
                         && idx < counts.length - 1

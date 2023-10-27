@@ -21,8 +21,8 @@ import { State } from "../../../store";
 import { selectGlobalState } from "../../../selectors/global";
 
 
-const useStyles = makeStyles((theme) => ({
-    createNameElementsEditor: {
+const useEditorStyles = makeStyles((theme) => ({
+    container: {
         display: "inline-flex"
     }
 }));
@@ -34,7 +34,7 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, paren
     includeUnsetAsValue: boolean,
     parentCompleteCreateNameLocalId: string | undefined,
 }) => {
-    const classes = useStyles()
+    const classes = useEditorStyles()
     const dispatch = useDispatch()
 
     const globalState: State = useSelector(selectGlobalState)
@@ -101,8 +101,7 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, paren
     }
 
     return (
-        // <span className="create-name-elements-editor">
-        <FormGroup row className={classes.createNameElementsEditor}>
+        <FormGroup row className={classes.container}>
             {
                 sortedRuleTokens.map((ruleToken, idx) =>
 
@@ -132,12 +131,20 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, paren
 }
 
 
+const useComposerStyles = makeStyles((theme) => ({
+    container: {
+        display: "inline-flex",
+    }
+}));
+
+
 const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includeUnsetAsValue = false }: {
     createNameGroup: CreateNameGroup,
     includeTools?: boolean
     includeUnsetAsValue?: boolean
 }) => {
     const dispatch = useDispatch()
+    const classes = useComposerStyles()
 
     const globalState: State = useSelector(selectGlobalState)
     const createNameLocalIds: string[] = useSelector(selectCreateNameLocalIdsWithGroupId(createNameGroup.localId))
@@ -168,7 +175,7 @@ const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includ
     }
 
     return (
-        <div className="create-name-group-composer">
+        <div className={classes.container}>
             {
                 includeTools &&
                 <span className="create-name-group-composer-tools">
