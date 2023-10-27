@@ -268,7 +268,7 @@ function addNamesWithGroupsAndTokensValues(
 
     const cngLocalIds = createNameGroups.map(cng => cng.localId)
 
-    if (updateCompletionStatus === true) {
+    if (updateCompletionStatus) {
         newState = addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
             cngLocalIds,
             rulesStateSliceForCompleteCreateNames,
@@ -409,6 +409,7 @@ function getMatchedGroupIdsFromSearchCriteria(
                     && !state.createNameGroups.filterLocalIds.has(createName.createNameGroupLocalId)
                 )
                 || state.createNameGroups.searchLocalIds.has(createName.createNameGroupLocalId)
+                || state.createNameGroups.replaceLocalIds.has(createName.createNameGroupLocalId)
             ) {
                 return
             }
@@ -921,7 +922,7 @@ function removeCompleteCreateNames(
     }
 }
 
-function shouldIgnoreCompletionStatus(createNameGroupLocalId: string, state: NamesState): boolean {
+function isReplaceOrSearchGroup(createNameGroupLocalId: string, state: NamesState): boolean {
     return (
         state.createNameGroups.replaceLocalIds.has(createNameGroupLocalId)
         || state.createNameGroups.searchLocalIds.has(createNameGroupLocalId)
@@ -944,7 +945,7 @@ function addOrReplaceCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
         const createNameCompleteCreateNamesToRemove: CreateNameCompleteCreateName[] = []
         const completeCreateNameParentsToAdd: CompleteCreateNameParent[] = []
 
-        if (shouldIgnoreCompletionStatus(cngLocalId, newState)) {
+        if (isReplaceOrSearchGroup(cngLocalId, newState)) {
             continue
         }
 
@@ -1126,7 +1127,7 @@ function removeCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
     for (const cngLocalId of createNameGroupsLocalIds) {
         const createNameCompleteCreateNamesToRemove: CreateNameCompleteCreateName[] = []
 
-        if (shouldIgnoreCompletionStatus(cngLocalId, newState)) {
+        if (isReplaceOrSearchGroup(cngLocalId, newState)) {
             continue
         }
 

@@ -11,7 +11,7 @@ import CreateNameGroupCompose from "./names-compose-group";
 import { fetchRulesFromMagma } from "../../actions/rules";
 import { selectCreateNameGroupIdsByPrimaryRule, selectCreateNameGroupsByLocalId, selectFilterCreateNameGroupIds, selectFilterEnabledStatus, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectReplaceCreateNameGroupIds, selectSearchCreateNameGroupIds, selectSelectedCreateNameGroupIds } from "../../selectors/names";
 import { useDispatch } from "../../utils/redux";
-import Counts, { Count } from "./counts";
+import Counts from "./counts";
 
 
 
@@ -79,6 +79,9 @@ function createCountsList(
 
 const useStyles = makeStyles((theme) => ({
     readyCounts: {
+        "& count-total": {
+            display: "inline-block",
+        }
     },
     selectedAndFilteredCounts: {
     },
