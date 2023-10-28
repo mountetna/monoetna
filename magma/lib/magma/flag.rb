@@ -31,7 +31,7 @@ class Magma
       none: 'none'
     }
 
-    def self.flag_valid?(flag_name, flag_value)
+    def self.is_registered(flag_name, flag_value)
       # flag_hash: a string, flag_value: a string
       # ensures that a flag has the proper name and the values are defined
       constants.each do |constant|

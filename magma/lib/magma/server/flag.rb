@@ -16,7 +16,7 @@ class FlagsController < Magma::Controller
     @params[:flags].each do |flag|
       flag.each do |flag_name, flag_value|
 
-        unless Magma::Flags.flag_valid?(flag_name.to_s, flag_value)
+        unless Magma::Flags.is_registered(flag_name.to_s, flag_value)
           raise Etna::BadRequest,  "Flag with name: \"#{flag_name}\", value: \"#{flag_value}\" is not registered in the Magma::Flags module."
         end
 
