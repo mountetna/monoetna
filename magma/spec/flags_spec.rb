@@ -60,12 +60,15 @@ describe FlagsController do
 
   context 'set API' do
 
+    before do
+      unregister_flags
+    end
+
     context 'registered Flags' do
 
       it 'complains if the flag name is not registered in the Flags module' do
         auth_header(:admin)
         json_post('/flags/labors', flags: [rainy_flag])
-        binding.pry
         expect(JSON.parse(last_response.body)["error"]).to eq(unregistered_err_msg("is_rainy", "true"))
       end
 
