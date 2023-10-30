@@ -1,3 +1,7 @@
+# magmaR 1.0.3
+
+* Added 'showDisconnected' input to retrieve functions.
+
 # magmaR 1.0.2
 
 * Added new data upload function 'updateFromDF()'
