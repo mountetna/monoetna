@@ -32,7 +32,6 @@ class Magma
     }
 
     def self.is_registered(flag_name, flag_value)
-      # flag_hash: a string, flag_value: a string
       # ensures that a flag has the proper name and the values are defined
       constants.each do |constant|
         next unless const_get(constant)[:name] == flag_name && (const_get(constant).has_value?(flag_value) || flag_value.nil?)
