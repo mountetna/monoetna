@@ -1,4 +1,4 @@
-import * as _ from "lodash"
+import _ from "lodash"
 
 import { json_post } from 'etna-js/utils/fetch';
 import { magmaPath } from 'etna-js/api/magma_api';

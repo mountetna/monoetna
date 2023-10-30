@@ -2,12 +2,12 @@ import React, { useEffect } from "react"
 import Grid from "@material-ui/core/Grid"
 import { makeStyles } from '@material-ui/core/styles';
 import { useSelector } from 'react-redux'
-import * as _ from "lodash"
+import _ from "lodash"
 
 import ProjectHeader from "etna-js/components/project-header";
 
 import NamesToolbar from "../names-toolbar/names-toolbar";
-import CreateNameGroupCompose from "./names-compose-group";
+import CreateNameGroupCompose from "./name-group-composer";
 import { fetchRulesFromMagma } from "../../actions/rules";
 import { selectCreateNameGroupIdsByPrimaryRule, selectCreateNameGroupsByLocalId, selectFilterCreateNameGroupIds, selectFilterEnabledStatus, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectReplaceCreateNameGroupIds, selectSearchCreateNameGroupIds, selectSelectedCreateNameGroupIds } from "../../selectors/names";
 import { useDispatch } from "../../utils/redux";
@@ -80,6 +80,9 @@ function createCountsList(
 
 
 const useStyles = makeStyles((theme) => ({
+    projectHeader: {
+        borderBottom: "1px solid #ccc",
+    },
     countsList: {
         textAlign: "center"
     },
@@ -110,7 +113,7 @@ const useStyles = makeStyles((theme) => ({
     },
     composerList: {
         padding: "0 5em",
-        margin: "2em 0"
+        margin: "7.5em 0"
     },
     composer: {
         textAlign: "center",
@@ -123,7 +126,7 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
     const dispatch = useDispatch()
     const classes = useStyles()
 
-    const createNameGroupsIdsByPrimaryRule: Record<string, string[]> = useSelector(state => selectCreateNameGroupIdsByPrimaryRule(state, true, true))
+    const createNameGroupsIdsByPrimaryRule = useSelector(state => selectCreateNameGroupIdsByPrimaryRule(state, true, true))
     const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length
     let totalCreateNameGroupsCount = Object.keys(useSelector(selectCreateNameGroupsByLocalId)).length
     const searchCreateNameGroupIds = useSelector(selectSearchCreateNameGroupIds).size
@@ -131,7 +134,7 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
     totalCreateNameGroupsCount -= (searchCreateNameGroupIds + replaceCreateNameGroupIds)
     const selectionCreateNameGroupsCount = useSelector(selectSelectedCreateNameGroupIds).size
     const filterCreateNameGroupsCount = useSelector(selectFilterCreateNameGroupIds).size
-    const filterEnabled: boolean = useSelector(selectFilterEnabledStatus)
+    const filterEnabled = useSelector(selectFilterEnabledStatus)
 
     useEffect(() => {
         dispatch(fetchRulesFromMagma(project_name))
@@ -140,7 +143,7 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
 
     return (
         <React.Fragment>
-            <ProjectHeader project_name={project_name} />
+            <ProjectHeader project_name={project_name} className={classes.projectHeader} />
             <NamesToolbar />
             {
                 totalCreateNameGroupsCount > 0

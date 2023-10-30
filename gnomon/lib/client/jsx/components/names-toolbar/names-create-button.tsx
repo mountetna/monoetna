@@ -1,11 +1,10 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useSelector, batch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -15,7 +14,8 @@ import { useTheme } from '@material-ui/core/styles';
 
 import { useDispatch } from "../../utils/redux";
 import NamesTable, { Data } from "../names-table";
-import { CompleteCreateNameRequestPayload, selectCompleteCreateNamesCreationPayloads, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from "../../selectors/names";
+import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
+import { selectCompleteCreateNamesCreationPayloads, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from "../../selectors/names";
 
 
 
@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const NamesCreateButton = () => {
+const NamesCreateButton = ({ small }: { small: boolean }) => {
     const classes = useStyles()
     const dispatch = useDispatch()
     const theme = useTheme();
@@ -38,8 +38,8 @@ const NamesCreateButton = () => {
     const [showImplicit, setShowImplicit] = useState<boolean>(false);
 
     const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length
-    const creationRequestPayloads: CompleteCreateNameRequestPayload[] = useSelector(selectCompleteCreateNamesCreationPayloads)
-    const rows: Data[] = creationRequestPayloads
+    const creationRequestPayloads = useSelector(selectCompleteCreateNamesCreationPayloads)
+    const rows = creationRequestPayloads
         .filter(payload => !payload.implicit || showImplicit)
         .map(payload => { return { name: payload.renderedName, rule: payload.ruleName } })
 
@@ -56,21 +56,16 @@ const NamesCreateButton = () => {
     }
 
     return (
-        <div className={classes.container}>
-            <Button
-                startIcon={<SaveOutlinedIcon />}
-                onClick={handleToggle}
+        <React.Fragment>
+            <ToolbarButtonWithPopper
+                text="Create All"
+                iconComponent={<SaveOutlinedIcon />}
+                variant={small ? "compact" : "full"}
                 color="secondary"
-                aria-label="Open Create All Dialog"
-                aria-haspopup="true"
-                aria-controls={open ? "create-all-dialog" : undefined}
-                disableRipple
-                disableFocusRipple
-                disableElevation
+                popperId="create-all-dialog"
                 disabled={completeCreateNameGroupsCount == 0}
-            >
-                Create All
-            </Button>
+                onClickOrPopperChange={handleToggle}
+            />
             <Dialog
                 id="create-all-dialog"
                 fullScreen={fullScreen}
@@ -116,7 +111,7 @@ const NamesCreateButton = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </div>
+        </React.Fragment>
     )
 }
 

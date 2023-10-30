@@ -3,30 +3,28 @@ import { useSelector, batch } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
-import Popper from "@material-ui/core/Popper";
-import Grow from "@material-ui/core/Grow";
-import ClickAwayListener from "@material-ui/core/ClickAwayListener";
-import Paper from "@material-ui/core/Paper";
 import SearchIcon from '@material-ui/icons/Search';
 import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
-import * as _ from "lodash"
+import _ from "lodash"
 
-import { selectCreateNameGroupIdsByPrimaryRule, selectFilterStatus } from "../../selectors/names";
-import { CreateNameGroup, Rule, RuleParent, RuleToken } from "../../models";
+import { selectCreateNameGroupIdsByPrimaryRule, selectFilterStatus, selectSelectedCreateNameGroupIds } from "../../selectors/names";
+import { CreateNameGroup, Rule } from "../../models";
 import { RuleSelect } from "../names-create/name-composer/select";
 import { selectGlobalState, selectVisibleRules } from "../../selectors/global";
 import { addCreateNameGroupsToSearchCriteria, clearCreateNameGroupsFilter, clearCreateNameGroupsSelection, createNamesWithGroupForRule, deleteGroupsWithNames, setCreateNameGroupsFilterFromSearchCriteria, setCreateNameGroupsSelectionFromSearchCriteria } from "../../actions/names";
 import CreateNameGroupComposer from "../names-create/name-composer/name-composer";
 import { useDispatch } from "../../utils/redux";
-import { State } from "../../store";
+import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
 
 
 
 const useStyles = makeStyles((theme) => ({
-    findAndReplaceContainer: {
-        display: "inline-block",
+    container: {
+    },
+    buttonsContainer: {
+
     },
 }));
 
@@ -37,38 +35,30 @@ interface RuleAndCreateNameGroupState {
 }
 
 
-const FindAndFilterButton = () => {
+const FindAndFilterButton = ({ small }: { small: boolean }) => {
     const classes = useStyles()
 
     const [open, setOpen] = useState<boolean>(false);
     const [ruleAndCreateNameGroup, setRuleAndCreateNameGroup] = useState<RuleAndCreateNameGroupState | undefined>()
 
     const dispatch = useDispatch()
-    const anchorEl = useRef(null)
 
-    const createNameGroupIdsByPrimaryRule: Record<string, string[]> = useSelector(selectCreateNameGroupIdsByPrimaryRule)
-    const filterEnabled: boolean = useSelector(selectFilterStatus)
-    const visibleRules: Rule[] = useSelector(selectVisibleRules)
-    const globalState: State = useSelector(selectGlobalState)
-
-    const handleToggle = () => {
-        setOpen(prev => !prev);
-    };
-
-    const handleClose = () => {
-        setOpen(false);
-    };
+    const createNameGroupIdsByPrimaryRule = useSelector(selectCreateNameGroupIdsByPrimaryRule)
+    const filterEnabled = useSelector(selectFilterStatus)
+    const selectedCreateNameGroupLocalIds = useSelector(selectSelectedCreateNameGroupIds)
+    const visibleRules = useSelector(selectVisibleRules)
+    const globalState = useSelector(selectGlobalState)
 
     const handleSetRule = (rule?: Rule) => {
         if (!rule) {
             if (ruleAndCreateNameGroup) {
                 batch(() => {
                     dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId], globalState))
-                    setRuleAndCreateNameGroup()
+                    setRuleAndCreateNameGroup(undefined)
                 })
                 return
             }
-            setRuleAndCreateNameGroup()
+            setRuleAndCreateNameGroup(undefined)
             return
         }
 
@@ -99,7 +89,10 @@ const FindAndFilterButton = () => {
     }
 
     const handleClickClearSelection = () => {
-        dispatch(clearCreateNameGroupsSelection())
+        batch(() => {
+            dispatch(clearCreateNameGroupsSelection())
+            setRuleAndCreateNameGroup(undefined)
+        })
     }
 
     const handleClickFilter = () => {
@@ -107,110 +100,84 @@ const FindAndFilterButton = () => {
     }
 
     const handleClickClearFilter = () => {
-        dispatch(clearCreateNameGroupsFilter())
+        batch(() => {
+            dispatch(clearCreateNameGroupsFilter())
+            setRuleAndCreateNameGroup(undefined)
+        })
     }
 
     return (
-        <div className={classes.replaceInSelectionContainer}>
-            <Button
-                startIcon={<SearchIcon />}
-                onClick={handleToggle}
-                ref={anchorEl}
-                color="primary"
-                aria-label="Find and Filter"
-                aria-haspopup="true"
-                aria-controls={open ? "find-and-filter-dialogue" : undefined}
-                disableRipple
-                disableFocusRipple
-                disableElevation
-                disabled={Object.keys(createNameGroupIdsByPrimaryRule).length == 0 && !filterEnabled}
-            >
-                Find and Filter
-            </Button>
-            <Popper
-                open={open}
-                anchorEl={anchorEl.current}
-                placement="bottom"
-                role={undefined}
-                transition
-            >
-                {({ TransitionProps }) => (
-                    <Grow
-                        {...TransitionProps}
-                        style={{ transformOrigin: "center top" }}
-                    >
-                        <Paper variant="outlined">
-                            <ClickAwayListener onClickAway={handleClose}>
-                                <FormControl component="fieldset" id="find-and-filter-dialogue">
-                                    <RuleSelect
-                                        values={visibleRules}
-                                        value={ruleAndCreateNameGroup?.rule}
-                                        label="Rule"
-                                        placeholder="rule"
-                                        onSetRule={handleSetRule}
-                                    />
-                                    {
-                                        ruleAndCreateNameGroup?.createNameGroup &&
-                                        <CreateNameGroupComposer
-                                            createNameGroup={ruleAndCreateNameGroup.createNameGroup}
-                                        />
-                                    }
-                                    {/* TODO: does this need to be a grid? */}
-                                    <Grid container>
-                                        <Grid item xs={6}>
-                                            <ButtonGroup
-                                                variant="contained"
-                                                color="primary"
-                                                disableRipple
-                                                disableElevation
-                                            >
-                                                <Button
-                                                    onClick={handleClickFindAndSelect}
-                                                    disabled={!ruleAndCreateNameGroup}
-                                                >
-                                                    Find + Select
-                                                </Button>
-                                                <Button
-                                                    onClick={handleClickClearSelection}
-                                                    color="secondary"
-                                                    size="small"
-                                                    disableElevation
-                                                >
-                                                    <DeleteOutlineOutlinedIcon />
-                                                </Button>
-                                            </ButtonGroup>
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <ButtonGroup
-                                                variant="contained"
-                                                color="primary"
-                                                disableRipple
-                                                disableElevation
-                                            >
-                                                <Button
-                                                    onClick={handleClickFilter}
-                                                    disabled={!ruleAndCreateNameGroup}
-                                                >
-                                                    Filter
-                                                </Button>
-                                                <Button
-                                                    onClick={handleClickClearFilter}
-                                                    color="secondary"
-                                                    size="small"
-                                                    disableElevation
-                                                >
-                                                    <DeleteOutlineOutlinedIcon />
-                                                </Button>
-                                            </ButtonGroup>
-                                        </Grid>
-                                    </Grid>
-                                </FormControl>
-                            </ClickAwayListener>
-                        </Paper>
-                    </Grow>
-                )}
-            </Popper>
-        </div>
+        <ToolbarButtonWithPopper
+            text="Find and Filter"
+            iconComponent={<SearchIcon />}
+            variant={small ? "compact" : "full"}
+            color="primary"
+            popperComponent={
+                <FormControl component="fieldset" id="find-and-filter-dialogue" className={classes.container}>
+                    <RuleSelect
+                        values={visibleRules}
+                        value={ruleAndCreateNameGroup?.rule}
+                        label="Rule"
+                        placeholder="rule"
+                        onSetRule={handleSetRule}
+                    />
+                    {
+                        ruleAndCreateNameGroup?.createNameGroup &&
+                        <CreateNameGroupComposer
+                            createNameGroup={ruleAndCreateNameGroup.createNameGroup}
+                        />
+                    }
+                    <div className={classes.buttonsContainer}>
+                        <ButtonGroup
+                            variant="contained"
+                            color="primary"
+                            disableRipple
+                            disableElevation
+                        >
+                            <Button
+                                onClick={handleClickFindAndSelect}
+                                disabled={!ruleAndCreateNameGroup}
+                            >
+                                Find + Select
+                            </Button>
+                            <Button
+                                onClick={handleClickClearSelection}
+                                color="secondary"
+                                size="small"
+                                disabled={!ruleAndCreateNameGroup && selectedCreateNameGroupLocalIds.size == 0}
+                            >
+                                <DeleteOutlineOutlinedIcon />
+                            </Button>
+                        </ButtonGroup>
+                        <ButtonGroup
+                            variant="contained"
+                            color="primary"
+                            disableRipple
+                            disableElevation
+                        >
+                            <Button
+                                onClick={handleClickFilter}
+                                disabled={!ruleAndCreateNameGroup}
+                            >
+                                Filter
+                            </Button>
+                            <Button
+                                onClick={handleClickClearFilter}
+                                color="secondary"
+                                size="small"
+                                disabled={!ruleAndCreateNameGroup && !filterEnabled}
+                            >
+                                <DeleteOutlineOutlinedIcon />
+                            </Button>
+                        </ButtonGroup>
+                    </div>
+                </FormControl >
+            }
+            popperId="find-and-filter-dialogue"
+            onClickOrPopperChange={(open: boolean) => setOpen(open)}
+            popperOpen={open}
+            disabled={Object.keys(createNameGroupIdsByPrimaryRule).length == 0 && !filterEnabled}
+        />
     )
 }
 

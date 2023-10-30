@@ -5,7 +5,7 @@ import ButtonBase from "@material-ui/core/ButtonBase";
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import Checkbox from "@material-ui/core/Checkbox";
 import { makeStyles } from '@material-ui/core/styles';
-import * as _ from "lodash"
+import _ from "lodash";
 import UnfoldLessOutlinedIcon from '@material-ui/icons/UnfoldLessOutlined';
 import UnfoldMoreOutlinedIcon from '@material-ui/icons/UnfoldMoreOutlined';
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
@@ -53,29 +53,37 @@ function createReadyCounts(
 
 
 const useStyles = makeStyles((theme) => ({
-    container: {
+    gridContainer: {
         display: "inline-block",
-        minWidth: "30em",
+        width: "34em",
+        maxWidth: "100%",
+        marginBottom: "4em",
+    },
+    innerContainer: {
+        padding: "0 2em",
     },
     headerContainer: {
         alignItems: "center",
+        marginBottom: "0.5em",
     },
     tools: {
         textAlign: "left",
     },
     ruleNameTitle: {
         textAlign: "center",
+        fontWeight: "bold",
     },
     readyCounts: {
+        fontWeight: "bold",
         textAlign: "right",
         "& .count-not-ready": {
             color: "red",
         },
     },
     composersContainer: {
-        maxHeight: "80vh",
+        maxHeight: "50vh",
         overflow: "scroll",
-        border: "1px solid black",
+        border: "2px solid black",
         borderRadius: "6px",
         "&.some-not-ready": {
             borderColor: "red"
@@ -111,10 +119,10 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
     const dispatch = useDispatch()
     const classes = useStyles()
 
-    const createNameGroups: CreateNameGroup[] = useSelector(selectCreateNameGroupsWithLocalIds(createNameGroupLocalIds))
-    const globalState: State = useSelector(selectGlobalState)
-    const selectedCreateNameGroupLocalIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
-    const renderedCompleteCreateNamesByCreateNameGroupLocalId: Record<string, string> = useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)
+    const createNameGroups = useSelector(selectCreateNameGroupsWithLocalIds(createNameGroupLocalIds))
+    const globalState = useSelector(selectGlobalState)
+    const selectedCreateNameGroupLocalIds = useSelector(selectSelectedCreateNameGroupIds)
+    const renderedCompleteCreateNamesByCreateNameGroupLocalId = useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)
 
     const readyCounts = createReadyCounts(createNameGroups, renderedCompleteCreateNamesByCreateNameGroupLocalId)
     const someNotReady = readyCounts[1].value > 0
@@ -123,7 +131,7 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
         dispatch(createNamesWithGroupForRule(ruleName, globalState, true))
     }
 
-    const handleClickSelect = (event: React.ChangeEvent) => {
+    const handleClickSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
             dispatch(addCreateNameGroupsToSelection(createNameGroupLocalIds))
             return
@@ -135,7 +143,7 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
         dispatch(deleteGroupsWithNames(createNameGroupLocalIds, globalState))
     }
 
-    const renderComposers = (): React.ReactNode => {
+    const renderComposers = () => {
         return (
             <div className={classes.composerList}>
                 {
@@ -152,60 +160,62 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
     }
 
     return (
-        <div className={classes.container}>
-            <Grid container className={classes.headerContainer}>
-                <Grid item xs={4}>
-                    <div className={classes.tools}>
-                        <Checkbox
-                            checked={_.every(createNameGroups, (cng: CreateNameGroup) => selectedCreateNameGroupLocalIds.has(cng.localId))}
-                            onChange={handleClickSelect}
-                            inputProps={{ 'aria-label': 'Select the Name Group' }}
+        <div className={classes.gridContainer}>
+            <div className={classes.innerContainer}>
+                <Grid container className={classes.headerContainer}>
+                    <Grid item xs={4}>
+                        <div className={classes.tools}>
+                            <Checkbox
+                                checked={_.every(createNameGroups, (cng: CreateNameGroup) => selectedCreateNameGroupLocalIds.has(cng.localId))}
+                                onChange={handleClickSelect}
+                                inputProps={{ 'aria-label': 'Select the Name Group' }}
+                            />
+                            <ButtonBase
+                                onClick={() => setCollapsed(prev => !prev)}
+                                aria-label={"Toggle Expand/Collapse"}
+                                disableRipple
+                                disableTouchRipple
+                            >
+                                {collapsed ? <UnfoldMoreOutlinedIcon /> : <UnfoldLessOutlinedIcon />}
+                            </ButtonBase>
+                            <ButtonBase
+                                onClick={handleClickAdd}
+                                aria-label="Add Name"
+                                disableRipple
+                                disableTouchRipple
+                            >
+                                <AddCircleOutlineIcon />
+                            </ButtonBase>
+                            <ButtonBase
+                                onClick={handleClickDelete}
+                                aria-label="Delete Name"
+                                disableRipple
+                                disableTouchRipple
+                            >
+                                <DeleteOutlineOutlinedIcon />
+                            </ButtonBase>
+                        </div>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <div className={classes.ruleNameTitle}>{ruleName}</div>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <Counts
+                            counts={readyCounts}
+                            className={classes.readyCounts}
                         />
-                        <ButtonBase
-                            onClick={() => setCollapsed(prev => !prev)}
-                            aria-label={"Toggle Expand/Collapse"}
-                            disableRipple
-                            disableTouchRipple
-                        >
-                            {collapsed ? <UnfoldMoreOutlinedIcon /> : <UnfoldLessOutlinedIcon />}
-                        </ButtonBase>
-                        <ButtonBase
-                            onClick={handleClickAdd}
-                            aria-label="Add Name"
-                            disableRipple
-                            disableTouchRipple
-                        >
-                            <AddCircleOutlineIcon />
-                        </ButtonBase>
-                        <ButtonBase
-                            onClick={handleClickDelete}
-                            aria-label="Delete Name"
-                            disableRipple
-                            disableTouchRipple
-                        >
-                            <DeleteOutlineOutlinedIcon />
-                        </ButtonBase>
-                    </div>
+                    </Grid>
                 </Grid>
-                <Grid item xs={4}>
-                    <div className={classes.ruleNameTitle}>{ruleName}</div>
-                </Grid>
-                <Grid item xs={4}>
-                    <Counts
-                        counts={readyCounts}
-                        className={classes.readyCounts}
-                    />
-                </Grid>
-            </Grid>
-            <div
-                className={`${classes.composersContainer} ${someNotReady ? "some-not-ready" : ""} ${collapsed ? "collapsed" : ""}`}
-                onClick={() => collapsed && setCollapsed(false)}
-            >
-                {collapsed
-                    ? (
-                        <div className={classes.placeholder}>...</div>
-                    )
-                    : renderComposers()}
+                <div
+                    className={`${classes.composersContainer} ${someNotReady ? "some-not-ready" : ""} ${collapsed ? "collapsed" : ""}`}
+                    onClick={() => collapsed && setCollapsed(false)}
+                >
+                    {collapsed
+                        ? (
+                            <div className={classes.placeholder}>...</div>
+                        )
+                        : renderComposers()}
+                </div>
             </div>
         </div>
     )

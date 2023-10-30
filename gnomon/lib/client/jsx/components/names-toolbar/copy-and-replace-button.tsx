@@ -1,11 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, batch } from 'react-redux'
-import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
-import Popper from "@material-ui/core/Popper";
-import Grow from "@material-ui/core/Grow";
-import ClickAwayListener from "@material-ui/core/ClickAwayListener";
-import Paper from "@material-ui/core/Paper";
 import LibraryAddOutlinedIcon from "@material-ui/icons/LibraryAddOutlined";
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
@@ -15,7 +10,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
 import InputBase from '@material-ui/core/InputBase';
 import Grid from '@material-ui/core/Grid';
-import * as _ from "lodash"
+import _ from "lodash"
 
 import { CreateNameGroup, Rule } from "../../models";
 import { RuleSelect } from "../names-create/name-composer/select";
@@ -24,9 +19,8 @@ import { inputEventValueToNumber } from "../../utils/input";
 import { selectCreateNameGroupsByLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names"
 import { selectCommonRulesFromSelection, selectGlobalState, selectReplaceRuleFromSelection } from "../../selectors/global";
 import { addCreateNameGroupsToReplaceCriteria, createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule, addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria } from "../../actions/names";
-import { NamesState } from "../../reducers/names";
 import { useDispatch } from "../../utils/redux";
-import { State } from "../../store";
+import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
 
 
 
@@ -37,7 +31,7 @@ const CopyCreateNameGroupRadio = ({ radioValue, label, quantityValue, onChangeQu
     onChangeQuantity: (value?: number) => void
 }) => {
 
-    const handleChangeQuantity = (event: React.ChangeEvent) => {
+    const handleChangeQuantity = (event: React.ChangeEvent<HTMLInputElement>) => {
         const eventValue = event.target.value
         const quantity = eventValue == "" ? undefined : Number(eventValue)
         onChangeQuantity(quantity)
@@ -108,7 +102,7 @@ const IterateRuleRadio = ({ radioValue, label, rules, ruleValue, onChangeRule, b
                 <FormLabel>Start</FormLabel>
                 <InputBase
                     value={getBoundaryValue(boundaries.start)}
-                    onChange={(event: React.ChangeEvent) => handleChangeBoundaries(inputEventValueToNumber(event), boundaries.end)}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleChangeBoundaries(inputEventValueToNumber(event), boundaries.end)}
                     type="number"
                     inputProps={{ min: 0 }}
                     id="iterate-radio-boundary-minimum"
@@ -120,7 +114,7 @@ const IterateRuleRadio = ({ radioValue, label, rules, ruleValue, onChangeRule, b
                 <FormLabel>End</FormLabel>
                 <InputBase
                     value={getBoundaryValue(boundaries.end)}
-                    onChange={(event: React.ChangeEvent) => handleChangeBoundaries(boundaries.start, inputEventValueToNumber(event))}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleChangeBoundaries(boundaries.start, inputEventValueToNumber(event))}
                     type="number"
                     inputProps={{ min: 0 }}
                     id="iterate-radio-boundary-maximum"
@@ -155,35 +149,25 @@ const ReplaceValuesForRuleRadio = ({ radioValue, label, createNameGroup }: {
 }
 
 
-const addFromSelectionButtonUseStyles = makeStyles((theme) => ({
-    addFromSelectionContainer: {
-        display: "inline-block",
-    },
-}));
-
-
-const CopyAndReplaceButton = () => {
-    const classes = addFromSelectionButtonUseStyles()
-
+const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
     const [open, setOpen] = useState<boolean>(false);
     const [rule, setRule] = useState<Rule>()
     const [radioValue, setRadioValue] = useState<string>("copy")
-    const [boundaries, setBoundaries] = useState<IterationBoundaries>({ min: undefined, max: undefined })
+    const [boundaries, setBoundaries] = useState<IterationBoundaries>({ start: undefined, end: undefined })
     const [quantity, setQuantity] = useState<number | undefined>(undefined)
     const [replaceCreateNameGroup, setReplaceCreateNameGroup] = useState<CreateNameGroup | undefined>()
 
     const dispatch = useDispatch()
-    const anchorEl = useRef(null)
 
-    const globalState: State = useSelector(selectGlobalState)
-    const selectedCreateNameGroupLocalIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
-    const createNameGroupsByLocalId: Record<string, CreateNameGroup> = useSelector(selectCreateNameGroupsByLocalId)
+    const globalState = useSelector(selectGlobalState)
+    const selectedCreateNameGroupLocalIds = useSelector(selectSelectedCreateNameGroupIds)
+    const createNameGroupsByLocalId = useSelector(selectCreateNameGroupsByLocalId)
 
-    const selectedCreateNameGroups: CreateNameGroup[] = [...selectedCreateNameGroupLocalIds].map(cngLocalId => createNameGroupsByLocalId[cngLocalId])
+    const selectedCreateNameGroups = [...selectedCreateNameGroupLocalIds].map(cngLocalId => createNameGroupsByLocalId[cngLocalId])
 
-    const iterableRules: Rule[] = useSelector(selectCommonRulesFromSelection).filter(rule => rule.hasCounter)
+    const iterableRules = useSelector(selectCommonRulesFromSelection).filter(rule => rule.hasCounter)
 
-    const replaceRule: Rule | undefined = useSelector(selectReplaceRuleFromSelection)
+    const replaceRule = useSelector(selectReplaceRuleFromSelection)
 
     // manage CreateNameGroup for <ReplaceValuesForRuleRadio />
     useEffect(() => {
@@ -191,11 +175,11 @@ const CopyAndReplaceButton = () => {
             if (replaceCreateNameGroup) {
                 batch(() => {
                     dispatch(deleteGroupsWithNames([replaceCreateNameGroup.localId], globalState))
-                    setReplaceCreateNameGroup()
+                    setReplaceCreateNameGroup(undefined)
                 })
                 return
             }
-            setReplaceCreateNameGroup()
+            setReplaceCreateNameGroup(undefined)
             return
         }
 
@@ -226,7 +210,7 @@ const CopyAndReplaceButton = () => {
         setOpen(false);
     };
 
-    const handleChangeRadioValue = (event: React.ChangeEvent) => {
+    const handleChangeRadioValue = (event: React.ChangeEvent<HTMLInputElement>) => {
         setRadioValue(event.target.value)
     }
 
@@ -259,91 +243,67 @@ const CopyAndReplaceButton = () => {
     }
 
     return (
-        <div className={classes.addFromSelectionContainer}>
-            <Button
-                startIcon={<LibraryAddOutlinedIcon />}
-                onClick={handleToggle}
-                ref={anchorEl}
-                color="primary"
-                aria-label="Copy and Replace"
-                aria-haspopup="true"
-                aria-controls={open ? "copy-and-replace-dialogue" : undefined}
-                disableRipple
-                disableFocusRipple
-                disableElevation
-                disabled={selectedCreateNameGroupLocalIds.size == 0}
-            >
-                Copy and Replace
-            </Button>
-            <Popper
-                open={open}
-                anchorEl={anchorEl.current}
-                placement="bottom"
-                role={undefined}
-                transition
-            >
-                {({ TransitionProps }) => (
-                    <Grow
-                        {...TransitionProps}
-                        style={{ transformOrigin: "center top" }}
+        <ToolbarButtonWithPopper
+            text="Copy and Replace"
+            iconComponent={<LibraryAddOutlinedIcon />}
+            variant={small ? "compact" : "full"}
+            color="primary"
+            popperComponent={
+                <FormControl component="fieldset" id="copy-and-replace-dialogue">
+                    <RadioGroup
+                        aria-label="Copy and Replace Options"
+                        name="addFromSelectionOptions"
+                        value={radioValue}
+                        onChange={handleChangeRadioValue}
                     >
-                        <Paper variant="outlined">
-                            <ClickAwayListener onClickAway={handleClose}>
-                                <FormControl component="fieldset" id="copy-and-replace-dialogue">
-                                    <RadioGroup
-                                        aria-label="Copy and Replace Options"
-                                        name="addFromSelectionOptions"
-                                        value={radioValue}
-                                        onChange={handleChangeRadioValue}
-                                    >
-                                        <CopyCreateNameGroupRadio
-                                            radioValue="copy"
-                                            label="How many?"
-                                            quantityValue={quantity}
-                                            onChangeQuantity={setQuantity}
-                                        />
-                                        <IterateRuleRadio
-                                            radioValue="iterate"
-                                            label="Iterate on Rule"
-                                            rules={iterableRules}
-                                            ruleValue={rule}
-                                            onChangeRule={setRule}
-                                            boundaries={boundaries}
-                                            onChangeBoundaries={setBoundaries}
-                                        />
-                                        <ReplaceValuesForRuleRadio
-                                            radioValue="replace"
-                                            label="Replace Values"
-                                            createNameGroup={replaceCreateNameGroup}
-                                        />
-                                    </RadioGroup>
-                                    <Grid container>
-                                        <Grid item xs={6}>
-                                            <Button
-                                                onClick={handleClose}
-                                                color="secondary"
-                                                disableElevation
-                                            >
-                                                Cancel
-                                            </Button>
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <Button
-                                                onClick={handleClickAdd}
-                                                color="primary"
-                                                disableElevation
-                                            >
-                                                {_.capitalize(radioValue)}
-                                            </Button>
-                                        </Grid>
-                                    </Grid>
-                                </FormControl>
-                            </ClickAwayListener>
-                        </Paper>
-                    </Grow>
-                )}
-            </Popper>
-        </div>
+                        <CopyCreateNameGroupRadio
+                            radioValue="copy"
+                            label="How many?"
+                            quantityValue={quantity}
+                            onChangeQuantity={setQuantity}
+                        />
+                        <IterateRuleRadio
+                            radioValue="iterate"
+                            label="Iterate on Rule"
+                            rules={iterableRules}
+                            ruleValue={rule}
+                            onChangeRule={setRule}
+                            boundaries={boundaries}
+                            onChangeBoundaries={setBoundaries}
+                        />
+                        <ReplaceValuesForRuleRadio
+                            radioValue="replace"
+                            label="Replace Values"
+                            createNameGroup={replaceCreateNameGroup}
+                        />
+                    </RadioGroup>
+                    <Grid container>
+                        <Grid item xs={6}>
+                            <Button
+                                onClick={handleClose}
+                                color="secondary"
+                                disableElevation
+                            >
+                                Cancel
+                            </Button>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Button
+                                onClick={handleClickAdd}
+                                color="primary"
+                                disableElevation
+                            >
+                                {_.capitalize(radioValue)}
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </FormControl>
+            }
+            popperId="copy-and-replace-dialogue"
+            onClickOrPopperChange={(open: boolean) => setOpen(open)}
+            popperOpen={open}
+            disabled={selectedCreateNameGroupLocalIds.size == 0}
+        />
     )
 };
 

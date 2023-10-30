@@ -6,7 +6,7 @@ import ButtonBase from "@material-ui/core/ButtonBase";
 import Checkbox from "@material-ui/core/Checkbox";
 import FileCopyOutlinedIcon from '@material-ui/icons/FileCopyOutlined';
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
-import * as _ from "lodash"
+import _ from "lodash"
 
 import { CompleteCreateName, CompleteCreateNameParent, CreateName, CreateNameCompleteCreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken, Token, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from "../../../models";
 import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRuleNamesHierarchicalListByPrimaryRuleName } from "../../../selectors/rules";
@@ -37,24 +37,24 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, paren
     const classes = useEditorStyles()
     const dispatch = useDispatch()
 
-    const globalState: State = useSelector(selectGlobalState)
-    const projectName: string = useSelector(selectPathParts)[0]
-    const tokens: Record<string, Token> = useSelector(selectTokens)
+    const globalState = useSelector(selectGlobalState)
+    const projectName = useSelector(selectPathParts)[0]
+    const tokens = useSelector(selectTokens)
 
-    const ruleTokensByLocalId: Record<string, RuleToken> = useSelector(selectRuleTokensByLocalId)
-    let sortedRuleTokens: RuleToken[] = useSelector(selectRuleTokenLocalIdsWithRuleName(rule.name))
+    const ruleTokensByLocalId = useSelector(selectRuleTokensByLocalId)
+    let sortedRuleTokens = useSelector(selectRuleTokenLocalIdsWithRuleName(rule.name))
         .map(rtLocalId => ruleTokensByLocalId[rtLocalId])
 
     // copying array bc sort modifies in place
     sortedRuleTokens = [...sortedRuleTokens].sort(rt => rt.ord)
 
-    const createNameTokenValuesByLocalId: Record<string, CreateNameTokenValue> = useSelector(selectCreateNameTokenValuesByLocalId)
-    const createNameTokenValues: CreateNameTokenValue[] = (useSelector(selectCreateNameTokenValueLocalIdsWithCreateNameLocalId(createName.localId)) || [])
+    const createNameTokenValuesByLocalId = useSelector(selectCreateNameTokenValuesByLocalId)
+    const createNameTokenValues = (useSelector(selectCreateNameTokenValueLocalIdsWithCreateNameLocalId(createName.localId)) || [])
         .map(cntvLocalId => createNameTokenValuesByLocalId[cntvLocalId])
 
-    const tokenValuesByLocalId: Record<string, TokenValue> = useSelector(selectTokenValuesByLocalId)
+    const tokenValuesByLocalId = useSelector(selectTokenValuesByLocalId)
 
-    const sortedTokenValues: (TokenValue | undefined)[] = sortedRuleTokens.map(ruleToken => {
+    const sortedTokenValues = sortedRuleTokens.map(ruleToken => {
         const createNameTokenValue = createNameTokenValues.find(
             cntv => cntv.ruleTokenLocalId == ruleToken.localId
         )
@@ -146,19 +146,19 @@ const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includ
     const dispatch = useDispatch()
     const classes = useComposerStyles()
 
-    const globalState: State = useSelector(selectGlobalState)
-    const createNameLocalIds: string[] = useSelector(selectCreateNameLocalIdsWithGroupId(createNameGroup.localId))
-    const createNamesByLocalId: Record<string, CreateName> = useSelector(selectCreateNamesByLocalId)
-    const primaryCreateName: CreateName = useSelector(selectCreateNameWithLocalId(createNameGroup.primaryCreateNameLocalId))
-    const allRules: Record<string, Rule> = useSelector(selectRulesByName)
-    const orderedRuleNames: string[] = useSelector(selectRuleNamesHierarchicalListByPrimaryRuleName)[primaryCreateName.ruleName]
-    const selectedCreateNameGroupsIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
+    const globalState = useSelector(selectGlobalState)
+    const createNameLocalIds = useSelector(selectCreateNameLocalIdsWithGroupId(createNameGroup.localId))
+    const createNamesByLocalId = useSelector(selectCreateNamesByLocalId)
+    const primaryCreateName = useSelector(selectCreateNameWithLocalId(createNameGroup.primaryCreateNameLocalId))
+    const allRules = useSelector(selectRulesByName)
+    const orderedRuleNames = useSelector(selectRuleNamesHierarchicalListByPrimaryRuleName)[primaryCreateName.ruleName]
+    const selectedCreateNameGroupsIds = useSelector(selectSelectedCreateNameGroupIds)
 
-    const sortedCompleteCreateNamesWithCreateNameGroupLocalId: (CompleteCreateName | undefined)[] = useSelector(
+    const sortedCompleteCreateNamesWithCreateNameGroupLocalId = useSelector(
         selectSortedCompleteCreateNamesWithCreateNameGroupLocalId(createNameGroup.localId)
     )
 
-    const handleClickSelect = (event: React.ChangeEvent) => {
+    const handleClickSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
             dispatch(addCreateNameGroupsToSelection([createNameGroup.localId]))
             return

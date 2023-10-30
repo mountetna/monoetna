@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect'
-import * as _ from "lodash"
+import _ from "lodash"
 
 import { selectCreateNameGroupIdsByPrimaryRule } from './names'
 import { CreateName, Rule, RuleToken, TokenValue } from '../models'

@@ -5,9 +5,8 @@ import ButtonBase from "@material-ui/core/ButtonBase";
 import InputBase from "@material-ui/core/InputBase";
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
-import * as _ from "lodash"
+import _ from "lodash";
 
-import { CompleteCreateNameParentsByRenderedValues } from "../../../reducers/names";
 import { selectCompleteCreateNameParentLocalIdsByRenderedValues, selectRenderedCompleteCreateNamesByLocalId } from "../../../selectors/names";
 import { fetchNextCounterValueFromMagma } from "../../../utils/names";
 import { selectRuleParentLocalIdsByRuleName } from "../../../selectors/rules";
@@ -21,12 +20,12 @@ const useStyles = makeStyles((theme) => ({
         flexDirection: "column",
         alignItems: "center",
     },
-    ruleCounterInput: (inputWidthEm: number) => ({
+    ruleCounterInput: {
         fontWeight: "bold",
-        width: `${inputWidthEm}em`,
+        width: props => `${props.inputWidthEm}em`,
         minWidth: "1.5em",
         maxWidth: "4em",
-    }),
+    },
     unsetOrError: {
         color: "red"
     },
@@ -51,10 +50,10 @@ const RuleCounterField = ({
     handleSetCounterValue: (value?: number) => void,
 }) => {
 
-    const classes = useStyles(value ? String(value).length : 1)
-    const completeCreateNameParentLocalIdsByRenderedValues: CompleteCreateNameParentsByRenderedValues = useSelector(selectCompleteCreateNameParentLocalIdsByRenderedValues)
-    const needsParentCompleteCreateName: boolean = useSelector(selectRuleParentLocalIdsByRuleName)[ruleName] != undefined
-    let fullRenderedTokensPrefix: string | undefined = useSelector(selectRenderedCompleteCreateNamesByLocalId)[parentCompleteCreateNameLocalId]
+    const classes = useStyles({ inputWidthEm: value ? String(value).length : 1 })
+    const completeCreateNameParentLocalIdsByRenderedValues = useSelector(selectCompleteCreateNameParentLocalIdsByRenderedValues)
+    const needsParentCompleteCreateName = useSelector(selectRuleParentLocalIdsByRuleName)[ruleName] != undefined
+    let fullRenderedTokensPrefix = useSelector(selectRenderedCompleteCreateNamesByLocalId)[parentCompleteCreateNameLocalId]
 
     if (
         renderedTokensPrefix != undefined
@@ -95,7 +94,7 @@ const RuleCounterField = ({
             )
         }
 
-        const localMaxValue = hierarchyValues.length > 0 ? Math.max(...hierarchyValues) : -1
+        const localMaxValue = hierarchyValues.length ? Math.max(...hierarchyValues) : -1
 
         fetchNextCounterValueFromMagma(projectName, ruleName, fullRenderedTokensPrefix)
             .then(remoteNextValue => {
@@ -106,7 +105,7 @@ const RuleCounterField = ({
             })
     }
 
-    const handleChangeInput = (event: React.ChangeEvent) => {
+    const handleChangeInput = (event: React.ChangeEvent<HTMLInputElement>) => {
         const eventValue = event.target.value
         const counterValue = eventValue == "" ? undefined : Number(eventValue)
         handleSetCounterValue(counterValue)
@@ -123,7 +122,7 @@ const RuleCounterField = ({
                     disableRipple
                     disableTouchRipple
                     className={classes.autoIncrementButton}
-                    // disabled={hasValue && !counterValueCollision}
+                // disabled={hasValue && !counterValueCollision}
                 >
                     +1
                 </ButtonBase>

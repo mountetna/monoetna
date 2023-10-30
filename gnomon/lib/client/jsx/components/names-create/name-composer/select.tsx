@@ -163,8 +163,8 @@ export const RuleSelect = ({ values, value, label, placeholder, onSetRule }:
 export const TokenSelect = ({ token, value, onSetTokenValue, includeUnsetAsValue = false }:
     { token: Token, value?: TokenValue, onSetTokenValue: (value: TokenValue) => void, includeUnsetAsValue?: boolean }) => {
 
-    const tokenValuesByLocalId: Record<string, TokenValue> = useSelector(selectTokenValuesByLocalId)
-    const tokenValues: TokenValue[] = useSelector(selectTokenValueLocalIdsWithTokenName(token.name))
+    const tokenValuesByLocalId = useSelector(selectTokenValuesByLocalId)
+    const tokenValues = useSelector(selectTokenValueLocalIdsWithTokenName(token.name))
         .map(tvLocalId => tokenValuesByLocalId[tvLocalId])
 
     if (includeUnsetAsValue === true) {

@@ -1,59 +1,74 @@
 import React, { useState } from "react";
-import Grid from "@material-ui/core/Grid";
-import { useSelector } from 'react-redux'
+import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
-import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
-import SaveOutlinedIcon from "@material-ui/icons/SaveOutlined";
+import UnfoldLessOutlinedIcon from '@material-ui/icons/UnfoldLessOutlined';
+import UnfoldMoreOutlinedIcon from '@material-ui/icons/UnfoldMoreOutlined';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import AddNamesButton from "./add-names-button";
-import { deleteSelectedGroupsWithNames } from "../../actions/names";
-import { selectSelectedCreateNameGroupIds } from "../../selectors/names";
 import FindAndFilterButton from "./find-and-filter-button";
-import ReplaceInSelectionButton from "./copy-and-replace-button"
-import { useDispatch } from "../../utils/redux";
-import { State } from "../../store";
-import { selectGlobalState } from "../../selectors/global";
+import CopyAndReplaceButton from "./copy-and-replace-button"
 import NamesCreateButton from "./names-create-button";
+import DeleteButton from "./delete-button";
 
+
+
+const useStyles = makeStyles((theme) => ({
+    container: {
+        textAlign: "center",
+    },
+    buttonsOuterContainer: {
+        display: "inline-block",
+        border: "1px solid #ccc",
+        borderTop: "none",
+    },
+    buttonsContainer: {
+        display: "inline-block",
+        padding: "1.25em 0",
+        // border: "1px solid #ccc",
+        // borderTop: "none",
+    },
+    growShrinkButton: {
+        "& svg": {
+            fontSize: "1rem"
+        }
+    },
+}));
 
 
 const NamesToolbar = () => {
-    const dispatch = useDispatch()
+    const classes = useStyles()
+
     const [small, setSmall] = useState<boolean>(false);
 
-    const globalState: State = useSelector(selectGlobalState)
-    const selectedCreateNameGroupLocalIds: Set<string> = useSelector(selectSelectedCreateNameGroupIds)
-
-    const handleClickDelete = () => {
-        dispatch(deleteSelectedGroupsWithNames(globalState))
-    }
-
     return (
-        <Grid container>
-            <Grid item xs={2}>
-                <AddNamesButton />
-            </Grid>
-            <Grid item xs={2}>
-                <FindAndFilterButton />
-            </Grid>
-            <Grid item xs={2}>
-                <ReplaceInSelectionButton />
-            </Grid>
-            <Grid item xs={2}>
+        <div className={classes.container}>
+            <div className={classes.buttonsOuterContainer}>
+                <div className={classes.buttonsContainer}>
+                    <AddNamesButton small={small} />
+
+                    <FindAndFilterButton small={small} />
+
+                    <CopyAndReplaceButton small={small} />
+
+                    <DeleteButton small={small} />
+
+                    <NamesCreateButton small={small} />
+                </div>
                 <Button
-                    onClick={handleClickDelete}
-                    startIcon={<DeleteOutlineOutlinedIcon />}
-                    color="primary"
-                    disableElevation
-                    disabled={selectedCreateNameGroupLocalIds.size == 0}
+                    onClick={() => setSmall(prev => !prev)}
+                    color="secondary"
+                    aria-label={"Toggle Grow/Shrink Toolbar"}
+                    disableRipple
+                    disableTouchRipple
+                    fullWidth={true}
+                    size="small"
+                    className={classes.growShrinkButton}
                 >
-                    Delete
+                    {small ? <UnfoldMoreOutlinedIcon /> : <UnfoldLessOutlinedIcon />}
                 </Button>
-            </Grid>
-            <Grid item xs={2}>
-                <NamesCreateButton />
-            </Grid>
-        </Grid>
+            </div>
+        </div>
     )
 };
 

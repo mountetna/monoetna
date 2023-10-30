@@ -1,4 +1,4 @@
-import * as _ from "lodash"
+import _ from "lodash"
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue } from "../models"
 import { makeActionObject } from "./utils"
