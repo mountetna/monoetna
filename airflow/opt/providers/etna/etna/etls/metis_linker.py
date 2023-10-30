@@ -68,21 +68,66 @@ class MetisLoaderConfig(EtlConfigResponse):
 
 
     def data_frame_update(self, model_name, script, tail, update, metis, model):
+        isTable=model['isTable']
+        template=model['template']
+        model_attributes = list(template.attributes.keys())
+        id = template.identifier
+
+        column_map = script['column_map']
+        attributes = list(column_map.keys())
+        columns = list(column_map.values())
+
+        if not isTable and not id in attributes:
+            raise MetisLoaderError(f"Identifier attribute is missing from the 'column_map' of {model_name} data_frame loader.")
+        if isTable and not template.parent in attributes:
+            raise MetisLoaderError(f"Parent attribute is missing from the 'column_map' of {model_name} data_frame loader.")
+        if not set(attributes).issubset(model_attributes):
+            missing = ', '.join([attr for attr in attributes if attr not in model_attributes])
+            raise MetisLoaderError(f"'column_map' of {model_name} data_frame loader targets attribute(s) that don't exist: {missing}.")
+
+        # Parse Files
         files = self.script_files(script, tail)
         for file in files:
+            data = None
             with metis.open_file(file) as file_reader:
-                data = pandas.read_csv(file_reader).replace({numpy.nan: None})
-                for tube_name, table in data.groupby(model_name):
-                    for row in table.to_dict('records'):
-                        match = re.search(r'^(MVIR1-HS\d+)-[DM]N?[0-9]+', tube_name)
-                        timepoint_name = match.group(0)
-                        patient_name = match.group(1)
-                        update.append_table('immunoassay', tube_name, 'analyte', row, 'analyte')
-                        update.update_record('immunoassay', tube_name, { 'timepoint':  timepoint_name })
-                        # These weird "M" records denote monthly timepoints and only exist in this CSV
-                        # To be removed when we can do valid identifier interpolation
-                        if re.search(r'-M[0-9]+$', timepoint_name):
-                            update.update_record('timepoint', timepoint_name, { 'patient': patient_name })
+                if script['format']=="csv":
+                    separator = ","
+                if script['format']=="tsv":
+                    separator = "\\t"
+                if script['format']=="auto-detect":
+                    if re.search("csv$", file.file_path) is not None:
+                        separator = ","
+                    elif re.search("tsv$", file.file_path) is not None:
+                        separator = "\\t"
+                    else:
+                        # Attempt to use pandas' automated detection
+                        separator = None
+                # Maybe Future Feature: expose additional blanker value in config ui
+                data = pandas.read_table(file_reader, sep=separator, engine = 'python').replace({numpy.nan: None})
+            if len(data.columns) < 2:
+                raise MetisLoaderError(f"{file.file_name} seems to have fewer than 2 columns. Check the 'format' configuration for this data_frame loader.")
+            if not set(columns).issubset(data.columns):
+                missing = ', '.join([col for col in columns if col not in data.columns])
+                raise MetisLoaderError(f"{file.file_name} is missing column(s) targetted by {model_name} data_frame loader 'column_map': {missing}.")
+            # Trim to mapped columns and convert to attribute names
+            data = data.rename(columns={v: k for k,v in column_map.items()})[attributes]
+            # Determine Updates
+            if isTable:
+                data['__temp__']=['::temp-id-' + str(temp) for temp in data.index]
+                data = data.set_index('__temp__', drop=True)
+                if script['blank_table']:
+                    for parent_name in set(list(data[template.parent])):
+                        if not self.get_identifier(template.parent, parent_name):
+                            continue
+                        update.update_record(template.parent, parent_name, {model_name: list(data[data[template.parent]==parent_name].index)})
+                for name, attributes in data.T.to_dict().items():
+                    update.update_record(model_name, name, {k: v for k,v in attributes.items() if v is not None})
+            else:
+                data = data.set_index(id, drop=True)
+                for name, attributes in data.T.to_dict().items():
+                    if not self.get_identifier(model_name, name):
+                        continue
+                    update.update_record(model_name, name, {k: v for k,v in attributes.items() if v is not None})
 
     def file_collection_update(self, model_name, script, tail, update):
         files = self.script_files(script, tail)
@@ -127,7 +172,7 @@ class MetisLoaderConfig(EtlConfigResponse):
                 }
             )
 
-    def update_for(self, tail, metis=None):
+    def update_for(self, tail, metis=None, models=None):
         update = UpdateRequest(project_name=self.project_name, dry_run=(not self.params.get('commit', False)))
 
         for model_name, model_config in self.config.get("models",{}).items():
@@ -136,178 +181,208 @@ class MetisLoaderConfig(EtlConfigResponse):
                     self.file_update( model_name, script, tail, update )
                 elif script['type'] == 'file_collection':
                     self.file_collection_update( model_name, script, tail, update )
+                elif script['type'] == 'data_frame':
+                    self.data_frame_update( model_name, script, tail, update, metis, model=models[model_name])
                 else:
                     raise MetisLoaderError(f"Invalid type for script {script['type']} for model {model_name}")
 
         return update
 
-@dag(
-    max_active_runs=1,
-    schedule_interval=timedelta(minutes=60),
-    start_date=datetime(2023, 4, 12),
-    default_args={
-        'depends_on_past': False,
-        'wait_for_downstream': False
-    }
-)
-def MetisLinker():
-    hook = EtnaHook('etna_administration', use_token_auth=True)
-    
-    @task
-    def read_configs():
-        # read configs from polyphemus
-        context = get_current_context()
-        start, end = get_batch_range(context)
+def MetisLinker(interval_minutes=5):
+    @dag(
+        max_active_runs=1,
+        schedule_interval=timedelta(minutes=interval_minutes),
+        start_date=datetime(2023, 4, 12),
+        default_args={
+            'depends_on_past': False,
+            'wait_for_downstream': False
+        }
+    )
+    def MetisLinker():
+        hook = EtnaHook('etna_administration', use_token_auth=True)
+        
+        @task
+        def read_configs():
+            # read configs from polyphemus
+            context = get_current_context()
+            start, end = get_batch_range(context)
 
-        with hook.polyphemus() as polyphemus:
-            configs_list = polyphemus.list_all_etl_configs(job_type='metis')
-            configs_list = [ MetisLoaderConfig(**asdict(config)) for config in configs_list.configs if config.should_run(start,end) ]
+            with hook.polyphemus() as polyphemus:
+                configs_list = polyphemus.list_all_etl_configs(job_type='metis')
+                configs_list = [ MetisLoaderConfig(**asdict(config)) for config in configs_list.configs if config.should_run(start,end) ]
 
-            for config in configs_list:
-                polyphemus.etl_update(
-                    project_name=config.project_name,
-                    config_id=config.config_id,
-                    status='running',
-                    ran_at=datetime.now().isoformat()
-                )
-            return configs_list
-    
-    @task
-    def get_rules(configs):
-        with hook.gnomon() as gnomon:
-            project_names = [ config.project_name for config in configs ]
-            rules_list = gnomon.rules(project_names=project_names)
-            return rules_list.rules
-
-    @task
-    def collect_tails(configs):
-        # get project/bucket pairs from configs
-        context = get_current_context()
-        start, end = get_batch_range(context)
-        print(f"Collecting tails in range {str(dict(start=start, end=end))}")
-
-        buckets = [
-            config.bucket_key
-            for config in configs
-            for model, model_config in config.config.get("models",{}).items()
-            for script in model_config["scripts"]
-        ]
-                
-        with hook.metis() as metis:
-            tails = dict()
-            for project_name, bucket_name in buckets:
-                try:
-                    files = metis.tail(
-                        project_name=project_name,
-                        bucket_name=bucket_name,
-                        type='files',
-                        batch_start=start,
-                        batch_end=end
+                for config in configs_list:
+                    polyphemus.etl_update(
+                        project_name=config.project_name,
+                        config_id=config.config_id,
+                        status='running',
+                        ran_at=datetime.now().isoformat()
                     )
-                    tails[ (project_name, bucket_name) ] = { 'files': files }
+                return configs_list
+        
+        @task
+        def get_rules(configs):
+            with hook.gnomon() as gnomon:
+                project_names = [ config.project_name for config in configs ]
+                rules_list = gnomon.rules(project_names=project_names)
+                return rules_list.rules
+
+        @task
+        def get_models(configs):
+            def get_template(project, model, magma, check_table=True):
+                raw_return=magma.retrieve(project_name=project, model_name=model, record_names=[], attribute_names="all", hide_templates=False)
+                raw_template=raw_return.models[model].template
+                output = {
+                    'template': raw_template,
+                    'isTable': False
+                    }
+                # Add isTable
+                if check_table:
+                    # Shove as 'IsTable' attribute (not snake case so should never conflict!)
+                    output['isTable'] = raw_template.parent!='project' and get_template(project, raw_template.parent, magma, False)['template'].attributes[model].attribute_type=='table'
+                return output
+            # Minimize template grabs because some templates are LARGE
+            project_names = set([ config.project_name for config in configs ])
+            project_models = {p: [] for p in project_names}
+            for config in configs:
+                project_models[config.project_name].extend(list(config.config.get("models",{}).keys()))
+            with hook.magma() as magma:
+                return {
+                    project: {model: get_template(project, model, magma) for model in list(set(project_models[project]))}
+                    for project in project_names
+                }
+
+        @task
+        def collect_tails(configs):
+            # get project/bucket pairs from configs
+            context = get_current_context()
+            start, end = get_batch_range(context)
+            print(f"Collecting tails in range {str(dict(start=start, end=end))}")
+
+            buckets = dict()
+            for config in configs:
+                ran_at = datetime.fromisoformat(config.ran_at or '2010-01-01')
+                if config.bucket_key not in buckets or buckets[ config.bucket_key ] > ran_at:
+                    buckets[ config.bucket_key ] = ran_at
+                    
+            with hook.metis() as metis:
+                tails = dict()
+                for (project_name, bucket_name), ran_at in buckets.items():
+                    try:
+                        files = metis.tail(
+                            project_name=project_name,
+                            bucket_name=bucket_name,
+                            type='files',
+                            batch_start=ran_at,
+                            batch_end=end
+                        )
+                        tails[ (project_name, bucket_name) ] = { 'files': files }
+                    except Exception as error:
+                        tails[ (project_name, bucket_name) ] = { 'error': repr(error) }
+                return tails
+
+        @task
+        def process_tails(configs, tails, rules, models):
+            updates = {}
+            for config in configs:
+                try:
+                    # find associated tails
+                    tail = tails[ config.bucket_key ]
+                    
+                    if 'error' in tail:
+                        raise Exception(tail['error'])
+
+                    if config.project_name not in rules:
+                        raise MetisLoaderError(f"No rules found for {config.project_name}")
+
+                    config.rules = rules[ config.project_name ]
+
+                    with hook.metis() as metis:
+                        updates[ config.config_id ] = config.update_for(tail['files'], metis, models[config.project_name])
                 except Exception as error:
-                    tails[ (project_name, bucket_name) ] = { 'error': repr(error) }
-            return tails
+                    updates[ config.config_id ] = { 'error': repr(error) }
 
-    @task
-    def process_tails(configs, tails, rules):
-        updates = {}
-        for config in configs:
-            try:
-                # find associated tails
-                tail = tails[ config.bucket_key ]
-                
-                if 'error' in tail:
-                    raise Exception(tail['error'])
+            return updates
 
-                if config.project_name not in rules:
-                    raise MetisLoaderError(f"No rules found for {config.project_name}")
-
-                config.rules = rules[ config.project_name ]
-
-                updates[ config.config_id ] = config.update_for(tail['files'])
-            except Exception as error:
-                updates[ config.config_id ] = { 'error': repr(error) }
-
-        return updates
-
-    def error_report(**i):
-        summary = f'''
+        def error_report(**i):
+            summary = f'''
 ===============================
 Error : {i['start']} -> {i['end']} 
 Job failed with error: {i['error']}
 ==============================='''
 
-        return summary
+            return summary
 
-    def upload_report(**i):
-        summary = f'''
+        def upload_report(**i):
+            summary = f'''
 ===============================
 Upload Summary : {i['start']} -> {i['end']} 
 Models: {', '.join(i['response'].models.keys())}
 Committed to Magma: {i['commit']}
 '''
-        for model_name, model in i['response'].models.items():
-            summary += f"{model_name} records updated: {', '.join(model.documents.keys())}\n"
+            for model_name, model in i['response'].models.items():
+                summary += f"{model_name} records updated: {', '.join(model.documents.keys())}\n"
 
-        summary += "==============================="
+            summary += "==============================="
 
-        return summary
-                
-    @task
-    def post_updates(configs, updates):
-        context = get_current_context()
-        start, end = get_batch_range(context)
-        for config in configs:
-            try:
-                if 'error' in updates[ config.config_id ]:
-                    raise Exception(updates[ config.config_id ]['error'])
+            return summary
+                    
+        @task
+        def post_updates(configs, updates):
+            context = get_current_context()
+            start, end = get_batch_range(context)
+            for config in configs:
+                try:
+                    if 'error' in updates[ config.config_id ]:
+                        raise Exception(updates[ config.config_id ]['error'])
 
-                commit = config.params.get('commit', False)
-                with hook.magma() as magma:
-                    response = magma.update(updates[ config.config_id ])
+                    commit = config.params.get('commit', False)
+                    with hook.magma() as magma:
+                        response = magma.update(updates[ config.config_id ], page_size=1000)
 
-                with hook.polyphemus() as polyphemus:
-                    state = {}
-                    if config.run_interval == 0:
-                        state['run_interval'] = -1
-                        state['params'] = {}
+                    with hook.polyphemus() as polyphemus:
+                        state = {}
+                        if config.run_interval == 0:
+                            state['run_interval'] = -1
+                            state['params'] = {}
 
-                    polyphemus.etl_update(
-                        project_name=config.project_name,
-                        config_id=config.config_id,
-                        status='completed',
-                        **state
-                    )
-                    polyphemus.etl_add_output(
-                        project_name=config.project_name,
-                        config_id=config.config_id,
-                        append=True,
-                        output=upload_report(
+                        polyphemus.etl_update(
                             project_name=config.project_name,
-                            response=response,
-                            commit=commit,
-                            start=start,
-                            end=end
+                            config_id=config.config_id,
+                            status='completed',
+                            **state
                         )
-                    )
-            except Exception as error:
-                with hook.polyphemus() as polyphemus:
-                    polyphemus.etl_update(
-                        project_name=config.project_name,
-                        config_id=config.config_id,
-                        status='error',
-                        run_interval=-1
-                    )
-                    polyphemus.etl_add_output(
-                        project_name=config.project_name,
-                        config_id=config.config_id,
-                        append=True,
-                        output=error_report(start=start,end=end,error=repr(error))
-                    )
-        
-    configs = read_configs()
-    tails = collect_tails(configs)
-    rules = get_rules(configs)
-    updates = process_tails(configs, tails, rules)
-    post_updates(configs, updates)
+                        polyphemus.etl_add_output(
+                            project_name=config.project_name,
+                            config_id=config.config_id,
+                            append=True,
+                            output=upload_report(
+                                project_name=config.project_name,
+                                response=response,
+                                commit=commit,
+                                start=start,
+                                end=end
+                            )
+                        )
+                except Exception as error:
+                    with hook.polyphemus() as polyphemus:
+                        polyphemus.etl_update(
+                            project_name=config.project_name,
+                            config_id=config.config_id,
+                            status='error',
+                            run_interval=-1
+                        )
+                        polyphemus.etl_add_output(
+                            project_name=config.project_name,
+                            config_id=config.config_id,
+                            append=True,
+                            output=error_report(start=start,end=end,error=repr(error))
+                        )
+            
+        configs = read_configs()
+        tails = collect_tails(configs)
+        rules = get_rules(configs)
+        models = get_models(configs)
+        updates = process_tails(configs, tails, rules, models)
+        post_updates(configs, updates)
+    return MetisLinker()
