@@ -2,7 +2,7 @@ import { createSelector } from 'reselect'
 import _ from "lodash"
 
 import { CompleteCreateName, CompleteCreateNameParent, CreateName, CreateNameCompleteCreateName, CreateNameGroup, CreateNameTokenValue, UNSET_VALUE } from "../models";
-import { CompleteCreateNameParentsByRenderedValues, NamesState } from "../reducers/names"
+import { CompleteCreateNameParentsByRenderedValues, NamesCreationRequestState, NamesState } from "../reducers/names"
 import { defaultDict } from "../utils/object"
 import { State } from '../store';
 import { selectRuleNamesHierarchicalListByPrimaryRuleName } from './rules';
@@ -262,4 +262,8 @@ export const selectCompleteCreateNameParentLocalIdsByChildLocalId = (state: Stat
 
 export const selectCompleteCreateNameParentsByLocalId = (state: State): Record<string, CompleteCreateNameParent> => {
     return state.names.completeCreateNameParents.byLocalId
+}
+
+export const selectNamesCreationRequestState = (state: State): NamesCreationRequestState => {
+    return state.names.creationRequest
 }

@@ -53,6 +53,7 @@ interface ParsedRules {
     synonyms: Synonym[]
 }
 
+// TODO: move to utils
 const parseMagmaRulesResponse = (res: MagmaRulesResponse): ParsedRules => {
     const tokenValues: TokenValue[] = []
 
@@ -146,6 +147,7 @@ const parseMagmaRulesResponse = (res: MagmaRulesResponse): ParsedRules => {
 }
 
 
+// TODO: move to utils
 export function fetchRulesFromMagma(project_name) {
     return (dispatch) => {
         json_get(magmaPath(`gnomon/${project_name}`)).then(

@@ -19,10 +19,11 @@ import {
     CLEAR_CREATE_NAME_GROUPS_FILTER,
     ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA,
     REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA,
+    SET_MAGMA_NAMES_CREATION_REQUEST,
 } from '../actions/names';
 import { listToIdObject, listToIdGroupObject, defaultDict } from '../utils/object';
 import { difference, intersection } from '../utils/set'
-import { SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups, renderCounter, renderTokens } from '../utils/names'
+import { MagmaBulkGenerateResponse, SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups, renderCounter, renderTokens } from '../utils/names'
 import { RulesStateSliceForCompleteCreateNames } from '../selectors/global';
 import { createLocalId } from '../utils/models';
 
@@ -96,6 +97,13 @@ interface CreateNameTokenValuesState {
 }
 
 
+export interface NamesCreationRequestState {
+    status: "idle" | "inProgress" | "success" | "error"
+    statusMessage?: string
+    response?: MagmaBulkGenerateResponse
+}
+
+
 interface CreateNameGroupsState {
     byLocalId: Record<string, CreateNameGroup>
     searchLocalIds: Set<string>
@@ -113,6 +121,7 @@ export interface NamesState {
     completeCreateNameParents: CompleteCreateNameParents
     createNameTokenValues: CreateNameTokenValuesState
     createNameGroups: CreateNameGroupsState
+    creationRequest: NamesCreationRequestState
 }
 
 const initialState: NamesState = {
@@ -149,6 +158,7 @@ const initialState: NamesState = {
         filterLocalIds: new Set(),
         filterEnabled: false,
     },
+    creationRequest: { status: "idle" }
 }
 
 
@@ -222,6 +232,14 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
             return addGroupsToReplace(action.createNameGroupLocalIds, state)
         case REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA:
             return removeGroupsFromReplace(action.createNameGroupLocalIds, state)
+        case SET_MAGMA_NAMES_CREATION_REQUEST:
+            return {
+                ...state,
+                creationRequest: {
+                    ...state.creationRequest,
+                    ..._.omit(action, ["type"])
+                }
+            }
         default: {
             return state;
         }

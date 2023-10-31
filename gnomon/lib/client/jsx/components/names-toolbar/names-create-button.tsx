@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useSelector, batch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
 import Dialog from '@material-ui/core/Dialog';
@@ -9,13 +9,19 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Switch from '@material-ui/core/Switch';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import SaveOutlinedIcon from "@material-ui/icons/SaveOutlined";
+import AutorenewIcon from '@material-ui/icons/Autorenew';
+import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
+import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useTheme } from '@material-ui/core/styles';
 
 import { useDispatch } from "../../utils/redux";
 import NamesTable from "./names-create-table";
 import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
-import { selectCompleteCreateNamesCreationPayloads, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from "../../selectors/names";
+import { selectCompleteCreateNamesCreationPayloads, selectNamesCreationRequestState, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from "../../selectors/names";
+import { makeCreateNamesCreationRequest } from "../../actions/names";
+import { selectPathParts } from "../../selectors/location"
+import { capitalize } from "../../utils/string"
 
 
 
@@ -25,6 +31,27 @@ const useStyles = makeStyles((theme) => ({
     },
     tableControls: {
         textAlign: 'right',
+    },
+    dialogActions: {
+        "&.withStatus": {
+            justifyContent: "space-between",
+        },
+    },
+    requestStatus: {
+        display: "inline-flex",
+        alignItems: "center",
+        marginRight: "2em",
+        "& svg": {
+            marginRight: "0.25em",
+        },
+        "&.inProgress": { color: "orange", },
+        "&.success": { color: "green", },
+        "&.error": { color: "red", },
+    },
+    buttonsContainer: {
+        "& > button:not(:last-child)": {
+            marginRight: "0.75em",
+        },
     },
 }));
 
@@ -37,8 +64,11 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
     const [open, setOpen] = useState<boolean>(false);
     const [showImplicit, setShowImplicit] = useState<boolean>(false);
 
+    const projectName = useSelector(selectPathParts)[0]
     const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length
     const creationRequestPayloads = useSelector(selectCompleteCreateNamesCreationPayloads)
+    const creationRequestState = useSelector(selectNamesCreationRequestState)
+
     let foundImplicit = false
     const rows = creationRequestPayloads
         .filter(payload => {
@@ -58,11 +88,47 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
     }
 
     const handleClose = () => {
+        // lock out the main view if request made
+        if (creationRequestState.status != "idle") {
+            return
+        }
         setOpen(false);
     }
 
     const handleChangeShowImplicit = (event: React.ChangeEvent<HTMLInputElement>) => {
         setShowImplicit(event.target.checked)
+    }
+
+    const handleCreateAll = () => {
+        dispatch(
+            makeCreateNamesCreationRequest(
+                projectName,
+                creationRequestPayloads.filter(payload => !payload.implicit)
+            )
+        )
+    }
+
+    const renderCreationRequestStatus = () => {
+        const status = creationRequestState.status
+        let icon: JSX.Element | undefined = undefined
+
+        switch (status) {
+            case "idle":
+                return
+            case "inProgress":
+                icon = <AutorenewIcon />
+                break
+            case "success":
+                icon = <CheckCircleOutlineIcon />
+                break
+            case "error":
+                icon = <ErrorOutlineIcon />
+                break
+        }
+
+        return <span className={`${classes.requestStatus} ${creationRequestState.status}`}>
+            {icon} {capitalize(creationRequestState.status)}
+        </span>
     }
 
     return (
@@ -102,23 +168,30 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                         rows={rows}
                     />
                 </DialogContent>
-                <DialogActions>
-                    <Button
-                        autoFocus
-                        onClick={handleClose}
-                        color="secondary"
-                        disableElevation
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        autoFocus
-                        onClick={handleClose}
-                        color="primary"
-                        disableElevation
-                    >
-                        Create All
-                    </Button>
+                <DialogActions
+                    className={`${classes.dialogActions} ${creationRequestState.status != "idle" ? "withStatus" : ""}`}
+                >
+                    {renderCreationRequestStatus()}
+                    <div className={classes.buttonsContainer}>
+                        <Button
+                            autoFocus
+                            onClick={handleClose}
+                            color="secondary"
+                            disableElevation
+                            disabled={creationRequestState.status != "idle"}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            autoFocus
+                            onClick={handleCreateAll}
+                            color="primary"
+                            disableElevation
+                            disabled={creationRequestState.status != "idle"}
+                        >
+                            Create
+                        </Button>
+                    </div>
                 </DialogActions>
             </Dialog>
         </React.Fragment>

@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
-import UnfoldLessOutlinedIcon from '@material-ui/icons/UnfoldLessOutlined';
-import UnfoldMoreOutlinedIcon from '@material-ui/icons/UnfoldMoreOutlined';
-import Tooltip from '@material-ui/core/Tooltip';
 
 import AddNamesButton from "./add-names-button";
 import FindAndFilterButton from "./find-and-filter-button";
 import CopyAndReplaceButton from "./copy-and-replace-button"
 import NamesCreateButton from "./names-create-button";
 import DeleteButton from "./delete-button";
+import GrowShrinkButton from "./grow-shrink-button";
 
 
 
@@ -19,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
     },
     buttonsOuterContainer: {
         display: "inline-block",
-        border: "1px solid #ccc",
+        // border: "1px solid #ccc",
         borderTop: "none",
     },
     buttonsContainer: {
@@ -29,7 +27,6 @@ const useStyles = makeStyles((theme) => ({
     growShrinkButton: {
         "& svg": {
             fontSize: "1rem",
-            transform: "rotate(90deg)",
         }
     },
 }));
@@ -53,19 +50,12 @@ const NamesToolbar = () => {
                     <DeleteButton small={small} />
 
                     <NamesCreateButton small={small} />
+
+                    <GrowShrinkButton
+                        small={small}
+                        onClick={() => setSmall(prev => !prev)}
+                    />
                 </div>
-                <Button
-                    onClick={() => setSmall(prev => !prev)}
-                    color="secondary"
-                    aria-label={"Toggle Grow/Shrink Toolbar"}
-                    disableRipple
-                    disableTouchRipple
-                    fullWidth={true}
-                    size="small"
-                    className={classes.growShrinkButton}
-                >
-                    {small ? <UnfoldMoreOutlinedIcon /> : <UnfoldLessOutlinedIcon />}
-                </Button>
             </div>
         </div>
     )

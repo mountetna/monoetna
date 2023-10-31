@@ -4,10 +4,11 @@ import { CreateName, CreateNameGroup, CreateNameTokenValue } from "../models"
 import { makeActionObject } from "./utils"
 import { createLocalId } from "../utils/models"
 import { defaultDict } from "../utils/object"
-import { NamesState } from "../reducers/names"
-import { createSearchReplaceCriteriaFromGroups } from "../utils/names"
+import { NamesCreationRequestState, NamesState } from "../reducers/names"
+import { MagmaBulkGenerateResponse, createSearchReplaceCriteriaFromGroups, postNameBatchToMagma } from "../utils/names"
 import { State } from "../store"
 import { RulesStateSliceForCompleteCreateNames, selectRulesStateSliceForCompleteCreateNames } from "../selectors/global"
+import { CompleteCreateNameRequestPayload } from "../selectors/names"
 
 
 
@@ -27,6 +28,7 @@ export const SET_CREATE_NAME_GROUPS_SELECTION_FROM_SEARCH_CRITERIA = "SET_CREATE
 export const SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA = "SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA"
 export const ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA = "ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA"
 export const REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA = "REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA"
+export const SET_MAGMA_NAMES_CREATION_REQUEST = "SET_MAGMA_NAMES_CREATION_REQUEST"
 
 
 export function addNamesWithGroupsWithTokenValues(
@@ -430,6 +432,43 @@ export function addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplace
     ]
 }
 
+
+function setMagmaNamesCreationRequest(requestState: NamesCreationRequestState) {
+    return makeActionObject(SET_MAGMA_NAMES_CREATION_REQUEST, {
+        status: requestState.status,
+        statusMessage: requestState.statusMessage,
+        response: requestState.response,
+    })
+}
+
+
+export function makeCreateNamesCreationRequest(projectName: string, payloads: CompleteCreateNameRequestPayload[]) {
+    const names = payloads.map(payload => ({
+        rule_name: payload.ruleName,
+        name: payload.renderedName,
+    }))
+    
+    return (dispatch) => {
+        dispatch(setMagmaNamesCreationRequest({ status: "inProgress" }))
+
+        postNameBatchToMagma(projectName, names)
+            .then((response: MagmaBulkGenerateResponse) => {
+
+                dispatch(setMagmaNamesCreationRequest({
+                    status: "success",
+                    response,
+                }))
+            })
+            .catch(err => {
+
+                dispatch(setMagmaNamesCreationRequest({
+                    status: "error",
+                    statusMessage: err
+                }))
+            })
+    }
+}
+
 export type ACTION_TYPE =
     | ReturnType<typeof addNamesWithGroupsWithTokenValues>
     | ReturnType<typeof duplicateCreateNameGroups>
@@ -448,3 +487,4 @@ export type ACTION_TYPE =
     | ReturnType<typeof removeCreateNameGroupsFromSearchCriteria>
     | ReturnType<typeof addCreateNameGroupsToReplaceCriteria>
     | ReturnType<typeof removeCreateNameGroupsFromReplaceCriteria>
+    | ReturnType<typeof setMagmaNamesCreationRequest>

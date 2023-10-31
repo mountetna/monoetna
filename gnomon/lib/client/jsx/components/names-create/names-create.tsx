@@ -15,6 +15,56 @@ import Counts from "./counts";
 
 
 
+const useStyles = makeStyles((theme) => ({
+    projectAndToolbarContainer: {
+        display: "flex",
+        borderBottom: "1px solid #ccc",
+        "& > :first-child, & > :last-child": {
+            flex: "1"
+        },
+        "& > .placeholder": {
+            visibility: "hidden",
+        },
+    },
+    countsList: {
+        marginTop: "0.5em",
+        textAlign: "center"
+    },
+    readyCounts: {
+        display: "inline-block",
+        '& .count, & .separator': {
+            display: "inline-block",
+        },
+        "& .separator": {
+            margin: "0 0.5em"
+        },
+        "& .count-not-ready": {
+            color: "red",
+        },
+    },
+    selectedAndFilteredCounts: {
+        display: "inline-block",
+        marginLeft: "4em",
+        '& .count, & .separator': {
+            display: "inline-block",
+        },
+        "& .separator": {
+            margin: "0 0.5em"
+        },
+        "& .count-filtered": {
+            color: "purple",
+        },
+    },
+    composerList: {
+        padding: "0 5em",
+        margin: "5.5em 0"
+    },
+    composer: {
+        textAlign: "center",
+    },
+}));
+
+
 function createCountsList(
     total: number,
     notReady: number,
@@ -79,49 +129,6 @@ function createCountsList(
 }
 
 
-const useStyles = makeStyles((theme) => ({
-    projectHeader: {
-        borderBottom: "1px solid #ccc",
-    },
-    countsList: {
-        marginTop: "0.5em",
-        textAlign: "center"
-    },
-    readyCounts: {
-        display: "inline-block",
-        '& .count, & .separator': {
-            display: "inline-block",
-        },
-        "& .separator": {
-            margin: "0 0.5em"
-        },
-        "& .count-not-ready": {
-            color: "red",
-        },
-    },
-    selectedAndFilteredCounts: {
-        display: "inline-block",
-        marginLeft: "4em",
-        '& .count, & .separator': {
-            display: "inline-block",
-        },
-        "& .separator": {
-            margin: "0 0.5em"
-        },
-        "& .count-filtered": {
-            color: "purple",
-        },
-    },
-    composerList: {
-        padding: "0 5em",
-        margin: "7.5em 0"
-    },
-    composer: {
-        textAlign: "center",
-    },
-}));
-
-
 const NamesCreate = ({ project_name }: { project_name: string }) => {
     // TODO: loading state
     const dispatch = useDispatch()
@@ -144,8 +151,11 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
 
     return (
         <React.Fragment>
-            <ProjectHeader project_name={project_name} className={classes.projectHeader} />
-            <NamesToolbar />
+            <div className={classes.projectAndToolbarContainer}>
+                <ProjectHeader project_name={project_name} />
+                <NamesToolbar />
+                <ProjectHeader project_name={project_name} className="placeholder" />
+            </div>
             {
                 totalCreateNameGroupsCount > 0
                     ? createCountsList(

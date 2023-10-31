@@ -89,3 +89,29 @@ export function renderCreateName(
 
     return renderedTokens + renderedCounter
 }
+
+
+export interface MagmaBulkGenerateName {
+    rule_name: string
+    name: string
+}
+
+
+export interface MagmaName {
+    project_name: string
+    rule: string
+    author: string
+    identifier: string
+    grammar: string
+}
+
+
+export interface MagmaBulkGenerateResponse {
+    created: MagmaName[]
+    existing?: MagmaName[]
+}
+
+
+export function postNameBatchToMagma(projectName: string, names: MagmaBulkGenerateName[]): Promise<MagmaBulkGenerateResponse> {
+    return json_post(magmaPath(`gnomon/${projectName}/generate`), { names })
+}
