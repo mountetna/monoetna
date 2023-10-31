@@ -5,8 +5,8 @@ import Button from "@material-ui/core/Button";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
 import SearchIcon from '@material-ui/icons/Search';
 import FormControl from '@material-ui/core/FormControl';
-import Grid from '@material-ui/core/Grid';
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import Tooltip from '@material-ui/core/Tooltip';
 import _ from "lodash"
 
 import { selectCreateNameGroupIdsByPrimaryRule, selectFilterStatus, selectSelectedCreateNameGroupIds } from "../../selectors/names";
@@ -21,10 +21,20 @@ import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
 
 
 const useStyles = makeStyles((theme) => ({
-    container: {
+    formContainer: {
+        padding: "1em",
+    },
+    ruleSelect: {
+        marginBottom: "1em",
+    },
+    cngComposer: {
+        marginBottom: "1em",
     },
     buttonsContainer: {
-
+        textAlign: "center",
+        "& > div:not(:last-child)": {
+            marginRight: "1em",
+        },
     },
 }));
 
@@ -49,13 +59,19 @@ const FindAndFilterButton = ({ small }: { small: boolean }) => {
     const visibleRules = useSelector(selectVisibleRules)
     const globalState = useSelector(selectGlobalState)
 
+    const clearRuleAndCreateNameGroup = () => {
+        if (ruleAndCreateNameGroup) {
+            batch(() => {
+                dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId], globalState))
+                setRuleAndCreateNameGroup(undefined)
+            })
+        }
+    }
+
     const handleSetRule = (rule?: Rule) => {
         if (!rule) {
             if (ruleAndCreateNameGroup) {
-                batch(() => {
-                    dispatch(deleteGroupsWithNames([ruleAndCreateNameGroup.createNameGroup.localId], globalState))
-                    setRuleAndCreateNameGroup(undefined)
-                })
+                clearRuleAndCreateNameGroup()
                 return
             }
             setRuleAndCreateNameGroup(undefined)
@@ -91,7 +107,7 @@ const FindAndFilterButton = ({ small }: { small: boolean }) => {
     const handleClickClearSelection = () => {
         batch(() => {
             dispatch(clearCreateNameGroupsSelection())
-            setRuleAndCreateNameGroup(undefined)
+            clearRuleAndCreateNameGroup()
         })
     }
 
@@ -102,8 +118,44 @@ const FindAndFilterButton = ({ small }: { small: boolean }) => {
     const handleClickClearFilter = () => {
         batch(() => {
             dispatch(clearCreateNameGroupsFilter())
-            setRuleAndCreateNameGroup(undefined)
+            clearRuleAndCreateNameGroup()
         })
+    }
+
+    const renderClearSelectionButton = () => {
+        const disabled = !ruleAndCreateNameGroup && selectedCreateNameGroupLocalIds.size == 0
+        const button = <Button
+            onClick={handleClickClearSelection}
+            color="secondary"
+            size="small"
+            disabled={disabled}
+        >
+            <DeleteOutlineOutlinedIcon />
+        </Button>
+
+        return disabled ? button : (
+            <Tooltip title="Clear Selection">
+                {button}
+            </Tooltip>
+        )
+    }
+
+    const renderClearFilterButton = () => {
+        const disabled = !ruleAndCreateNameGroup && !filterEnabled
+        const button = <Button
+            onClick={handleClickClearFilter}
+            color="secondary"
+            size="small"
+            disabled={disabled}
+        >
+            <DeleteOutlineOutlinedIcon />
+        </Button>
+
+        return disabled ? button : (
+            <Tooltip title="Clear Filter">
+                {button}
+            </Tooltip>
+        )
     }
 
     return (
@@ -113,18 +165,20 @@ const FindAndFilterButton = ({ small }: { small: boolean }) => {
             variant={small ? "compact" : "full"}
             color="primary"
             popperComponent={
-                <FormControl component="fieldset" id="find-and-filter-dialogue" className={classes.container}>
+                <FormControl component="fieldset" id="find-and-filter-dialogue" className={classes.formContainer}>
                     <RuleSelect
                         values={visibleRules}
                         value={ruleAndCreateNameGroup?.rule}
                         label="Rule"
                         placeholder="rule"
                         onSetRule={handleSetRule}
+                        className={classes.ruleSelect}
                     />
                     {
                         ruleAndCreateNameGroup?.createNameGroup &&
                         <CreateNameGroupComposer
                             createNameGroup={ruleAndCreateNameGroup.createNameGroup}
+                            className={classes.cngComposer}
                         />
                     }
                     <div className={classes.buttonsContainer}>
@@ -140,14 +194,7 @@ const FindAndFilterButton = ({ small }: { small: boolean }) => {
                             >
                                 Find + Select
                             </Button>
-                            <Button
-                                onClick={handleClickClearSelection}
-                                color="secondary"
-                                size="small"
-                                disabled={!ruleAndCreateNameGroup && selectedCreateNameGroupLocalIds.size == 0}
-                            >
-                                <DeleteOutlineOutlinedIcon />
-                            </Button>
+                            {renderClearSelectionButton()}
                         </ButtonGroup>
                         <ButtonGroup
                             variant="contained"
@@ -161,14 +208,7 @@ const FindAndFilterButton = ({ small }: { small: boolean }) => {
                             >
                                 Filter
                             </Button>
-                            <Button
-                                onClick={handleClickClearFilter}
-                                color="secondary"
-                                size="small"
-                                disabled={!ruleAndCreateNameGroup && !filterEnabled}
-                            >
-                                <DeleteOutlineOutlinedIcon />
-                            </Button>
+                            {renderClearFilterButton()}
                         </ButtonGroup>
                     </div>
                 </FormControl >

@@ -18,6 +18,7 @@ import TableSortLabel from '@material-ui/core/TableSortLabel';
 export interface Data {
     name: string
     rule: string
+    implicit: boolean
 }
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
@@ -126,11 +127,14 @@ const useStyles = makeStyles((theme: Theme) =>
             top: 20,
             width: 1,
         },
+        implicitData: {
+            fontStyle: "italic",
+        },
     }),
 );
 
 
-const NamesTable = ({rows}: {rows: Data[]}) => {
+const NamesTable = ({ rows }: { rows: Data[] }) => {
     const classes = useStyles();
     const [order, setOrder] = useState<Order>('asc');
     const [orderBy, setOrderBy] = useState<keyof Data>('name');
@@ -183,6 +187,7 @@ const NamesTable = ({rows}: {rows: Data[]}) => {
                                     <TableRow
                                         tabIndex={-1}
                                         key={row.name}
+                                        className={row.implicit ? classes.implicitData : ""}
                                     >
                                         <TableCell component="th" id={labelId} scope="row" padding="none">
                                             {row.name}

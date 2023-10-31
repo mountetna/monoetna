@@ -84,6 +84,7 @@ const useStyles = makeStyles((theme) => ({
         borderBottom: "1px solid #ccc",
     },
     countsList: {
+        marginTop: "0.5em",
         textAlign: "center"
     },
     readyCounts: {

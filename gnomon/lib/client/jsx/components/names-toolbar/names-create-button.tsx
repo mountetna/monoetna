@@ -13,7 +13,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useTheme } from '@material-ui/core/styles';
 
 import { useDispatch } from "../../utils/redux";
-import NamesTable, { Data } from "../names-table";
+import NamesTable from "./names-create-table";
 import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
 import { selectCompleteCreateNamesCreationPayloads, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from "../../selectors/names";
 
@@ -39,9 +39,19 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
 
     const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length
     const creationRequestPayloads = useSelector(selectCompleteCreateNamesCreationPayloads)
+    let foundImplicit = false
     const rows = creationRequestPayloads
-        .filter(payload => !payload.implicit || showImplicit)
-        .map(payload => { return { name: payload.renderedName, rule: payload.ruleName } })
+        .filter(payload => {
+            if (payload.implicit) {
+                foundImplicit = true
+            }
+            return !payload.implicit || showImplicit
+        })
+        .map(payload => ({
+            name: payload.renderedName,
+            rule: payload.ruleName,
+            implicit: payload.implicit
+        }))
 
     const handleToggle = () => {
         setOpen(prev => !prev);
@@ -76,7 +86,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                 <DialogTitle id="create-all-dialog-title">{"Create All Names"}</DialogTitle>
                 <DialogContent>
                     <div className={classes.tableControls}>
-                        <FormControlLabel
+                        {foundImplicit && <FormControlLabel
                             control={
                                 <Switch
                                     checked={showImplicit}
@@ -86,7 +96,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                                 />
                             }
                             label="Show Implicit"
-                        />
+                        />}
                     </div>
                     <NamesTable
                         rows={rows}

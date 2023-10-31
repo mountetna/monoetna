@@ -138,8 +138,9 @@ const useComposerStyles = makeStyles((theme) => ({
 }));
 
 
-const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includeUnsetAsValue = false }: {
+const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = false, includeUnsetAsValue = false }: {
     createNameGroup: CreateNameGroup,
+    className?: string,
     includeTools?: boolean
     includeUnsetAsValue?: boolean
 }) => {
@@ -175,7 +176,7 @@ const CreateNameGroupComposer = ({ createNameGroup, includeTools = false, includ
     }
 
     return (
-        <div className={classes.container}>
+        <div className={`${classes.container} ${className != undefined ? className : ""}`}>
             {
                 includeTools &&
                 <span className="create-name-group-composer-tools">

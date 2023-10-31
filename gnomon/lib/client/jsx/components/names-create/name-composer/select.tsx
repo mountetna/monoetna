@@ -35,12 +35,13 @@ interface SelectValue {
 
 
 // TODO: change to actual select
-const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, onSetValue }:
+const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, className, onSetValue }:
     {
         values: T[],
         value?: T,
         label: string,
         placeholder: string,
+        className?: string,
         onSetValue: (value: T) => void,
     }) => {
 
@@ -79,12 +80,12 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
     };
 
     return (
-        <div className={classes.selectValueContainer}>
+        <div className={`${classes.selectValueContainer} ${className != undefined ? className : ""}`}>
             <ButtonBase
                 onClick={handleToggle}
                 ref={anchorEl}
                 color="primary"
-                aria-label={`Select Value for "${label}"`}
+                aria-label={`Select Value for ${label}`}
                 aria-haspopup="true"
                 aria-controls={open ? "select-value-container" : undefined}
                 disableRipple
@@ -138,12 +139,13 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
 }
 
 
-export const RuleSelect = ({ values, value, label, placeholder, onSetRule }:
+export const RuleSelect = ({ values, value, label, placeholder, className, onSetRule }:
     {
         values: Rule[],
         value?: Rule,
         label: string,
         placeholder: string,
+        className?: string,
         onSetRule: (value: Rule) => void,
     }
 ) => {
@@ -154,14 +156,20 @@ export const RuleSelect = ({ values, value, label, placeholder, onSetRule }:
             value={value}
             label={label}
             placeholder={placeholder}
+            className={className}
             onSetValue={onSetRule}
         />
     )
 }
 
 
-export const TokenSelect = ({ token, value, onSetTokenValue, includeUnsetAsValue = false }:
-    { token: Token, value?: TokenValue, onSetTokenValue: (value: TokenValue) => void, includeUnsetAsValue?: boolean }) => {
+export const TokenSelect = ({ token, value, className, onSetTokenValue, includeUnsetAsValue = false }: {
+    token: Token,
+    value?: TokenValue,
+    className?: string,
+    onSetTokenValue: (value: TokenValue) => void,
+    includeUnsetAsValue?: boolean
+}) => {
 
     const tokenValuesByLocalId = useSelector(selectTokenValuesByLocalId)
     const tokenValues = useSelector(selectTokenValueLocalIdsWithTokenName(token.name))
@@ -177,6 +185,7 @@ export const TokenSelect = ({ token, value, onSetTokenValue, includeUnsetAsValue
             value={value}
             label={token.label}
             placeholder={token.name}
+            className={className}
             onSetValue={onSetTokenValue}
         />
     )

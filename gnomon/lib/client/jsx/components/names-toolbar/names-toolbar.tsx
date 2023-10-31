@@ -25,12 +25,11 @@ const useStyles = makeStyles((theme) => ({
     buttonsContainer: {
         display: "inline-block",
         padding: "1.25em 0",
-        // border: "1px solid #ccc",
-        // borderTop: "none",
     },
     growShrinkButton: {
         "& svg": {
-            fontSize: "1rem"
+            fontSize: "1rem",
+            transform: "rotate(90deg)",
         }
     },
 }));
@@ -39,7 +38,7 @@ const useStyles = makeStyles((theme) => ({
 const NamesToolbar = () => {
     const classes = useStyles()
 
-    const [small, setSmall] = useState<boolean>(false);
+    const [small, setSmall] = useState<boolean>(true);
 
     return (
         <div className={classes.container}>
