@@ -439,6 +439,83 @@ describe GnomonController do
     end
   end
 
+  context 'bulk generate API' do
+
+    it 'throws exception when no grammar for project' do
+      auth_header(:admin)
+      json_post('/gnomon/labors/generate', names: [])
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('No grammar found for project labors.')
+    end
+
+    context 'with grammar' do
+      before(:each) do
+        @grammar = create_grammar(config: VALID_GRAMMAR_CONFIG)
+      end
+
+      it 'creates identifiers' do
+        auth_header(:admin)
+        json_post("/gnomon/labors/generate", names: [
+          {
+            rule_name: 'village',
+            name: 'LABORS-HYDRA-H2'
+          },
+          {
+            rule_name: 'victim',
+            name: 'LABORS-LION-H2-C1'
+          }
+        ])
+
+        expect(last_response.status).to eq(200)
+        expect(Magma::Gnomon::Identifier.count).to eq(6)
+        expect(Magma::Gnomon::Identifier.select_map(
+          [ :rule, :identifier ]
+        )).to match_array([
+          ["labor", "The Lernean Hydra"],
+          ["labor", "The Nemean Lion"],
+          ["project", "The Twelve Labors of Hercules"],
+          ["victim", "LABORS-LION-H2-C1"],
+          ["village", "LABORS-HYDRA-H2"],
+          ["village", "LABORS-LION-H2"]
+        ])
+      end
+
+      it 'ignores identifiers that already exists' do
+        identifier = create_identifier("LABORS-LION-H2-C1", rule: 'victim', grammar: @grammar)
+        auth_header(:admin)
+        names = [{rule_name: 'victim', name: 'LABORS-LION-H2-C1'}]
+        json_post('/gnomon/labors/generate', names: names)
+        expect(last_response.status).to eq(200)
+        expect(json_body[:existing]).to eq(names)
+        expect(Magma::Gnomon::Identifier.count).to eq(4)
+      end
+
+
+      context 'throws exception when' do
+        it 'invalid rule name provided' do
+          auth_header(:admin)
+          json_post('/gnomon/labors/generate', names: [{ rule_name: 'alias', name: 'LABORS-LION-H2-C1'}])
+          expect(last_response.status).to eq(422)
+          expect(Magma::Gnomon::Identifier.count).to eq(0)
+        end
+
+        it 'non-admin tries to generate an identifier' do
+          auth_header(:viewer)
+          json_post('/gnomon/labors/generate', names: [{ rule_name: 'victim', name: 'LABORS-LION-H2-C1'}])
+          expect(last_response.status).to eq(403)
+          expect(Magma::Gnomon::Identifier.count).to eq(0)
+        end
+
+        it 'identifier does not match rule' do
+          auth_header(:admin)
+          json_post('/gnomon/labors/generate', names: [{ rule_name: 'victim', name: 'LABORS-LION-H2-X1'}])
+          expect(last_response.status).to eq(422)
+          expect(Magma::Gnomon::Identifier.count).to eq(0)
+        end
+      end
+    end
+  end
+
   context 'rules API' do
     it 'lists all of the rules for each requested project' do
       grammar = create_grammar(version_number: 1, config: {})
