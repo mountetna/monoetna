@@ -7,21 +7,12 @@ import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import { selectRulesByName } from "../../selectors/rules";
 import { createNamesWithGroupForRule } from "../../actions/names";
 import { useDispatch } from "../../utils/redux";
-import { State } from "../../store";
 import { selectGlobalState } from "../../selectors/global";
 import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
 
 
 
-// const useStyles = makeStyles((theme) => ({
-//     addNamesContainer: {
-//         display: "inline-block",
-//     },
-// }));
-
-
 const AddNamesButton = ({ small }: { small: boolean }) => {
-    // const classes = useStyles()
     const [open, setOpen] = useState<boolean>(false);
     const dispatch = useDispatch()
 

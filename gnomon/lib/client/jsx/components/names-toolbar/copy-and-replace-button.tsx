@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, batch } from 'react-redux'
+import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
 import LibraryAddOutlinedIcon from "@material-ui/icons/LibraryAddOutlined";
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
-import InputBase from '@material-ui/core/InputBase';
-import Grid from '@material-ui/core/Grid';
 import _ from "lodash"
 
 import { CreateNameGroup, Rule } from "../../models";
@@ -21,15 +19,57 @@ import { selectCommonRulesFromSelection, selectGlobalState, selectReplaceRuleFro
 import { addCreateNameGroupsToReplaceCriteria, createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule, addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria } from "../../actions/names";
 import { useDispatch } from "../../utils/redux";
 import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
+import AutosizeInput from "../../utils/AutosizeInput";
 
 
 
-const CopyCreateNameGroupRadio = ({ radioValue, label, quantityValue, onChangeQuantity }: {
+const useStyles = makeStyles((theme) => ({
+    formContainer: {
+        padding: "1em",
+    },
+    radioOption: {
+        marginBottom: "1em",
+        opacity: "0.5",
+        transition: "opacity 0.2s ease-in",
+        "&:hover, &.selected": {
+            opacity: "1",
+        },
+        "& .radio-row": {
+            display: "flex",
+            alignItems: "center",
+        },
+        "& .form-row": {
+            // TODO: make this align perfectly
+            marginLeft: "2em",
+        },
+        "& .form-row > :not(:last-child), & .radio-row > :not(:last-child)": {
+            marginRight: "1em",
+        },
+    },
+    iterateBoundaryInputs: {
+        flexDirection: "row",
+        alignItems: "center",
+        "& label": {
+            marginRight: "1em",
+        },
+    },
+    buttonsContainer: {
+        textAlign: "center",
+        "& > button:not(:last-child)": {
+            marginRight: "1em",
+        },
+    },
+}));
+
+
+const CopyCreateNameGroupRadio = ({ radioValue, currentRadioValue, label, quantityValue, onChangeQuantity }: {
     radioValue: string,
+    currentRadioValue: string,
     label: string,
     quantityValue: number | undefined,
     onChangeQuantity: (value?: number) => void
 }) => {
+    const classes = useStyles()
 
     const handleChangeQuantity = (event: React.ChangeEvent<HTMLInputElement>) => {
         const eventValue = event.target.value
@@ -38,23 +78,25 @@ const CopyCreateNameGroupRadio = ({ radioValue, label, quantityValue, onChangeQu
     }
 
     return (
-        <FormGroup className={"dsadsa"}>
-            <FormControl>
-                <Radio value={radioValue} disableRipple />
-                <FormLabel>{label}</FormLabel>
-            </FormControl>
-            <FormControl>
-                <InputBase
-                    value={quantityValue != undefined ? String(quantityValue) : ""}
-                    onChange={handleChangeQuantity}
-                    type="number"
-                    inputProps={{ min: 1 }}
-                    id="copy-radio-quantity"
-                    placeholder="n"
-                    className={"dsadasdas"}
+        <div className={`${classes.radioOption} ${radioValue == currentRadioValue ? "selected" : ""}`}>
+            <div className="radio-row">
+                <FormControlLabel
+                    value={radioValue}
+                    label={label}
+                    control={<Radio disableRipple />}
                 />
-            </FormControl>
-        </FormGroup>
+                <FormControl>
+                    <AutosizeInput
+                        value={quantityValue != undefined ? String(quantityValue) : ""}
+                        onChange={handleChangeQuantity}
+                        type="number"
+                        inputProps={{ min: 1, "aria-label": "copy-radio-quantity" }}
+                        id="copy-radio-quantity"
+                        placeholder="n"
+                    />
+                </FormControl>
+            </div>
+        </div>
     );
 }
 
@@ -65,15 +107,17 @@ interface IterationBoundaries {
 }
 
 
-const IterateRuleRadio = ({ radioValue, label, rules, ruleValue, onChangeRule, boundaries, onChangeBoundaries }: {
+const IterateRuleRadio = ({ radioValue, currentRadioValue, label, rules, ruleValue, onChangeRule, boundaries, onChangeBoundaries }: {
     radioValue: string,
+    currentRadioValue: string,
     label: string,
     rules: Rule[],
-    ruleValue: Rule,
+    ruleValue?: Rule,
     onChangeRule: (rule: Rule) => void,
     boundaries: IterationBoundaries,
     onChangeBoundaries: (boundaries: IterationBoundaries) => void,
 }) => {
+    const classes = useStyles()
 
     const handleChangeBoundaries = (start: number | undefined, end: number | undefined) => {
         onChangeBoundaries({ start, end })
@@ -84,72 +128,85 @@ const IterateRuleRadio = ({ radioValue, label, rules, ruleValue, onChangeRule, b
     }
 
     return (
-        <FormGroup>
-            <FormControl>
-                <Radio value={radioValue} disableRipple />
-                <FormLabel>{label}</FormLabel>
-            </FormControl>
-            <FormControl>
-                <RuleSelect
-                    values={rules}
-                    value={ruleValue}
-                    label="Rule"
-                    placeholder="rule"
-                    onSetRule={onChangeRule}
+        <div className={`${classes.radioOption} ${radioValue == currentRadioValue ? "selected" : ""}`}>
+            <div className="radio-row">
+                <FormControlLabel
+                    value={radioValue}
+                    label={label}
+                    control={<Radio disableRipple />}
                 />
-            </FormControl>
-            <FormControl>
-                <FormLabel>Start</FormLabel>
-                <InputBase
-                    value={getBoundaryValue(boundaries.start)}
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleChangeBoundaries(inputEventValueToNumber(event), boundaries.end)}
-                    type="number"
-                    inputProps={{ min: 0 }}
-                    id="iterate-radio-boundary-minimum"
-                    placeholder="n"
-                    className={"dsadasdas"}
-                />
-            </FormControl>
-            <FormControl>
-                <FormLabel>End</FormLabel>
-                <InputBase
-                    value={getBoundaryValue(boundaries.end)}
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleChangeBoundaries(boundaries.start, inputEventValueToNumber(event))}
-                    type="number"
-                    inputProps={{ min: 0 }}
-                    id="iterate-radio-boundary-maximum"
-                    placeholder="n"
-                    className={"dsadasdas"}
-                />
-            </FormControl>
-        </FormGroup>
+                <FormControl>
+                    <RuleSelect
+                        values={rules}
+                        value={ruleValue}
+                        label="Rule"
+                        placeholder="rule"
+                        onSetRule={onChangeRule}
+                    />
+                </FormControl>
+            </div>
+            <div className="form-row">
+                <FormControl className={classes.iterateBoundaryInputs}>
+                    <FormLabel>Start</FormLabel>
+                    <AutosizeInput
+                        value={getBoundaryValue(boundaries.start)}
+                        onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleChangeBoundaries(inputEventValueToNumber(event), boundaries.end)}
+                        type="number"
+                        inputProps={{ min: 0, "aria-label": "iterate-radio-boundary-minimum" }}
+                        id="iterate-radio-boundary-minimum"
+                        placeholder="n"
+                    />
+                </FormControl>
+                <FormControl className={classes.iterateBoundaryInputs}>
+                    <FormLabel>End</FormLabel>
+                    <AutosizeInput
+                        value={getBoundaryValue(boundaries.end)}
+                        onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleChangeBoundaries(boundaries.start, inputEventValueToNumber(event))}
+                        type="number"
+                        inputProps={{ min: 0, "aria-label": "iterate-radio-boundary-maximum" }}
+                        id="iterate-radio-boundary-maximum"
+                        placeholder="n"
+                    />
+                </FormControl>
+            </div>
+        </div>
     )
 }
 
 
-const ReplaceValuesForRuleRadio = ({ radioValue, label, createNameGroup }: {
+const ReplaceValuesForRuleRadio = ({ radioValue, currentRadioValue, label, createNameGroup }: {
     radioValue: string,
+    currentRadioValue: string,
     label: string,
     createNameGroup?: CreateNameGroup,
 }) => {
+    const classes = useStyles()
+
     return (
-        <FormGroup>
-            <FormControl>
-                <Radio value={radioValue} disableRipple />
-                <FormLabel>{label}</FormLabel>
-            </FormControl>
-            {
-                createNameGroup ?
-                    <CreateNameGroupComposer
-                        createNameGroup={createNameGroup}
-                    /> : "Select a Name first"
-            }
-        </FormGroup>
+        <div className={`${classes.radioOption} ${radioValue == currentRadioValue ? "selected" : ""}`}>
+            <div className="radio-row">
+                <FormControlLabel
+                    value={radioValue}
+                    label={label}
+                    control={<Radio disableRipple />}
+                />
+            </div>
+            <div className="form-row">
+                {
+                    createNameGroup ?
+                        <CreateNameGroupComposer
+                            createNameGroup={createNameGroup}
+                        /> : "Select a Name first"
+                }
+            </div>
+        </div>
     )
 }
 
 
 const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
+    const classes = useStyles()
+
     const [open, setOpen] = useState<boolean>(false);
     const [rule, setRule] = useState<Rule>()
     const [radioValue, setRadioValue] = useState<string>("copy")
@@ -202,10 +259,6 @@ const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
         }
     }, [replaceRule?.name])
 
-    const handleToggle = () => {
-        setOpen(prev => !prev);
-    };
-
     const handleClose = () => {
         setOpen(false);
     };
@@ -217,6 +270,10 @@ const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
     const handleClickAdd = () => {
         switch (radioValue) {
             case "copy":
+                if (quantity == undefined) {
+                    break
+                }
+                
                 dispatch(duplicateCreateNameGroups(
                     selectedCreateNameGroups,
                     globalState,
@@ -226,6 +283,14 @@ const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
                 ))
                 break
             case "iterate":
+                if (
+                    rule == undefined
+                    || boundaries.start == undefined
+                    || boundaries.end == undefined
+                ) {
+                    break
+                }
+
                 dispatch(iterateOnCreateNameGroupsByRule(
                     selectedCreateNameGroups,
                     rule.name,
@@ -249,7 +314,11 @@ const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
             variant={small ? "compact" : "full"}
             color="primary"
             popperComponent={
-                <FormControl component="fieldset" id="copy-and-replace-dialogue">
+                <FormControl
+                    component="fieldset"
+                    id="copy-and-replace-dialogue"
+                    className={classes.formContainer}
+                >
                     <RadioGroup
                         aria-label="Copy and Replace Options"
                         name="addFromSelectionOptions"
@@ -258,12 +327,14 @@ const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
                     >
                         <CopyCreateNameGroupRadio
                             radioValue="copy"
-                            label="How many?"
+                            currentRadioValue={radioValue}
+                            label="Quantity"
                             quantityValue={quantity}
                             onChangeQuantity={setQuantity}
                         />
                         <IterateRuleRadio
                             radioValue="iterate"
+                            currentRadioValue={radioValue}
                             label="Iterate on Rule"
                             rules={iterableRules}
                             ruleValue={rule}
@@ -273,34 +344,33 @@ const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
                         />
                         <ReplaceValuesForRuleRadio
                             radioValue="replace"
+                            currentRadioValue={radioValue}
                             label="Replace Values"
                             createNameGroup={replaceCreateNameGroup}
                         />
                     </RadioGroup>
-                    <Grid container>
-                        <Grid item xs={6}>
-                            <Button
-                                onClick={handleClose}
-                                color="secondary"
-                                disableElevation
-                            >
-                                Cancel
-                            </Button>
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Button
-                                onClick={handleClickAdd}
-                                color="primary"
-                                disableElevation
-                            >
-                                {_.capitalize(radioValue)}
-                            </Button>
-                        </Grid>
-                    </Grid>
+                    <div className={classes.buttonsContainer}>
+                        <Button
+                            onClick={handleClose}
+                            color="secondary"
+                            disableRipple
+                            disableElevation
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleClickAdd}
+                            color="primary"
+                            disableRipple
+                            disableElevation
+                        >
+                            {_.capitalize(radioValue)}
+                        </Button>
+                    </div>
                 </FormControl>
             }
             popperId="copy-and-replace-dialogue"
-            onClickOrPopperChange={(open: boolean) => setOpen(open)}
+            onClickOrPopperChange={setOpen}
             popperOpen={open}
             disabled={selectedCreateNameGroupLocalIds.size == 0}
         />

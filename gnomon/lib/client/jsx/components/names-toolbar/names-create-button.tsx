@@ -14,6 +14,7 @@ import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useTheme } from '@material-ui/core/styles';
+import _ from "lodash"
 
 import { useDispatch } from "../../utils/redux";
 import NamesTable from "./names-create-table";
@@ -21,7 +22,6 @@ import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
 import { selectCompleteCreateNamesCreationPayloads, selectNamesCreationRequestState, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from "../../selectors/names";
 import { makeCreateNamesCreationRequest } from "../../actions/names";
 import { selectPathParts } from "../../selectors/location"
-import { capitalize } from "../../utils/string"
 
 
 
@@ -51,6 +51,24 @@ const useStyles = makeStyles((theme) => ({
     buttonsContainer: {
         "& > button:not(:last-child)": {
             marginRight: "0.75em",
+        },
+    },
+    createButton: {
+        "&:not(:disabled)": {
+            backgroundImage: 'url(/images/distort.svg)',
+            '&:hover': {
+                backgroundImage: 'url(/images/distort2.svg)',
+                boxShadow: '0 0 20px #d95'
+            },
+            '&:active': {
+                backgroundImage: 'url(/images/distort3.svg)',
+                boxShadow: '0 0 2px #d95'
+            },
+            backgroundSize: 'cover',
+            border: '2px solid darkgoldenrod',
+            boxShadow: '0 0 10px #d95',
+            color: 'white',
+            fontWeight: 'bold'
         },
     },
 }));
@@ -127,7 +145,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
         }
 
         return <span className={`${classes.requestStatus} ${creationRequestState.status}`}>
-            {icon} {capitalize(creationRequestState.status)}
+            {icon} {_.capitalize(creationRequestState.status)}
         </span>
     }
 
@@ -188,6 +206,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                             color="primary"
                             disableElevation
                             disabled={creationRequestState.status != "idle"}
+                            className={classes.createButton}
                         >
                             Create
                         </Button>
