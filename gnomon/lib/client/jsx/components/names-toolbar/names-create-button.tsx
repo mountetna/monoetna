@@ -137,7 +137,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                 text="Create All"
                 iconComponent={<SaveOutlinedIcon />}
                 variant={small ? "compact" : "full"}
-                color="secondary"
+                color="#0057FF"
                 popperId="create-all-dialog"
                 disabled={completeCreateNameGroupsCount == 0}
                 onClickOrPopperChange={handleToggle}

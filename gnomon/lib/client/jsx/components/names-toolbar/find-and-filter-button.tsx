@@ -163,7 +163,7 @@ const FindAndFilterButton = ({ small }: { small: boolean }) => {
             text="Find and Filter"
             iconComponent={<SearchIcon />}
             variant={small ? "compact" : "full"}
-            color="primary"
+            color="#9747FF"
             popperComponent={
                 <FormControl component="fieldset" id="find-and-filter-dialogue" className={classes.formContainer}>
                     <RuleSelect

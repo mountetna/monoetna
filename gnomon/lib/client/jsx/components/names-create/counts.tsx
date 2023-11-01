@@ -25,20 +25,26 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const Counts = ({ counts, className, separator }: {
+const Counts = ({ counts, className, separator, onClick }: {
     counts: Count[],
     className?: string,
     separator?: string,
+    onClick?: (countName: string) => void,
 }) => {
     const classes = useStyles()
 
     counts = counts.filter(count => !(count.hideAtZero && count.value == 0))
 
     return (
-        <div className={`${classes.container} ${className ? className : ""}`}>
+        <div
+            className={`${classes.container} ${className ? className : ""}`}
+        >
             {counts.map((count, idx) =>
                 <React.Fragment key={count.name}>
-                    <div className={`${classes.count} count count-${count.name}`}>
+                    <div
+                        className={`${classes.count} count count-${count.name}`}
+                        onClick={() => onClick && onClick(count.name)}
+                    >
                         {`${count.value} ${count.description}`}
                     </div>
                     {separator != undefined

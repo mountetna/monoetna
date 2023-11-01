@@ -25,7 +25,7 @@ const DeleteButton = ({ small }: { small: boolean }) => {
             text="Delete"
             iconComponent={<DeleteOutlineOutlinedIcon />}
             variant={small ? "compact" : "full"}
-            color="primary"
+            color="#FF0000"
             onClickOrPopperChange={handleClickDelete}
             disabled={selectedCreateNameGroupLocalIds.size == 0}
         />

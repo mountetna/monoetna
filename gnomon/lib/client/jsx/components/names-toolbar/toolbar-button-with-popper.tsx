@@ -1,11 +1,12 @@
-import React, { useState, useRef } from "react";
-import { makeStyles } from '@material-ui/core/styles';
+import React, { useRef } from "react";
+import { makeStyles, useTheme, createTheme, ThemeProvider } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
 import Popper from "@material-ui/core/Popper";
 import Grow from "@material-ui/core/Grow";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Paper from "@material-ui/core/Paper";
 import Tooltip from '@material-ui/core/Tooltip';
+import Color from 'color';
 
 
 
@@ -25,11 +26,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color, disabled = false, popperComponent, popperId, onClickOrPopperChange, popperOpen = false }: {
+const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color = "default", disabled = false, popperComponent, popperId, onClickOrPopperChange, popperOpen = false }: {
     text: string,
     iconComponent: JSX.Element,
     variant: "full" | "compact",
-    color?: "inherit" | "default" | "primary" | "secondary",
+    color: string,
     disabled?: boolean,
     popperComponent?: JSX.Element,
     popperId?: string,
@@ -39,6 +40,36 @@ const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color, disabled
 
     const classes = useStyles()
     const anchorEl = useRef(null)
+    const baseTheme = useTheme()
+    let overrideTheme = baseTheme
+
+    const customColor = ["inherit", "default", "primary", "secondary"].indexOf(color) == -1
+
+    if (customColor) {
+        const primary = Color(color)
+
+        overrideTheme = createTheme(baseTheme, {
+            palette: {
+                primary: {
+                    main: primary.string()
+                }
+            },
+            overrides: {
+                MuiButton: {
+                    containedPrimary: {
+                        backgroundColor: primary.alpha(0.3).string(),
+                        color: primary.darken(0.5).string(),
+                        '&:hover': {
+                            backgroundColor: primary.alpha(0.5).string()
+                        },
+                        '&:disabled': {
+                            backgroundColor: primary.alpha(0.15).string()
+                        },
+                    },
+                },
+            }
+        })
+    }
 
     const handleToggle = () => {
         if (onClickOrPopperChange != undefined) {
@@ -57,7 +88,8 @@ const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color, disabled
             startIcon={variant == "full" ? iconComponent : undefined}
             onClick={handleToggle}
             ref={anchorEl}
-            color={color}
+            // @ts-ignore
+            color={customColor ? "primary" : color}
             aria-label={text}
             aria-haspopup={popperComponent != undefined ? "true" : "false"}
             aria-controls={popperOpen ? popperId : undefined}
@@ -74,16 +106,18 @@ const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color, disabled
 
     return (
         <div className={classes.container}>
-            {
-                variant == "full" || disabled == true
-                    ? renderButton()
-                    : (
-                        <Tooltip title={text} placement="top">
-                            {/* https://v4.mui.com/components/tooltips/#disabled-elements */}
-                            {renderButton()}
-                        </Tooltip>
-                    )
-            }
+            <ThemeProvider theme={overrideTheme}>
+                {
+                    variant == "full" || disabled == true
+                        ? renderButton()
+                        : (
+                            <Tooltip title={text} placement="top">
+                                {/* https://v4.mui.com/components/tooltips/#disabled-elements */}
+                                {renderButton()}
+                            </Tooltip>
+                        )
+                }
+            </ThemeProvider>
             {
                 popperComponent != undefined
                 && (

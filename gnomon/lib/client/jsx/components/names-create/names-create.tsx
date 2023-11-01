@@ -12,6 +12,7 @@ import { fetchRulesFromMagma } from "../../actions/rules";
 import { selectCreateNameGroupIdsByPrimaryRule, selectCreateNameGroupsByLocalId, selectFilterCreateNameGroupIds, selectFilterEnabledStatus, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectReplaceCreateNameGroupIds, selectSearchCreateNameGroupIds, selectSelectedCreateNameGroupIds } from "../../selectors/names";
 import { useDispatch } from "../../utils/redux";
 import Counts from "./counts";
+import { clearCreateNameGroupsFilter, clearCreateNameGroupsSelection } from "../../actions/names";
 
 
 
@@ -54,6 +55,10 @@ const useStyles = makeStyles((theme) => ({
         "& .count-filtered": {
             color: "purple",
         },
+        "& .count-selected:hover, .count-filtered:hover": {
+            cursor: "pointer",
+            textDecoration: "line-through",
+        },
     },
     composerList: {
         padding: "0 5em",
@@ -71,6 +76,8 @@ function createCountsList(
     selected: number,
     filtered: number,
     classes: Record<string, any>,
+    handleClickSelected: () => void,
+    handleClickFiltered: () => void,
 ) {
     const readyCounts = [
         {
@@ -120,6 +127,7 @@ function createCountsList(
                             counts={selectedAndFilteredCounts}
                             className={classes.selectedAndFilteredCounts}
                             separator="•"
+                            onClick={(countName => countName == "selected" ? handleClickSelected() : handleClickFiltered())}
                         />
                     </React.Fragment>)
                     : undefined
@@ -148,6 +156,13 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
         dispatch(fetchRulesFromMagma(project_name))
     }, []);
 
+    const handleClickSelected = () => {
+        dispatch(clearCreateNameGroupsSelection())
+    }
+
+    const handleClickFiltered = () => {
+        dispatch(clearCreateNameGroupsFilter())
+    }
 
     return (
         <React.Fragment>
@@ -164,6 +179,8 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
                         selectionCreateNameGroupsCount,
                         filterEnabled ? totalCreateNameGroupsCount - filterCreateNameGroupsCount : 0,
                         classes,
+                        handleClickSelected,
+                        handleClickFiltered,
                     )
                     : undefined
             }

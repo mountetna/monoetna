@@ -14,7 +14,7 @@ const GrowShrinkButton = ({ small, onClick }: {
             text={small ? "Grow" : "Shrink"}
             iconComponent={small ? <UnfoldMoreOutlinedIcon /> : <UnfoldLessOutlinedIcon />}
             variant={small ? "compact" : "full"}
-            color="primary"
+            color="secondary"
             onClickOrPopperChange={onClick}
         />
     )
