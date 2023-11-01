@@ -131,8 +131,6 @@ class GnomonController < Magma::Controller
 
     decomposition = grammar.decompose(@params[:identifier])
 
-    identifier = nil
-
     # find existing identifiers
     existing_identifiers = Magma::Gnomon::Identifier.where(
       project_name: project_name,
@@ -142,10 +140,7 @@ class GnomonController < Magma::Controller
     end.to_h
 
     decomposition[:rules].each do |match_rule_name, rule|
-      if existing_identifiers[rule[:name]]
-        identifier = existing_identifiers[rule[:name]] if rule_name == match_rule_name
-        next
-      end
+      next if existing_identifiers[rule[:name]]
 
       rule_id = Magma::Gnomon::Identifier.create(
         project_name: project_name,
@@ -154,13 +149,80 @@ class GnomonController < Magma::Controller
         identifier: rule[:name],
         grammar: grammar
       )
-
-      identifier = rule_id if rule_name == match_rule_name
     end
 
-    decomposition = grammar.decompose(@params[:identifier])
-
     success_json(decomposition)
+  end
+
+  def bulk_generate
+    require_param(:names)
+    grammar = require_grammar
+
+    missing_rules = @params[:names].map {|n| n[:rule_name] }.uniq - grammar.parser.rules.rule_names
+
+    unless missing_rules.empty?
+      raise Etna::BadRequest, "Unknown rule names #{missing_rules.join(', ')}"
+    end
+
+    decompositions = @params[:names].map do |n|
+      n.merge(
+        decomposition: grammar.decompose(n[:name])
+      )
+    end
+
+    bad_decompositions = decompositions.select do |n| n[:decomposition].nil? end
+
+    unless bad_decompositions.empty?
+      raise Etna::BadRequest, "Could not decompose names #{
+        bad_decompositions.map{ |n| n[:name] }.join(', ')
+      }"
+    end
+
+    identifier = nil
+
+    decomposed_identifiers = decompositions.map do |d|
+      d[:decomposition][:rules].values.map {|r| r[:name]}
+    end.flatten.uniq
+
+    # find existing identifiers
+    existing_identifiers = Magma::Gnomon::Identifier.where(
+      project_name: project_name,
+      identifier: decomposed_identifiers
+    ).all.map do |id|
+      [ id.identifier, id ]
+    end.to_h
+
+    existing = []
+    created = []
+
+    created_identifiers = {}
+
+    decompositions.each do |d|
+      d[:decomposition][:rules].each do |match_rule_name, rule|
+        next if created_identifiers[rule[:name]]
+
+        if existing_identifiers[rule[:name]]
+          existing.push(rule_name: match_rule_name, name: rule[:name] )
+          next
+        end
+
+        rule_id = Magma::Gnomon::Identifier.create(
+          project_name: project_name,
+          rule: match_rule_name,
+          author: @user.display_name,
+          identifier: rule[:name],
+          grammar: grammar
+        )
+        created.push(rule_name: match_rule_name, name: rule[:name] )
+
+        created_identifiers[rule[:name]] = rule_id
+      end
+    end
+
+    result = { created: created }
+    result.update(existing: existing.uniq) unless existing.empty?
+
+    success_json(result)
   end
 
   def revisions
