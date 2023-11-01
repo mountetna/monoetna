@@ -14,6 +14,7 @@ module Metis
 	type: "object",
         properties: {
           bucket_name: { type: "string" },
+          autolink: { type: "boolean" },
           models: {
             type: "object",
             additionalProperties: {

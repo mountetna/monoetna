@@ -64,8 +64,6 @@ class MetisLoaderConfig(EtlConfigResponse):
             if match.match(file.file_path)
         ]
         return files
-        
-
 
     def data_frame_update(self, model_name, script, tail, update, metis, model):
         isTable=model['isTable']
@@ -173,7 +171,7 @@ class MetisLoaderConfig(EtlConfigResponse):
             )
 
     def update_for(self, tail, metis=None, models=None):
-        update = UpdateRequest(project_name=self.project_name, dry_run=(not self.params.get('commit', False)))
+        update = UpdateRequest(project_name=self.project_name, dry_run=(not self.params.get('commit', False)), autolink = self.config.get('autolink', False))
 
         for model_name, model_config in self.config.get("models",{}).items():
             for script in model_config.get("scripts",[]):
@@ -319,6 +317,7 @@ Job failed with error: {i['error']}
 Upload Summary : {i['start']} -> {i['end']} 
 Models: {', '.join(i['response'].models.keys())}
 Committed to Magma: {i['commit']}
+Autolinked Parent Identifiers: {i['autolink']}
 '''
             for model_name, model in i['response'].models.items():
                 summary += f"{model_name} records updated: {', '.join(model.documents.keys())}\n"
@@ -336,7 +335,6 @@ Committed to Magma: {i['commit']}
                     if 'error' in updates[ config.config_id ]:
                         raise Exception(updates[ config.config_id ]['error'])
 
-                    commit = config.params.get('commit', False)
                     with hook.magma() as magma:
                         response = magma.update(updates[ config.config_id ], page_size=1000)
 
@@ -359,7 +357,8 @@ Committed to Magma: {i['commit']}
                             output=upload_report(
                                 project_name=config.project_name,
                                 response=response,
-                                commit=commit,
+                                commit=config.params.get('commit', False),
+                                autolink=config.config.get('autolink', False),
                                 start=start,
                                 end=end
                             )
