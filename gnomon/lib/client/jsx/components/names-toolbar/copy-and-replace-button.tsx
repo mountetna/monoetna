@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSelector, batch } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles';
 import Button from "@material-ui/core/Button";
@@ -119,12 +119,20 @@ const IterateRuleRadio = ({ radioValue, currentRadioValue, label, rules, ruleVal
 }) => {
     const classes = useStyles()
 
+    const minInputRef = useRef()
+    const maxInputRef = useRef()
+
     const handleChangeBoundaries = (start: number | undefined, end: number | undefined) => {
         onChangeBoundaries({ start, end })
     }
 
     const getBoundaryValue = (boundary: number | undefined): string => {
         return boundary != undefined ? String(boundary) : ""
+    }
+
+    const handleFormClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const container = event.currentTarget
+        container.getElementsByTagName("input")[0].focus()
     }
 
     return (
@@ -146,7 +154,7 @@ const IterateRuleRadio = ({ radioValue, currentRadioValue, label, rules, ruleVal
                 </FormControl>
             </div>
             <div className="form-row">
-                <FormControl className={classes.iterateBoundaryInputs}>
+                <FormControl className={classes.iterateBoundaryInputs} onClick={handleFormClick}>
                     <FormLabel>Start</FormLabel>
                     <AutosizeInput
                         value={getBoundaryValue(boundaries.start)}
@@ -157,7 +165,7 @@ const IterateRuleRadio = ({ radioValue, currentRadioValue, label, rules, ruleVal
                         placeholder="n"
                     />
                 </FormControl>
-                <FormControl className={classes.iterateBoundaryInputs}>
+                <FormControl className={classes.iterateBoundaryInputs} onClick={handleFormClick}>
                     <FormLabel>End</FormLabel>
                     <AutosizeInput
                         value={getBoundaryValue(boundaries.end)}
@@ -273,7 +281,7 @@ const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
                 if (quantity == undefined) {
                     break
                 }
-                
+
                 dispatch(duplicateCreateNameGroups(
                     selectedCreateNameGroups,
                     globalState,
