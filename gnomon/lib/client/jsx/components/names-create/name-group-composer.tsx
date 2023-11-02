@@ -59,9 +59,7 @@ const useStyles = makeStyles((theme) => ({
         maxWidth: "100%",
         marginBottom: "4em",
     },
-    innerContainer: {
-        padding: "0 2em",
-    },
+    innerContainer: {},
     headerContainer: {
         alignItems: "center",
         marginBottom: "0.5em",
@@ -69,9 +67,13 @@ const useStyles = makeStyles((theme) => ({
     tools: {
         textAlign: "left",
     },
+    checkbox: {
+        padding: "0",
+    },
     ruleNameTitle: {
         textAlign: "center",
         fontWeight: "bold",
+        fontSize: "18px",
     },
     readyCounts: {
         fontWeight: "bold",
@@ -88,7 +90,7 @@ const useStyles = makeStyles((theme) => ({
         "&.some-not-ready": {
             borderColor: "red"
         },
-        padding: "2em 1em",
+        padding: "2em",
         "&.collapsed": {
             transition: "background 0.2s ease-out",
         },
@@ -169,6 +171,7 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
                                 checked={_.every(createNameGroups, (cng: CreateNameGroup) => selectedCreateNameGroupLocalIds.has(cng.localId))}
                                 onChange={handleClickSelect}
                                 inputProps={{ 'aria-label': 'Select the Name Group' }}
+                                className={classes.checkbox}
                             />
                             <ButtonBase
                                 onClick={() => setCollapsed(prev => !prev)}

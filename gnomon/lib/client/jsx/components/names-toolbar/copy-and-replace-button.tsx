@@ -27,8 +27,13 @@ const useStyles = makeStyles((theme) => ({
     formContainer: {
         padding: "1em",
     },
+    radioGroup: {
+        marginBottom: "2em",
+    },
     radioOption: {
-        marginBottom: "1em",
+        "&:not(:last-child)": {
+            marginBottom: "0.5em",
+        },
         opacity: "0.5",
         transition: "opacity 0.2s ease-in",
         "&:hover, &.selected": {
@@ -113,7 +118,7 @@ const IterateRuleRadio = ({ radioValue, currentRadioValue, label, rules, ruleVal
     label: string,
     rules: Rule[],
     ruleValue?: Rule,
-    onChangeRule: (rule: Rule) => void,
+    onChangeRule: (rule?: Rule) => void,
     boundaries: IterationBoundaries,
     onChangeBoundaries: (boundaries: IterationBoundaries) => void,
 }) => {
@@ -332,6 +337,7 @@ const CopyAndReplaceButton = ({ small }: { small: boolean }) => {
                         name="addFromSelectionOptions"
                         value={radioValue}
                         onChange={handleChangeRadioValue}
+                        className={classes.radioGroup}
                     >
                         <CopyCreateNameGroupRadio
                             radioValue="copy"

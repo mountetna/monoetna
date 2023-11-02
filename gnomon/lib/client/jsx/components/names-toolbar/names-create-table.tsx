@@ -15,6 +15,42 @@ import TableSortLabel from '@material-ui/core/TableSortLabel';
 // adapted from https://v4.mui.com/components/tables/#sorting-amp-selecting
 // switch to @mui/x-data-grid when react >= v17
 
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        root: {
+            width: '100%',
+        },
+        paper: {
+            width: '100%',
+            marginBottom: theme.spacing(2),
+        },
+        table: {
+            // minWidth: 750,
+        },
+        visuallyHidden: {
+            border: 0,
+            clip: 'rect(0 0 0 0)',
+            height: 1,
+            margin: -1,
+            overflow: 'hidden',
+            padding: 0,
+            position: 'absolute',
+            top: 20,
+            width: 1,
+        },
+        rowData: {
+            "& > *": {
+                fontWeight: "bold",
+            },
+            "&.implicit > *": {
+                fontStyle: "italic",
+                fontWeight: "normal",
+                opacity: "0.5",
+            },
+        },
+    }),
+);
+
 export interface Data {
     name: string
     rule: string
@@ -104,35 +140,6 @@ function EnhancedTableHead(props: EnhancedTableProps) {
     );
 }
 
-const useStyles = makeStyles((theme: Theme) =>
-    createStyles({
-        root: {
-            width: '100%',
-        },
-        paper: {
-            width: '100%',
-            marginBottom: theme.spacing(2),
-        },
-        table: {
-            // minWidth: 750,
-        },
-        visuallyHidden: {
-            border: 0,
-            clip: 'rect(0 0 0 0)',
-            height: 1,
-            margin: -1,
-            overflow: 'hidden',
-            padding: 0,
-            position: 'absolute',
-            top: 20,
-            width: 1,
-        },
-        implicitData: {
-            fontStyle: "italic",
-        },
-    }),
-);
-
 
 const NamesTable = ({ rows }: { rows: Data[] }) => {
     const classes = useStyles();
@@ -187,7 +194,7 @@ const NamesTable = ({ rows }: { rows: Data[] }) => {
                                     <TableRow
                                         tabIndex={-1}
                                         key={row.name}
-                                        className={row.implicit ? classes.implicitData : ""}
+                                        className={`${classes.rowData} ${row.implicit ? "implicit" : ""}`}
                                     >
                                         <TableCell component="th" id={labelId} scope="row" padding="none">
                                             {row.name}

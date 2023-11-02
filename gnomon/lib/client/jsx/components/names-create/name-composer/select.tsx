@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useSelector } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles';
-import ButtonBase from "@material-ui/core/ButtonBase";
+import Button from "@material-ui/core/Button";
 import MenuList from "@material-ui/core/MenuList";
 import MenuItem from "@material-ui/core/MenuItem";
 import Popper from "@material-ui/core/Popper";
@@ -17,13 +17,38 @@ import { selectTokenValueLocalIdsWithTokenName, selectTokenValuesByLocalId } fro
 
 const useStyles = makeStyles((theme) => ({
     selectValueContainer: {
-        display: "inline-block",
+        display: "inline-flex",
+        "&:not(:last-child)": {
+            marginRight: "0.4em",
+        },
     },
     currentSelectValue: {
-        fontWeight: "bold"
+        fontWeight: "bold",
+        background: "none",
+        padding: "0",
+        minWidth: "unset",
+        "&:disabled, &:hover, &:active": {
+            background: "none",
+            color: "unset",
+        },
+        "&:not(:disabled)": {
+            // account for dropdown svg icon
+            marginLeft: "-0.2em",
+        },
+        "& .MuiButton-label": {
+            lineHeight: "1em",
+            fontSize: "16px",
+        },
+        "& .MuiButton-startIcon": {
+            margin: "0",
+            opacity: "0.5",
+        },
     },
     unset: {
-        color: "red"
+        color: "red !important",
+    },
+    nullSelectValue: {
+        fontStyle: "italic",
     },
 }));
 
@@ -42,7 +67,7 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
         label: string,
         placeholder: string,
         className?: string,
-        onSetValue: (value: T) => void,
+        onSetValue: (value?: T) => void,
     }) => {
 
     const classes = useStyles()
@@ -72,7 +97,7 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
         setOpen(false);
     };
 
-    const handleClickMenuItem = (menuItemValue: T) => {
+    const handleClickMenuItem = (menuItemValue?: T) => {
         if (menuItemValue != value) {
             onSetValue(menuItemValue)
         }
@@ -81,24 +106,21 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
 
     return (
         <div className={`${classes.selectValueContainer} ${className != undefined ? className : ""}`}>
-            <ButtonBase
+            <Button
+                startIcon={canChooseValue() ? <KeyboardArrowDownIcon /> : undefined}
                 onClick={handleToggle}
                 ref={anchorEl}
                 color="primary"
                 aria-label={`Select Value for ${label}`}
                 aria-haspopup="true"
                 aria-controls={open ? "select-value-container" : undefined}
+                className={classes.currentSelectValue + " " + (!value ? `${classes.unset}` : "")}
                 disableRipple
                 disableTouchRipple
                 disabled={!canChooseValue()}
             >
-                <span
-                    className={classes.currentSelectValue + " " + (!value ? `${classes.unset}` : "")}
-                >
-                    {canChooseValue() && <KeyboardArrowDownIcon />}
-                    {value ? value.name : placeholder}
-                </span>
-            </ButtonBase>
+                {value ? value.name : placeholder}
+            </Button>
             <Popper
                 open={open}
                 anchorEl={anchorEl.current}
@@ -114,9 +136,17 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
                         <Paper variant="outlined">
                             <ClickAwayListener onClickAway={handleClose}>
                                 <MenuList autoFocusItem={open} id="select-value-container">
-                                    <div key={label}>
-                                        Choose a {label}
-                                    </div>
+                                    <MenuItem key={label} disabled>
+                                        <em>Choose a {label}</em>
+                                    </MenuItem>
+                                    <MenuItem
+                                        onClick={() => handleClickMenuItem()}
+                                        key="none"
+                                        disableRipple
+                                        className={classes.nullSelectValue}
+                                    >
+                                        none
+                                    </MenuItem>
                                     {
                                         values.map(val =>
                                             <MenuItem
@@ -146,7 +176,7 @@ export const RuleSelect = ({ values, value, label, placeholder, className, onSet
         label: string,
         placeholder: string,
         className?: string,
-        onSetRule: (value: Rule) => void,
+        onSetRule: (value?: Rule) => void,
     }
 ) => {
 
@@ -167,7 +197,7 @@ export const TokenSelect = ({ token, value, className, onSetTokenValue, includeU
     token: Token,
     value?: TokenValue,
     className?: string,
-    onSetTokenValue: (value: TokenValue) => void,
+    onSetTokenValue: (value?: TokenValue) => void,
     includeUnsetAsValue?: boolean
 }) => {
 

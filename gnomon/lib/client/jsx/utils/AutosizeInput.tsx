@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import InputBase from "@material-ui/core/InputBase";
 
 
+
 interface StyleProps {
-    widthEm: string
     minWidth: string
     maxWidth: string
 }
@@ -12,43 +12,85 @@ interface StyleProps {
 
 const useStyles = makeStyles<Theme, StyleProps>((theme) => ({
     inputContainer: props => ({
-        width: `${props.widthEm}em`,
+        width: "0",
         minWidth: props.minWidth,
         maxWidth: props.maxWidth,
     }),
+    ruler: {
+        position: "absolute",
+        visibility: "hidden",
+        height: "auto",
+        width: "auto",
+        whiteSpace: "nowrap",
+    },
 }));
 
 
-// TODO: make it actually sized perfectly or use a 3rd-party lib
-const AutosizeInput = ({ value, onChange, className, type, id, placeholder, minWidth = "2em", maxWidth = "8em", inputProps }: {
+// TODO: make sizing more exact
+const AutosizeTextInput = ({ value, onChange, className, type, inputMode = "none", id, placeholder, minWidth = "2em", maxWidth = "unset", inputProps }: {
     value?: string,
     onChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
     className?: string,
     type: string,
-    id: string,
+    inputMode?: "none" | "text" | "search" | "tel" | "url" | "email" | "numeric" | "decimal"
+    id?: string,
     placeholder?: string,
     minWidth?: string,
     maxWidth?: string,
     inputProps: object,
 }) => {
     const hasValue = value != undefined
+    const rulerRef = useRef<HTMLDivElement>(null)
+    const inputContainerRef = useRef<HTMLElement>(null)
 
     const classes = useStyles({
-        widthEm: String(hasValue ? String(value).length : "0"),
         minWidth: minWidth,
         maxWidth: maxWidth,
     })
 
+    // handle setting width
+    useEffect(() => {
+        let inputValue = value
+        if (!inputValue) {
+            inputValue = placeholder ? placeholder : ""
+        }
+        
+        setInputWidth(inputValue)
+    }, [value])
 
-    return <InputBase
-        value={hasValue ? String(value) : ""}
-        onChange={onChange}
-        className={`${classes.inputContainer} ${className != undefined ? className : ""}`}
-        type={type}
-        id={id}
-        placeholder={placeholder}
-        inputProps={inputProps}
-    />
+    const setInputWidth = (inputValue: string) => {
+        const rulerEl = rulerRef.current
+        const inputContainerEl = inputContainerRef.current
+
+        if (rulerEl && inputContainerEl) {
+            rulerEl.innerHTML = inputValue
+            const widthPx = String(rulerEl.clientWidth)
+
+            inputContainerEl.style.width = `${widthPx}px`
+        }
+    }
+    
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        onChange(event)
+    }
+
+    return <React.Fragment>
+        <InputBase
+            value={hasValue ? String(value) : ""}
+            onChange={handleInputChange}
+            className={`${classes.inputContainer} ${className || ""}`}
+            type={type}
+            inputMode={inputMode}
+            id={id}
+            placeholder={placeholder}
+            inputProps={inputProps}
+            ref={inputContainerRef}
+        />
+        <div
+            className={classes.ruler}
+            ref={rulerRef}
+        />
+    </React.Fragment>
 }
 
-export default AutosizeInput
+export default AutosizeTextInput

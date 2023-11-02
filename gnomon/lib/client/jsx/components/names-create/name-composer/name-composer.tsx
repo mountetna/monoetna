@@ -8,23 +8,27 @@ import FileCopyOutlinedIcon from '@material-ui/icons/FileCopyOutlined';
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import _ from "lodash"
 
-import { CompleteCreateName, CompleteCreateNameParent, CreateName, CreateNameCompleteCreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleParent, RuleToken, Token, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from "../../../models";
-import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleParentLocalIdsByRuleName, selectRuleParentsByLocalId, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRuleNamesHierarchicalListByPrimaryRuleName } from "../../../selectors/rules";
-import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectCreateNameCompleteCreateNameLocalIdsByCreateNameLocalId, selectCreateNameCompleteCreateNamesByLocalId, selectCompleteCreateNameParentLocalIdsByChildLocalId, selectCompleteCreateNameParentsByLocalId, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId } from "../../../selectors/names";
-import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from "../../../actions/names";
+import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleToken, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from "../../../models";
+import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRuleNamesHierarchicalListByPrimaryRuleName } from "../../../selectors/rules";
+import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId } from "../../../selectors/names";
+import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection, deleteCreateNameTokenValue } from "../../../actions/names";
 import { selectPathParts } from "../../../selectors/location"
 import { TokenSelect } from "./select";
 import RuleCounterField from "./rule-counter-input";
 import { createLocalId } from "../../../utils/models";
 import { useDispatch } from "../../../utils/redux";
-import { State } from "../../../store";
 import { selectGlobalState } from "../../../selectors/global";
 
 
 const useEditorStyles = makeStyles((theme) => ({
-    container: {
-        display: "inline-flex"
-    }
+    elementsEditorContainer: {
+        display: "inline-flex",
+        alignItems: "center",
+        flexWrap: "nowrap",
+        // account for absolute positioning of <RuleCounterField>
+        paddingTop: "1.5em",
+        marginRight: "0.4em",
+    },
 }));
 
 
@@ -67,7 +71,18 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, paren
         : undefined
 
 
-    const setTokenValue = (value: TokenValue, ruleToken: RuleToken) => {
+    const setTokenValue = (ruleToken: RuleToken, value?: TokenValue) => {
+        const oldCreateNameTokenValue = createNameTokenValues.find(
+            cntv => cntv.ruleTokenLocalId == ruleToken.localId
+        )
+
+        if (!value) {
+            if (oldCreateNameTokenValue) {
+                dispatch(deleteCreateNameTokenValue(oldCreateNameTokenValue, globalState))
+            }
+            return
+        }
+
         const createNameTokenValue: CreateNameTokenValue = {
             localId: createLocalId(),
             tokenValueLocalId: value.localId,
@@ -79,9 +94,6 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, paren
             createNameTokenValue.tokenValueLocalId = UNSET_VALUE
         }
 
-        const oldCreateNameTokenValue = createNameTokenValues.find(
-            cntv => cntv.ruleTokenLocalId == ruleToken.localId
-        )
         dispatch(
             addOrReplaceCreateNameTokenValues(
                 [createNameTokenValue],
@@ -101,7 +113,7 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, paren
     }
 
     return (
-        <FormGroup row className={classes.container}>
+        <FormGroup row className={classes.elementsEditorContainer}>
             {
                 sortedRuleTokens.map((ruleToken, idx) =>
 
@@ -109,7 +121,7 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, paren
                         <TokenSelect
                             token={tokens[ruleToken.tokenName]}
                             value={sortedTokenValues[idx]}
-                            onSetTokenValue={value => setTokenValue(value, ruleToken)}
+                            onSetTokenValue={value => setTokenValue(ruleToken, value)}
                             includeUnsetAsValue={includeUnsetAsValue}
                         ></TokenSelect>
                     </React.Fragment>
@@ -134,7 +146,19 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, paren
 const useComposerStyles = makeStyles((theme) => ({
     container: {
         display: "inline-flex",
-    }
+        flexWrap: "wrap",
+    },
+    toolContainer: {
+        display: "inline-flex",
+        alignItems: "center",
+        marginRight: "1em",
+        // account for absolute positioning of <RuleCounterField>
+        paddingTop: "1.5em",
+    },
+    checkbox: {
+        padding: "0",
+        paddingRight: "0.25em"
+    },
 }));
 
 
@@ -179,11 +203,12 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
         <div className={`${classes.container} ${className != undefined ? className : ""}`}>
             {
                 includeTools &&
-                <span className="create-name-group-composer-tools">
+                <span className={classes.toolContainer}>
                     <Checkbox
                         checked={selectedCreateNameGroupsIds.has(createNameGroup.localId)}
                         onChange={handleClickSelect}
                         inputProps={{ 'aria-label': 'Select Name' }}
+                        className={classes.checkbox}
                     />
                     <ButtonBase
                         onClick={handleClickCopy}

@@ -3,9 +3,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 
 import GnomonNav from './gnomon-nav';
 import GnomonMain from './gnomon-main';
-import ProjectDetail from './components/project-detail';
 import NamesCreate from './components/names-create/names-create';
-import NamesBrowse from './components/names-browse';
 import DecomposeIdentifier from './components/decompose-identifier';
 import ComposeIdentifier from './components/compose-identifier';
 import RuleEditor from './components/rule-editor';
@@ -24,24 +22,19 @@ const ROUTES = [
   },
   {
     template: ':project_name/',
-    // component: GnomonMain
-    component: ProjectDetail
+    component: GnomonMain
   },
   {
     template: ':project_name/identify/*identifier',
     component: DecomposeIdentifier
   },
   {
-    template: ':project_name/create/:rule_name',
-    component: ComposeIdentifier
-  },
-  {
     template: ':project_name/create',
     component: NamesCreate
   },
   {
-    template: ':project_name/browse',
-    component: NamesBrowse
+    template: ':project_name/create/:rule_name',
+    component: ComposeIdentifier
   },
   {
     template: ':project_name/rules',

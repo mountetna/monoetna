@@ -15,6 +15,7 @@ import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useTheme } from '@material-ui/core/styles';
 import _ from "lodash"
+import Excel from "exceljs"
 
 import { useDispatch } from "../../utils/redux";
 import NamesTable from "./names-create-table";
@@ -26,11 +27,20 @@ import { selectPathParts } from "../../selectors/location"
 
 
 const useStyles = makeStyles((theme) => ({
-    container: {
-        display: "inline-block",
+    dialogRoot: {
+        '& [aria-labelledby="create-all-dialog-title"]': {
+            padding: "0.5em",
+        },
+    },
+    dialogTitle: {
+        paddingBottom: "0",
     },
     tableControls: {
-        textAlign: 'right',
+        marginBottom: "1em",
+        textAlign: "right",
+    },
+    showImplicitSwitchLabel: {
+        margin: "0",
     },
     dialogActions: {
         "&.withStatus": {
@@ -162,25 +172,33 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
             />
             <Dialog
                 id="create-all-dialog"
+                className={classes.dialogRoot}
                 fullScreen={fullScreen}
                 open={open}
                 onClose={handleClose}
                 aria-labelledby="create-all-dialog-title"
             >
-                <DialogTitle id="create-all-dialog-title">{"Create All Names"}</DialogTitle>
+                <DialogTitle
+                    id="create-all-dialog-title"
+                    className={classes.dialogTitle}
+                >
+                    {"Create All Names"}
+                </DialogTitle>
                 <DialogContent>
                     <div className={classes.tableControls}>
-                        {foundImplicit && <FormControlLabel
-                            control={
-                                <Switch
-                                    checked={showImplicit}
-                                    onChange={handleChangeShowImplicit}
-                                    name="showImplicit"
-                                    disableRipple
-                                />
-                            }
-                            label="Show Implicit"
-                        />}
+                        {foundImplicit &&
+                            <FormControlLabel
+                                className={classes.showImplicitSwitchLabel}
+                                control={
+                                    <Switch
+                                        checked={showImplicit}
+                                        onChange={handleChangeShowImplicit}
+                                        name="showImplicit"
+                                        disableRipple
+                                    />
+                                }
+                                label="Show Implicit"
+                            />}
                     </div>
                     <NamesTable
                         rows={rows}
@@ -191,29 +209,35 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                 >
                     {renderCreationRequestStatus()}
                     <div className={classes.buttonsContainer}>
-                        <Button
-                            autoFocus
-                            onClick={handleClose}
-                            color="secondary"
-                            disableElevation
-                            disabled={creationRequestState.status != "idle"}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            autoFocus
-                            onClick={handleCreateAll}
-                            color="primary"
-                            disableElevation
-                            disabled={creationRequestState.status != "idle"}
-                            className={classes.createButton}
-                        >
-                            Create
-                        </Button>
+                        {
+                            creationRequestState.status == "success"
+                                ? (<div></div>)
+                                : (<React.Fragment>
+                                    <Button
+                                        autoFocus
+                                        onClick={handleClose}
+                                        color="secondary"
+                                        disableElevation
+                                        disabled={creationRequestState.status != "idle"}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        autoFocus
+                                        onClick={handleCreateAll}
+                                        color="primary"
+                                        disableElevation
+                                        disabled={creationRequestState.status != "idle"}
+                                        className={classes.createButton}
+                                    >
+                                        Create
+                                    </Button>
+                                </React.Fragment>)
+                        }
                     </div>
                 </DialogActions>
             </Dialog>
-        </React.Fragment>
+        </React.Fragment >
     )
 }
 

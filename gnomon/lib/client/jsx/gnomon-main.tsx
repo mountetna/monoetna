@@ -1,6 +1,6 @@
-import React, {useState, useEffect, useCallback, useContext} from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import Typography from '@material-ui/core/Typography';
-import {makeStyles} from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
@@ -9,7 +9,7 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import ProjectHeader from 'etna-js/components/project-header';
 
-import {requestAnswer} from 'etna-js/actions/magma_actions';
+import { requestAnswer } from 'etna-js/actions/magma_actions';
 import { json_get } from 'etna-js/utils/fetch';
 import { magmaPath } from 'etna-js/api/magma_api';
 
@@ -40,60 +40,83 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const GnomonMain = ({project_name}: {project_name: string}) => {
+const GnomonMain = ({ project_name }: { project_name: string }) => {
   const classes = useStyles();
 
-  const [ identifier, setIdentifier ] = useState('');
+  const [identifier, setIdentifier] = useState('');
 
-  const [ rules, setRules ] = useState<string[]|null>(null);
+  const [rules, setRules] = useState<string[] | null>(null);
 
-  const onEnterIdentifier = useCallback( e => {
+  const onEnterIdentifier = useCallback(e => {
     if (e.key == 'Enter') {
       window.location.href = `/${project_name}/identify/${identifier}`;
     }
-  }, [ identifier ]);
+  }, [identifier]);
 
-  const onSelectRule = useCallback( e => {
+  const onSelectRule = useCallback(e => {
     window.location.href = `/${project_name}/create/${e.target.value}`;
-  }, [] );
+  }, []);
+
+  const onClickBulkCreate = () => {
+    window.location.href = `/${project_name}/create`
+  }
 
   useEffect(() => {
     json_get(magmaPath(`gnomon/${project_name}`)).then(
-      ({config}) => setRules(Object.keys(config.rules || {}))
+      ({ config }) => setRules(Object.keys(config.rules || {}))
     )
   }, []);
 
   return (
     <Grid>
-      <ProjectHeader project_name={project_name} className={classes.header}/>
+      <ProjectHeader project_name={project_name} className={classes.header} />
+
       <Grid container className={classes.frame} direction='row'>
-        <Grid item className={classes.main} alignItems='center' container justify='space-around' direction='column'>
+
+        <Grid item className={classes.main} alignItems='center' container justifyContent='space-around' direction='column'>
           <Grid>
             <TextField variant='outlined'
-              onKeyPress={ onEnterIdentifier }
+              onKeyPress={onEnterIdentifier}
               className={classes.text}
               placeholder='Enter an identifier'
-              value={ identifier }
-              onChange={ (e) => setIdentifier(e.target.value) }
-              />
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+            />
           </Grid>
+
           <Grid><Typography color='secondary'>∼ OR ∼</Typography></Grid>
+
           <Grid>
             <FormControl variant='outlined'>
-              <Select value='' onChange={ onSelectRule } displayEmpty>
+              <Select value='' onChange={onSelectRule} displayEmpty>
                 <MenuItem value='' disabled>Create an identifier</MenuItem>
                 {
-                  rules && rules?.map( rule => <MenuItem key={rule} value={rule}>{rule}</MenuItem> )
+                  rules && rules?.map(rule => <MenuItem key={rule} value={rule}>{rule}</MenuItem>)
                 }
               </Select>
             </FormControl>
           </Grid>
+
+          <Grid><Typography color='secondary'>∼ OR ∼</Typography></Grid>
+
+          <Grid>
+            <Button
+              color="secondary"
+              size="large"
+              onClick={onClickBulkCreate}
+            >
+              Create many identifiers
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item container alignItems='center' justify='space-around' className={ classes.admin }>
+
+        <Grid item container alignItems='center' justifyContent='space-around' className={classes.admin}>
           <Button color='secondary' size='large'
-            onClick={ () => window.location.href = `/${project_name}/rules/` }>Edit Rules</Button>
+            onClick={() => window.location.href = `/${project_name}/rules/`}>Edit Rules</Button>
         </Grid>
+
       </Grid>
+
     </Grid>
   );
 };

@@ -2,7 +2,6 @@ import React from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import { useSelector } from 'react-redux'
 import ButtonBase from "@material-ui/core/ButtonBase";
-import InputBase from "@material-ui/core/InputBase";
 import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import _ from "lodash";
@@ -11,26 +10,58 @@ import { selectCompleteCreateNameParentLocalIdsByRenderedValues, selectRenderedC
 import { fetchNextCounterValueFromMagma } from "../../../utils/names";
 import { selectRuleParentLocalIdsByRuleName } from "../../../selectors/rules";
 import { UNSET_VALUE } from "../../../models";
+import AutosizeTextInput from "../../../utils/AutosizeInput";
 
 
 
-const useStyles = makeStyles((theme) => ({
-    ruleCounterField: {
-        display: "inline-flex",
-        flexDirection: "column",
-        alignItems: "center",
-    },
-    ruleCounterInput: {
-        fontWeight: "bold",
-        width: props => `${props.inputWidthEm}em`,
-        minWidth: "1.5em",
-        maxWidth: "4em",
-    },
-    unsetOrError: {
-        color: "red"
-    },
-    autoIncrementButton: {},
-}));
+const useStyles = makeStyles((theme) => {
+    const fontSize = "16px"
+    const lineHeight = "1em"
+
+    return {
+        ruleCounterField: {
+            display: "inline-block",
+            lineHeight: lineHeight,
+            "&:not(:last-child)": {
+                marginRight: "0.35em",
+            },
+        },
+        form: {
+            alignItems: "flex-end",
+        },
+        autoIncrementButton: {
+            opacity: "0.25",
+            transition: "opacity 0.2s ease-in",
+            position: "absolute",
+            bottom: "1.5em",
+            fontSize: fontSize,
+            lineHeight: lineHeight,
+            "&:hover, &:active": {
+                opacity: "1"
+            },
+        },
+        ruleCounterInput: {
+            fontWeight: "bold",
+            fontSize: fontSize,
+            "& input": {
+                "-moz-appearance": "textfield",
+                padding: "0",
+                height: "unset",
+                lineHeight: lineHeight,
+            },
+            "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                display: "none",
+                margin: "0",
+            },
+        },
+        unset: {
+            color: "red",
+            "& input::placeholder": {
+                color: "red",
+            },
+        },
+    }
+});
 
 
 const RuleCounterField = ({
@@ -50,7 +81,8 @@ const RuleCounterField = ({
     handleSetCounterValue: (value?: number) => void,
 }) => {
 
-    const classes = useStyles({ inputWidthEm: value ? String(value).length : 1 })
+    const classes = useStyles()
+
     const completeCreateNameParentLocalIdsByRenderedValues = useSelector(selectCompleteCreateNameParentLocalIdsByRenderedValues)
     const needsParentCompleteCreateName = useSelector(selectRuleParentLocalIdsByRuleName)[ruleName] != undefined
     let fullRenderedTokensPrefix = useSelector(selectRenderedCompleteCreateNamesByLocalId)[parentCompleteCreateNameLocalId]
@@ -66,7 +98,6 @@ const RuleCounterField = ({
     }
 
     const hasValue = value != undefined
-    let counterValueCollision = false  // TODO
 
     const handleClickAutoIncrement = () => {
         if (!(
@@ -112,8 +143,8 @@ const RuleCounterField = ({
     }
 
     return (
-        <span className={classes.ruleCounterField + " " + ((!hasValue || counterValueCollision) ? `${classes.unsetOrError}` : "")}>
-            <FormControl error={counterValueCollision}>
+        <span className={classes.ruleCounterField + " " + (!hasValue ? `${classes.unset}` : "")}>
+            <FormControl className={classes.form}>
                 <ButtonBase
                     onClick={handleClickAutoIncrement}
                     aria-label={`Set Counter Value for "${ruleName}"`}
@@ -122,23 +153,20 @@ const RuleCounterField = ({
                     disableRipple
                     disableTouchRipple
                     className={classes.autoIncrementButton}
-                // disabled={hasValue && !counterValueCollision}
                 >
                     +1
                 </ButtonBase>
-                <InputBase
+                <AutosizeTextInput
                     value={hasValue ? String(value) : ""}
                     onChange={handleChangeInput}
                     type="number"
+                    inputMode="numeric"
                     inputProps={{ min: 0 }}
                     id="rule-counter-input"
                     placeholder="n"
                     className={classes.ruleCounterInput}
+                    minWidth="0.65em"
                 />
-                {/* TODO: make this a tooltip? */}
-                <FormHelperText>
-                    {counterValueCollision && "Value already exists"}
-                </FormHelperText>
             </FormControl>
         </span>
     )

@@ -66,6 +66,7 @@ const useStyles = makeStyles((theme) => ({
     },
     composer: {
         textAlign: "center",
+        padding: "0 2em",
     },
 }));
 

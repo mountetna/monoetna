@@ -25,10 +25,13 @@ const useStyles = makeStyles((theme) => ({
         padding: "1em",
     },
     ruleSelect: {
-        marginBottom: "1em",
+        marginBottom: "2em",
+        "&:not(:last-child)": {
+            marginBottom: "1em",
+        },
     },
     cngComposer: {
-        marginBottom: "1em",
+        margin: "0 0 2em 1em",
     },
     buttonsContainer: {
         textAlign: "center",
