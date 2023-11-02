@@ -122,7 +122,7 @@ class MetisLoaderConfig(EtlConfigResponse):
             if isTable:
                 data['__temp__']=['::temp-id-' + str(temp) for temp in data.index]
                 data = data.set_index('__temp__', drop=True)
-                if script['blank_table']:
+                if script.get(['blank_table'], False):
                     for parent_name in set(list(data[template.parent])):
                         if not self.get_identifier(template.parent, parent_name):
                             continue
