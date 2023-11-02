@@ -10,7 +10,7 @@ file = File(
     file_path=fileInfo['path'], project_name=project_name, bucket_name=fileInfo['bucket'], download_url = None
 )
 
-separator = "\\t"
+separator = "\t"
 if re.search("csv$", file.file_path) is not None:
     separator = ","
 
