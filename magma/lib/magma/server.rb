@@ -6,6 +6,7 @@ require_relative '../magma/server/query'
 require_relative '../magma/server/update'
 require_relative '../magma/server/gnomon'
 require_relative '../magma/server/update_model'
+require_relative '../magma/server/flag'
 
 class Magma
   class Server < Etna::Server
@@ -25,6 +26,9 @@ class Magma
 
     post '/update_model', action: 'update_model#action', auth: { user: { is_admin?: :project_name } }
 
+    get '/flags/:project_name', action: 'flags#get', auth: { user: { can_view?: :project_name } }
+    post '/flags/:project_name', action: 'flags#set', auth: { user: { is_admin?: :project_name } }
+
     post '/gnomon/rules', action: 'gnomon#rules', auth: { user: { is_supereditor?: true } }
     get '/gnomon/:project_name', action: 'gnomon#get', auth: { user: { can_view?: :project_name } }
     get '/gnomon/:project_name/revisions', action: 'gnomon#revisions', auth: { user: { can_view?: :project_name } }
@@ -34,6 +38,7 @@ class Magma
     get '/gnomon/:project_name/list/:rule_name', action: 'gnomon#list', auth: { user: { can_view?: :project_name } }
     get '/gnomon/:project_name/rule/:rule_name', action: 'gnomon#rule', auth: { user: { can_view?: :project_name } }
     post '/gnomon/:project_name/generate/:rule_name/:identifier', action: 'gnomon#generate', auth: { user: { is_admin?: :project_name } }
+    post '/gnomon/:project_name/generate', action: 'gnomon#bulk_generate', auth: { user: { is_admin?: :project_name } }
 
     get '/' do
       [ 200, {}, [ 'Magma is available.' ] ]
