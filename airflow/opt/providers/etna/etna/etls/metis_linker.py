@@ -114,6 +114,8 @@ class MetisLoaderConfig(EtlConfigResponse):
             if not set(columns).issubset(data.columns):
                 missing = ', '.join([col for col in columns if col not in data.columns])
                 raise MetisLoaderError(f"{file.file_name} is missing column(s) targetted by {model_name} data_frame loader 'column_map': {missing}.")
+            if pandas.isna(data).values.any():
+                raise MetisLoaderError(f"{file.file_name} has unexpected NA values after all parsing. Data rows may be shorter than the column row indicates.")
             # Trim to mapped columns and convert to attribute names
             data = data.rename(columns={v: k for k,v in column_map.items()})[attributes]
             # Determine Updates
