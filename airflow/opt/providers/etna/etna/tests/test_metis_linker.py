@@ -184,7 +184,7 @@ class TestMetisLinker:
                                     "name": "name",
                                     "species": "SPECIES"
                                 },
-                                "hole_value": "__"
+                                "values_to_ignore": "__"
                             }
                         ]
                     }
@@ -193,7 +193,7 @@ class TestMetisLinker:
         }
         # csv format, file columns do match the map, script also set to test auto detection that its a csv file.
         # For table version, DON'T blank past values
-        # Config lacks a 'hole_value' definition.
+        # Config lacks a 'values_to_ignore' definition.
         config2 = {
             "project_name": "labors",
             "config": {
@@ -345,7 +345,7 @@ class TestMetisLinker:
             }
         }
 
-        # given a 'good' config, with hole_value matching a value in the file, we get a shortened update
+        # given a 'good' config, with values_to_ignore matching a value in the file, we get a shortened update
         update5 = MetisLoaderConfig(**config1hole, rules=rules).update_for(tail, metis, model_std)
         assert asdict(update5)['revisions'] == {
             'victim': {

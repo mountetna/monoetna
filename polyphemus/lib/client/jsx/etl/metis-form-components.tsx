@@ -195,14 +195,24 @@ export const BlankTable = ({value, update, modelName, classes}:ScriptItem) => {
   </Typography>
 }
 
-export const HoleValue = ({value, update, modelName, classes}:ScriptItem) => {
+export const ValuesToIgnore = ({value, update, modelName, classes}:ScriptItem) => {
+  function displayTargetValues(value: string) {
+    // wrap each in 's unless empty string, and stress empty string
+    const targets = value.split(',')
+      .map(function(x) {
+        return ("'" + x + "'").replace(/^''$/, 'empty string')
+      })
+    const start = `${targets.length} Target${(targets.length > 1) ? 's' : ''}`
+    return `${start}: ` + (targets.join(", "))
+  }
   return <Grid item container>
-    <Grid item xs={3}>
+    <Grid item xs={6}>
       <TextField
-        label='Value to ignore when seen, e.g. NA'
+        placeholder={'comma separated list with space respected'}
         InputLabelProps={{shrink: true}}
         fullWidth
         value={value}
+        helperText={displayTargetValues(value as string)}
         onChange={
           (e: React.ChangeEvent<HTMLInputElement>) => update(e.target.value)
         }
