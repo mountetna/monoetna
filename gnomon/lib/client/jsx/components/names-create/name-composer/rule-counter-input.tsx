@@ -56,6 +56,9 @@ const useStyles = makeStyles((theme) => {
         },
         unset: {
             color: "red",
+            "& button": {
+                opacity: "1",
+            },
             "& input::placeholder": {
                 color: "red",
             },

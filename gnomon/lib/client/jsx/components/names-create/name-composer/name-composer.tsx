@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -10,7 +10,7 @@ import _ from "lodash"
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleToken, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from "../../../models";
 import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRuleNamesHierarchicalListByPrimaryRuleName } from "../../../selectors/rules";
-import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId } from "../../../selectors/names";
+import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId, selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId, selectRenderedCompleteCreateNamesByLocalId } from "../../../selectors/names";
 import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection, deleteCreateNameTokenValue } from "../../../actions/names";
 import { selectPathParts } from "../../../selectors/location"
 import { TokenSelect } from "./select";
@@ -18,6 +18,7 @@ import RuleCounterField from "./rule-counter-input";
 import { createLocalId } from "../../../utils/models";
 import { useDispatch } from "../../../utils/redux";
 import { selectGlobalState } from "../../../selectors/global";
+import { fetchWhetherNameExistsInMagma } from "../../../utils/names";
 
 
 const useEditorStyles = makeStyles((theme) => ({
@@ -26,17 +27,17 @@ const useEditorStyles = makeStyles((theme) => ({
         alignItems: "center",
         flexWrap: "nowrap",
         // account for absolute positioning of <RuleCounterField>
-        paddingTop: "1.5em",
         marginRight: "0.4em",
     },
 }));
 
 
-const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, parentCompleteCreateNameLocalId }: {
+const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, parentCompleteCreateNameLocalId, error }: {
     createName: CreateName,
     rule: Rule,
     includeUnsetAsValue: boolean,
     parentCompleteCreateNameLocalId: string | undefined,
+    error?: boolean
 }) => {
     const classes = useEditorStyles()
     const dispatch = useDispatch()
@@ -147,17 +148,30 @@ const useComposerStyles = makeStyles((theme) => ({
     container: {
         display: "inline-flex",
         flexWrap: "wrap",
+        "& > *": {
+            // account for absolute positioning of <RuleCounterField>
+            paddingTop: "1.5em",
+        },
+        "&.hasError > *": {
+            padding: "1.5em 0",
+        }
     },
-    toolContainer: {
+    toolsContainer: {
         display: "inline-flex",
         alignItems: "center",
         marginRight: "1em",
-        // account for absolute positioning of <RuleCounterField>
-        paddingTop: "1.5em",
+
     },
     checkbox: {
         padding: "0",
         paddingRight: "0.25em"
+    },
+    editorsContainer: {},
+    errorMessage: {
+        position: "absolute",
+        color: "red",
+        fontStyle: "italic",
+        fontSize: "14px",
     },
 }));
 
@@ -170,8 +184,10 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
 }) => {
     const dispatch = useDispatch()
     const classes = useComposerStyles()
+    const [duplicateTracker, setDuplicateTracker] = useState({ local: 0, remote: 0 })
 
     const globalState = useSelector(selectGlobalState)
+    const projectName = useSelector(selectPathParts)[0]
     const createNameLocalIds = useSelector(selectCreateNameLocalIdsWithGroupId(createNameGroup.localId))
     const createNamesByLocalId = useSelector(selectCreateNamesByLocalId)
     const primaryCreateName = useSelector(selectCreateNameWithLocalId(createNameGroup.primaryCreateNameLocalId))
@@ -182,6 +198,46 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
     const sortedCompleteCreateNamesWithCreateNameGroupLocalId = useSelector(
         selectSortedCompleteCreateNamesWithCreateNameGroupLocalId(createNameGroup.localId)
     )
+    const primaryCompleteCreateName = sortedCompleteCreateNamesWithCreateNameGroupLocalId[sortedCompleteCreateNamesWithCreateNameGroupLocalId.length - 1]
+    const createNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId = useSelector(selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId)
+    const renderedCompleteCreateNamesByLocalId = useSelector(selectRenderedCompleteCreateNamesByLocalId)
+
+    useEffect(() => {
+        if (!primaryCompleteCreateName) {
+            setDuplicateTracker({ local: 0, remote: 0 })
+            return
+        }
+
+        const localDuplicates = createNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId[
+            primaryCompleteCreateName.localId
+        ].length
+
+        const renderedName = renderedCompleteCreateNamesByLocalId[primaryCompleteCreateName.localId]
+
+        fetchWhetherNameExistsInMagma(projectName, primaryCreateName.ruleName, renderedName)
+            .then(nameExists => {
+                setDuplicateTracker({ local: localDuplicates, remote: nameExists ? 1 : 0 })
+            })
+            .catch(err => `Error determining whether name "${renderedName}" has remote duplicate: ${err}"`)
+
+    }, [primaryCompleteCreateName?.localId])
+
+    const createErrorMessage = () => {
+        const errorMsgs: string[] = []
+
+        if (duplicateTracker.local > 1) {
+            errorMsgs.push("locally")
+        }
+        if (duplicateTracker.remote) {
+            errorMsgs.push("in Magma")
+        }
+
+        return errorMsgs.length
+            ? `Name already exists ${errorMsgs.join(" and ")}`
+            : undefined
+    }
+
+    const errorMessage = createErrorMessage()
 
     const handleClickSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
@@ -200,10 +256,12 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
     }
 
     return (
-        <div className={`${classes.container} ${className != undefined ? className : ""}`}>
+        <div
+            className={`${classes.container} ${errorMessage ? "hasError" : ""} ${className != undefined ? className : ""}`}
+        >
             {
                 includeTools &&
-                <span className={classes.toolContainer}>
+                <span className={classes.toolsContainer}>
                     <Checkbox
                         checked={selectedCreateNameGroupsIds.has(createNameGroup.localId)}
                         onChange={handleClickSelect}
@@ -228,30 +286,35 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
                     </ButtonBase>
                 </span>
             }
-            {
-                orderedRuleNames.map((ruleName, idx) => {
-                    const createNameLocalId = createNameLocalIds.find((cnLocalId) => {
-                        return createNamesByLocalId[cnLocalId].ruleName == ruleName
-                    })
-                    if (!createNameLocalId) {
-                        console.error(`Error creating CreateNameElementsEditor. CreateName with ruleName ${ruleName} not found.`)
-                        return
-                    }
-                    const rule = allRules[ruleName]
-                    const parentCompleteCreateName = sortedCompleteCreateNamesWithCreateNameGroupLocalId[idx - 1]
+            <span className={classes.editorsContainer}>
+                {
+                    orderedRuleNames.map((ruleName, idx) => {
+                        const createNameLocalId = createNameLocalIds.find((cnLocalId) => {
+                            return createNamesByLocalId[cnLocalId].ruleName == ruleName
+                        })
+                        if (!createNameLocalId) {
+                            console.error(`Error creating CreateNameElementsEditor. CreateName with ruleName ${ruleName} not found.`)
+                            return
+                        }
+                        const rule = allRules[ruleName]
+                        const parentCompleteCreateName = sortedCompleteCreateNamesWithCreateNameGroupLocalId[idx - 1]
 
-                    return (
-                        <React.Fragment key={rule.name}>
-                            <CreateNameElementsEditor
-                                createName={createNamesByLocalId[createNameLocalId]}
-                                rule={rule}
-                                parentCompleteCreateNameLocalId={parentCompleteCreateName?.localId}
-                                includeUnsetAsValue={includeUnsetAsValue}
-                            />
-                        </React.Fragment>
-                    )
-                })
-            }
+                        return (
+                            <React.Fragment key={rule.name}>
+                                <CreateNameElementsEditor
+                                    createName={createNamesByLocalId[createNameLocalId]}
+                                    rule={rule}
+                                    parentCompleteCreateNameLocalId={parentCompleteCreateName?.localId}
+                                    includeUnsetAsValue={includeUnsetAsValue}
+                                    error={errorMessage != undefined}
+                                />
+                            </React.Fragment>
+                        )
+                    })
+                }
+                {errorMessage &&
+                    <div className={classes.errorMessage}>{errorMessage}</div>}
+            </span>
         </div>
     )
 }

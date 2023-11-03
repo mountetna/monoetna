@@ -1,6 +1,6 @@
 import _ from "lodash"
 
-import { json_post } from 'etna-js/utils/fetch';
+import { json_post, json_get } from 'etna-js/utils/fetch';
 import { magmaPath } from 'etna-js/api/magma_api';
 
 import { NamesState } from "../reducers/names"
@@ -114,4 +114,21 @@ export interface MagmaBulkGenerateResponse {
 
 export function postNameBatchToMagma(projectName: string, names: MagmaBulkGenerateName[]): Promise<MagmaBulkGenerateResponse> {
     return json_post(magmaPath(`gnomon/${projectName}/generate`), { names })
+}
+
+export interface MagmaListName {
+    identifier: string
+    author: string
+    name_created_at: string
+    record_created_at: string
+}
+
+export function fetchNamesWithRuleAndRegexFromMagma(projectName: string, ruleName: string, regex: string = ".*"): Promise<MagmaListName[]> {
+    return json_get(magmaPath(`gnomon/${projectName}/list/${ruleName}`) + `?regex=${encodeURIComponent(regex)}`)
+}
+
+
+export function fetchWhetherNameExistsInMagma(projectName: string, ruleName: string, name: string): Promise<boolean> {
+    return fetchNamesWithRuleAndRegexFromMagma(projectName, ruleName, `^${name}$`)
+        .then(magmaNames => magmaNames.length > 0)
 }

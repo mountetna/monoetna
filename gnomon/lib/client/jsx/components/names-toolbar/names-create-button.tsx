@@ -210,7 +210,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                     {renderCreationRequestStatus()}
                     <div className={classes.buttonsContainer}>
                         {
-                            creationRequestState.status == "success"
+                            creationRequestState.status == ""
                                 ? (<div></div>)
                                 : (<React.Fragment>
                                     <Button
