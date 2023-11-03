@@ -94,16 +94,22 @@ const useStyles = makeStyles((theme) => ({
             borderColor: "red"
         },
         padding: "2em",
+        "& .placeholder": {
+            display: "none",
+        },
         "&.collapsed": {
             transition: "background 0.2s ease-out",
+            "& > .placeholder": {
+                display: "block",
+            },
+            "& > :not(.placeholder)": {
+                display: "none",
+            },
         },
         "&.collapsed:hover": {
             cursor: "pointer",
             background: "rgba(0, 0, 0, 0.05)",
         },
-    },
-    placeholder: {
-
     },
     composerList: {
 
@@ -221,11 +227,8 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
                     className={`${classes.composersContainer} ${someNotReady ? "some-not-ready" : ""} ${collapsed ? "collapsed" : ""}`}
                     onClick={() => collapsed && setCollapsed(false)}
                 >
-                    {collapsed
-                        ? (
-                            <div className={classes.placeholder}>...</div>
-                        )
-                        : renderComposers()}
+                    <div className="placeholder">...</div>
+                    {renderComposers()}
                 </div>
             </div>
         </div>
