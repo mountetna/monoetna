@@ -179,6 +179,9 @@ const useComposerStyles = makeStyles((theme) => ({
     infoTooltipIconContainer: {
         display: "flex",
         alignItems: "center",
+        "&:hover": {
+            cursor: "help",
+        },
     },
 }));
 

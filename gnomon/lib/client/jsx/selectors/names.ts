@@ -235,8 +235,11 @@ export const selectCompleteCreateNamesCreationPayloads: (state: State) => Comple
                     state.names.createNameCompleteCreateNames.byLocalId[associationLocalId].createNameLocalId
                 ]
 
-                // check if belongs to a completed CreateNameGroup
-                if (completeCreateNameGroupLocalIds.has(_createName.createNameGroupLocalId)) {
+                // check if belongs to a completed (and error-less) CreateNameGroup
+                if (
+                    completeCreateNameGroupLocalIds.has(_createName.createNameGroupLocalId)
+                    && !state.names.createNameGroups.composeErrorsByLocalId[_createName.createNameGroupLocalId]
+                ) {
                     createName = _createName
                     break
                 }
@@ -285,4 +288,8 @@ export const selectNamesCreationRequestState = (state: State): NamesCreationRequ
 
 export const selectComposeErrorsByCreateNameGroupLocalId = (state: State): Record<string, boolean> => {
     return state.names.createNameGroups.composeErrorsByLocalId
+}
+
+export const selectComposeErrorCount = (state: State): number => {
+    return Object.values(state.names.createNameGroups.composeErrorsByLocalId).filter(error => error).length
 }

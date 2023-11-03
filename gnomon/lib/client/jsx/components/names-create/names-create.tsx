@@ -9,7 +9,7 @@ import ProjectHeader from "etna-js/components/project-header";
 import NamesToolbar from "../names-toolbar/names-toolbar";
 import CreateNameGroupCompose from "./name-group-composer";
 import { fetchRulesFromMagma } from "../../utils/rules"
-import { selectComposeErrorsByCreateNameGroupLocalId, selectCreateNameGroupIdsByPrimaryRule, selectCreateNameGroupsByLocalId, selectFilterCreateNameGroupIds, selectFilterEnabledStatus, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectReplaceCreateNameGroupIds, selectSearchCreateNameGroupIds, selectSelectedCreateNameGroupIds } from "../../selectors/names";
+import { selectComposeErrorCount, selectCreateNameGroupIdsByPrimaryRule, selectCreateNameGroupsByLocalId, selectFilterCreateNameGroupIds, selectFilterEnabledStatus, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectReplaceCreateNameGroupIds, selectSearchCreateNameGroupIds, selectSelectedCreateNameGroupIds } from "../../selectors/names";
 import { useDispatch } from "../../utils/redux";
 import Counts from "./counts";
 import { clearCreateNameGroupsFilter, clearCreateNameGroupsSelection } from "../../actions/names";
@@ -154,7 +154,7 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
     const selectionCreateNameGroupsCount = useSelector(selectSelectedCreateNameGroupIds).size
     const filterCreateNameGroupsCount = useSelector(selectFilterCreateNameGroupIds).size
     const filterEnabled = useSelector(selectFilterEnabledStatus)
-    const composeErrorCount = Object.values(useSelector(selectComposeErrorsByCreateNameGroupLocalId)).filter(error => error).length
+    const composeErrorCount = useSelector(selectComposeErrorCount)
 
     useEffect(() => {
         async function _addRulesFromMagma() {

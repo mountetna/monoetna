@@ -15,12 +15,12 @@ import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useTheme } from '@material-ui/core/styles';
 import _ from "lodash"
-import Excel from "exceljs"
+// import Excel from "exceljs"
 
 import { useDispatch } from "../../utils/redux";
 import NamesTable from "./names-create-table";
 import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
-import { selectCompleteCreateNamesCreationPayloads, selectNamesCreationRequestState, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from "../../selectors/names";
+import { selectCompleteCreateNamesCreationPayloads, selectComposeErrorCount, selectNamesCreationRequestState, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from "../../selectors/names";
 import { makeCreateNamesCreationRequest } from "../../actions/names";
 import { selectPathParts } from "../../selectors/location"
 
@@ -96,6 +96,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
     const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length
     const creationRequestPayloads = useSelector(selectCompleteCreateNamesCreationPayloads)
     const creationRequestState = useSelector(selectNamesCreationRequestState)
+    const composeErrorCount = useSelector(selectComposeErrorCount)
 
     let foundImplicit = false
     const rows = creationRequestPayloads
@@ -167,7 +168,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                 variant={small ? "compact" : "full"}
                 color="#0057FF"
                 popperId="create-all-dialog"
-                disabled={completeCreateNameGroupsCount == 0}
+                disabled={completeCreateNameGroupsCount - composeErrorCount == 0}
                 onClickOrPopperChange={handleToggle}
             />
             <Dialog
