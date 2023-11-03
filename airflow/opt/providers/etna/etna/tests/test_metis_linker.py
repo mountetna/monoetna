@@ -158,7 +158,8 @@ class TestMetisLinker:
                                 "blank_table": True,
                                 "column_map": {
                                     "name": "name",
-                                    "species": "SPECIES"
+                                    "species": "SPECIES",
+                                    "target_name": "target_name"
                                 }
                             }
                         ]
@@ -166,7 +167,7 @@ class TestMetisLinker:
                 }
             }
         }
-        # Same as above, just additionally set to ignore data that are "__"
+        # Same as above, just additionally set to ignore data that are "__" or empty strings
         config1hole = {
             "project_name": "labors",
             "config": {
@@ -182,9 +183,10 @@ class TestMetisLinker:
                                 "blank_table": True,
                                 "column_map": {
                                     "name": "name",
-                                    "species": "SPECIES"
+                                    "species": "SPECIES",
+                                    "target_name": "target_name"
                                 },
-                                "values_to_ignore": "__"
+                                "values_to_ignore": "__,"
                             }
                         ]
                     }
@@ -209,7 +211,8 @@ class TestMetisLinker:
                                 "blank_table": False,
                                 "column_map": {
                                     "name": "name",
-                                    "species": "SPECIES"
+                                    "species": "SPECIES",
+                                    "target_name": "target_name"
                                 }
                             }
                         ]
@@ -233,7 +236,8 @@ class TestMetisLinker:
                                 "blank_table": True,
                                 "column_map": {
                                     "name": "name",
-                                    "species": "species"
+                                    "species": "species",
+                                    "target_name": "target_name"
                                 }
                             }
                         ]
@@ -257,7 +261,8 @@ class TestMetisLinker:
                                 "blank_table": True,
                                 "column_map": {
                                     "name": "name",
-                                    "species": "SPECIES"
+                                    "species": "SPECIES",
+                                    "target_name": "target_name"
                                 }
                             }
                         ]
@@ -278,7 +283,8 @@ class TestMetisLinker:
                     parent='stub',
                     attributes={
                         'name': Attribute({ 'attribute_type': 'identifier' }),
-                        'species': Attribute({ 'attribute_type': 'string' })
+                        'species': Attribute({ 'attribute_type': 'string' }),
+                        'target_name': Attribute({ 'attribute_type': 'string' })
                     }
                 ),
                 'isTable': False
@@ -291,7 +297,8 @@ class TestMetisLinker:
                     parent='name',
                     attributes={
                         'name': Attribute({ 'attribute_type': 'parent' }),
-                        'species': Attribute({ 'attribute_type': 'string' })
+                        'species': Attribute({ 'attribute_type': 'string' }),
+                        'target_name': Attribute({ 'attribute_type': 'string' })
                     }
                 ),
                 'isTable': True
@@ -302,8 +309,8 @@ class TestMetisLinker:
 
         # And we have these files
         files = {
-            'village-1.tsv': 'name\tSPECIES\nLABORS-LION-H2-C1\t__\n',
-            'village-2.csv': 'name,SPECIES\nLABORS-LION-H2-C1,__\n'
+            'village-1.tsv': 'name\tSPECIES\ttarget_name\nLABORS-LION-H2-C1\t__\t\n',
+            'village-2.csv': 'name,SPECIES,target_name\nLABORS-LION-H2-C1,__,\n'
         }
 
         def dummy_file(file):
@@ -320,7 +327,8 @@ class TestMetisLinker:
         assert asdict(update1)['revisions'] == {
             'victim': {
                 'LABORS-LION-H2-C1': {
-                    'species': '__'
+                    'species': '__',
+                    'target_name': ''
                 }
             }
         }
@@ -332,7 +340,8 @@ class TestMetisLinker:
             'victim': {
                 '::temp-id-0': {
                     'name': 'LABORS-LION-H2-C1',
-                    'species': '__'
+                    'species': '__',
+                    'target_name': ''
                 }
             }
         }
@@ -340,7 +349,8 @@ class TestMetisLinker:
             'victim': {
                 '::temp-id-0': {
                     'name': 'LABORS-LION-H2-C1',
-                    'species': '__'
+                    'species': '__',
+                    'target_name': ''
                 }
             }
         }
@@ -372,7 +382,8 @@ class TestMetisLinker:
                         identifier='id',
                         attributes={
                             'name': Attribute({ 'attribute_type': 'identifier' }),
-                            'species': Attribute({ 'attribute_type': 'string' })
+                            'species': Attribute({ 'attribute_type': 'string' }),
+                            'target_name': Attribute({ 'attribute_type': 'string' })
                         }
                     ),
                     'isTable': isTable
@@ -390,7 +401,8 @@ class TestMetisLinker:
                     'template': Template(
                         identifier='name',
                         attributes={
-                            'name': Attribute({ 'attribute_type': 'identifier' })
+                            'name': Attribute({ 'attribute_type': 'identifier' }),
+                            'target_name': Attribute({ 'attribute_type': 'string' })
                         }
                     ),
                     'isTable': False

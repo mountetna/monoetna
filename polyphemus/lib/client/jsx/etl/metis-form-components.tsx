@@ -203,7 +203,7 @@ export const ValuesToIgnore = ({value, update, modelName, classes}:ScriptItem) =
         return ("'" + x + "'").replace(/^''$/, 'empty string')
       })
     const start = `${targets.length} Target${(targets.length > 1) ? 's' : ''}`
-    return `${start}: ` + (targets.join(", "))
+    return `${start}: ` + (targets.join(', '))
   }
   return <Grid item container>
     <Grid item xs={6}>
