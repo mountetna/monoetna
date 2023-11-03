@@ -158,8 +158,35 @@ class TestMetisLinker:
                                 "blank_table": True,
                                 "column_map": {
                                     "name": "name",
-                                    "species": "SPECIES"
+                                    "species": "SPECIES",
+                                    "target_name": "target_name"
                                 }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        # Same as above, just additionally set to ignore data that are "__" or empty strings
+        config1hole = {
+            "project_name": "labors",
+            "config": {
+                "bucket_name": "pics",
+                "models": {
+                    "victim": {
+                        "scripts": [
+                            {
+                                "type": "data_frame",
+                                "folder_path": "villages",
+                                "file_match": "*.tsv",
+                                "format": "tsv",
+                                "blank_table": True,
+                                "column_map": {
+                                    "name": "name",
+                                    "species": "SPECIES",
+                                    "target_name": "target_name"
+                                },
+                                "values_to_ignore": "__,"
                             }
                         ]
                     }
@@ -168,6 +195,7 @@ class TestMetisLinker:
         }
         # csv format, file columns do match the map, script also set to test auto detection that its a csv file.
         # For table version, DON'T blank past values
+        # Config lacks a 'values_to_ignore' definition.
         config2 = {
             "project_name": "labors",
             "config": {
@@ -183,7 +211,8 @@ class TestMetisLinker:
                                 "blank_table": False,
                                 "column_map": {
                                     "name": "name",
-                                    "species": "SPECIES"
+                                    "species": "SPECIES",
+                                    "target_name": "target_name"
                                 }
                             }
                         ]
@@ -207,7 +236,8 @@ class TestMetisLinker:
                                 "blank_table": True,
                                 "column_map": {
                                     "name": "name",
-                                    "species": "species"
+                                    "species": "species",
+                                    "target_name": "target_name"
                                 }
                             }
                         ]
@@ -231,7 +261,8 @@ class TestMetisLinker:
                                 "blank_table": True,
                                 "column_map": {
                                     "name": "name",
-                                    "species": "SPECIES"
+                                    "species": "SPECIES",
+                                    "target_name": "target_name"
                                 }
                             }
                         ]
@@ -252,7 +283,8 @@ class TestMetisLinker:
                     parent='stub',
                     attributes={
                         'name': Attribute({ 'attribute_type': 'identifier' }),
-                        'species': Attribute({ 'attribute_type': 'string' })
+                        'species': Attribute({ 'attribute_type': 'string' }),
+                        'target_name': Attribute({ 'attribute_type': 'string' })
                     }
                 ),
                 'isTable': False
@@ -265,7 +297,8 @@ class TestMetisLinker:
                     parent='name',
                     attributes={
                         'name': Attribute({ 'attribute_type': 'parent' }),
-                        'species': Attribute({ 'attribute_type': 'string' })
+                        'species': Attribute({ 'attribute_type': 'string' }),
+                        'target_name': Attribute({ 'attribute_type': 'string' })
                     }
                 ),
                 'isTable': True
@@ -276,8 +309,8 @@ class TestMetisLinker:
 
         # And we have these files
         files = {
-            'village-1.tsv': 'name\tSPECIES\nLABORS-LION-H2-C1\tlion\n',
-            'village-2.csv': 'name,SPECIES\nLABORS-LION-H2-C1,lion\n'
+            'village-1.tsv': 'name\tSPECIES\ttarget_name\nLABORS-LION-H2-C1\t__\t\n',
+            'village-2.csv': 'name,SPECIES,target_name\nLABORS-LION-H2-C1,__,\n'
         }
 
         def dummy_file(file):
@@ -294,7 +327,8 @@ class TestMetisLinker:
         assert asdict(update1)['revisions'] == {
             'victim': {
                 'LABORS-LION-H2-C1': {
-                    'species': 'lion'
+                    'species': '__',
+                    'target_name': ''
                 }
             }
         }
@@ -306,7 +340,8 @@ class TestMetisLinker:
             'victim': {
                 '::temp-id-0': {
                     'name': 'LABORS-LION-H2-C1',
-                    'species': 'lion'
+                    'species': '__',
+                    'target_name': ''
                 }
             }
         }
@@ -314,8 +349,17 @@ class TestMetisLinker:
             'victim': {
                 '::temp-id-0': {
                     'name': 'LABORS-LION-H2-C1',
-                    'species': 'lion'
+                    'species': '__',
+                    'target_name': ''
                 }
+            }
+        }
+
+        # given a 'good' config, with values_to_ignore matching a value in the file, we get a shortened update
+        update5 = MetisLoaderConfig(**config1hole, rules=rules).update_for(tail, metis, model_std)
+        assert asdict(update5)['revisions'] == {
+            'victim': {
+                'LABORS-LION-H2-C1': {}
             }
         }
 
@@ -338,7 +382,8 @@ class TestMetisLinker:
                         identifier='id',
                         attributes={
                             'name': Attribute({ 'attribute_type': 'identifier' }),
-                            'species': Attribute({ 'attribute_type': 'string' })
+                            'species': Attribute({ 'attribute_type': 'string' }),
+                            'target_name': Attribute({ 'attribute_type': 'string' })
                         }
                     ),
                     'isTable': isTable
@@ -356,7 +401,8 @@ class TestMetisLinker:
                     'template': Template(
                         identifier='name',
                         attributes={
-                            'name': Attribute({ 'attribute_type': 'identifier' })
+                            'name': Attribute({ 'attribute_type': 'identifier' }),
+                            'target_name': Attribute({ 'attribute_type': 'string' })
                         }
                     ),
                     'isTable': False
