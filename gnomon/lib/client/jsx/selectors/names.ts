@@ -219,28 +219,43 @@ export const selectCompleteCreateNamesCreationPayloads: (state: State) => Comple
     ],
     (state: State): CompleteCreateNameRequestPayload[] => {
 
-        const renderedCompleteCreateNamesByLocalId = selectRenderedCompleteCreateNamesByLocalId(state)
+        const completeCreateNameGroupLocalIds = new Set(Object.keys(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId(state)))
         const primaryCreateNameLocalIds = new Set<string>(
             Object.values(state.names.createNameGroups.byLocalId).map(cng => cng.primaryCreateNameLocalId)
         )
+        const renderedCompleteCreateNamesByLocalId = selectRenderedCompleteCreateNamesByLocalId(state)
+        const completeCreateNamesCreationPayloads: CompleteCreateNameRequestPayload[] = []
 
-        return Object.entries(renderedCompleteCreateNamesByLocalId).map(([ccnLocalId, rendered]) => {
+        for (const [ccnLocalId, rendered] of Object.entries(renderedCompleteCreateNamesByLocalId)) {
 
-            const createName = state.names.createNames.byLocalId[
-                state.names.createNameCompleteCreateNames.byLocalId[
-                    state.names.createNameCompleteCreateNames.byCompleteCreateNameLocalId[ccnLocalId][0]
-                ].createNameLocalId
-            ]
+            let createName: CreateName | undefined = undefined
 
-            return {
+            for (const associationLocalId of state.names.createNameCompleteCreateNames.byCompleteCreateNameLocalId[ccnLocalId]) {
+                const _createName = state.names.createNames.byLocalId[
+                    state.names.createNameCompleteCreateNames.byLocalId[associationLocalId].createNameLocalId
+                ]
+
+                // check if belongs to a completed CreateNameGroup
+                if (completeCreateNameGroupLocalIds.has(_createName.createNameGroupLocalId)) {
+                    createName = _createName
+                    break
+                }
+            }
+
+            if (!createName) {
+                continue
+            }
+
+            completeCreateNamesCreationPayloads.push({
                 localId: ccnLocalId,
                 renderedName: rendered,
                 ruleName: createName.ruleName,
                 // if it's not a primary CreateName, it's implicit
                 implicit: !primaryCreateNameLocalIds.has(createName.localId)
-            }
-        })
+            })
+        }
 
+        return completeCreateNamesCreationPayloads
     }
 )
 
@@ -266,4 +281,8 @@ export const selectCompleteCreateNameParentsByLocalId = (state: State): Record<s
 
 export const selectNamesCreationRequestState = (state: State): NamesCreationRequestState => {
     return state.names.creationRequest
+}
+
+export const selectComposeErrorsByCreateNameGroupLocalId = (state: State): Record<string, boolean> => {
+    return state.names.createNameGroups.composeErrorsByLocalId
 }

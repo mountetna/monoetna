@@ -12,10 +12,9 @@ import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 
 import { CreateNameGroup } from "../../models";
 import CreateNameGroupComposer from "./name-composer/name-composer";
-import { selectCreateNameGroupsWithLocalIds, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names";
+import { selectComposeErrorsByCreateNameGroupLocalId, selectCreateNameGroupsWithLocalIds, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectSelectedCreateNameGroupIds } from "../../selectors/names";
 import { deleteGroupsWithNames, createNamesWithGroupForRule, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection } from "../../actions/names";
 import { useDispatch } from "../../utils/redux";
-import { State } from "../../store";
 import { selectGlobalState } from "../../selectors/global";
 import Counts, { Count } from "./counts";
 
@@ -24,6 +23,7 @@ import Counts, { Count } from "./counts";
 function createReadyCounts(
     createNameGroups: CreateNameGroup[],
     renderedCompleteCreateNamesByCreateNameGroupLocalId: Record<string, string>,
+    composeErrorsByCreateNameGroupLocalId: Record<string, boolean>,
 ): Count[] {
 
     let total = 0
@@ -31,7 +31,10 @@ function createReadyCounts(
 
     for (const cng of createNameGroups) {
         total += 1
-        if (!(cng.localId in renderedCompleteCreateNamesByCreateNameGroupLocalId)) {
+        if (
+            !(cng.localId in renderedCompleteCreateNamesByCreateNameGroupLocalId)
+            || composeErrorsByCreateNameGroupLocalId[cng.localId]
+        ) {
             notReady += 1
         }
     }
@@ -125,8 +128,13 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
     const globalState = useSelector(selectGlobalState)
     const selectedCreateNameGroupLocalIds = useSelector(selectSelectedCreateNameGroupIds)
     const renderedCompleteCreateNamesByCreateNameGroupLocalId = useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)
+    const composeErrorsByCreateNameGroupLocalId = useSelector(selectComposeErrorsByCreateNameGroupLocalId)
 
-    const readyCounts = createReadyCounts(createNameGroups, renderedCompleteCreateNamesByCreateNameGroupLocalId)
+    const readyCounts = createReadyCounts(
+        createNameGroups,
+        renderedCompleteCreateNamesByCreateNameGroupLocalId,
+        composeErrorsByCreateNameGroupLocalId
+    )
     const someNotReady = readyCounts[1].value > 0
 
     const handleClickAdd = () => {

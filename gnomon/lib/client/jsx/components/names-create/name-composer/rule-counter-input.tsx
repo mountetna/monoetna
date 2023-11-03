@@ -2,7 +2,6 @@ import React from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import { useSelector } from 'react-redux'
 import ButtonBase from "@material-ui/core/ButtonBase";
-import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControl from '@material-ui/core/FormControl';
 import _ from "lodash";
 
@@ -60,6 +59,7 @@ const useStyles = makeStyles((theme) => {
                 opacity: "1",
             },
             "& input::placeholder": {
+                opacity: "1",
                 color: "red",
             },
         },
@@ -88,7 +88,13 @@ const RuleCounterField = ({
 
     const completeCreateNameParentLocalIdsByRenderedValues = useSelector(selectCompleteCreateNameParentLocalIdsByRenderedValues)
     const needsParentCompleteCreateName = useSelector(selectRuleParentLocalIdsByRuleName)[ruleName] != undefined
-    let fullRenderedTokensPrefix = useSelector(selectRenderedCompleteCreateNamesByLocalId)[parentCompleteCreateNameLocalId]
+    const renderedCompleteCreateNamesByLocalId = useSelector(selectRenderedCompleteCreateNamesByLocalId)
+
+    let fullRenderedTokensPrefix: string | undefined
+    
+    if (parentCompleteCreateNameLocalId) {
+        fullRenderedTokensPrefix = renderedCompleteCreateNamesByLocalId[parentCompleteCreateNameLocalId]
+    }
 
     if (
         renderedTokensPrefix != undefined
@@ -102,7 +108,7 @@ const RuleCounterField = ({
 
     const hasValue = value != undefined
 
-    const handleClickAutoIncrement = () => {
+    const handleClickAutoIncrement = async () => {
         if (!(
             renderedTokensPrefix != undefined
             && (
@@ -130,13 +136,16 @@ const RuleCounterField = ({
 
         const localMaxValue = hierarchyValues.length ? Math.max(...hierarchyValues) : -1
 
-        fetchNextCounterValueFromMagma(projectName, ruleName, fullRenderedTokensPrefix)
-            .then(remoteNextValue => {
-                handleSetCounterValue(Math.max(localMaxValue + 1, remoteNextValue))
-            })
-            .catch(err => {
-                console.error(`Error auto-incrementing counterValue: ${err}`)
-            })
+        try {
+            const remoteNextValue = await fetchNextCounterValueFromMagma(
+                projectName,
+                ruleName,
+                fullRenderedTokensPrefix,
+            )
+            handleSetCounterValue(Math.max(localMaxValue + 1, remoteNextValue))
+        } catch (err) {
+            console.error(`Error auto-incrementing counterValue: ${err}`)
+        }
     }
 
     const handleChangeInput = (event: React.ChangeEvent<HTMLInputElement>) => {

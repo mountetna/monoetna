@@ -41,11 +41,18 @@ const useStyles = makeStyles((theme) => ({
         },
         "& .MuiButton-startIcon": {
             margin: "0",
-            opacity: "0.5",
+            opacity: "0.25",
+            transition: "opacity 0.2s ease-in",
+        },
+        "&:hover .MuiButton-startIcon, &:active .MuiButton-startIcon": {
+            opacity: "1",
         },
     },
     unset: {
         color: "red !important",
+        "& .MuiButton-startIcon": {
+            opacity: "1",
+        },
     },
     nullSelectValue: {
         fontStyle: "italic",
@@ -220,4 +227,3 @@ export const TokenSelect = ({ token, value, className, onSetTokenValue, includeU
         />
     )
 }
-

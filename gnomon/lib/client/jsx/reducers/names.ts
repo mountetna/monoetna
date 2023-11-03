@@ -20,6 +20,8 @@ import {
     ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA,
     REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA,
     SET_MAGMA_NAMES_CREATION_REQUEST,
+    SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP,
+    DECREMENT_ERROR_COUNT_FOR_CREATE_NAME_GROUP,
 } from '../actions/names';
 import { listToIdObject, listToIdGroupObject, defaultDict } from '../utils/object';
 import { difference, intersection } from '../utils/set'
@@ -111,6 +113,7 @@ interface CreateNameGroupsState {
     selectionLocalIds: Set<string>
     filterLocalIds: Set<string>
     filterEnabled: boolean
+    composeErrorsByLocalId: Record<string, boolean>
 }
 
 
@@ -157,6 +160,7 @@ const initialState: NamesState = {
         selectionLocalIds: new Set(),
         filterLocalIds: new Set(),
         filterEnabled: false,
+        composeErrorsByLocalId: {},
     },
     creationRequest: { status: "idle" }
 }
@@ -240,6 +244,12 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                     ..._.omit(action, ["type"])
                 }
             }
+        case SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP:
+            return setComposeErrorForCreateNameGroup(
+                action.createNameGroupLocalId,
+                action.hasError,
+                state,
+            )
         default: {
             return state;
         }
@@ -1166,4 +1176,18 @@ function removeCompleteCreateNamesAndParentsForCreateNameGroupLocalIds(
     }
 
     return newState
+}
+
+
+function setComposeErrorForCreateNameGroup(createNameGroupLocalId: string, hasError: boolean, state: NamesState): NamesState {
+    return {
+        ...state,
+        createNameGroups: {
+            ...state.createNameGroups,
+            composeErrorsByLocalId: {
+                ...state.createNameGroups.composeErrorsByLocalId,
+                [createNameGroupLocalId]: hasError,
+            },
+        },
+    }
 }

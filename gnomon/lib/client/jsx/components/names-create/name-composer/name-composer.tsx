@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from 'react-redux'
+import { useSelector, batch } from 'react-redux'
 import { makeStyles } from '@material-ui/core/styles';
 import FormGroup from '@material-ui/core/FormGroup';
 import ButtonBase from "@material-ui/core/ButtonBase";
 import Checkbox from "@material-ui/core/Checkbox";
+import Tooltip from "@material-ui/core/Tooltip";
 import FileCopyOutlinedIcon from '@material-ui/icons/FileCopyOutlined';
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
+import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import _ from "lodash"
 
 import { CreateName, CreateNameGroup, CreateNameTokenValue, Rule, RuleToken, TokenValue, UNSET_TOKEN_VALUE, UNSET_VALUE } from "../../../models";
 import { selectRulesByName, selectTokenValuesByLocalId, selectTokens, selectRuleTokenLocalIdsWithRuleName, selectRuleTokensByLocalId, selectRuleNamesHierarchicalListByPrimaryRuleName } from "../../../selectors/rules";
 import { selectCreateNamesByLocalId, selectCreateNameWithLocalId, selectCreateNameLocalIdsWithGroupId, selectCreateNameTokenValueLocalIdsWithCreateNameLocalId, selectCreateNameTokenValuesByLocalId, selectSelectedCreateNameGroupIds, selectSortedCompleteCreateNamesWithCreateNameGroupLocalId, selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId, selectRenderedCompleteCreateNamesByLocalId } from "../../../selectors/names";
-import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection, deleteCreateNameTokenValue } from "../../../actions/names";
+import { addOrReplaceCreateNameTokenValues, setCreateNameRuleCounterValues, duplicateCreateNameGroups, deleteGroupsWithNames, addCreateNameGroupsToSelection, removeCreateNameGroupsFromSelection, deleteCreateNameTokenValue, setCreateNameGroupComposeError } from "../../../actions/names";
 import { selectPathParts } from "../../../selectors/location"
 import { TokenSelect } from "./select";
 import RuleCounterField from "./rule-counter-input";
@@ -152,9 +154,6 @@ const useComposerStyles = makeStyles((theme) => ({
             // account for absolute positioning of <RuleCounterField>
             paddingTop: "1.5em",
         },
-        "&.hasError > *": {
-            padding: "1.5em 0",
-        }
     },
     toolsContainer: {
         display: "inline-flex",
@@ -166,12 +165,20 @@ const useComposerStyles = makeStyles((theme) => ({
         padding: "0",
         paddingRight: "0.25em"
     },
-    editorsContainer: {},
-    errorMessage: {
-        position: "absolute",
+    editorsContainer: {
+        display: "flex",
+        alignItems: "center",
+        position: "relative",
+    },
+    infoTooltip: {
         color: "red",
-        fontStyle: "italic",
+    },
+    infoTooltipContent: {
         fontSize: "14px",
+    },
+    infoTooltipIconContainer: {
+        display: "flex",
+        alignItems: "center",
     },
 }));
 
@@ -203,23 +210,44 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
     const renderedCompleteCreateNamesByLocalId = useSelector(selectRenderedCompleteCreateNamesByLocalId)
 
     useEffect(() => {
-        if (!primaryCompleteCreateName) {
-            setDuplicateTracker({ local: 0, remote: 0 })
-            return
+        async function checkForDuplicates() {
+
+            if (!primaryCompleteCreateName) {
+                batch(() => {
+                    setDuplicateTracker({ local: 0, remote: 0 })
+                    dispatch(setCreateNameGroupComposeError(createNameGroup.localId, false))
+                })
+                return
+            }
+
+            const localInstances = createNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId[
+                primaryCompleteCreateName.localId
+            ].length
+
+            const renderedName = renderedCompleteCreateNamesByLocalId[primaryCompleteCreateName.localId]
+
+            try {
+                const remoteDuplicate = await fetchWhetherNameExistsInMagma(
+                    projectName,
+                    primaryCreateName.ruleName,
+                    renderedName
+                )
+
+                batch(() => {
+                    setDuplicateTracker({ local: localInstances, remote: remoteDuplicate ? 1 : 0 })
+
+                    if (localInstances > 1 || remoteDuplicate) {
+                        dispatch(setCreateNameGroupComposeError(createNameGroup.localId, true))
+                    } else {
+                        dispatch(setCreateNameGroupComposeError(createNameGroup.localId, false))
+                    }
+                })
+            } catch (err) {
+                console.error(`Error determining whether name "${renderedName}" has remote duplicate: ${err}"`)
+            }
         }
 
-        const localDuplicates = createNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId[
-            primaryCompleteCreateName.localId
-        ].length
-
-        const renderedName = renderedCompleteCreateNamesByLocalId[primaryCompleteCreateName.localId]
-
-        fetchWhetherNameExistsInMagma(projectName, primaryCreateName.ruleName, renderedName)
-            .then(nameExists => {
-                setDuplicateTracker({ local: localDuplicates, remote: nameExists ? 1 : 0 })
-            })
-            .catch(err => `Error determining whether name "${renderedName}" has remote duplicate: ${err}"`)
-
+        checkForDuplicates()
     }, [primaryCompleteCreateName?.localId])
 
     const createErrorMessage = () => {
@@ -313,7 +341,19 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
                     })
                 }
                 {errorMessage &&
-                    <div className={classes.errorMessage}>{errorMessage}</div>}
+                    <Tooltip
+                        className={classes.infoTooltip}
+                        title={<span
+                            className={classes.infoTooltipContent}
+                        >
+                            {errorMessage}
+                        </span>}
+                        arrow
+                    >
+                        <span className={classes.infoTooltipIconContainer}>
+                            <ErrorOutlineIcon />
+                        </span>
+                    </Tooltip>}
             </span>
         </div>
     )

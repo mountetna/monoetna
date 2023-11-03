@@ -29,6 +29,7 @@ export const SET_CREATE_NAME_GROUPS_FILTER_FROM_SEARCH_CRITERIA = "SET_CREATE_NA
 export const ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA = "ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA"
 export const REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA = "REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA"
 export const SET_MAGMA_NAMES_CREATION_REQUEST = "SET_MAGMA_NAMES_CREATION_REQUEST"
+export const SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP = "SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP"
 
 
 export function addNamesWithGroupsWithTokenValues(
@@ -447,7 +448,7 @@ export function makeCreateNamesCreationRequest(projectName: string, payloads: Co
         rule_name: payload.ruleName,
         name: payload.renderedName,
     }))
-    
+
     return (dispatch) => {
         dispatch(setMagmaNamesCreationRequest({ status: "inProgress" }))
 
@@ -469,6 +470,12 @@ export function makeCreateNamesCreationRequest(projectName: string, payloads: Co
     }
 }
 
+
+export function setCreateNameGroupComposeError(createNameGroupLocalId: string, hasError: boolean) {
+    return makeActionObject(SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP, { createNameGroupLocalId, hasError })
+}
+
+
 export type ACTION_TYPE =
     | ReturnType<typeof addNamesWithGroupsWithTokenValues>
     | ReturnType<typeof duplicateCreateNameGroups>
@@ -488,3 +495,4 @@ export type ACTION_TYPE =
     | ReturnType<typeof addCreateNameGroupsToReplaceCriteria>
     | ReturnType<typeof removeCreateNameGroupsFromReplaceCriteria>
     | ReturnType<typeof setMagmaNamesCreationRequest>
+    | ReturnType<typeof setCreateNameGroupComposeError>

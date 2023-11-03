@@ -5,6 +5,7 @@ import { magmaPath } from 'etna-js/api/magma_api';
 
 import { NamesState } from "../reducers/names"
 import { CreateName, CreateNameTokenValue, RuleToken, TokenValue } from '../models';
+import { createFnConcurrencyWrapper } from "./async";
 
 
 
@@ -43,15 +44,13 @@ export function createSearchReplaceCriteriaFromGroups(state: NamesState, createN
     return criteriaList
 }
 
-export function fetchNextCounterValueFromMagma(projectName: string, ruleName: string, tokenPrefix: string): Promise<number> {
+export async function fetchNextCounterValueFromMagma(projectName: string, ruleName: string, tokenPrefix: string): Promise<number> {
+    const response = await json_post(magmaPath(`gnomon/${projectName}/increment/${ruleName}/${tokenPrefix}`))
 
-    return json_post(magmaPath(`gnomon/${projectName}/increment/${ruleName}/${tokenPrefix}`))
-        .then(value => {
-            if (Number.isInteger(Number(value))) {
-                return Number.parseInt(value)
-            }
-            return Promise.reject(`value "${value}" is not an integer`)
-        })
+    if (Number.isInteger(Number(response))) {
+        return Number.parseInt(response)
+    }
+    throw new Error(`value "${response}" is not an integer`)
 }
 
 export function renderTokens(
@@ -112,8 +111,8 @@ export interface MagmaBulkGenerateResponse {
 }
 
 
-export function postNameBatchToMagma(projectName: string, names: MagmaBulkGenerateName[]): Promise<MagmaBulkGenerateResponse> {
-    return json_post(magmaPath(`gnomon/${projectName}/generate`), { names })
+export async function postNameBatchToMagma(projectName: string, names: MagmaBulkGenerateName[]): Promise<MagmaBulkGenerateResponse> {
+    return await json_post(magmaPath(`gnomon/${projectName}/generate`), { names })
 }
 
 export interface MagmaListName {
@@ -123,12 +122,14 @@ export interface MagmaListName {
     record_created_at: string
 }
 
-export function fetchNamesWithRuleAndRegexFromMagma(projectName: string, ruleName: string, regex: string = ".*"): Promise<MagmaListName[]> {
-    return json_get(magmaPath(`gnomon/${projectName}/list/${ruleName}`) + `?regex=${encodeURIComponent(regex)}`)
+export async function fetchNamesWithRuleAndRegexFromMagma(projectName: string, ruleName: string, regex: string = ".*"): Promise<MagmaListName[]> {
+    return await json_get(magmaPath(`gnomon/${projectName}/list/${ruleName}`) + `?regex=${encodeURIComponent(regex)}`)
 }
 
-
-export function fetchWhetherNameExistsInMagma(projectName: string, ruleName: string, name: string): Promise<boolean> {
-    return fetchNamesWithRuleAndRegexFromMagma(projectName, ruleName, `^${name}$`)
-        .then(magmaNames => magmaNames.length > 0)
+async function _fetchWhetherNameExistsInMagma(projectName: string, ruleName: string, name: string): Promise<boolean> {
+    const magmaNames = await fetchNamesWithRuleAndRegexFromMagma(projectName, ruleName, `^${name}$`)
+    return magmaNames.length > 0
 }
+
+// TODO: switch to global magma concurrency limit
+export const fetchWhetherNameExistsInMagma = createFnConcurrencyWrapper(_fetchWhetherNameExistsInMagma, 4)
