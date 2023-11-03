@@ -22,7 +22,7 @@ describe UpdateController do
     @project = create(:project, name: 'The Twelve Labors of Hercules')
   end
 
-  def update(revisions, user_type=:editor, params: {autolink: True})
+  def update(revisions, user_type=:editor, params: {autolink: TRUE})
     auth_header(user_type)
     json_post(:update, {project_name: 'labors', revisions: revisions}.update(params))
   end
