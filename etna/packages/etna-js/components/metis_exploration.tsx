@@ -55,7 +55,7 @@ export function PickBucket({ project_name=CONFIG.project_name, setBucket, bucket
   project_name?: string;
   setBucket: any;
   bucket: string;
-  label?: string;
+  label?: string | null;
   className?: string;
   disablePortal?: boolean;
 }){
