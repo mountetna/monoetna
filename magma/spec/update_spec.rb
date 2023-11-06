@@ -1389,11 +1389,11 @@ describe UpdateController do
           expect(Labors::Victim.count).to be(0)
           expect(Labors::Monster.count).to be(0)
 
-          update(
+          update({
             victim: {
               victim_identifier.identifier => { weapon: 'sword' }
-            },
-            params: {autolink: false}
+            }},
+            params: {}
           )
 
           expect(last_response.status).to eq(200)
@@ -1576,17 +1576,17 @@ describe UpdateController do
           expect(Labors::Victim.count).to be(0)
           expect(Labors::Monster.count).to be(0)
 
-          update(
+          update({
             victim: {
               victim_identifier => { weapon: 'sword' }
-            },
-            params: {autolink: false}
+            }},
+            params: {}
           )
 
           expect(last_response.status).to eq(200)
 
           expect(Labors::Victim.first.weapon).to eq('sword')
-          expect(Labors::Victim.first.name).to eq(victim_identifier.identifier)
+          expect(Labors::Victim.first.name).to eq(victim_identifier)
           expect(Labors::Labor.count).to be(0)
           expect(Labors::Victim.count).to be(1)
           expect(Labors::Monster.count).to be(0)
@@ -1610,10 +1610,10 @@ describe UpdateController do
         )
 
         # Detach the child
-        update(
+        update({
           victim: {
             victim_identifier => { monster: nil }
-          },
+          }},
           params: {autolink: false}
         )
 
