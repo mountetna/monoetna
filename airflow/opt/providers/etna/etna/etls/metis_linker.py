@@ -91,29 +91,35 @@ class MetisLoaderConfig(EtlConfigResponse):
                 if script['format']=="csv":
                     separator = ","
                 if script['format']=="tsv":
-                    separator = "\\t"
+                    separator = "\t"
                 if script['format']=="auto-detect":
                     if re.search("csv$", file.file_path) is not None:
                         separator = ","
                     elif re.search("tsv$", file.file_path) is not None:
-                        separator = "\\t"
+                        separator = "\t"
                     else:
                         # Attempt to use pandas' automated detection
                         separator = None
-                # Maybe Future Feature: expose additional blanker value in config ui
-                data = pandas.read_table(file_reader, sep=separator, engine = 'python').replace({numpy.nan: None})
+                # Load dataframe
+                data = pandas.read_table(file_reader, sep=separator, engine = 'python', na_filter=False)
             if len(data.columns) < 2:
                 raise MetisLoaderError(f"{file.file_name} seems to have fewer than 2 columns. Check the 'format' configuration for this data_frame loader.")
             if not set(columns).issubset(data.columns):
                 missing = ', '.join([col for col in columns if col not in data.columns])
                 raise MetisLoaderError(f"{file.file_name} is missing column(s) targetted by {model_name} data_frame loader 'column_map': {missing}.")
+            if pandas.isna(data).values.any():
+                raise MetisLoaderError(f"{file.file_name} has unexpected NA values after all parsing. Data rows may be shorter than the column row indicates.")
             # Trim to mapped columns and convert to attribute names
             data = data.rename(columns={v: k for k,v in column_map.items()})[attributes]
+            # Blank data equaling values_to_ignore by setting as None (None's are ignored when updates are constructed)
+            if 'values_to_ignore' in script:
+                replacements = {k: None for k in script['values_to_ignore'].split(',')}
+                data=data.replace(replacements)
             # Determine Updates
             if isTable:
                 data['__temp__']=['::temp-id-' + str(temp) for temp in data.index]
                 data = data.set_index('__temp__', drop=True)
-                if script['blank_table']:
+                if script.get('blank_table', False):
                     for parent_name in set(list(data[template.parent])):
                         if not self.get_identifier(template.parent, parent_name):
                             continue

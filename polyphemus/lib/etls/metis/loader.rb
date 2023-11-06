@@ -95,7 +95,8 @@ module Metis
                 type: "object",
                 minProperties: 2,
                 additionalProperties: { type: "string" }
-              }
+              },
+              values_to_ignore: {type: "string"}
             },
             required: ["type", "folder_path", "file_match", "format", "column_map"]
           }
