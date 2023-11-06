@@ -147,6 +147,7 @@ class TestMetisLinker:
             "project_name": "labors",
             "config": {
                 "bucket_name": "pics",
+                "autolink": True,
                 "models": {
                     "victim": {
                         "scripts": [
@@ -172,6 +173,7 @@ class TestMetisLinker:
             "project_name": "labors",
             "config": {
                 "bucket_name": "pics",
+                "autolink": True,
                 "models": {
                     "victim": {
                         "scripts": [
@@ -200,6 +202,7 @@ class TestMetisLinker:
             "project_name": "labors",
             "config": {
                 "bucket_name": "pics",
+                "autolink": True,
                 "models": {
                     "victim": {
                         "scripts": [
@@ -225,6 +228,7 @@ class TestMetisLinker:
             "project_name": "labors",
             "config": {
                 "bucket_name": "pics",
+                "autolink": True,
                 "models": {
                     "victim": {
                         "scripts": [
@@ -250,6 +254,7 @@ class TestMetisLinker:
             "project_name": "labors",
             "config": {
                 "bucket_name": "pics",
+                "autolink": True,
                 "models": {
                     "victim": {
                         "scripts": [
@@ -362,6 +367,11 @@ class TestMetisLinker:
                 'LABORS-LION-H2-C1': {}
             }
         }
+
+        # autolink and dry_run carry through
+        update6 = MetisLoaderConfig(**config1, rules=rules, params={"commit": False}).update_for(tail, metis, model_std)
+        assert asdict(update1)['dry_run'] == True
+        assert asdict(update1)['autolink'] == True
 
         # Note that path3 also makes use of auto file format detection, but is expected to fail later, after the data_frame is read in and found to be missing a mapped column.
         with raises(MetisLoaderError, match=r"missing column.*species"):
