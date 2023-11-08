@@ -196,7 +196,7 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
                 onUpdate={addEtl}
                 job={jobs.find((j) => j.name == selectedEtl?.etl)}
               />
-            : <>
+            :
               <TableContainer className={classes.etl_list}>
                 <Table size="small">
                   <TableHead>
@@ -226,20 +226,21 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
                           job={jobs.find((j) => j.name == etl.etl)}
                         />
                       ))}
+                    <TableRow key='add-loader' className={classes.etlrow}>
+                      <Grid style={{padding: '5px'}}>
+                        <Button onClick={() => setCreate(true)}>Add Loader</Button>
+                        <EtlCreate
+                          project_name={project_name}
+                          open={create}
+                          onClose={() => setCreate(false)}
+                          onCreate={addEtl}
+                          jobs={jobs}
+                        />
+                      </Grid>
+                    </TableRow>
                   </TableBody>
                 </Table>
               </TableContainer>
-              <Grid>
-                <Button onClick={() => setCreate(true)}>Add Loader</Button>
-                <EtlCreate
-                  project_name={project_name}
-                  open={create}
-                  onClose={() => setCreate(false)}
-                  onCreate={addEtl}
-                  jobs={jobs}
-                />
-              </Grid>
-            </>
           }
         </Grid>
       )}
