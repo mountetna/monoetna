@@ -18,7 +18,8 @@ import TableSortLabel from '@material-ui/core/TableSortLabel';
 import TableRow from '@material-ui/core/TableRow';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
-import Paper from '@material-ui/core/Paper';
+import LibraryAddIcon from '@material-ui/icons/LibraryAdd';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import {runTime} from './etl/run-state';
 import {MagmaContext} from 'etna-js/contexts/magma-context';
@@ -182,7 +183,9 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
     />
   } else {
     add_button = <Grid item>
-      <Button disabled={selected && selectedEtl} onClick={() => setCreate(true)}>Add Loader</Button>
+      <Tooltip title='Add New Loader' aria-label='Add New Loader' placement="top">
+        <Button startIcon={<LibraryAddIcon />} disabled={selected && selectedEtl} onClick={() => setCreate(true)}>Loader</Button>
+      </Tooltip>
       <EtlCreate
         project_name={project_name}
         open={create}
@@ -229,7 +232,7 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
     <Grid id='polyphemus-main'>
       {!jobs ? null : (
         <Grid className={classes.etls} item xs={12}>
-          <Grid item container direction alignItems="center">
+          <Grid item container alignItems="center">
             <Grid item xs={5}>
               <Breadcrumbs className={classes.title}>
                 <Typography>
