@@ -22,7 +22,6 @@ import Paper from '@material-ui/core/Paper';
 
 import {runTime} from './etl/run-state';
 import {MagmaContext} from 'etna-js/contexts/magma-context';
-import { ReactElement } from 'react';
 
 const useStyles = makeStyles((theme) => ({
   etls: {
@@ -172,82 +171,76 @@ const PolyphemusMain = ({project_name}: {project_name: string}) => {
     }, [ orderBy, order ]
   );
 
-  let add_button: ReactElement = null
-  let primary_contents: ReactElement = <></>
-  if (selected && selectedEtl) {
-    primary_contents = <EtlConfig
-      {...selectedEtl}
-      onUpdate={addEtl}
-      job={jobs.find((j) => j.name == selectedEtl?.etl)}
-    />
-  } else {
-    add_button = <Grid item>
-      <Button disabled={selected && selectedEtl} onClick={() => setCreate(true)}>Add Loader</Button>
-      <EtlCreate
-        project_name={project_name}
-        open={create}
-        onClose={() => setCreate(false)}
-        onCreate={addEtl}
-        jobs={jobs}
-      />
-    </Grid>
-    primary_contents = <TableContainer className={classes.etl_list}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            {headCells.map((cell) =>
-            <TableCell key={cell.id}
-              align={cell.align}
-              sortDirection={ orderBy === cell.id ? order : 'asc' }>
-              <TableSortLabel
-                active={ orderBy === cell.id }
-                direction={ orderBy === cell.id ? order : 'asc' }
-                onClick={ () => sortBy(cell.id) }>
-                {cell.id}
-              </TableSortLabel>
-            </TableCell>
-            )}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {etls
-            .sort((a, b) => compareBy(a, b))
-            .map((etl: Etl) => (
-              <EtlConfigRow
-                key={etl.name}
-                {...etl}
-                onClick={ () => setSelected(etl.config_id) }
-                job={jobs.find((j) => j.name == etl.etl)}
-              />
-            ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  }
-
   return (
     <Grid id='polyphemus-main'>
       {!jobs ? null : (
         <Grid className={classes.etls} item xs={12}>
-          <Grid item container direction alignItems="center">
-            <Grid item xs={5}>
-              <Breadcrumbs className={classes.title}>
-                <Typography>
-                  {project_name}
-                </Typography>
-                {
-                  selected
-                  ? <Typography className={classes.link} onClick={ () => setSelected(null) }>data loaders</Typography>
-                  : <Typography>data loaders</Typography>
-                }
-                {
-                  selected ? <Typography>{ selectedEtl?.name }</Typography> : null
-                }
-              </Breadcrumbs>
-            </Grid>
-            {add_button}
-          </Grid>
-          {primary_contents}
+          <Breadcrumbs className={classes.title}>
+            <Typography>
+              {project_name}
+            </Typography>
+            {
+              selected
+              ? <Typography className={classes.link} onClick={ () => setSelected(null) }>data loaders</Typography>
+              : <Typography>data loaders</Typography>
+            }
+            {
+              selected ? <Typography>{ selectedEtl?.name }</Typography> : null
+            }
+          </Breadcrumbs>
+          {
+            selected && selectedEtl
+            ? <EtlConfig
+                {...selectedEtl}
+                onUpdate={addEtl}
+                job={jobs.find((j) => j.name == selectedEtl?.etl)}
+              />
+            :
+              <TableContainer className={classes.etl_list}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      {headCells.map((cell) =>
+                      <TableCell key={cell.id}
+                        align={cell.align}
+                        sortDirection={ orderBy === cell.id ? order : 'asc' }>
+                        <TableSortLabel
+                          active={ orderBy === cell.id }
+                          direction={ orderBy === cell.id ? order : 'asc' }
+                          onClick={ () => sortBy(cell.id) }>
+                          {cell.id}
+                        </TableSortLabel>
+                      </TableCell>
+                      )}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {etls
+                      .sort((a, b) => compareBy(a, b))
+                      .map((etl: Etl) => (
+                        <EtlConfigRow
+                          key={etl.name}
+                          {...etl}
+                          onClick={ () => setSelected(etl.config_id) }
+                          job={jobs.find((j) => j.name == etl.etl)}
+                        />
+                      ))}
+                    <TableRow key='add-loader' className={classes.etlrow}>
+                      <Grid style={{padding: '5px'}}>
+                        <Button onClick={() => setCreate(true)}>Add Loader</Button>
+                        <EtlCreate
+                          project_name={project_name}
+                          open={create}
+                          onClose={() => setCreate(false)}
+                          onCreate={addEtl}
+                          jobs={jobs}
+                        />
+                      </Grid>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+          }
         </Grid>
       )}
     </Grid>
