@@ -29,8 +29,7 @@ const useStyles = makeStyles((theme) => ({
   },
   etl_list: {
     border: '1px solid #ccc',
-    height: 'calc(100vh - 160px)',
-    marginBottom: '5px'
+    height: 'calc(100vh - 127px)'
   },
   title: {
     padding: '15px',
