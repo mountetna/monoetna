@@ -18,6 +18,8 @@ import AddIcon from '@material-ui/icons/Add';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CopyIcon from '@material-ui/icons/FileCopy';
 import Pagination from '@material-ui/lab/Pagination';
+import Switch from '@material-ui/core/Switch';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 import {SchemaContext, SchemaProvider} from './schema-context';
 import {PickBucket} from 'etna-js/components/metis_exploration';
@@ -310,6 +312,7 @@ const MetisModel = ({
 
 export type Config = {
   bucket_name: string,
+  autolink: boolean,
   models: { [modelName: string]: Model };
 };
 
@@ -361,13 +364,36 @@ const MetisForm = ({
     [config, update]
   )
 
+  const setAutoLink = useCallback(
+    (autolink: boolean) => {
+      let c = {...config, autolink };
+      update(c as Config);
+    },
+    [config, update]
+  )
+
   const modelConfig = useMemo(() => {
     return configModels[modelName];
   }, [config, modelName]);
 
   return (
     <Grid container className={classes.form} direction='column'>
-      <Grid item container className={classes.bucket_name}><PickBucket setBucket={setBucket} project_name={project_name} bucket={bucket_name}/></Grid>
+      <Grid item container>
+        <Grid item xs={3} style={{paddingLeft:'10px'}}>Autolink Parent Identifiers</Grid>
+        <Grid item xs={9}>
+          <Switch
+            checked={config.autolink}
+            onChange={()=>setAutoLink(!config.autolink)}
+            color="primary"
+          />
+        </Grid>
+      </Grid>
+      <Grid item container>
+        <Grid item xs={3} style={{paddingLeft:'10px'}}>Bucket</Grid>
+        <Grid item xs={9}>
+          <PickBucket setBucket={setBucket} project_name={project_name} bucket={bucket_name} label={null}/>
+        </Grid>
+      </Grid>
       <Grid item container className={classes.tabs}>
         <Grid item className={classes.tab_scroll}>
           <Tabs

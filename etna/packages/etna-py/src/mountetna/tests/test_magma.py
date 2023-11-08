@@ -60,7 +60,7 @@ def test_magma_update(project_template: Dict, labor_template: Dict):
 
 @responses.activate
 def test_magma_update_pages(labor_template: Dict):
-    ''' it updates records in magma by pages'''
+    ''' it updates records in magma by pages, with dry_run and autolink passed through'''
     responses.add(
         responses.POST,
         "https://magma.test/update",
@@ -100,9 +100,28 @@ def test_magma_update_pages(labor_template: Dict):
         "The Lernean Hydra" : { "country" : "Lerna" },
         "The Ceryneian Hind" : { "country" : "Ceryneia" },
         "The Erymanthian Boar" : { "country" : "Erymanthia" }
-    } } }), page_size=2 )
+    } },
+    "dry_run": True, "autolink": True}), page_size=2 )
 
     assert responses.assert_call_count("https://magma.test/update", 2) is True
+    len_calls=len(responses.calls)
+    last2=[len_calls-2, len_calls-1]
+    assert all(['"dry_run":true' in str(responses.calls[i].request.body) for i in last2]) is True
+    assert all(['"autolink":true' in str(responses.calls[i].request.body) for i in last2]) is True
+
+    response = client.update(UpdateRequest(**{ "project_name":"ipi", "revisions": { "labor": {
+        "The Nemean Lion" : { "country" : "Nemea" },
+        "The Lernean Hydra" : { "country" : "Lerna" },
+        "The Ceryneian Hind" : { "country" : "Ceryneia" },
+        "The Erymanthian Boar" : { "country" : "Erymanthia" }
+    } },
+    "dry_run": False, "autolink": False}), page_size=2 )
+
+    assert responses.assert_call_count("https://magma.test/update", 4) is True
+    len_calls=len(responses.calls)
+    last2=[len_calls-2, len_calls-1]
+    assert all(['"dry_run":false' in str(responses.calls[i].request.body) for i in last2]) is True
+    assert all(['"autolink":false' in str(responses.calls[i].request.body) for i in last2]) is True
 
 @responses.activate
 def test_magma_query():
