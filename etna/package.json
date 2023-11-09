@@ -14,6 +14,7 @@
   "devDependencies": {
     "@babel/core": "^7.10.5",
     "@babel/plugin-proposal-class-properties": "^7.10.1",
+    "@babel/plugin-transform-runtime": "^7.23.2",
     "@babel/preset-env": "^7.10.2",
     "@babel/preset-react": "^7.10.1",
     "@babel/runtime-corejs3": "^7.18.9",
@@ -64,7 +65,6 @@
     "webpack-cli": "^4.7.2"
   },
   "dependencies": {
-    "@babel/plugin-transform-runtime": "^7.23.2",
     "@babel/preset-typescript": "^7.13.0",
     "@codemirror/lang-javascript": "^6.0.0",
     "@codemirror/lang-json": "^6.0.0",
@@ -108,6 +108,7 @@
     "eslint-plugin-react-native": "^3.11.0",
     "etna-js": "file:./packages/etna-js",
     "event-hooks-webpack-plugin": "^1.0.0",
+    "exceljs": "^4.4.0",
     "fs-extra": "^9.0.1",
     "handsontable": "^11.1.0",
     "hyperformula": "^2.0.0",

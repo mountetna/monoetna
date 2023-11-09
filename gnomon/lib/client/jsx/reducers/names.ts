@@ -27,7 +27,7 @@ import { listToIdObject, listToIdGroupObject, defaultDict } from '../utils/objec
 import { difference, intersection } from '../utils/set'
 import { MagmaBulkGenerateResponse, SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups, renderCounter, renderTokens } from '../utils/names'
 import { RulesStateSliceForCompleteCreateNames } from '../selectors/global';
-import { createLocalId } from '../utils/models';
+import { Status, createLocalId } from '../utils/models';
 
 
 
@@ -100,7 +100,7 @@ interface CreateNameTokenValuesState {
 
 
 export interface NamesCreationRequestState {
-    status: "idle" | "inProgress" | "success" | "error"
+    status: Status
     statusMessage?: string
     response?: MagmaBulkGenerateResponse
 }

@@ -211,6 +211,9 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
     const primaryCompleteCreateName = sortedCompleteCreateNamesWithCreateNameGroupLocalId[sortedCompleteCreateNamesWithCreateNameGroupLocalId.length - 1]
     const createNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId = useSelector(selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId)
     const renderedCompleteCreateNamesByLocalId = useSelector(selectRenderedCompleteCreateNamesByLocalId)
+    const localInstanceCount = (createNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId[
+        primaryCompleteCreateName?.localId
+    ] || []).length
 
     useEffect(() => {
         async function checkForDuplicates() {
@@ -223,10 +226,6 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
                 return
             }
 
-            const localInstances = createNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId[
-                primaryCompleteCreateName.localId
-            ].length
-
             const renderedName = renderedCompleteCreateNamesByLocalId[primaryCompleteCreateName.localId]
 
             try {
@@ -237,9 +236,9 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
                 )
 
                 batch(() => {
-                    setDuplicateTracker({ local: localInstances, remote: remoteDuplicate ? 1 : 0 })
+                    setDuplicateTracker({ local: localInstanceCount, remote: remoteDuplicate ? 1 : 0 })
 
-                    if (localInstances > 1 || remoteDuplicate) {
+                    if (localInstanceCount > 1 || remoteDuplicate) {
                         dispatch(setCreateNameGroupComposeError(createNameGroup.localId, true))
                     } else {
                         dispatch(setCreateNameGroupComposeError(createNameGroup.localId, false))
@@ -251,7 +250,7 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
         }
 
         checkForDuplicates()
-    }, [primaryCompleteCreateName?.localId])
+    }, [primaryCompleteCreateName?.localId, localInstanceCount])
 
     const createErrorMessage = () => {
         const errorMsgs: string[] = []
@@ -351,7 +350,6 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
                         >
                             {errorMessage}
                         </span>}
-                        arrow
                     >
                         <span className={classes.infoTooltipIconContainer}>
                             <ErrorOutlineIcon />

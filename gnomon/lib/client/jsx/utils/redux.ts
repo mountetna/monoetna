@@ -2,7 +2,7 @@ import { useDispatch as useDispatchBase, batch } from 'react-redux'
 
 
 
-export const useDispatch = (...args: any): (
+export const useDispatch = (...args: Parameters<typeof useDispatchBase>): (
     (dispatchee: Record<any, any> | Record<any, any>[]) => void
 ) => {
     const dispatch = useDispatchBase(...args)

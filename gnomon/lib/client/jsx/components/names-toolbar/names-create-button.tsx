@@ -15,7 +15,6 @@ import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useTheme } from '@material-ui/core/styles';
 import _ from "lodash"
-// import Excel from "exceljs"
 
 import { useDispatch } from "../../utils/redux";
 import NamesTable from "./names-create-table";
@@ -23,6 +22,9 @@ import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
 import { selectCompleteCreateNamesCreationPayloads, selectComposeErrorCount, selectNamesCreationRequestState, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId } from "../../selectors/names";
 import { makeCreateNamesCreationRequest } from "../../actions/names";
 import { selectPathParts } from "../../selectors/location"
+import { exportDataToBlob, FILE_FORMATS_TO_MIME } from "../../utils/export";
+import { Status } from "../../utils/models";
+import MultiOptionButton from "../multi-option-button";
 
 
 
@@ -81,6 +83,18 @@ const useStyles = makeStyles((theme) => ({
             fontWeight: 'bold'
         },
     },
+    exportButton: {
+        "&, & *": {
+            fontSize: "13px",
+        },
+        "& button": {
+            padding: "4px 10px",
+            minWidth: "unset",
+            "&.menuToggle": {
+                padding: "4px 8px",
+            },
+        },
+    },
 }));
 
 
@@ -91,6 +105,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
     const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
     const [open, setOpen] = useState<boolean>(false);
     const [showImplicit, setShowImplicit] = useState<boolean>(false);
+    const [exportStatus, setExportStatus] = useState<Status>("idle")
 
     const projectName = useSelector(selectPathParts)[0]
     const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length
@@ -137,8 +152,37 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
         )
     }
 
-    const renderCreationRequestStatus = () => {
-        const status = creationRequestState.status
+    const handleExportFile = async (fileFormat: keyof typeof FILE_FORMATS_TO_MIME) => {
+        setExportStatus("inProgress")
+
+        try {
+            const blob = await exportDataToBlob(
+                rows.map(row => ({
+                    name: row.name,
+                    rule: row.rule,
+                })),
+                fileFormat,
+            )
+            const filename = `names-${Date.now()}.${fileFormat}`
+
+            const a = document.createElement("a")
+            a.setAttribute("href", window.URL.createObjectURL(blob))
+            a.setAttribute("download", filename);
+            a.click()
+            a.remove()
+
+            setExportStatus("idle")
+        } catch (err) {
+            console.error(`Error export names file: ${err}`)
+            setExportStatus("error")
+        }
+    }
+
+    const handleNavigateBack = () => {
+        window.location.href = `/${projectName}`
+    }
+
+    const renderCreationRequestStatus = (status: Status) => {
         let icon: JSX.Element | undefined = undefined
 
         switch (status) {
@@ -156,7 +200,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
         }
 
         return <span className={`${classes.requestStatus} ${creationRequestState.status}`}>
-            {icon} {_.capitalize(creationRequestState.status)}
+            {icon} {_.startCase(creationRequestState.status)}
         </span>
     }
 
@@ -208,31 +252,53 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                 <DialogActions
                     className={`${classes.dialogActions} ${creationRequestState.status != "idle" ? "withStatus" : ""}`}
                 >
-                    {renderCreationRequestStatus()}
+                    {renderCreationRequestStatus(exportStatus != "idle" ? exportStatus : creationRequestState.status)}
                     <div className={classes.buttonsContainer}>
                         {
-                            creationRequestState.status == ""
-                                ? (<div></div>)
-                                : (<React.Fragment>
+                            creationRequestState.status != "success"
+                                ? (<React.Fragment>
                                     <Button
-                                        autoFocus
                                         onClick={handleClose}
                                         color="secondary"
                                         disableElevation
                                         disabled={creationRequestState.status != "idle"}
+                                        autoFocus
                                     >
                                         Cancel
                                     </Button>
                                     <Button
-                                        autoFocus
                                         onClick={handleCreateAll}
                                         color="primary"
                                         disableElevation
                                         disabled={creationRequestState.status != "idle"}
                                         className={classes.createButton}
+                                        autoFocus
                                     >
                                         Create
                                     </Button>
+                                </React.Fragment>)
+                                : (<React.Fragment>
+                                    <Button
+                                        onClick={handleNavigateBack}
+                                        color="secondary"
+                                        disableElevation
+                                        autoFocus
+                                    >
+                                        Back
+                                    </Button>
+                                    <MultiOptionButton
+                                        onClick={handleExportFile}
+                                        options={["xlsx", "csv", "tsv"]}
+                                        optionPrefix="Export "
+                                        color="primary"
+                                        disableElevation
+                                        disableRipple
+                                        disabled={exportStatus != "idle"}
+                                        className={classes.exportButton}
+                                        autoFocus
+                                    >
+                                        Export
+                                    </MultiOptionButton>
                                 </React.Fragment>)
                         }
                     </div>

@@ -19,7 +19,7 @@ import { selectCommonRulesFromSelection, selectGlobalState, selectReplaceRuleFro
 import { addCreateNameGroupsToReplaceCriteria, createNamesWithGroupForRule, deleteGroupsWithNames, duplicateCreateNameGroups, iterateOnCreateNameGroupsByRule, addOrReplaceCreateNameTokenValuesAndRuleCounterValuesFromReplaceCriteria } from "../../actions/names";
 import { useDispatch } from "../../utils/redux";
 import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
-import AutosizeInput from "../../utils/AutosizeInput";
+import AutosizeInput from "../../utils/autosize-text-input";
 
 
 
