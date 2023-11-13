@@ -9,6 +9,7 @@ import _ from "lodash";
 import UnfoldLessOutlinedIcon from '@material-ui/icons/UnfoldLessOutlined';
 import UnfoldMoreOutlinedIcon from '@material-ui/icons/UnfoldMoreOutlined';
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
+import { useVirtualizer } from '@tanstack/react-virtual'
 
 import { CreateNameGroup } from "../../models";
 import CreateNameGroupComposer from "./name-composer/name-composer";
@@ -116,15 +117,30 @@ const useStyles = makeStyles((theme) => ({
     },
     composer: {
         textAlign: "left",
-        marginBottom: "1em",
-        "&:last-child": {
-            marginBottom: "0",
-        },
     },
 }));
 
 
-const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createNameGroupLocalIds: string[], ruleName: string }) => {
+
+interface ListItemData {
+    className: string
+    createNameGroups: CreateNameGroup[]
+}
+
+
+const ListItem = ({ data, index, style }: { data: ListItemData, index: number, style: object }) => {
+    return (
+        <div
+            style={style}
+            className={data.className}
+        >
+            <CreateNameGroupComposer createNameGroup={data.createNameGroups[index]} includeTools />
+        </div>
+    )
+}
+
+
+const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createNameGroupLocalIds: string[], ruleName: string }) => {
     const [collapsed, setCollapsed] = useState<boolean>(false);
 
     const dispatch = useDispatch()
@@ -143,6 +159,53 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
     )
     const someNotReady = readyCounts[1].value > 0
 
+    // handle rendering composers
+    const virtualizerParentRef = React.useRef<HTMLDivElement>(null)
+    const virtualizer = useVirtualizer({
+        count: createNameGroups.length,
+        getScrollElement: () => virtualizerParentRef.current,
+        estimateSize: () => 65,
+        overscan: 20,
+    })
+
+    const renderComposers = () => {
+        return (
+            <div
+                className={classes.composerList}
+                style={{
+                    height: virtualizer.getTotalSize(),
+                    width: "100%",
+                    position: "relative",
+                }}
+            >
+                {
+                    virtualizer.getVirtualItems().map((row) => {
+                        const createNameGroup = createNameGroups[row.index]
+
+                        return (
+                            <div
+                                key={createNameGroup.localId}
+                                data-index={row.index}
+                                ref={virtualizer.measureElement}
+                                className={classes.composer}
+                                style={{
+                                    position: "absolute",
+                                    top: 0,
+                                    left: 0,
+                                    width: "100%",
+                                    height: `${row.size}px`,
+                                    transform: `translateY(${row.start}px)`,
+                                }}
+                            >
+                                <CreateNameGroupComposer createNameGroup={createNameGroup} includeTools />
+                            </div>
+                        )
+                    })
+                }
+            </div>
+        )
+    }
+
     const handleClickAdd = () => {
         dispatch(createNamesWithGroupForRule(ruleName, globalState, true))
     }
@@ -159,22 +222,6 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
         dispatch(deleteGroupsWithNames(createNameGroupLocalIds, globalState))
     }
 
-    const renderComposers = () => {
-        return (
-            <div className={classes.composerList}>
-                {
-                    createNameGroups.map((createNameGroup) => {
-                        return (
-                            <div key={createNameGroup.localId} className={classes.composer}>
-                                <CreateNameGroupComposer createNameGroup={createNameGroup} includeTools />
-                            </div>
-                        )
-                    })
-                }
-            </div>
-        )
-    }
-
     return (
         <div className={classes.gridContainer}>
             <div className={classes.innerContainer}>
@@ -182,7 +229,7 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
                     <Grid item xs={4}>
                         <div className={classes.tools}>
                             <Checkbox
-                                checked={_.every(createNameGroups, (cng: CreateNameGroup) => selectedCreateNameGroupLocalIds.has(cng.localId))}
+                                checked={_.every(createNameGroups, (cng) => selectedCreateNameGroupLocalIds.has(cng.localId))}
                                 onChange={handleClickSelect}
                                 inputProps={{ 'aria-label': 'Select the Name Group' }}
                                 className={classes.checkbox}
@@ -226,6 +273,7 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
                 <div
                     className={`${classes.composersContainer} ${someNotReady ? "some-not-ready" : ""} ${collapsed ? "collapsed" : ""}`}
                     onClick={() => collapsed && setCollapsed(false)}
+                    ref={virtualizerParentRef}
                 >
                     <div className="placeholder">...</div>
                     {renderComposers()}
@@ -235,4 +283,4 @@ const CreateNameGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createN
     )
 }
 
-export default CreateNameGroupCompose;
+export default CreateNameGroupRuleGroupCompose;

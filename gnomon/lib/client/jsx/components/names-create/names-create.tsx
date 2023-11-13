@@ -7,7 +7,7 @@ import _ from "lodash"
 import ProjectHeader from "etna-js/components/project-header";
 
 import NamesToolbar from "../names-toolbar/names-toolbar";
-import CreateNameGroupCompose from "./name-group-composer";
+import CreateNameRuleGroupCompose from "./rule-group-composer";
 import { fetchRulesFromMagma } from "../../utils/rules"
 import { selectComposeErrorCount, selectCreateNameGroupIdsByPrimaryRule, selectCreateNameGroupsByLocalId, selectFilterCreateNameGroupIds, selectFilterEnabledStatus, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectReplaceCreateNameGroupIds, selectSearchCreateNameGroupIds, selectSelectedCreateNameGroupIds } from "../../selectors/names";
 import { useDispatch } from "../../utils/redux";
@@ -206,7 +206,7 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
                     Object.entries(createNameGroupsIdsByPrimaryRule).map(([ruleName, createNameGroupLocalIds]) => {
                         return (
                             <Grid item key={ruleName} xs={12} md={6} lg={6} xl={3} className={classes.composer}>
-                                <CreateNameGroupCompose
+                                <CreateNameRuleGroupCompose
                                     createNameGroupLocalIds={createNameGroupLocalIds}
                                     ruleName={ruleName}
                                 />

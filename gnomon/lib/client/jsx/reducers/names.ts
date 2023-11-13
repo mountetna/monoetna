@@ -21,7 +21,6 @@ import {
     REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA,
     SET_MAGMA_NAMES_CREATION_REQUEST,
     SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP,
-    DECREMENT_ERROR_COUNT_FOR_CREATE_NAME_GROUP,
 } from '../actions/names';
 import { listToIdObject, listToIdGroupObject, defaultDict } from '../utils/object';
 import { difference, intersection } from '../utils/set'

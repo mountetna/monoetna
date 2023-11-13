@@ -10,6 +10,7 @@ import { fetchNextCounterValueFromMagma } from "../../../utils/names";
 import { selectRuleParentLocalIdsByRuleName } from "../../../selectors/rules";
 import { UNSET_VALUE } from "../../../models";
 import AutosizeTextInput from "../../../utils/autosize-text-input";
+import { createLocalId } from "../../../utils/models";
 
 
 
@@ -85,6 +86,7 @@ const RuleCounterField = ({
 }) => {
 
     const classes = useStyles()
+    const formId = createLocalId()
 
     const completeCreateNameParentLocalIdsByRenderedValues = useSelector(selectCompleteCreateNameParentLocalIdsByRenderedValues)
     const needsParentCompleteCreateName = useSelector(selectRuleParentLocalIdsByRuleName)[ruleName] != undefined
@@ -161,7 +163,7 @@ const RuleCounterField = ({
                     onClick={handleClickAutoIncrement}
                     aria-label={`Set Counter Value for "${ruleName}"`}
                     aria-haspopup="false"
-                    aria-controls="rule-counter-input"
+                    aria-controls={formId}
                     disableRipple
                     disableTouchRipple
                     className={classes.autoIncrementButton}
@@ -174,7 +176,7 @@ const RuleCounterField = ({
                     type="number"
                     inputMode="numeric"
                     inputProps={{ min: 0 }}
-                    id="rule-counter-input"
+                    id={formId}
                     placeholder="n"
                     className={classes.ruleCounterInput}
                     minWidth="0.65em"

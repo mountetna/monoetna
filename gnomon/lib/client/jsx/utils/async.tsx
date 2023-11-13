@@ -13,7 +13,7 @@ export function createFnConcurrencyWrapper<TFunc extends (...args: any[]) => any
 
     return async function (...args: Parameters<TFunc>) {
         while (concurrentCalls >= concurrencyLimit) {
-            await new Promise(resolve => setTimeout(resolve, waitIntervalMs))
+            await asyncSetTimeout(waitIntervalMs)
         }
 
         try {

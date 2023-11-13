@@ -12,6 +12,7 @@ import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 
 import { Rule, Token, TokenValue, UNSET_TOKEN_VALUE } from "../../../models";
 import { selectTokenValueLocalIdsWithTokenName, selectTokenValuesByLocalId } from "../../../selectors/rules";
+import { createLocalId } from "../../../utils/models";
 
 
 
@@ -67,17 +68,19 @@ interface SelectValue {
 
 
 // TODO: change to actual select
-const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, className, onSetValue }:
-    {
-        values: T[],
-        value?: T,
-        label: string,
-        placeholder: string,
-        className?: string,
-        onSetValue: (value?: T) => void,
-    }) => {
+const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, className, includeNullValue = false, onSetValue }: {
+    values: T[],
+    value?: T,
+    label: string,
+    placeholder: string,
+    className?: string,
+    includeNullValue?: boolean,
+    onSetValue: (value?: T) => void,
+}) => {
 
     const classes = useStyles()
+    const formId = createLocalId()
+
     const [open, setOpen] = useState<boolean>(false);
     const anchorEl = useRef(null)
 
@@ -120,7 +123,7 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
                 color="primary"
                 aria-label={`Select Value for ${label}`}
                 aria-haspopup="true"
-                aria-controls={open ? "select-value-container" : undefined}
+                aria-controls={open ? formId : undefined}
                 className={classes.currentSelectValue + " " + (!value ? `${classes.unset}` : "")}
                 disableRipple
                 disableTouchRipple
@@ -142,18 +145,18 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
                     >
                         <Paper variant="outlined">
                             <ClickAwayListener onClickAway={handleClose}>
-                                <MenuList autoFocusItem={open} id="select-value-container">
+                                <MenuList autoFocusItem={open} id={formId}>
                                     <MenuItem key={label} disabled>
                                         <em>Choose a {label}</em>
                                     </MenuItem>
-                                    <MenuItem
+                                    {includeNullValue && <MenuItem
                                         onClick={() => handleClickMenuItem()}
                                         key="none"
                                         disableRipple
                                         className={classes.nullSelectValue}
                                     >
                                         none
-                                    </MenuItem>
+                                    </MenuItem>}
                                     {
                                         values.map(val =>
                                             <MenuItem
