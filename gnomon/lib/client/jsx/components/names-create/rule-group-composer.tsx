@@ -186,7 +186,6 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                             <div
                                 key={createNameGroup.localId}
                                 data-index={row.index}
-                                ref={virtualizer.measureElement}
                                 className={classes.composer}
                                 style={{
                                     position: "absolute",
@@ -197,7 +196,9 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                                     transform: `translateY(${row.start}px)`,
                                 }}
                             >
-                                <CreateNameGroupComposer createNameGroup={createNameGroup} includeTools />
+                                <div ref={virtualizer.measureElement}>
+                                    <CreateNameGroupComposer createNameGroup={createNameGroup} includeTools />
+                                </div>
                             </div>
                         )
                     })
