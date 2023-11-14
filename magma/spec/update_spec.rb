@@ -22,7 +22,7 @@ describe UpdateController do
     @project = create(:project, name: 'The Twelve Labors of Hercules')
   end
 
-  def update(revisions, user_type=:editor, params: {})
+  def update(revisions, user_type=:editor, params: {autolink: true})
     auth_header(user_type)
     json_post(:update, {project_name: 'labors', revisions: revisions}.update(params))
   end
@@ -1375,6 +1375,37 @@ describe UpdateController do
 
         end
 
+        it 'does not happen when autolink param not given (default!)' do
+
+          create(:flag, :gnomon_identifier)
+          grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+
+          project_identifier = create_identifier("The Twelve Labors of Hercules", rule: 'project', grammar: grammar)
+          labor_identifier = create_identifier("The Nemean Lion", rule: 'labor', grammar: grammar)
+          monster_identifier = create_identifier("LABORS-LION-NEMEAN", rule: 'monster', grammar: grammar)
+          victim_identifier = create_identifier("LABORS-LION-NEMEAN-H2-C1", rule: 'victim', grammar: grammar)
+
+          expect(Labors::Labor.count).to be(0)
+          expect(Labors::Victim.count).to be(0)
+          expect(Labors::Monster.count).to be(0)
+
+          update({
+            victim: {
+              victim_identifier.identifier => { weapon: 'sword' }
+            }},
+            params: {}
+          )
+
+          expect(last_response.status).to eq(200)
+
+          expect(Labors::Victim.first.weapon).to eq('sword')
+          expect(Labors::Victim.first.name).to eq(victim_identifier.identifier)
+          expect(Labors::Labor.count).to be(0)
+          expect(Labors::Victim.count).to be(1)
+          expect(Labors::Monster.count).to be(0)
+
+        end
+
         it 'rejects all updates when a hierarchical grammar exists but identifiers do not exist' do
 
           create(:flag, :gnomon_identifier)
@@ -1530,6 +1561,36 @@ describe UpdateController do
           expect(Labors::Labor.first.project_id).to eq(Labors::Project.first.id)
           expect(Labors::Project.first.name).to eq(project_identifier)
         end
+
+        it 'does not happen when autolink param not given (default!)' do
+
+          create(:flag, :gnomon_pattern)
+          grammar = create(:grammar, { project_name: 'labors', version_number: 1, config: HIERARCHY_GRAMMAR_CONFIG, comment: 'update' })
+
+          project_identifier = "The Twelve Labors of Hercules"
+          labor_identifier = "The Nemean Lion"
+          monster_identifier = "LABORS-LION-NEMEAN"
+          victim_identifier = "LABORS-LION-NEMEAN-H2-C1"
+
+          expect(Labors::Labor.count).to be(0)
+          expect(Labors::Victim.count).to be(0)
+          expect(Labors::Monster.count).to be(0)
+
+          update({
+            victim: {
+              victim_identifier => { weapon: 'sword' }
+            }},
+            params: {}
+          )
+
+          expect(last_response.status).to eq(200)
+
+          expect(Labors::Victim.first.weapon).to eq('sword')
+          expect(Labors::Victim.first.name).to eq(victim_identifier)
+          expect(Labors::Labor.count).to be(0)
+          expect(Labors::Victim.count).to be(1)
+          expect(Labors::Monster.count).to be(0)
+        end
       end
     end
 
@@ -1549,10 +1610,11 @@ describe UpdateController do
         )
 
         # Detach the child
-        update(
+        update({
           victim: {
             victim_identifier => { monster: nil }
-          }
+          }},
+          params: {autolink: false}
         )
 
         expect(last_response.status).to eq(200)
@@ -3523,7 +3585,7 @@ describe UpdateController do
       expect(last_response.status).to eq(200)
 
       output = <<EOT
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User copreus@twelve-labors.org calling update#action with params {:project_name=>"labors", :revisions=>{:victim=>{:"John Doe"=>{:birthday=>"*"}}}}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User copreus@twelve-labors.org calling update#action with params {:project_name=>"labors", :revisions=>{:victim=>{:"John Doe"=>{:birthday=>"*"}}}, :autolink=>\"true\"}
 EOT
 
       expect(File.read(@log_file)).to eq(output)
@@ -3548,7 +3610,7 @@ EOT
 
       output = <<EOT
 WARN:2000-01-01T00:00:00+00:00 8fzmq8 ["Cannot revise restricted attribute :birthday on victim 'John Doe'"]
-WARN:2000-01-01T00:00:00+00:00 8fzmq8 User eurystheus@twelve-labors.org calling update#action with params {:project_name=>"labors", :revisions=>{:victim=>{:"John Doe"=>{:birthday=>"*"}}}}
+WARN:2000-01-01T00:00:00+00:00 8fzmq8 User eurystheus@twelve-labors.org calling update#action with params {:project_name=>"labors", :revisions=>{:victim=>{:"John Doe"=>{:birthday=>"*"}}}, :autolink=>\"true\"}
 EOT
 
       expect(File.read(@log_file)).to eq(output)
