@@ -45,7 +45,6 @@ const DeleteButton = ({ small }: { small: boolean }) => {
                 buttonRef={buttonRef}
             />
             <ConfirmationPopper
-                text={`Delete ${selecedCount} name${selecedCount > 1 ? "s" : ""}?`}
                 open={confirmationOpen}
                 onConfirm={handleConfirmDelete}
                 onClose={() => setConfirmationOpen(false)}

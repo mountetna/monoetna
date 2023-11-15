@@ -70,6 +70,7 @@ const CreateNameElementsEditor = ({ createName, rule, includeUnsetAsValue, paren
     })
 
     const renderedTokens: string | undefined = _.every(sortedTokenValues, tv => tv != undefined)
+        // @ts-ignore
         ? sortedTokenValues.map(tv => tv.name).reduce((prev, curr) => prev + curr, "")
         : undefined
 
@@ -211,9 +212,9 @@ const CreateNameGroupComposer = ({ createNameGroup, className, includeTools = fa
     const primaryCompleteCreateName = sortedCompleteCreateNamesWithCreateNameGroupLocalId[sortedCompleteCreateNamesWithCreateNameGroupLocalId.length - 1]
     const createNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId = useSelector(selectCreateNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId)
     const renderedCompleteCreateNamesByLocalId = useSelector(selectRenderedCompleteCreateNamesByLocalId)
-    const localInstanceCount = (createNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId[
-        primaryCompleteCreateName?.localId
-    ] || []).length
+    const localInstanceCount = (primaryCompleteCreateName != undefined ?
+        createNameCompleteCreateNameLocalIdsByCompleteCreateNameLocalId[primaryCompleteCreateName.localId] : []
+    ).length
 
     useEffect(() => {
         async function checkForDuplicates() {

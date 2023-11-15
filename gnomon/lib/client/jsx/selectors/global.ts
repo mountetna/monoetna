@@ -79,8 +79,10 @@ export const selectReplaceRuleFromSelection: (state: State) => Rule | undefined 
         }
 
         // find the rule that's deepest in the hierarchy
+        const hierarchyLength = Object.keys(replaceRuleNamesToHierarchy).length
         if (Object.keys(replaceRuleNamesToHierarchy).length) {
-            const replaceRuleName = _.sortBy(replaceRuleNamesToHierarchy, [hierarchy => hierarchy.length]).at(-1).at(-1)
+            const replaceRuleNameHierarchy = _.sortBy(replaceRuleNamesToHierarchy, [hierarchy => hierarchy.length])[hierarchyLength - 1]
+            const replaceRuleName = replaceRuleNameHierarchy[replaceRuleNameHierarchy.length - 1]
             return state.rules.rules[replaceRuleName]
         }
 

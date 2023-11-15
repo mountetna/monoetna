@@ -140,10 +140,10 @@ function createCountsList(
 
 
 const NamesCreate = ({ project_name }: { project_name: string }) => {
-    // TODO: loading state
     const dispatch = useDispatch()
     const classes = useStyles()
 
+    // @ts-ignore
     const createNameGroupsIdsByPrimaryRule = useSelector((state: State) => selectCreateNameGroupIdsByPrimaryRule(state, true, true))
     const completeCreateNameGroupsCount = Object.keys(useSelector(selectRenderedCompleteCreateNamesByCreateNameGroupLocalId)).length
     let totalCreateNameGroupsCount = Object.keys(useSelector(selectCreateNameGroupsByLocalId)).length
@@ -194,7 +194,7 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
                 {
                     Object.entries(createNameGroupsIdsByPrimaryRule).map(([ruleName, createNameGroupLocalIds]) => {
                         return (
-                            <Grid item key={ruleName} xs={12} md={6} lg={6} xl={3} className={classes.composer}>
+                            <Grid item key={ruleName} xs={12} md={6} lg={6} xl={4} className={classes.composer}>
                                 <CreateNameRuleGroupCompose
                                     createNameGroupLocalIds={createNameGroupLocalIds}
                                     ruleName={ruleName}

@@ -283,7 +283,6 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                                 <DeleteOutlineOutlinedIcon />
                             </ButtonBase>
                             <ConfirmationPopper
-                                text={`Delete all ${ruleName} names?`}
                                 open={deleteConfirmationPopperOpen}
                                 onConfirm={handleConfirmDelete}
                                 onClose={() => setDeleteConfirmationPopperOpen(false)}

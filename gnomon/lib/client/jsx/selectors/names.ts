@@ -24,8 +24,8 @@ export const selectCreateNameGroupsWithLocalIds = (localIds: string[]) => (state
 export const selectCreateNameGroupIdsByPrimaryRule: (state: State, omitSearchAndReplaceIds?: boolean, respectFilter?: boolean) => Record<string, string[]> = createSelector(
     [
         (state: State) => state.names,
-        (state, omitSearchAndReplaceIds = true) => omitSearchAndReplaceIds,
-        (state, omitSearchAndReplaceIds, respectFilter = true) => respectFilter,
+        (state: State, omitSearchAndReplaceIds: boolean = true) => omitSearchAndReplaceIds,
+        (state: State, omitSearchAndReplaceIds: boolean = true, respectFilter: boolean = true) => respectFilter,
     ],
     (names: NamesState, omitSearchAndReplaceIds: boolean, respectFilter: boolean): Record<string, string[]> => {
 

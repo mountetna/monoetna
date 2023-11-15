@@ -159,6 +159,7 @@ const IterateRuleRadio = ({ radioValue, currentRadioValue, label, rules, ruleVal
                 </FormControl>
             </div>
             <div className="form-row">
+                {/* @ts-ignore */}
                 <FormControl className={classes.iterateBoundaryInputs} onClick={handleFormClick}>
                     <FormLabel>Start</FormLabel>
                     <AutosizeInput
@@ -170,6 +171,7 @@ const IterateRuleRadio = ({ radioValue, currentRadioValue, label, rules, ruleVal
                         placeholder="n"
                     />
                 </FormControl>
+                {/* @ts-ignore */}
                 <FormControl className={classes.iterateBoundaryInputs} onClick={handleFormClick}>
                     <FormLabel>End</FormLabel>
                     <AutosizeInput

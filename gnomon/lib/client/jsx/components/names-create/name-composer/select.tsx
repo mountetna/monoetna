@@ -97,6 +97,7 @@ const SelectBase = <T extends SelectValue>({ values, value, label, placeholder, 
         if (values.length > 1) {
             return true
         }
+        return false
     }
 
     const handleToggle = () => {

@@ -1,6 +1,5 @@
 import * as Redux from 'redux';
 import thunk from 'redux-thunk';
-import * as ReduxLogger from 'redux-logger';
 import user from 'etna-js/reducers/user-reducer';
 import janus from 'etna-js/reducers/janus-reducer';
 import location from 'etna-js/reducers/location_reducer';
@@ -38,10 +37,13 @@ const createStore = () => {
 
   let composeEnhancers = Redux.compose
 
+  // @ts-ignore
   if (process.env.NODE_ENV != 'production') {
     // middleWares.unshift(ReduxLogger.createLogger({ collapsed: true }));
 
+    // @ts-ignore
     if (typeof window === 'object' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) {
+      // @ts-ignore
       composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
         // options: https://github.com/zalmoxisus/redux-devtools-extension/blob/master/docs/API/Arguments.md
         // trace: true,

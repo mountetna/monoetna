@@ -57,7 +57,7 @@ const ConfirmationPopper = ({ text, open, onConfirm, onClose, className, anchorR
                         <ClickAwayListener onClickAway={onClose}>
 
                             <div className={`${classes.popper} ${className != undefined ? className : ""}`}>
-                                <div>{text}</div>
+                                {text?.length && <div>{text}</div>}
 
                                 <div className={classes.buttonsContainer}>
                                     <Button
@@ -69,7 +69,7 @@ const ConfirmationPopper = ({ text, open, onConfirm, onClose, className, anchorR
                                     >
                                         Cancel
                                     </Button>
-                                    
+
                                     <Button
                                         variant="contained"
                                         color="primary"
