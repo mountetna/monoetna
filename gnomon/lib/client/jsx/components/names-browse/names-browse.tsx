@@ -2,7 +2,9 @@ import React, { useCallback, useMemo, useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { ColDef, CellClickedEvent } from 'ag-grid-community'
 import { AgGridReact } from 'ag-grid-react'
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles'
+
+import ProjectHeader from "etna-js/components/project-header"
 
 import { selectRulesByName } from '../../selectors/rules'
 import { fetchNamesWithRuleAndRegexFromMagma } from '../../utils/names'
@@ -12,19 +14,18 @@ import { useDispatch } from '../../utils/redux'
 import { setMagmaNamesListRequest } from '../../actions/names'
 import { fetchRulesFromMagma } from '../../actions/rules'
 import { selectMagmaNamesListsByRuleName } from '../../selectors/names'
-
-import ProjectHeader from "etna-js/components/project-header";
-
 import NamesBrowseToolbar from './toolbar'
+import Counts, { Count } from '../names-create/counts'
+import { useWindowDimensions } from '../../utils/responsive'
 
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
-import Counts, { Count } from '../names-create/counts';
 
 
 
 const useStyles = makeStyles((theme) => {
-    const width = "70vw"
+    const gridSize = "70"
+    const gridSizeSm = "95"
 
     return {
         projectAndToolbarContainer: {
@@ -41,7 +42,7 @@ const useStyles = makeStyles((theme) => {
             marginTop: "0.5em",
             textAlign: "center"
         },
-        readyCounts: {
+        selectedCounts: {
             display: "inline-block",
             '& .count, & .separator': {
                 display: "inline-block",
@@ -59,13 +60,25 @@ const useStyles = makeStyles((theme) => {
             alignItems: "center",
             margin: "5.5em 0",
         },
-        selectedValue: {
-            width,
+        selectedValueContainer: {
+            width: `${gridSize}vw`,
+            [theme.breakpoints.down('sm')]: {
+                width: `${gridSizeSm}vw`,
+            },
+            display: "flex",
+            alignItems: "center",
             textAlign: "left",
+            background: "rgba(153, 153, 153, 0.1)",
+        },
+        selectedValue: {
+            padding: "1em",
         },
         gridContainer: {
-            width,
-            height: "70vh",
+            width: `${gridSize}vw`,
+            height: `${gridSize}vh`,
+            [theme.breakpoints.down('sm')]: {
+                width: `${gridSizeSm}vw`,
+            },
         },
     }
 })
@@ -92,6 +105,8 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
     const allRules = Object.keys(useSelector(selectRulesByName))
     const projectName = useSelector(selectPathParts)[0]
     const magmaNamesListsByRuleName = useSelector(selectMagmaNamesListsByRuleName)
+
+    const windowDimensions = useWindowDimensions()
 
     useEffect(() => {
         async function addRulesFromMagma() {
@@ -164,16 +179,20 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
         sortable: true
     }), [])
 
-    const onFirstDataRendered = useCallback((params) => {
-        gridRef.current && gridRef.current.api.sizeColumnsToFit();
+    const sizeColumnsToFit = useCallback(() => {
+        if (gridRef.current?.api == undefined) { return }
+
+        gridRef.current.api.sizeColumnsToFit();
     }, []);
+
+    useEffect(sizeColumnsToFit, [windowDimensions])
 
     const handleCellClicked = useCallback((event: CellClickedEvent) => {
         setFocusedCell(event.value)
     }, [])
 
     const handleSelectionChanged = useCallback(() => {
-        if (gridRef.current == undefined) { return }
+        if (gridRef.current?.api == undefined) { return }
 
         setSelection(
             gridRef.current.api.getSelectedRows()
@@ -192,8 +211,7 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
             <div className={classes.countsList}>
                 <Counts
                     counts={counts}
-                    className={classes.readyCounts}
-                    separator="•"
+                    className={classes.selectedCounts}
                 />
             </div>
         )
@@ -211,7 +229,11 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
             </div>
             {renderCounts()}
             <div className={classes.outerContainer}>
-                <div className={classes.selectedValue}>{focusedCell ? focusedCell : " "}</div>
+                <div className={classes.selectedValueContainer}>
+                    <span className={classes.selectedValue}>
+                        {focusedCell ? focusedCell : "‎"}
+                    </span>
+                </div>
                 <div className={`ag-theme-alpine ${classes.gridContainer}`}>
                     <AgGridReact
                         ref={gridRef}
@@ -220,7 +242,7 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
                         defaultColDef={defaultColDef}
                         rowSelection='multiple'
                         suppressRowClickSelection={true}
-                        onFirstDataRendered={onFirstDataRendered}
+                        onFirstDataRendered={sizeColumnsToFit}
                         onCellClicked={handleCellClicked}
                         onSelectionChanged={handleSelectionChanged}
                     />
@@ -232,5 +254,3 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
 
 
 export default NamesBrowse
-
-

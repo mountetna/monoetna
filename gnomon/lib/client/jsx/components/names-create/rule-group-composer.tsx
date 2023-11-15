@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Grid from "@material-ui/core/Grid";
-import { useSelector } from 'react-redux'
+import { useSelector, batch } from 'react-redux'
 import ButtonBase from "@material-ui/core/ButtonBase";
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 import Checkbox from "@material-ui/core/Checkbox";
@@ -18,6 +18,7 @@ import { deleteGroupsWithNames, createNamesWithGroupForRule, addCreateNameGroups
 import { useDispatch } from "../../utils/redux";
 import { selectGlobalState } from "../../selectors/global";
 import Counts, { Count } from "./counts";
+import ConfirmationPopper from "../../utils/confirmation-popper";
 
 
 
@@ -126,6 +127,9 @@ const useStyles = makeStyles((theme) => ({
 
 const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createNameGroupLocalIds: string[], ruleName: string }) => {
     const [collapsed, setCollapsed] = useState<boolean>(false);
+    const [deleteConfirmationPopperOpen, setDeleteConfirmationPopperOpen] = useState<boolean>(false)
+
+    const deleteButtonRef = useRef(null)
 
     const dispatch = useDispatch()
     const classes = useStyles()
@@ -229,8 +233,16 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
         dispatch(removeCreateNameGroupsFromSelection(createNameGroupLocalIds))
     }
 
-    const handleClickDelete = () => {
-        dispatch(deleteGroupsWithNames(createNameGroupLocalIds, globalState))
+    const handleConfirmDelete = (confirmed: boolean) => {
+        if (!confirmed) {
+            setDeleteConfirmationPopperOpen(false)
+            return
+        }
+
+        batch(() => {
+            dispatch(deleteGroupsWithNames(createNameGroupLocalIds, globalState))
+            setDeleteConfirmationPopperOpen(false)
+        })
     }
 
     return (
@@ -262,13 +274,21 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                                 <AddCircleOutlineIcon />
                             </ButtonBase>
                             <ButtonBase
-                                onClick={handleClickDelete}
-                                aria-label="Delete Name"
+                                onClick={() => setDeleteConfirmationPopperOpen(open => !open)}
+                                aria-label="Delete Names"
                                 disableRipple
                                 disableTouchRipple
+                                ref={deleteButtonRef}
                             >
                                 <DeleteOutlineOutlinedIcon />
                             </ButtonBase>
+                            <ConfirmationPopper
+                                text={`Delete all ${ruleName} names?`}
+                                open={deleteConfirmationPopperOpen}
+                                onConfirm={handleConfirmDelete}
+                                onClose={() => setDeleteConfirmationPopperOpen(false)}
+                                anchorRef={deleteButtonRef}
+                            />
                         </div>
                     </Grid>
                     <Grid item xs={4}>

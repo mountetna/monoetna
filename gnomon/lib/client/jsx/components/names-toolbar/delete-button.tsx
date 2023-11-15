@@ -1,5 +1,5 @@
-import React from "react";
-import { useSelector} from 'react-redux';
+import React, { useState, useRef } from "react";
+import { useSelector, batch } from 'react-redux';
 import DeleteOutlineOutlinedIcon from "@material-ui/icons/DeleteOutlineOutlined";
 
 import { useDispatch } from "../../utils/redux";
@@ -7,28 +7,51 @@ import ToolbarButtonWithPopper from "./toolbar-button-with-popper";
 import { deleteSelectedGroupsWithNames } from "../../actions/names";
 import { selectGlobalState } from "../../selectors/global";
 import { selectSelectedCreateNameGroupIds } from "../../selectors/names";
+import ConfirmationPopper from "../../utils/confirmation-popper";
 
 
 
 const DeleteButton = ({ small }: { small: boolean }) => {
     const dispatch = useDispatch()
 
-    const globalState = useSelector(selectGlobalState)
-    const selectedCreateNameGroupLocalIds = useSelector(selectSelectedCreateNameGroupIds)
+    const [confirmationOpen, setConfirmationOpen] = useState<boolean>(false)
 
-    const handleClickDelete = () => {
-        dispatch(deleteSelectedGroupsWithNames(globalState))
+    const buttonRef = useRef(null)
+
+    const globalState = useSelector(selectGlobalState)
+    const selecedCount = useSelector(selectSelectedCreateNameGroupIds).size
+
+    const handleConfirmDelete = (confirmed: boolean) => {
+        if (!confirmed) {
+            setConfirmationOpen(false)
+            return
+        }
+
+        batch(() => {
+            dispatch(deleteSelectedGroupsWithNames(globalState))
+            setConfirmationOpen(false)
+        })
     }
 
     return (
-        <ToolbarButtonWithPopper
-            text="Delete"
-            iconComponent={<DeleteOutlineOutlinedIcon />}
-            variant={small ? "compact" : "full"}
-            color="#FF0000"
-            onClickOrPopperChange={handleClickDelete}
-            disabled={selectedCreateNameGroupLocalIds.size == 0}
-        />
+        <React.Fragment>
+            <ToolbarButtonWithPopper
+                text="Delete"
+                iconComponent={<DeleteOutlineOutlinedIcon />}
+                variant={small ? "compact" : "full"}
+                color="#FF0000"
+                onClickOrPopperChange={() => setConfirmationOpen(open => !open)}
+                disabled={selecedCount == 0}
+                buttonRef={buttonRef}
+            />
+            <ConfirmationPopper
+                text={`Delete ${selecedCount} name${selecedCount > 1 ? "s" : ""}?`}
+                open={confirmationOpen}
+                onConfirm={handleConfirmDelete}
+                onClose={() => setConfirmationOpen(false)}
+                anchorRef={buttonRef}
+            />
+        </React.Fragment>
     )
 };
 

@@ -29,7 +29,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color = "default", disabled = false, popperComponent, popperId, onClickOrPopperChange, popperOpen = false, className }: {
+const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color = "default", disabled = false, popperComponent, popperId, onClickOrPopperChange, popperOpen = false, className, buttonRef }: {
     text: string,
     iconComponent: JSX.Element,
     variant: "full" | "compact",
@@ -40,10 +40,12 @@ const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color = "defaul
     onClickOrPopperChange?: (open: boolean) => void,
     popperOpen?: boolean,
     className?: string,
+    buttonRef?: React.MutableRefObject<null>
 }) => {
 
     const classes = useStyles()
-    const anchorEl = useRef(null)
+
+    const anchorRef = buttonRef || useRef(null)
     const baseTheme = useTheme()
     const customColor = ["inherit", "default", "primary", "secondary"].indexOf(color) == -1
     const theme = customColor ? createCustomColorButtonTheme(color, baseTheme) : baseTheme
@@ -64,7 +66,7 @@ const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color = "defaul
         return <Button
             startIcon={variant == "full" ? iconComponent : undefined}
             onClick={handleToggle}
-            ref={anchorEl}
+            ref={anchorRef}
             // @ts-ignore
             color={customColor ? "primary" : color}
             aria-label={text}
@@ -101,7 +103,7 @@ const ToolbarButtonWithPopper = ({ text, iconComponent, variant, color = "defaul
                 && (
                     <Popper
                         open={popperOpen}
-                        anchorEl={anchorEl.current}
+                        anchorEl={anchorRef.current}
                         placement='bottom'
                         role={undefined}
                         transition
