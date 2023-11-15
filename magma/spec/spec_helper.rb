@@ -517,6 +517,24 @@ def create_identifier(id, params={})
   )
 end
 
+def register_flag(flag_hash)
+    # This dynamically creates constants in the Flags mode and "registers" them
+    # The first argument is just the name of the constant, it can be random.
+    constant_name = 'TEST_' + (1..4).map { ('A'..'Z').to_a.sample }.join
+    Magma::Flags.const_set(constant_name, flag_hash)
+end
+
+def unregister_flags
+  Magma::Flags.constants.select { |const| const.to_s.start_with?('TEST_') }.each do |const|
+    Magma::Flags.module_eval { remove_const(const) }
+  end
+end
+
+def create_flags_in_db(flag_hash)
+  flag_hash.each do |k,v|
+    create(:flag, project_name: "labors", flag_name: k, value: v)
+  end
+end
 
 VALID_GRAMMAR_CONFIG={
   tokens: {

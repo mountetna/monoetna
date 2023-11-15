@@ -67,6 +67,7 @@ class UpdateRequest:
     )
     project_name: str = ""
     dry_run: bool = False
+    autolink: bool = False
 
     def __bool__(self):
         return not self.empty()
@@ -293,14 +294,14 @@ class Pager:
 
             if page_count > page_size:
                 results.extend(
-                    self.magma.update(UpdateRequest(project_name=update.project_name, revisions=page))
+                    self.magma.update(UpdateRequest(project_name=update.project_name, revisions=page, dry_run=update.dry_run, autolink=update.autolink))
                 )
 
                 page = {}
                 page_count = 0
 
         results.extend(
-            self.magma.update(UpdateRequest(project_name=update.project_name, revisions=page))
+            self.magma.update(UpdateRequest(project_name=update.project_name, revisions=page, dry_run=update.dry_run, autolink=update.autolink))
         )
 
         return results
