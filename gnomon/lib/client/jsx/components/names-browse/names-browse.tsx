@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { ColDef, CellClickedEvent, SelectionChangedEvent } from 'ag-grid-community'
+import { ColDef, CellClickedEvent } from 'ag-grid-community'
 import { AgGridReact } from 'ag-grid-react'
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -81,51 +81,17 @@ interface Name {
 
 const NamesBrowse = ({ project_name }: { project_name: string }) => {
     const classes = useStyles()
+    const dispatch = useDispatch()
 
     const [focusedCell, setFocusedCell] = useState<string>()
     const [selection, setSelection] = useState<Name[]>([])
-
-    const commonColumnSettings: ColDef<Name, any> = {
-        filter: true,
-        resizable: true,
-        headerCheckboxSelection: params => {
-            const displayedColumns = params.columnApi.getAllDisplayedColumns();
-            return displayedColumns[0] === params.column;
-        },
-        headerCheckboxSelectionFilteredOnly: true,
-    }
-
-    const columnDefs: ColDef<Name, any>[] = [
-        { field: 'name', checkboxSelection: true, ...commonColumnSettings },
-        { field: 'ruleName', ...commonColumnSettings },
-        { field: 'author', ...commonColumnSettings },
-        { field: 'createdAt', ...commonColumnSettings },
-    ]
+    const [rowData, setRowData] = useState<Name[]>([])
 
     const gridRef = useRef<AgGridReact<Name>>(null)
-    const dispatch = useDispatch()
 
     const allRules = Object.keys(useSelector(selectRulesByName))
     const projectName = useSelector(selectPathParts)[0]
-
     const magmaNamesListsByRuleName = useSelector(selectMagmaNamesListsByRuleName)
-    const rowData: Name[] = []
-
-    for (const [ruleName, namesListRequest] of Object.entries(magmaNamesListsByRuleName)) {
-        if (namesListRequest.status != "success" || namesListRequest.response == undefined) {
-            continue
-        }
-
-        for (const magmaName of namesListRequest.response) {
-            rowData.push({
-                name: magmaName.identifier,
-                ruleName,
-                author: magmaName.author,
-                createdAt: magmaName.name_created_at,
-            })
-        }
-    }
-
 
     useEffect(() => {
         async function addRulesFromMagma() {
@@ -156,6 +122,43 @@ const NamesBrowse = ({ project_name }: { project_name: string }) => {
         allRules.forEach(ruleName => fetchNamesFromMagma(ruleName))
     }, [allRules.length])
 
+    useEffect(() => {
+        const newRowData: Name[] = []
+
+        for (const [ruleName, namesListRequest] of Object.entries(magmaNamesListsByRuleName)) {
+            if (namesListRequest.status != "success" || namesListRequest.response == undefined) {
+                continue
+            }
+
+            for (const magmaName of namesListRequest.response) {
+
+                newRowData.push({
+                    name: magmaName.identifier,
+                    ruleName,
+                    author: magmaName.author,
+                    createdAt: magmaName.name_created_at,
+                })
+            }
+        }
+
+        setRowData(newRowData)
+    }, [magmaNamesListsByRuleName])
+
+    const commonColumnSettings: ColDef<Name, any> = {
+        filter: true,
+        resizable: true,
+        headerCheckboxSelection: params => {
+            const displayedColumns = params.columnApi.getAllDisplayedColumns();
+            return displayedColumns[0] === params.column;
+        },
+        headerCheckboxSelectionFilteredOnly: true,
+    }
+    const [columnDefs, setColumnDefs] = useState<ColDef<Name, any>[]>([
+        { field: 'name', checkboxSelection: true, ...commonColumnSettings },
+        { field: 'ruleName', ...commonColumnSettings },
+        { field: 'author', ...commonColumnSettings },
+        { field: 'createdAt', ...commonColumnSettings },
+    ])
 
     const defaultColDef = useMemo(() => ({
         sortable: true

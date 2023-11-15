@@ -91,6 +91,18 @@ const GnomonMain = ({ project_name }: { project_name: string }) => {
           <Grid><Typography color='secondary'>∼ OR ∼</Typography></Grid>
 
           <Grid>
+            <Button
+              color="secondary"
+              size="large"
+              onClick={onClickBrowse}
+            >
+              Browse identifiers
+            </Button>
+          </Grid>
+
+          <Grid><Typography color='secondary'>∼ OR ∼</Typography></Grid>
+
+          <Grid>
             <FormControl variant='outlined'>
               <Select value='' onChange={onSelectRule} displayEmpty>
                 <MenuItem value='' disabled>Create an identifier</MenuItem>
@@ -110,18 +122,6 @@ const GnomonMain = ({ project_name }: { project_name: string }) => {
               onClick={onClickBulkCreate}
             >
               Create many identifiers
-            </Button>
-          </Grid>
-
-          <Grid><Typography color='secondary'>∼ OR ∼</Typography></Grid>
-
-          <Grid>
-            <Button
-              color="secondary"
-              size="large"
-              onClick={onClickBrowse}
-            >
-              Browse identifiers
             </Button>
           </Grid>
         </Grid>
