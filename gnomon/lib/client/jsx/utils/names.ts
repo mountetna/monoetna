@@ -6,6 +6,7 @@ import { magmaPath } from 'etna-js/api/magma_api';
 import { NamesState } from "../reducers/names"
 import { CreateName, CreateNameTokenValue, RuleToken, TokenValue } from '../models';
 import { createFnConcurrencyWrapper } from "./async";
+import { Status} from '../utils/models';
 
 
 
@@ -133,3 +134,9 @@ async function _fetchWhetherNameExistsInMagma(projectName: string, ruleName: str
 
 // TODO: switch to global magma concurrency limit
 export const fetchWhetherNameExistsInMagma = createFnConcurrencyWrapper(_fetchWhetherNameExistsInMagma, 4)
+
+export interface MagmaRequestState<T> {
+    status: Status
+    statusMessage?: string
+    response?: T
+}

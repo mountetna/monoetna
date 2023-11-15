@@ -61,6 +61,10 @@ const GnomonMain = ({ project_name }: { project_name: string }) => {
     window.location.href = `/${project_name}/create`
   }
 
+  const onClickBrowse = () => {
+    window.location.href = `/${project_name}/browse`
+  }
+
   useEffect(() => {
     json_get(magmaPath(`gnomon/${project_name}`)).then(
       ({ config }) => setRules(Object.keys(config.rules || {}))
@@ -106,6 +110,18 @@ const GnomonMain = ({ project_name }: { project_name: string }) => {
               onClick={onClickBulkCreate}
             >
               Create many identifiers
+            </Button>
+          </Grid>
+
+          <Grid><Typography color='secondary'>∼ OR ∼</Typography></Grid>
+
+          <Grid>
+            <Button
+              color="secondary"
+              size="large"
+              onClick={onClickBrowse}
+            >
+              Browse identifiers
             </Button>
           </Grid>
         </Grid>

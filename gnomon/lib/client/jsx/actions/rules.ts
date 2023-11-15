@@ -1,9 +1,25 @@
 import { Rule, RuleParent, RuleToken, Synonym, Token, TokenValue } from '../models';
 import { makeActionObject } from './utils';
-
+import { fetchRulesFromMagma as _fetchRulesFromMagma } from '../utils/rules';
 
 
 export const ADD_RULES_FROM_MAGMA = "ADD_RULES_FROM_MAGMA"
+
+
+export async function fetchRulesFromMagma(projectName: string) {
+    const rules = await _fetchRulesFromMagma(projectName)
+
+    return (dispatch) => {
+        dispatch(addRulesFromMagma(
+            rules.rules,
+            rules.ruleParents,
+            rules.tokens,
+            rules.ruleTokens,
+            rules.tokenValues,
+            rules.synonyms,
+        ))
+    }
+}
 
 
 export function addRulesFromMagma(

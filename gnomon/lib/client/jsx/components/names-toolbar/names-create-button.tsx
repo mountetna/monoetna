@@ -25,6 +25,7 @@ import { selectPathParts } from "../../selectors/location"
 import { exportDataToBlob, FILE_FORMATS_TO_MIME } from "../../utils/export";
 import { Status } from "../../utils/models";
 import MultiOptionButton from "../multi-option-button";
+import { difference } from "../../utils/set";
 
 
 
@@ -204,6 +205,18 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
         </span>
     }
 
+    const allNamesCreated = () => {
+        if (creationRequestState.status != "success") {
+            return false
+        }
+
+        const notCreated = difference(
+            new Set(creationRequestPayloads.filter(payload => !payload.implicit).map(val => val.renderedName)),
+            new Set((creationRequestState.response?.created || []).map(val => val.identifier)),
+        )
+        return notCreated.size == 0
+    }
+
     return (
         <React.Fragment>
             <ToolbarButtonWithPopper
@@ -255,7 +268,7 @@ const NamesCreateButton = ({ small }: { small: boolean }) => {
                     {renderCreationRequestStatus(exportStatus != "idle" ? exportStatus : creationRequestState.status)}
                     <div className={classes.buttonsContainer}>
                         {
-                            creationRequestState.status != "success"
+                            creationRequestState.status != "success" || !allNamesCreated()
                                 ? (<React.Fragment>
                                     <Button
                                         onClick={handleClose}

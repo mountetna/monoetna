@@ -2,7 +2,7 @@ import { createSelector } from 'reselect'
 import _ from "lodash"
 
 import { CompleteCreateName, CompleteCreateNameParent, CreateName, CreateNameCompleteCreateName, CreateNameGroup, CreateNameTokenValue, UNSET_VALUE } from "../models";
-import { CompleteCreateNameParentsByRenderedValues, NamesCreationRequestState, NamesState } from "../reducers/names"
+import { CompleteCreateNameParentsByRenderedValues, NamesCreationRequestState, NamesListRequestState, NamesState } from "../reducers/names"
 import { defaultDict } from "../utils/object"
 import { State } from '../store';
 import { selectRuleNamesHierarchicalListByPrimaryRuleName } from './rules';
@@ -292,4 +292,8 @@ export const selectComposeErrorsByCreateNameGroupLocalId = (state: State): Recor
 
 export const selectComposeErrorCount = (state: State): number => {
     return Object.values(state.names.createNameGroups.composeErrorsByLocalId).filter(error => error).length
+}
+
+export const selectMagmaNamesListsByRuleName = (state: State): Record<string, NamesListRequestState> => {
+    return state.names.magmaNamesListRequestsByRuleName
 }

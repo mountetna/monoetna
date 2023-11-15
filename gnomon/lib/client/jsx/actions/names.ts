@@ -4,7 +4,7 @@ import { CreateName, CreateNameGroup, CreateNameTokenValue } from "../models"
 import { makeActionObject } from "./utils"
 import { createLocalId } from "../utils/models"
 import { defaultDict } from "../utils/object"
-import { NamesCreationRequestState, NamesState } from "../reducers/names"
+import { NamesCreationRequestState, NamesListRequestState, NamesState } from "../reducers/names"
 import { MagmaBulkGenerateResponse, createSearchReplaceCriteriaFromGroups, postNameBatchToMagma } from "../utils/names"
 import { State } from "../store"
 import { RulesStateSliceForCompleteCreateNames, selectRulesStateSliceForCompleteCreateNames } from "../selectors/global"
@@ -30,6 +30,7 @@ export const ADD_CREATE_NAME_GROUPS_TO_REPLACE_CRITERIA = "ADD_CREATE_NAME_GROUP
 export const REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA = "REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA"
 export const SET_MAGMA_NAMES_CREATION_REQUEST = "SET_MAGMA_NAMES_CREATION_REQUEST"
 export const SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP = "SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP"
+export const SET_MAGMA_NAMES_LIST_REQUEST = "SET_MAGMA_NAMES_LIST_REQUEST"
 
 
 export function addNamesWithGroupsWithTokenValues(
@@ -449,30 +450,38 @@ export function makeCreateNamesCreationRequest(projectName: string, payloads: Co
         name: payload.renderedName,
     }))
 
-    return (dispatch) => {
+    return async (dispatch) => {
         dispatch(setMagmaNamesCreationRequest({ status: "inProgress" }))
 
-        postNameBatchToMagma(projectName, names)
-            .then((response: MagmaBulkGenerateResponse) => {
+        try {
+            const response = await postNameBatchToMagma(projectName, names)
 
-                dispatch(setMagmaNamesCreationRequest({
-                    status: "success",
-                    response,
-                }))
-            })
-            .catch(err => {
-
-                dispatch(setMagmaNamesCreationRequest({
-                    status: "error",
-                    statusMessage: err
-                }))
-            })
+            dispatch(setMagmaNamesCreationRequest({
+                status: "success",
+                response,
+            }))
+        } catch (error) {
+            dispatch(setMagmaNamesCreationRequest({
+                status: "error",
+                statusMessage: error
+            }))
+        }
     }
 }
 
 
 export function setCreateNameGroupComposeError(createNameGroupLocalId: string, hasError: boolean) {
     return makeActionObject(SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP, { createNameGroupLocalId, hasError })
+}
+
+
+export function setMagmaNamesListRequest(requestState: NamesListRequestState, ruleName: string) {
+    return makeActionObject(SET_MAGMA_NAMES_LIST_REQUEST, {
+        status: requestState.status,
+        statusMessage: requestState.statusMessage,
+        response: requestState.response,
+        ruleName,
+    })
 }
 
 
@@ -496,3 +505,4 @@ export type ACTION_TYPE =
     | ReturnType<typeof removeCreateNameGroupsFromReplaceCriteria>
     | ReturnType<typeof setMagmaNamesCreationRequest>
     | ReturnType<typeof setCreateNameGroupComposeError>
+    | ReturnType<typeof setMagmaNamesListRequest>

@@ -112,32 +112,16 @@ const useStyles = makeStyles((theme) => ({
             background: "rgba(0, 0, 0, 0.05)",
         },
     },
-    composerList: {
-
+    composerList: {},
+    composerRowContainer: {
+        "&:not(:last-child) > div": {
+            paddingBottom: "1em",
+        }
     },
-    composer: {
+    composerContainer: {
         textAlign: "left",
     },
 }));
-
-
-
-interface ListItemData {
-    className: string
-    createNameGroups: CreateNameGroup[]
-}
-
-
-const ListItem = ({ data, index, style }: { data: ListItemData, index: number, style: object }) => {
-    return (
-        <div
-            style={style}
-            className={data.className}
-        >
-            <CreateNameGroupComposer createNameGroup={data.createNameGroups[index]} includeTools />
-        </div>
-    )
-}
 
 
 const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: { createNameGroupLocalIds: string[], ruleName: string }) => {
@@ -159,16 +143,17 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
     )
     const someNotReady = readyCounts[1].value > 0
 
-    // handle rendering composers
+    // handle rendering composers with virtual
     const virtualizerParentRef = React.useRef<HTMLDivElement>(null)
     const virtualizer = useVirtualizer({
         count: createNameGroups.length,
         getScrollElement: () => virtualizerParentRef.current,
         estimateSize: () => 65,
-        overscan: 20,
+        overscan: 500,
     })
 
-    const renderComposers = () => {
+    // TODO: switch to this rendering strategy when it's performant
+    const renderComposersWithVirtual = () => {
         return (
             <div
                 className={classes.composerList}
@@ -185,8 +170,6 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                         return (
                             <div
                                 key={createNameGroup.localId}
-                                data-index={row.index}
-                                className={classes.composer}
                                 style={{
                                     position: "absolute",
                                     top: 0,
@@ -195,9 +178,36 @@ const CreateNameGroupRuleGroupCompose = ({ createNameGroupLocalIds, ruleName }: 
                                     height: `${row.size}px`,
                                     transform: `translateY(${row.start}px)`,
                                 }}
+                                className={classes.composerRowContainer}
                             >
-                                <div ref={virtualizer.measureElement}>
+                                <div
+                                    ref={virtualizer.measureElement}
+                                    data-index={row.index}
+                                    className={classes.composerContainer}
+                                >
                                     <CreateNameGroupComposer createNameGroup={createNameGroup} includeTools />
+                                </div>
+                            </div>
+                        )
+                    })
+                }
+            </div>
+        )
+    }
+
+    const renderComposers = () => {
+        return (
+            <div className={classes.composerList}>
+                {
+                    createNameGroups.map((cng) => {
+
+                        return (
+                            <div
+                                key={cng.localId}
+                                className={classes.composerRowContainer}
+                            >
+                                <div className={classes.composerContainer}>
+                                    <CreateNameGroupComposer createNameGroup={cng} includeTools />
                                 </div>
                             </div>
                         )

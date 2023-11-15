@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { makeStyles } from '@material-ui/core/styles';
-import Button from "@material-ui/core/Button";
 
-import AddNamesButton from "./add-names-button";
-import FindAndFilterButton from "./find-and-filter-button";
-import CopyAndReplaceButton from "./copy-and-replace-button"
-import NamesCreateButton from "./names-create-button";
-import DeleteButton from "./delete-button";
-import GrowShrinkButton from "./grow-shrink-button";
+import AddNamesButton from "../names-toolbar/add-names-button";
+import FindAndFilterButton from "../names-toolbar/find-and-filter-button";
+import CopyAndReplaceButton from "../names-toolbar/copy-and-replace-button"
+import NamesCreateButton from "../names-toolbar/names-create-button";
+import DeleteButton from "../names-toolbar/delete-button";
+import GrowShrinkButton from "../names-toolbar/grow-shrink-button";
 
 
 
@@ -32,7 +31,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-const NamesToolbar = () => {
+const NamesCreateToolbar = () => {
     const classes = useStyles()
 
     const [small, setSmall] = useState<boolean>(true);
@@ -61,4 +60,4 @@ const NamesToolbar = () => {
     )
 };
 
-export default NamesToolbar;
+export default NamesCreateToolbar;

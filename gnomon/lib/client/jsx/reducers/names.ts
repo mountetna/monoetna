@@ -21,12 +21,14 @@ import {
     REMOVE_CREATE_NAME_GROUPS_FROM_REPLACE_CRITERIA,
     SET_MAGMA_NAMES_CREATION_REQUEST,
     SET_COMPOSE_ERROR_FOR_CREATE_NAME_GROUP,
+    SET_MAGMA_NAMES_LIST_REQUEST,
 } from '../actions/names';
 import { listToIdObject, listToIdGroupObject, defaultDict } from '../utils/object';
 import { difference, intersection } from '../utils/set'
-import { MagmaBulkGenerateResponse, SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups, renderCounter, renderTokens } from '../utils/names'
+import { MagmaBulkGenerateResponse, MagmaListName, SearchReplaceCriteria, createSearchReplaceCriteriaFromGroups, renderCounter, renderTokens } from '../utils/names'
 import { RulesStateSliceForCompleteCreateNames } from '../selectors/global';
-import { Status, createLocalId } from '../utils/models';
+import { createLocalId } from '../utils/models';
+import { MagmaRequestState } from '../utils/names';
 
 
 
@@ -98,13 +100,6 @@ interface CreateNameTokenValuesState {
 }
 
 
-export interface NamesCreationRequestState {
-    status: Status
-    statusMessage?: string
-    response?: MagmaBulkGenerateResponse
-}
-
-
 interface CreateNameGroupsState {
     byLocalId: Record<string, CreateNameGroup>
     searchLocalIds: Set<string>
@@ -116,6 +111,12 @@ interface CreateNameGroupsState {
 }
 
 
+export type NamesCreationRequestState = MagmaRequestState<MagmaBulkGenerateResponse>
+
+
+export type NamesListRequestState = MagmaRequestState<MagmaListName[]>
+
+
 export interface NamesState {
     createNames: CreateNamesState
     completeCreateNames: CompleteCreateNames
@@ -124,6 +125,7 @@ export interface NamesState {
     createNameTokenValues: CreateNameTokenValuesState
     createNameGroups: CreateNameGroupsState
     creationRequest: NamesCreationRequestState
+    magmaNamesListRequestsByRuleName: Record<string, NamesListRequestState>
 }
 
 const initialState: NamesState = {
@@ -161,7 +163,8 @@ const initialState: NamesState = {
         filterEnabled: false,
         composeErrorsByLocalId: {},
     },
-    creationRequest: { status: "idle" }
+    creationRequest: { status: "idle" },
+    magmaNamesListRequestsByRuleName: {},
 }
 
 
@@ -249,6 +252,17 @@ export function namesReducer(state: NamesState = initialState, action: ACTION_TY
                 action.hasError,
                 state,
             )
+        case SET_MAGMA_NAMES_LIST_REQUEST:
+            return {
+                ...state,
+                magmaNamesListRequestsByRuleName: {
+                    ...state.magmaNamesListRequestsByRuleName,
+                    [action.ruleName]: {
+                        ...state.magmaNamesListRequestsByRuleName[action.ruleName] || {},
+                        ..._.omit(action, ["type", "ruleName"])
+                    },
+                }
+            }
         default: {
             return state;
         }

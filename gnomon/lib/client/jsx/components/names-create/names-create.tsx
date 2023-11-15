@@ -6,15 +6,14 @@ import _ from "lodash"
 
 import ProjectHeader from "etna-js/components/project-header";
 
-import NamesToolbar from "../names-toolbar/names-toolbar";
+import NamesCreateToolbar from "./toolbar";
 import CreateNameRuleGroupCompose from "./rule-group-composer";
-import { fetchRulesFromMagma } from "../../utils/rules"
 import { selectComposeErrorCount, selectCreateNameGroupIdsByPrimaryRule, selectCreateNameGroupsByLocalId, selectFilterCreateNameGroupIds, selectFilterEnabledStatus, selectRenderedCompleteCreateNamesByCreateNameGroupLocalId, selectReplaceCreateNameGroupIds, selectSearchCreateNameGroupIds, selectSelectedCreateNameGroupIds } from "../../selectors/names";
 import { useDispatch } from "../../utils/redux";
 import Counts from "./counts";
 import { clearCreateNameGroupsFilter, clearCreateNameGroupsSelection } from "../../actions/names";
 import { State } from "../../store";
-import { addRulesFromMagma } from "../../actions/rules";
+import { fetchRulesFromMagma } from "../../actions/rules";
 
 
 
@@ -157,20 +156,10 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
     const composeErrorCount = useSelector(selectComposeErrorCount)
 
     useEffect(() => {
-        async function _addRulesFromMagma() {
-            const rules = await fetchRulesFromMagma(project_name)
-
-            dispatch(addRulesFromMagma(
-                rules.rules,
-                rules.ruleParents,
-                rules.tokens,
-                rules.ruleTokens,
-                rules.tokenValues,
-                rules.synonyms,
-            ))
+        async function addRulesFromMagma() {
+            dispatch(await fetchRulesFromMagma(project_name))
         }
-
-        _addRulesFromMagma()
+        addRulesFromMagma()
     }, []);
 
     const handleClickSelected = () => {
@@ -185,7 +174,7 @@ const NamesCreate = ({ project_name }: { project_name: string }) => {
         <React.Fragment>
             <div className={classes.projectAndToolbarContainer}>
                 <ProjectHeader project_name={project_name} />
-                <NamesToolbar />
+                <NamesCreateToolbar />
                 <ProjectHeader project_name={project_name} className="placeholder" />
             </div>
             {

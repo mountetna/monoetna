@@ -6,6 +6,7 @@ import GnomonMain from './gnomon-main';
 import NamesCreate from './components/names-create/names-create';
 import DecomposeIdentifier from './components/decompose-identifier';
 import ComposeIdentifier from './components/compose-identifier';
+import NamesBrowse from './components/names-browse/names-browse';
 import RuleEditor from './components/rule-editor';
 import RootView from 'etna-js/components/RootView';
 
@@ -35,6 +36,10 @@ const ROUTES = [
   {
     template: ':project_name/create/:rule_name',
     component: ComposeIdentifier
+  },
+  {
+    template: ':project_name/browse',
+    component: NamesBrowse
   },
   {
     template: ':project_name/rules',

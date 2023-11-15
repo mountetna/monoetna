@@ -8,6 +8,8 @@ export const FILE_FORMATS_TO_MIME = {
     "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 }
 
+export type FileFormat = keyof typeof FILE_FORMATS_TO_MIME
+
 
 export async function exportDataToBlob<T extends Record<string, any>>(
     data: T[],
